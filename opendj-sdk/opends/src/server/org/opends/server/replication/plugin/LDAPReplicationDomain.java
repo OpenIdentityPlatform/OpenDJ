@@ -140,6 +140,7 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.ModificationType;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Operation;
+import org.opends.server.types.OperationType;
 import org.opends.server.types.RDN;
 import org.opends.server.types.RawModification;
 import org.opends.server.types.ResultCode;
@@ -2367,10 +2368,20 @@ public class LDAPReplicationDomain extends ReplicationDomain
         return;
       }
 
+      // If the operation is a DELETE on the base entry of the suffix
+      // that is replicated, the generation is now lost because the
+      // DB is empty. We need to save it again the next time we add an entry.
+      if ((op.getOperationType().equals(OperationType.DELETE))
+          && (((PostOperationDeleteOperation) op).getEntryDN().equals(baseDn)))
+      {
+        generationIdSavedStatus = false;
+      }
+
       if (generationIdSavedStatus != true)
       {
         this.saveGenerationId(generationId);
       }
+
 
       if (!op.isSynchronizationOperation())
       {
@@ -3493,15 +3504,20 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     return generationId;
   }
 
+
   /**
-   * Stores the value of the generationId.
-   * @param generationId The value of the generationId.
-   * @return a ResultCode indicating if the method was successful.
+   * Run a modify operation to update the entry whose DN is given as
+   * a parameter with the generationID information.
+   *
+   * @param entryDN       The DN of the entry to be updated.
+   * @param generationId  The value of the generationID to be saved.
+   *
+   * @return A ResultCode indicating if the operation was successful.
    */
-  public ResultCode saveGenerationId(long generationId)
+  private ResultCode runSaveGenerationId(DN entryDN, long generationId)
   {
     // The generationId is stored in the root entry of the domain.
-    ByteString asn1BaseDn = ByteString.valueOf(baseDn.toString());
+    ByteString asn1BaseDn = ByteString.valueOf(entryDN.toString());
 
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     ByteString value = ByteString.valueOf(Long.toString(generationId));
@@ -3524,17 +3540,32 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
     op.run();
 
-    ResultCode result = op.getResultCode();
+    return op.getResultCode();
+  }
+
+  /**
+   * Stores the value of the generationId.
+   * @param generationId The value of the generationId.
+   * @return a ResultCode indicating if the method was successful.
+   */
+  public ResultCode saveGenerationId(long generationId)
+  {
+    ResultCode result = runSaveGenerationId(baseDn, generationId);
+
     if (result != ResultCode.SUCCESS)
     {
       generationIdSavedStatus = false;
-      if (result != ResultCode.NO_SUCH_OBJECT)
+      if (result == ResultCode.NO_SUCH_OBJECT)
       {
-        // The case where the backend is empty (NO_SUCH_OBJECT)
-        // is not an error case.
+        // If the base entry does not exist, save the generation
+        // ID in the config entry
+        result = runSaveGenerationId(configDn, generationId);
+      }
+
+      if (result != ResultCode.SUCCESS)
+      {
         Message message = ERR_UPDATING_GENERATION_ID.get(
-            op.getResultCode().getResultCodeName() + " " +
-            op.getErrorMessage(),
+            result.getResultCodeName() + " " ,
             baseDn.toString());
         logError(message);
       }
@@ -3581,6 +3612,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      * Search the database entry that is used to periodically
      * save the generation id
      */
+    SearchResultEntry resultEntry = null;
     InternalSearchOperation search = null;
     LinkedHashSet<String> attributes = new LinkedHashSet<String>(1);
     attributes.add(REPLICATION_GENERATION_ID);
@@ -3588,8 +3620,17 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         SearchScope.BASE_OBJECT,
         DereferencePolicy.DEREF_ALWAYS, 0, 0, false,
         filter,attributes);
-    if (((search.getResultCode() != ResultCode.SUCCESS)) &&
-        ((search.getResultCode() != ResultCode.NO_SUCH_OBJECT)))
+    if (search.getResultCode() == ResultCode.NO_SUCH_OBJECT)
+    {
+      // if the base entry does not exist look for the generationID
+      // in the config entry.
+      asn1BaseDn = ByteString.valueOf(baseDn.toString());
+      search = conn.processSearch(asn1BaseDn,
+          SearchScope.BASE_OBJECT,
+          DereferencePolicy.DEREF_ALWAYS, 0, 0, false,
+          filter,attributes);
+    }
+    if (search.getResultCode() != ResultCode.SUCCESS)
     {
       Message message = ERR_SEARCHING_GENERATION_ID.get(
           search.getResultCode().getResultCodeName() + " " +
@@ -3597,9 +3638,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
           baseDn.toString());
       logError(message);
     }
-
-    SearchResultEntry resultEntry = null;
-    if (search.getResultCode() == ResultCode.SUCCESS)
+    else
     {
       LinkedList<SearchResultEntry> result = search.getSearchEntries();
       resultEntry = result.getFirst();
