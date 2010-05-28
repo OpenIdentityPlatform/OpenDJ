@@ -2635,7 +2635,7 @@ public class ReplicationBroker
                   rsServerUrl,
                   Integer.toString(bestServerInfo.getServerId()));
                 logError(message);
-                reStart(null, true);
+                reStart(true);
               }
 
               // Reset wait time before next computation of best server
