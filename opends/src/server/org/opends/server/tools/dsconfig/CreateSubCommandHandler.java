@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -822,7 +822,13 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         }
       } catch (CommunicationException e) {
         Message msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
-        throw new ClientException(LDAPResultCode.OTHER, msg);
+        if (app.isInteractive()) {
+          app.println();
+          app.printVerboseMessage(msg);
+          return MenuResult.cancel();
+        } else {
+          throw new ClientException(LDAPResultCode.OTHER, msg);
+        }
       } catch (ManagedObjectAlreadyExistsException e) {
         Message msg = ERR_DSCFG_ERROR_CREATE_MOAEE.get(ufn);
         if (app.isInteractive()) {

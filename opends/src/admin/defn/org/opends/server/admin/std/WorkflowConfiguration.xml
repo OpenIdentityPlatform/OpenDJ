@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Copyright 2007-2010 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="workflow" plural-name="workflows"
   package="org.opends.server.admin.std"
@@ -84,7 +84,7 @@
   </adm:property>
   <adm:property name="workflow-element" mandatory="true">
     <adm:synopsis>
-      Specifies the root Work Flow Element in the
+      Specifies the root Workflow Element in the
       <adm:user-friendly-name />
       .
     </adm:synopsis>
