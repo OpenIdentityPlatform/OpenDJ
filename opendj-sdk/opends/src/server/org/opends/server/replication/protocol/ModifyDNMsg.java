@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -672,6 +672,27 @@ public class ModifyDNMsg extends ModifyCommonMsg
   }
 
   /**
+   * Computes and return the new DN that the entry should
+   * have after this operation.
+   *
+   * @return the newDN.
+   * @throws DirectoryException in case of decoding problems.
+   */
+  private DN computeNewDN() throws DirectoryException
+  {
+    if (newSuperior == null)
+    {
+      DN parentDn = DN.decode(this.getDn()).getParent();
+      return parentDn.concat(RDN.decode(newRDN));
+    }
+    else
+    {
+      String newStringDN = newRDN + "," + newSuperior;
+      return DN.decode(newStringDN);
+    }
+  }
+
+  /**
    * Check if this MSG will change the DN of the target entry to be
    * the same as the dn given as a parameter.
    * @param targetDn the DN to use when checking if this MSG will change
@@ -683,18 +704,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
   {
     try
     {
-      DN newDN;
-      if (newSuperior == null)
-      {
-        DN parentDn = DN.decode(this.getDn()).getParent();
-        newDN = parentDn.concat(RDN.decode(newRDN));
-      }
-      else
-      {
-        String newStringDN = newRDN + "," + newSuperior;
-        newDN = DN.decode(newStringDN);
-      }
-
+      DN newDN = computeNewDN();
 
       if (newDN.isAncestorOf(targetDn))
         return true;
@@ -721,8 +731,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
   {
     try
     {
-      String newStringDN = newRDN + "," + newSuperior;
-      DN newDN = DN.decode(newStringDN);
+      DN newDN = computeNewDN();
 
       if (newDN.equals(targetDN))
         return true;
