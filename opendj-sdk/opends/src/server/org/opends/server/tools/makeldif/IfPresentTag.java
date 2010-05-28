@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.makeldif;
 import org.opends.messages.Message;
@@ -169,8 +169,8 @@ public class IfPresentTag
     }
 
     String lowerName = toLowerCase(arguments[0]);
-    AttributeType t = DirectoryServer.getAttributeType(lowerName, true);
-    if (! template.hasAttribute(t))
+    attributeType = DirectoryServer.getAttributeType(lowerName, true);
+    if (! template.hasAttribute(attributeType))
     {
       Message message =
           ERR_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
