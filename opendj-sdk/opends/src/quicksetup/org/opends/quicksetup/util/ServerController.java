@@ -476,9 +476,17 @@ public class ServerController {
             String ldapUrl = "ldaps://"+hostName+":" + port;
             try
             {
+              int timeout = ConnectionUtils.getDefaultLDAPTimeout();
+              if (application != null)
+              {
+                if (application.getUserData() != null)
+                {
+                  timeout = application.getUserData().getConnectTimeout();
+                }
+              }
               ctx = Utils.createLdapsContext(
                   ldapUrl,
-                  userDn, userPw, application.getUserData().getConnectTimeout(),
+                  userDn, userPw, timeout,
                   null, null);
               connected = true;
             }
