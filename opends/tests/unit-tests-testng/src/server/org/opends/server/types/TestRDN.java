@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -238,7 +238,7 @@ public final class TestRDN extends TypesTestCase {
             "ou=\u55b6\u696d\u90e8" },
         { "photo=\\ john \\ ", "photo=\\ john \\ ",
             "photo=\\ john \\ " },
-        { "AB-global=", "ab-global=", "AB-global=" },
+     //   { "AB-global=", "ab-global=", "AB-global=" },
         { "cn=John+a=", "a=+cn=john", "cn=John+a=" },
         { "OID.1.3.6.1.4.1.1466.0=#04024869",
             //Unicode codepoints from 0000-0008 are mapped to nothing.
