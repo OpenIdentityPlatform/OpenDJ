@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 import org.opends.messages.Message;
@@ -672,29 +672,15 @@ public final class RDN
 
 
     // If we are at the end of the RDN string, then that must mean
-    // that the attribute value was empty.  This will probably never
-    // happen in a real-world environment, but technically isn't
-    // illegal.  If it does happen, then go ahead and return the RDN.
+    // that the attribute value was empty.
     if (pos >= length)
     {
       String        name      = attributeName.toString();
       String        lowerName = toLowerCase(name);
-      AttributeType attrType  =
-           DirectoryServer.getAttributeType(lowerName);
-
-      if (attrType == null)
-      {
-        // This must be an attribute type that we don't know about.
-        // In that case, we'll create a new attribute using the
-        // default syntax.  If this is a problem, it will be caught
-        // later either by not finding the target entry or by not
-        // allowing the entry to be added.
-        attrType = DirectoryServer.getDefaultAttributeType(name);
-      }
-
-      AttributeValue value = AttributeValues.create(
-          ByteString.empty(), ByteString.empty());
-      return new RDN(attrType, name, value);
+     Message message = ERR_RDN_MISSING_ATTRIBUTE_VALUE.get(rdnString,
+             lowerName);
+      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
+                                   message);
     }
 
 

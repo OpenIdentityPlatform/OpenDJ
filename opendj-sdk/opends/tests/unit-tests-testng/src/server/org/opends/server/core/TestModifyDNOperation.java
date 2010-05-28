@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -34,15 +34,12 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertFalse;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.types.*;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
-import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.tools.LDAPModify;
@@ -53,6 +50,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.net.Socket;
+import java.util.Hashtable;
+import javax.naming.Context;
+import javax.naming.InvalidNameException;
+import javax.naming.directory.DirContext;
+import javax.naming.directory.InitialDirContext;
 
 public class TestModifyDNOperation extends OperationTestCase
 {
@@ -1512,6 +1514,40 @@ public class TestModifyDNOperation extends OperationTestCase
     modifyDNOperation.abort(cancelRequest);
     modifyDNOperation.run();
     assertEquals(modifyDNOperation.getResultCode(), ResultCode.CANCELED);
+  }
+
+
+  /**
+   * Tests whether an invalid rdn is allowed during an modrdn operation.
+   * This test uses a valid attribute type with an empty value.
+   *
+   * @throws Exception
+   */
+  @Test(expectedExceptions=InvalidNameException.class)
+  public void testInvalidModRDN() throws Exception
+  {
+    Hashtable<String,String> env = new Hashtable<String,String>();
+    env.put(Context.INITIAL_CONTEXT_FACTORY,"com.sun.jndi.ldap.LdapCtxFactory");
+    String url = "ldap://localhost:" + TestCaseUtils.getServerLdapPort()
+            +"/dc=example,dc=com";
+    env.put(Context.PROVIDER_URL,url);
+    env.put(Context.SECURITY_AUTHENTICATION, "simple");
+    env.put(Context.SECURITY_PRINCIPAL, "cn=directory manager");
+    env.put(Context.SECURITY_CREDENTIALS, "password");
+
+    env.put("java.naming.ldap.deleteRDN", "true");  // default is 'true'
+    /* Create the initial context */
+    DirContext ctx = new InitialDirContext(env);
+    try
+    {
+      ctx.rename("uid=user.0,ou=People,dc=example,dc=com",
+                   "uid=,ou=People,dc=example,dc=com");
+    }
+    finally
+    {
+      /* Close the context when it's done */
+      ctx.close();
+    }
   }
 }
 
