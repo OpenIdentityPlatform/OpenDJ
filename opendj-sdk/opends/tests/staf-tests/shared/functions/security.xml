@@ -393,7 +393,9 @@
         listAttr.append('userCertificate;binary:: %s' % ret_str)
       </script>
 
-      <!-- Create the ldif -->
+      <message>
+        'Create %s/client.ldif' % local.temp
+      </message>
       <script>
         addCertificateldif='%s/client.ldif' % local.temp
         outfile = open(addCertificateldif,"w")
@@ -402,10 +404,13 @@
         outfile.close()
       </script>
 
+      <message>
+        'Copy  %s/client.ldif to %s' % (local.temp,ldif_path)
+      </message>
       <call function="'copyFile'">
         {
         'location'   : STAXServiceMachine,
-        'srcfile'    : '%s/client-cert.ldif' % local.temp,
+        'srcfile'    : '%s/client.ldif' % local.temp,
         'destfile'   : ldif_path,
         'remotehost' : STAF_REMOTE_HOSTNAME
         }
@@ -417,7 +422,7 @@
           'dsInstancePort'    : DIRECTORY_INSTANCE_PORT,
           'dsInstanceDn'      : DIRECTORY_INSTANCE_DN,
           'dsInstancePswd'    : DIRECTORY_INSTANCE_PSWD,
-          'entryToBeModified' : addCertificateldif,
+          'entryToBeModified' : ldif_path,
           'expectedRC'        :  0
         }
       </call>

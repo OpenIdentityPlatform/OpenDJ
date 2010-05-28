@@ -1248,7 +1248,7 @@
           ThisGroupName=CurrentTestPath['group']
         else:
           ThisGroupName='unknown-group'
-                
+
         coverage='N/A'
       </script>
       
@@ -4017,13 +4017,13 @@
           STAFCmdParamsList.append('-p %s' % dsInstancePort)
 
         if dsInstanceDn:
-          STAFCmdParamsList.append('-D %s' % dsInstanceDn)
+          STAFCmdParamsList.append('-D "%s"' % dsInstanceDn)
 
         if dsBaseDn:
-          STAFCmdParamsList.append('-b %s' % dsBaseDn)
+          STAFCmdParamsList.append('-b "%s"' % dsBaseDn)
 
         if dsInstancePswd:
-          STAFCmdParamsList.append('-w %s' % dsInstancePswd)
+          STAFCmdParamsList.append('-w "%s"' % dsInstancePswd)
 
         if display:
           STAFCmdParamsList.append('-s')

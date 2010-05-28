@@ -138,8 +138,8 @@ public class PSearchOperations extends Thread {
             if(!ldifFormat)
               write("[Thread id: " + threadId + "] \n" + getDate() + connection);
         } catch (LDAPException ex) {
-            System.out.println("[Thread id: " + threadId + "]Connection :" + ex.getMessage());
-            System.exit(0);
+            System.out.println("[Thread id: " + threadId + "] Connection :" + ex.getMessage());
+            System.exit(1);
         }
     }
     /**
@@ -189,8 +189,8 @@ public class PSearchOperations extends Thread {
             // Start the persistent search.
             res = connection.search(suffix, LDAPv3.SCOPE_SUB, "(objectclass=*)", null, false, cons);
         } catch (LDAPException ex) {
-            System.out.println("[Thread id: " + threadId + "]LDAPSearch :" + ex.getMessage());
-            System.exit(0);
+            System.out.println("[Thread id: " + threadId + "] LDAPSearch :" + ex.getMessage());
+            System.exit(1);
         }
         return res;
     }

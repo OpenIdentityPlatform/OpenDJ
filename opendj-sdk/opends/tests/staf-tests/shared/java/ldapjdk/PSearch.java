@@ -136,7 +136,7 @@ public class PSearch {
       ps.start();
     }
     
-        try {
+    try {
       STAFHandle handle = new STAFHandle("PSearch listener");
       handle.submit2(hostname, "SEM", "PULSE EVENT PSearch/Ready");
       handle.submit2(hostname, "SEM", "WAIT EVENT PSearch tests/Completed");
