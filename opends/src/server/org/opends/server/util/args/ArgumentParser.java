@@ -1512,7 +1512,7 @@ public class ArgumentParser
     StringBuilder buffer = new StringBuilder();
     getUsage(buffer);
 
-    outputStream.write(getBytes(buffer.toString()));
+    outputStream.write(buffer.toString().getBytes());
   }
 
 
