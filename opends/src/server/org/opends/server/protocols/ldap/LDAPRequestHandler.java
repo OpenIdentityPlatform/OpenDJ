@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -50,10 +50,11 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1ByteChannelReader;
+import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.InitializationException;
-
+import org.opends.server.types.LDAPException;
 
 
 /**
@@ -214,12 +215,32 @@ public class LDAPRequestHandler
             }
           }
         }
+        catch (ASN1Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+          readyConnection.disconnect(DisconnectReason.PROTOCOL_ERROR, true,
+            e.getMessageObject());
+        }
+        catch (LDAPException e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+          readyConnection.disconnect(DisconnectReason.PROTOCOL_ERROR, true,
+            e.getMessageObject());
+        }
         catch (Exception e)
         {
           if (debugEnabled())
           {
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
+          readyConnection.disconnect(DisconnectReason.PROTOCOL_ERROR, true,
+            Message.raw(e.toString()));
         }
       }
 
