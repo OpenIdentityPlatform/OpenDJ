@@ -39,16 +39,16 @@ import org.opends.sdk.ByteSequence;
 /**
  * An interface for encoding ASN.1 elements to a data source.
  * <p>
- * Methods for creating {@link ASN1Writer}s are provided in the
- * {@link ASN1} class.
+ * Methods for creating {@link ASN1Writer}s are provided in the {@link ASN1}
+ * class.
  */
 public interface ASN1Writer extends Closeable, Flushable
 {
 
   /**
-   * Closes this ASN.1 writer, flushing it first. Closing a previously
-   * closed ASN.1 writer has no effect. Any unfinished sequences and/or
-   * sets will be ended.
+   * Closes this ASN.1 writer, flushing it first. Closing a previously closed
+   * ASN.1 writer has no effect. Any unfinished sequences and/or sets will be
+   * ended.
    *
    * @throws IOException
    *           If an error occurs while closing.
@@ -59,17 +59,15 @@ public interface ASN1Writer extends Closeable, Flushable
 
   /**
    * Flushes this ASN.1 writer so that any buffered elements are written
-   * immediately to their intended destination. Then, if that
-   * destination is another byte stream, flush it. Thus one {@code
-   * flush()} invocation will flush all the buffers in a chain of
-   * streams.
+   * immediately to their intended destination. Then, if that destination is
+   * another byte stream, flush it. Thus one {@code flush()} invocation will
+   * flush all the buffers in a chain of streams.
    * <p>
-   * If the intended destination of this stream is an abstraction
-   * provided by the underlying operating system, for example a file,
-   * then flushing the stream guarantees only that bytes previously
-   * written to the stream are passed to the operating system for
-   * writing; it does not guarantee that they are actually written to a
-   * physical device such as a disk drive.
+   * If the intended destination of this stream is an abstraction provided by
+   * the underlying operating system, for example a file, then flushing the
+   * stream guarantees only that bytes previously written to the stream are
+   * passed to the operating system for writing; it does not guarantee that they
+   * are actually written to a physical device such as a disk drive.
    *
    * @throws IOException
    *           If an error occurs while flushing.
@@ -79,8 +77,7 @@ public interface ASN1Writer extends Closeable, Flushable
 
 
   /**
-   * Writes a boolean element using the Universal Boolean ASN.1 type
-   * tag.
+   * Writes a boolean element using the Universal Boolean ASN.1 type tag.
    *
    * @param value
    *          The boolean value.
@@ -116,8 +113,7 @@ public interface ASN1Writer extends Closeable, Flushable
    * @throws IllegalStateException
    *           If there is no sequence being written.
    */
-  ASN1Writer writeEndSequence() throws IOException,
-      IllegalStateException;
+  ASN1Writer writeEndSequence() throws IOException, IllegalStateException;
 
 
 
@@ -130,7 +126,7 @@ public interface ASN1Writer extends Closeable, Flushable
    * @throws IllegalStateException
    *           If there is no set being written, IllegalStateException.
    */
-  ASN1Writer writeEndSet() throws IOException;
+  ASN1Writer writeEndSet() throws IOException, IllegalStateException;
 
 
 
@@ -150,8 +146,7 @@ public interface ASN1Writer extends Closeable, Flushable
 
 
   /**
-   * Writes an enumerated element using the Universal Enumerated ASN.1
-   * type tag.
+   * Writes an enumerated element using the Universal Enumerated ASN.1 type tag.
    *
    * @param value
    *          The enumerated value.
@@ -194,8 +189,7 @@ public interface ASN1Writer extends Closeable, Flushable
 
 
   /**
-   * Writes an integer element using the Universal Integer ASN.1 type
-   * tag.
+   * Writes an integer element using the Universal Integer ASN.1 type tag.
    *
    * @param value
    *          The integer value.
@@ -208,8 +202,7 @@ public interface ASN1Writer extends Closeable, Flushable
 
 
   /**
-   * Writes an integer element using the Universal Integer ASN.1 type
-   * tag.
+   * Writes an integer element using the Universal Integer ASN.1 type tag.
    *
    * @param value
    *          The integer value.
@@ -260,8 +253,8 @@ public interface ASN1Writer extends Closeable, Flushable
    * @throws IOException
    *           If an error occurs while writing the element.
    */
-  ASN1Writer writeOctetString(byte type, byte[] value, int offset,
-      int length) throws IOException;
+  ASN1Writer writeOctetString(byte type, byte[] value, int offset, int length)
+      throws IOException;
 
 
 
@@ -276,14 +269,13 @@ public interface ASN1Writer extends Closeable, Flushable
    * @throws IOException
    *           If an error occurs while writing the element.
    */
-  ASN1Writer writeOctetString(byte type, ByteSequence value)
-      throws IOException;
+  ASN1Writer writeOctetString(byte type, ByteSequence value) throws IOException;
 
 
 
   /**
-   * Writes a string as a UTF-8 encoded octet string element using the
-   * provided type tag.
+   * Writes a string as a UTF-8 encoded octet string element using the provided
+   * type tag.
    *
    * @param type
    *          The type tag of the element.
@@ -293,14 +285,13 @@ public interface ASN1Writer extends Closeable, Flushable
    * @throws IOException
    *           If an error occurs while writing the element.
    */
-  ASN1Writer writeOctetString(byte type, String value)
-      throws IOException;
+  ASN1Writer writeOctetString(byte type, String value) throws IOException;
 
 
 
   /**
-   * Writes an octet string element using the Universal Octet String
-   * ASN.1 type tag.
+   * Writes an octet string element using the Universal Octet String ASN.1 type
+   * tag.
    *
    * @param value
    *          The byte array containing the octet string data.
@@ -318,8 +309,8 @@ public interface ASN1Writer extends Closeable, Flushable
 
 
   /**
-   * Writes an octet string element using the Universal Octet String
-   * ASN.1 type tag.
+   * Writes an octet string element using the Universal Octet String ASN.1 type
+   * tag.
    *
    * @param value
    *          The octet string value.
@@ -332,8 +323,8 @@ public interface ASN1Writer extends Closeable, Flushable
 
 
   /**
-   * Writes a string as a UTF-8 encoded octet string element using the
-   * Universal Octet String ASN.1 type tag.
+   * Writes a string as a UTF-8 encoded octet string element using the Universal
+   * Octet String ASN.1 type tag.
    *
    * @param value
    *          The string to be written as a UTF-8 encoded octet string.
@@ -346,8 +337,8 @@ public interface ASN1Writer extends Closeable, Flushable
 
 
   /**
-   * Writes a sequence element using the Universal Sequence ASN.1 type
-   * tag. All further writes will append elements to the sequence until
+   * Writes a sequence element using the Universal Sequence ASN.1 type tag. All
+   * further writes will append elements to the sequence until
    * {@link #writeEndSequence} is called.
    *
    * @return A reference to this ASN.1 writer.
@@ -359,9 +350,9 @@ public interface ASN1Writer extends Closeable, Flushable
 
 
   /**
-   * Writes a sequence element using the provided type tag. All further
-   * writes will append elements to the sequence until
-   * {@link #writeEndSequence} is called.
+   * Writes a sequence element using the provided type tag. All further writes
+   * will append elements to the sequence until {@link #writeEndSequence} is
+   * called.
    *
    * @param type
    *          The type tag of the element.
@@ -374,9 +365,9 @@ public interface ASN1Writer extends Closeable, Flushable
 
 
   /**
-   * Writes a set element using the Universal Set ASN.1 type tag. All
-   * further writes will append elements to the set until
-   * {@link #writeEndSet} is called.
+   * Writes a set element using the Universal Set ASN.1 type tag. All further
+   * writes will append elements to the set until {@link #writeEndSet} is
+   * called.
    *
    * @return A reference to this ASN.1 writer.
    * @throws IOException
@@ -387,9 +378,8 @@ public interface ASN1Writer extends Closeable, Flushable
 
 
   /**
-   * Writes a set element using the provided type tag. All further
-   * writes will append elements to the set until {@link #writeEndSet}
-   * is called.
+   * Writes a set element using the provided type tag. All further writes will
+   * append elements to the set until {@link #writeEndSet} is called.
    *
    * @param type
    *          The type tag of the element.

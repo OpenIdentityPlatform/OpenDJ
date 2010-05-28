@@ -39,26 +39,24 @@ import com.sun.opends.sdk.util.Validator;
 
 
 /**
- * A mutable sequence of localizable messages and their parameters. As
- * messages are appended they are translated to their string
- * representation for storage using the locale specified in the
- * constructor.
+ * A mutable sequence of localizable messages and their parameters. As messages
+ * are appended they are translated to their string representation for storage
+ * using the locale specified in the constructor.
  * <p>
  * Note that before you use this class you should consider whether it is
- * appropriate. In general composing messages by appending message to
- * each other may not produce a message that is formatted appropriately
- * for all locales.
+ * appropriate. In general composing messages by appending message to each other
+ * may not produce a message that is formatted appropriately for all locales.
  * <p>
- * It is usually better to create messages by composition. In other
- * words you should create a base message that contains one or more
- * string argument specifiers (%s) and define other message objects to
- * use as replacement variables. In this way language translators have a
- * change to reformat the message for a particular locale if necessary.
+ * It is usually better to create messages by composition. In other words you
+ * should create a base message that contains one or more string argument
+ * specifiers (%s) and define other message objects to use as replacement
+ * variables. In this way language translators have a change to reformat the
+ * message for a particular locale if necessary.
  *
  * @see LocalizableMessage
  */
-public final class LocalizableMessageBuilder implements Appendable, CharSequence,
-    Serializable
+public final class LocalizableMessageBuilder implements Appendable,
+    CharSequence, Serializable
 {
 
   private static final long serialVersionUID = -3292823563904285315L;
@@ -79,15 +77,16 @@ public final class LocalizableMessageBuilder implements Appendable, CharSequence
 
 
   /**
-   * Creates a new message builder whose content is initially equal to
-   * the provided message.
+   * Creates a new message builder whose content is initially equal to the
+   * provided message.
    *
    * @param message
    *          The initial content of the message builder.
    * @throws NullPointerException
    *           If {@code message} was {@code null}.
    */
-  public LocalizableMessageBuilder(LocalizableMessage message) throws NullPointerException
+  public LocalizableMessageBuilder(final LocalizableMessage message)
+      throws NullPointerException
   {
     append(message);
   }
@@ -95,15 +94,16 @@ public final class LocalizableMessageBuilder implements Appendable, CharSequence
 
 
   /**
-   * Creates a new message builder whose content is initially equal to
-   * the provided message builder.
+   * Creates a new message builder whose content is initially equal to the
+   * provided message builder.
    *
    * @param builder
    *          The initial content of the message builder.
    * @throws NullPointerException
    *           If {@code builder} was {@code null}.
    */
-  public LocalizableMessageBuilder(LocalizableMessageBuilder builder)
+  public LocalizableMessageBuilder(final LocalizableMessageBuilder builder)
+      throws NullPointerException
   {
     for (final LocalizableMessage message : builder.messages)
     {
@@ -114,14 +114,13 @@ public final class LocalizableMessageBuilder implements Appendable, CharSequence
 
 
   /**
-   * Creates a new message builder whose content is initially equal to
-   * the {@code String} representation of the provided {@code Object}.
+   * Creates a new message builder whose content is initially equal to the
+   * {@code String} representation of the provided {@code Object}.
    *
    * @param object
-   *          The initial content of the message builder, may be {@code
-   *          null}.
+   *          The initial content of the message builder, may be {@code null}.
    */
-  public LocalizableMessageBuilder(Object object)
+  public LocalizableMessageBuilder(final Object object)
   {
     append(object);
   }
@@ -135,7 +134,7 @@ public final class LocalizableMessageBuilder implements Appendable, CharSequence
    *          The character to be appended.
    * @return A reference to this message builder.
    */
-  public LocalizableMessageBuilder append(char c)
+  public LocalizableMessageBuilder append(final char c)
   {
     return append(LocalizableMessage.valueOf(c));
   }
@@ -151,7 +150,7 @@ public final class LocalizableMessageBuilder implements Appendable, CharSequence
    * @throws NullPointerException
    *           If {@code cs} was {@code null}.
    */
-  public LocalizableMessageBuilder append(CharSequence cs)
+  public LocalizableMessageBuilder append(final CharSequence cs)
       throws NullPointerException
   {
     Validator.ensureNotNull(cs);
@@ -161,11 +160,11 @@ public final class LocalizableMessageBuilder implements Appendable, CharSequence
 
 
   /**
-   * Appends a subsequence of the provided character sequence to this
-   * message builder.
+   * Appends a subsequence of the provided character sequence to this message
+   * builder.
    * <p>
-   * An invocation of this method of the form {@code append(cs, start,
-   * end)}, behaves in exactly the same way as the invocation
+   * An invocation of this method of the form {@code append(cs, start, end)},
+   * behaves in exactly the same way as the invocation
    *
    * <pre>
    * append(cs.subSequence(start, end))
@@ -176,18 +175,19 @@ public final class LocalizableMessageBuilder implements Appendable, CharSequence
    * @param start
    *          The index of the first character in the subsequence.
    * @param end
-   *          The index of the character following the last character in
-   *          the subsequence.
+   *          The index of the character following the last character in the
+   *          subsequence.
    * @return A reference to this message builder.
    * @throws IndexOutOfBoundsException
-   *           If {@code start} or {@code end} are negative, {@code
-   *           start} is greater than {@code end}, or {@code end} is
-   *           greater than {@code csq.length()}.
+   *           If {@code start} or {@code end} are negative, {@code start} is
+   *           greater than {@code end}, or {@code end} is greater than {@code
+   *           csq.length()}.
    * @throws NullPointerException
    *           If {@code cs} was {@code null}.
    */
-  public LocalizableMessageBuilder append(CharSequence cs, int start, int end)
-      throws IndexOutOfBoundsException, NullPointerException
+  public LocalizableMessageBuilder append(final CharSequence cs,
+      final int start, final int end) throws IndexOutOfBoundsException,
+      NullPointerException
   {
     return append(cs.subSequence(start, end));
   }
@@ -201,7 +201,7 @@ public final class LocalizableMessageBuilder implements Appendable, CharSequence
    *          The integer to be appended.
    * @return A reference to this message builder.
    */
-  public LocalizableMessageBuilder append(int value)
+  public LocalizableMessageBuilder append(final int value)
   {
     return append(LocalizableMessage.valueOf(value));
   }
@@ -217,7 +217,7 @@ public final class LocalizableMessageBuilder implements Appendable, CharSequence
    * @throws NullPointerException
    *           If {@code message} was {@code null}.
    */
-  public LocalizableMessageBuilder append(LocalizableMessage message)
+  public LocalizableMessageBuilder append(final LocalizableMessage message)
       throws NullPointerException
   {
     Validator.ensureNotNull(message);
@@ -228,14 +228,14 @@ public final class LocalizableMessageBuilder implements Appendable, CharSequence
 
 
   /**
-   * Appends the {@code String} representation of the provided {@code
-   * Object} to this message builder.
+   * Appends the {@code String} representation of the provided {@code Object} to
+   * this message builder.
    *
    * @param object
    *          The object to be appended, may be {@code null}.
    * @return A reference to this message builder.
    */
-  public LocalizableMessageBuilder append(Object object)
+  public LocalizableMessageBuilder append(final Object object)
   {
     return append(LocalizableMessage.valueOf(object));
   }
@@ -243,18 +243,17 @@ public final class LocalizableMessageBuilder implements Appendable, CharSequence
 
 
   /**
-   * Returns the {@code char} value at the specified index of the
-   * {@code String} representation of this message builder in the
-   * default locale.
+   * Returns the {@code char} value at the specified index of the {@code String}
+   * representation of this message builder in the default locale.
    *
    * @param index
    *          The index of the {@code char} value to be returned.
    * @return The specified {@code char} value.
    * @throws IndexOutOfBoundsException
-   *           If the {@code index} argument is negative or not less
-   *           than {@code length()}.
+   *           If the {@code index} argument is negative or not less than
+   *           {@code length()}.
    */
-  public char charAt(int index) throws IndexOutOfBoundsException
+  public char charAt(final int index) throws IndexOutOfBoundsException
   {
     return charAt(Locale.getDefault(), index);
   }
@@ -262,9 +261,8 @@ public final class LocalizableMessageBuilder implements Appendable, CharSequence
 
 
   /**
-   * Returns the {@code char} value at the specified index of the
-   * {@code String} representation of this message builder in the
-   * specified locale.
+   * Returns the {@code char} value at the specified index of the {@code String}
+   * representation of this message builder in the specified locale.
    *
    * @param locale
    *          The locale.
@@ -272,12 +270,12 @@ public final class LocalizableMessageBuilder implements Appendable, CharSequence
    *          The index of the {@code char} value to be returned.
    * @return The specified {@code char} value.
    * @throws IndexOutOfBoundsException
-   *           If the {@code index} argument is negative or not less
-   *           than {@code length()}.
+   *           If the {@code index} argument is negative or not less than
+   *           {@code length()}.
    * @throws NullPointerException
    *           If {@code locale} was {@code null}.
    */
-  public char charAt(Locale locale, int index)
+  public char charAt(final Locale locale, final int index)
       throws IndexOutOfBoundsException, NullPointerException
   {
     return toString(locale).charAt(index);
@@ -286,11 +284,11 @@ public final class LocalizableMessageBuilder implements Appendable, CharSequence
 
 
   /**
-   * Returns the length of the {@code String} representation of this
-   * message builder in the default locale.
+   * Returns the length of the {@code String} representation of this message
+   * builder in the default locale.
    *
-   * @return The length of the {@code String} representation of this
-   *         message builder in the default locale.
+   * @return The length of the {@code String} representation of this message
+   *         builder in the default locale.
    */
   public int length()
   {
@@ -300,17 +298,17 @@ public final class LocalizableMessageBuilder implements Appendable, CharSequence
 
 
   /**
-   * Returns the length of the {@code String} representation of this
-   * message builder in the specified locale.
+   * Returns the length of the {@code String} representation of this message
+   * builder in the specified locale.
    *
    * @param locale
    *          The locale.
-   * @return The length of the {@code String} representation of this
-   *         message builder in the specified locale.
+   * @return The length of the {@code String} representation of this message
+   *         builder in the specified locale.
    * @throws NullPointerException
    *           If {@code locale} was {@code null}.
    */
-  public int length(Locale locale) throws NullPointerException
+  public int length(final Locale locale) throws NullPointerException
   {
     return toString(locale).length();
   }
@@ -318,13 +316,12 @@ public final class LocalizableMessageBuilder implements Appendable, CharSequence
 
 
   /**
-   * Returns a new {@code CharSequence} which is a subsequence of the
-   * {@code String} representation of this message builder in the
-   * default locale. The subsequence starts with the {@code char} value
-   * at the specified index and ends with the {@code char} value at
-   * index {@code end - 1} . The length (in {@code char}s) of the
-   * returned sequence is {@code end - start}, so if {@code start ==
-   * end} then an empty sequence is returned.
+   * Returns a new {@code CharSequence} which is a subsequence of the {@code
+   * String} representation of this message builder in the default locale. The
+   * subsequence starts with the {@code char} value at the specified index and
+   * ends with the {@code char} value at index {@code end - 1} . The length (in
+   * {@code char}s) of the returned sequence is {@code end - start}, so if
+   * {@code start == end} then an empty sequence is returned.
    *
    * @param start
    *          The start index, inclusive.
@@ -332,11 +329,11 @@ public final class LocalizableMessageBuilder implements Appendable, CharSequence
    *          The end index, exclusive.
    * @return The specified subsequence.
    * @throws IndexOutOfBoundsException
-   *           If {@code start} or {@code end} are negative, if {@code
-   *           end} is greater than {@code length()}, or if {@code
-   *           start} is greater than {@code end}.
+   *           If {@code start} or {@code end} are negative, if {@code end} is
+   *           greater than {@code length()}, or if {@code start} is greater
+   *           than {@code end}.
    */
-  public CharSequence subSequence(int start, int end)
+  public CharSequence subSequence(final int start, final int end)
       throws IndexOutOfBoundsException
   {
     return subSequence(Locale.getDefault(), start, end);
@@ -345,13 +342,12 @@ public final class LocalizableMessageBuilder implements Appendable, CharSequence
 
 
   /**
-   * Returns a new {@code CharSequence} which is a subsequence of the
-   * {@code String} representation of this message builder in the
-   * specified locale. The subsequence starts with the {@code char}
-   * value at the specified index and ends with the {@code char} value
-   * at index {@code end - 1} . The length (in {@code char}s) of the
-   * returned sequence is {@code end - start}, so if {@code start ==
-   * end} then an empty sequence is returned.
+   * Returns a new {@code CharSequence} which is a subsequence of the {@code
+   * String} representation of this message builder in the specified locale. The
+   * subsequence starts with the {@code char} value at the specified index and
+   * ends with the {@code char} value at index {@code end - 1} . The length (in
+   * {@code char}s) of the returned sequence is {@code end - start}, so if
+   * {@code start == end} then an empty sequence is returned.
    *
    * @param locale
    *          The locale.
@@ -361,14 +357,14 @@ public final class LocalizableMessageBuilder implements Appendable, CharSequence
    *          The end index, exclusive.
    * @return The specified subsequence.
    * @throws IndexOutOfBoundsException
-   *           If {@code start} or {@code end} are negative, if {@code
-   *           end} is greater than {@code length()}, or if {@code
-   *           start} is greater than {@code end}.
+   *           If {@code start} or {@code end} are negative, if {@code end} is
+   *           greater than {@code length()}, or if {@code start} is greater
+   *           than {@code end}.
    * @throws NullPointerException
    *           If {@code locale} was {@code null}.
    */
-  public CharSequence subSequence(Locale locale, int start, int end)
-      throws IndexOutOfBoundsException, NullPointerException
+  public CharSequence subSequence(final Locale locale, final int start,
+      final int end) throws IndexOutOfBoundsException, NullPointerException
   {
     return toString(locale).subSequence(start, end);
   }
@@ -376,11 +372,12 @@ public final class LocalizableMessageBuilder implements Appendable, CharSequence
 
 
   /**
-   * Returns the {@link LocalizableMessage} representation of this message builder.
-   * Subsequent changes to this message builder will not modify the
+   * Returns the {@link LocalizableMessage} representation of this message
+   * builder. Subsequent changes to this message builder will not modify the
    * returned {@code LocalizableMessage}.
    *
-   * @return The {@code LocalizableMessage} representation of this message builder.
+   * @return The {@code LocalizableMessage} representation of this message
+   *         builder.
    */
   public LocalizableMessage toMessage()
   {
@@ -402,11 +399,12 @@ public final class LocalizableMessageBuilder implements Appendable, CharSequence
 
 
   /**
-   * Returns the {@code String} representation of this message builder
-   * in the default locale.
+   * Returns the {@code String} representation of this message builder in the
+   * default locale.
    *
    * @return The {@code String} representation of this message builder.
    */
+  @Override
   public String toString()
   {
     return toString(Locale.getDefault());
@@ -415,8 +413,8 @@ public final class LocalizableMessageBuilder implements Appendable, CharSequence
 
 
   /**
-   * Returns the {@code String} representation of this message builder
-   * in the specified locale.
+   * Returns the {@code String} representation of this message builder in the
+   * specified locale.
    *
    * @param locale
    *          The locale.
@@ -424,7 +422,7 @@ public final class LocalizableMessageBuilder implements Appendable, CharSequence
    * @throws NullPointerException
    *           If {@code locale} was {@code null}.
    */
-  public String toString(Locale locale)
+  public String toString(final Locale locale) throws NullPointerException
   {
     final StringBuilder builder = new StringBuilder();
     for (final LocalizableMessage message : messages)

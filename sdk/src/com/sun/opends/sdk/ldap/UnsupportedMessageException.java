@@ -39,7 +39,7 @@ import org.opends.sdk.ByteString;
  * Thrown when an unsupported LDAP message is received.
  */
 @SuppressWarnings("serial")
-public final class UnsupportedMessageException extends IOException
+final class UnsupportedMessageException extends IOException
 {
   private final int id;
   private final byte tag;
@@ -47,12 +47,12 @@ public final class UnsupportedMessageException extends IOException
 
 
 
-  public UnsupportedMessageException(int id, byte tag,
-      ByteString content)
+  public UnsupportedMessageException(final int id, final byte tag,
+      final ByteString content)
   {
-    super(org.opends.sdk.LocalizableMessage.raw(
-        "Unsupported LDAP message: id=%d, tag=%d, content=%s", id, tag,
-        content).toString());
+    super(org.opends.sdk.LocalizableMessage
+        .raw("Unsupported LDAP message: id=%d, tag=%d, content=%s", id, tag,
+            content).toString());
     this.id = id;
     this.tag = tag;
     this.content = content;

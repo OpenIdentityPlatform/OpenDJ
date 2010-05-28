@@ -34,20 +34,19 @@ import java.util.List;
 
 
 /**
- * An abstract filter visitor whose default implementation for all
- * {@code Visitor} methods is to invoke
- * {@link #visitDefaultFilter(Object)}.
+ * An abstract filter visitor whose default implementation for all {@code
+ * Visitor} methods is to invoke {@link #visitDefaultFilter(Object)}.
  * <p>
  * Implementations can override the methods on a case by case behavior.
  *
  * @param <R>
  *          The return type of this visitor's methods. Use
- *          {@link java.lang.Void} for visitors that do not need to
- *          return results.
+ *          {@link java.lang.Void} for visitors that do not need to return
+ *          results.
  * @param <P>
- *          The type of the additional parameter to this visitor's
- *          methods. Use {@link java.lang.Void} for visitors that do not
- *          need an additional parameter.
+ *          The type of the additional parameter to this visitor's methods. Use
+ *          {@link java.lang.Void} for visitors that do not need an additional
+ *          parameter.
  */
 public abstract class AbstractFilterVisitor<R, P> implements
     FilterVisitor<R, P>
@@ -66,10 +65,9 @@ public abstract class AbstractFilterVisitor<R, P> implements
   /**
    * {@inheritDoc}
    * <p>
-   * The default implementation is to call
-   * {@link #visitDefaultFilter(Object)}.
+   * The default implementation is to call {@link #visitDefaultFilter(Object)}.
    */
-  public R visitAndFilter(P p, List<Filter> subFilters)
+  public R visitAndFilter(final P p, final List<Filter> subFilters)
   {
     return visitDefaultFilter(p);
   }
@@ -79,11 +77,10 @@ public abstract class AbstractFilterVisitor<R, P> implements
   /**
    * {@inheritDoc}
    * <p>
-   * The default implementation is to call
-   * {@link #visitDefaultFilter(Object)}.
+   * The default implementation is to call {@link #visitDefaultFilter(Object)}.
    */
-  public R visitApproxMatchFilter(P p, String attributeDescription,
-      ByteString assertionValue)
+  public R visitApproxMatchFilter(final P p, final String attributeDescription,
+      final ByteString assertionValue)
   {
     return visitDefaultFilter(p);
   }
@@ -91,8 +88,8 @@ public abstract class AbstractFilterVisitor<R, P> implements
 
 
   /**
-   * Visits any filters which are not explicitly handled by other
-   * visitor methods.
+   * Visits any filters which are not explicitly handled by other visitor
+   * methods.
    * <p>
    * The default implementation of this method is to return {@code null}.
    *
@@ -100,7 +97,7 @@ public abstract class AbstractFilterVisitor<R, P> implements
    *          A visitor specified parameter.
    * @return A visitor specified result.
    */
-  public R visitDefaultFilter(P p)
+  public R visitDefaultFilter(final P p)
   {
     return null;
   }
@@ -110,11 +107,10 @@ public abstract class AbstractFilterVisitor<R, P> implements
   /**
    * {@inheritDoc}
    * <p>
-   * The default implementation is to call
-   * {@link #visitDefaultFilter(Object)}.
+   * The default implementation is to call {@link #visitDefaultFilter(Object)}.
    */
-  public R visitEqualityMatchFilter(P p, String attributeDescription,
-      ByteString assertionValue)
+  public R visitEqualityMatchFilter(final P p,
+      final String attributeDescription, final ByteString assertionValue)
   {
     return visitDefaultFilter(p);
   }
@@ -124,12 +120,11 @@ public abstract class AbstractFilterVisitor<R, P> implements
   /**
    * {@inheritDoc}
    * <p>
-   * The default implementation is to call
-   * {@link #visitDefaultFilter(Object)}.
+   * The default implementation is to call {@link #visitDefaultFilter(Object)}.
    */
-  public R visitExtensibleMatchFilter(P p, String matchingRule,
-      String attributeDescription, ByteString assertionValue,
-      boolean dnAttributes)
+  public R visitExtensibleMatchFilter(final P p, final String matchingRule,
+      final String attributeDescription, final ByteString assertionValue,
+      final boolean dnAttributes)
   {
     return visitDefaultFilter(p);
   }
@@ -139,11 +134,10 @@ public abstract class AbstractFilterVisitor<R, P> implements
   /**
    * {@inheritDoc}
    * <p>
-   * The default implementation is to call
-   * {@link #visitDefaultFilter(Object)}.
+   * The default implementation is to call {@link #visitDefaultFilter(Object)}.
    */
-  public R visitGreaterOrEqualFilter(P p, String attributeDescription,
-      ByteString assertionValue)
+  public R visitGreaterOrEqualFilter(final P p,
+      final String attributeDescription, final ByteString assertionValue)
   {
     return visitDefaultFilter(p);
   }
@@ -153,11 +147,10 @@ public abstract class AbstractFilterVisitor<R, P> implements
   /**
    * {@inheritDoc}
    * <p>
-   * The default implementation is to call
-   * {@link #visitDefaultFilter(Object)}.
+   * The default implementation is to call {@link #visitDefaultFilter(Object)}.
    */
-  public R visitLessOrEqualFilter(P p, String attributeDescription,
-      ByteString assertionValue)
+  public R visitLessOrEqualFilter(final P p, final String attributeDescription,
+      final ByteString assertionValue)
   {
     return visitDefaultFilter(p);
   }
@@ -167,10 +160,9 @@ public abstract class AbstractFilterVisitor<R, P> implements
   /**
    * {@inheritDoc}
    * <p>
-   * The default implementation is to call
-   * {@link #visitDefaultFilter(Object)}.
+   * The default implementation is to call {@link #visitDefaultFilter(Object)}.
    */
-  public R visitNotFilter(P p, Filter subFilter)
+  public R visitNotFilter(final P p, final Filter subFilter)
   {
     return visitDefaultFilter(p);
   }
@@ -180,10 +172,9 @@ public abstract class AbstractFilterVisitor<R, P> implements
   /**
    * {@inheritDoc}
    * <p>
-   * The default implementation is to call
-   * {@link #visitDefaultFilter(Object)}.
+   * The default implementation is to call {@link #visitDefaultFilter(Object)}.
    */
-  public R visitOrFilter(P p, List<Filter> subFilters)
+  public R visitOrFilter(final P p, final List<Filter> subFilters)
   {
     return visitDefaultFilter(p);
   }
@@ -193,10 +184,9 @@ public abstract class AbstractFilterVisitor<R, P> implements
   /**
    * {@inheritDoc}
    * <p>
-   * The default implementation is to call
-   * {@link #visitDefaultFilter(Object)}.
+   * The default implementation is to call {@link #visitDefaultFilter(Object)}.
    */
-  public R visitPresentFilter(P p, String attributeDescription)
+  public R visitPresentFilter(final P p, final String attributeDescription)
   {
     return visitDefaultFilter(p);
   }
@@ -206,12 +196,11 @@ public abstract class AbstractFilterVisitor<R, P> implements
   /**
    * {@inheritDoc}
    * <p>
-   * The default implementation is to call
-   * {@link #visitDefaultFilter(Object)}.
+   * The default implementation is to call {@link #visitDefaultFilter(Object)}.
    */
-  public R visitSubstringsFilter(P p, String attributeDescription,
-      ByteString initialSubstring, List<ByteString> anySubstrings,
-      ByteString finalSubstring)
+  public R visitSubstringsFilter(final P p, final String attributeDescription,
+      final ByteString initialSubstring, final List<ByteString> anySubstrings,
+      final ByteString finalSubstring)
   {
     return visitDefaultFilter(p);
   }
@@ -221,11 +210,10 @@ public abstract class AbstractFilterVisitor<R, P> implements
   /**
    * {@inheritDoc}
    * <p>
-   * The default implementation is to call
-   * {@link #visitDefaultFilter(Object)}.
+   * The default implementation is to call {@link #visitDefaultFilter(Object)}.
    */
-  public R visitUnrecognizedFilter(P p, byte filterTag,
-      ByteString filterBytes)
+  public R visitUnrecognizedFilter(final P p, final byte filterTag,
+      final ByteString filterBytes)
   {
     return visitDefaultFilter(p);
   }

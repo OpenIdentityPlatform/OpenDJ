@@ -29,7 +29,8 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_MATCHING_RULE;
 
 import java.util.*;
 
@@ -40,9 +41,9 @@ import com.sun.opends.sdk.util.Validator;
 
 
 /**
- * This class defines a data structure for storing and interacting with
- * a matching rule use definition, which may be used to restrict the set
- * of attribute types that may be used for a given matching rule.
+ * This class defines a data structure for storing and interacting with a
+ * matching rule use definition, which may be used to restrict the set of
+ * attribute types that may be used for a given matching rule.
  */
 public final class MatchingRuleUse extends SchemaElement
 {
@@ -68,9 +69,10 @@ public final class MatchingRuleUse extends SchemaElement
 
 
 
-  MatchingRuleUse(String oid, List<String> names, String description,
-      boolean obsolete, Set<String> attributeOIDs,
-      Map<String, List<String>> extraProperties, String definition)
+  MatchingRuleUse(final String oid, final List<String> names,
+      final String description, final boolean obsolete,
+      final Set<String> attributeOIDs,
+      final Map<String, List<String>> extraProperties, final String definition)
   {
     super(description, extraProperties);
 
@@ -93,13 +95,13 @@ public final class MatchingRuleUse extends SchemaElement
 
 
   /**
-   * Retrieves the set of attributes associated with this matching rule
-   * use.
-   * 
-   * @return The set of attributes associated with this matching rule
-   *         use.
+   * Returns an unmodifiable set containing the attributes associated with this
+   * matching rule use.
+   *
+   * @return An unmodifiable set containing the attributes associated with this
+   *         matching rule use.
    */
-  public Iterable<AttributeType> getAttributes()
+  public Set<AttributeType> getAttributes()
   {
     return attributes;
   }
@@ -107,8 +109,8 @@ public final class MatchingRuleUse extends SchemaElement
 
 
   /**
-   * Retrieves the matching rule for this matching rule use.
-   * 
+   * Returns the matching rule for this matching rule use.
+   *
    * @return The matching rule for this matching rule use.
    */
   public MatchingRule getMatchingRule()
@@ -119,8 +121,8 @@ public final class MatchingRuleUse extends SchemaElement
 
 
   /**
-   * Retrieves the matching rule OID for this schema definition.
-   * 
+   * Returns the matching rule OID for this schema definition.
+   *
    * @return The OID for this schema definition.
    */
   public String getMatchingRuleOID()
@@ -131,11 +133,10 @@ public final class MatchingRuleUse extends SchemaElement
 
 
   /**
-   * Retrieves the name or matching rule OID for this schema definition.
-   * If it has one or more names, then the primary name will be
-   * returned. If it does not have any names, then the OID will be
-   * returned.
-   * 
+   * Returns the name or matching rule OID for this schema definition. If it has
+   * one or more names, then the primary name will be returned. If it does not
+   * have any names, then the OID will be returned.
+   *
    * @return The name or OID for this schema definition.
    */
   public String getNameOrOID()
@@ -150,13 +151,13 @@ public final class MatchingRuleUse extends SchemaElement
 
 
   /**
-   * Retrieves an iterable over the set of user-defined names that may
-   * be used to reference this schema definition.
-   * 
-   * @return Returns an iterable over the set of user-defined names that
+   * Returns an unmodifiable list containing the user-defined names that may be
+   * used to reference this schema definition.
+   *
+   * @return Returns an unmodifiable list containing the user-defined names that
    *         may be used to reference this schema definition.
    */
-  public Iterable<String> getNames()
+  public List<String> getNames()
   {
     return names;
   }
@@ -166,13 +167,13 @@ public final class MatchingRuleUse extends SchemaElement
   /**
    * Indicates whether the provided attribute type is referenced by this
    * matching rule use.
-   * 
+   *
    * @param attributeType
    *          The attribute type for which to make the determination.
-   * @return {@code true} if the provided attribute type is referenced
-   *         by this matching rule use, or {@code false} if it is not.
+   * @return {@code true} if the provided attribute type is referenced by this
+   *         matching rule use, or {@code false} if it is not.
    */
-  public boolean hasAttribute(AttributeType attributeType)
+  public boolean hasAttribute(final AttributeType attributeType)
   {
     return attributes.contains(attributeType);
   }
@@ -189,13 +190,13 @@ public final class MatchingRuleUse extends SchemaElement
 
   /**
    * Indicates whether this schema definition has the specified name.
-   * 
+   *
    * @param name
    *          The name for which to make the determination.
-   * @return <code>true</code> if the specified name is assigned to this
-   *         schema definition, or <code>false</code> if not.
+   * @return <code>true</code> if the specified name is assigned to this schema
+   *         definition, or <code>false</code> if not.
    */
-  public boolean hasName(String name)
+  public boolean hasName(final String name)
   {
     for (final String n : names)
     {
@@ -210,16 +211,16 @@ public final class MatchingRuleUse extends SchemaElement
 
 
   /**
-   * Indicates whether this schema definition has the specified name or
-   * matching rule OID.
-   * 
+   * Indicates whether this schema definition has the specified name or matching
+   * rule OID.
+   *
    * @param value
    *          The value for which to make the determination.
-   * @return <code>true</code> if the provided value matches the OID or
-   *         one of the names assigned to this schema definition, or
-   *         <code>false</code> if not.
+   * @return <code>true</code> if the provided value matches the OID or one of
+   *         the names assigned to this schema definition, or <code>false</code>
+   *         if not.
    */
-  public boolean hasNameOrOID(String value)
+  public boolean hasNameOrOID(final String value)
   {
     return hasName(value) || oid.equals(value);
   }
@@ -228,9 +229,9 @@ public final class MatchingRuleUse extends SchemaElement
 
   /**
    * Indicates whether this schema definition is declared "obsolete".
-   * 
-   * @return <code>true</code> if this schema definition is declared
-   *         "obsolete", or <code>false</code> if not.
+   *
+   * @return <code>true</code> if this schema definition is declared "obsolete",
+   *         or <code>false</code> if not.
    */
   public boolean isObsolete()
   {
@@ -240,11 +241,11 @@ public final class MatchingRuleUse extends SchemaElement
 
 
   /**
-   * Retrieves the string representation of this schema definition in
-   * the form specified in RFC 2252.
-   * 
-   * @return The string representation of this schema definition in the
-   *         form specified in RFC 2252.
+   * Returns the string representation of this schema definition in the form
+   * specified in RFC 2252.
+   *
+   * @return The string representation of this schema definition in the form
+   *         specified in RFC 2252.
    */
   @Override
   public String toString()
@@ -263,7 +264,7 @@ public final class MatchingRuleUse extends SchemaElement
 
 
   @Override
-  void toStringContent(StringBuilder buffer)
+  void toStringContent(final StringBuilder buffer)
   {
     buffer.append(oid);
 
@@ -334,7 +335,7 @@ public final class MatchingRuleUse extends SchemaElement
 
 
   @Override
-  void validate(List<LocalizableMessage> warnings, Schema schema)
+  void validate(final List<LocalizableMessage> warnings, final Schema schema)
       throws SchemaException
   {
     try
@@ -345,9 +346,8 @@ public final class MatchingRuleUse extends SchemaElement
     {
       // This is bad because the matching rule use is associated with a
       // matching rule that we don't know anything about.
-      final LocalizableMessage message =
-          ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_MATCHING_RULE.get(definition,
-              oid);
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_MATCHING_RULE
+          .get(definition, oid);
       throw new SchemaException(message, e);
     }
 
@@ -361,11 +361,12 @@ public final class MatchingRuleUse extends SchemaElement
       }
       catch (final UnknownSchemaElementException e)
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR.get(oid, attribute);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR
+            .get(oid, attribute);
         throw new SchemaException(message, e);
       }
       attributes.add(attributeType);
     }
+    attributes = Collections.unmodifiableSet(attributes);
   }
 }

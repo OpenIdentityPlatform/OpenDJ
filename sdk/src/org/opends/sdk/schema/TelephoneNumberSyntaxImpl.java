@@ -29,9 +29,14 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
-import static com.sun.opends.sdk.util.StaticUtils.*;
-import static org.opends.sdk.schema.SchemaConstants.*;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_TELEPHONE_EMPTY;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_TELEPHONE_ILLEGAL_CHAR;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_TELEPHONE_NO_DIGITS;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_TELEPHONE_NO_PLUS;
+import static com.sun.opends.sdk.util.StaticUtils.isDigit;
+import static org.opends.sdk.schema.SchemaConstants.EMR_TELEPHONE_OID;
+import static org.opends.sdk.schema.SchemaConstants.SMR_TELEPHONE_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_TELEPHONE_NAME;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.LocalizableMessage;
@@ -39,15 +44,13 @@ import org.opends.sdk.LocalizableMessageBuilder;
 
 
 
-
 /**
- * This class implements the telephone number attribute syntax, which is
- * defined in RFC 2252. Note that this can have two modes of operation,
- * depending on its configuration. Most of the time, it will be very
- * lenient when deciding what to accept, and will allow anything but
- * only pay attention to the digits. However, it can also be configured
- * in a "strict" mode, in which case it will only accept values in the
- * E.123 international telephone number format.
+ * This class implements the telephone number attribute syntax, which is defined
+ * in RFC 2252. Note that this can have two modes of operation, depending on its
+ * configuration. Most of the time, it will be very lenient when deciding what
+ * to accept, and will allow anything but only pay attention to the digits.
+ * However, it can also be configured in a "strict" mode, in which case it will
+ * only accept values in the E.123 international telephone number format.
  */
 final class TelephoneNumberSyntaxImpl extends AbstractSyntaxImpl
 {
@@ -83,26 +86,25 @@ final class TelephoneNumberSyntaxImpl extends AbstractSyntaxImpl
 
 
   /**
-   * Indicates whether the provided value is acceptable for use in an
-   * attribute with this syntax. If it is not, then the reason may be
-   * appended to the provided buffer.
-   * 
+   * Indicates whether the provided value is acceptable for use in an attribute
+   * with this syntax. If it is not, then the reason may be appended to the
+   * provided buffer.
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
    *          The value for which to make the determination.
    * @param invalidReason
    *          The buffer to which the invalid reason should be appended.
-   * @return <CODE>true</CODE> if the provided value is acceptable for
-   *         use with this syntax, or <CODE>false</CODE> if not.
+   * @return <CODE>true</CODE> if the provided value is acceptable for use with
+   *         this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      LocalizableMessageBuilder invalidReason)
+  public boolean valueIsAcceptable(final Schema schema,
+      final ByteSequence value, final LocalizableMessageBuilder invalidReason)
   {
     // No matter what, the value can't be empty or null.
     String valueStr;
-    if (value == null
-        || (valueStr = value.toString().trim()).length() == 0)
+    if (value == null || (valueStr = value.toString().trim()).length() == 0)
     {
       invalidReason.append(ERR_ATTR_SYNTAX_TELEPHONE_EMPTY.get());
       return false;
@@ -116,8 +118,8 @@ final class TelephoneNumberSyntaxImpl extends AbstractSyntaxImpl
       // acceptable.
       if (valueStr.charAt(0) != '+')
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_TELEPHONE_NO_PLUS.get(valueStr);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_TELEPHONE_NO_PLUS
+            .get(valueStr);
         invalidReason.append(message);
         return false;
       }
@@ -135,9 +137,8 @@ final class TelephoneNumberSyntaxImpl extends AbstractSyntaxImpl
         }
         else if (!isSeparator(c))
         {
-          final LocalizableMessage message =
-              ERR_ATTR_SYNTAX_TELEPHONE_ILLEGAL_CHAR.get(valueStr,
-                  String.valueOf(c), i);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_TELEPHONE_ILLEGAL_CHAR
+              .get(valueStr, String.valueOf(c), i);
           invalidReason.append(message);
           return false;
         }
@@ -145,8 +146,8 @@ final class TelephoneNumberSyntaxImpl extends AbstractSyntaxImpl
 
       if (!digitSeen)
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_TELEPHONE_NO_DIGITS.get(valueStr);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_TELEPHONE_NO_DIGITS
+            .get(valueStr);
         invalidReason.append(message);
         return false;
       }
@@ -167,8 +168,8 @@ final class TelephoneNumberSyntaxImpl extends AbstractSyntaxImpl
       }
 
       // If we made it here, then we didn't find any digits.
-      final LocalizableMessage message =
-          ERR_ATTR_SYNTAX_TELEPHONE_NO_DIGITS.get(valueStr);
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TELEPHONE_NO_DIGITS
+          .get(valueStr);
       invalidReason.append(message);
       return false;
     }
@@ -177,15 +178,15 @@ final class TelephoneNumberSyntaxImpl extends AbstractSyntaxImpl
 
 
   /**
-   * Indicates whether the provided character is a valid separator for
-   * telephone number components when operating in strict mode.
-   * 
+   * Indicates whether the provided character is a valid separator for telephone
+   * number components when operating in strict mode.
+   *
    * @param c
    *          The character for which to make the determination.
-   * @return <CODE>true</CODE> if the provided character is a valid
-   *         separator, or <CODE>false</CODE> if it is not.
+   * @return <CODE>true</CODE> if the provided character is a valid separator,
+   *         or <CODE>false</CODE> if it is not.
    */
-  private boolean isSeparator(char c)
+  private boolean isSeparator(final char c)
   {
     switch (c)
     {

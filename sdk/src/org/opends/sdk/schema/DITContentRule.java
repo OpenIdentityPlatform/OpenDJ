@@ -40,10 +40,10 @@ import com.sun.opends.sdk.util.Validator;
 
 
 /**
- * This class defines a DIT content rule, which defines the set of
- * allowed, required, and prohibited attributes for entries with a given
- * structural objectclass, and also indicates which auxiliary classes
- * that may be included in the entry.
+ * This class defines a DIT content rule, which defines the set of allowed,
+ * required, and prohibited attributes for entries with a given structural
+ * objectclass, and also indicates which auxiliary classes that may be included
+ * in the entry.
  */
 public final class DITContentRule extends SchemaElement
 {
@@ -75,22 +75,19 @@ public final class DITContentRule extends SchemaElement
 
   private ObjectClass structuralClass;
   private Set<ObjectClass> auxiliaryClasses = Collections.emptySet();
-  private Set<AttributeType> optionalAttributes =
-      Collections.emptySet();
-  private Set<AttributeType> prohibitedAttributes =
-      Collections.emptySet();
-  private Set<AttributeType> requiredAttributes =
-      Collections.emptySet();
+  private Set<AttributeType> optionalAttributes = Collections.emptySet();
+  private Set<AttributeType> prohibitedAttributes = Collections.emptySet();
+  private Set<AttributeType> requiredAttributes = Collections.emptySet();
 
 
 
-  DITContentRule(String structuralClassOID, List<String> names,
-      String description, boolean obsolete,
-      Set<String> auxiliaryClassOIDs,
-      Set<String> optionalAttributeOIDs,
-      Set<String> prohibitedAttributeOIDs,
-      Set<String> requiredAttributeOIDs,
-      Map<String, List<String>> extraProperties, String definition)
+  DITContentRule(final String structuralClassOID, final List<String> names,
+      final String description, final boolean obsolete,
+      final Set<String> auxiliaryClassOIDs,
+      final Set<String> optionalAttributeOIDs,
+      final Set<String> prohibitedAttributeOIDs,
+      final Set<String> requiredAttributeOIDs,
+      final Map<String, List<String>> extraProperties, final String definition)
   {
     super(description, extraProperties);
 
@@ -118,13 +115,13 @@ public final class DITContentRule extends SchemaElement
 
 
   /**
-   * Retrieves the set of auxiliary objectclasses that may be used for
-   * entries associated with this DIT content rule.
-   * 
-   * @return The set of auxiliary objectclasses that may be used for
-   *         entries associated with this DIT content rule.
+   * Returns an unmodifiable set containing the auxiliary objectclasses that may
+   * be used for entries associated with this DIT content rule.
+   *
+   * @return An unmodifiable set containing the auxiliary objectclasses that may
+   *         be used for entries associated with this DIT content rule.
    */
-  public Iterable<ObjectClass> getAuxiliaryClasses()
+  public Set<ObjectClass> getAuxiliaryClasses()
   {
     return auxiliaryClasses;
   }
@@ -132,11 +129,10 @@ public final class DITContentRule extends SchemaElement
 
 
   /**
-   * Retrieves the name or structural class OID for this schema
-   * definition. If it has one or more names, then the primary name will
-   * be returned. If it does not have any names, then the OID will be
-   * returned.
-   * 
+   * Returns the name or structural class OID for this schema definition. If it
+   * has one or more names, then the primary name will be returned. If it does
+   * not have any names, then the OID will be returned.
+   *
    * @return The name or OID for this schema definition.
    */
   public String getNameOrOID()
@@ -151,13 +147,13 @@ public final class DITContentRule extends SchemaElement
 
 
   /**
-   * Retrieves an iterable over the set of user-defined names that may
-   * be used to reference this schema definition.
-   * 
-   * @return Returns an iterable over the set of user-defined names that
+   * Returns an unmodifiable list containing the user-defined names that may be
+   * used to reference this schema definition.
+   *
+   * @return Returns an unmodifiable list containing the user-defined names that
    *         may be used to reference this schema definition.
    */
-  public Iterable<String> getNames()
+  public List<String> getNames()
   {
     return names;
   }
@@ -165,11 +161,13 @@ public final class DITContentRule extends SchemaElement
 
 
   /**
-   * Retrieves the set of optional attributes for this DIT content rule.
-   * 
-   * @return The set of optional attributes for this DIT content rule.
+   * Returns an unmodifiable set containing the optional attributes for this DIT
+   * content rule.
+   *
+   * @return An unmodifiable set containing the optional attributes for this DIT
+   *         content rule.
    */
-  public Iterable<AttributeType> getOptionalAttributes()
+  public Set<AttributeType> getOptionalAttributes()
   {
     return optionalAttributes;
   }
@@ -177,12 +175,13 @@ public final class DITContentRule extends SchemaElement
 
 
   /**
-   * Retrieves the set of prohibited attributes for this DIT content
-   * rule.
-   * 
-   * @return The set of prohibited attributes for this DIT content rule.
+   * Returns an unmodifiable set containing the prohibited attributes for this
+   * DIT content rule.
+   *
+   * @return An unmodifiable set containing the prohibited attributes for this
+   *         DIT content rule.
    */
-  public Iterable<AttributeType> getProhibitedAttributes()
+  public Set<AttributeType> getProhibitedAttributes()
   {
     return prohibitedAttributes;
   }
@@ -190,11 +189,13 @@ public final class DITContentRule extends SchemaElement
 
 
   /**
-   * Retrieves the set of required attributes for this DIT content rule.
-   * 
-   * @return The set of required attributes for this DIT content rule.
+   * Returns an unmodifiable set containing the required attributes for this DIT
+   * content rule.
+   *
+   * @return An unmodifiable set containing the required attributes for this DIT
+   *         content rule.
    */
-  public Iterable<AttributeType> getRequiredAttributes()
+  public Set<AttributeType> getRequiredAttributes()
   {
     return requiredAttributes;
   }
@@ -202,8 +203,8 @@ public final class DITContentRule extends SchemaElement
 
 
   /**
-   * Retrieves the structural objectclass for this DIT content rule.
-   * 
+   * Returns the structural objectclass for this DIT content rule.
+   *
    * @return The structural objectclass for this DIT content rule.
    */
   public ObjectClass getStructuralClass()
@@ -214,8 +215,8 @@ public final class DITContentRule extends SchemaElement
 
 
   /**
-   * Retrieves the structural class OID for this schema definition.
-   * 
+   * Returns the structural class OID for this schema definition.
+   *
    * @return The structural class OID for this schema definition.
    */
   public String getStructuralClassOID()
@@ -235,13 +236,13 @@ public final class DITContentRule extends SchemaElement
 
   /**
    * Indicates whether this schema definition has the specified name.
-   * 
+   *
    * @param name
    *          The name for which to make the determination.
-   * @return <code>true</code> if the specified name is assigned to this
-   *         schema definition, or <code>false</code> if not.
+   * @return <code>true</code> if the specified name is assigned to this schema
+   *         definition, or <code>false</code> if not.
    */
-  public boolean hasName(String name)
+  public boolean hasName(final String name)
   {
     for (final String n : names)
     {
@@ -258,14 +259,14 @@ public final class DITContentRule extends SchemaElement
   /**
    * Indicates whether this schema definition has the specified name or
    * structural class OID.
-   * 
+   *
    * @param value
    *          The value for which to make the determination.
-   * @return <code>true</code> if the provided value matches the OID or
-   *         one of the names assigned to this schema definition, or
-   *         <code>false</code> if not.
+   * @return <code>true</code> if the provided value matches the OID or one of
+   *         the names assigned to this schema definition, or <code>false</code>
+   *         if not.
    */
-  public boolean hasNameOrOID(String value)
+  public boolean hasNameOrOID(final String value)
   {
     return hasName(value) || structuralClassOID.equals(value);
   }
@@ -274,9 +275,9 @@ public final class DITContentRule extends SchemaElement
 
   /**
    * Indicates whether this schema definition is declared "obsolete".
-   * 
-   * @return <code>true</code> if this schema definition is declared
-   *         "obsolete", or <code>false</code> if not.
+   *
+   * @return <code>true</code> if this schema definition is declared "obsolete",
+   *         or <code>false</code> if not.
    */
   public boolean isObsolete()
   {
@@ -286,11 +287,11 @@ public final class DITContentRule extends SchemaElement
 
 
   /**
-   * Retrieves the string representation of this schema definition in
-   * the form specified in RFC 2252.
-   * 
-   * @return The string representation of this schema definition in the
-   *         form specified in RFC 2252.
+   * Returns the string representation of this schema definition in the form
+   * specified in RFC 2252.
+   *
+   * @return The string representation of this schema definition in the form
+   *         specified in RFC 2252.
    */
   @Override
   public String toString()
@@ -304,14 +305,14 @@ public final class DITContentRule extends SchemaElement
   {
     return new DITContentRule(structuralClassOID, names, description,
         isObsolete, auxiliaryClassOIDs, optionalAttributeOIDs,
-        prohibitedAttributeOIDs, requiredAttributeOIDs,
-        extraProperties, definition);
+        prohibitedAttributeOIDs, requiredAttributeOIDs, extraProperties,
+        definition);
   }
 
 
 
   @Override
-  void toStringContent(StringBuilder buffer)
+  void toStringContent(final StringBuilder buffer)
   {
     buffer.append(structuralClassOID);
 
@@ -380,8 +381,7 @@ public final class DITContentRule extends SchemaElement
 
     if (!requiredAttributeOIDs.isEmpty())
     {
-      final Iterator<String> iterator =
-          requiredAttributeOIDs.iterator();
+      final Iterator<String> iterator = requiredAttributeOIDs.iterator();
 
       final String firstName = iterator.next();
       if (iterator.hasNext())
@@ -406,8 +406,7 @@ public final class DITContentRule extends SchemaElement
 
     if (!optionalAttributeOIDs.isEmpty())
     {
-      final Iterator<String> iterator =
-          optionalAttributeOIDs.iterator();
+      final Iterator<String> iterator = optionalAttributeOIDs.iterator();
 
       final String firstName = iterator.next();
       if (iterator.hasNext())
@@ -432,8 +431,7 @@ public final class DITContentRule extends SchemaElement
 
     if (!prohibitedAttributeOIDs.isEmpty())
     {
-      final Iterator<String> iterator =
-          prohibitedAttributeOIDs.iterator();
+      final Iterator<String> iterator = prohibitedAttributeOIDs.iterator();
 
       final String firstName = iterator.next();
       if (iterator.hasNext())
@@ -460,7 +458,7 @@ public final class DITContentRule extends SchemaElement
 
 
   @Override
-  void validate(List<LocalizableMessage> warnings, Schema schema)
+  void validate(final List<LocalizableMessage> warnings, final Schema schema)
       throws SchemaException
   {
     // Get the objectclass with the specified OID. If it does not exist
@@ -473,26 +471,23 @@ public final class DITContentRule extends SchemaElement
       }
       catch (final UnknownSchemaElementException e)
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_DCR_UNKNOWN_STRUCTURAL_CLASS.get(
-                definition, structuralClassOID);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_STRUCTURAL_CLASS
+            .get(definition, structuralClassOID);
         throw new SchemaException(message, e);
       }
       if (structuralClass.getObjectClassType() != ObjectClassType.STRUCTURAL)
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_DCR_STRUCTURAL_CLASS_NOT_STRUCTURAL.get(
-                definition, structuralClass.getOID(), structuralClass
-                    .getNameOrOID(), structuralClass
-                    .getObjectClassType().toString());
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_STRUCTURAL_CLASS_NOT_STRUCTURAL
+            .get(definition, structuralClass.getOID(), structuralClass
+                .getNameOrOID(), structuralClass.getObjectClassType()
+                .toString());
         warnings.add(message);
       }
     }
 
     if (!auxiliaryClassOIDs.isEmpty())
     {
-      auxiliaryClasses =
-          new HashSet<ObjectClass>(auxiliaryClassOIDs.size());
+      auxiliaryClasses = new HashSet<ObjectClass>(auxiliaryClassOIDs.size());
       ObjectClass objectClass;
       for (final String oid : auxiliaryClassOIDs)
       {
@@ -503,18 +498,16 @@ public final class DITContentRule extends SchemaElement
         catch (final UnknownSchemaElementException e)
         {
           // This isn't good because it is an unknown auxiliary class.
-          final LocalizableMessage message =
-              ERR_ATTR_SYNTAX_DCR_UNKNOWN_AUXILIARY_CLASS.get(
-                  definition, oid);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_AUXILIARY_CLASS
+              .get(definition, oid);
           throw new SchemaException(message, e);
         }
         if (objectClass.getObjectClassType() != ObjectClassType.AUXILIARY)
         {
           // This isn't good because it isn't an auxiliary class.
-          final LocalizableMessage message =
-              ERR_ATTR_SYNTAX_DCR_AUXILIARY_CLASS_NOT_AUXILIARY.get(
-                  definition, structuralClass.getOID(), structuralClass
-                      .getObjectClassType().toString());
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_AUXILIARY_CLASS_NOT_AUXILIARY
+              .get(definition, structuralClass.getOID(), structuralClass
+                  .getObjectClassType().toString());
           throw new SchemaException(message);
         }
         auxiliaryClasses.add(objectClass);
@@ -523,8 +516,8 @@ public final class DITContentRule extends SchemaElement
 
     if (!requiredAttributeOIDs.isEmpty())
     {
-      requiredAttributes =
-          new HashSet<AttributeType>(requiredAttributeOIDs.size());
+      requiredAttributes = new HashSet<AttributeType>(requiredAttributeOIDs
+          .size());
       AttributeType attributeType;
       for (final String oid : requiredAttributeOIDs)
       {
@@ -537,9 +530,8 @@ public final class DITContentRule extends SchemaElement
           // This isn't good because it means that the DIT content rule
           // requires an attribute type that we don't know anything
           // about.
-          final LocalizableMessage message =
-              ERR_ATTR_SYNTAX_DCR_UNKNOWN_REQUIRED_ATTR.get(definition,
-                  oid);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_REQUIRED_ATTR
+              .get(definition, oid);
           throw new SchemaException(message, e);
         }
         requiredAttributes.add(attributeType);
@@ -548,8 +540,8 @@ public final class DITContentRule extends SchemaElement
 
     if (!optionalAttributeOIDs.isEmpty())
     {
-      optionalAttributes =
-          new HashSet<AttributeType>(optionalAttributeOIDs.size());
+      optionalAttributes = new HashSet<AttributeType>(optionalAttributeOIDs
+          .size());
       AttributeType attributeType;
       for (final String oid : optionalAttributeOIDs)
       {
@@ -562,9 +554,8 @@ public final class DITContentRule extends SchemaElement
           // This isn't good because it means that the DIT content rule
           // requires an attribute type that we don't know anything
           // about.
-          final LocalizableMessage message =
-              ERR_ATTR_SYNTAX_DCR_UNKNOWN_OPTIONAL_ATTR.get(definition,
-                  oid);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_OPTIONAL_ATTR
+              .get(definition, oid);
           throw new SchemaException(message, e);
         }
         optionalAttributes.add(attributeType);
@@ -573,8 +564,8 @@ public final class DITContentRule extends SchemaElement
 
     if (!prohibitedAttributeOIDs.isEmpty())
     {
-      prohibitedAttributes =
-          new HashSet<AttributeType>(prohibitedAttributeOIDs.size());
+      prohibitedAttributes = new HashSet<AttributeType>(prohibitedAttributeOIDs
+          .size());
       AttributeType attributeType;
       for (final String oid : prohibitedAttributeOIDs)
       {
@@ -587,9 +578,8 @@ public final class DITContentRule extends SchemaElement
           // This isn't good because it means that the DIT content rule
           // requires an attribute type that we don't know anything
           // about.
-          final LocalizableMessage message =
-              ERR_ATTR_SYNTAX_DCR_UNKNOWN_PROHIBITED_ATTR.get(
-                  definition, oid);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_PROHIBITED_ATTR
+              .get(definition, oid);
           throw new SchemaException(message, e);
         }
         prohibitedAttributes.add(attributeType);
@@ -602,10 +592,8 @@ public final class DITContentRule extends SchemaElement
     {
       if (structuralClass.isRequired(t))
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_DCR_PROHIBITED_REQUIRED_BY_STRUCTURAL.get(
-                definition, t.getNameOrOID(), structuralClass
-                    .getNameOrOID());
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_PROHIBITED_REQUIRED_BY_STRUCTURAL
+            .get(definition, t.getNameOrOID(), structuralClass.getNameOrOID());
         throw new SchemaException(message);
       }
 
@@ -613,12 +601,16 @@ public final class DITContentRule extends SchemaElement
       {
         if (oc.isRequired(t))
         {
-          final LocalizableMessage message =
-              ERR_ATTR_SYNTAX_DCR_PROHIBITED_REQUIRED_BY_AUXILIARY.get(
-                  definition, t.getNameOrOID(), oc.getNameOrOID());
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_PROHIBITED_REQUIRED_BY_AUXILIARY
+              .get(definition, t.getNameOrOID(), oc.getNameOrOID());
           throw new SchemaException(message);
         }
       }
     }
+
+    auxiliaryClasses = Collections.unmodifiableSet(auxiliaryClasses);
+    optionalAttributes = Collections.unmodifiableSet(optionalAttributes);
+    prohibitedAttributes = Collections.unmodifiableSet(prohibitedAttributes);
+    requiredAttributes = Collections.unmodifiableSet(requiredAttributes);
   }
 }

@@ -30,8 +30,7 @@ package org.opends.sdk.requests;
 
 
 import org.opends.sdk.ByteString;
-import org.opends.sdk.DN;
-import org.opends.sdk.LocalizedIllegalArgumentException;
+import org.opends.sdk.ErrorResultException;
 
 import com.sun.opends.sdk.util.Validator;
 
@@ -41,11 +40,11 @@ import com.sun.opends.sdk.util.Validator;
  * Generic bind request implementation.
  */
 final class GenericBindRequestImpl extends
-    AbstractBindRequest<GenericBindRequest> implements
-    GenericBindRequest
+    AbstractBindRequest<GenericBindRequest> implements GenericBindRequest
 {
+  private final BindClient bindClient;
 
-  private DN name;
+  private String name;
 
   private ByteString authenticationValue;
 
@@ -54,28 +53,48 @@ final class GenericBindRequestImpl extends
 
 
   /**
-   * Creates a new generic bind request using the provided distinguished
-   * name, authentication type, and authentication information.
-   * 
-   * @param name
-   *          The distinguished name of the Directory object that the
-   *          client wishes to bind as (may be empty).
-   * @param authenticationType
-   *          The authentication mechanism identifier for this generic
-   *          bind request.
-   * @param authenticationValue
-   *          The authentication information for this generic bind
-   *          request in a form defined by the authentication mechanism.
-   * @throws NullPointerException
-   *           If {@code name}, {@code authenticationType}, or {@code
-   *           authenticationValue} was {@code null}.
+   * Creates a new generic bind request using a generic bind client.
    */
-  GenericBindRequestImpl(DN name, byte authenticationType,
-      ByteString authenticationValue) throws NullPointerException
+  GenericBindRequestImpl(final String name, final byte authenticationType,
+      final ByteString authenticationValue)
   {
     this.name = name;
     this.authenticationType = authenticationType;
     this.authenticationValue = authenticationValue;
+    this.bindClient = null; // Create a new bind client each time.
+  }
+
+
+
+  /**
+   * Creates a new generic bind request using the provided bind client.
+   * <p>
+   * This is intended for use by other bind client implementations in this
+   * package.
+   */
+  GenericBindRequestImpl(final String name, final byte authenticationType,
+      final ByteString authenticationValue, final BindClient bindClient)
+  {
+    this.name = name;
+    this.authenticationType = authenticationType;
+    this.authenticationValue = authenticationValue;
+    this.bindClient = bindClient; // Always return same bind client.
+  }
+
+
+
+  public BindClient createBindClient(final String serverName)
+      throws ErrorResultException
+  {
+    if (bindClient == null)
+    {
+      return new BindClientImpl(this)
+          .setNextAuthenticationValue(authenticationValue);
+    }
+    else
+    {
+      return bindClient;
+    }
   }
 
 
@@ -103,7 +122,8 @@ final class GenericBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public DN getName()
+  @Override
+  public String getName()
   {
     return name;
   }
@@ -113,7 +133,7 @@ final class GenericBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public GenericBindRequest setAuthenticationType(byte type)
+  public GenericBindRequest setAuthenticationType(final byte type)
       throws UnsupportedOperationException
   {
     this.authenticationType = type;
@@ -125,7 +145,7 @@ final class GenericBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public GenericBindRequest setAuthenticationValue(ByteString bytes)
+  public GenericBindRequest setAuthenticationValue(final ByteString bytes)
       throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(bytes);
@@ -138,25 +158,11 @@ final class GenericBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public GenericBindRequest setName(DN dn)
+  public GenericBindRequest setName(final String name)
       throws UnsupportedOperationException, NullPointerException
   {
-    Validator.ensureNotNull(dn);
-    this.name = dn;
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public GenericBindRequest setName(String dn)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException
-  {
-    Validator.ensureNotNull(dn);
-    this.name = DN.valueOf(dn);
+    Validator.ensureNotNull(name);
+    this.name = name;
     return this;
   }
 

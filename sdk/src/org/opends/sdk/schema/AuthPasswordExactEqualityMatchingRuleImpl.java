@@ -35,22 +35,21 @@ import org.opends.sdk.DecodeException;
 
 
 /**
- * This class implements the authPasswordMatch matching rule defined in
- * RFC 3112.
+ * This class implements the authPasswordMatch matching rule defined in RFC
+ * 3112.
  */
 final class AuthPasswordExactEqualityMatchingRuleImpl extends
     AbstractMatchingRuleImpl
 {
-  public ByteString normalizeAttributeValue(Schema schema,
-      ByteSequence value) throws DecodeException
+  public ByteString normalizeAttributeValue(final Schema schema,
+      final ByteSequence value) throws DecodeException
   {
-    final StringBuilder[] authPWComponents =
-        AuthPasswordSyntaxImpl.decodeAuthPassword(value.toString());
+    final StringBuilder[] authPWComponents = AuthPasswordSyntaxImpl
+        .decodeAuthPassword(value.toString());
 
-    final StringBuilder normalizedValue =
-        new StringBuilder(2 + authPWComponents[0].length()
-            + authPWComponents[1].length()
-            + authPWComponents[2].length());
+    final StringBuilder normalizedValue = new StringBuilder(2
+        + authPWComponents[0].length() + authPWComponents[1].length()
+        + authPWComponents[2].length());
     normalizedValue.append(authPWComponents[0]);
     normalizedValue.append('$');
     normalizedValue.append(authPWComponents[1]);

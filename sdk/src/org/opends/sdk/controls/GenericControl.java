@@ -22,9 +22,8 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
-
 package org.opends.sdk.controls;
 
 
@@ -32,84 +31,144 @@ package org.opends.sdk.controls;
 import org.opends.sdk.ByteString;
 
 import com.sun.opends.sdk.util.StaticUtils;
+import com.sun.opends.sdk.util.Validator;
 
 
 
 /**
- * A generic raw request. A raw control is a control whose parameters
- * have not been fully decoded.
- * <p>
- * TODO: this should be hooked into the remaining controls class
- * hierarchy.
- * <p>
- * TODO: push ASN1 encoding into ASN1 package.
+ * A generic control which can be used to represent arbitrary raw request and
+ * response controls.
  */
-public final class GenericControl extends Control
+public final class GenericControl implements Control
 {
 
-  // The control value.
+  /**
+   * Creates a new control having the same OID, criticality, and value as the
+   * provided control.
+   *
+   * @param control
+   *          The control to be copied.
+   * @return The new control.
+   * @throws NullPointerException
+   *           If {@code control} was {@code null}.
+   */
+  public static GenericControl newControl(final Control control)
+      throws NullPointerException
+  {
+    Validator.ensureNotNull(control);
+
+    if (control instanceof GenericControl)
+    {
+      return (GenericControl) control;
+    }
+
+    return new GenericControl(control.getOID(), control.isCritical(), control
+        .getValue());
+  }
+
+
+
+  /**
+   * Creates a new non-critical control having the provided OID and no value.
+   *
+   * @param oid
+   *          The numeric OID associated with this control.
+   * @return The new control.
+   * @throws NullPointerException
+   *           If {@code oid} was {@code null}.
+   */
+  public static GenericControl newControl(final String oid)
+      throws NullPointerException
+  {
+    return new GenericControl(oid, false, null);
+  }
+
+
+
+  /**
+   * Creates a new control having the provided OID and criticality, but no
+   * value.
+   *
+   * @param oid
+   *          The numeric OID associated with this control.
+   * @param isCritical
+   *          {@code true} if it is unacceptable to perform the operation
+   *          without applying the semantics of this control, or {@code false}
+   *          if it can be ignored.
+   * @return The new control.
+   * @throws NullPointerException
+   *           If {@code oid} was {@code null}.
+   */
+  public static GenericControl newControl(final String oid,
+      final boolean isCritical) throws NullPointerException
+  {
+    return new GenericControl(oid, isCritical, null);
+  }
+
+
+
+  /**
+   * Creates a new control having the provided OID, criticality, and value.
+   * <p>
+   * If {@code value} is not an instance of {@code ByteString} then it will be
+   * converted using the {@link ByteString#valueOf(Object)} method.
+   *
+   * @param oid
+   *          The numeric OID associated with this control.
+   * @param isCritical
+   *          {@code true} if it is unacceptable to perform the operation
+   *          without applying the semantics of this control, or {@code false}
+   *          if it can be ignored.
+   * @param value
+   *          The value associated with this control, or {@code null} if there
+   *          is no value. Its format is defined by the specification of this
+   *          control.
+   * @return The new control.
+   * @throws NullPointerException
+   *           If {@code oid} was {@code null}.
+   */
+  public static GenericControl newControl(final String oid,
+      final boolean isCritical, final Object value) throws NullPointerException
+  {
+    return new GenericControl(oid, isCritical, (value == null) ? null
+        : ByteString.valueOf(value));
+  }
+
+
+
+  private final String oid;
+
+  private final boolean isCritical;
+
   private final ByteString value;
 
 
 
-  /**
-   * Creates a new control with the specified OID. It will not be
-   * critical, and will not have a value.
-   * 
-   * @param oid
-   *          The OID for this control.
-   */
-  public GenericControl(String oid)
+  // Prevent direct instantiation.
+  private GenericControl(final String oid, final boolean isCritical,
+      final ByteString value)
   {
-    this(oid, false, null);
-  }
-
-
-
-  /**
-   * Creates a new raw control with the specified OID and criticality.
-   * It will not have a value.
-   * 
-   * @param oid
-   *          The OID for this control.
-   * @param isCritical
-   *          Indicates whether this control should be considered
-   *          critical.
-   */
-  public GenericControl(String oid, boolean isCritical)
-  {
-    this(oid, isCritical, null);
-  }
-
-
-
-  /**
-   * Creates a new raw control with the specified OID, criticality, and
-   * value.
-   * 
-   * @param oid
-   *          The OID for this control.
-   * @param isCritical
-   *          Indicates whether this control should be considered
-   *          critical.
-   * @param value
-   *          The value for this control.
-   */
-  public GenericControl(String oid, boolean isCritical, ByteString value)
-  {
-    super(oid, isCritical);
+    Validator.ensureNotNull(oid);
+    this.oid = oid;
+    this.isCritical = isCritical;
     this.value = value;
   }
 
 
 
   /**
-   * Retrieves the value for this control.
-   * 
-   * @return The value for this control, or <CODE>null</CODE> if there
-   *         is no value.
+   * {@inheritDoc}
    */
-  @Override
+  public String getOID()
+  {
+    return oid;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public ByteString getValue()
   {
     return value;
@@ -118,41 +177,43 @@ public final class GenericControl extends Control
 
 
   /**
-   * Indicates whether this control has a value.
-   * 
-   * @return <CODE>true</CODE> if this control has a value, or
-   *         <CODE>false</CODE> if it does not.
+   * {@inheritDoc}
    */
-  @Override
   public boolean hasValue()
   {
-    return (value != null);
+    return value != null;
   }
 
 
 
   /**
-   * Appends a string representation of this control to the provided
-   * buffer.
-   * 
-   * @param buffer
-   *          The buffer to which the information should be appended.
+   * {@inheritDoc}
+   */
+  public boolean isCritical()
+  {
+    return isCritical;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
    */
   @Override
-  public void toString(StringBuilder buffer)
+  public String toString()
   {
-    buffer.append("Control(oid=");
-    buffer.append(getOID());
-    buffer.append(", criticality=");
-    buffer.append(isCritical());
-
+    final StringBuilder builder = new StringBuilder();
+    builder.append("Control(oid=");
+    builder.append(getOID());
+    builder.append(", criticality=");
+    builder.append(isCritical());
     if (value != null)
     {
-      buffer.append(", value=");
-      StaticUtils.toHexPlusAscii(value, buffer, 4);
+      builder.append(", value=");
+      StaticUtils.toHexPlusAscii(value, builder, 4);
     }
-
-    buffer.append(")");
+    builder.append(")");
+    return builder.toString();
   }
 
 }

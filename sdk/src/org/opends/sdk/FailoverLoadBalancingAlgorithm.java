@@ -42,25 +42,20 @@ import com.sun.opends.sdk.util.Validator;
 
 
 /**
- * A fail-over load balancing algorithm provides fault tolerance across
- * multiple underlying connection factories.
+ * A fail-over load balancing algorithm provides fault tolerance across multiple
+ * underlying connection factories.
  * <p>
- * If a problem occurs that temporarily prevents connections from being
- * obtained for one of the connection factories, then this algorithm
- * "fails over" to another operational connection factory in the list.
- * If none of the connection factories are operational then a {@code
- * ConnectionException} is returned to the client.
+ * If a problem occurs that temporarily prevents connections from being obtained
+ * for one of the connection factories, then this algorithm "fails over" to
+ * another operational connection factory in the list. If none of the connection
+ * factories are operational then a {@code ConnectionException} is returned to
+ * the client.
  * <p>
- * The implementation periodically attempts to connect to failed
- * connection factories in order to determine if they have become
- * available again.
+ * The implementation periodically attempts to connect to failed connection
+ * factories in order to determine if they have become available again.
  */
 class FailoverLoadBalancingAlgorithm implements LoadBalancingAlgorithm
 {
-  private final List<MonitoredConnectionFactory> monitoredFactories;
-
-
-
   private static final class MonitoredConnectionFactory extends
       AbstractConnectionFactory implements
       ResultHandler<AsynchronousConnection>
@@ -73,7 +68,7 @@ class FailoverLoadBalancingAlgorithm implements LoadBalancingAlgorithm
 
 
 
-    private MonitoredConnectionFactory(ConnectionFactory factory)
+    private MonitoredConnectionFactory(final ConnectionFactory factory)
     {
       this.factory = factory;
       this.isOperational = true;
@@ -81,35 +76,14 @@ class FailoverLoadBalancingAlgorithm implements LoadBalancingAlgorithm
 
 
 
-    private boolean isOperational()
-    {
-      return isOperational;
-    }
-
-
-
-    public void handleErrorResult(ErrorResultException error)
-    {
-      isOperational = false;
-    }
-
-
-
-    public void handleResult(AsynchronousConnection result)
-    {
-      isOperational = true;
-      // TODO: Notify the server is back up
-      result.close();
-    }
-
-
-
+    @Override
     public FutureResult<AsynchronousConnection> getAsynchronousConnection(
         final ResultHandler<AsynchronousConnection> resultHandler)
     {
-      ResultHandler<AsynchronousConnection> handler = new ResultHandler<AsynchronousConnection>()
+      final ResultHandler<AsynchronousConnection> handler =
+        new ResultHandler<AsynchronousConnection>()
       {
-        public void handleErrorResult(ErrorResultException error)
+        public void handleErrorResult(final ErrorResultException error)
         {
           isOperational = false;
           if (resultHandler != null)
@@ -118,16 +92,15 @@ class FailoverLoadBalancingAlgorithm implements LoadBalancingAlgorithm
           }
           if (StaticUtils.DEBUG_LOG.isLoggable(Level.WARNING))
           {
-            StaticUtils.DEBUG_LOG.warning(String
-                .format("Connection factory " + factory
-                    + " is no longer operational: "
-                    + error.getMessage()));
+            StaticUtils.DEBUG_LOG
+                .warning(String.format("Connection factory " + factory
+                    + " is no longer operational: " + error.getMessage()));
           }
         }
 
 
 
-        public void handleResult(AsynchronousConnection result)
+        public void handleResult(final AsynchronousConnection result)
         {
           isOperational = true;
           if (resultHandler != null)
@@ -136,19 +109,41 @@ class FailoverLoadBalancingAlgorithm implements LoadBalancingAlgorithm
           }
           if (StaticUtils.DEBUG_LOG.isLoggable(Level.WARNING))
           {
-            StaticUtils.DEBUG_LOG.warning(String
-                .format("Connection factory " + factory
-                    + " is now operational"));
+            StaticUtils.DEBUG_LOG.warning(String.format("Connection factory "
+                + factory + " is now operational"));
           }
         }
       };
       return factory.getAsynchronousConnection(handler);
     }
+
+
+
+    public void handleErrorResult(final ErrorResultException error)
+    {
+      isOperational = false;
+    }
+
+
+
+    public void handleResult(final AsynchronousConnection result)
+    {
+      isOperational = true;
+      // TODO: Notify the server is back up
+      result.close();
+    }
+
+
+
+    private boolean isOperational()
+    {
+      return isOperational;
+    }
   }
 
 
 
-  private class MonitorThread extends Thread
+  private final class MonitorThread extends Thread
   {
     private MonitorThread()
     {
@@ -158,11 +153,12 @@ class FailoverLoadBalancingAlgorithm implements LoadBalancingAlgorithm
 
 
 
+    @Override
     public void run()
     {
       while (true)
       {
-        for (MonitoredConnectionFactory f : monitoredFactories)
+        for (final MonitoredConnectionFactory f : monitoredFactories)
         {
           if (!f.isOperational
               && (f.pendingConnectFuture == null || f.pendingConnectFuture
@@ -173,8 +169,7 @@ class FailoverLoadBalancingAlgorithm implements LoadBalancingAlgorithm
               StaticUtils.DEBUG_LOG.finest(String
                   .format("Attempting connect on factory " + f));
             }
-            f.pendingConnectFuture = f.factory
-                .getAsynchronousConnection(f);
+            f.pendingConnectFuture = f.factory.getAsynchronousConnection(f);
           }
         }
 
@@ -182,7 +177,7 @@ class FailoverLoadBalancingAlgorithm implements LoadBalancingAlgorithm
         {
           sleep(10000);
         }
-        catch (InterruptedException e)
+        catch (final InterruptedException e)
         {
           // Termination requested - exit.
           break;
@@ -193,20 +188,25 @@ class FailoverLoadBalancingAlgorithm implements LoadBalancingAlgorithm
 
 
 
+  private final List<MonitoredConnectionFactory> monitoredFactories;
+
+
+
   /**
-   * Creates a new fail-over load balancing algorithm which will
-   * fail-over across the provided list of connection factories.
+   * Creates a new fail-over load balancing algorithm which will fail-over
+   * across the provided collection of connection factories.
    *
    * @param factories
    *          The connection factories which will be used for fail-over.
    */
-  public FailoverLoadBalancingAlgorithm(ConnectionFactory... factories)
+  public FailoverLoadBalancingAlgorithm(
+      final Collection<ConnectionFactory> factories)
   {
-    Validator.ensureNotNull((Object[]) factories);
+    Validator.ensureNotNull(factories);
 
-    monitoredFactories = new ArrayList<MonitoredConnectionFactory>(
-        factories.length);
-    for (ConnectionFactory f : factories)
+    monitoredFactories = new ArrayList<MonitoredConnectionFactory>(factories
+        .size());
+    for (final ConnectionFactory f : factories)
     {
       monitoredFactories.add(new MonitoredConnectionFactory(f));
     }
@@ -217,20 +217,19 @@ class FailoverLoadBalancingAlgorithm implements LoadBalancingAlgorithm
 
 
   /**
-   * Creates a new fail-over load balancing algorithm which will
-   * fail-over across the provided collection of connection factories.
+   * Creates a new fail-over load balancing algorithm which will fail-over
+   * across the provided list of connection factories.
    *
    * @param factories
    *          The connection factories which will be used for fail-over.
    */
-  public FailoverLoadBalancingAlgorithm(
-      Collection<ConnectionFactory> factories)
+  public FailoverLoadBalancingAlgorithm(final ConnectionFactory... factories)
   {
-    Validator.ensureNotNull(factories);
+    Validator.ensureNotNull((Object[]) factories);
 
     monitoredFactories = new ArrayList<MonitoredConnectionFactory>(
-        factories.size());
-    for (ConnectionFactory f : factories)
+        factories.length);
+    for (final ConnectionFactory f : factories)
     {
       monitoredFactories.add(new MonitoredConnectionFactory(f));
     }
@@ -243,7 +242,7 @@ class FailoverLoadBalancingAlgorithm implements LoadBalancingAlgorithm
   public ConnectionFactory getNextConnectionFactory()
       throws ErrorResultException
   {
-    for (MonitoredConnectionFactory f : monitoredFactories)
+    for (final MonitoredConnectionFactory f : monitoredFactories)
     {
       if (f.isOperational())
       {

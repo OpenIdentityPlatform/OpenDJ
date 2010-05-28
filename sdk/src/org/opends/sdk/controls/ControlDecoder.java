@@ -22,51 +22,48 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
+
 package org.opends.sdk.controls;
 
 
 
-import org.opends.sdk.ByteString;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.schema.Schema;
+import org.opends.sdk.DecodeOptions;
 
 
 
 /**
- * An interface for decoding controls.
+ * A factory interface for decoding a control as a control of specific type.
  *
- * @param <T>
- *          The type of control decoded by this decoder.
+ * @param <C>
+ *          The type of control decoded by this control decoder.
  */
-public interface ControlDecoder<T extends Control>
+public interface ControlDecoder<C extends Control>
 {
-
   /**
-   * Decodes the provided control.
+   * Decodes the provided control as a {@code Control} of type {@code C}.
    *
-   * @param isCritical
-   *          Indicates whether the control should be considered
-   *          critical.
-   * @param value
-   *          The value for the control.
-   * @param schema
-   *          The schema which should be used when decoding the control,
-   *          if required.
+   * @param control
+   *          The control to be decoded.
+   * @param options
+   *          The set of decode options which should be used when decoding the
+   *          control.
    * @return The decoded control.
    * @throws DecodeException
-   *           If the control could not be decoded.
+   *           If the control contained the wrong OID, it did not have a value,
+   *           or if its value could not be decoded.
    */
-  T decode(boolean isCritical, ByteString value, Schema schema)
+  C decodeControl(Control control, DecodeOptions options)
       throws DecodeException;
 
 
 
   /**
-   * Gets the OID of the control decoded by this decoded.
+   * Returns the numeric OID associated with this control decoder.
    *
-   * @return The OID of the control decoded by this decoded.
+   * @return The numeric OID associated with this control decoder.
    */
   String getOID();
 }

@@ -29,7 +29,10 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.
+  WARN_ATTR_SYNTAX_PRINTABLE_STRING_EMPTY_VALUE;
+import static com.sun.opends.sdk.messages.Messages.
+  WARN_ATTR_SYNTAX_PRINTABLE_STRING_ILLEGAL_CHARACTER;
 import static org.opends.sdk.schema.SchemaConstants.*;
 
 import org.opends.sdk.ByteSequence;
@@ -37,28 +40,25 @@ import org.opends.sdk.LocalizableMessageBuilder;
 
 
 
-
 /**
- * This class implements the printable string attribute syntax, which is
- * simply a string of characters from a limited ASCII character set
- * (uppercase and lowercase letters, numeric digits, the space, and a
- * set of various symbols). By default, they will be treated in a
- * case-insensitive manner, and equality, ordering, substring, and
- * approximate matching will be allowed.
+ * This class implements the printable string attribute syntax, which is simply
+ * a string of characters from a limited ASCII character set (uppercase and
+ * lowercase letters, numeric digits, the space, and a set of various symbols).
+ * By default, they will be treated in a case-insensitive manner, and equality,
+ * ordering, substring, and approximate matching will be allowed.
  */
 final class PrintableStringSyntaxImpl extends AbstractSyntaxImpl
 {
 
   /**
-   * Indicates whether the provided character is a valid printable
-   * character.
-   * 
+   * Indicates whether the provided character is a valid printable character.
+   *
    * @param c
    *          The character for which to make the determination.
    * @return <CODE>true</CODE> if the provided character is a printable
    *         character, or <CODE>false</CODE> if not.
    */
-  static boolean isPrintableCharacter(char c)
+  static boolean isPrintableCharacter(final char c)
   {
     switch (c)
     {
@@ -191,29 +191,28 @@ final class PrintableStringSyntaxImpl extends AbstractSyntaxImpl
 
 
   /**
-   * Indicates whether the provided value is acceptable for use in an
-   * attribute with this syntax. If it is not, then the reason may be
-   * appended to the provided buffer.
-   * 
+   * Indicates whether the provided value is acceptable for use in an attribute
+   * with this syntax. If it is not, then the reason may be appended to the
+   * provided buffer.
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
    *          The value for which to make the determination.
    * @param invalidReason
    *          The buffer to which the invalid reason should be appended.
-   * @return <CODE>true</CODE> if the provided value is acceptable for
-   *         use with this syntax, or <CODE>false</CODE> if not.
+   * @return <CODE>true</CODE> if the provided value is acceptable for use with
+   *         this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      LocalizableMessageBuilder invalidReason)
+  public boolean valueIsAcceptable(final Schema schema,
+      final ByteSequence value, final LocalizableMessageBuilder invalidReason)
   {
     // Check to see if the provided value was null. If so, then that's
     // not acceptable.
     if (value == null)
     {
 
-      invalidReason
-          .append(WARN_ATTR_SYNTAX_PRINTABLE_STRING_EMPTY_VALUE.get());
+      invalidReason.append(WARN_ATTR_SYNTAX_PRINTABLE_STRING_EMPTY_VALUE.get());
       return false;
     }
 
@@ -224,8 +223,7 @@ final class PrintableStringSyntaxImpl extends AbstractSyntaxImpl
     if (valueLength == 0)
     {
 
-      invalidReason
-          .append(WARN_ATTR_SYNTAX_PRINTABLE_STRING_EMPTY_VALUE.get());
+      invalidReason.append(WARN_ATTR_SYNTAX_PRINTABLE_STRING_EMPTY_VALUE.get());
       return false;
     }
 
@@ -238,8 +236,8 @@ final class PrintableStringSyntaxImpl extends AbstractSyntaxImpl
       {
 
         invalidReason
-            .append(WARN_ATTR_SYNTAX_PRINTABLE_STRING_ILLEGAL_CHARACTER
-                .get(valueString, String.valueOf(c), i));
+            .append(WARN_ATTR_SYNTAX_PRINTABLE_STRING_ILLEGAL_CHARACTER.get(
+                valueString, String.valueOf(c), i));
         return false;
       }
     }

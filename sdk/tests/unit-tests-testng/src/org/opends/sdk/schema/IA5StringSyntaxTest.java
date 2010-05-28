@@ -43,9 +43,10 @@ public class IA5StringSyntaxTest extends SyntaxTestCase
    * {@inheritDoc}
    */
   @Override
-  protected Syntax getRule()
+  @DataProvider(name = "acceptableValues")
+  public Object[][] createAcceptableValues()
   {
-    return Schema.getCoreSchema().getSyntax(SYNTAX_IA5_STRING_OID);
+    return new Object[][] { { "12345678", true }, { "12345678\u2163", false }, };
   }
 
 
@@ -54,11 +55,9 @@ public class IA5StringSyntaxTest extends SyntaxTestCase
    * {@inheritDoc}
    */
   @Override
-  @DataProvider(name = "acceptableValues")
-  public Object[][] createAcceptableValues()
+  protected Syntax getRule()
   {
-    return new Object[][] { { "12345678", true },
-        { "12345678\u2163", false }, };
+    return Schema.getCoreSchema().getSyntax(SYNTAX_IA5_STRING_OID);
   }
 
 }

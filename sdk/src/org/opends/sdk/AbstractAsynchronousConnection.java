@@ -29,18 +29,16 @@ package org.opends.sdk;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.ERR_NO_SEARCH_RESULT_ENTRIES;
+import static com.sun.opends.sdk.messages.Messages.ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES;
+import static com.sun.opends.sdk.messages.Messages.ERR_UNEXPECTED_SEARCH_RESULT_REFERENCES;
 
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.opends.sdk.requests.Requests;
-import org.opends.sdk.requests.SearchRequest;
-import org.opends.sdk.responses.Responses;
-import org.opends.sdk.responses.Result;
-import org.opends.sdk.responses.SearchResultEntry;
-import org.opends.sdk.responses.SearchResultReference;
+import org.opends.sdk.requests.*;
+import org.opends.sdk.responses.*;
 import org.opends.sdk.schema.Schema;
 
 
@@ -71,14 +69,14 @@ public abstract class AbstractAsynchronousConnection implements
 
 
     private SingleEntryFuture(
-        ResultHandler<? super SearchResultEntry> handler)
+        final ResultHandler<? super SearchResultEntry> handler)
     {
       this.handler = handler;
     }
 
 
 
-    public boolean cancel(boolean mayInterruptIfRunning)
+    public boolean cancel(final boolean mayInterruptIfRunning)
     {
       return future.cancel(mayInterruptIfRunning);
     }
@@ -94,52 +92,11 @@ public abstract class AbstractAsynchronousConnection implements
 
 
 
-    public SearchResultEntry get(long timeout, TimeUnit unit)
-        throws ErrorResultException, TimeoutException,
-        InterruptedException
+    public SearchResultEntry get(final long timeout, final TimeUnit unit)
+        throws ErrorResultException, TimeoutException, InterruptedException
     {
       future.get(timeout, unit);
       return get0();
-    }
-
-
-
-    private SearchResultEntry get0() throws ErrorResultException
-    {
-      if (entryCount == 0)
-      {
-        // Did not find any entries.
-        Result result = Responses.newResult(
-            ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED)
-            .setDiagnosticMessage(
-                ERR_NO_SEARCH_RESULT_ENTRIES.get().toString());
-        throw ErrorResultException.wrap(result);
-      }
-      else if (entryCount > 1)
-      {
-        // Got more entries than expected.
-        Result result = Responses.newResult(
-            ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED)
-            .setDiagnosticMessage(
-                ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES.get(entryCount)
-                    .toString());
-        throw ErrorResultException.wrap(result);
-      }
-      else if (firstReference != null)
-      {
-        // Got an unexpected search result reference.
-        Result result = Responses.newResult(
-            ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED)
-            .setDiagnosticMessage(
-                ERR_UNEXPECTED_SEARCH_RESULT_REFERENCES.get(
-                    firstReference.getURIs().iterator().next())
-                    .toString());
-        throw ErrorResultException.wrap(result);
-      }
-      else
-      {
-        return firstEntry;
-      }
     }
 
 
@@ -151,18 +108,19 @@ public abstract class AbstractAsynchronousConnection implements
 
 
 
-    public void handleEntry(SearchResultEntry entry)
+    public boolean handleEntry(final SearchResultEntry entry)
     {
       if (firstEntry == null)
       {
         firstEntry = entry;
       }
       entryCount++;
+      return true;
     }
 
 
 
-    public void handleErrorResult(ErrorResultException error)
+    public void handleErrorResult(final ErrorResultException error)
     {
       if (handler != null)
       {
@@ -172,17 +130,18 @@ public abstract class AbstractAsynchronousConnection implements
 
 
 
-    public void handleReference(SearchResultReference reference)
+    public boolean handleReference(final SearchResultReference reference)
     {
       if (firstReference == null)
       {
         firstReference = reference;
       }
+      return true;
     }
 
 
 
-    public void handleResult(Result result)
+    public void handleResult(final Result result)
     {
       if (handler != null)
       {
@@ -190,7 +149,7 @@ public abstract class AbstractAsynchronousConnection implements
         {
           handler.handleResult(get0());
         }
-        catch (ErrorResultException e)
+        catch (final ErrorResultException e)
         {
           handler.handleErrorResult(e);
         }
@@ -213,7 +172,44 @@ public abstract class AbstractAsynchronousConnection implements
 
 
 
-    private void setResultFuture(FutureResult<Result> future)
+    private SearchResultEntry get0() throws ErrorResultException
+    {
+      if (entryCount == 0)
+      {
+        // Did not find any entries.
+        final Result result = Responses.newResult(
+            ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED).setDiagnosticMessage(
+            ERR_NO_SEARCH_RESULT_ENTRIES.get().toString());
+        throw ErrorResultException.wrap(result);
+      }
+      else if (entryCount > 1)
+      {
+        // Got more entries than expected.
+        final Result result = Responses
+            .newResult(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED)
+            .setDiagnosticMessage(
+                ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES.get(entryCount).toString());
+        throw ErrorResultException.wrap(result);
+      }
+      else if (firstReference != null)
+      {
+        // Got an unexpected search result reference.
+        final Result result = Responses.newResult(
+            ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED)
+            .setDiagnosticMessage(
+                ERR_UNEXPECTED_SEARCH_RESULT_REFERENCES.get(
+                    firstReference.getURIs().iterator().next()).toString());
+        throw ErrorResultException.wrap(result);
+      }
+      else
+      {
+        return firstEntry;
+      }
+    }
+
+
+
+    private void setResultFuture(final FutureResult<Result> future)
     {
       this.future = future;
     }
@@ -234,6 +230,32 @@ public abstract class AbstractAsynchronousConnection implements
   /**
    * {@inheritDoc}
    */
+  public FutureResult<Result> add(final AddRequest request,
+      final ResultHandler<Result> handler)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException
+  {
+    return add(request, handler, null);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public FutureResult<BindResult> bind(final BindRequest request,
+      final ResultHandler<? super BindResult> handler)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException
+  {
+    return bind(request, handler, null);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   public void close()
   {
     close(Requests.newUnbindRequest(), null);
@@ -244,15 +266,90 @@ public abstract class AbstractAsynchronousConnection implements
   /**
    * {@inheritDoc}
    */
-  public FutureResult<SearchResultEntry> readEntry(DN name,
-      Collection<String> attributeDescriptions,
-      ResultHandler<? super SearchResultEntry> handler)
+  public FutureResult<CompareResult> compare(final CompareRequest request,
+      final ResultHandler<? super CompareResult> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
-    SearchRequest request = Requests.newSearchRequest(name,
-        SearchScope.BASE_OBJECT, Filter.getObjectClassPresentFilter())
-        .addAttribute(attributeDescriptions);
+    return compare(request, handler, null);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public FutureResult<Result> delete(final DeleteRequest request,
+      final ResultHandler<Result> handler)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException
+  {
+    return delete(request, handler, null);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public <R extends ExtendedResult> FutureResult<R> extendedRequest(
+      final ExtendedRequest<R> request, final ResultHandler<? super R> handler)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException
+  {
+    return extendedRequest(request, handler, null);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Connection getSynchronousConnection()
+  {
+    return new SynchronousConnection(this);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public FutureResult<Result> modify(final ModifyRequest request,
+      final ResultHandler<Result> handler)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException
+  {
+    return modify(request, handler, null);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public FutureResult<Result> modifyDN(final ModifyDNRequest request,
+      final ResultHandler<Result> handler)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException
+  {
+    return modifyDN(request, handler, null);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public FutureResult<SearchResultEntry> readEntry(final DN name,
+      final Collection<String> attributeDescriptions,
+      final ResultHandler<? super SearchResultEntry> handler)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException
+  {
+    final SearchRequest request = Requests.newSearchRequest(name,
+        SearchScope.BASE_OBJECT, Filter.getObjectClassPresentFilter());
+    request.getAttributes().addAll(attributeDescriptions);
     return searchSingleEntry(request, handler);
   }
 
@@ -261,8 +358,7 @@ public abstract class AbstractAsynchronousConnection implements
   /**
    * {@inheritDoc}
    */
-  public FutureResult<RootDSE> readRootDSE(
-      ResultHandler<RootDSE> handler)
+  public FutureResult<RootDSE> readRootDSE(final ResultHandler<RootDSE> handler)
       throws UnsupportedOperationException, IllegalStateException
   {
     return RootDSE.readRootDSE(this, handler);
@@ -273,8 +369,8 @@ public abstract class AbstractAsynchronousConnection implements
   /**
    * {@inheritDoc}
    */
-  public FutureResult<Schema> readSchema(DN name,
-      ResultHandler<Schema> handler)
+  public FutureResult<Schema> readSchema(final DN name,
+      final ResultHandler<Schema> handler)
       throws UnsupportedOperationException, IllegalStateException
   {
     return Schema.readSchema(this, name, handler);
@@ -285,11 +381,25 @@ public abstract class AbstractAsynchronousConnection implements
   /**
    * {@inheritDoc}
    */
-  public FutureResult<Schema> readSchemaForEntry(DN name,
-      ResultHandler<Schema> handler)
+  public FutureResult<Schema> readSchemaForEntry(final DN name,
+      final ResultHandler<Schema> handler)
       throws UnsupportedOperationException, IllegalStateException
   {
     return Schema.readSchema(this, name, handler);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public FutureResult<Result> search(final SearchRequest request,
+      final ResultHandler<Result> resultHandler,
+      final SearchResultHandler searchResulthandler)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException
+  {
+    return search(request, resultHandler, searchResulthandler, null);
   }
 
 
@@ -298,8 +408,8 @@ public abstract class AbstractAsynchronousConnection implements
    * {@inheritDoc}
    */
   public FutureResult<SearchResultEntry> searchSingleEntry(
-      SearchRequest request,
-      ResultHandler<? super SearchResultEntry> handler)
+      final SearchRequest request,
+      final ResultHandler<? super SearchResultEntry> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
@@ -309,5 +419,4 @@ public abstract class AbstractAsynchronousConnection implements
     innerFuture.setResultFuture(future);
     return innerFuture;
   }
-
 }

@@ -47,21 +47,20 @@ public final class Connections
 {
   /**
    * Creates a new authenticated connection factory which will obtain
-   * connections using the provided connection factory and immediately
-   * perform the provided Bind request.
+   * connections using the provided connection factory and immediately perform
+   * the provided Bind request.
    * <p>
-   * The connections returned by an authenticated connection factory
-   * support all operations with the exception of Bind requests.
-   * Attempts to perform a Bind will result in an {@code
-   * UnsupportedOperationException}.
+   * The connections returned by an authenticated connection factory support all
+   * operations with the exception of Bind requests. Attempts to perform a Bind
+   * will result in an {@code UnsupportedOperationException}.
    * <p>
-   * If the Bind request fails for some reason (e.g. invalid
-   * credentials), then the connection attempt will fail and an {@code
-   * ErrorResultException} will be thrown.
+   * If the Bind request fails for some reason (e.g. invalid credentials), then
+   * the connection attempt will fail and an {@code ErrorResultException} will
+   * be thrown.
    *
    * @param factory
-   *          The connection factory to use for connecting to the
-   *          Directory Server.
+   *          The connection factory to use for connecting to the Directory
+   *          Server.
    * @param request
    *          The Bind request to use for authentication.
    * @return The new connection pool.
@@ -69,7 +68,7 @@ public final class Connections
    *           If {@code factory} or {@code request} was {@code null}.
    */
   public static ConnectionFactory newAuthenticatedConnectionFactory(
-      ConnectionFactory factory, BindRequest request)
+      final ConnectionFactory factory, final BindRequest request)
       throws NullPointerException
   {
     Validator.ensureNotNull(factory, request);
@@ -84,8 +83,7 @@ public final class Connections
    * connections created using the provided connection factory.
    *
    * @param factory
-   *          The connection factory to use for creating new
-   *          connections.
+   *          The connection factory to use for creating new connections.
    * @param poolSize
    *          The maximum size of the connection pool.
    * @return The new connection pool.
@@ -95,7 +93,7 @@ public final class Connections
    *           If {@code factory} was {@code null}.
    */
   public static ConnectionFactory newConnectionPool(
-      ConnectionFactory factory, int poolSize)
+      final ConnectionFactory factory, final int poolSize)
       throws IllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(factory);
@@ -106,21 +104,19 @@ public final class Connections
 
 
   /**
-   * Creates a new connection factory providing fault tolerance across
-   * multiple underlying connection factories.
+   * Creates a new connection factory providing fault tolerance across multiple
+   * underlying connection factories.
    * <p>
-   * The returned fail-over connection factory forwards connection
-   * requests to one of the provided connection factories. If the
-   * request fails for some reason (for example, due to network
-   * failure), then the fail-over connection factory switches to another
-   * connection faction, repeating the process until the connection
-   * request succeeds, or until all the connection factories are
-   * determined to be unavailable, in which case the connection request
-   * will fail.
+   * The returned fail-over connection factory forwards connection requests to
+   * one of the provided connection factories. If the request fails for some
+   * reason (for example, due to network failure), then the fail-over connection
+   * factory switches to another connection faction, repeating the process until
+   * the connection request succeeds, or until all the connection factories are
+   * determined to be unavailable, in which case the connection request will
+   * fail.
    * <p>
-   * The implementation periodically attempts to connect to failed
-   * connection factories in order to determine if they have become
-   * available again.
+   * The implementation periodically attempts to connect to failed connection
+   * factories in order to determine if they have become available again.
    *
    * @param factories
    *          The connection factories which will be used for fail-over.
@@ -129,10 +125,10 @@ public final class Connections
    *           If {@code factories} was {@code null}.
    */
   public static ConnectionFactory newFailoverConnectionFactory(
-      Collection<ConnectionFactory> factories)
+      final Collection<ConnectionFactory> factories)
       throws NullPointerException
   {
-    FailoverLoadBalancingAlgorithm algorithm = new FailoverLoadBalancingAlgorithm(
+    final FailoverLoadBalancingAlgorithm algorithm = new FailoverLoadBalancingAlgorithm(
         factories);
     return new LoadBalancingConnectionFactory(algorithm);
   }
@@ -140,21 +136,19 @@ public final class Connections
 
 
   /**
-   * Creates a new connection factory providing fault tolerance across
-   * multiple underlying connection factories.
+   * Creates a new connection factory providing fault tolerance across multiple
+   * underlying connection factories.
    * <p>
-   * The returned fail-over connection factory forwards connection
-   * requests to one of the provided connection factories. If the
-   * request fails for some reason (for example, due to network
-   * failure), then the fail-over connection factory switches to another
-   * connection faction, repeating the process until the connection
-   * request succeeds, or until all the connection factories are
-   * determined to be unavailable, in which case the connection request
-   * will fail.
+   * The returned fail-over connection factory forwards connection requests to
+   * one of the provided connection factories. If the request fails for some
+   * reason (for example, due to network failure), then the fail-over connection
+   * factory switches to another connection faction, repeating the process until
+   * the connection request succeeds, or until all the connection factories are
+   * determined to be unavailable, in which case the connection request will
+   * fail.
    * <p>
-   * The implementation periodically attempts to connect to failed
-   * connection factories in order to determine if they have become
-   * available again.
+   * The implementation periodically attempts to connect to failed connection
+   * factories in order to determine if they have become available again.
    *
    * @param factories
    *          The connection factories which will be used for fail-over.
@@ -163,9 +157,9 @@ public final class Connections
    *           If {@code factories} was {@code null}.
    */
   public static ConnectionFactory newFailoverConnectionFactory(
-      ConnectionFactory... factories) throws NullPointerException
+      final ConnectionFactory... factories) throws NullPointerException
   {
-    FailoverLoadBalancingAlgorithm algorithm = new FailoverLoadBalancingAlgorithm(
+    final FailoverLoadBalancingAlgorithm algorithm = new FailoverLoadBalancingAlgorithm(
         factories);
     return new LoadBalancingConnectionFactory(algorithm);
   }
@@ -173,9 +167,9 @@ public final class Connections
 
 
   /**
-   * Creates a new connection factory which will create connections
-   * using the provided connection factory and periodically probe any
-   * created connections in order to detect that they are still alive.
+   * Creates a new connection factory which will create connections using the
+   * provided connection factory and periodically probe any created connections
+   * in order to detect that they are still alive.
    *
    * @param factory
    *          The connection factory to use for creating connections.
@@ -190,7 +184,7 @@ public final class Connections
    *           If {@code factory} or {@code unit} was {@code null}.
    */
   public static ConnectionFactory newHeartBeatConnectionFactory(
-      ConnectionFactory factory, long timeout, TimeUnit unit)
+      final ConnectionFactory factory, final long timeout, final TimeUnit unit)
       throws IllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(factory, unit);
@@ -202,10 +196,10 @@ public final class Connections
 
 
   /**
-   * Creates a new connection factory which will create connections
-   * using the provided connection factory and periodically probe any
-   * created connections using the specified search request in order to
-   * detect that they are still alive.
+   * Creates a new connection factory which will create connections using the
+   * provided connection factory and periodically probe any created connections
+   * using the specified search request in order to detect that they are still
+   * alive.
    *
    * @param factory
    *          The connection factory to use for creating connections.
@@ -219,19 +213,44 @@ public final class Connections
    * @throws IllegalArgumentException
    *           If {@code timeout} was negative.
    * @throws NullPointerException
-   *           If {@code factory}, {@code unit}, or {@code heartBeat}
-   *           was {@code null}.
+   *           If {@code factory}, {@code unit}, or {@code heartBeat} was
+   *           {@code null}.
    */
   public static ConnectionFactory newHeartBeatConnectionFactory(
-      ConnectionFactory factory, long timeout, TimeUnit unit,
-      SearchRequest heartBeat) throws IllegalArgumentException,
+      final ConnectionFactory factory, final long timeout, final TimeUnit unit,
+      final SearchRequest heartBeat) throws IllegalArgumentException,
       NullPointerException
   {
     Validator.ensureNotNull(factory, unit, heartBeat);
     Validator.ensureTrue(timeout >= 0, "negative timeout");
 
-    return new HeartBeatConnectionFactory(factory, timeout, unit,
-        heartBeat);
+    return new HeartBeatConnectionFactory(factory, timeout, unit, heartBeat);
+  }
+
+
+
+  /**
+   * Creates a new connection factory which will create internal connections
+   * using the provided server connection factory. The server connection will be
+   * provided with request context whose value is unique integer associated with
+   * the request.
+   *
+   * @param <C>
+   *          The type of client context.
+   * @param factory
+   *          The server connection factory to use for creating connections.
+   * @param clientContext
+   *          The client context.
+   * @return The new internal connection factory.
+   * @throws NullPointerException
+   *           If {@code factory} was {@code null}.
+   */
+  public static <C> ConnectionFactory newInternalConnectionFactory(
+      final ServerConnectionFactory<C, Integer> factory, final C clientContext)
+      throws NullPointerException
+  {
+    Validator.ensureNotNull(factory);
+    return new InternalConnectionFactory<C>(factory, clientContext);
   }
 
 

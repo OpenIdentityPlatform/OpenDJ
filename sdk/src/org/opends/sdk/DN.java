@@ -22,14 +22,14 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.ERR_DN_TYPE_NOT_FOUND;
 
 import java.util.*;
 
@@ -43,9 +43,8 @@ import com.sun.opends.sdk.util.Validator;
 
 /**
  * A distinguished name (DN) as defined in RFC 4512 section 2.3 is the
- * concatenation of its relative distinguished name (RDN) and its
- * immediate superior's DN. A DN unambiguously refers to an entry in the
- * Directory.
+ * concatenation of its relative distinguished name (RDN) and its immediate
+ * superior's DN. A DN unambiguously refers to an entry in the Directory.
  * <p>
  * The following are examples of string representations of DNs:
  *
@@ -54,9 +53,9 @@ import com.sun.opends.sdk.util.Validator;
  * Smith,OU=Sales,O=ACME Limited,L=Moab,ST=Utah,C=US
  * </pre>
  *
- * @see <a href="http://tools.ietf.org/html/rfc4512#section-2.3">RFC
- *      4512 - Lightweight Directory Access Protocol (LDAP): Directory
- *      Information Models </a>
+ * @see <a href="http://tools.ietf.org/html/rfc4512#section-2.3">RFC 4512 -
+ *      Lightweight Directory Access Protocol (LDAP): Directory Information
+ *      Models </a>
  */
 public final class DN implements Iterable<RDN>, Comparable<DN>
 {
@@ -67,7 +66,8 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
   // cache parent DNs, so there's no need for it to be big.
   private static final int DN_CACHE_SIZE = 32;
 
-  private static final ThreadLocal<WeakHashMap<Schema, Map<String, DN>>> CACHE = new ThreadLocal<WeakHashMap<Schema, Map<String, DN>>>()
+  private static final ThreadLocal<WeakHashMap<Schema, Map<String, DN>>> CACHE =
+    new ThreadLocal<WeakHashMap<Schema, Map<String, DN>>>()
   {
 
     /**
@@ -84,8 +84,8 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
 
 
   /**
-   * Returns the Root DN. The Root DN does not contain and RDN
-   * components and is superior to all other DNs.
+   * Returns the Root DN. The Root DN does not contain and RDN components and is
+   * superior to all other DNs.
    *
    * @return The Root DN.
    */
@@ -97,19 +97,18 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
 
 
   /**
-   * Parses the provided LDAP string representation of a DN using the
-   * default schema.
+   * Parses the provided LDAP string representation of a DN using the default
+   * schema.
    *
    * @param dn
    *          The LDAP string representation of a DN.
    * @return The parsed DN.
    * @throws LocalizedIllegalArgumentException
-   *           If {@code dn} is not a valid LDAP string representation
-   *           of a DN.
+   *           If {@code dn} is not a valid LDAP string representation of a DN.
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  public static DN valueOf(String dn)
+  public static DN valueOf(final String dn)
       throws LocalizedIllegalArgumentException, NullPointerException
   {
     return valueOf(dn, Schema.getDefaultSchema());
@@ -118,8 +117,8 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
 
 
   /**
-   * Parses the provided LDAP string representation of a DN using the
-   * provided schema.
+   * Parses the provided LDAP string representation of a DN using the provided
+   * schema.
    *
    * @param dn
    *          The LDAP string representation of a DN.
@@ -127,15 +126,14 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
    *          The schema to use when parsing the DN.
    * @return The parsed DN.
    * @throws LocalizedIllegalArgumentException
-   *           If {@code dn} is not a valid LDAP string representation
-   *           of a DN.
+   *           If {@code dn} is not a valid LDAP string representation of a DN.
    * @throws NullPointerException
    *           If {@code dn} or {@code schema} was {@code null}.
    */
-  public static DN valueOf(String dn, Schema schema)
-      throws LocalizedIllegalArgumentException
+  public static DN valueOf(final String dn, final Schema schema)
+      throws LocalizedIllegalArgumentException, NullPointerException
   {
-    Validator.ensureNotNull(schema);
+    Validator.ensureNotNull(dn, schema);
     if (dn.length() == 0)
     {
       return ROOT_DN;
@@ -157,8 +155,8 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
 
 
   // Decodes a DN using the provided reader and schema.
-  private static DN decode(String dnString, SubstringReader reader,
-      Schema schema, Map<String, DN> cache)
+  private static DN decode(final String dnString, final SubstringReader reader,
+      final Schema schema, final Map<String, DN> cache)
       throws LocalizedIllegalArgumentException
   {
     reader.skipWhitespaces();
@@ -207,19 +205,17 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
 
 
   @SuppressWarnings("serial")
-  private static Map<String, DN> getCache(Schema schema)
+  private static Map<String, DN> getCache(final Schema schema)
   {
-    final WeakHashMap<Schema, Map<String, DN>> threadLocalMap = CACHE
-        .get();
+    final WeakHashMap<Schema, Map<String, DN>> threadLocalMap = CACHE.get();
     Map<String, DN> schemaLocalMap = threadLocalMap.get(schema);
 
     if (schemaLocalMap == null)
     {
-      schemaLocalMap = new LinkedHashMap<String, DN>(DN_CACHE_SIZE,
-          0.75f, true)
+      schemaLocalMap = new LinkedHashMap<String, DN>(DN_CACHE_SIZE, 0.75f, true)
       {
         @Override
-        protected boolean removeEldestEntry(Map.Entry<String, DN> e)
+        protected boolean removeEldestEntry(final Map.Entry<String, DN> e)
         {
           return size() > DN_CACHE_SIZE;
         }
@@ -246,7 +242,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
 
 
   // Private constructor.
-  private DN(RDN rdn, DN parent, String stringValue)
+  private DN(final RDN rdn, final DN parent, final String stringValue)
   {
     this.rdn = rdn;
     this.parent = parent;
@@ -257,17 +253,16 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
 
 
   /**
-   * Returns a DN which is subordinate to this DN and having the
-   * additional RDN components contained in the provided DN.
+   * Returns a DN which is subordinate to this DN and having the additional RDN
+   * components contained in the provided DN.
    *
    * @param dn
-   *          The DN containing the RDN components to be added to this
-   *          DN.
+   *          The DN containing the RDN components to be added to this DN.
    * @return The subordinate DN.
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  public DN child(DN dn) throws NullPointerException
+  public DN child(final DN dn) throws NullPointerException
   {
     Validator.ensureNotNull(dn);
 
@@ -308,7 +303,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
    * @throws NullPointerException
    *           If {@code rdn} was {@code null}.
    */
-  public DN child(RDN rdn) throws NullPointerException
+  public DN child(final RDN rdn) throws NullPointerException
   {
     Validator.ensureNotNull(rdn);
     return new DN(rdn, this, null);
@@ -317,21 +312,18 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
 
 
   /**
-   * Returns a DN which is subordinate to this DN and having the
-   * additional RDN components contained in the provided DN decoded
-   * using the default schema.
+   * Returns a DN which is subordinate to this DN and having the additional RDN
+   * components contained in the provided DN decoded using the default schema.
    *
    * @param dn
-   *          The DN containing the RDN components to be added to this
-   *          DN.
+   *          The DN containing the RDN components to be added to this DN.
    * @return The subordinate DN.
    * @throws LocalizedIllegalArgumentException
-   *           If {@code dn} is not a valid LDAP string representation
-   *           of a DN.
+   *           If {@code dn} is not a valid LDAP string representation of a DN.
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  public DN child(String dn) throws LocalizedIllegalArgumentException,
+  public DN child(final String dn) throws LocalizedIllegalArgumentException,
       NullPointerException
   {
     Validator.ensureNotNull(dn);
@@ -343,11 +335,90 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
   /**
    * {@inheritDoc}
    */
-  public int compareTo(DN dn)
+  public int compareTo(final DN dn)
   {
-    final String s1 = toNormalizedString();
-    final String s2 = dn.toNormalizedString();
-    return s1.compareTo(s2);
+    return compareTo(this, dn);
+  }
+
+
+
+  /**
+   * Compares the provided DN values to determine their relative order in a
+   * sorted list.
+   *
+   * @param dn1
+   *          The first DN to be compared. It must not be {@code null}.
+   * @param dn2
+   *          The second DN to be compared. It must not be {@code null}.
+   * @return A negative integer if the first DN should come before the second DN
+   *         in a sorted list, a positive integer if the first DN should come
+   *         after the second DN in a sorted list, or zero if the two DN values
+   *         can be considered equal.
+   */
+  public int compareTo(final DN dn1, final DN dn2)
+  {
+    // Quicly check if we are comparing against root dse.
+    if (dn1.isRootDN())
+    {
+      if (dn2.isRootDN())
+      {
+        // both are equal.
+        return 0;
+      }
+      else
+      {
+        // dn1 comes before dn2.
+        return -1;
+      }
+    }
+
+    if (dn2.isRootDN())
+    {
+      // dn1 comes after dn2.
+      return 1;
+    }
+
+    int dn1Size = dn1.size - 1;
+    int dn2Size = dn2.size - 1;
+    while (dn1Size >= 0 && dn2Size >= 0)
+    {
+      final DN dn1Parent = dn1.parent(dn1Size--);
+      final DN dn2Parent = dn2.parent(dn2Size--);
+      if (dn1Parent.isRootDN())
+      {
+        if (dn2Parent.isRootDN())
+        {
+          break;
+        }
+        return -1;
+      }
+
+      if (dn2Parent.isRootDN())
+      {
+        return 1;
+      }
+
+      final int result = dn1Parent.rdn.compareTo(dn2Parent.rdn);
+      if (result > 0)
+      {
+        return 1;
+      }
+      else if (result < 0)
+      {
+        return -1;
+      }
+    }
+    // What do we have here?
+    if (dn1Size > dn2Size)
+    {
+      return 1;
+    }
+    else if (dn1Size < dn2Size)
+    {
+      return -1;
+    }
+
+    return 0;
   }
 
 
@@ -355,7 +426,8 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
   /**
    * {@inheritDoc}
    */
-  public boolean equals(Object obj)
+  @Override
+  public boolean equals(final Object obj)
   {
     if (this == obj)
     {
@@ -378,6 +450,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
   /**
    * {@inheritDoc}
    */
+  @Override
   public int hashCode()
   {
     final String s = toNormalizedString();
@@ -387,17 +460,16 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
 
 
   /**
-   * Returns {@code true} if this DN is an immediate child of the
-   * provided DN.
+   * Returns {@code true} if this DN is an immediate child of the provided DN.
    *
    * @param dn
    *          The potential parent DN.
-   * @return {@code true} if this DN is the immediate child of the
-   *         provided DN, otherwise {@code false}.
+   * @return {@code true} if this DN is the immediate child of the provided DN,
+   *         otherwise {@code false}.
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  public boolean isChildOf(DN dn) throws NullPointerException
+  public boolean isChildOf(final DN dn) throws NullPointerException
   {
     // If this is the Root DN then parent will be null but this is ok.
     return dn.equals(parent);
@@ -406,20 +478,19 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
 
 
   /**
-   * Returns {@code true} if this DN is an immediate child of the
-   * provided DN decoded using the default schema.
+   * Returns {@code true} if this DN is an immediate child of the provided DN
+   * decoded using the default schema.
    *
    * @param dn
    *          The potential parent DN.
-   * @return {@code true} if this DN is the immediate child of the
-   *         provided DN, otherwise {@code false}.
+   * @return {@code true} if this DN is the immediate child of the provided DN,
+   *         otherwise {@code false}.
    * @throws LocalizedIllegalArgumentException
-   *           If {@code dn} is not a valid LDAP string representation
-   *           of a DN.
+   *           If {@code dn} is not a valid LDAP string representation of a DN.
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  public boolean isChildOf(String dn)
+  public boolean isChildOf(final String dn)
       throws LocalizedIllegalArgumentException, NullPointerException
   {
     // If this is the Root DN then parent will be null but this is ok.
@@ -429,17 +500,16 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
 
 
   /**
-   * Returns {@code true} if this DN is the immediate parent of the
-   * provided DN.
+   * Returns {@code true} if this DN is the immediate parent of the provided DN.
    *
    * @param dn
    *          The potential child DN.
-   * @return {@code true} if this DN is the immediate parent of the
-   *         provided DN, otherwise {@code false}.
+   * @return {@code true} if this DN is the immediate parent of the provided DN,
+   *         otherwise {@code false}.
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  public boolean isParentOf(DN dn) throws NullPointerException
+  public boolean isParentOf(final DN dn) throws NullPointerException
   {
     // If dn is the Root DN then parent will be null but this is ok.
     return equals(dn.parent);
@@ -448,20 +518,18 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
 
 
   /**
-   * Returns {@code true} if this DN is the immediate parent of the
-   * provided DN.
+   * Returns {@code true} if this DN is the immediate parent of the provided DN.
    *
    * @param dn
    *          The potential child DN.
-   * @return {@code true} if this DN is the immediate parent of the
-   *         provided DN, otherwise {@code false}.
+   * @return {@code true} if this DN is the immediate parent of the provided DN,
+   *         otherwise {@code false}.
    * @throws LocalizedIllegalArgumentException
-   *           If {@code dn} is not a valid LDAP string representation
-   *           of a DN.
+   *           If {@code dn} is not a valid LDAP string representation of a DN.
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  public boolean isParentOf(String dn)
+  public boolean isParentOf(final String dn)
       throws LocalizedIllegalArgumentException, NullPointerException
   {
     // If dn is the Root DN then parent will be null but this is ok.
@@ -473,8 +541,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
   /**
    * Returns {@code true} if this DN is the Root DN.
    *
-   * @return {@code true} if this DN is the Root DN, otherwise {@code
-   *         false}.
+   * @return {@code true} if this DN is the Root DN, otherwise {@code false}.
    */
   public boolean isRootDN()
   {
@@ -484,17 +551,17 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
 
 
   /**
-   * Returns {@code true} if this DN is subordinate to or equal to the
-   * provided DN.
+   * Returns {@code true} if this DN is subordinate to or equal to the provided
+   * DN.
    *
    * @param dn
    *          The potential child DN.
-   * @return {@code true} if this DN is subordinate to or equal to the
-   *         provided DN, otherwise {@code false}.
+   * @return {@code true} if this DN is subordinate to or equal to the provided
+   *         DN, otherwise {@code false}.
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  public boolean isSubordinateOrEqualTo(DN dn)
+  public boolean isSubordinateOrEqualTo(final DN dn)
       throws NullPointerException
   {
     if (size < dn.size)
@@ -508,27 +575,26 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
     else
     {
       // dn is a potential superior of this.
-      return parent(dn.size - size).equals(dn);
+      return parent(size - dn.size).equals(dn);
     }
   }
 
 
 
   /**
-   * Returns {@code true} if this DN is subordinate to or equal to the
-   * provided DN.
+   * Returns {@code true} if this DN is subordinate to or equal to the provided
+   * DN.
    *
    * @param dn
    *          The potential child DN.
-   * @return {@code true} if this DN is subordinate to or equal to the
-   *         provided DN, otherwise {@code false}.
+   * @return {@code true} if this DN is subordinate to or equal to the provided
+   *         DN, otherwise {@code false}.
    * @throws LocalizedIllegalArgumentException
-   *           If {@code dn} is not a valid LDAP string representation
-   *           of a DN.
+   *           If {@code dn} is not a valid LDAP string representation of a DN.
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  public boolean isSubordinateOrEqualTo(String dn)
+  public boolean isSubordinateOrEqualTo(final String dn)
       throws LocalizedIllegalArgumentException, NullPointerException
   {
     return isSubordinateOrEqualTo(valueOf(dn));
@@ -537,17 +603,16 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
 
 
   /**
-   * Returns {@code true} if this DN is superior to or equal to the
-   * provided DN.
+   * Returns {@code true} if this DN is superior to or equal to the provided DN.
    *
    * @param dn
    *          The potential child DN.
-   * @return {@code true} if this DN is superior to or equal to the
-   *         provided DN, otherwise {@code false}.
+   * @return {@code true} if this DN is superior to or equal to the provided DN,
+   *         otherwise {@code false}.
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  public boolean isSuperiorOrEqualTo(DN dn) throws NullPointerException
+  public boolean isSuperiorOrEqualTo(final DN dn) throws NullPointerException
   {
     if (size > dn.size)
     {
@@ -567,20 +632,18 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
 
 
   /**
-   * Returns {@code true} if this DN is superior to or equal to the
-   * provided DN.
+   * Returns {@code true} if this DN is superior to or equal to the provided DN.
    *
    * @param dn
    *          The potential child DN.
-   * @return {@code true} if this DN is superior to or equal to the
-   *         provided DN, otherwise {@code false}.
+   * @return {@code true} if this DN is superior to or equal to the provided DN,
+   *         otherwise {@code false}.
    * @throws LocalizedIllegalArgumentException
-   *           If {@code dn} is not a valid LDAP string representation
-   *           of a DN.
+   *           If {@code dn} is not a valid LDAP string representation of a DN.
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  public boolean isSuperiorOrEqualTo(String dn)
+  public boolean isSuperiorOrEqualTo(final String dn)
       throws LocalizedIllegalArgumentException, NullPointerException
   {
     return isSuperiorOrEqualTo(valueOf(dn));
@@ -589,13 +652,13 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
 
 
   /**
-   * Returns an iterator of the RDNs contained in this DN. The RDNs will
-   * be returned in the order starting with this DN's RDN, followed by
-   * the RDN of the parent DN, and so on.
+   * Returns an iterator of the RDNs contained in this DN. The RDNs will be
+   * returned in the order starting with this DN's RDN, followed by the RDN of
+   * the parent DN, and so on.
    * <p>
-   * Attempts to remove RDNs using an iterator's {@code remove()} method
-   * are not permitted and will result in an {@code
-   * UnsupportedOperationException} being thrown.
+   * Attempts to remove RDNs using an iterator's {@code remove()} method are not
+   * permitted and will result in an {@code UnsupportedOperationException} being
+   * thrown.
    *
    * @return An iterator of the RDNs contained in this DN.
    */
@@ -638,8 +701,8 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
 
 
   /**
-   * Returns the DN which is the immediate parent of this DN, or {@code
-   * null} if this DN is the Root DN.
+   * Returns the DN which is the immediate parent of this DN, or {@code null} if
+   * this DN is the Root DN.
    * <p>
    * This method is equivalent to:
    *
@@ -647,8 +710,8 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
    * parent(1);
    * </pre>
    *
-   * @return The DN which is the immediate parent of this DN, or {@code
-   *         null} if this DN is the Root DN.
+   * @return The DN which is the immediate parent of this DN, or {@code null} if
+   *         this DN is the Root DN.
    */
   public DN parent()
   {
@@ -658,19 +721,18 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
 
 
   /**
-   * Returns the DN which is equal to this DN with the specified number
-   * of RDNs removed. Note that if {@code index} is zero then this DN
-   * will be returned (identity).
+   * Returns the DN which is equal to this DN with the specified number of RDNs
+   * removed. Note that if {@code index} is zero then this DN will be returned
+   * (identity).
    *
    * @param index
    *          The number of RDNs to be removed.
-   * @return The DN which is equal to this DN with the specified number
-   *         of RDNs removed, or {@code null} if the parent of the Root
-   *         DN is reached.
+   * @return The DN which is equal to this DN with the specified number of RDNs
+   *         removed, or {@code null} if the parent of the Root DN is reached.
    * @throws IllegalArgumentException
    *           If {@code index} is less than zero.
    */
-  public DN parent(int index) throws IllegalArgumentException
+  public DN parent(final int index) throws IllegalArgumentException
   {
     // We allow size + 1 so that we can return null as the parent of the
     // Root DN.
@@ -687,11 +749,9 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
 
 
   /**
-   * Returns the RDN of this DN, or {@code null} if this DN is the Root
-   * DN.
+   * Returns the RDN of this DN, or {@code null} if this DN is the Root DN.
    *
-   * @return The RDN of this DN, or {@code null} if this DN is the Root
-   *         DN.
+   * @return The RDN of this DN, or {@code null} if this DN is the Root DN.
    */
   public RDN rdn()
   {
@@ -719,15 +779,19 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
    */
   public String toNormalizedString()
   {
+    if (rdn == null)
+    {
+      return "".intern();
+    }
     if (normalizedStringValue == null)
     {
       final StringBuilder builder = new StringBuilder();
+      rdn.toNormalizedString(builder);
       if (!parent.isRootDN())
       {
-        builder.append(parent.toNormalizedString());
         builder.append(',');
+        builder.append(parent.toNormalizedString());
       }
-      rdn.toNormalizedString(builder);
       normalizedStringValue = builder.toString();
     }
     return normalizedStringValue;
@@ -739,10 +803,11 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
    * Returns the RFC 4514 string representation of this DN.
    *
    * @return The RFC 4514 string representation of this DN.
-   * @see <a href="http://tools.ietf.org/html/rfc4514">RFC 4514 -
-   *      Lightweight Directory Access Protocol (LDAP): String
-   *      Representation of Distinguished Names </a>
+   * @see <a href="http://tools.ietf.org/html/rfc4514">RFC 4514 - Lightweight
+   *      Directory Access Protocol (LDAP): String Representation of
+   *      Distinguished Names </a>
    */
+  @Override
   public String toString()
   {
     // We don't care about potential race conditions here.

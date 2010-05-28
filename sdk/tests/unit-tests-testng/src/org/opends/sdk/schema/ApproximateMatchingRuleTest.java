@@ -31,11 +31,10 @@ package org.opends.sdk.schema;
 import static org.opends.sdk.schema.SchemaConstants.AMR_DOUBLE_METAPHONE_NAME;
 import static org.testng.Assert.assertEquals;
 
+import org.opends.sdk.ByteString;
 import org.opends.sdk.ConditionResult;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import org.opends.sdk.ByteString;
 
 
 
@@ -46,6 +45,26 @@ public class ApproximateMatchingRuleTest extends SchemaTestCase
 {
   MatchingRule metaphone = Schema.getCoreSchema().getMatchingRule(
       AMR_DOUBLE_METAPHONE_NAME);
+
+
+
+  /**
+   * Test the normalization and the approximate comparison.
+   */
+  @Test(dataProvider = "approximatematchingrules")
+  public void approximateMatchingRules(final MatchingRule rule,
+      final String value1, final String value2, final ConditionResult result)
+      throws Exception
+  {
+    // normalize the 2 provided values
+    final ByteString normalizedValue1 = rule.normalizeAttributeValue(ByteString
+        .valueOf(value1));
+
+    // check that the approximatelyMatch return the expected result.
+    final ConditionResult liveResult = rule.getAssertion(
+        ByteString.valueOf(value2)).matches(normalizedValue1);
+    assertEquals(result, liveResult);
+  }
 
 
 
@@ -132,8 +151,7 @@ public class ApproximateMatchingRuleTest extends SchemaTestCase
         { metaphone, "algorithme", "algorizm", ConditionResult.TRUE },
         { metaphone, "testing", "testng", ConditionResult.TRUE },
         { metaphone, "announce", "annonce", ConditionResult.TRUE },
-        { metaphone, "automaticly", "automatically",
-            ConditionResult.TRUE },
+        { metaphone, "automaticly", "automatically", ConditionResult.TRUE },
         { metaphone, "modifyd", "modified", ConditionResult.TRUE },
         { metaphone, "bouteille", "butaille", ConditionResult.TRUE },
         { metaphone, "xeon", "zeon", ConditionResult.TRUE },
@@ -141,25 +159,5 @@ public class ApproximateMatchingRuleTest extends SchemaTestCase
         { metaphone, "throttle", "throddle", ConditionResult.TRUE },
         { metaphone, "thimble", "thimblle", ConditionResult.TRUE },
         { metaphone, "", "", ConditionResult.TRUE }, };
-  }
-
-
-
-  /**
-   * Test the normalization and the approximate comparison.
-   */
-  @Test(dataProvider = "approximatematchingrules")
-  public void approximateMatchingRules(MatchingRule rule,
-      String value1, String value2, ConditionResult result)
-      throws Exception
-  {
-    // normalize the 2 provided values
-    ByteString normalizedValue1 = rule
-        .normalizeAttributeValue(ByteString.valueOf(value1));
-
-    // check that the approximatelyMatch return the expected result.
-    ConditionResult liveResult = rule.getAssertion(
-        ByteString.valueOf(value2)).matches(normalizedValue1);
-    assertEquals(result, liveResult);
   }
 }

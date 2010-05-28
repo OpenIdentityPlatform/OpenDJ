@@ -28,8 +28,10 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
-import static com.sun.opends.sdk.util.StringPrepProfile.*;
+import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER;
+import static com.sun.opends.sdk.util.StringPrepProfile.CASE_FOLD;
+import static com.sun.opends.sdk.util.StringPrepProfile.TRIM;
+import static com.sun.opends.sdk.util.StringPrepProfile.prepareUnicode;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.ByteString;
@@ -38,16 +40,15 @@ import org.opends.sdk.LocalizableMessage;
 
 
 
-
 /**
- * This class implements the caseIgnoreIA5Match matching rule defined in
- * RFC 2252.
+ * This class implements the caseIgnoreIA5Match matching rule defined in RFC
+ * 2252.
  */
 final class CaseIgnoreIA5EqualityMatchingRuleImpl extends
     AbstractMatchingRuleImpl
 {
-  public ByteString normalizeAttributeValue(Schema schema,
-      ByteSequence value) throws DecodeException
+  public ByteString normalizeAttributeValue(final Schema schema,
+      final ByteSequence value) throws DecodeException
   {
     final StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, TRIM, CASE_FOLD);
@@ -85,9 +86,8 @@ final class CaseIgnoreIA5EqualityMatchingRuleImpl extends
         // This is not a valid character for an IA5 string. If strict
         // syntax enforcement is enabled, then we'll throw an exception.
         // Otherwise, we'll get rid of the character.
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER.get(
-                value.toString(), String.valueOf(c));
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER
+            .get(value.toString(), String.valueOf(c));
         throw DecodeException.error(message);
       }
     }

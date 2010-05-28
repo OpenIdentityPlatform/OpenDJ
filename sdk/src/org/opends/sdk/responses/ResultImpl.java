@@ -36,19 +36,18 @@ import org.opends.sdk.ResultCode;
 /**
  * A generic result indicates the final status of an operation.
  */
-final class ResultImpl extends AbstractResultImpl<Result> implements
-    Result
+final class ResultImpl extends AbstractResultImpl<Result> implements Result
 {
 
   /**
    * Creates a new generic result using the provided result code.
-   * 
+   *
    * @param resultCode
    *          The result code.
    * @throws NullPointerException
    *           If {@code resultCode} was {@code null}.
    */
-  ResultImpl(ResultCode resultCode) throws NullPointerException
+  ResultImpl(final ResultCode resultCode) throws NullPointerException
   {
     super(resultCode);
   }
@@ -78,6 +77,7 @@ final class ResultImpl extends AbstractResultImpl<Result> implements
 
 
 
+  @Override
   Result getThis()
   {
     return this;

@@ -27,11 +27,13 @@
 
 package org.opends.sdk.requests;
 
+
+
 /**
  * Unbind request implementation.
  */
-final class UnbindRequestImpl extends
-    AbstractRequestImpl<UnbindRequest> implements UnbindRequest
+final class UnbindRequestImpl extends AbstractRequestImpl<UnbindRequest>
+    implements UnbindRequest
 {
 
   /**
@@ -59,6 +61,7 @@ final class UnbindRequestImpl extends
 
 
 
+  @Override
   UnbindRequest getThis()
   {
     return this;

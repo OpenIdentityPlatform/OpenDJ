@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
@@ -34,22 +34,26 @@ import org.opends.sdk.responses.Result;
 
 
 /**
- * Thrown when the result code returned in a Result indicates that the
- * Request failed because the target entry was not found by the
- * Directory Server. More specifically, this exception is used for the
- * following error result codes:
+ * Thrown when the result code returned in a Result indicates that the Request
+ * failed because the target entry was not found by the Directory Server. More
+ * specifically, this exception is used for the following error result codes:
  * <ul>
- * <li>{@link ResultCode#NO_SUCH_OBJECT} - the requested operation
- * failed because it referenced an entry that does not exist.
- * <li>{@link ResultCode#CLIENT_SIDE_NO_RESULTS_RETURNED} - the
- * requested single entry search operation or read operation failed
- * because the Directory Server did not return any matching entries.
+ * <li>{@link ResultCode#NO_SUCH_OBJECT NO_SUCH_OBJECT} - the requested
+ * operation failed because it referenced an entry that does not exist.
+ * <li>{@link ResultCode#REFERRAL REFERRAL} - the requested operation failed
+ * because it referenced an entry that is located on another server.
+ * <li>{@link ResultCode#CLIENT_SIDE_NO_RESULTS_RETURNED
+ * CLIENT_SIDE_NO_RESULTS_RETURNED} - the requested single entry search
+ * operation or read operation failed because the Directory Server did not
+ * return any matching entries.
  * </ul>
+ * <b>NOTE:</b> referrals are handled by the {@link ReferralException}
+ * sub-class.
  */
 @SuppressWarnings("serial")
 public class EntryNotFoundException extends ErrorResultException
 {
-  EntryNotFoundException(Result result)
+  EntryNotFoundException(final Result result)
   {
     super(result);
   }

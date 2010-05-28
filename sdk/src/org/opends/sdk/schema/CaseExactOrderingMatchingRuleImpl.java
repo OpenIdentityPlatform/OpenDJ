@@ -28,7 +28,9 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.StringPrepProfile.*;
+import static com.sun.opends.sdk.util.StringPrepProfile.NO_CASE_FOLD;
+import static com.sun.opends.sdk.util.StringPrepProfile.TRIM;
+import static com.sun.opends.sdk.util.StringPrepProfile.prepareUnicode;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.ByteString;
@@ -36,14 +38,14 @@ import org.opends.sdk.ByteString;
 
 
 /**
- * This class defines the caseExactOrderingMatch matching rule defined
- * in X.520 and referenced in RFC 4519.
+ * This class defines the caseExactOrderingMatch matching rule defined in X.520
+ * and referenced in RFC 4519.
  */
 final class CaseExactOrderingMatchingRuleImpl extends
     AbstractOrderingMatchingRuleImpl
 {
-  public ByteString normalizeAttributeValue(Schema schema,
-      ByteSequence value)
+  public ByteString normalizeAttributeValue(final Schema schema,
+      final ByteSequence value)
   {
     final StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, TRIM, NO_CASE_FOLD);

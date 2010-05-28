@@ -29,7 +29,7 @@ package org.opends.sdk.asn1;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.ERR_ASN1_UNEXPECTED_TAG;
 import static org.opends.sdk.asn1.ASN1Constants.*;
 
 import java.io.IOException;
@@ -38,7 +38,6 @@ import org.opends.sdk.ByteString;
 import org.opends.sdk.ByteStringBuilder;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.LocalizableMessage;
-
 
 
 
@@ -137,7 +136,7 @@ public abstract class AbstractASN1Reader implements ASN1Reader
    * {@inheritDoc}
    */
   public ByteStringBuilder readOctetString(byte type,
-      ByteStringBuilder builder) throws IOException
+      final ByteStringBuilder builder) throws IOException
   {
     if (type == 0x00)
     {
@@ -199,12 +198,12 @@ public abstract class AbstractASN1Reader implements ASN1Reader
 
 
 
-  private void checkType(byte expectedType) throws IOException
+  private void checkType(final byte expectedType) throws IOException
   {
     if (peekType() != expectedType)
     {
-      LocalizableMessage message = ERR_ASN1_UNEXPECTED_TAG.get(expectedType,
-          peekType());
+      final LocalizableMessage message = ERR_ASN1_UNEXPECTED_TAG.get(
+          expectedType, peekType());
       throw DecodeException.fatalError(message);
     }
   }

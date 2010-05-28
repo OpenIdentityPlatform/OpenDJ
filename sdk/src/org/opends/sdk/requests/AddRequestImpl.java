@@ -33,16 +33,14 @@ import java.util.Collection;
 
 import org.opends.sdk.*;
 import org.opends.sdk.ldif.ChangeRecordVisitor;
-import org.opends.sdk.schema.ObjectClass;
-
 
 
 
 /**
  * Add request implementation.
  */
-final class AddRequestImpl extends AbstractRequestImpl<AddRequest>
-    implements AddRequest
+final class AddRequestImpl extends AbstractRequestImpl<AddRequest> implements
+    AddRequest
 {
 
   private final Entry entry;
@@ -50,18 +48,17 @@ final class AddRequestImpl extends AbstractRequestImpl<AddRequest>
 
 
   /**
-   * Creates a new add request backed by the provided entry.
-   * Modifications made to {@code entry} will be reflected in the
-   * returned add request. The returned add request supports updates to
-   * its list of controls, as well as updates to the name and attributes
-   * if the underlying entry allows.
+   * Creates a new add request backed by the provided entry. Modifications made
+   * to {@code entry} will be reflected in the returned add request. The
+   * returned add request supports updates to its list of controls, as well as
+   * updates to the name and attributes if the underlying entry allows.
    *
    * @param entry
    *          The entry to be added.
    * @throws NullPointerException
    *           If {@code entry} was {@code null} .
    */
-  AddRequestImpl(Entry entry) throws NullPointerException
+  AddRequestImpl(final Entry entry) throws NullPointerException
   {
     this.entry = entry;
   }
@@ -71,7 +68,7 @@ final class AddRequestImpl extends AbstractRequestImpl<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public <R, P> R accept(ChangeRecordVisitor<R, P> v, P p)
+  public <R, P> R accept(final ChangeRecordVisitor<R, P> v, final P p)
   {
     return v.visitChangeRecord(p, this);
   }
@@ -81,7 +78,7 @@ final class AddRequestImpl extends AbstractRequestImpl<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public boolean addAttribute(Attribute attribute)
+  public boolean addAttribute(final Attribute attribute)
       throws UnsupportedOperationException, NullPointerException
   {
     return entry.addAttribute(attribute);
@@ -92,8 +89,8 @@ final class AddRequestImpl extends AbstractRequestImpl<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public boolean addAttribute(Attribute attribute,
-      Collection<ByteString> duplicateValues)
+  public boolean addAttribute(final Attribute attribute,
+      final Collection<ByteString> duplicateValues)
       throws UnsupportedOperationException, NullPointerException
   {
     return entry.addAttribute(attribute, duplicateValues);
@@ -104,8 +101,8 @@ final class AddRequestImpl extends AbstractRequestImpl<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public AddRequestImpl addAttribute(String attributeDescription,
-      Object... values) throws LocalizedIllegalArgumentException,
+  public AddRequest addAttribute(final String attributeDescription,
+      final Object... values) throws LocalizedIllegalArgumentException,
       UnsupportedOperationException, NullPointerException
   {
     entry.addAttribute(attributeDescription, values);
@@ -117,8 +114,7 @@ final class AddRequestImpl extends AbstractRequestImpl<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public AddRequestImpl clearAttributes()
-      throws UnsupportedOperationException
+  public AddRequest clearAttributes() throws UnsupportedOperationException
   {
     entry.clearAttributes();
     return this;
@@ -129,11 +125,10 @@ final class AddRequestImpl extends AbstractRequestImpl<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public boolean containsAttribute(
-      AttributeDescription attributeDescription)
-      throws NullPointerException
+  public boolean containsAttribute(final Attribute attribute,
+      final Collection<ByteString> missingValues) throws NullPointerException
   {
-    return entry.containsAttribute(attributeDescription);
+    return entry.containsAttribute(attribute, missingValues);
   }
 
 
@@ -141,10 +136,44 @@ final class AddRequestImpl extends AbstractRequestImpl<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public boolean containsAttribute(String attributeDescription)
+  public boolean containsAttribute(final String attributeDescription,
+      final Object... values) throws LocalizedIllegalArgumentException,
+      NullPointerException
+  {
+    return entry.containsAttribute(attributeDescription, values);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Iterable<Attribute> getAllAttributes()
+  {
+    return entry.getAllAttributes();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Iterable<Attribute> getAllAttributes(
+      final AttributeDescription attributeDescription)
+      throws NullPointerException
+  {
+    return entry.getAllAttributes(attributeDescription);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Iterable<Attribute> getAllAttributes(final String attributeDescription)
       throws LocalizedIllegalArgumentException, NullPointerException
   {
-    return entry.containsAttribute(attributeDescription);
+    return entry.getAllAttributes(attributeDescription);
   }
 
 
@@ -152,53 +181,7 @@ final class AddRequestImpl extends AbstractRequestImpl<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public boolean containsObjectClass(ObjectClass objectClass)
-      throws NullPointerException
-  {
-    return entry.containsObjectClass(objectClass);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean containsObjectClass(String objectClass)
-      throws NullPointerException
-  {
-    return entry.containsObjectClass(objectClass);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public Iterable<Attribute> findAttributes(
-      AttributeDescription attributeDescription)
-      throws NullPointerException
-  {
-    return entry.findAttributes(attributeDescription);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public Iterable<Attribute> findAttributes(String attributeDescription)
-      throws LocalizedIllegalArgumentException, NullPointerException
-  {
-    return entry.findAttributes(attributeDescription);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public Attribute getAttribute(
-      AttributeDescription attributeDescription)
+  public Attribute getAttribute(final AttributeDescription attributeDescription)
       throws NullPointerException
   {
     return entry.getAttribute(attributeDescription);
@@ -209,7 +192,7 @@ final class AddRequestImpl extends AbstractRequestImpl<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public Attribute getAttribute(String attributeDescription)
+  public Attribute getAttribute(final String attributeDescription)
       throws LocalizedIllegalArgumentException, NullPointerException
   {
     return entry.getAttribute(attributeDescription);
@@ -230,16 +213,6 @@ final class AddRequestImpl extends AbstractRequestImpl<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public Iterable<Attribute> getAttributes()
-  {
-    return entry.getAttributes();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public DN getName()
   {
     return entry.getName();
@@ -250,18 +223,8 @@ final class AddRequestImpl extends AbstractRequestImpl<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public Iterable<String> getObjectClasses()
-  {
-    return entry.getObjectClasses();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean removeAttribute(Attribute attribute,
-      Collection<ByteString> missingValues)
+  public boolean removeAttribute(final Attribute attribute,
+      final Collection<ByteString> missingValues)
       throws UnsupportedOperationException, NullPointerException
   {
     return entry.removeAttribute(attribute, missingValues);
@@ -272,8 +235,7 @@ final class AddRequestImpl extends AbstractRequestImpl<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public boolean removeAttribute(
-      AttributeDescription attributeDescription)
+  public boolean removeAttribute(final AttributeDescription attributeDescription)
       throws UnsupportedOperationException, NullPointerException
   {
     return entry.removeAttribute(attributeDescription);
@@ -284,21 +246,8 @@ final class AddRequestImpl extends AbstractRequestImpl<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public AddRequestImpl removeAttribute(String attributeDescription)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException
-  {
-    entry.removeAttribute(attributeDescription);
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public AddRequestImpl removeAttribute(String attributeDescription,
-      Object... values) throws LocalizedIllegalArgumentException,
+  public AddRequest removeAttribute(final String attributeDescription,
+      final Object... values) throws LocalizedIllegalArgumentException,
       UnsupportedOperationException, NullPointerException
   {
     entry.removeAttribute(attributeDescription, values);
@@ -310,7 +259,7 @@ final class AddRequestImpl extends AbstractRequestImpl<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public boolean replaceAttribute(Attribute attribute)
+  public boolean replaceAttribute(final Attribute attribute)
       throws UnsupportedOperationException, NullPointerException
   {
     return entry.replaceAttribute(attribute);
@@ -321,8 +270,8 @@ final class AddRequestImpl extends AbstractRequestImpl<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public AddRequestImpl replaceAttribute(String attributeDescription,
-      Object... values) throws LocalizedIllegalArgumentException,
+  public AddRequest replaceAttribute(final String attributeDescription,
+      final Object... values) throws LocalizedIllegalArgumentException,
       UnsupportedOperationException, NullPointerException
   {
     entry.replaceAttribute(attributeDescription, values);
@@ -334,8 +283,8 @@ final class AddRequestImpl extends AbstractRequestImpl<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public AddRequestImpl setName(DN dn)
-      throws UnsupportedOperationException, NullPointerException
+  public AddRequest setName(final DN dn) throws UnsupportedOperationException,
+      NullPointerException
   {
     entry.setName(dn);
     return this;
@@ -346,9 +295,9 @@ final class AddRequestImpl extends AbstractRequestImpl<AddRequest>
   /**
    * {@inheritDoc}
    */
-  public AddRequestImpl setName(String dn)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException
+  public AddRequest setName(final String dn)
+      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
+      NullPointerException
   {
     entry.setName(dn);
     return this;
@@ -366,7 +315,7 @@ final class AddRequestImpl extends AbstractRequestImpl<AddRequest>
     builder.append("AddRequest(name=");
     builder.append(getName());
     builder.append(", attributes=");
-    builder.append(getAttributes());
+    builder.append(getAllAttributes());
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
@@ -375,6 +324,10 @@ final class AddRequestImpl extends AbstractRequestImpl<AddRequest>
 
 
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   AddRequest getThis()
   {
     return this;

@@ -28,7 +28,9 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_EMPTY_VALUE;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS;
+import static com.sun.opends.sdk.messages.Messages.ERR_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT;
 
 import org.opends.sdk.*;
 
@@ -38,19 +40,19 @@ import com.sun.opends.sdk.util.SubstringReader;
 
 
 /**
- * This class implements the integerFirstComponentMatch matching rule
- * defined in X.520 and referenced in RFC 2252. This rule is intended
- * for use with attributes whose values contain a set of parentheses
- * enclosing a space-delimited set of names and/or name-value pairs
- * (like attribute type or objectclass descriptions) in which the
- * "first component" is the first item after the opening parenthesis.
+ * This class implements the integerFirstComponentMatch matching rule defined in
+ * X.520 and referenced in RFC 2252. This rule is intended for use with
+ * attributes whose values contain a set of parentheses enclosing a
+ * space-delimited set of names and/or name-value pairs (like attribute type or
+ * objectclass descriptions) in which the "first component" is the first item
+ * after the opening parenthesis.
  */
 final class IntegerFirstComponentEqualityMatchingRuleImpl extends
     AbstractMatchingRuleImpl
 {
 
   @Override
-  public Assertion getAssertion(Schema schema, ByteSequence value)
+  public Assertion getAssertion(final Schema schema, final ByteSequence value)
       throws DecodeException
   {
     try
@@ -61,10 +63,9 @@ final class IntegerFirstComponentEqualityMatchingRuleImpl extends
 
       return new Assertion()
       {
-        public ConditionResult matches(ByteSequence attributeValue)
+        public ConditionResult matches(final ByteSequence attributeValue)
         {
-          final int actualIntValue =
-              attributeValue.toByteString().toInt();
+          final int actualIntValue = attributeValue.toByteString().toInt();
           return intValue == actualIntValue ? ConditionResult.TRUE
               : ConditionResult.FALSE;
         }
@@ -73,12 +74,10 @@ final class IntegerFirstComponentEqualityMatchingRuleImpl extends
     catch (final Exception e)
     {
       StaticUtils.DEBUG_LOG.throwing(
-          "IntegerFirstComponentEqualityMatchingRule", "getAssertion",
-          e);
+          "IntegerFirstComponentEqualityMatchingRule", "getAssertion", e);
 
-      final LocalizableMessage message =
-          ERR_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT.get(value
-              .toString());
+      final LocalizableMessage message = ERR_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT
+          .get(value.toString());
       throw DecodeException.error(message);
     }
 
@@ -86,8 +85,8 @@ final class IntegerFirstComponentEqualityMatchingRuleImpl extends
 
 
 
-  public ByteString normalizeAttributeValue(Schema schema,
-      ByteSequence value) throws DecodeException
+  public ByteString normalizeAttributeValue(final Schema schema,
+      final ByteSequence value) throws DecodeException
   {
     final String definition = value.toString();
     final SubstringReader reader = new SubstringReader(definition);
@@ -109,9 +108,8 @@ final class IntegerFirstComponentEqualityMatchingRuleImpl extends
     final char c = reader.read();
     if (c != '(')
     {
-      final LocalizableMessage message =
-          ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS.get(definition,
-              (reader.pos() - 1), String.valueOf(c));
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS
+          .get(definition, (reader.pos() - 1), String.valueOf(c));
       throw DecodeException.error(message);
     }
 

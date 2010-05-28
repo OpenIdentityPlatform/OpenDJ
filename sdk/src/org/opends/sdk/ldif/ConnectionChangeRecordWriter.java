@@ -45,37 +45,35 @@ import com.sun.opends.sdk.util.Validator;
 
 
 /**
- * A {@code ConnectionChangeRecordWriter} is a bridge from {@code
- * Connection}s to {@code ChangeRecordWriter}s. A connection change
- * record writer writes change records by sending appropriate update
- * requests (Add, Delete, Modify, or ModifyDN) to an underlying
- * connection.
+ * A {@code ConnectionChangeRecordWriter} is a bridge from {@code Connection}s
+ * to {@code ChangeRecordWriter}s. A connection change record writer writes
+ * change records by sending appropriate update requests (Add, Delete, Modify,
+ * or ModifyDN) to an underlying connection.
  * <p>
- * All update requests are performed synchronously, blocking until an
- * update result is received. If an update result indicates that an
- * update request has failed for some reason then the error result is
- * propagated to the caller using an {@code ErrorResultIOException}.
+ * All update requests are performed synchronously, blocking until an update
+ * result is received. If an update result indicates that an update request has
+ * failed for some reason then the error result is propagated to the caller
+ * using an {@code ErrorResultIOException}.
  * <p>
- * <b>Note:</b> comments are not supported by connection change record
- * writers. Attempts to write comments will be ignored.
+ * <b>Note:</b> comments are not supported by connection change record writers.
+ * Attempts to write comments will be ignored.
  */
-public final class ConnectionChangeRecordWriter implements
-    ChangeRecordWriter
+public final class ConnectionChangeRecordWriter implements ChangeRecordWriter
 {
   private final Connection connection;
 
 
 
   /**
-   * Creates a new connection change record writer whose destination is
-   * the provided connection.
+   * Creates a new connection change record writer whose destination is the
+   * provided connection.
    *
    * @param connection
    *          The connection to use.
    * @throws NullPointerException
    *           If {@code connection} was {@code null}.
    */
-  public ConnectionChangeRecordWriter(Connection connection)
+  public ConnectionChangeRecordWriter(final Connection connection)
       throws NullPointerException
   {
     Validator.ensureNotNull(connection);
@@ -85,9 +83,8 @@ public final class ConnectionChangeRecordWriter implements
 
 
   /**
-   * Closes this connection change record writer, including the
-   * underlying connection. Closing a previously closed change record
-   * writer has no effect.
+   * Closes this connection change record writer, including the underlying
+   * connection. Closing a previously closed change record writer has no effect.
    */
   public void close()
   {
@@ -97,8 +94,8 @@ public final class ConnectionChangeRecordWriter implements
 
 
   /**
-   * Connection change record writers do not require flushing, so this
-   * method has no effect.
+   * Connection change record writers do not require flushing, so this method
+   * has no effect.
    */
   public void flush()
   {
@@ -108,23 +105,23 @@ public final class ConnectionChangeRecordWriter implements
 
 
   /**
-   * Writes the provided Add request to the underlying connection,
-   * blocking until the request completes.
+   * Writes the provided Add request to the underlying connection, blocking
+   * until the request completes.
    *
    * @param change
    *          The {@code AddRequest} to be written.
    * @return A reference to this connection change record writer.
    * @throws ErrorResultIOException
-   *           If the result code indicates that the request failed for
-   *           some reason.
+   *           If the result code indicates that the request failed for some
+   *           reason.
    * @throws InterruptedIOException
    *           If the current thread was interrupted while waiting.
    * @throws NullPointerException
    *           If {@code change} was {@code null}.
    */
-  public ConnectionChangeRecordWriter writeChangeRecord(
-      AddRequest change) throws ErrorResultIOException,
-      InterruptedIOException, NullPointerException
+  public ConnectionChangeRecordWriter writeChangeRecord(final AddRequest change)
+      throws ErrorResultIOException, InterruptedIOException,
+      NullPointerException
   {
     Validator.ensureNotNull(change);
     try
@@ -135,7 +132,7 @@ public final class ConnectionChangeRecordWriter implements
     {
       throw new ErrorResultIOException(e);
     }
-    catch (InterruptedException e)
+    catch (final InterruptedException e)
     {
       throw new InterruptedIOException(e.getMessage());
     }
@@ -145,28 +142,28 @@ public final class ConnectionChangeRecordWriter implements
 
 
   /**
-   * Writes the provided change record to the underlying connection,
-   * blocking until the request completes.
+   * Writes the provided change record to the underlying connection, blocking
+   * until the request completes.
    *
    * @param change
    *          The change record to be written.
    * @return A reference to this connection change record writer.
    * @throws ErrorResultIOException
-   *           If the result code indicates that the request failed for
-   *           some reason.
+   *           If the result code indicates that the request failed for some
+   *           reason.
    * @throws InterruptedIOException
    *           If the current thread was interrupted while waiting.
    * @throws NullPointerException
    *           If {@code change} was {@code null}.
    */
   public ConnectionChangeRecordWriter writeChangeRecord(
-      ChangeRecord change) throws ErrorResultIOException,
+      final ChangeRecord change) throws ErrorResultIOException,
       InterruptedIOException, NullPointerException
   {
     Validator.ensureNotNull(change);
 
-    final IOException e = change.accept(ChangeRecordVisitorWriter
-        .getInstance(), this);
+    final IOException e = change.accept(
+        ChangeRecordVisitorWriter.getInstance(), this);
     try
     {
       if (e != null)
@@ -178,7 +175,7 @@ public final class ConnectionChangeRecordWriter implements
     {
       throw e1;
     }
-    catch (InterruptedIOException e1)
+    catch (final InterruptedIOException e1)
     {
       throw e1;
     }
@@ -193,22 +190,22 @@ public final class ConnectionChangeRecordWriter implements
 
 
   /**
-   * Writes the provided Delete request to the underlying connection,
-   * blocking until the request completes.
+   * Writes the provided Delete request to the underlying connection, blocking
+   * until the request completes.
    *
    * @param change
    *          The {@code DeleteRequest} to be written.
    * @return A reference to this connection change record writer.
    * @throws ErrorResultIOException
-   *           If the result code indicates that the request failed for
-   *           some reason.
+   *           If the result code indicates that the request failed for some
+   *           reason.
    * @throws InterruptedIOException
    *           If the current thread was interrupted while waiting.
    * @throws NullPointerException
    *           If {@code change} was {@code null}.
    */
   public ConnectionChangeRecordWriter writeChangeRecord(
-      DeleteRequest change) throws ErrorResultIOException,
+      final DeleteRequest change) throws ErrorResultIOException,
       InterruptedIOException, NullPointerException
   {
     Validator.ensureNotNull(change);
@@ -220,7 +217,7 @@ public final class ConnectionChangeRecordWriter implements
     {
       throw new ErrorResultIOException(e);
     }
-    catch (InterruptedException e)
+    catch (final InterruptedException e)
     {
       throw new InterruptedIOException(e.getMessage());
     }
@@ -230,22 +227,22 @@ public final class ConnectionChangeRecordWriter implements
 
 
   /**
-   * Writes the provided ModifyDN request to the underlying connection,
-   * blocking until the request completes.
+   * Writes the provided ModifyDN request to the underlying connection, blocking
+   * until the request completes.
    *
    * @param change
    *          The {@code ModifyDNRequest} to be written.
    * @return A reference to this connection change record writer.
    * @throws ErrorResultIOException
-   *           If the result code indicates that the request failed for
-   *           some reason.
+   *           If the result code indicates that the request failed for some
+   *           reason.
    * @throws InterruptedIOException
    *           If the current thread was interrupted while waiting.
    * @throws NullPointerException
    *           If {@code change} was {@code null}.
    */
   public ConnectionChangeRecordWriter writeChangeRecord(
-      ModifyDNRequest change) throws ErrorResultIOException,
+      final ModifyDNRequest change) throws ErrorResultIOException,
       InterruptedIOException, NullPointerException
   {
     Validator.ensureNotNull(change);
@@ -257,7 +254,7 @@ public final class ConnectionChangeRecordWriter implements
     {
       throw new ErrorResultIOException(e);
     }
-    catch (InterruptedException e)
+    catch (final InterruptedException e)
     {
       throw new InterruptedIOException(e.getMessage());
     }
@@ -267,22 +264,22 @@ public final class ConnectionChangeRecordWriter implements
 
 
   /**
-   * Writes the provided Modify request to the underlying connection,
-   * blocking until the request completes.
+   * Writes the provided Modify request to the underlying connection, blocking
+   * until the request completes.
    *
    * @param change
    *          The {@code ModifyRequest} to be written.
    * @return A reference to this connection change record writer.
    * @throws ErrorResultIOException
-   *           If the result code indicates that the request failed for
-   *           some reason.
+   *           If the result code indicates that the request failed for some
+   *           reason.
    * @throws InterruptedIOException
    *           If the current thread was interrupted while waiting.
    * @throws NullPointerException
    *           If {@code change} was {@code null}.
    */
   public ConnectionChangeRecordWriter writeChangeRecord(
-      ModifyRequest change) throws ErrorResultIOException,
+      final ModifyRequest change) throws ErrorResultIOException,
       InterruptedIOException, NullPointerException
   {
     Validator.ensureNotNull(change);
@@ -294,7 +291,7 @@ public final class ConnectionChangeRecordWriter implements
     {
       throw new ErrorResultIOException(e);
     }
-    catch (InterruptedException e)
+    catch (final InterruptedException e)
     {
       throw new InterruptedIOException(e.getMessage());
     }
@@ -304,8 +301,8 @@ public final class ConnectionChangeRecordWriter implements
 
 
   /**
-   * Connection change record writers do not support comments, so the
-   * provided comment will be ignored.
+   * Connection change record writers do not support comments, so the provided
+   * comment will be ignored.
    *
    * @param comment
    *          The {@code CharSequence} to be written as a comment.
@@ -313,7 +310,8 @@ public final class ConnectionChangeRecordWriter implements
    * @throws NullPointerException
    *           If {@code comment} was {@code null}.
    */
-  public ConnectionChangeRecordWriter writeComment(CharSequence comment)
+  public ConnectionChangeRecordWriter writeComment(final CharSequence comment)
+      throws NullPointerException
   {
     Validator.ensureNotNull(comment);
 

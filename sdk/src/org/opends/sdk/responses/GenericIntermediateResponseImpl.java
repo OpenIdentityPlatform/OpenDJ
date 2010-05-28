@@ -15,14 +15,14 @@
  * When distributing Covered Code, include this CDDL HEADER in each
  * file and include the License file at
  * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- * generic extended the following below this CDDL HEADER, with the fields enclosed
+ * add the following below this CDDL HEADER, with the fields enclosed
  * by brackets "[]" replaced with your own identifying information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.responses;
@@ -30,6 +30,8 @@ package org.opends.sdk.responses;
 
 
 import org.opends.sdk.ByteString;
+
+import com.sun.opends.sdk.util.StaticUtils;
 
 
 
@@ -48,20 +50,20 @@ final class GenericIntermediateResponseImpl extends
 
 
   /**
-   * Creates a new generic intermediate response using the provided
-   * response name and value.
-   * 
+   * Creates a new generic intermediate response using the provided response
+   * name and value.
+   *
    * @param responseName
-   *          The dotted-decimal representation of the unique OID
-   *          corresponding to this intermediate response, which may be
-   *          {@code null} indicating that none was provided.
-   * @param responseValue
-   *          The response value associated with this generic
-   *          intermediate response, which may be {@code null}
+   *          The dotted-decimal representation of the unique OID corresponding
+   *          to this intermediate response, which may be {@code null}
    *          indicating that none was provided.
+   * @param responseValue
+   *          The response value associated with this generic intermediate
+   *          response, which may be {@code null} indicating that none was
+   *          provided.
    */
-  GenericIntermediateResponseImpl(String responseName,
-      ByteString responseValue)
+  GenericIntermediateResponseImpl(final String responseName,
+      final ByteString responseValue)
   {
     this.responseName = responseName;
     this.responseValue = responseValue;
@@ -72,7 +74,8 @@ final class GenericIntermediateResponseImpl extends
   /**
    * {@inheritDoc}
    */
-  public String getResponseName()
+  @Override
+  public String getOID()
   {
     return responseName;
   }
@@ -82,7 +85,8 @@ final class GenericIntermediateResponseImpl extends
   /**
    * {@inheritDoc}
    */
-  public ByteString getResponseValue()
+  @Override
+  public ByteString getValue()
   {
     return responseValue;
   }
@@ -92,7 +96,18 @@ final class GenericIntermediateResponseImpl extends
   /**
    * {@inheritDoc}
    */
-  public GenericIntermediateResponse setResponseName(String oid)
+  @Override
+  public boolean hasValue()
+  {
+    return responseValue != null;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public GenericIntermediateResponse setOID(final String oid)
       throws UnsupportedOperationException
   {
     this.responseName = oid;
@@ -104,7 +119,7 @@ final class GenericIntermediateResponseImpl extends
   /**
    * {@inheritDoc}
    */
-  public GenericIntermediateResponse setResponseValue(ByteString bytes)
+  public GenericIntermediateResponse setValue(final ByteString bytes)
       throws UnsupportedOperationException
   {
     this.responseValue = bytes;
@@ -120,11 +135,13 @@ final class GenericIntermediateResponseImpl extends
   public String toString()
   {
     final StringBuilder builder = new StringBuilder();
-    builder.append("IntermediateResponse(responseName=");
-    builder.append(getResponseName() == null ? "" : getResponseName());
-    builder.append(", responseValue=");
-    final ByteString value = getResponseValue();
-    builder.append(value == null ? ByteString.empty() : value);
+    builder.append("GenericIntermediateResponse(responseName=");
+    builder.append(getOID() == null ? "" : getOID());
+    if (hasValue())
+    {
+      builder.append(", requestValue=");
+      StaticUtils.toHexPlusAscii(getValue(), builder, 4);
+    }
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");

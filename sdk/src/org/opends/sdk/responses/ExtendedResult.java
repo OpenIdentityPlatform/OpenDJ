@@ -29,18 +29,22 @@ package org.opends.sdk.responses;
 
 
 
+import java.util.List;
+
 import org.opends.sdk.ByteString;
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.DecodeOptions;
 import org.opends.sdk.ResultCode;
 import org.opends.sdk.controls.Control;
+import org.opends.sdk.controls.ControlDecoder;
 
 
 
 /**
- * A Extended result indicates the status of an Extended operation and
- * any additional information associated with the Extended operation,
- * including the optional response name and value. These can be
- * retrieved using the {@link #getResponseName} and
- * {@link #getResponseValue} methods respectively.
+ * A Extended result indicates the status of an Extended operation and any
+ * additional information associated with the Extended operation, including the
+ * optional response name and value. These can be retrieved using the
+ * {@link #getOID} and {@link #getValue} methods respectively.
  */
 public interface ExtendedResult extends Result
 {
@@ -52,6 +56,9 @@ public interface ExtendedResult extends Result
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   ExtendedResult addReferralURI(String uri)
       throws UnsupportedOperationException, NullPointerException;
 
@@ -60,15 +67,6 @@ public interface ExtendedResult extends Result
   /**
    * {@inheritDoc}
    */
-  ExtendedResult clearControls() throws UnsupportedOperationException;
-
-
-
-  ExtendedResult clearReferralURIs()
-      throws UnsupportedOperationException;
-
-
-
   Throwable getCause();
 
 
@@ -76,70 +74,90 @@ public interface ExtendedResult extends Result
   /**
    * {@inheritDoc}
    */
-  Control getControl(String oid) throws NullPointerException;
+  <C extends Control> C getControl(ControlDecoder<C> decoder,
+      DecodeOptions options) throws NullPointerException, DecodeException;
 
 
 
   /**
    * {@inheritDoc}
    */
-  Iterable<Control> getControls();
+  List<Control> getControls();
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   String getDiagnosticMessage();
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   String getMatchedDN();
 
 
 
-  Iterable<String> getReferralURIs();
+  /**
+   * Returns the numeric OID, if any, associated with this extended result.
+   *
+   * @return The numeric OID associated with this extended result, or {@code
+   *         null} if there is no OID.
+   */
+  String getOID();
 
 
 
   /**
-   * Returns the dotted-decimal representation of the unique OID
-   * corresponding to this extended result.
-   * 
-   * @return The dotted-decimal representation of the unique OID, or
-   *         {@code null} if none was provided.
+   * {@inheritDoc}
    */
-  String getResponseName();
+  List<String> getReferralURIs();
 
 
 
   /**
-   * Returns the content of this extended result in a form defined by
-   * the extended result.
-   * 
-   * @return The content of this extended result, or {@code null} if
-   *         there is no content.
+   * {@inheritDoc}
    */
-  ByteString getResponseValue();
-
-
-
   ResultCode getResultCode();
 
 
 
   /**
+   * Returns the value, if any, associated with this extended result. Its format
+   * is defined by the specification of this extended result.
+   *
+   * @return The value associated with this extended result, or {@code null} if
+   *         there is no value.
+   */
+  ByteString getValue();
+
+
+
+  /**
+   * Returns {@code true} if this extended result has a value. In some
+   * circumstances it may be useful to determine if a extended result has a
+   * value, without actually calculating the value and incurring any performance
+   * costs.
+   *
+   * @return {@code true} if this extended result has a value, or {@code false}
+   *         if there is no value.
+   */
+  boolean hasValue();
+
+
+
+  /**
    * {@inheritDoc}
    */
-  boolean hasControls();
-
-
-
-  boolean hasReferralURIs();
-
-
-
   boolean isReferral();
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   boolean isSuccess();
 
 
@@ -147,26 +165,28 @@ public interface ExtendedResult extends Result
   /**
    * {@inheritDoc}
    */
-  Control removeControl(String oid)
-      throws UnsupportedOperationException, NullPointerException;
+  ExtendedResult setCause(Throwable cause) throws UnsupportedOperationException;
 
 
 
-  ExtendedResult setCause(Throwable cause)
-      throws UnsupportedOperationException;
-
-
-
+  /**
+   * {@inheritDoc}
+   */
   ExtendedResult setDiagnosticMessage(String message)
       throws UnsupportedOperationException;
 
 
 
-  ExtendedResult setMatchedDN(String dn)
-      throws UnsupportedOperationException;
+  /**
+   * {@inheritDoc}
+   */
+  ExtendedResult setMatchedDN(String dn) throws UnsupportedOperationException;
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   ExtendedResult setResultCode(ResultCode resultCode)
       throws UnsupportedOperationException, NullPointerException;
 }

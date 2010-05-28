@@ -43,9 +43,11 @@ public class OtherMailboxSyntaxTest extends SyntaxTestCase
    * {@inheritDoc}
    */
   @Override
-  protected Syntax getRule()
+  @DataProvider(name = "acceptableValues")
+  public Object[][] createAcceptableValues()
   {
-    return Schema.getCoreSchema().getSyntax(SYNTAX_OTHER_MAILBOX_OID);
+    return new Object[][] { { "MyMail$Mymailbox", true },
+        { "MyMailMymailbox", false }, };
   }
 
 
@@ -54,10 +56,8 @@ public class OtherMailboxSyntaxTest extends SyntaxTestCase
    * {@inheritDoc}
    */
   @Override
-  @DataProvider(name = "acceptableValues")
-  public Object[][] createAcceptableValues()
+  protected Syntax getRule()
   {
-    return new Object[][] { { "MyMail$Mymailbox", true },
-        { "MyMailMymailbox", false }, };
+    return Schema.getCoreSchema().getSyntax(SYNTAX_OTHER_MAILBOX_OID);
   }
 }

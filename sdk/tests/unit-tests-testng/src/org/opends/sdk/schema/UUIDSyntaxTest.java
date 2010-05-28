@@ -43,22 +43,10 @@ public class UUIDSyntaxTest extends SyntaxTestCase
    * {@inheritDoc}
    */
   @Override
-  protected Syntax getRule()
-  {
-    return Schema.getCoreSchema().getSyntax(SYNTAX_UUID_OID);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   @DataProvider(name = "acceptableValues")
   public Object[][] createAcceptableValues()
   {
-    return new Object[][] {
-        { "12345678-9ABC-DEF0-1234-1234567890ab", true },
+    return new Object[][] { { "12345678-9ABC-DEF0-1234-1234567890ab", true },
         { "12345678-9abc-def0-1234-1234567890ab", true },
         { "12345678-9abc-def0-1234-1234567890ab", true },
         { "12345678-9abc-def0-1234-1234567890ab", true },
@@ -70,5 +58,16 @@ public class UUIDSyntaxTest extends SyntaxTestCase
         { "g2345678-9abc-def0-1234-1234567890ab", false },
         { "12345678/9abc/def0/1234/1234567890ab", false },
         { "12345678-9abc-def0-1234-1234567890a", false }, };
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected Syntax getRule()
+  {
+    return Schema.getCoreSchema().getSyntax(SYNTAX_UUID_OID);
   }
 }

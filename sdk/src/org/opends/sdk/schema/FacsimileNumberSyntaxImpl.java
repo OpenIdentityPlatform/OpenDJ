@@ -29,9 +29,15 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
-import static com.sun.opends.sdk.util.StaticUtils.*;
-import static org.opends.sdk.schema.SchemaConstants.*;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_FAXNUMBER_EMPTY;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_FAXNUMBER_END_WITH_DOLLAR;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_FAXNUMBER_ILLEGAL_PARAMETER;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_FAXNUMBER_NOT_PRINTABLE;
+import static com.sun.opends.sdk.util.StaticUtils.toLowerCase;
+import static org.opends.sdk.schema.SchemaConstants.EMR_CASE_IGNORE_OID;
+import static org.opends.sdk.schema.SchemaConstants.OMR_CASE_IGNORE_OID;
+import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_FAXNUMBER_NAME;
 
 import java.util.HashSet;
 
@@ -40,12 +46,11 @@ import org.opends.sdk.LocalizableMessageBuilder;
 
 
 
-
 /**
- * This class implements the facsimile telephone number attribute
- * syntax, which contains a printable string (the number) followed by
- * zero or more parameters. Those parameters should start with a dollar
- * sign may be any of the following strings:
+ * This class implements the facsimile telephone number attribute syntax, which
+ * contains a printable string (the number) followed by zero or more parameters.
+ * Those parameters should start with a dollar sign may be any of the following
+ * strings:
  * <UL>
  * <LI>twoDimensional</LI>
  * <LI>fineResolution</LI>
@@ -59,11 +64,11 @@ import org.opends.sdk.LocalizableMessageBuilder;
 final class FacsimileNumberSyntaxImpl extends AbstractSyntaxImpl
 {
   /**
-   * The set of allowed fax parameter values, formatted entirely in
-   * lowercase characters.
+   * The set of allowed fax parameter values, formatted entirely in lowercase
+   * characters.
    */
-  public static final HashSet<String> ALLOWED_FAX_PARAMETERS =
-      new HashSet<String>(7);
+  public static final HashSet<String> ALLOWED_FAX_PARAMETERS = new HashSet<String>(
+      7);
 
   static
   {
@@ -117,21 +122,21 @@ final class FacsimileNumberSyntaxImpl extends AbstractSyntaxImpl
 
 
   /**
-   * Indicates whether the provided value is acceptable for use in an
-   * attribute with this syntax. If it is not, then the reason may be
-   * appended to the provided buffer.
-   * 
+   * Indicates whether the provided value is acceptable for use in an attribute
+   * with this syntax. If it is not, then the reason may be appended to the
+   * provided buffer.
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
    *          The value for which to make the determination.
    * @param invalidReason
    *          The buffer to which the invalid reason should be appended.
-   * @return <CODE>true</CODE> if the provided value is acceptable for
-   *         use with this syntax, or <CODE>false</CODE> if not.
+   * @return <CODE>true</CODE> if the provided value is acceptable for use with
+   *         this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      LocalizableMessageBuilder invalidReason)
+  public boolean valueIsAcceptable(final Schema schema,
+      final ByteSequence value, final LocalizableMessageBuilder invalidReason)
   {
     // Get a lowercase string representation of the value and find its
     // length.
@@ -173,8 +178,8 @@ final class FacsimileNumberSyntaxImpl extends AbstractSyntaxImpl
         if (!PrintableStringSyntaxImpl.isPrintableCharacter(c))
         {
 
-          invalidReason.append(ERR_ATTR_SYNTAX_FAXNUMBER_NOT_PRINTABLE
-              .get(valueString, String.valueOf(c), pos));
+          invalidReason.append(ERR_ATTR_SYNTAX_FAXNUMBER_NOT_PRINTABLE.get(
+              valueString, String.valueOf(c), pos));
         }
       }
     }
@@ -204,14 +209,12 @@ final class FacsimileNumberSyntaxImpl extends AbstractSyntaxImpl
       c = valueString.charAt(pos++);
       if (c == '$')
       {
-        final String paramStr =
-            valueString.substring(paramStartPos, pos);
+        final String paramStr = valueString.substring(paramStartPos, pos);
         if (!ALLOWED_FAX_PARAMETERS.contains(paramStr))
         {
 
-          invalidReason
-              .append(ERR_ATTR_SYNTAX_FAXNUMBER_ILLEGAL_PARAMETER.get(
-                  valueString, paramStr, paramStartPos, (pos - 1)));
+          invalidReason.append(ERR_ATTR_SYNTAX_FAXNUMBER_ILLEGAL_PARAMETER.get(
+              valueString, paramStr, paramStartPos, (pos - 1)));
           return false;
         }
 
@@ -224,8 +227,8 @@ final class FacsimileNumberSyntaxImpl extends AbstractSyntaxImpl
     final String paramStr = valueString.substring(paramStartPos);
     if (!ALLOWED_FAX_PARAMETERS.contains(paramStr))
     {
-      invalidReason.append(ERR_ATTR_SYNTAX_FAXNUMBER_ILLEGAL_PARAMETER
-          .get(valueString, paramStr, paramStartPos, (pos - 1)));
+      invalidReason.append(ERR_ATTR_SYNTAX_FAXNUMBER_ILLEGAL_PARAMETER.get(
+          valueString, paramStr, paramStartPos, (pos - 1)));
       return false;
     }
 

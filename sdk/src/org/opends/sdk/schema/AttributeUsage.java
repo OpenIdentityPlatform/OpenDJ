@@ -30,8 +30,8 @@ package org.opends.sdk.schema;
 
 
 /**
- * This enumeration defines the set of possible attribute usage values
- * that may apply to an attribute type, as defined in RFC 2252.
+ * This enumeration defines the set of possible attribute usage values that may
+ * apply to an attribute type, as defined in RFC 2252.
  */
 public enum AttributeUsage
 {
@@ -46,14 +46,14 @@ public enum AttributeUsage
   DIRECTORY_OPERATION("directoryOperation", true),
 
   /**
-   * The attribute usage intended for non-standard operational
-   * attributes shared among multiple DSAs.
+   * The attribute usage intended for non-standard operational attributes shared
+   * among multiple DSAs.
    */
   DISTRIBUTED_OPERATION("distributedOperation", true),
 
   /**
-   * The attribute usage intended for non-standard operational
-   * attributes used by a single DSA.
+   * The attribute usage intended for non-standard operational attributes used
+   * by a single DSA.
    */
   DSA_OPERATION("dSAOperation", true);
 
@@ -67,16 +67,15 @@ public enum AttributeUsage
 
 
   /**
-   * Creates a new attribute usage with the provided string
-   * representation.
-   * 
+   * Creates a new attribute usage with the provided string representation.
+   *
    * @param usageString
    *          The string representation of this attribute usage.
    * @param isOperational
-   *          <code>true</code> if attributes having this attribute
-   *          usage are operational, or <code>false</code> otherwise.
+   *          <code>true</code> if attributes having this attribute usage are
+   *          operational, or <code>false</code> otherwise.
    */
-  private AttributeUsage(String usageString, boolean isOperational)
+  private AttributeUsage(final String usageString, final boolean isOperational)
   {
     this.usageString = usageString;
     this.isOperational = isOperational;
@@ -87,10 +86,9 @@ public enum AttributeUsage
   /**
    * Determine whether or not attributes having this attribute usage are
    * operational.
-   * 
-   * @return Returns <code>true</code> if attributes having this
-   *         attribute usage are operational, or <code>false</code>
-   *         otherwise.
+   *
+   * @return Returns <code>true</code> if attributes having this attribute usage
+   *         are operational, or <code>false</code> otherwise.
    */
   public boolean isOperational()
   {
@@ -101,7 +99,7 @@ public enum AttributeUsage
 
   /**
    * Retrieves a string representation of this attribute usage.
-   * 
+   *
    * @return A string representation of this attribute usage.
    */
   @Override

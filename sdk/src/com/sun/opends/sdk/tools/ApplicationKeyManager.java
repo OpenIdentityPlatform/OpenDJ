@@ -47,14 +47,13 @@ import com.sun.opends.sdk.util.Platform;
 
 /**
  * This class is in charge of checking whether the certificates that are
- * presented are trusted or not. This implementation tries to check also
- * that the subject DN of the certificate corresponds to the host passed
- * using the setHostName method.
+ * presented are trusted or not. This implementation tries to check also that
+ * the subject DN of the certificate corresponds to the host passed using the
+ * setHostName method.
  *<p>
- * The constructor tries to use a default TrustManager from the system
- * and if it cannot be retrieved this class will only accept the
- * certificates explicitly accepted by the user (and specified by
- * calling acceptCertificate).
+ * The constructor tries to use a default TrustManager from the system and if it
+ * cannot be retrieved this class will only accept the certificates explicitly
+ * accepted by the user (and specified by calling acceptCertificate).
  *<p>
  * NOTE: this class is not aimed to be used when we have connections in
  * parallel.
@@ -79,7 +78,7 @@ final class ApplicationKeyManager implements X509KeyManager
    * @param password
    *          The keystore password to use for this keymanager.
    */
-  ApplicationKeyManager(KeyStore keystore, char[] password)
+  ApplicationKeyManager(final KeyStore keystore, final char[] password)
   {
     KeyManagerFactory kmf = null;
     String userSpecifiedAlgo = System
@@ -90,22 +89,26 @@ final class ApplicationKeyManager implements X509KeyManager
     // Handle IBM specific cases if the user did not specify a algorithm
     // and/or provider.
     if (userSpecifiedAlgo == null && Platform.isVendor("IBM"))
+    {
       userSpecifiedAlgo = "IbmX509";
+    }
     if (userSpecifiedProvider == null && Platform.isVendor("IBM"))
+    {
       userSpecifiedProvider = "IBMJSSE2";
+    }
 
     // Have some fallbacks to choose the provider and algorith of the
     // key manager. First see if the user wanted to use something
     // specific, then try with the SunJSSE provider and SunX509
     // algorithm. Finally, fallback to the default algorithm of the JVM.
-    String[] preferredProvider = { userSpecifiedProvider, "SunJSSE",
+    final String[] preferredProvider = { userSpecifiedProvider, "SunJSSE",
         null, null };
-    String[] preferredAlgo = { userSpecifiedAlgo, "SunX509", "SunX509",
+    final String[] preferredAlgo = { userSpecifiedAlgo, "SunX509", "SunX509",
         TrustManagerFactory.getDefaultAlgorithm() };
     for (int i = 0; i < preferredProvider.length && keyManager == null; i++)
     {
-      String provider = preferredProvider[i];
-      String algo = preferredAlgo[i];
+      final String provider = preferredProvider[i];
+      final String algo = preferredAlgo[i];
       if (algo == null)
       {
         continue;
@@ -121,40 +124,39 @@ final class ApplicationKeyManager implements X509KeyManager
           kmf = KeyManagerFactory.getInstance(algo);
         }
         kmf.init(keystore, password);
-        KeyManager kms[] = kmf.getKeyManagers();
+        final KeyManager kms[] = kmf.getKeyManagers();
         /*
-         * Iterate over the returned keymanagers, look for an instance
-         * of X509KeyManager. If found, use that as our "default" key
-         * manager.
+         * Iterate over the returned keymanagers, look for an instance of
+         * X509KeyManager. If found, use that as our "default" key manager.
          */
-        for (int j = 0; j < kms.length; j++)
+        for (final KeyManager km : kms)
         {
           if (kms[i] instanceof X509KeyManager)
           {
-            keyManager = (X509KeyManager) kms[j];
+            keyManager = (X509KeyManager) km;
             break;
           }
         }
       }
-      catch (NoSuchAlgorithmException e)
+      catch (final NoSuchAlgorithmException e)
       {
         // Nothing to do. Maybe we should avoid this and be strict, but
         // we are in a best effor mode.
         LOG.log(Level.WARNING, "Error with the algorithm", e);
       }
-      catch (KeyStoreException e)
+      catch (final KeyStoreException e)
       {
         // Nothing to do. Maybe we should avoid this and be strict, but
         // we are in a best effor mode..
         LOG.log(Level.WARNING, "Error with the keystore", e);
       }
-      catch (UnrecoverableKeyException e)
+      catch (final UnrecoverableKeyException e)
       {
         // Nothing to do. Maybe we should avoid this and be strict, but
         // we are in a best effor mode.
         LOG.log(Level.WARNING, "Error with the key", e);
       }
-      catch (NoSuchProviderException e)
+      catch (final NoSuchProviderException e)
       {
         // Nothing to do. Maybe we should avoid this and be strict, but
         // we are in a best effor mode.
@@ -166,25 +168,25 @@ final class ApplicationKeyManager implements X509KeyManager
 
 
   /**
-   * Choose an alias to authenticate the client side of a secure socket
-   * given the public key type and the list of certificate issuer
-   * authorities recognized by the peer (if any).
+   * Choose an alias to authenticate the client side of a secure socket given
+   * the public key type and the list of certificate issuer authorities
+   * recognized by the peer (if any).
    *
    * @param keyType
-   *          the key algorithm type name(s), ordered with the
-   *          most-preferred key type first.
+   *          the key algorithm type name(s), ordered with the most-preferred
+   *          key type first.
    * @param issuers
-   *          the list of acceptable CA issuer subject names or null if
-   *          it does not matter which issuers are used.
+   *          the list of acceptable CA issuer subject names or null if it does
+   *          not matter which issuers are used.
    * @param socket
-   *          the socket to be used for this connection. This parameter
-   *          can be null, in which case this method will return the
-   *          most generic alias to use.
+   *          the socket to be used for this connection. This parameter can be
+   *          null, in which case this method will return the most generic alias
+   *          to use.
    * @return the alias name for the desired key, or null if there are no
    *         matches.
    */
-  public String chooseClientAlias(String[] keyType,
-      Principal[] issuers, Socket socket)
+  public String chooseClientAlias(final String[] keyType,
+      final Principal[] issuers, final Socket socket)
   {
     if (keyManager != null)
     {
@@ -199,25 +201,25 @@ final class ApplicationKeyManager implements X509KeyManager
 
 
   /**
-   * Choose an alias to authenticate the client side of a secure socket
-   * given the public key type and the list of certificate issuer
-   * authorities recognized by the peer (if any).
+   * Choose an alias to authenticate the client side of a secure socket given
+   * the public key type and the list of certificate issuer authorities
+   * recognized by the peer (if any).
    *
    * @param keyType
-   *          the key algorithm type name(s), ordered with the
-   *          most-preferred key type first.
+   *          the key algorithm type name(s), ordered with the most-preferred
+   *          key type first.
    * @param issuers
-   *          the list of acceptable CA issuer subject names or null if
-   *          it does not matter which issuers are used.
+   *          the list of acceptable CA issuer subject names or null if it does
+   *          not matter which issuers are used.
    * @param socket
-   *          the socket to be used for this connection. This parameter
-   *          can be null, in which case this method will return the
-   *          most generic alias to use.
+   *          the socket to be used for this connection. This parameter can be
+   *          null, in which case this method will return the most generic alias
+   *          to use.
    * @return the alias name for the desired key, or null if there are no
    *         matches.
    */
-  public String chooseServerAlias(String keyType, Principal[] issuers,
-      Socket socket)
+  public String chooseServerAlias(final String keyType,
+      final Principal[] issuers, final Socket socket)
   {
     if (keyManager != null)
     {
@@ -236,11 +238,11 @@ final class ApplicationKeyManager implements X509KeyManager
    *
    * @param alias
    *          the alias name
-   * @return the certificate chain (ordered with the user's certificate
-   *         first and the root certificate authority last), or null if
-   *         the alias can't be found.
+   * @return the certificate chain (ordered with the user's certificate first
+   *         and the root certificate authority last), or null if the alias
+   *         can't be found.
    */
-  public X509Certificate[] getCertificateChain(String alias)
+  public X509Certificate[] getCertificateChain(final String alias)
   {
     if (keyManager != null)
     {
@@ -255,19 +257,20 @@ final class ApplicationKeyManager implements X509KeyManager
 
 
   /**
-   * Get the matching aliases for authenticating the server side of a
-   * secure socket given the public key type and the list of certificate
-   * issuer authorities recognized by the peer (if any).
+   * Get the matching aliases for authenticating the server side of a secure
+   * socket given the public key type and the list of certificate issuer
+   * authorities recognized by the peer (if any).
    *
    * @param keyType
    *          the key algorithm type name
    * @param issuers
-   *          the list of acceptable CA issuer subject names or null if
-   *          it does not matter which issuers are used.
-   * @return an array of the matching alias names, or null if there were
-   *         no matches.
+   *          the list of acceptable CA issuer subject names or null if it does
+   *          not matter which issuers are used.
+   * @return an array of the matching alias names, or null if there were no
+   *         matches.
    */
-  public String[] getClientAliases(String keyType, Principal[] issuers)
+  public String[] getClientAliases(final String keyType,
+      final Principal[] issuers)
   {
     if (keyManager != null)
     {
@@ -288,7 +291,7 @@ final class ApplicationKeyManager implements X509KeyManager
    *          the alias name
    * @return the requested key, or null if the alias can't be found.
    */
-  public PrivateKey getPrivateKey(String alias)
+  public PrivateKey getPrivateKey(final String alias)
   {
     if (keyManager != null)
     {
@@ -303,19 +306,20 @@ final class ApplicationKeyManager implements X509KeyManager
 
 
   /**
-   * Get the matching aliases for authenticating the server side of a
-   * secure socket given the public key type and the list of certificate
-   * issuer authorities recognized by the peer (if any).
+   * Get the matching aliases for authenticating the server side of a secure
+   * socket given the public key type and the list of certificate issuer
+   * authorities recognized by the peer (if any).
    *
    * @param keyType
    *          the key algorithm type name
    * @param issuers
-   *          the list of acceptable CA issuer subject names or null if
-   *          it does not matter which issuers are used.
-   * @return an array of the matching alias names, or null if there were
-   *         no matches.
+   *          the list of acceptable CA issuer subject names or null if it does
+   *          not matter which issuers are used.
+   * @return an array of the matching alias names, or null if there were no
+   *         matches.
    */
-  public String[] getServerAliases(String keyType, Principal[] issuers)
+  public String[] getServerAliases(final String keyType,
+      final Principal[] issuers)
   {
     if (keyManager != null)
     {

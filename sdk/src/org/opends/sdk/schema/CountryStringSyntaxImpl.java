@@ -29,8 +29,9 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
-import static com.sun.opends.sdk.util.StaticUtils.*;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_COUNTRY_STRING_INVALID_LENGTH;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_COUNTRY_STRING_NOT_PRINTABLE;
+import static com.sun.opends.sdk.util.StaticUtils.toLowerCase;
 import static org.opends.sdk.schema.SchemaConstants.*;
 
 import org.opends.sdk.ByteSequence;
@@ -38,13 +39,11 @@ import org.opends.sdk.LocalizableMessageBuilder;
 
 
 
-
 /**
- * This class defines the country string attribute syntax, which should
- * be a two-character ISO 3166 country code. However, for
- * maintainability, it will accept any value consisting entirely of two
- * printable characters. In most ways, it will behave like the directory
- * string attribute syntax.
+ * This class defines the country string attribute syntax, which should be a
+ * two-character ISO 3166 country code. However, for maintainability, it will
+ * accept any value consisting entirely of two printable characters. In most
+ * ways, it will behave like the directory string attribute syntax.
  */
 final class CountryStringSyntaxImpl extends AbstractSyntaxImpl
 {
@@ -96,33 +95,31 @@ final class CountryStringSyntaxImpl extends AbstractSyntaxImpl
 
 
   /**
-   * Indicates whether the provided value is acceptable for use in an
-   * attribute with this syntax. If it is not, then the reason may be
-   * appended to the provided buffer.
-   * 
+   * Indicates whether the provided value is acceptable for use in an attribute
+   * with this syntax. If it is not, then the reason may be appended to the
+   * provided buffer.
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
    *          The value for which to make the determination.
    * @param invalidReason
    *          The buffer to which the invalid reason should be appended.
-   * @return <CODE>true</CODE> if the provided value is acceptable for
-   *         use with this syntax, or <CODE>false</CODE> if not.
+   * @return <CODE>true</CODE> if the provided value is acceptable for use with
+   *         this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      LocalizableMessageBuilder invalidReason)
+  public boolean valueIsAcceptable(final Schema schema,
+      final ByteSequence value, final LocalizableMessageBuilder invalidReason)
   {
     final String stringValue = toLowerCase(value.toString());
     if (stringValue.length() != 2)
     {
-      invalidReason
-          .append(ERR_ATTR_SYNTAX_COUNTRY_STRING_INVALID_LENGTH
-              .get(stringValue));
+      invalidReason.append(ERR_ATTR_SYNTAX_COUNTRY_STRING_INVALID_LENGTH
+          .get(stringValue));
       return false;
     }
 
-    if (!PrintableStringSyntaxImpl.isPrintableCharacter(stringValue
-        .charAt(0))
+    if (!PrintableStringSyntaxImpl.isPrintableCharacter(stringValue.charAt(0))
         || !PrintableStringSyntaxImpl.isPrintableCharacter(stringValue
             .charAt(1)))
     {

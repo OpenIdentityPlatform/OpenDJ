@@ -29,28 +29,26 @@ package org.opends.sdk.schema;
 
 
 
-import org.opends.sdk.LocalizedIllegalArgumentException;
 import org.opends.sdk.LocalizableMessage;
-
+import org.opends.sdk.LocalizedIllegalArgumentException;
 
 
 
 /**
- * Thrown when a schema query fails because the requested schema element
- * could not be found or is ambiguous.
+ * Thrown when a schema query fails because the requested schema element could
+ * not be found or is ambiguous.
  */
 @SuppressWarnings("serial")
 public class UnknownSchemaElementException extends
     LocalizedIllegalArgumentException
 {
   /**
-   * Creates a new unknown schema element exception with the provided
-   * message.
-   * 
+   * Creates a new unknown schema element exception with the provided message.
+   *
    * @param message
    *          The message that explains the problem that occurred.
    */
-  public UnknownSchemaElementException(LocalizableMessage message)
+  public UnknownSchemaElementException(final LocalizableMessage message)
   {
     super(message);
   }

@@ -30,23 +30,23 @@ package com.sun.opends.sdk.util;
 
 
 /**
- * Functions transform input values of type {@code M} to output values
- * of type {@code N}.
+ * Functions transform input values of type {@code M} to output values of type
+ * {@code N}.
  *
  * @param <M>
  *          The type of input values transformed by this function.
  * @param <N>
  *          The type of output values return by this function.
  * @param <P>
- *          The type of the additional parameter to this function's
- *          {@code apply} method. Use {@link java.lang.Void} for
- *          functions that do not need an additional parameter.
+ *          The type of the additional parameter to this function's {@code
+ *          apply} method. Use {@link java.lang.Void} for functions that do not
+ *          need an additional parameter.
  */
 public interface Function<M, N, P>
 {
   /**
-   * Applies this function to the provided input value of type {@code M}
-   * , returning an output value of type {@code N}.
+   * Applies this function to the provided input value of type {@code M} ,
+   * returning an output value of type {@code N}.
    *
    * @param value
    *          The value to be transformed.

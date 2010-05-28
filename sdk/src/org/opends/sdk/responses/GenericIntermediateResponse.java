@@ -15,32 +15,35 @@
  * When distributing Covered Code, include this CDDL HEADER in each
  * file and include the License file at
  * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- * generic extended the following below this CDDL HEADER, with the fields enclosed
+ * add the following below this CDDL HEADER, with the fields enclosed
  * by brackets "[]" replaced with your own identifying information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.responses;
 
 
 
+import java.util.List;
+
 import org.opends.sdk.ByteString;
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.DecodeOptions;
 import org.opends.sdk.controls.Control;
+import org.opends.sdk.controls.ControlDecoder;
 
 
 
 /**
- * A Generic Intermediate response provides a mechanism for
- * communicating unrecognized or unsupported Intermediate responses to
- * the client.
+ * A Generic Intermediate response provides a mechanism for communicating
+ * unrecognized or unsupported Intermediate responses to the client.
  */
-public interface GenericIntermediateResponse extends
-    IntermediateResponse
+public interface GenericIntermediateResponse extends IntermediateResponse
 {
   /**
    * {@inheritDoc}
@@ -53,85 +56,68 @@ public interface GenericIntermediateResponse extends
   /**
    * {@inheritDoc}
    */
-  GenericIntermediateResponse clearControls()
-      throws UnsupportedOperationException;
+  <C extends Control> C getControl(ControlDecoder<C> decoder,
+      DecodeOptions options) throws NullPointerException, DecodeException;
 
 
 
   /**
    * {@inheritDoc}
    */
-  Control getControl(String oid) throws NullPointerException;
+  List<Control> getControls();
 
 
 
   /**
    * {@inheritDoc}
    */
-  Iterable<Control> getControls();
+  String getOID();
 
 
 
   /**
    * {@inheritDoc}
    */
-  String getResponseName();
+  ByteString getValue();
 
 
 
   /**
    * {@inheritDoc}
    */
-  ByteString getResponseValue();
+  boolean hasValue();
 
 
 
   /**
-   * {@inheritDoc}
-   */
-  boolean hasControls();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  Control removeControl(String oid)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * Sets the dotted-decimal representation of the unique OID
-   * corresponding to this generic intermediate response.
-   * 
+   * Sets the numeric OID, if any, associated with this intermediate response.
+   *
    * @param oid
-   *          The dotted-decimal representation of the unique OID, or
-   *          {@code null} if there is no response name.
+   *          The numeric OID associated with this intermediate response, or
+   *          {@code null} if there is no value.
    * @return This generic intermediate response.
    * @throws UnsupportedOperationException
-   *           If this generic intermediate response does not permit the
-   *           response name to be set.
+   *           If this intermediate response does not permit the response name
+   *           to be set.
    */
-  GenericIntermediateResponse setResponseName(String oid)
+  GenericIntermediateResponse setOID(String oid)
       throws UnsupportedOperationException;
 
 
 
   /**
-   * Sets the content of this generic intermediate response in a form
-   * defined by the extended result.
-   * 
+   * Sets the value, if any, associated with this intermediate response. Its
+   * format is defined by the specification of this intermediate response.
+   *
    * @param bytes
-   *          The content of this generic intermediate response in a
-   *          form defined by the intermediate response, or {@code null}
-   *          if there is no content.
+   *          The value associated with this intermediate response, or {@code
+   *          null} if there is no value.
    * @return This generic intermediate response.
    * @throws UnsupportedOperationException
-   *           If this generic intermediate response does not permit the
-   *           response value to be set.
+   *           If this intermediate response does not permit the response value
+   *           to be set.
    */
-  GenericIntermediateResponse setResponseValue(ByteString bytes)
+  GenericIntermediateResponse setValue(ByteString bytes)
       throws UnsupportedOperationException;
 
 }

@@ -32,21 +32,19 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 import org.opends.sdk.*;
-import org.opends.sdk.RDN.AVA;
-
 
 
 
 /**
- * This class defines the distinguishedNameMatch matching rule defined
- * in X.520 and referenced in RFC 2252.
+ * This class defines the distinguishedNameMatch matching rule defined in X.520
+ * and referenced in RFC 2252.
  */
 final class DistinguishedNameEqualityMatchingRuleImpl extends
     AbstractMatchingRuleImpl
 {
   private static final Comparator<AVA> ATV_COMPARATOR = new Comparator<AVA>()
   {
-    public int compare(AVA o1, AVA o2)
+    public int compare(final AVA o1, final AVA o2)
     {
       return o1.getAttributeType().compareTo(o2.getAttributeType());
     }
@@ -55,7 +53,7 @@ final class DistinguishedNameEqualityMatchingRuleImpl extends
 
 
   @Override
-  public Assertion getAssertion(final Schema schema, ByteSequence value)
+  public Assertion getAssertion(final Schema schema, final ByteSequence value)
       throws DecodeException
   {
     DN assertion;
@@ -71,12 +69,11 @@ final class DistinguishedNameEqualityMatchingRuleImpl extends
     final DN finalAssertion = assertion;
     return new Assertion()
     {
-      public ConditionResult matches(ByteSequence attributeValue)
+      public ConditionResult matches(final ByteSequence attributeValue)
       {
         try
         {
-          final DN attribute = DN.valueOf(attributeValue.toString(),
-              schema);
+          final DN attribute = DN.valueOf(attributeValue.toString(), schema);
           return matchDNs(finalAssertion, attribute);
         }
         catch (final LocalizedIllegalArgumentException e)
@@ -89,8 +86,8 @@ final class DistinguishedNameEqualityMatchingRuleImpl extends
 
 
 
-  public ByteString normalizeAttributeValue(Schema schema,
-      ByteSequence value) throws DecodeException
+  public ByteString normalizeAttributeValue(final Schema schema,
+      final ByteSequence value) throws DecodeException
   {
     try
     {
@@ -105,7 +102,7 @@ final class DistinguishedNameEqualityMatchingRuleImpl extends
 
 
 
-  private ConditionResult matchAVAs(AVA ava1, AVA ava2)
+  private ConditionResult matchAVAs(final AVA ava1, final AVA ava2)
   {
     final AttributeType type = ava1.getAttributeType();
 
@@ -119,12 +116,11 @@ final class DistinguishedNameEqualityMatchingRuleImpl extends
     {
       try
       {
-        final ByteString nv1 = matchingRule
-            .normalizeAttributeValue(ava1.getAttributeValue());
-        final ByteString nv2 = matchingRule
-            .normalizeAttributeValue(ava2.getAttributeValue());
-        return nv1.equals(nv2) ? ConditionResult.TRUE
-            : ConditionResult.FALSE;
+        final ByteString nv1 = matchingRule.normalizeAttributeValue(ava1
+            .getAttributeValue());
+        final ByteString nv2 = matchingRule.normalizeAttributeValue(ava2
+            .getAttributeValue());
+        return nv1.equals(nv2) ? ConditionResult.TRUE : ConditionResult.FALSE;
       }
       catch (final DecodeException de)
       {
@@ -137,7 +133,7 @@ final class DistinguishedNameEqualityMatchingRuleImpl extends
 
 
 
-  private ConditionResult matchDNs(DN dn1, DN dn2)
+  private ConditionResult matchDNs(final DN dn1, final DN dn2)
   {
     final int sz1 = dn1.size();
     final int sz2 = dn2.size();
@@ -164,7 +160,7 @@ final class DistinguishedNameEqualityMatchingRuleImpl extends
 
 
 
-  private ConditionResult matchRDNs(RDN rdn1, RDN rdn2)
+  private ConditionResult matchRDNs(final RDN rdn1, final RDN rdn2)
   {
     final int sz1 = rdn1.size();
     final int sz2 = rdn2.size();

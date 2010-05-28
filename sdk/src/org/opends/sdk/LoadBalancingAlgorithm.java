@@ -27,21 +27,21 @@
 
 package org.opends.sdk;
 
+
+
 /**
- * A load balancing algorithm distributes connection requests across one
- * or more underlying connection factories in an implementation defined
- * manner.
+ * A load balancing algorithm distributes connection requests across one or more
+ * underlying connection factories in an implementation defined manner.
  */
 interface LoadBalancingAlgorithm
 {
   /**
-   * Returns the next connection factory which should be used in order
-   * to obtain a connection.
+   * Returns the next connection factory which should be used in order to obtain
+   * a connection.
    *
    * @return The next connection factory.
    * @throws ErrorResultException
    *           If no connection factories are available for use.
    */
-  ConnectionFactory getNextConnectionFactory()
-      throws ErrorResultException;
+  ConnectionFactory getNextConnectionFactory() throws ErrorResultException;
 }

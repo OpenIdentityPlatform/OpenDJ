@@ -40,8 +40,8 @@ import com.sun.opends.sdk.util.Validator;
 /**
  * Delete request implementation.
  */
-final class DeleteRequestImpl extends
-    AbstractRequestImpl<DeleteRequest> implements DeleteRequest
+final class DeleteRequestImpl extends AbstractRequestImpl<DeleteRequest>
+    implements DeleteRequest
 {
   private DN name;
 
@@ -49,13 +49,13 @@ final class DeleteRequestImpl extends
 
   /**
    * Creates a new delete request using the provided distinguished name.
-   * 
+   *
    * @param name
    *          The distinguished name of the entry to be deleted.
    * @throws NullPointerException
    *           If {@code name} was {@code null}.
    */
-  DeleteRequestImpl(DN name) throws NullPointerException
+  DeleteRequestImpl(final DN name) throws NullPointerException
   {
     this.name = name;
   }
@@ -65,7 +65,7 @@ final class DeleteRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public <R, P> R accept(ChangeRecordVisitor<R, P> v, P p)
+  public <R, P> R accept(final ChangeRecordVisitor<R, P> v, final P p)
   {
     return v.visitChangeRecord(p, this);
   }
@@ -85,7 +85,7 @@ final class DeleteRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public DeleteRequest setName(DN dn)
+  public DeleteRequest setName(final DN dn)
       throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(dn);
@@ -98,9 +98,9 @@ final class DeleteRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public DeleteRequest setName(String dn)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException
+  public DeleteRequest setName(final String dn)
+      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
+      NullPointerException
   {
     Validator.ensureNotNull(dn);
     this.name = DN.valueOf(dn);
@@ -126,6 +126,7 @@ final class DeleteRequestImpl extends
 
 
 
+  @Override
   DeleteRequest getThis()
   {
     return this;

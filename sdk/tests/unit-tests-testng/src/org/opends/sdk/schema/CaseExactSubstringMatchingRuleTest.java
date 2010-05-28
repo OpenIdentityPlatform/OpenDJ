@@ -42,42 +42,20 @@ public class CaseExactSubstringMatchingRuleTest extends
     SubstringMatchingRuleTest
 {
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
-  @DataProvider(name = "substringMiddleMatchData")
-  public Object[][] createSubstringMiddleMatchData()
+  @DataProvider(name = "substringInvalidAssertionValues")
+  public Object[][] createMatchingRuleInvalidAssertionValues()
   {
-    return new Object[][] {
-        { "this is a value", new String[] { "this" },
-            ConditionResult.TRUE },
-        { "this is a value", new String[] { "is" },
-            ConditionResult.TRUE },
-        { "this is a value", new String[] { "a" }, ConditionResult.TRUE },
-        { "this is a value", new String[] { "value" },
-            ConditionResult.TRUE },
-        { "this is a value", new String[] { " " }, ConditionResult.TRUE },
-        { "this is a value",
-            new String[] { "this", "is", "a", "value" },
-            ConditionResult.TRUE },
-        // The matching rule requires ordered non overlapping
-        // substrings.
-        // Issue #730 was not valid.
-        { "this is a value", new String[] { "value", "this" },
-            ConditionResult.FALSE },
-        { "this is a value", new String[] { "this", "this is" },
-            ConditionResult.FALSE },
-        { "this is a value", new String[] { "his is", "a val", },
-            ConditionResult.TRUE },
-        { "this is a value", new String[] { "not", },
-            ConditionResult.FALSE },
-        { "this is a value", new String[] { "THIS", },
-            ConditionResult.FALSE },
-        { "this is a value", new String[] { "this", "not" },
-            ConditionResult.FALSE },
-        { "this is a value", new String[] { "    " },
-            ConditionResult.TRUE }, };
+    return new Object[][] {};
+  }
+
+
+
+  @Override
+  @DataProvider(name = "substringInvalidAttributeValues")
+  public Object[][] createMatchingRuleInvalidAttributeValues()
+  {
+    return new Object[][] {};
   }
 
 
@@ -86,9 +64,21 @@ public class CaseExactSubstringMatchingRuleTest extends
    * {@inheritDoc}
    */
   @Override
-  protected MatchingRule getRule()
+  @DataProvider(name = "substringFinalMatchData")
+  public Object[][] createSubstringFinalMatchData()
   {
-    return Schema.getCoreSchema().getMatchingRule(SMR_CASE_EXACT_OID);
+    return new Object[][] {
+        { "this is a value", "value", ConditionResult.TRUE },
+        { "this is a value", "alue", ConditionResult.TRUE },
+        { "this is a value", "ue", ConditionResult.TRUE },
+        { "this is a value", "e", ConditionResult.TRUE },
+        { "this is a value", "valu", ConditionResult.FALSE },
+        { "this is a value", "this", ConditionResult.FALSE },
+        { "this is a value", " ", ConditionResult.FALSE },
+        { "this is a value", "VALUE", ConditionResult.FALSE },
+        { "this is a VALUE", "value", ConditionResult.FALSE },
+        { "end with space    ", " ", ConditionResult.FALSE },
+        { "end with space    ", "space", ConditionResult.TRUE }, };
   }
 
 
@@ -118,37 +108,42 @@ public class CaseExactSubstringMatchingRuleTest extends
    * {@inheritDoc}
    */
   @Override
-  @DataProvider(name = "substringFinalMatchData")
-  public Object[][] createSubstringFinalMatchData()
+  @DataProvider(name = "substringMiddleMatchData")
+  public Object[][] createSubstringMiddleMatchData()
   {
     return new Object[][] {
-        { "this is a value", "value", ConditionResult.TRUE },
-        { "this is a value", "alue", ConditionResult.TRUE },
-        { "this is a value", "ue", ConditionResult.TRUE },
-        { "this is a value", "e", ConditionResult.TRUE },
-        { "this is a value", "valu", ConditionResult.FALSE },
-        { "this is a value", "this", ConditionResult.FALSE },
-        { "this is a value", " ", ConditionResult.FALSE },
-        { "this is a value", "VALUE", ConditionResult.FALSE },
-        { "this is a VALUE", "value", ConditionResult.FALSE },
-        { "end with space    ", " ", ConditionResult.FALSE },
-        { "end with space    ", "space", ConditionResult.TRUE }, };
+        { "this is a value", new String[] { "this" }, ConditionResult.TRUE },
+        { "this is a value", new String[] { "is" }, ConditionResult.TRUE },
+        { "this is a value", new String[] { "a" }, ConditionResult.TRUE },
+        { "this is a value", new String[] { "value" }, ConditionResult.TRUE },
+        { "this is a value", new String[] { " " }, ConditionResult.TRUE },
+        { "this is a value", new String[] { "this", "is", "a", "value" },
+            ConditionResult.TRUE },
+        // The matching rule requires ordered non overlapping
+        // substrings.
+        // Issue #730 was not valid.
+        { "this is a value", new String[] { "value", "this" },
+            ConditionResult.FALSE },
+        { "this is a value", new String[] { "this", "this is" },
+            ConditionResult.FALSE },
+        { "this is a value", new String[] { "his is", "a val", },
+            ConditionResult.TRUE },
+        { "this is a value", new String[] { "not", }, ConditionResult.FALSE },
+        { "this is a value", new String[] { "THIS", }, ConditionResult.FALSE },
+        { "this is a value", new String[] { "this", "not" },
+            ConditionResult.FALSE },
+        { "this is a value", new String[] { "    " }, ConditionResult.TRUE }, };
   }
 
 
 
-  @DataProvider(name = "substringInvalidAttributeValues")
-  public Object[][] createMatchingRuleInvalidAttributeValues()
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected MatchingRule getRule()
   {
-    return new Object[][] {};
-  }
-
-
-
-  @DataProvider(name = "substringInvalidAssertionValues")
-  public Object[][] createMatchingRuleInvalidAssertionValues()
-  {
-    return new Object[][] {};
+    return Schema.getCoreSchema().getMatchingRule(SMR_CASE_EXACT_OID);
   }
 
 }

@@ -38,16 +38,15 @@ import org.opends.sdk.Entry;
 
 
 /**
- * An interface for writing entries to a data source, typically an LDIF
- * file.
+ * An interface for writing entries to a data source, typically an LDIF file.
  * <p>
  * TODO: FilteredChangeRecordWriter
  */
 public interface EntryWriter extends Closeable, Flushable
 {
   /**
-   * Closes this entry writer, flushing it first. Closing a previously
-   * closed entry writer has no effect.
+   * Closes this entry writer, flushing it first. Closing a previously closed
+   * entry writer has no effect.
    *
    * @throws IOException
    *           If an unexpected IO error occurred while closing.
@@ -57,16 +56,14 @@ public interface EntryWriter extends Closeable, Flushable
 
 
   /**
-   * Flushes this entry writer so that any buffered data is written
-   * immediately to underlying stream, flushing the stream if it is also
-   * {@code Flushable}.
+   * Flushes this entry writer so that any buffered data is written immediately
+   * to underlying stream, flushing the stream if it is also {@code Flushable}.
    * <p>
-   * If the intended destination of this stream is an abstraction
-   * provided by the underlying operating system, for example a file,
-   * then flushing the stream guarantees only that bytes previously
-   * written to the stream are passed to the operating system for
-   * writing; it does not guarantee that they are actually written to a
-   * physical device such as a disk drive.
+   * If the intended destination of this stream is an abstraction provided by
+   * the underlying operating system, for example a file, then flushing the
+   * stream guarantees only that bytes previously written to the stream are
+   * passed to the operating system for writing; it does not guarantee that they
+   * are actually written to a physical device such as a disk drive.
    *
    * @throws IOException
    *           If an unexpected IO error occurred while flushing.
@@ -82,8 +79,7 @@ public interface EntryWriter extends Closeable, Flushable
    *          The {@code CharSequence} to be written as a comment.
    * @return A reference to this entry writer.
    * @throws IOException
-   *           If an unexpected IO error occurred while writing the
-   *           comment.
+   *           If an unexpected IO error occurred while writing the comment.
    * @throws NullPointerException
    *           If {@code comment} was {@code null}.
    */
@@ -99,12 +95,10 @@ public interface EntryWriter extends Closeable, Flushable
    *          The {@code Entry} to be written.
    * @return A reference to this entry writer.
    * @throws IOException
-   *           If an unexpected IO error occurred while writing the
-   *           entry.
+   *           If an unexpected IO error occurred while writing the entry.
    * @throws NullPointerException
    *           If {@code entry} was {@code null}.
    */
-  EntryWriter writeEntry(Entry entry) throws IOException,
-      NullPointerException;
+  EntryWriter writeEntry(Entry entry) throws IOException, NullPointerException;
 
 }

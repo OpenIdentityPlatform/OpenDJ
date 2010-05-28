@@ -29,22 +29,27 @@ package org.opends.sdk.responses;
 
 
 
+import java.util.List;
+
 import org.opends.sdk.ByteString;
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.DecodeOptions;
 import org.opends.sdk.controls.Control;
+import org.opends.sdk.controls.ControlDecoder;
 
 
 
 /**
  * An Intermediate response provides a general mechanism for defining
- * single-request/multiple-response operations. This response is
- * intended to be used in conjunction with the Extended operation to
- * define new single-request/multiple-response operations or in
- * conjunction with a control when extending existing operations in a
- * way that requires them to return Intermediate response information.
+ * single-request/multiple-response operations. This response is intended to be
+ * used in conjunction with the Extended operation to define new
+ * single-request/multiple-response operations or in conjunction with a control
+ * when extending existing operations in a way that requires them to return
+ * Intermediate response information.
  * <p>
- * An Intermediate response may convey an optional response name and
- * value. These can be retrieved using the {@link #getResponseName} and
- * {@link #getResponseValue} methods respectively.
+ * An Intermediate response may convey an optional response name and value.
+ * These can be retrieved using the {@link #getOID} and {@link #getValue}
+ * methods respectively.
  */
 public interface IntermediateResponse extends Response
 {
@@ -59,58 +64,49 @@ public interface IntermediateResponse extends Response
   /**
    * {@inheritDoc}
    */
-  IntermediateResponse clearControls()
-      throws UnsupportedOperationException;
+  <C extends Control> C getControl(ControlDecoder<C> decoder,
+      DecodeOptions options) throws NullPointerException, DecodeException;
 
 
 
   /**
    * {@inheritDoc}
    */
-  Control getControl(String oid) throws NullPointerException;
+  List<Control> getControls();
 
 
 
   /**
-   * {@inheritDoc}
+   * Returns the numeric OID, if any, associated with this intermediate
+   * response.
+   *
+   * @return The numeric OID associated with this intermediate response, or
+   *         {@code null} if there is no OID.
    */
-  Iterable<Control> getControls();
+  String getOID();
 
 
 
   /**
-   * Returns the dotted-decimal representation of the unique OID
-   * corresponding to this intermediate response.
-   * 
-   * @return The dotted-decimal representation of the unique OID, or
-   *         {@code null} if none was provided.
+   * Returns the value, if any, associated with this intermediate response. Its
+   * format is defined by the specification of this intermediate response.
+   *
+   * @return The value associated with this intermediate response, or {@code
+   *         null} if there is no value.
    */
-  String getResponseName();
+  ByteString getValue();
 
 
 
   /**
-   * Returns the content of this intermediate response in a form defined
-   * by the intermediate response.
-   * 
-   * @return The content of this intermediate response, or {@code null}
-   *         if there is no content.
+   * Returns {@code true} if this intermediate response has a value. In some
+   * circumstances it may be useful to determine if an intermediate response has
+   * a value, without actually calculating the value and incurring any
+   * performance costs.
+   *
+   * @return {@code true} if this intermediate response has a value, or {@code
+   *         false} if there is no value.
    */
-  ByteString getResponseValue();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  boolean hasControls();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  Control removeControl(String oid)
-      throws UnsupportedOperationException, NullPointerException;
+  boolean hasValue();
 
 }

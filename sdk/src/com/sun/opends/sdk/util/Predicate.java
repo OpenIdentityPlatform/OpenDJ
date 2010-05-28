@@ -30,28 +30,28 @@ package com.sun.opends.sdk.util;
 
 
 /**
- * Predicates transform input values of type {@code M} to a boolean
- * output value and are typically used for performing filtering.
+ * Predicates transform input values of type {@code M} to a boolean output value
+ * and are typically used for performing filtering.
  *
  * @param <M>
  *          The type of input values matched by this predicate.
  * @param <P>
- *          The type of the additional parameter to this predicate's
- *          {@code matches} method. Use {@link java.lang.Void} for
- *          predicates that do not need an additional parameter.
+ *          The type of the additional parameter to this predicate's {@code
+ *          matches} method. Use {@link java.lang.Void} for predicates that do
+ *          not need an additional parameter.
  */
 public interface Predicate<M, P>
 {
   /**
-   * Indicates whether or not this predicate matches the provided input
-   * value of type {@code M}.
+   * Indicates whether or not this predicate matches the provided input value of
+   * type {@code M}.
    *
    * @param value
    *          The input value for which to make the determination.
    * @param p
    *          A predicate specified parameter.
-   * @return {@code true} if this predicate matches {@code value},
-   *         otherwise {@code false}.
+   * @return {@code true} if this predicate matches {@code value}, otherwise
+   *         {@code false}.
    */
   boolean matches(M value, P p);
 }

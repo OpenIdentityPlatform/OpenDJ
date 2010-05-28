@@ -2,7 +2,8 @@
  * CDDL HEADER START
  *
  * The contents of this file are subject to the terms of the
- * Common Development and Distribution License, Versiance
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
  * with the License.
  *
  * You can obtain a copy of the license at
@@ -21,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.tools;
@@ -38,9 +39,8 @@ import java.util.Vector;
  * <P>
  * This class allows you to specify:
  * <UL>
- * <LI>The number of columns in the output. This will determine the
- * dimension of the string arrays passed to add(String[]) or
- * addTitle(String[]).
+ * <LI>The number of columns in the output. This will determine the dimension of
+ * the string arrays passed to add(String[]) or addTitle(String[]).
  * <LI>spacing/gap between columns
  * <LI>character to use for title border (null means no border)
  * <LI>column alignment. Only LEFT/CENTER is supported for now.
@@ -77,8 +77,8 @@ import java.util.Vector;
  *  John       john@foo.com   456-7890
  * </PRE>
  * <P>
- * This class also supports multi-row titles and having title strings
- * spanning multiple collumns. Example usage:
+ * This class also supports multi-row titles and having title strings spanning
+ * multiple collumns. Example usage:
  *
  * <PRE>
  * TestPrinter tp = new TestPrinter(4, 2, &quot;-&quot;);
@@ -147,9 +147,44 @@ final class MultiColumnPrinter
 
   private Vector<int[]> titleSpanTable = null;
 
-  private int curLength[];
+  private final int curLength[];
 
   private final ConsoleApplication app;
+
+
+
+  /**
+   * Creates a sorted new MultiColumnPrinter class using LEFT alignment and with
+   * no title border.
+   *
+   * @param numCol
+   *          number of columns
+   * @param gap
+   *          gap between each column
+   */
+  MultiColumnPrinter(final int numCol, final int gap,
+      final ConsoleApplication app)
+  {
+    this(numCol, gap, null, LEFT, app);
+  }
+
+
+
+  /**
+   * Creates a sorted new MultiColumnPrinter class using LEFT alignment.
+   *
+   * @param numCol
+   *          number of columns
+   * @param gap
+   *          gap between each column
+   * @param border
+   *          character used to frame the titles
+   */
+  MultiColumnPrinter(final int numCol, final int gap, final String border,
+      final ConsoleApplication app)
+  {
+    this(numCol, gap, border, LEFT, app);
+  }
 
 
 
@@ -165,8 +200,8 @@ final class MultiColumnPrinter
    * @param align
    *          type of alignment within columns
    */
-  MultiColumnPrinter(int numCol, int gap, String border, int align,
-      ConsoleApplication app)
+  MultiColumnPrinter(final int numCol, final int gap, final String border,
+      final int align, final ConsoleApplication app)
   {
 
     titleTable = new Vector<String[]>();
@@ -185,50 +220,19 @@ final class MultiColumnPrinter
 
 
   /**
-   * Creates a sorted new MultiColumnPrinter class using LEFT alignment.
-   *
-   * @param numCol
-   *          number of columns
-   * @param gap
-   *          gap between each column
-   * @param border
-   *          character used to frame the titles
-   */
-  MultiColumnPrinter(int numCol, int gap, String border,
-      ConsoleApplication app)
-  {
-    this(numCol, gap, border, LEFT, app);
-  }
-
-
-
-  /**
-   * Creates a sorted new MultiColumnPrinter class using LEFT alignment
-   * and with no title border.
-   *
-   * @param numCol
-   *          number of columns
-   * @param gap
-   *          gap between each column
-   */
-  MultiColumnPrinter(int numCol, int gap, ConsoleApplication app)
-  {
-    this(numCol, gap, null, LEFT, app);
-  }
-
-
-
-  /**
    * Adds to the row of strings to be used as the title for the table.
    *
    * @param row
    *          Array of strings to print in one row of title.
    */
-  void addTitle(String[] row)
+  void addTitle(final String[] row)
   {
-    if (row == null) return;
+    if (row == null)
+    {
+      return;
+    }
 
-    int[] span = new int[row.length];
+    final int[] span = new int[row.length];
     for (int i = 0; i < row.length; i++)
     {
       span[i] = 1;
@@ -240,12 +244,12 @@ final class MultiColumnPrinter
 
 
   /**
-   * Adds to the row of strings to be used as the title for the table.
-   * Also allows for certain title strings to span multiple collumns The
-   * span parameter is an array of integers which indicate how many
-   * collumns the corresponding title string will occupy. For a row that
-   * is 4 collumns wide, it is possible to have some title strings in a
-   * row to 'span' multiple collumns:
+   * Adds to the row of strings to be used as the title for the table. Also
+   * allows for certain title strings to span multiple collumns The span
+   * parameter is an array of integers which indicate how many collumns the
+   * corresponding title string will occupy. For a row that is 4 collumns wide,
+   * it is possible to have some title strings in a row to 'span' multiple
+   * collumns:
    * <P>
    *
    * <PRE>
@@ -257,9 +261,9 @@ final class MultiColumnPrinter
    * John   Doe    john@foo.com  456-7890
    * </PRE>
    *
-   * In the example above, the title row has a string 'Name' that spans
-   * 2 collumns. The string 'Contact' also spans 2 collumns. The above
-   * is done by passing in to addTitle() an array that contains:
+   * In the example above, the title row has a string 'Name' that spans 2
+   * collumns. The string 'Contact' also spans 2 collumns. The above is done by
+   * passing in to addTitle() an array that contains:
    *
    * <PRE>
    * span[0] = 2; // spans 2 collumns
@@ -286,12 +290,12 @@ final class MultiColumnPrinter
    *          Array of integers that reflect the number of collumns the
    *          corresponding title string will occupy.
    */
-  void addTitle(String[] row, int span[])
+  void addTitle(final String[] row, final int span[])
   {
     // Need to create a new instance of it, otherwise the new values
     // will always overwrite the old values.
 
-    String[] rowInstance = new String[(row.length)];
+    final String[] rowInstance = new String[(row.length)];
     for (int i = 0; i < row.length; i++)
     {
       rowInstance[i] = row[i];
@@ -299,18 +303,6 @@ final class MultiColumnPrinter
     titleTable.addElement(rowInstance);
 
     titleSpanTable.addElement(span);
-  }
-
-
-
-  /**
-   * Set alignment for title strings
-   *
-   * @param titleAlign
-   */
-  void setTitleAlign(int titleAlign)
-  {
-    this.titleAlign = titleAlign;
   }
 
 
@@ -327,6 +319,54 @@ final class MultiColumnPrinter
 
 
   /**
+   * Adds one row of text to output.
+   *
+   * @param row
+   *          Array of strings to print in one row.
+   */
+  void printRow(final String... row)
+  {
+    for (int i = 0; i < numCol; i++)
+    {
+      if (titleAlign == RIGHT)
+      {
+        final int spaceBefore = curLength[i] - row[i].length();
+        printSpaces(spaceBefore);
+        app.getOutputStream().print(row[i]);
+        if (i < numCol - 1)
+        {
+          printSpaces(gap);
+        }
+      }
+      else if (align == CENTER)
+      {
+        int space1, space2;
+        space1 = (curLength[i] - row[i].length()) / 2;
+        space2 = curLength[i] - row[i].length() - space1;
+
+        printSpaces(space1);
+        app.getOutputStream().print(row[i]);
+        printSpaces(space2);
+        if (i < numCol - 1)
+        {
+          printSpaces(gap);
+        }
+      }
+      else
+      {
+        app.getOutputStream().print(row[i]);
+        if (i < numCol - 1)
+        {
+          printSpaces(curLength[i] - row[i].length() + gap);
+        }
+      }
+    }
+    app.getOutputStream().println("");
+  }
+
+
+
+  /**
    * Prints the table title
    */
   void printTitle()
@@ -338,23 +378,27 @@ final class MultiColumnPrinter
     Enumeration<int[]> spanEnum = titleSpanTable.elements();
     while (elm.hasMoreElements())
     {
-      String[] row = elm.nextElement();
-      int[] curSpan = spanEnum.nextElement();
+      final String[] row = elm.nextElement();
+      final int[] curSpan = spanEnum.nextElement();
 
       for (int i = 0; i < numCol; i++)
       {
         // None of the fields should be null, but if it
         // happens to be so, replace it with "-".
-        if (row[i] == null) row[i] = "-";
+        if (row[i] == null)
+        {
+          row[i] = "-";
+        }
 
         int len = row[i].length();
 
         /*
-         * If a title string spans multiple collumns, then the space it
-         * occupies in each collumn is at most len/span (since we have
-         * gap to take into account as well).
+         * If a title string spans multiple collumns, then the space it occupies
+         * in each collumn is at most len/span (since we have gap to take into
+         * account as well).
          */
-        int span = curSpan[i], rem = 0;
+        final int span = curSpan[i];
+        int rem = 0;
         if (span > 1)
         {
           rem = len % span;
@@ -373,8 +417,7 @@ final class MultiColumnPrinter
             }
 
             /*
-             * Add remainder to last collumn in span to avoid round-off
-             * errors.
+             * Add remainder to last collumn in span to avoid round-off errors.
              */
             curLength[(i + span) - 1] += rem;
           }
@@ -388,14 +431,18 @@ final class MultiColumnPrinter
 
     while (elm.hasMoreElements())
     {
-      String[] row = elm.nextElement();
-      int[] curSpan = spanEnum.nextElement();
+      final String[] row = elm.nextElement();
+      final int[] curSpan = spanEnum.nextElement();
 
       for (int i = 0; i < numCol; i++)
       {
-        int availableSpace = 0, span = curSpan[i];
+        int availableSpace = 0;
+        final int span = curSpan[i];
 
-        if (span == 0) continue;
+        if (span == 0)
+        {
+          continue;
+        }
 
         availableSpace = curLength[i];
 
@@ -410,27 +457,35 @@ final class MultiColumnPrinter
 
         if (titleAlign == RIGHT)
         {
-          int space_before = availableSpace - row[i].length();
-          printSpaces(space_before);
+          final int spaceBefore = availableSpace - row[i].length();
+          printSpaces(spaceBefore);
           app.getOutputStream().print(row[i]);
-          if (i < numCol - 1) printSpaces(gap);
+          if (i < numCol - 1)
+          {
+            printSpaces(gap);
+          }
         }
         else if (titleAlign == CENTER)
         {
-          int space_before, space_after;
-          space_before = (availableSpace - row[i].length()) / 2;
-          space_after = availableSpace - row[i].length() - space_before;
+          int spaceBefore, spaceAfter;
+          spaceBefore = (availableSpace - row[i].length()) / 2;
+          spaceAfter = availableSpace - row[i].length() - spaceBefore;
 
-          printSpaces(space_before);
+          printSpaces(spaceBefore);
           app.getOutputStream().print(row[i]);
-          printSpaces(space_after);
-          if (i < numCol - 1) printSpaces(gap);
+          printSpaces(spaceAfter);
+          if (i < numCol - 1)
+          {
+            printSpaces(gap);
+          }
         }
         else
         {
           app.getOutputStream().print(row[i]);
           if (i < numCol - 1)
+          {
             printSpaces(availableSpace - row[i].length() + gap);
+          }
         }
 
       }
@@ -442,58 +497,23 @@ final class MultiColumnPrinter
 
 
   /**
-   * Adds one row of text to output.
+   * Set alignment for title strings
    *
-   * @param row
-   *          Array of strings to print in one row.
+   * @param titleAlign
    */
-  void printRow(String... row)
+  void setTitleAlign(final int titleAlign)
   {
-    for (int i = 0; i < numCol; i++)
-    {
-      if (titleAlign == RIGHT)
-      {
-        int space_before = curLength[i] - row[i].length();
-        printSpaces(space_before);
-        app.getOutputStream().print(row[i]);
-        if (i < numCol - 1) printSpaces(gap);
-      }
-      else if (align == CENTER)
-      {
-        int space1, space2;
-        space1 = (curLength[i] - row[i].length()) / 2;
-        space2 = curLength[i] - row[i].length() - space1;
-
-        printSpaces(space1);
-        app.getOutputStream().print(row[i]);
-        printSpaces(space2);
-        if (i < numCol - 1) printSpaces(gap);
-      }
-      else
-      {
-        app.getOutputStream().print(row[i]);
-        if (i < numCol - 1)
-          printSpaces(curLength[i] - row[i].length() + gap);
-      }
-    }
-    app.getOutputStream().println("");
-  }
-
-
-
-  private void printSpaces(int count)
-  {
-    for (int i = 0; i < count; ++i)
-    {
-      app.getOutputStream().print(" ");
-    }
+    this.titleAlign = titleAlign;
   }
 
 
 
   private void printBorder()
   {
-    if (border == null) return;
+    if (border == null)
+    {
+      return;
+    }
 
     // For the value in each column
     for (int i = 0; i < numCol; i++)
@@ -513,5 +533,15 @@ final class MultiColumnPrinter
       }
     }
     app.getOutputStream().println("");
+  }
+
+
+
+  private void printSpaces(final int count)
+  {
+    for (int i = 0; i < count; ++i)
+    {
+      app.getOutputStream().print(" ");
+    }
   }
 }

@@ -28,8 +28,11 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
-import static com.sun.opends.sdk.util.StringPrepProfile.*;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_EMPTY_VALUE;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS;
+import static com.sun.opends.sdk.util.StringPrepProfile.CASE_FOLD;
+import static com.sun.opends.sdk.util.StringPrepProfile.TRIM;
+import static com.sun.opends.sdk.util.StringPrepProfile.prepareUnicode;
 
 import org.opends.sdk.*;
 
@@ -38,19 +41,18 @@ import com.sun.opends.sdk.util.SubstringReader;
 
 
 /**
- * This class implements the directoryStringFirstComponentMatch matching
- * rule defined in X.520 and referenced in RFC 2252. This rule is
- * intended for use with attributes whose values contain a set of
- * parentheses enclosing a space-delimited set of names and/or
- * name-value pairs (like attribute type or objectclass descriptions) in
- * which the "first component" is the first item after the opening
- * parenthesis.
+ * This class implements the directoryStringFirstComponentMatch matching rule
+ * defined in X.520 and referenced in RFC 2252. This rule is intended for use
+ * with attributes whose values contain a set of parentheses enclosing a
+ * space-delimited set of names and/or name-value pairs (like attribute type or
+ * objectclass descriptions) in which the "first component" is the first item
+ * after the opening parenthesis.
  */
-final class DirectoryStringFirstComponentEqualityMatchingRuleImpl
-    extends AbstractMatchingRuleImpl
+final class DirectoryStringFirstComponentEqualityMatchingRuleImpl extends
+    AbstractMatchingRuleImpl
 {
   @Override
-  public Assertion getAssertion(Schema schema, ByteSequence value)
+  public Assertion getAssertion(final Schema schema, final ByteSequence value)
   {
     final StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, TRIM, CASE_FOLD);
@@ -62,8 +64,7 @@ final class DirectoryStringFirstComponentEqualityMatchingRuleImpl
       {
         // This should only happen if the value is composed entirely of
         // spaces. In that case, the normalized value is a single space.
-        return new DefaultEqualityAssertion(
-            SchemaConstants.SINGLE_SPACE_VALUE);
+        return new DefaultEqualityAssertion(SchemaConstants.SINGLE_SPACE_VALUE);
       }
       else
       {
@@ -84,14 +85,13 @@ final class DirectoryStringFirstComponentEqualityMatchingRuleImpl
       }
     }
 
-    return new DefaultEqualityAssertion(ByteString.valueOf(buffer
-        .toString()));
+    return new DefaultEqualityAssertion(ByteString.valueOf(buffer.toString()));
   }
 
 
 
-  public ByteString normalizeAttributeValue(Schema schema,
-      ByteSequence value) throws DecodeException
+  public ByteString normalizeAttributeValue(final Schema schema,
+      final ByteSequence value) throws DecodeException
   {
     final String definition = value.toString();
     final SubstringReader reader = new SubstringReader(definition);
@@ -115,9 +115,8 @@ final class DirectoryStringFirstComponentEqualityMatchingRuleImpl
     final char c = reader.read();
     if (c != '(')
     {
-      final LocalizableMessage message =
-          ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS.get(definition,
-              (reader.pos() - 1), String.valueOf(c));
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS
+          .get(definition, (reader.pos() - 1), String.valueOf(c));
       throw DecodeException.error(message);
     }
 

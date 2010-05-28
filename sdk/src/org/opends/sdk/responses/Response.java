@@ -29,7 +29,12 @@ package org.opends.sdk.responses;
 
 
 
+import java.util.List;
+
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.DecodeOptions;
 import org.opends.sdk.controls.Control;
+import org.opends.sdk.controls.ControlDecoder;
 
 
 
@@ -44,7 +49,7 @@ public interface Response
 
   /**
    * Adds the provided control to this response.
-   * 
+   *
    * @param control
    *          The control to be added.
    * @return This response.
@@ -53,72 +58,42 @@ public interface Response
    * @throws NullPointerException
    *           If {@code control} was {@code null}.
    */
-  Response addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  Response addControl(Control control) throws UnsupportedOperationException,
+      NullPointerException;
 
 
 
   /**
-   * Removes all the controls included with this response.
-   * 
-   * @return This response.
-   * @throws UnsupportedOperationException
-   *           If this response does not permit controls to be removed.
-   */
-  Response clearControls() throws UnsupportedOperationException;
-
-
-
-  /**
-   * Returns the first control contained in this response having the
-   * specified OID.
-   * 
-   * @param oid
-   *          The OID of the control to be returned.
-   * @return The control, or {@code null} if the control is not included
+   * Decodes and returns the first control in this response having an OID
+   * corresponding to the provided control decoder.
+   *
+   * @param <C>
+   *          The type of control to be decoded and returned.
+   * @param decoder
+   *          The control decoder.
+   * @param options
+   *          The set of decode options which should be used when decoding the
+   *          control.
+   * @return The decoded control, or {@code null} if the control is not included
    *         with this response.
+   * @throws DecodeException
+   *           If the control could not be decoded because it was malformed in
+   *           some way (e.g. the control value was missing, or its content
+   *           could not be decoded).
    * @throws NullPointerException
-   *           If {@code oid} was {@code null}.
+   *           If {@code decoder} or {@code options} was {@code null}.
    */
-  Control getControl(String oid) throws NullPointerException;
+  <C extends Control> C getControl(ControlDecoder<C> decoder,
+      DecodeOptions options) throws NullPointerException, DecodeException;
 
 
 
   /**
-   * Returns an {@code Iterable} containing the controls included with
-   * this response. The returned {@code Iterable} may be used to remove
-   * controls if permitted by this response.
-   * 
-   * @return An {@code Iterable} containing the controls.
+   * Returns a {@code List} containing the controls included with this response.
+   * The returned {@code List} may be modified if permitted by this response.
+   *
+   * @return A {@code List} containing the controls.
    */
-  Iterable<Control> getControls();
-
-
-
-  /**
-   * Indicates whether or not this response has any controls.
-   * 
-   * @return {@code true} if this response has any controls, otherwise
-   *         {@code false}.
-   */
-  boolean hasControls();
-
-
-
-  /**
-   * Removes the first control contained in this response having the
-   * specified OID.
-   * 
-   * @param oid
-   *          The OID of the control to be removed.
-   * @return The removed control, or {@code null} if the control is not
-   *         included with this response.
-   * @throws UnsupportedOperationException
-   *           If this response does not permit controls to be removed.
-   * @throws NullPointerException
-   *           If {@code oid} was {@code null}.
-   */
-  Control removeControl(String oid)
-      throws UnsupportedOperationException, NullPointerException;
+  List<Control> getControls();
 
 }

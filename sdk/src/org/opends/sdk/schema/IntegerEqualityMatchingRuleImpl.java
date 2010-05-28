@@ -28,7 +28,7 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_ILLEGAL_INTEGER;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.ByteString;
@@ -40,15 +40,14 @@ import com.sun.opends.sdk.util.StaticUtils;
 
 
 /**
- * This class defines the integerMatch matching rule defined in X.520
- * and referenced in RFC 2252.
+ * This class defines the integerMatch matching rule defined in X.520 and
+ * referenced in RFC 2252.
  */
-final class IntegerEqualityMatchingRuleImpl extends
-    AbstractMatchingRuleImpl
+final class IntegerEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl
 {
 
-  public ByteString normalizeAttributeValue(Schema schema,
-      ByteSequence value) throws DecodeException
+  public ByteString normalizeAttributeValue(final Schema schema,
+      final ByteSequence value) throws DecodeException
   {
     try
     {
@@ -59,8 +58,8 @@ final class IntegerEqualityMatchingRuleImpl extends
       StaticUtils.DEBUG_LOG.throwing("IntegerEqualityMatchingRule",
           "normalizeAttributeValue", e);
 
-      final LocalizableMessage message =
-          WARN_ATTR_SYNTAX_ILLEGAL_INTEGER.get(value.toString());
+      final LocalizableMessage message = WARN_ATTR_SYNTAX_ILLEGAL_INTEGER
+          .get(value.toString());
       throw DecodeException.error(message);
     }
   }

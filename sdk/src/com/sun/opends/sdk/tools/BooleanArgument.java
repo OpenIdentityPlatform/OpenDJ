@@ -28,20 +28,19 @@ package com.sun.opends.sdk.tools;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.ERR_BOOLEANARG_NO_VALUE_ALLOWED;
 
 import org.opends.sdk.LocalizableMessage;
 import org.opends.sdk.LocalizableMessageBuilder;
 
 
 
-
 /**
- * This class defines an argument type that will be used to represent
- * Boolean values. These arguments will never take values from the
- * command line but and will never be required. If the argument is
- * provided, then it will be considered true, and if not then it will be
- * considered false. As such, the default value will always be "false".
+ * This class defines an argument type that will be used to represent Boolean
+ * values. These arguments will never take values from the command line but and
+ * will never be required. If the argument is provided, then it will be
+ * considered true, and if not then it will be considered false. As such, the
+ * default value will always be "false".
  */
 final class BooleanArgument extends Argument
 {
@@ -49,53 +48,25 @@ final class BooleanArgument extends Argument
    * Creates a new Boolean argument with the provided information.
    *
    * @param name
-   *          The generic name that should be used to refer to this
-   *          argument.
+   *          The generic name that should be used to refer to this argument.
    * @param shortIdentifier
    *          The single-character identifier for this argument, or
    *          <CODE>null</CODE> if there is none.
    * @param longIdentifier
-   *          The long identifier for this argument, or
-   *          <CODE>null</CODE> if there is none.
+   *          The long identifier for this argument, or <CODE>null</CODE> if
+   *          there is none.
    * @param description
    *          LocalizableMessage for the description of this argument.
    * @throws ArgumentException
-   *           If there is a problem with any of the parameters used to
-   *           create this argument.
+   *           If there is a problem with any of the parameters used to create
+   *           this argument.
    */
-  public BooleanArgument(String name, Character shortIdentifier,
-      String longIdentifier, LocalizableMessage description)
+  public BooleanArgument(final String name, final Character shortIdentifier,
+      final String longIdentifier, final LocalizableMessage description)
       throws ArgumentException
   {
-    super(name, shortIdentifier, longIdentifier, false, false, false,
-        null, String.valueOf(false), null, description);
-  }
-
-
-
-  /**
-   * Indicates whether the provided value is acceptable for use in this
-   * argument.
-   *
-   * @param valueString
-   *          The value for which to make the determination.
-   * @param invalidReason
-   *          A buffer into which the invalid reason may be written if
-   *          the value is not acceptable.
-   * @return <CODE>true</CODE> if the value is acceptable, or
-   *         <CODE>false</CODE> if it is not.
-   */
-  public boolean valueIsAcceptable(String valueString,
-      LocalizableMessageBuilder invalidReason)
-  {
-    // This argument type should never have a value, so any value
-    // provided will
-    // be unacceptable.
-
-    invalidReason
-        .append(ERR_BOOLEANARG_NO_VALUE_ALLOWED.get(getName()));
-
-    return false;
+    super(name, shortIdentifier, longIdentifier, false, false, false, null,
+        String.valueOf(false), null, description);
   }
 
 
@@ -103,7 +74,8 @@ final class BooleanArgument extends Argument
   /**
    * {@inheritDoc}
    */
-  final public void addValue(String valueString)
+  @Override
+  final public void addValue(final String valueString)
   {
     if (valueString != null)
     {
@@ -118,9 +90,37 @@ final class BooleanArgument extends Argument
   /**
    * {@inheritDoc}
    */
-  final public void setPresent(boolean isPresent)
+  @Override
+  final public void setPresent(final boolean isPresent)
   {
     addValue(String.valueOf(isPresent));
+  }
+
+
+
+  /**
+   * Indicates whether the provided value is acceptable for use in this
+   * argument.
+   *
+   * @param valueString
+   *          The value for which to make the determination.
+   * @param invalidReason
+   *          A buffer into which the invalid reason may be written if the value
+   *          is not acceptable.
+   * @return <CODE>true</CODE> if the value is acceptable, or <CODE>false</CODE>
+   *         if it is not.
+   */
+  @Override
+  public boolean valueIsAcceptable(final String valueString,
+      final LocalizableMessageBuilder invalidReason)
+  {
+    // This argument type should never have a value, so any value
+    // provided will
+    // be unacceptable.
+
+    invalidReason.append(ERR_BOOLEANARG_NO_VALUE_ALLOWED.get(getName()));
+
+    return false;
   }
 
 }

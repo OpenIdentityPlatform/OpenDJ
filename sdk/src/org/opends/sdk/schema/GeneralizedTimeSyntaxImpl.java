@@ -46,34 +46,31 @@ import com.sun.opends.sdk.util.StaticUtils;
 
 
 /**
- * This class implements the fax attribute syntax. This should be
- * restricted to holding only fax message contents, but we will accept
- * any set of bytes. It will be treated much like the octet string
- * attribute syntax.
+ * This class implements the fax attribute syntax. This should be restricted to
+ * holding only fax message contents, but we will accept any set of bytes. It
+ * will be treated much like the octet string attribute syntax.
  */
 final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
 {
 
   // UTC TimeZone is assumed to never change over JVM lifetime
-  private static final TimeZone TIME_ZONE_UTC_OBJ =
-      TimeZone.getTimeZone(TIME_ZONE_UTC);
+  private static final TimeZone TIME_ZONE_UTC_OBJ = TimeZone
+      .getTimeZone(TIME_ZONE_UTC);
 
 
 
   /**
-   * Decodes the provided normalized value as a generalized time value
-   * and retrieves a timestamp containing its representation.
-   * 
+   * Decodes the provided normalized value as a generalized time value and
+   * retrieves a timestamp containing its representation.
+   *
    * @param value
-   *          The normalized value to decode using the generalized time
-   *          syntax.
-   * @return The timestamp created from the provided generalized time
-   *         value.
+   *          The normalized value to decode using the generalized time syntax.
+   * @return The timestamp created from the provided generalized time value.
    * @throws DecodeException
-   *           If the provided value cannot be parsed as a valid
-   *           generalized time string.
+   *           If the provided value cannot be parsed as a valid generalized
+   *           time string.
    */
-  static long decodeGeneralizedTimeValue(ByteSequence value)
+  static long decodeGeneralizedTimeValue(final ByteSequence value)
       throws DecodeException
   {
     int year = 0;
@@ -89,8 +86,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
     final int length = valueString.length();
     if (length < 11)
     {
-      final LocalizableMessage message =
-          WARN_ATTR_SYNTAX_GENERALIZED_TIME_TOO_SHORT.get(valueString);
+      final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_TOO_SHORT
+          .get(valueString);
       final DecodeException e = DecodeException.error(message);
       StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
           "valueIsAcceptable", e);
@@ -144,9 +141,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         break;
 
       default:
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_YEAR.get(
-                valueString, String.valueOf(valueString.charAt(i)));
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_YEAR
+            .get(valueString, String.valueOf(valueString.charAt(i)));
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
@@ -201,9 +197,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         break;
 
       default:
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH.get(
-                valueString, valueString.substring(4, 6));
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH
+            .get(valueString, valueString.substring(4, 6));
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
@@ -227,9 +222,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         break;
 
       default:
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH.get(
-                valueString, valueString.substring(4, 6));
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH
+            .get(valueString, valueString.substring(4, 6));
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
@@ -237,9 +231,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
       }
       break;
     default:
-      final LocalizableMessage message =
-          WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH.get(
-              valueString, valueString.substring(4, 6));
+      final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH
+          .get(valueString, valueString.substring(4, 6));
       final DecodeException e = DecodeException.error(message);
       StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
           "valueIsAcceptable", e);
@@ -296,9 +289,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         break;
 
       default:
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY.get(
-                valueString, valueString.substring(6, 8));
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY
+            .get(valueString, valueString.substring(6, 8));
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
@@ -351,9 +343,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         break;
 
       default:
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY.get(
-                valueString, valueString.substring(6, 8));
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY
+            .get(valueString, valueString.substring(6, 8));
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
@@ -406,9 +397,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         break;
 
       default:
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY.get(
-                valueString, valueString.substring(6, 8));
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY
+            .get(valueString, valueString.substring(6, 8));
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
@@ -429,9 +419,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         break;
 
       default:
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY.get(
-                valueString, valueString.substring(6, 8));
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY
+            .get(valueString, valueString.substring(6, 8));
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
@@ -440,9 +429,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
       break;
 
     default:
-      final LocalizableMessage message =
-          WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY.get(
-              valueString, valueString.substring(6, 8));
+      final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY
+          .get(valueString, valueString.substring(6, 8));
       final DecodeException e = DecodeException.error(message);
       StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
           "valueIsAcceptable", e);
@@ -499,9 +487,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         break;
 
       default:
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR.get(
-                valueString, valueString.substring(8, 10));
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR
+            .get(valueString, valueString.substring(8, 10));
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
@@ -553,9 +540,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         break;
 
       default:
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR.get(
-                valueString, valueString.substring(8, 10));
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR
+            .get(valueString, valueString.substring(8, 10));
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
@@ -583,9 +569,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         break;
 
       default:
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR.get(
-                valueString, valueString.substring(8, 10));
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR
+            .get(valueString, valueString.substring(8, 10));
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
@@ -594,9 +579,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
       break;
 
     default:
-      final LocalizableMessage message =
-          WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR.get(
-              valueString, valueString.substring(8, 10));
+      final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR
+          .get(valueString, valueString.substring(8, 10));
       final DecodeException e = DecodeException.error(message);
       StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
           "valueIsAcceptable", e);
@@ -621,9 +605,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
       // must be a digit between 0 and 9.
       if (length < 13)
       {
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
-                valueString, String.valueOf(m1), 10);
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR
+            .get(valueString, String.valueOf(m1), 10);
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
@@ -674,9 +657,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         break;
 
       default:
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MINUTE.get(
-                valueString, valueString.substring(10, 12));
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MINUTE
+            .get(valueString, valueString.substring(10, 12));
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
@@ -702,9 +684,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         {
           // This should only happen if the provided date wasn't legal
           // (e.g., September 31).
-          final LocalizableMessage message =
-              WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(
-                  valueString, String.valueOf(e));
+          final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME
+              .get(valueString, String.valueOf(e));
           final DecodeException de = DecodeException.error(message, e);
           StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
               "valueIsAcceptable", de);
@@ -713,9 +694,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
       }
       else
       {
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
-                valueString, String.valueOf(m1), 10);
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR
+            .get(valueString, String.valueOf(m1), 10);
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
@@ -742,9 +722,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
 
           // This should only happen if the provided date wasn't legal
           // (e.g., September 31).
-          final LocalizableMessage message =
-              WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(
-                  valueString, String.valueOf(e));
+          final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME
+              .get(valueString, String.valueOf(e));
           final DecodeException de = DecodeException.error(message, e);
           StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
               "valueIsAcceptable", de);
@@ -753,9 +732,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
       }
       else
       {
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
-                valueString, String.valueOf(m1), 10);
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR
+            .get(valueString, String.valueOf(m1), 10);
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
@@ -764,13 +742,12 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
 
     case '.':
     case ',':
-      return finishDecodingFraction(valueString, 11, year, month, day,
-          hour, minute, second, 3600000);
+      return finishDecodingFraction(valueString, 11, year, month, day, hour,
+          minute, second, 3600000);
 
     default:
-      final LocalizableMessage message =
-          WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
-              valueString, String.valueOf(m1), 10);
+      final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR
+          .get(valueString, String.valueOf(m1), 10);
       final DecodeException e = DecodeException.error(message);
       StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
           "valueIsAcceptable", e);
@@ -795,9 +772,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
       // must be a digit between 0 and 9.
       if (length < 15)
       {
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
-                valueString, String.valueOf(s1), 12);
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR
+            .get(valueString, String.valueOf(s1), 12);
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
@@ -848,9 +824,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         break;
 
       default:
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MINUTE.get(
-                valueString, valueString.substring(12, 14));
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MINUTE
+            .get(valueString, valueString.substring(12, 14));
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
@@ -864,9 +839,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
       // must be a 0.
       if (length < 15)
       {
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
-                valueString, String.valueOf(s1), 12);
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR
+            .get(valueString, String.valueOf(s1), 12);
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
@@ -875,9 +849,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
 
       if (valueString.charAt(13) != '0')
       {
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_SECOND.get(
-                valueString, valueString.substring(12, 14));
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_SECOND
+            .get(valueString, valueString.substring(12, 14));
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
@@ -905,9 +878,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
 
           // This should only happen if the provided date wasn't legal
           // (e.g., September 31).
-          final LocalizableMessage message =
-              WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(
-                  valueString, String.valueOf(e));
+          final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME
+              .get(valueString, String.valueOf(e));
           final DecodeException de = DecodeException.error(message, e);
           StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
               "valueIsAcceptable", de);
@@ -916,9 +888,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
       }
       else
       {
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
-                valueString, String.valueOf(s1), 12);
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR
+            .get(valueString, String.valueOf(s1), 12);
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
@@ -945,9 +916,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
 
           // This should only happen if the provided date wasn't legal
           // (e.g., September 31).
-          final LocalizableMessage message =
-              WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(
-                  valueString, String.valueOf(e));
+          final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME
+              .get(valueString, String.valueOf(e));
           final DecodeException de = DecodeException.error(message, e);
           StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
               "valueIsAcceptable", de);
@@ -956,9 +926,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
       }
       else
       {
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
-                valueString, String.valueOf(s1), 12);
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR
+            .get(valueString, String.valueOf(s1), 12);
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
@@ -967,13 +936,12 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
 
     case '.':
     case ',':
-      return finishDecodingFraction(valueString, 13, year, month, day,
-          hour, minute, second, 60000);
+      return finishDecodingFraction(valueString, 13, year, month, day, hour,
+          minute, second, 60000);
 
     default:
-      final LocalizableMessage message =
-          WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
-              valueString, String.valueOf(s1), 12);
+      final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR
+          .get(valueString, String.valueOf(s1), 12);
       final DecodeException e = DecodeException.error(message);
       StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
           "valueIsAcceptable", e);
@@ -988,8 +956,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
     {
     case '.':
     case ',':
-      return finishDecodingFraction(valueString, 15, year, month, day,
-          hour, minute, second, 1000);
+      return finishDecodingFraction(valueString, 15, year, month, day, hour,
+          minute, second, 1000);
 
     case 'Z':
       // This is fine only if we are at the end of the value.
@@ -1008,9 +976,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         {
           // This should only happen if the provided date wasn't legal
           // (e.g., September 31).
-          final LocalizableMessage message =
-              WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(
-                  valueString, String.valueOf(e));
+          final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME
+              .get(valueString, String.valueOf(e));
           final DecodeException de = DecodeException.error(message, e);
           StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
               "valueIsAcceptable", de);
@@ -1019,10 +986,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
       }
       else
       {
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR
-                .get(valueString, String
-                    .valueOf(valueString.charAt(14)), 14);
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR
+            .get(valueString, String.valueOf(valueString.charAt(14)), 14);
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
@@ -1048,9 +1013,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         {
           // This should only happen if the provided date wasn't legal
           // (e.g., September 31).
-          final LocalizableMessage message =
-              WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(
-                  valueString, String.valueOf(e));
+          final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME
+              .get(valueString, String.valueOf(e));
           final DecodeException de = DecodeException.error(message, e);
           StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
               "valueIsAcceptable", de);
@@ -1059,10 +1023,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
       }
       else
       {
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR
-                .get(valueString, String
-                    .valueOf(valueString.charAt(14)), 14);
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR
+            .get(valueString, String.valueOf(valueString.charAt(14)), 14);
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "valueIsAcceptable", e);
@@ -1070,9 +1032,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
       }
 
     default:
-      final LocalizableMessage message =
-          WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
-              valueString, String.valueOf(valueString.charAt(14)), 14);
+      final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR
+          .get(valueString, String.valueOf(valueString.charAt(14)), 14);
       final DecodeException e = DecodeException.error(message);
       StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
           "valueIsAcceptable", e);
@@ -1083,16 +1044,15 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
 
 
   /**
-   * Completes decoding the generalized time value containing a
-   * fractional component. It will also decode the trailing 'Z' or
-   * offset.
-   * 
+   * Completes decoding the generalized time value containing a fractional
+   * component. It will also decode the trailing 'Z' or offset.
+   *
    * @param value
-   *          The whole value, including the fractional component and
-   *          time zone information.
+   *          The whole value, including the fractional component and time zone
+   *          information.
    * @param startPos
-   *          The position of the first character after the period in
-   *          the value string.
+   *          The position of the first character after the period in the value
+   *          string.
    * @param year
    *          The year decoded from the provided value.
    * @param month
@@ -1106,24 +1066,25 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
    * @param second
    *          The second decoded from the provided value.
    * @param multiplier
-   *          The multiplier value that should be used to scale the
-   *          fraction appropriately. If it's a fraction of an hour,
-   *          then it should be 3600000 (60*60*1000). If it's a fraction
-   *          of a minute, then it should be 60000. If it's a fraction
-   *          of a second, then it should be 1000.
-   * @return The timestamp created from the provided generalized time
-   *         value including the fractional element.
+   *          The multiplier value that should be used to scale the fraction
+   *          appropriately. If it's a fraction of an hour, then it should be
+   *          3600000 (60*60*1000). If it's a fraction of a minute, then it
+   *          should be 60000. If it's a fraction of a second, then it should be
+   *          1000.
+   * @return The timestamp created from the provided generalized time value
+   *         including the fractional element.
    * @throws DecodeException
-   *           If the provided value cannot be parsed as a valid
-   *           generalized time string.
+   *           If the provided value cannot be parsed as a valid generalized
+   *           time string.
    */
-  private static long finishDecodingFraction(String value,
-      int startPos, int year, int month, int day, int hour, int minute,
-      int second, int multiplier) throws DecodeException
+  private static long finishDecodingFraction(final String value,
+      final int startPos, final int year, final int month, final int day,
+      final int hour, final int minute, final int second, final int multiplier)
+      throws DecodeException
   {
     final int length = value.length();
-    final StringBuilder fractionBuffer =
-        new StringBuilder(2 + length - startPos);
+    final StringBuilder fractionBuffer = new StringBuilder(2 + length
+        - startPos);
     fractionBuffer.append("0.");
 
     TimeZone timeZone = null;
@@ -1150,9 +1111,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         // This is only acceptable if we're at the end of the value.
         if (i != value.length() - 1)
         {
-          final LocalizableMessage message =
-              WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_FRACTION_CHAR
-                  .get(value, String.valueOf(c));
+          final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_FRACTION_CHAR
+              .get(value, String.valueOf(c));
           final DecodeException e = DecodeException.error(message);
           StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
               "finishDecodingFraction", e);
@@ -1168,9 +1128,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         break outerLoop;
 
       default:
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_FRACTION_CHAR
-                .get(value, String.valueOf(c));
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_FRACTION_CHAR
+            .get(value, String.valueOf(c));
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "finishDecodingFraction", e);
@@ -1180,8 +1139,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
 
     if (fractionBuffer.length() == 2)
     {
-      final LocalizableMessage message =
-          WARN_ATTR_SYNTAX_GENERALIZED_TIME_EMPTY_FRACTION.get(value);
+      final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_EMPTY_FRACTION
+          .get(value);
       final DecodeException e = DecodeException.error(message);
       StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
           "finishDecodingFraction", e);
@@ -1190,19 +1149,16 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
 
     if (timeZone == null)
     {
-      final LocalizableMessage message =
-          WARN_ATTR_SYNTAX_GENERALIZED_TIME_NO_TIME_ZONE_INFO
-              .get(value);
+      final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_NO_TIME_ZONE_INFO
+          .get(value);
       final DecodeException e = DecodeException.error(message);
       StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
           "finishDecodingFraction", e);
       throw e;
     }
 
-    final Double fractionValue =
-        Double.parseDouble(fractionBuffer.toString());
-    final long additionalMilliseconds =
-        Math.round(fractionValue * multiplier);
+    final Double fractionValue = Double.parseDouble(fractionBuffer.toString());
+    final long additionalMilliseconds = Math.round(fractionValue * multiplier);
 
     try
     {
@@ -1218,9 +1174,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
 
       // This should only happen if the provided date wasn't legal
       // (e.g., September 31).
-      final LocalizableMessage message =
-          WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME.get(value,
-              String.valueOf(e));
+      final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME
+          .get(value, String.valueOf(e));
       final DecodeException de = DecodeException.error(message, e);
       StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
           "valueIsAcceptable", de);
@@ -1232,27 +1187,25 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
 
   /**
    * Decodes a time zone offset from the provided value.
-   * 
+   *
    * @param value
    *          The whole value, including the offset.
    * @param startPos
-   *          The position of the first character that is contained in
-   *          the offset. This should be the position of the plus or
-   *          minus character.
-   * @return The {@code TimeZone} object representing the decoded time
-   *         zone.
+   *          The position of the first character that is contained in the
+   *          offset. This should be the position of the plus or minus
+   *          character.
+   * @return The {@code TimeZone} object representing the decoded time zone.
    * @throws DecodeException
    *           If the provided value does not contain a valid offset.
    */
-  private static TimeZone getTimeZoneForOffset(String value,
-      int startPos) throws DecodeException
+  private static TimeZone getTimeZoneForOffset(final String value,
+      final int startPos) throws DecodeException
   {
     final String offSetStr = value.substring(startPos);
     if (offSetStr.length() != 3 && offSetStr.length() != 5)
     {
-      final LocalizableMessage message =
-          WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.get(value,
-              offSetStr);
+      final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET
+          .get(value, offSetStr);
       final DecodeException e = DecodeException.error(message);
       StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
           "getTimeZoneForOffset", e);
@@ -1268,9 +1221,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
       break;
 
     default:
-      final LocalizableMessage message =
-          WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.get(value,
-              offSetStr);
+      final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET
+          .get(value, offSetStr);
       final DecodeException e = DecodeException.error(message);
       StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
           "getTimeZoneForOffset", e);
@@ -1298,9 +1250,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         break;
 
       default:
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.get(value,
-                offSetStr);
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET
+            .get(value, offSetStr);
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "getTimeZoneForOffset", e);
@@ -1319,9 +1270,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         break;
 
       default:
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.get(value,
-                offSetStr);
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET
+            .get(value, offSetStr);
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "getTimeZoneForOffset", e);
@@ -1330,9 +1280,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
       break;
 
     default:
-      final LocalizableMessage message =
-          WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.get(value,
-              offSetStr);
+      final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET
+          .get(value, offSetStr);
       final DecodeException e = DecodeException.error(message);
       StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
           "getTimeZoneForOffset", e);
@@ -1367,9 +1316,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
           break;
 
         default:
-          final LocalizableMessage message =
-              WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.get(
-                  value, offSetStr);
+          final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET
+              .get(value, offSetStr);
           final DecodeException e = DecodeException.error(message);
           StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
               "getTimeZoneForOffset", e);
@@ -1378,9 +1326,8 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
         break;
 
       default:
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.get(value,
-                offSetStr);
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET
+            .get(value, offSetStr);
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax",
             "getTimeZoneForOffset", e);
@@ -1434,21 +1381,21 @@ final class GeneralizedTimeSyntaxImpl extends AbstractSyntaxImpl
 
 
   /**
-   * Indicates whether the provided value is acceptable for use in an
-   * attribute with this syntax. If it is not, then the reason may be
-   * appended to the provided buffer.
-   * 
+   * Indicates whether the provided value is acceptable for use in an attribute
+   * with this syntax. If it is not, then the reason may be appended to the
+   * provided buffer.
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
    *          The value for which to make the determination.
    * @param invalidReason
    *          The buffer to which the invalid reason should be appended.
-   * @return <CODE>true</CODE> if the provided value is acceptable for
-   *         use with this syntax, or <CODE>false</CODE> if not.
+   * @return <CODE>true</CODE> if the provided value is acceptable for use with
+   *         this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      LocalizableMessageBuilder invalidReason)
+  public boolean valueIsAcceptable(final Schema schema,
+      final ByteSequence value, final LocalizableMessageBuilder invalidReason)
   {
     try
     {

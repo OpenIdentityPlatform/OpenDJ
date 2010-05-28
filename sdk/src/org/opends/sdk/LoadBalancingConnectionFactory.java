@@ -35,17 +35,16 @@ import com.sun.opends.sdk.util.Validator;
 
 
 /**
- * A load balancing connection factory allocates connections using the
- * provided algorithm.
+ * A load balancing connection factory allocates connections using the provided
+ * algorithm.
  */
-final class LoadBalancingConnectionFactory extends
-    AbstractConnectionFactory
+final class LoadBalancingConnectionFactory extends AbstractConnectionFactory
 {
   private final LoadBalancingAlgorithm algorithm;
 
 
 
-  public LoadBalancingConnectionFactory(LoadBalancingAlgorithm algorithm)
+  public LoadBalancingConnectionFactory(final LoadBalancingAlgorithm algorithm)
   {
     Validator.ensureNotNull(algorithm);
     this.algorithm = algorithm;
@@ -53,8 +52,9 @@ final class LoadBalancingConnectionFactory extends
 
 
 
+  @Override
   public FutureResult<AsynchronousConnection> getAsynchronousConnection(
-      ResultHandler<AsynchronousConnection> resultHandler)
+      final ResultHandler<AsynchronousConnection> resultHandler)
   {
     ConnectionFactory factory;
 
@@ -62,10 +62,10 @@ final class LoadBalancingConnectionFactory extends
     {
       factory = algorithm.getNextConnectionFactory();
     }
-    catch (ErrorResultException e)
+    catch (final ErrorResultException e)
     {
-      AbstractFutureResult<AsynchronousConnection> future = new AbstractFutureResult<AsynchronousConnection>(
-          resultHandler)
+      final AbstractFutureResult<AsynchronousConnection> future =
+        new AbstractFutureResult<AsynchronousConnection>(resultHandler)
       {
         public int getRequestID()
         {

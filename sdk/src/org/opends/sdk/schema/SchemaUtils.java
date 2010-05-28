@@ -29,7 +29,8 @@ package org.opends.sdk.schema;
 
 
 import static com.sun.opends.sdk.messages.Messages.*;
-import static com.sun.opends.sdk.util.StaticUtils.*;
+import static com.sun.opends.sdk.util.StaticUtils.isAlpha;
+import static com.sun.opends.sdk.util.StaticUtils.isDigit;
 
 import java.util.*;
 
@@ -46,11 +47,10 @@ import com.sun.opends.sdk.util.SubstringReader;
 final class SchemaUtils
 {
   /**
-   * Reads the value for an "extra" parameter. It will handle a single
-   * unquoted word (which is technically illegal, but we'll allow it), a
-   * single quoted string, or an open parenthesis followed by a
-   * space-delimited set of quoted strings or unquoted words followed by
-   * a close parenthesis.
+   * Reads the value for an "extra" parameter. It will handle a single unquoted
+   * word (which is technically illegal, but we'll allow it), a single quoted
+   * string, or an open parenthesis followed by a space-delimited set of quoted
+   * strings or unquoted words followed by a close parenthesis.
    *
    * @param reader
    *          The string representation of the definition.
@@ -58,7 +58,7 @@ final class SchemaUtils
    * @throws DecodeException
    *           If a problem occurs while attempting to read the value.
    */
-  static List<String> readExtensions(SubstringReader reader)
+  static List<String> readExtensions(final SubstringReader reader)
       throws DecodeException
   {
     int length = 0;
@@ -108,7 +108,9 @@ final class SchemaUtils
             values.add(readQuotedString(reader));
             reader.skipWhitespaces();
             reader.mark();
-          } while (reader.read() != ')');
+          }
+          while (reader.read() != ')');
+          values = Collections.unmodifiableList(values);
         }
       }
       else
@@ -117,7 +119,8 @@ final class SchemaUtils
         do
         {
           length++;
-        } while (reader.read() != ' ');
+        }
+        while (reader.read() != ' ');
 
         reader.reset();
         values = Collections.singletonList(reader.read(length));
@@ -127,15 +130,14 @@ final class SchemaUtils
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE
-          .get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
       throw DecodeException.error(message);
     }
   }
 
 
 
-  static List<String> readNameDescriptors(SubstringReader reader)
+  static List<String> readNameDescriptors(final SubstringReader reader)
       throws DecodeException
   {
     int length = 0;
@@ -180,7 +182,9 @@ final class SchemaUtils
             values.add(readQuotedDescriptor(reader));
             reader.skipWhitespaces();
             reader.mark();
-          } while (reader.read() != ')');
+          }
+          while (reader.read() != ')');
+          values = Collections.unmodifiableList(values);
         }
       }
       else
@@ -194,8 +198,7 @@ final class SchemaUtils
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE
-          .get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
       throw DecodeException.error(message);
     }
   }
@@ -203,18 +206,16 @@ final class SchemaUtils
 
 
   /**
-   * Reads the attribute description or numeric OID, skipping over any
-   * leading or trailing spaces.
+   * Reads the attribute description or numeric OID, skipping over any leading
+   * or trailing spaces.
    *
    * @param reader
    *          The string representation of the definition.
-   * @return The attribute description or numeric OID read from the
-   *         definition.
+   * @return The attribute description or numeric OID read from the definition.
    * @throws DecodeException
-   *           If a problem is encountered while reading the name or
-   *           OID.
+   *           If a problem is encountered while reading the name or OID.
    */
-  static String readOID(SubstringReader reader) throws DecodeException
+  static String readOID(final SubstringReader reader) throws DecodeException
   {
     int length = 0;
     boolean enclosingQuote = false;
@@ -249,8 +250,8 @@ final class SchemaUtils
         // only digits and periods, but not consecutive periods.
         boolean lastWasPeriod = false;
 
-        while (reader.remaining() > 0 && (c = reader.read()) != ' '
-            && c != ')' && !(c == '\'' && enclosingQuote))
+        while (reader.remaining() > 0 && (c = reader.read()) != ' ' && c != ')'
+            && !(c == '\'' && enclosingQuote))
         {
           if (c == '.')
           {
@@ -293,8 +294,8 @@ final class SchemaUtils
         // This must be an attribute description. In this case, we will
         // only accept alphabetic characters, numeric digits, and the
         // hyphen.
-        while (reader.remaining() > 0 && (c = reader.read()) != ' '
-            && c != ')' && !(c == '\'' && enclosingQuote))
+        while (reader.remaining() > 0 && (c = reader.read()) != ' ' && c != ')'
+            && !(c == '\'' && enclosingQuote))
         {
           if (length == 0 && !isAlpha(c))
           {
@@ -304,8 +305,7 @@ final class SchemaUtils
             throw DecodeException.error(message);
           }
 
-          if (!isAlpha(c) && !isDigit(c) && c != '-' && c != '.'
-              && c != '_')
+          if (!isAlpha(c) && !isDigit(c) && c != '-' && c != '.' && c != '_')
           {
             // This is an illegal character.
             final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID
@@ -333,13 +333,12 @@ final class SchemaUtils
 
     if (length == 0)
     {
-      final LocalizableMessage message = ERR_ATTR_SYNTAX_OID_NO_VALUE
-          .get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_OID_NO_VALUE.get();
       throw DecodeException.error(message);
     }
 
     reader.reset();
-    String oid = reader.read(length);
+    final String oid = reader.read(length);
     if (enclosingQuote)
     {
       reader.read();
@@ -351,8 +350,8 @@ final class SchemaUtils
 
 
   /**
-   * Reads the next OID from the definition, skipping over any leading
-   * spaces. The OID may be followed by a integer length in brackets.
+   * Reads the next OID from the definition, skipping over any leading spaces.
+   * The OID may be followed by a integer length in brackets.
    *
    * @param reader
    *          The string representation of the definition.
@@ -360,8 +359,7 @@ final class SchemaUtils
    * @throws DecodeException
    *           If a problem is encountered while reading the token name.
    */
-  static String readOIDLen(SubstringReader reader)
-      throws DecodeException
+  static String readOIDLen(final SubstringReader reader) throws DecodeException
   {
     int length = 1;
     boolean enclosingQuote = false;
@@ -426,8 +424,7 @@ final class SchemaUtils
 
         if (length == 0)
         {
-          final LocalizableMessage message = ERR_ATTR_SYNTAX_OID_NO_VALUE
-              .get();
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_OID_NO_VALUE.get();
           throw DecodeException.error(message);
         }
       }
@@ -448,8 +445,7 @@ final class SchemaUtils
             throw DecodeException.error(message);
           }
 
-          if (!isAlpha(c) && !isDigit(c) && c != '-' && c != '.'
-              && c != '_')
+          if (!isAlpha(c) && !isDigit(c) && c != '-' && c != '.' && c != '_')
           {
             // This is an illegal character.
             final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID
@@ -502,15 +498,14 @@ final class SchemaUtils
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE
-          .get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
       throw DecodeException.error(message);
     }
   }
 
 
 
-  static Set<String> readOIDs(SubstringReader reader)
+  static Set<String> readOIDs(final SubstringReader reader)
       throws DecodeException
   {
     Set<String> values;
@@ -524,15 +519,16 @@ final class SchemaUtils
       final char c = reader.read();
       if (c == '(')
       {
-        values = new HashSet<String>();
-
+        values = new LinkedHashSet<String>();
         do
         {
           values.add(readOID(reader));
 
           // Skip over any trailing spaces;
           reader.skipWhitespaces();
-        } while (reader.read() != ')');
+        }
+        while (reader.read() != ')');
+        values = Collections.unmodifiableSet(values);
       }
       else
       {
@@ -544,8 +540,7 @@ final class SchemaUtils
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE
-          .get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
       throw DecodeException.error(message);
     }
   }
@@ -553,87 +548,16 @@ final class SchemaUtils
 
 
   /**
-   * Reads the value of a string enclosed in single quotes, skipping
-   * over the quotes and any leading spaces.
+   * Reads the value of a string enclosed in single quotes, skipping over the
+   * quotes and any leading spaces.
    *
    * @param reader
    *          The string representation of the definition.
    * @return The string value read from the definition.
    * @throws DecodeException
-   *           If a problem is encountered while reading the quoted
-   *           string.
+   *           If a problem is encountered while reading the quoted string.
    */
-  private static String readQuotedDescriptor(SubstringReader reader)
-      throws DecodeException
-  {
-    int length = 0;
-
-    // Skip over any spaces at the beginning of the value.
-    reader.skipWhitespaces();
-
-    try
-    {
-      // The next character must be a single quote.
-      char c = reader.read();
-      if (c != '\'')
-      {
-        final LocalizableMessage message = ERR_ATTR_SYNTAX_EXPECTED_QUOTE_AT_POS
-            .get(reader.pos() - 1, String.valueOf(c));
-        throw DecodeException.error(message);
-      }
-
-      // Read until we find the closing quote.
-      reader.mark();
-      while ((c = reader.read()) != '\'')
-      {
-        if (length == 0 && !isAlpha(c))
-        {
-          // This is an illegal character.
-          final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID
-              .get(String.valueOf(c), reader.pos() - 1);
-          throw DecodeException.error(message);
-        }
-
-        if (!isAlpha(c) && !isDigit(c) && c != '-' && c != '_'
-            && c != '.')
-        {
-          // This is an illegal character.
-          final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID
-              .get(String.valueOf(c), reader.pos() - 1);
-          throw DecodeException.error(message);
-        }
-
-        length++;
-      }
-
-      reader.reset();
-
-      final String descr = reader.read(length);
-      reader.read();
-      return descr;
-    }
-    catch (final StringIndexOutOfBoundsException e)
-    {
-      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE
-          .get();
-      throw DecodeException.error(message);
-    }
-  }
-
-
-
-  /**
-   * Reads the value of a string enclosed in single quotes, skipping
-   * over the quotes and any leading spaces.
-   *
-   * @param reader
-   *          The string representation of the definition.
-   * @return The string value read from the definition.
-   * @throws DecodeException
-   *           If a problem is encountered while reading the quoted
-   *           string.
-   */
-  static String readQuotedString(SubstringReader reader)
+  static String readQuotedString(final SubstringReader reader)
       throws DecodeException
   {
     int length = 0;
@@ -667,8 +591,7 @@ final class SchemaUtils
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE
-          .get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
       throw DecodeException.error(message);
     }
   }
@@ -676,8 +599,8 @@ final class SchemaUtils
 
 
   /**
-   * Reads the next ruleid from the definition, skipping over any
-   * leading spaces.
+   * Reads the next ruleid from the definition, skipping over any leading
+   * spaces.
    *
    * @param reader
    *          The string representation of the definition.
@@ -685,7 +608,7 @@ final class SchemaUtils
    * @throws DecodeException
    *           If a problem is encountered while reading the token name.
    */
-  static Integer readRuleID(SubstringReader reader)
+  static Integer readRuleID(final SubstringReader reader)
       throws DecodeException
   {
     // This must be a ruleid. In that case, we will accept
@@ -726,15 +649,14 @@ final class SchemaUtils
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE
-          .get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
       throw DecodeException.error(message);
     }
   }
 
 
 
-  static Set<Integer> readRuleIDs(SubstringReader reader)
+  static Set<Integer> readRuleIDs(final SubstringReader reader)
       throws DecodeException
   {
     Set<Integer> values;
@@ -748,15 +670,16 @@ final class SchemaUtils
       final char c = reader.read();
       if (c == '(')
       {
-        values = new HashSet<Integer>();
-
+        values = new LinkedHashSet<Integer>();
         do
         {
           values.add(readRuleID(reader));
 
           // Skip over any trailing spaces;
           reader.skipWhitespaces();
-        } while (reader.read() != ')');
+        }
+        while (reader.read() != ')');
+        values = Collections.unmodifiableSet(values);
       }
       else
       {
@@ -768,8 +691,7 @@ final class SchemaUtils
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE
-          .get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
       throw DecodeException.error(message);
     }
   }
@@ -777,18 +699,16 @@ final class SchemaUtils
 
 
   /**
-   * Reads the next token name from the definition, skipping over any
-   * leading or trailing spaces or <code>null</code> if there are no
-   * more tokens to read.
+   * Reads the next token name from the definition, skipping over any leading or
+   * trailing spaces or <code>null</code> if there are no more tokens to read.
    *
    * @param reader
    *          The string representation of the definition.
-   * @return The token name read from the definition or
-   *         <code>null</code> .
+   * @return The token name read from the definition or <code>null</code> .
    * @throws DecodeException
    *           If a problem is encountered while reading the token name.
    */
-  static String readTokenName(SubstringReader reader)
+  static String readTokenName(final SubstringReader reader)
       throws DecodeException
   {
     String token = null;
@@ -827,8 +747,142 @@ final class SchemaUtils
     }
     catch (final StringIndexOutOfBoundsException e)
     {
-      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE
-          .get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
+      throw DecodeException.error(message);
+    }
+  }
+
+
+
+  /**
+   * Returns an unmodifiable copy of the provided schema element extra
+   * properties.
+   *
+   * @param extraProperties
+   *          The schema element extra properties.
+   * @return An unmodifiable copy of the provided schema element extra
+   *         properties.
+   */
+  static Map<String, List<String>> unmodifiableCopyOfExtraProperties(
+      final Map<String, List<String>> extraProperties)
+  {
+    if (extraProperties == null || extraProperties.isEmpty())
+    {
+      return Collections.emptyMap();
+    }
+    else
+    {
+      final Map<String, List<String>> tmp = new LinkedHashMap<String, List<String>>(
+          extraProperties.size());
+      for (final Map.Entry<String, List<String>> e : extraProperties.entrySet())
+      {
+        tmp.put(e.getKey(), unmodifiableCopyOfList(e.getValue()));
+      }
+      return Collections.unmodifiableMap(tmp);
+    }
+  }
+
+
+
+  static <E> List<E> unmodifiableCopyOfList(final List<E> l)
+  {
+    if (l == null || l.isEmpty())
+    {
+      return Collections.emptyList();
+    }
+    else if (l.size() == 1)
+    {
+      return Collections.singletonList(l.get(0));
+    }
+    else
+    {
+      final List<E> copy = new LinkedList<E>(l);
+      return Collections.unmodifiableList(copy);
+    }
+  }
+
+
+
+  static <E> Set<E> unmodifiableCopyOfSet(final Set<E> s)
+  {
+    if (s == null || s.isEmpty())
+    {
+      return Collections.emptySet();
+    }
+    else if (s.size() == 1)
+    {
+      return Collections.singleton(s.iterator().next());
+    }
+    else
+    {
+      final Set<E> copy = new LinkedHashSet<E>(s);
+      return Collections.unmodifiableSet(copy);
+    }
+  }
+
+
+
+  /**
+   * Reads the value of a string enclosed in single quotes, skipping over the
+   * quotes and any leading spaces.
+   *
+   * @param reader
+   *          The string representation of the definition.
+   * @return The string value read from the definition.
+   * @throws DecodeException
+   *           If a problem is encountered while reading the quoted string.
+   */
+  private static String readQuotedDescriptor(final SubstringReader reader)
+      throws DecodeException
+  {
+    int length = 0;
+
+    // Skip over any spaces at the beginning of the value.
+    reader.skipWhitespaces();
+
+    try
+    {
+      // The next character must be a single quote.
+      char c = reader.read();
+      if (c != '\'')
+      {
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_EXPECTED_QUOTE_AT_POS
+            .get(reader.pos() - 1, String.valueOf(c));
+        throw DecodeException.error(message);
+      }
+
+      // Read until we find the closing quote.
+      reader.mark();
+      while ((c = reader.read()) != '\'')
+      {
+        if (length == 0 && !isAlpha(c))
+        {
+          // This is an illegal character.
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID
+              .get(String.valueOf(c), reader.pos() - 1);
+          throw DecodeException.error(message);
+        }
+
+        if (!isAlpha(c) && !isDigit(c) && c != '-' && c != '_' && c != '.')
+        {
+          // This is an illegal character.
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID
+              .get(String.valueOf(c), reader.pos() - 1);
+          throw DecodeException.error(message);
+        }
+
+        length++;
+      }
+
+      reader.reset();
+
+      final String descr = reader.read(length);
+      reader.read();
+      return descr;
+    }
+    catch (final StringIndexOutOfBoundsException e)
+    {
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE.get();
       throw DecodeException.error(message);
     }
   }
@@ -840,4 +894,5 @@ final class SchemaUtils
   {
     // Nothing to do.
   }
+
 }

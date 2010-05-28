@@ -30,12 +30,11 @@ package org.opends.sdk;
 
 
 /**
- * The result of a tri-state logical expression. Condition results are
- * used to represent the result of a conditional evaluation that can
- * yield three possible values: {@code FALSE} (i.e. "no"), {@code TRUE}
- * (i.e. "yes"), or {@code UNDEFINED} (i.e. "maybe"). A result of
- * {@code UNDEFINED} indicates that further investigation may be
- * required.
+ * The result of a tri-state logical expression. Condition results are used to
+ * represent the result of a conditional evaluation that can yield three
+ * possible values: {@code FALSE} (i.e. "no"), {@code TRUE} (i.e. "yes"), or
+ * {@code UNDEFINED} (i.e. "maybe"). A result of {@code UNDEFINED} indicates
+ * that further investigation may be required.
  */
 public enum ConditionResult
 {
@@ -45,8 +44,8 @@ public enum ConditionResult
   FALSE("false"),
 
   /**
-   * Indicates that the condition could not be evaluated and its result
-   * is undefined.
+   * Indicates that the condition could not be evaluated and its result is
+   * undefined.
    */
   UNDEFINED("undefined"),
 
@@ -56,30 +55,29 @@ public enum ConditionResult
   TRUE("true");
 
   // Boolean -> ConditionResult map.
-  private static final boolean[] booleanMap = { false, false, true };
+  private static final boolean[] BOOLEAN_MAP = { false, false, true };
 
   // AND truth table.
-  private static final ConditionResult[][] logicalAND =
-      { { FALSE, FALSE, FALSE }, { FALSE, UNDEFINED, UNDEFINED },
-          { FALSE, UNDEFINED, TRUE }, };
+  private static final ConditionResult[][] LOGICAL_AND = {
+      { FALSE, FALSE, FALSE }, { FALSE, UNDEFINED, UNDEFINED },
+      { FALSE, UNDEFINED, TRUE }, };
 
   // NOT truth table.
-  private static final ConditionResult[] logicalNOT =
-      { TRUE, UNDEFINED, FALSE };
+  private static final ConditionResult[] LOGICAL_NOT = { TRUE, UNDEFINED, FALSE };
 
   // OR truth table.
-  private static final ConditionResult[][] logicalOR =
-      { { FALSE, UNDEFINED, TRUE }, { UNDEFINED, UNDEFINED, TRUE },
-          { TRUE, TRUE, TRUE }, };
+  private static final ConditionResult[][] LOGICAL_OR = {
+      { FALSE, UNDEFINED, TRUE }, { UNDEFINED, UNDEFINED, TRUE },
+      { TRUE, TRUE, TRUE }, };
 
 
 
   /**
-   * Returns the logical AND of zero condition results, which is always
-   * {@code TRUE}.
+   * Returns the logical AND of zero condition results, which is always {@code
+   * TRUE}.
    *
-   * @return The logical OR of zero condition results, which is always
-   *         {@code TRUE}.
+   * @return The logical OR of zero condition results, which is always {@code
+   *         TRUE}.
    */
   public static ConditionResult and()
   {
@@ -89,15 +87,15 @@ public enum ConditionResult
 
 
   /**
-   * Returns the logical AND of the provided condition result, which is
-   * always {@code r}.
+   * Returns the logical AND of the provided condition result, which is always
+   * {@code r}.
    *
    * @param r
    *          The condition result.
-   * @return The logical AND of the provided condition result, which is
-   *         always {@code r}.
+   * @return The logical AND of the provided condition result, which is always
+   *         {@code r}.
    */
-  public static ConditionResult and(ConditionResult r)
+  public static ConditionResult and(final ConditionResult r)
   {
     return r;
   }
@@ -105,24 +103,26 @@ public enum ConditionResult
 
 
   /**
-   * Returns the logical AND of the provided condition results, which is
-   * {@code TRUE} if all of the provided condition results are {@code
-   * TRUE}, {@code FALSE} if at least one of them is {@code FALSE}, and
-   * {@code UNDEFINED} otherwise. Note that {@code TRUE} is returned if
-   * the provided list of results is empty.
+   * Returns the logical AND of the provided condition results, which is {@code
+   * TRUE} if all of the provided condition results are {@code TRUE}, {@code
+   * FALSE} if at least one of them is {@code FALSE}, and {@code UNDEFINED}
+   * otherwise. Note that {@code TRUE} is returned if the provided list of
+   * results is empty.
    *
    * @param results
    *          The condition results to be compared.
    * @return The logical AND of the provided condition results.
    */
-  public static ConditionResult and(ConditionResult... results)
+  public static ConditionResult and(final ConditionResult... results)
   {
     ConditionResult finalResult = TRUE;
-    for (ConditionResult result : results)
+    for (final ConditionResult result : results)
     {
       finalResult = and(finalResult, result);
       if (finalResult == FALSE)
+      {
         break;
+      }
     }
     return finalResult;
   }
@@ -130,10 +130,10 @@ public enum ConditionResult
 
 
   /**
-   * Returns the logical AND of the provided condition results, which is
-   * {@code TRUE} if both of the provided condition results are {@code
-   * TRUE}, {@code FALSE} if at least one of them is {@code FALSE} , and
-   * {@code UNDEFINED} otherwise.
+   * Returns the logical AND of the provided condition results, which is {@code
+   * TRUE} if both of the provided condition results are {@code TRUE}, {@code
+   * FALSE} if at least one of them is {@code FALSE} , and {@code UNDEFINED}
+   * otherwise.
    *
    * @param r1
    *          The first condition result to be compared.
@@ -141,37 +141,36 @@ public enum ConditionResult
    *          The second condition result to be compared.
    * @return The logical AND of the provided condition results.
    */
-  public static ConditionResult and(ConditionResult r1,
-      ConditionResult r2)
+  public static ConditionResult and(final ConditionResult r1,
+      final ConditionResult r2)
   {
-    return logicalAND[r1.ordinal()][r2.ordinal()];
+    return LOGICAL_AND[r1.ordinal()][r2.ordinal()];
   }
 
 
 
   /**
-   * Returns the logical NOT of the provided condition result, which is
-   * {@code TRUE} if the provided condition result is {@code FALSE},
-   * {@code TRUE} if it is {@code FALSE}, and {@code UNDEFINED}
-   * otherwise.
+   * Returns the logical NOT of the provided condition result, which is {@code
+   * TRUE} if the provided condition result is {@code FALSE}, {@code TRUE} if it
+   * is {@code FALSE}, and {@code UNDEFINED} otherwise.
    *
    * @param r
    *          The condition result to invert.
    * @return The logical NOT of the provided condition result.
    */
-  public static ConditionResult not(ConditionResult r)
+  public static ConditionResult not(final ConditionResult r)
   {
-    return logicalNOT[r.ordinal()];
+    return LOGICAL_NOT[r.ordinal()];
   }
 
 
 
   /**
-   * Returns the logical OR of zero condition results, which is always
-   * {@code FALSE}.
+   * Returns the logical OR of zero condition results, which is always {@code
+   * FALSE}.
    *
-   * @return The logical OR of zero condition results, which is always
-   *         {@code FALSE}.
+   * @return The logical OR of zero condition results, which is always {@code
+   *         FALSE}.
    */
   public static ConditionResult or()
   {
@@ -181,15 +180,15 @@ public enum ConditionResult
 
 
   /**
-   * Returns the logical OR of the provided condition result, which is
-   * always {@code r}.
+   * Returns the logical OR of the provided condition result, which is always
+   * {@code r}.
    *
    * @param r
    *          The condition result.
-   * @return The logical OR of the provided condition result, which is
-   *         always {@code r}.
+   * @return The logical OR of the provided condition result, which is always
+   *         {@code r}.
    */
-  public static ConditionResult or(ConditionResult r)
+  public static ConditionResult or(final ConditionResult r)
   {
     return r;
   }
@@ -197,24 +196,26 @@ public enum ConditionResult
 
 
   /**
-   * Returns the logical OR of the provided condition results, which is
-   * {@code FALSE} if all of the provided condition results are {@code
-   * FALSE}, {@code TRUE} if at least one of them is {@code TRUE}, and
-   * {@code UNDEFINED} otherwise. Note that {@code FALSE} is returned if
-   * the provided list of results is empty.
+   * Returns the logical OR of the provided condition results, which is {@code
+   * FALSE} if all of the provided condition results are {@code FALSE}, {@code
+   * TRUE} if at least one of them is {@code TRUE}, and {@code UNDEFINED}
+   * otherwise. Note that {@code FALSE} is returned if the provided list of
+   * results is empty.
    *
    * @param results
    *          The condition results to be compared.
    * @return The logical OR of the provided condition results.
    */
-  public static ConditionResult or(ConditionResult... results)
+  public static ConditionResult or(final ConditionResult... results)
   {
     ConditionResult finalResult = FALSE;
-    for (ConditionResult result : results)
+    for (final ConditionResult result : results)
     {
       finalResult = and(finalResult, result);
       if (finalResult == TRUE)
+      {
         break;
+      }
     }
     return finalResult;
   }
@@ -222,10 +223,10 @@ public enum ConditionResult
 
 
   /**
-   * Returns the logical OR of the provided condition results, which is
-   * {@code FALSE} if both of the provided condition results are {@code
-   * FALSE}, {@code TRUE} if at least one of them is {@code TRUE} , and
-   * {@code UNDEFINED} otherwise.
+   * Returns the logical OR of the provided condition results, which is {@code
+   * FALSE} if both of the provided condition results are {@code FALSE}, {@code
+   * TRUE} if at least one of them is {@code TRUE} , and {@code UNDEFINED}
+   * otherwise.
    *
    * @param r1
    *          The first condition result to be compared.
@@ -233,27 +234,29 @@ public enum ConditionResult
    *          The second condition result to be compared.
    * @return The logical OR of the provided condition results.
    */
-  public static ConditionResult or(ConditionResult r1,
-      ConditionResult r2)
+  public static ConditionResult or(final ConditionResult r1,
+      final ConditionResult r2)
   {
-    return logicalOR[r1.ordinal()][r2.ordinal()];
+    return LOGICAL_OR[r1.ordinal()][r2.ordinal()];
   }
 
 
 
   /**
-   * Returns the condition result which is equivalent to the provided
-   * boolean value.
+   * Returns the condition result which is equivalent to the provided boolean
+   * value.
    *
    * @param b
    *          The boolean value.
-   * @return {@code TRUE} if {@code b} was {@code true}, otherwise
-   *         {@code FALSE}.
+   * @return {@code TRUE} if {@code b} was {@code true}, otherwise {@code FALSE}
+   *         .
    */
-  public static ConditionResult valueOf(boolean b)
+  public static ConditionResult valueOf(final boolean b)
   {
     return b ? TRUE : FALSE;
   }
+
+
 
   // The human-readable name for this result.
   private final String resultName;
@@ -261,7 +264,7 @@ public enum ConditionResult
 
 
   // Prevent instantiation.
-  private ConditionResult(String resultName)
+  private ConditionResult(final String resultName)
   {
     this.resultName = resultName;
   }
@@ -269,15 +272,15 @@ public enum ConditionResult
 
 
   /**
-   * Converts this condition result to a boolean value. {@code FALSE}
-   * and {@code UNDEFINED} are both converted to {@code false}, and
-   * {@code TRUE} is converted to {@code true}.
+   * Converts this condition result to a boolean value. {@code FALSE} and
+   * {@code UNDEFINED} are both converted to {@code false}, and {@code TRUE} is
+   * converted to {@code true}.
    *
    * @return The boolean equivalent of this condition result.
    */
   public boolean toBoolean()
   {
-    return booleanMap[ordinal()];
+    return BOOLEAN_MAP[ordinal()];
   }
 
 

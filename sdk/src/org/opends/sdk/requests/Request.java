@@ -29,13 +29,18 @@ package org.opends.sdk.requests;
 
 
 
+import java.util.List;
+
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.DecodeOptions;
 import org.opends.sdk.controls.Control;
+import org.opends.sdk.controls.ControlDecoder;
 
 
 
 /**
- * The base class of all Requests provides methods for querying and
- * manipulating the set of Controls included with a Request.
+ * The base class of all Requests provides methods for querying and manipulating
+ * the set of Controls included with a Request.
  * <p>
  * TODO: added complete description including sub-types.
  */
@@ -44,7 +49,7 @@ public interface Request
 
   /**
    * Adds the provided control to this request.
-   * 
+   *
    * @param control
    *          The control to be added to this request.
    * @return This request.
@@ -53,72 +58,42 @@ public interface Request
    * @throws NullPointerException
    *           If {@code control} was {@code null}.
    */
-  Request addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  Request addControl(Control control) throws UnsupportedOperationException,
+      NullPointerException;
 
 
 
   /**
-   * Removes all the controls included with this request.
-   * 
-   * @return This request.
-   * @throws UnsupportedOperationException
-   *           If this request does not permit controls to be removed.
-   */
-  Request clearControls() throws UnsupportedOperationException;
-
-
-
-  /**
-   * Returns the first control contained in this request having the
-   * specified OID.
-   * 
-   * @param oid
-   *          The OID of the control to be returned.
-   * @return The control, or {@code null} if the control is not included
+   * Decodes and returns the first control in this request having an OID
+   * corresponding to the provided control decoder.
+   *
+   * @param <C>
+   *          The type of control to be decoded and returned.
+   * @param decoder
+   *          The control decoder.
+   * @param options
+   *          The set of decode options which should be used when decoding the
+   *          control.
+   * @return The decoded control, or {@code null} if the control is not included
    *         with this request.
+   * @throws DecodeException
+   *           If the control could not be decoded because it was malformed in
+   *           some way (e.g. the control value was missing, or its content
+   *           could not be decoded).
    * @throws NullPointerException
-   *           If {@code oid} was {@code null}.
+   *           If {@code decoder} or {@code options} was {@code null}.
    */
-  Control getControl(String oid) throws NullPointerException;
+  <C extends Control> C getControl(ControlDecoder<C> decoder,
+      DecodeOptions options) throws DecodeException, NullPointerException;
 
 
 
   /**
-   * Returns an {@code Iterable} containing the controls included with
-   * this request. The returned {@code Iterable} may be used to remove
-   * controls if permitted by this request.
-   * 
-   * @return An {@code Iterable} containing the controls.
+   * Returns a {@code List} containing the controls included with this request.
+   * The returned {@code List} may be modified if permitted by this request.
+   *
+   * @return A {@code List} containing the controls.
    */
-  Iterable<Control> getControls();
-
-
-
-  /**
-   * Indicates whether or not this request has any controls.
-   * 
-   * @return {@code true} if this request has any controls, otherwise
-   *         {@code false}.
-   */
-  boolean hasControls();
-
-
-
-  /**
-   * Removes the first control contained in this request having the
-   * specified OID.
-   * 
-   * @param oid
-   *          The OID of the control to be removed.
-   * @return The removed control, or {@code null} if the control is not
-   *         included with this request.
-   * @throws UnsupportedOperationException
-   *           If this request does not permit controls to be removed.
-   * @throws NullPointerException
-   *           If {@code oid} was {@code null}.
-   */
-  Control removeControl(String oid)
-      throws UnsupportedOperationException, NullPointerException;
+  List<Control> getControls();
 
 }

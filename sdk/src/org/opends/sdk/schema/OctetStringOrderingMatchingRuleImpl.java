@@ -34,15 +34,15 @@ import org.opends.sdk.ByteString;
 
 
 /**
- * This class defines the octetStringOrderingMatch matching rule defined
- * in X.520. This will be the default ordering matching rule for the
- * binary and octet string syntaxes.
+ * This class defines the octetStringOrderingMatch matching rule defined in
+ * X.520. This will be the default ordering matching rule for the binary and
+ * octet string syntaxes.
  */
 final class OctetStringOrderingMatchingRuleImpl extends
     AbstractOrderingMatchingRuleImpl
 {
-  public ByteString normalizeAttributeValue(Schema schema,
-      ByteSequence value)
+  public ByteString normalizeAttributeValue(final Schema schema,
+      final ByteSequence value)
   {
     return value.toByteString();
   }

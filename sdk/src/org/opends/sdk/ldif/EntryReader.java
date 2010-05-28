@@ -38,14 +38,12 @@ import org.opends.sdk.Entry;
 
 
 /**
- * An interface for reading entries from a data source, typically an
- * LDIF file.
+ * An interface for reading entries from a data source, typically an LDIF file.
  * <p>
  * Implementations must specify the following:
  * <ul>
  * <li>Whether or not it is possible for the implementation to encounter
- * malformed change records and, if it is possible, how they are
- * handled.
+ * malformed change records and, if it is possible, how they are handled.
  * <li>Any synchronization limitations.
  * </ul>
  * <p>
@@ -57,9 +55,9 @@ public interface EntryReader extends Closeable
 {
 
   /**
-   * Closes this entry reader if it is not already closed. Note that
-   * this method does not need to be called if a previous call of
-   * {@link #readEntry()} has returned {@code null}.
+   * Closes this entry reader if it is not already closed. Note that this method
+   * does not need to be called if a previous call of {@link #readEntry()} has
+   * returned {@code null}.
    *
    * @throws IOException
    *           If an unexpected IO error occurred while closing.
@@ -69,17 +67,14 @@ public interface EntryReader extends Closeable
 
 
   /**
-   * Reads the next entry, blocking if necessary until an entry is
-   * available.
+   * Reads the next entry, blocking if necessary until an entry is available.
    *
-   * @return The next entry or {@code null} if there are no more entries
-   *         to be read.
+   * @return The next entry or {@code null} if there are no more entries to be
+   *         read.
    * @throws DecodeException
-   *           If the entry could not be decoded because it was
-   *           malformed.
+   *           If the entry could not be decoded because it was malformed.
    * @throws IOException
-   *           If an unexpected IO error occurred while reading the
-   *           entry.
+   *           If an unexpected IO error occurred while reading the entry.
    */
   Entry readEntry() throws DecodeException, IOException;
 }

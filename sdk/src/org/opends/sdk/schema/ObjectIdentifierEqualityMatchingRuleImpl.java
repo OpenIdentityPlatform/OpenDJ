@@ -36,11 +36,10 @@ import com.sun.opends.sdk.util.SubstringReader;
 
 
 /**
- * This class defines the objectIdentifierMatch matching rule defined in
- * X.520 and referenced in RFC 2252. This expects to work on OIDs and
- * will match either an attribute/objectclass name or a numeric OID.
- * NOTE: This matching rule requires a schema to lookup object
- * identifiers in the descriptor form.
+ * This class defines the objectIdentifierMatch matching rule defined in X.520
+ * and referenced in RFC 2252. This expects to work on OIDs and will match
+ * either an attribute/objectclass name or a numeric OID. NOTE: This matching
+ * rule requires a schema to lookup object identifiers in the descriptor form.
  */
 final class ObjectIdentifierEqualityMatchingRuleImpl extends
     AbstractMatchingRuleImpl
@@ -51,21 +50,20 @@ final class ObjectIdentifierEqualityMatchingRuleImpl extends
 
 
 
-    OIDAssertion(String oid)
+    OIDAssertion(final String oid)
     {
       this.oid = oid;
     }
 
 
 
-    public ConditionResult matches(ByteSequence attributeValue)
+    public ConditionResult matches(final ByteSequence attributeValue)
     {
       final String attrStr = attributeValue.toString();
 
       // We should have normalized all values to OIDs. If not, we know
       // the descriptor form is not valid in the schema.
-      if (attrStr.length() == 0
-          || !StaticUtils.isDigit(attrStr.charAt(0)))
+      if (attrStr.length() == 0 || !StaticUtils.isDigit(attrStr.charAt(0)))
       {
         return ConditionResult.UNDEFINED;
       }
@@ -74,14 +72,13 @@ final class ObjectIdentifierEqualityMatchingRuleImpl extends
         return ConditionResult.UNDEFINED;
       }
 
-      return attrStr.equals(oid) ? ConditionResult.TRUE
-          : ConditionResult.FALSE;
+      return attrStr.equals(oid) ? ConditionResult.TRUE : ConditionResult.FALSE;
     }
   }
 
 
 
-  static String resolveNames(Schema schema, String oid)
+  static String resolveNames(final Schema schema, final String oid)
   {
     if (!StaticUtils.isDigit(oid.charAt(0)))
     {
@@ -98,9 +95,8 @@ final class ObjectIdentifierEqualityMatchingRuleImpl extends
       {
         if (schema.hasDITContentRule(oid))
         {
-          schemaName =
-              schema.getDITContentRule(oid).getStructuralClass()
-                  .getOID();
+          schemaName = schema.getDITContentRule(oid).getStructuralClass()
+              .getOID();
         }
       }
 
@@ -132,8 +128,8 @@ final class ObjectIdentifierEqualityMatchingRuleImpl extends
       {
         if (schema.hasMatchingRuleUse(oid))
         {
-          schemaName =
-              schema.getMatchingRuleUse(oid).getMatchingRule().getOID();
+          schemaName = schema.getMatchingRuleUse(oid).getMatchingRule()
+              .getOID();
         }
       }
 
@@ -160,26 +156,24 @@ final class ObjectIdentifierEqualityMatchingRuleImpl extends
 
 
   @Override
-  public Assertion getAssertion(Schema schema, ByteSequence value)
+  public Assertion getAssertion(final Schema schema, final ByteSequence value)
       throws DecodeException
   {
     final String definition = value.toString();
     final SubstringReader reader = new SubstringReader(definition);
-    final String normalized =
-        resolveNames(schema, SchemaUtils.readOID(reader));
+    final String normalized = resolveNames(schema, SchemaUtils.readOID(reader));
 
     return new OIDAssertion(normalized);
   }
 
 
 
-  public ByteString normalizeAttributeValue(Schema schema,
-      ByteSequence value) throws DecodeException
+  public ByteString normalizeAttributeValue(final Schema schema,
+      final ByteSequence value) throws DecodeException
   {
     final String definition = value.toString();
     final SubstringReader reader = new SubstringReader(definition);
-    final String normalized =
-        resolveNames(schema, SchemaUtils.readOID(reader));
+    final String normalized = resolveNames(schema, SchemaUtils.readOID(reader));
     return ByteString.valueOf(normalized);
   }
 }

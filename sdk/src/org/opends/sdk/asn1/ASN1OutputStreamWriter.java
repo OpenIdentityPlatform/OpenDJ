@@ -28,8 +28,9 @@ package org.opends.sdk.asn1;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
-import static org.opends.sdk.asn1.ASN1Constants.*;
+import static com.sun.opends.sdk.messages.Messages.ERR_ASN1_SEQUENCE_WRITE_NOT_STARTED;
+import static org.opends.sdk.asn1.ASN1Constants.BOOLEAN_VALUE_FALSE;
+import static org.opends.sdk.asn1.ASN1Constants.BOOLEAN_VALUE_TRUE;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -42,6 +43,7 @@ import org.opends.sdk.LocalizableMessage;
 
 import com.sun.opends.sdk.util.ByteSequenceOutputStream;
 import com.sun.opends.sdk.util.StaticUtils;
+
 
 
 /**
@@ -63,7 +65,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
    * @param stream
    *          The underlying output stream.
    */
-  ASN1OutputStreamWriter(OutputStream stream)
+  ASN1OutputStreamWriter(final OutputStream stream)
   {
     this.out = stream;
     this.rootStream = stream;
@@ -103,18 +105,18 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeBoolean(byte type, boolean booleanValue)
+  public ASN1Writer writeBoolean(final byte type, final boolean booleanValue)
       throws IOException
   {
     out.write(type);
     writeLength(1);
     out.write(booleanValue ? BOOLEAN_VALUE_TRUE : BOOLEAN_VALUE_FALSE);
 
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
     {
       StaticUtils.DEBUG_LOG.finest(String.format(
-          "WRITE ASN.1 BOOLEAN(type=0x%x, length=%d, value=%s)", type,
-          1, String.valueOf(booleanValue)));
+          "WRITE ASN.1 BOOLEAN(type=0x%x, length=%d, value=%s)", type, 1,
+          String.valueOf(booleanValue)));
     }
     return this;
   }
@@ -124,21 +126,23 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeEndSequence() throws IOException, IllegalStateException
+  public ASN1Writer writeEndSequence() throws IOException,
+      IllegalStateException
   {
     if (stackDepth < 0)
     {
-      LocalizableMessage message = ERR_ASN1_SEQUENCE_WRITE_NOT_STARTED.get();
+      final LocalizableMessage message = ERR_ASN1_SEQUENCE_WRITE_NOT_STARTED
+          .get();
       throw new IllegalStateException(message.toString());
     }
 
-    ByteSequenceOutputStream childStream = streamStack.get(stackDepth);
+    final ByteSequenceOutputStream childStream = streamStack.get(stackDepth);
 
     // Decrement the stack depth and get the parent stream
     --stackDepth;
 
-    OutputStream parentStream =
-        stackDepth < 0 ? rootStream : streamStack.get(stackDepth);
+    final OutputStream parentStream = stackDepth < 0 ? rootStream : streamStack
+        .get(stackDepth);
 
     // Switch to parent stream and reset the sub-stream
     out = parentStream;
@@ -147,7 +151,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
     writeLength(childStream.length());
     childStream.writeTo(parentStream);
 
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
     {
       StaticUtils.DEBUG_LOG.finest(String.format(
           "WRITE ASN.1 END SEQUENCE(length=%d)", childStream.length()));
@@ -172,7 +176,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeEnumerated(byte type, int intValue)
+  public ASN1Writer writeEnumerated(final byte type, final int intValue)
       throws IOException
   {
     return writeInteger(type, intValue);
@@ -183,7 +187,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeInteger(byte type, int intValue)
+  public ASN1Writer writeInteger(final byte type, final int intValue)
       throws IOException
   {
     out.write(type);
@@ -192,11 +196,11 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
     {
       writeLength(1);
       out.write((byte) (intValue & 0xFF));
-      if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+      if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
       {
         StaticUtils.DEBUG_LOG.finest(String.format(
-            "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)",
-                type, 1, intValue));
+            "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 1,
+            intValue));
       }
     }
     else if (((intValue < 0) && ((intValue & 0xFFFF8000) == 0xFFFF8000))
@@ -205,11 +209,11 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
       writeLength(2);
       out.write((byte) ((intValue >> 8) & 0xFF));
       out.write((byte) (intValue & 0xFF));
-      if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+      if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
       {
         StaticUtils.DEBUG_LOG.finest(String.format(
-            "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)",
-                type, 2, intValue));
+            "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 2,
+            intValue));
       }
     }
     else if (((intValue < 0) && ((intValue & 0xFF800000) == 0xFF800000))
@@ -219,11 +223,11 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
       out.write((byte) ((intValue >> 16) & 0xFF));
       out.write((byte) ((intValue >> 8) & 0xFF));
       out.write((byte) (intValue & 0xFF));
-      if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+      if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
       {
         StaticUtils.DEBUG_LOG.finest(String.format(
-            "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)",
-                type, 3, intValue));
+            "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 3,
+            intValue));
       }
     }
     else
@@ -233,11 +237,11 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
       out.write((byte) ((intValue >> 16) & 0xFF));
       out.write((byte) ((intValue >> 8) & 0xFF));
       out.write((byte) (intValue & 0xFF));
-      if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+      if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
       {
         StaticUtils.DEBUG_LOG.finest(String.format(
-            "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)",
-            type, 4, intValue));
+            "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 4,
+            intValue));
       }
     }
     return this;
@@ -248,7 +252,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeInteger(byte type, long longValue)
+  public ASN1Writer writeInteger(final byte type, final long longValue)
       throws IOException
   {
     out.write(type);
@@ -257,11 +261,11 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
     {
       writeLength(1);
       out.write((byte) (longValue & 0xFF));
-      if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+      if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
       {
         StaticUtils.DEBUG_LOG.finest(String.format(
-            "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)",
-                type, 1, longValue));
+            "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 1,
+            longValue));
       }
     }
     else if (((longValue < 0) && ((longValue & 0xFFFFFFFFFFFF8000L) == 0xFFFFFFFFFFFF8000L))
@@ -270,11 +274,11 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
       writeLength(2);
       out.write((byte) ((longValue >> 8) & 0xFF));
       out.write((byte) (longValue & 0xFF));
-      if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+      if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
       {
         StaticUtils.DEBUG_LOG.finest(String.format(
-            "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)",
-                type, 2, longValue));
+            "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 2,
+            longValue));
       }
     }
     else if (((longValue < 0) && ((longValue & 0xFFFFFFFFFF800000L) == 0xFFFFFFFFFF800000L))
@@ -284,11 +288,11 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
       out.write((byte) ((longValue >> 16) & 0xFF));
       out.write((byte) ((longValue >> 8) & 0xFF));
       out.write((byte) (longValue & 0xFF));
-      if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+      if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
       {
         StaticUtils.DEBUG_LOG.finest(String.format(
-            "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)",
-                type, 3, longValue));
+            "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 3,
+            longValue));
       }
     }
     else if (((longValue < 0) && ((longValue & 0xFFFFFFFF80000000L) == 0xFFFFFFFF80000000L))
@@ -299,11 +303,11 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
       out.write((byte) ((longValue >> 16) & 0xFF));
       out.write((byte) ((longValue >> 8) & 0xFF));
       out.write((byte) (longValue & 0xFF));
-      if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+      if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
       {
         StaticUtils.DEBUG_LOG.finest(String.format(
-            "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)",
-                type, 4, longValue));
+            "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 4,
+            longValue));
       }
     }
     else if (((longValue < 0) && ((longValue & 0xFFFFFF8000000000L) == 0xFFFFFF8000000000L))
@@ -315,11 +319,11 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
       out.write((byte) ((longValue >> 16) & 0xFF));
       out.write((byte) ((longValue >> 8) & 0xFF));
       out.write((byte) (longValue & 0xFF));
-      if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+      if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
       {
         StaticUtils.DEBUG_LOG.finest(String.format(
-            "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)",
-                type, 5, longValue));
+            "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 5,
+            longValue));
       }
     }
     else if (((longValue < 0) && ((longValue & 0xFFFF800000000000L) == 0xFFFF800000000000L))
@@ -332,11 +336,11 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
       out.write((byte) ((longValue >> 16) & 0xFF));
       out.write((byte) ((longValue >> 8) & 0xFF));
       out.write((byte) (longValue & 0xFF));
-      if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+      if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
       {
         StaticUtils.DEBUG_LOG.finest(String.format(
-            "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)",
-                type, 6, longValue));
+            "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 6,
+            longValue));
       }
     }
     else if (((longValue < 0) && ((longValue & 0xFF80000000000000L) == 0xFF80000000000000L))
@@ -350,11 +354,11 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
       out.write((byte) ((longValue >> 16) & 0xFF));
       out.write((byte) ((longValue >> 8) & 0xFF));
       out.write((byte) (longValue & 0xFF));
-      if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+      if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
       {
         StaticUtils.DEBUG_LOG.finest(String.format(
-            "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)",
-                type, 7, longValue));
+            "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 7,
+            longValue));
       }
     }
     else
@@ -368,11 +372,11 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
       out.write((byte) ((longValue >> 16) & 0xFF));
       out.write((byte) ((longValue >> 8) & 0xFF));
       out.write((byte) (longValue & 0xFF));
-      if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+      if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
       {
         StaticUtils.DEBUG_LOG.finest(String.format(
-            "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)",
-                type, 8, longValue));
+            "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 8,
+            longValue));
       }
     }
     return this;
@@ -383,12 +387,12 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeNull(byte type) throws IOException
+  public ASN1Writer writeNull(final byte type) throws IOException
   {
     out.write(type);
     writeLength(0);
 
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
     {
       StaticUtils.DEBUG_LOG.finest(String.format(
           "WRITE ASN.1 NULL(type=0x%x, length=%d)", type, 0));
@@ -401,18 +405,17 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeOctetString(byte type, byte[] value,
-      int offset, int length) throws IOException
+  public ASN1Writer writeOctetString(final byte type, final byte[] value,
+      final int offset, final int length) throws IOException
   {
     out.write(type);
     writeLength(length);
     out.write(value, offset, length);
 
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
     {
       StaticUtils.DEBUG_LOG.finest(String.format(
-          "WRITE ASN.1 OCTETSTRING(type=0x%x, length=%d)",
-              type, length));
+          "WRITE ASN.1 OCTETSTRING(type=0x%x, length=%d)", type, length));
     }
     return this;
   }
@@ -422,17 +425,17 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeOctetString(byte type, ByteSequence value)
+  public ASN1Writer writeOctetString(final byte type, final ByteSequence value)
       throws IOException
   {
     out.write(type);
     writeLength(value.length());
     value.copyTo(out);
 
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
     {
-      StaticUtils.DEBUG_LOG.finest(String.format(
-          "WRITE ASN.1 OCTETSTRING(type=0x%x, length=%d)", type, value
+      StaticUtils.DEBUG_LOG.finest(String
+          .format("WRITE ASN.1 OCTETSTRING(type=0x%x, length=%d)", type, value
               .length()));
     }
     return this;
@@ -443,7 +446,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeOctetString(byte type, String value)
+  public ASN1Writer writeOctetString(final byte type, final String value)
       throws IOException
   {
     out.write(type);
@@ -454,15 +457,15 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
       return this;
     }
 
-    byte[] bytes = StaticUtils.getBytes(value);
+    final byte[] bytes = StaticUtils.getBytes(value);
     writeLength(bytes.length);
     out.write(bytes);
 
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
     {
       StaticUtils.DEBUG_LOG.finest(String.format(
-          "WRITE ASN.1 OCTETSTRING(type=0x%x, length=%d, "
-              + "value=%s)", type, bytes.length, value));
+          "WRITE ASN.1 OCTETSTRING(type=0x%x, length=%d, " + "value=%s)", type,
+          bytes.length, value));
     }
     return this;
   }
@@ -472,7 +475,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeStartSequence(byte type) throws IOException
+  public ASN1Writer writeStartSequence(final byte type) throws IOException
   {
     // Write the type in current stream switch to next sub-stream
     out.write(type);
@@ -483,8 +486,8 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
     // Make sure we have a cached sub-stream at this depth
     if (stackDepth >= streamStack.size())
     {
-      ByteSequenceOutputStream subStream =
-          new ByteSequenceOutputStream(new ByteStringBuilder());
+      final ByteSequenceOutputStream subStream = new ByteSequenceOutputStream(
+          new ByteStringBuilder());
       streamStack.add(subStream);
       out = subStream;
     }
@@ -493,7 +496,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
       out = streamStack.get(stackDepth);
     }
 
-    if(StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+    if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
     {
       StaticUtils.DEBUG_LOG.finest(String.format(
           "WRITE ASN.1 START SEQUENCE(type=0x%x)", type));
@@ -506,7 +509,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeStartSet(byte type) throws IOException
+  public ASN1Writer writeStartSet(final byte type) throws IOException
   {
     // From an implementation point of view, a set is equivalent to a
     // sequence.
@@ -516,15 +519,14 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
 
 
   /**
-   * Writes the provided value for use as the length of an ASN.1
-   * element.
+   * Writes the provided value for use as the length of an ASN.1 element.
    *
    * @param length
    *          The length to encode for use in an ASN.1 element.
    * @throws IOException
    *           if an error occurs while writing.
    */
-  private void writeLength(int length) throws IOException
+  private void writeLength(final int length) throws IOException
   {
     if (length < 128)
     {

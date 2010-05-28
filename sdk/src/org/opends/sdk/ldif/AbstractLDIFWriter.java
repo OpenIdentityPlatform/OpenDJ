@@ -58,9 +58,8 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
   {
 
     /**
-     * Closes any resources associated with this LDIF writer
-     * implementation.
-     * 
+     * Closes any resources associated with this LDIF writer implementation.
+     *
      * @throws IOException
      *           If an error occurs while closing.
      */
@@ -69,17 +68,16 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
 
 
     /**
-     * Flushes this LDIF writer implementation so that any buffered data
-     * is written immediately to underlying stream, flushing the stream
-     * if it is also {@code Flushable}.
+     * Flushes this LDIF writer implementation so that any buffered data is
+     * written immediately to underlying stream, flushing the stream if it is
+     * also {@code Flushable}.
      * <p>
-     * If the intended destination of this stream is an abstraction
-     * provided by the underlying operating system, for example a file,
-     * then flushing the stream guarantees only that bytes previously
-     * written to the stream are passed to the operating system for
-     * writing; it does not guarantee that they are actually written to
-     * a physical device such as a disk drive.
-     * 
+     * If the intended destination of this stream is an abstraction provided by
+     * the underlying operating system, for example a file, then flushing the
+     * stream guarantees only that bytes previously written to the stream are
+     * passed to the operating system for writing; it does not guarantee that
+     * they are actually written to a physical device such as a disk drive.
+     *
      * @throws IOException
      *           If an error occurs while flushing.
      */
@@ -88,9 +86,9 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
 
 
     /**
-     * Prints the provided {@code CharSequence}. Implementations must
-     * not add a new-line character sequence.
-     * 
+     * Prints the provided {@code CharSequence}. Implementations must not add a
+     * new-line character sequence.
+     *
      * @param s
      *          The {@code CharSequence} to be printed.
      * @throws IOException
@@ -102,10 +100,10 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
 
     /**
      * Prints a new-line character sequence.
-     * 
+     *
      * @throws IOException
-     *           If an error occurs while printing the new-line
-     *           character sequence.
+     *           If an error occurs while printing the new-line character
+     *           sequence.
      */
     void println() throws IOException;
   }
@@ -115,7 +113,7 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
   /**
    * LDIF string list writer implementation.
    */
-  private final class LDIFWriterListImpl implements LDIFWriterImpl
+  private static final class LDIFWriterListImpl implements LDIFWriterImpl
   {
 
     private final StringBuilder builder = new StringBuilder();
@@ -126,11 +124,11 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
 
     /**
      * Creates a new LDIF list writer.
-     * 
+     *
      * @param ldifLines
      *          The string list.
      */
-    LDIFWriterListImpl(List<String> ldifLines)
+    LDIFWriterListImpl(final List<String> ldifLines)
     {
       this.ldifLines = ldifLines;
     }
@@ -160,7 +158,7 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
     /**
      * {@inheritDoc}
      */
-    public void print(CharSequence s) throws IOException
+    public void print(final CharSequence s) throws IOException
     {
       builder.append(s);
     }
@@ -182,7 +180,7 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
   /**
    * LDIF output stream writer implementation.
    */
-  private final class LDIFWriterOutputStreamImpl implements
+  private static final class LDIFWriterOutputStreamImpl implements
       LDIFWriterImpl
   {
 
@@ -192,11 +190,11 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
 
     /**
      * Creates a new LDIF output stream writer.
-     * 
+     *
      * @param out
      *          The output stream.
      */
-    LDIFWriterOutputStreamImpl(OutputStream out)
+    LDIFWriterOutputStreamImpl(final OutputStream out)
     {
       this.writer = new BufferedWriter(new OutputStreamWriter(out));
     }
@@ -226,7 +224,7 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
     /**
      * {@inheritDoc}
      */
-    public void print(CharSequence s) throws IOException
+    public void print(final CharSequence s) throws IOException
     {
       writer.append(s);
     }
@@ -242,9 +240,10 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
     }
   }
 
+
+
   // Regular expression used for splitting comments on line-breaks.
-  private static final Pattern SPLIT_NEWLINE =
-      Pattern.compile("\\r?\\n");
+  private static final Pattern SPLIT_NEWLINE = Pattern.compile("\\r?\\n");
 
   boolean addUserFriendlyComments = false;
 
@@ -257,13 +256,13 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
 
 
   /**
-   * Creates a new LDIF entry writer which will append lines of LDIF to
-   * the provided list.
-   * 
+   * Creates a new LDIF entry writer which will append lines of LDIF to the
+   * provided list.
+   *
    * @param ldifLines
    *          The list to which lines of LDIF should be appended.
    */
-  public AbstractLDIFWriter(List<String> ldifLines)
+  public AbstractLDIFWriter(final List<String> ldifLines)
   {
     Validator.ensureNotNull(ldifLines);
     this.impl = new LDIFWriterListImpl(ldifLines);
@@ -272,13 +271,13 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
 
 
   /**
-   * Creates a new LDIF entry writer whose destination is the provided
-   * output stream.
-   * 
+   * Creates a new LDIF entry writer whose destination is the provided output
+   * stream.
+   *
    * @param out
    *          The output stream to use.
    */
-  public AbstractLDIFWriter(OutputStream out)
+  public AbstractLDIFWriter(final OutputStream out)
   {
     Validator.ensureNotNull(out);
     this.impl = new LDIFWriterOutputStreamImpl(out);
@@ -301,7 +300,7 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
 
 
 
-  final void writeComment0(CharSequence comment) throws IOException,
+  final void writeComment0(final CharSequence comment) throws IOException,
       NullPointerException
   {
     Validator.ensureNotNull(comment);
@@ -379,8 +378,7 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
 
 
 
-  final void writeControls(Iterable<Control> controls)
-      throws IOException
+  final void writeControls(final List<Control> controls) throws IOException
   {
     for (final Control control : controls)
     {
@@ -401,7 +399,7 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
 
 
 
-  final void writeKeyAndValue(CharSequence key, ByteSequence value)
+  final void writeKeyAndValue(final CharSequence key, final ByteSequence value)
       throws IOException
   {
     builder.setLength(0);
@@ -438,7 +436,7 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
 
 
 
-  final void writeKeyAndValue(CharSequence key, CharSequence value)
+  final void writeKeyAndValue(final CharSequence key, final CharSequence value)
       throws IOException
   {
     // FIXME: We should optimize this at some point.
@@ -447,7 +445,7 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
 
 
 
-  final void writeLine(CharSequence line) throws IOException
+  final void writeLine(final CharSequence line) throws IOException
   {
     final int length = line.length();
     if (shouldWrap() && length > wrapColumn)
@@ -473,7 +471,7 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
 
 
 
-  private boolean needsBase64Encoding(ByteSequence bytes)
+  private boolean needsBase64Encoding(final ByteSequence bytes)
   {
     final int length = bytes.length();
     if (length == 0)
@@ -532,7 +530,7 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
 
 
   @SuppressWarnings("unused")
-  private void writeKeyAndURL(CharSequence key, CharSequence url)
+  private void writeKeyAndURL(final CharSequence key, final CharSequence url)
       throws IOException
   {
     builder.setLength(0);

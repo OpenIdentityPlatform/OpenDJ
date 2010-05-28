@@ -36,8 +36,7 @@ import java.util.concurrent.TimeoutException;
 
 
 /**
- * A handle which can be used to retrieve the Result of an asynchronous
- * Request.
+ * A handle which can be used to retrieve the Result of an asynchronous Request.
  *
  * @param <S>
  *          The type of result returned by this future.
@@ -45,39 +44,37 @@ import java.util.concurrent.TimeoutException;
 public interface FutureResult<S> extends Future<S>
 {
   /**
-   * Attempts to cancel the request. This attempt will fail if the
-   * request has already completed or has already been cancelled. If
-   * successful, then cancellation results in an abandon or cancel
-   * request (if configured) being sent to the server.
+   * Attempts to cancel the request. This attempt will fail if the request has
+   * already completed or has already been cancelled. If successful, then
+   * cancellation results in an abandon or cancel request (if configured) being
+   * sent to the server.
    * <p>
-   * After this method returns, subsequent calls to {@link #isDone} will
-   * always return {@code true}. Subsequent calls to
-   * {@link #isCancelled} will always return {@code true} if this method
-   * returned {@code true}.
+   * After this method returns, subsequent calls to {@link #isDone} will always
+   * return {@code true}. Subsequent calls to {@link #isCancelled} will always
+   * return {@code true} if this method returned {@code true}.
    *
    * @param mayInterruptIfRunning
-   *          {@code true} if the thread executing executing the
-   *          response handler should be interrupted; otherwise,
-   *          in-progress response handlers are allowed to complete.
-   * @return {@code false} if the request could not be cancelled,
-   *         typically because it has already completed normally;
-   *         {@code true} otherwise.
+   *          {@code true} if the thread executing executing the response
+   *          handler should be interrupted; otherwise, in-progress response
+   *          handlers are allowed to complete.
+   * @return {@code false} if the request could not be cancelled, typically
+   *         because it has already completed normally; {@code true} otherwise.
    */
   boolean cancel(boolean mayInterruptIfRunning);
 
 
 
   /**
-   * Waits if necessary for the request to complete, and then returns
-   * the result if the request succeeded. If the request failed (i.e. a
-   * non-successful result code was obtained) then the result is thrown
-   * as an {@link ErrorResultException}.
+   * Waits if necessary for the request to complete, and then returns the result
+   * if the request succeeded. If the request failed (i.e. a non-successful
+   * result code was obtained) then the result is thrown as an
+   * {@link ErrorResultException}.
    *
-   * @return The result, but only if the result code indicates that the
-   *         request succeeded.
+   * @return The result, but only if the result code indicates that the request
+   *         succeeded.
    * @throws ErrorResultException
-   *           If the result code indicates that the request failed for
-   *           some reason.
+   *           If the result code indicates that the request failed for some
+   *           reason.
    * @throws InterruptedException
    *           If the current thread was interrupted while waiting.
    */
@@ -86,20 +83,20 @@ public interface FutureResult<S> extends Future<S>
 
 
   /**
-   * Waits if necessary for at most the given time for the request to
-   * complete, and then returns the result if the request succeeded. If
-   * the request failed (i.e. a non-successful result code was obtained)
-   * then the result is thrown as an {@link ErrorResultException}.
+   * Waits if necessary for at most the given time for the request to complete,
+   * and then returns the result if the request succeeded. If the request failed
+   * (i.e. a non-successful result code was obtained) then the result is thrown
+   * as an {@link ErrorResultException}.
    *
    * @param timeout
    *          The maximum time to wait.
    * @param unit
    *          The time unit of the timeout argument.
-   * @return The result, but only if the result code indicates that the
-   *         request succeeded.
+   * @return The result, but only if the result code indicates that the request
+   *         succeeded.
    * @throws ErrorResultException
-   *           If the result code indicates that the request failed for
-   *           some reason.
+   *           If the result code indicates that the request failed for some
+   *           reason.
    * @throws TimeoutException
    *           If the wait timed out.
    * @throws InterruptedException
@@ -120,11 +117,11 @@ public interface FutureResult<S> extends Future<S>
 
 
   /**
-   * Returns {@code true} if the request was cancelled before it
-   * completed normally.
+   * Returns {@code true} if the request was cancelled before it completed
+   * normally.
    *
-   * @return {@code true} if the request was cancelled before it
-   *         completed normally, otherwise {@code false}.
+   * @return {@code true} if the request was cancelled before it completed
+   *         normally, otherwise {@code false}.
    */
   boolean isCancelled();
 
@@ -133,12 +130,10 @@ public interface FutureResult<S> extends Future<S>
   /**
    * Returns {@code true} if the request has completed.
    * <p>
-   * Completion may be due to normal termination, an exception, or
-   * cancellation. In all of these cases, this method will return
-   * {@code true}.
+   * Completion may be due to normal termination, an exception, or cancellation.
+   * In all of these cases, this method will return {@code true}.
    *
-   * @return {@code true} if the request has completed, otherwise
-   *         {@code false}.
+   * @return {@code true} if the request has completed, otherwise {@code false}.
    */
   boolean isDone();
 }

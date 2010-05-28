@@ -29,163 +29,131 @@ package com.sun.opends.sdk.ldap;
 
 
 
+import java.io.IOException;
+
 import org.opends.sdk.ByteString;
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.ldap.ResolvedSchema;
-import org.opends.sdk.controls.Control;
 import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.*;
-import org.opends.sdk.sasl.SASLBindRequest;
-import org.opends.sdk.schema.Schema;
 
 
 
 /**
  * LDAP message handler interface.
+ *
+ * @param <P>
+ *          A user provided handler parameter.
  */
-public interface LDAPMessageHandler
+interface LDAPMessageHandler<P>
 {
-  ResolvedSchema resolveSchema(String dn) throws DecodeException;
+  void abandonRequest(P param, int messageID, AbandonRequest request)
+      throws UnexpectedRequestException, IOException;
 
 
 
-  Schema getDefaultSchema();
+  void addRequest(P param, int messageID, AddRequest request)
+      throws UnexpectedRequestException, IOException;
 
 
 
-  void handleException(Throwable throwable);
+  void addResult(P param, int messageID, Result result)
+      throws UnexpectedResponseException, IOException;
 
 
 
-  void handleUnrecognizedMessage(int messageID, byte messageTag,
-      ByteString messageBytes) throws UnsupportedMessageException;
+  void bindRequest(P param, int messageID, int version,
+      GenericBindRequest request) throws UnexpectedRequestException,
+      IOException;
 
 
 
-  void handleAbandonRequest(int messageID, AbandonRequest request)
-      throws UnexpectedRequestException;
+  void bindResult(P param, int messageID, BindResult result)
+      throws UnexpectedResponseException, IOException;
 
 
 
-  void handleAddRequest(int messageID, AddRequest request)
-      throws UnexpectedRequestException;
+  void compareRequest(P param, int messageID, CompareRequest request)
+      throws UnexpectedRequestException, IOException;
 
 
 
-  void handleCompareRequest(int messageID, CompareRequest request)
-      throws UnexpectedRequestException;
+  void compareResult(P param, int messageID, CompareResult result)
+      throws UnexpectedResponseException, IOException;
 
 
 
-  void handleDeleteRequest(int messageID, DeleteRequest request)
-      throws UnexpectedRequestException;
+  void deleteRequest(P param, int messageID, DeleteRequest request)
+      throws UnexpectedRequestException, IOException;
 
 
 
-  void handleExtendedRequest(int messageID,
-      GenericExtendedRequest request) throws UnexpectedRequestException;
+  void deleteResult(P param, int messageID, Result result)
+      throws UnexpectedResponseException, IOException;
 
 
 
-  void handleBindRequest(int messageID, int version,
-      GenericBindRequest request) throws UnexpectedRequestException;
+  <R extends ExtendedResult> void extendedRequest(P param, int messageID,
+      ExtendedRequest<R> request) throws UnexpectedRequestException,
+      IOException;
 
 
 
-  void handleBindRequest(int messageID, int version,
-      SASLBindRequest<?> request) throws UnexpectedRequestException;
+  void extendedResult(P param, int messageID, ExtendedResult result)
+      throws UnexpectedResponseException, IOException;
 
 
 
-  void handleBindRequest(int messageID, int version,
-      SimpleBindRequest request) throws UnexpectedRequestException;
+  void intermediateResponse(P param, int messageID,
+      IntermediateResponse response) throws UnexpectedResponseException,
+      IOException;
 
 
 
-  void handleModifyDNRequest(int messageID, ModifyDNRequest request)
-      throws UnexpectedRequestException;
+  void modifyDNRequest(P param, int messageID, ModifyDNRequest request)
+      throws UnexpectedRequestException, IOException;
 
 
 
-  void handleModifyRequest(int messageID, ModifyRequest request)
-      throws UnexpectedRequestException;
+  void modifyDNResult(P param, int messageID, Result result)
+      throws UnexpectedResponseException, IOException;
 
 
 
-  void handleSearchRequest(int messageID, SearchRequest request)
-      throws UnexpectedRequestException;
+  void modifyRequest(P param, int messageID, ModifyRequest request)
+      throws UnexpectedRequestException, IOException;
 
 
 
-  void handleUnbindRequest(int messageID, UnbindRequest request)
-      throws UnexpectedRequestException;
+  void modifyResult(P param, int messageID, Result result)
+      throws UnexpectedResponseException, IOException;
 
 
 
-  void handleAddResult(int messageID, Result result)
-      throws UnexpectedResponseException;
+  void searchRequest(P param, int messageID, SearchRequest request)
+      throws UnexpectedRequestException, IOException;
 
 
 
-  void handleBindResult(int messageID, BindResult result)
-      throws UnexpectedResponseException;
+  void searchResult(P param, int messageID, Result result)
+      throws UnexpectedResponseException, IOException;
 
 
 
-  void handleCompareResult(int messageID, CompareResult result)
-      throws UnexpectedResponseException;
+  void searchResultEntry(P param, int messageID, SearchResultEntry entry)
+      throws UnexpectedResponseException, IOException;
 
 
 
-  void handleDeleteResult(int messageID, Result result)
-      throws UnexpectedResponseException;
+  void searchResultReference(P param, int messageID,
+      SearchResultReference reference) throws UnexpectedResponseException,
+      IOException;
 
 
 
-  void handleExtendedResult(int messageID, GenericExtendedResult result)
-      throws UnexpectedResponseException;
+  void unbindRequest(P param, int messageID, UnbindRequest request)
+      throws UnexpectedRequestException, IOException;
 
 
 
-  void handleIntermediateResponse(int messageID,
-      GenericIntermediateResponse response)
-      throws UnexpectedResponseException;
-
-
-
-  void handleModifyDNResult(int messageID, Result result)
-      throws UnexpectedResponseException;
-
-
-
-  void handleModifyResult(int messageID, Result result)
-      throws UnexpectedResponseException;
-
-
-
-  void handleSearchResult(int messageID, Result result)
-      throws UnexpectedResponseException;
-
-
-
-  void handleSearchResultEntry(int messageID, SearchResultEntry entry)
-      throws UnexpectedResponseException;
-
-
-
-  void handleSearchResultReference(int messageID,
-      SearchResultReference reference)
-      throws UnexpectedResponseException;
-
-
-
-  Control decodeResponseControl(int messageID, String oid,
-      boolean isCritical, ByteString value, Schema schema)
-      throws DecodeException;
-
-
-
-  Control decodeRequestControl(int messageID, String oid,
-      boolean isCritical, ByteString value, Schema schema)
-      throws DecodeException;
+  void unrecognizedMessage(P param, int messageID, byte messageTag,
+      ByteString messageBytes) throws UnsupportedMessageException, IOException;
 }

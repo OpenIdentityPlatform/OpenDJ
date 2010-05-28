@@ -29,11 +29,13 @@ package org.opends.sdk.requests;
 
 
 
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.DecodeOptions;
 import org.opends.sdk.controls.Control;
+import org.opends.sdk.controls.ControlDecoder;
 
 import com.sun.opends.sdk.util.Validator;
 
@@ -41,12 +43,11 @@ import com.sun.opends.sdk.util.Validator;
 
 /**
  * Abstract request implementation.
- * 
+ *
  * @param <R>
  *          The type of request.
  */
-abstract class AbstractRequestImpl<R extends Request> implements
-    Request
+abstract class AbstractRequestImpl<R extends Request> implements Request
 {
   private final List<Control> controls = new LinkedList<Control>();
 
@@ -65,8 +66,7 @@ abstract class AbstractRequestImpl<R extends Request> implements
   /**
    * {@inheritDoc}
    */
-  public final R addControl(Control control)
-      throws NullPointerException
+  public final R addControl(final Control control) throws NullPointerException
   {
     Validator.ensureNotNull(control);
     controls.add(control);
@@ -78,20 +78,11 @@ abstract class AbstractRequestImpl<R extends Request> implements
   /**
    * {@inheritDoc}
    */
-  public final R clearControls()
+  public final <C extends Control> C getControl(
+      final ControlDecoder<C> decoder, final DecodeOptions options)
+      throws DecodeException
   {
-    controls.clear();
-    return getThis();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final Control getControl(String oid)
-  {
-    Validator.ensureNotNull(oid);
+    Validator.ensureNotNull(decoder, options);
 
     // Avoid creating an iterator if possible.
     if (controls.isEmpty())
@@ -101,9 +92,9 @@ abstract class AbstractRequestImpl<R extends Request> implements
 
     for (final Control control : controls)
     {
-      if (control.getOID().equals(oid))
+      if (control.getOID().equals(decoder.getOID()))
       {
-        return control;
+        return decoder.decodeControl(control, options);
       }
     }
 
@@ -115,53 +106,14 @@ abstract class AbstractRequestImpl<R extends Request> implements
   /**
    * {@inheritDoc}
    */
-  public final Iterable<Control> getControls()
+  public final List<Control> getControls()
   {
     return controls;
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  public final boolean hasControls()
-  {
-    return !controls.isEmpty();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final Control removeControl(String oid)
-      throws NullPointerException
-  {
-    Validator.ensureNotNull(oid);
-
-    // Avoid creating an iterator if possible.
-    if (controls.isEmpty())
-    {
-      return null;
-    }
-
-    final Iterator<Control> iterator = controls.iterator();
-    while (iterator.hasNext())
-    {
-      final Control control = iterator.next();
-      if (control.getOID().equals(oid))
-      {
-        iterator.remove();
-        return control;
-      }
-    }
-
-    return null;
-  }
-
-
-
+  @Override
   public abstract String toString();
 
 

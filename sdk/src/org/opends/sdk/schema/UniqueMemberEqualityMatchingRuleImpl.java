@@ -34,16 +34,16 @@ import org.opends.sdk.ByteString;
 
 
 /**
- * This class implements the uniqueMemberMatch matching rule defined in
- * X.520 and referenced in RFC 2252. It is based on the name and
- * optional UID syntax, and will compare values with a distinguished
- * name and optional bit string suffix.
+ * This class implements the uniqueMemberMatch matching rule defined in X.520
+ * and referenced in RFC 2252. It is based on the name and optional UID syntax,
+ * and will compare values with a distinguished name and optional bit string
+ * suffix.
  */
 final class UniqueMemberEqualityMatchingRuleImpl extends
     AbstractMatchingRuleImpl
 {
-  public ByteString normalizeAttributeValue(Schema schema,
-      ByteSequence value)
+  public ByteString normalizeAttributeValue(final Schema schema,
+      final ByteSequence value)
   {
     return value.toByteString();
   }

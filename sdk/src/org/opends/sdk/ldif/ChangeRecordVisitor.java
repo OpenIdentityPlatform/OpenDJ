@@ -37,22 +37,21 @@ import org.opends.sdk.requests.ModifyRequest;
 
 
 /**
- * A visitor of {@code ChangeRecord}s, in the style of the visitor
- * design pattern.
+ * A visitor of {@code ChangeRecord}s, in the style of the visitor design
+ * pattern.
  * <p>
- * Classes implementing this interface can query change records in a
- * type-safe manner. When a visitor is passed to a change record's
- * accept method, the corresponding visit method most applicable to that
- * change record is invoked.
+ * Classes implementing this interface can query change records in a type-safe
+ * manner. When a visitor is passed to a change record's accept method, the
+ * corresponding visit method most applicable to that change record is invoked.
  *
  * @param <R>
  *          The return type of this visitor's methods. Use
- *          {@link java.lang.Void} for visitors that do not need to
- *          return results.
+ *          {@link java.lang.Void} for visitors that do not need to return
+ *          results.
  * @param <P>
- *          The type of the additional parameter to this visitor's
- *          methods. Use {@link java.lang.Void} for visitors that do not
- *          need an additional parameter.
+ *          The type of the additional parameter to this visitor's methods. Use
+ *          {@link java.lang.Void} for visitors that do not need an additional
+ *          parameter.
  */
 public interface ChangeRecordVisitor<R, P>
 {

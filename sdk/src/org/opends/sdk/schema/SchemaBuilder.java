@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.schema;
@@ -30,7 +30,13 @@ package org.opends.sdk.schema;
 
 
 import static com.sun.opends.sdk.messages.Messages.*;
-import static org.opends.sdk.schema.SchemaConstants.*;
+import static org.opends.sdk.schema.SchemaConstants.EXTENSIBLE_OBJECT_OBJECTCLASS_OID;
+import static org.opends.sdk.schema.SchemaConstants.OMR_GENERIC_ENUM_NAME;
+import static org.opends.sdk.schema.SchemaConstants.SCHEMA_PROPERTY_APPROX_RULE;
+import static org.opends.sdk.schema.SchemaConstants.TOP_OBJECTCLASS_NAME;
+import static org.opends.sdk.schema.SchemaUtils.unmodifiableCopyOfExtraProperties;
+import static org.opends.sdk.schema.SchemaUtils.unmodifiableCopyOfList;
+import static org.opends.sdk.schema.SchemaUtils.unmodifiableCopyOfSet;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -47,8 +53,7 @@ import com.sun.opends.sdk.util.Validator;
 
 
 /**
- * Schema builders should be used for incremental construction of new
- * schemas.
+ * Schema builders should be used for incremental construction of new schemas.
  */
 public final class SchemaBuilder
 {
@@ -111,15 +116,15 @@ public final class SchemaBuilder
 
 
   /**
-   * Creates a new schema builder containing all of the schema elements
-   * from the provided schema and its compatibility options.
-   * 
+   * Creates a new schema builder containing all of the schema elements from the
+   * provided schema and its compatibility options.
+   *
    * @param schema
    *          The initial contents of the schema builder.
    * @throws NullPointerException
    *           If {@code schema} was {@code null}.
    */
-  public SchemaBuilder(Schema schema) throws NullPointerException
+  public SchemaBuilder(final Schema schema) throws NullPointerException
   {
     initBuilder(schema.getSchemaName());
     setSchemaCompatOptions(schema.getSchemaCompatOptions());
@@ -131,12 +136,12 @@ public final class SchemaBuilder
   /**
    * Creates a new schema builder with no schema elements and default
    * compatibility options.
-   * 
+   *
    * @param schemaName
-   *          The user-friendly name of this schema which may be used
-   *          for debugging purposes.
+   *          The user-friendly name of this schema which may be used for
+   *          debugging purposes.
    */
-  public SchemaBuilder(String schemaName)
+  public SchemaBuilder(final String schemaName)
   {
     initBuilder(schemaName);
   }
@@ -145,25 +150,24 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided attribute type definition to this schema builder.
-   * 
+   *
    * @param definition
    *          The attribute type definition.
    * @param overwrite
-   *          {@code true} if any existing attribute type with the same
-   *          OID should be overwritten.
+   *          {@code true} if any existing attribute type with the same OID
+   *          should be overwritten.
    * @return A reference to this schema builder.
-   * @throws LocalizedIllegalArgumentException
-   *           If the provided attribute type definition could not be
-   *           parsed.
    * @throws ConflictingSchemaElementException
-   *           If {@code overwrite} was {@code false} and a conflicting
-   *           schema element was found.
+   *           If {@code overwrite} was {@code false} and a conflicting schema
+   *           element was found.
+   * @throws LocalizedIllegalArgumentException
+   *           If the provided attribute type definition could not be parsed.
    * @throws NullPointerException
    *           If {@code definition} was {@code null}.
    */
-  public SchemaBuilder addAttributeType(String definition,
-      boolean overwrite) throws LocalizedIllegalArgumentException,
-      ConflictingSchemaElementException
+  public SchemaBuilder addAttributeType(final String definition,
+      final boolean overwrite) throws ConflictingSchemaElementException,
+      LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(definition);
     try
@@ -213,8 +217,7 @@ public final class SchemaBuilder
       boolean isCollective = false;
       boolean isNoUserModification = false;
       AttributeUsage attributeUsage = AttributeUsage.USER_APPLICATIONS;
-      Map<String, List<String>> extraProperties = Collections
-          .emptyMap();
+      Map<String, List<String>> extraProperties = Collections.emptyMap();
 
       // At this point, we should have a pretty specific syntax that
       // describes what may come next, but some of the components are
@@ -368,8 +371,7 @@ public final class SchemaBuilder
           {
             extraProperties = new HashMap<String, List<String>>();
           }
-          extraProperties.put(tokenName, SchemaUtils
-              .readExtensions(reader));
+          extraProperties.put(tokenName, SchemaUtils.readExtensions(reader));
         }
         else
         {
@@ -386,19 +388,23 @@ public final class SchemaBuilder
         approximateMatchingRule = approxRules.get(0);
       }
 
-      final AttributeType attrType = new AttributeType(oid, names,
-          description, isObsolete, superiorType, equalityMatchingRule,
-          orderingMatchingRule, substringMatchingRule,
-          approximateMatchingRule, syntax, isSingleValue, isCollective,
-          isNoUserModification, attributeUsage, extraProperties,
-          definition);
+      if (!extraProperties.isEmpty())
+      {
+        extraProperties = Collections.unmodifiableMap(extraProperties);
+      }
+
+      final AttributeType attrType = new AttributeType(oid, names, description,
+          isObsolete, superiorType, equalityMatchingRule, orderingMatchingRule,
+          substringMatchingRule, approximateMatchingRule, syntax,
+          isSingleValue, isCollective, isNoUserModification, attributeUsage,
+          extraProperties, definition);
 
       addAttributeType(attrType, overwrite);
     }
     catch (final DecodeException e)
     {
-      throw new LocalizedIllegalArgumentException(e.getMessageObject(),
-          e.getCause());
+      throw new LocalizedIllegalArgumentException(e.getMessageObject(), e
+          .getCause());
     }
     return this;
   }
@@ -407,7 +413,7 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided attribute type definition to this schema builder.
-   * 
+   *
    * @param oid
    *          The OID of the attribute type definition.
    * @param names
@@ -420,63 +426,65 @@ public final class SchemaBuilder
    * @param superiorType
    *          The OID of the superior attribute type definition.
    * @param equalityMatchingRule
-   *          The OID of the equality matching rule, which may be
-   *          {@code null} indicating that the superior attribute type's
-   *          matching rule should be used or, if none is defined, the
-   *          default matching rule associated with the syntax.
+   *          The OID of the equality matching rule, which may be {@code null}
+   *          indicating that the superior attribute type's matching rule should
+   *          be used or, if none is defined, the default matching rule
+   *          associated with the syntax.
    * @param orderingMatchingRule
-   *          The OID of the ordering matching rule, which may be
-   *          {@code null} indicating that the superior attribute type's
-   *          matching rule should be used or, if none is defined, the
-   *          default matching rule associated with the syntax.
+   *          The OID of the ordering matching rule, which may be {@code null}
+   *          indicating that the superior attribute type's matching rule should
+   *          be used or, if none is defined, the default matching rule
+   *          associated with the syntax.
    * @param substringMatchingRule
-   *          The OID of the substring matching rule, which may be
-   *          {@code null} indicating that the superior attribute type's
-   *          matching rule should be used or, if none is defined, the
-   *          default matching rule associated with the syntax.
+   *          The OID of the substring matching rule, which may be {@code null}
+   *          indicating that the superior attribute type's matching rule should
+   *          be used or, if none is defined, the default matching rule
+   *          associated with the syntax.
    * @param approximateMatchingRule
-   *          The OID of the approximate matching rule, which may be
-   *          {@code null} indicating that the superior attribute type's
-   *          matching rule should be used or, if none is defined, the
-   *          default matching rule associated with the syntax.
+   *          The OID of the approximate matching rule, which may be {@code
+   *          null} indicating that the superior attribute type's matching rule
+   *          should be used or, if none is defined, the default matching rule
+   *          associated with the syntax.
    * @param syntax
    *          The OID of the syntax definition.
    * @param singleValue
-   *          {@code true} if the attribute type definition is
-   *          single-valued, otherwise {@code false}.
+   *          {@code true} if the attribute type definition is single-valued,
+   *          otherwise {@code false}.
    * @param collective
-   *          {@code true} if the attribute type definition is a
-   *          collective attribute, otherwise {@code false}.
+   *          {@code true} if the attribute type definition is a collective
+   *          attribute, otherwise {@code false}.
    * @param noUserModification
-   *          {@code true} if the attribute type definition is
-   *          read-only, otherwise {@code false}.
+   *          {@code true} if the attribute type definition is read-only,
+   *          otherwise {@code false}.
    * @param attributeUsage
    *          The intended use of the attribute type definition.
    * @param extraProperties
    *          A map containing additional properties associated with the
    *          attribute type definition.
    * @param overwrite
-   *          {@code true} if any existing attribute type with the same
-   *          OID should be overwritten.
+   *          {@code true} if any existing attribute type with the same OID
+   *          should be overwritten.
    * @return A reference to this schema builder.
    * @throws ConflictingSchemaElementException
-   *           If {@code overwrite} was {@code false} and a conflicting
-   *           schema element was found.
+   *           If {@code overwrite} was {@code false} and a conflicting schema
+   *           element was found.
    */
-  public SchemaBuilder addAttributeType(String oid, List<String> names,
-      String description, boolean obsolete, String superiorType,
-      String equalityMatchingRule, String orderingMatchingRule,
-      String substringMatchingRule, String approximateMatchingRule,
-      String syntax, boolean singleValue, boolean collective,
-      boolean noUserModification, AttributeUsage attributeUsage,
-      Map<String, List<String>> extraProperties, boolean overwrite)
+  public SchemaBuilder addAttributeType(final String oid,
+      final List<String> names, final String description,
+      final boolean obsolete, final String superiorType,
+      final String equalityMatchingRule, final String orderingMatchingRule,
+      final String substringMatchingRule, final String approximateMatchingRule,
+      final String syntax, final boolean singleValue, final boolean collective,
+      final boolean noUserModification, final AttributeUsage attributeUsage,
+      final Map<String, List<String>> extraProperties, final boolean overwrite)
       throws ConflictingSchemaElementException
   {
-    final AttributeType attrType = new AttributeType(oid, names,
-        description, obsolete, superiorType, equalityMatchingRule,
-        orderingMatchingRule, substringMatchingRule,
+    final AttributeType attrType = new AttributeType(oid,
+        unmodifiableCopyOfList(names), description, obsolete, superiorType,
+        equalityMatchingRule, orderingMatchingRule, substringMatchingRule,
         approximateMatchingRule, syntax, singleValue, collective,
-        noUserModification, attributeUsage, extraProperties, null);
+        noUserModification, attributeUsage,
+        unmodifiableCopyOfExtraProperties(extraProperties), null);
     addAttributeType(attrType, overwrite);
     return this;
   }
@@ -484,27 +492,25 @@ public final class SchemaBuilder
 
 
   /**
-   * Adds the provided DIT content rule definition to this schema
-   * builder.
-   * 
+   * Adds the provided DIT content rule definition to this schema builder.
+   *
    * @param definition
    *          The DIT content rule definition.
    * @param overwrite
-   *          {@code true} if any existing DIT content rule with the
-   *          same OID should be overwritten.
+   *          {@code true} if any existing DIT content rule with the same OID
+   *          should be overwritten.
    * @return A reference to this schema builder.
-   * @throws LocalizedIllegalArgumentException
-   *           If the provided DIT content rule definition could not be
-   *           parsed.
    * @throws ConflictingSchemaElementException
-   *           If {@code overwrite} was {@code false} and a conflicting
-   *           schema element was found.
+   *           If {@code overwrite} was {@code false} and a conflicting schema
+   *           element was found.
+   * @throws LocalizedIllegalArgumentException
+   *           If the provided DIT content rule definition could not be parsed.
    * @throws NullPointerException
    *           If {@code definition} was {@code null}.
    */
-  public SchemaBuilder addDITContentRule(String definition,
-      boolean overwrite) throws LocalizedIllegalArgumentException,
-      ConflictingSchemaElementException
+  public SchemaBuilder addDITContentRule(final String definition,
+      final boolean overwrite) throws ConflictingSchemaElementException,
+      LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(definition);
     try
@@ -548,8 +554,7 @@ public final class SchemaBuilder
       Set<String> optionalAttributes = Collections.emptySet();
       Set<String> prohibitedAttributes = Collections.emptySet();
       Set<String> requiredAttributes = Collections.emptySet();
-      Map<String, List<String>> extraProperties = Collections
-          .emptyMap();
+      Map<String, List<String>> extraProperties = Collections.emptyMap();
 
       // At this point, we should have a pretty specific syntax that
       // describes what may come next, but some of the components are
@@ -613,8 +618,7 @@ public final class SchemaBuilder
           {
             extraProperties = new HashMap<String, List<String>>();
           }
-          extraProperties.put(tokenName, SchemaUtils
-              .readExtensions(reader));
+          extraProperties.put(tokenName, SchemaUtils.readExtensions(reader));
         }
         else
         {
@@ -624,16 +628,20 @@ public final class SchemaBuilder
         }
       }
 
-      final DITContentRule rule = new DITContentRule(structuralClass,
-          names, description, isObsolete, auxiliaryClasses,
-          optionalAttributes, prohibitedAttributes, requiredAttributes,
-          extraProperties, definition);
+      if (!extraProperties.isEmpty())
+      {
+        extraProperties = Collections.unmodifiableMap(extraProperties);
+      }
+
+      final DITContentRule rule = new DITContentRule(structuralClass, names,
+          description, isObsolete, auxiliaryClasses, optionalAttributes,
+          prohibitedAttributes, requiredAttributes, extraProperties, definition);
       addDITContentRule(rule, overwrite);
     }
     catch (final DecodeException e)
     {
-      throw new LocalizedIllegalArgumentException(e.getMessageObject(),
-          e.getCause());
+      throw new LocalizedIllegalArgumentException(e.getMessageObject(), e
+          .getCause());
     }
     return this;
   }
@@ -641,54 +649,57 @@ public final class SchemaBuilder
 
 
   /**
-   * Adds the provided DIT content rule definition to this schema
-   * builder.
-   * 
+   * Adds the provided DIT content rule definition to this schema builder.
+   *
    * @param structuralClass
-   *          The name of the structural object class to which the DIT
-   *          content rule applies.
+   *          The name of the structural object class to which the DIT content
+   *          rule applies.
    * @param names
-   *          The user-friendly names of the DIT content rule
-   *          definition.
+   *          The user-friendly names of the DIT content rule definition.
    * @param description
    *          The description of the DIT content rule definition.
    * @param obsolete
-   *          {@code true} if the DIT content rule definition is
-   *          obsolete, otherwise {@code false}.
+   *          {@code true} if the DIT content rule definition is obsolete,
+   *          otherwise {@code false}.
    * @param auxiliaryClasses
-   *          A list of auxiliary object classes that entries subject to
-   *          the DIT content rule may belong to.
+   *          A list of auxiliary object classes that entries subject to the DIT
+   *          content rule may belong to.
    * @param optionalAttributes
-   *          A list of attribute types that entries subject to the DIT
-   *          content rule may contain.
+   *          A list of attribute types that entries subject to the DIT content
+   *          rule may contain.
    * @param prohibitedAttributes
-   *          A list of attribute types that entries subject to the DIT
-   *          content rule must not contain.
+   *          A list of attribute types that entries subject to the DIT content
+   *          rule must not contain.
    * @param requiredAttributes
-   *          A list of attribute types that entries subject to the DIT
-   *          content rule must contain.
+   *          A list of attribute types that entries subject to the DIT content
+   *          rule must contain.
    * @param extraProperties
-   *          A map containing additional properties associated with the
-   *          DIT content rule definition.
+   *          A map containing additional properties associated with the DIT
+   *          content rule definition.
    * @param overwrite
-   *          {@code true} if any existing DIT content rule with the
-   *          same OID should be overwritten.
+   *          {@code true} if any existing DIT content rule with the same OID
+   *          should be overwritten.
    * @return A reference to this schema builder.
    * @throws ConflictingSchemaElementException
-   *           If {@code overwrite} was {@code false} and a conflicting
-   *           schema element was found.
+   *           If {@code overwrite} was {@code false} and a conflicting schema
+   *           element was found.
    */
-  public SchemaBuilder addDITContentRule(String structuralClass,
-      List<String> names, String description, boolean obsolete,
-      Set<String> auxiliaryClasses, Set<String> optionalAttributes,
-      Set<String> prohibitedAttributes, Set<String> requiredAttributes,
-      Map<String, List<String>> extraProperties, boolean overwrite)
+  public SchemaBuilder addDITContentRule(final String structuralClass,
+      final List<String> names, final String description,
+      final boolean obsolete, final Set<String> auxiliaryClasses,
+      final Set<String> optionalAttributes,
+      final Set<String> prohibitedAttributes,
+      final Set<String> requiredAttributes,
+      final Map<String, List<String>> extraProperties, final boolean overwrite)
       throws ConflictingSchemaElementException
   {
     final DITContentRule rule = new DITContentRule(structuralClass,
-        names, description, obsolete, auxiliaryClasses,
-        optionalAttributes, prohibitedAttributes, requiredAttributes,
-        extraProperties, null);
+        unmodifiableCopyOfList(names), description, obsolete,
+        unmodifiableCopyOfSet(auxiliaryClasses),
+        unmodifiableCopyOfSet(optionalAttributes),
+        unmodifiableCopyOfSet(prohibitedAttributes),
+        unmodifiableCopyOfSet(requiredAttributes),
+        unmodifiableCopyOfExtraProperties(extraProperties), null);
     addDITContentRule(rule, overwrite);
     return this;
   }
@@ -696,43 +707,43 @@ public final class SchemaBuilder
 
 
   /**
-   * Adds the provided DIT structure rule definition to this schema
-   * builder.
-   * 
+   * Adds the provided DIT structure rule definition to this schema builder.
+   *
    * @param ruleID
    *          The rule identifier of the DIT structure rule.
    * @param names
-   *          The user-friendly names of the DIT structure rule
-   *          definition.
+   *          The user-friendly names of the DIT structure rule definition.
    * @param description
    *          The description of the DIT structure rule definition.
    * @param obsolete
-   *          {@code true} if the DIT structure rule definition is
-   *          obsolete, otherwise {@code false}.
+   *          {@code true} if the DIT structure rule definition is obsolete,
+   *          otherwise {@code false}.
    * @param nameForm
    *          The name form associated with the DIT structure rule.
    * @param superiorRules
    *          A list of superior rules (by rule id).
    * @param extraProperties
-   *          A map containing additional properties associated with the
-   *          DIT structure rule definition.
+   *          A map containing additional properties associated with the DIT
+   *          structure rule definition.
    * @param overwrite
-   *          {@code true} if any existing DIT structure rule with the
-   *          same OID should be overwritten.
+   *          {@code true} if any existing DIT structure rule with the same OID
+   *          should be overwritten.
    * @return A reference to this schema builder.
    * @throws ConflictingSchemaElementException
-   *           If {@code overwrite} was {@code false} and a conflicting
-   *           schema element was found.
+   *           If {@code overwrite} was {@code false} and a conflicting schema
+   *           element was found.
    */
-  public SchemaBuilder addDITStructureRule(Integer ruleID,
-      List<String> names, String description, boolean obsolete,
-      String nameForm, Set<Integer> superiorRules,
-      Map<String, List<String>> extraProperties, boolean overwrite)
+  public SchemaBuilder addDITStructureRule(final Integer ruleID,
+      final List<String> names, final String description,
+      final boolean obsolete, final String nameForm,
+      final Set<Integer> superiorRules,
+      final Map<String, List<String>> extraProperties, final boolean overwrite)
       throws ConflictingSchemaElementException
   {
-    final DITStructureRule rule = new DITStructureRule(ruleID, names,
-        description, obsolete, nameForm, superiorRules,
-        extraProperties, null);
+    final DITStructureRule rule = new DITStructureRule(ruleID,
+        unmodifiableCopyOfList(names), description, obsolete, nameForm,
+        unmodifiableCopyOfSet(superiorRules),
+        unmodifiableCopyOfExtraProperties(extraProperties), null);
     addDITStructureRule(rule, overwrite);
     return this;
   }
@@ -740,27 +751,26 @@ public final class SchemaBuilder
 
 
   /**
-   * Adds the provided DIT structure rule definition to this schema
-   * builder.
-   * 
+   * Adds the provided DIT structure rule definition to this schema builder.
+   *
    * @param definition
    *          The DIT structure rule definition.
    * @param overwrite
-   *          {@code true} if any existing DIT structure rule with the
-   *          same OID should be overwritten.
+   *          {@code true} if any existing DIT structure rule with the same OID
+   *          should be overwritten.
    * @return A reference to this schema builder.
-   * @throws LocalizedIllegalArgumentException
-   *           If the provided DIT structure rule definition could not
-   *           be parsed.
    * @throws ConflictingSchemaElementException
-   *           If {@code overwrite} was {@code false} and a conflicting
-   *           schema element was found.
+   *           If {@code overwrite} was {@code false} and a conflicting schema
+   *           element was found.
+   * @throws LocalizedIllegalArgumentException
+   *           If the provided DIT structure rule definition could not be
+   *           parsed.
    * @throws NullPointerException
    *           If {@code definition} was {@code null}.
    */
-  public SchemaBuilder addDITStructureRule(String definition,
-      boolean overwrite) throws LocalizedIllegalArgumentException,
-      ConflictingSchemaElementException
+  public SchemaBuilder addDITStructureRule(final String definition,
+      final boolean overwrite) throws ConflictingSchemaElementException,
+      LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(definition);
     try
@@ -802,8 +812,7 @@ public final class SchemaBuilder
       boolean isObsolete = false;
       String nameForm = null;
       Set<Integer> superiorRules = Collections.emptySet();
-      Map<String, List<String>> extraProperties = Collections
-          .emptyMap();
+      Map<String, List<String>> extraProperties = Collections.emptyMap();
 
       // At this point, we should have a pretty specific syntax that
       // describes what may come next, but some of the components are
@@ -859,8 +868,7 @@ public final class SchemaBuilder
           {
             extraProperties = new HashMap<String, List<String>>();
           }
-          extraProperties.put(tokenName, SchemaUtils
-              .readExtensions(reader));
+          extraProperties.put(tokenName, SchemaUtils.readExtensions(reader));
         }
         else
         {
@@ -877,15 +885,20 @@ public final class SchemaBuilder
         throw new LocalizedIllegalArgumentException(message);
       }
 
+      if (!extraProperties.isEmpty())
+      {
+        extraProperties = Collections.unmodifiableMap(extraProperties);
+      }
+
       final DITStructureRule rule = new DITStructureRule(ruleID, names,
-          description, isObsolete, nameForm, superiorRules,
-          extraProperties, definition);
+          description, isObsolete, nameForm, superiorRules, extraProperties,
+          definition);
       addDITStructureRule(rule, overwrite);
     }
     catch (final DecodeException e)
     {
-      throw new LocalizedIllegalArgumentException(e.getMessageObject(),
-          e.getCause());
+      throw new LocalizedIllegalArgumentException(e.getMessageObject(), e
+          .getCause());
     }
     return this;
   }
@@ -893,40 +906,38 @@ public final class SchemaBuilder
 
 
   /**
-   * Adds the provided enumeration syntax definition to this schema
-   * builder.
-   * 
+   * Adds the provided enumeration syntax definition to this schema builder.
+   *
    * @param oid
    *          The OID of the enumeration syntax definition.
    * @param description
    *          The description of the enumeration syntax definition.
    * @param overwrite
-   *          {@code true} if any existing syntax with the same OID
-   *          should be overwritten.
+   *          {@code true} if any existing syntax with the same OID should be
+   *          overwritten.
    * @param enumerations
-   *          The range of values which attribute values must match in
-   *          order to be valid.
+   *          The range of values which attribute values must match in order to
+   *          be valid.
    * @return A reference to this schema builder.
    * @throws ConflictingSchemaElementException
-   *           If {@code overwrite} was {@code false} and a conflicting
-   *           schema element was found.
+   *           If {@code overwrite} was {@code false} and a conflicting schema
+   *           element was found.
    */
-  public SchemaBuilder addEnumerationSyntax(String oid,
-      String description, boolean overwrite, String... enumerations)
-      throws ConflictingSchemaElementException
+  public SchemaBuilder addEnumerationSyntax(final String oid,
+      final String description, final boolean overwrite,
+      final String... enumerations) throws ConflictingSchemaElementException
   {
     Validator.ensureNotNull((Object) enumerations);
 
     final EnumSyntaxImpl enumImpl = new EnumSyntaxImpl(oid, Arrays
         .asList(enumerations));
     final Syntax enumSyntax = new Syntax(oid, description, Collections
-        .singletonMap("X-ENUM", Arrays.asList(enumerations)), null,
-        enumImpl);
+        .singletonMap("X-ENUM", Arrays.asList(enumerations)), null, enumImpl);
     final MatchingRule enumOMR = new MatchingRule(enumImpl
         .getOrderingMatchingRule(), Collections
         .singletonList(OMR_GENERIC_ENUM_NAME + oid), "", false, oid,
-        CoreSchemaImpl.OPENDS_ORIGIN, null,
-        new EnumOrderingMatchingRule(enumImpl));
+        CoreSchemaImpl.OPENDS_ORIGIN, null, new EnumOrderingMatchingRule(
+            enumImpl));
 
     addSyntax(enumSyntax, overwrite);
     try
@@ -944,25 +955,24 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided matching rule definition to this schema builder.
-   * 
+   *
    * @param definition
    *          The matching rule definition.
    * @param overwrite
-   *          {@code true} if any existing matching rule with the same
-   *          OID should be overwritten.
+   *          {@code true} if any existing matching rule with the same OID
+   *          should be overwritten.
    * @return A reference to this schema builder.
-   * @throws LocalizedIllegalArgumentException
-   *           If the provided matching rule definition could not be
-   *           parsed.
    * @throws ConflictingSchemaElementException
-   *           If {@code overwrite} was {@code false} and a conflicting
-   *           schema element was found.
+   *           If {@code overwrite} was {@code false} and a conflicting schema
+   *           element was found.
+   * @throws LocalizedIllegalArgumentException
+   *           If the provided matching rule definition could not be parsed.
    * @throws NullPointerException
    *           If {@code definition} was {@code null}.
    */
-  public SchemaBuilder addMatchingRule(String definition,
-      boolean overwrite) throws LocalizedIllegalArgumentException,
-      ConflictingSchemaElementException
+  public SchemaBuilder addMatchingRule(final String definition,
+      final boolean overwrite) throws ConflictingSchemaElementException,
+      LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(definition);
     try
@@ -977,8 +987,7 @@ public final class SchemaBuilder
       {
         // This means that the value was empty or contained only
         // whitespace. That is illegal.
-        final LocalizableMessage message = ERR_ATTR_SYNTAX_MR_EMPTY_VALUE
-            .get();
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_MR_EMPTY_VALUE.get();
         throw new LocalizedIllegalArgumentException(message);
       }
 
@@ -1003,8 +1012,7 @@ public final class SchemaBuilder
       String description = "".intern();
       boolean isObsolete = false;
       String syntax = null;
-      Map<String, List<String>> extraProperties = Collections
-          .emptyMap();
+      Map<String, List<String>> extraProperties = Collections.emptyMap();
 
       // At this point, we should have a pretty specific syntax that
       // describes what may come next, but some of the components are
@@ -1056,8 +1064,7 @@ public final class SchemaBuilder
           {
             extraProperties = new HashMap<String, List<String>>();
           }
-          extraProperties.put(tokenName, SchemaUtils
-              .readExtensions(reader));
+          extraProperties.put(tokenName, SchemaUtils.readExtensions(reader));
         }
         else
         {
@@ -1075,14 +1082,18 @@ public final class SchemaBuilder
         throw new LocalizedIllegalArgumentException(message);
       }
 
-      addMatchingRule(new MatchingRule(oid, names, description,
-          isObsolete, syntax, extraProperties, definition, null),
-          overwrite);
+      if (!extraProperties.isEmpty())
+      {
+        extraProperties = Collections.unmodifiableMap(extraProperties);
+      }
+
+      addMatchingRule(new MatchingRule(oid, names, description, isObsolete,
+          syntax, extraProperties, definition, null), overwrite);
     }
     catch (final DecodeException e)
     {
-      throw new LocalizedIllegalArgumentException(e.getMessageObject(),
-          e.getCause());
+      throw new LocalizedIllegalArgumentException(e.getMessageObject(), e
+          .getCause());
     }
     return this;
   }
@@ -1091,7 +1102,7 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided matching rule definition to this schema builder.
-   * 
+   *
    * @param oid
    *          The OID of the matching rule definition.
    * @param names
@@ -1109,22 +1120,24 @@ public final class SchemaBuilder
    * @param implementation
    *          The implementation of the matching rule.
    * @param overwrite
-   *          {@code true} if any existing matching rule with the same
-   *          OID should be overwritten.
+   *          {@code true} if any existing matching rule with the same OID
+   *          should be overwritten.
    * @return A reference to this schema builder.
    * @throws ConflictingSchemaElementException
-   *           If {@code overwrite} was {@code false} and a conflicting
-   *           schema element was found.
+   *           If {@code overwrite} was {@code false} and a conflicting schema
+   *           element was found.
    */
-  public SchemaBuilder addMatchingRule(String oid, List<String> names,
-      String description, boolean obsolete, String assertionSyntax,
-      Map<String, List<String>> extraProperties,
-      MatchingRuleImpl implementation, boolean overwrite)
+  public SchemaBuilder addMatchingRule(final String oid,
+      final List<String> names, final String description,
+      final boolean obsolete, final String assertionSyntax,
+      final Map<String, List<String>> extraProperties,
+      final MatchingRuleImpl implementation, final boolean overwrite)
       throws ConflictingSchemaElementException
   {
     Validator.ensureNotNull(implementation);
-    final MatchingRule matchingRule = new MatchingRule(oid, names,
-        description, obsolete, assertionSyntax, extraProperties, null,
+    final MatchingRule matchingRule = new MatchingRule(oid,
+        unmodifiableCopyOfList(names), description, obsolete, assertionSyntax,
+        unmodifiableCopyOfExtraProperties(extraProperties), null,
         implementation);
     addMatchingRule(matchingRule, overwrite);
     return this;
@@ -1133,27 +1146,25 @@ public final class SchemaBuilder
 
 
   /**
-   * Adds the provided matching rule use definition to this schema
-   * builder.
-   * 
+   * Adds the provided matching rule use definition to this schema builder.
+   *
    * @param definition
    *          The matching rule use definition.
    * @param overwrite
-   *          {@code true} if any existing matching rule use with the
-   *          same OID should be overwritten.
+   *          {@code true} if any existing matching rule use with the same OID
+   *          should be overwritten.
    * @return A reference to this schema builder.
-   * @throws LocalizedIllegalArgumentException
-   *           If the provided matching rule use definition could not be
-   *           parsed.
    * @throws ConflictingSchemaElementException
-   *           If {@code overwrite} was {@code false} and a conflicting
-   *           schema element was found.
+   *           If {@code overwrite} was {@code false} and a conflicting schema
+   *           element was found.
+   * @throws LocalizedIllegalArgumentException
+   *           If the provided matching rule use definition could not be parsed.
    * @throws NullPointerException
    *           If {@code definition} was {@code null}.
    */
-  public SchemaBuilder addMatchingRuleUse(String definition,
-      boolean overwrite) throws LocalizedIllegalArgumentException,
-      ConflictingSchemaElementException
+  public SchemaBuilder addMatchingRuleUse(final String definition,
+      final boolean overwrite) throws ConflictingSchemaElementException,
+      LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(definition);
     try
@@ -1194,8 +1205,7 @@ public final class SchemaBuilder
       String description = "".intern();
       boolean isObsolete = false;
       Set<String> attributes = null;
-      Map<String, List<String>> extraProperties = Collections
-          .emptyMap();
+      Map<String, List<String>> extraProperties = Collections.emptyMap();
 
       // At this point, we should have a pretty specific syntax that
       // describes what may come next, but some of the components are
@@ -1247,8 +1257,7 @@ public final class SchemaBuilder
           {
             extraProperties = new HashMap<String, List<String>>();
           }
-          extraProperties.put(tokenName, SchemaUtils
-              .readExtensions(reader));
+          extraProperties.put(tokenName, SchemaUtils.readExtensions(reader));
         }
         else
         {
@@ -1266,15 +1275,19 @@ public final class SchemaBuilder
         throw new LocalizedIllegalArgumentException(message);
       }
 
-      final MatchingRuleUse use = new MatchingRuleUse(oid, names,
-          description, isObsolete, attributes, extraProperties,
-          definition);
+      if (!extraProperties.isEmpty())
+      {
+        extraProperties = Collections.unmodifiableMap(extraProperties);
+      }
+
+      final MatchingRuleUse use = new MatchingRuleUse(oid, names, description,
+          isObsolete, attributes, extraProperties, definition);
       addMatchingRuleUse(use, overwrite);
     }
     catch (final DecodeException e)
     {
-      throw new LocalizedIllegalArgumentException(e.getMessageObject(),
-          e.getCause());
+      throw new LocalizedIllegalArgumentException(e.getMessageObject(), e
+          .getCause());
     }
     return this;
   }
@@ -1282,40 +1295,40 @@ public final class SchemaBuilder
 
 
   /**
-   * Adds the provided matching rule use definition to this schema
-   * builder.
-   * 
+   * Adds the provided matching rule use definition to this schema builder.
+   *
    * @param oid
    *          The OID of the matching rule use definition.
    * @param names
-   *          The user-friendly names of the matching rule use
-   *          definition.
+   *          The user-friendly names of the matching rule use definition.
    * @param description
    *          The description of the matching rule use definition.
    * @param obsolete
-   *          {@code true} if the matching rule use definition is
-   *          obsolete, otherwise {@code false}.
+   *          {@code true} if the matching rule use definition is obsolete,
+   *          otherwise {@code false}.
    * @param attributeOIDs
    *          The list of attribute types the matching rule applies to.
    * @param extraProperties
    *          A map containing additional properties associated with the
    *          matching rule use definition.
    * @param overwrite
-   *          {@code true} if any existing matching rule use with the
-   *          same OID should be overwritten.
+   *          {@code true} if any existing matching rule use with the same OID
+   *          should be overwritten.
    * @return A reference to this schema builder.
    * @throws ConflictingSchemaElementException
-   *           If {@code overwrite} was {@code false} and a conflicting
-   *           schema element was found.
+   *           If {@code overwrite} was {@code false} and a conflicting schema
+   *           element was found.
    */
-  public SchemaBuilder addMatchingRuleUse(String oid,
-      List<String> names, String description, boolean obsolete,
-      Set<String> attributeOIDs,
-      Map<String, List<String>> extraProperties, boolean overwrite)
+  public SchemaBuilder addMatchingRuleUse(final String oid,
+      final List<String> names, final String description,
+      final boolean obsolete, final Set<String> attributeOIDs,
+      final Map<String, List<String>> extraProperties, final boolean overwrite)
       throws ConflictingSchemaElementException
   {
-    final MatchingRuleUse use = new MatchingRuleUse(oid, names,
-        description, obsolete, attributeOIDs, extraProperties, null);
+    final MatchingRuleUse use = new MatchingRuleUse(oid,
+        unmodifiableCopyOfList(names), description, obsolete,
+        unmodifiableCopyOfSet(attributeOIDs),
+        unmodifiableCopyOfExtraProperties(extraProperties), null);
     addMatchingRuleUse(use, overwrite);
     return this;
   }
@@ -1324,24 +1337,24 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided name form definition to this schema builder.
-   * 
+   *
    * @param definition
    *          The name form definition.
    * @param overwrite
-   *          {@code true} if any existing name form with the same OID
-   *          should be overwritten.
+   *          {@code true} if any existing name form with the same OID should be
+   *          overwritten.
    * @return A reference to this schema builder.
+   * @throws ConflictingSchemaElementException
+   *           If {@code overwrite} was {@code false} and a conflicting schema
+   *           element was found.
    * @throws LocalizedIllegalArgumentException
    *           If the provided name form definition could not be parsed.
-   * @throws ConflictingSchemaElementException
-   *           If {@code overwrite} was {@code false} and a conflicting
-   *           schema element was found.
    * @throws NullPointerException
    *           If {@code definition} was {@code null}.
    */
-  public SchemaBuilder addNameForm(String definition, boolean overwrite)
-      throws LocalizedIllegalArgumentException,
-      ConflictingSchemaElementException
+  public SchemaBuilder addNameForm(final String definition,
+      final boolean overwrite) throws ConflictingSchemaElementException,
+      LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(definition);
     try
@@ -1384,8 +1397,7 @@ public final class SchemaBuilder
       String structuralClass = null;
       Set<String> optionalAttributes = Collections.emptySet();
       Set<String> requiredAttributes = null;
-      Map<String, List<String>> extraProperties = Collections
-          .emptyMap();
+      Map<String, List<String>> extraProperties = Collections.emptyMap();
 
       // At this point, we should have a pretty specific syntax that
       // describes what may come next, but some of the components are
@@ -1445,8 +1457,7 @@ public final class SchemaBuilder
           {
             extraProperties = new HashMap<String, List<String>>();
           }
-          extraProperties.put(tokenName, SchemaUtils
-              .readExtensions(reader));
+          extraProperties.put(tokenName, SchemaUtils.readExtensions(reader));
         }
         else
         {
@@ -1472,15 +1483,20 @@ public final class SchemaBuilder
         throw new LocalizedIllegalArgumentException(message);
       }
 
+      if (!extraProperties.isEmpty())
+      {
+        extraProperties = Collections.unmodifiableMap(extraProperties);
+      }
+
       final NameForm nameForm = new NameForm(oid, names, description,
-          isObsolete, structuralClass, requiredAttributes,
-          optionalAttributes, extraProperties, definition);
+          isObsolete, structuralClass, requiredAttributes, optionalAttributes,
+          extraProperties, definition);
       addNameForm(nameForm, overwrite);
     }
     catch (final DecodeException e)
     {
-      throw new LocalizedIllegalArgumentException(e.getMessageObject(),
-          e.getCause());
+      throw new LocalizedIllegalArgumentException(e.getMessageObject(), e
+          .getCause());
     }
     return this;
   }
@@ -1489,7 +1505,7 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided name form definition to this schema builder.
-   * 
+   *
    * @param oid
    *          The OID of the name form definition.
    * @param names
@@ -1497,36 +1513,39 @@ public final class SchemaBuilder
    * @param description
    *          The description of the name form definition.
    * @param obsolete
-   *          {@code true} if the name form definition is obsolete,
-   *          otherwise {@code false}.
+   *          {@code true} if the name form definition is obsolete, otherwise
+   *          {@code false}.
    * @param structuralClass
    *          The structural object class this rule applies to.
    * @param requiredAttributes
-   *          A list of naming attribute types that entries subject to
-   *          the name form must contain.
+   *          A list of naming attribute types that entries subject to the name
+   *          form must contain.
    * @param optionalAttributes
-   *          A list of naming attribute types that entries subject to
-   *          the name form may contain.
+   *          A list of naming attribute types that entries subject to the name
+   *          form may contain.
    * @param extraProperties
-   *          A map containing additional properties associated with the
-   *          name form definition.
+   *          A map containing additional properties associated with the name
+   *          form definition.
    * @param overwrite
-   *          {@code true} if any existing name form use with the same
-   *          OID should be overwritten.
+   *          {@code true} if any existing name form use with the same OID
+   *          should be overwritten.
    * @return A reference to this schema builder.
    * @throws ConflictingSchemaElementException
-   *           If {@code overwrite} was {@code false} and a conflicting
-   *           schema element was found.
+   *           If {@code overwrite} was {@code false} and a conflicting schema
+   *           element was found.
    */
-  public SchemaBuilder addNameForm(String oid, List<String> names,
-      String description, boolean obsolete, String structuralClass,
-      Set<String> requiredAttributes, Set<String> optionalAttributes,
-      Map<String, List<String>> extraProperties, boolean overwrite)
+  public SchemaBuilder addNameForm(final String oid, final List<String> names,
+      final String description, final boolean obsolete,
+      final String structuralClass, final Set<String> requiredAttributes,
+      final Set<String> optionalAttributes,
+      final Map<String, List<String>> extraProperties, final boolean overwrite)
       throws ConflictingSchemaElementException
   {
-    final NameForm nameForm = new NameForm(oid, names, description,
-        obsolete, structuralClass, requiredAttributes,
-        optionalAttributes, extraProperties, null);
+    final NameForm nameForm = new NameForm(oid, unmodifiableCopyOfList(names),
+        description, obsolete, structuralClass,
+        unmodifiableCopyOfSet(requiredAttributes),
+        unmodifiableCopyOfSet(optionalAttributes),
+        unmodifiableCopyOfExtraProperties(extraProperties), null);
     addNameForm(nameForm, overwrite);
     return this;
   }
@@ -1535,25 +1554,24 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided object class definition to this schema builder.
-   * 
+   *
    * @param definition
    *          The object class definition.
    * @param overwrite
-   *          {@code true} if any existing object class with the same
-   *          OID should be overwritten.
+   *          {@code true} if any existing object class with the same OID should
+   *          be overwritten.
    * @return A reference to this schema builder.
-   * @throws LocalizedIllegalArgumentException
-   *           If the provided object class definition could not be
-   *           parsed.
    * @throws ConflictingSchemaElementException
-   *           If {@code overwrite} was {@code false} and a conflicting
-   *           schema element was found.
+   *           If {@code overwrite} was {@code false} and a conflicting schema
+   *           element was found.
+   * @throws LocalizedIllegalArgumentException
+   *           If the provided object class definition could not be parsed.
    * @throws NullPointerException
    *           If {@code definition} was {@code null}.
    */
-  public SchemaBuilder addObjectClass(String definition,
-      boolean overwrite) throws LocalizedIllegalArgumentException,
-      ConflictingSchemaElementException
+  public SchemaBuilder addObjectClass(final String definition,
+      final boolean overwrite) throws ConflictingSchemaElementException,
+      LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(definition);
     try
@@ -1597,8 +1615,7 @@ public final class SchemaBuilder
       Set<String> requiredAttributes = Collections.emptySet();
       Set<String> optionalAttributes = Collections.emptySet();
       ObjectClassType objectClassType = ObjectClassType.STRUCTURAL;
-      Map<String, List<String>> extraProperties = Collections
-          .emptyMap();
+      Map<String, List<String>> extraProperties = Collections.emptyMap();
 
       // At this point, we should have a pretty specific syntax that
       // describes what may come next, but some of the components are
@@ -1678,8 +1695,7 @@ public final class SchemaBuilder
           {
             extraProperties = new HashMap<String, List<String>>();
           }
-          extraProperties.put(tokenName, SchemaUtils
-              .readExtensions(reader));
+          extraProperties.put(tokenName, SchemaUtils.readExtensions(reader));
         }
         else
         {
@@ -1691,8 +1707,7 @@ public final class SchemaBuilder
 
       if (oid.equals(EXTENSIBLE_OBJECT_OBJECTCLASS_OID))
       {
-        addObjectClass(new ObjectClass(description, extraProperties),
-            overwrite);
+        addObjectClass(new ObjectClass(description, extraProperties), overwrite);
       }
       else
       {
@@ -1702,16 +1717,20 @@ public final class SchemaBuilder
           superiorClasses = Collections.singleton(TOP_OBJECTCLASS_NAME);
         }
 
-        addObjectClass(new ObjectClass(oid, names, description,
-            isObsolete, superiorClasses, requiredAttributes,
-            optionalAttributes, objectClassType, extraProperties,
-            definition), overwrite);
+        if (!extraProperties.isEmpty())
+        {
+          extraProperties = Collections.unmodifiableMap(extraProperties);
+        }
+
+        addObjectClass(new ObjectClass(oid, names, description, isObsolete,
+            superiorClasses, requiredAttributes, optionalAttributes,
+            objectClassType, extraProperties, definition), overwrite);
       }
     }
     catch (final DecodeException e)
     {
-      throw new LocalizedIllegalArgumentException(e.getMessageObject(),
-          e.getCause());
+      throw new LocalizedIllegalArgumentException(e.getMessageObject(), e
+          .getCause());
     }
     return this;
   }
@@ -1720,7 +1739,7 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided object class definition to this schema builder.
-   * 
+   *
    * @param oid
    *          The OID of the object class definition.
    * @param names
@@ -1728,8 +1747,8 @@ public final class SchemaBuilder
    * @param description
    *          The description of the object class definition.
    * @param obsolete
-   *          {@code true} if the object class definition is obsolete,
-   *          otherwise {@code false}.
+   *          {@code true} if the object class definition is obsolete, otherwise
+   *          {@code false}.
    * @param superiorClassOIDs
    *          A list of direct superclasses of the object class.
    * @param requiredAttributeOIDs
@@ -1739,28 +1758,29 @@ public final class SchemaBuilder
    * @param objectClassType
    *          The type of the object class.
    * @param extraProperties
-   *          A map containing additional properties associated with the
-   *          object class definition.
+   *          A map containing additional properties associated with the object
+   *          class definition.
    * @param overwrite
-   *          {@code true} if any existing object class with the same
-   *          OID should be overwritten.
+   *          {@code true} if any existing object class with the same OID should
+   *          be overwritten.
    * @return A reference to this schema builder.
    * @throws ConflictingSchemaElementException
-   *           If {@code overwrite} was {@code false} and a conflicting
-   *           schema element was found.
+   *           If {@code overwrite} was {@code false} and a conflicting schema
+   *           element was found.
    */
-  public SchemaBuilder addObjectClass(String oid, List<String> names,
-      String description, boolean obsolete,
-      Set<String> superiorClassOIDs, Set<String> requiredAttributeOIDs,
-      Set<String> optionalAttributeOIDs,
-      ObjectClassType objectClassType,
-      Map<String, List<String>> extraProperties, boolean overwrite)
+  public SchemaBuilder addObjectClass(final String oid,
+      final List<String> names, final String description,
+      final boolean obsolete, Set<String> superiorClassOIDs,
+      final Set<String> requiredAttributeOIDs,
+      final Set<String> optionalAttributeOIDs,
+      final ObjectClassType objectClassType,
+      final Map<String, List<String>> extraProperties, final boolean overwrite)
       throws ConflictingSchemaElementException
   {
     if (oid.equals(EXTENSIBLE_OBJECT_OBJECTCLASS_OID))
     {
-      addObjectClass(new ObjectClass(description, extraProperties),
-          overwrite);
+      addObjectClass(new ObjectClass(description,
+          unmodifiableCopyOfExtraProperties(extraProperties)), overwrite);
     }
     else
     {
@@ -1770,11 +1790,11 @@ public final class SchemaBuilder
         superiorClassOIDs = Collections.singleton(TOP_OBJECTCLASS_NAME);
       }
 
-      addObjectClass(
-          new ObjectClass(oid, names, description, obsolete,
-              superiorClassOIDs, requiredAttributeOIDs,
-              optionalAttributeOIDs, objectClassType, extraProperties,
-              null), overwrite);
+      addObjectClass(new ObjectClass(oid, unmodifiableCopyOfList(names),
+          description, obsolete, unmodifiableCopyOfSet(superiorClassOIDs),
+          unmodifiableCopyOfSet(requiredAttributeOIDs),
+          unmodifiableCopyOfSet(optionalAttributeOIDs), objectClassType,
+          unmodifiableCopyOfExtraProperties(extraProperties), null), overwrite);
     }
     return this;
   }
@@ -1783,53 +1803,54 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided pattern syntax definition to this schema builder.
-   * 
+   *
    * @param oid
    *          The OID of the pattern syntax definition.
    * @param description
    *          The description of the pattern syntax definition.
    * @param pattern
-   *          The regular expression pattern which attribute values must
-   *          match in order to be valid.
+   *          The regular expression pattern which attribute values must match
+   *          in order to be valid.
    * @param overwrite
-   *          {@code true} if any existing syntax with the same OID
-   *          should be overwritten.
+   *          {@code true} if any existing syntax with the same OID should be
+   *          overwritten.
    * @return A reference to this schema builder.
    * @throws ConflictingSchemaElementException
-   *           If {@code overwrite} was {@code false} and a conflicting
-   *           schema element was found.
+   *           If {@code overwrite} was {@code false} and a conflicting schema
+   *           element was found.
    */
-  public SchemaBuilder addPatternSyntax(String oid, String description,
-      Pattern pattern, boolean overwrite)
+  public SchemaBuilder addPatternSyntax(final String oid,
+      final String description, final Pattern pattern, final boolean overwrite)
       throws ConflictingSchemaElementException
   {
     Validator.ensureNotNull(pattern);
 
-    addSyntax(new Syntax(oid, description, Collections.singletonMap(
-        "X-PATTERN", Collections.singletonList(pattern.toString())),
-        null, null), overwrite);
+    addSyntax(
+        new Syntax(oid, description, Collections.singletonMap("X-PATTERN",
+            Collections.singletonList(pattern.toString())), null, null),
+        overwrite);
     return this;
   }
 
 
 
   /**
-   * Adds all of the schema elements in the provided schema to this
-   * schema builder.
-   * 
+   * Adds all of the schema elements in the provided schema to this schema
+   * builder.
+   *
    * @param schema
    *          The schema to be copied into this schema builder.
    * @param overwrite
-   *          {@code true} if existing schema elements with the same
-   *          conflicting OIDs should be overwritten.
+   *          {@code true} if existing schema elements with the same conflicting
+   *          OIDs should be overwritten.
    * @return A reference to this schema builder.
    * @throws ConflictingSchemaElementException
-   *           If {@code overwrite} was {@code false} and conflicting
-   *           schema elements were found.
+   *           If {@code overwrite} was {@code false} and conflicting schema
+   *           elements were found.
    * @throws NullPointerException
    *           If {@code schema} was {@code null}.
    */
-  public SchemaBuilder addSchema(Schema schema, boolean overwrite)
+  public SchemaBuilder addSchema(final Schema schema, final boolean overwrite)
       throws ConflictingSchemaElementException, NullPointerException
   {
     Validator.ensureNotNull(schema);
@@ -1843,8 +1864,7 @@ public final class SchemaBuilder
       addMatchingRule(matchingRule.duplicate(), overwrite);
     }
 
-    for (final MatchingRuleUse matchingRuleUse : schema
-        .getMatchingRuleUses())
+    for (final MatchingRuleUse matchingRuleUse : schema.getMatchingRuleUses())
     {
       addMatchingRuleUse(matchingRuleUse.duplicate(), overwrite);
     }
@@ -1869,8 +1889,7 @@ public final class SchemaBuilder
       addDITContentRule(contentRule.duplicate(), overwrite);
     }
 
-    for (final DITStructureRule structureRule : schema
-        .getDITStuctureRules())
+    for (final DITStructureRule structureRule : schema.getDITStuctureRules())
     {
       addDITStructureRule(structureRule.duplicate(), overwrite);
     }
@@ -1881,33 +1900,30 @@ public final class SchemaBuilder
 
 
   /**
-   * Adds the provided substitution syntax definition to this schema
-   * builder.
-   * 
+   * Adds the provided substitution syntax definition to this schema builder.
+   *
    * @param oid
    *          The OID of the substitution syntax definition.
    * @param description
    *          The description of the substitution syntax definition.
    * @param substituteSyntax
-   *          The OID of the syntax whose implementation should be
-   *          substituted.
+   *          The OID of the syntax whose implementation should be substituted.
    * @param overwrite
-   *          {@code true} if any existing syntax with the same OID
-   *          should be overwritten.
+   *          {@code true} if any existing syntax with the same OID should be
+   *          overwritten.
    * @return A reference to this schema builder.
    * @throws ConflictingSchemaElementException
-   *           If {@code overwrite} was {@code false} and a conflicting
-   *           schema element was found.
+   *           If {@code overwrite} was {@code false} and a conflicting schema
+   *           element was found.
    */
-  public SchemaBuilder addSubstitutionSyntax(String oid,
-      String description, String substituteSyntax, boolean overwrite)
-      throws ConflictingSchemaElementException
+  public SchemaBuilder addSubstitutionSyntax(final String oid,
+      final String description, final String substituteSyntax,
+      final boolean overwrite) throws ConflictingSchemaElementException
   {
     Validator.ensureNotNull(substituteSyntax);
 
-    addSyntax(new Syntax(oid, description, Collections.singletonMap(
-        "X-SUBST", Collections.singletonList(substituteSyntax)), null,
-        null), overwrite);
+    addSyntax(new Syntax(oid, description, Collections.singletonMap("X-SUBST",
+        Collections.singletonList(substituteSyntax)), null, null), overwrite);
     return this;
   }
 
@@ -1915,24 +1931,24 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided syntax definition to this schema builder.
-   * 
+   *
    * @param definition
    *          The syntax definition.
    * @param overwrite
-   *          {@code true} if any existing syntax with the same OID
-   *          should be overwritten.
+   *          {@code true} if any existing syntax with the same OID should be
+   *          overwritten.
    * @return A reference to this schema builder.
+   * @throws ConflictingSchemaElementException
+   *           If {@code overwrite} was {@code false} and a conflicting schema
+   *           element was found.
    * @throws LocalizedIllegalArgumentException
    *           If the provided syntax definition could not be parsed.
-   * @throws ConflictingSchemaElementException
-   *           If {@code overwrite} was {@code false} and a conflicting
-   *           schema element was found.
    * @throws NullPointerException
    *           If {@code definition} was {@code null}.
    */
-  public SchemaBuilder addSyntax(String definition, boolean overwrite)
-      throws LocalizedIllegalArgumentException,
-      ConflictingSchemaElementException
+  public SchemaBuilder addSyntax(final String definition,
+      final boolean overwrite) throws ConflictingSchemaElementException,
+      LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(definition);
     try
@@ -1970,8 +1986,7 @@ public final class SchemaBuilder
       final String oid = SchemaUtils.readOID(reader);
 
       String description = "".intern();
-      Map<String, List<String>> extraProperties = Collections
-          .emptyMap();
+      Map<String, List<String>> extraProperties = Collections.emptyMap();
 
       // At this point, we should have a pretty specific syntax that
       // describes what may come next, but some of the components are
@@ -2007,8 +2022,7 @@ public final class SchemaBuilder
           {
             extraProperties = new HashMap<String, List<String>>();
           }
-          extraProperties.put(tokenName, SchemaUtils
-              .readExtensions(reader));
+          extraProperties.put(tokenName, SchemaUtils.readExtensions(reader));
         }
         else
         {
@@ -2018,21 +2032,26 @@ public final class SchemaBuilder
         }
       }
 
+      if (!extraProperties.isEmpty())
+      {
+        extraProperties = Collections.unmodifiableMap(extraProperties);
+      }
+
       // See if it is a enum syntax
       for (final Map.Entry<String, List<String>> property : extraProperties
           .entrySet())
       {
         if (property.getKey().equalsIgnoreCase("x-enum"))
         {
-          final EnumSyntaxImpl enumImpl = new EnumSyntaxImpl(oid,
-              property.getValue());
+          final EnumSyntaxImpl enumImpl = new EnumSyntaxImpl(oid, property
+              .getValue());
           final Syntax enumSyntax = new Syntax(oid, description,
               extraProperties, definition, enumImpl);
           final MatchingRule enumOMR = new MatchingRule(enumImpl
               .getOrderingMatchingRule(), Collections
-              .singletonList(OMR_GENERIC_ENUM_NAME + oid), "", false,
-              oid, CoreSchemaImpl.OPENDS_ORIGIN, null,
-              new EnumOrderingMatchingRule(enumImpl));
+              .singletonList(OMR_GENERIC_ENUM_NAME + oid), "", false, oid,
+              CoreSchemaImpl.OPENDS_ORIGIN, null, new EnumOrderingMatchingRule(
+                  enumImpl));
 
           addSyntax(enumSyntax, overwrite);
           addMatchingRule(enumOMR, overwrite);
@@ -2040,13 +2059,14 @@ public final class SchemaBuilder
         }
       }
 
-      addSyntax(new Syntax(oid, description, extraProperties,
-          definition, null), overwrite);
+      addSyntax(
+          new Syntax(oid, description, extraProperties, definition, null),
+          overwrite);
     }
     catch (final DecodeException e)
     {
-      throw new LocalizedIllegalArgumentException(e.getMessageObject(),
-          e.getCause());
+      throw new LocalizedIllegalArgumentException(e.getMessageObject(), e
+          .getCause());
     }
     return this;
   }
@@ -2055,32 +2075,33 @@ public final class SchemaBuilder
 
   /**
    * Adds the provided syntax definition to this schema builder.
-   * 
+   *
    * @param oid
    *          The OID of the syntax definition.
    * @param description
    *          The description of the syntax definition.
    * @param extraProperties
-   *          A map containing additional properties associated with the
-   *          syntax definition.
+   *          A map containing additional properties associated with the syntax
+   *          definition.
    * @param implementation
    *          The implementation of the syntax.
    * @param overwrite
-   *          {@code true} if any existing syntax with the same OID
-   *          should be overwritten.
+   *          {@code true} if any existing syntax with the same OID should be
+   *          overwritten.
    * @return A reference to this schema builder.
    * @throws ConflictingSchemaElementException
-   *           If {@code overwrite} was {@code false} and a conflicting
-   *           schema element was found.
+   *           If {@code overwrite} was {@code false} and a conflicting schema
+   *           element was found.
    * @throws NullPointerException
    *           If {@code definition} was {@code null}.
    */
-  public SchemaBuilder addSyntax(String oid, String description,
-      Map<String, List<String>> extraProperties,
-      SyntaxImpl implementation, boolean overwrite)
-      throws ConflictingSchemaElementException
+  public SchemaBuilder addSyntax(final String oid, final String description,
+      final Map<String, List<String>> extraProperties,
+      final SyntaxImpl implementation, final boolean overwrite)
+      throws ConflictingSchemaElementException, NullPointerException
   {
-    addSyntax(new Syntax(oid, description, extraProperties, null,
+    addSyntax(new Syntax(oid, description,
+        unmodifiableCopyOfExtraProperties(extraProperties), null,
         implementation), overwrite);
     return this;
   }
@@ -2089,12 +2110,12 @@ public final class SchemaBuilder
 
   /**
    * Removes the named attribute type from this schema builder.
-   * 
+   *
    * @param name
    *          The name or OID of the attribute type to be removed.
    * @return {@code true} if the attribute type was found.
    */
-  public boolean removeAttributeType(String name)
+  public boolean removeAttributeType(final String name)
   {
     if (schema.hasAttributeType(name))
     {
@@ -2108,12 +2129,12 @@ public final class SchemaBuilder
 
   /**
    * Removes the named DIT content rule from this schema builder.
-   * 
+   *
    * @param name
    *          The name or OID of the DIT content rule to be removed.
    * @return {@code true} if the DIT content rule was found.
    */
-  public boolean removeDITContentRule(String name)
+  public boolean removeDITContentRule(final String name)
   {
     if (schema.hasDITContentRule(name))
     {
@@ -2127,12 +2148,12 @@ public final class SchemaBuilder
 
   /**
    * Removes the specified DIT structure rule from this schema builder.
-   * 
+   *
    * @param ruleID
    *          The ID of the DIT structure rule to be removed.
    * @return {@code true} if the DIT structure rule was found.
    */
-  public boolean removeDITStructureRule(Integer ruleID)
+  public boolean removeDITStructureRule(final Integer ruleID)
   {
     if (schema.hasDITStructureRule(ruleID))
     {
@@ -2146,12 +2167,12 @@ public final class SchemaBuilder
 
   /**
    * Removes the named matching rule from this schema builder.
-   * 
+   *
    * @param name
    *          The name or OID of the matching rule to be removed.
    * @return {@code true} if the matching rule was found.
    */
-  public boolean removeMatchingRule(String name)
+  public boolean removeMatchingRule(final String name)
   {
     if (schema.hasMatchingRule(name))
     {
@@ -2165,12 +2186,12 @@ public final class SchemaBuilder
 
   /**
    * Removes the named matching rule use from this schema builder.
-   * 
+   *
    * @param name
    *          The name or OID of the matching rule use to be removed.
    * @return {@code true} if the matching rule use was found.
    */
-  public boolean removeMatchingRuleUse(String name)
+  public boolean removeMatchingRuleUse(final String name)
   {
     if (schema.hasMatchingRuleUse(name))
     {
@@ -2184,12 +2205,12 @@ public final class SchemaBuilder
 
   /**
    * Removes the named name form from this schema builder.
-   * 
+   *
    * @param name
    *          The name or OID of the name form to be removed.
    * @return {@code true} if the name form was found.
    */
-  public boolean removeNameForm(String name)
+  public boolean removeNameForm(final String name)
   {
     if (schema.hasNameForm(name))
     {
@@ -2203,12 +2224,12 @@ public final class SchemaBuilder
 
   /**
    * Removes the named object class from this schema builder.
-   * 
+   *
    * @param name
    *          The name or OID of the object class to be removed.
    * @return {@code true} if the object class was found.
    */
-  public boolean removeObjectClass(String name)
+  public boolean removeObjectClass(final String name)
   {
     if (schema.hasObjectClass(name))
     {
@@ -2222,12 +2243,12 @@ public final class SchemaBuilder
 
   /**
    * Removes the named syntax from this schema builder.
-   * 
+   *
    * @param numericOID
    *          The name of the syntax to be removed.
    * @return {@code true} if the syntax was found.
    */
-  public boolean removeSyntax(String numericOID)
+  public boolean removeSyntax(final String numericOID)
   {
     if (schema.hasSyntax(numericOID))
     {
@@ -2240,20 +2261,19 @@ public final class SchemaBuilder
 
 
   /**
-   * Sets the schema compatibility options for this schema builder. The
-   * schema builder maintains its own set of compatibility options, so
-   * subsequent changes to the provided set of options will not impact
-   * this schema builder.
-   * 
+   * Sets the schema compatibility options for this schema builder. The schema
+   * builder maintains its own set of compatibility options, so subsequent
+   * changes to the provided set of options will not impact this schema builder.
+   *
    * @param options
-   *          The set of schema compatibility options that this schema
-   *          builder should use.
+   *          The set of schema compatibility options that this schema builder
+   *          should use.
    * @return A reference to this schema builder.
    * @throws NullPointerException
    *           If {@code options} was {@code null}.
    */
-  public SchemaBuilder setSchemaCompatOptions(
-      SchemaCompatOptions options) throws NullPointerException
+  public SchemaBuilder setSchemaCompatOptions(final SchemaCompatOptions options)
+      throws NullPointerException
   {
     Validator.ensureNotNull(options);
     this.options.assign(options);
@@ -2263,16 +2283,16 @@ public final class SchemaBuilder
 
 
   /**
-   * Returns a {@code Schema} containing all of the schema elements
-   * contained in this schema builder as well as the same set of schema
-   * compatibility options.
+   * Returns a {@code Schema} containing all of the schema elements contained in
+   * this schema builder as well as the same set of schema compatibility
+   * options.
    * <p>
-   * When this method returns this schema builder is empty and contains
-   * a default set of compatibility options.
-   * 
-   * @return A {@code Schema} containing all of the schema elements
-   *         contained in this schema builder as well as the same set of
-   *         schema compatibility options
+   * When this method returns this schema builder is empty and contains a
+   * default set of compatibility options.
+   *
+   * @return A {@code Schema} containing all of the schema elements contained in
+   *         this schema builder as well as the same set of schema compatibility
+   *         options
    */
   public Schema toSchema()
   {
@@ -2284,14 +2304,20 @@ public final class SchemaBuilder
 
 
 
-  private synchronized void addAttributeType(AttributeType attribute,
-      boolean overwrite) throws ConflictingSchemaElementException
+  void addWarning(final LocalizableMessage warning)
+  {
+    warnings.add(warning);
+  }
+
+
+
+  private void addAttributeType(final AttributeType attribute,
+      final boolean overwrite) throws ConflictingSchemaElementException
   {
     AttributeType conflictingAttribute;
     if (numericOID2AttributeTypes.containsKey(attribute.getOID()))
     {
-      conflictingAttribute = numericOID2AttributeTypes.get(attribute
-          .getOID());
+      conflictingAttribute = numericOID2AttributeTypes.get(attribute.getOID());
       if (!overwrite)
       {
         final LocalizableMessage message = ERR_SCHEMA_CONFLICTING_ATTRIBUTE_OID
@@ -2309,8 +2335,8 @@ public final class SchemaBuilder
       List<AttributeType> attrs;
       if ((attrs = name2AttributeTypes.get(lowerName)) == null)
       {
-        name2AttributeTypes.put(lowerName, Collections
-            .singletonList(attribute));
+        name2AttributeTypes
+            .put(lowerName, Collections.singletonList(attribute));
       }
       else if (attrs.size() == 1)
       {
@@ -2327,12 +2353,11 @@ public final class SchemaBuilder
 
 
 
-  private synchronized void addDITContentRule(DITContentRule rule,
-      boolean overwrite) throws ConflictingSchemaElementException
+  private void addDITContentRule(final DITContentRule rule,
+      final boolean overwrite) throws ConflictingSchemaElementException
   {
     DITContentRule conflictingRule;
-    if (numericOID2ContentRules.containsKey(rule
-        .getStructuralClassOID()))
+    if (numericOID2ContentRules.containsKey(rule.getStructuralClassOID()))
     {
       conflictingRule = numericOID2ContentRules.get(rule
           .getStructuralClassOID());
@@ -2353,8 +2378,7 @@ public final class SchemaBuilder
       List<DITContentRule> rules;
       if ((rules = name2ContentRules.get(lowerName)) == null)
       {
-        name2ContentRules.put(lowerName, Collections
-            .singletonList(rule));
+        name2ContentRules.put(lowerName, Collections.singletonList(rule));
       }
       else if (rules.size() == 1)
       {
@@ -2371,8 +2395,8 @@ public final class SchemaBuilder
 
 
 
-  private synchronized void addDITStructureRule(DITStructureRule rule,
-      boolean overwrite) throws ConflictingSchemaElementException
+  private void addDITStructureRule(final DITStructureRule rule,
+      final boolean overwrite) throws ConflictingSchemaElementException
   {
     DITStructureRule conflictingRule;
     if (id2StructureRules.containsKey(rule.getRuleID()))
@@ -2381,8 +2405,8 @@ public final class SchemaBuilder
       if (!overwrite)
       {
         final LocalizableMessage message = ERR_SCHEMA_CONFLICTING_DIT_STRUCTURE_RULE_ID
-            .get(rule.getNameOrRuleID(), rule.getRuleID(),
-                conflictingRule.getNameOrRuleID());
+            .get(rule.getNameOrRuleID(), rule.getRuleID(), conflictingRule
+                .getNameOrRuleID());
         throw new ConflictingSchemaElementException(message);
       }
       removeDITStructureRule(conflictingRule);
@@ -2395,8 +2419,7 @@ public final class SchemaBuilder
       List<DITStructureRule> rules;
       if ((rules = name2StructureRules.get(lowerName)) == null)
       {
-        name2StructureRules.put(lowerName, Collections
-            .singletonList(rule));
+        name2StructureRules.put(lowerName, Collections.singletonList(rule));
       }
       else if (rules.size() == 1)
       {
@@ -2413,8 +2436,8 @@ public final class SchemaBuilder
 
 
 
-  private synchronized void addMatchingRule(MatchingRule rule,
-      boolean overwrite) throws ConflictingSchemaElementException
+  private void addMatchingRule(final MatchingRule rule, final boolean overwrite)
+      throws ConflictingSchemaElementException
   {
     MatchingRule conflictingRule;
     if (numericOID2MatchingRules.containsKey(rule.getOID()))
@@ -2422,9 +2445,8 @@ public final class SchemaBuilder
       conflictingRule = numericOID2MatchingRules.get(rule.getOID());
       if (!overwrite)
       {
-        final LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MR_OID
-            .get(rule.getNameOrOID(), rule.getOID(), conflictingRule
-                .getNameOrOID());
+        final LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MR_OID.get(
+            rule.getNameOrOID(), rule.getOID(), conflictingRule.getNameOrOID());
         throw new ConflictingSchemaElementException(message);
       }
       removeMatchingRule(conflictingRule);
@@ -2437,8 +2459,7 @@ public final class SchemaBuilder
       List<MatchingRule> rules;
       if ((rules = name2MatchingRules.get(lowerName)) == null)
       {
-        name2MatchingRules.put(lowerName, Collections
-            .singletonList(rule));
+        name2MatchingRules.put(lowerName, Collections.singletonList(rule));
       }
       else if (rules.size() == 1)
       {
@@ -2455,20 +2476,19 @@ public final class SchemaBuilder
 
 
 
-  private synchronized void addMatchingRuleUse(MatchingRuleUse use,
-      boolean overwrite) throws ConflictingSchemaElementException
+  private void addMatchingRuleUse(final MatchingRuleUse use,
+      final boolean overwrite) throws ConflictingSchemaElementException
   {
     MatchingRuleUse conflictingUse;
-    if (numericOID2MatchingRuleUses.containsKey(use
-        .getMatchingRuleOID()))
+    if (numericOID2MatchingRuleUses.containsKey(use.getMatchingRuleOID()))
     {
-      conflictingUse = numericOID2MatchingRuleUses.get(use
-          .getMatchingRuleOID());
+      conflictingUse = numericOID2MatchingRuleUses
+          .get(use.getMatchingRuleOID());
       if (!overwrite)
       {
         final LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MATCHING_RULE_USE
-            .get(use.getNameOrOID(), use.getMatchingRuleOID(),
-                conflictingUse.getNameOrOID());
+            .get(use.getNameOrOID(), use.getMatchingRuleOID(), conflictingUse
+                .getNameOrOID());
         throw new ConflictingSchemaElementException(message);
       }
       removeMatchingRuleUse(conflictingUse);
@@ -2481,8 +2501,7 @@ public final class SchemaBuilder
       List<MatchingRuleUse> uses;
       if ((uses = name2MatchingRuleUses.get(lowerName)) == null)
       {
-        name2MatchingRuleUses.put(lowerName, Collections
-            .singletonList(use));
+        name2MatchingRuleUses.put(lowerName, Collections.singletonList(use));
       }
       else if (uses.size() == 1)
       {
@@ -2499,7 +2518,7 @@ public final class SchemaBuilder
 
 
 
-  private synchronized void addNameForm(NameForm form, boolean overwrite)
+  private void addNameForm(final NameForm form, final boolean overwrite)
       throws ConflictingSchemaElementException
   {
     NameForm conflictingForm;
@@ -2540,8 +2559,8 @@ public final class SchemaBuilder
 
 
 
-  private synchronized void addObjectClass(ObjectClass oc,
-      boolean overwrite) throws ConflictingSchemaElementException
+  private void addObjectClass(final ObjectClass oc, final boolean overwrite)
+      throws ConflictingSchemaElementException
   {
     ObjectClass conflictingOC;
     if (numericOID2ObjectClasses.containsKey(oc.getOID()))
@@ -2550,8 +2569,7 @@ public final class SchemaBuilder
       if (!overwrite)
       {
         final LocalizableMessage message = ERR_SCHEMA_CONFLICTING_OBJECTCLASS_OID
-            .get(oc.getNameOrOID(), oc.getOID(), conflictingOC
-                .getNameOrOID());
+            .get(oc.getNameOrOID(), oc.getOID(), conflictingOC.getNameOrOID());
         throw new ConflictingSchemaElementException(message);
       }
       removeObjectClass(conflictingOC);
@@ -2564,8 +2582,7 @@ public final class SchemaBuilder
       List<ObjectClass> classes;
       if ((classes = name2ObjectClasses.get(lowerName)) == null)
       {
-        name2ObjectClasses
-            .put(lowerName, Collections.singletonList(oc));
+        name2ObjectClasses.put(lowerName, Collections.singletonList(oc));
       }
       else if (classes.size() == 1)
       {
@@ -2582,7 +2599,7 @@ public final class SchemaBuilder
 
 
 
-  private synchronized void addSyntax(Syntax syntax, boolean overwrite)
+  private void addSyntax(final Syntax syntax, final boolean overwrite)
       throws ConflictingSchemaElementException
   {
     Syntax conflictingSyntax;
@@ -2592,8 +2609,7 @@ public final class SchemaBuilder
       if (!overwrite)
       {
         final LocalizableMessage message = ERR_SCHEMA_CONFLICTING_SYNTAX_OID
-            .get(syntax.toString(), syntax.getOID(), conflictingSyntax
-                .getOID());
+            .get(syntax.toString(), syntax.getOID(), conflictingSyntax.getOID());
         throw new ConflictingSchemaElementException(message);
       }
       removeSyntax(conflictingSyntax);
@@ -2605,22 +2621,22 @@ public final class SchemaBuilder
 
   private void initBuilder(String schemaName)
   {
-    numericOID2Syntaxes = new HashMap<String, Syntax>();
-    numericOID2MatchingRules = new HashMap<String, MatchingRule>();
-    numericOID2MatchingRuleUses = new HashMap<String, MatchingRuleUse>();
-    numericOID2AttributeTypes = new HashMap<String, AttributeType>();
-    numericOID2ObjectClasses = new HashMap<String, ObjectClass>();
-    numericOID2NameForms = new HashMap<String, NameForm>();
-    numericOID2ContentRules = new HashMap<String, DITContentRule>();
-    id2StructureRules = new HashMap<Integer, DITStructureRule>();
+    numericOID2Syntaxes = new LinkedHashMap<String, Syntax>();
+    numericOID2MatchingRules = new LinkedHashMap<String, MatchingRule>();
+    numericOID2MatchingRuleUses = new LinkedHashMap<String, MatchingRuleUse>();
+    numericOID2AttributeTypes = new LinkedHashMap<String, AttributeType>();
+    numericOID2ObjectClasses = new LinkedHashMap<String, ObjectClass>();
+    numericOID2NameForms = new LinkedHashMap<String, NameForm>();
+    numericOID2ContentRules = new LinkedHashMap<String, DITContentRule>();
+    id2StructureRules = new LinkedHashMap<Integer, DITStructureRule>();
 
-    name2MatchingRules = new HashMap<String, List<MatchingRule>>();
-    name2MatchingRuleUses = new HashMap<String, List<MatchingRuleUse>>();
-    name2AttributeTypes = new HashMap<String, List<AttributeType>>();
-    name2ObjectClasses = new HashMap<String, List<ObjectClass>>();
-    name2NameForms = new HashMap<String, List<NameForm>>();
-    name2ContentRules = new HashMap<String, List<DITContentRule>>();
-    name2StructureRules = new HashMap<String, List<DITStructureRule>>();
+    name2MatchingRules = new LinkedHashMap<String, List<MatchingRule>>();
+    name2MatchingRuleUses = new LinkedHashMap<String, List<MatchingRuleUse>>();
+    name2AttributeTypes = new LinkedHashMap<String, List<AttributeType>>();
+    name2ObjectClasses = new LinkedHashMap<String, List<ObjectClass>>();
+    name2NameForms = new LinkedHashMap<String, List<NameForm>>();
+    name2ContentRules = new LinkedHashMap<String, List<DITContentRule>>();
+    name2StructureRules = new LinkedHashMap<String, List<DITStructureRule>>();
 
     objectClass2NameForms = new HashMap<String, List<NameForm>>();
     nameForm2StructureRules = new HashMap<String, List<DITStructureRule>>();
@@ -2629,31 +2645,28 @@ public final class SchemaBuilder
 
     if (schemaName == null)
     {
-      schemaName = String.format("Schema#%d", nextSchemaID
-          .getAndIncrement());
+      schemaName = String.format("Schema#%d", nextSchemaID.getAndIncrement());
     }
 
     schema = new Schema(schemaName, numericOID2Syntaxes,
         numericOID2MatchingRules, numericOID2MatchingRuleUses,
         numericOID2AttributeTypes, numericOID2ObjectClasses,
-        numericOID2NameForms, numericOID2ContentRules,
-        id2StructureRules, name2MatchingRules, name2MatchingRuleUses,
-        name2AttributeTypes, name2ObjectClasses, name2NameForms,
-        name2ContentRules, name2StructureRules, objectClass2NameForms,
-        nameForm2StructureRules, options, warnings);
+        numericOID2NameForms, numericOID2ContentRules, id2StructureRules,
+        name2MatchingRules, name2MatchingRuleUses, name2AttributeTypes,
+        name2ObjectClasses, name2NameForms, name2ContentRules,
+        name2StructureRules, objectClass2NameForms, nameForm2StructureRules,
+        options, warnings);
   }
 
 
 
-  private synchronized void removeAttributeType(
-      AttributeType attributeType)
+  private void removeAttributeType(final AttributeType attributeType)
   {
     numericOID2AttributeTypes.remove(attributeType.getOID());
     for (final String name : attributeType.getNames())
     {
       final String lowerName = StaticUtils.toLowerCase(name);
-      final List<AttributeType> attributes = name2AttributeTypes
-          .get(lowerName);
+      final List<AttributeType> attributes = name2AttributeTypes.get(lowerName);
       if (attributes != null && attributes.contains(attributeType))
       {
         if (attributes.size() <= 1)
@@ -2670,14 +2683,13 @@ public final class SchemaBuilder
 
 
 
-  private synchronized void removeDITContentRule(DITContentRule rule)
+  private void removeDITContentRule(final DITContentRule rule)
   {
     numericOID2ContentRules.remove(rule.getStructuralClassOID());
     for (final String name : rule.getNames())
     {
       final String lowerName = StaticUtils.toLowerCase(name);
-      final List<DITContentRule> rules = name2ContentRules
-          .get(lowerName);
+      final List<DITContentRule> rules = name2ContentRules.get(lowerName);
       if (rules != null && rules.contains(rule))
       {
         if (rules.size() <= 1)
@@ -2694,14 +2706,13 @@ public final class SchemaBuilder
 
 
 
-  private synchronized void removeDITStructureRule(DITStructureRule rule)
+  private void removeDITStructureRule(final DITStructureRule rule)
   {
     id2StructureRules.remove(rule.getRuleID());
     for (final String name : rule.getNames())
     {
       final String lowerName = StaticUtils.toLowerCase(name);
-      final List<DITStructureRule> rules = name2StructureRules
-          .get(lowerName);
+      final List<DITStructureRule> rules = name2StructureRules.get(lowerName);
       if (rules != null && rules.contains(rule))
       {
         if (rules.size() <= 1)
@@ -2718,14 +2729,13 @@ public final class SchemaBuilder
 
 
 
-  private synchronized void removeMatchingRule(MatchingRule rule)
+  private void removeMatchingRule(final MatchingRule rule)
   {
     numericOID2MatchingRules.remove(rule.getOID());
     for (final String name : rule.getNames())
     {
       final String lowerName = StaticUtils.toLowerCase(name);
-      final List<MatchingRule> rules = name2MatchingRules
-          .get(lowerName);
+      final List<MatchingRule> rules = name2MatchingRules.get(lowerName);
       if (rules != null && rules.contains(rule))
       {
         if (rules.size() <= 1)
@@ -2742,14 +2752,13 @@ public final class SchemaBuilder
 
 
 
-  private synchronized void removeMatchingRuleUse(MatchingRuleUse use)
+  private void removeMatchingRuleUse(final MatchingRuleUse use)
   {
     numericOID2MatchingRuleUses.remove(use.getMatchingRuleOID());
     for (final String name : use.getNames())
     {
       final String lowerName = StaticUtils.toLowerCase(name);
-      final List<MatchingRuleUse> uses = name2MatchingRuleUses
-          .get(lowerName);
+      final List<MatchingRuleUse> uses = name2MatchingRuleUses.get(lowerName);
       if (uses != null && uses.contains(use))
       {
         if (uses.size() <= 1)
@@ -2766,7 +2775,7 @@ public final class SchemaBuilder
 
 
 
-  private synchronized void removeNameForm(NameForm form)
+  private void removeNameForm(final NameForm form)
   {
     numericOID2NameForms.remove(form.getOID());
     name2NameForms.remove(form.getOID());
@@ -2790,15 +2799,14 @@ public final class SchemaBuilder
 
 
 
-  private synchronized void removeObjectClass(ObjectClass oc)
+  private void removeObjectClass(final ObjectClass oc)
   {
     numericOID2ObjectClasses.remove(oc.getOID());
     name2ObjectClasses.remove(oc.getOID());
     for (final String name : oc.getNames())
     {
       final String lowerName = StaticUtils.toLowerCase(name);
-      final List<ObjectClass> classes = name2ObjectClasses
-          .get(lowerName);
+      final List<ObjectClass> classes = name2ObjectClasses.get(lowerName);
       if (classes != null && classes.contains(oc))
       {
         if (classes.size() <= 1)
@@ -2815,14 +2823,14 @@ public final class SchemaBuilder
 
 
 
-  private synchronized void removeSyntax(Syntax syntax)
+  private void removeSyntax(final Syntax syntax)
   {
     numericOID2Syntaxes.remove(syntax.getOID());
   }
 
 
 
-  private synchronized void validate()
+  private void validate()
   {
     // Verify all references in all elements
     for (final Syntax syntax : numericOID2Syntaxes.values().toArray(
@@ -2835,14 +2843,13 @@ public final class SchemaBuilder
       catch (final SchemaException e)
       {
         removeSyntax(syntax);
-        warnings.add(ERR_SYNTAX_VALIDATION_FAIL.get(syntax.toString(),
-            e.toString()));
+        warnings.add(ERR_SYNTAX_VALIDATION_FAIL.get(syntax.toString(), e
+            .toString()));
       }
     }
 
-    for (final MatchingRule rule : numericOID2MatchingRules.values()
-        .toArray(
-            new MatchingRule[numericOID2MatchingRules.values().size()]))
+    for (final MatchingRule rule : numericOID2MatchingRules.values().toArray(
+        new MatchingRule[numericOID2MatchingRules.values().size()]))
     {
       try
       {
@@ -2851,15 +2858,12 @@ public final class SchemaBuilder
       catch (final SchemaException e)
       {
         removeMatchingRule(rule);
-        warnings.add(ERR_MR_VALIDATION_FAIL.get(rule.toString(), e
-            .toString()));
+        warnings.add(ERR_MR_VALIDATION_FAIL.get(rule.toString(), e.toString()));
       }
     }
 
-    for (final AttributeType attribute : numericOID2AttributeTypes
-        .values()
-        .toArray(
-            new AttributeType[numericOID2AttributeTypes.values().size()]))
+    for (final AttributeType attribute : numericOID2AttributeTypes.values()
+        .toArray(new AttributeType[numericOID2AttributeTypes.values().size()]))
     {
       try
       {
@@ -2868,14 +2872,13 @@ public final class SchemaBuilder
       catch (final SchemaException e)
       {
         removeAttributeType(attribute);
-        warnings.add(ERR_ATTR_TYPE_VALIDATION_FAIL.get(attribute
-            .toString(), e.toString()));
+        warnings.add(ERR_ATTR_TYPE_VALIDATION_FAIL.get(attribute.toString(), e
+            .toString()));
       }
     }
 
-    for (final ObjectClass oc : numericOID2ObjectClasses.values()
-        .toArray(
-            new ObjectClass[numericOID2ObjectClasses.values().size()]))
+    for (final ObjectClass oc : numericOID2ObjectClasses.values().toArray(
+        new ObjectClass[numericOID2ObjectClasses.values().size()]))
     {
       try
       {
@@ -2884,15 +2887,13 @@ public final class SchemaBuilder
       catch (final SchemaException e)
       {
         removeObjectClass(oc);
-        warnings.add(ERR_OC_VALIDATION_FAIL.get(oc.toString(), e
-            .toString()));
+        warnings.add(ERR_OC_VALIDATION_FAIL.get(oc.toString(), e.toString()));
       }
     }
 
-    for (final MatchingRuleUse use : numericOID2MatchingRuleUses
-        .values().toArray(
-            new MatchingRuleUse[numericOID2MatchingRuleUses.values()
-                .size()]))
+    for (final MatchingRuleUse use : numericOID2MatchingRuleUses.values()
+        .toArray(
+            new MatchingRuleUse[numericOID2MatchingRuleUses.values().size()]))
     {
       try
       {
@@ -2901,8 +2902,7 @@ public final class SchemaBuilder
       catch (final SchemaException e)
       {
         removeMatchingRuleUse(use);
-        warnings.add(ERR_MRU_VALIDATION_FAIL.get(use.toString(), e
-            .toString()));
+        warnings.add(ERR_MRU_VALIDATION_FAIL.get(use.toString(), e.toString()));
       }
     }
 
@@ -2918,8 +2918,7 @@ public final class SchemaBuilder
         final String ocOID = form.getStructuralClass().getOID();
         if ((forms = objectClass2NameForms.get(ocOID)) == null)
         {
-          objectClass2NameForms.put(ocOID, Collections
-              .singletonList(form));
+          objectClass2NameForms.put(ocOID, Collections.singletonList(form));
         }
         else if (forms.size() == 1)
         {
@@ -2935,15 +2934,13 @@ public final class SchemaBuilder
       catch (final SchemaException e)
       {
         removeNameForm(form);
-        warnings.add(ERR_NAMEFORM_VALIDATION_FAIL.get(form.toString(),
-            e.toString()));
+        warnings.add(ERR_NAMEFORM_VALIDATION_FAIL.get(form.toString(), e
+            .toString()));
       }
     }
 
-    for (final DITContentRule rule : numericOID2ContentRules
-        .values()
-        .toArray(
-            new DITContentRule[numericOID2ContentRules.values().size()]))
+    for (final DITContentRule rule : numericOID2ContentRules.values().toArray(
+        new DITContentRule[numericOID2ContentRules.values().size()]))
     {
       try
       {
@@ -2952,14 +2949,13 @@ public final class SchemaBuilder
       catch (final SchemaException e)
       {
         removeDITContentRule(rule);
-        warnings.add(ERR_DCR_VALIDATION_FAIL.get(rule.toString(), e
-            .toString()));
+        warnings
+            .add(ERR_DCR_VALIDATION_FAIL.get(rule.toString(), e.toString()));
       }
     }
 
-    for (final DITStructureRule rule : id2StructureRules.values()
-        .toArray(
-            new DITStructureRule[id2StructureRules.values().size()]))
+    for (final DITStructureRule rule : id2StructureRules.values().toArray(
+        new DITStructureRule[id2StructureRules.values().size()]))
     {
       try
       {
@@ -2970,8 +2966,7 @@ public final class SchemaBuilder
         final String ocOID = rule.getNameForm().getOID();
         if ((rules = nameForm2StructureRules.get(ocOID)) == null)
         {
-          nameForm2StructureRules.put(ocOID, Collections
-              .singletonList(rule));
+          nameForm2StructureRules.put(ocOID, Collections.singletonList(rule));
         }
         else if (rules.size() == 1)
         {
@@ -2987,17 +2982,9 @@ public final class SchemaBuilder
       catch (final SchemaException e)
       {
         removeDITStructureRule(rule);
-        warnings.add(ERR_DSR_VALIDATION_FAIL.get(rule.toString(), e
-            .toString()));
+        warnings
+            .add(ERR_DSR_VALIDATION_FAIL.get(rule.toString(), e.toString()));
       }
     }
-
-  }
-
-
-
-  void addWarning(LocalizableMessage warning)
-  {
-    warnings.add(warning);
   }
 }

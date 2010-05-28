@@ -29,7 +29,8 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID;
 
 import java.util.*;
 
@@ -40,8 +41,8 @@ import com.sun.opends.sdk.util.Validator;
 
 
 /**
- * This class defines a DIT structure rule, which is used to indicate
- * the types of children that entries may have.
+ * This class defines a DIT structure rule, which is used to indicate the types
+ * of children that entries may have.
  */
 public final class DITStructureRule extends SchemaElement
 {
@@ -68,10 +69,10 @@ public final class DITStructureRule extends SchemaElement
 
 
 
-  DITStructureRule(Integer ruleID, List<String> names,
-      String description, boolean obsolete, String nameFormOID,
-      Set<Integer> superiorRuleIDs,
-      Map<String, List<String>> extraProperties, String definition)
+  DITStructureRule(final Integer ruleID, final List<String> names,
+      final String description, final boolean obsolete,
+      final String nameFormOID, final Set<Integer> superiorRuleIDs,
+      final Map<String, List<String>> extraProperties, final String definition)
   {
     super(description, extraProperties);
 
@@ -96,7 +97,7 @@ public final class DITStructureRule extends SchemaElement
 
   /**
    * Retrieves the name form for this DIT structure rule.
-   * 
+   *
    * @return The name form for this DIT structure rule.
    */
   public NameForm getNameForm()
@@ -107,10 +108,10 @@ public final class DITStructureRule extends SchemaElement
 
 
   /**
-   * Retrieves the name or rule ID for this schema definition. If it has
-   * one or more names, then the primary name will be returned. If it
-   * does not have any names, then the OID will be returned.
-   * 
+   * Retrieves the name or rule ID for this schema definition. If it has one or
+   * more names, then the primary name will be returned. If it does not have any
+   * names, then the OID will be returned.
+   *
    * @return The name or OID for this schema definition.
    */
   public String getNameOrRuleID()
@@ -125,13 +126,13 @@ public final class DITStructureRule extends SchemaElement
 
 
   /**
-   * Retrieves an iterable over the set of user-defined names that may
-   * be used to reference this schema definition.
-   * 
-   * @return Returns an iterable over the set of user-defined names that
+   * Returns an unmodifiable list containing the user-defined names that may be
+   * used to reference this schema definition.
+   *
+   * @return Returns an unmodifiable list containing the user-defined names that
    *         may be used to reference this schema definition.
    */
-  public Iterable<String> getNames()
+  public List<String> getNames()
   {
     return names;
   }
@@ -140,7 +141,7 @@ public final class DITStructureRule extends SchemaElement
 
   /**
    * Retrieves the rule ID for this DIT structure rule.
-   * 
+   *
    * @return The rule ID for this DIT structure rule.
    */
   public Integer getRuleID()
@@ -151,11 +152,13 @@ public final class DITStructureRule extends SchemaElement
 
 
   /**
-   * Retrieves the set of superior rules for this DIT structure rule.
-   * 
-   * @return The set of superior rules for this DIT structure rule.
+   * Returns an unmodifiable set containing the superior rules for this DIT
+   * structure rule.
+   *
+   * @return An unmodifiable set containing the superior rules for this DIT
+   *         structure rule.
    */
-  public Iterable<DITStructureRule> getSuperiorRules()
+  public Set<DITStructureRule> getSuperiorRules()
   {
     return superiorRules;
   }
@@ -172,13 +175,13 @@ public final class DITStructureRule extends SchemaElement
 
   /**
    * Indicates whether this schema definition has the specified name.
-   * 
+   *
    * @param name
    *          The name for which to make the determination.
-   * @return <code>true</code> if the specified name is assigned to this
-   *         schema definition, or <code>false</code> if not.
+   * @return <code>true</code> if the specified name is assigned to this schema
+   *         definition, or <code>false</code> if not.
    */
-  public boolean hasName(String name)
+  public boolean hasName(final String name)
   {
     for (final String n : names)
     {
@@ -194,9 +197,9 @@ public final class DITStructureRule extends SchemaElement
 
   /**
    * Indicates whether this schema definition is declared "obsolete".
-   * 
-   * @return <code>true</code> if this schema definition is declared
-   *         "obsolete", or <code>false</code> if not.
+   *
+   * @return <code>true</code> if this schema definition is declared "obsolete",
+   *         or <code>false</code> if not.
    */
   public boolean isObsolete()
   {
@@ -206,11 +209,11 @@ public final class DITStructureRule extends SchemaElement
 
 
   /**
-   * Retrieves the string representation of this schema definition in
-   * the form specified in RFC 2252.
-   * 
-   * @return The string representation of this schema definition in the
-   *         form specified in RFC 2252.
+   * Retrieves the string representation of this schema definition in the form
+   * specified in RFC 2252.
+   *
+   * @return The string representation of this schema definition in the form
+   *         specified in RFC 2252.
    */
   @Override
   public String toString()
@@ -229,7 +232,7 @@ public final class DITStructureRule extends SchemaElement
 
 
   @Override
-  void toStringContent(StringBuilder buffer)
+  void toStringContent(final StringBuilder buffer)
   {
     buffer.append(ruleID);
 
@@ -303,7 +306,7 @@ public final class DITStructureRule extends SchemaElement
 
 
   @Override
-  void validate(List<LocalizableMessage> warnings, Schema schema)
+  void validate(final List<LocalizableMessage> warnings, final Schema schema)
       throws SchemaException
   {
     try
@@ -312,16 +315,14 @@ public final class DITStructureRule extends SchemaElement
     }
     catch (final UnknownSchemaElementException e)
     {
-      final LocalizableMessage message =
-          ERR_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM.get(definition,
-              nameFormOID);
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM
+          .get(definition, nameFormOID);
       throw new SchemaException(message, e);
     }
 
     if (!superiorRuleIDs.isEmpty())
     {
-      superiorRules =
-          new HashSet<DITStructureRule>(superiorRuleIDs.size());
+      superiorRules = new HashSet<DITStructureRule>(superiorRuleIDs.size());
       DITStructureRule rule;
       for (final Integer id : superiorRuleIDs)
       {
@@ -331,12 +332,13 @@ public final class DITStructureRule extends SchemaElement
         }
         catch (final UnknownSchemaElementException e)
         {
-          final LocalizableMessage message =
-              ERR_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID.get(definition, id);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID
+              .get(definition, id);
           throw new SchemaException(message, e);
         }
         superiorRules.add(rule);
       }
     }
+    superiorRules = Collections.unmodifiableSet(superiorRules);
   }
 }

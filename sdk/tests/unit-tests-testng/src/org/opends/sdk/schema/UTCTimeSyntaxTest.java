@@ -43,17 +43,6 @@ import org.testng.annotations.Test;
  */
 public class UTCTimeSyntaxTest extends SyntaxTestCase
 {
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  protected Syntax getRule()
-  {
-    return Schema.getCoreSchema().getSyntax(SYNTAX_UTC_TIME_OID);
-  }
-
-
-
   @Override
   @DataProvider(name = "acceptableValues")
   public Object[][] createAcceptableValues()
@@ -93,20 +82,31 @@ public class UTCTimeSyntaxTest extends SyntaxTestCase
   /**
    * Tests the {@code createUTCTimeValue} and {@code decodeUTCTimeValue}
    * methods.
-   * 
+   *
    * @throws Exception
    *           If an unexpected problem occurs.
    */
   @Test()
   public void testCreateAndDecodeUTCTimeValue() throws Exception
   {
-    Date d = new Date();
-    String timeValue = UTCTimeSyntaxImpl.createUTCTimeValue(d);
-    Date decodedDate = UTCTimeSyntaxImpl.decodeUTCTimeValue(timeValue);
+    final Date d = new Date();
+    final String timeValue = UTCTimeSyntaxImpl.createUTCTimeValue(d);
+    final Date decodedDate = UTCTimeSyntaxImpl.decodeUTCTimeValue(timeValue);
 
     // UTCTime does not have support for sub-second values, so we need
     // to make
     // sure that the decoded value is within 1000 milliseconds.
     assertTrue(Math.abs(d.getTime() - decodedDate.getTime()) < 1000);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected Syntax getRule()
+  {
+    return Schema.getCoreSchema().getSyntax(SYNTAX_UTC_TIME_OID);
   }
 }

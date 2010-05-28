@@ -29,18 +29,12 @@ package org.opends.sdk;
 
 
 
-import org.opends.sdk.responses.Responses;
-import org.opends.sdk.responses.Result;
-
-
-
 /**
  * This class provides a skeletal implementation of the {@code
- * ConnectionFactory} interface, to minimize the effort required to
- * implement this interface.
+ * ConnectionFactory} interface, to minimize the effort required to implement
+ * this interface.
  */
-public abstract class AbstractConnectionFactory implements
-    ConnectionFactory
+public abstract class AbstractConnectionFactory implements ConnectionFactory
 {
   /**
    * Creates a new abstract connection factory.
@@ -63,57 +57,27 @@ public abstract class AbstractConnectionFactory implements
   /**
    * {@inheritDoc}
    * <p>
-   * The default implementation is to convert the asynchronous
-   * connection returned from {@code
-   * blockingGetAsynchronousConnection()} to a synchronous connection
-   * using a {@link SynchronousConnection} as per the following code:
+   * The default implementation is to convert the asynchronous connection
+   * returned from {@code blockingGetAsynchronousConnection()} to a synchronous
+   * connection using a {@link SynchronousConnection} as per the following code:
    *
    * <pre>
    * return new SynchronousConnection(blockingGetAsynchronousConnection());
    * </pre>
    *
-   * Implementations should override this method if they wish to return
-   * a different type of synchronous connection.
+   * Implementations should override this method if they wish to return a
+   * different type of synchronous connection.
    *
    * @return A connection to the Directory Server associated with this
    *         connection factory.
    * @throws ErrorResultException
    *           If the connection request failed for some reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
    */
-  public Connection getConnection() throws ErrorResultException
+  public Connection getConnection() throws ErrorResultException,
+      InterruptedException
   {
-    return new SynchronousConnection(
-        blockingGetAsynchronousConnection());
-  }
-
-
-
-  /**
-   * Invokes {@code getAsynchronousConnection}, blocking until the
-   * asynchronous connection is obtained or the attempt fails.
-   *
-   * @return An asynchronous connection obtained using {@code
-   *         getAsynchronousConnection}.
-   * @throws ErrorResultException
-   *           If the connection request failed for some reason.
-   */
-  protected final AsynchronousConnection blockingGetAsynchronousConnection()
-      throws ErrorResultException
-  {
-    FutureResult<AsynchronousConnection> future = getAsynchronousConnection(null);
-    try
-    {
-      return future.get();
-    }
-    catch (InterruptedException e)
-    {
-      // Cancel the request if possible.
-      future.cancel(false);
-
-      Result result = Responses.newResult(
-          ResultCode.CLIENT_SIDE_CONNECT_ERROR).setCause(e)
-          .setDiagnosticMessage(e.getLocalizedMessage());
-      throw ErrorResultException.wrap(result);
-    }
+    return getAsynchronousConnection(null).get().getSynchronousConnection();
   }
 }

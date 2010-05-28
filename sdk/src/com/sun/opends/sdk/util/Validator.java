@@ -36,32 +36,31 @@ public final class Validator
 {
 
   /**
-   * Throws a {@code NullPointerException} if the provided argument is
-   * {@code null}. This method returns a reference to its single
-   * parameter so that it can be easily used in constructors.
+   * Throws a {@code NullPointerException} if any of the provided arguments are
+   * {@code null}.
    *
-   * @param <T>
-   *          The type of {@code o1}.
-   * @param o1
-   *          The object to test.
-   * @return A reference to {@code o1}.
+   * @param objects
+   *          The objects to test.
    * @throws NullPointerException
-   *           If the provided argument is {@code null}.
+   *           If any of the provided arguments are {@code null}.
    */
-  public static <T> T ensureNotNull(T o1) throws NullPointerException
+  public static void ensureNotNull(final Object... objects)
+      throws NullPointerException
   {
-    if (o1 == null)
+    for (final Object o : objects)
     {
-      throw new NullPointerException();
+      if (o == null)
+      {
+        throw new NullPointerException();
+      }
     }
-    return o1;
   }
 
 
 
   /**
-   * Throws a {@code NullPointerException} if any of the provided
-   * arguments are {@code null}.
+   * Throws a {@code NullPointerException} if any of the provided arguments are
+   * {@code null}.
    *
    * @param o1
    *          The first object to test.
@@ -70,7 +69,7 @@ public final class Validator
    * @throws NullPointerException
    *           If any of the provided arguments are {@code null}.
    */
-  public static void ensureNotNull(Object o1, Object o2)
+  public static void ensureNotNull(final Object o1, final Object o2)
       throws NullPointerException
   {
     if (o1 == null || o2 == null)
@@ -82,8 +81,8 @@ public final class Validator
 
 
   /**
-   * Throws a {@code NullPointerException} if any of the provided
-   * arguments are {@code null}.
+   * Throws a {@code NullPointerException} if any of the provided arguments are
+   * {@code null}.
    *
    * @param o1
    *          The first object to test.
@@ -94,8 +93,8 @@ public final class Validator
    * @throws NullPointerException
    *           If any of the provided arguments are {@code null}.
    */
-  public static void ensureNotNull(Object o1, Object o2, Object o3)
-      throws NullPointerException
+  public static void ensureNotNull(final Object o1, final Object o2,
+      final Object o3) throws NullPointerException
   {
     if (o1 == null || o2 == null || o3 == null)
     {
@@ -106,8 +105,8 @@ public final class Validator
 
 
   /**
-   * Throws a {@code NullPointerException} if any of the provided
-   * arguments are {@code null}.
+   * Throws a {@code NullPointerException} if any of the provided arguments are
+   * {@code null}.
    *
    * @param o1
    *          The first object to test.
@@ -120,8 +119,8 @@ public final class Validator
    * @throws NullPointerException
    *           If any of the provided arguments are {@code null}.
    */
-  public static void ensureNotNull(Object o1, Object o2, Object o3,
-      Object o4) throws NullPointerException
+  public static void ensureNotNull(final Object o1, final Object o2,
+      final Object o3, final Object o4) throws NullPointerException
   {
     if (o1 == null || o2 == null || o3 == null || o4 == null)
     {
@@ -132,8 +131,8 @@ public final class Validator
 
 
   /**
-   * Throws a {@code NullPointerException} if any of the provided
-   * arguments are {@code null}.
+   * Throws a {@code NullPointerException} if any of the provided arguments are
+   * {@code null}.
    *
    * @param o1
    *          The first object to test.
@@ -148,11 +147,11 @@ public final class Validator
    * @throws NullPointerException
    *           If any of the provided arguments are {@code null}.
    */
-  public static void ensureNotNull(Object o1, Object o2, Object o3,
-      Object o4, Object o5) throws NullPointerException
+  public static void ensureNotNull(final Object o1, final Object o2,
+      final Object o3, final Object o4, final Object o5)
+      throws NullPointerException
   {
-    if (o1 == null || o2 == null || o3 == null || o4 == null
-        || o5 == null)
+    if (o1 == null || o2 == null || o3 == null || o4 == null || o5 == null)
     {
       throw new NullPointerException();
     }
@@ -161,42 +160,41 @@ public final class Validator
 
 
   /**
-   * Throws a {@code NullPointerException} if any of the provided
-   * arguments are {@code null}.
+   * Throws a {@code NullPointerException} if the provided argument is {@code
+   * null}. This method returns a reference to its single parameter so that it
+   * can be easily used in constructors.
    *
-   * @param objects
-   *          The objects to test.
+   * @param <T>
+   *          The type of {@code o1}.
+   * @param o1
+   *          The object to test.
+   * @return A reference to {@code o1}.
    * @throws NullPointerException
-   *           If any of the provided arguments are {@code null}.
+   *           If the provided argument is {@code null}.
    */
-  public static void ensureNotNull(Object... objects)
-      throws NullPointerException
+  public static <T> T ensureNotNull(final T o1) throws NullPointerException
   {
-    for (Object o : objects)
+    if (o1 == null)
     {
-      if (o == null)
-      {
-        throw new NullPointerException();
-      }
+      throw new NullPointerException();
     }
+    return o1;
   }
 
 
 
   /**
-   * Throws an {@code IllegalArgumentException} if the provided
-   * condition is {@code false}.
+   * Throws an {@code IllegalArgumentException} if the provided condition is
+   * {@code false}.
    *
    * @param condition
-   *          The condition, which must be {@code true} to avoid an
-   *          exception.
+   *          The condition, which must be {@code true} to avoid an exception.
    * @param message
-   *          The error message to include in the exception if it is
-   *          thrown.
+   *          The error message to include in the exception if it is thrown.
    * @throws IllegalArgumentException
    *           If {@code condition} was {@code false}.
    */
-  public static void ensureTrue(boolean condition, String message)
+  public static void ensureTrue(final boolean condition, final String message)
       throws IllegalArgumentException
   {
     if (!condition)

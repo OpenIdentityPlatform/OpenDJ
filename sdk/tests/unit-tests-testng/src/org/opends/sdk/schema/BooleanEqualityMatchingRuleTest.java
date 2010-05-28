@@ -45,6 +45,18 @@ public class BooleanEqualityMatchingRuleTest extends MatchingRuleTest
    * {@inheritDoc}
    */
   @Override
+  @DataProvider(name = "matchingRuleInvalidAttributeValues")
+  public Object[][] createMatchingRuleInvalidAttributeValues()
+  {
+    return new Object[][] { { "garbage" }, };
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   @DataProvider(name = "matchingrules")
   public Object[][] createMatchingRuleTest()
   {
@@ -57,18 +69,6 @@ public class BooleanEqualityMatchingRuleTest extends MatchingRuleTest
         { "OFF", "false", ConditionResult.TRUE },
         { "0", "false", ConditionResult.TRUE },
         { "TRUE", "false", ConditionResult.FALSE }, };
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  @DataProvider(name = "matchingRuleInvalidAttributeValues")
-  public Object[][] createMatchingRuleInvalidAttributeValues()
-  {
-    return new Object[][] { { "garbage" }, };
   }
 
 

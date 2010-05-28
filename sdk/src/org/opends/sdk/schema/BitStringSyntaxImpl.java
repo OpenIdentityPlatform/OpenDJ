@@ -29,19 +29,21 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
-import static org.opends.sdk.schema.SchemaConstants.*;
+import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_BIT_STRING_INVALID_BIT;
+import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED;
+import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_BIT_STRING_TOO_SHORT;
+import static org.opends.sdk.schema.SchemaConstants.EMR_BIT_STRING_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_BIT_STRING_NAME;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.LocalizableMessageBuilder;
 
 
 
-
 /**
- * This class defines the bit string attribute syntax, which is
- * comprised of a string of binary digits surrounded by single quotes
- * and followed by a capital letter "B" (e.g., '101001'B).
+ * This class defines the bit string attribute syntax, which is comprised of a
+ * string of binary digits surrounded by single quotes and followed by a capital
+ * letter "B" (e.g., '101001'B).
  */
 final class BitStringSyntaxImpl extends AbstractSyntaxImpl
 {
@@ -68,38 +70,37 @@ final class BitStringSyntaxImpl extends AbstractSyntaxImpl
 
 
   /**
-   * Indicates whether the provided value is acceptable for use in an
-   * attribute with this syntax. If it is not, then the reason may be
-   * appended to the provided buffer.
-   * 
+   * Indicates whether the provided value is acceptable for use in an attribute
+   * with this syntax. If it is not, then the reason may be appended to the
+   * provided buffer.
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
    *          The value for which to make the determination.
    * @param invalidReason
    *          The buffer to which the invalid reason should be appended.
-   * @return <CODE>true</CODE> if the provided value is acceptable for
-   *         use with this syntax, or <CODE>false</CODE> if not.
+   * @return <CODE>true</CODE> if the provided value is acceptable for use with
+   *         this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      LocalizableMessageBuilder invalidReason)
+  public boolean valueIsAcceptable(final Schema schema,
+      final ByteSequence value, final LocalizableMessageBuilder invalidReason)
   {
     final String valueString = value.toString().toUpperCase();
 
     final int length = valueString.length();
     if (length < 3)
     {
-      invalidReason.append(WARN_ATTR_SYNTAX_BIT_STRING_TOO_SHORT
-          .get(value.toString()));
+      invalidReason.append(WARN_ATTR_SYNTAX_BIT_STRING_TOO_SHORT.get(value
+          .toString()));
       return false;
     }
 
-    if (valueString.charAt(0) != '\''
-        || valueString.charAt(length - 2) != '\''
+    if (valueString.charAt(0) != '\'' || valueString.charAt(length - 2) != '\''
         || valueString.charAt(length - 1) != 'B')
     {
-      invalidReason.append(WARN_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED
-          .get(value.toString()));
+      invalidReason.append(WARN_ATTR_SYNTAX_BIT_STRING_NOT_QUOTED.get(value
+          .toString()));
       return false;
     }
 
@@ -112,9 +113,8 @@ final class BitStringSyntaxImpl extends AbstractSyntaxImpl
         // These characters are fine.
         break;
       default:
-        invalidReason.append(WARN_ATTR_SYNTAX_BIT_STRING_INVALID_BIT
-            .get(value.toString(), String
-                .valueOf(valueString.charAt(i))));
+        invalidReason.append(WARN_ATTR_SYNTAX_BIT_STRING_INVALID_BIT.get(value
+            .toString(), String.valueOf(valueString.charAt(i))));
         return false;
       }
     }

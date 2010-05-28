@@ -30,7 +30,7 @@ package org.opends.sdk.schema;
 
 
 import static com.sun.opends.sdk.messages.Messages.*;
-import static org.opends.sdk.schema.SchemaConstants.*;
+import static org.opends.sdk.schema.SchemaConstants.SCHEMA_PROPERTY_APPROX_RULE;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -45,14 +45,14 @@ import com.sun.opends.sdk.util.Validator;
 
 
 /**
- * This class defines a data structure for storing and interacting with
- * an attribute type, which contains information about the format of an
- * attribute and the syntax and matching rules that should be used when
- * interacting with it.
+ * This class defines a data structure for storing and interacting with an
+ * attribute type, which contains information about the format of an attribute
+ * and the syntax and matching rules that should be used when interacting with
+ * it.
  * <p>
- * Where ordered sets of names, or extra properties are provided, the
- * ordering will be preserved when the associated fields are accessed
- * via their getters or via the {@link #toString()} methods.
+ * Where ordered sets of names, or extra properties are provided, the ordering
+ * will be preserved when the associated fields are accessed via their getters
+ * or via the {@link #toString()} methods.
  */
 public final class AttributeType extends SchemaElement implements
     Comparable<AttributeType>
@@ -129,13 +129,14 @@ public final class AttributeType extends SchemaElement implements
 
 
 
-  AttributeType(String oid, List<String> names, String description,
-      boolean obsolete, String superiorType,
-      String equalityMatchingRule, String orderingMatchingRule,
-      String substringMatchingRule, String approximateMatchingRule,
-      String syntax, boolean singleValue, boolean collective,
-      boolean noUserModification, AttributeUsage attributeUsage,
-      Map<String, List<String>> extraProperties, String definition)
+  AttributeType(final String oid, final List<String> names,
+      final String description, final boolean obsolete,
+      final String superiorType, final String equalityMatchingRule,
+      final String orderingMatchingRule, final String substringMatchingRule,
+      final String approximateMatchingRule, final String syntax,
+      final boolean singleValue, final boolean collective,
+      final boolean noUserModification, final AttributeUsage attributeUsage,
+      final Map<String, List<String>> extraProperties, final String definition)
   {
     super(description, extraProperties);
 
@@ -173,8 +174,9 @@ public final class AttributeType extends SchemaElement implements
 
 
 
-  AttributeType(String oid, List<String> names, String description,
-      MatchingRule equalityMatchingRule, Syntax syntax)
+  AttributeType(final String oid, final List<String> names,
+      final String description, final MatchingRule equalityMatchingRule,
+      final Syntax syntax)
   {
     super(description, Collections.<String, List<String>> emptyMap());
 
@@ -205,24 +207,24 @@ public final class AttributeType extends SchemaElement implements
 
 
   /**
-   * Compares this attribute type to the provided attribute type. The
-   * sort-order is defined as follows:
+   * Compares this attribute type to the provided attribute type. The sort-order
+   * is defined as follows:
    * <ul>
-   * <li>The {@code objectClass} attribute is less than all other
-   * attribute types.
+   * <li>The {@code objectClass} attribute is less than all other attribute
+   * types.
    * <li>User attributes are less than operational attributes.
    * <li>Lexicographic comparison of the primary name or OID.
    * </ul>
    *
    * @param type
    *          The attribute type to be compared.
-   * @return A negative integer, zero, or a positive integer as this
-   *         attribute type is less than, equal to, or greater than the
-   *         specified attribute type.
+   * @return A negative integer, zero, or a positive integer as this attribute
+   *         type is less than, equal to, or greater than the specified
+   *         attribute type.
    * @throws NullPointerException
    *           If {@code name} was {@code null}.
    */
-  public int compareTo(AttributeType type) throws NullPointerException
+  public int compareTo(final AttributeType type) throws NullPointerException
   {
     if (isObjectClassType)
     {
@@ -251,7 +253,7 @@ public final class AttributeType extends SchemaElement implements
 
 
   @Override
-  public boolean equals(Object o)
+  public boolean equals(final Object o)
   {
     if (this == o)
     {
@@ -270,11 +272,11 @@ public final class AttributeType extends SchemaElement implements
 
 
   /**
-   * Retrieves the matching rule that should be used for approximate
-   * matching with this attribute type.
+   * Returns the matching rule that should be used for approximate matching with
+   * this attribute type.
    *
-   * @return The matching rule that should be used for approximate
-   *         matching with this attribute type.
+   * @return The matching rule that should be used for approximate matching with
+   *         this attribute type.
    */
   public MatchingRule getApproximateMatchingRule()
   {
@@ -284,11 +286,11 @@ public final class AttributeType extends SchemaElement implements
 
 
   /**
-   * Retrieves the matching rule that should be used for equality
-   * matching with this attribute type.
+   * Returns the matching rule that should be used for equality matching with
+   * this attribute type.
    *
-   * @return The matching rule that should be used for equality matching
-   *         with this attribute type.
+   * @return The matching rule that should be used for equality matching with
+   *         this attribute type.
    */
   public MatchingRule getEqualityMatchingRule()
   {
@@ -298,9 +300,9 @@ public final class AttributeType extends SchemaElement implements
 
 
   /**
-   * Retrieves the name or OID for this schema definition. If it has one
-   * or more names, then the primary name will be returned. If it does
-   * not have any names, then the OID will be returned.
+   * Returns the name or OID for this schema definition. If it has one or more
+   * names, then the primary name will be returned. If it does not have any
+   * names, then the OID will be returned.
    *
    * @return The name or OID for this schema definition.
    */
@@ -316,13 +318,13 @@ public final class AttributeType extends SchemaElement implements
 
 
   /**
-   * Retrieves an iterable over the set of user-defined names that may
-   * be used to reference this schema definition.
+   * Returns an unmodifiable list containing the user-defined names that may be
+   * used to reference this schema definition.
    *
-   * @return Returns an iterable over the set of user-defined names that
+   * @return Returns an unmodifiable list containing the user-defined names that
    *         may be used to reference this schema definition.
    */
-  public Iterable<String> getNames()
+  public List<String> getNames()
   {
     return names;
   }
@@ -330,7 +332,7 @@ public final class AttributeType extends SchemaElement implements
 
 
   /**
-   * Retrieves the OID for this schema definition.
+   * Returns the OID for this schema definition.
    *
    * @return The OID for this schema definition.
    */
@@ -343,11 +345,11 @@ public final class AttributeType extends SchemaElement implements
 
 
   /**
-   * Retrieves the matching rule that should be used for ordering with
-   * this attribute type.
+   * Returns the matching rule that should be used for ordering with this
+   * attribute type.
    *
-   * @return The matching rule that should be used for ordering with
-   *         this attribute type.
+   * @return The matching rule that should be used for ordering with this
+   *         attribute type.
    */
   public MatchingRule getOrderingMatchingRule()
   {
@@ -357,11 +359,11 @@ public final class AttributeType extends SchemaElement implements
 
 
   /**
-   * Retrieves the matching rule that should be used for substring
-   * matching with this attribute type.
+   * Returns the matching rule that should be used for substring matching with
+   * this attribute type.
    *
-   * @return The matching rule that should be used for substring
-   *         matching with this attribute type.
+   * @return The matching rule that should be used for substring matching with
+   *         this attribute type.
    */
   public MatchingRule getSubstringMatchingRule()
   {
@@ -371,10 +373,10 @@ public final class AttributeType extends SchemaElement implements
 
 
   /**
-   * Retrieves the superior type for this attribute type.
+   * Returns the superior type for this attribute type.
    *
-   * @return The superior type for this attribute type, or
-   *         <CODE>null</CODE> if it does not have one.
+   * @return The superior type for this attribute type, or <CODE>null</CODE> if
+   *         it does not have one.
    */
   public AttributeType getSuperiorType()
   {
@@ -384,7 +386,7 @@ public final class AttributeType extends SchemaElement implements
 
 
   /**
-   * Retrieves the syntax for this attribute type.
+   * Returns the syntax for this attribute type.
    *
    * @return The syntax for this attribute type.
    */
@@ -396,7 +398,7 @@ public final class AttributeType extends SchemaElement implements
 
 
   /**
-   * Retrieves the usage indicator for this attribute type.
+   * Returns the usage indicator for this attribute type.
    *
    * @return The usage indicator for this attribute type.
    */
@@ -420,10 +422,10 @@ public final class AttributeType extends SchemaElement implements
    *
    * @param name
    *          The name for which to make the determination.
-   * @return {@code true} if the specified name is assigned to this
-   *         schema definition, or {@code false} if not.
+   * @return {@code true} if the specified name is assigned to this schema
+   *         definition, or {@code false} if not.
    */
-  public boolean hasName(String name)
+  public boolean hasName(final String name)
   {
     for (final String n : names)
     {
@@ -438,16 +440,14 @@ public final class AttributeType extends SchemaElement implements
 
 
   /**
-   * Indicates whether this schema definition has the specified name or
-   * OID.
+   * Indicates whether this schema definition has the specified name or OID.
    *
    * @param value
    *          The value for which to make the determination.
-   * @return {@code true} if the provided value matches the OID or one
-   *         of the names assigned to this schema definition, or {@code
-   *         false} if not.
+   * @return {@code true} if the provided value matches the OID or one of the
+   *         names assigned to this schema definition, or {@code false} if not.
    */
-  public boolean hasNameOrOID(String value)
+  public boolean hasNameOrOID(final String value)
   {
     return hasName(value) || getOID().equals(value);
   }
@@ -457,8 +457,8 @@ public final class AttributeType extends SchemaElement implements
   /**
    * Indicates whether this attribute type is declared "collective".
    *
-   * @return {@code true} if this attribute type is declared
-   *         "collective", or {@code false} if not.
+   * @return {@code true} if this attribute type is declared "collective", or
+   *         {@code false} if not.
    */
   public boolean isCollective()
   {
@@ -468,8 +468,7 @@ public final class AttributeType extends SchemaElement implements
 
 
   /**
-   * Indicates whether this attribute type is declared
-   * "no-user-modification".
+   * Indicates whether this attribute type is declared "no-user-modification".
    *
    * @return {@code true} if this attribute type is declared
    *         "no-user-modification", or {@code false} if not.
@@ -482,11 +481,11 @@ public final class AttributeType extends SchemaElement implements
 
 
   /**
-   * Indicates whether or not this attribute type is the {@code
-   * objectClass} attribute type having the OID 2.5.4.0.
+   * Indicates whether or not this attribute type is the {@code objectClass}
+   * attribute type having the OID 2.5.4.0.
    *
-   * @return {@code true} if this attribute type is the {@code
-   *         objectClass} attribute type, or {@code false} if not.
+   * @return {@code true} if this attribute type is the {@code objectClass}
+   *         attribute type, or {@code false} if not.
    */
   public boolean isObjectClass()
   {
@@ -498,8 +497,8 @@ public final class AttributeType extends SchemaElement implements
   /**
    * Indicates whether this schema definition is declared "obsolete".
    *
-   * @return {@code true} if this schema definition is declared
-   *         "obsolete", or {@code false} if not.
+   * @return {@code true} if this schema definition is declared "obsolete", or
+   *         {@code false} if not.
    */
   public boolean isObsolete()
   {
@@ -511,11 +510,11 @@ public final class AttributeType extends SchemaElement implements
   /**
    * Indicates whether this is an operational attribute. An operational
    * attribute is one with a usage of "directoryOperation",
-   * "distributedOperation", or "dSAOperation" (i.e., only
-   * userApplications is not operational).
+   * "distributedOperation", or "dSAOperation" (i.e., only userApplications is
+   * not operational).
    *
-   * @return {@code true} if this is an operational attribute, or
-   *         {@code false} if not.
+   * @return {@code true} if this is an operational attribute, or {@code false}
+   *         if not.
    */
   public boolean isOperational()
   {
@@ -527,8 +526,8 @@ public final class AttributeType extends SchemaElement implements
   /**
    * Indicates whether this attribute type is declared "single-value".
    *
-   * @return {@code true} if this attribute type is declared
-   *         "single-value", or {@code false} if not.
+   * @return {@code true} if this attribute type is declared "single-value", or
+   *         {@code false} if not.
    */
   public boolean isSingleValue()
   {
@@ -538,17 +537,18 @@ public final class AttributeType extends SchemaElement implements
 
 
   /**
-   * Indicates whether or not this attribute type is a sub-type of the
-   * provided attribute type.
+   * Indicates whether or not this attribute type is a sub-type of the provided
+   * attribute type.
    *
    * @param type
    *          The attribute type for which to make the determination.
-   * @return {@code true} if this attribute type is a sub-type of the
-   *         provided attribute type, or {@code false} if not.
+   * @return {@code true} if this attribute type is a sub-type of the provided
+   *         attribute type, or {@code false} if not.
    * @throws NullPointerException
    *           If {@code type} was {@code null}.
    */
-  public boolean isSubTypeOf(AttributeType type)
+  public boolean isSubTypeOf(final AttributeType type)
+      throws NullPointerException
   {
     AttributeType tmp = this;
     do
@@ -558,18 +558,19 @@ public final class AttributeType extends SchemaElement implements
         return true;
       }
       tmp = tmp.getSuperiorType();
-    } while (tmp != null);
+    }
+    while (tmp != null);
     return false;
   }
 
 
 
   /**
-   * Retrieves the string representation of this schema definition in
-   * the form specified in RFC 2252.
+   * Returns the string representation of this schema definition in the form
+   * specified in RFC 2252.
    *
-   * @return The string representation of this schema definition in the
-   *         form specified in RFC 2252.
+   * @return The string representation of this schema definition in the form
+   *         specified in RFC 2252.
    */
   @Override
   public String toString()
@@ -582,17 +583,16 @@ public final class AttributeType extends SchemaElement implements
   AttributeType duplicate()
   {
     return new AttributeType(oid, names, description, isObsolete,
-        superiorTypeOID, equalityMatchingRuleOID,
-        orderingMatchingRuleOID, substringMatchingRuleOID,
-        approximateMatchingRuleOID, syntaxOID, isSingleValue,
-        isCollective, isNoUserModification, attributeUsage,
+        superiorTypeOID, equalityMatchingRuleOID, orderingMatchingRuleOID,
+        substringMatchingRuleOID, approximateMatchingRuleOID, syntaxOID,
+        isSingleValue, isCollective, isNoUserModification, attributeUsage,
         extraProperties, definition);
   }
 
 
 
   @Override
-  void toStringContent(StringBuilder buffer)
+  void toStringContent(final StringBuilder buffer)
   {
     buffer.append(oid);
 
@@ -701,7 +701,7 @@ public final class AttributeType extends SchemaElement implements
    * {@inheritDoc}
    */
   @Override
-  void validate(List<LocalizableMessage> warnings, Schema schema)
+  void validate(final List<LocalizableMessage> warnings, final Schema schema)
       throws SchemaException
   {
     if (superiorTypeOID != null)
@@ -710,7 +710,7 @@ public final class AttributeType extends SchemaElement implements
       {
         superiorType = schema.getAttributeType(superiorTypeOID);
       }
-      catch (UnknownSchemaElementException e)
+      catch (final UnknownSchemaElementException e)
       {
         final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUPERIOR_TYPE
             .get(getNameOrOID(), superiorTypeOID);
@@ -753,8 +753,8 @@ public final class AttributeType extends SchemaElement implements
         // never fail since the core schema is non-strict and will
         // substitute the syntax if required.
         syntax = Schema.getCoreSchema().getSyntax(syntaxOID);
-        final LocalizableMessage message = WARN_ATTR_TYPE_NOT_DEFINED
-            .get(getNameOrOID(), syntaxOID, syntax.toString());
+        final LocalizableMessage message = WARN_ATTR_TYPE_NOT_DEFINED.get(
+            getNameOrOID(), syntaxOID, syntax.toString());
         warnings.add(message);
       }
       else
@@ -762,8 +762,7 @@ public final class AttributeType extends SchemaElement implements
         syntax = schema.getSyntax(syntaxOID);
       }
     }
-    else if (getSuperiorType() != null
-        && getSuperiorType().getSyntax() != null)
+    else if (getSuperiorType() != null && getSuperiorType().getSyntax() != null)
     {
       // Try to inherit the syntax from the superior type if possible
       syntax = getSuperiorType().getSyntax();
@@ -774,10 +773,9 @@ public final class AttributeType extends SchemaElement implements
       // Use explicitly defined matching rule first.
       try
       {
-        equalityMatchingRule = schema
-            .getMatchingRule(equalityMatchingRuleOID);
+        equalityMatchingRule = schema.getMatchingRule(equalityMatchingRuleOID);
       }
-      catch (UnknownSchemaElementException e)
+      catch (final UnknownSchemaElementException e)
       {
         final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_EQUALITY_MR
             .get(getNameOrOID(), equalityMatchingRuleOID);
@@ -788,8 +786,7 @@ public final class AttributeType extends SchemaElement implements
         && getSuperiorType().getEqualityMatchingRule() != null)
     {
       // Inherit matching rule from superior type if possible
-      equalityMatchingRule = getSuperiorType()
-          .getEqualityMatchingRule();
+      equalityMatchingRule = getSuperiorType().getEqualityMatchingRule();
     }
     else if (getSyntax() != null
         && getSyntax().getEqualityMatchingRule() != null)
@@ -803,10 +800,9 @@ public final class AttributeType extends SchemaElement implements
       // Use explicitly defined matching rule first.
       try
       {
-        orderingMatchingRule = schema
-            .getMatchingRule(orderingMatchingRuleOID);
+        orderingMatchingRule = schema.getMatchingRule(orderingMatchingRuleOID);
       }
-      catch (UnknownSchemaElementException e)
+      catch (final UnknownSchemaElementException e)
       {
         final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_ORDERING_MR
             .get(getNameOrOID(), orderingMatchingRuleOID);
@@ -817,8 +813,7 @@ public final class AttributeType extends SchemaElement implements
         && getSuperiorType().getOrderingMatchingRule() != null)
     {
       // Inherit matching rule from superior type if possible
-      orderingMatchingRule = getSuperiorType()
-          .getOrderingMatchingRule();
+      orderingMatchingRule = getSuperiorType().getOrderingMatchingRule();
     }
     else if (getSyntax() != null
         && getSyntax().getOrderingMatchingRule() != null)
@@ -835,7 +830,7 @@ public final class AttributeType extends SchemaElement implements
         substringMatchingRule = schema
             .getMatchingRule(substringMatchingRuleOID);
       }
-      catch (UnknownSchemaElementException e)
+      catch (final UnknownSchemaElementException e)
       {
         final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUBSTRING_MR
             .get(getNameOrOID(), substringMatchingRuleOID);
@@ -846,8 +841,7 @@ public final class AttributeType extends SchemaElement implements
         && getSuperiorType().getSubstringMatchingRule() != null)
     {
       // Inherit matching rule from superior type if possible
-      substringMatchingRule = getSuperiorType()
-          .getSubstringMatchingRule();
+      substringMatchingRule = getSuperiorType().getSubstringMatchingRule();
     }
     else if (getSyntax() != null
         && getSyntax().getSubstringMatchingRule() != null)
@@ -864,7 +858,7 @@ public final class AttributeType extends SchemaElement implements
         approximateMatchingRule = schema
             .getMatchingRule(approximateMatchingRuleOID);
       }
-      catch (UnknownSchemaElementException e)
+      catch (final UnknownSchemaElementException e)
       {
         final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_APPROXIMATE_MR
             .get(getNameOrOID(), approximateMatchingRuleOID);
@@ -875,21 +869,18 @@ public final class AttributeType extends SchemaElement implements
         && getSuperiorType().getApproximateMatchingRule() != null)
     {
       // Inherit matching rule from superior type if possible
-      approximateMatchingRule = getSuperiorType()
-          .getApproximateMatchingRule();
+      approximateMatchingRule = getSuperiorType().getApproximateMatchingRule();
     }
     else if (getSyntax() != null
         && getSyntax().getApproximateMatchingRule() != null)
     {
       // Use default for syntax
-      approximateMatchingRule = getSyntax()
-          .getApproximateMatchingRule();
+      approximateMatchingRule = getSyntax().getApproximateMatchingRule();
     }
 
     // If the attribute type is COLLECTIVE, then it must have a usage of
     // userApplications.
-    if (isCollective()
-        && getUsage() != AttributeUsage.USER_APPLICATIONS)
+    if (isCollective() && getUsage() != AttributeUsage.USER_APPLICATIONS)
     {
       final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_IS_OPERATIONAL
           .get(getNameOrOID());

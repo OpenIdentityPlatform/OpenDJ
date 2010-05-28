@@ -29,7 +29,7 @@ package org.opends.sdk;
 
 
 
-import static com.sun.opends.sdk.util.StaticUtils.*;
+import static com.sun.opends.sdk.util.StaticUtils.DEBUG_LOG;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,13 +49,13 @@ import com.sun.opends.sdk.util.StaticUtils;
  */
 public final class Matcher
 {
-  private static class AndMatcherImpl extends MatcherImpl
+  private static final class AndMatcherImpl extends MatcherImpl
   {
     private final List<MatcherImpl> subMatchers;
 
 
 
-    private AndMatcherImpl(List<MatcherImpl> subMatchers)
+    private AndMatcherImpl(final List<MatcherImpl> subMatchers)
     {
       this.subMatchers = subMatchers;
     }
@@ -63,7 +63,7 @@ public final class Matcher
 
 
     @Override
-    public ConditionResult matches(Entry entry)
+    public ConditionResult matches(final Entry entry)
     {
       ConditionResult r = ConditionResult.TRUE;
       for (final MatcherImpl m : subMatchers)
@@ -81,7 +81,7 @@ public final class Matcher
 
 
 
-  private static class AssertionMatcherImpl extends MatcherImpl
+  private static final class AssertionMatcherImpl extends MatcherImpl
   {
     private final Assertion assertion;
 
@@ -96,9 +96,9 @@ public final class Matcher
 
 
     private AssertionMatcherImpl(
-        AttributeDescription attributeDescription, MatchingRule rule,
-        MatchingRuleUse ruleUse, Assertion assertion,
-        boolean dnAttributes)
+        final AttributeDescription attributeDescription,
+        final MatchingRule rule, final MatchingRuleUse ruleUse,
+        final Assertion assertion, final boolean dnAttributes)
     {
       this.attributeDescription = attributeDescription;
       this.rule = rule;
@@ -110,7 +110,7 @@ public final class Matcher
 
 
     @Override
-    public ConditionResult matches(Entry entry)
+    public ConditionResult matches(final Entry entry)
     {
       ConditionResult r = ConditionResult.FALSE;
       if (attributeDescription != null)
@@ -135,13 +135,12 @@ public final class Matcher
         // If the type field is absent and the matchingRule is present,
         // the matchValue is compared against all attributes in an entry
         // that support that matchingRule.
-        for (final Attribute a : entry.getAttributes())
+        for (final Attribute a : entry.getAllAttributes())
         {
           if (ruleUse.hasAttribute(a.getAttributeDescription()
               .getAttributeType()))
           {
-            final ConditionResult p = Matcher.matches(a, rule,
-                assertion);
+            final ConditionResult p = Matcher.matches(a, rule, assertion);
             if (p == ConditionResult.TRUE)
             {
               return p;
@@ -162,12 +161,12 @@ public final class Matcher
         final DN dn = entry.getName();
         for (final RDN rdn : dn)
         {
-          for (final RDN.AVA ava : rdn)
+          for (final AVA ava : rdn)
           {
             if (ruleUse.hasAttribute(ava.getAttributeType()))
             {
-              final ConditionResult p = Matcher.matches(ava
-                  .getAttributeValue(), rule, assertion);
+              final ConditionResult p = Matcher.matches(
+                  ava.getAttributeValue(), rule, assertion);
               if (p == ConditionResult.TRUE)
               {
                 return p;
@@ -186,7 +185,7 @@ public final class Matcher
   private static class FalseMatcherImpl extends MatcherImpl
   {
     @Override
-    public ConditionResult matches(Entry entry)
+    public ConditionResult matches(final Entry entry)
     {
       return ConditionResult.FALSE;
     }
@@ -201,13 +200,13 @@ public final class Matcher
 
 
 
-  private static class NotMatcherImpl extends MatcherImpl
+  private static final class NotMatcherImpl extends MatcherImpl
   {
     private final MatcherImpl subFilter;
 
 
 
-    private NotMatcherImpl(MatcherImpl subFilter)
+    private NotMatcherImpl(final MatcherImpl subFilter)
     {
       this.subFilter = subFilter;
     }
@@ -215,7 +214,7 @@ public final class Matcher
 
 
     @Override
-    public ConditionResult matches(Entry entry)
+    public ConditionResult matches(final Entry entry)
     {
       return ConditionResult.not(subFilter.matches(entry));
     }
@@ -223,13 +222,13 @@ public final class Matcher
 
 
 
-  private static class OrMatcherImpl extends MatcherImpl
+  private static final class OrMatcherImpl extends MatcherImpl
   {
     private final List<MatcherImpl> subMatchers;
 
 
 
-    private OrMatcherImpl(List<MatcherImpl> subMatchers)
+    private OrMatcherImpl(final List<MatcherImpl> subMatchers)
     {
       this.subMatchers = subMatchers;
     }
@@ -237,7 +236,7 @@ public final class Matcher
 
 
     @Override
-    public ConditionResult matches(Entry entry)
+    public ConditionResult matches(final Entry entry)
     {
       ConditionResult r = ConditionResult.FALSE;
       for (final MatcherImpl m : subMatchers)
@@ -255,13 +254,13 @@ public final class Matcher
 
 
 
-  private static class PresentMatcherImpl extends MatcherImpl
+  private static final class PresentMatcherImpl extends MatcherImpl
   {
     private final AttributeDescription attribute;
 
 
 
-    private PresentMatcherImpl(AttributeDescription attribute)
+    private PresentMatcherImpl(final AttributeDescription attribute)
     {
       this.attribute = attribute;
     }
@@ -269,7 +268,7 @@ public final class Matcher
 
 
     @Override
-    public ConditionResult matches(Entry entry)
+    public ConditionResult matches(final Entry entry)
     {
       return entry.getAttribute(attribute) == null ? ConditionResult.FALSE
           : ConditionResult.TRUE;
@@ -281,7 +280,7 @@ public final class Matcher
   private static class TrueMatcherImpl extends MatcherImpl
   {
     @Override
-    public ConditionResult matches(Entry entry)
+    public ConditionResult matches(final Entry entry)
     {
       return ConditionResult.TRUE;
     }
@@ -292,7 +291,7 @@ public final class Matcher
   private static class UndefinedMatcherImpl extends MatcherImpl
   {
     @Override
-    public ConditionResult matches(Entry entry)
+    public ConditionResult matches(final Entry entry)
     {
       return ConditionResult.UNDEFINED;
     }
@@ -306,8 +305,8 @@ public final class Matcher
   private static final class Visitor implements
       FilterVisitor<MatcherImpl, Schema>
   {
-    public MatcherImpl visitAndFilter(Schema schema,
-        List<Filter> subFilters)
+    public MatcherImpl visitAndFilter(final Schema schema,
+        final List<Filter> subFilters)
     {
       if (subFilters.isEmpty())
       {
@@ -330,8 +329,8 @@ public final class Matcher
 
 
 
-    public MatcherImpl visitApproxMatchFilter(Schema schema,
-        String attributeDescription, ByteString assertionValue)
+    public MatcherImpl visitApproxMatchFilter(final Schema schema,
+        final String attributeDescription, final ByteString assertionValue)
     {
       AttributeDescription ad;
       MatchingRule rule;
@@ -345,9 +344,8 @@ public final class Matcher
       {
         if (DEBUG_LOG.isLoggable(Level.WARNING))
         {
-          DEBUG_LOG.warning("Attribute description "
-              + attributeDescription + " is not recognized: "
-              + e.toString());
+          DEBUG_LOG.warning("Attribute description " + attributeDescription
+              + " is not recognized: " + e.toString());
         }
         return UNDEFINED;
       }
@@ -356,8 +354,7 @@ public final class Matcher
       {
         if (DEBUG_LOG.isLoggable(Level.WARNING))
         {
-          DEBUG_LOG.warning("The attribute type "
-              + attributeDescription
+          DEBUG_LOG.warning("The attribute type " + attributeDescription
               + " does not define an approximate matching rule");
         }
         return UNDEFINED;
@@ -381,8 +378,8 @@ public final class Matcher
 
 
 
-    public MatcherImpl visitEqualityMatchFilter(Schema schema,
-        String attributeDescription, ByteString assertionValue)
+    public MatcherImpl visitEqualityMatchFilter(final Schema schema,
+        final String attributeDescription, final ByteString assertionValue)
     {
       AttributeDescription ad;
       MatchingRule rule;
@@ -396,9 +393,8 @@ public final class Matcher
       {
         if (DEBUG_LOG.isLoggable(Level.WARNING))
         {
-          DEBUG_LOG.warning("Attribute description "
-              + attributeDescription + " is not recognized: "
-              + e.toString());
+          DEBUG_LOG.warning("Attribute description " + attributeDescription
+              + " is not recognized: " + e.toString());
         }
         return UNDEFINED;
       }
@@ -407,8 +403,7 @@ public final class Matcher
       {
         if (DEBUG_LOG.isLoggable(Level.WARNING))
         {
-          DEBUG_LOG.warning("The attribute type "
-              + attributeDescription
+          DEBUG_LOG.warning("The attribute type " + attributeDescription
               + " does not define an equality matching rule");
         }
         return UNDEFINED;
@@ -432,9 +427,9 @@ public final class Matcher
 
 
 
-    public MatcherImpl visitExtensibleMatchFilter(Schema schema,
-        String matchingRule, String attributeDescription,
-        ByteString assertionValue, boolean dnAttributes)
+    public MatcherImpl visitExtensibleMatchFilter(final Schema schema,
+        final String matchingRule, final String attributeDescription,
+        final ByteString assertionValue, final boolean dnAttributes)
     {
       AttributeDescription ad = null;
       MatchingRule rule = null;
@@ -462,16 +457,14 @@ public final class Matcher
       {
         try
         {
-          ad = AttributeDescription.valueOf(attributeDescription,
-              schema);
+          ad = AttributeDescription.valueOf(attributeDescription, schema);
         }
         catch (final LocalizedIllegalArgumentException e)
         {
           if (DEBUG_LOG.isLoggable(Level.WARNING))
           {
-            DEBUG_LOG.warning("Attribute description "
-                + attributeDescription + " is not recognized: "
-                + e.toString());
+            DEBUG_LOG.warning("Attribute description " + attributeDescription
+                + " is not recognized: " + e.toString());
           }
           return UNDEFINED;
         }
@@ -482,8 +475,7 @@ public final class Matcher
           {
             if (DEBUG_LOG.isLoggable(Level.WARNING))
             {
-              DEBUG_LOG.warning("The attribute type "
-                  + attributeDescription
+              DEBUG_LOG.warning("The attribute type " + attributeDescription
                   + " does not define an equality matching rule");
             }
             return UNDEFINED;
@@ -509,8 +501,7 @@ public final class Matcher
             if (DEBUG_LOG.isLoggable(Level.WARNING))
             {
               DEBUG_LOG.warning("The matching rule " + matchingRule
-                  + " is not valid for attribute type "
-                  + attributeDescription);
+                  + " is not valid for attribute type " + attributeDescription);
             }
             return UNDEFINED;
           }
@@ -552,8 +543,8 @@ public final class Matcher
 
 
 
-    public MatcherImpl visitGreaterOrEqualFilter(Schema schema,
-        String attributeDescription, ByteString assertionValue)
+    public MatcherImpl visitGreaterOrEqualFilter(final Schema schema,
+        final String attributeDescription, final ByteString assertionValue)
     {
       AttributeDescription ad;
       MatchingRule rule;
@@ -567,9 +558,8 @@ public final class Matcher
       {
         if (DEBUG_LOG.isLoggable(Level.WARNING))
         {
-          DEBUG_LOG.warning("Attribute description "
-              + attributeDescription + " is not recognized: "
-              + e.toString());
+          DEBUG_LOG.warning("Attribute description " + attributeDescription
+              + " is not recognized: " + e.toString());
         }
         return UNDEFINED;
       }
@@ -578,8 +568,7 @@ public final class Matcher
       {
         if (DEBUG_LOG.isLoggable(Level.WARNING))
         {
-          DEBUG_LOG.warning("The attribute type "
-              + attributeDescription
+          DEBUG_LOG.warning("The attribute type " + attributeDescription
               + " does not define an ordering matching rule");
         }
         return UNDEFINED;
@@ -603,8 +592,8 @@ public final class Matcher
 
 
 
-    public MatcherImpl visitLessOrEqualFilter(Schema schema,
-        String attributeDescription, ByteString assertionValue)
+    public MatcherImpl visitLessOrEqualFilter(final Schema schema,
+        final String attributeDescription, final ByteString assertionValue)
     {
       AttributeDescription ad;
       MatchingRule rule;
@@ -618,9 +607,8 @@ public final class Matcher
       {
         if (DEBUG_LOG.isLoggable(Level.WARNING))
         {
-          DEBUG_LOG.warning("Attribute description "
-              + attributeDescription + " is not recognized: "
-              + e.toString());
+          DEBUG_LOG.warning("Attribute description " + attributeDescription
+              + " is not recognized: " + e.toString());
         }
         return UNDEFINED;
       }
@@ -629,8 +617,7 @@ public final class Matcher
       {
         if (DEBUG_LOG.isLoggable(Level.WARNING))
         {
-          DEBUG_LOG.warning("The attribute type "
-              + attributeDescription
+          DEBUG_LOG.warning("The attribute type " + attributeDescription
               + " does not define an ordering matching rule");
         }
         return UNDEFINED;
@@ -654,7 +641,8 @@ public final class Matcher
 
 
 
-    public MatcherImpl visitNotFilter(Schema schema, Filter subFilter)
+    public MatcherImpl visitNotFilter(final Schema schema,
+        final Filter subFilter)
     {
       final MatcherImpl subMatcher = subFilter.accept(this, schema);
       return new NotMatcherImpl(subMatcher);
@@ -662,8 +650,8 @@ public final class Matcher
 
 
 
-    public MatcherImpl visitOrFilter(Schema schema,
-        List<Filter> subFilters)
+    public MatcherImpl visitOrFilter(final Schema schema,
+        final List<Filter> subFilters)
     {
       if (subFilters.isEmpty())
       {
@@ -686,8 +674,8 @@ public final class Matcher
 
 
 
-    public MatcherImpl visitPresentFilter(Schema schema,
-        String attributeDescription)
+    public MatcherImpl visitPresentFilter(final Schema schema,
+        final String attributeDescription)
     {
       AttributeDescription ad;
       try
@@ -698,9 +686,8 @@ public final class Matcher
       {
         if (DEBUG_LOG.isLoggable(Level.WARNING))
         {
-          DEBUG_LOG.warning("Attribute description "
-              + attributeDescription + " is not recognized: "
-              + e.toString());
+          DEBUG_LOG.warning("Attribute description " + attributeDescription
+              + " is not recognized: " + e.toString());
         }
         return UNDEFINED;
       }
@@ -710,9 +697,9 @@ public final class Matcher
 
 
 
-    public MatcherImpl visitSubstringsFilter(Schema schema,
-        String attributeDescription, ByteString initialSubstring,
-        List<ByteString> anySubstrings, ByteString finalSubstring)
+    public MatcherImpl visitSubstringsFilter(final Schema schema,
+        final String attributeDescription, final ByteString initialSubstring,
+        final List<ByteString> anySubstrings, final ByteString finalSubstring)
     {
       AttributeDescription ad;
       MatchingRule rule;
@@ -726,9 +713,8 @@ public final class Matcher
       {
         if (DEBUG_LOG.isLoggable(Level.WARNING))
         {
-          DEBUG_LOG.warning("Attribute description "
-              + attributeDescription + " is not recognized: "
-              + e.toString());
+          DEBUG_LOG.warning("Attribute description " + attributeDescription
+              + " is not recognized: " + e.toString());
         }
         return UNDEFINED;
       }
@@ -737,8 +723,7 @@ public final class Matcher
       {
         if (DEBUG_LOG.isLoggable(Level.WARNING))
         {
-          DEBUG_LOG.warning("The attribute type "
-              + attributeDescription
+          DEBUG_LOG.warning("The attribute type " + attributeDescription
               + " does not define an substring matching rule");
         }
         return UNDEFINED;
@@ -764,8 +749,8 @@ public final class Matcher
 
 
 
-    public MatcherImpl visitUnrecognizedFilter(Schema schema,
-        byte filterTag, ByteString filterBytes)
+    public MatcherImpl visitUnrecognizedFilter(final Schema schema,
+        final byte filterTag, final ByteString filterBytes)
     {
       if (DEBUG_LOG.isLoggable(Level.WARNING))
       {
@@ -788,8 +773,8 @@ public final class Matcher
 
 
 
-  private static ConditionResult matches(Attribute a,
-      MatchingRule rule, Assertion assertion)
+  private static ConditionResult matches(final Attribute a,
+      final MatchingRule rule, final Assertion assertion)
   {
 
     ConditionResult r = ConditionResult.FALSE;
@@ -811,23 +796,21 @@ public final class Matcher
 
 
 
-  private static ConditionResult matches(ByteString v,
-      MatchingRule rule, Assertion assertion)
+  private static ConditionResult matches(final ByteString v,
+      final MatchingRule rule, final Assertion assertion)
   {
     try
     {
-      final ByteString normalizedValue = rule
-          .normalizeAttributeValue(v);
+      final ByteString normalizedValue = rule.normalizeAttributeValue(v);
       return assertion.matches(normalizedValue);
     }
     catch (final DecodeException de)
     {
       if (DEBUG_LOG.isLoggable(Level.WARNING))
       {
-        DEBUG_LOG.warning("The attribute value " + v.toString()
-            + " is " + "invalid for matching rule "
-            + rule.getNameOrOID() + ". Possible schema error? : "
-            + de.toString());
+        DEBUG_LOG.warning("The attribute value " + v.toString() + " is "
+            + "invalid for matching rule " + rule.getNameOrOID()
+            + ". Possible schema error? : " + de.toString());
       }
       return ConditionResult.UNDEFINED;
     }
@@ -839,7 +822,7 @@ public final class Matcher
 
 
 
-  Matcher(Filter filter, Schema schema)
+  Matcher(final Filter filter, final Schema schema)
   {
     this.impl = filter.accept(VISITOR, schema);
   }
@@ -847,15 +830,15 @@ public final class Matcher
 
 
   /**
-   * Indicates whether this filter {@code Matcher} matches the provided
-   * {@code Entry}.
+   * Indicates whether this filter {@code Matcher} matches the provided {@code
+   * Entry}.
    *
    * @param entry
    *          The entry to be matched.
-   * @return {@code true} if this filter {@code Matcher} matches the
-   *         provided {@code Entry}.
+   * @return {@code true} if this filter {@code Matcher} matches the provided
+   *         {@code Entry}.
    */
-  public ConditionResult matches(Entry entry)
+  public ConditionResult matches(final Entry entry)
   {
     return impl.matches(entry);
   }

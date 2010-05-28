@@ -33,138 +33,129 @@ import org.opends.sdk.ByteString;
 
 
 /**
- * This class defines a number of constants used by Directory Server
- * schema elements, like matching rules, syntaxes, attribute types, and
- * objectclasses.
+ * This class defines a number of constants used by Directory Server schema
+ * elements, like matching rules, syntaxes, attribute types, and objectclasses.
  */
-class SchemaConstants
+final class SchemaConstants
 {
   /**
-   * The IANA-assigned base OID for all things under the OpenDS
-   * umbrella.
+   * The IANA-assigned base OID for all things under the OpenDS umbrella.
    */
   public static final String OID_OPENDS_BASE = "1.3.6.1.4.1.26027";
 
   /**
-   * The base OID that will be used for the OpenDS Directory Server
-   * project.
+   * The base OID that will be used for the OpenDS Directory Server project.
    */
-  public static final String OID_OPENDS_SERVER_BASE =
-      OID_OPENDS_BASE + ".1";
+  public static final String OID_OPENDS_SERVER_BASE = OID_OPENDS_BASE + ".1";
 
   /**
-   * The base OID that will be used for OpenDS Directory Server
-   * attribute type definitions.
+   * The base OID that will be used for OpenDS Directory Server attribute type
+   * definitions.
    */
   public static final String OID_OPENDS_SERVER_ATTRIBUTE_TYPE_BASE =
-      OID_OPENDS_SERVER_BASE + ".1";
+    OID_OPENDS_SERVER_BASE + ".1";
 
   /**
-   * The base OID that will be used for OpenDS Directory Server object
-   * class definitions.
+   * The base OID that will be used for OpenDS Directory Server object class
+   * definitions.
    */
   public static final String OID_OPENDS_SERVER_OBJECT_CLASS_BASE =
-      OID_OPENDS_SERVER_BASE + ".2";
+    OID_OPENDS_SERVER_BASE + ".2";
 
   /**
-   * The base OID that will be used for OpenDS Directory Server
-   * attribute syntax definitions.
+   * The base OID that will be used for OpenDS Directory Server attribute syntax
+   * definitions.
    */
   public static final String OID_OPENDS_SERVER_ATTRIBUTE_SYNTAX_BASE =
-      OID_OPENDS_SERVER_BASE + ".3";
+    OID_OPENDS_SERVER_BASE + ".3";
 
   /**
-   * The base OID that will be used for OpenDS Directory Server matching
-   * rule definitions.
+   * The base OID that will be used for OpenDS Directory Server matching rule
+   * definitions.
    */
   public static final String OID_OPENDS_SERVER_MATCHING_RULE_BASE =
-      OID_OPENDS_SERVER_BASE + ".4";
+    OID_OPENDS_SERVER_BASE + ".4";
 
   /**
    * The base OID that will be used for OpenDS Directory Server control
    * definitions.
    */
   public static final String OID_OPENDS_SERVER_CONTROL_BASE =
-      OID_OPENDS_SERVER_BASE + ".5";
+    OID_OPENDS_SERVER_BASE + ".5";
 
   /**
    * The base OID that will be used for OpenDS Directory Server extended
    * operation definitions.
    */
   public static final String OID_OPENDS_SERVER_EXTENDED_OPERATION_BASE =
-      OID_OPENDS_SERVER_BASE + ".6";
+    OID_OPENDS_SERVER_BASE + ".6";
 
   /**
-   * The base OID that will be used for general-purpose (i.e., "other")
-   * types of OIDs that need to be allocated for the OpenDS Directory
-   * Server.
+   * The base OID that will be used for general-purpose (i.e., "other") types of
+   * OIDs that need to be allocated for the OpenDS Directory Server.
    */
   public static final String OID_OPENDS_SERVER_GENERAL_USE_BASE =
-      OID_OPENDS_SERVER_BASE + ".9";
+    OID_OPENDS_SERVER_BASE + ".9";
 
   /**
-   * The base OID that will be used for temporary or experimental OIDs
-   * within the OpenDS Directory Server.
+   * The base OID that will be used for temporary or experimental OIDs within
+   * the OpenDS Directory Server.
    */
   public static final String OID_OPENDS_SERVER_EXPERIMENTAL_BASE =
-      OID_OPENDS_SERVER_BASE + ".999";
+    OID_OPENDS_SERVER_BASE + ".999";
 
   /**
    * The description for the doubleMetaphoneApproximateMatch approximate
    * matching rule.
    */
   public static final String AMR_DOUBLE_METAPHONE_DESCRIPTION =
-      "Double Metaphone Approximate Match";
+    "Double Metaphone Approximate Match";
 
   /**
-   * The name for the doubleMetaphoneApproximateMatch approximate
-   * matching rule.
+   * The name for the doubleMetaphoneApproximateMatch approximate matching rule.
    */
   public static final String AMR_DOUBLE_METAPHONE_NAME =
-      "ds-mr-double-metaphone-approx";
+    "ds-mr-double-metaphone-approx";
 
   /**
-   * The OID for the doubleMetaphoneApproximateMatch approximate
-   * matching rule.
+   * The OID for the doubleMetaphoneApproximateMatch approximate matching rule.
    */
   public static final String AMR_DOUBLE_METAPHONE_OID =
-      OID_OPENDS_SERVER_MATCHING_RULE_BASE + ".1";
+    OID_OPENDS_SERVER_MATCHING_RULE_BASE + ".1";
 
   /**
    * The description for the authPasswordExactMatch matching rule.
    */
   public static final String EMR_AUTH_PASSWORD_EXACT_DESCRIPTION =
-      "authentication password exact matching rule";
+    "authentication password exact matching rule";
 
   /**
    * The name for the authPasswordExactMatch equality matching rule.
    */
   public static final String EMR_AUTH_PASSWORD_EXACT_NAME =
-      "authPasswordExactMatch";
+    "authPasswordExactMatch";
 
   /**
    * The OID for the authPasswordExactMatch equality matching rule.
    */
   public static final String EMR_AUTH_PASSWORD_EXACT_OID =
-      "1.3.6.1.4.1.4203.1.2.2";
+    "1.3.6.1.4.1.4203.1.2.2";
 
   /**
    * The description for the authPasswordMatch matching rule.
    */
   public static final String EMR_AUTH_PASSWORD_DESCRIPTION =
-      "authentication password matching rule";
+    "authentication password matching rule";
 
   /**
    * The name for the authPasswordMatch equality matching rule.
    */
-  public static final String EMR_AUTH_PASSWORD_NAME =
-      "authPasswordMatch";
+  public static final String EMR_AUTH_PASSWORD_NAME = "authPasswordMatch";
 
   /**
    * The OID for the authPasswordMatch equality matching rule.
    */
-  public static final String EMR_AUTH_PASSWORD_OID =
-      "1.3.6.1.4.1.4203.1.2.3";
+  public static final String EMR_AUTH_PASSWORD_OID = "1.3.6.1.4.1.4203.1.2.3";
 
   /**
    * The name for the bitStringMatch equality matching rule.
@@ -199,14 +190,13 @@ class SchemaConstants
   /**
    * The name for the caseExactIA5Match equality matching rule.
    */
-  public static final String EMR_CASE_EXACT_IA5_NAME =
-      "caseExactIA5Match";
+  public static final String EMR_CASE_EXACT_IA5_NAME = "caseExactIA5Match";
 
   /**
    * The OID for the caseExactIA5Match equality matching rule.
    */
   public static final String EMR_CASE_EXACT_IA5_OID =
-      "1.3.6.1.4.1.1466.109.114.1";
+    "1.3.6.1.4.1.1466.109.114.1";
 
   /**
    * The name for the caseIgnoreMatch equality matching rule.
@@ -221,20 +211,18 @@ class SchemaConstants
   /**
    * The name for the caseIgnoreIA5Match equality matching rule.
    */
-  public static final String EMR_CASE_IGNORE_IA5_NAME =
-      "caseIgnoreIA5Match";
+  public static final String EMR_CASE_IGNORE_IA5_NAME = "caseIgnoreIA5Match";
 
   /**
    * The OID for the caseIgnoreIA5Match equality matching rule.
    */
   public static final String EMR_CASE_IGNORE_IA5_OID =
-      "1.3.6.1.4.1.1466.109.114.2";
+    "1.3.6.1.4.1.1466.109.114.2";
 
   /**
    * The name for the caseIgnoreListMatch equality matching rule.
    */
-  public static final String EMR_CASE_IGNORE_LIST_NAME =
-      "caseIgnoreListMatch";
+  public static final String EMR_CASE_IGNORE_LIST_NAME = "caseIgnoreListMatch";
 
   /**
    * The OID for the caseIgnoreListMatch equality matching rule.
@@ -242,18 +230,16 @@ class SchemaConstants
   public static final String EMR_CASE_IGNORE_LIST_OID = "2.5.13.11";
 
   /**
-   * The name for the directoryStringFirstComponentMatch equality
-   * matching rule.
+   * The name for the directoryStringFirstComponentMatch equality matching rule.
    */
   public static final String EMR_DIRECTORY_STRING_FIRST_COMPONENT_NAME =
-      "directoryStringFirstComponentMatch";
+    "directoryStringFirstComponentMatch";
 
   /**
-   * The OID for the directoryStringFirstComponentMatch equality
-   * matching rule.
+   * The OID for the directoryStringFirstComponentMatch equality matching rule.
    */
   public static final String EMR_DIRECTORY_STRING_FIRST_COMPONENT_OID =
-      "2.5.13.31";
+    "2.5.13.31";
 
   /**
    * The name for the distinguishedNameMatch equality matching rule.
@@ -268,8 +254,7 @@ class SchemaConstants
   /**
    * The name for the generalizedTimeMatch equality matching rule.
    */
-  public static final String EMR_GENERALIZED_TIME_NAME =
-      "generalizedTimeMatch";
+  public static final String EMR_GENERALIZED_TIME_NAME = "generalizedTimeMatch";
 
   /**
    * The OID for the generalizedTimeMatch equality matching rule.
@@ -290,13 +275,12 @@ class SchemaConstants
    * The name for the integerFirstComponentMatch equality matching rule.
    */
   public static final String EMR_INTEGER_FIRST_COMPONENT_NAME =
-      "integerFirstComponentMatch";
+    "integerFirstComponentMatch";
 
   /**
    * The OID for the integerFirstComponentMatch equality matching rule.
    */
-  public static final String EMR_INTEGER_FIRST_COMPONENT_OID =
-      "2.5.13.29";
+  public static final String EMR_INTEGER_FIRST_COMPONENT_OID = "2.5.13.29";
 
   /**
    * The name for the keywordMatch equality matching rule.
@@ -311,8 +295,7 @@ class SchemaConstants
   /**
    * The name for the numericStringMatch equality matching rule.
    */
-  public static final String EMR_NUMERIC_STRING_NAME =
-      "numericStringMatch";
+  public static final String EMR_NUMERIC_STRING_NAME = "numericStringMatch";
 
   /**
    * The OID for the numericStringMatch equality matching rule.
@@ -340,15 +323,14 @@ class SchemaConstants
   public static final String EMR_OID_OID = "2.5.13.0";
 
   /**
-   * The name for the objectIdentifierFirstComponentMatch equality
-   * matching rule.
+   * The name for the objectIdentifierFirstComponentMatch equality matching
+   * rule.
    */
   public static final String EMR_OID_FIRST_COMPONENT_NAME =
-      "objectIdentifierFirstComponentMatch";
+    "objectIdentifierFirstComponentMatch";
 
   /**
-   * The OID for the objectIdentifierFirstComponentMatch equality
-   * matching rule.
+   * The OID for the objectIdentifierFirstComponentMatch equality matching rule.
    */
   public static final String EMR_OID_FIRST_COMPONENT_OID = "2.5.13.30";
 
@@ -356,7 +338,7 @@ class SchemaConstants
    * The name for the presentationAddressMatch equality matching rule.
    */
   public static final String EMR_PRESENTATION_ADDRESS_NAME =
-      "presentationAddressMatch";
+    "presentationAddressMatch";
 
   /**
    * The OID for the presentationAddressMatch equality matching rule.
@@ -367,7 +349,7 @@ class SchemaConstants
    * The name for the protocolInformationMatch equality matching rule.
    */
   public static final String EMR_PROTOCOL_INFORMATION_NAME =
-      "protocolInformationMatch";
+    "protocolInformationMatch";
 
   /**
    * The OID for the protocolInformationMatch equality matching rule.
@@ -377,8 +359,7 @@ class SchemaConstants
   /**
    * The name for the telephoneNumberMatch equality matching rule.
    */
-  public static final String EMR_TELEPHONE_NAME =
-      "telephoneNumberMatch";
+  public static final String EMR_TELEPHONE_NAME = "telephoneNumberMatch";
 
   /**
    * The OID for the telephoneNumberMatch equality matching rule.
@@ -388,8 +369,7 @@ class SchemaConstants
   /**
    * The name for the uniqueMemberMatch equality matching rule.
    */
-  public static final String EMR_UNIQUE_MEMBER_NAME =
-      "uniqueMemberMatch";
+  public static final String EMR_UNIQUE_MEMBER_NAME = "uniqueMemberMatch";
 
   /**
    * The OID for the uniqueMemberMatch equality matching rule.
@@ -400,37 +380,37 @@ class SchemaConstants
    * The description for the userPasswordExactMatch matching rule.
    */
   public static final String EMR_USER_PASSWORD_EXACT_DESCRIPTION =
-      "user password exact matching rule";
+    "user password exact matching rule";
 
   /**
    * The name for the userPasswordExactMatch equality matching rule.
    */
   public static final String EMR_USER_PASSWORD_EXACT_NAME =
-      "ds-mr-user-password-exact";
+    "ds-mr-user-password-exact";
 
   /**
    * The OID for the userPasswordExactMatch equality matching rule.
    */
   public static final String EMR_USER_PASSWORD_EXACT_OID =
-      OID_OPENDS_SERVER_MATCHING_RULE_BASE + ".2";
+    OID_OPENDS_SERVER_MATCHING_RULE_BASE + ".2";
 
   /**
    * The description for the userPasswordMatch matching rule.
    */
   public static final String EMR_USER_PASSWORD_DESCRIPTION =
-      "user password matching rule";
+    "user password matching rule";
 
   /**
    * The name for the userPasswordMatch equality matching rule.
    */
   public static final String EMR_USER_PASSWORD_NAME =
-      "ds-mr-user-password-equality";
+    "ds-mr-user-password-equality";
 
   /**
    * The OID for the userPasswordMatch equality matching rule.
    */
   public static final String EMR_USER_PASSWORD_OID =
-      OID_OPENDS_SERVER_MATCHING_RULE_BASE + ".3";
+    OID_OPENDS_SERVER_MATCHING_RULE_BASE + ".3";
 
   /**
    * The name for the uuidMatch equality matching rule.
@@ -455,8 +435,7 @@ class SchemaConstants
   /**
    * The name for the caseExactOrderingMatch ordering matching rule.
    */
-  public static final String OMR_CASE_EXACT_NAME =
-      "caseExactOrderingMatch";
+  public static final String OMR_CASE_EXACT_NAME = "caseExactOrderingMatch";
 
   /**
    * The OID for the caseExactOrderingMatch ordering matching rule.
@@ -466,8 +445,7 @@ class SchemaConstants
   /**
    * The name for the caseIgnoreOrderingMatch ordering matching rule.
    */
-  public static final String OMR_CASE_IGNORE_NAME =
-      "caseIgnoreOrderingMatch";
+  public static final String OMR_CASE_IGNORE_NAME = "caseIgnoreOrderingMatch";
 
   /**
    * The OID for the caseIgnoreOrderingMatch ordering matching rule.
@@ -475,15 +453,13 @@ class SchemaConstants
   public static final String OMR_CASE_IGNORE_OID = "2.5.13.3";
 
   /**
-   * The name for the generalizedTimeOrderingMatch ordering matching
-   * rule.
+   * The name for the generalizedTimeOrderingMatch ordering matching rule.
    */
   public static final String OMR_GENERALIZED_TIME_NAME =
-      "generalizedTimeOrderingMatch";
+    "generalizedTimeOrderingMatch";
 
   /**
-   * The OID for the generalizedTimeOrderingMatch ordering matching
-   * rule.
+   * The OID for the generalizedTimeOrderingMatch ordering matching rule.
    */
   public static final String OMR_GENERALIZED_TIME_OID = "2.5.13.28";
 
@@ -501,7 +477,7 @@ class SchemaConstants
    * The name for the numericStringOrderingMatch ordering matching rule.
    */
   public static final String OMR_NUMERIC_STRING_NAME =
-      "numericStringOrderingMatch";
+    "numericStringOrderingMatch";
 
   /**
    * The OID for the numericStringOrderingMatch ordering matching rule.
@@ -511,8 +487,7 @@ class SchemaConstants
   /**
    * The name for the octetStringOrderingMatch ordering matching rule.
    */
-  public static final String OMR_OCTET_STRING_NAME =
-      "octetStringOrderingMatch";
+  public static final String OMR_OCTET_STRING_NAME = "octetStringOrderingMatch";
 
   /**
    * The OID for the octetStringOrderingMatch ordering matching rule.
@@ -532,20 +507,17 @@ class SchemaConstants
   /**
    * The name for the enumOrderingMatch ordering matching rule.
    */
-  public static final String OMR_GENERIC_ENUM_NAME =
-      "enumOrderingMatch";
+  public static final String OMR_GENERIC_ENUM_NAME = "enumOrderingMatch";
 
   /**
    * The oid for the generic enum syntax ordering matching rule.
    */
-  public static final String OMR_OID_GENERIC_ENUM =
-      "1.3.6.1.4.1.26027.1.4.8";
+  public static final String OMR_OID_GENERIC_ENUM = "1.3.6.1.4.1.26027.1.4.8";
 
   /**
    * The name for the caseExactSubstringsMatch substring matching rule.
    */
-  public static final String SMR_CASE_EXACT_NAME =
-      "caseExactSubstringsMatch";
+  public static final String SMR_CASE_EXACT_NAME = "caseExactSubstringsMatch";
 
   /**
    * The OID for the caseExactSubstringsMatch substring matching rule.
@@ -553,25 +525,22 @@ class SchemaConstants
   public static final String SMR_CASE_EXACT_OID = "2.5.13.7";
 
   /**
-   * The name for the caseExactIA5SubstringsMatch substring matching
-   * rule.
+   * The name for the caseExactIA5SubstringsMatch substring matching rule.
    */
   public static final String SMR_CASE_EXACT_IA5_NAME =
-      "caseExactIA5SubstringsMatch";
+    "caseExactIA5SubstringsMatch";
 
   /**
-   * The OID for the caseExactIA5SubstringsMatch substring matching
-   * rule. // FIXME -- This needs to be updated once a real OID is
-   * assigned.
+   * The OID for the caseExactIA5SubstringsMatch substring matching rule. //
+   * FIXME -- This needs to be updated once a real OID is assigned.
    */
   public static final String SMR_CASE_EXACT_IA5_OID =
-      OID_OPENDS_SERVER_MATCHING_RULE_BASE + ".902";
+    OID_OPENDS_SERVER_MATCHING_RULE_BASE + ".902";
 
   /**
    * The name for the caseIgnoreSubstringsMatch substring matching rule.
    */
-  public static final String SMR_CASE_IGNORE_NAME =
-      "caseIgnoreSubstringsMatch";
+  public static final String SMR_CASE_IGNORE_NAME = "caseIgnoreSubstringsMatch";
 
   /**
    * The OID for the caseIgnoreSubstringsMatch substring matching rule.
@@ -579,51 +548,44 @@ class SchemaConstants
   public static final String SMR_CASE_IGNORE_OID = "2.5.13.4";
 
   /**
-   * The name for the caseIgnoreIA5SubstringsMatch substring matching
-   * rule.
+   * The name for the caseIgnoreIA5SubstringsMatch substring matching rule.
    */
   public static final String SMR_CASE_IGNORE_IA5_NAME =
-      "caseIgnoreIA5SubstringsMatch";
+    "caseIgnoreIA5SubstringsMatch";
 
   /**
-   * The OID for the caseIgnoreIA5SubstringsMatch substring matching
-   * rule.
+   * The OID for the caseIgnoreIA5SubstringsMatch substring matching rule.
    */
   public static final String SMR_CASE_IGNORE_IA5_OID =
-      "1.3.6.1.4.1.1466.109.114.3";
+    "1.3.6.1.4.1.1466.109.114.3";
 
   /**
-   * The name for the caseIgnoreListSubstringsMatch substring matching
-   * rule.
+   * The name for the caseIgnoreListSubstringsMatch substring matching rule.
    */
   public static final String SMR_CASE_IGNORE_LIST_NAME =
-      "caseIgnoreListSubstringsMatch";
+    "caseIgnoreListSubstringsMatch";
 
   /**
-   * The OID for the caseIgnoreListSubstringsMatch substring matching
-   * rule.
+   * The OID for the caseIgnoreListSubstringsMatch substring matching rule.
    */
   public static final String SMR_CASE_IGNORE_LIST_OID = "2.5.13.12";
 
   /**
-   * The name for the numericStringSubstringsMatch substring matching
-   * rule.
+   * The name for the numericStringSubstringsMatch substring matching rule.
    */
   public static final String SMR_NUMERIC_STRING_NAME =
-      "numericStringSubstringsMatch";
+    "numericStringSubstringsMatch";
 
   /**
-   * The OID for the numericStringSubstringsMatch substring matching
-   * rule.
+   * The OID for the numericStringSubstringsMatch substring matching rule.
    */
   public static final String SMR_NUMERIC_STRING_OID = "2.5.13.10";
 
   /**
-   * The name for the octetStringSubstringsMatch substring matching
-   * rule.
+   * The name for the octetStringSubstringsMatch substring matching rule.
    */
   public static final String SMR_OCTET_STRING_NAME =
-      "octetStringSubstringsMatch";
+    "octetStringSubstringsMatch";
 
   /**
    * The OID for the octetStringSubstringsMatch substring matching rule.
@@ -631,15 +593,13 @@ class SchemaConstants
   public static final String SMR_OCTET_STRING_OID = "2.5.13.19";
 
   /**
-   * The name for the telephoneNumberSubstringsMatch substring matching
-   * rule.
+   * The name for the telephoneNumberSubstringsMatch substring matching rule.
    */
   public static final String SMR_TELEPHONE_NAME =
-      "telephoneNumberSubstringsMatch";
+    "telephoneNumberSubstringsMatch";
 
   /**
-   * The OID for the telephoneNumberSubstringsMatch substring matching
-   * rule.
+   * The OID for the telephoneNumberSubstringsMatch substring matching rule.
    */
   public static final String SMR_TELEPHONE_OID = "2.5.13.21";
 
@@ -647,75 +607,71 @@ class SchemaConstants
    * The OID for the absolute subtree specification attribute syntax.
    */
   public static final String SYNTAX_ABSOLUTE_SUBTREE_SPECIFICATION_OID =
-      OID_OPENDS_SERVER_ATTRIBUTE_SYNTAX_BASE + ".3";
+    OID_OPENDS_SERVER_ATTRIBUTE_SYNTAX_BASE + ".3";
 
   /**
-   * The description for the absolute subtree specification attribute
-   * syntax.
+   * The description for the absolute subtree specification attribute syntax.
    */
   public static final String SYNTAX_ABSOLUTE_SUBTREE_SPECIFICATION_DESCRIPTION =
-      "Absolute Subtree Specification";
+    "Absolute Subtree Specification";
 
   /**
    * The name for the absolute subtree specification attribute syntax.
    */
   public static final String SYNTAX_ABSOLUTE_SUBTREE_SPECIFICATION_NAME =
-      "ds-absolute-subtree-specification";
+    "ds-absolute-subtree-specification";
 
   /**
    * The OID for the aci attribute syntax.
    */
   public static final String SYNTAX_ACI_OID =
-      OID_OPENDS_SERVER_ATTRIBUTE_SYNTAX_BASE + ".4";
+    OID_OPENDS_SERVER_ATTRIBUTE_SYNTAX_BASE + ".4";
 
   /**
    * The description for aci attribute syntax.
    */
   public static final String SYNTAX_ACI_DESCRIPTION =
-      "Sun-defined Access Control Information";
+    "Sun-defined Access Control Information";
 
   /**
    * The name for the aci attribute syntax.
    */
-  public static final String SYNTAX_ACI_NAME =
-      "ds-syntax-dseecompat-aci";
+  public static final String SYNTAX_ACI_NAME = "ds-syntax-dseecompat-aci";
 
   /**
-   * The description for the attribute type description attribute
-   * syntax.
+   * The description for the attribute type description attribute syntax.
    */
   public static final String SYNTAX_ATTRIBUTE_TYPE_DESCRIPTION =
-      "Attribute Type Description";
+    "Attribute Type Description";
 
   /**
    * The name for the attribute type description attribute syntax.
    */
   public static final String SYNTAX_ATTRIBUTE_TYPE_NAME =
-      "AttributeTypeDescription";
+    "AttributeTypeDescription";
 
   /**
    * The OID for the attribute type description attribute syntax.
    */
   public static final String SYNTAX_ATTRIBUTE_TYPE_OID =
-      "1.3.6.1.4.1.1466.115.121.1.3";
+    "1.3.6.1.4.1.1466.115.121.1.3";
 
   /**
    * The description for the auth password attribute syntax.
    */
   public static final String SYNTAX_AUTH_PASSWORD_DESCRIPTION =
-      "Authentication Password Syntax";
+    "Authentication Password Syntax";
 
   /**
    * The name for the auth password attribute syntax.
    */
   public static final String SYNTAX_AUTH_PASSWORD_NAME =
-      "AuthenticationPasswordSyntax";
+    "AuthenticationPasswordSyntax";
 
   /**
    * The OID for the auth password attribute syntax.
    */
-  public static final String SYNTAX_AUTH_PASSWORD_OID =
-      "1.3.6.1.4.1.4203.1.1.2";
+  public static final String SYNTAX_AUTH_PASSWORD_OID = "1.3.6.1.4.1.4203.1.1.2";
 
   /**
    * The description for the binary attribute syntax.
@@ -730,14 +686,12 @@ class SchemaConstants
   /**
    * The OID for the binary attribute syntax.
    */
-  public static final String SYNTAX_BINARY_OID =
-      "1.3.6.1.4.1.1466.115.121.1.5";
+  public static final String SYNTAX_BINARY_OID = "1.3.6.1.4.1.1466.115.121.1.5";
 
   /**
    * The description for the bit string attribute syntax.
    */
-  public static final String SYNTAX_BIT_STRING_DESCRIPTION =
-      "Bit String";
+  public static final String SYNTAX_BIT_STRING_DESCRIPTION = "Bit String";
 
   /**
    * The name for the bit string attribute syntax.
@@ -747,8 +701,7 @@ class SchemaConstants
   /**
    * The OID for the bit string attribute syntax.
    */
-  public static final String SYNTAX_BIT_STRING_OID =
-      "1.3.6.1.4.1.1466.115.121.1.6";
+  public static final String SYNTAX_BIT_STRING_OID = "1.3.6.1.4.1.1466.115.121.1.6";
 
   /**
    * The description for the Boolean attribute syntax.
@@ -763,14 +716,12 @@ class SchemaConstants
   /**
    * The OID for the Boolean attribute syntax.
    */
-  public static final String SYNTAX_BOOLEAN_OID =
-      "1.3.6.1.4.1.1466.115.121.1.7";
+  public static final String SYNTAX_BOOLEAN_OID = "1.3.6.1.4.1.1466.115.121.1.7";
 
   /**
    * The description for the certificate attribute syntax.
    */
-  public static final String SYNTAX_CERTIFICATE_DESCRIPTION =
-      "Certificate";
+  public static final String SYNTAX_CERTIFICATE_DESCRIPTION = "Certificate";
 
   /**
    * The name for the certificate attribute syntax.
@@ -781,13 +732,12 @@ class SchemaConstants
    * The OID for the certificate attribute syntax.
    */
   public static final String SYNTAX_CERTIFICATE_OID =
-      "1.3.6.1.4.1.1466.115.121.1.8";
+    "1.3.6.1.4.1.1466.115.121.1.8";
 
   /**
    * The description for the certificate list attribute syntax.
    */
-  public static final String SYNTAX_CERTLIST_DESCRIPTION =
-      "Certificate List";
+  public static final String SYNTAX_CERTLIST_DESCRIPTION = "Certificate List";
 
   /**
    * The name for the certificate list attribute syntax.
@@ -798,13 +748,12 @@ class SchemaConstants
    * The OID for the certificate list attribute syntax.
    */
   public static final String SYNTAX_CERTLIST_OID =
-      "1.3.6.1.4.1.1466.115.121.1.9";
+    "1.3.6.1.4.1.1466.115.121.1.9";
 
   /**
    * The description for the certificate pair attribute syntax.
    */
-  public static final String SYNTAX_CERTPAIR_DESCRIPTION =
-      "Certificate Pair";
+  public static final String SYNTAX_CERTPAIR_DESCRIPTION = "Certificate Pair";
 
   /**
    * The name for the certificate pair attribute syntax.
@@ -815,99 +764,94 @@ class SchemaConstants
    * The OID for the certificate pair attribute syntax.
    */
   public static final String SYNTAX_CERTPAIR_OID =
-      "1.3.6.1.4.1.1466.115.121.1.10";
+    "1.3.6.1.4.1.1466.115.121.1.10";
 
   /**
    * The description for the country string attribute syntax.
    */
   public static final String SYNTAX_COUNTRY_STRING_DESCRIPTION =
-      "Country String";
+    "Country String";
 
   /**
    * The name for the country string attribute syntax.
    */
-  public static final String SYNTAX_COUNTRY_STRING_NAME =
-      "CountryString";
+  public static final String SYNTAX_COUNTRY_STRING_NAME = "CountryString";
 
   /**
    * The OID for the country string attribute syntax.
    */
   public static final String SYNTAX_COUNTRY_STRING_OID =
-      "1.3.6.1.4.1.1466.115.121.1.11";
+    "1.3.6.1.4.1.1466.115.121.1.11";
 
   /**
    * The description for the delivery method attribute syntax.
    */
   public static final String SYNTAX_DELIVERY_METHOD_DESCRIPTION =
-      "Delivery Method";
+    "Delivery Method";
 
   /**
    * The name for the delivery method attribute syntax.
    */
-  public static final String SYNTAX_DELIVERY_METHOD_NAME =
-      "DeliveryMethod";
+  public static final String SYNTAX_DELIVERY_METHOD_NAME = "DeliveryMethod";
 
   /**
    * The OID for the delivery method attribute syntax.
    */
   public static final String SYNTAX_DELIVERY_METHOD_OID =
-      "1.3.6.1.4.1.1466.115.121.1.14";
+    "1.3.6.1.4.1.1466.115.121.1.14";
 
   /**
    * The description for the Directory String attribute syntax.
    */
   public static final String SYNTAX_DIRECTORY_STRING_DESCRIPTION =
-      "Directory String";
+    "Directory String";
 
   /**
    * The name for the Directory String attribute syntax.
    */
-  public static final String SYNTAX_DIRECTORY_STRING_NAME =
-      "DirectoryString";
+  public static final String SYNTAX_DIRECTORY_STRING_NAME = "DirectoryString";
 
   /**
    * The OID for the Directory String attribute syntax.
    */
   public static final String SYNTAX_DIRECTORY_STRING_OID =
-      "1.3.6.1.4.1.1466.115.121.1.15";
+    "1.3.6.1.4.1.1466.115.121.1.15";
 
   /**
-   * The description for the DIT content rule description attribute
-   * syntax.
+   * The description for the DIT content rule description attribute syntax.
    */
   public static final String SYNTAX_DIT_CONTENT_RULE_DESCRIPTION =
-      "DIT Content Rule Description";
+    "DIT Content Rule Description";
 
   /**
    * The name for the DIT content rule description attribute syntax.
    */
   public static final String SYNTAX_DIT_CONTENT_RULE_NAME =
-      "DITContentRuleDescription";
+    "DITContentRuleDescription";
 
   /**
    * The OID for the DIT content rule description attribute syntax.
    */
   public static final String SYNTAX_DIT_CONTENT_RULE_OID =
-      "1.3.6.1.4.1.1466.115.121.1.16";
+    "1.3.6.1.4.1.1466.115.121.1.16";
 
   /**
-   * The description for the DIT structure rule description attribute
-   * syntax.
+   * The description for the DIT structure rule description attribute syntax.
    */
   public static final String SYNTAX_DIT_STRUCTURE_RULE_DESCRIPTION =
-      "DIT Structure Rule Description";
+    "DIT Structure Rule Description";
 
   /**
    * The name for the DIT structure rule description attribute syntax.
    */
   public static final String SYNTAX_DIT_STRUCTURE_RULE_NAME =
-      "DITStructureRuleDescription";
+    "DITStructureRuleDescription";
 
   /**
    * The OID for the DIT structure rule description attribute syntax.
    */
   public static final String SYNTAX_DIT_STRUCTURE_RULE_OID =
-      "1.3.6.1.4.1.1466.115.121.1.17";
+    "1.3.6.1.4.1.1466.115.121.1.17";
 
   /**
    * The description for the distinguished name attribute syntax.
@@ -922,45 +866,41 @@ class SchemaConstants
   /**
    * The OID for the distinguished name attribute syntax.
    */
-  public static final String SYNTAX_DN_OID =
-      "1.3.6.1.4.1.1466.115.121.1.12";
+  public static final String SYNTAX_DN_OID = "1.3.6.1.4.1.1466.115.121.1.12";
 
   /**
    * The description for the enhanced guide attribute syntax.
    */
   public static final String SYNTAX_ENHANCED_GUIDE_DESCRIPTION =
-      "Enhanced Guide";
+    "Enhanced Guide";
 
   /**
    * The name for the enhanced guide attribute syntax.
    */
-  public static final String SYNTAX_ENHANCED_GUIDE_NAME =
-      "EnhancedGuide";
+  public static final String SYNTAX_ENHANCED_GUIDE_NAME = "EnhancedGuide";
 
   /**
    * The OID for the enhanced guide attribute syntax.
    */
   public static final String SYNTAX_ENHANCED_GUIDE_OID =
-      "1.3.6.1.4.1.1466.115.121.1.21";
+    "1.3.6.1.4.1.1466.115.121.1.21";
 
   /**
-   * The description for the facsimile telephone number attribute
-   * syntax.
+   * The description for the facsimile telephone number attribute syntax.
    */
   public static final String SYNTAX_FAXNUMBER_DESCRIPTION =
-      "Facsimile Telephone Number";
+    "Facsimile Telephone Number";
 
   /**
    * The name for the facsimile telephone number attribute syntax.
    */
-  public static final String SYNTAX_FAXNUMBER_NAME =
-      "FacsimileTelephoneNumber";
+  public static final String SYNTAX_FAXNUMBER_NAME = "FacsimileTelephoneNumber";
 
   /**
    * The OID for the facsimile telephone number attribute syntax.
    */
   public static final String SYNTAX_FAXNUMBER_OID =
-      "1.3.6.1.4.1.1466.115.121.1.22";
+    "1.3.6.1.4.1.1466.115.121.1.22";
 
   /**
    * The description for the fax attribute syntax.
@@ -975,26 +915,24 @@ class SchemaConstants
   /**
    * The OID for the fax attribute syntax.
    */
-  public static final String SYNTAX_FAX_OID =
-      "1.3.6.1.4.1.1466.115.121.1.23";
+  public static final String SYNTAX_FAX_OID = "1.3.6.1.4.1.1466.115.121.1.23";
 
   /**
    * The description for the generalized time attribute syntax.
    */
   public static final String SYNTAX_GENERALIZED_TIME_DESCRIPTION =
-      "Generalized Time";
+    "Generalized Time";
 
   /**
    * The name for the generalized time attribute syntax.
    */
-  public static final String SYNTAX_GENERALIZED_TIME_NAME =
-      "GeneralizedTime";
+  public static final String SYNTAX_GENERALIZED_TIME_NAME = "GeneralizedTime";
 
   /**
    * The OID for the generalized time attribute syntax.
    */
   public static final String SYNTAX_GENERALIZED_TIME_OID =
-      "1.3.6.1.4.1.1466.115.121.1.24";
+    "1.3.6.1.4.1.1466.115.121.1.24";
 
   /**
    * The description for the guide attribute syntax.
@@ -1009,14 +947,12 @@ class SchemaConstants
   /**
    * The OID for the guide attribute syntax.
    */
-  public static final String SYNTAX_GUIDE_OID =
-      "1.3.6.1.4.1.1466.115.121.1.25";
+  public static final String SYNTAX_GUIDE_OID = "1.3.6.1.4.1.1466.115.121.1.25";
 
   /**
    * The description for the IA5 string attribute syntax.
    */
-  public static final String SYNTAX_IA5_STRING_DESCRIPTION =
-      "IA5 String";
+  public static final String SYNTAX_IA5_STRING_DESCRIPTION = "IA5 String";
 
   /**
    * The name for the IA5 string attribute syntax.
@@ -1027,7 +963,7 @@ class SchemaConstants
    * The OID for the IA5 string attribute syntax.
    */
   public static final String SYNTAX_IA5_STRING_OID =
-      "1.3.6.1.4.1.1466.115.121.1.26";
+    "1.3.6.1.4.1.1466.115.121.1.26";
 
   /**
    * The description for the integer attribute syntax.
@@ -1043,7 +979,7 @@ class SchemaConstants
    * The OID for the integer attribute syntax.
    */
   public static final String SYNTAX_INTEGER_OID =
-      "1.3.6.1.4.1.1466.115.121.1.27";
+    "1.3.6.1.4.1.1466.115.121.1.27";
 
   /**
    * The description for the JPEG attribute syntax.
@@ -1058,141 +994,134 @@ class SchemaConstants
   /**
    * The OID for the JPEG attribute syntax.
    */
-  public static final String SYNTAX_JPEG_OID =
-      "1.3.6.1.4.1.1466.115.121.1.28";
+  public static final String SYNTAX_JPEG_OID = "1.3.6.1.4.1.1466.115.121.1.28";
 
   /**
    * The description for the LDAP syntax description attribute syntax.
    */
   public static final String SYNTAX_LDAP_SYNTAX_DESCRIPTION =
-      "LDAP Syntax Description";
+    "LDAP Syntax Description";
 
   /**
    * The name for the LDAP syntax description attribute syntax.
    */
-  public static final String SYNTAX_LDAP_SYNTAX_NAME =
-      "LDAPSyntaxDescription";
+  public static final String SYNTAX_LDAP_SYNTAX_NAME = "LDAPSyntaxDescription";
 
   /**
    * The OID for the LDAP syntax description attribute syntax.
    */
   public static final String SYNTAX_LDAP_SYNTAX_OID =
-      "1.3.6.1.4.1.1466.115.121.1.54";
+    "1.3.6.1.4.1.1466.115.121.1.54";
 
   /**
    * The description for the matching rule description attribute syntax.
    */
   public static final String SYNTAX_MATCHING_RULE_DESCRIPTION =
-      "Matching Rule Description";
+    "Matching Rule Description";
 
   /**
    * The name for the matching rule description attribute syntax.
    */
   public static final String SYNTAX_MATCHING_RULE_NAME =
-      "MatchingRuleDescription";
+    "MatchingRuleDescription";
 
   /**
    * The OID for the matching rule description attribute syntax.
    */
   public static final String SYNTAX_MATCHING_RULE_OID =
-      "1.3.6.1.4.1.1466.115.121.1.30";
+    "1.3.6.1.4.1.1466.115.121.1.30";
 
   /**
-   * The description for the matching rule use description attribute
-   * syntax.
+   * The description for the matching rule use description attribute syntax.
    */
   public static final String SYNTAX_MATCHING_RULE_USE_DESCRIPTION =
-      "Matching Rule Use Description";
+    "Matching Rule Use Description";
 
   /**
    * The name for the matching rule use description attribute syntax.
    */
   public static final String SYNTAX_MATCHING_RULE_USE_NAME =
-      "MatchingRuleUseDescription";
+    "MatchingRuleUseDescription";
 
   /**
    * The OID for the matching rule use description attribute syntax.
    */
   public static final String SYNTAX_MATCHING_RULE_USE_OID =
-      "1.3.6.1.4.1.1466.115.121.1.31";
+    "1.3.6.1.4.1.1466.115.121.1.31";
 
   /**
    * The description for the name and optional uid attribute syntax.
    */
   public static final String SYNTAX_NAME_AND_OPTIONAL_UID_DESCRIPTION =
-      "Name and Optional UID";
+    "Name and Optional UID";
 
   /**
    * The name for the name and optional uid attribute syntax.
    */
   public static final String SYNTAX_NAME_AND_OPTIONAL_UID_NAME =
-      "NameAndOptionalUID";
+    "NameAndOptionalUID";
 
   /**
    * The OID for the name and optional uid attribute syntax.
    */
   public static final String SYNTAX_NAME_AND_OPTIONAL_UID_OID =
-      "1.3.6.1.4.1.1466.115.121.1.34";
+    "1.3.6.1.4.1.1466.115.121.1.34";
 
   /**
    * The description for the name form description attribute syntax.
    */
   public static final String SYNTAX_NAME_FORM_DESCRIPTION =
-      "Name Form Description";
+    "Name Form Description";
 
   /**
    * The name for the name form description attribute syntax.
    */
-  public static final String SYNTAX_NAME_FORM_NAME =
-      "NameFormDescription";
+  public static final String SYNTAX_NAME_FORM_NAME = "NameFormDescription";
 
   /**
    * The OID for the name form description attribute syntax.
    */
   public static final String SYNTAX_NAME_FORM_OID =
-      "1.3.6.1.4.1.1466.115.121.1.35";
+    "1.3.6.1.4.1.1466.115.121.1.35";
 
   /**
    * The description for the numeric string attribute syntax.
    */
   public static final String SYNTAX_NUMERIC_STRING_DESCRIPTION =
-      "Numeric String";
+    "Numeric String";
 
   /**
    * The name for the numeric string attribute syntax.
    */
-  public static final String SYNTAX_NUMERIC_STRING_NAME =
-      "NumericString";
+  public static final String SYNTAX_NUMERIC_STRING_NAME = "NumericString";
 
   /**
    * The OID for the numeric string attribute syntax.
    */
   public static final String SYNTAX_NUMERIC_STRING_OID =
-      "1.3.6.1.4.1.1466.115.121.1.36";
+    "1.3.6.1.4.1.1466.115.121.1.36";
 
   /**
    * The description for the object class description attribute syntax.
    */
   public static final String SYNTAX_OBJECTCLASS_DESCRIPTION =
-      "Object Class Description";
+    "Object Class Description";
 
   /**
    * The name for the object class description attribute syntax.
    */
-  public static final String SYNTAX_OBJECTCLASS_NAME =
-      "ObjectClassDescription";
+  public static final String SYNTAX_OBJECTCLASS_NAME = "ObjectClassDescription";
 
   /**
    * The OID for the object class description attribute syntax.
    */
   public static final String SYNTAX_OBJECTCLASS_OID =
-      "1.3.6.1.4.1.1466.115.121.1.37";
+    "1.3.6.1.4.1.1466.115.121.1.37";
 
   /**
    * The description for the octet string attribute syntax.
    */
-  public static final String SYNTAX_OCTET_STRING_DESCRIPTION =
-      "Octet String";
+  public static final String SYNTAX_OCTET_STRING_DESCRIPTION = "Octet String";
 
   /**
    * The name for the octet string attribute syntax.
@@ -1203,7 +1132,7 @@ class SchemaConstants
    * The OID for the octet string attribute syntax.
    */
   public static final String SYNTAX_OCTET_STRING_OID =
-      "1.3.6.1.4.1.1466.115.121.1.40";
+    "1.3.6.1.4.1.1466.115.121.1.40";
 
   /**
    * The description for the object identifier attribute syntax.
@@ -1218,14 +1147,12 @@ class SchemaConstants
   /**
    * The OID for the object identifier attribute syntax.
    */
-  public static final String SYNTAX_OID_OID =
-      "1.3.6.1.4.1.1466.115.121.1.38";
+  public static final String SYNTAX_OID_OID = "1.3.6.1.4.1.1466.115.121.1.38";
 
   /**
    * The description for the other mailbox attribute syntax.
    */
-  public static final String SYNTAX_OTHER_MAILBOX_DESCRIPTION =
-      "Other Mailbox";
+  public static final String SYNTAX_OTHER_MAILBOX_DESCRIPTION = "Other Mailbox";
 
   /**
    * The name for the other mailbox attribute syntax.
@@ -1236,161 +1163,156 @@ class SchemaConstants
    * The OID for the other mailbox attribute syntax.
    */
   public static final String SYNTAX_OTHER_MAILBOX_OID =
-      "1.3.6.1.4.1.1466.115.121.1.39";
+    "1.3.6.1.4.1.1466.115.121.1.39";
 
   /**
    * The description for the postal address attribute syntax.
    */
   public static final String SYNTAX_POSTAL_ADDRESS_DESCRIPTION =
-      "Postal Address";
+    "Postal Address";
 
   /**
    * The name for the postal address attribute syntax.
    */
-  public static final String SYNTAX_POSTAL_ADDRESS_NAME =
-      "PostalAddress";
+  public static final String SYNTAX_POSTAL_ADDRESS_NAME = "PostalAddress";
 
   /**
    * The OID for the postal address attribute syntax.
    */
   public static final String SYNTAX_POSTAL_ADDRESS_OID =
-      "1.3.6.1.4.1.1466.115.121.1.41";
+    "1.3.6.1.4.1.1466.115.121.1.41";
 
   /**
    * The description for the presentation address attribute syntax.
    */
   public static final String SYNTAX_PRESENTATION_ADDRESS_DESCRIPTION =
-      "Presentation Address";
+    "Presentation Address";
 
   /**
    * The name for the presentation address attribute syntax.
    */
   public static final String SYNTAX_PRESENTATION_ADDRESS_NAME =
-      "PresentationAddress";
+    "PresentationAddress";
 
   /**
    * The OID for the presentation address attribute syntax.
    */
   public static final String SYNTAX_PRESENTATION_ADDRESS_OID =
-      "1.3.6.1.4.1.1466.115.121.1.43";
+    "1.3.6.1.4.1.1466.115.121.1.43";
 
   /**
    * The description for the printable string attribute syntax.
    */
   public static final String SYNTAX_PRINTABLE_STRING_DESCRIPTION =
-      "Printable String";
+    "Printable String";
 
   /**
    * The name for the printable string attribute syntax.
    */
-  public static final String SYNTAX_PRINTABLE_STRING_NAME =
-      "PrintableString";
+  public static final String SYNTAX_PRINTABLE_STRING_NAME = "PrintableString";
 
   /**
    * The OID for the printable string attribute syntax.
    */
   public static final String SYNTAX_PRINTABLE_STRING_OID =
-      "1.3.6.1.4.1.1466.115.121.1.44";
+    "1.3.6.1.4.1.1466.115.121.1.44";
 
   /**
    * The description for the protocol information attribute syntax.
    */
   public static final String SYNTAX_PROTOCOL_INFORMATION_DESCRIPTION =
-      "Protocol Information";
+    "Protocol Information";
 
   /**
    * The name for the protocol information attribute syntax.
    */
   public static final String SYNTAX_PROTOCOL_INFORMATION_NAME =
-      "ProtocolInformation";
+    "ProtocolInformation";
 
   /**
    * The OID for the protocol information attribute syntax.
    */
   public static final String SYNTAX_PROTOCOL_INFORMATION_OID =
-      "1.3.6.1.4.1.1466.115.121.1.42";
+    "1.3.6.1.4.1.1466.115.121.1.42";
 
   /**
    * The OID for the relative subtree specification attribute syntax.
    */
   public static final String SYNTAX_RELATIVE_SUBTREE_SPECIFICATION_OID =
-      OID_OPENDS_SERVER_ATTRIBUTE_SYNTAX_BASE + ".2";
+    OID_OPENDS_SERVER_ATTRIBUTE_SYNTAX_BASE + ".2";
 
   /**
-   * The description for the relative subtree specification attribute
-   * syntax.
+   * The description for the relative subtree specification attribute syntax.
    */
   public static final String SYNTAX_RELATIVE_SUBTREE_SPECIFICATION_DESCRIPTION =
-      "Relative Subtree Specification";
+    "Relative Subtree Specification";
 
   /**
    * The name for the relative subtree specification attribute syntax.
    */
   public static final String SYNTAX_RELATIVE_SUBTREE_SPECIFICATION_NAME =
-      "ds-relative-subtree-specification";
+    "ds-relative-subtree-specification";
 
   /**
    * The OID for the RFC3672 subtree specification attribute syntax.
    */
   public static final String SYNTAX_RFC3672_SUBTREE_SPECIFICATION_OID =
-      "1.3.6.1.4.1.1466.115.121.1.45";
+    "1.3.6.1.4.1.1466.115.121.1.45";
 
   /**
-   * The description for the RFC3672 subtree specification attribute
-   * syntax.
+   * The description for the RFC3672 subtree specification attribute syntax.
    */
   public static final String SYNTAX_RFC3672_SUBTREE_SPECIFICATION_DESCRIPTION =
-      "RFC3672 Subtree Specification";
+    "RFC3672 Subtree Specification";
 
   /**
    * The name for the RFC3672 subtree specification attribute syntax.
    */
   public static final String SYNTAX_RFC3672_SUBTREE_SPECIFICATION_NAME =
-      "SubtreeSpecification";
+    "SubtreeSpecification";
 
   /**
    * The description for the substring assertion attribute syntax.
    */
   public static final String SYNTAX_SUBSTRING_ASSERTION_DESCRIPTION =
-      "Substring Assertion";
+    "Substring Assertion";
 
   /**
    * The name for the substring assertion attribute syntax.
    */
   public static final String SYNTAX_SUBSTRING_ASSERTION_NAME =
-      "SubstringAssertion";
+    "SubstringAssertion";
 
   /**
-   * The OID for the Substring Assertion syntax used for assertion
-   * values in extensible match filters.
+   * The OID for the Substring Assertion syntax used for assertion values in
+   * extensible match filters.
    */
   public static final String SYNTAX_SUBSTRING_ASSERTION_OID =
-      "1.3.6.1.4.1.1466.115.121.1.58";
+    "1.3.6.1.4.1.1466.115.121.1.58";
 
   /**
    * The description for the supported algorithm attribute syntax.
    */
   public static final String SYNTAX_SUPPORTED_ALGORITHM_DESCRIPTION =
-      "Supported Algorithm";
+    "Supported Algorithm";
 
   /**
    * The name for the supported algorithm attribute syntax.
    */
   public static final String SYNTAX_SUPPORTED_ALGORITHM_NAME =
-      "SupportedAlgorithm";
+    "SupportedAlgorithm";
 
   /**
-   * The OID for the Substring Assertion syntax used for assertion
-   * values in extensible match filters.
+   * The OID for the Substring Assertion syntax used for assertion values in
+   * extensible match filters.
    */
   public static final String SYNTAX_SUPPORTED_ALGORITHM_OID =
-      "1.3.6.1.4.1.1466.115.121.1.49";
+    "1.3.6.1.4.1.1466.115.121.1.49";
 
   /**
    * The description for the telephone number attribute syntax.
    */
-  public static final String SYNTAX_TELEPHONE_DESCRIPTION =
-      "Telephone Number";
+  public static final String SYNTAX_TELEPHONE_DESCRIPTION = "Telephone Number";
 
   /**
    * The name for the telephone number attribute syntax.
@@ -1401,26 +1323,25 @@ class SchemaConstants
    * The OID for the telephone number attribute syntax.
    */
   public static final String SYNTAX_TELEPHONE_OID =
-      "1.3.6.1.4.1.1466.115.121.1.50";
+    "1.3.6.1.4.1.1466.115.121.1.50";
 
   /**
-   * The description for the teletex terminal identifier attribute
-   * syntax.
+   * The description for the teletex terminal identifier attribute syntax.
    */
   public static final String SYNTAX_TELETEX_TERM_ID_DESCRIPTION =
-      "Teletex Terminal Identifier";
+    "Teletex Terminal Identifier";
 
   /**
    * The name for the teletex terminal identifier attribute syntax.
    */
   public static final String SYNTAX_TELETEX_TERM_ID_NAME =
-      "TeletexTerminalIdentifier";
+    "TeletexTerminalIdentifier";
 
   /**
    * The OID for the teletex terminal identifier attribute syntax.
    */
   public static final String SYNTAX_TELETEX_TERM_ID_OID =
-      "1.3.6.1.4.1.1466.115.121.1.51";
+    "1.3.6.1.4.1.1466.115.121.1.51";
 
   /**
    * The description for the telex number attribute syntax.
@@ -1435,26 +1356,24 @@ class SchemaConstants
   /**
    * The OID for the telex number attribute syntax.
    */
-  public static final String SYNTAX_TELEX_OID =
-      "1.3.6.1.4.1.1466.115.121.1.52";
+  public static final String SYNTAX_TELEX_OID = "1.3.6.1.4.1.1466.115.121.1.52";
 
   /**
    * The description for the user password attribute syntax.
    */
-  public static final String SYNTAX_USER_PASSWORD_DESCRIPTION =
-      "User Password";
+  public static final String SYNTAX_USER_PASSWORD_DESCRIPTION = "User Password";
 
   /**
    * The name for the user password attribute syntax.
    */
   public static final String SYNTAX_USER_PASSWORD_NAME =
-      "ds-syntax-user-password";
+    "ds-syntax-user-password";
 
   /**
    * The OID for the user password attribute syntax.
    */
   public static final String SYNTAX_USER_PASSWORD_OID =
-      OID_OPENDS_SERVER_ATTRIBUTE_SYNTAX_BASE + ".1";
+    OID_OPENDS_SERVER_ATTRIBUTE_SYNTAX_BASE + ".1";
 
   /**
    * The description for the UTC time attribute syntax.
@@ -1470,7 +1389,7 @@ class SchemaConstants
    * The OID for the UTC time attribute syntax.
    */
   public static final String SYNTAX_UTC_TIME_OID =
-      "1.3.6.1.4.1.1466.115.121.1.53";
+    "1.3.6.1.4.1.1466.115.121.1.53";
 
   /**
    * The description for the UUID attribute syntax.
@@ -1490,8 +1409,7 @@ class SchemaConstants
   /**
    * The description for the "top" objectclass.
    */
-  public static final String TOP_OBJECTCLASS_DESCRIPTION =
-      "Topmost ObjectClass";
+  public static final String TOP_OBJECTCLASS_DESCRIPTION = "Topmost ObjectClass";
 
   /**
    * The name of the "top" objectclass.
@@ -1504,69 +1422,66 @@ class SchemaConstants
   public static final String TOP_OBJECTCLASS_OID = "2.5.6.0";
 
   /**
-   * The name for the relative time greater-than extensible ordering
-   * matching rule.
+   * The name for the relative time greater-than extensible ordering matching
+   * rule.
    */
   public static final String EXT_OMR_RELATIVE_TIME_GT_NAME =
-      "relativeTimeGTOrderingMatch";
+    "relativeTimeGTOrderingMatch";
 
   /**
-   * The alternative name for the relative time greater-than extensible
-   * ordering matching rule.
+   * The alternative name for the relative time greater-than extensible ordering
+   * matching rule.
    */
   public static final String EXT_OMR_RELATIVE_TIME_GT_ALT_NAME =
-      "relativeTimeOrderingMatch.gt";
+    "relativeTimeOrderingMatch.gt";
 
   /**
-   * The OID for the relative time greater-than extensible ordering
-   * matching rule.
+   * The OID for the relative time greater-than extensible ordering matching
+   * rule.
    */
   public static final String EXT_OMR_RELATIVE_TIME_GT_OID =
-      "1.3.6.1.4.1.26027.1.4.5";
+    "1.3.6.1.4.1.26027.1.4.5";
 
   /**
-   * The name for the relative time less-than extensible ordering
-   * matching rule.
+   * The name for the relative time less-than extensible ordering matching rule.
    */
   public static final String EXT_OMR_RELATIVE_TIME_LT_NAME =
-      "relativeTimeLTOrderingMatch";
+    "relativeTimeLTOrderingMatch";
 
   /**
-   * The alternative name for the relative time less-than extensible
-   * ordering matching rule.
-   */
-  public static final String EXT_OMR_RELATIVE_TIME_LT_ALT_NAME =
-      "relativeTimeOrderingMatch.lt";
-
-  /**
-   * The OID for the relative time less-than extensible ordering
+   * The alternative name for the relative time less-than extensible ordering
    * matching rule.
    */
+  public static final String EXT_OMR_RELATIVE_TIME_LT_ALT_NAME =
+    "relativeTimeOrderingMatch.lt";
+
+  /**
+   * The OID for the relative time less-than extensible ordering matching rule.
+   */
   public static final String EXT_OMR_RELATIVE_TIME_LT_OID =
-      "1.3.6.1.4.1.26027.1.4.6";
+    "1.3.6.1.4.1.26027.1.4.6";
 
   /**
    * The OID for the partial date and time extensible matching rule.
    */
   public static final String EXT_PARTIAL_DATE_TIME_OID =
-      "1.3.6.1.4.1.26027.1.4.7";
+    "1.3.6.1.4.1.26027.1.4.7";
 
   /**
    * The name for the partial date and time extensible rule.
    */
   public static final String EXT_PARTIAL_DATE_TIME_NAME =
-      "partialDateAndTimeMatchingRule";
+    "partialDateAndTimeMatchingRule";
 
   /**
    * The name of the schema extension that will be used to specify the
-   * approximate matching rule that should be used for a given attribute
-   * type.
+   * approximate matching rule that should be used for a given attribute type.
    */
   public static final String SCHEMA_PROPERTY_APPROX_RULE = "X-APPROX";
 
   /**
-   * The name of the schema property that will be used to specify the
-   * origin of a schema element.
+   * The name of the schema property that will be used to specify the origin of
+   * a schema element.
    */
   public static final String SCHEMA_PROPERTY_ORIGIN = "X-ORIGIN";
 
@@ -1574,31 +1489,28 @@ class SchemaConstants
    * The OID for the extensibleObject objectclass.
    */
   public static final String EXTENSIBLE_OBJECT_OBJECTCLASS_OID =
-      "1.3.6.1.4.1.1466.101.120.111";
+    "1.3.6.1.4.1.1466.101.120.111";
 
   /**
    * The name for the extensibleObject objectclass.
    */
   public static final String EXTENSIBLE_OBJECT_OBJECTCLASS_NAME =
-      "extensibleObject";
+    "extensibleObject";
 
   /**
    * The value representing just one space character.
    */
-  public static final ByteString SINGLE_SPACE_VALUE =
-      ByteString.valueOf(" ");
+  public static final ByteString SINGLE_SPACE_VALUE = ByteString.valueOf(" ");
 
   /**
    * The normalized true value.
    */
-  public static final ByteString TRUE_VALUE =
-      ByteString.valueOf("TRUE");
+  public static final ByteString TRUE_VALUE = ByteString.valueOf("TRUE");
 
   /**
    * The normalized false value.
    */
-  public static final ByteString FALSE_VALUE =
-      ByteString.valueOf("FALSE");
+  public static final ByteString FALSE_VALUE = ByteString.valueOf("FALSE");
 
   /**
    * The name of the time zone for universal coordinated time (UTC).
@@ -1606,9 +1518,9 @@ class SchemaConstants
   public static final String TIME_ZONE_UTC = "UTC";
 
   /**
-   * The date format string that will be used to construct and parse
-   * dates represented using generalized time with a two-digit year. It
-   * is assumed that the provided date formatter will be set to UTC.
+   * The date format string that will be used to construct and parse dates
+   * represented using generalized time with a two-digit year. It is assumed
+   * that the provided date formatter will be set to UTC.
    */
   public static final String DATE_FORMAT_UTC_TIME = "yyMMddHHmmss'Z'";
 

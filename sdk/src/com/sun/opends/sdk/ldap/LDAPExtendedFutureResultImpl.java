@@ -31,47 +31,53 @@ package com.sun.opends.sdk.ldap;
 
 import org.opends.sdk.*;
 import org.opends.sdk.requests.ExtendedRequest;
-import org.opends.sdk.responses.Result;
+import org.opends.sdk.responses.ExtendedResult;
 
 
 
 /**
  * Extended result future implementation.
+ *
+ * @param <R>
+ *          The type of result returned by this future.
  */
-final class LDAPExtendedFutureResultImpl<R extends Result> extends
+final class LDAPExtendedFutureResultImpl<R extends ExtendedResult> extends
     AbstractLDAPFutureResultImpl<R> implements FutureResult<R>
 {
   private final ExtendedRequest<R> request;
 
 
 
-  LDAPExtendedFutureResultImpl(int messageID, ExtendedRequest<R> request,
-      ResultHandler<? super R> handler, LDAPConnection connection)
+  LDAPExtendedFutureResultImpl(final int messageID,
+      final ExtendedRequest<R> request,
+      final ResultHandler<? super R> resultHandler,
+      final IntermediateResponseHandler intermediateResponseHandler,
+      final AsynchronousConnection connection)
   {
-    super(messageID, handler, connection);
+    super(messageID, resultHandler, intermediateResponseHandler, connection);
     this.request = request;
   }
 
 
 
-  R decodeResponse(ResultCode resultCode, String matchedDN,
-      String diagnosticMessage, String responseName,
-      ByteString responseValue) throws DecodeException
+  @Override
+  public String toString()
   {
-    return request.getExtendedOperation().decodeResponse(resultCode,
-        matchedDN, diagnosticMessage, responseName, responseValue);
+    final StringBuilder sb = new StringBuilder();
+    sb.append("LDAPExtendedFutureResultImpl(");
+    sb.append("request = ");
+    sb.append(request);
+    super.toString(sb);
+    sb.append(")");
+    return sb.toString();
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  R newErrorResult(ResultCode resultCode, String diagnosticMessage,
-      Throwable cause)
+  R decodeResult(final ExtendedResult result, final DecodeOptions options)
+      throws DecodeException
   {
-    return request.getExtendedOperation().decodeResponse(resultCode,
-        "", diagnosticMessage);
+    return request.getResultDecoder().decodeExtendedResult(result, options);
   }
 
 
@@ -79,5 +85,18 @@ final class LDAPExtendedFutureResultImpl<R extends Result> extends
   ExtendedRequest<R> getRequest()
   {
     return request;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  R newErrorResult(final ResultCode resultCode, final String diagnosticMessage,
+      final Throwable cause)
+  {
+    return request.getResultDecoder().adaptExtendedErrorResult(resultCode, "",
+        diagnosticMessage);
   }
 }

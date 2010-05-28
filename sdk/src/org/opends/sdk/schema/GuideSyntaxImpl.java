@@ -30,8 +30,10 @@ package org.opends.sdk.schema;
 
 
 import static com.sun.opends.sdk.messages.Messages.*;
-import static com.sun.opends.sdk.util.StaticUtils.*;
-import static org.opends.sdk.schema.SchemaConstants.*;
+import static com.sun.opends.sdk.util.StaticUtils.toLowerCase;
+import static org.opends.sdk.schema.SchemaConstants.EMR_OCTET_STRING_OID;
+import static org.opends.sdk.schema.SchemaConstants.OMR_OCTET_STRING_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_GUIDE_NAME;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.DecodeException;
@@ -42,37 +44,35 @@ import com.sun.opends.sdk.util.SubstringReader;
 
 
 /**
- * This class implements the guide attribute syntax, which may be used
- * to provide criteria for generating search filters for entries,
- * optionally tied to a specified objectclass.
+ * This class implements the guide attribute syntax, which may be used to
+ * provide criteria for generating search filters for entries, optionally tied
+ * to a specified objectclass.
  */
 final class GuideSyntaxImpl extends AbstractSyntaxImpl
 {
   /**
    * Determines whether the provided string represents a valid criteria
    * according to the guide syntax.
-   * 
+   *
    * @param criteria
-   *          The portion of the criteria for which to make the
-   *          determination.
+   *          The portion of the criteria for which to make the determination.
    * @param valueStr
    *          The complete guide value provided by the client.
    * @param invalidReason
-   *          The buffer to which to append the reason that the criteria
-   *          is invalid if a problem is found.
-   * @return <CODE>true</CODE> if the provided string does contain a
-   *         valid criteria, or <CODE>false</CODE> if not.
+   *          The buffer to which to append the reason that the criteria is
+   *          invalid if a problem is found.
+   * @return <CODE>true</CODE> if the provided string does contain a valid
+   *         criteria, or <CODE>false</CODE> if not.
    */
-  static boolean criteriaIsValid(String criteria, String valueStr,
-      LocalizableMessageBuilder invalidReason)
+  static boolean criteriaIsValid(final String criteria, final String valueStr,
+      final LocalizableMessageBuilder invalidReason)
   {
     // See if the criteria starts with a '!'. If so, then just evaluate
     // everything after that as a criteria.
     char c = criteria.charAt(0);
     if (c == '!')
     {
-      return criteriaIsValid(criteria.substring(1), valueStr,
-          invalidReason);
+      return criteriaIsValid(criteria.substring(1), valueStr, invalidReason);
     }
 
     // See if the criteria starts with a '('. If so, then find the
@@ -108,14 +108,14 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
               c = criteria.charAt(i + 1);
               if (c == '|' || c == '&')
               {
-                return criteriaIsValid(criteria.substring(i + 2),
-                    valueStr, invalidReason);
+                return criteriaIsValid(criteria.substring(i + 2), valueStr,
+                    invalidReason);
               }
               else
               {
 
-                invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_ILLEGAL_CHAR
-                    .get(valueStr, criteria, c, (i + 1)));
+                invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_ILLEGAL_CHAR.get(
+                    valueStr, criteria, c, (i + 1)));
                 return false;
               }
             }
@@ -130,8 +130,8 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
       // If we've gotten here, then we went through the entire value
       // without finding the appropriate closing parenthesis.
 
-      invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_MISSING_CLOSE_PAREN
-          .get(valueStr, criteria));
+      invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_MISSING_CLOSE_PAREN.get(
+          valueStr, criteria));
       return false;
     }
 
@@ -157,8 +157,8 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
           }
           else
           {
-            invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_ILLEGAL_CHAR
-                .get(valueStr, criteria, c, 5));
+            invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_ILLEGAL_CHAR.get(
+                valueStr, criteria, c, 5));
             return false;
           }
         }
@@ -181,17 +181,16 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
           }
           else
           {
-            invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_ILLEGAL_CHAR
-                .get(valueStr, criteria, c, 6));
+            invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_ILLEGAL_CHAR.get(
+                valueStr, criteria, c, 6));
             return false;
           }
         }
       }
       else
       {
-        invalidReason
-            .append(ERR_ATTR_SYNTAX_GUIDE_INVALID_QUESTION_MARK.get(
-                valueStr, criteria));
+        invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_INVALID_QUESTION_MARK.get(
+            valueStr, criteria));
         return false;
       }
     }
@@ -210,28 +209,28 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
     final int dollarPos = criteria.indexOf('$');
     if (dollarPos < 0)
     {
-      invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_NO_DOLLAR.get(
-          valueStr, criteria));
+      invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_NO_DOLLAR.get(valueStr,
+          criteria));
       return false;
     }
     else if (dollarPos == 0)
     {
-      invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_NO_ATTR.get(valueStr,
-          criteria));
+      invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_NO_ATTR
+          .get(valueStr, criteria));
       return false;
     }
     else if (dollarPos == criteria.length() - 1)
     {
-      invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_NO_MATCH_TYPE.get(
-          valueStr, criteria));
+      invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_NO_MATCH_TYPE.get(valueStr,
+          criteria));
       return false;
     }
     else
     {
       try
       {
-        SchemaUtils.readOID(new SubstringReader(criteria.substring(0,
-            dollarPos)));
+        SchemaUtils.readOID(new SubstringReader(criteria
+            .substring(0, dollarPos)));
       }
       catch (final DecodeException de)
       {
@@ -255,8 +254,8 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
       }
       else
       {
-        invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_INVALID_MATCH_TYPE
-            .get(valueStr, criteria, dollarPos + 1));
+        invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_INVALID_MATCH_TYPE.get(
+            valueStr, criteria, dollarPos + 1));
         return false;
       }
 
@@ -268,8 +267,8 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
       }
       else
       {
-        invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_INVALID_MATCH_TYPE
-            .get(valueStr, criteria, dollarPos + 1));
+        invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_INVALID_MATCH_TYPE.get(
+            valueStr, criteria, dollarPos + 1));
         return false;
       }
 
@@ -281,8 +280,8 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
       }
       else
       {
-        invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_INVALID_MATCH_TYPE
-            .get(valueStr, criteria, dollarPos + 1));
+        invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_INVALID_MATCH_TYPE.get(
+            valueStr, criteria, dollarPos + 1));
         return false;
       }
 
@@ -294,8 +293,8 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
       }
       else
       {
-        invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_INVALID_MATCH_TYPE
-            .get(valueStr, criteria, dollarPos + 1));
+        invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_INVALID_MATCH_TYPE.get(
+            valueStr, criteria, dollarPos + 1));
         return false;
       }
 
@@ -307,14 +306,14 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
       }
       else
       {
-        invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_INVALID_MATCH_TYPE
-            .get(valueStr, criteria, dollarPos + 1));
+        invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_INVALID_MATCH_TYPE.get(
+            valueStr, criteria, dollarPos + 1));
         return false;
       }
 
     default:
-      invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_INVALID_MATCH_TYPE
-          .get(valueStr, criteria, dollarPos + 1));
+      invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_INVALID_MATCH_TYPE.get(
+          valueStr, criteria, dollarPos + 1));
       return false;
     }
 
@@ -329,13 +328,13 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
       c = criteria.charAt(endPos);
       if (c == '|' || c == '&')
       {
-        return criteriaIsValid(criteria.substring(endPos + 1),
-            valueStr, invalidReason);
+        return criteriaIsValid(criteria.substring(endPos + 1), valueStr,
+            invalidReason);
       }
       else
       {
-        invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_ILLEGAL_CHAR.get(
-            valueStr, criteria, c, endPos));
+        invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_ILLEGAL_CHAR.get(valueStr,
+            criteria, c, endPos));
         return false;
       }
     }
@@ -374,21 +373,21 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
 
 
   /**
-   * Indicates whether the provided value is acceptable for use in an
-   * attribute with this syntax. If it is not, then the reason may be
-   * appended to the provided buffer.
-   * 
+   * Indicates whether the provided value is acceptable for use in an attribute
+   * with this syntax. If it is not, then the reason may be appended to the
+   * provided buffer.
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
    *          The value for which to make the determination.
    * @param invalidReason
    *          The buffer to which the invalid reason should be appended.
-   * @return <CODE>true</CODE> if the provided value is acceptable for
-   *         use with this syntax, or <CODE>false</CODE> if not.
+   * @return <CODE>true</CODE> if the provided value is acceptable for use with
+   *         this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      LocalizableMessageBuilder invalidReason)
+  public boolean valueIsAcceptable(final Schema schema,
+      final ByteSequence value, final LocalizableMessageBuilder invalidReason)
   {
     // Get a lowercase string version of the provided value.
     final String valueStr = toLowerCase(value.toString());
@@ -413,8 +412,7 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
 
     try
     {
-      SchemaUtils.readOID(new SubstringReader(ocName.substring(0,
-          ocLength)));
+      SchemaUtils.readOID(new SubstringReader(ocName.substring(0, ocLength)));
     }
     catch (final DecodeException de)
     {

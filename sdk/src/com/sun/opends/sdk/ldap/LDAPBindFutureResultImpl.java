@@ -29,13 +29,10 @@ package com.sun.opends.sdk.ldap;
 
 
 
-import org.opends.sdk.ResultCode;
-import org.opends.sdk.FutureResult;
-import org.opends.sdk.ResultHandler;
-import org.opends.sdk.requests.BindRequest;
+import org.opends.sdk.*;
+import org.opends.sdk.requests.BindClient;
 import org.opends.sdk.responses.BindResult;
 import org.opends.sdk.responses.Responses;
-import org.opends.sdk.sasl.SASLContext;
 
 
 
@@ -46,18 +43,38 @@ final class LDAPBindFutureResultImpl extends
     AbstractLDAPFutureResultImpl<BindResult> implements
     FutureResult<BindResult>
 {
-  private final BindRequest request;
-
-  private SASLContext saslContext;
+  private final BindClient bindClient;
 
 
 
-  LDAPBindFutureResultImpl(int messageID, BindRequest request,
-      ResultHandler<? super BindResult> handler,
-      LDAPConnection connection)
+  LDAPBindFutureResultImpl(final int messageID, final BindClient bindClient,
+      final ResultHandler<? super BindResult> resultHandler,
+      final IntermediateResponseHandler intermediateResponseHandler,
+      final AsynchronousConnection connection)
   {
-    super(messageID, handler, connection);
-    this.request = request;
+    super(messageID, resultHandler, intermediateResponseHandler, connection);
+    this.bindClient = bindClient;
+  }
+
+
+
+  @Override
+  public String toString()
+  {
+    final StringBuilder sb = new StringBuilder();
+    sb.append("LDAPBindFutureResultImpl(");
+    sb.append("bindClient = ");
+    sb.append(bindClient);
+    super.toString(sb);
+    sb.append(")");
+    return sb.toString();
+  }
+
+
+
+  BindClient getBindClient()
+  {
+    return bindClient;
   }
 
 
@@ -66,31 +83,10 @@ final class LDAPBindFutureResultImpl extends
    * {@inheritDoc}
    */
   @Override
-  BindResult newErrorResult(ResultCode resultCode,
-      String diagnosticMessage, Throwable cause)
+  BindResult newErrorResult(final ResultCode resultCode,
+      final String diagnosticMessage, final Throwable cause)
   {
     return Responses.newBindResult(resultCode).setDiagnosticMessage(
         diagnosticMessage).setCause(cause);
-  }
-
-
-
-  BindRequest getRequest()
-  {
-    return request;
-  }
-
-
-
-  void setSASLContext(SASLContext saslContext)
-  {
-    this.saslContext = saslContext;
-  }
-
-
-
-  SASLContext getSASLContext()
-  {
-    return saslContext;
   }
 }

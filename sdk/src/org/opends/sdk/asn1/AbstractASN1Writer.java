@@ -56,7 +56,7 @@ public abstract class AbstractASN1Writer implements ASN1Writer
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeBoolean(boolean value) throws IOException
+  public ASN1Writer writeBoolean(final boolean value) throws IOException
   {
     return writeBoolean(UNIVERSAL_BOOLEAN_TYPE, value);
   }
@@ -66,7 +66,7 @@ public abstract class AbstractASN1Writer implements ASN1Writer
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeEnumerated(int value) throws IOException
+  public ASN1Writer writeEnumerated(final int value) throws IOException
   {
     return writeEnumerated(UNIVERSAL_ENUMERATED_TYPE, value);
   }
@@ -76,7 +76,7 @@ public abstract class AbstractASN1Writer implements ASN1Writer
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeInteger(int value) throws IOException
+  public ASN1Writer writeInteger(final int value) throws IOException
   {
     return writeInteger(UNIVERSAL_INTEGER_TYPE, value);
   }
@@ -86,7 +86,7 @@ public abstract class AbstractASN1Writer implements ASN1Writer
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeInteger(long value) throws IOException
+  public ASN1Writer writeInteger(final long value) throws IOException
   {
     return writeInteger(UNIVERSAL_INTEGER_TYPE, value);
   }
@@ -106,11 +106,10 @@ public abstract class AbstractASN1Writer implements ASN1Writer
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeOctetString(byte[] value, int offset,
-      int length) throws IOException
+  public ASN1Writer writeOctetString(final byte[] value, final int offset,
+      final int length) throws IOException
   {
-    return writeOctetString(UNIVERSAL_OCTET_STRING_TYPE, value, offset,
-        length);
+    return writeOctetString(UNIVERSAL_OCTET_STRING_TYPE, value, offset, length);
   }
 
 
@@ -118,7 +117,7 @@ public abstract class AbstractASN1Writer implements ASN1Writer
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeOctetString(ByteSequence value)
+  public ASN1Writer writeOctetString(final ByteSequence value)
       throws IOException
   {
     return writeOctetString(UNIVERSAL_OCTET_STRING_TYPE, value);
@@ -129,7 +128,7 @@ public abstract class AbstractASN1Writer implements ASN1Writer
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeOctetString(String value) throws IOException
+  public ASN1Writer writeOctetString(final String value) throws IOException
   {
     return writeOctetString(UNIVERSAL_OCTET_STRING_TYPE, value);
   }

@@ -37,14 +37,13 @@ import org.opends.sdk.DecodeException;
 
 
 /**
- * An interface for reading change records from a data source, typically
- * an LDIF file.
+ * An interface for reading change records from a data source, typically an LDIF
+ * file.
  * <p>
  * Implementations must specify the following:
  * <ul>
  * <li>Whether or not it is possible for the implementation to encounter
- * malformed change records and, if it is possible, how they are
- * handled.
+ * malformed change records and, if it is possible, how they are handled.
  * <li>Any synchronization limitations.
  * </ul>
  * <p>
@@ -56,8 +55,8 @@ public interface ChangeRecordReader extends Closeable
 {
 
   /**
-   * Closes this change record reader if it not already closed. Note
-   * that this method does not need to be called if a previous call of
+   * Closes this change record reader if it not already closed. Note that this
+   * method does not need to be called if a previous call of
    * {@link #readChangeRecord()} has returned {@code null}.
    *
    * @throws IOException
@@ -68,19 +67,18 @@ public interface ChangeRecordReader extends Closeable
 
 
   /**
-   * Reads the next change record, blocking if necessary until a change
-   * record is available. If the next change record does not contain a
-   * change type then it will be treated as an {@code Add} change
-   * record.
+   * Reads the next change record, blocking if necessary until a change record
+   * is available. If the next change record does not contain a change type then
+   * it will be treated as an {@code Add} change record.
    *
-   * @return The next change record, or {@code null} if there are no
-   *         more change records to be read.
+   * @return The next change record, or {@code null} if there are no more change
+   *         records to be read.
    * @throws DecodeException
    *           If the change record could not be decoded because it was
    *           malformed.
    * @throws IOException
-   *           If an unexpected IO error occurred while reading the
-   *           change record.
+   *           If an unexpected IO error occurred while reading the change
+   *           record.
    */
   ChangeRecord readChangeRecord() throws DecodeException, IOException;
 }

@@ -30,13 +30,12 @@ package org.opends.sdk.schema;
 
 import static org.opends.sdk.schema.SchemaConstants.OMR_OID_GENERIC_ENUM;
 
+import org.opends.sdk.ByteString;
 import org.opends.sdk.ConditionResult;
 import org.opends.sdk.DecodeException;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import org.opends.sdk.ByteString;
 
 
 
@@ -49,13 +48,72 @@ public class EnumSyntaxTestCase extends SyntaxTestCase
    * {@inheritDoc}
    */
   @Override
-  protected Syntax getRule() throws SchemaException, DecodeException
+  @DataProvider(name = "acceptableValues")
+  public Object[][] createAcceptableValues()
   {
-    SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
-    builder.addEnumerationSyntax("3.3.3", "Day Of The Week", false, "monday",
-        "tuesday", "wednesday", "thursday", "friday", "saturday",
-        "sunday");
-    return builder.toSchema().getSyntax("3.3.3");
+    return new Object[][] { { "arbit-day", false }, { "wednesday", true }, };
+  }
+
+
+
+  @Test
+  public void testDecode() throws SchemaException, DecodeException
+  {
+    final SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
+    builder.addSyntax("( 3.3.3  DESC 'Day Of The Week' "
+        + " X-ENUM  ( 'monday' 'tuesday'   'wednesday'  'thursday'  'friday' "
+        + " 'saturday' 'sunday') )", true);
+    final Schema schema = builder.toSchema();
+    final Syntax syntax = schema.getSyntax("3.3.3");
+    final MatchingRule rule = syntax.getOrderingMatchingRule();
+    Assert.assertEquals(rule.getGreaterOrEqualAssertion(
+        ByteString.valueOf("monday")).matches(
+        rule.normalizeAttributeValue(ByteString.valueOf("thursday"))),
+        ConditionResult.TRUE);
+    Assert.assertEquals(rule.getLessOrEqualAssertion(
+        ByteString.valueOf("monday")).matches(
+        rule.normalizeAttributeValue(ByteString.valueOf("thursday"))),
+        ConditionResult.FALSE);
+    Assert.assertEquals(rule.getGreaterOrEqualAssertion(
+        ByteString.valueOf("tuesday")).matches(
+        rule.normalizeAttributeValue(ByteString.valueOf("monday"))),
+        ConditionResult.FALSE);
+    Assert.assertEquals(rule.getLessOrEqualAssertion(
+        ByteString.valueOf("tuesday")).matches(
+        rule.normalizeAttributeValue(ByteString.valueOf("monday"))),
+        ConditionResult.TRUE);
+    Assert.assertEquals(rule.getGreaterOrEqualAssertion(
+        ByteString.valueOf("tuesday")).matches(
+        rule.normalizeAttributeValue(ByteString.valueOf("tuesday"))),
+        ConditionResult.TRUE);
+    Assert.assertEquals(rule.getLessOrEqualAssertion(
+        ByteString.valueOf("tuesday")).matches(
+        rule.normalizeAttributeValue(ByteString.valueOf("tuesday"))),
+        ConditionResult.TRUE);
+    Assert.assertEquals(rule.getAssertion(ByteString.valueOf("tuesday"))
+        .matches(rule.normalizeAttributeValue(ByteString.valueOf("monday"))),
+        ConditionResult.TRUE);
+    Assert.assertEquals(rule.getAssertion(ByteString.valueOf("monday"))
+        .matches(rule.normalizeAttributeValue(ByteString.valueOf("thursday"))),
+        ConditionResult.FALSE);
+    Assert.assertEquals(rule.getAssertion(ByteString.valueOf("tuesday"))
+        .matches(rule.normalizeAttributeValue(ByteString.valueOf("tuesday"))),
+        ConditionResult.FALSE);
+    Assert.assertNotNull(schema
+        .getMatchingRule(OMR_OID_GENERIC_ENUM + ".3.3.3"));
+  }
+
+
+
+  @Test
+  public void testDuplicateEnum() throws SchemaException, DecodeException
+  {
+    // This should be handled silently.
+    final SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
+    builder.addSyntax("( 3.3.3  DESC 'Day Of The Week' "
+        + " X-ENUM  ( 'monday' 'tuesday'   'wednesday'  'thursday'  'friday' "
+        + " 'saturday' 'monday') )", true);
+    builder.toSchema();
   }
 
 
@@ -64,83 +122,11 @@ public class EnumSyntaxTestCase extends SyntaxTestCase
    * {@inheritDoc}
    */
   @Override
-  @DataProvider(name = "acceptableValues")
-  public Object[][] createAcceptableValues()
+  protected Syntax getRule() throws SchemaException, DecodeException
   {
-    return new Object[][] { { "arbit-day", false },
-        { "wednesday", true }, };
-  }
-
-
-
-  @Test
-  public void testDuplicateEnum() throws SchemaException,
-      DecodeException
-  {
-    // This should be handled silently.
-    SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
-    builder
-        .addSyntax(
-            "( 3.3.3  DESC 'Day Of The Week' "
-                + " X-ENUM  ( 'monday' 'tuesday'   'wednesday'  'thursday'  'friday' "
-                + " 'saturday' 'monday') )", true);
-    builder.toSchema();
-  }
-
-
-
-  @Test
-  public void testDecode() throws SchemaException, DecodeException
-  {
-    SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
-    builder
-        .addSyntax(
-            "( 3.3.3  DESC 'Day Of The Week' "
-                + " X-ENUM  ( 'monday' 'tuesday'   'wednesday'  'thursday'  'friday' "
-                + " 'saturday' 'sunday') )", true);
-    Schema schema = builder.toSchema();
-    Syntax syntax = schema.getSyntax("3.3.3");
-    MatchingRule rule = syntax.getOrderingMatchingRule();
-    Assert.assertEquals(rule.getGreaterOrEqualAssertion(
-        ByteString.valueOf("monday")).matches(
-        rule.normalizeAttributeValue(ByteString.valueOf("thursday"))),
-        ConditionResult.TRUE);
-    Assert.assertEquals(rule.getLessOrEqualAssertion(
-        ByteString.valueOf("monday")).matches(
-        rule.normalizeAttributeValue(ByteString.valueOf("thursday"))),
-        ConditionResult.FALSE);
-    Assert.assertEquals(rule.getGreaterOrEqualAssertion(
-        ByteString.valueOf("tuesday")).matches(
-        rule.normalizeAttributeValue(ByteString.valueOf("monday"))),
-        ConditionResult.FALSE);
-    Assert.assertEquals(rule.getLessOrEqualAssertion(
-        ByteString.valueOf("tuesday")).matches(
-        rule.normalizeAttributeValue(ByteString.valueOf("monday"))),
-        ConditionResult.TRUE);
-    Assert.assertEquals(rule.getGreaterOrEqualAssertion(
-        ByteString.valueOf("tuesday")).matches(
-        rule.normalizeAttributeValue(ByteString.valueOf("tuesday"))),
-        ConditionResult.TRUE);
-    Assert.assertEquals(rule.getLessOrEqualAssertion(
-        ByteString.valueOf("tuesday")).matches(
-        rule.normalizeAttributeValue(ByteString.valueOf("tuesday"))),
-        ConditionResult.TRUE);
-    Assert
-        .assertEquals(rule.getAssertion(ByteString.valueOf("tuesday"))
-            .matches(
-                rule.normalizeAttributeValue(ByteString
-                    .valueOf("monday"))), ConditionResult.TRUE);
-    Assert.assertEquals(
-        rule.getAssertion(ByteString.valueOf("monday"))
-            .matches(
-                rule.normalizeAttributeValue(ByteString
-                    .valueOf("thursday"))), ConditionResult.FALSE);
-    Assert.assertEquals(
-        rule.getAssertion(ByteString.valueOf("tuesday"))
-            .matches(
-                rule.normalizeAttributeValue(ByteString
-                    .valueOf("tuesday"))), ConditionResult.FALSE);
-    Assert.assertNotNull(schema.getMatchingRule(OMR_OID_GENERIC_ENUM
-        + ".3.3.3"));
+    final SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
+    builder.addEnumerationSyntax("3.3.3", "Day Of The Week", false, "monday",
+        "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday");
+    return builder.toSchema().getSyntax("3.3.3");
   }
 }

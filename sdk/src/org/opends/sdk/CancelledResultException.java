@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
@@ -34,20 +34,20 @@ import org.opends.sdk.responses.Result;
 
 
 /**
- * Thrown when the result code returned in a Result indicates that the
- * Request was cancelled. More specifically, this exception is used for
- * the following error result codes:
+ * Thrown when the result code returned in a Result indicates that the Request
+ * was cancelled. More specifically, this exception is used for the following
+ * error result codes:
  * <ul>
- * <li>{@link ResultCode#CANCELLED} - the requested operation was
+ * <li>{@link ResultCode#CANCELLED CANCELLED} - the requested operation was
  * cancelled.
- * <li>{@link ResultCode#CLIENT_SIDE_USER_CANCELLED} - the requested
- * operation was cancelled by the user.
+ * <li>{@link ResultCode#CLIENT_SIDE_USER_CANCELLED CLIENT_SIDE_USER_CANCELLED}
+ * - the requested operation was cancelled by the user.
  * </ul>
  */
 @SuppressWarnings("serial")
 public class CancelledResultException extends ErrorResultException
 {
-  CancelledResultException(Result result)
+  CancelledResultException(final Result result)
   {
     super(result);
   }

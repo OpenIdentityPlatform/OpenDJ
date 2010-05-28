@@ -36,17 +36,16 @@ import com.sun.opends.sdk.util.StaticUtils;
 
 
 /**
- * This class implements the telephoneNumberSubstringsMatch matching
- * rule defined in X.520 and referenced in RFC 2252. Note that although
- * the specification calls for a very rigorous format, this is widely
- * ignored so this matching will compare only numeric digits and strip
- * out everything else.
+ * This class implements the telephoneNumberSubstringsMatch matching rule
+ * defined in X.520 and referenced in RFC 2252. Note that although the
+ * specification calls for a very rigorous format, this is widely ignored so
+ * this matching will compare only numeric digits and strip out everything else.
  */
 final class TelephoneNumberSubstringMatchingRuleImpl extends
     AbstractSubstringMatchingRuleImpl
 {
-  public ByteString normalizeAttributeValue(Schema schema,
-      ByteSequence value)
+  public ByteString normalizeAttributeValue(final Schema schema,
+      final ByteSequence value)
   {
     final String valueString = value.toString();
     final int valueLength = valueString.length();

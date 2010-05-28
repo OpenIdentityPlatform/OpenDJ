@@ -33,10 +33,7 @@ import java.util.Collection;
 
 import org.opends.sdk.*;
 import org.opends.sdk.requests.*;
-import org.opends.sdk.responses.BindResult;
-import org.opends.sdk.responses.CompareResult;
-import org.opends.sdk.responses.Result;
-import org.opends.sdk.responses.SearchResultEntry;
+import org.opends.sdk.responses.*;
 import org.opends.sdk.schema.Schema;
 
 import com.sun.opends.sdk.util.FutureResultTransformer;
@@ -46,137 +43,35 @@ import com.sun.opends.sdk.util.Validator;
 
 
 /**
- * An authenticated connection factory can be used to create
- * pre-authenticated connections to a Directory Server.
+ * An authenticated connection factory can be used to create pre-authenticated
+ * connections to a Directory Server.
  * <p>
- * The connections returned by an authenticated connection factory
- * support all operations with the exception of Bind requests. Attempts
- * to perform a Bind will result in an {@code
- * UnsupportedOperationException}.
+ * The connections returned by an authenticated connection factory support all
+ * operations with the exception of Bind requests. Attempts to perform a Bind
+ * will result in an {@code UnsupportedOperationException}.
  * <p>
- * In addition, the returned connections support retrieval of the
- * {@code BindResult} returned from the initial Bind request, or last
- * rebind.
+ * In addition, the returned connections support retrieval of the {@code
+ * BindResult} returned from the initial Bind request, or last rebind.
  * <p>
  * Support for connection re-authentication is provided through the
- * {@link #setRebindAllowed} method which, if set to {@code true},
- * causes subsequent connections created using the factory to support
- * the {@code rebind} method.
+ * {@link #setRebindAllowed} method which, if set to {@code true}, causes
+ * subsequent connections created using the factory to support the {@code
+ * rebind} method.
  * <p>
- * If the Bind request fails for some reason (e.g. invalid credentials),
- * then the connection attempt will fail and an {@code
- * ErrorResultException} will be thrown.
+ * If the Bind request fails for some reason (e.g. invalid credentials), then
+ * the connection attempt will fail and an {@code ErrorResultException} will be
+ * thrown.
  */
-final class AuthenticatedConnectionFactory extends
-    AbstractConnectionFactory implements ConnectionFactory
+final class AuthenticatedConnectionFactory extends AbstractConnectionFactory
+    implements ConnectionFactory
 {
 
-  private final BindRequest request;
-
-  private final ConnectionFactory parentFactory;
-
-  private boolean allowRebinds = false;
-
-
-
   /**
-   * An authenticated synchronous connection supports all operations
-   * except Bind operations.
+   * An authenticated asynchronous connection supports all operations except
+   * Bind operations.
    */
-  public static final class AuthenticatedConnection extends
-      SynchronousConnection
-  {
-    private final AuthenticatedAsynchronousConnection connection;
-
-
-
-    private AuthenticatedConnection(
-        AuthenticatedAsynchronousConnection connection)
-    {
-      super(connection);
-      this.connection = connection;
-    }
-
-
-
-    /**
-     * Bind operations are not supported by pre-authenticated
-     * connections. This method will always throw {@code
-     * UnsupportedOperationException}.
-     */
-    public BindResult bind(BindRequest request)
-        throws UnsupportedOperationException
-    {
-      throw new UnsupportedOperationException();
-    }
-
-
-
-    /**
-     * Bind operations are not supported by pre-authenticated
-     * connections. This method will always throw {@code
-     * UnsupportedOperationException}.
-     */
-    public BindResult bind(String name, String password)
-        throws UnsupportedOperationException
-    {
-      throw new UnsupportedOperationException();
-    }
-
-
-
-    /**
-     * Re-authenticates to the Directory Server using the bind request
-     * associated with this connection. If re-authentication fails for
-     * some reason then this connection will be automatically closed.
-     *
-     * @return The result of the operation.
-     * @throws ErrorResultException
-     *           If the result code indicates that the request failed
-     *           for some reason.
-     * @throws InterruptedException
-     *           If the current thread was interrupted while waiting.
-     * @throws UnsupportedOperationException
-     *           If this connection does not support rebind operations.
-     * @throws IllegalStateException
-     *           If this connection has already been closed, i.e. if
-     *           {@code isClosed() == true}.
-     */
-    public BindResult rebind() throws ErrorResultException,
-        InterruptedException, UnsupportedOperationException,
-        IllegalStateException
-    {
-
-      if (connection.request == null)
-      {
-        throw new UnsupportedOperationException();
-      }
-      return super.bind(connection.request);
-    }
-
-
-
-    /**
-     * Returns an unmodifiable view of the Bind result which was
-     * returned from the server after authentication.
-     *
-     * @return The Bind result which was returned from the server after
-     *         authentication.
-     */
-    public BindResult getAuthenticatedBindResult()
-    {
-      return connection.getAuthenticatedBindResult();
-    }
-  }
-
-
-
-  /**
-   * An authenticated asynchronous connection supports all operations
-   * except Bind operations.
-   */
-  public static final class AuthenticatedAsynchronousConnection
-      implements AsynchronousConnection
+  public static final class AuthenticatedAsynchronousConnection implements
+      AsynchronousConnection
   {
 
     private final BindRequest request;
@@ -188,8 +83,8 @@ final class AuthenticatedConnectionFactory extends
 
 
     private AuthenticatedAsynchronousConnection(
-        AsynchronousConnection connection, BindRequest request,
-        BindResult result)
+        final AsynchronousConnection connection, final BindRequest request,
+        final BindResult result)
     {
       this.connection = connection;
       this.request = request;
@@ -198,31 +93,17 @@ final class AuthenticatedConnectionFactory extends
 
 
 
-    /**
-     * Returns an unmodifiable view of the Bind result which was
-     * returned from the server after authentication.
-     *
-     * @return The Bind result which was returned from the server after
-     *         authentication.
-     */
-    public BindResult getAuthenticatedBindResult()
-    {
-      return result;
-    }
-
-
-
-    public void abandon(AbandonRequest request)
+    public FutureResult<Void> abandon(final AbandonRequest request)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
-      connection.abandon(request);
+      return connection.abandon(request);
     }
 
 
 
-    public FutureResult<Result> add(AddRequest request,
-        ResultHandler<Result> handler)
+    public FutureResult<Result> add(final AddRequest request,
+        final ResultHandler<Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -231,8 +112,20 @@ final class AuthenticatedConnectionFactory extends
 
 
 
+    public FutureResult<Result> add(final AddRequest request,
+        final ResultHandler<Result> resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException, IllegalStateException,
+        NullPointerException
+    {
+      return connection
+          .add(request, resultHandler, intermediateResponseHandler);
+    }
+
+
+
     public void addConnectionEventListener(
-        ConnectionEventListener listener) throws IllegalStateException,
+        final ConnectionEventListener listener) throws IllegalStateException,
         NullPointerException
     {
       connection.addConnectionEventListener(listener);
@@ -241,12 +134,11 @@ final class AuthenticatedConnectionFactory extends
 
 
     /**
-     * Bind operations are not supported by pre-authenticated
-     * connections. This method will always throw {@code
-     * UnsupportedOperationException}.
+     * Bind operations are not supported by pre-authenticated connections. This
+     * method will always throw {@code UnsupportedOperationException}.
      */
-    public FutureResult<BindResult> bind(BindRequest request,
-        ResultHandler<? super BindResult> handler)
+    public FutureResult<BindResult> bind(final BindRequest request,
+        final ResultHandler<? super BindResult> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -255,9 +147,14 @@ final class AuthenticatedConnectionFactory extends
 
 
 
-    public boolean isValid()
+    public FutureResult<BindResult> bind(final BindRequest request,
+        final ResultHandler<? super BindResult> resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException, IllegalStateException,
+        NullPointerException
     {
-      return connection.isValid();
+      return connection.bind(request, resultHandler,
+          intermediateResponseHandler);
     }
 
 
@@ -269,7 +166,7 @@ final class AuthenticatedConnectionFactory extends
 
 
 
-    public void close(UnbindRequest request, String reason)
+    public void close(final UnbindRequest request, final String reason)
         throws NullPointerException
     {
       connection.close(request, reason);
@@ -277,8 +174,8 @@ final class AuthenticatedConnectionFactory extends
 
 
 
-    public FutureResult<CompareResult> compare(CompareRequest request,
-        ResultHandler<? super CompareResult> handler)
+    public FutureResult<CompareResult> compare(final CompareRequest request,
+        final ResultHandler<? super CompareResult> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -287,8 +184,20 @@ final class AuthenticatedConnectionFactory extends
 
 
 
-    public FutureResult<Result> delete(DeleteRequest request,
-        ResultHandler<Result> handler)
+    public FutureResult<CompareResult> compare(final CompareRequest request,
+        final ResultHandler<? super CompareResult> resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException, IllegalStateException,
+        NullPointerException
+    {
+      return connection.compare(request, resultHandler,
+          intermediateResponseHandler);
+    }
+
+
+
+    public FutureResult<Result> delete(final DeleteRequest request,
+        final ResultHandler<Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -297,8 +206,20 @@ final class AuthenticatedConnectionFactory extends
 
 
 
-    public <R extends Result> FutureResult<R> extendedRequest(
-        ExtendedRequest<R> request, ResultHandler<? super R> handler)
+    public FutureResult<Result> delete(final DeleteRequest request,
+        final ResultHandler<Result> resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException, IllegalStateException,
+        NullPointerException
+    {
+      return connection.delete(request, resultHandler,
+          intermediateResponseHandler);
+    }
+
+
+
+    public <R extends ExtendedResult> FutureResult<R> extendedRequest(
+        final ExtendedRequest<R> request, final ResultHandler<? super R> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -307,8 +228,62 @@ final class AuthenticatedConnectionFactory extends
 
 
 
-    public FutureResult<Result> modify(ModifyRequest request,
-        ResultHandler<Result> handler)
+    public <R extends ExtendedResult> FutureResult<R> extendedRequest(
+        final ExtendedRequest<R> request,
+        final ResultHandler<? super R> resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException, IllegalStateException,
+        NullPointerException
+    {
+      return connection.extendedRequest(request, resultHandler,
+          intermediateResponseHandler);
+    }
+
+
+
+    /**
+     * Returns an unmodifiable view of the Bind result which was returned from
+     * the server after authentication.
+     *
+     * @return The Bind result which was returned from the server after
+     *         authentication.
+     */
+    public BindResult getAuthenticatedBindResult()
+    {
+      return result;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public Connection getSynchronousConnection()
+    {
+      return new SynchronousConnection(connection);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isClosed()
+    {
+      return connection.isClosed();
+    }
+
+
+
+    public boolean isValid()
+    {
+      return connection.isValid();
+    }
+
+
+
+    public FutureResult<Result> modify(final ModifyRequest request,
+        final ResultHandler<Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -317,8 +292,20 @@ final class AuthenticatedConnectionFactory extends
 
 
 
-    public FutureResult<Result> modifyDN(ModifyDNRequest request,
-        ResultHandler<Result> handler)
+    public FutureResult<Result> modify(final ModifyRequest request,
+        final ResultHandler<Result> resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException, IllegalStateException,
+        NullPointerException
+    {
+      return connection.modify(request, resultHandler,
+          intermediateResponseHandler);
+    }
+
+
+
+    public FutureResult<Result> modifyDN(final ModifyDNRequest request,
+        final ResultHandler<Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -327,24 +314,85 @@ final class AuthenticatedConnectionFactory extends
 
 
 
+    public FutureResult<Result> modifyDN(final ModifyDNRequest request,
+        final ResultHandler<Result> resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException, IllegalStateException,
+        NullPointerException
+    {
+      return connection.modifyDN(request, resultHandler,
+          intermediateResponseHandler);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public FutureResult<SearchResultEntry> readEntry(final DN name,
+        final Collection<String> attributeDescriptions,
+        final ResultHandler<? super SearchResultEntry> resultHandler)
+        throws UnsupportedOperationException, IllegalStateException,
+        NullPointerException
+    {
+      return connection.readEntry(name, attributeDescriptions, resultHandler);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public FutureResult<RootDSE> readRootDSE(
+        final ResultHandler<RootDSE> handler)
+        throws UnsupportedOperationException, IllegalStateException
+    {
+      return connection.readRootDSE(handler);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public FutureResult<Schema> readSchema(final DN name,
+        final ResultHandler<Schema> handler)
+        throws UnsupportedOperationException, IllegalStateException
+    {
+      return connection.readSchema(name, handler);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public FutureResult<Schema> readSchemaForEntry(final DN name,
+        final ResultHandler<Schema> handler)
+        throws UnsupportedOperationException, IllegalStateException
+    {
+      return connection.readSchemaForEntry(name, handler);
+    }
+
+
+
     /**
      * Re-authenticates to the Directory Server using the bind request
-     * associated with this connection. If re-authentication fails for
-     * some reason then this connection will be automatically closed.
+     * associated with this connection. If re-authentication fails for some
+     * reason then this connection will be automatically closed.
      *
      * @param handler
-     *          A result handler which can be used to asynchronously
-     *          process the operation result when it is received, may be
-     *          {@code null}.
+     *          A result handler which can be used to asynchronously process the
+     *          operation result when it is received, may be {@code null}.
      * @return A future representing the result of the operation.
      * @throws UnsupportedOperationException
      *           If this connection does not support rebind operations.
      * @throws IllegalStateException
-     *           If this connection has already been closed, i.e. if
-     *           {@code isClosed() == true}.
+     *           If this connection has already been closed, i.e. if {@code
+     *           isClosed() == true}.
      */
     public FutureResult<BindResult> rebind(
-        ResultHandler<? super BindResult> handler)
+        final ResultHandler<? super BindResult> handler)
         throws UnsupportedOperationException, IllegalStateException
     {
       if (request == null)
@@ -356,10 +404,10 @@ final class AuthenticatedConnectionFactory extends
       // state.
       final ResultHandler<? super BindResult> clientHandler = handler;
 
-      ResultHandler<BindResult> handlerWrapper = new ResultHandler<BindResult>()
+      final ResultHandler<BindResult> handlerWrapper = new ResultHandler<BindResult>()
       {
 
-        public void handleErrorResult(ErrorResultException error)
+        public void handleErrorResult(final ErrorResultException error)
         {
           // This connection is now unauthenticated so prevent
           // further use.
@@ -373,7 +421,7 @@ final class AuthenticatedConnectionFactory extends
 
 
 
-        public void handleResult(BindResult result)
+        public void handleResult(final BindResult result)
         {
           // Save the result.
           AuthenticatedAsynchronousConnection.this.result = result;
@@ -392,58 +440,33 @@ final class AuthenticatedConnectionFactory extends
 
 
     public void removeConnectionEventListener(
-        ConnectionEventListener listener) throws NullPointerException
+        final ConnectionEventListener listener) throws NullPointerException
     {
       connection.removeConnectionEventListener(listener);
     }
 
 
 
-    public FutureResult<Result> search(SearchRequest request,
-        ResultHandler<Result> resultHandler,
-        SearchResultHandler searchResulthandler)
+    public FutureResult<Result> search(final SearchRequest request,
+        final ResultHandler<Result> resultHandler,
+        final SearchResultHandler searchResulthandler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
-      return connection.search(request, resultHandler,
-          searchResulthandler);
+      return connection.search(request, resultHandler, searchResulthandler);
     }
 
 
 
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isClosed()
-    {
-      return connection.isClosed();
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public FutureResult<RootDSE> readRootDSE(
-        ResultHandler<RootDSE> handler)
-        throws UnsupportedOperationException, IllegalStateException
-    {
-      return connection.readRootDSE(handler);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public FutureResult<SearchResultEntry> readEntry(DN name,
-        Collection<String> attributeDescriptions,
-        ResultHandler<? super SearchResultEntry> resultHandler)
+    public FutureResult<Result> search(final SearchRequest request,
+        final ResultHandler<Result> resultHandler,
+        final SearchResultHandler searchResulthandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
-      return connection.readEntry(name, attributeDescriptions,
-          resultHandler);
+      return connection.search(request, resultHandler, searchResulthandler,
+          intermediateResponseHandler);
     }
 
 
@@ -452,36 +475,12 @@ final class AuthenticatedConnectionFactory extends
      * {@inheritDoc}
      */
     public FutureResult<SearchResultEntry> searchSingleEntry(
-        SearchRequest request,
-        ResultHandler<? super SearchResultEntry> resultHandler)
+        final SearchRequest request,
+        final ResultHandler<? super SearchResultEntry> resultHandler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
       return connection.searchSingleEntry(request, resultHandler);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public FutureResult<Schema> readSchemaForEntry(DN name,
-        ResultHandler<Schema> handler)
-        throws UnsupportedOperationException, IllegalStateException
-    {
-      return connection.readSchemaForEntry(name, handler);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public FutureResult<Schema> readSchema(DN name,
-        ResultHandler<Schema> handler)
-        throws UnsupportedOperationException, IllegalStateException
-    {
-      return connection.readSchema(name, handler);
     }
 
   }
@@ -489,26 +488,93 @@ final class AuthenticatedConnectionFactory extends
 
 
   /**
-   * Creates a new authenticated connection factory which will obtain
-   * connections using the provided connection factory and immediately
-   * perform the provided Bind request.
-   *
-   * @param factory
-   *          The connection factory to use for connecting to the
-   *          Directory Server.
-   * @param request
-   *          The Bind request to use for authentication.
-   * @throws NullPointerException
-   *           If {@code factory} or {@code request} was {@code null}.
+   * An authenticated synchronous connection supports all operations except Bind
+   * operations.
    */
-  public AuthenticatedConnectionFactory(ConnectionFactory factory,
-      BindRequest request) throws NullPointerException
+  public static final class AuthenticatedConnection extends
+      SynchronousConnection
   {
-    Validator.ensureNotNull(factory, request);
-    this.parentFactory = factory;
+    private final AuthenticatedAsynchronousConnection connection;
 
-    // FIXME: should do a defensive copy.
-    this.request = request;
+
+
+    private AuthenticatedConnection(
+        final AuthenticatedAsynchronousConnection connection)
+    {
+      super(connection);
+      this.connection = connection;
+    }
+
+
+
+    /**
+     * Bind operations are not supported by pre-authenticated connections. This
+     * method will always throw {@code UnsupportedOperationException}.
+     */
+    @Override
+    public BindResult bind(final BindRequest request)
+        throws UnsupportedOperationException
+    {
+      throw new UnsupportedOperationException();
+    }
+
+
+
+    /**
+     * Bind operations are not supported by pre-authenticated connections. This
+     * method will always throw {@code UnsupportedOperationException}.
+     */
+    @Override
+    public BindResult bind(final String name, final String password)
+        throws UnsupportedOperationException
+    {
+      throw new UnsupportedOperationException();
+    }
+
+
+
+    /**
+     * Returns an unmodifiable view of the Bind result which was returned from
+     * the server after authentication.
+     *
+     * @return The Bind result which was returned from the server after
+     *         authentication.
+     */
+    public BindResult getAuthenticatedBindResult()
+    {
+      return connection.getAuthenticatedBindResult();
+    }
+
+
+
+    /**
+     * Re-authenticates to the Directory Server using the bind request
+     * associated with this connection. If re-authentication fails for some
+     * reason then this connection will be automatically closed.
+     *
+     * @return The result of the operation.
+     * @throws ErrorResultException
+     *           If the result code indicates that the request failed for some
+     *           reason.
+     * @throws InterruptedException
+     *           If the current thread was interrupted while waiting.
+     * @throws UnsupportedOperationException
+     *           If this connection does not support rebind operations.
+     * @throws IllegalStateException
+     *           If this connection has already been closed, i.e. if {@code
+     *           isClosed() == true}.
+     */
+    public BindResult rebind() throws ErrorResultException,
+        InterruptedException, UnsupportedOperationException,
+        IllegalStateException
+    {
+
+      if (connection.request == null)
+      {
+        throw new UnsupportedOperationException();
+      }
+      return super.bind(connection.request);
+    }
   }
 
 
@@ -525,16 +591,17 @@ final class AuthenticatedConnectionFactory extends
 
 
 
-    private FutureResultImpl(BindRequest request,
-        ResultHandler<AsynchronousConnection> handler)
+    private FutureResultImpl(final BindRequest request,
+        final ResultHandler<AsynchronousConnection> handler)
     {
       this.bindRequest = request;
       this.futureBindResult = new FutureResultTransformer<BindResult, AsynchronousConnection>(
           handler)
       {
 
+        @Override
         protected ErrorResultException transformErrorResult(
-            ErrorResultException errorResult)
+            final ErrorResultException errorResult)
         {
           // Ensure that the connection is closed.
           try
@@ -542,7 +609,7 @@ final class AuthenticatedConnectionFactory extends
             connection.close();
             connection = null;
           }
-          catch (Exception e)
+          catch (final Exception e)
           {
             // Ignore.
           }
@@ -551,8 +618,9 @@ final class AuthenticatedConnectionFactory extends
 
 
 
+        @Override
         protected AuthenticatedAsynchronousConnection transformResult(
-            BindResult result) throws ErrorResultException
+            final BindResult result) throws ErrorResultException
         {
           // FIXME: should make the result unmodifiable.
           return new AuthenticatedAsynchronousConnection(connection,
@@ -564,9 +632,10 @@ final class AuthenticatedConnectionFactory extends
           futureBindResult)
       {
 
+        @Override
         protected FutureResult<? extends BindResult> chainResult(
-            AsynchronousConnection innerResult,
-            ResultHandler<? super BindResult> handler)
+            final AsynchronousConnection innerResult,
+            final ResultHandler<? super BindResult> handler)
             throws ErrorResultException
         {
           connection = innerResult;
@@ -580,38 +649,61 @@ final class AuthenticatedConnectionFactory extends
 
 
 
+  private final BindRequest request;
+
+  private final ConnectionFactory parentFactory;
+
+  private boolean allowRebinds = false;
+
+
+
   /**
-   * Specifies whether or not rebind requests are to be supported by
-   * connections created by this authenticated connection factory.
-   * <p>
-   * Rebind requests are invoked using the connection's {@code rebind}
-   * method which will throw an {@code UnsupportedOperationException} if
-   * rebinds are not supported (the default).
+   * Creates a new authenticated connection factory which will obtain
+   * connections using the provided connection factory and immediately perform
+   * the provided Bind request.
    *
-   * @param allowRebinds
-   *          {@code true} if the {@code rebind} operation is to be
-   *          supported, otherwise {@code false}.
-   * @return A reference to this connection factory.
+   * @param factory
+   *          The connection factory to use for connecting to the Directory
+   *          Server.
+   * @param request
+   *          The Bind request to use for authentication.
+   * @throws NullPointerException
+   *           If {@code factory} or {@code request} was {@code null}.
    */
-  public AuthenticatedConnectionFactory setRebindAllowed(
-      boolean allowRebinds)
+  public AuthenticatedConnectionFactory(final ConnectionFactory factory,
+      final BindRequest request) throws NullPointerException
   {
-    this.allowRebinds = allowRebinds;
-    return this;
+    Validator.ensureNotNull(factory, request);
+    this.parentFactory = factory;
+
+    // FIXME: should do a defensive copy.
+    this.request = request;
+  }
+
+
+
+  @Override
+  public FutureResult<AsynchronousConnection> getAsynchronousConnection(
+      final ResultHandler<AsynchronousConnection> handler)
+  {
+    final FutureResultImpl future = new FutureResultImpl(request, handler);
+    future.futureConnectionResult.setFutureResult(parentFactory
+        .getAsynchronousConnection(future.futureConnectionResult));
+    return future.futureBindResult;
   }
 
 
 
   /**
-   * Indicates whether or not rebind requests are to be supported by
-   * connections created by this authenticated connection factory.
+   * Indicates whether or not rebind requests are to be supported by connections
+   * created by this authenticated connection factory.
    * <p>
-   * Rebind requests are invoked using the connection's {@code rebind}
-   * method which will throw an {@code UnsupportedOperationException} if
-   * rebinds are not supported (the default).
+   * Rebind requests are invoked using the connection's {@code rebind} method
+   * which will throw an {@code UnsupportedOperationException} if rebinds are
+   * not supported (the default).
    *
-   * @return allowRebinds {@code true} if the {@code rebind} operation
-   *         is to be supported, otherwise {@code false}.
+   * @return allowRebinds {@code true} if the {@code rebind} operation is to be
+   *         supported, otherwise {@code false}.
    */
   public boolean isRebindAllowed()
   {
@@ -620,22 +712,24 @@ final class AuthenticatedConnectionFactory extends
 
 
 
-  public FutureResult<AsynchronousConnection> getAsynchronousConnection(
-      ResultHandler<AsynchronousConnection> handler)
+  /**
+   * Specifies whether or not rebind requests are to be supported by connections
+   * created by this authenticated connection factory.
+   * <p>
+   * Rebind requests are invoked using the connection's {@code rebind} method
+   * which will throw an {@code UnsupportedOperationException} if rebinds are
+   * not supported (the default).
+   *
+   * @param allowRebinds
+   *          {@code true} if the {@code rebind} operation is to be supported,
+   *          otherwise {@code false}.
+   * @return A reference to this connection factory.
+   */
+  public AuthenticatedConnectionFactory setRebindAllowed(
+      final boolean allowRebinds)
   {
-    FutureResultImpl future = new FutureResultImpl(request, handler);
-    future.futureConnectionResult.setFutureResult(parentFactory
-        .getAsynchronousConnection(future.futureConnectionResult));
-    return future.futureBindResult;
-  }
-
-
-
-  public AuthenticatedConnection getConnection()
-      throws ErrorResultException
-  {
-    return new AuthenticatedConnection(
-        (AuthenticatedAsynchronousConnection) blockingGetAsynchronousConnection());
+    this.allowRebinds = allowRebinds;
+    return this;
   }
 
 }

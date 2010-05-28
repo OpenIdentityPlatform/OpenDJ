@@ -35,7 +35,6 @@ import java.util.List;
 
 import org.opends.sdk.*;
 
-import com.sun.opends.sdk.util.StaticUtils;
 import com.sun.opends.sdk.util.SubstringReader;
 
 
@@ -55,8 +54,8 @@ abstract class AbstractSubstringMatchingRuleImpl extends
 
 
 
-    protected DefaultSubstringAssertion(ByteString normInitial,
-        ByteString[] normAnys, ByteString normFinal)
+    protected DefaultSubstringAssertion(final ByteString normInitial,
+        final ByteString[] normAnys, final ByteString normFinal)
     {
       this.normInitial = normInitial;
       this.normAnys = normAnys;
@@ -65,7 +64,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends
 
 
 
-    public ConditionResult matches(ByteSequence attributeValue)
+    public ConditionResult matches(final ByteSequence attributeValue)
     {
       final int valueLength = attributeValue.length();
 
@@ -164,13 +163,12 @@ abstract class AbstractSubstringMatchingRuleImpl extends
 
 
   @Override
-  public Assertion getAssertion(Schema schema, ByteSequence value)
+  public Assertion getAssertion(final Schema schema, final ByteSequence value)
       throws DecodeException
   {
     if (value.length() == 0)
     {
-      throw DecodeException.error(
-          WARN_ATTR_SYNTAX_SUBSTRING_EMPTY.get());
+      throw DecodeException.error(WARN_ATTR_SYNTAX_SUBSTRING_EMPTY.get());
     }
 
     ByteSequence initialString = null;
@@ -181,36 +179,33 @@ abstract class AbstractSubstringMatchingRuleImpl extends
 
     if (valueString.length() == 1 && valueString.charAt(0) == '*')
     {
-      return getAssertion(schema, initialString, anyStrings,
-          finalString);
+      return getAssertion(schema, initialString, anyStrings, finalString);
     }
 
     final char[] escapeChars = new char[] { '*' };
     final SubstringReader reader = new SubstringReader(valueString);
 
-    ByteString bytes =
-        StaticUtils.evaluateEscapes(reader, escapeChars, false);
+    ByteString bytes = evaluateEscapes(reader, escapeChars, false);
     if (bytes.length() > 0)
     {
       initialString = normalizeSubString(schema, bytes);
     }
     if (reader.remaining() == 0)
     {
-      throw DecodeException.error(
-          WARN_ATTR_SYNTAX_SUBSTRING_NO_WILDCARDS
-              .get(value.toString()));
+      throw DecodeException.error(WARN_ATTR_SYNTAX_SUBSTRING_NO_WILDCARDS
+          .get(value.toString()));
     }
     while (true)
     {
       reader.read();
-      bytes = StaticUtils.evaluateEscapes(reader, escapeChars, false);
+      bytes = evaluateEscapes(reader, escapeChars, false);
       if (reader.remaining() > 0)
       {
         if (bytes.length() == 0)
         {
-          throw DecodeException.error(
-              WARN_ATTR_SYNTAX_SUBSTRING_CONSECUTIVE_WILDCARDS
-                  .get(value.toString(), reader.pos()));
+          throw DecodeException
+              .error(WARN_ATTR_SYNTAX_SUBSTRING_CONSECUTIVE_WILDCARDS.get(value
+                  .toString(), reader.pos()));
         }
         if (anyStrings == null)
         {
@@ -234,13 +229,13 @@ abstract class AbstractSubstringMatchingRuleImpl extends
 
 
   @Override
-  public Assertion getAssertion(Schema schema, ByteSequence subInitial,
-      List<? extends ByteSequence> subAnyElements, ByteSequence subFinal)
-      throws DecodeException
+  public Assertion getAssertion(final Schema schema,
+      final ByteSequence subInitial,
+      final List<? extends ByteSequence> subAnyElements,
+      final ByteSequence subFinal) throws DecodeException
   {
-    final ByteString normInitial =
-        subInitial == null ? null : normalizeSubString(schema,
-            subInitial);
+    final ByteString normInitial = subInitial == null ? null
+        : normalizeSubString(schema, subInitial);
 
     ByteString[] normAnys = null;
     if (subAnyElements != null && !subAnyElements.isEmpty())
@@ -251,18 +246,294 @@ abstract class AbstractSubstringMatchingRuleImpl extends
         normAnys[i] = normalizeSubString(schema, subAnyElements.get(i));
       }
     }
-    final ByteString normFinal =
-        subFinal == null ? null : normalizeSubString(schema, subFinal);
+    final ByteString normFinal = subFinal == null ? null : normalizeSubString(
+        schema, subFinal);
 
-    return new DefaultSubstringAssertion(normInitial, normAnys,
-        normFinal);
+    return new DefaultSubstringAssertion(normInitial, normAnys, normFinal);
   }
 
 
 
-  ByteString normalizeSubString(Schema schema, ByteSequence value)
+  ByteString normalizeSubString(final Schema schema, final ByteSequence value)
       throws DecodeException
   {
     return normalizeAttributeValue(schema, value);
+  }
+
+
+
+  private char evaluateEscapedChar(final SubstringReader reader,
+      final char[] escapeChars) throws DecodeException
+  {
+    final char c1 = reader.read();
+    byte b;
+    switch (c1)
+    {
+    case '0':
+      b = 0x00;
+      break;
+    case '1':
+      b = 0x10;
+      break;
+    case '2':
+      b = 0x20;
+      break;
+    case '3':
+      b = 0x30;
+      break;
+    case '4':
+      b = 0x40;
+      break;
+    case '5':
+      b = 0x50;
+      break;
+    case '6':
+      b = 0x60;
+      break;
+    case '7':
+      b = 0x70;
+      break;
+    case '8':
+      b = (byte) 0x80;
+      break;
+    case '9':
+      b = (byte) 0x90;
+      break;
+    case 'A':
+    case 'a':
+      b = (byte) 0xA0;
+      break;
+    case 'B':
+    case 'b':
+      b = (byte) 0xB0;
+      break;
+    case 'C':
+    case 'c':
+      b = (byte) 0xC0;
+      break;
+    case 'D':
+    case 'd':
+      b = (byte) 0xD0;
+      break;
+    case 'E':
+    case 'e':
+      b = (byte) 0xE0;
+      break;
+    case 'F':
+    case 'f':
+      b = (byte) 0xF0;
+      break;
+    default:
+      if (c1 == 0x5C)
+      {
+        return c1;
+      }
+      if (escapeChars != null)
+      {
+        for (final char escapeChar : escapeChars)
+        {
+          if (c1 == escapeChar)
+          {
+            return c1;
+          }
+        }
+      }
+      final LocalizableMessage message = ERR_INVALID_ESCAPE_CHAR.get(reader
+          .getString(), c1);
+      throw DecodeException.error(message);
+    }
+
+    // The two positions must be the hex characters that
+    // comprise the escaped value.
+    if (reader.remaining() == 0)
+    {
+      final LocalizableMessage message = ERR_HEX_DECODE_INVALID_LENGTH
+          .get(reader.getString());
+
+      throw DecodeException.error(message);
+    }
+
+    final char c2 = reader.read();
+    switch (c2)
+    {
+    case '0':
+      // No action required.
+      break;
+    case '1':
+      b |= 0x01;
+      break;
+    case '2':
+      b |= 0x02;
+      break;
+    case '3':
+      b |= 0x03;
+      break;
+    case '4':
+      b |= 0x04;
+      break;
+    case '5':
+      b |= 0x05;
+      break;
+    case '6':
+      b |= 0x06;
+      break;
+    case '7':
+      b |= 0x07;
+      break;
+    case '8':
+      b |= 0x08;
+      break;
+    case '9':
+      b |= 0x09;
+      break;
+    case 'A':
+    case 'a':
+      b |= 0x0A;
+      break;
+    case 'B':
+    case 'b':
+      b |= 0x0B;
+      break;
+    case 'C':
+    case 'c':
+      b |= 0x0C;
+      break;
+    case 'D':
+    case 'd':
+      b |= 0x0D;
+      break;
+    case 'E':
+    case 'e':
+      b |= 0x0E;
+      break;
+    case 'F':
+    case 'f':
+      b |= 0x0F;
+      break;
+    default:
+      final LocalizableMessage message = ERR_HEX_DECODE_INVALID_CHARACTER.get(
+          new String(new char[] { c1, c2 }), c1);
+      throw DecodeException.error(message);
+    }
+    return (char) b;
+  }
+
+
+
+  private ByteString evaluateEscapes(final SubstringReader reader,
+      final char[] escapeChars, final boolean trim) throws DecodeException
+  {
+    return evaluateEscapes(reader, escapeChars, escapeChars, trim);
+  }
+
+
+
+  private ByteString evaluateEscapes(final SubstringReader reader,
+      final char[] escapeChars, final char[] delimiterChars, final boolean trim)
+      throws DecodeException
+  {
+    int length = 0;
+    int lengthWithoutSpace = 0;
+    char c;
+    ByteStringBuilder valueBuffer = null;
+
+    if (trim)
+    {
+      reader.skipWhitespaces();
+    }
+
+    reader.mark();
+    while (reader.remaining() > 0)
+    {
+      c = reader.read();
+      if (c == 0x5C) // The backslash character
+      {
+        if (valueBuffer == null)
+        {
+          valueBuffer = new ByteStringBuilder();
+        }
+        valueBuffer.append(reader.read(length));
+        valueBuffer.append(evaluateEscapedChar(reader, escapeChars));
+        reader.mark();
+        length = lengthWithoutSpace = 0;
+      }
+      if (delimiterChars != null)
+      {
+        for (final char delimiterChar : delimiterChars)
+        {
+          if (c == delimiterChar)
+          {
+            reader.reset();
+            if (valueBuffer != null)
+            {
+              if (trim)
+              {
+                valueBuffer.append(reader.read(lengthWithoutSpace));
+              }
+              else
+              {
+                valueBuffer.append(reader.read(length));
+              }
+              return valueBuffer.toByteString();
+            }
+            else
+            {
+              if (trim)
+              {
+                if (lengthWithoutSpace > 0)
+                {
+                  return ByteString.valueOf(reader.read(lengthWithoutSpace));
+                }
+                return ByteString.empty();
+              }
+              if (length > 0)
+              {
+                return ByteString.valueOf(reader.read(length));
+              }
+              return ByteString.empty();
+            }
+          }
+        }
+      }
+      length++;
+      if (c != ' ')
+      {
+        lengthWithoutSpace = length;
+      }
+      else
+      {
+        lengthWithoutSpace++;
+      }
+    }
+
+    reader.reset();
+    if (valueBuffer != null)
+    {
+      if (trim)
+      {
+        valueBuffer.append(reader.read(lengthWithoutSpace));
+      }
+      else
+      {
+        valueBuffer.append(reader.read(length));
+      }
+      return valueBuffer.toByteString();
+    }
+    else
+    {
+      if (trim)
+      {
+        if (lengthWithoutSpace > 0)
+        {
+          return ByteString.valueOf(reader.read(lengthWithoutSpace));
+        }
+        return ByteString.empty();
+      }
+      if (length > 0)
+      {
+        return ByteString.valueOf(reader.read(length));
+      }
+      return ByteString.empty();
+    }
   }
 }

@@ -43,9 +43,12 @@ public class TelexSyntaxTest extends SyntaxTestCase
    * {@inheritDoc}
    */
   @Override
-  protected Syntax getRule()
+  @DataProvider(name = "acceptableValues")
+  public Object[][] createAcceptableValues()
   {
-    return Schema.getCoreSchema().getSyntax(SYNTAX_TELEX_OID);
+    return new Object[][] { { "123$france$456", true },
+        { "abcdefghijk$lmnopqr$stuvwxyz", true },
+        { "12345$67890$()+,-./:? ", true }, };
   }
 
 
@@ -54,12 +57,9 @@ public class TelexSyntaxTest extends SyntaxTestCase
    * {@inheritDoc}
    */
   @Override
-  @DataProvider(name = "acceptableValues")
-  public Object[][] createAcceptableValues()
+  protected Syntax getRule()
   {
-    return new Object[][] { { "123$france$456", true },
-        { "abcdefghijk$lmnopqr$stuvwxyz", true },
-        { "12345$67890$()+,-./:? ", true }, };
+    return Schema.getCoreSchema().getSyntax(SYNTAX_TELEX_OID);
   }
 
 }

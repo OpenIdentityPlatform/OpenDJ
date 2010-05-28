@@ -38,8 +38,7 @@ import org.testng.annotations.DataProvider;
 /**
  * Test the CaseIgnoreEqualityMatchingRule.
  */
-public class CaseIgnoreEqualityMatchingRuleTest extends
-    MatchingRuleTest
+public class CaseIgnoreEqualityMatchingRuleTest extends MatchingRuleTest
 {
   /**
    * {@inheritDoc}
@@ -67,8 +66,7 @@ public class CaseIgnoreEqualityMatchingRuleTest extends
         { "    ", " ", ConditionResult.TRUE },
         { "Z", "z", ConditionResult.TRUE },
         { "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890",
-            "abcdefghijklmnopqrstuvwxyz1234567890",
-            ConditionResult.TRUE },
+            "abcdefghijklmnopqrstuvwxyz1234567890", ConditionResult.TRUE },
         { "foo\u0020bar\u0020\u0020", "foo bar", ConditionResult.TRUE },
         { "test\u00AD\u200D", "test", ConditionResult.TRUE },
         { "foo\u070Fbar", "foobar", ConditionResult.TRUE },

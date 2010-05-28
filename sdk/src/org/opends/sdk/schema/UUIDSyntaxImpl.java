@@ -29,18 +29,19 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
-import static org.opends.sdk.schema.SchemaConstants.*;
+import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH;
+import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX;
+import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_UUID_NAME;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.LocalizableMessageBuilder;
 
 
 
-
 /**
- * This class implements the UUID syntax, which is defined in RFC 4530.
- * Equality and ordering matching will be allowed by default.
+ * This class implements the UUID syntax, which is defined in RFC 4530. Equality
+ * and ordering matching will be allowed by default.
  */
 final class UUIDSyntaxImpl extends AbstractSyntaxImpl
 {
@@ -59,21 +60,21 @@ final class UUIDSyntaxImpl extends AbstractSyntaxImpl
 
 
   /**
-   * Indicates whether the provided value is acceptable for use in an
-   * attribute with this syntax. If it is not, then the reason may be
-   * appended to the provided buffer.
-   * 
+   * Indicates whether the provided value is acceptable for use in an attribute
+   * with this syntax. If it is not, then the reason may be appended to the
+   * provided buffer.
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
    *          The value for which to make the determination.
    * @param invalidReason
    *          The buffer to which the invalid reason should be appended.
-   * @return <CODE>true</CODE> if the provided value is acceptable for
-   *         use with this syntax, or <CODE>false</CODE> if not.
+   * @return <CODE>true</CODE> if the provided value is acceptable for use with
+   *         this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      LocalizableMessageBuilder invalidReason)
+  public boolean valueIsAcceptable(final Schema schema,
+      final ByteSequence value, final LocalizableMessageBuilder invalidReason)
   {
     // We will only accept values that look like valid UUIDs. This means
     // that all values must be in the form

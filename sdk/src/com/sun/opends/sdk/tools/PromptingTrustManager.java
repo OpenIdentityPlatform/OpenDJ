@@ -57,22 +57,11 @@ import com.sun.opends.sdk.util.Validator;
 
 
 /**
- * A trust manager which prompts the user for the length of time that
- * they would like to trust a server certificate.
+ * A trust manager which prompts the user for the length of time that they would
+ * like to trust a server certificate.
  */
 final class PromptingTrustManager implements X509TrustManager
 {
-  static private final Logger LOG = Logger
-      .getLogger(PromptingTrustManager.class.getName());
-
-  static private final String DEFAULT_PATH = System
-      .getProperty("user.home")
-      + File.separator + ".opends" + File.separator + "keystore";
-
-  static private final char[] DEFAULT_PASSWORD = "OpenDS".toCharArray();
-
-
-
   /**
    * Enumeration description server certificate trust option.
    */
@@ -97,7 +86,7 @@ final class PromptingTrustManager implements X509TrustManager
      * @param msg
      *          the message message.
      */
-    private TrustOption(int i, LocalizableMessage msg)
+    private TrustOption(final int i, final LocalizableMessage msg)
     {
       choice = i;
       this.msg = msg;
@@ -130,6 +119,14 @@ final class PromptingTrustManager implements X509TrustManager
 
 
 
+  static private final Logger LOG = Logger
+      .getLogger(PromptingTrustManager.class.getName());
+
+  static private final String DEFAULT_PATH = System.getProperty("user.home")
+      + File.separator + ".opends" + File.separator + "keystore";
+
+  static private final char[] DEFAULT_PASSWORD = "OpenDS".toCharArray();
+
   private final KeyStore inMemoryTrustStore;
 
   private final KeyStore onDiskTrustStore;
@@ -144,28 +141,18 @@ final class PromptingTrustManager implements X509TrustManager
 
 
 
-  PromptingTrustManager(ConsoleApplication app,
-      X509TrustManager sourceTrustManager) throws KeyStoreException,
-      IOException, NoSuchAlgorithmException, CertificateException
-  {
-    this(app, DEFAULT_PATH, sourceTrustManager);
-  }
-
-
-
-  PromptingTrustManager(ConsoleApplication app,
-      String acceptedStorePath, X509TrustManager sourceTrustManager)
+  PromptingTrustManager(final ConsoleApplication app,
+      final String acceptedStorePath, final X509TrustManager sourceTrustManager)
       throws KeyStoreException, IOException, NoSuchAlgorithmException,
       CertificateException
   {
     Validator.ensureNotNull(app, acceptedStorePath);
     this.app = app;
     this.nestedTrustManager = sourceTrustManager;
-    inMemoryTrustStore = KeyStore
-        .getInstance(KeyStore.getDefaultType());
+    inMemoryTrustStore = KeyStore.getInstance(KeyStore.getDefaultType());
     onDiskTrustStore = KeyStore.getInstance(KeyStore.getDefaultType());
 
-    File onDiskTrustStorePath = new File(acceptedStorePath);
+    final File onDiskTrustStorePath = new File(acceptedStorePath);
     inMemoryTrustStore.load(null, null);
     if (!onDiskTrustStorePath.exists())
     {
@@ -173,15 +160,15 @@ final class PromptingTrustManager implements X509TrustManager
     }
     else
     {
-      FileInputStream fos = new FileInputStream(onDiskTrustStorePath);
+      final FileInputStream fos = new FileInputStream(onDiskTrustStorePath);
       onDiskTrustStore.load(fos, DEFAULT_PASSWORD);
     }
-    TrustManagerFactory tmf = TrustManagerFactory
+    final TrustManagerFactory tmf = TrustManagerFactory
         .getInstance(TrustManagerFactory.getDefaultAlgorithm());
 
     tmf.init(inMemoryTrustStore);
     X509TrustManager x509tm = null;
-    for (TrustManager tm : tmf.getTrustManagers())
+    for (final TrustManager tm : tmf.getTrustManagers())
     {
       if (tm instanceof X509TrustManager)
       {
@@ -197,7 +184,7 @@ final class PromptingTrustManager implements X509TrustManager
 
     tmf.init(onDiskTrustStore);
     x509tm = null;
-    for (TrustManager tm : tmf.getTrustManagers())
+    for (final TrustManager tm : tmf.getTrustManagers())
     {
       if (tm instanceof X509TrustManager)
       {
@@ -214,20 +201,29 @@ final class PromptingTrustManager implements X509TrustManager
 
 
 
-  public void checkClientTrusted(X509Certificate[] x509Certificates,
-      String s) throws CertificateException
+  PromptingTrustManager(final ConsoleApplication app,
+      final X509TrustManager sourceTrustManager) throws KeyStoreException,
+      IOException, NoSuchAlgorithmException, CertificateException
+  {
+    this(app, DEFAULT_PATH, sourceTrustManager);
+  }
+
+
+
+  public void checkClientTrusted(final X509Certificate[] x509Certificates,
+      final String s) throws CertificateException
   {
     try
     {
       inMemoryTrustManager.checkClientTrusted(x509Certificates, s);
     }
-    catch (Exception ce1)
+    catch (final Exception ce1)
     {
       try
       {
         onDiskTrustManager.checkClientTrusted(x509Certificates, s);
       }
-      catch (Exception ce2)
+      catch (final Exception ce2)
       {
         if (nestedTrustManager != null)
         {
@@ -235,7 +231,7 @@ final class PromptingTrustManager implements X509TrustManager
           {
             nestedTrustManager.checkClientTrusted(x509Certificates, s);
           }
-          catch (Exception ce3)
+          catch (final Exception ce3)
           {
             checkManuallyTrusted(x509Certificates, ce3);
           }
@@ -250,20 +246,20 @@ final class PromptingTrustManager implements X509TrustManager
 
 
 
-  public void checkServerTrusted(X509Certificate[] x509Certificates,
-      String s) throws CertificateException
+  public void checkServerTrusted(final X509Certificate[] x509Certificates,
+      final String s) throws CertificateException
   {
     try
     {
       inMemoryTrustManager.checkServerTrusted(x509Certificates, s);
     }
-    catch (Exception ce1)
+    catch (final Exception ce1)
     {
       try
       {
         onDiskTrustManager.checkServerTrusted(x509Certificates, s);
       }
-      catch (Exception ce2)
+      catch (final Exception ce2)
       {
         if (nestedTrustManager != null)
         {
@@ -271,7 +267,7 @@ final class PromptingTrustManager implements X509TrustManager
           {
             nestedTrustManager.checkServerTrusted(x509Certificates, s);
           }
-          catch (Exception ce3)
+          catch (final Exception ce3)
           {
             checkManuallyTrusted(x509Certificates, ce3);
           }
@@ -298,33 +294,89 @@ final class PromptingTrustManager implements X509TrustManager
 
 
   /**
+   * This method is called when the user accepted a certificate.
+   *
+   * @param chain
+   *          the certificate chain accepted by the user. certificate.
+   */
+  private void acceptCertificate(final X509Certificate[] chain,
+      final boolean permanent)
+  {
+    if (permanent)
+    {
+      LOG.log(Level.INFO, "Permanently accepting certificate chain to "
+          + "truststore");
+    }
+    else
+    {
+      LOG.log(Level.INFO, "Accepting certificate chain for this session");
+    }
+
+    for (final X509Certificate aChain : chain)
+    {
+      try
+      {
+        final String alias = aChain.getSubjectDN().getName();
+        inMemoryTrustStore.setCertificateEntry(alias, aChain);
+        if (permanent)
+        {
+          onDiskTrustStore.setCertificateEntry(alias, aChain);
+        }
+      }
+      catch (final Exception e)
+      {
+        LOG.log(Level.WARNING, "Error setting certificate to store: " + e
+            + "\nCert: " + aChain.toString());
+      }
+    }
+
+    if (permanent)
+    {
+      try
+      {
+        final File truststoreFile = new File(DEFAULT_PATH);
+        if (!truststoreFile.exists())
+        {
+          createFile(truststoreFile);
+        }
+        final FileOutputStream fos = new FileOutputStream(truststoreFile);
+        onDiskTrustStore.store(fos, DEFAULT_PASSWORD);
+        fos.close();
+      }
+      catch (final Exception e)
+      {
+        LOG.log(Level.WARNING, "Error saving store to disk: " + e);
+      }
+    }
+  }
+
+
+
+  /**
    * Indicate if the certificate chain can be trusted.
    *
    * @param chain
    *          The certificate chain to validate certificate.
    */
-  private void checkManuallyTrusted(X509Certificate[] chain,
-      Exception exception) throws CertificateException
+  private void checkManuallyTrusted(final X509Certificate[] chain,
+      final Exception exception) throws CertificateException
   {
     app.println();
-    app
-        .println(INFO_LDAP_CONN_PROMPT_SECURITY_SERVER_CERTIFICATE
-            .get());
+    app.println(INFO_LDAP_CONN_PROMPT_SECURITY_SERVER_CERTIFICATE.get());
     app.println();
-    for (int i = 0; i < chain.length; i++)
+    for (final X509Certificate element : chain)
     {
       // Certificate DN
       app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_USER_DN
-          .get(chain[i].getSubjectDN().toString()));
+          .get(element.getSubjectDN().toString()));
 
       // certificate validity
-      app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_VALIDITY
-          .get(chain[i].getNotBefore().toString(), chain[i]
-              .getNotAfter().toString()));
+      app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_VALIDITY.get(
+          element.getNotBefore().toString(), element.getNotAfter().toString()));
 
       // certificate Issuer
-      app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_ISSUER
-          .get(chain[i].getIssuerDN().toString()));
+      app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_ISSUER.get(element
+          .getIssuerDN().toString()));
 
       app.println();
       app.println();
@@ -334,21 +386,20 @@ final class PromptingTrustManager implements X509TrustManager
     app.println(INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_OPTION.get());
     app.println();
 
-    Map<String, TrustOption> menuOptions = new HashMap<String, TrustOption>();
-    for (TrustOption t : TrustOption.values())
+    final Map<String, TrustOption> menuOptions = new HashMap<String, TrustOption>();
+    for (final TrustOption t : TrustOption.values())
     {
       menuOptions.put(t.getChoice().toString(), t);
 
-      LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
+      final LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
       builder.append(t.getChoice());
       builder.append(") ");
       builder.append(t.getMenuMessage());
       app.println(builder.toMessage(), 2 /* Indent options */);
     }
 
-    TrustOption defaultTrustMethod = TrustOption.SESSION;
-    LocalizableMessage promptMsg = INFO_MENU_PROMPT_SINGLE_DEFAULT
-        .get(defaultTrustMethod.getChoice().toString());
+    final TrustOption defaultTrustMethod = TrustOption.SESSION;
+    final LocalizableMessage promptMsg = INFO_MENU_PROMPT_SINGLE.get();
 
     while (true)
     {
@@ -356,10 +407,10 @@ final class PromptingTrustManager implements X509TrustManager
       String choice;
       try
       {
-        choice = app.readInput(promptMsg, defaultTrustMethod
-            .getChoice().toString());
+        choice = app.readInput(promptMsg, defaultTrustMethod.getChoice()
+            .toString());
       }
-      catch (CLIException e)
+      catch (final CLIException e)
       {
         // What can we do here?
         throw new CertificateException(exception);
@@ -369,7 +420,7 @@ final class PromptingTrustManager implements X509TrustManager
         app.println();
       }
 
-      TrustOption option = menuOptions.get(choice.trim());
+      final TrustOption option = menuOptions.get(choice.trim());
       if (option == null)
       {
         app.println(ERR_MENU_BAD_CHOICE_SINGLE.get());
@@ -389,11 +440,11 @@ final class PromptingTrustManager implements X509TrustManager
           throw new CertificateException(exception);
         }
       case CERTIFICATE_DETAILS:
-        for (X509Certificate aChain : chain)
+        for (final X509Certificate aChain : chain)
         {
           app.println();
-          app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE
-              .get(aChain.toString()));
+          app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE.get(aChain
+              .toString()));
           app.println();
         }
         break;
@@ -407,71 +458,12 @@ final class PromptingTrustManager implements X509TrustManager
 
 
 
-  /**
-   * This method is called when the user accepted a certificate.
-   *
-   * @param chain
-   *          the certificate chain accepted by the user. certificate.
-   */
-  void acceptCertificate(X509Certificate[] chain, boolean permanent)
-  {
-    if (permanent)
-    {
-      LOG.log(Level.INFO, "Permanently accepting certificate chain to "
-          + "truststore");
-    }
-    else
-    {
-      LOG.log(Level.INFO,
-          "Accepting certificate chain for this session");
-    }
-
-    for (X509Certificate aChain : chain)
-    {
-      try
-      {
-        String alias = aChain.getSubjectDN().getName();
-        inMemoryTrustStore.setCertificateEntry(alias, aChain);
-        if (permanent)
-        {
-          onDiskTrustStore.setCertificateEntry(alias, aChain);
-        }
-      }
-      catch (Exception e)
-      {
-        LOG.log(Level.WARNING, "Error setting certificate to store: "
-            + e + "\nCert: " + aChain.toString());
-      }
-    }
-
-    if (permanent)
-    {
-      try
-      {
-        File truststoreFile = new File(DEFAULT_PATH);
-        if (!truststoreFile.exists())
-        {
-          createFile(truststoreFile);
-        }
-        FileOutputStream fos = new FileOutputStream(truststoreFile);
-        onDiskTrustStore.store(fos, DEFAULT_PASSWORD);
-        fos.close();
-      }
-      catch (Exception e)
-      {
-        LOG.log(Level.WARNING, "Error saving store to disk: " + e);
-      }
-    }
-  }
-
-
-
-  private boolean createFile(File f) throws IOException
+  private boolean createFile(final File f) throws IOException
   {
     boolean success = false;
     if (f != null)
     {
-      File parent = f.getParentFile();
+      final File parent = f.getParentFile();
       if (!parent.exists())
       {
         parent.mkdirs();

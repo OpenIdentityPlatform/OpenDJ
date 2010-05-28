@@ -30,26 +30,24 @@ package org.opends.sdk.requests;
 
 
 import java.util.Collection;
+import java.util.List;
 
 import org.opends.sdk.*;
 import org.opends.sdk.controls.Control;
+import org.opends.sdk.controls.ControlDecoder;
 import org.opends.sdk.ldif.ChangeRecord;
 import org.opends.sdk.ldif.ChangeRecordVisitor;
-import org.opends.sdk.schema.ObjectClass;
-
 
 
 
 /**
- * The Add operation allows a client to request the addition of an entry
- * into the Directory.
+ * The Add operation allows a client to request the addition of an entry into
+ * the Directory.
  * <p>
  * The RDN attribute(s) may or may not be included in the Add request.
- * NO-USER-MODIFICATION attributes such as the {@code createTimestamp}
- * or {@code creatorsName} attributes must not be included, since the
- * server maintains these automatically.
- * <p>
- * FIXME: clean up methods, clearly define schema behavior.
+ * NO-USER-MODIFICATION attributes such as the {@code createTimestamp} or
+ * {@code creatorsName} attributes must not be included, since the server
+ * maintains these automatically.
  */
 public interface AddRequest extends Request, ChangeRecord, Entry
 {
@@ -81,24 +79,16 @@ public interface AddRequest extends Request, ChangeRecord, Entry
    * {@inheritDoc}
    */
   AddRequest addAttribute(String attributeDescription, Object... values)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException;
+      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
+      NullPointerException;
 
 
 
   /**
-   * Adds the provided control to this request.
-   *
-   * @param control
-   *          The control to be added to this request.
-   * @return This request.
-   * @throws UnsupportedOperationException
-   *           If this request does not permit controls to be added.
-   * @throws NullPointerException
-   *           If {@code control} was {@code null}.
+   * {@inheritDoc}
    */
-  AddRequest addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  AddRequest addControl(Control control) throws UnsupportedOperationException,
+      NullPointerException;
 
 
 
@@ -110,28 +100,17 @@ public interface AddRequest extends Request, ChangeRecord, Entry
 
 
   /**
-   * Removes all the controls included with this request.
-   *
-   * @return This request.
-   * @throws UnsupportedOperationException
-   *           If this request does not permit controls to be removed.
+   * {@inheritDoc}
    */
-  AddRequest clearControls() throws UnsupportedOperationException;
+  boolean containsAttribute(Attribute attribute,
+      Collection<ByteString> missingValues) throws NullPointerException;
 
 
 
   /**
    * {@inheritDoc}
    */
-  boolean containsAttribute(AttributeDescription attributeDescription)
-      throws NullPointerException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  boolean containsAttribute(String attributeDescription)
+  boolean containsAttribute(String attributeDescription, Object... values)
       throws LocalizedIllegalArgumentException, NullPointerException;
 
 
@@ -139,7 +118,14 @@ public interface AddRequest extends Request, ChangeRecord, Entry
   /**
    * {@inheritDoc}
    */
-  boolean containsObjectClass(ObjectClass objectClass)
+  Iterable<Attribute> getAllAttributes();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  Iterable<Attribute> getAllAttributes(AttributeDescription attributeDescription)
       throws NullPointerException;
 
 
@@ -147,24 +133,7 @@ public interface AddRequest extends Request, ChangeRecord, Entry
   /**
    * {@inheritDoc}
    */
-  boolean containsObjectClass(String objectClass)
-      throws NullPointerException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  Iterable<Attribute> findAttributes(
-      AttributeDescription attributeDescription)
-      throws NullPointerException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  Iterable<Attribute> findAttributes(String attributeDescription)
+  Iterable<Attribute> getAllAttributes(String attributeDescription)
       throws LocalizedIllegalArgumentException, NullPointerException;
 
 
@@ -195,33 +164,15 @@ public interface AddRequest extends Request, ChangeRecord, Entry
   /**
    * {@inheritDoc}
    */
-  Iterable<Attribute> getAttributes();
+  <C extends Control> C getControl(ControlDecoder<C> decoder,
+      DecodeOptions options) throws NullPointerException, DecodeException;
 
 
 
   /**
-   * Returns the first control contained in this request having the
-   * specified OID.
-   *
-   * @param oid
-   *          The OID of the control to be returned.
-   * @return The control, or {@code null} if the control is not included
-   *         with this request.
-   * @throws NullPointerException
-   *           If {@code oid} was {@code null}.
+   * {@inheritDoc}
    */
-  Control getControl(String oid) throws NullPointerException;
-
-
-
-  /**
-   * Returns an {@code Iterable} containing the controls included with
-   * this request. The returned {@code Iterable} may be used to remove
-   * controls if permitted by this request.
-   *
-   * @return An {@code Iterable} containing the controls.
-   */
-  Iterable<Control> getControls();
+  List<Control> getControls();
 
 
 
@@ -229,23 +180,6 @@ public interface AddRequest extends Request, ChangeRecord, Entry
    * {@inheritDoc}
    */
   DN getName();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  Iterable<String> getObjectClasses();
-
-
-
-  /**
-   * Indicates whether or not this request has any controls.
-   *
-   * @return {@code true} if this request has any controls, otherwise
-   *         {@code false}.
-   */
-  boolean hasControls();
 
 
 
@@ -269,36 +203,9 @@ public interface AddRequest extends Request, ChangeRecord, Entry
   /**
    * {@inheritDoc}
    */
-  AddRequest removeAttribute(String attributeDescription)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  AddRequest removeAttribute(String attributeDescription,
-      Object... values) throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException;
-
-
-
-  /**
-   * Removes the first control contained in this request having the
-   * specified OID.
-   *
-   * @param oid
-   *          The OID of the control to be removed.
-   * @return The removed control, or {@code null} if the control is not
-   *         included with this request.
-   * @throws UnsupportedOperationException
-   *           If this request does not permit controls to be removed.
-   * @throws NullPointerException
-   *           If {@code oid} was {@code null}.
-   */
-  Control removeControl(String oid)
-      throws UnsupportedOperationException, NullPointerException;
+  AddRequest removeAttribute(String attributeDescription, Object... values)
+      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
+      NullPointerException;
 
 
 
@@ -313,9 +220,9 @@ public interface AddRequest extends Request, ChangeRecord, Entry
   /**
    * {@inheritDoc}
    */
-  AddRequest replaceAttribute(String attributeDescription,
-      Object... values) throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException;
+  AddRequest replaceAttribute(String attributeDescription, Object... values)
+      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
+      NullPointerException;
 
 
 
@@ -330,8 +237,7 @@ public interface AddRequest extends Request, ChangeRecord, Entry
   /**
    * {@inheritDoc}
    */
-  AddRequest setName(String dn)
-      throws LocalizedIllegalArgumentException,
+  AddRequest setName(String dn) throws LocalizedIllegalArgumentException,
       UnsupportedOperationException, NullPointerException;
 
 }

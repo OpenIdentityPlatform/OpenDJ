@@ -41,8 +41,8 @@ import org.opends.sdk.DecodeException;
 /**
  * An interface for decoding ASN.1 elements from a data source.
  * <p>
- * Methods for creating {@link ASN1Reader}s are provided in the
- * {@link ASN1} class.
+ * Methods for creating {@link ASN1Reader}s are provided in the {@link ASN1}
+ * class.
  */
 public interface ASN1Reader extends Closeable
 {
@@ -58,11 +58,10 @@ public interface ASN1Reader extends Closeable
 
 
   /**
-   * Indicates whether or not the next element can be read without
-   * blocking.
+   * Indicates whether or not the next element can be read without blocking.
    *
-   * @return {@code true} if a complete element is available or {@code
-   *         false} otherwise.
+   * @return {@code true} if a complete element is available or {@code false}
+   *         otherwise.
    * @throws DecodeException
    *           If the available data was not valid ASN.1.
    * @throws IOException
@@ -73,17 +72,17 @@ public interface ASN1Reader extends Closeable
 
 
   /**
-   * Indicates whether or not the current stream, sequence, or set
-   * contains another element. Note that this method may return {@code
-   * true} even if a previous call to {@link #elementAvailable} returned
-   * {@code false}, indicating that the current set or sequence contains
-   * another element but an attempt to read that element may block. This
-   * method will block if there is not enough data available to make the
-   * determination (typically only the next element's type is required).
+   * Indicates whether or not the current stream, sequence, or set contains
+   * another element. Note that this method may return {@code true} even if a
+   * previous call to {@link #elementAvailable} returned {@code false},
+   * indicating that the current set or sequence contains another element but an
+   * attempt to read that element may block. This method will block if there is
+   * not enough data available to make the determination (typically only the
+   * next element's type is required).
    *
-   * @return {@code true} if the current stream, sequence, or set
-   *         contains another element, or {@code false} if the end of
-   *         the stream, sequence, or set has been reached.
+   * @return {@code true} if the current stream, sequence, or set contains
+   *         another element, or {@code false} if the end of the stream,
+   *         sequence, or set has been reached.
    * @throws DecodeException
    *           If the available data was not valid ASN.1.
    * @throws IOException
@@ -94,11 +93,10 @@ public interface ASN1Reader extends Closeable
 
 
   /**
-   * Returns the data length of the next element without actually
-   * reading it.
+   * Returns the data length of the next element without actually reading it.
    *
-   * @return The data length of the next element, or {@code -1} if the
-   *         end of the stream, sequence, or set has been reached.
+   * @return The data length of the next element, or {@code -1} if the end of
+   *         the stream, sequence, or set has been reached.
    * @throws DecodeException
    *           If the available data was not valid ASN.1.
    * @throws IOException
@@ -111,8 +109,8 @@ public interface ASN1Reader extends Closeable
   /**
    * Returns the type of the next element without actually reading it.
    *
-   * @return The type of the next element, or {@code -1} if the end of
-   *         the stream, sequence, or set has been reached.
+   * @return The type of the next element, or {@code -1} if the end of the
+   *         stream, sequence, or set has been reached.
    * @throws DecodeException
    *           If the available data was not valid ASN.1.
    * @throws IOException
@@ -123,8 +121,8 @@ public interface ASN1Reader extends Closeable
 
 
   /**
-   * Reads the next element as a boolean having the Universal Boolean
-   * ASN.1 type tag.
+   * Reads the next element as a boolean having the Universal Boolean ASN.1 type
+   * tag.
    *
    * @return The decoded boolean value.
    * @throws DecodeException
@@ -155,8 +153,7 @@ public interface ASN1Reader extends Closeable
    * Finishes reading a sequence and discards any unread elements.
    *
    * @throws DecodeException
-   *           If an error occurs while advancing to the end of the
-   *           sequence.
+   *           If an error occurs while advancing to the end of the sequence.
    * @throws IOException
    *           If an unexpected IO error occurred.
    * @throws IllegalStateException
@@ -177,14 +174,13 @@ public interface ASN1Reader extends Closeable
    * @throws IllegalStateException
    *           If there is no set being read.
    */
-  void readEndSet() throws DecodeException, IOException,
-      IllegalStateException;
+  void readEndSet() throws DecodeException, IOException, IllegalStateException;
 
 
 
   /**
-   * Reads the next element as an enumerated having the Universal
-   * Enumerated ASN.1 type tag.
+   * Reads the next element as an enumerated having the Universal Enumerated
+   * ASN.1 type tag.
    *
    * @return The decoded enumerated value.
    * @throws DecodeException
@@ -197,8 +193,7 @@ public interface ASN1Reader extends Closeable
 
 
   /**
-   * Reads the next element as an enumerated having the provided type
-   * tag.
+   * Reads the next element as an enumerated having the provided type tag.
    *
    * @param type
    *          The expected type tag of the element.
@@ -213,8 +208,8 @@ public interface ASN1Reader extends Closeable
 
 
   /**
-   * Reads the next element as an integer having the Universal Integer
-   * ASN.1 type tag.
+   * Reads the next element as an integer having the Universal Integer ASN.1
+   * type tag.
    *
    * @return The decoded integer value.
    * @throws DecodeException
@@ -242,8 +237,8 @@ public interface ASN1Reader extends Closeable
 
 
   /**
-   * Reads the next element as a null element having the Universal Null
-   * ASN.1 type tag.
+   * Reads the next element as a null element having the Universal Null ASN.1
+   * type tag.
    *
    * @throws DecodeException
    *           If the element cannot be decoded as a null element.
@@ -255,8 +250,7 @@ public interface ASN1Reader extends Closeable
 
 
   /**
-   * Reads the next element as a null element having the provided type
-   * tag.
+   * Reads the next element as a null element having the provided type tag.
    *
    * @param type
    *          The expected type tag of the element.
@@ -270,11 +264,10 @@ public interface ASN1Reader extends Closeable
 
 
   /**
-   * Reads the next element as an octet string having the Universal
-   * Octet String ASN.1 type tag.
+   * Reads the next element as an octet string having the Universal Octet String
+   * ASN.1 type tag.
    *
-   * @return The decoded octet string represented using a
-   *         {@link ByteString}.
+   * @return The decoded octet string represented using a {@link ByteString}.
    * @throws DecodeException
    *           If the element cannot be decoded as an octet string.
    * @throws IOException
@@ -285,32 +278,28 @@ public interface ASN1Reader extends Closeable
 
 
   /**
-   * Reads the next element as an octet string having the provided type
-   * tag.
+   * Reads the next element as an octet string having the provided type tag.
    *
    * @param type
    *          The expected type tag of the element.
-   * @return The decoded octet string represented using a
-   *         {@link ByteString}.
+   * @return The decoded octet string represented using a {@link ByteString}.
    * @throws DecodeException
    *           If the element cannot be decoded as an octet string.
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  ByteString readOctetString(byte type) throws DecodeException,
-      IOException;
+  ByteString readOctetString(byte type) throws DecodeException, IOException;
 
 
 
   /**
-   * Reads the next element as an octet string having the provided type
-   * tag and appends it to the provided {@link ByteStringBuilder}.
+   * Reads the next element as an octet string having the provided type tag and
+   * appends it to the provided {@link ByteStringBuilder}.
    *
    * @param type
    *          The expected type tag of the element.
    * @param builder
-   *          The {@link ByteStringBuilder} to append the octet string
-   *          to.
+   *          The {@link ByteStringBuilder} to append the octet string to.
    * @return A reference to {@code builder}.
    * @throws DecodeException
    *           If the element cannot be decoded as an octet string.
@@ -323,13 +312,11 @@ public interface ASN1Reader extends Closeable
 
 
   /**
-   * Reads the next element as an octet string having the Universal
-   * Octet String ASN.1 type tag and appends it to the provided
-   * {@link ByteStringBuilder}.
+   * Reads the next element as an octet string having the Universal Octet String
+   * ASN.1 type tag and appends it to the provided {@link ByteStringBuilder}.
    *
    * @param builder
-   *          The {@link ByteStringBuilder} to append the octet string
-   *          to.
+   *          The {@link ByteStringBuilder} to append the octet string to.
    * @return A reference to {@code builder}.
    * @throws DecodeException
    *           If the element cannot be decoded as an octet string.
@@ -342,9 +329,8 @@ public interface ASN1Reader extends Closeable
 
 
   /**
-   * Reads the next element as an octet string having the Universal
-   * Octet String ASN.1 type tag and decodes the value as a UTF-8
-   * encoded string.
+   * Reads the next element as an octet string having the Universal Octet String
+   * ASN.1 type tag and decodes the value as a UTF-8 encoded string.
    *
    * @return The decoded octet string as a UTF-8 encoded string.
    * @throws DecodeException
@@ -352,14 +338,13 @@ public interface ASN1Reader extends Closeable
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  String readOctetStringAsString() throws DecodeException,
-      IOException;
+  String readOctetStringAsString() throws DecodeException, IOException;
 
 
 
   /**
-   * Reads the next element as an octet string having the provided type
-   * tag and decodes the value as a UTF-8 encoded string.
+   * Reads the next element as an octet string having the provided type tag and
+   * decodes the value as a UTF-8 encoded string.
    *
    * @param type
    *          The expected type tag of the element.
@@ -369,15 +354,14 @@ public interface ASN1Reader extends Closeable
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  String readOctetStringAsString(byte type) throws DecodeException,
-      IOException;
+  String readOctetStringAsString(byte type) throws DecodeException, IOException;
 
 
 
   /**
-   * Reads the next element as a sequence having the Universal Sequence
-   * ASN.1 type tag. All further reads will read the elements in the
-   * sequence until {@link #readEndSequence()} is called.
+   * Reads the next element as a sequence having the Universal Sequence ASN.1
+   * type tag. All further reads will read the elements in the sequence until
+   * {@link #readEndSequence()} is called.
    *
    * @throws DecodeException
    *           If the element cannot be decoded as a sequence.
@@ -389,8 +373,8 @@ public interface ASN1Reader extends Closeable
 
 
   /**
-   * Reads the next element as a sequence having the provided type tag.
-   * All further reads will read the elements in the sequence until
+   * Reads the next element as a sequence having the provided type tag. All
+   * further reads will read the elements in the sequence until
    * {@link #readEndSequence()} is called.
    *
    * @param type
@@ -400,14 +384,13 @@ public interface ASN1Reader extends Closeable
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  void readStartSequence(byte type) throws DecodeException,
-      IOException;
+  void readStartSequence(byte type) throws DecodeException, IOException;
 
 
 
   /**
-   * Reads the next element as a set having the Universal Set ASN.1 type
-   * tag. All further reads will read the elements in the set until
+   * Reads the next element as a set having the Universal Set ASN.1 type tag.
+   * All further reads will read the elements in the set until
    * {@link #readEndSet()} is called.
    *
    * @throws DecodeException
@@ -420,9 +403,9 @@ public interface ASN1Reader extends Closeable
 
 
   /**
-   * Reads the next element as a set having the provided type tag. All
-   * further reads will read the elements in the set until
-   * {@link #readEndSet()} is called.
+   * Reads the next element as a set having the provided type tag. All further
+   * reads will read the elements in the set until {@link #readEndSet()} is
+   * called.
    *
    * @param type
    *          The expected type tag of the element.

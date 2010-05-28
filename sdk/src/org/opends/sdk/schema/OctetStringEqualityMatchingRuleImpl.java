@@ -34,15 +34,15 @@ import org.opends.sdk.ByteString;
 
 
 /**
- * This class defines the octetStringMatch matching rule defined in
- * X.520. It will be used as the default equality matching rule for the
- * binary and octet string syntaxes.
+ * This class defines the octetStringMatch matching rule defined in X.520. It
+ * will be used as the default equality matching rule for the binary and octet
+ * string syntaxes.
  */
 final class OctetStringEqualityMatchingRuleImpl extends
     AbstractMatchingRuleImpl
 {
-  public ByteString normalizeAttributeValue(Schema schema,
-      ByteSequence value)
+  public ByteString normalizeAttributeValue(final Schema schema,
+      final ByteSequence value)
   {
     return value.toByteString();
   }

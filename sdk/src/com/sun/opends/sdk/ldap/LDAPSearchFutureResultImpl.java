@@ -29,10 +29,7 @@ package com.sun.opends.sdk.ldap;
 
 
 
-import org.opends.sdk.ResultCode;
-import org.opends.sdk.FutureResult;
-import org.opends.sdk.ResultHandler;
-import org.opends.sdk.SearchResultHandler;
+import org.opends.sdk.*;
 import org.opends.sdk.requests.SearchRequest;
 import org.opends.sdk.responses.Responses;
 import org.opends.sdk.responses.Result;
@@ -45,27 +42,30 @@ import org.opends.sdk.responses.SearchResultReference;
  * Search result future implementation.
  */
 final class LDAPSearchFutureResultImpl extends
-    AbstractLDAPFutureResultImpl<Result> implements FutureResult<Result>
+    AbstractLDAPFutureResultImpl<Result> implements FutureResult<Result>,
+    SearchResultHandler
 {
 
-  private final SearchResultHandler searchResultHandler;
+  private SearchResultHandler searchResultHandler;
 
   private final SearchRequest request;
 
 
 
-  LDAPSearchFutureResultImpl(int messageID, SearchRequest request,
-      ResultHandler<Result> resultHandler,
-      SearchResultHandler searchResultHandler, LDAPConnection connection)
+  LDAPSearchFutureResultImpl(final int messageID, final SearchRequest request,
+      final ResultHandler<Result> resultHandler,
+      final SearchResultHandler searchResultHandler,
+      final IntermediateResponseHandler intermediateResponseHandler,
+      final AsynchronousConnection connection)
   {
-    super(messageID, resultHandler, connection);
+    super(messageID, resultHandler, intermediateResponseHandler, connection);
     this.request = request;
     this.searchResultHandler = searchResultHandler;
   }
 
 
 
-  void handleSearchResultEntry(SearchResultEntry entry)
+  public boolean handleEntry(final SearchResultEntry entry)
   {
     // FIXME: there's a potential race condition here - the future could
     // get cancelled between the isDone() call and the handler
@@ -73,16 +73,21 @@ final class LDAPSearchFutureResultImpl extends
     // the synchronizer.
     if (!isDone())
     {
+      updateTimestamp();
       if (searchResultHandler != null)
       {
-        searchResultHandler.handleEntry(entry);
+        if (!searchResultHandler.handleEntry(entry))
+        {
+          searchResultHandler = null;
+        }
       }
     }
+    return true;
   }
 
 
 
-  void handleSearchResultReference(SearchResultReference reference)
+  public boolean handleReference(final SearchResultReference reference)
   {
     // FIXME: there's a potential race condition here - the future could
     // get cancelled between the isDone() call and the handler
@@ -90,23 +95,30 @@ final class LDAPSearchFutureResultImpl extends
     // the synchronizer.
     if (!isDone())
     {
+      updateTimestamp();
       if (searchResultHandler != null)
       {
-        searchResultHandler.handleReference(reference);
+        if (!searchResultHandler.handleReference(reference))
+        {
+          searchResultHandler = null;
+        }
       }
     }
+    return true;
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  Result newErrorResult(ResultCode resultCode,
-      String diagnosticMessage, Throwable cause)
+  @Override
+  public String toString()
   {
-    return Responses.newResult(resultCode).setDiagnosticMessage(
-        diagnosticMessage).setCause(cause);
+    final StringBuilder sb = new StringBuilder();
+    sb.append("LDAPSearchFutureResultImpl(");
+    sb.append("request = ");
+    sb.append(request);
+    super.toString(sb);
+    sb.append(")");
+    return sb.toString();
   }
 
 
@@ -114,5 +126,18 @@ final class LDAPSearchFutureResultImpl extends
   SearchRequest getRequest()
   {
     return request;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  Result newErrorResult(final ResultCode resultCode,
+      final String diagnosticMessage, final Throwable cause)
+  {
+    return Responses.newResult(resultCode).setDiagnosticMessage(
+        diagnosticMessage).setCause(cause);
   }
 }

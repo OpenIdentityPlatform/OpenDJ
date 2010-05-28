@@ -34,13 +34,13 @@ import org.opends.sdk.responses.Result;
 
 
 /**
- * Thrown when the result code returned in a Result indicates that the
- * Request was unsuccessful because of a connection failure.
+ * Thrown when the result code returned in a Result indicates that the Request
+ * was unsuccessful because of a connection failure.
  */
 @SuppressWarnings("serial")
 public class ConnectionException extends ErrorResultException
 {
-  ConnectionException(Result result)
+  ConnectionException(final Result result)
   {
     super(result);
   }

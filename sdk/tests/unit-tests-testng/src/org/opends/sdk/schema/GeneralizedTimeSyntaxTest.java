@@ -28,7 +28,7 @@ package org.opends.sdk.schema;
 
 
 
-import static org.opends.sdk.schema.SchemaConstants.*;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_GENERALIZED_TIME_OID;
 
 import org.testng.annotations.DataProvider;
 
@@ -39,18 +39,6 @@ import org.testng.annotations.DataProvider;
  */
 public class GeneralizedTimeSyntaxTest extends SyntaxTestCase
 {
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  protected Syntax getRule()
-  {
-    return Schema.getCoreSchema()
-        .getSyntax(SYNTAX_GENERALIZED_TIME_OID);
-  }
-
-
-
   @Override
   @DataProvider(name = "acceptableValues")
   public Object[][] createAcceptableValues()
@@ -59,10 +47,8 @@ public class GeneralizedTimeSyntaxTest extends SyntaxTestCase
         { "20060906135030+01", true }, { "200609061350Z", true },
         { "20060906135030Z", true }, { "20061116135030Z", true },
         { "20061126135030Z", true }, { "20061231235959Z", true },
-        { "20060906135030+0101", true },
-        { "20060906135030+2359", true },
-        { "20060906135030+3359", false },
-        { "20060906135030+2389", false },
+        { "20060906135030+0101", true }, { "20060906135030+2359", true },
+        { "20060906135030+3359", false }, { "20060906135030+2389", false },
         { "20060906135030+2361", false }, { "20060906135030+", false },
         { "20060906135030+0", false }, { "20060906135030+010", false },
         { "20061200235959Z", false }, { "2006121a235959Z", false },
@@ -72,6 +58,17 @@ public class GeneralizedTimeSyntaxTest extends SyntaxTestCase
         { "200a1231235959Z", false }, { "2006j231235959Z", false },
         { "200612-1235959Z", false }, { "20061231#35959Z", false },
         { "2006", false }, };
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected Syntax getRule()
+  {
+    return Schema.getCoreSchema().getSyntax(SYNTAX_GENERALIZED_TIME_OID);
   }
 
 }

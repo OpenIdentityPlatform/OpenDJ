@@ -29,8 +29,9 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
-import static com.sun.opends.sdk.util.StaticUtils.*;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_DELIVERY_METHOD_INVALID_ELEMENT;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_DELIVERY_METHOD_NO_ELEMENTS;
+import static com.sun.opends.sdk.util.StaticUtils.toLowerCase;
 import static org.opends.sdk.schema.SchemaConstants.*;
 
 import java.util.HashSet;
@@ -41,12 +42,11 @@ import org.opends.sdk.LocalizableMessageBuilder;
 
 
 
-
 /**
- * This class defines the delivery method attribute syntax. This
- * contains one or more of a fixed set of values. If there are multiple
- * values, then they are separated by spaces with a dollar sign between
- * them. The allowed values include:
+ * This class defines the delivery method attribute syntax. This contains one or
+ * more of a fixed set of values. If there are multiple values, then they are
+ * separated by spaces with a dollar sign between them. The allowed values
+ * include:
  * <UL>
  * <LI>any</LI>
  * <LI>mhs</LI>
@@ -65,8 +65,7 @@ final class DeliveryMethodSyntaxImpl extends AbstractSyntaxImpl
   /**
    * The set of values that may be used as delivery methods.
    */
-  private static final HashSet<String> ALLOWED_VALUES =
-      new HashSet<String>();
+  private static final HashSet<String> ALLOWED_VALUES = new HashSet<String>();
   {
     ALLOWED_VALUES.add("any");
     ALLOWED_VALUES.add("mhs");
@@ -129,25 +128,24 @@ final class DeliveryMethodSyntaxImpl extends AbstractSyntaxImpl
 
 
   /**
-   * Indicates whether the provided value is acceptable for use in an
-   * attribute with this syntax. If it is not, then the reason may be
-   * appended to the provided buffer.
-   * 
+   * Indicates whether the provided value is acceptable for use in an attribute
+   * with this syntax. If it is not, then the reason may be appended to the
+   * provided buffer.
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
    *          The value for which to make the determination.
    * @param invalidReason
    *          The buffer to which the invalid reason should be appended.
-   * @return <CODE>true</CODE> if the provided value is acceptable for
-   *         use with this syntax, or <CODE>false</CODE> if not.
+   * @return <CODE>true</CODE> if the provided value is acceptable for use with
+   *         this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      LocalizableMessageBuilder invalidReason)
+  public boolean valueIsAcceptable(final Schema schema,
+      final ByteSequence value, final LocalizableMessageBuilder invalidReason)
   {
     final String stringValue = toLowerCase(value.toString());
-    final StringTokenizer tokenizer =
-        new StringTokenizer(stringValue, " $");
+    final StringTokenizer tokenizer = new StringTokenizer(stringValue, " $");
     if (!tokenizer.hasMoreTokens())
     {
       invalidReason.append(ERR_ATTR_SYNTAX_DELIVERY_METHOD_NO_ELEMENTS
@@ -160,9 +158,8 @@ final class DeliveryMethodSyntaxImpl extends AbstractSyntaxImpl
       final String token = tokenizer.nextToken();
       if (!ALLOWED_VALUES.contains(token))
       {
-        invalidReason
-            .append(ERR_ATTR_SYNTAX_DELIVERY_METHOD_INVALID_ELEMENT
-                .get(value.toString(), token));
+        invalidReason.append(ERR_ATTR_SYNTAX_DELIVERY_METHOD_INVALID_ELEMENT
+            .get(value.toString(), token));
         return false;
       }
     }

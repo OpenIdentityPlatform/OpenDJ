@@ -31,7 +31,7 @@ package com.sun.opends.sdk.tools;
 
 import static com.sun.opends.sdk.messages.Messages.*;
 import static com.sun.opends.sdk.tools.ToolConstants.*;
-import static com.sun.opends.sdk.tools.Utils.*;
+import static com.sun.opends.sdk.tools.Utils.filterExitCode;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -39,6 +39,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import org.opends.sdk.*;
@@ -53,20 +54,254 @@ import org.opends.sdk.responses.Result;
 
 
 
-
 /**
- * A tool that can be used to issue update (Add/Delete/Modify/ModifyDN)
- * requests to the Directory Server.
+ * A tool that can be used to issue update (Add/Delete/Modify/ModifyDN) requests
+ * to the Directory Server.
  */
 public final class LDAPModify extends ConsoleApplication
 {
-  private Connection connection;
+  private class VisitorImpl implements
+      ChangeRecordVisitor<Integer, java.lang.Void>
+  {
+    public Integer visitChangeRecord(final Void aVoid, final AddRequest change)
+    {
+      for (final Control control : controls)
+      {
+        change.addControl(control);
+      }
+      final String opType = "ADD";
+      println(INFO_PROCESSING_OPERATION
+          .get(opType, change.getName().toString()));
+      if (connection != null)
+      {
+        try
+        {
+          Result r;
+          try
+          {
+            r = connection.add(change);
+          }
+          catch (final InterruptedException e)
+          {
+            // This shouldn't happen because there are no other threads
+            // to interrupt this one.
+            r = Responses.newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED)
+                .setCause(e).setDiagnosticMessage(e.getLocalizedMessage());
+            throw ErrorResultException.wrap(r);
+          }
+          printResult(opType, change.getName().toString(), r);
+          return r.getResultCode().intValue();
+        }
+        catch (final ErrorResultException ere)
+        {
+          return Utils.printErrorMessage(LDAPModify.this, ere);
+        }
+      }
+      return ResultCode.SUCCESS.intValue();
+    }
 
-  private EntryWriter writer;
 
-  private Collection<Control> controls;
 
-  private BooleanArgument verbose;
+    public Integer visitChangeRecord(final Void aVoid,
+        final DeleteRequest change)
+    {
+      for (final Control control : controls)
+      {
+        change.addControl(control);
+      }
+      final String opType = "DELETE";
+      println(INFO_PROCESSING_OPERATION
+          .get(opType, change.getName().toString()));
+      if (connection != null)
+      {
+        try
+        {
+          Result r;
+          try
+          {
+            r = connection.delete(change);
+          }
+          catch (final InterruptedException e)
+          {
+            // This shouldn't happen because there are no other threads
+            // to interrupt this one.
+            r = Responses.newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED)
+                .setCause(e).setDiagnosticMessage(e.getLocalizedMessage());
+            throw ErrorResultException.wrap(r);
+          }
+          printResult(opType, change.getName().toString(), r);
+          return r.getResultCode().intValue();
+        }
+        catch (final ErrorResultException ere)
+        {
+          return Utils.printErrorMessage(LDAPModify.this, ere);
+        }
+      }
+      return ResultCode.SUCCESS.intValue();
+    }
+
+
+
+    public Integer visitChangeRecord(final Void aVoid,
+        final ModifyDNRequest change)
+    {
+      for (final Control control : controls)
+      {
+        change.addControl(control);
+      }
+      final String opType = "MODIFY DN";
+      println(INFO_PROCESSING_OPERATION
+          .get(opType, change.getName().toString()));
+      if (connection != null)
+      {
+        try
+        {
+          Result r;
+          try
+          {
+            r = connection.modifyDN(change);
+          }
+          catch (final InterruptedException e)
+          {
+            // This shouldn't happen because there are no other threads
+            // to interrupt this one.
+            r = Responses.newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED)
+                .setCause(e).setDiagnosticMessage(e.getLocalizedMessage());
+            throw ErrorResultException.wrap(r);
+          }
+          printResult(opType, change.getName().toString(), r);
+          return r.getResultCode().intValue();
+        }
+        catch (final ErrorResultException ere)
+        {
+          return Utils.printErrorMessage(LDAPModify.this, ere);
+        }
+      }
+      return ResultCode.SUCCESS.intValue();
+    }
+
+
+
+    public Integer visitChangeRecord(final Void aVoid,
+        final ModifyRequest change)
+    {
+      for (final Control control : controls)
+      {
+        change.addControl(control);
+      }
+      final String opType = "MODIFY";
+      println(INFO_PROCESSING_OPERATION
+          .get(opType, change.getName().toString()));
+      if (connection != null)
+      {
+        try
+        {
+          Result r;
+          try
+          {
+            r = connection.modify(change);
+          }
+          catch (final InterruptedException e)
+          {
+            // This shouldn't happen because there are no other threads
+            // to interrupt this one.
+            r = Responses.newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED)
+                .setCause(e).setDiagnosticMessage(e.getLocalizedMessage());
+            throw ErrorResultException.wrap(r);
+          }
+          printResult(opType, change.getName().toString(), r);
+          return r.getResultCode().intValue();
+        }
+        catch (final ErrorResultException ere)
+        {
+          return Utils.printErrorMessage(LDAPModify.this, ere);
+        }
+      }
+      return ResultCode.SUCCESS.intValue();
+    }
+
+
+
+    private void printResult(final String operationType, final String name,
+        final Result r)
+    {
+      if (r.getResultCode() != ResultCode.SUCCESS
+          && r.getResultCode() != ResultCode.REFERRAL)
+      {
+        final LocalizableMessage msg = INFO_OPERATION_FAILED.get(operationType);
+        println(msg);
+        println(ERR_TOOL_RESULT_CODE.get(r.getResultCode().intValue(), r
+            .getResultCode().toString()));
+        if ((r.getDiagnosticMessage() != null)
+            && (r.getDiagnosticMessage().length() > 0))
+        {
+          println(LocalizableMessage.raw(r.getDiagnosticMessage()));
+        }
+        if (r.getMatchedDN() != null && r.getMatchedDN().length() > 0)
+        {
+          println(ERR_TOOL_MATCHED_DN.get(r.getMatchedDN()));
+        }
+      }
+      else
+      {
+        final LocalizableMessage msg = INFO_OPERATION_SUCCESSFUL.get(
+            operationType, name);
+        println(msg);
+        if ((r.getDiagnosticMessage() != null)
+            && (r.getDiagnosticMessage().length() > 0))
+        {
+          println(LocalizableMessage.raw(r.getDiagnosticMessage()));
+        }
+        if (r.getReferralURIs() != null)
+        {
+          for (final String uri : r.getReferralURIs())
+          {
+            println(LocalizableMessage.raw(uri));
+          }
+        }
+      }
+
+      try
+      {
+        final PreReadResponseControl control = r.getControl(
+            PreReadResponseControl.DECODER, new DecodeOptions());
+        if (control != null)
+        {
+          println(INFO_LDAPMODIFY_PREREAD_ENTRY.get());
+          writer.writeEntry(control.getEntry());
+        }
+      }
+      catch (final DecodeException de)
+      {
+        println(ERR_DECODE_CONTROL_FAILURE.get(de.getLocalizedMessage()));
+      }
+      catch (final IOException ioe)
+      {
+        throw new RuntimeException(ioe);
+      }
+
+      try
+      {
+        final PostReadResponseControl control = r.getControl(
+            PostReadResponseControl.DECODER, new DecodeOptions());
+        if (control != null)
+        {
+          println(INFO_LDAPMODIFY_POSTREAD_ENTRY.get());
+          writer.writeEntry(control.getEntry());
+        }
+      }
+      catch (final DecodeException de)
+      {
+        println(ERR_DECODE_CONTROL_FAILURE.get(de.getLocalizedMessage()));
+      }
+      catch (final IOException ioe)
+      {
+        throw new RuntimeException(ioe);
+      }
+
+      // TODO: CSN control
+    }
+  }
 
 
 
@@ -77,24 +312,24 @@ public final class LDAPModify extends ConsoleApplication
    *          The command-line arguments provided to this program.
    */
 
-  public static void main(String[] args)
+  public static void main(final String[] args)
   {
-    int retCode = mainModify(args, System.in, System.out, System.err);
+    final int retCode = mainModify(args, System.in, System.out, System.err);
     System.exit(filterExitCode(retCode));
   }
 
 
 
   /**
-   * Parses the provided command-line arguments and uses that
-   * information to run the LDAPModify tool.
+   * Parses the provided command-line arguments and uses that information to run
+   * the LDAPModify tool.
    *
    * @param args
    *          The command-line arguments provided to this program.
    * @return The error code.
    */
 
-  static int mainModify(String[] args)
+  static int mainModify(final String[] args)
   {
     return mainModify(args, System.in, System.out, System.err);
   }
@@ -102,33 +337,43 @@ public final class LDAPModify extends ConsoleApplication
 
 
   /**
-   * Parses the provided command-line arguments and uses that
-   * information to run the LDAPModify tool.
+   * Parses the provided command-line arguments and uses that information to run
+   * the LDAPModify tool.
    *
    * @param args
-   *          The command-line arguments provided to this program.
-   *          specified, the number of matching entries should be
-   *          returned or not.
+   *          The command-line arguments provided to this program. specified,
+   *          the number of matching entries should be returned or not.
    * @param inStream
-   *          The input stream to use for standard input, or
-   *          <CODE>null</CODE> if standard input is not needed.
+   *          The input stream to use for standard input, or <CODE>null</CODE>
+   *          if standard input is not needed.
    * @param outStream
-   *          The output stream to use for standard output, or
-   *          <CODE>null</CODE> if standard output is not needed.
+   *          The output stream to use for standard output, or <CODE>null</CODE>
+   *          if standard output is not needed.
    * @param errStream
-   *          The output stream to use for standard error, or
-   *          <CODE>null</CODE> if standard error is not needed.
+   *          The output stream to use for standard error, or <CODE>null</CODE>
+   *          if standard error is not needed.
    * @return The error code.
    */
-  static int mainModify(String[] args, InputStream inStream,
-      OutputStream outStream, OutputStream errStream)
+  static int mainModify(final String[] args, final InputStream inStream,
+      final OutputStream outStream, final OutputStream errStream)
   {
     return new LDAPModify(inStream, outStream, errStream).run(args);
   }
 
 
 
-  private LDAPModify(InputStream in, OutputStream out, OutputStream err)
+  private Connection connection;
+
+  private EntryWriter writer;
+
+  private Collection<Control> controls;
+
+  private BooleanArgument verbose;
+
+
+
+  private LDAPModify(final InputStream in, final OutputStream out,
+      final OutputStream err)
   {
     super(in, out, err);
 
@@ -136,12 +381,97 @@ public final class LDAPModify extends ConsoleApplication
 
 
 
-  private int run(String[] args)
+  /**
+   * Indicates whether or not the user has requested advanced mode.
+   *
+   * @return Returns <code>true</code> if the user has requested advanced mode.
+   */
+  @Override
+  public boolean isAdvancedMode()
+  {
+    return false;
+  }
+
+
+
+  /**
+   * Indicates whether or not the user has requested interactive behavior.
+   *
+   * @return Returns <code>true</code> if the user has requested interactive
+   *         behavior.
+   */
+  @Override
+  public boolean isInteractive()
+  {
+    return false;
+  }
+
+
+
+  /**
+   * Indicates whether or not this console application is running in its
+   * menu-driven mode. This can be used to dictate whether output should go to
+   * the error stream or not. In addition, it may also dictate whether or not
+   * sub-menus should display a cancel option as well as a quit option.
+   *
+   * @return Returns <code>true</code> if this console application is running in
+   *         its menu-driven mode.
+   */
+  @Override
+  public boolean isMenuDrivenMode()
+  {
+    return false;
+  }
+
+
+
+  /**
+   * Indicates whether or not the user has requested quiet output.
+   *
+   * @return Returns <code>true</code> if the user has requested quiet output.
+   */
+  @Override
+  public boolean isQuiet()
+  {
+    return false;
+  }
+
+
+
+  /**
+   * Indicates whether or not the user has requested script-friendly output.
+   *
+   * @return Returns <code>true</code> if the user has requested script-friendly
+   *         output.
+   */
+  @Override
+  public boolean isScriptFriendly()
+  {
+    return false;
+  }
+
+
+
+  /**
+   * Indicates whether or not the user has requested verbose output.
+   *
+   * @return Returns <code>true</code> if the user has requested verbose output.
+   */
+  @Override
+  public boolean isVerbose()
+  {
+    return verbose.isPresent();
+  }
+
+
+
+  private int run(final String[] args)
   {
     // Create the command-line argument parser for use with this
     // program.
-    LocalizableMessage toolDescription = INFO_LDAPMODIFY_TOOL_DESCRIPTION.get();
-    ArgumentParser argParser = new ArgumentParser(LDAPModify.class
+    final LocalizableMessage toolDescription = INFO_LDAPMODIFY_TOOL_DESCRIPTION
+        .get();
+    final ArgumentParser argParser = new ArgumentParser(LDAPModify.class
         .getName(), toolDescription, false);
     ArgumentParserConnectionFactory connectionFactory;
 
@@ -163,10 +493,9 @@ public final class LDAPModify extends ConsoleApplication
 
     try
     {
-      connectionFactory = new ArgumentParserConnectionFactory(
-          argParser, this);
-      propertiesFileArgument = new StringArgument("propertiesFilePath",
-          null, OPTION_LONG_PROP_FILE_PATH, false, false, true,
+      connectionFactory = new ArgumentParserConnectionFactory(argParser, this);
+      propertiesFileArgument = new StringArgument("propertiesFilePath", null,
+          OPTION_LONG_PROP_FILE_PATH, false, false, true,
           INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
           INFO_DESCRIPTION_PROP_FILE_PATH.get());
       argParser.addArgument(propertiesFileArgument);
@@ -190,8 +519,8 @@ public final class LDAPModify extends ConsoleApplication
       argParser.addArgument(filename);
 
       proxyAuthzID = new StringArgument("proxy_authzid",
-          OPTION_SHORT_PROXYAUTHID, OPTION_LONG_PROXYAUTHID, false,
-          false, true, INFO_PROXYAUTHID_PLACEHOLDER.get(), null, null,
+          OPTION_SHORT_PROXYAUTHID, OPTION_LONG_PROXYAUTHID, false, false,
+          true, INFO_PROXYAUTHID_PLACEHOLDER.get(), null, null,
           INFO_DESCRIPTION_PROXY_AUTHZID.get());
       proxyAuthzID.setPropertyName(OPTION_LONG_PROXYAUTHID);
       argParser.addArgument(proxyAuthzID);
@@ -217,22 +546,22 @@ public final class LDAPModify extends ConsoleApplication
       postReadAttributes.setPropertyName("postReadAttributes");
       argParser.addArgument(postReadAttributes);
 
-      controlStr = new StringArgument("control", 'J', "control", false,
-          true, true, INFO_LDAP_CONTROL_PLACEHOLDER.get(), null, null,
+      controlStr = new StringArgument("control", 'J', "control", false, true,
+          true, INFO_LDAP_CONTROL_PLACEHOLDER.get(), null, null,
           INFO_DESCRIPTION_CONTROLS.get());
       controlStr.setPropertyName("control");
       argParser.addArgument(controlStr);
 
-      version = new IntegerArgument("version",
-          OPTION_SHORT_PROTOCOL_VERSION, OPTION_LONG_PROTOCOL_VERSION,
-          false, false, true, INFO_PROTOCOL_VERSION_PLACEHOLDER.get(),
-          3, null, INFO_DESCRIPTION_VERSION.get());
+      version = new IntegerArgument("version", OPTION_SHORT_PROTOCOL_VERSION,
+          OPTION_LONG_PROTOCOL_VERSION, false, false, true,
+          INFO_PROTOCOL_VERSION_PLACEHOLDER.get(), 3, null,
+          INFO_DESCRIPTION_VERSION.get());
       version.setPropertyName(OPTION_LONG_PROTOCOL_VERSION);
       argParser.addArgument(version);
 
-      encodingStr = new StringArgument("encoding", 'i', "encoding",
-          false, false, true, INFO_ENCODING_PLACEHOLDER.get(), null,
-          null, INFO_DESCRIPTION_ENCODING.get());
+      encodingStr = new StringArgument("encoding", 'i', "encoding", false,
+          false, true, INFO_ENCODING_PLACEHOLDER.get(), null, null,
+          INFO_DESCRIPTION_ENCODING.get());
       encodingStr.setPropertyName("encoding");
       argParser.addArgument(encodingStr);
 
@@ -256,9 +585,10 @@ public final class LDAPModify extends ConsoleApplication
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage, getOutputStream());
     }
-    catch (ArgumentException ae)
+    catch (final ArgumentException ae)
     {
-      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      final LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae
+          .getMessage());
       println(message);
       return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
     }
@@ -269,9 +599,10 @@ public final class LDAPModify extends ConsoleApplication
       argParser.parseArguments(args);
       connectionFactory.validate();
     }
-    catch (ArgumentException ae)
+    catch (final ArgumentException ae)
     {
-      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      final LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae
+          .getMessage());
       println(message);
       println(argParser.getUsageMessage());
       return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
@@ -286,7 +617,7 @@ public final class LDAPModify extends ConsoleApplication
 
     try
     {
-      int versionNumber = version.getIntValue();
+      final int versionNumber = version.getIntValue();
       if (versionNumber != 2 && versionNumber != 3)
       {
         println(ERR_DESCRIPTION_INVALID_VERSION.get(String
@@ -294,10 +625,10 @@ public final class LDAPModify extends ConsoleApplication
         return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
       }
     }
-    catch (ArgumentException ae)
+    catch (final ArgumentException ae)
     {
-      println(ERR_DESCRIPTION_INVALID_VERSION.get(String
-          .valueOf(version.getValue())));
+      println(ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(version
+          .getValue())));
       return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
     }
 
@@ -310,16 +641,16 @@ public final class LDAPModify extends ConsoleApplication
     controls = new LinkedList<Control>();
     if (controlStr.isPresent())
     {
-      for (String ctrlString : controlStr.getValues())
+      for (final String ctrlString : controlStr.getValues())
       {
         try
         {
-          Control ctrl = Utils.getControl(ctrlString);
+          final Control ctrl = Utils.getControl(ctrlString);
           controls.add(ctrl);
         }
-        catch (DecodeException de)
+        catch (final DecodeException de)
         {
-          LocalizableMessage message = ERR_TOOL_INVALID_CONTROL_STRING
+          final LocalizableMessage message = ERR_TOOL_INVALID_CONTROL_STRING
               .get(ctrlString);
           println(message);
           ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
@@ -329,29 +660,29 @@ public final class LDAPModify extends ConsoleApplication
 
     if (proxyAuthzID.isPresent())
     {
-      Control proxyControl = new ProxiedAuthV2Control(proxyAuthzID
-          .getValue());
+      final Control proxyControl = ProxiedAuthV2RequestControl
+          .newControl(proxyAuthzID.getValue());
       controls.add(proxyControl);
     }
 
     if (assertionFilter.isPresent())
     {
-      String filterString = assertionFilter.getValue();
+      final String filterString = assertionFilter.getValue();
       Filter filter;
       try
       {
         filter = Filter.valueOf(filterString);
 
         // FIXME -- Change this to the correct OID when the official one
-        // is
-        // assigned.
-        Control assertionControl = new AssertionControl(true, filter);
+        // is assigned.
+        final Control assertionControl = AssertionRequestControl.newControl(
+            true, filter);
         controls.add(assertionControl);
       }
-      catch (LocalizedIllegalArgumentException le)
+      catch (final LocalizedIllegalArgumentException le)
       {
-        LocalizableMessage message = ERR_LDAP_ASSERTION_INVALID_FILTER.get(le
-            .getMessage());
+        final LocalizableMessage message = ERR_LDAP_ASSERTION_INVALID_FILTER
+            .get(le.getMessage());
         println(message);
         return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
       }
@@ -359,26 +690,29 @@ public final class LDAPModify extends ConsoleApplication
 
     if (preReadAttributes.isPresent())
     {
-      String valueStr = preReadAttributes.getValue();
-      StringTokenizer tokenizer = new StringTokenizer(valueStr, ", ");
-      PreReadControl.Request control = new PreReadControl.Request(true);
+      final String valueStr = preReadAttributes.getValue();
+      final StringTokenizer tokenizer = new StringTokenizer(valueStr, ", ");
+      final List<String> attributes = new LinkedList<String>();
       while (tokenizer.hasMoreTokens())
       {
-        control.addAttribute(tokenizer.nextToken());
+        attributes.add(tokenizer.nextToken());
       }
+      final PreReadRequestControl control = PreReadRequestControl.newControl(
+          true, attributes);
       controls.add(control);
     }
 
     if (postReadAttributes.isPresent())
     {
-      String valueStr = postReadAttributes.getValue();
-      StringTokenizer tokenizer = new StringTokenizer(valueStr, ", ");
-      PostReadControl.Request control = new PostReadControl.Request(
-          true);
+      final String valueStr = postReadAttributes.getValue();
+      final StringTokenizer tokenizer = new StringTokenizer(valueStr, ", ");
+      final List<String> attributes = new LinkedList<String>();
       while (tokenizer.hasMoreTokens())
       {
-        control.addAttribute(tokenizer.nextToken());
+        attributes.add(tokenizer.nextToken());
       }
+      final PostReadRequestControl control = PostReadRequestControl.newControl(
+          true, attributes);
       controls.add(control);
     }
 
@@ -388,16 +722,23 @@ public final class LDAPModify extends ConsoleApplication
       {
         connection = connectionFactory.getConnection();
       }
-      catch (ErrorResultException ere)
+      catch (final ErrorResultException ere)
       {
         return Utils.printErrorMessage(this, ere);
+      }
+      catch (final InterruptedException e)
+      {
+        // This shouldn't happen because there are no other threads to
+        // interrupt this one.
+        println(LocalizableMessage.raw(e.getLocalizedMessage()));
+        return ResultCode.CLIENT_SIDE_USER_CANCELLED.intValue();
       }
     }
 
     Utils.printPasswordPolicyResults(this, connection);
 
     writer = new LDIFEntryWriter(getOutputStream());
-    VisitorImpl visitor = new VisitorImpl();
+    final VisitorImpl visitor = new VisitorImpl();
     try
     {
       ChangeRecordReader reader;
@@ -405,13 +746,13 @@ public final class LDAPModify extends ConsoleApplication
       {
         try
         {
-          reader = new LDIFChangeRecordReader(new FileInputStream(
-              filename.getValue()));
+          reader = new LDIFChangeRecordReader(new FileInputStream(filename
+              .getValue()));
         }
-        catch (Exception e)
+        catch (final Exception e)
         {
-          LocalizableMessage message = ERR_LDIF_FILE_CANNOT_OPEN_FOR_READ.get(
-              filename.getValue(), e.getLocalizedMessage());
+          final LocalizableMessage message = ERR_LDIF_FILE_CANNOT_OPEN_FOR_READ
+              .get(filename.getValue(), e.getLocalizedMessage());
           println(message);
           return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
@@ -434,10 +775,10 @@ public final class LDAPModify extends ConsoleApplication
           }
         }
       }
-      catch (IOException ioe)
+      catch (final IOException ioe)
       {
-        LocalizableMessage message = ERR_LDIF_FILE_READ_ERROR.get(filename
-            .getValue(), ioe.getLocalizedMessage());
+        final LocalizableMessage message = ERR_LDIF_FILE_READ_ERROR.get(
+            filename.getValue(), ioe.getLocalizedMessage());
         println(message);
         return ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
       }
@@ -451,327 +792,5 @@ public final class LDAPModify extends ConsoleApplication
     }
 
     return ResultCode.SUCCESS.intValue();
-  }
-
-
-
-  private class VisitorImpl implements
-      ChangeRecordVisitor<Integer, java.lang.Void>
-  {
-    private void printResult(String operationType, String name, Result r)
-    {
-      if (r.getResultCode() != ResultCode.SUCCESS
-          && r.getResultCode() != ResultCode.REFERRAL)
-      {
-        LocalizableMessage msg = INFO_OPERATION_FAILED.get(operationType);
-        println(msg);
-        println(ERR_TOOL_RESULT_CODE.get(r.getResultCode().intValue(),
-            r.getResultCode().toString()));
-        if ((r.getDiagnosticMessage() != null)
-            && (r.getDiagnosticMessage().length() > 0))
-        {
-          println(LocalizableMessage.raw(r.getDiagnosticMessage()));
-        }
-        if (r.getMatchedDN() != null && r.getMatchedDN().length() > 0)
-        {
-          println(ERR_TOOL_MATCHED_DN.get(r.getMatchedDN()));
-        }
-      }
-      else
-      {
-        LocalizableMessage msg = INFO_OPERATION_SUCCESSFUL
-            .get(operationType, name);
-        println(msg);
-        if ((r.getDiagnosticMessage() != null)
-            && (r.getDiagnosticMessage().length() > 0))
-        {
-          println(LocalizableMessage.raw(r.getDiagnosticMessage()));
-        }
-        if (r.getReferralURIs() != null)
-        {
-          for (String uri : r.getReferralURIs())
-          {
-            println(LocalizableMessage.raw(uri));
-          }
-        }
-      }
-
-      Control control = r
-          .getControl(PreReadControl.OID_LDAP_READENTRY_PREREAD);
-      if (control != null && control instanceof PreReadControl.Response)
-      {
-        PreReadControl.Response dc = (PreReadControl.Response) control;
-        println(INFO_LDAPMODIFY_PREREAD_ENTRY.get());
-        try
-        {
-          writer.writeEntry(dc.getSearchEntry());
-        }
-        catch (IOException ioe)
-        {
-          throw new RuntimeException(ioe);
-        }
-      }
-      control = r
-          .getControl(PostReadControl.OID_LDAP_READENTRY_POSTREAD);
-      if (control != null
-          && control instanceof PostReadControl.Response)
-      {
-        PostReadControl.Response dc = (PostReadControl.Response) control;
-        println(INFO_LDAPMODIFY_POSTREAD_ENTRY.get());
-        try
-        {
-          writer.writeEntry(dc.getSearchEntry());
-        }
-        catch (IOException ioe)
-        {
-          throw new RuntimeException(ioe);
-        }
-      }
-      // TODO: CSN control
-    }
-
-
-
-    public Integer visitChangeRecord(Void aVoid, AddRequest change)
-    {
-      for (Control control : controls)
-      {
-        change.addControl(control);
-      }
-      String opType = "ADD";
-      println(INFO_PROCESSING_OPERATION.get(opType, change.getName()
-          .toString()));
-      if (connection != null)
-      {
-        try
-        {
-          Result r;
-          try
-          {
-            r = connection.add(change);
-          }
-          catch (InterruptedException e)
-          {
-            // This shouldn't happen because there are no other threads
-            // to interrupt this one.
-            r = Responses.newResult(
-                ResultCode.CLIENT_SIDE_USER_CANCELLED).setCause(e)
-                .setDiagnosticMessage(e.getLocalizedMessage());
-            throw ErrorResultException.wrap(r);
-          }
-          printResult(opType, change.getName().toString(), r);
-          return r.getResultCode().intValue();
-        }
-        catch (ErrorResultException ere)
-        {
-          return Utils.printErrorMessage(LDAPModify.this, ere);
-        }
-      }
-      return ResultCode.SUCCESS.intValue();
-    }
-
-
-
-    public Integer visitChangeRecord(Void aVoid, DeleteRequest change)
-    {
-      for (Control control : controls)
-      {
-        change.addControl(control);
-      }
-      String opType = "DELETE";
-      println(INFO_PROCESSING_OPERATION.get(opType, change.getName()
-          .toString()));
-      if (connection != null)
-      {
-        try
-        {
-          Result r;
-          try
-          {
-            r = connection.delete(change);
-          }
-          catch (InterruptedException e)
-          {
-            // This shouldn't happen because there are no other threads
-            // to interrupt this one.
-            r = Responses.newResult(
-                ResultCode.CLIENT_SIDE_USER_CANCELLED).setCause(e)
-                .setDiagnosticMessage(e.getLocalizedMessage());
-            throw ErrorResultException.wrap(r);
-          }
-          printResult(opType, change.getName().toString(), r);
-          return r.getResultCode().intValue();
-        }
-        catch (ErrorResultException ere)
-        {
-          return Utils.printErrorMessage(LDAPModify.this, ere);
-        }
-      }
-      return ResultCode.SUCCESS.intValue();
-    }
-
-
-
-    public Integer visitChangeRecord(Void aVoid, ModifyDNRequest change)
-    {
-      for (Control control : controls)
-      {
-        change.addControl(control);
-      }
-      String opType = "MODIFY DN";
-      println(INFO_PROCESSING_OPERATION.get(opType, change.getName()
-          .toString()));
-      if (connection != null)
-      {
-        try
-        {
-          Result r;
-          try
-          {
-            r = connection.modifyDN(change);
-          }
-          catch (InterruptedException e)
-          {
-            // This shouldn't happen because there are no other threads
-            // to interrupt this one.
-            r = Responses.newResult(
-                ResultCode.CLIENT_SIDE_USER_CANCELLED).setCause(e)
-                .setDiagnosticMessage(e.getLocalizedMessage());
-            throw ErrorResultException.wrap(r);
-          }
-          printResult(opType, change.getName().toString(), r);
-          return r.getResultCode().intValue();
-        }
-        catch (ErrorResultException ere)
-        {
-          return Utils.printErrorMessage(LDAPModify.this, ere);
-        }
-      }
-      return ResultCode.SUCCESS.intValue();
-    }
-
-
-
-    public Integer visitChangeRecord(Void aVoid, ModifyRequest change)
-    {
-      for (Control control : controls)
-      {
-        change.addControl(control);
-      }
-      String opType = "MODIFY";
-      println(INFO_PROCESSING_OPERATION.get(opType, change.getName()
-          .toString()));
-      if (connection != null)
-      {
-        try
-        {
-          Result r;
-          try
-          {
-            r = connection.modify(change);
-          }
-          catch (InterruptedException e)
-          {
-            // This shouldn't happen because there are no other threads
-            // to interrupt this one.
-            r = Responses.newResult(
-                ResultCode.CLIENT_SIDE_USER_CANCELLED).setCause(e)
-                .setDiagnosticMessage(e.getLocalizedMessage());
-            throw ErrorResultException.wrap(r);
-          }
-          printResult(opType, change.getName().toString(), r);
-          return r.getResultCode().intValue();
-        }
-        catch (ErrorResultException ere)
-        {
-          return Utils.printErrorMessage(LDAPModify.this, ere);
-        }
-      }
-      return ResultCode.SUCCESS.intValue();
-    }
-  }
-
-
-
-  /**
-   * Indicates whether or not the user has requested advanced mode.
-   *
-   * @return Returns <code>true</code> if the user has requested
-   *         advanced mode.
-   */
-  public boolean isAdvancedMode()
-  {
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether or not the user has requested interactive
-   * behavior.
-   *
-   * @return Returns <code>true</code> if the user has requested
-   *         interactive behavior.
-   */
-  public boolean isInteractive()
-  {
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether or not this console application is running in its
-   * menu-driven mode. This can be used to dictate whether output should
-   * go to the error stream or not. In addition, it may also dictate
-   * whether or not sub-menus should display a cancel option as well as
-   * a quit option.
-   *
-   * @return Returns <code>true</code> if this console application is
-   *         running in its menu-driven mode.
-   */
-  public boolean isMenuDrivenMode()
-  {
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether or not the user has requested quiet output.
-   *
-   * @return Returns <code>true</code> if the user has requested quiet
-   *         output.
-   */
-  public boolean isQuiet()
-  {
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether or not the user has requested script-friendly
-   * output.
-   *
-   * @return Returns <code>true</code> if the user has requested
-   *         script-friendly output.
-   */
-  public boolean isScriptFriendly()
-  {
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether or not the user has requested verbose output.
-   *
-   * @return Returns <code>true</code> if the user has requested verbose
-   *         output.
-   */
-  public boolean isVerbose()
-  {
-    return verbose.isPresent();
   }
 }

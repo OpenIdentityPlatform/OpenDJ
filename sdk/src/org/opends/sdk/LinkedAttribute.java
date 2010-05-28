@@ -39,17 +39,17 @@ import com.sun.opends.sdk.util.Validator;
  * An implementation of the {@code Attribute} interface with predictable
  * iteration order.
  * <p>
- * Internally, attribute values are stored in a linked list and it's
- * this list which defines the iteration ordering, which is the order in
- * which elements were inserted into the set (insertion-order). This
- * ordering is particularly useful in LDAP where clients generally
- * appreciate having things returned in the same order they were
- * presented.
+ * Internally, attribute values are stored in a linked list and it's this list
+ * which defines the iteration ordering, which is the order in which elements
+ * were inserted into the set (insertion-order). This ordering is particularly
+ * useful in LDAP where clients generally appreciate having things returned in
+ * the same order they were presented.
  * <p>
  * All operations are supported by this implementation.
  */
 public final class LinkedAttribute extends AbstractAttribute
 {
+
   private static abstract class Impl
   {
 
@@ -57,15 +57,15 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
-    boolean addAll(LinkedAttribute attribute,
-        Collection<? extends ByteString> values,
-        Collection<? super ByteString> duplicateValues)
+    boolean addAll(final LinkedAttribute attribute,
+        final Collection<? extends ByteString> values,
+        final Collection<? super ByteString> duplicateValues)
         throws NullPointerException
     {
       // TODO: could optimize if values is a BasicAttribute.
       ensureCapacity(attribute, values.size());
       boolean modified = false;
-      for (ByteString value : values)
+      for (final ByteString value : values)
       {
         if (add(attribute, value))
         {
@@ -86,15 +86,15 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
-    abstract boolean contains(LinkedAttribute attribute,
-        ByteString value);
+    abstract boolean contains(LinkedAttribute attribute, ByteString value);
 
 
 
-    boolean containsAll(LinkedAttribute attribute, Collection<?> values)
+    boolean containsAll(final LinkedAttribute attribute,
+        final Collection<?> values)
     {
       // TODO: could optimize if objects is a BasicAttribute.
-      for (Object value : values)
+      for (final Object value : values)
       {
         if (!contains(attribute, ByteString.valueOf(value)))
         {
@@ -123,12 +123,12 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
-    <T> boolean removeAll(LinkedAttribute attribute,
-        Collection<T> values, Collection<? super T> missingValues)
+    <T> boolean removeAll(final LinkedAttribute attribute,
+        final Collection<T> values, final Collection<? super T> missingValues)
     {
       // TODO: could optimize if objects is a BasicAttribute.
       boolean modified = false;
-      for (T value : values)
+      for (final T value : values)
       {
         if (remove(attribute, ByteString.valueOf(value)))
         {
@@ -161,9 +161,10 @@ public final class LinkedAttribute extends AbstractAttribute
   private static final class MultiValueImpl extends Impl
   {
 
-    boolean add(LinkedAttribute attribute, ByteString value)
+    @Override
+    boolean add(final LinkedAttribute attribute, final ByteString value)
     {
-      ByteString normalizedValue = normalizeValue(attribute, value);
+      final ByteString normalizedValue = normalizeValue(attribute, value);
       if (attribute.multipleValues.put(normalizedValue, value) == null)
       {
         return true;
@@ -176,7 +177,8 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
-    void clear(LinkedAttribute attribute)
+    @Override
+    void clear(final LinkedAttribute attribute)
     {
       attribute.multipleValues = null;
       attribute.pimpl = ZERO_VALUE_IMPL;
@@ -184,22 +186,25 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
-    boolean contains(LinkedAttribute attribute, ByteString value)
+    @Override
+    boolean contains(final LinkedAttribute attribute, final ByteString value)
     {
-      return attribute.multipleValues.containsKey(normalizeValue(
-          attribute, value));
+      return attribute.multipleValues.containsKey(normalizeValue(attribute,
+          value));
     }
 
 
 
-    void ensureCapacity(LinkedAttribute attribute, int size)
+    @Override
+    void ensureCapacity(final LinkedAttribute attribute, final int size)
     {
       // Nothing to do.
     }
 
 
 
-    ByteString firstValue(LinkedAttribute attribute)
+    @Override
+    ByteString firstValue(final LinkedAttribute attribute)
         throws NoSuchElementException
     {
       return attribute.multipleValues.values().iterator().next();
@@ -207,6 +212,7 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
+    @Override
     Iterator<ByteString> iterator(final LinkedAttribute attribute)
     {
       return new Iterator<ByteString>()
@@ -268,9 +274,10 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
-    boolean remove(LinkedAttribute attribute, ByteString value)
+    @Override
+    boolean remove(final LinkedAttribute attribute, final ByteString value)
     {
-      ByteString normalizedValue = normalizeValue(attribute, value);
+      final ByteString normalizedValue = normalizeValue(attribute, value);
       if (attribute.multipleValues.remove(normalizedValue) != null)
       {
         resize(attribute);
@@ -284,7 +291,8 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
-    void resize(LinkedAttribute attribute)
+    @Override
+    void resize(final LinkedAttribute attribute)
     {
       // May need to resize if initial size estimate was wrong (e.g. all
       // values in added collection were the same).
@@ -295,7 +303,7 @@ public final class LinkedAttribute extends AbstractAttribute
         attribute.pimpl = ZERO_VALUE_IMPL;
         break;
       case 1:
-        Map.Entry<ByteString, ByteString> e = attribute.multipleValues
+        final Map.Entry<ByteString, ByteString> e = attribute.multipleValues
             .entrySet().iterator().next();
         attribute.singleValue = e.getValue();
         attribute.normalizedSingleValue = e.getKey();
@@ -310,8 +318,9 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
-    <T> boolean retainAll(LinkedAttribute attribute,
-        Collection<T> values, Collection<? super T> missingValues)
+    @Override
+    <T> boolean retainAll(final LinkedAttribute attribute,
+        final Collection<T> values, final Collection<? super T> missingValues)
     {
       // TODO: could optimize if objects is a BasicAttribute.
       if (values.isEmpty())
@@ -320,20 +329,20 @@ public final class LinkedAttribute extends AbstractAttribute
         return true;
       }
 
-      Map<ByteString, T> valuesToRetain = new HashMap<ByteString, T>(
+      final Map<ByteString, T> valuesToRetain = new HashMap<ByteString, T>(
           values.size());
-      for (T value : values)
+      for (final T value : values)
       {
-        valuesToRetain.put(normalizeValue(attribute, ByteString
-            .valueOf(value)), value);
+        valuesToRetain.put(
+            normalizeValue(attribute, ByteString.valueOf(value)), value);
       }
 
       boolean modified = false;
-      Iterator<ByteString> iterator = attribute.multipleValues.keySet()
+      final Iterator<ByteString> iterator = attribute.multipleValues.keySet()
           .iterator();
       while (iterator.hasNext())
       {
-        ByteString normalizedValue = iterator.next();
+        final ByteString normalizedValue = iterator.next();
         if (valuesToRetain.remove(normalizedValue) == null)
         {
           modified = true;
@@ -353,7 +362,8 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
-    int size(LinkedAttribute attribute)
+    @Override
+    int size(final LinkedAttribute attribute)
     {
       return attribute.multipleValues.size();
     }
@@ -364,16 +374,16 @@ public final class LinkedAttribute extends AbstractAttribute
   private static final class SingleValueImpl extends Impl
   {
 
-    boolean add(LinkedAttribute attribute, ByteString value)
+    @Override
+    boolean add(final LinkedAttribute attribute, final ByteString value)
     {
-      ByteString normalizedValue = normalizeValue(attribute, value);
+      final ByteString normalizedValue = normalizeValue(attribute, value);
       if (attribute.normalizedSingleValue().equals(normalizedValue))
       {
         return false;
       }
 
-      attribute.multipleValues = new LinkedHashMap<ByteString, ByteString>(
-          2);
+      attribute.multipleValues = new LinkedHashMap<ByteString, ByteString>(2);
       attribute.multipleValues.put(attribute.normalizedSingleValue,
           attribute.singleValue);
       attribute.multipleValues.put(normalizedValue, value);
@@ -386,7 +396,8 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
-    void clear(LinkedAttribute attribute)
+    @Override
+    void clear(final LinkedAttribute attribute)
     {
       attribute.singleValue = null;
       attribute.normalizedSingleValue = null;
@@ -395,15 +406,17 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
-    boolean contains(LinkedAttribute attribute, ByteString value)
+    @Override
+    boolean contains(final LinkedAttribute attribute, final ByteString value)
     {
-      ByteString normalizedValue = normalizeValue(attribute, value);
+      final ByteString normalizedValue = normalizeValue(attribute, value);
       return attribute.normalizedSingleValue().equals(normalizedValue);
     }
 
 
 
-    void ensureCapacity(LinkedAttribute attribute, int size)
+    @Override
+    void ensureCapacity(final LinkedAttribute attribute, final int size)
     {
       if (size == 0)
       {
@@ -421,7 +434,8 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
-    ByteString firstValue(LinkedAttribute attribute)
+    @Override
+    ByteString firstValue(final LinkedAttribute attribute)
         throws NoSuchElementException
     {
       if (attribute.singleValue != null)
@@ -436,6 +450,7 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
+    @Override
     Iterator<ByteString> iterator(final LinkedAttribute attribute)
     {
       return new Iterator<ByteString>()
@@ -494,7 +509,8 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
-    boolean remove(LinkedAttribute attribute, ByteString value)
+    @Override
+    boolean remove(final LinkedAttribute attribute, final ByteString value)
     {
       if (contains(attribute, value))
       {
@@ -509,15 +525,17 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
-    void resize(LinkedAttribute attribute)
+    @Override
+    void resize(final LinkedAttribute attribute)
     {
       // Nothing to do.
     }
 
 
 
-    <T> boolean retainAll(LinkedAttribute attribute,
-        Collection<T> values, Collection<? super T> missingValues)
+    @Override
+    <T> boolean retainAll(final LinkedAttribute attribute,
+        final Collection<T> values, final Collection<? super T> missingValues)
     {
       // TODO: could optimize if objects is a BasicAttribute.
       if (values.isEmpty())
@@ -526,13 +544,13 @@ public final class LinkedAttribute extends AbstractAttribute
         return true;
       }
 
-      ByteString normalizedSingleValue = attribute
+      final ByteString normalizedSingleValue = attribute
           .normalizedSingleValue();
       boolean retained = false;
-      for (T value : values)
+      for (final T value : values)
       {
-        ByteString normalizedValue = normalizeValue(attribute,
-            ByteString.valueOf(value));
+        final ByteString normalizedValue = normalizeValue(attribute, ByteString
+            .valueOf(value));
         if (normalizedSingleValue.equals(normalizedValue))
         {
           if (missingValues == null)
@@ -561,7 +579,8 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
-    int size(LinkedAttribute attribute)
+    @Override
+    int size(final LinkedAttribute attribute)
     {
       return 1;
     }
@@ -572,7 +591,8 @@ public final class LinkedAttribute extends AbstractAttribute
   private static final class ZeroValueImpl extends Impl
   {
 
-    boolean add(LinkedAttribute attribute, ByteString value)
+    @Override
+    boolean add(final LinkedAttribute attribute, final ByteString value)
     {
       attribute.singleValue = value;
       attribute.pimpl = SINGLE_VALUE_IMPL;
@@ -581,42 +601,47 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
-    void clear(LinkedAttribute attribute)
+    @Override
+    void clear(final LinkedAttribute attribute)
     {
       // Nothing to do.
     }
 
 
 
-    boolean contains(LinkedAttribute attribute, ByteString value)
+    @Override
+    boolean contains(final LinkedAttribute attribute, final ByteString value)
     {
       return false;
     }
 
 
 
-    boolean containsAll(LinkedAttribute attribute, Collection<?> values)
+    @Override
+    boolean containsAll(final LinkedAttribute attribute,
+        final Collection<?> values)
     {
       return values.isEmpty();
     }
 
 
 
-    void ensureCapacity(LinkedAttribute attribute, int size)
+    @Override
+    void ensureCapacity(final LinkedAttribute attribute, final int size)
     {
       if (size < 2)
       {
         return;
       }
 
-      attribute.multipleValues = new LinkedHashMap<ByteString, ByteString>(
-          size);
+      attribute.multipleValues = new LinkedHashMap<ByteString, ByteString>(size);
       attribute.pimpl = MULTI_VALUE_IMPL;
     }
 
 
 
-    ByteString firstValue(LinkedAttribute attribute)
+    @Override
+    ByteString firstValue(final LinkedAttribute attribute)
         throws NoSuchElementException
     {
       throw new NoSuchElementException();
@@ -624,6 +649,7 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
+    @Override
     Iterator<ByteString> iterator(final LinkedAttribute attribute)
     {
       return new Iterator<ByteString>()
@@ -666,22 +692,25 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
-    boolean remove(LinkedAttribute attribute, ByteString value)
+    @Override
+    boolean remove(final LinkedAttribute attribute, final ByteString value)
     {
       return false;
     }
 
 
 
-    void resize(LinkedAttribute attribute)
+    @Override
+    void resize(final LinkedAttribute attribute)
     {
       // Nothing to do.
     }
 
 
 
-    <T> boolean retainAll(LinkedAttribute attribute,
-        Collection<T> values, Collection<? super T> missingValues)
+    @Override
+    <T> boolean retainAll(final LinkedAttribute attribute,
+        final Collection<T> values, final Collection<? super T> missingValues)
     {
       if (missingValues != null)
       {
@@ -692,7 +721,8 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
-    int size(LinkedAttribute attribute)
+    @Override
+    int size(final LinkedAttribute attribute)
     {
       return 0;
     }
@@ -700,6 +730,19 @@ public final class LinkedAttribute extends AbstractAttribute
   }
 
 
+
+  /**
+   * An attribute factory which can be used to create new linked attributes.
+   */
+  public static final AttributeFactory FACTORY = new AttributeFactory()
+  {
+    public Attribute newAttribute(
+        final AttributeDescription attributeDescription)
+        throws NullPointerException
+    {
+      return new LinkedAttribute(attributeDescription);
+    }
+  };
 
   private static final MultiValueImpl MULTI_VALUE_IMPL = new MultiValueImpl();
 
@@ -720,22 +763,21 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
   /**
-   * Creates a new attribute having the same attribute description and
-   * attribute values as {@code attribute}.
+   * Creates a new attribute having the same attribute description and attribute
+   * values as {@code attribute}.
    *
    * @param attribute
    *          The attribute to be copied.
    * @throws NullPointerException
    *           If {@code attribute} was {@code null}.
    */
-  public LinkedAttribute(Attribute attribute)
-      throws NullPointerException
+  public LinkedAttribute(final Attribute attribute) throws NullPointerException
   {
     this.attributeDescription = attribute.getAttributeDescription();
 
     if (attribute instanceof LinkedAttribute)
     {
-      LinkedAttribute other = (LinkedAttribute) attribute;
+      final LinkedAttribute other = (LinkedAttribute) attribute;
       this.pimpl = other.pimpl;
       this.singleValue = other.singleValue;
       this.normalizedSingleValue = other.normalizedSingleValue;
@@ -754,15 +796,15 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
   /**
-   * Creates a new attribute having the specified attribute description
-   * and no attribute values.
+   * Creates a new attribute having the specified attribute description and no
+   * attribute values.
    *
    * @param attributeDescription
    *          The attribute description.
    * @throws NullPointerException
    *           If {@code attributeDescription} was {@code null}.
    */
-  public LinkedAttribute(AttributeDescription attributeDescription)
+  public LinkedAttribute(final AttributeDescription attributeDescription)
       throws NullPointerException
   {
     Validator.ensureNotNull(attributeDescription);
@@ -772,40 +814,19 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
   /**
-   * Creates a new attribute having the specified attribute description
-   * and no attribute values. The attribute description will be decoded
-   * using the default schema.
-   *
-   * @param attributeDescription
-   *          The attribute description.
-   * @throws LocalizedIllegalArgumentException
-   *           If {@code attributeDescription} could not be decoded
-   *           using the default schema.
-   * @throws NullPointerException
-   *           If {@code attributeDescription} was {@code null}.
-   */
-  public LinkedAttribute(String attributeDescription)
-      throws LocalizedIllegalArgumentException, NullPointerException
-  {
-    this(AttributeDescription.valueOf(attributeDescription));
-  }
-
-
-
-  /**
-   * Creates a new attribute having the specified attribute description
-   * and single attribute value.
+   * Creates a new attribute having the specified attribute description and
+   * single attribute value.
    *
    * @param attributeDescription
    *          The attribute description.
    * @param value
    *          The single attribute value.
    * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code value} was
-   *           {@code null}.
+   *           If {@code attributeDescription} or {@code value} was {@code null}
+   *           .
    */
-  public LinkedAttribute(AttributeDescription attributeDescription,
-      ByteString value) throws NullPointerException
+  public LinkedAttribute(final AttributeDescription attributeDescription,
+      final ByteString value) throws NullPointerException
   {
     this(attributeDescription);
     add(value);
@@ -814,19 +835,19 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
   /**
-   * Creates a new attribute having the specified attribute description
-   * and attribute values.
+   * Creates a new attribute having the specified attribute description and
+   * attribute values.
    *
    * @param attributeDescription
    *          The attribute description.
    * @param values
    *          The attribute values.
    * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code values} was
-   *           {@code null}.
+   *           If {@code attributeDescription} or {@code values} was {@code
+   *           null}.
    */
-  public LinkedAttribute(AttributeDescription attributeDescription,
-      ByteString... values) throws NullPointerException
+  public LinkedAttribute(final AttributeDescription attributeDescription,
+      final ByteString... values) throws NullPointerException
   {
     this(attributeDescription);
     addAll(Arrays.asList(values));
@@ -835,19 +856,19 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
   /**
-   * Creates a new attribute having the specified attribute description
-   * and attribute values.
+   * Creates a new attribute having the specified attribute description and
+   * attribute values.
    *
    * @param attributeDescription
    *          The attribute description.
    * @param values
    *          The attribute values.
    * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code values} was
-   *           {@code null}.
+   *           If {@code attributeDescription} or {@code values} was {@code
+   *           null}.
    */
-  public LinkedAttribute(AttributeDescription attributeDescription,
-      Collection<ByteString> values) throws NullPointerException
+  public LinkedAttribute(final AttributeDescription attributeDescription,
+      final Collection<ByteString> values) throws NullPointerException
   {
     this(attributeDescription);
     addAll(values);
@@ -856,26 +877,46 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
   /**
-   * Creates a new attribute having the specified attribute description
-   * and single attribute value. The attribute description will be
-   * decoded using the default schema.
+   * Creates a new attribute having the specified attribute description and no
+   * attribute values. The attribute description will be decoded using the
+   * default schema.
+   *
+   * @param attributeDescription
+   *          The attribute description.
+   * @throws LocalizedIllegalArgumentException
+   *           If {@code attributeDescription} could not be decoded using the
+   *           default schema.
+   * @throws NullPointerException
+   *           If {@code attributeDescription} was {@code null}.
+   */
+  public LinkedAttribute(final String attributeDescription)
+      throws LocalizedIllegalArgumentException, NullPointerException
+  {
+    this(AttributeDescription.valueOf(attributeDescription));
+  }
+
+
+
+  /**
+   * Creates a new attribute having the specified attribute description and
+   * single attribute value. The attribute description will be decoded using the
+   * default schema.
    * <p>
-   * If {@code value} is not an instance of {@code ByteString} then it
-   * will be converted using the {@link ByteString#valueOf(Object)}
-   * method.
+   * If {@code value} is not an instance of {@code ByteString} then it will be
+   * converted using the {@link ByteString#valueOf(Object)} method.
    *
    * @param attributeDescription
    *          The attribute description.
    * @param value
    *          The single attribute value.
    * @throws LocalizedIllegalArgumentException
-   *           If {@code attributeDescription} could not be decoded
-   *           using the default schema.
+   *           If {@code attributeDescription} could not be decoded using the
+   *           default schema.
    * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code value} was
-   *           {@code null}.
+   *           If {@code attributeDescription} or {@code value} was {@code null}
+   *           .
    */
-  public LinkedAttribute(String attributeDescription, Object value)
+  public LinkedAttribute(final String attributeDescription, final Object value)
       throws LocalizedIllegalArgumentException, NullPointerException
   {
     this(attributeDescription);
@@ -885,30 +926,30 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
   /**
-   * Creates a new attribute having the specified attribute description
-   * and attribute values. The attribute description will be decoded
-   * using the default schema.
+   * Creates a new attribute having the specified attribute description and
+   * attribute values. The attribute description will be decoded using the
+   * default schema.
    * <p>
-   * Any attribute values which are not instances of {@code ByteString}
-   * will be converted using the {@link ByteString#valueOf(Object)}
-   * method.
+   * Any attribute values which are not instances of {@code ByteString} will be
+   * converted using the {@link ByteString#valueOf(Object)} method.
    *
    * @param attributeDescription
    *          The attribute description.
    * @param values
    *          The attribute values.
    * @throws LocalizedIllegalArgumentException
-   *           If {@code attributeDescription} could not be decoded
-   *           using the default schema.
+   *           If {@code attributeDescription} could not be decoded using the
+   *           default schema.
    * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code values} was
-   *           {@code null}.
+   *           If {@code attributeDescription} or {@code values} was {@code
+   *           null}.
    */
-  public LinkedAttribute(String attributeDescription, Object... values)
-      throws LocalizedIllegalArgumentException, NullPointerException
+  public LinkedAttribute(final String attributeDescription,
+      final Object... values) throws LocalizedIllegalArgumentException,
+      NullPointerException
   {
     this(attributeDescription);
-    for (Object value : values)
+    for (final Object value : values)
     {
       add(ByteString.valueOf(value));
     }
@@ -919,7 +960,8 @@ public final class LinkedAttribute extends AbstractAttribute
   /**
    * {@inheritDoc}
    */
-  public boolean add(ByteString value) throws NullPointerException
+  @Override
+  public boolean add(final ByteString value) throws NullPointerException
   {
     Validator.ensureNotNull(value);
     return pimpl.add(this, value);
@@ -930,8 +972,9 @@ public final class LinkedAttribute extends AbstractAttribute
   /**
    * {@inheritDoc}
    */
-  public boolean addAll(Collection<? extends ByteString> values,
-      Collection<? super ByteString> duplicateValues)
+  @Override
+  public boolean addAll(final Collection<? extends ByteString> values,
+      final Collection<? super ByteString> duplicateValues)
       throws NullPointerException
   {
     Validator.ensureNotNull(values);
@@ -943,6 +986,7 @@ public final class LinkedAttribute extends AbstractAttribute
   /**
    * {@inheritDoc}
    */
+  @Override
   public void clear()
   {
     pimpl.clear(this);
@@ -953,7 +997,20 @@ public final class LinkedAttribute extends AbstractAttribute
   /**
    * {@inheritDoc}
    */
-  public boolean containsAll(Collection<?> values)
+  @Override
+  public boolean contains(final Object value) throws NullPointerException
+  {
+    Validator.ensureNotNull(value);
+    return pimpl.contains(this, ByteString.valueOf(value));
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean containsAll(final Collection<?> values)
       throws NullPointerException
   {
     Validator.ensureNotNull(values);
@@ -965,6 +1022,7 @@ public final class LinkedAttribute extends AbstractAttribute
   /**
    * {@inheritDoc}
    */
+  @Override
   public ByteString firstValue() throws NoSuchElementException
   {
     return pimpl.firstValue(this);
@@ -975,6 +1033,7 @@ public final class LinkedAttribute extends AbstractAttribute
   /**
    * {@inheritDoc}
    */
+  @Override
   public AttributeDescription getAttributeDescription()
   {
     return attributeDescription;
@@ -985,6 +1044,7 @@ public final class LinkedAttribute extends AbstractAttribute
   /**
    * {@inheritDoc}
    */
+  @Override
   public Iterator<ByteString> iterator()
   {
     return pimpl.iterator(this);
@@ -995,8 +1055,21 @@ public final class LinkedAttribute extends AbstractAttribute
   /**
    * {@inheritDoc}
    */
-  public <T> boolean removeAll(Collection<T> values,
-      Collection<? super T> missingValues) throws NullPointerException
+  @Override
+  public boolean remove(final Object value) throws NullPointerException
+  {
+    Validator.ensureNotNull(value);
+    return pimpl.remove(this, ByteString.valueOf(value));
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public <T> boolean removeAll(final Collection<T> values,
+      final Collection<? super T> missingValues) throws NullPointerException
   {
     Validator.ensureNotNull(values);
     return pimpl.removeAll(this, values, missingValues);
@@ -1007,8 +1080,9 @@ public final class LinkedAttribute extends AbstractAttribute
   /**
    * {@inheritDoc}
    */
-  public <T> boolean retainAll(Collection<T> values,
-      Collection<? super T> missingValues) throws NullPointerException
+  @Override
+  public <T> boolean retainAll(final Collection<T> values,
+      final Collection<? super T> missingValues) throws NullPointerException
   {
     Validator.ensureNotNull(values);
     return pimpl.retainAll(this, values, missingValues);
@@ -1019,31 +1093,10 @@ public final class LinkedAttribute extends AbstractAttribute
   /**
    * {@inheritDoc}
    */
+  @Override
   public int size()
   {
     return pimpl.size(this);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean contains(Object value) throws NullPointerException
-  {
-    Validator.ensureNotNull(value);
-    return pimpl.contains(this, ByteString.valueOf(value));
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean remove(Object value) throws NullPointerException
-  {
-    Validator.ensureNotNull(value);
-    return pimpl.remove(this, ByteString.valueOf(value));
   }
 
 

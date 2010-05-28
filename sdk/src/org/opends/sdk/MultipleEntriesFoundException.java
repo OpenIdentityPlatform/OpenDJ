@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
@@ -34,18 +34,17 @@ import org.opends.sdk.responses.Result;
 
 
 /**
- * Thrown when the result code returned in a Result indicates that the
- * requested single entry search operation or read operation failed
- * because the Directory Server returned multiple matching entries (or
- * search references) when only a single matching entry was expected.
- * More specifically, this exception is used for the
- * {@link ResultCode#CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED} error
- * result codes.
+ * Thrown when the result code returned in a Result indicates that the requested
+ * single entry search operation or read operation failed because the Directory
+ * Server returned multiple matching entries (or search references) when only a
+ * single matching entry was expected. More specifically, this exception is used
+ * for the {@link ResultCode#CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED
+ * CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED} error result codes.
  */
 @SuppressWarnings("serial")
 public class MultipleEntriesFoundException extends ErrorResultException
 {
-  MultipleEntriesFoundException(Result result)
+  MultipleEntriesFoundException(final Result result)
   {
     super(result);
   }

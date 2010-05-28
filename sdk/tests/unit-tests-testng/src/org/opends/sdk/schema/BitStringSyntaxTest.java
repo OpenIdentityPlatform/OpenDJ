@@ -43,9 +43,12 @@ public class BitStringSyntaxTest extends SyntaxTestCase
    * {@inheritDoc}
    */
   @Override
-  protected Syntax getRule()
+  @DataProvider(name = "acceptableValues")
+  public Object[][] createAcceptableValues()
   {
-    return Schema.getCoreSchema().getSyntax(SYNTAX_BIT_STRING_OID);
+    return new Object[][] { { "'0101'B", true }, { "'1'B", true },
+        { "'0'B", true }, { "invalid", false }, { "1", false },
+        { "'010100000111111010101000'B", true }, };
   }
 
 
@@ -54,11 +57,8 @@ public class BitStringSyntaxTest extends SyntaxTestCase
    * {@inheritDoc}
    */
   @Override
-  @DataProvider(name = "acceptableValues")
-  public Object[][] createAcceptableValues()
+  protected Syntax getRule()
   {
-    return new Object[][] { { "'0101'B", true }, { "'1'B", true },
-        { "'0'B", true }, { "invalid", false }, { "1", false },
-        { "'010100000111111010101000'B", true }, };
+    return Schema.getCoreSchema().getSyntax(SYNTAX_BIT_STRING_OID);
   }
 }

@@ -41,8 +41,8 @@ import com.sun.opends.sdk.util.Validator;
 /**
  * Modify DN request implementation.
  */
-final class ModifyDNRequestImpl extends
-    AbstractRequestImpl<ModifyDNRequest> implements ModifyDNRequest
+final class ModifyDNRequestImpl extends AbstractRequestImpl<ModifyDNRequest>
+    implements ModifyDNRequest
 {
   private DN name;
 
@@ -55,8 +55,8 @@ final class ModifyDNRequestImpl extends
 
 
   /**
-   * Creates a new modify DN request using the provided distinguished
-   * name and new RDN.
+   * Creates a new modify DN request using the provided distinguished name and
+   * new RDN.
    *
    * @param name
    *          The distinguished name of the entry to be renamed.
@@ -65,7 +65,8 @@ final class ModifyDNRequestImpl extends
    * @throws NullPointerException
    *           If {@code name} or {@code newRDN} was {@code null}.
    */
-  ModifyDNRequestImpl(DN name, RDN newRDN) throws NullPointerException
+  ModifyDNRequestImpl(final DN name, final RDN newRDN)
+      throws NullPointerException
   {
     this.name = name;
     this.newRDN = newRDN;
@@ -76,7 +77,7 @@ final class ModifyDNRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public <R, P> R accept(ChangeRecordVisitor<R, P> v, P p)
+  public <R, P> R accept(final ChangeRecordVisitor<R, P> v, final P p)
   {
     return v.visitChangeRecord(p, this);
   }
@@ -126,7 +127,7 @@ final class ModifyDNRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public ModifyDNRequestImpl setDeleteOldRDN(boolean deleteOldRDN)
+  public ModifyDNRequestImpl setDeleteOldRDN(final boolean deleteOldRDN)
       throws UnsupportedOperationException
   {
     this.deleteOldRDN = deleteOldRDN;
@@ -138,7 +139,7 @@ final class ModifyDNRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public ModifyDNRequest setName(DN dn)
+  public ModifyDNRequest setName(final DN dn)
       throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(dn);
@@ -151,9 +152,9 @@ final class ModifyDNRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public ModifyDNRequest setName(String dn)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException
+  public ModifyDNRequest setName(final String dn)
+      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
+      NullPointerException
   {
     Validator.ensureNotNull(dn);
     this.name = DN.valueOf(dn);
@@ -165,7 +166,7 @@ final class ModifyDNRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public ModifyDNRequest setNewRDN(RDN rdn)
+  public ModifyDNRequest setNewRDN(final RDN rdn)
       throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(rdn);
@@ -178,9 +179,9 @@ final class ModifyDNRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public ModifyDNRequest setNewRDN(String rdn)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException
+  public ModifyDNRequest setNewRDN(final String rdn)
+      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
+      NullPointerException
   {
     Validator.ensureNotNull(rdn);
     this.newRDN = RDN.valueOf(rdn);
@@ -192,7 +193,7 @@ final class ModifyDNRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public ModifyDNRequest setNewSuperior(DN dn)
+  public ModifyDNRequest setNewSuperior(final DN dn)
       throws UnsupportedOperationException
   {
     this.newSuperior = dn;
@@ -204,9 +205,8 @@ final class ModifyDNRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public ModifyDNRequest setNewSuperior(String dn)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException
+  public ModifyDNRequest setNewSuperior(final String dn)
+      throws LocalizedIllegalArgumentException, UnsupportedOperationException
   {
     this.newSuperior = (dn != null) ? DN.valueOf(dn) : null;
     return this;
@@ -237,6 +237,7 @@ final class ModifyDNRequestImpl extends
 
 
 
+  @Override
   ModifyDNRequest getThis()
   {
     return this;

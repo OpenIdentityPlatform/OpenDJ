@@ -30,7 +30,8 @@ package org.opends.sdk.schema;
 
 
 import static com.sun.opends.sdk.messages.Messages.*;
-import static org.opends.sdk.schema.SchemaConstants.*;
+import static org.opends.sdk.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_LDAP_SYNTAX_NAME;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -46,9 +47,9 @@ import com.sun.opends.sdk.util.SubstringReader;
 
 
 /**
- * This class defines the LDAP syntax description syntax, which is used
- * to hold attribute syntax definitions in the schema. The format of
- * this syntax is defined in RFC 2252.
+ * This class defines the LDAP syntax description syntax, which is used to hold
+ * attribute syntax definitions in the schema. The format of this syntax is
+ * defined in RFC 2252.
  */
 final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl
 {
@@ -75,8 +76,8 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl
 
 
 
-  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      LocalizableMessageBuilder invalidReason)
+  public boolean valueIsAcceptable(final Schema schema,
+      final ByteSequence value, final LocalizableMessageBuilder invalidReason)
   {
     // We'll use the decodeNameForm method to determine if the value is
     // acceptable.
@@ -93,8 +94,8 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl
       {
         // This means that the value was empty or contained only
         // whitespace. That is illegal.
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_ATTRSYNTAX_EMPTY_VALUE.get();
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRSYNTAX_EMPTY_VALUE
+            .get();
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("LDAPSyntaxDescriptionSyntax",
             "valueIsAcceptable", e);
@@ -106,9 +107,8 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl
       final char c = reader.read();
       if (c != '(')
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_OPEN_PARENTHESIS.get(
-                definition, (reader.pos() - 1), String.valueOf(c));
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_OPEN_PARENTHESIS
+            .get(definition, (reader.pos() - 1), String.valueOf(c));
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("LDAPSyntaxDescriptionSyntax",
             "valueIsAcceptable", e);
@@ -122,8 +122,7 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl
       // The next set of characters must be the OID.
       final String oid = SchemaUtils.readOID(reader);
 
-      Map<String, List<String>> extraProperties =
-          Collections.emptyMap();
+      Map<String, List<String>> extraProperties = Collections.emptyMap();
       // At this point, we should have a pretty specific syntax that
       // describes what may come next, but some of the components are
       // optional and it would be pretty easy to put something in the
@@ -158,13 +157,12 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl
           {
             extraProperties = new HashMap<String, List<String>>();
           }
-          extraProperties.put(tokenName, SchemaUtils
-              .readExtensions(reader));
+          extraProperties.put(tokenName, SchemaUtils.readExtensions(reader));
         }
         else
         {
-          final LocalizableMessage message =
-              ERR_ATTR_SYNTAX_ILLEGAL_TOKEN.get(tokenName);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN
+              .get(tokenName);
           final DecodeException e = DecodeException.error(message);
           StaticUtils.DEBUG_LOG.throwing("LDAPSyntaxDescriptionSyntax",
               "valueIsAcceptable", e);
@@ -177,8 +175,7 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl
       {
         if (property.getKey().equalsIgnoreCase("x-pattern"))
         {
-          final Iterator<String> values =
-              property.getValue().iterator();
+          final Iterator<String> values = property.getValue().iterator();
           if (values.hasNext())
           {
             final String pattern = values.next();
@@ -188,14 +185,11 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl
             }
             catch (final Exception e)
             {
-              final LocalizableMessage message =
-                  WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_PATTERN
-                      .get(oid, pattern);
-              final DecodeException de =
-                  DecodeException.error(message, e);
-              StaticUtils.DEBUG_LOG.throwing(
-                  "LDAPSyntaxDescriptionSyntax", "valueIsAcceptable",
-                  de);
+              final LocalizableMessage message = WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_PATTERN
+                  .get(oid, pattern);
+              final DecodeException de = DecodeException.error(message, e);
+              StaticUtils.DEBUG_LOG.throwing("LDAPSyntaxDescriptionSyntax",
+                  "valueIsAcceptable", de);
               throw de;
             }
             break;
@@ -211,13 +205,11 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl
             {
               if (entry.equals(values.get(j)))
               {
-                final LocalizableMessage message =
-                    WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_DUPLICATE_VALUE
-                        .get(oid, entry, j);
+                final LocalizableMessage message = WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_DUPLICATE_VALUE
+                    .get(oid, entry, j);
                 final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing(
-                    "LDAPSyntaxDescriptionSyntax", "valueIsAcceptable",
-                    e);
+                StaticUtils.DEBUG_LOG.throwing("LDAPSyntaxDescriptionSyntax",
+                    "valueIsAcceptable", e);
                 throw e;
               }
             }

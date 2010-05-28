@@ -45,24 +45,24 @@ import com.sun.opends.sdk.util.Validator;
 
 
 /**
- * An LDIF change record writer writes change records using the LDAP
- * Data Interchange Format (LDIF) to a user defined destination.
+ * An LDIF change record writer writes change records using the LDAP Data
+ * Interchange Format (LDIF) to a user defined destination.
  *
- * @see <a href="http://tools.ietf.org/html/rfc2849">RFC 2849 - The LDAP
- *      Data Interchange Format (LDIF) - Technical Specification </a>
+ * @see <a href="http://tools.ietf.org/html/rfc2849">RFC 2849 - The LDAP Data
+ *      Interchange Format (LDIF) - Technical Specification </a>
  */
-public final class LDIFChangeRecordWriter extends AbstractLDIFWriter
-    implements ChangeRecordWriter
+public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements
+    ChangeRecordWriter
 {
 
   /**
-   * Creates a new LDIF change record writer which will append lines of
-   * LDIF to the provided list.
+   * Creates a new LDIF change record writer which will append lines of LDIF to
+   * the provided list.
    *
    * @param ldifLines
    *          The list to which lines of LDIF should be appended.
    */
-  public LDIFChangeRecordWriter(List<String> ldifLines)
+  public LDIFChangeRecordWriter(final List<String> ldifLines)
   {
     super(ldifLines);
   }
@@ -70,13 +70,13 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter
 
 
   /**
-   * Creates a new LDIF change record writer whose destination is the
-   * provided output stream.
+   * Creates a new LDIF change record writer whose destination is the provided
+   * output stream.
    *
    * @param out
    *          The output stream to use.
    */
-  public LDIFChangeRecordWriter(OutputStream out)
+  public LDIFChangeRecordWriter(final OutputStream out)
   {
     super(out);
   }
@@ -104,18 +104,17 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter
 
 
   /**
-   * Specifies whether or not user-friendly comments should be added
-   * whenever distinguished names or UTF-8 attribute values are
-   * encountered which contained non-ASCII characters. The default is
-   * {@code false}.
+   * Specifies whether or not user-friendly comments should be added whenever
+   * distinguished names or UTF-8 attribute values are encountered which
+   * contained non-ASCII characters. The default is {@code false}.
    *
    * @param addUserFriendlyComments
-   *          {@code true} if user-friendly comments should be added, or
-   *          {@code false} otherwise.
+   *          {@code true} if user-friendly comments should be added, or {@code
+   *          false} otherwise.
    * @return A reference to this {@code LDIFEntryWriter}.
    */
   public LDIFChangeRecordWriter setAddUserFriendlyComments(
-      boolean addUserFriendlyComments)
+      final boolean addUserFriendlyComments)
   {
     this.addUserFriendlyComments = addUserFriendlyComments;
     return this;
@@ -124,17 +123,16 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter
 
 
   /**
-   * Specifies whether or not all operational attributes should be
-   * excluded from any change records that are written to LDIF. The
-   * default is {@code false}.
+   * Specifies whether or not all operational attributes should be excluded from
+   * any change records that are written to LDIF. The default is {@code false}.
    *
    * @param excludeOperationalAttributes
-   *          {@code true} if all operational attributes should be
-   *          excluded, or {@code false} otherwise.
+   *          {@code true} if all operational attributes should be excluded, or
+   *          {@code false} otherwise.
    * @return A reference to this {@code LDIFChangeRecordWriter}.
    */
   public LDIFChangeRecordWriter setExcludeAllOperationalAttributes(
-      boolean excludeOperationalAttributes)
+      final boolean excludeOperationalAttributes)
   {
     this.excludeOperationalAttributes = excludeOperationalAttributes;
     return this;
@@ -143,17 +141,16 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter
 
 
   /**
-   * Specifies whether or not all user attributes should be excluded
-   * from any change records that are written to LDIF. The default is
-   * {@code false}.
+   * Specifies whether or not all user attributes should be excluded from any
+   * change records that are written to LDIF. The default is {@code false}.
    *
    * @param excludeUserAttributes
-   *          {@code true} if all user attributes should be excluded, or
-   *          {@code false} otherwise.
+   *          {@code true} if all user attributes should be excluded, or {@code
+   *          false} otherwise.
    * @return A reference to this {@code LDIFChangeRecordWriter}.
    */
   public LDIFChangeRecordWriter setExcludeAllUserAttributes(
-      boolean excludeUserAttributes)
+      final boolean excludeUserAttributes)
   {
     this.excludeUserAttributes = excludeUserAttributes;
     return this;
@@ -162,16 +159,15 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter
 
 
   /**
-   * Excludes the named attribute from any change records that are
-   * written to LDIF. By default all attributes are included unless
-   * explicitly excluded.
+   * Excludes the named attribute from any change records that are written to
+   * LDIF. By default all attributes are included unless explicitly excluded.
    *
    * @param attributeDescription
    *          The name of the attribute to be excluded.
    * @return A reference to this {@code LDIFChangeRecordWriter}.
    */
   public LDIFChangeRecordWriter setExcludeAttribute(
-      AttributeDescription attributeDescription)
+      final AttributeDescription attributeDescription)
   {
     Validator.ensureNotNull(attributeDescription);
     excludeAttributes.add(attributeDescription);
@@ -181,15 +177,15 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter
 
 
   /**
-   * Excludes all change records which target entries beneath the named
-   * entry (inclusive) from being written to LDIF. By default all change
-   * records are written unless explicitly excluded or included.
+   * Excludes all change records which target entries beneath the named entry
+   * (inclusive) from being written to LDIF. By default all change records are
+   * written unless explicitly excluded or included.
    *
    * @param excludeBranch
    *          The distinguished name of the branch to be excluded.
    * @return A reference to this {@code LDIFChangeRecordWriter}.
    */
-  public LDIFChangeRecordWriter setExcludeBranch(DN excludeBranch)
+  public LDIFChangeRecordWriter setExcludeBranch(final DN excludeBranch)
   {
     Validator.ensureNotNull(excludeBranch);
     excludeBranches.add(excludeBranch);
@@ -199,16 +195,16 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter
 
 
   /**
-   * Ensures that the named attribute is not excluded from any change
-   * records that are written to LDIF. By default all attributes are
-   * included unless explicitly excluded.
+   * Ensures that the named attribute is not excluded from any change records
+   * that are written to LDIF. By default all attributes are included unless
+   * explicitly excluded.
    *
    * @param attributeDescription
    *          The name of the attribute to be included.
    * @return A reference to this {@code LDIFChangeRecordWriter}.
    */
   public LDIFChangeRecordWriter setIncludeAttribute(
-      AttributeDescription attributeDescription)
+      final AttributeDescription attributeDescription)
   {
     Validator.ensureNotNull(attributeDescription);
     includeAttributes.add(attributeDescription);
@@ -218,15 +214,15 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter
 
 
   /**
-   * Ensures that all change records which target entries beneath the
-   * named entry (inclusive) are written to LDIF. By default all change
-   * records are written unless explicitly excluded or included.
+   * Ensures that all change records which target entries beneath the named
+   * entry (inclusive) are written to LDIF. By default all change records are
+   * written unless explicitly excluded or included.
    *
    * @param includeBranch
    *          The distinguished name of the branch to be included.
    * @return A reference to this {@code LDIFChangeRecordWriter}.
    */
-  public LDIFChangeRecordWriter setIncludeBranch(DN includeBranch)
+  public LDIFChangeRecordWriter setIncludeBranch(final DN includeBranch)
   {
     Validator.ensureNotNull(includeBranch);
     includeBranches.add(includeBranch);
@@ -236,16 +232,15 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter
 
 
   /**
-   * Sets the schema which should be used when filtering change records
-   * (not required if no filtering is to be performed). The default
-   * schema is used if no other is specified.
+   * Sets the schema which should be used when filtering change records (not
+   * required if no filtering is to be performed). The default schema is used if
+   * no other is specified.
    *
    * @param schema
-   *          The schema which should be used when filtering change
-   *          records.
+   *          The schema which should be used when filtering change records.
    * @return A reference to this {@code LDIFChangeRecordWriter}.
    */
-  public LDIFChangeRecordWriter setSchema(Schema schema)
+  public LDIFChangeRecordWriter setSchema(final Schema schema)
   {
     Validator.ensureNotNull(schema);
     this.schema = schema;
@@ -255,15 +250,15 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter
 
 
   /**
-   * Specifies the column at which long lines should be wrapped. A value
-   * less than or equal to zero (the default) indicates that no wrapping
-   * should be performed.
+   * Specifies the column at which long lines should be wrapped. A value less
+   * than or equal to zero (the default) indicates that no wrapping should be
+   * performed.
    *
    * @param wrapColumn
    *          The column at which long lines should be wrapped.
    * @return A reference to this {@code LDIFEntryWriter}.
    */
-  public LDIFChangeRecordWriter setWrapColumn(int wrapColumn)
+  public LDIFChangeRecordWriter setWrapColumn(final int wrapColumn)
   {
     this.wrapColumn = wrapColumn;
     return this;
@@ -274,7 +269,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter
   /**
    * {@inheritDoc}
    */
-  public LDIFChangeRecordWriter writeChangeRecord(AddRequest change)
+  public LDIFChangeRecordWriter writeChangeRecord(final AddRequest change)
       throws IOException, NullPointerException
   {
     Validator.ensureNotNull(change);
@@ -288,7 +283,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter
     writeKeyAndValue("dn", change.getName().toString());
     writeControls(change.getControls());
     writeLine("changetype: add");
-    for (final Attribute attribute : change.getAttributes())
+    for (final Attribute attribute : change.getAllAttributes())
     {
       // Filter the attribute if required.
       if (isAttributeExcluded(attribute.getAttributeDescription()))
@@ -296,8 +291,8 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter
         continue;
       }
 
-      final String attributeDescription =
-          attribute.getAttributeDescriptionAsString();
+      final String attributeDescription = attribute
+          .getAttributeDescriptionAsString();
       for (final ByteString value : attribute)
       {
         writeKeyAndValue(attributeDescription, value);
@@ -315,7 +310,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter
   /**
    * {@inheritDoc}
    */
-  public LDIFChangeRecordWriter writeChangeRecord(ChangeRecord change)
+  public LDIFChangeRecordWriter writeChangeRecord(final ChangeRecord change)
       throws IOException, NullPointerException
   {
     Validator.ensureNotNull(change);
@@ -326,8 +321,8 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter
       return this;
     }
 
-    final IOException e =
-        change.accept(ChangeRecordVisitorWriter.getInstance(), this);
+    final IOException e = change.accept(
+        ChangeRecordVisitorWriter.getInstance(), this);
     if (e != null)
     {
       throw e;
@@ -343,7 +338,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter
   /**
    * {@inheritDoc}
    */
-  public LDIFChangeRecordWriter writeChangeRecord(DeleteRequest change)
+  public LDIFChangeRecordWriter writeChangeRecord(final DeleteRequest change)
       throws IOException, NullPointerException
   {
     Validator.ensureNotNull(change);
@@ -369,7 +364,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter
   /**
    * {@inheritDoc}
    */
-  public LDIFChangeRecordWriter writeChangeRecord(ModifyDNRequest change)
+  public LDIFChangeRecordWriter writeChangeRecord(final ModifyDNRequest change)
       throws IOException, NullPointerException
   {
     Validator.ensureNotNull(change);
@@ -396,12 +391,10 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter
     }
 
     writeKeyAndValue("newrdn", change.getNewRDN().toString());
-    writeKeyAndValue("deleteoldrdn", change.isDeleteOldRDN() ? "1"
-        : "0");
+    writeKeyAndValue("deleteoldrdn", change.isDeleteOldRDN() ? "1" : "0");
     if (change.getNewSuperior() != null)
     {
-      writeKeyAndValue("newsuperior", change.getNewSuperior()
-          .toString());
+      writeKeyAndValue("newsuperior", change.getNewSuperior().toString());
     }
 
     // Make sure there is a blank line after the entry.
@@ -415,13 +408,13 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter
   /**
    * {@inheritDoc}
    */
-  public LDIFChangeRecordWriter writeChangeRecord(ModifyRequest change)
+  public LDIFChangeRecordWriter writeChangeRecord(final ModifyRequest change)
       throws IOException, NullPointerException
   {
     Validator.ensureNotNull(change);
 
     // If there aren't any modifications, then there's nothing to do.
-    if (!change.hasChanges())
+    if (change.getModifications().isEmpty())
     {
       return this;
     }
@@ -436,12 +429,12 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter
     writeControls(change.getControls());
     writeLine("changetype: modify");
 
-    for (final Change modification : change.getChanges())
+    for (final Modification modification : change.getModifications())
     {
       final ModificationType type = modification.getModificationType();
       final Attribute attribute = modification.getAttribute();
-      final String attributeDescription =
-          attribute.getAttributeDescriptionAsString();
+      final String attributeDescription = attribute
+          .getAttributeDescriptionAsString();
 
       // Filter the attribute if required.
       if (isAttributeExcluded(attribute.getAttributeDescription()))
@@ -468,7 +461,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter
   /**
    * {@inheritDoc}
    */
-  public LDIFChangeRecordWriter writeComment(CharSequence comment)
+  public LDIFChangeRecordWriter writeComment(final CharSequence comment)
       throws IOException, NullPointerException
   {
     writeComment0(comment);

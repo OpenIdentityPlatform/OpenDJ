@@ -41,8 +41,8 @@ import com.sun.opends.sdk.util.Validator;
 /**
  * Compare request implementation.
  */
-final class CompareRequestImpl extends
-    AbstractRequestImpl<CompareRequest> implements CompareRequest
+final class CompareRequestImpl extends AbstractRequestImpl<CompareRequest>
+    implements CompareRequest
 {
 
   private AttributeDescription attributeDescription;
@@ -54,9 +54,9 @@ final class CompareRequestImpl extends
 
 
   /**
-   * Creates a new compare request using the provided distinguished
-   * name, attribute name, and assertion value.
-   * 
+   * Creates a new compare request using the provided distinguished name,
+   * attribute name, and assertion value.
+   *
    * @param name
    *          The distinguished name of the entry to be compared.
    * @param attributeDescription
@@ -67,9 +67,9 @@ final class CompareRequestImpl extends
    *           If {@code name}, {@code attributeDescription}, or {@code
    *           assertionValue} was {@code null}.
    */
-  CompareRequestImpl(DN name,
-      AttributeDescription attributeDescription,
-      ByteString assertionValue) throws NullPointerException
+  CompareRequestImpl(final DN name,
+      final AttributeDescription attributeDescription,
+      final ByteString assertionValue) throws NullPointerException
   {
     this.name = name;
     this.attributeDescription = attributeDescription;
@@ -121,7 +121,7 @@ final class CompareRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public CompareRequest setAssertionValue(ByteString value)
+  public CompareRequest setAssertionValue(final ByteString value)
       throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(value);
@@ -134,7 +134,7 @@ final class CompareRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public CompareRequest setAssertionValue(Object value)
+  public CompareRequest setAssertionValue(final Object value)
       throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(value);
@@ -148,7 +148,7 @@ final class CompareRequestImpl extends
    * {@inheritDoc}
    */
   public CompareRequest setAttributeDescription(
-      AttributeDescription attributeDescription)
+      final AttributeDescription attributeDescription)
       throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(attributeDescription);
@@ -162,9 +162,9 @@ final class CompareRequestImpl extends
    * {@inheritDoc}
    */
   public CompareRequest setAttributeDescription(
-      String attributeDescription)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException
+      final String attributeDescription)
+      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
+      NullPointerException
   {
     Validator.ensureNotNull(attributeDescription);
     this.attributeDescription = AttributeDescription
@@ -177,7 +177,7 @@ final class CompareRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public CompareRequest setName(DN dn)
+  public CompareRequest setName(final DN dn)
       throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(dn);
@@ -190,9 +190,9 @@ final class CompareRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public CompareRequest setName(String dn)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException
+  public CompareRequest setName(final String dn)
+      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
+      NullPointerException
   {
     Validator.ensureNotNull(dn);
     this.name = DN.valueOf(dn);
@@ -222,6 +222,7 @@ final class CompareRequestImpl extends
 
 
 
+  @Override
   CompareRequest getThis()
   {
     return this;

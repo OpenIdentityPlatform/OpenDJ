@@ -29,13 +29,16 @@ package org.opends.sdk.responses;
 
 
 
+import java.util.Collections;
+import java.util.List;
+
 import org.opends.sdk.ResultCode;
 
 
 
 /**
  * Unmodifiable result implementation.
- * 
+ *
  * @param <S>
  *          The type of result.
  */
@@ -49,12 +52,11 @@ abstract class AbstractUnmodifiableResultImpl<S extends Result> extends
 
   /**
    * Creates a new unmodifiable result implementation.
-   * 
+   *
    * @param impl
-   *          The underlying result implementation to be made
-   *          unmodifiable.
+   *          The underlying result implementation to be made unmodifiable.
    */
-  AbstractUnmodifiableResultImpl(S impl)
+  AbstractUnmodifiableResultImpl(final S impl)
   {
     super(impl);
     this.impl = impl;
@@ -62,16 +64,8 @@ abstract class AbstractUnmodifiableResultImpl<S extends Result> extends
 
 
 
-  public final S addReferralURI(String uri)
+  public final S addReferralURI(final String uri)
       throws UnsupportedOperationException, NullPointerException
-  {
-    throw new UnsupportedOperationException();
-  }
-
-
-
-  public final S clearReferralURIs()
-      throws UnsupportedOperationException
   {
     throw new UnsupportedOperationException();
   }
@@ -99,9 +93,9 @@ abstract class AbstractUnmodifiableResultImpl<S extends Result> extends
 
 
 
-  public final Iterable<String> getReferralURIs()
+  public final List<String> getReferralURIs()
   {
-    return impl.getReferralURIs();
+    return Collections.unmodifiableList(impl.getReferralURIs());
   }
 
 
@@ -109,13 +103,6 @@ abstract class AbstractUnmodifiableResultImpl<S extends Result> extends
   public final ResultCode getResultCode()
   {
     return impl.getResultCode();
-  }
-
-
-
-  public final boolean hasReferralURIs()
-  {
-    return impl.hasReferralURIs();
   }
 
 
@@ -134,7 +121,7 @@ abstract class AbstractUnmodifiableResultImpl<S extends Result> extends
 
 
 
-  public final S setCause(Throwable cause)
+  public final S setCause(final Throwable cause)
       throws UnsupportedOperationException
   {
     throw new UnsupportedOperationException();
@@ -142,7 +129,7 @@ abstract class AbstractUnmodifiableResultImpl<S extends Result> extends
 
 
 
-  public final S setDiagnosticMessage(String message)
+  public final S setDiagnosticMessage(final String message)
       throws UnsupportedOperationException
   {
     throw new UnsupportedOperationException();
@@ -150,7 +137,7 @@ abstract class AbstractUnmodifiableResultImpl<S extends Result> extends
 
 
 
-  public final S setMatchedDN(String dn)
+  public final S setMatchedDN(final String dn)
       throws UnsupportedOperationException
   {
     throw new UnsupportedOperationException();
@@ -158,7 +145,7 @@ abstract class AbstractUnmodifiableResultImpl<S extends Result> extends
 
 
 
-  public final S setResultCode(ResultCode resultCode)
+  public final S setResultCode(final ResultCode resultCode)
       throws UnsupportedOperationException, NullPointerException
   {
     throw new UnsupportedOperationException();

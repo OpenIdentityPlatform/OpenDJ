@@ -28,8 +28,10 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
-import static com.sun.opends.sdk.util.StringPrepProfile.*;
+import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER;
+import static com.sun.opends.sdk.util.StringPrepProfile.CASE_FOLD;
+import static com.sun.opends.sdk.util.StringPrepProfile.TRIM;
+import static com.sun.opends.sdk.util.StringPrepProfile.prepareUnicode;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.ByteString;
@@ -38,16 +40,15 @@ import org.opends.sdk.LocalizableMessage;
 
 
 
-
 /**
- * This class implements the caseIgnoreIA5SubstringsMatch matching rule
- * defined in RFC 2252.
+ * This class implements the caseIgnoreIA5SubstringsMatch matching rule defined
+ * in RFC 2252.
  */
 final class CaseIgnoreIA5SubstringMatchingRuleImpl extends
     AbstractSubstringMatchingRuleImpl
 {
-  public ByteString normalizeAttributeValue(Schema schema,
-      ByteSequence value) throws DecodeException
+  public ByteString normalizeAttributeValue(final Schema schema,
+      final ByteSequence value) throws DecodeException
   {
     return normalize(TRIM, value);
   }
@@ -55,7 +56,7 @@ final class CaseIgnoreIA5SubstringMatchingRuleImpl extends
 
 
   @Override
-  ByteString normalizeSubString(Schema schema, ByteSequence value)
+  ByteString normalizeSubString(final Schema schema, final ByteSequence value)
       throws DecodeException
   {
     return normalize(false, value);
@@ -63,7 +64,7 @@ final class CaseIgnoreIA5SubstringMatchingRuleImpl extends
 
 
 
-  private ByteString normalize(boolean trim, ByteSequence value)
+  private ByteString normalize(final boolean trim, final ByteSequence value)
       throws DecodeException
   {
     final StringBuilder buffer = new StringBuilder();
@@ -102,9 +103,8 @@ final class CaseIgnoreIA5SubstringMatchingRuleImpl extends
         // This is not a valid character for an IA5 string. If strict
         // syntax enforcement is enabled, then we'll throw an exception.
         // Otherwise, we'll get rid of the character.
-        final LocalizableMessage message =
-            WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER.get(
-                value.toString(), String.valueOf(c));
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER
+            .get(value.toString(), String.valueOf(c));
         throw DecodeException.error(message);
       }
     }

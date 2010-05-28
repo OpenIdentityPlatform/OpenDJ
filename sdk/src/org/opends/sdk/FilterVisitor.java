@@ -34,21 +34,20 @@ import java.util.List;
 
 
 /**
- * A visitor of {@code Filter}s, in the style of the visitor design
- * pattern.
+ * A visitor of {@code Filter}s, in the style of the visitor design pattern.
  * <p>
- * Classes implementing this interface can query filters in a type-safe
- * manner. When a visitor is passed to a filter's accept method, the
- * corresponding visit method most applicable to that filter is invoked.
+ * Classes implementing this interface can query filters in a type-safe manner.
+ * When a visitor is passed to a filter's accept method, the corresponding visit
+ * method most applicable to that filter is invoked.
  *
  * @param <R>
  *          The return type of this visitor's methods. Use
- *          {@link java.lang.Void} for visitors that do not need to
- *          return results.
+ *          {@link java.lang.Void} for visitors that do not need to return
+ *          results.
  * @param <P>
- *          The type of the additional parameter to this visitor's
- *          methods. Use {@link java.lang.Void} for visitors that do not
- *          need an additional parameter.
+ *          The type of the additional parameter to this visitor's methods. Use
+ *          {@link java.lang.Void} for visitors that do not need an additional
+ *          parameter.
  */
 public interface FilterVisitor<R, P>
 {
@@ -57,8 +56,7 @@ public interface FilterVisitor<R, P>
    * Visits an {@code and} filter.
    * <p>
    * <b>Implementation note</b>: for the purposes of matching an empty
-   * sub-filter list should always evaluate to {@code true} as per RFC
-   * 4526.
+   * sub-filter list should always evaluate to {@code true} as per RFC 4526.
    *
    * @param p
    *          A visitor specified parameter.
@@ -174,8 +172,7 @@ public interface FilterVisitor<R, P>
    * Visits an {@code or} filter.
    * <p>
    * <b>Implementation note</b>: for the purposes of matching an empty
-   * sub-filter list should always evaluate to {@code false} as per RFC
-   * 4526.
+   * sub-filter list should always evaluate to {@code false} as per RFC 4526.
    *
    * @param p
    *          A visitor specified parameter.

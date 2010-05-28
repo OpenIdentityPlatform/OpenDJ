@@ -30,32 +30,41 @@ package com.sun.opends.sdk.util;
 
 
 /**
- * A {@code ASCIICharProp} provides fast access to ASCII character
- * properties. In particular, the ability to query whether or not a
- * character is a letter, a digit, hexadecimal character, as well as
- * various methods for performing character conversions.
+ * A {@code ASCIICharProp} provides fast access to ASCII character properties.
+ * In particular, the ability to query whether or not a character is a letter, a
+ * digit, hexadecimal character, as well as various methods for performing
+ * character conversions.
  * <p>
- * The methods in this class do not perform memory allocations nor
- * calculations and so can be used safely in high performance
- * situations.
+ * The methods in this class do not perform memory allocations nor calculations
+ * and so can be used safely in high performance situations.
  */
 public final class ASCIICharProp implements Comparable<ASCIICharProp>
 {
   private final char c;
+
   private final char upperCaseChar;
+
   private final char lowerCaseChar;
+
   private final boolean isUpperCaseChar;
+
   private final boolean isLowerCaseChar;
+
   private final boolean isDigit;
+
   private final boolean isLetter;
+
   private final boolean isKeyChar;
+
   private final boolean isHexChar;
+
   private final int hexValue;
+
   private final int decimalValue;
+
   private final String stringValue;
 
-  private static final ASCIICharProp[] CHAR_PROPS =
-      new ASCIICharProp[128];
+  private static final ASCIICharProp[] CHAR_PROPS = new ASCIICharProp[128];
 
   static
   {
@@ -68,17 +77,15 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp>
 
 
   /**
-   * Returns the character properties for the provided ASCII character.
-   * If a non-ASCII character is provided then this method returns
-   * {@code null}.
-   * 
+   * Returns the character properties for the provided ASCII character. If a
+   * non-ASCII character is provided then this method returns {@code null}.
+   *
    * @param c
    *          The ASCII character.
-   * @return The character properties for the provided ASCII character,
-   *         or {@code null} if {@code c} is greater than {@code \u007F}
-   *         .
+   * @return The character properties for the provided ASCII character, or
+   *         {@code null} if {@code c} is greater than {@code \u007F} .
    */
-  public static ASCIICharProp valueOf(char c)
+  public static ASCIICharProp valueOf(final char c)
   {
     if (c < 128)
     {
@@ -93,17 +100,16 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp>
 
 
   /**
-   * Returns the character properties for the provided ASCII character.
-   * If a non-ASCII character is provided then this method returns
-   * {@code null}.
-   * 
+   * Returns the character properties for the provided ASCII character. If a
+   * non-ASCII character is provided then this method returns {@code null}.
+   *
    * @param c
    *          The ASCII character.
-   * @return The character properties for the provided ASCII character,
-   *         or {@code null} if {@code c} is less than zero or greater
-   *         than {@code \u007F} .
+   * @return The character properties for the provided ASCII character, or
+   *         {@code null} if {@code c} is less than zero or greater than {@code
+   *         \u007F} .
    */
-  public static ASCIICharProp valueOf(int c)
+  public static ASCIICharProp valueOf(final int c)
   {
     if (c >= 0 && c < 128)
     {
@@ -117,7 +123,7 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp>
 
 
 
-  private ASCIICharProp(char c)
+  private ASCIICharProp(final char c)
   {
     this.c = c;
     this.stringValue = new String(new char[] { c });
@@ -196,7 +202,7 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp>
 
   /**
    * Returns the char value associated with this {@code ASCIICharProp}.
-   * 
+   *
    * @return The char value associated with this {@code ASCIICharProp}.
    */
   public char charValue()
@@ -209,7 +215,7 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp>
   /**
    * {@inheritDoc}
    */
-  public int compareTo(ASCIICharProp o)
+  public int compareTo(final ASCIICharProp o)
   {
     return c - o.c;
   }
@@ -217,12 +223,11 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp>
 
 
   /**
-   * Returns the decimal value associated with this {@code
-   * ASCIICharProp}, or {@code -1} if the value is not a decimal digit.
-   * 
-   * @return The decimal value associated with this {@code
-   *         ASCIICharProp}, or {@code -1} if the value is not a decimal
-   *         digit.
+   * Returns the decimal value associated with this {@code ASCIICharProp}, or
+   * {@code -1} if the value is not a decimal digit.
+   *
+   * @return The decimal value associated with this {@code ASCIICharProp}, or
+   *         {@code -1} if the value is not a decimal digit.
    */
   public int decimalValue()
   {
@@ -232,13 +237,33 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp>
 
 
   /**
-   * Returns the hexadecimal value associated with this {@code
-   * ASCIICharProp} , or {@code -1} if the value is not a hexadecimal
-   * digit.
-   * 
-   * @return The hexadecimal value associated with this {@code
-   *         ASCIICharProp} , or {@code -1} if the value is not a
-   *         hexadecimal digit.
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean equals(final Object obj)
+  {
+    return this == obj;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int hashCode()
+  {
+    return c;
+  }
+
+
+
+  /**
+   * Returns the hexadecimal value associated with this {@code ASCIICharProp} ,
+   * or {@code -1} if the value is not a hexadecimal digit.
+   *
+   * @return The hexadecimal value associated with this {@code ASCIICharProp} ,
+   *         or {@code -1} if the value is not a hexadecimal digit.
    */
   public int hexValue()
   {
@@ -248,9 +273,9 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp>
 
 
   /**
-   * Indicates whether or not the char value associated with this
-   * {@code ASCIICharProp} is a decimal digit.
-   * 
+   * Indicates whether or not the char value associated with this {@code
+   * ASCIICharProp} is a decimal digit.
+   *
    * @return {@code true} if the char value associated with this {@code
    *         ASCIICharProp} is a decimal digit.
    */
@@ -262,9 +287,9 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp>
 
 
   /**
-   * Indicates whether or not the char value associated with this
-   * {@code ASCIICharProp} is a hexadecimal digit.
-   * 
+   * Indicates whether or not the char value associated with this {@code
+   * ASCIICharProp} is a hexadecimal digit.
+   *
    * @return {@code true} if the char value associated with this {@code
    *         ASCIICharProp} is a hexadecimal digit.
    */
@@ -276,10 +301,10 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp>
 
 
   /**
-   * Indicates whether or not the char value associated with this
-   * {@code ASCIICharProp} is a {@code keychar} as defined in RFC 4512.
-   * A {@code keychar} is a letter, a digit, or a hyphen.
-   * 
+   * Indicates whether or not the char value associated with this {@code
+   * ASCIICharProp} is a {@code keychar} as defined in RFC 4512. A {@code
+   * keychar} is a letter, a digit, or a hyphen.
+   *
    * @return {@code true} if the char value associated with this {@code
    *         ASCIICharProp} is a {@code keychar}.
    */
@@ -291,9 +316,9 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp>
 
 
   /**
-   * Indicates whether or not the char value associated with this
-   * {@code ASCIICharProp} is a letter.
-   * 
+   * Indicates whether or not the char value associated with this {@code
+   * ASCIICharProp} is a letter.
+   *
    * @return {@code true} if the char value associated with this {@code
    *         ASCIICharProp} is a letter.
    */
@@ -305,9 +330,9 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp>
 
 
   /**
-   * Indicates whether or not the char value associated with this
-   * {@code ASCIICharProp} is a lower-case character.
-   * 
+   * Indicates whether or not the char value associated with this {@code
+   * ASCIICharProp} is a lower-case character.
+   *
    * @return {@code true} if the char value associated with this {@code
    *         ASCIICharProp} is a lower-case character.
    */
@@ -319,9 +344,9 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp>
 
 
   /**
-   * Indicates whether or not the char value associated with this
-   * {@code ASCIICharProp} is an upper-case character.
-   * 
+   * Indicates whether or not the char value associated with this {@code
+   * ASCIICharProp} is an upper-case character.
+   *
    * @return {@code true} if the char value associated with this {@code
    *         ASCIICharProp} is an upper-case character.
    */
@@ -335,7 +360,7 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp>
   /**
    * Returns the lower-case char value associated with this {@code
    * ASCIICharProp}.
-   * 
+   *
    * @return The lower-case char value associated with this {@code
    *         ASCIICharProp}.
    */
@@ -360,7 +385,7 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp>
   /**
    * Returns the upper-case char value associated with this {@code
    * ASCIICharProp}.
-   * 
+   *
    * @return The upper-case char value associated with this {@code
    *         ASCIICharProp}.
    */

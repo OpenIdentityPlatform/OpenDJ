@@ -43,17 +43,26 @@ import com.sun.opends.sdk.util.SubstringReader;
 public class SchemaUtilsTest extends SchemaTestCase
 {
 
+  @DataProvider(name = "invalidOIDs")
+  public Object[][] createInvalidOIDs()
+  {
+    return new Object[][] { { "" }, { ".0" }, { "0." }, { "100." }, { ".999" },
+        { "1one" }, { "one+two+three" },
+        // AD puts quotes around OIDs - test mismatched quotes.
+        { "'0" }, { "'10" }, { "999'" }, { "0.0'" }, };
+  }
+
+
+
   @DataProvider(name = "validOIDs")
   public Object[][] createValidOIDs()
   {
     return new Object[][] {
         // Compliant NOIDs
-        { "0.0" }, { "1.0" }, { "2.0" }, { "3.0" }, { "4.0" },
-        { "5.0" }, { "6.0" }, { "7.0" }, { "8.0" }, { "9.0" },
-        { "0.1" }, { "0.2" }, { "0.3" }, { "0.4" }, { "0.5" },
-        { "0.6" }, { "0.7" }, { "0.8" }, { "0.9" }, { "10.0" },
-        { "100.0" },
-        { "999.0" },
+        { "0.0" }, { "1.0" }, { "2.0" }, { "3.0" }, { "4.0" }, { "5.0" },
+        { "6.0" }, { "7.0" }, { "8.0" }, { "9.0" }, { "0.1" }, { "0.2" },
+        { "0.3" }, { "0.4" }, { "0.5" }, { "0.6" }, { "0.7" }, { "0.8" },
+        { "0.9" }, { "10.0" }, { "100.0" }, { "999.0" },
         { "0.100" },
         { "0.999" },
         { "100.100" },
@@ -69,31 +78,29 @@ public class SchemaUtilsTest extends SchemaTestCase
         // AD puts quotes around OIDs - not compliant but we need to
         // handle them.
         { "'0.0'" }, { "'10.0'" }, { "'999.0'" },
-        { "'111.22.333.44.55555.66.777.88.999'" }, { "'a'" },
-        { "'a2'" }, { "'a-'" }, { "'one'" }, { "'one1'" },
+        { "'111.22.333.44.55555.66.777.88.999'" }, { "'a'" }, { "'a2'" },
+        { "'a-'" }, { "'one'" }, { "'one1'" },
         { "'one-two'" },
         { "'one1-two2-three3'" },
         // Not strictly legal, but we'll be lenient with what we accept.
-        { "0" }, { "1" }, { "2" }, { "3" }, { "4" }, { "5" }, { "6" },
-        { "7" }, { "8" }, { "9" }, { "00" }, { "01" }, { "01.0" },
-        { "0.01" }, { "one.two.three" }, };
+        { "0" }, { "1" }, { "2" }, { "3" }, { "4" }, { "5" }, { "6" }, { "7" },
+        { "8" }, { "9" }, { "00" }, { "01" }, { "01.0" }, { "0.01" },
+        { "one.two.three" }, };
   }
 
 
 
-  @DataProvider(name = "invalidOIDs")
-  public Object[][] createInvalidOIDs()
+  @Test(dataProvider = "invalidOIDs", expectedExceptions = DecodeException.class)
+  public void testReadOIDInvalid(final String oid) throws DecodeException
   {
-    return new Object[][] { { "" }, { ".0" }, { "0." }, { "100." },
-        { ".999" }, { "1one" }, { "one+two+three" },
-        // AD puts quotes around OIDs - test mismatched quotes.
-        { "'0" }, { "'10" }, { "999'" }, { "0.0'" }, };
+    final SubstringReader reader = new SubstringReader(oid);
+    SchemaUtils.readOID(reader);
   }
 
 
 
   @Test(dataProvider = "validOIDs")
-  public void testReadOIDValid(String oid) throws DecodeException
+  public void testReadOIDValid(final String oid) throws DecodeException
   {
     String expected = oid;
     if (oid.startsWith("'"))
@@ -101,16 +108,7 @@ public class SchemaUtilsTest extends SchemaTestCase
       expected = oid.substring(1, oid.length() - 1);
     }
 
-    SubstringReader reader = new SubstringReader(oid);
+    final SubstringReader reader = new SubstringReader(oid);
     Assert.assertEquals(SchemaUtils.readOID(reader), expected);
-  }
-
-
-
-  @Test(dataProvider = "invalidOIDs", expectedExceptions = DecodeException.class)
-  public void testReadOIDInvalid(String oid) throws DecodeException
-  {
-    SubstringReader reader = new SubstringReader(oid);
-    SchemaUtils.readOID(reader);
   }
 }

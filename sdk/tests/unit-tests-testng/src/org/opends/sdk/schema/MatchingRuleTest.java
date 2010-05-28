@@ -31,12 +31,11 @@ package org.opends.sdk.schema;
 import static org.testng.Assert.assertEquals;
 
 import org.opends.sdk.Assertion;
+import org.opends.sdk.ByteString;
 import org.opends.sdk.ConditionResult;
 import org.opends.sdk.DecodeException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import org.opends.sdk.ByteString;
 
 
 
@@ -46,28 +45,8 @@ import org.opends.sdk.ByteString;
 public abstract class MatchingRuleTest extends SchemaTestCase
 {
   /**
-   * Generate data for the Matching Rule test.
-   * 
-   * @return the data for the equality matching rule test.
-   */
-  @DataProvider(name = "matchingrules")
-  public abstract Object[][] createMatchingRuleTest();
-
-
-
-  /**
-   * Generate invalid attribute values for the Matching Rule test.
-   * 
-   * @return the data for the EqualityMatchingRulesInvalidValuestest.
-   */
-  @DataProvider(name = "matchingRuleInvalidAttributeValues")
-  public abstract Object[][] createMatchingRuleInvalidAttributeValues();
-
-
-
-  /**
    * Generate invalid assertion values for the Matching Rule test.
-   * 
+   *
    * @return the data for the EqualityMatchingRulesInvalidValuestest.
    */
   @DataProvider(name = "matchingRuleInvalidAssertionValues")
@@ -79,11 +58,22 @@ public abstract class MatchingRuleTest extends SchemaTestCase
 
 
   /**
-   * Get an instance of the matching rule.
-   * 
-   * @return An instance of the matching rule to test.
+   * Generate invalid attribute values for the Matching Rule test.
+   *
+   * @return the data for the EqualityMatchingRulesInvalidValuestest.
    */
-  protected abstract MatchingRule getRule();
+  @DataProvider(name = "matchingRuleInvalidAttributeValues")
+  public abstract Object[][] createMatchingRuleInvalidAttributeValues();
+
+
+
+  /**
+   * Generate data for the Matching Rule test.
+   *
+   * @return the data for the equality matching rule test.
+   */
+  @DataProvider(name = "matchingrules")
+  public abstract Object[][] createMatchingRuleTest();
 
 
 
@@ -91,17 +81,17 @@ public abstract class MatchingRuleTest extends SchemaTestCase
    * Test the normalization and the comparison of valid values.
    */
   @Test(dataProvider = "matchingrules")
-  public void matchingRules(String value1, String value2,
-      ConditionResult result) throws Exception
+  public void matchingRules(final String value1, final String value2,
+      final ConditionResult result) throws Exception
   {
-    MatchingRule rule = getRule();
+    final MatchingRule rule = getRule();
 
     // normalize the 2 provided values and check that they are equals
-    ByteString normalizedValue1 =
-        rule.normalizeAttributeValue(ByteString.valueOf(value1));
-    Assertion assertion = rule.getAssertion(ByteString.valueOf(value2));
+    final ByteString normalizedValue1 = rule.normalizeAttributeValue(ByteString
+        .valueOf(value1));
+    final Assertion assertion = rule.getAssertion(ByteString.valueOf(value2));
 
-    ConditionResult liveResult = assertion.matches(normalizedValue1);
+    final ConditionResult liveResult = assertion.matches(normalizedValue1);
     assertEquals(result, liveResult);
   }
 
@@ -110,14 +100,14 @@ public abstract class MatchingRuleTest extends SchemaTestCase
   /**
    * Test that invalid values are rejected.
    */
-  @Test(expectedExceptions = DecodeException.class, dataProvider = "matchingRuleInvalidAttributeValues")
-  public void matchingRulesInvalidAttributeValues(String value)
+  @Test(expectedExceptions = DecodeException.class, dataProvider = "matchingRuleInvalidAssertionValues")
+  public void matchingRulesInvalidAssertionValues(final String value)
       throws Exception
   {
     // Get the instance of the rule to be tested.
-    MatchingRule rule = getRule();
+    final MatchingRule rule = getRule();
 
-    rule.normalizeAttributeValue(ByteString.valueOf(value));
+    rule.getAssertion(ByteString.valueOf(value));
   }
 
 
@@ -125,13 +115,22 @@ public abstract class MatchingRuleTest extends SchemaTestCase
   /**
    * Test that invalid values are rejected.
    */
-  @Test(expectedExceptions = DecodeException.class, dataProvider = "matchingRuleInvalidAssertionValues")
-  public void matchingRulesInvalidAssertionValues(String value)
+  @Test(expectedExceptions = DecodeException.class, dataProvider = "matchingRuleInvalidAttributeValues")
+  public void matchingRulesInvalidAttributeValues(final String value)
       throws Exception
   {
     // Get the instance of the rule to be tested.
-    MatchingRule rule = getRule();
+    final MatchingRule rule = getRule();
 
-    rule.getAssertion(ByteString.valueOf(value));
+    rule.normalizeAttributeValue(ByteString.valueOf(value));
   }
+
+
+
+  /**
+   * Get an instance of the matching rule.
+   *
+   * @return An instance of the matching rule to test.
+   */
+  protected abstract MatchingRule getRule();
 }

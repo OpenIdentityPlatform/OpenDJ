@@ -48,9 +48,8 @@ public abstract class LocalizableMessageDescriptor
   {
 
     /**
-     * Cached copy of the message created by this descriptor. We can get
-     * away with this for the zero argument message because it is
-     * immutable.
+     * Cached copy of the message created by this descriptor. We can get away
+     * with this for the zero argument message because it is immutable.
      */
     private final LocalizableMessage message;
 
@@ -68,7 +67,8 @@ public abstract class LocalizableMessageDescriptor
      * @param classLoader
      *          the class loader to be used to get the ResourceBundle
      */
-    public Arg0(String rbBase, String key, ClassLoader classLoader)
+    public Arg0(final String rbBase, final String key,
+        final ClassLoader classLoader)
     {
       super(rbBase, key, classLoader);
       message = newMessage(this);
@@ -92,6 +92,7 @@ public abstract class LocalizableMessageDescriptor
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean requiresFormatter()
     {
       return requiresFormat;
@@ -119,7 +120,8 @@ public abstract class LocalizableMessageDescriptor
      * @param classLoader
      *          the class loader to be used to get the ResourceBundle
      */
-    public Arg1(String rbBase, String key, ClassLoader classLoader)
+    public Arg1(final String rbBase, final String key,
+        final ClassLoader classLoader)
     {
       super(rbBase, key, classLoader);
     }
@@ -127,15 +129,15 @@ public abstract class LocalizableMessageDescriptor
 
 
     /**
-     * Creates a message with arguments that will replace format
-     * specifiers in the assocated format string when the message is
-     * rendered to string representation.
+     * Creates a message with arguments that will replace format specifiers in
+     * the assocated format string when the message is rendered to string
+     * representation.
      *
      * @return LocalizableMessage object
      * @param a1
      *          message argument
      */
-    public LocalizableMessage get(T1 a1)
+    public LocalizableMessage get(final T1 a1)
     {
       return newMessage(this, a1);
     }
@@ -145,6 +147,7 @@ public abstract class LocalizableMessageDescriptor
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean requiresFormatter()
     {
       return true;
@@ -175,7 +178,8 @@ public abstract class LocalizableMessageDescriptor
      * @param classLoader
      *          the class loader to be used to get the ResourceBundle
      */
-    public Arg2(String rbBase, String key, ClassLoader classLoader)
+    public Arg2(final String rbBase, final String key,
+        final ClassLoader classLoader)
     {
       super(rbBase, key, classLoader);
     }
@@ -183,9 +187,9 @@ public abstract class LocalizableMessageDescriptor
 
 
     /**
-     * Creates a message with arguments that will replace format
-     * specifiers in the assocated format string when the message is
-     * rendered to string representation.
+     * Creates a message with arguments that will replace format specifiers in
+     * the assocated format string when the message is rendered to string
+     * representation.
      *
      * @return LocalizableMessage object
      * @param a1
@@ -193,7 +197,7 @@ public abstract class LocalizableMessageDescriptor
      * @param a2
      *          message argument
      */
-    public LocalizableMessage get(T1 a1, T2 a2)
+    public LocalizableMessage get(final T1 a1, final T2 a2)
     {
       return newMessage(this, a1, a2);
     }
@@ -203,6 +207,7 @@ public abstract class LocalizableMessageDescriptor
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean requiresFormatter()
     {
       return true;
@@ -222,7 +227,8 @@ public abstract class LocalizableMessageDescriptor
    * @param <T3>
    *          The type of the third message argument.
    */
-  public static final class Arg3<T1, T2, T3> extends LocalizableMessageDescriptor
+  public static final class Arg3<T1, T2, T3> extends
+      LocalizableMessageDescriptor
   {
 
     /**
@@ -235,7 +241,8 @@ public abstract class LocalizableMessageDescriptor
      * @param classLoader
      *          the class loader to be used to get the ResourceBundle
      */
-    public Arg3(String rbBase, String key, ClassLoader classLoader)
+    public Arg3(final String rbBase, final String key,
+        final ClassLoader classLoader)
     {
       super(rbBase, key, classLoader);
     }
@@ -243,9 +250,9 @@ public abstract class LocalizableMessageDescriptor
 
 
     /**
-     * Creates a message with arguments that will replace format
-     * specifiers in the assocated format string when the message is
-     * rendered to string representation.
+     * Creates a message with arguments that will replace format specifiers in
+     * the assocated format string when the message is rendered to string
+     * representation.
      *
      * @return LocalizableMessage object
      * @param a1
@@ -255,7 +262,7 @@ public abstract class LocalizableMessageDescriptor
      * @param a3
      *          message argument
      */
-    public LocalizableMessage get(T1 a1, T2 a2, T3 a3)
+    public LocalizableMessage get(final T1 a1, final T2 a2, final T3 a3)
     {
       return newMessage(this, a1, a2, a3);
     }
@@ -265,6 +272,7 @@ public abstract class LocalizableMessageDescriptor
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean requiresFormatter()
     {
       return true;
@@ -300,7 +308,8 @@ public abstract class LocalizableMessageDescriptor
      * @param classLoader
      *          the class loader to be used to get the ResourceBundle
      */
-    public Arg4(String rbBase, String key, ClassLoader classLoader)
+    public Arg4(final String rbBase, final String key,
+        final ClassLoader classLoader)
     {
       super(rbBase, key, classLoader);
     }
@@ -308,9 +317,9 @@ public abstract class LocalizableMessageDescriptor
 
 
     /**
-     * Creates a message with arguments that will replace format
-     * specifiers in the assocated format string when the message is
-     * rendered to string representation.
+     * Creates a message with arguments that will replace format specifiers in
+     * the assocated format string when the message is rendered to string
+     * representation.
      *
      * @return LocalizableMessage object
      * @param a1
@@ -322,7 +331,8 @@ public abstract class LocalizableMessageDescriptor
      * @param a4
      *          message argument
      */
-    public LocalizableMessage get(T1 a1, T2 a2, T3 a3, T4 a4)
+    public LocalizableMessage get(final T1 a1, final T2 a2, final T3 a3,
+        final T4 a4)
     {
       return newMessage(this, a1, a2, a3, a4);
     }
@@ -332,6 +342,7 @@ public abstract class LocalizableMessageDescriptor
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean requiresFormatter()
     {
       return true;
@@ -369,7 +380,8 @@ public abstract class LocalizableMessageDescriptor
      * @param classLoader
      *          the class loader to be used to get the ResourceBundle
      */
-    public Arg5(String rbBase, String key, ClassLoader classLoader)
+    public Arg5(final String rbBase, final String key,
+        final ClassLoader classLoader)
     {
       super(rbBase, key, classLoader);
     }
@@ -377,9 +389,9 @@ public abstract class LocalizableMessageDescriptor
 
 
     /**
-     * Creates a message with arguments that will replace format
-     * specifiers in the assocated format string when the message is
-     * rendered to string representation.
+     * Creates a message with arguments that will replace format specifiers in
+     * the assocated format string when the message is rendered to string
+     * representation.
      *
      * @return LocalizableMessage object
      * @param a1
@@ -393,7 +405,8 @@ public abstract class LocalizableMessageDescriptor
      * @param a5
      *          message argument
      */
-    public LocalizableMessage get(T1 a1, T2 a2, T3 a3, T4 a4, T5 a5)
+    public LocalizableMessage get(final T1 a1, final T2 a2, final T3 a3,
+        final T4 a4, final T5 a5)
     {
       return newMessage(this, a1, a2, a3, a4, a5);
     }
@@ -403,6 +416,7 @@ public abstract class LocalizableMessageDescriptor
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean requiresFormatter()
     {
       return true;
@@ -442,7 +456,8 @@ public abstract class LocalizableMessageDescriptor
      * @param classLoader
      *          the class loader to be used to get the ResourceBundle
      */
-    public Arg6(String rbBase, String key, ClassLoader classLoader)
+    public Arg6(final String rbBase, final String key,
+        final ClassLoader classLoader)
     {
       super(rbBase, key, classLoader);
     }
@@ -450,9 +465,9 @@ public abstract class LocalizableMessageDescriptor
 
 
     /**
-     * Creates a message with arguments that will replace format
-     * specifiers in the assocated format string when the message is
-     * rendered to string representation.
+     * Creates a message with arguments that will replace format specifiers in
+     * the assocated format string when the message is rendered to string
+     * representation.
      *
      * @return LocalizableMessage object
      * @param a1
@@ -468,7 +483,8 @@ public abstract class LocalizableMessageDescriptor
      * @param a6
      *          message argument
      */
-    public LocalizableMessage get(T1 a1, T2 a2, T3 a3, T4 a4, T5 a5, T6 a6)
+    public LocalizableMessage get(final T1 a1, final T2 a2, final T3 a3,
+        final T4 a4, final T5 a5, final T6 a6)
     {
       return newMessage(this, a1, a2, a3, a4, a5, a6);
     }
@@ -478,6 +494,7 @@ public abstract class LocalizableMessageDescriptor
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean requiresFormatter()
     {
       return true;
@@ -519,7 +536,8 @@ public abstract class LocalizableMessageDescriptor
      * @param classLoader
      *          the class loader to be used to get the ResourceBundle
      */
-    public Arg7(String rbBase, String key, ClassLoader classLoader)
+    public Arg7(final String rbBase, final String key,
+        final ClassLoader classLoader)
     {
       super(rbBase, key, classLoader);
     }
@@ -527,9 +545,9 @@ public abstract class LocalizableMessageDescriptor
 
 
     /**
-     * Creates a message with arguments that will replace format
-     * specifiers in the assocated format string when the message is
-     * rendered to string representation.
+     * Creates a message with arguments that will replace format specifiers in
+     * the assocated format string when the message is rendered to string
+     * representation.
      *
      * @return LocalizableMessage object
      * @param a1
@@ -547,7 +565,8 @@ public abstract class LocalizableMessageDescriptor
      * @param a7
      *          message argument
      */
-    public LocalizableMessage get(T1 a1, T2 a2, T3 a3, T4 a4, T5 a5, T6 a6, T7 a7)
+    public LocalizableMessage get(final T1 a1, final T2 a2, final T3 a3,
+        final T4 a4, final T5 a5, final T6 a6, final T7 a7)
     {
       return newMessage(this, a1, a2, a3, a4, a5, a6, a7);
     }
@@ -557,6 +576,7 @@ public abstract class LocalizableMessageDescriptor
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean requiresFormatter()
     {
       return true;
@@ -586,8 +606,8 @@ public abstract class LocalizableMessageDescriptor
    * @param <T8>
    *          The type of the eighth message argument.
    */
-  public static final class Arg8<T1, T2, T3, T4, T5, T6, T7, T8>
-      extends LocalizableMessageDescriptor
+  public static final class Arg8<T1, T2, T3, T4, T5, T6, T7, T8> extends
+      LocalizableMessageDescriptor
   {
 
     /**
@@ -600,7 +620,8 @@ public abstract class LocalizableMessageDescriptor
      * @param classLoader
      *          the class loader to be used to get the ResourceBundle
      */
-    public Arg8(String rbBase, String key, ClassLoader classLoader)
+    public Arg8(final String rbBase, final String key,
+        final ClassLoader classLoader)
     {
       super(rbBase, key, classLoader);
     }
@@ -608,9 +629,9 @@ public abstract class LocalizableMessageDescriptor
 
 
     /**
-     * Creates a message with arguments that will replace format
-     * specifiers in the assocated format string when the message is
-     * rendered to string representation.
+     * Creates a message with arguments that will replace format specifiers in
+     * the assocated format string when the message is rendered to string
+     * representation.
      *
      * @return LocalizableMessage object
      * @param a1
@@ -630,8 +651,8 @@ public abstract class LocalizableMessageDescriptor
      * @param a8
      *          message argument
      */
-    public LocalizableMessage get(T1 a1, T2 a2, T3 a3, T4 a4, T5 a5, T6 a6, T7 a7,
-        T8 a8)
+    public LocalizableMessage get(final T1 a1, final T2 a2, final T3 a3,
+        final T4 a4, final T5 a5, final T6 a6, final T7 a7, final T8 a8)
     {
       return newMessage(this, a1, a2, a3, a4, a5, a6, a7, a8);
     }
@@ -641,6 +662,7 @@ public abstract class LocalizableMessageDescriptor
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean requiresFormatter()
     {
       return true;
@@ -672,8 +694,8 @@ public abstract class LocalizableMessageDescriptor
    * @param <T9>
    *          The type of the ninth message argument.
    */
-  public static final class Arg9<T1, T2, T3, T4, T5, T6, T7, T8, T9>
-      extends LocalizableMessageDescriptor
+  public static final class Arg9<T1, T2, T3, T4, T5, T6, T7, T8, T9> extends
+      LocalizableMessageDescriptor
   {
 
     /**
@@ -686,7 +708,8 @@ public abstract class LocalizableMessageDescriptor
      * @param classLoader
      *          the class loader to be used to get the ResourceBundle
      */
-    public Arg9(String rbBase, String key, ClassLoader classLoader)
+    public Arg9(final String rbBase, final String key,
+        final ClassLoader classLoader)
     {
       super(rbBase, key, classLoader);
     }
@@ -694,9 +717,9 @@ public abstract class LocalizableMessageDescriptor
 
 
     /**
-     * Creates a message with arguments that will replace format
-     * specifiers in the assocated format string when the message is
-     * rendered to string representation.
+     * Creates a message with arguments that will replace format specifiers in
+     * the assocated format string when the message is rendered to string
+     * representation.
      *
      * @return LocalizableMessage object
      * @param a1
@@ -718,8 +741,9 @@ public abstract class LocalizableMessageDescriptor
      * @param a9
      *          message argument
      */
-    public LocalizableMessage get(T1 a1, T2 a2, T3 a3, T4 a4, T5 a5, T6 a6, T7 a7,
-        T8 a8, T9 a9)
+    public LocalizableMessage get(final T1 a1, final T2 a2, final T3 a3,
+        final T4 a4, final T5 a5, final T6 a6, final T7 a7, final T8 a8,
+        final T9 a9)
     {
       return newMessage(this, a1, a2, a3, a4, a5, a6, a7, a8, a9);
     }
@@ -729,6 +753,7 @@ public abstract class LocalizableMessageDescriptor
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean requiresFormatter()
     {
       return true;
@@ -739,10 +764,9 @@ public abstract class LocalizableMessageDescriptor
 
 
   /**
-   * Subclass for creating messages with an any number of arguments. In
-   * general this class should be used when a message needs to be
-   * defined with more arguments that can be handled with the current
-   * number of subclasses
+   * Subclass for creating messages with an any number of arguments. In general
+   * this class should be used when a message needs to be defined with more
+   * arguments that can be handled with the current number of subclasses
    */
   public static final class ArgN extends LocalizableMessageDescriptor
   {
@@ -757,7 +781,8 @@ public abstract class LocalizableMessageDescriptor
      * @param classLoader
      *          the class loader to be used to get the ResourceBundle
      */
-    public ArgN(String rbBase, String key, ClassLoader classLoader)
+    public ArgN(final String rbBase, final String key,
+        final ClassLoader classLoader)
     {
       super(rbBase, key, classLoader);
     }
@@ -765,15 +790,15 @@ public abstract class LocalizableMessageDescriptor
 
 
     /**
-     * Creates a message with arguments that will replace format
-     * specifiers in the assocated format string when the message is
-     * rendered to string representation.
+     * Creates a message with arguments that will replace format specifiers in
+     * the assocated format string when the message is rendered to string
+     * representation.
      *
      * @return LocalizableMessage object
      * @param args
      *          message arguments
      */
-    public LocalizableMessage get(Object... args)
+    public LocalizableMessage get(final Object... args)
     {
       return newMessage(this, args);
     }
@@ -783,103 +808,12 @@ public abstract class LocalizableMessageDescriptor
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean requiresFormatter()
     {
       return true;
     }
 
-  }
-
-
-
-  /**
-   * A descriptor for creating a raw message from a <code>String</code>.
-   * In general this descriptor should NOT be used internally. OpenDS
-   * plugins may want to use the mechanism to create messages without
-   * storing their strings in resource bundles.
-   */
-  public static final class Raw extends LocalizableMessageDescriptor
-  {
-
-    private final String formatString;
-
-    private final boolean requiresFormatter;
-
-
-
-    /**
-     * Creates a parameterized instance.
-     *
-     * @param formatString
-     *          for created messages
-     */
-    public Raw(CharSequence formatString)
-    {
-      super(null, null, null);
-      this.formatString = formatString != null ? formatString
-          .toString() : "";
-      this.requiresFormatter = this.formatString.matches(".*%.*");
-    }
-
-
-
-    /**
-     * Creates a message with arguments that will replace format
-     * specifiers in the assocated format string when the message is
-     * rendered to string representation.
-     *
-     * @return LocalizableMessage object
-     * @param args
-     *          message arguments
-     */
-    public LocalizableMessage get(Object... args)
-    {
-      return newMessage(this, args);
-    }
-
-
-
-    /**
-     * Overridden in order to bypass the resource bundle plumbing and
-     * return the format string directly.
-     *
-     * @param locale
-     *          ignored
-     * @return format string
-     */
-    public String getFormatString(Locale locale)
-    {
-      return this.formatString;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean requiresFormatter()
-    {
-      return this.requiresFormatter;
-    }
-
-  }
-
-
-
-  // Container for caching the last locale specific format string.
-  private static final class CachedFormatString
-  {
-    private final Locale locale;
-
-    private final String formatString;
-
-
-
-    private CachedFormatString(Locale locale, String formatString)
-    {
-      this.locale = locale;
-      this.formatString = formatString;
-    }
   }
 
 
@@ -899,7 +833,101 @@ public abstract class LocalizableMessageDescriptor
      *          The message parameters.
      * @return The new message.
      */
-    LocalizableMessage newMessage(LocalizableMessageDescriptor descriptor, Object... args);
+    LocalizableMessage newMessage(LocalizableMessageDescriptor descriptor,
+        Object... args);
+  }
+
+
+
+  /**
+   * A descriptor for creating a raw message from a <code>String</code>. In
+   * general this descriptor should NOT be used internally. OpenDS plugins may
+   * want to use the mechanism to create messages without storing their strings
+   * in resource bundles.
+   */
+  public static final class Raw extends LocalizableMessageDescriptor
+  {
+
+    private final String formatString;
+
+    private final boolean requiresFormatter;
+
+
+
+    /**
+     * Creates a parameterized instance.
+     *
+     * @param formatString
+     *          for created messages
+     */
+    public Raw(final CharSequence formatString)
+    {
+      super(null, null, null);
+      this.formatString = formatString != null ? formatString.toString() : "";
+      this.requiresFormatter = this.formatString.matches(".*%.*");
+    }
+
+
+
+    /**
+     * Creates a message with arguments that will replace format specifiers in
+     * the assocated format string when the message is rendered to string
+     * representation.
+     *
+     * @return LocalizableMessage object
+     * @param args
+     *          message arguments
+     */
+    public LocalizableMessage get(final Object... args)
+    {
+      return newMessage(this, args);
+    }
+
+
+
+    /**
+     * Overridden in order to bypass the resource bundle plumbing and return the
+     * format string directly.
+     *
+     * @param locale
+     *          ignored
+     * @return format string
+     */
+    @Override
+    public String getFormatString(final Locale locale)
+    {
+      return this.formatString;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean requiresFormatter()
+    {
+      return this.requiresFormatter;
+    }
+
+  }
+
+
+
+  // Container for caching the last locale specific format string.
+  private static final class CachedFormatString
+  {
+    private final Locale locale;
+
+    private final String formatString;
+
+
+
+    private CachedFormatString(final Locale locale, final String formatString)
+    {
+      this.locale = locale;
+      this.formatString = formatString;
+    }
   }
 
 
@@ -908,16 +936,16 @@ public abstract class LocalizableMessageDescriptor
    * We use a factory for creating LocalizableMessage objects in order to avoid
    * exposing this class in the public API.
    */
-  public static MessageFactory MESSAGE_FACTORY;
+  public static MessageFactory messageFactory;
 
-  // Force MESSAGE_FACTORY to be set.
+  // Force messageFactory to be set.
   static
   {
     try
     {
       Class.forName("org.opends.sdk.LocalizableMessage");
     }
-    catch (ClassNotFoundException e)
+    catch (final ClassNotFoundException e)
     {
       throw new RuntimeException(e);
     }
@@ -926,27 +954,26 @@ public abstract class LocalizableMessageDescriptor
 
 
   /**
-   * Indicates whether or not formatting should be applied to the given
-   * format string. Note that a format string might have literal
-   * specifiers (%% or %n for example) that require formatting but are
-   * not replaced by arguments.
+   * Indicates whether or not formatting should be applied to the given format
+   * string. Note that a format string might have literal specifiers (%% or %n
+   * for example) that require formatting but are not replaced by arguments.
    *
    * @param s
    *          candidate for formatting
-   * @return boolean where true indicates that the format string
-   *         requires formatting
+   * @return boolean where true indicates that the format string requires
+   *         formatting
    */
-  private static final boolean containsArgumentLiterals(String s)
+  private static final boolean containsArgumentLiterals(final String s)
   {
     return s.matches(".*%[n|%].*"); // match Formatter literals
   }
 
 
 
-  private static LocalizableMessage newMessage(LocalizableMessageDescriptor descriptor,
-      Object... args)
+  private static LocalizableMessage newMessage(
+      final LocalizableMessageDescriptor descriptor, final Object... args)
   {
-    return MESSAGE_FACTORY.newMessage(descriptor, args);
+    return messageFactory.newMessage(descriptor, args);
   }
 
 
@@ -958,8 +985,8 @@ public abstract class LocalizableMessageDescriptor
   private final String key;
 
   /*
-   * The class loader to be used to retrieve the ResourceBundle. If null
-   * the default class loader will be used.
+   * The class loader to be used to retrieve the ResourceBundle. If null the
+   * default class loader will be used.
    */
   private final ClassLoader classLoader;
 
@@ -978,8 +1005,8 @@ public abstract class LocalizableMessageDescriptor
    * @param classLoader
    *          the class loader to be used to get the ResourceBundle
    */
-  private LocalizableMessageDescriptor(String rbBase, String key,
-      ClassLoader classLoader)
+  private LocalizableMessageDescriptor(final String rbBase, final String key,
+      final ClassLoader classLoader)
   {
     this.rbBase = rbBase;
     this.key = key;
@@ -989,8 +1016,8 @@ public abstract class LocalizableMessageDescriptor
 
 
   /**
-   * Returns the format string which should be used when creating the
-   * string representation of this message using the specified locale.
+   * Returns the format string which should be used when creating the string
+   * representation of this message using the specified locale.
    *
    * @param locale
    *          The locale.
@@ -998,7 +1025,7 @@ public abstract class LocalizableMessageDescriptor
    * @throws NullPointerException
    *           If {@code locale} was {@code null}.
    */
-  public String getFormatString(Locale locale)
+  public String getFormatString(final Locale locale)
       throws NullPointerException
   {
     Validator.ensureNotNull(locale);
@@ -1022,13 +1049,26 @@ public abstract class LocalizableMessageDescriptor
 
 
   /**
-   * Indicates whether or not this descriptor format string should be
-   * processed by {@code Formatter} during string rendering.
+   * Indicates whether or not this descriptor format string should be processed
+   * by {@code Formatter} during string rendering.
    *
-   * @return {@code true} if a {@code Formatter} should be used,
-   *         otherwise {@code false}.
+   * @return {@code true} if a {@code Formatter} should be used, otherwise
+   *         {@code false}.
    */
   public abstract boolean requiresFormatter();
+
+
+
+  /**
+   * Returns the format string which should be used when creating the string
+   * representation of this message using the default locale.
+   *
+   * @return The format string.
+   */
+  final String getFormatString()
+  {
+    return getFormatString(Locale.getDefault());
+  }
 
 
 
@@ -1046,19 +1086,6 @@ public abstract class LocalizableMessageDescriptor
     {
       return ResourceBundle.getBundle(this.rbBase, locale, classLoader);
     }
-  }
-
-
-
-  /**
-   * Returns the format string which should be used when creating the
-   * string representation of this message using the default locale.
-   *
-   * @return The format string.
-   */
-  final String getFormatString()
-  {
-    return getFormatString(Locale.getDefault());
   }
 
 }

@@ -1,3 +1,29 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE
+ * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at
+ * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * add the following below this CDDL HEADER, with the fields enclosed
+ * by brackets "[]" replaced with your own identifying information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2010 Sun Microsystems, Inc.
+ */
 package org.opends.sdk.controls;
 
 
@@ -7,74 +33,64 @@ import org.opends.sdk.ByteString;
 
 
 /**
- * Created by IntelliJ IDEA. User: boli Date: Jun 29, 2009 Time:
- * 10:59:19 AM To change this template use File | Settings | File
- * Templates.
+ * Controls provide a mechanism whereby the semantics and arguments of existing
+ * LDAP operations may be extended. One or more controls may be attached to a
+ * single LDAP message. A control only affects the semantics of the message it
+ * is attached to. Controls sent by clients are termed 'request controls', and
+ * those sent by servers are termed 'response controls'.
+ *
+ * @see <a href="http://tools.ietf.org/html/rfc4511">RFC 4511 - Lightweight
+ *      Directory Access Protocol (LDAP): The Protocol </a>
  */
-public abstract class Control
+public interface Control
 {
-  // The criticality for this control.
-  protected final boolean isCritical;
 
-  // The OID for this control.
-  protected final String oid;
-
-
-
-  public Control(String oid, boolean isCritical)
-  {
-    this.isCritical = isCritical;
-    this.oid = oid;
-  }
+  /**
+   * Returns the numeric OID associated with this control.
+   *
+   * @return The numeric OID associated with this control.
+   */
+  String getOID();
 
 
 
   /**
-   * Retrieves the OID for this control.
-   * 
-   * @return The OID for this control.
+   * Returns the value, if any, associated with this control. Its format is
+   * defined by the specification of this control.
+   *
+   * @return The value associated with this control, or {@code null} if there is
+   *         no value.
    */
-  public String getOID()
-  {
-    return oid;
-  }
-
-
-
-  public abstract ByteString getValue();
-
-
-
-  public abstract boolean hasValue();
+  ByteString getValue();
 
 
 
   /**
-   * Indicates whether this control should be considered critical in
-   * processing the request.
-   * 
-   * @return <CODE>true</CODE> if this code should be considered
-   *         critical, or <CODE>false</CODE> if not.
+   * Returns {@code true} if this control has a value. In some circumstances it
+   * may be useful to determine if a control has a value, without actually
+   * calculating the value and incurring any performance costs.
+   *
+   * @return {@code true} if this control has a value, or {@code false} if there
+   *         is no value.
    */
-  public boolean isCritical()
-  {
-    return isCritical;
-  }
+  boolean hasValue();
 
 
 
   /**
-   * {@inheritDoc}
+   * Returns {@code true} if it is unacceptable to perform the operation without
+   * applying the semantics of this control.
+   * <p>
+   * The criticality field only has meaning in controls attached to request
+   * messages (except UnbindRequest). For controls attached to response messages
+   * and the UnbindRequest, the criticality field SHOULD be {@code false}, and
+   * MUST be ignored by the receiving protocol peer. A value of {@code true}
+   * indicates that it is unacceptable to perform the operation without applying
+   * the semantics of the control.
+   *
+   * @return {@code true} if this control must be processed by the Directory
+   *         Server, or {@code false} if it can be ignored.
    */
-  @Override
-  public String toString()
-  {
-    StringBuilder buffer = new StringBuilder();
-    toString(buffer);
-    return buffer.toString();
-  }
+  boolean isCritical();
 
-
-
-  public abstract void toString(StringBuilder buffer);
 }

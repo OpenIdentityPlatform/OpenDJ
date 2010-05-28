@@ -49,7 +49,7 @@ public final class ByteString implements ByteSequence
 
   /**
    * Returns an empty byte string.
-   * 
+   *
    * @return An empty byte string.
    */
   public static ByteString empty()
@@ -60,13 +60,13 @@ public final class ByteString implements ByteSequence
 
 
   /**
-   * Returns a byte string containing the big-endian encoded bytes of
-   * the provided integer.
-   * 
+   * Returns a byte string containing the big-endian encoded bytes of the
+   * provided integer.
+   *
    * @param i
    *          The integer to encode.
-   * @return The byte string containing the big-endian encoded bytes of
-   *         the provided integer.
+   * @return The byte string containing the big-endian encoded bytes of the
+   *         provided integer.
    */
   public static ByteString valueOf(int i)
   {
@@ -82,13 +82,13 @@ public final class ByteString implements ByteSequence
 
 
   /**
-   * Returns a byte string containing the big-endian encoded bytes of
-   * the provided long.
-   * 
+   * Returns a byte string containing the big-endian encoded bytes of the
+   * provided long.
+   *
    * @param l
    *          The long to encode.
-   * @return The byte string containing the big-endian encoded bytes of
-   *         the provided long.
+   * @return The byte string containing the big-endian encoded bytes of the
+   *         provided long.
    */
   public static ByteString valueOf(long l)
   {
@@ -104,17 +104,17 @@ public final class ByteString implements ByteSequence
 
 
   /**
-   * Returns a byte string containing the provided object. If the object
-   * is an instance of {@code ByteSequence} then it is converted to a
-   * byte string using the {@code toByteString()} method. Otherwise a
-   * new byte string is created containing the UTF-8 encoded bytes of
-   * the string representation of the provided object.
-   * 
+   * Returns a byte string containing the provided object. If the object is an
+   * instance of {@code ByteSequence} then it is converted to a byte string
+   * using the {@code toByteString()} method. Otherwise a new byte string is
+   * created containing the UTF-8 encoded bytes of the string representation of
+   * the provided object.
+   *
    * @param o
    *          The object to use.
    * @return The byte string containing the provided object.
    */
-  public static ByteString valueOf(Object o)
+  public static ByteString valueOf(final Object o)
   {
     if (o instanceof ByteSequence)
     {
@@ -129,15 +129,14 @@ public final class ByteString implements ByteSequence
 
 
   /**
-   * Returns a byte string containing the UTF-8 encoded bytes of the
-   * provided string.
-   * 
+   * Returns a byte string containing the UTF-8 encoded bytes of the provided
+   * string.
+   *
    * @param s
    *          The string to use.
-   * @return The byte string with the encoded bytes of the provided
-   *         string.
+   * @return The byte string with the encoded bytes of the provided string.
    */
-  public static ByteString valueOf(String s)
+  public static ByteString valueOf(final String s)
   {
     return wrap(StaticUtils.getBytes(s));
   }
@@ -147,15 +146,15 @@ public final class ByteString implements ByteSequence
   /**
    * Returns a byte string that wraps the provided byte array.
    * <p>
-   * <b>NOTE:</b> this method takes ownership of the provided byte array
-   * and, therefore, the byte array MUST NOT be altered directly after
-   * this method returns.
-   * 
+   * <b>NOTE:</b> this method takes ownership of the provided byte array and,
+   * therefore, the byte array MUST NOT be altered directly after this method
+   * returns.
+   *
    * @param b
    *          The byte array to wrap.
    * @return The byte string that wraps the given byte array.
    */
-  public static ByteString wrap(byte[] b)
+  public static ByteString wrap(final byte[] b)
   {
     return new ByteString(b, 0, b.length);
   }
@@ -163,29 +162,27 @@ public final class ByteString implements ByteSequence
 
 
   /**
-   * Returns a byte string that wraps a subsequence of the provided byte
-   * array.
+   * Returns a byte string that wraps a subsequence of the provided byte array.
    * <p>
-   * <b>NOTE:</b> this method takes ownership of the provided byte array
-   * and, therefore, the byte array MUST NOT be altered directly after
-   * this method returns.
-   * 
+   * <b>NOTE:</b> this method takes ownership of the provided byte array and,
+   * therefore, the byte array MUST NOT be altered directly after this method
+   * returns.
+   *
    * @param b
    *          The byte array to wrap.
    * @param offset
-   *          The offset of the byte array to be used; must be
-   *          non-negative and no larger than {@code b.length} .
+   *          The offset of the byte array to be used; must be non-negative and
+   *          no larger than {@code b.length} .
    * @param length
-   *          The length of the byte array to be used; must be
-   *          non-negative and no larger than {@code b.length - offset}.
+   *          The length of the byte array to be used; must be non-negative and
+   *          no larger than {@code b.length - offset}.
    * @return The byte string that wraps the given byte array.
    * @throws IndexOutOfBoundsException
-   *           If {@code offset} is negative or if {@code length} is
-   *           negative or if {@code offset + length} is greater than
-   *           {@code b.length}.
+   *           If {@code offset} is negative or if {@code length} is negative or
+   *           if {@code offset + length} is greater than {@code b.length}.
    */
-  public static ByteString wrap(byte[] b, int offset, int length)
-      throws IndexOutOfBoundsException
+  public static ByteString wrap(final byte[] b, final int offset,
+      final int length) throws IndexOutOfBoundsException
   {
     checkArrayBounds(b, offset, length);
     return new ByteString(b, offset, length);
@@ -194,24 +191,23 @@ public final class ByteString implements ByteSequence
 
 
   /**
-   * Checks the array bounds of the provided byte array sub-sequence,
-   * throwing an {@code IndexOutOfBoundsException} if they are illegal.
-   * 
+   * Checks the array bounds of the provided byte array sub-sequence, throwing
+   * an {@code IndexOutOfBoundsException} if they are illegal.
+   *
    * @param b
    *          The byte array.
    * @param offset
-   *          The offset of the byte array to be checked; must be
-   *          non-negative and no larger than {@code b.length}.
+   *          The offset of the byte array to be checked; must be non-negative
+   *          and no larger than {@code b.length}.
    * @param length
-   *          The length of the byte array to be checked; must be
-   *          non-negative and no larger than {@code b.length - offset}.
+   *          The length of the byte array to be checked; must be non-negative
+   *          and no larger than {@code b.length - offset}.
    * @throws IndexOutOfBoundsException
-   *           If {@code offset} is negative or if {@code length} is
-   *           negative or if {@code offset + length} is greater than
-   *           {@code b.length}.
+   *           If {@code offset} is negative or if {@code length} is negative or
+   *           if {@code offset + length} is greater than {@code b.length}.
    */
-  static void checkArrayBounds(byte[] b, int offset, int length)
-      throws IndexOutOfBoundsException
+  static void checkArrayBounds(final byte[] b, final int offset,
+      final int length) throws IndexOutOfBoundsException
   {
     if (offset < 0 || offset > b.length || length < 0
         || offset + length > b.length || offset + length < 0)
@@ -223,9 +219,9 @@ public final class ByteString implements ByteSequence
 
 
   /**
-   * Compares two byte array sub-sequences and returns a value that
-   * indicates their relative order.
-   * 
+   * Compares two byte array sub-sequences and returns a value that indicates
+   * their relative order.
+   *
    * @param b1
    *          The byte array containing the first sub-sequence.
    * @param offset1
@@ -238,16 +234,15 @@ public final class ByteString implements ByteSequence
    *          The offset of the second byte array sub-sequence.
    * @param length2
    *          The length of the second byte array sub-sequence.
-   * @return A negative integer if first byte array sub-sequence should
-   *         come before the second byte array sub-sequence in ascending
-   *         order, a positive integer if the first byte array
-   *         sub-sequence should come after the byte array sub-sequence
-   *         in ascending order, or zero if there is no difference
-   *         between the two byte array sub-sequences with regard to
-   *         ordering.
+   * @return A negative integer if first byte array sub-sequence should come
+   *         before the second byte array sub-sequence in ascending order, a
+   *         positive integer if the first byte array sub-sequence should come
+   *         after the byte array sub-sequence in ascending order, or zero if
+   *         there is no difference between the two byte array sub-sequences
+   *         with regard to ordering.
    */
-  static int compareTo(byte[] b1, int offset1, int length1, byte[] b2,
-      int offset2, int length2)
+  static int compareTo(final byte[] b1, final int offset1, final int length1,
+      final byte[] b2, final int offset2, final int length2)
   {
     int count = Math.min(length1, length2);
     int i = offset1;
@@ -267,10 +262,9 @@ public final class ByteString implements ByteSequence
 
 
   /**
-   * Indicates whether two byte array sub-sequences are equal. In order
-   * for them to be considered equal, they must contain the same bytes
-   * in the same order.
-   * 
+   * Indicates whether two byte array sub-sequences are equal. In order for them
+   * to be considered equal, they must contain the same bytes in the same order.
+   *
    * @param b1
    *          The byte array containing the first sub-sequence.
    * @param offset1
@@ -283,11 +277,11 @@ public final class ByteString implements ByteSequence
    *          The offset of the second byte array sub-sequence.
    * @param length2
    *          The length of the second byte array sub-sequence.
-   * @return {@code true} if the two byte array sub-sequences have the
-   *         same content, or {@code false} if not.
+   * @return {@code true} if the two byte array sub-sequences have the same
+   *         content, or {@code false} if not.
    */
-  static boolean equals(byte[] b1, int offset1, int length1, byte[] b2,
-      int offset2, int length2)
+  static boolean equals(final byte[] b1, final int offset1, final int length1,
+      final byte[] b2, final int offset2, final int length2)
   {
     if (length1 != length2)
     {
@@ -312,7 +306,7 @@ public final class ByteString implements ByteSequence
 
   /**
    * Returns a hash code for the provided byte array sub-sequence.
-   * 
+   *
    * @param b
    *          The byte array.
    * @param offset
@@ -321,7 +315,7 @@ public final class ByteString implements ByteSequence
    *          The length of the byte array sub-sequence.
    * @return A hash code for the provided byte array sub-sequence.
    */
-  static int hashCode(byte[] b, int offset, int length)
+  static int hashCode(final byte[] b, final int offset, final int length)
   {
     int hashCode = 1;
     int i = offset;
@@ -336,10 +330,10 @@ public final class ByteString implements ByteSequence
 
 
   /**
-   * Returns the UTF-8 decoded string representation of the provided
-   * byte array sub-sequence. If UTF-8 decoding fails, the platform's
-   * default encoding will be used.
-   * 
+   * Returns the UTF-8 decoded string representation of the provided byte array
+   * sub-sequence. If UTF-8 decoding fails, the platform's default encoding will
+   * be used.
+   *
    * @param b
    *          The byte array.
    * @param offset
@@ -348,7 +342,7 @@ public final class ByteString implements ByteSequence
    *          The length of the byte array sub-sequence.
    * @return The string representation of the byte array sub-sequence.
    */
-  static String toString(byte[] b, int offset, int length)
+  static String toString(final byte[] b, final int offset, final int length)
   {
     String stringValue;
     try
@@ -369,6 +363,8 @@ public final class ByteString implements ByteSequence
     return stringValue;
   }
 
+
+
   // These are package private so that compression and crypto
   // functionality may directly access the fields.
 
@@ -385,23 +381,23 @@ public final class ByteString implements ByteSequence
 
 
   /**
-   * Creates a new byte string that wraps a subsequence of the provided
-   * byte array.
+   * Creates a new byte string that wraps a subsequence of the provided byte
+   * array.
    * <p>
-   * <b>NOTE:</b> this method takes ownership of the provided byte array
-   * and, therefore, the byte array MUST NOT be altered directly after
-   * this method returns.
-   * 
+   * <b>NOTE:</b> this method takes ownership of the provided byte array and,
+   * therefore, the byte array MUST NOT be altered directly after this method
+   * returns.
+   *
    * @param b
    *          The byte array to wrap.
    * @param offset
-   *          The offset of the byte array to be used; must be
-   *          non-negative and no larger than {@code b.length} .
+   *          The offset of the byte array to be used; must be non-negative and
+   *          no larger than {@code b.length} .
    * @param length
-   *          The length of the byte array to be used; must be
-   *          non-negative and no larger than {@code b.length - offset}.
+   *          The length of the byte array to be used; must be non-negative and
+   *          no larger than {@code b.length - offset}.
    */
-  private ByteString(byte[] b, int offset, int length)
+  private ByteString(final byte[] b, final int offset, final int length)
   {
     this.buffer = b;
     this.offset = offset;
@@ -411,11 +407,11 @@ public final class ByteString implements ByteSequence
 
 
   /**
-   * Returns a {@link ByteSequenceReader} which can be used to
-   * incrementally read and decode data from this byte string.
-   * 
-   * @return The {@link ByteSequenceReader} which can be used to
-   *         incrementally read and decode data from this byte string.
+   * Returns a {@link ByteSequenceReader} which can be used to incrementally
+   * read and decode data from this byte string.
+   *
+   * @return The {@link ByteSequenceReader} which can be used to incrementally
+   *         read and decode data from this byte string.
    */
   public ByteSequenceReader asReader()
   {
@@ -427,7 +423,7 @@ public final class ByteString implements ByteSequence
   /**
    * {@inheritDoc}
    */
-  public byte byteAt(int index) throws IndexOutOfBoundsException
+  public byte byteAt(final int index) throws IndexOutOfBoundsException
   {
     if (index >= length || index < 0)
     {
@@ -441,12 +437,11 @@ public final class ByteString implements ByteSequence
   /**
    * {@inheritDoc}
    */
-  public int compareTo(byte[] b, int offset, int length)
+  public int compareTo(final byte[] b, final int offset, final int length)
       throws IndexOutOfBoundsException
   {
     checkArrayBounds(b, offset, length);
-    return compareTo(this.buffer, this.offset, this.length, b, offset,
-        length);
+    return compareTo(this.buffer, this.offset, this.length, b, offset, length);
   }
 
 
@@ -454,7 +449,7 @@ public final class ByteString implements ByteSequence
   /**
    * {@inheritDoc}
    */
-  public int compareTo(ByteSequence o)
+  public int compareTo(final ByteSequence o)
   {
     if (this == o)
     {
@@ -468,7 +463,7 @@ public final class ByteString implements ByteSequence
   /**
    * {@inheritDoc}
    */
-  public byte[] copyTo(byte[] b)
+  public byte[] copyTo(final byte[] b)
   {
     copyTo(b, 0);
     return b;
@@ -479,15 +474,15 @@ public final class ByteString implements ByteSequence
   /**
    * {@inheritDoc}
    */
-  public byte[] copyTo(byte[] b, int offset)
+  public byte[] copyTo(final byte[] b, final int offset)
       throws IndexOutOfBoundsException
   {
     if (offset < 0)
     {
       throw new IndexOutOfBoundsException();
     }
-    System.arraycopy(buffer, this.offset, b, offset, Math.min(length,
-        b.length - offset));
+    System.arraycopy(buffer, this.offset, b, offset, Math.min(length, b.length
+        - offset));
     return b;
   }
 
@@ -496,7 +491,7 @@ public final class ByteString implements ByteSequence
   /**
    * {@inheritDoc}
    */
-  public ByteStringBuilder copyTo(ByteStringBuilder builder)
+  public ByteStringBuilder copyTo(final ByteStringBuilder builder)
   {
     builder.append(buffer, offset, length);
     return builder;
@@ -507,7 +502,7 @@ public final class ByteString implements ByteSequence
   /**
    * {@inheritDoc}
    */
-  public OutputStream copyTo(OutputStream stream) throws IOException
+  public OutputStream copyTo(final OutputStream stream) throws IOException
   {
     stream.write(buffer, offset, length);
     return stream;
@@ -518,29 +513,28 @@ public final class ByteString implements ByteSequence
   /**
    * {@inheritDoc}
    */
-  public boolean equals(byte[] b, int offset, int length)
+  public boolean equals(final byte[] b, final int offset, final int length)
       throws IndexOutOfBoundsException
   {
     checkArrayBounds(b, offset, length);
-    return equals(this.buffer, this.offset, this.length, b, offset,
-        length);
+    return equals(this.buffer, this.offset, this.length, b, offset, length);
   }
 
 
 
   /**
-   * Indicates whether the provided object is equal to this byte string.
-   * In order for it to be considered equal, the provided object must be
-   * a byte sequence containing the same bytes in the same order.
-   * 
+   * Indicates whether the provided object is equal to this byte string. In
+   * order for it to be considered equal, the provided object must be a byte
+   * sequence containing the same bytes in the same order.
+   *
    * @param o
    *          The object for which to make the determination.
-   * @return {@code true} if the provided object is a byte sequence
-   *         whose content is equal to that of this byte string, or
-   *         {@code false} if not.
+   * @return {@code true} if the provided object is a byte sequence whose
+   *         content is equal to that of this byte string, or {@code false} if
+   *         not.
    */
   @Override
-  public boolean equals(Object o)
+  public boolean equals(final Object o)
   {
     if (this == o)
     {
@@ -560,9 +554,9 @@ public final class ByteString implements ByteSequence
 
 
   /**
-   * Returns a hash code for this byte string. It will be the sum of all
-   * of the bytes contained in the byte string.
-   * 
+   * Returns a hash code for this byte string. It will be the sum of all of the
+   * bytes contained in the byte string.
+   *
    * @return A hash code for this byte string.
    */
   @Override
@@ -586,7 +580,7 @@ public final class ByteString implements ByteSequence
   /**
    * {@inheritDoc}
    */
-  public ByteString subSequence(int start, int end)
+  public ByteString subSequence(final int start, final int end)
       throws IndexOutOfBoundsException
   {
     if (start < 0 || start > end || end > length)
@@ -619,11 +613,11 @@ public final class ByteString implements ByteSequence
 
 
   /**
-   * Returns the integer value represented by the first four bytes of
-   * this byte string in big-endian order.
-   * 
-   * @return The integer value represented by the first four bytes of
-   *         this byte string in big-endian order.
+   * Returns the integer value represented by the first four bytes of this byte
+   * string in big-endian order.
+   *
+   * @return The integer value represented by the first four bytes of this byte
+   *         string in big-endian order.
    * @throws IndexOutOfBoundsException
    *           If this byte string has less than four bytes.
    */
@@ -646,11 +640,11 @@ public final class ByteString implements ByteSequence
 
 
   /**
-   * Returns the long value represented by the first eight bytes of this
-   * byte string in big-endian order.
-   * 
-   * @return The long value represented by the first eight bytes of this
-   *         byte string in big-endian order.
+   * Returns the long value represented by the first eight bytes of this byte
+   * string in big-endian order.
+   *
+   * @return The long value represented by the first eight bytes of this byte
+   *         string in big-endian order.
    * @throws IndexOutOfBoundsException
    *           If this byte string has less than eight bytes.
    */

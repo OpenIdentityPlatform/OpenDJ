@@ -29,7 +29,7 @@ package com.sun.opends.sdk.tools;
 
 
 import static com.sun.opends.sdk.messages.Messages.*;
-import static com.sun.opends.sdk.util.StaticUtils.*;
+import static com.sun.opends.sdk.util.StaticUtils.toLowerCase;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -39,11 +39,10 @@ import org.opends.sdk.LocalizableMessageBuilder;
 
 
 
-
 /**
- * This class defines a generic argument that may be used in the
- * argument list for an application. This is an abstract class that must
- * be subclassed in order to provide specific functionality.
+ * This class defines a generic argument that may be used in the argument list
+ * for an application. This is an abstract class that must be subclassed in
+ * order to provide specific functionality.
  */
 abstract class Argument
 {
@@ -67,22 +66,22 @@ abstract class Argument
   private boolean needsValue;
 
   // The single-character identifier for this argument.
-  private Character shortIdentifier;
+  private final Character shortIdentifier;
 
   // The unique ID of the description for this argument.
-  private LocalizableMessage description;
+  private final LocalizableMessage description;
 
   // The set of values for this argument.
-  private LinkedList<String> values;
+  private final LinkedList<String> values;
 
   // The default value for the argument if none other is provided.
   private String defaultValue;
 
   // The long identifier for this argument.
-  private String longIdentifier;
+  private final String longIdentifier;
 
   // The generic name that will be used to refer to this argument.
-  private String name;
+  private final String name;
 
   // The name of the property that can be used to set the default value.
   private String propertyName;
@@ -103,45 +102,44 @@ abstract class Argument
    * Creates a new argument with the provided information.
    *
    * @param name
-   *          The generic name that should be used to refer to this
-   *          argument.
+   *          The generic name that should be used to refer to this argument.
    * @param shortIdentifier
    *          The single-character identifier for this argument, or
    *          <CODE>null</CODE> if there is none.
    * @param longIdentifier
-   *          The long identifier for this argument, or
-   *          <CODE>null</CODE> if there is none.
+   *          The long identifier for this argument, or <CODE>null</CODE> if
+   *          there is none.
    * @param isRequired
-   *          Indicates whether this argument must be specified on the
-   *          command line.
+   *          Indicates whether this argument must be specified on the command
+   *          line.
    * @param isMultiValued
-   *          Indicates whether this argument may be specified more than
-   *          once to provide multiple values.
+   *          Indicates whether this argument may be specified more than once to
+   *          provide multiple values.
    * @param needsValue
    *          Indicates whether this argument requires a value.
    * @param valuePlaceholder
-   *          The placeholder for the argument value that will be
-   *          displayed in usage information, or <CODE>null</CODE> if
-   *          this argument does not require a value.
+   *          The placeholder for the argument value that will be displayed in
+   *          usage information, or <CODE>null</CODE> if this argument does not
+   *          require a value.
    * @param defaultValue
-   *          The default value that should be used for this argument if
-   *          none is provided in a properties file or on the command
-   *          line. This may be <CODE>null</CODE> if there is no generic
-   *          default.
+   *          The default value that should be used for this argument if none is
+   *          provided in a properties file or on the command line. This may be
+   *          <CODE>null</CODE> if there is no generic default.
    * @param propertyName
-   *          The name of the property in a property file that may be
-   *          used to override the default value but will be overridden
-   *          by a command-line argument.
+   *          The name of the property in a property file that may be used to
+   *          override the default value but will be overridden by a
+   *          command-line argument.
    * @param description
    *          LocalizableMessage for the description of this argument.
    * @throws ArgumentException
-   *           If there is a problem with any of the parameters used to
-   *           create this argument.
+   *           If there is a problem with any of the parameters used to create
+   *           this argument.
    */
-  protected Argument(String name, Character shortIdentifier,
-      String longIdentifier, boolean isRequired, boolean isMultiValued,
-      boolean needsValue, LocalizableMessage valuePlaceholder,
-      String defaultValue, String propertyName, LocalizableMessage description)
+  protected Argument(final String name, final Character shortIdentifier,
+      final String longIdentifier, final boolean isRequired,
+      final boolean isMultiValued, final boolean needsValue,
+      final LocalizableMessage valuePlaceholder, final String defaultValue,
+      final String propertyName, final LocalizableMessage description)
       throws ArgumentException
   {
     this.name = name;
@@ -158,13 +156,13 @@ abstract class Argument
 
     if ((shortIdentifier == null) && (longIdentifier == null))
     {
-      LocalizableMessage message = ERR_ARG_NO_IDENTIFIER.get(name);
+      final LocalizableMessage message = ERR_ARG_NO_IDENTIFIER.get(name);
       throw new ArgumentException(message);
     }
 
     if (needsValue && (valuePlaceholder == null))
     {
-      LocalizableMessage message = ERR_ARG_NO_VALUE_PLACEHOLDER.get(name);
+      final LocalizableMessage message = ERR_ARG_NO_VALUE_PLACEHOLDER.get(name);
       throw new ArgumentException(message);
     }
 
@@ -176,327 +174,91 @@ abstract class Argument
 
 
   /**
-   * Retrieves the generic name that will be used to refer to this
-   * argument.
+   * Adds a value to the set of values for this argument. This should only be
+   * called if the value is allowed by the <CODE>valueIsAcceptable</CODE>
+   * method.
    *
-   * @return The generic name that will be used to refer to this
-   *         argument.
+   * @param valueString
+   *          The string representation of the value to add to this argument.
    */
-  public String getName()
+  public void addValue(final String valueString)
   {
-    return name;
+    values.add(valueString);
   }
 
 
 
   /**
-   * Retrieves the single-character identifier that may be used to
-   * specify the value of this argument.
-   *
-   * @return The single-character identifier that may be used to specify
-   *         the value of this argument, or <CODE>null</CODE> if there
-   *         is none.
+   * Clears the set of values assigned to this argument.
    */
-  public Character getShortIdentifier()
+  public void clearValues()
   {
-    return shortIdentifier;
+    values.clear();
   }
 
 
 
   /**
-   * Retrieves the long (multi-character) identifier that may be used to
-   * specify the value of this argument.
+   * Retrieves the value of this argument as a <CODE>Boolean</CODE>.
    *
-   * @return The long (multi-character) identifier that may be used to
-   *         specify the value of this argument.
+   * @return The value of this argument as a <CODE>Boolean</CODE>.
+   * @throws ArgumentException
+   *           If this argument cannot be interpreted as a Boolean value.
    */
-  public String getLongIdentifier()
+  public boolean getBooleanValue() throws ArgumentException
   {
-    return longIdentifier;
+    if (values.isEmpty())
+    {
+      final LocalizableMessage message = ERR_ARG_NO_BOOLEAN_VALUE.get(name);
+      throw new ArgumentException(message);
+    }
+
+    final Iterator<String> iterator = values.iterator();
+    final String valueString = toLowerCase(iterator.next());
+
+    boolean booleanValue;
+    if (valueString.equals("true") || valueString.equals("yes")
+        || valueString.equals("on") || valueString.equals("1"))
+    {
+      booleanValue = true;
+    }
+    else if (valueString.equals("false") || valueString.equals("no")
+        || valueString.equals("off") || valueString.equals("0"))
+    {
+      booleanValue = false;
+    }
+    else
+    {
+      final LocalizableMessage message = ERR_ARG_CANNOT_DECODE_AS_BOOLEAN.get(
+          valueString, name);
+      throw new ArgumentException(message);
+    }
+
+    if (iterator.hasNext())
+    {
+      final LocalizableMessage message = ERR_ARG_BOOLEAN_MULTIPLE_VALUES
+          .get(name);
+      throw new ArgumentException(message);
+    }
+    else
+    {
+      return booleanValue;
+    }
   }
 
 
 
   /**
-   * Indicates whether this argument is required to have at least one
-   * value.
+   * Retrieves the default value that will be used for this argument if it is
+   * not specified on the command line and it is not set from a properties file.
    *
-   * @return <CODE>true</CODE> if this argument is required to have at
-   *         least one value, or <CODE>false</CODE> if it does not need
-   *         to have a value.
-   */
-  public boolean isRequired()
-  {
-    return isRequired;
-  }
-
-
-
-  /**
-   * Specifies whether this argument is required to have at least one
-   * value.
-   *
-   * @param isRequired
-   *          Indicates whether this argument is required to have at
-   *          least one value.
-   */
-  public void setRequired(boolean isRequired)
-  {
-    this.isRequired = isRequired;
-  }
-
-
-
-  /**
-   * Indicates whether this argument is present in the parsed set of
-   * command-line arguments.
-   *
-   * @return <CODE>true</CODE> if this argument is present in the parsed
-   *         set of command-line arguments, or <CODE>false</CODE> if
-   *         not.
-   */
-  public boolean isPresent()
-  {
-    return isPresent;
-  }
-
-
-
-  /**
-   * Specifies whether this argument is present in the parsed set of
-   * command-line arguments.
-   *
-   * @param isPresent
-   *          Indicates whether this argument is present in the set of
-   *          command-line arguments.
-   */
-  public void setPresent(boolean isPresent)
-  {
-    this.isPresent = isPresent;
-  }
-
-
-
-  /**
-   * Indicates whether this argument should be hidden from the usage
-   * information.
-   *
-   * @return <CODE>true</CODE> if this argument should be hidden from
-   *         the usage information, or <CODE>false</CODE> if not.
-   */
-  public boolean isHidden()
-  {
-    return isHidden;
-  }
-
-
-
-  /**
-   * Specifies whether this argument should be hidden from the usage
-   * information.
-   *
-   * @param isHidden
-   *          Indicates whether this argument should be hidden from the
-   *          usage information.
-   */
-  public void setHidden(boolean isHidden)
-  {
-    this.isHidden = isHidden;
-  }
-
-
-
-  /**
-   * Indicates whether this argument may be provided more than once on
-   * the command line to specify multiple values.
-   *
-   * @return <CODE>true</CODE> if this argument may be provided more
-   *         than once on the command line to specify multiple values,
-   *         or <CODE>false</CODE> if it may have at most one value.
-   */
-  public boolean isMultiValued()
-  {
-    return isMultiValued;
-  }
-
-
-
-  /**
-   * Specifies whether this argument may be provided more than once on
-   * the command line to specify multiple values.
-   *
-   * @param isMultiValued
-   *          Indicates whether this argument may be provided more than
-   *          once on the command line to specify multiple values.
-   */
-  public void setMultiValued(boolean isMultiValued)
-  {
-    this.isMultiValued = isMultiValued;
-  }
-
-
-
-  /**
-   * Indicates whether a value must be provided with this argument if it
-   * is present.
-   *
-   * @return <CODE>true</CODE> if a value must be provided with the
-   *         argument if it is present, or <CODE>false</CODE> if the
-   *         argument does not take a value and the presence of the
-   *         argument identifier itself is sufficient to convey the
-   *         necessary information.
-   */
-  public boolean needsValue()
-  {
-    return needsValue;
-  }
-
-
-
-  /**
-   * Specifies whether a value must be provided with this argument if it
-   * is present. If this is changed from <CODE>false</CODE> to
-   * <CODE>true</CODE>, then a value placeholder must also be provided.
-   *
-   * @param needsValue
-   *          Indicates whether a value must be provided with this
-   *          argument if it is present.
-   */
-  public void setNeedsValue(boolean needsValue)
-  {
-    this.needsValue = needsValue;
-  }
-
-
-
-  /**
-   * Retrieves the value placeholder that will be displayed for this
-   * argument in the generated usage information.
-   *
-   * @return The value placeholder that will be displayed for this
-   *         argument in the generated usage information, or
-   *         <CODE>null</CODE> if there is none.
-   */
-  public LocalizableMessage getValuePlaceholder()
-  {
-    return valuePlaceholder;
-  }
-
-
-
-  /**
-   * Specifies the value placeholder that will be displayed for this
-   * argument in the generated usage information. It may be
-   * <CODE>null</CODE> only if <CODE>needsValue()</CODE> returns
-   * <CODE>false</CODE>.
-   *
-   * @param valuePlaceholder
-   *          The value placeholder that will be displayed for this
-   *          argument in the generated usage information.
-   */
-  public void setValuePlaceholder(LocalizableMessage valuePlaceholder)
-  {
-    this.valuePlaceholder = valuePlaceholder;
-  }
-
-
-
-  /**
-   * Retrieves the default value that will be used for this argument if
-   * it is not specified on the command line and it is not set from a
-   * properties file.
-   *
-   * @return The default value that will be used for this argument if it
-   *         is not specified on the command line and it is not set from
-   *         a properties file, or <CODE>null</CODE> if there is no
-   *         default value.
+   * @return The default value that will be used for this argument if it is not
+   *         specified on the command line and it is not set from a properties
+   *         file, or <CODE>null</CODE> if there is no default value.
    */
   public String getDefaultValue()
   {
     return defaultValue;
-  }
-
-
-
-  /**
-   * Specifies the default value that will be used for this argument if
-   * it is not specified on the command line and it is not set from a
-   * properties file.
-   *
-   * @param defaultValue
-   *          The default value that will be used for this argument if
-   *          it is not specified on the command line and it is not set
-   *          from a properties file.
-   */
-  public void setDefaultValue(String defaultValue)
-  {
-    this.defaultValue = defaultValue;
-  }
-
-
-
-  /**
-   * Retrieves the name of a property in a properties file that may be
-   * used to set the default value for this argument if it is present. A
-   * value read from a properties file will override the default value
-   * returned from the <CODE>getDefaultValue</CODE>, but the properties
-   * file value will be overridden by a value supplied on the command
-   * line.
-   *
-   * @return The name of a property in a properties file that may be
-   *         used to set the default value for this argument if it is
-   *         present.
-   */
-  public String getPropertyName()
-  {
-    return propertyName;
-  }
-
-
-
-  /**
-   * Specifies the name of a property in a properties file that may be
-   * used to set the default value for this argument if it is present.
-   *
-   * @param propertyName
-   *          The name of a property in a properties file that may be
-   *          used to set the default value for this argument if it is
-   *          present.
-   */
-  public void setPropertyName(String propertyName)
-  {
-    this.propertyName = propertyName;
-  }
-
-
-
-  /**
-   * Indicates whether this argument was provided in the set of
-   * properties found is a properties file.
-   *
-   * @return <CODE>true</CODE> if this argument was provided in the set
-   *         of properties found is a properties file, or
-   *         <CODE>false</CODE> if not.
-   */
-  public boolean isValueSetByProperty()
-  {
-    return isValueSetByProperty;
-  }
-
-
-
-  /**
-   * Specifies whether this argument was provided in the set of
-   * properties found is a properties file.
-   *
-   * @param isValueSetByProperty
-   *          Specify whether this argument was provided in the set of
-   *          properties found is a properties file.
-   */
-  public void setValueSetByProperty(boolean isValueSetByProperty)
-  {
-    this.isValueSetByProperty = isValueSetByProperty;
   }
 
 
@@ -514,25 +276,225 @@ abstract class Argument
 
 
   /**
-   * Indicates whether this argument has at least one value.
+   * Retrieves the value of this argument as an integer.
    *
-   * @return <CODE>true</CODE> if this argument has at least one value,
-   *         or <CODE>false</CODE> if it does not have any values.
+   * @return The value of this argument as an integer.
+   * @throws ArgumentException
+   *           If there are multiple values, or the value cannot be parsed as an
+   *           integer.
    */
-  public boolean hasValue()
+  public double getDoubleValue() throws ArgumentException
   {
-    return (!values.isEmpty());
+    if (values.isEmpty())
+    {
+      final LocalizableMessage message = ERR_ARG_NO_INT_VALUE.get(name);
+      throw new ArgumentException(message);
+    }
+
+    final Iterator<String> iterator = values.iterator();
+    final String valueString = iterator.next();
+
+    double intValue;
+    try
+    {
+      intValue = Double.parseDouble(valueString);
+    }
+    catch (final Exception e)
+    {
+      final LocalizableMessage message = ERR_ARG_CANNOT_DECODE_AS_INT.get(
+          valueString, name);
+      throw new ArgumentException(message, e);
+    }
+
+    if (iterator.hasNext())
+    {
+      final LocalizableMessage message = ERR_ARG_INT_MULTIPLE_VALUES.get(name);
+      throw new ArgumentException(message);
+    }
+    else
+    {
+      return intValue;
+    }
   }
 
 
 
   /**
-   * Retrieves the string vale for this argument. If it has multiple
-   * values, then the first will be returned. If it does not have any
-   * values, then the default value will be returned.
+   * Retrieves the set of values for this argument as a list of integers.
    *
-   * @return The string value for this argument, or <CODE>null</CODE> if
-   *         there are no values and no default value has been given.
+   * @return A list of the integer representations of the values for this
+   *         argument.
+   * @throws ArgumentException
+   *           If any of the values cannot be parsed as an integer.
+   */
+  public LinkedList<Double> getDoubleValues() throws ArgumentException
+  {
+    final LinkedList<Double> intList = new LinkedList<Double>();
+
+    final Iterator<String> iterator = values.iterator();
+    while (iterator.hasNext())
+    {
+      final String valueString = iterator.next();
+
+      try
+      {
+        intList.add(Double.valueOf(valueString));
+      }
+      catch (final Exception e)
+      {
+        final LocalizableMessage message = ERR_ARG_CANNOT_DECODE_AS_INT.get(
+            valueString, name);
+        throw new ArgumentException(message, e);
+      }
+    }
+
+    return intList;
+  }
+
+
+
+  /**
+   * Retrieves the value of this argument as an integer.
+   *
+   * @return The value of this argument as an integer.
+   * @throws ArgumentException
+   *           If there are multiple values, or the value cannot be parsed as an
+   *           integer.
+   */
+  public int getIntValue() throws ArgumentException
+  {
+    if (values.isEmpty())
+    {
+      final LocalizableMessage message = ERR_ARG_NO_INT_VALUE.get(name);
+      throw new ArgumentException(message);
+    }
+
+    final Iterator<String> iterator = values.iterator();
+    final String valueString = iterator.next();
+
+    int intValue;
+    try
+    {
+      intValue = Integer.parseInt(valueString);
+    }
+    catch (final Exception e)
+    {
+      final LocalizableMessage message = ERR_ARG_CANNOT_DECODE_AS_INT.get(
+          valueString, name);
+      throw new ArgumentException(message, e);
+    }
+
+    if (iterator.hasNext())
+    {
+      final LocalizableMessage message = ERR_ARG_INT_MULTIPLE_VALUES.get(name);
+      throw new ArgumentException(message);
+    }
+    else
+    {
+      return intValue;
+    }
+  }
+
+
+
+  /**
+   * Retrieves the set of values for this argument as a list of integers.
+   *
+   * @return A list of the integer representations of the values for this
+   *         argument.
+   * @throws ArgumentException
+   *           If any of the values cannot be parsed as an integer.
+   */
+  public LinkedList<Integer> getIntValues() throws ArgumentException
+  {
+    final LinkedList<Integer> intList = new LinkedList<Integer>();
+
+    final Iterator<String> iterator = values.iterator();
+    while (iterator.hasNext())
+    {
+      final String valueString = iterator.next();
+
+      try
+      {
+        intList.add(Integer.valueOf(valueString));
+      }
+      catch (final Exception e)
+      {
+        final LocalizableMessage message = ERR_ARG_CANNOT_DECODE_AS_INT.get(
+            valueString, name);
+        throw new ArgumentException(message, e);
+      }
+    }
+
+    return intList;
+  }
+
+
+
+  /**
+   * Retrieves the long (multi-character) identifier that may be used to specify
+   * the value of this argument.
+   *
+   * @return The long (multi-character) identifier that may be used to specify
+   *         the value of this argument.
+   */
+  public String getLongIdentifier()
+  {
+    return longIdentifier;
+  }
+
+
+
+  /**
+   * Retrieves the generic name that will be used to refer to this argument.
+   *
+   * @return The generic name that will be used to refer to this argument.
+   */
+  public String getName()
+  {
+    return name;
+  }
+
+
+
+  /**
+   * Retrieves the name of a property in a properties file that may be used to
+   * set the default value for this argument if it is present. A value read from
+   * a properties file will override the default value returned from the
+   * <CODE>getDefaultValue</CODE>, but the properties file value will be
+   * overridden by a value supplied on the command line.
+   *
+   * @return The name of a property in a properties file that may be used to set
+   *         the default value for this argument if it is present.
+   */
+  public String getPropertyName()
+  {
+    return propertyName;
+  }
+
+
+
+  /**
+   * Retrieves the single-character identifier that may be used to specify the
+   * value of this argument.
+   *
+   * @return The single-character identifier that may be used to specify the
+   *         value of this argument, or <CODE>null</CODE> if there is none.
+   */
+  public Character getShortIdentifier()
+  {
+    return shortIdentifier;
+  }
+
+
+
+  /**
+   * Retrieves the string vale for this argument. If it has multiple values,
+   * then the first will be returned. If it does not have any values, then the
+   * default value will be returned.
+   *
+   * @return The string value for this argument, or <CODE>null</CODE> if there
+   *         are no values and no default value has been given.
    */
   public String getValue()
   {
@@ -542,6 +504,21 @@ abstract class Argument
     }
 
     return values.getFirst();
+  }
+
+
+
+  /**
+   * Retrieves the value placeholder that will be displayed for this argument in
+   * the generated usage information.
+   *
+   * @return The value placeholder that will be displayed for this argument in
+   *         the generated usage information, or <CODE>null</CODE> if there is
+   *         none.
+   */
+  public LocalizableMessage getValuePlaceholder()
+  {
+    return valuePlaceholder;
   }
 
 
@@ -559,209 +536,238 @@ abstract class Argument
 
 
   /**
-   * Retrieves the value of this argument as an integer.
+   * Indicates whether this argument has at least one value.
    *
-   * @return The value of this argument as an integer.
-   * @throws ArgumentException
-   *           If there are multiple values, or the value cannot be
-   *           parsed as an integer.
+   * @return <CODE>true</CODE> if this argument has at least one value, or
+   *         <CODE>false</CODE> if it does not have any values.
    */
-  public int getIntValue() throws ArgumentException
+  public boolean hasValue()
   {
-    if (values.isEmpty())
-    {
-      LocalizableMessage message = ERR_ARG_NO_INT_VALUE.get(name);
-      throw new ArgumentException(message);
-    }
-
-    Iterator<String> iterator = values.iterator();
-    String valueString = iterator.next();
-
-    int intValue;
-    try
-    {
-      intValue = Integer.parseInt(valueString);
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message =
-          ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name);
-      throw new ArgumentException(message, e);
-    }
-
-    if (iterator.hasNext())
-    {
-      LocalizableMessage message = ERR_ARG_INT_MULTIPLE_VALUES.get(name);
-      throw new ArgumentException(message);
-    }
-    else
-    {
-      return intValue;
-    }
+    return (!values.isEmpty());
   }
 
 
 
   /**
-   * Retrieves the set of values for this argument as a list of
-   * integers.
+   * Indicates whether this argument should be hidden from the usage
+   * information.
    *
-   * @return A list of the integer representations of the values for
-   *         this argument.
-   * @throws ArgumentException
-   *           If any of the values cannot be parsed as an integer.
+   * @return <CODE>true</CODE> if this argument should be hidden from the usage
+   *         information, or <CODE>false</CODE> if not.
    */
-  public LinkedList<Integer> getIntValues() throws ArgumentException
+  public boolean isHidden()
   {
-    LinkedList<Integer> intList = new LinkedList<Integer>();
-
-    Iterator<String> iterator = values.iterator();
-    while (iterator.hasNext())
-    {
-      String valueString = iterator.next();
-
-      try
-      {
-        intList.add(Integer.valueOf(valueString));
-      }
-      catch (Exception e)
-      {
-        LocalizableMessage message =
-            ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name);
-        throw new ArgumentException(message, e);
-      }
-    }
-
-    return intList;
+    return isHidden;
   }
 
 
 
   /**
-   * Retrieves the value of this argument as an integer.
+   * Indicates whether this argument may be provided more than once on the
+   * command line to specify multiple values.
    *
-   * @return The value of this argument as an integer.
-   * @throws ArgumentException
-   *           If there are multiple values, or the value cannot be
-   *           parsed as an integer.
+   * @return <CODE>true</CODE> if this argument may be provided more than once
+   *         on the command line to specify multiple values, or
+   *         <CODE>false</CODE> if it may have at most one value.
    */
-  public double getDoubleValue() throws ArgumentException
+  public boolean isMultiValued()
   {
-    if (values.isEmpty())
-    {
-      LocalizableMessage message = ERR_ARG_NO_INT_VALUE.get(name);
-      throw new ArgumentException(message);
-    }
-
-    Iterator<String> iterator = values.iterator();
-    String valueString = iterator.next();
-
-    double intValue;
-    try
-    {
-      intValue = Double.parseDouble(valueString);
-    }
-    catch (Exception e)
-    {
-      LocalizableMessage message =
-          ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name);
-      throw new ArgumentException(message, e);
-    }
-
-    if (iterator.hasNext())
-    {
-      LocalizableMessage message = ERR_ARG_INT_MULTIPLE_VALUES.get(name);
-      throw new ArgumentException(message);
-    }
-    else
-    {
-      return intValue;
-    }
+    return isMultiValued;
   }
 
 
 
   /**
-   * Retrieves the set of values for this argument as a list of
-   * integers.
+   * Indicates whether this argument is present in the parsed set of
+   * command-line arguments.
    *
-   * @return A list of the integer representations of the values for
-   *         this argument.
-   * @throws ArgumentException
-   *           If any of the values cannot be parsed as an integer.
+   * @return <CODE>true</CODE> if this argument is present in the parsed set of
+   *         command-line arguments, or <CODE>false</CODE> if not.
    */
-  public LinkedList<Double> getDoubleValues() throws ArgumentException
+  public boolean isPresent()
   {
-    LinkedList<Double> intList = new LinkedList<Double>();
-
-    Iterator<String> iterator = values.iterator();
-    while (iterator.hasNext())
-    {
-      String valueString = iterator.next();
-
-      try
-      {
-        intList.add(Double.valueOf(valueString));
-      }
-      catch (Exception e)
-      {
-        LocalizableMessage message =
-            ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name);
-        throw new ArgumentException(message, e);
-      }
-    }
-
-    return intList;
+    return isPresent;
   }
 
 
 
   /**
-   * Retrieves the value of this argument as a <CODE>Boolean</CODE>.
+   * Indicates whether this argument is required to have at least one value.
    *
-   * @return The value of this argument as a <CODE>Boolean</CODE>.
-   * @throws ArgumentException
-   *           If this argument cannot be interpreted as a Boolean
-   *           value.
+   * @return <CODE>true</CODE> if this argument is required to have at least one
+   *         value, or <CODE>false</CODE> if it does not need to have a value.
    */
-  public boolean getBooleanValue() throws ArgumentException
+  public boolean isRequired()
   {
-    if (values.isEmpty())
-    {
-      LocalizableMessage message = ERR_ARG_NO_BOOLEAN_VALUE.get(name);
-      throw new ArgumentException(message);
-    }
+    return isRequired;
+  }
 
-    Iterator<String> iterator = values.iterator();
-    String valueString = toLowerCase(iterator.next());
 
-    boolean booleanValue;
-    if (valueString.equals("true") || valueString.equals("yes")
-        || valueString.equals("on") || valueString.equals("1"))
-    {
-      booleanValue = true;
-    }
-    else if (valueString.equals("false") || valueString.equals("no")
-        || valueString.equals("off") || valueString.equals("0"))
-    {
-      booleanValue = false;
-    }
-    else
-    {
-      LocalizableMessage message =
-          ERR_ARG_CANNOT_DECODE_AS_BOOLEAN.get(valueString, name);
-      throw new ArgumentException(message);
-    }
 
-    if (iterator.hasNext())
-    {
-      LocalizableMessage message = ERR_ARG_BOOLEAN_MULTIPLE_VALUES.get(name);
-      throw new ArgumentException(message);
-    }
-    else
-    {
-      return booleanValue;
-    }
+  /**
+   * Indicates whether this argument was provided in the set of properties found
+   * is a properties file.
+   *
+   * @return <CODE>true</CODE> if this argument was provided in the set of
+   *         properties found is a properties file, or <CODE>false</CODE> if
+   *         not.
+   */
+  public boolean isValueSetByProperty()
+  {
+    return isValueSetByProperty;
+  }
+
+
+
+  /**
+   * Indicates whether a value must be provided with this argument if it is
+   * present.
+   *
+   * @return <CODE>true</CODE> if a value must be provided with the argument if
+   *         it is present, or <CODE>false</CODE> if the argument does not take
+   *         a value and the presence of the argument identifier itself is
+   *         sufficient to convey the necessary information.
+   */
+  public boolean needsValue()
+  {
+    return needsValue;
+  }
+
+
+
+  /**
+   * Specifies the default value that will be used for this argument if it is
+   * not specified on the command line and it is not set from a properties file.
+   *
+   * @param defaultValue
+   *          The default value that will be used for this argument if it is not
+   *          specified on the command line and it is not set from a properties
+   *          file.
+   */
+  public void setDefaultValue(final String defaultValue)
+  {
+    this.defaultValue = defaultValue;
+  }
+
+
+
+  /**
+   * Specifies whether this argument should be hidden from the usage
+   * information.
+   *
+   * @param isHidden
+   *          Indicates whether this argument should be hidden from the usage
+   *          information.
+   */
+  public void setHidden(final boolean isHidden)
+  {
+    this.isHidden = isHidden;
+  }
+
+
+
+  /**
+   * Specifies whether this argument may be provided more than once on the
+   * command line to specify multiple values.
+   *
+   * @param isMultiValued
+   *          Indicates whether this argument may be provided more than once on
+   *          the command line to specify multiple values.
+   */
+  public void setMultiValued(final boolean isMultiValued)
+  {
+    this.isMultiValued = isMultiValued;
+  }
+
+
+
+  /**
+   * Specifies whether a value must be provided with this argument if it is
+   * present. If this is changed from <CODE>false</CODE> to <CODE>true</CODE>,
+   * then a value placeholder must also be provided.
+   *
+   * @param needsValue
+   *          Indicates whether a value must be provided with this argument if
+   *          it is present.
+   */
+  public void setNeedsValue(final boolean needsValue)
+  {
+    this.needsValue = needsValue;
+  }
+
+
+
+  /**
+   * Specifies whether this argument is present in the parsed set of
+   * command-line arguments.
+   *
+   * @param isPresent
+   *          Indicates whether this argument is present in the set of
+   *          command-line arguments.
+   */
+  public void setPresent(final boolean isPresent)
+  {
+    this.isPresent = isPresent;
+  }
+
+
+
+  /**
+   * Specifies the name of a property in a properties file that may be used to
+   * set the default value for this argument if it is present.
+   *
+   * @param propertyName
+   *          The name of a property in a properties file that may be used to
+   *          set the default value for this argument if it is present.
+   */
+  public void setPropertyName(final String propertyName)
+  {
+    this.propertyName = propertyName;
+  }
+
+
+
+  /**
+   * Specifies whether this argument is required to have at least one value.
+   *
+   * @param isRequired
+   *          Indicates whether this argument is required to have at least one
+   *          value.
+   */
+  public void setRequired(final boolean isRequired)
+  {
+    this.isRequired = isRequired;
+  }
+
+
+
+  /**
+   * Specifies the value placeholder that will be displayed for this argument in
+   * the generated usage information. It may be <CODE>null</CODE> only if
+   * <CODE>needsValue()</CODE> returns <CODE>false</CODE>.
+   *
+   * @param valuePlaceholder
+   *          The value placeholder that will be displayed for this argument in
+   *          the generated usage information.
+   */
+  public void setValuePlaceholder(final LocalizableMessage valuePlaceholder)
+  {
+    this.valuePlaceholder = valuePlaceholder;
+  }
+
+
+
+  /**
+   * Specifies whether this argument was provided in the set of properties found
+   * is a properties file.
+   *
+   * @param isValueSetByProperty
+   *          Specify whether this argument was provided in the set of
+   *          properties found is a properties file.
+   */
+  public void setValueSetByProperty(final boolean isValueSetByProperty)
+  {
+    this.isValueSetByProperty = isValueSetByProperty;
   }
 
 
@@ -773,37 +779,11 @@ abstract class Argument
    * @param valueString
    *          The value for which to make the determination.
    * @param invalidReason
-   *          A buffer into which the invalid reason may be written if
-   *          the value is not acceptable.
-   * @return <CODE>true</CODE> if the value is acceptable, or
-   *         <CODE>false</CODE> if it is not.
+   *          A buffer into which the invalid reason may be written if the value
+   *          is not acceptable.
+   * @return <CODE>true</CODE> if the value is acceptable, or <CODE>false</CODE>
+   *         if it is not.
    */
   public abstract boolean valueIsAcceptable(String valueString,
       LocalizableMessageBuilder invalidReason);
-
-
-
-  /**
-   * Adds a value to the set of values for this argument. This should
-   * only be called if the value is allowed by the
-   * <CODE>valueIsAcceptable</CODE> method.
-   *
-   * @param valueString
-   *          The string representation of the value to add to this
-   *          argument.
-   */
-  public void addValue(String valueString)
-  {
-    values.add(valueString);
-  }
-
-
-
-  /**
-   * Clears the set of values assigned to this argument.
-   */
-  public void clearValues()
-  {
-    values.clear();
-  }
 }

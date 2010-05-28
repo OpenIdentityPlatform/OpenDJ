@@ -31,7 +31,7 @@ package com.sun.opends.sdk.tools;
 
 import static com.sun.opends.sdk.messages.Messages.*;
 import static com.sun.opends.sdk.tools.ToolConstants.*;
-import static com.sun.opends.sdk.tools.Utils.*;
+import static com.sun.opends.sdk.tools.Utils.filterExitCode;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -49,14 +49,167 @@ import org.opends.sdk.responses.SearchResultReference;
 
 
 
-
 /**
- * A load generation tool that can be used to load a Directory Server
- * with Search requests using one or more LDAP connections.
+ * A load generation tool that can be used to load a Directory Server with
+ * Search requests using one or more LDAP connections.
  */
 public final class SearchRate extends ConsoleApplication
 {
-  private BooleanArgument verbose;
+  private final class SearchPerformanceRunner extends PerformanceRunner
+  {
+    private final class SearchStatsHandler extends
+        UpdateStatsResultHandler<Result> implements SearchResultHandler
+    {
+      private SearchStatsHandler(final long eTime)
+      {
+        super(eTime);
+      }
+
+
+
+      public boolean handleEntry(final SearchResultEntry entry)
+      {
+        entryRecentCount.getAndIncrement();
+        return true;
+      }
+
+
+
+      public boolean handleReference(final SearchResultReference reference)
+      {
+        return true;
+      }
+    }
+
+
+
+    private final class SearchStatsThread extends StatsThread
+    {
+      private long totalEntryCount;
+
+      private final String[] extraColumn;
+
+
+
+      private SearchStatsThread()
+      {
+        super(new String[] { "Entries/Srch" });
+        extraColumn = new String[1];
+      }
+
+
+
+      @Override
+      String[] getAdditionalColumns()
+      {
+        final int entryCount = entryRecentCount.getAndSet(0);
+        totalEntryCount += entryCount;
+        if (successCount > 0)
+        {
+          extraColumn[0] = String.format("%.1f", (double) entryCount
+              / successCount);
+        }
+        else
+        {
+          extraColumn[0] = String.format("%.1f", 0.0);
+        }
+        return extraColumn;
+      }
+    }
+
+
+
+    private final class SearchWorkerThread extends
+        WorkerThread<SearchStatsHandler>
+    {
+      private SearchRequest sr;
+
+      private Object[] data;
+
+
+
+      private SearchWorkerThread(final AsynchronousConnection connection,
+          final ConnectionFactory connectionFactory)
+      {
+        super(connection, connectionFactory);
+      }
+
+
+
+      @Override
+      public SearchStatsHandler getHandler(final long startTime)
+      {
+        return new SearchStatsHandler(startTime);
+      }
+
+
+
+      @Override
+      public FutureResult<?> performOperation(
+          final AsynchronousConnection connection,
+          final SearchStatsHandler handler, final DataSource[] dataSources)
+      {
+        if (sr == null)
+        {
+          if (dataSources == null)
+          {
+            sr = Requests.newSearchRequest(baseDN, scope, filter, attributes);
+          }
+          else
+          {
+            data = DataSource.generateData(dataSources, data);
+            sr = Requests.newSearchRequest(String.format(baseDN, data), scope,
+                String.format(filter, data), attributes);
+          }
+          sr.setDereferenceAliasesPolicy(dereferencesAliasesPolicy);
+        }
+        else if (dataSources != null)
+        {
+          data = DataSource.generateData(dataSources, data);
+          sr.setFilter(String.format(filter, data));
+          sr.setName(String.format(baseDN, data));
+        }
+        return connection.search(sr, handler, handler);
+      }
+    }
+
+
+
+    private String filter;
+
+    private String baseDN;
+
+    private SearchScope scope;
+
+    private DereferenceAliasesPolicy dereferencesAliasesPolicy;
+
+    private String[] attributes;
+
+
+
+    private SearchPerformanceRunner(final ArgumentParser argParser,
+        final ConsoleApplication app) throws ArgumentException
+    {
+      super(argParser, app);
+    }
+
+
+
+    @Override
+    StatsThread newStatsThread()
+    {
+      return new SearchStatsThread();
+    }
+
+
+
+    @Override
+    WorkerThread<?> newWorkerThread(final AsynchronousConnection connection,
+        final ConnectionFactory connectionFactory)
+    {
+      return new SearchWorkerThread(connection, connectionFactory);
+    }
+  }
 
 
 
@@ -67,25 +220,24 @@ public final class SearchRate extends ConsoleApplication
    *          The command-line arguments provided to this program.
    */
 
-  public static void main(String[] args)
+  public static void main(final String[] args)
   {
-    int retCode = mainSearchRate(args, System.in, System.out,
-        System.err);
+    final int retCode = mainSearchRate(args, System.in, System.out, System.err);
     System.exit(filterExitCode(retCode));
   }
 
 
 
   /**
-   * Parses the provided command-line arguments and uses that
-   * information to run the ldapsearch tool.
+   * Parses the provided command-line arguments and uses that information to run
+   * the ldapsearch tool.
    *
    * @param args
    *          The command-line arguments provided to this program.
    * @return The error code.
    */
 
-  static int mainSearchRate(String[] args)
+  static int mainSearchRate(final String[] args)
   {
     return mainSearchRate(args, System.in, System.out, System.err);
   }
@@ -93,25 +245,25 @@ public final class SearchRate extends ConsoleApplication
 
 
   /**
-   * Parses the provided command-line arguments and uses that
-   * information to run the ldapsearch tool.
+   * Parses the provided command-line arguments and uses that information to run
+   * the ldapsearch tool.
    *
    * @param args
    *          The command-line arguments provided to this program.
    * @param inStream
-   *          The input stream to use for standard input, or
-   *          <CODE>null</CODE> if standard input is not needed.
+   *          The input stream to use for standard input, or <CODE>null</CODE>
+   *          if standard input is not needed.
    * @param outStream
-   *          The output stream to use for standard output, or
-   *          <CODE>null</CODE> if standard output is not needed.
+   *          The output stream to use for standard output, or <CODE>null</CODE>
+   *          if standard output is not needed.
    * @param errStream
-   *          The output stream to use for standard error, or
-   *          <CODE>null</CODE> if standard error is not needed.
+   *          The output stream to use for standard error, or <CODE>null</CODE>
+   *          if standard error is not needed.
    * @return The error code.
    */
 
-  static int mainSearchRate(String[] args, InputStream inStream,
-      OutputStream outStream, OutputStream errStream)
+  static int mainSearchRate(final String[] args, final InputStream inStream,
+      final OutputStream outStream, final OutputStream errStream)
 
   {
     return new SearchRate(inStream, outStream, errStream).run(args);
@@ -119,7 +271,14 @@ public final class SearchRate extends ConsoleApplication
 
 
 
-  private SearchRate(InputStream in, OutputStream out, OutputStream err)
+  private BooleanArgument verbose;
+
+  private final AtomicInteger entryRecentCount = new AtomicInteger();
+
+
+
+  private SearchRate(final InputStream in, final OutputStream out,
+      final OutputStream err)
   {
     super(in, out, err);
 
@@ -127,15 +286,98 @@ public final class SearchRate extends ConsoleApplication
 
 
 
-  private int run(String[] args)
+  /**
+   * Indicates whether or not the user has requested advanced mode.
+   *
+   * @return Returns <code>true</code> if the user has requested advanced mode.
+   */
+  @Override
+  public boolean isAdvancedMode()
+  {
+    return false;
+  }
+
+
+
+  /**
+   * Indicates whether or not the user has requested interactive behavior.
+   *
+   * @return Returns <code>true</code> if the user has requested interactive
+   *         behavior.
+   */
+  @Override
+  public boolean isInteractive()
+  {
+    return false;
+  }
+
+
+
+  /**
+   * Indicates whether or not this console application is running in its
+   * menu-driven mode. This can be used to dictate whether output should go to
+   * the error stream or not. In addition, it may also dictate whether or not
+   * sub-menus should display a cancel option as well as a quit option.
+   *
+   * @return Returns <code>true</code> if this console application is running in
+   *         its menu-driven mode.
+   */
+  @Override
+  public boolean isMenuDrivenMode()
+  {
+    return false;
+  }
+
+
+
+  /**
+   * Indicates whether or not the user has requested quiet output.
+   *
+   * @return Returns <code>true</code> if the user has requested quiet output.
+   */
+  @Override
+  public boolean isQuiet()
+  {
+    return false;
+  }
+
+
+
+  /**
+   * Indicates whether or not the user has requested script-friendly output.
+   *
+   * @return Returns <code>true</code> if the user has requested script-friendly
+   *         output.
+   */
+  @Override
+  public boolean isScriptFriendly()
+  {
+    return false;
+  }
+
+
+
+  /**
+   * Indicates whether or not the user has requested verbose output.
+   *
+   * @return Returns <code>true</code> if the user has requested verbose output.
+   */
+  @Override
+  public boolean isVerbose()
+  {
+    return verbose.isPresent();
+  }
+
+
+
+  private int run(final String[] args)
   {
     // Create the command-line argument parser for use with this
     // program.
-    LocalizableMessage toolDescription = LocalizableMessage
-        .raw("This utility can be used to "
-            + "measure search performance");
+    final LocalizableMessage toolDescription = LocalizableMessage
+        .raw("This utility can be used to " + "measure search performance");
     // TODO: correct usage
-    ArgumentParser argParser = new ArgumentParser(SearchRate.class
+    final ArgumentParser argParser = new ArgumentParser(SearchRate.class
         .getName(), toolDescription, false, true, 1, 0,
         "[filter] [attributes ...]");
 
@@ -151,12 +393,11 @@ public final class SearchRate extends ConsoleApplication
 
     try
     {
-      connectionFactory = new ArgumentParserConnectionFactory(
-          argParser, this);
+      connectionFactory = new ArgumentParserConnectionFactory(argParser, this);
       runner = new SearchPerformanceRunner(argParser, this);
 
-      propertiesFileArgument = new StringArgument("propertiesFilePath",
-          null, OPTION_LONG_PROP_FILE_PATH, false, false, true,
+      propertiesFileArgument = new StringArgument("propertiesFilePath", null,
+          OPTION_LONG_PROP_FILE_PATH, false, false, true,
           INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
           INFO_DESCRIPTION_PROP_FILE_PATH.get());
       argParser.addArgument(propertiesFileArgument);
@@ -174,25 +415,24 @@ public final class SearchRate extends ConsoleApplication
       argParser.setUsageArgument(showUsage, getOutputStream());
 
       baseDN = new StringArgument("baseDN", OPTION_SHORT_BASEDN,
-          OPTION_LONG_BASEDN, true, false, true,
-          INFO_BASEDN_PLACEHOLDER.get(), null, null,
-          INFO_SEARCH_DESCRIPTION_BASEDN.get());
+          OPTION_LONG_BASEDN, true, false, true, INFO_BASEDN_PLACEHOLDER.get(),
+          null, null, INFO_SEARCH_DESCRIPTION_BASEDN.get());
       baseDN.setPropertyName(OPTION_LONG_BASEDN);
       argParser.addArgument(baseDN);
 
-      searchScope = new MultiChoiceArgument<SearchScope>("searchScope",
-          's', "searchScope", false, true,
-          INFO_SEARCH_SCOPE_PLACEHOLDER.get(), SearchScope.values(),
-          false, INFO_SEARCH_DESCRIPTION_SEARCH_SCOPE.get());
+      searchScope = new MultiChoiceArgument<SearchScope>("searchScope", 's',
+          "searchScope", false, true, INFO_SEARCH_SCOPE_PLACEHOLDER.get(),
+          SearchScope.values(), false, INFO_SEARCH_DESCRIPTION_SEARCH_SCOPE
+              .get());
       searchScope.setPropertyName("searchScope");
       searchScope.setDefaultValue(SearchScope.WHOLE_SUBTREE);
       argParser.addArgument(searchScope);
 
       dereferencePolicy = new MultiChoiceArgument<DereferenceAliasesPolicy>(
           "derefpolicy", 'a', "dereferencePolicy", false, true,
-          INFO_DEREFERENCE_POLICE_PLACEHOLDER.get(),
-          DereferenceAliasesPolicy.values(), false,
-          INFO_SEARCH_DESCRIPTION_DEREFERENCE_POLICY.get());
+          INFO_DEREFERENCE_POLICE_PLACEHOLDER.get(), DereferenceAliasesPolicy
+              .values(), false, INFO_SEARCH_DESCRIPTION_DEREFERENCE_POLICY
+              .get());
       dereferencePolicy.setPropertyName("dereferencePolicy");
       dereferencePolicy.setDefaultValue(DereferenceAliasesPolicy.NEVER);
       argParser.addArgument(dereferencePolicy);
@@ -202,9 +442,10 @@ public final class SearchRate extends ConsoleApplication
       verbose.setPropertyName("verbose");
       argParser.addArgument(verbose);
     }
-    catch (ArgumentException ae)
+    catch (final ArgumentException ae)
     {
-      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+      final LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae
+          .getMessage());
       println(message);
       return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
     }
@@ -216,9 +457,10 @@ public final class SearchRate extends ConsoleApplication
       connectionFactory.validate();
       runner.validate();
     }
-    catch (ArgumentException ae)
+    catch (final ArgumentException ae)
     {
-      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+      final LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae
+          .getMessage());
       println(message);
       println(argParser.getUsageMessage());
       return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
@@ -231,8 +473,8 @@ public final class SearchRate extends ConsoleApplication
       return 0;
     }
 
-    List<String> attributes = new LinkedList<String>();
-    ArrayList<String> filterAndAttributeStrings = argParser
+    final List<String> attributes = new LinkedList<String>();
+    final ArrayList<String> filterAndAttributeStrings = argParser
         .getTrailingArguments();
     if (filterAndAttributeStrings.size() > 0)
     {
@@ -241,21 +483,19 @@ public final class SearchRate extends ConsoleApplication
       // considered the filter, the other as attributes.
       runner.filter = filterAndAttributeStrings.remove(0);
       // The rest are attributes
-      for (String s : filterAndAttributeStrings)
+      for (final String s : filterAndAttributeStrings)
       {
         attributes.add(s);
       }
     }
-    runner.attributes = attributes
-        .toArray(new String[attributes.size()]);
+    runner.attributes = attributes.toArray(new String[attributes.size()]);
     runner.baseDN = baseDN.getValue();
     try
     {
       runner.scope = searchScope.getTypedValue();
-      runner.dereferencesAliasesPolicy = dereferencePolicy
-          .getTypedValue();
+      runner.dereferencesAliasesPolicy = dereferencePolicy.getTypedValue();
     }
-    catch (ArgumentException ex1)
+    catch (final ArgumentException ex1)
     {
       println(ex1.getMessageObject());
       return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
@@ -265,12 +505,12 @@ public final class SearchRate extends ConsoleApplication
     {
       // Try it out to make sure the format string and data sources
       // match.
-      Object[] data = DataSource.generateData(runner.getDataSources(),
+      final Object[] data = DataSource.generateData(runner.getDataSources(),
           null);
       String.format(runner.filter, data);
       String.format(runner.baseDN, data);
     }
-    catch (Exception ex1)
+    catch (final Exception ex1)
     {
       println(LocalizableMessage.raw("Error formatting filter or base DN: "
           + ex1.toString()));
@@ -278,238 +518,5 @@ public final class SearchRate extends ConsoleApplication
     }
 
     return runner.run(connectionFactory);
-  }
-
-
-
-  private final AtomicInteger entryRecentCount = new AtomicInteger();
-
-
-
-  private class SearchPerformanceRunner extends PerformanceRunner
-  {
-    private String filter;
-
-    private String baseDN;
-
-    private SearchScope scope;
-
-    private DereferenceAliasesPolicy dereferencesAliasesPolicy;
-
-    private String[] attributes;
-
-
-
-    private SearchPerformanceRunner(ArgumentParser argParser,
-        ConsoleApplication app) throws ArgumentException
-    {
-      super(argParser, app);
-    }
-
-
-
-    WorkerThread<?> newWorkerThread(AsynchronousConnection connection,
-        ConnectionFactory connectionFactory)
-    {
-      return new SearchWorkerThread(connection, connectionFactory);
-    }
-
-
-
-    StatsThread newStatsThread()
-    {
-      return new SearchStatsThread();
-    }
-
-
-
-    private class SearchStatsHandler extends
-        UpdateStatsResultHandler<Result> implements SearchResultHandler
-    {
-      private SearchStatsHandler(long eTime)
-      {
-        super(eTime);
-      }
-
-
-
-      public void handleEntry(SearchResultEntry entry)
-      {
-        entryRecentCount.getAndIncrement();
-      }
-
-
-
-      public void handleReference(SearchResultReference reference)
-      {
-      }
-    }
-
-
-
-    private class SearchWorkerThread extends
-        WorkerThread<SearchStatsHandler>
-    {
-      private SearchRequest sr;
-
-      private Object[] data;
-
-
-
-      private SearchWorkerThread(AsynchronousConnection connection,
-          ConnectionFactory connectionFactory)
-      {
-        super(connection, connectionFactory);
-      }
-
-
-
-      public SearchStatsHandler getHandler(long startTime)
-      {
-        return new SearchStatsHandler(startTime);
-      }
-
-
-
-      public FutureResult<?> performOperation(
-          AsynchronousConnection connection,
-          SearchStatsHandler handler, DataSource[] dataSources)
-      {
-        if (sr == null)
-        {
-          if (dataSources == null)
-          {
-            sr = Requests.newSearchRequest(baseDN, scope, filter,
-                attributes);
-          }
-          else
-          {
-            data = DataSource.generateData(dataSources, data);
-            sr = Requests.newSearchRequest(String.format(baseDN, data),
-                scope, String.format(filter, data), attributes);
-          }
-          sr.setDereferenceAliasesPolicy(dereferencesAliasesPolicy);
-        }
-        else if (dataSources != null)
-        {
-          data = DataSource.generateData(dataSources, data);
-          sr.setFilter(String.format(filter, data));
-          sr.setName(String.format(baseDN, data));
-        }
-        return connection.search(sr, handler, handler);
-      }
-    }
-
-
-
-    private class SearchStatsThread extends StatsThread
-    {
-      private long totalEntryCount;
-
-      private final String[] extraColumn;
-
-
-
-      private SearchStatsThread()
-      {
-        super(new String[] { "Entries/Srch" });
-        extraColumn = new String[1];
-      }
-
-
-
-      String[] getAdditionalColumns()
-      {
-        int entryCount = entryRecentCount.getAndSet(0);
-        totalEntryCount += entryCount;
-        extraColumn[0] = String.format("%.1f", (double) entryCount
-            / successCount);
-        return extraColumn;
-      }
-    }
-  }
-
-
-
-  /**
-   * Indicates whether or not the user has requested advanced mode.
-   *
-   * @return Returns <code>true</code> if the user has requested
-   *         advanced mode.
-   */
-  public boolean isAdvancedMode()
-  {
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether or not the user has requested interactive
-   * behavior.
-   *
-   * @return Returns <code>true</code> if the user has requested
-   *         interactive behavior.
-   */
-  public boolean isInteractive()
-  {
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether or not this console application is running in its
-   * menu-driven mode. This can be used to dictate whether output should
-   * go to the error stream or not. In addition, it may also dictate
-   * whether or not sub-menus should display a cancel option as well as
-   * a quit option.
-   *
-   * @return Returns <code>true</code> if this console application is
-   *         running in its menu-driven mode.
-   */
-  public boolean isMenuDrivenMode()
-  {
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether or not the user has requested quiet output.
-   *
-   * @return Returns <code>true</code> if the user has requested quiet
-   *         output.
-   */
-  public boolean isQuiet()
-  {
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether or not the user has requested script-friendly
-   * output.
-   *
-   * @return Returns <code>true</code> if the user has requested
-   *         script-friendly output.
-   */
-  public boolean isScriptFriendly()
-  {
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether or not the user has requested verbose output.
-   *
-   * @return Returns <code>true</code> if the user has requested verbose
-   *         output.
-   */
-  public boolean isVerbose()
-  {
-    return verbose.isPresent();
   }
 }

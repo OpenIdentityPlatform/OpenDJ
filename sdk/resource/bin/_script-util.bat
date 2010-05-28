@@ -43,10 +43,6 @@ goto prepareCheck
 setlocal
 for %%i in (%~sf0) do set DIR_HOME=%%~dPsi..
 set INSTALL_ROOT=%DIR_HOME%
-set INSTANCE_DIR=
-for /f "delims=" %%a in (%INSTALL_ROOT%\instance.loc) do (
-  set INSTANCE_DIR=%%a
-)
 set CUR_DIR=%~dp0
 cd /d %INSTALL_ROOT%
 cd /d %INSTANCE_DIR%

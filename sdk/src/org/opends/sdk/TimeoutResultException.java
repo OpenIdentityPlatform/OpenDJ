@@ -34,14 +34,13 @@ import org.opends.sdk.responses.Result;
 
 
 /**
- * Thrown when the result code returned in a Result indicates that the
- * Request was aborted because it did not complete in the required time
- * out period.
+ * Thrown when the result code returned in a Result indicates that the Request
+ * was aborted because it did not complete in the required time out period.
  */
 @SuppressWarnings("serial")
 public class TimeoutResultException extends ErrorResultException
 {
-  TimeoutResultException(Result result)
+  TimeoutResultException(final Result result)
   {
     super(result);
   }

@@ -29,7 +29,14 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
+import static com.sun.opends.sdk.messages.Messages.
+  ERR_ATTR_SYNTAX_NAME_FORM_STRUCTURAL_CLASS_NOT_STRUCTURAL;
+import static com.sun.opends.sdk.messages.Messages.
+  ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR;
+import static com.sun.opends.sdk.messages.Messages.
+  ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR;
+import static com.sun.opends.sdk.messages.Messages.
+  ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_STRUCTURAL_CLASS;
 
 import java.util.*;
 
@@ -40,9 +47,9 @@ import com.sun.opends.sdk.util.Validator;
 
 
 /**
- * This class defines a data structure for storing and interacting with
- * a name form, which defines the attribute type(s) that must and/or may
- * be used in the RDN of an entry with a given structural objectclass.
+ * This class defines a data structure for storing and interacting with a name
+ * form, which defines the attribute type(s) that must and/or may be used in the
+ * RDN of an entry with a given structural objectclass.
  */
 public final class NameForm extends SchemaElement
 {
@@ -68,18 +75,16 @@ public final class NameForm extends SchemaElement
   private final String definition;
 
   private ObjectClass structuralClass;
-  private Set<AttributeType> optionalAttributes =
-      Collections.emptySet();
-  private Set<AttributeType> requiredAttributes =
-      Collections.emptySet();
+  private Set<AttributeType> optionalAttributes = Collections.emptySet();
+  private Set<AttributeType> requiredAttributes = Collections.emptySet();
 
 
 
-  NameForm(String oid, List<String> names, String description,
-      boolean obsolete, String structuralClassOID,
-      Set<String> requiredAttributeOIDs,
-      Set<String> optionalAttributeOIDs,
-      Map<String, List<String>> extraProperties, String definition)
+  NameForm(final String oid, final List<String> names,
+      final String description, final boolean obsolete,
+      final String structuralClassOID, final Set<String> requiredAttributeOIDs,
+      final Set<String> optionalAttributeOIDs,
+      final Map<String, List<String>> extraProperties, final String definition)
   {
     super(description, extraProperties);
 
@@ -108,10 +113,10 @@ public final class NameForm extends SchemaElement
 
 
   /**
-   * Retrieves the name or OID for this schema definition. If it has one
-   * or more names, then the primary name will be returned. If it does
-   * not have any names, then the OID will be returned.
-   * 
+   * Returns the name or OID for this schema definition. If it has one or more
+   * names, then the primary name will be returned. If it does not have any
+   * names, then the OID will be returned.
+   *
    * @return The name or OID for this schema definition.
    */
   public String getNameOrOID()
@@ -126,13 +131,13 @@ public final class NameForm extends SchemaElement
 
 
   /**
-   * Retrieves an iterable over the set of user-defined names that may
-   * be used to reference this schema definition.
-   * 
-   * @return Returns an iterable over the set of user-defined names that
+   * Returns an unmodifiable list containing the user-defined names that may be
+   * used to reference this schema definition.
+   *
+   * @return Returns an unmodifiable list containing the user-defined names that
    *         may be used to reference this schema definition.
    */
-  public Iterable<String> getNames()
+  public List<String> getNames()
   {
     return names;
   }
@@ -140,8 +145,8 @@ public final class NameForm extends SchemaElement
 
 
   /**
-   * Retrieves the OID for this schema definition.
-   * 
+   * Returns the OID for this schema definition.
+   *
    * @return The OID for this schema definition.
    */
   public String getOID()
@@ -153,11 +158,13 @@ public final class NameForm extends SchemaElement
 
 
   /**
-   * Retrieves the set of optional attributes for this name form.
-   * 
-   * @return The set of optional attributes for this name form.
+   * Returns an unmodifiable set containing the optional attributes for this
+   * name form.
+   *
+   * @return An unmodifiable set containing the optional attributes for this
+   *         name form.
    */
-  public Iterable<AttributeType> getOptionalAttributes()
+  public Set<AttributeType> getOptionalAttributes()
   {
     return optionalAttributes;
   }
@@ -165,11 +172,13 @@ public final class NameForm extends SchemaElement
 
 
   /**
-   * Retrieves the set of required attributes for this name form.
-   * 
-   * @return The set of required attributes for this name form.
+   * Returns an unmodifiable set containing the required attributes for this
+   * name form.
+   *
+   * @return An unmodifiable set containing the required attributes for this
+   *         name form.
    */
-  public Iterable<AttributeType> getRequiredAttributes()
+  public Set<AttributeType> getRequiredAttributes()
   {
     return requiredAttributes;
   }
@@ -177,11 +186,9 @@ public final class NameForm extends SchemaElement
 
 
   /**
-   * Retrieves the reference to the structural objectclass for this name
-   * form.
-   * 
-   * @return The reference to the structural objectclass for this name
-   *         form.
+   * Returns the reference to the structural objectclass for this name form.
+   *
+   * @return The reference to the structural objectclass for this name form.
    */
   public ObjectClass getStructuralClass()
   {
@@ -200,13 +207,13 @@ public final class NameForm extends SchemaElement
 
   /**
    * Indicates whether this schema definition has the specified name.
-   * 
+   *
    * @param name
    *          The name for which to make the determination.
-   * @return <code>true</code> if the specified name is assigned to this
-   *         schema definition, or <code>false</code> if not.
+   * @return <code>true</code> if the specified name is assigned to this schema
+   *         definition, or <code>false</code> if not.
    */
-  public boolean hasName(String name)
+  public boolean hasName(final String name)
   {
     for (final String n : names)
     {
@@ -221,16 +228,15 @@ public final class NameForm extends SchemaElement
 
 
   /**
-   * Indicates whether this schema definition has the specified name or
-   * OID.
-   * 
+   * Indicates whether this schema definition has the specified name or OID.
+   *
    * @param value
    *          The value for which to make the determination.
-   * @return <code>true</code> if the provided value matches the OID or
-   *         one of the names assigned to this schema definition, or
-   *         <code>false</code> if not.
+   * @return <code>true</code> if the provided value matches the OID or one of
+   *         the names assigned to this schema definition, or <code>false</code>
+   *         if not.
    */
-  public boolean hasNameOrOID(String value)
+  public boolean hasNameOrOID(final String value)
   {
     return hasName(value) || getOID().equals(value);
   }
@@ -239,9 +245,9 @@ public final class NameForm extends SchemaElement
 
   /**
    * Indicates whether this schema definition is declared "obsolete".
-   * 
-   * @return <code>true</code> if this schema definition is declared
-   *         "obsolete", or <code>false</code> if not.
+   *
+   * @return <code>true</code> if this schema definition is declared "obsolete",
+   *         or <code>false</code> if not.
    */
   public boolean isObsolete()
   {
@@ -251,11 +257,11 @@ public final class NameForm extends SchemaElement
 
 
   /**
-   * Retrieves the string representation of this schema definition in
-   * the form specified in RFC 2252.
-   * 
-   * @return The string representation of this schema definition in the
-   *         form specified in RFC 2252.
+   * Returns the string representation of this schema definition in the form
+   * specified in RFC 2252.
+   *
+   * @return The string representation of this schema definition in the form
+   *         specified in RFC 2252.
    */
   @Override
   public String toString()
@@ -268,14 +274,14 @@ public final class NameForm extends SchemaElement
   NameForm duplicate()
   {
     return new NameForm(oid, names, description, isObsolete,
-        structuralClassOID, requiredAttributeOIDs,
-        optionalAttributeOIDs, extraProperties, definition);
+        structuralClassOID, requiredAttributeOIDs, optionalAttributeOIDs,
+        extraProperties, definition);
   }
 
 
 
   @Override
-  void toStringContent(StringBuilder buffer)
+  void toStringContent(final StringBuilder buffer)
   {
     buffer.append(oid);
 
@@ -322,8 +328,7 @@ public final class NameForm extends SchemaElement
 
     if (!requiredAttributeOIDs.isEmpty())
     {
-      final Iterator<String> iterator =
-          requiredAttributeOIDs.iterator();
+      final Iterator<String> iterator = requiredAttributeOIDs.iterator();
 
       final String firstName = iterator.next();
       if (iterator.hasNext())
@@ -348,8 +353,7 @@ public final class NameForm extends SchemaElement
 
     if (!optionalAttributeOIDs.isEmpty())
     {
-      final Iterator<String> iterator =
-          optionalAttributeOIDs.iterator();
+      final Iterator<String> iterator = optionalAttributeOIDs.iterator();
 
       final String firstName = iterator.next();
       if (iterator.hasNext())
@@ -376,7 +380,7 @@ public final class NameForm extends SchemaElement
 
 
   @Override
-  void validate(List<LocalizableMessage> warnings, Schema schema)
+  void validate(final List<LocalizableMessage> warnings, final Schema schema)
       throws SchemaException
   {
     try
@@ -385,25 +389,22 @@ public final class NameForm extends SchemaElement
     }
     catch (final UnknownSchemaElementException e)
     {
-      final LocalizableMessage message =
-          ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_STRUCTURAL_CLASS.get(oid,
-              structuralClassOID);
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_STRUCTURAL_CLASS
+          .get(oid, structuralClassOID);
       throw new SchemaException(message, e);
     }
     if (structuralClass.getObjectClassType() != ObjectClassType.STRUCTURAL)
     {
       // This is bad because the associated structural class type is not
       // structural.
-      final LocalizableMessage message =
-          ERR_ATTR_SYNTAX_NAME_FORM_STRUCTURAL_CLASS_NOT_STRUCTURAL
-              .get(oid, structuralClass.getOID(), structuralClass
-                  .getNameOrOID(), String.valueOf(structuralClass
-                  .getObjectClassType()));
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_NAME_FORM_STRUCTURAL_CLASS_NOT_STRUCTURAL
+          .get(oid, structuralClass.getOID(), structuralClass.getNameOrOID(),
+              String.valueOf(structuralClass.getObjectClassType()));
       throw new SchemaException(message);
     }
 
-    requiredAttributes =
-        new HashSet<AttributeType>(requiredAttributeOIDs.size());
+    requiredAttributes = new HashSet<AttributeType>(requiredAttributeOIDs
+        .size());
     AttributeType attributeType;
     for (final String oid : requiredAttributeOIDs)
     {
@@ -415,9 +416,8 @@ public final class NameForm extends SchemaElement
       {
         // This isn't good because it means that the name form requires
         // an attribute type that we don't know anything about.
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR.get(
-                this.oid, oid);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR
+            .get(this.oid, oid);
         throw new SchemaException(message, e);
       }
       requiredAttributes.add(attributeType);
@@ -425,8 +425,8 @@ public final class NameForm extends SchemaElement
 
     if (!optionalAttributeOIDs.isEmpty())
     {
-      optionalAttributes =
-          new HashSet<AttributeType>(optionalAttributeOIDs.size());
+      optionalAttributes = new HashSet<AttributeType>(optionalAttributeOIDs
+          .size());
       for (final String oid : optionalAttributeOIDs)
       {
         try
@@ -438,13 +438,15 @@ public final class NameForm extends SchemaElement
           // This isn't good because it means that the name form
           // requires an attribute type that we don't know anything
           // about.
-          final LocalizableMessage message =
-              ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR.get(
-                  this.oid, oid);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR
+              .get(this.oid, oid);
           throw new SchemaException(message, e);
         }
         optionalAttributes.add(attributeType);
       }
     }
+
+    optionalAttributes = Collections.unmodifiableSet(optionalAttributes);
+    requiredAttributes = Collections.unmodifiableSet(requiredAttributes);
   }
 }

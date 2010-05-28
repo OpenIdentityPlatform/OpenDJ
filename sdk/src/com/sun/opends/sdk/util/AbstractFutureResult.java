@@ -40,37 +40,34 @@ import org.opends.sdk.responses.Result;
 
 
 /**
- * This class provides a skeletal implementation of the {@code
- * FutureResult} interface, to minimize the effort required to implement
- * this interface.
+ * This class provides a skeletal implementation of the {@code FutureResult}
+ * interface, to minimize the effort required to implement this interface.
  * <p>
- * This {@code FutureResult} implementation provides the following
- * features:
+ * This {@code FutureResult} implementation provides the following features:
  * <ul>
- * <li>The {@link #get} methods throw {@link ErrorResultException}s
- * instead of the more generic {@code ExecutionException}s.
- * <li>The {@link #get} methods never throw {@code
- * CancellationException} since requests in this SDK can usually be
- * cancelled via other external means (e.g. the {@code Cancel} extended
- * operation) for which there are well defined error results. Therefore
- * cancellation is always signalled by throwing a
- * {@link CancelledResultException} in order to be consistent with other
- * error results.
- * <li>A {@link ResultHandler} can be provided to the constructor. The
- * result handler will be invoked immediately after the result or error
- * is received but before threads blocked on {@link #get} are released.
- * More specifically, result handler invocation <i>happens-before</i> a
- * call to {@link #get}. <b>NOTE:</b> a result handler which attempts to
- * call {@link #get} will deadlock.
- * <li>Sub-classes may choose to implement specific cancellation cleanup
- * by implementing the {@link #handleCancelRequest} method.
+ * <li>The {@link #get} methods throw {@link ErrorResultException}s instead of
+ * the more generic {@code ExecutionException}s.
+ * <li>The {@link #get} methods never throw {@code CancellationException} since
+ * requests in this SDK can usually be cancelled via other external means (e.g.
+ * the {@code Cancel} extended operation) for which there are well defined error
+ * results. Therefore cancellation is always signalled by throwing a
+ * {@link CancelledResultException} in order to be consistent with other error
+ * results.
+ * <li>A {@link ResultHandler} can be provided to the constructor. The result
+ * handler will be invoked immediately after the result or error is received but
+ * before threads blocked on {@link #get} are released. More specifically,
+ * result handler invocation <i>happens-before</i> a call to {@link #get}.
+ * <b>NOTE:</b> a result handler which attempts to call {@link #get} will
+ * deadlock.
+ * <li>Sub-classes may choose to implement specific cancellation cleanup by
+ * implementing the {@link #handleCancelRequest} method.
  * </ul>
  *
  * @param <M>
  *          The type of result returned by this completion future.
  */
-public abstract class AbstractFutureResult<M> implements
-    FutureResult<M>, ResultHandler<M>
+public abstract class AbstractFutureResult<M> implements FutureResult<M>,
+    ResultHandler<M>
 {
   @SuppressWarnings("serial")
   private final class Sync extends AbstractQueuedSynchronizer
@@ -101,44 +98,11 @@ public abstract class AbstractFutureResult<M> implements
 
 
 
-    private M get0() throws ErrorResultException
-    {
-      if (errorResult != null)
-      {
-        // State must be FAILED or CANCELLED.
-        throw errorResult;
-      }
-      else
-      {
-        // State must be SUCCESS.
-        return result;
-      }
-    }
-
-
-
-    private boolean setStatePending()
-    {
-      for (;;)
-      {
-        final int s = getState();
-        if (s != WAITING)
-        {
-          return false;
-        }
-        if (compareAndSetState(s, PENDING))
-        {
-          return true;
-        }
-      }
-    }
-
-
-
     /**
      * Allow all threads to acquire if future has completed.
      */
-    protected int tryAcquireShared(int ignore)
+    @Override
+    protected int tryAcquireShared(final int ignore)
     {
       return innerIsDone() ? 1 : -1;
     }
@@ -146,10 +110,11 @@ public abstract class AbstractFutureResult<M> implements
 
 
     /**
-     * Signal that the future has completed and threads waiting on get()
-     * can be released.
+     * Signal that the future has completed and threads waiting on get() can be
+     * released.
      */
-    protected boolean tryReleaseShared(int finalState)
+    @Override
+    protected boolean tryReleaseShared(final int finalState)
     {
       // Ensures that errorResult/result is published.
       setState(finalState);
@@ -158,7 +123,7 @@ public abstract class AbstractFutureResult<M> implements
 
 
 
-    boolean innerCancel(boolean mayInterruptIfRunning)
+    boolean innerCancel(final boolean mayInterruptIfRunning)
     {
       if (!setStatePending())
       {
@@ -201,7 +166,7 @@ public abstract class AbstractFutureResult<M> implements
 
 
 
-    M innerGet(long nanosTimeout) throws ErrorResultException,
+    M innerGet(final long nanosTimeout) throws ErrorResultException,
         TimeoutException, InterruptedException
     {
       if (!tryAcquireSharedNanos(0, nanosTimeout))
@@ -230,7 +195,7 @@ public abstract class AbstractFutureResult<M> implements
 
 
 
-    void innerSetErrorResult(ErrorResultException errorResult)
+    void innerSetErrorResult(final ErrorResultException errorResult)
     {
       if (setStatePending())
       {
@@ -253,7 +218,7 @@ public abstract class AbstractFutureResult<M> implements
 
 
 
-    void innerSetResult(M result)
+    void innerSetResult(final M result)
     {
       if (setStatePending())
       {
@@ -273,6 +238,40 @@ public abstract class AbstractFutureResult<M> implements
         }
       }
     }
+
+
+
+    private M get0() throws ErrorResultException
+    {
+      if (errorResult != null)
+      {
+        // State must be FAILED or CANCELLED.
+        throw errorResult;
+      }
+      else
+      {
+        // State must be SUCCESS.
+        return result;
+      }
+    }
+
+
+
+    private boolean setStatePending()
+    {
+      for (;;)
+      {
+        final int s = getState();
+        if (s != WAITING)
+        {
+          return false;
+        }
+        if (compareAndSetState(s, PENDING))
+        {
+          return true;
+        }
+      }
+    }
   }
 
 
@@ -284,14 +283,13 @@ public abstract class AbstractFutureResult<M> implements
 
 
   /**
-   * Creates a new abstract future result with the provided result
-   * handler.
+   * Creates a new abstract future result with the provided result handler.
    *
    * @param handler
-   *          A result handler which will be forwarded the result or
-   *          error when it arrives.
+   *          A result handler which will be forwarded the result or error when
+   *          it arrives.
    */
-  protected AbstractFutureResult(ResultHandler<? super M> handler)
+  protected AbstractFutureResult(final ResultHandler<? super M> handler)
   {
     this.handler = handler;
   }
@@ -301,7 +299,7 @@ public abstract class AbstractFutureResult<M> implements
   /**
    * {@inheritDoc}
    */
-  public final boolean cancel(boolean mayInterruptIfRunning)
+  public final boolean cancel(final boolean mayInterruptIfRunning)
   {
     return sync.innerCancel(mayInterruptIfRunning);
   }
@@ -311,8 +309,7 @@ public abstract class AbstractFutureResult<M> implements
   /**
    * {@inheritDoc}
    */
-  public final M get() throws ErrorResultException,
-      InterruptedException
+  public final M get() throws ErrorResultException, InterruptedException
   {
     return sync.innerGet();
   }
@@ -322,9 +319,8 @@ public abstract class AbstractFutureResult<M> implements
   /**
    * {@inheritDoc}
    */
-  public final M get(long timeout, TimeUnit unit)
-      throws ErrorResultException, TimeoutException,
-      InterruptedException
+  public final M get(final long timeout, final TimeUnit unit)
+      throws ErrorResultException, TimeoutException, InterruptedException
   {
     return sync.innerGet(unit.toNanos(timeout));
   }
@@ -332,16 +328,15 @@ public abstract class AbstractFutureResult<M> implements
 
 
   /**
-   * Sets the error result associated with this future. If ({@code
-   * isDone() == true}) then the error result will be ignored, otherwise
-   * the result handler will be invoked if one was provided and, on
-   * return, any threads waiting on {@link #get} will be released and
-   * the provided error result will be thrown.
+   * Sets the error result associated with this future. If ({@code isDone() ==
+   * true}) then the error result will be ignored, otherwise the result handler
+   * will be invoked if one was provided and, on return, any threads waiting on
+   * {@link #get} will be released and the provided error result will be thrown.
    *
    * @param errorResult
    *          The error result.
    */
-  public final void handleErrorResult(ErrorResultException errorResult)
+  public final void handleErrorResult(final ErrorResultException errorResult)
   {
     sync.innerSetErrorResult(errorResult);
   }
@@ -349,16 +344,15 @@ public abstract class AbstractFutureResult<M> implements
 
 
   /**
-   * Sets the result associated with this future. If ({@code isDone() ==
-   * true}) then the result will be ignored, otherwise the result
-   * handler will be invoked if one was provided and, on return, any
-   * threads waiting on {@link #get} will be released and the provided
-   * result will be returned.
+   * Sets the result associated with this future. If ({@code isDone() == true})
+   * then the result will be ignored, otherwise the result handler will be
+   * invoked if one was provided and, on return, any threads waiting on
+   * {@link #get} will be released and the provided result will be returned.
    *
    * @param result
    *          The result.
    */
-  public final void handleResult(M result)
+  public final void handleResult(final M result)
   {
     sync.innerSetResult(result);
   }
@@ -386,33 +380,46 @@ public abstract class AbstractFutureResult<M> implements
 
 
   /**
-   * Invoked when {@link #cancel} is called and {@code isDone() ==
-   * false} and immediately before any threads waiting on {@link #get}
-   * are released. Implementations may choose to return a custom error
-   * result if needed or return {@code null} if the following default
-   * error result is acceptable:
+   * Invoked when {@link #cancel} is called and {@code isDone() == false} and
+   * immediately before any threads waiting on {@link #get} are released.
+   * Implementations may choose to return a custom error result if needed or
+   * return {@code null} if the following default error result is acceptable:
    *
    * <pre>
-   * Result result = Responses
-   *     .newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED);
+   * Result result = Responses.newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED);
    * </pre>
    *
-   * In addition, implementations may perform other cleanup, for
-   * example, by issuing an LDAP abandon request. The default
-   * implementation is to do nothing.
+   * In addition, implementations may perform other cleanup, for example, by
+   * issuing an LDAP abandon request. The default implementation is to do
+   * nothing.
    *
    * @param mayInterruptIfRunning
-   *          {@code true} if the thread executing executing the
-   *          response handler should be interrupted; otherwise,
-   *          in-progress response handlers are allowed to complete.
+   *          {@code true} if the thread executing executing the response
+   *          handler should be interrupted; otherwise, in-progress response
+   *          handlers are allowed to complete.
    * @return The custom error result, or {@code null} if the default is
    *         acceptable.
    */
   protected ErrorResultException handleCancelRequest(
-      boolean mayInterruptIfRunning)
+      final boolean mayInterruptIfRunning)
   {
     // Do nothing by default.
     return null;
+  }
+
+
+
+  /**
+   * Appends a string representation of this future's state to the provided
+   * builder.
+   *
+   * @param sb
+   *          The string builder.
+   */
+  protected void toString(final StringBuilder sb)
+  {
+    sb.append(" state = ");
+    sb.append(sync);
   }
 
 }

@@ -15,29 +15,34 @@
  * When distributing Covered Code, include this CDDL HEADER in each
  * file and include the License file at
  * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
- * generic extended the following below this CDDL HEADER, with the fields enclosed
+ * add the following below this CDDL HEADER, with the fields enclosed
  * by brackets "[]" replaced with your own identifying information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.responses;
 
 
 
+import java.util.List;
+
 import org.opends.sdk.ByteString;
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.DecodeOptions;
 import org.opends.sdk.ResultCode;
 import org.opends.sdk.controls.Control;
+import org.opends.sdk.controls.ControlDecoder;
 
 
 
 /**
- * A Generic Extended result indicates the final status of an Generic
- * Extended operation.
+ * A Generic Extended result indicates the final status of an Generic Extended
+ * operation.
  */
 public interface GenericExtendedResult extends ExtendedResult
 {
@@ -49,6 +54,9 @@ public interface GenericExtendedResult extends ExtendedResult
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   GenericExtendedResult addReferralURI(String uri)
       throws UnsupportedOperationException, NullPointerException;
 
@@ -57,16 +65,6 @@ public interface GenericExtendedResult extends ExtendedResult
   /**
    * {@inheritDoc}
    */
-  GenericExtendedResult clearControls()
-      throws UnsupportedOperationException;
-
-
-
-  GenericExtendedResult clearReferralURIs()
-      throws UnsupportedOperationException;
-
-
-
   Throwable getCause();
 
 
@@ -74,43 +72,49 @@ public interface GenericExtendedResult extends ExtendedResult
   /**
    * {@inheritDoc}
    */
-  Control getControl(String oid) throws NullPointerException;
+  <C extends Control> C getControl(ControlDecoder<C> decoder,
+      DecodeOptions options) throws NullPointerException, DecodeException;
 
 
 
   /**
    * {@inheritDoc}
    */
-  Iterable<Control> getControls();
+  List<Control> getControls();
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   String getDiagnosticMessage();
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   String getMatchedDN();
 
 
 
-  Iterable<String> getReferralURIs();
+  /**
+   * {@inheritDoc}
+   */
+  String getOID();
 
 
 
   /**
    * {@inheritDoc}
    */
-  String getResponseName();
+  List<String> getReferralURIs();
 
 
 
   /**
    * {@inheritDoc}
    */
-  ByteString getResponseValue();
-
-
-
   ResultCode getResultCode();
 
 
@@ -118,18 +122,27 @@ public interface GenericExtendedResult extends ExtendedResult
   /**
    * {@inheritDoc}
    */
-  boolean hasControls();
+  ByteString getValue();
 
 
 
-  boolean hasReferralURIs();
+  /**
+   * {@inheritDoc}
+   */
+  boolean hasValue();
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   boolean isReferral();
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   boolean isSuccess();
 
 
@@ -137,62 +150,63 @@ public interface GenericExtendedResult extends ExtendedResult
   /**
    * {@inheritDoc}
    */
-  Control removeControl(String oid)
-      throws UnsupportedOperationException, NullPointerException;
-
-
-
   GenericExtendedResult setCause(Throwable cause)
       throws UnsupportedOperationException;
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   GenericExtendedResult setDiagnosticMessage(String message)
       throws UnsupportedOperationException;
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   GenericExtendedResult setMatchedDN(String dn)
       throws UnsupportedOperationException;
 
 
 
   /**
-   * Sets the dotted-decimal representation of the unique OID
-   * corresponding to this generic extended result.
-   * 
+   * Sets the numeric OID, if any, associated with this extended result.
+   *
    * @param oid
-   *          The dotted-decimal representation of the unique OID, or
-   *          {@code null} if there is no response name.
+   *          The numeric OID associated with this extended result, or {@code
+   *          null} if there is no value.
    * @return This generic extended result.
    * @throws UnsupportedOperationException
-   *           If this generic extended result does not permit the
-   *           response name to be set.
+   *           If this generic extended result does not permit the result name
+   *           to be set.
    */
-  GenericExtendedResult setResponseName(String oid)
-      throws UnsupportedOperationException;
+  GenericExtendedResult setOID(String oid) throws UnsupportedOperationException;
 
 
 
   /**
-   * Sets the content of this generic extended result in a form defined
-   * by the extended result.
-   * 
-   * @param bytes
-   *          The content of this generic extended result in a form
-   *          defined by the extended result, or {@code null} if there
-   *          is no content.
-   * @return This generic extended result.
-   * @throws UnsupportedOperationException
-   *           If this generic extended result does not permit the
-   *           response value to be set.
+   * {@inheritDoc}
    */
-  GenericExtendedResult setResponseValue(ByteString bytes)
-      throws UnsupportedOperationException;
-
-
-
   GenericExtendedResult setResultCode(ResultCode resultCode)
       throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Sets the value, if any, associated with this extended result. Its format is
+   * defined by the specification of this extended result.
+   *
+   * @param bytes
+   *          The value associated with this extended result, or {@code null} if
+   *          there is no value.
+   * @return This generic extended result.
+   * @throws UnsupportedOperationException
+   *           If this generic extended result does not permit the result value
+   *           to be set.
+   */
+  GenericExtendedResult setValue(ByteString bytes)
+      throws UnsupportedOperationException;
 
 }

@@ -30,7 +30,8 @@ package org.opends.sdk.schema;
 
 
 import static com.sun.opends.sdk.messages.Messages.*;
-import static org.opends.sdk.schema.SchemaConstants.*;
+import static org.opends.sdk.schema.SchemaConstants.EMR_AUTH_PASSWORD_EXACT_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_AUTH_PASSWORD_NAME;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.DecodeException;
@@ -39,27 +40,25 @@ import org.opends.sdk.LocalizableMessageBuilder;
 
 
 
-
 /**
- * This class defines the auth password attribute syntax, which is
- * defined in RFC 3112 and is used to hold authentication information.
- * Only equality matching will be allowed by default.
+ * This class defines the auth password attribute syntax, which is defined in
+ * RFC 3112 and is used to hold authentication information. Only equality
+ * matching will be allowed by default.
  */
 final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
 {
   /**
-   * Decodes the provided authentication password value into its
-   * component parts.
-   * 
+   * Decodes the provided authentication password value into its component
+   * parts.
+   *
    * @param authPasswordValue
    *          The authentication password value to be decoded.
    * @return A three-element array, containing the scheme, authInfo, and
    *         authValue components of the given string, in that order.
    * @throws DecodeException
-   *           If a problem is encountered while attempting to decode
-   *           the value.
+   *           If a problem is encountered while attempting to decode the value.
    */
-  static StringBuilder[] decodeAuthPassword(String authPasswordValue)
+  static StringBuilder[] decodeAuthPassword(final String authPasswordValue)
       throws DecodeException
   {
     // Create placeholders for the values to return.
@@ -132,8 +131,8 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
       case '$':
         break readScheme;
       default:
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_AUTHPW_INVALID_SCHEME_CHAR.get(pos);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_AUTHPW_INVALID_SCHEME_CHAR
+            .get(pos);
         throw DecodeException.error(message);
       }
     }
@@ -158,8 +157,8 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
     }
     else
     {
-      final LocalizableMessage message =
-          ERR_ATTR_SYNTAX_AUTHPW_NO_SCHEME_SEPARATOR.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_AUTHPW_NO_SCHEME_SEPARATOR
+          .get();
       throw DecodeException.error(message);
     }
 
@@ -185,8 +184,8 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
       }
       else
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_AUTHPW_INVALID_AUTH_INFO_CHAR.get(pos);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_AUTHPW_INVALID_AUTH_INFO_CHAR
+            .get(pos);
         throw DecodeException.error(message);
       }
     }
@@ -194,7 +193,8 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
     // The authInfo element must consist of at least one character.
     if (scheme.length() == 0)
     {
-      final LocalizableMessage message = ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_INFO.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_INFO
+          .get();
       throw DecodeException.error(message);
     }
 
@@ -211,8 +211,8 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
     }
     else
     {
-      final LocalizableMessage message =
-          ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_INFO_SEPARATOR.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_INFO_SEPARATOR
+          .get();
       throw DecodeException.error(message);
     }
 
@@ -238,8 +238,8 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
       }
       else
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_AUTHPW_INVALID_AUTH_VALUE_CHAR.get(pos);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_AUTHPW_INVALID_AUTH_VALUE_CHAR
+            .get(pos);
         throw DecodeException.error(message);
       }
     }
@@ -247,8 +247,8 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
     // The authValue element must consist of at least one character.
     if (scheme.length() == 0)
     {
-      final LocalizableMessage message =
-          ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_VALUE.get();
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_AUTHPW_NO_AUTH_VALUE
+          .get();
       throw DecodeException.error(message);
     }
 
@@ -262,8 +262,8 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
       }
       else
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_AUTHPW_INVALID_TRAILING_CHAR.get(pos);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_AUTHPW_INVALID_TRAILING_CHAR
+            .get(pos);
         throw DecodeException.error(message);
       }
     }
@@ -275,15 +275,15 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
 
 
   /**
-   * Indicates whether the provided value is encoded using the auth
-   * password syntax.
-   * 
+   * Indicates whether the provided value is encoded using the auth password
+   * syntax.
+   *
    * @param value
    *          The value for which to make the determination.
-   * @return <CODE>true</CODE> if the value appears to be encoded using
-   *         the auth password syntax, or <CODE>false</CODE> if not.
+   * @return <CODE>true</CODE> if the value appears to be encoded using the auth
+   *         password syntax, or <CODE>false</CODE> if not.
    */
-  static boolean isEncoded(ByteSequence value)
+  static boolean isEncoded(final ByteSequence value)
   {
     // FIXME -- Make this more efficient, and don't use exceptions for
     // flow control.
@@ -323,8 +323,8 @@ final class AuthPasswordSyntaxImpl extends AbstractSyntaxImpl
 
 
 
-  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      LocalizableMessageBuilder invalidReason)
+  public boolean valueIsAcceptable(final Schema schema,
+      final ByteSequence value, final LocalizableMessageBuilder invalidReason)
   {
     try
     {

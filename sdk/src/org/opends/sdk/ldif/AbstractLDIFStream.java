@@ -49,15 +49,13 @@ import org.opends.sdk.schema.Schema;
 abstract class AbstractLDIFStream
 {
 
-  final Set<AttributeDescription> excludeAttributes =
-      new HashSet<AttributeDescription>();
+  final Set<AttributeDescription> excludeAttributes = new HashSet<AttributeDescription>();
 
   boolean excludeOperationalAttributes = false;
 
   boolean excludeUserAttributes = false;
 
-  final Set<AttributeDescription> includeAttributes =
-      new HashSet<AttributeDescription>();
+  final Set<AttributeDescription> includeAttributes = new HashSet<AttributeDescription>();
 
   Schema schema = Schema.getDefaultSchema();
 
@@ -82,7 +80,7 @@ abstract class AbstractLDIFStream
 
 
   final boolean isAttributeExcluded(
-      AttributeDescription attributeDescription)
+      final AttributeDescription attributeDescription)
   {
     if (!excludeAttributes.isEmpty()
         && excludeAttributes.contains(attributeDescription))
@@ -113,7 +111,7 @@ abstract class AbstractLDIFStream
 
 
 
-  final boolean isBranchExcluded(DN dn)
+  final boolean isBranchExcluded(final DN dn)
   {
     if (!excludeBranches.isEmpty())
     {
@@ -143,7 +141,7 @@ abstract class AbstractLDIFStream
 
 
 
-  final boolean isEntryExcluded(Entry entry)
+  final boolean isEntryExcluded(final Entry entry)
   {
     if (!excludeFilters.isEmpty())
     {

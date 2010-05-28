@@ -42,10 +42,10 @@ import com.sun.opends.sdk.util.Validator;
 /**
  * Modify request implementation.
  */
-final class ModifyRequestImpl extends
-    AbstractRequestImpl<ModifyRequest> implements ModifyRequest
+final class ModifyRequestImpl extends AbstractRequestImpl<ModifyRequest>
+    implements ModifyRequest
 {
-  private final List<Change> changes = new LinkedList<Change>();
+  private final List<Modification> changes = new LinkedList<Modification>();
 
   private DN name;
 
@@ -59,7 +59,7 @@ final class ModifyRequestImpl extends
    * @throws NullPointerException
    *           If {@code name} was {@code null}.
    */
-  ModifyRequestImpl(DN name) throws NullPointerException
+  ModifyRequestImpl(final DN name) throws NullPointerException
   {
     this.name = name;
   }
@@ -69,9 +69,21 @@ final class ModifyRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public <R, P> R accept(ChangeRecordVisitor<R, P> v, P p)
+  public <R, P> R accept(final ChangeRecordVisitor<R, P> v, final P p)
   {
     return v.visitChangeRecord(p, this);
+  }
+
+
+
+  public ModifyRequest addChange(final ModificationType type,
+      final String attributeDescription, final Object firstValue,
+      final Object... remainingValues)
+      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
+      NullPointerException
+  {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 
@@ -79,7 +91,7 @@ final class ModifyRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public ModifyRequest addChange(Change change)
+  public ModifyRequest addModification(final Modification change)
       throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(change);
@@ -92,57 +104,23 @@ final class ModifyRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public ModifyRequest addChange(ModificationType type,
-      String attributeDescription, Object... values)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException
+  public ModifyRequest addModification(final ModificationType type,
+      final String attributeDescription, final Object... values)
+      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
+      NullPointerException
   {
     Validator.ensureNotNull(type, attributeDescription, values);
-    changes.add(new Change(type, new LinkedAttribute(
+    changes.add(new Modification(type, new LinkedAttribute(
         attributeDescription, values)));
     return this;
   }
 
 
 
-  public ModifyRequest addChange(ModificationType type,
-      String attributeDescription, Object firstValue,
-      Object... remainingValues)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException
-  {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-
-
   /**
    * {@inheritDoc}
    */
-  public ModifyRequest clearChanges()
-      throws UnsupportedOperationException
-  {
-    changes.clear();
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public int getChangeCount()
-  {
-    return changes.size();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public Iterable<Change> getChanges()
+  public List<Modification> getModifications()
   {
     return changes;
   }
@@ -162,17 +140,7 @@ final class ModifyRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public boolean hasChanges()
-  {
-    return !changes.isEmpty();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ModifyRequest setName(DN dn)
+  public ModifyRequest setName(final DN dn)
       throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(dn);
@@ -185,9 +153,9 @@ final class ModifyRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public ModifyRequest setName(String dn)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException
+  public ModifyRequest setName(final String dn)
+      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
+      NullPointerException
   {
     Validator.ensureNotNull(dn);
     this.name = DN.valueOf(dn);
@@ -206,7 +174,7 @@ final class ModifyRequestImpl extends
     builder.append("ModifyRequest(dn=");
     builder.append(getName());
     builder.append(", changes=");
-    builder.append(getChanges());
+    builder.append(getModifications());
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
@@ -215,6 +183,7 @@ final class ModifyRequestImpl extends
 
 
 
+  @Override
   ModifyRequest getThis()
   {
     return this;

@@ -29,20 +29,24 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
-import static org.opends.sdk.schema.SchemaConstants.*;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_TELEX_ILLEGAL_CHAR;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_TELEX_TOO_SHORT;
+import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_TELEX_TRUNCATED;
+import static org.opends.sdk.schema.SchemaConstants.EMR_CASE_IGNORE_OID;
+import static org.opends.sdk.schema.SchemaConstants.OMR_CASE_IGNORE_OID;
+import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
+import static org.opends.sdk.schema.SchemaConstants.SYNTAX_TELEX_NAME;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.LocalizableMessageBuilder;
 
 
 
-
 /**
- * This class implements the telex number attribute syntax, which
- * contains three printable strings separated by dollar sign characters.
- * Equality, ordering, and substring matching will be allowed by
- * default.
+ * This class implements the telex number attribute syntax, which contains three
+ * printable strings separated by dollar sign characters. Equality, ordering,
+ * and substring matching will be allowed by default.
  */
 final class TelexNumberSyntaxImpl extends AbstractSyntaxImpl
 {
@@ -86,21 +90,21 @@ final class TelexNumberSyntaxImpl extends AbstractSyntaxImpl
 
 
   /**
-   * Indicates whether the provided value is acceptable for use in an
-   * attribute with this syntax. If it is not, then the reason may be
-   * appended to the provided buffer.
-   * 
+   * Indicates whether the provided value is acceptable for use in an attribute
+   * with this syntax. If it is not, then the reason may be appended to the
+   * provided buffer.
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
    *          The value for which to make the determination.
    * @param invalidReason
    *          The buffer to which the invalid reason should be appended.
-   * @return <CODE>true</CODE> if the provided value is acceptable for
-   *         use with this syntax, or <CODE>false</CODE> if not.
+   * @return <CODE>true</CODE> if the provided value is acceptable for use with
+   *         this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      LocalizableMessageBuilder invalidReason)
+  public boolean valueIsAcceptable(final Schema schema,
+      final ByteSequence value, final LocalizableMessageBuilder invalidReason)
   {
     // Get a string representation of the value and find its length.
     final String valueString = value.toString();
@@ -109,8 +113,7 @@ final class TelexNumberSyntaxImpl extends AbstractSyntaxImpl
     if (valueLength < 5)
     {
 
-      invalidReason.append(ERR_ATTR_SYNTAX_TELEX_TOO_SHORT
-          .get(valueString));
+      invalidReason.append(ERR_ATTR_SYNTAX_TELEX_TOO_SHORT.get(valueString));
       return false;
     }
 
@@ -119,8 +122,8 @@ final class TelexNumberSyntaxImpl extends AbstractSyntaxImpl
     if (!PrintableStringSyntaxImpl.isPrintableCharacter(c))
     {
 
-      invalidReason.append(ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE.get(
-          valueString, String.valueOf(c), 0));
+      invalidReason.append(ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE.get(valueString,
+          String.valueOf(c), 0));
       return false;
     }
 
@@ -149,8 +152,7 @@ final class TelexNumberSyntaxImpl extends AbstractSyntaxImpl
     if (pos >= valueLength)
     {
 
-      invalidReason.append(ERR_ATTR_SYNTAX_TELEX_TRUNCATED
-          .get(valueString));
+      invalidReason.append(ERR_ATTR_SYNTAX_TELEX_TRUNCATED.get(valueString));
       return false;
     }
 
@@ -159,8 +161,8 @@ final class TelexNumberSyntaxImpl extends AbstractSyntaxImpl
     if (!PrintableStringSyntaxImpl.isPrintableCharacter(c))
     {
 
-      invalidReason.append(ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE.get(
-          valueString, String.valueOf(c), (pos - 1)));
+      invalidReason.append(ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE.get(valueString,
+          String.valueOf(c), (pos - 1)));
       return false;
     }
 
@@ -189,8 +191,7 @@ final class TelexNumberSyntaxImpl extends AbstractSyntaxImpl
     if (pos >= valueLength)
     {
 
-      invalidReason.append(ERR_ATTR_SYNTAX_TELEX_TRUNCATED
-          .get(valueString));
+      invalidReason.append(ERR_ATTR_SYNTAX_TELEX_TRUNCATED.get(valueString));
       return false;
     }
 
@@ -199,8 +200,8 @@ final class TelexNumberSyntaxImpl extends AbstractSyntaxImpl
     if (!PrintableStringSyntaxImpl.isPrintableCharacter(c))
     {
 
-      invalidReason.append(ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE.get(
-          valueString, String.valueOf(c), (pos - 1)));
+      invalidReason.append(ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE.get(valueString,
+          String.valueOf(c), (pos - 1)));
       return false;
     }
 

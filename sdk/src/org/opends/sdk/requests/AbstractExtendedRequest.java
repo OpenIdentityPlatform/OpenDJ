@@ -30,21 +30,24 @@ package org.opends.sdk.requests;
 
 
 import org.opends.sdk.ByteString;
-import org.opends.sdk.extensions.ExtendedOperation;
-import org.opends.sdk.responses.Result;
+import org.opends.sdk.responses.ExtendedResult;
+import org.opends.sdk.responses.ExtendedResultDecoder;
+
+import com.sun.opends.sdk.util.StaticUtils;
 
 
 
 /**
- * An abstract Extended request which can be used as the basis for
- * implementing new Extended operations.
- * 
+ * An abstract Extended request which can be used as the basis for implementing
+ * new Extended operations.
+ *
  * @param <R>
  *          The type of extended request.
  * @param <S>
  *          The type of result.
  */
-public abstract class AbstractExtendedRequest<R extends ExtendedRequest<S>, S extends Result>
+public abstract class AbstractExtendedRequest<R extends ExtendedRequest<S>,
+                                              S extends ExtendedResult>
     extends AbstractRequestImpl<R> implements ExtendedRequest<S>
 {
 
@@ -59,29 +62,30 @@ public abstract class AbstractExtendedRequest<R extends ExtendedRequest<S>, S ex
 
 
   /**
-   * Returns the extended operation associated with this extended
-   * request.
-   * <p>
-   * FIXME: this should not be exposed to clients.
-   * 
-   * @return The extended operation associated with this extended
-   *         request.
+   * {@inheritDoc}
    */
-  public abstract ExtendedOperation<R, S> getExtendedOperation();
+  public abstract String getOID();
 
 
 
   /**
    * {@inheritDoc}
    */
-  public abstract String getRequestName();
+  public abstract ExtendedResultDecoder<S> getResultDecoder();
 
 
 
   /**
    * {@inheritDoc}
    */
-  public abstract ByteString getRequestValue();
+  public abstract ByteString getValue();
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public abstract boolean hasValue();
 
 
 
@@ -93,10 +97,12 @@ public abstract class AbstractExtendedRequest<R extends ExtendedRequest<S>, S ex
   {
     final StringBuilder builder = new StringBuilder();
     builder.append("ExtendedRequest(requestName=");
-    builder.append(getRequestName());
-    builder.append(", requestValue=");
-    final ByteString value = getRequestValue();
-    builder.append(value == null ? ByteString.empty() : value);
+    builder.append(getOID());
+    if (hasValue())
+    {
+      builder.append(", requestValue=");
+      StaticUtils.toHexPlusAscii(getValue(), builder, 4);
+    }
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");
@@ -108,6 +114,7 @@ public abstract class AbstractExtendedRequest<R extends ExtendedRequest<S>, S ex
   /**
    * {@inheritDoc}
    */
+  @Override
   @SuppressWarnings("unchecked")
   final R getThis()
   {

@@ -46,12 +46,12 @@ import com.sun.opends.sdk.util.StaticUtils;
 
 
 /**
- * This class implements the UTC time attribute syntax. This is very
- * similar to the generalized time syntax (and actually has been
- * deprecated in favor of that), but requires that the minute be
- * provided and does not allow for sub-second times. All matching will
- * be performed using the generalized time matching rules, and equality,
- * ordering, and substring matching will be allowed.
+ * This class implements the UTC time attribute syntax. This is very similar to
+ * the generalized time syntax (and actually has been deprecated in favor of
+ * that), but requires that the minute be provided and does not allow for
+ * sub-second times. All matching will be performed using the generalized time
+ * matching rules, and equality, ordering, and substring matching will be
+ * allowed.
  */
 final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
 {
@@ -60,13 +60,13 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
    * The lock that will be used to provide threadsafe access to the date
    * formatter.
    */
-  private final static Object dateFormatLock;
+  private final static Object DATE_FORMAT_LOCK;
 
   /**
-   * The date formatter that will be used to convert dates into UTC time
-   * values. Note that all interaction with it must be synchronized.
+   * The date formatter that will be used to convert dates into UTC time values.
+   * Note that all interaction with it must be synchronized.
    */
-  private final static SimpleDateFormat dateFormat;
+  private final static SimpleDateFormat DATE_FORMAT;
 
   /*
    * Create the date formatter that will be used to construct and parse
@@ -74,65 +74,62 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
    */
   static
   {
-    dateFormat = new SimpleDateFormat(DATE_FORMAT_UTC_TIME);
-    dateFormat.setLenient(false);
-    dateFormat.setTimeZone(TimeZone.getTimeZone(TIME_ZONE_UTC));
+    DATE_FORMAT = new SimpleDateFormat(DATE_FORMAT_UTC_TIME);
+    DATE_FORMAT.setLenient(false);
+    DATE_FORMAT.setTimeZone(TimeZone.getTimeZone(TIME_ZONE_UTC));
 
-    dateFormatLock = new Object();
+    DATE_FORMAT_LOCK = new Object();
   }
 
 
 
   /**
-   * Retrieves an string containing a UTC time representation of the
-   * provided date.
-   * 
+   * Retrieves an string containing a UTC time representation of the provided
+   * date.
+   *
    * @param d
    *          The date for which to retrieve the UTC time value.
    * @return The attribute value created from the date.
    */
-  static String createUTCTimeValue(Date d)
+  static String createUTCTimeValue(final Date d)
   {
-    synchronized (dateFormatLock)
+    synchronized (DATE_FORMAT_LOCK)
     {
-      return dateFormat.format(d);
+      return DATE_FORMAT.format(d);
     }
   }
 
 
 
   /**
-   * Decodes the provided normalized value as a UTC time value and
-   * retrieves a Java <CODE>Date</CODE> object containing its
-   * representation.
-   * 
+   * Decodes the provided normalized value as a UTC time value and retrieves a
+   * Java <CODE>Date</CODE> object containing its representation.
+   *
    * @param valueString
    *          The normalized UTC time value to decode to a Java
    *          <CODE>Date</CODE>.
-   * @return The Java <CODE>Date</CODE> created from the provided UTC
-   *         time value.
+   * @return The Java <CODE>Date</CODE> created from the provided UTC time
+   *         value.
    * @throws DecodeException
-   *           If the provided value cannot be parsed as a valid UTC
-   *           time string.
+   *           If the provided value cannot be parsed as a valid UTC time
+   *           string.
    */
-  static Date decodeUTCTimeValue(String valueString)
+  static Date decodeUTCTimeValue(final String valueString)
       throws DecodeException
   {
     try
     {
-      synchronized (dateFormatLock)
+      synchronized (DATE_FORMAT_LOCK)
       {
-        return dateFormat.parse(valueString);
+        return DATE_FORMAT.parse(valueString);
       }
     }
     catch (final Exception e)
     {
-      final LocalizableMessage message =
-          ERR_ATTR_SYNTAX_UTC_TIME_CANNOT_PARSE.get(valueString, String
-              .valueOf(e));
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_CANNOT_PARSE
+          .get(valueString, String.valueOf(e));
       final DecodeException de = DecodeException.error(message, e);
-      StaticUtils.DEBUG_LOG.throwing("UTCTimeSyntax",
-          "decodeUTCTimeValue", de);
+      StaticUtils.DEBUG_LOG.throwing("UTCTimeSyntax", "decodeUTCTimeValue", de);
       throw de;
     }
   }
@@ -178,21 +175,21 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
 
 
   /**
-   * Indicates whether the provided value is acceptable for use in an
-   * attribute with this syntax. If it is not, then the reason may be
-   * appended to the provided buffer.
-   * 
+   * Indicates whether the provided value is acceptable for use in an attribute
+   * with this syntax. If it is not, then the reason may be appended to the
+   * provided buffer.
+   *
    * @param schema
    *          The schema in which this syntax is defined.
    * @param value
    *          The value for which to make the determination.
    * @param invalidReason
    *          The buffer to which the invalid reason should be appended.
-   * @return <CODE>true</CODE> if the provided value is acceptable for
-   *         use with this syntax, or <CODE>false</CODE> if not.
+   * @return <CODE>true</CODE> if the provided value is acceptable for use with
+   *         this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(Schema schema, ByteSequence value,
-      LocalizableMessageBuilder invalidReason)
+  public boolean valueIsAcceptable(final Schema schema,
+      final ByteSequence value, final LocalizableMessageBuilder invalidReason)
   {
     // Get the value as a string and verify that it is at least long
     // enough for "YYYYMMDDhhmmZ", which is the shortest allowed value.
@@ -200,8 +197,8 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
     final int length = valueString.length();
     if (length < 11)
     {
-      final LocalizableMessage message =
-          ERR_ATTR_SYNTAX_UTC_TIME_TOO_SHORT.get(valueString);
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_TOO_SHORT
+          .get(valueString);
       invalidReason.append(message);
       return false;
     }
@@ -225,9 +222,8 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
         // These are all fine.
         break;
       default:
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_UTC_TIME_INVALID_YEAR.get(valueString,
-                String.valueOf(valueString.charAt(i)));
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_YEAR
+            .get(valueString, String.valueOf(valueString.charAt(i)));
         invalidReason.append(message);
         return false;
       }
@@ -255,9 +251,8 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
         // These are all fine.
         break;
       default:
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_UTC_TIME_INVALID_MONTH.get(valueString,
-                valueString.substring(2, 4));
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_MONTH
+            .get(valueString, valueString.substring(2, 4));
         invalidReason.append(message);
         return false;
       }
@@ -272,17 +267,15 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
         // These are all fine.
         break;
       default:
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_UTC_TIME_INVALID_MONTH.get(valueString,
-                valueString.substring(2, 4));
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_MONTH
+            .get(valueString, valueString.substring(2, 4));
         invalidReason.append(message);
         return false;
       }
       break;
     default:
-      final LocalizableMessage message =
-          ERR_ATTR_SYNTAX_UTC_TIME_INVALID_MONTH.get(valueString,
-              valueString.substring(2, 4));
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_MONTH
+          .get(valueString, valueString.substring(2, 4));
       invalidReason.append(message);
       return false;
     }
@@ -312,9 +305,8 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
         // These are all fine.
         break;
       default:
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_UTC_TIME_INVALID_DAY.get(valueString,
-                valueString.substring(4, 6));
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_DAY
+            .get(valueString, valueString.substring(4, 6));
         invalidReason.append(message);
         return false;
       }
@@ -338,9 +330,8 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
         // These are all fine.
         break;
       default:
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_UTC_TIME_INVALID_DAY.get(valueString,
-                valueString.substring(4, 6));
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_DAY
+            .get(valueString, valueString.substring(4, 6));
         invalidReason.append(message);
         return false;
       }
@@ -354,17 +345,15 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
         // These are all fine.
         break;
       default:
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_UTC_TIME_INVALID_DAY.get(valueString,
-                valueString.substring(4, 6));
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_DAY
+            .get(valueString, valueString.substring(4, 6));
         invalidReason.append(message);
         return false;
       }
       break;
     default:
-      final LocalizableMessage message =
-          ERR_ATTR_SYNTAX_UTC_TIME_INVALID_DAY.get(valueString,
-              valueString.substring(4, 6));
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_DAY
+          .get(valueString, valueString.substring(4, 6));
       invalidReason.append(message);
       return false;
     }
@@ -393,9 +382,8 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
         // These are all fine.
         break;
       default:
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_UTC_TIME_INVALID_HOUR.get(valueString,
-                valueString.substring(6, 8));
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_HOUR
+            .get(valueString, valueString.substring(6, 8));
         invalidReason.append(message);
         return false;
       }
@@ -411,17 +399,15 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
         // These are all fine.
         break;
       default:
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_UTC_TIME_INVALID_HOUR.get(valueString,
-                valueString.substring(6, 8));
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_HOUR
+            .get(valueString, valueString.substring(6, 8));
         invalidReason.append(message);
         return false;
       }
       break;
     default:
-      final LocalizableMessage message =
-          ERR_ATTR_SYNTAX_UTC_TIME_INVALID_HOUR.get(valueString,
-              valueString.substring(6, 8));
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_HOUR
+          .get(valueString, valueString.substring(6, 8));
       invalidReason.append(message);
       return false;
     }
@@ -441,9 +427,8 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
       // must be a digit between 0 and 9.
       if (length < 11)
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(valueString,
-                String.valueOf(m1), 8);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR
+            .get(valueString, String.valueOf(m1), 8);
         invalidReason.append(message);
         return false;
       }
@@ -463,9 +448,8 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
         // These are all fine.
         break;
       default:
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_UTC_TIME_INVALID_MINUTE.get(valueString,
-                valueString.substring(8, 10));
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_MINUTE
+            .get(valueString, valueString.substring(8, 10));
         invalidReason.append(message);
         return false;
       }
@@ -473,9 +457,8 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
       break;
 
     default:
-      final LocalizableMessage message =
-          ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(valueString, String
-              .valueOf(m1), 8);
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR
+          .get(valueString, String.valueOf(m1), 8);
       invalidReason.append(message);
       return false;
     }
@@ -497,9 +480,8 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
       // must be a digit between 0 and 9.
       if (length < 13)
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(valueString,
-                String.valueOf(s1), 10);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR
+            .get(valueString, String.valueOf(s1), 10);
         invalidReason.append(message);
         return false;
       }
@@ -519,9 +501,8 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
         // These are all fine.
         break;
       default:
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_UTC_TIME_INVALID_SECOND.get(valueString,
-                valueString.substring(10, 12));
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_SECOND
+            .get(valueString, valueString.substring(10, 12));
         invalidReason.append(message);
         return false;
       }
@@ -533,18 +514,16 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
       if (length < 13)
       {
 
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(valueString,
-                String.valueOf(s1), 10);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR
+            .get(valueString, String.valueOf(s1), 10);
         invalidReason.append(message);
         return false;
       }
 
       if (valueString.charAt(11) != '0')
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_UTC_TIME_INVALID_SECOND.get(valueString,
-                valueString.substring(10, 12));
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_SECOND
+            .get(valueString, valueString.substring(10, 12));
         invalidReason.append(message);
         return false;
       }
@@ -558,9 +537,8 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
       }
       else
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(valueString,
-                String.valueOf(s1), 10);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR
+            .get(valueString, String.valueOf(s1), 10);
         invalidReason.append(message);
         return false;
       }
@@ -575,17 +553,15 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
       }
       else
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(valueString,
-                String.valueOf(s1), 10);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR
+            .get(valueString, String.valueOf(s1), 10);
         invalidReason.append(message);
         return false;
       }
 
     default:
-      final LocalizableMessage message =
-          ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(valueString, String
-              .valueOf(s1), 10);
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR
+          .get(valueString, String.valueOf(s1), 10);
       invalidReason.append(message);
       return false;
     }
@@ -603,9 +579,8 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
       }
       else
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(valueString,
-                String.valueOf(valueString.charAt(12)), 12);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR
+            .get(valueString, String.valueOf(valueString.charAt(12)), 12);
         invalidReason.append(message);
         return false;
       }
@@ -620,17 +595,15 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
       }
       else
       {
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(valueString,
-                String.valueOf(valueString.charAt(12)), 12);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR
+            .get(valueString, String.valueOf(valueString.charAt(12)), 12);
         invalidReason.append(message);
         return false;
       }
 
     default:
-      final LocalizableMessage message =
-          ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR.get(valueString, String
-              .valueOf(valueString.charAt(12)), 12);
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_CHAR
+          .get(valueString, String.valueOf(valueString.charAt(12)), 12);
       invalidReason.append(message);
       return false;
     }
@@ -639,31 +612,29 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
 
 
   /**
-   * Indicates whether the provided string contains a valid set of two
-   * or four UTC offset digits. The provided string must have either two
-   * or four characters from the provided start position to the end of
-   * the value.
-   * 
+   * Indicates whether the provided string contains a valid set of two or four
+   * UTC offset digits. The provided string must have either two or four
+   * characters from the provided start position to the end of the value.
+   *
    * @param value
    *          The whole value, including the offset.
    * @param startPos
-   *          The position of the first character that is contained in
-   *          the offset.
+   *          The position of the first character that is contained in the
+   *          offset.
    * @param invalidReason
-   *          The buffer to which the invalid reason may be appended if
-   *          the string does not contain a valid set of UTC offset
-   *          digits.
-   * @return <CODE>true</CODE> if the provided offset string is valid,
-   *         or <CODE>false</CODE> if it is not.
+   *          The buffer to which the invalid reason may be appended if the
+   *          string does not contain a valid set of UTC offset digits.
+   * @return <CODE>true</CODE> if the provided offset string is valid, or
+   *         <CODE>false</CODE> if it is not.
    */
-  private boolean hasValidOffset(String value, int startPos,
-      LocalizableMessageBuilder invalidReason)
+  private boolean hasValidOffset(final String value, final int startPos,
+      final LocalizableMessageBuilder invalidReason)
   {
     final int offsetLength = value.length() - startPos;
     if (offsetLength < 2)
     {
-      final LocalizableMessage message =
-          ERR_ATTR_SYNTAX_UTC_TIME_TOO_SHORT.get(value);
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_TOO_SHORT
+          .get(value);
       invalidReason.append(message);
       return false;
     }
@@ -688,9 +659,8 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
         // These are all fine.
         break;
       default:
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET.get(value, value
-                .substring(startPos, startPos + offsetLength));
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET
+            .get(value, value.substring(startPos, startPos + offsetLength));
         invalidReason.append(message);
         return false;
       }
@@ -705,17 +675,15 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
         // These are all fine.
         break;
       default:
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET.get(value, value
-                .substring(startPos, startPos + offsetLength));
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET
+            .get(value, value.substring(startPos, startPos + offsetLength));
         invalidReason.append(message);
         return false;
       }
       break;
     default:
-      final LocalizableMessage message =
-          ERR_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET.get(value, value
-              .substring(startPos, startPos + offsetLength));
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET
+          .get(value, value.substring(startPos, startPos + offsetLength));
       invalidReason.append(message);
       return false;
     }
@@ -747,17 +715,15 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl
           // These are all fine.
           break;
         default:
-          final LocalizableMessage message =
-              ERR_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET.get(value, value
-                  .substring(startPos, startPos + offsetLength));
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET
+              .get(value, value.substring(startPos, startPos + offsetLength));
           invalidReason.append(message);
           return false;
         }
         break;
       default:
-        final LocalizableMessage message =
-            ERR_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET.get(value, value
-                .substring(startPos, startPos + offsetLength));
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_UTC_TIME_INVALID_OFFSET
+            .get(value, value.substring(startPos, startPos + offsetLength));
         invalidReason.append(message);
         return false;
       }
