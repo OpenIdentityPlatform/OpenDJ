@@ -488,7 +488,6 @@ public class DomainFakeCfg implements ReplicationDomainCfg
       ConfigurationDeleteListener<ExternalChangelogDomainCfg> listener)
   {}
 
-  @Override
   public boolean isLogChangenumber()
   {
     return true;
