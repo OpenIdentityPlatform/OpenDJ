@@ -36,6 +36,7 @@ import org.opends.quicksetup.*;
 
 import static org.opends.quicksetup.util.Utils.*;
 import org.opends.quicksetup.installer.InstallerHelper;
+import org.opends.server.tools.ToolConstants;
 import org.opends.server.util.SetupUtils;
 
 import javax.naming.NamingException;
@@ -112,6 +113,21 @@ public class ServerController {
    *          if something goes wrong.
    */
   public void stopServer(boolean suppressOutput) throws ApplicationException {
+    stopServer(suppressOutput,false);
+  }
+  /**
+   * This methods stops the server.
+   *
+   * @param suppressOutput boolean indicating that ouput to standard output
+   *                       streams from the server should be suppressed.
+   * @param noPropertiesFile boolean indicating if the stopServer should
+   *                       be called without taking into account the
+   *                       properties file.
+   * @throws org.opends.quicksetup.ApplicationException
+   *          if something goes wrong.
+   */
+  public void stopServer(boolean suppressOutput,boolean noPropertiesFile)
+  throws ApplicationException {
 
     if (suppressOutput && !StandardOutputSuppressor.isSuppressed()) {
       StandardOutputSuppressor.suppress();
@@ -135,8 +151,17 @@ public class ServerController {
       ArrayList<String> argList = new ArrayList<String>();
       argList.add(Utils.getScriptPath(
           Utils.getPath(installation.getServerStopCommandFile())));
-      String[] args = new String[argList.size()];
+      int size = argList.size();
+      if (noPropertiesFile)
+      {
+        size++;
+      }
+      String[] args = new String[size];
       argList.toArray(args);
+      if (noPropertiesFile)
+      {
+        args[argList.size()] = "--" + ToolConstants.OPTION_LONG_NO_PROP_FILE;
+      }
       ProcessBuilder pb = new ProcessBuilder(args);
       Map<String, String> env = pb.environment();
       env.put(SetupUtils.OPENDS_JAVA_HOME, System.getProperty("java.home"));
