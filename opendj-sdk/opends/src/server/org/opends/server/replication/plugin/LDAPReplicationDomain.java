@@ -405,6 +405,9 @@ public class LDAPReplicationDomain extends ReplicationDomain
   // The operation should become a no-op
   private static final int FRACTIONAL_BECOME_NO_OP = 3;
 
+  // This configuration boolean indicates if this ReplicationDomain should log
+  // ChangeNumbers.
+  private boolean logChangeNumber = false;
 
   /**
    * The thread that periodically saves the ServerState of this
@@ -551,6 +554,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
     heartbeatInterval = configuration.getHeartbeatInterval();
     isolationpolicy = configuration.getIsolationPolicy();
     configDn = configuration.dn();
+    logChangeNumber = configuration.isLogChangenumber();
     this.updateToReplayQueue = updateToReplayQueue;
 
     // Get assured configuration
@@ -2297,6 +2301,12 @@ public class LDAPReplicationDomain extends ReplicationDomain
     // Note that a failed non-replication operation might not have a change
     // number.
     ChangeNumber curChangeNumber = OperationContext.getChangeNumber(op);
+    if ((curChangeNumber != null) && (logChangeNumber))
+    {
+      Message message =
+        Message.raw("replicationCN:%s", curChangeNumber.toString());
+      op.appendAdditionalLogMessage(message);
+    }
 
     if ((result == ResultCode.SUCCESS) && (!op.isSynchronizationOperation()))
     {
@@ -4234,6 +4244,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
          ReplicationDomainCfg configuration)
   {
     isolationpolicy = configuration.getIsolationPolicy();
+    logChangeNumber = configuration.isLogChangenumber();
 
     changeConfig(
         configuration.getReplicationServer(),

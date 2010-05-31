@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -304,19 +304,6 @@ public abstract class OperationTestCase
     assertNotNull(operation.getErrorMessage());
   }
 
-
-
-  /**
-   * Tests the <CODE>getAdditionalLogMessage</CODE> method for the provided
-   * operation.
-   *
-   * @param  operation  The operation to test.
-   */
-  @Test(dataProvider = "testOperations")
-  public void testGetAdditionalLogMessage(Operation operation)
-  {
-    assertNotNull(operation.getAdditionalLogMessage());
-  }
 
 
 
