@@ -958,7 +958,15 @@ public class LocalOrRemotePanel extends StatusGenericPanel
       NamingEnumeration<SearchResult> en =
         ctx.search("cn=Version,cn=monitor", "objectclass=*",
           searchControls);
-      SearchResult sr = en.next();
+      SearchResult sr = null;
+      try
+      {
+        sr = en.next();
+      }
+      finally
+      {
+        en.close();
+      }
       CustomSearchResult csr =
         new CustomSearchResult(sr, "cn=Version,cn=monitor");
 

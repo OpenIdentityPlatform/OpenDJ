@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.client.ldap;
 
@@ -235,8 +235,15 @@ public final class JNDIDirContextAdaptor extends LDAPConnection {
     try {
       NamingEnumeration<SearchResult> results = dirContext.search(dn, filter,
           controls);
-      if (results.hasMore()) {
-        return true;
+      try
+      {
+        if (results.hasMore()) {
+          return true;
+        }
+      }
+      finally
+      {
+        results.close();
       }
     } catch (NameNotFoundException e) {
       // Fall through - entry not found.
@@ -262,11 +269,18 @@ public final class JNDIDirContextAdaptor extends LDAPConnection {
     List<LdapName> children = new LinkedList<LdapName>();
     NamingEnumeration<SearchResult> results = dirContext.search(dn, filter,
         controls);
-    while (results.hasMore()) {
-      SearchResult sr = results.next();
-      LdapName child = new LdapName(dn.getRdns());
-      child.add(new Rdn(sr.getName()));
-      children.add(child);
+    try
+    {
+      while (results.hasMore()) {
+        SearchResult sr = results.next();
+        LdapName child = new LdapName(dn.getRdns());
+        child.add(new Rdn(sr.getName()));
+        children.add(child);
+      }
+    }
+    finally
+    {
+      results.close();
     }
 
     return children;

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -259,50 +259,57 @@ public class AddToGroupTask extends Task
           Utilities.getJNDIName(groupDn.toString()),
           filter, ctls);
 
-    while (result.hasMore())
+    try
     {
-      SearchResult sr = result.next();
-      Set<String> values =
-        ConnectionUtils.getValues(sr, ServerConstants.ATTR_UNIQUE_MEMBER);
-      Set<String> dnsToAdd = new LinkedHashSet<String>();
-      if (values != null)
+      while (result.hasMore())
       {
-        for (DN newDn : dns)
+        SearchResult sr = result.next();
+        Set<String> values =
+          ConnectionUtils.getValues(sr, ServerConstants.ATTR_UNIQUE_MEMBER);
+        Set<String> dnsToAdd = new LinkedHashSet<String>();
+        if (values != null)
         {
-          boolean found = false;
-          for (String dn : values)
+          for (DN newDn : dns)
           {
-            if (Utilities.areDnsEqual(dn, newDn.toString()))
+            boolean found = false;
+            for (String dn : values)
             {
-              found = true;
-              break;
+              if (Utilities.areDnsEqual(dn, newDn.toString()))
+              {
+                found = true;
+                break;
+              }
+            }
+            if (!found)
+            {
+              dnsToAdd.add(newDn.toString());
             }
           }
-          if (!found)
+        }
+        else
+        {
+          for (DN newDn : dns)
           {
             dnsToAdd.add(newDn.toString());
           }
         }
-      }
-      else
-      {
-        for (DN newDn : dns)
+        if (dnsToAdd.size() > 0)
         {
-          dnsToAdd.add(newDn.toString());
+          Attribute attribute =
+            new BasicAttribute(ServerConstants.ATTR_UNIQUE_MEMBER);
+          for (String dn : dnsToAdd)
+          {
+            attribute.add(dn);
+          }
+          modifications.add(new ModificationItem(
+              DirContext.ADD_ATTRIBUTE,
+              attribute));
         }
       }
-      if (dnsToAdd.size() > 0)
-      {
-        Attribute attribute =
-          new BasicAttribute(ServerConstants.ATTR_UNIQUE_MEMBER);
-        for (String dn : dnsToAdd)
-        {
-          attribute.add(dn);
-        }
-        modifications.add(new ModificationItem(
-            DirContext.ADD_ATTRIBUTE,
-            attribute));
-      }
+    }
+    finally
+    {
+      result.close();
     }
     return modifications;
   }

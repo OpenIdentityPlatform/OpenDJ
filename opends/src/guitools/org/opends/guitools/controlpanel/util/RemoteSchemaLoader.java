@@ -93,7 +93,15 @@ public class RemoteSchemaLoader extends SchemaLoader
       ctx.search(ConfigConstants.DN_DEFAULT_SCHEMA_ROOT,
           filter,
           searchControls);
-    SearchResult sr = srs.next();
+    SearchResult sr = null;
+    try
+    {
+      sr = srs.next();
+    }
+    finally
+    {
+      srs.close();
+    }
     CustomSearchResult csr = new CustomSearchResult(sr,
         ConfigConstants.DN_DEFAULT_SCHEMA_ROOT);
 

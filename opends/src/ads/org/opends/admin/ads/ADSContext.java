@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.admin.ads;
@@ -604,9 +604,9 @@ public class ADSContext
     }
 
     // Unregister the server in server groups
+    NamingEnumeration<SearchResult> ne = null;
     try
     {
-      NamingEnumeration<SearchResult> ne;
       SearchControls sc = new SearchControls();
 
       String serverID = getServerID(serverProperties);
@@ -623,23 +623,37 @@ public class ADSContext
           BasicAttribute newAttr = new BasicAttribute(memberAttrName);
           NamingEnumeration<? extends Attribute> attrs =
             sr.getAttributes().getAll();
-          while (attrs.hasMore())
+          try
           {
-            Attribute attr = attrs.next();
-            String attrID = attr.getID();
-
-            if (attrID.equalsIgnoreCase(memberAttrName))
+            while (attrs.hasMore())
             {
-              NamingEnumeration<?> ae = attr.getAll();
-              while (ae.hasMore())
+              Attribute attr = attrs.next();
+              String attrID = attr.getID();
+
+              if (attrID.equalsIgnoreCase(memberAttrName))
               {
-                String value = (String)ae.next();
-                if (!value.equalsIgnoreCase("cn="+serverID))
+                NamingEnumeration<?> ae = attr.getAll();
+                try
                 {
-                  newAttr.add(value);
+                  while (ae.hasMore())
+                  {
+                    String value = (String)ae.next();
+                    if (!value.equalsIgnoreCase("cn="+serverID))
+                    {
+                      newAttr.add(value);
+                    }
+                  }
+                }
+                finally
+                {
+                  handleCloseNamingEnumeration(ae);
                 }
               }
             }
+          }
+          finally
+          {
+            handleCloseNamingEnumeration(attrs);
           }
           BasicAttributes newAttrs = new BasicAttributes();
           newAttrs.put(newAttr);
@@ -670,6 +684,10 @@ public class ADSContext
     {
       throw new ADSContextException(
           ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+    }
+    finally
+    {
+      handleCloseNamingEnumeration(ne);
     }
   }
 
@@ -750,19 +768,20 @@ public class ADSContext
         + getServerGroupContainerDN());
 
     Set<String> result = new HashSet<String>() ;
+    NamingEnumeration<SearchResult> srs = null;
+    NamingEnumeration<? extends Attribute> ne = null;
     try
     {
       SearchControls sc = new SearchControls();
       sc.setSearchScope(SearchControls.OBJECT_SCOPE);
-      NamingEnumeration<SearchResult> srs = getDirContext().search(dn,
-          "(objectclass=*)", sc);
+      srs = getDirContext().search(dn, "(objectclass=*)", sc);
 
       if (!srs.hasMore())
       {
         return result;
       }
       Attributes attrs = srs.next().getAttributes();
-      NamingEnumeration<? extends Attribute> ne = attrs.getAll();
+      ne = attrs.getAll();
       while (ne.hasMore())
       {
         Attribute attr = (Attribute)ne.next();
@@ -776,9 +795,16 @@ public class ADSContext
 
         // We have the members list
         NamingEnumeration<?> ae = attr.getAll();
-        while (ae.hasMore())
+        try
         {
-          result.add((String)ae.next());
+          while (ae.hasMore())
+          {
+            result.add((String)ae.next());
+          }
+        }
+        finally
+        {
+          handleCloseNamingEnumeration(ae);
         }
         break;
       }
@@ -797,8 +823,13 @@ public class ADSContext
       throw new ADSContextException(
           ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
+    finally
+    {
+      handleCloseNamingEnumeration(srs);
+      handleCloseNamingEnumeration(ne);
+    }
     return result;
-      }
+  }
 
   /**
    * Returns a set containing the servers that are registered in the
@@ -814,9 +845,9 @@ public class ADSContext
   {
     Set<Map<ServerProperty,Object>> result =
       new HashSet<Map<ServerProperty,Object>>();
+    NamingEnumeration<SearchResult> ne = null;
     try
     {
-      NamingEnumeration<SearchResult> ne;
       SearchControls sc = new SearchControls();
 
       sc.setSearchScope(SearchControls.ONELEVEL_SCOPE);
@@ -829,6 +860,7 @@ public class ADSContext
         Object keyId = properties.get(ServerProperty.INSTANCE_KEY_ID);
         if (keyId != null)
         {
+          NamingEnumeration<SearchResult> ne2 = null;
           try
           {
             SearchControls sc1 = new SearchControls();
@@ -836,8 +868,7 @@ public class ADSContext
             final String attrIDs[] = { "ds-cfg-public-key-certificate;binary" };
             sc1.setReturningAttributes(attrIDs);
 
-            NamingEnumeration<SearchResult> ne2 = dirContext.search(
-                getInstanceKeysContainerDN(),
+            ne2 = dirContext.search(getInstanceKeysContainerDN(),
                 "(ds-cfg-key-id="+keyId+")", sc);
             if (ne2.hasMore())
             {
@@ -855,6 +886,10 @@ public class ADSContext
           catch (NameNotFoundException x)
           {
             LOG.log(Level.WARNING, "Could not find public key for "+properties);
+          }
+          finally
+          {
+            handleCloseNamingEnumeration(ne2);
           }
         }
         result.add(properties);
@@ -874,6 +909,10 @@ public class ADSContext
     {
       throw new ADSContextException(
           ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+    }
+    finally
+    {
+      handleCloseNamingEnumeration(ne);
     }
 
     return result;
@@ -1038,9 +1077,9 @@ public class ADSContext
   {
     Set<Map<ServerGroupProperty, Object>> result =
       new HashSet<Map<ServerGroupProperty, Object>>();
+    NamingEnumeration<SearchResult> ne = null;
     try
     {
-      NamingEnumeration<SearchResult> ne;
       SearchControls sc = new SearchControls();
 
       sc.setSearchScope(SearchControls.ONELEVEL_SCOPE);
@@ -1069,6 +1108,10 @@ public class ADSContext
       throw new ADSContextException(
           ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
+    finally
+    {
+      handleCloseNamingEnumeration(ne);
+    }
     return result;
   }
 
@@ -1083,8 +1126,8 @@ public class ADSContext
   {
     Set<Map<AdministratorProperty, Object>> result =
       new HashSet<Map<AdministratorProperty, Object>>();
+    NamingEnumeration<SearchResult> ne = null;
     try {
-      NamingEnumeration<SearchResult> ne;
       SearchControls sc = new SearchControls();
 
       sc.setSearchScope(SearchControls.ONELEVEL_SCOPE);
@@ -1118,6 +1161,10 @@ public class ADSContext
     {
       throw new ADSContextException(
           ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+    }
+    finally
+    {
+      handleCloseNamingEnumeration(ne);
     }
 
     return result;
@@ -1339,6 +1386,8 @@ public class ADSContext
 
     boolean updatePassword = adminProperties
     .containsKey(AdministratorProperty.PASSWORD);
+
+    NamingEnumeration<?> currentPrivileges = null;
     try
     {
       // Entry renaming
@@ -1355,7 +1404,6 @@ public class ADSContext
 
       // if modification includes 'privilege', we have to get first the
       // current privileges list.
-      NamingEnumeration<?> currentPrivileges = null;
       if (adminProperties.containsKey(AdministratorProperty.PRIVILEGE))
       {
         SearchControls sc = new SearchControls();
@@ -1369,6 +1417,7 @@ public class ADSContext
         currentPrivileges = sr.getAttributes().get("ds-privilege-name")
         .getAll();
       }
+
 
       // Replace properties, if needed.
       if (adminProperties.size() > 1)
@@ -1394,6 +1443,10 @@ public class ADSContext
     {
       throw new ADSContextException(
           ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+    }
+    finally
+    {
+      handleCloseNamingEnumeration(currentPrivileges);
     }
   }
 
@@ -1795,9 +1848,16 @@ public class ADSContext
 
           Set<String> set = new HashSet<String>();
           NamingEnumeration<?> ae = attr.getAll();
-          while (ae.hasMore())
+          try
           {
-            set.add((String)ae.next());
+            while (ae.hasMore())
+            {
+              set.add((String)ae.next());
+            }
+          }
+          finally
+          {
+            ae.close();
           }
           value = set;
         }
@@ -1863,9 +1923,16 @@ public class ADSContext
           {
             Set<String> set = new HashSet<String>();
             NamingEnumeration<?> ae = attr.getAll();
-            while (ae.hasMore())
+            try
             {
-              set.add((String)ae.next());
+              while (ae.hasMore())
+              {
+                set.add((String)ae.next());
+              }
+            }
+            finally
+            {
+              ae.close();
             }
             value = set;
           }
@@ -1884,7 +1951,7 @@ public class ADSContext
           ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
     }
     return result;
-      }
+  }
 
 
   /**
@@ -1906,10 +1973,10 @@ public class ADSContext
     nameObj = nameFromDN(rdn);
     String dn = nameObj + "," + getAdministratorContainerDN();
     result.put(AdministratorProperty.ADMINISTRATOR_DN, dn);
-
+    NamingEnumeration<? extends Attribute> ne = null;
     try
     {
-      NamingEnumeration<? extends Attribute> ne = attrs.getAll();
+      ne = attrs.getAll();
       while (ne.hasMore()) {
         Attribute attr = ne.next();
         String attrID = attr.getID();
@@ -1946,6 +2013,10 @@ public class ADSContext
     {
       throw new ADSContextException(
           ADSContextException.ErrorType.ERROR_UNEXPECTED, x);
+    }
+    finally
+    {
+      handleCloseNamingEnumeration(ne);
     }
 
     return result;
@@ -2430,13 +2501,24 @@ public class ADSContext
       searchControls.setReturningAttributes(attrIDs);
       NamingEnumeration<SearchResult> keyEntries
       = dirContext.search(baseDN, searchFilter, searchControls);
-      while (keyEntries.hasMore()) {
-        final SearchResult entry = keyEntries.next();
-        final Attributes attrs = entry.getAttributes();
-        final Attribute keyIDAttr = attrs.get(attrIDs[0]);
-        final Attribute keyCertAttr = attrs.get(attrIDs[1]);
-        if (null == keyIDAttr || null == keyCertAttr) continue; // schema viol.
-        certificateMap.put((String)keyIDAttr.get(), (byte[])keyCertAttr.get());
+      try
+      {
+        while (keyEntries.hasMore()) {
+          final SearchResult entry = keyEntries.next();
+          final Attributes attrs = entry.getAttributes();
+          final Attribute keyIDAttr = attrs.get(attrIDs[0]);
+          final Attribute keyCertAttr = attrs.get(attrIDs[1]);
+          if (null == keyIDAttr || null == keyCertAttr)
+          {
+            continue;// schema viol.
+          }
+          certificateMap.put((String)keyIDAttr.get(),
+              (byte[])keyCertAttr.get());
+        }
+      }
+      finally
+      {
+        keyEntries.close();
       }
     }
     catch (NamingException x) {
@@ -2578,6 +2660,23 @@ public class ADSContext
       if (!isServerAlreadyRegistered(server2))
       {
         registerServer(server2);
+      }
+    }
+  }
+
+  private void handleCloseNamingEnumeration(NamingEnumeration<?> ne)
+  throws ADSContextException
+  {
+    if (ne != null)
+    {
+      try
+      {
+        ne.close();
+      }
+      catch (NamingException ex)
+      {
+        throw new ADSContextException(
+            ADSContextException.ErrorType.ERROR_UNEXPECTED, ex);
       }
     }
   }

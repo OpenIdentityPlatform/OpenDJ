@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.admin.ads;
@@ -232,10 +232,11 @@ public class ADSContextHelper
 
     /* search for public-key certificate entry in ADS DIT */
     final String attrIDs[] = { "ds-cfg-key-id" };
+    NamingEnumeration<SearchResult> results = null;
     try
     {
-      final NamingEnumeration<SearchResult> results = ctx.search(
-          ADSContext.getInstanceKeysContainerDN(), keyAttrs, attrIDs);
+     results = ctx.search(ADSContext.getInstanceKeysContainerDN(), keyAttrs,
+         attrIDs);
       if (results.hasMore()) {
         final Attribute keyIdAttr =
           results.next().getAttributes().get(attrIDs[0]);
@@ -287,6 +288,10 @@ public class ADSContextHelper
       throw new ADSContextException(
           ADSContextException.ErrorType.ERROR_UNEXPECTED, cme);
     }
+    finally
+    {
+      handleCloseNamingEnumeration(results);
+    }
   }
 
 
@@ -324,9 +329,10 @@ public class ADSContextHelper
 
     /* search for public-key certificate entry in ADS DIT */
     final String attrIDs[] = { "ds-cfg-key-id" };
+    NamingEnumeration<SearchResult> results = null;
     try
     {
-      final NamingEnumeration<SearchResult> results = ctx.search(
+      results = ctx.search(
           ADSContext.getInstanceKeysContainerDN(), keyAttrs, attrIDs);
       if (results.hasMore()) {
         SearchResult res = results.next();
@@ -340,6 +346,10 @@ public class ADSContextHelper
     {
       throw new ADSContextException(
           ADSContextException.ErrorType.ERROR_UNEXPECTED, ne);
+    }
+    finally
+    {
+      handleCloseNamingEnumeration(results);
     }
   }
 
@@ -363,5 +373,22 @@ public class ADSContextHelper
   public String getAttrCryptoKeyCompromisedTime()
   {
     return ConfigConstants.ATTR_CRYPTO_KEY_COMPROMISED_TIME;
+  }
+
+  private void handleCloseNamingEnumeration(NamingEnumeration<?> ne)
+  throws ADSContextException
+  {
+    if (ne != null)
+    {
+      try
+      {
+        ne.close();
+      }
+      catch (NamingException ex)
+      {
+        throw new ADSContextException(
+            ADSContextException.ErrorType.ERROR_UNEXPECTED, ex);
+      }
+    }
   }
 }

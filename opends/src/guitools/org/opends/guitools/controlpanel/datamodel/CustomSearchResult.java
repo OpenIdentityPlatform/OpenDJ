@@ -135,20 +135,27 @@ public class CustomSearchResult implements Comparable<CustomSearchResult> {
     if (attrs != null)
     {
       NamingEnumeration<?> en = attrs.getAll();
-      while (en.hasMore()) {
-        Attribute attr = (Attribute)en.next();
-        String attrName = attr.getID();
-        attrNames.add(attrName);
-        List<Object> values = new ArrayList<Object>();
-        for (int i=0; i<attr.size(); i++)
-        {
-          Object v = attr.get(i);
-          if (!"".equals(v.toString()))
+      try
+      {
+        while (en.hasMore()) {
+          Attribute attr = (Attribute)en.next();
+          String attrName = attr.getID();
+          attrNames.add(attrName);
+          List<Object> values = new ArrayList<Object>();
+          for (int i=0; i<attr.size(); i++)
           {
-            values.add(v);
+            Object v = attr.get(i);
+            if (!"".equals(v.toString()))
+            {
+              values.add(v);
+            }
           }
+          attributes.put(attrName.toLowerCase(), values);
         }
-        attributes.put(attrName.toLowerCase(), values);
+      }
+      finally
+      {
+        en.close();
       }
     }
     toString = calculateToString();
