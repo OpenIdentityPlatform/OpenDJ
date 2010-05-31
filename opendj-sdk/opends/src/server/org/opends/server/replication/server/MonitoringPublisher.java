@@ -27,8 +27,14 @@
 package org.opends.server.replication.server;
 
 import java.io.IOException;
+import java.util.NoSuchElementException;
+import org.opends.messages.Category;
+import org.opends.messages.Message;
+import org.opends.messages.Severity;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -96,39 +102,46 @@ public class MonitoringPublisher extends DirectoryThread
     {
       try
       {
-        synchronized (sleeper)
+        try
         {
-          sleeper.wait(period);
+          synchronized (sleeper)
+          {
+            sleeper.wait(period);
+          }
+        } catch (InterruptedException ex)
+        {
+          TRACER.debugInfo("Monitoring publisher for dn " +
+              replicationServerDomain.getBaseDn().toString() + " in RS " +
+              replicationServerDomain.getReplicationServer().getServerId() +
+              " has been interrupted while sleeping.");
         }
-      } catch (InterruptedException ex)
-      {
-        TRACER.debugInfo("Monitoring publisher for dn " +
-            replicationServerDomain.getBaseDn().toString() + " in RS " +
-            replicationServerDomain.getReplicationServer().getServerId() +
-            " has been interrupted while sleeping.");
-      }
 
-      // Send global topology information to peer DSs
-      MonitorMsg monitorMsg =
-        replicationServerDomain.createGlobalTopologyMonitorMsg(0, 0, true);
-      int localServerId =
-          replicationServerDomain.getReplicationServer().getServerId();
-      if (monitorMsg != null)
-      {
-        for (ServerHandler serverHandler :
-          replicationServerDomain.getConnectedDSs().values())
+        // Send global topology information to peer DSs
+        MonitorMsg monitorMsg =
+          replicationServerDomain.createGlobalTopologyMonitorMsg(0, 0, true);
+        int localServerId =
+            replicationServerDomain.getReplicationServer().getServerId();
+        if (monitorMsg != null)
         {
-          // Set the right sender and destination ids
-          monitorMsg.setSenderID(localServerId);
-          monitorMsg.setDestination(serverHandler.getServerId());
-          try
+          for (ServerHandler serverHandler :
+            replicationServerDomain.getConnectedDSs().values())
           {
-            serverHandler.send(monitorMsg);
-          } catch (IOException e)
-          {
-            // Server is disconnecting ? Forget it
+            // Set the right sender and destination ids
+            monitorMsg.setSenderID(localServerId);
+            monitorMsg.setDestination(serverHandler.getServerId());
+            try
+            {
+              serverHandler.send(monitorMsg);
+            } catch (IOException e)
+            {
+              // Server is disconnecting ? Forget it
+            }
           }
         }
+      } catch (NoSuchElementException e)
+      {
+        logError(Message.raw(Category.SYNC, Severity.SEVERE_ERROR,
+            stackTraceToSingleLineString(e)));
       }
     }
 
