@@ -79,9 +79,9 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   private SortedSet<String> fractionalIncludes = new TreeSet<String>();
 
   private SortedSet<String> eclIncludes = new TreeSet<String>();
-  private ExternalChangelogDomainCfg eclCfg = 
+  private ExternalChangelogDomainCfg eclCfg =
     new ExternalChangelogDomainFakeCfg(true, new TreeSet<AttributeType>());
-  
+
   /**
    * Creates a new Domain with the provided information
    * (assured mode disabled, default group id)
@@ -379,12 +379,12 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   {
     return true;
   }
-  
+
   public void setEclIncludes(SortedSet<String> attrs)
   {
     this.eclIncludes = attrs;
   }
- 
+
   public SortedSet<String> getECLInclude()
   {
     return this.eclIncludes;
@@ -394,7 +394,7 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   {
     return 180;
   }
-  
+
 
   public int getInitializationWindowSize()
   {
@@ -414,7 +414,7 @@ public class DomainFakeCfg implements ReplicationDomainCfg
    *           be successfully decoded.
    */
   public ExternalChangelogDomainCfg getExternalChangelogDomain()
-  throws ConfigException 
+  throws ConfigException
   { return eclCfg; }
 
 
@@ -427,7 +427,7 @@ public class DomainFakeCfg implements ReplicationDomainCfg
    *           be successfully decoded.
    */
   public void  setExternalChangelogDomain(ExternalChangelogDomainCfg eclCfg)
-  throws ConfigException 
+  throws ConfigException
   { this.eclCfg=eclCfg;}
 
 
@@ -469,7 +469,7 @@ public class DomainFakeCfg implements ReplicationDomainCfg
    * @throws ConfigException
    *          If the delete listener could not be registered.
    */
-  public void 
+  public void
   addECLDomainDeleteListener(
       ConfigurationDeleteListener<ExternalChangelogDomainCfg> listener)
   throws ConfigException
@@ -483,8 +483,14 @@ public class DomainFakeCfg implements ReplicationDomainCfg
    * @param listener
    *          The ECL Domain configuration delete listener.
    */
-  public void 
+  public void
   removeECLDomainDeleteListener(
       ConfigurationDeleteListener<ExternalChangelogDomainCfg> listener)
   {}
+
+  @Override
+  public boolean isLogChangenumber()
+  {
+    return true;
+  }
 }

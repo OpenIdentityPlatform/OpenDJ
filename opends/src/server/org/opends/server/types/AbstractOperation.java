@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 import org.opends.messages.Message;
@@ -206,7 +206,7 @@ public abstract class AbstractOperation
     }
 
     resultCode                 = ResultCode.UNDEFINED;
-    additionalLogMessage       = new MessageBuilder();
+    additionalLogMessage       = null;
     errorMessage               = new MessageBuilder();
     attachments                = new HashMap<String,Object>();
     matchedDN                  = null;
@@ -619,6 +619,7 @@ public abstract class AbstractOperation
     }
     else
     {
+      additionalLogMessage.append(" ");
       additionalLogMessage.append(message);
     }
   }
