@@ -104,6 +104,7 @@ import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.*;
+import org.opends.server.util.ServerConstants;
 
 /**
  * The abstract class used to refactor some code.  The classes that extend this
@@ -717,6 +718,7 @@ implements BackendPopulatedListener
       controller.setFilter(filterValue);
       controller.setAutomaticExpand(!filterValue.equals(
           BrowserController.ALL_OBJECTS_FILTER));
+      SortedSet<String> allSuffixes = new TreeSet<String>();
       if (controller.getConfigurationConnection() != null)
       {
         treePane.getTree().setRootVisible(displayAll);
@@ -733,14 +735,26 @@ implements BackendPopulatedListener
               isBaseDN = true;
             }
             String dn = Utilities.unescapeUtf8(baseDN.getDn().toString());
-            if (displayAll || isBaseDN)
+            if (displayAll)
+            {
+              allSuffixes.add(dn);
+            }
+            else if (isBaseDN)
             {
               controller.addSuffix(dn, null);
               added = true;
             }
           }
         }
-        if (!added && !displayAll)
+        if (displayAll)
+        {
+          allSuffixes.add(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
+          for (String dn : allSuffixes)
+          {
+            controller.addSuffix(dn, null);
+          }
+        }
+        else if (!added && !displayAll)
         {
           BasicNode rootNode =
             (BasicNode)controller.getTree().getModel().getRoot();
