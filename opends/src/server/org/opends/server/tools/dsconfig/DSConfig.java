@@ -1195,8 +1195,7 @@ public final class DSConfig extends ConsoleApplication {
     toString();
   }
 
-  private void handleBatchFile(String[] args)
-  {
+  private void handleBatchFile(String[] args) {
     BufferedReader reader = null;
     try {
       // Build a list of initial arguments,
@@ -1205,8 +1204,8 @@ public final class DSConfig extends ConsoleApplication {
       Collections.addAll(initialArgs, args);
       int batchFileArgIndex = -1;
       for (String elem : initialArgs) {
-        if (elem.startsWith("-" + OPTION_SHORT_BATCH_FILE_PATH) ||
-            elem.contains(OPTION_LONG_BATCH_FILE_PATH)) {
+        if (elem.startsWith("-" + OPTION_SHORT_BATCH_FILE_PATH)
+                || elem.contains(OPTION_LONG_BATCH_FILE_PATH)) {
           batchFileArgIndex = initialArgs.indexOf(elem);
           break;
         }
@@ -1218,28 +1217,43 @@ public final class DSConfig extends ConsoleApplication {
       }
       String batchFilePath = batchFileArgument.getValue().trim();
       reader =
-        new BufferedReader(new FileReader(batchFilePath));
+              new BufferedReader(new FileReader(batchFilePath));
       String line;
+      String command = "";
+      //
+      // Split the CLI string into arguments array
+      //
       while ((line = reader.readLine()) != null) {
-        line = line.trim();
-        if (line.equals("") || line.startsWith("#")) {
+         if (line.equals("") || line.startsWith("#")) {
           // Empty line or comment
           continue;
         }
-        // Split the CLI string into arguments array
-        // For arguments including spaces, "\ " only is supported.
-        // CLI on several lines (using \) is not supported.
-        line = line.replace("\\ ", "##");
-        String[] fileArguments = line.split("\\s+");
-        for (int ii=0; ii<fileArguments.length; ii++) {
+       // command split in several line support
+        if (line.endsWith("\\")) {
+          // command is split into several lines
+          command += line.substring(0, line.length() - 1);
+          continue;
+        } else {
+          command += line;
+        }
+        command = command.trim();
+        // string between quotes support
+        command = replaceSpacesInQuotes(command);
+        // "\ " support
+        command = command.replace("\\ ", "##");
+        String[] fileArguments = command.split("\\s+");
+        // reset command
+        command = "";
+        for (int ii = 0; ii < fileArguments.length; ii++) {
           fileArguments[ii] = fileArguments[ii].replace("##", " ");
+          System.out.println(fileArguments[ii]);
         }
 
         // Append initial arguments to the file line
         List<String> allArguments = new ArrayList<String>();
         Collections.addAll(allArguments, fileArguments);
         allArguments.addAll(initialArgs);
-        String[] allArgsArray = allArguments.toArray(new String[] {});
+        String[] allArgsArray = allArguments.toArray(new String[]{});
 
         // Build a single CLI string for display
         StringBuffer cli = new StringBuffer();
@@ -1247,9 +1261,8 @@ public final class DSConfig extends ConsoleApplication {
           cli.append(arg + " ");
         }
 
-        System.out.println("Running : dsconfig " + cli.toString() + "\n");
         int exitCode =
-          main(allArgsArray, false, getOutputStream(), getErrorStream());
+                main(allArgsArray, false, getOutputStream(), getErrorStream());
         if (exitCode != 0) {
           reader.close();
           System.exit(filterExitCode(exitCode));
@@ -1261,5 +1274,30 @@ public final class DSConfig extends ConsoleApplication {
     } catch (IOException ex) {
       println(ERR_DSCFG_ERROR_READING_BATCH_FILE.get(ex.toString()));
     }
+  }
+
+  // Replace spaces in quotes by "\ "
+  private String replaceSpacesInQuotes(String line) {
+    String newLine = "";
+    boolean inQuotes = false;
+    for (int ii = 0; ii < line.length(); ii++) {
+      char ch = line.charAt(ii);
+      if ((ch == '\"') || (ch == '\'')) {
+        if (!inQuotes) {
+          // enter in a quoted string
+          inQuotes = true;
+        } else {
+          // end of a quoted string
+          inQuotes = false;
+        }
+        continue;
+      }
+      if (inQuotes && (ch == ' ')) {
+        newLine += "\\ ";
+      } else {
+        newLine += ch;
+      }
+    }
+    return newLine;
   }
 }
