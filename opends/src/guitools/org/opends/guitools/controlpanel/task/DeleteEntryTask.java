@@ -239,7 +239,7 @@ public class DeleteEntryTask extends Task
             InitialLdapContext ctx =
               controller.findConnectionForDisplayedEntry(node);
             useAdminCtx = controller.isConfigurationNode(node);
-            if (node.getNumSubOrdinates() > 0)
+            if (node.hasSubOrdinates())
             {
               deleteSubtreeWithControl(ctx, dn, path, toNotify);
             }

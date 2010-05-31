@@ -57,6 +57,10 @@ public class BasicNode extends DefaultMutableTreeNode {
   private String[] referral;
   private int numSubOrdinates;
 
+  // This is required for the case where there is an undefined number of
+  // subordinates (for instance in the case of the changelog).
+  private boolean hasSubOrdinates;
+
   private String displayName;
   private Icon icon;
   private int fontStyle;
@@ -76,6 +80,7 @@ public class BasicNode extends DefaultMutableTreeNode {
     isLeaf = true;
     refreshNeededOnExpansion = true;
     numSubOrdinates = -1;
+    hasSubOrdinates = false;
     displayName = "";
   }
 
@@ -274,6 +279,23 @@ public class BasicNode extends DefaultMutableTreeNode {
    */
   public void setNumSubOrdinates(int number) {
     numSubOrdinates = number;
+  }
+
+  /**
+   * Returns whether the entry has subordinates or not.
+   * @return {@code true} if the entry has subordinates and {@code false}
+   * otherwise.
+   */
+  public boolean hasSubOrdinates() {
+    return hasSubOrdinates;
+  }
+
+  /**
+   * Sets the whether the entry has subordinates or not.
+   * @param hasSubOrdinates whether the entry has subordinates or not.
+   */
+  public void setHasSubOrdinates(boolean hasSubOrdinates) {
+    this.hasSubOrdinates = hasSubOrdinates;
   }
 
   /**

@@ -483,6 +483,17 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
         else
         {
           gbc.anchor = GridBagConstraints.WEST;
+          if (values.size() == 1)
+          {
+            Object v = values.get(0);
+            if (v instanceof String)
+            {
+              if (((String)v).indexOf("\n") != -1)
+              {
+                gbc.anchor = GridBagConstraints.NORTHWEST;
+              }
+            }
+          }
         }
         gbc.insets.left = 0;
         gbc.gridwidth = GridBagConstraints.RELATIVE;
@@ -739,7 +750,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     Schema schema = getInfo().getServerDescriptor().getSchema();
     if (isRootEntry)
     {
-      String[] attrsNotToAdd = {"entryuuid", "hasnumsubordinates",
+      String[] attrsNotToAdd = {"entryuuid", "hassubordinates",
           "numsubordinates", "subschemasubentry", "entrydn",
       "hassubordinates"};
       for (String attr : sr.getAttributeNames())

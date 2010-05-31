@@ -756,11 +756,19 @@ implements BackendPopulatedListener
         }
         else if (!added && !displayAll)
         {
-          BasicNode rootNode =
-            (BasicNode)controller.getTree().getModel().getRoot();
-          if (controller.findChildNode(rootNode, s) == -1)
+          if (isChangeLog(theDN))
           {
-            controller.addNodeUnderRoot(s);
+            // Consider it a suffix
+            controller.addSuffix(s, null);
+          }
+          else
+          {
+            BasicNode rootNode =
+              (BasicNode)controller.getTree().getModel().getRoot();
+            if (controller.findChildNode(rootNode, s) == -1)
+            {
+              controller.addNodeUnderRoot(s);
+            }
           }
         }
       }
@@ -774,6 +782,21 @@ implements BackendPopulatedListener
     {
       displayErrorDialog(errors);
     }
+  }
+
+  private boolean isChangeLog(DN theDN)
+  {
+    try
+    {
+      return theDN.equals(
+          DN.decode(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT));
+    }
+    catch (Throwable t)
+    {
+      // Bug
+      t.printStackTrace();
+    }
+    return false;
   }
 
   /**
