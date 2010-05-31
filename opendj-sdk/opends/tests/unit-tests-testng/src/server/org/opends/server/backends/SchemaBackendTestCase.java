@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.backends;
 
@@ -5359,7 +5359,7 @@ public class SchemaBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test(enabled=false)
+  @Test
   public void testLastModAttributes()
          throws Exception
   {
@@ -5401,6 +5401,9 @@ public class SchemaBackendTestCase
       "-f", path
     };
 
+    // Sleep longer than the TimeThread delay to ensure the modifytimestamp
+    // will be different.
+    Thread.sleep(600);
     assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
 
     schemaEntry = DirectoryServer.getEntry(DN.decode("cn=schema"));

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
@@ -614,7 +614,7 @@ public class LDIFDiffTestCase
       "-O"
     };
 
-    if (ignoreAttributesFile.endsWith("/does-not-exist"))
+    if (ignoreAttributesFile.endsWith("does-not-exist"))
     {
       // We expect this to fail, so just make sure that it does.
       assertEquals(LDIFDiff.mainDiff(args, true, System.out, System.err), 1);
@@ -701,7 +701,7 @@ public class LDIFDiffTestCase
       "-O"
     };
 
-    if (ignoreEntriesFile.endsWith("/does-not-exist"))
+    if (ignoreEntriesFile.endsWith("does-not-exist"))
     {
       // We expect this to fail, so just make sure that it does.
       assertEquals(LDIFDiff.mainDiff(args, true, System.out, System.err), 1);
