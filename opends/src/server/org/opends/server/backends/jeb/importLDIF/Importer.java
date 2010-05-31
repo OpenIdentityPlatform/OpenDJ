@@ -229,18 +229,12 @@ public class Importer
        parentDir = getFileForPath(rebuildConfig.getTmpDirectory());
     }
     tempDir = new File(parentDir, cfg.getBackendId());
+    recursiveDelete(tempDir);
     if(!tempDir.exists() && !tempDir.mkdirs())
     {
       Message message =
                 ERR_JEB_IMPORT_CREATE_TMPDIR_ERROR.get(String.valueOf(tempDir));
       throw new IOException(message.toString());
-    }
-    if (tempDir.listFiles() != null)
-    {
-      for (File f : tempDir.listFiles())
-      {
-        f.delete();
-      }
     }
     skipDNValidation = true;
     if(envConfig != null)
@@ -294,26 +288,19 @@ public class Importer
        parentDir = getFileForPath(importConfiguration.getTmpDirectory());
     }
     tempDir = new File(parentDir, localDBBackendCfg.getBackendId());
+    recursiveDelete(tempDir);
     if(!tempDir.exists() && !tempDir.mkdirs())
     {
       Message message =
                 ERR_JEB_IMPORT_CREATE_TMPDIR_ERROR.get(String.valueOf(tempDir));
       throw new IOException(message.toString());
     }
-    if (tempDir.listFiles() != null)
-    {
-      for (File f : tempDir.listFiles())
-      {
-        f.delete();
-      }
-    }
     skipDNValidation = importConfiguration.getSkipDNValidation();
     initializeDBEnv(envConfig);
     //Set up temporary environment.
     if(!skipDNValidation)
     {
-      File p = getFileForPath(localDBBackendCfg.getDBDirectory());
-      File envPath = new File(p, TMPENV_DIR);
+      File envPath = new File(tempDir, TMPENV_DIR);
       envPath.mkdirs();
       tmpEnv = new TmpEnv(envPath);
     }
@@ -470,7 +457,7 @@ public class Importer
   private long defaultMemoryCalc(long availMem)
           throws InitializationException
   {
-    long bufMem = 0;
+    long bufMem;
     if(availMem < (MIN_DB_CACHE_MEMORY + MIN_DB_CACHE_SIZE))
     {
       long minCacheSize = MIN_DB_CACHE_SIZE;
@@ -542,7 +529,7 @@ public class Importer
       {
         importMemPct -= 15;
       }
-      long phaseOneBufferMemory = 0;
+      long phaseOneBufferMemory;
       if(!skipDNValidation)
       {
         phaseOneBufferMemory =
@@ -797,7 +784,7 @@ public class Importer
     rebuildManager.initialize();
     rebuildManager.printStartMessage();
     rebuildManager.rebuldIndexes();
-    tempDir.delete();
+    recursiveDelete(tempDir);
     rebuildManager.printStopMessage(startTime);
   }
 
@@ -852,7 +839,7 @@ public class Importer
       long phaseTwoFinishTime = System.currentTimeMillis();
       setIndexesTrusted();
       switchContainers();
-      tempDir.delete();
+      recursiveDelete(tempDir);
       long finishTime = System.currentTimeMillis();
       long importTime = (finishTime - startTime);
       float rate = 0;
@@ -877,6 +864,23 @@ public class Importer
   }
 
 
+  private void recursiveDelete(File dir)
+  {
+    if(dir.listFiles() != null)
+    {
+      for(File f : dir.listFiles())
+      {
+        if(f.isDirectory())
+        {
+          recursiveDelete(f);
+        }
+        f.delete();
+      }
+    }
+    dir.delete();
+  }
+
+
   private void switchContainers()
     throws DatabaseException, JebException, InitializationException
   {
@@ -888,12 +892,7 @@ public class Importer
        if(entryContainer != null) {
          EntryContainer needRegisterContainer =
                  rootContainer.unregisterEntryContainer(baseDN);
-         //Make sure the unregistered EC for the base DN is the same as
-         //the one in the import context.
-         if(needRegisterContainer != needRegisterContainer) {
-           rootContainer.registerEntryContainer(baseDN, needRegisterContainer);
-           continue;
-         }
+
          needRegisterContainer.lock();
          needRegisterContainer.close();
          needRegisterContainer.delete();
@@ -1512,6 +1511,16 @@ public class Importer
     boolean dnSanityCheck(DN entryDN, Entry entry, Suffix suffix)
                           throws JebException, InterruptedException
     {
+      //Perform parent checking.
+      DN parentDN = suffix.getEntryContainer().getParentWithinBase(entryDN);
+      if (parentDN != null) {
+        if (!suffix.isParentProcessed(parentDN, tmpEnv, clearedBackend)) {
+          Message message =
+                  ERR_JEB_IMPORT_PARENT_NOT_FOUND.get(parentDN.toString());
+          reader.rejectEntry(entry, message);
+          return false;
+        }
+      }
       //If the backend was not cleared, then the dn2id needs to checked first
       //for DNs that might not exist in the DN cache. If the DN is not in
       //the suffixes dn2id DB, then the dn cache is used.
@@ -1530,16 +1539,6 @@ public class Importer
           Message message = WARN_JEB_IMPORT_ENTRY_EXISTS.get();
           reader.rejectEntry(entry, message);
           return false;
-      }
-      //Perform parent checking.
-      DN parentDN = suffix.getEntryContainer().getParentWithinBase(entryDN);
-      if (parentDN != null) {
-        if (!suffix.isParentProcessed(parentDN, tmpEnv, clearedBackend)) {
-          Message message =
-                  ERR_JEB_IMPORT_PARENT_NOT_FOUND.get(parentDN.toString());
-          reader.rejectEntry(entry, message);
-          return false;
-        }
       }
       return true;
     }
@@ -1849,7 +1848,6 @@ public class Importer
         {
           addToDB(cInsertIDSet, cDeleteIDSet, cIndexID);
         }
-        cleanUP();
       }
       catch (Exception e)
       {
@@ -1860,6 +1858,10 @@ public class Importer
         e.printStackTrace();
         throw e;
       }
+      finally
+      {
+        cleanUP();
+      }
       return null;
     }
 
@@ -1867,28 +1869,35 @@ public class Importer
     private void cleanUP() throws DatabaseException, DirectoryException,
       IOException
     {
-      if(indexMgr.isDN2ID())
+      try
       {
-        for(DNState dnState : dnStateMap.values())
+        if(indexMgr.isDN2ID())
         {
-          dnState.flush();
+          for(DNState dnState : dnStateMap.values())
+          {
+            dnState.flush();
+          }
+          Message msg =
+            NOTE_JEB_IMPORT_LDIF_DN_CLOSE.get(indexMgr.getDNCount());
+          logError(msg);
         }
-        Message msg = NOTE_JEB_IMPORT_LDIF_DN_CLOSE.get(indexMgr.getDNCount());
-        logError(msg);
+        else
+        {
+          for(Index index : indexMap.values())
+          {
+            index.closeCursor();
+          }
+          Message message =
+            NOTE_JEB_IMPORT_LDIF_INDEX_CLOSE.get(indexMgr.getFileName());
+          logError(message);
+        }
       }
-      else
+      finally
       {
-        for(Index index : indexMap.values())
-        {
-          index.closeCursor();
-        }
-        Message message =
-                NOTE_JEB_IMPORT_LDIF_INDEX_CLOSE.get(indexMgr.getFileName());
-        logError(message);
+        indexMgr.setDone();
+        indexMgr.close();
+        indexMgr.deleteIndexFile();
       }
-      indexMgr.setDone();
-      indexMgr.close();
-      indexMgr.deleteIndexFile();
     }
 
 
@@ -2124,6 +2133,12 @@ public class Importer
              dn = entryContainer.getParentWithinBase(dn))
         {
           EntryID nodeID = getParentID(dn);
+          if(nodeID == null)
+          {
+            // We have a missing parent. Maybe parent checking was turned off?
+            // Just ignore.
+            break;
+          }
           if(!id2subtreeTree.containsKey(nodeID.getDatabaseEntry().getData()))
           {
             idSet = new ImportIDSet(1, subTreeLimit, subTreeDoCount);
@@ -2202,7 +2217,6 @@ public class Importer
     private final File file;
     private final SortedSet<IndexBuffer> indexSortedSet;
     private boolean poisonSeen = false;
-    ByteBuffer keyBuf = ByteBuffer.allocate(BYTE_BUFFER_CAPACITY);
 
 
     public ScratchFileWriterTask(BlockingQueue<IndexBuffer> queue,
@@ -2585,7 +2599,7 @@ public class Importer
     private final long begin, end, id;
     private long offset;
     private ByteBuffer cache;
-    private int limit;;
+    private int limit;
     private ImportIDSet insertIDSet = null, deleteIDSet = null;
     private Integer indexID = null;
     private boolean doCount;
@@ -2645,15 +2659,8 @@ public class Importer
 
       public boolean hasMoreData() throws IOException
       {
-          boolean ret = ((begin + offset) >= end) ? true: false;
-          if(cache.remaining() == 0 && ret)
-          {
-              return false;
-          }
-          else
-          {
-              return true;
-          }
+        boolean ret = ((begin + offset) >= end);
+        return !(cache.remaining() == 0 && ret);
       }
 
     public int getKeyLen()
@@ -2830,7 +2837,7 @@ public class Importer
 
     private int compare(ByteBuffer cKey, Integer cIndexID)
     {
-      int returnCode, rc = 0;
+      int returnCode, rc;
       if(keyBuf.limit() == 0)
       {
         getIndexID();
@@ -2870,7 +2877,7 @@ public class Importer
       {
         o.getIndexID();
       }
-      int returnCode = 0;
+      int returnCode;
       byte[] oKey = o.getKeyBuf().array();
       int oLen = o.getKeyBuf().limit();
       if(indexMgr.isDN2ID())
@@ -3306,18 +3313,12 @@ public class Importer
         }
         if(!extensibleIndexMap.isEmpty())
         {
-          Collection<Index> subIndexes =
-                  extensibleIndexMap.get(EXTENSIBLE_INDEXER_ID_SUBSTRING);
-          if(subIndexes != null) {
-            for(Index subIndex : subIndexes) {
-              subIndex.setTrusted(null, true);
-            }
-          }
-          Collection<Index> sharedIndexes =
-                  extensibleIndexMap.get(EXTENSIBLE_INDEXER_ID_SHARED);
-          if(sharedIndexes !=null) {
-            for(Index sharedIndex : sharedIndexes) {
-              sharedIndex.setTrusted(null, true);
+          for(Collection<Index> subIndexes : extensibleIndexMap.values())
+          {
+            if(subIndexes != null) {
+              for(Index subIndex : subIndexes) {
+                subIndex.setTrusted(null, true);
+              }
             }
           }
         }
@@ -4649,9 +4650,8 @@ public class Importer
     private byte[] hashCode(byte[] b)
     {
       long hash = FNV_INIT;
-      for (int i = 0; i < b.length; i++)
-      {
-        hash ^= b[i];
+      for (byte aB : b) {
+        hash ^= aB;
         hash *= FNV_PRIME;
       }
       return JebFormat.entryIDToDatabase(hash);
