@@ -99,6 +99,8 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.messages.MessageDescriptor;
 import org.opends.quicksetup.ui.CustomHTMLEditorKit;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.ObjectClassType;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.ServerConstants;
 
@@ -1428,14 +1430,15 @@ implements ConfigChangeListener
    * @param newElements the new items for the combo box model.
    * @param model the combo box model to be updated.
    */
-  protected void updateComboBoxModel(final Collection<?> newElements,
-      final DefaultComboBoxModel model)
+  protected void updateComboBoxModel(Collection<?> newElements,
+      DefaultComboBoxModel model)
   {
     updateComboBoxModel(newElements, model, null);
   }
 
   /**
    * Updates a combo box model with a number of items.
+   * The method assumes that is called outside the event thread.
    * @param newElements the new items for the combo box model.
    * @param model the combo box model to be updated.
    * @param comparator the object that will be used to compare the objects in
@@ -1449,70 +1452,7 @@ implements ConfigChangeListener
     {
       public void run()
       {
-        boolean changed = newElements.size() != model.getSize();
-        if (!changed)
-        {
-          int i = 0;
-          for (Object newElement : newElements)
-          {
-            if (comparator == null)
-            {
-              changed = !newElement.equals(model.getElementAt(i));
-            }
-            else
-            {
-              changed =
-                comparator.compare(newElement, model.getElementAt(i)) != 0;
-            }
-            if (changed)
-            {
-              break;
-            }
-            i++;
-          }
-        }
-        if (changed)
-        {
-          Object selected = model.getSelectedItem();
-          model.removeAllElements();
-          boolean selectDefault = false;
-          for (Object newElement : newElements)
-          {
-            model.addElement(newElement);
-          }
-          if (selected != null)
-          {
-            if (model.getIndexOf(selected) != -1)
-            {
-              model.setSelectedItem(selected);
-            }
-            else
-            {
-              selectDefault = true;
-            }
-          }
-          else
-          {
-            selectDefault = true;
-          }
-          if (selectDefault)
-          {
-            for (int i=0; i<model.getSize(); i++)
-            {
-              Object o = model.getElementAt(i);
-              if (o instanceof CategorizedComboBoxElement)
-              {
-                if (((CategorizedComboBoxElement)o).getType() ==
-                  CategorizedComboBoxElement.Type.CATEGORY)
-                {
-                  continue;
-                }
-              }
-              model.setSelectedItem(o);
-              break;
-            }
-          }
-        }
+        Utilities.updateComboBoxModel(newElements, model, comparator);
       }
     });
   }
@@ -2140,10 +2080,17 @@ implements ConfigChangeListener
         getInfo().getDirContext().search(Utilities.getJNDIName(dn),
             filter, ctls);
 
-      while (result.hasMore())
+      try
       {
-        SearchResult sr = result.next();
-        entryExists = sr != null;
+        while (result.hasMore())
+        {
+          SearchResult sr = result.next();
+          entryExists = sr != null;
+        }
+      }
+      finally
+      {
+        result.close();
       }
     }
     catch (Throwable t)
@@ -2175,22 +2122,29 @@ implements ConfigChangeListener
         getInfo().getDirContext().search(Utilities.getJNDIName(dn),
             filter, ctls);
 
-      while (result.hasMore())
+      try
       {
-        SearchResult sr = result.next();
-        Set<String> values = ConnectionUtils.getValues(sr,
-            ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
-        if (values != null)
+        while (result.hasMore())
         {
-          for (String s : values)
+          SearchResult sr = result.next();
+          Set<String> values = ConnectionUtils.getValues(sr,
+              ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
+          if (values != null)
           {
-            if (s.equalsIgnoreCase(objectClass))
+            for (String s : values)
             {
-              hasObjectClass = true;
-              break;
+              if (s.equalsIgnoreCase(objectClass))
+              {
+                hasObjectClass = true;
+                break;
+              }
             }
           }
         }
+      }
+      finally
+      {
+        result.close();
       }
     }
     catch (Throwable t)
@@ -2320,5 +2274,53 @@ implements ConfigChangeListener
   private String getStartTimeForTask(Date date)
   {
     return taskDateFormat.format(date);
+  }
+
+
+
+  /**
+   * Checks whether the provided superior object classes are compatible with
+   * the provided object class type.  If not, the method updates the provided
+   * list of error messages with a message describing the incompatibility.
+   * @param objectClassSuperiors the superior object classes.
+   * @param objectClassType the object class type.
+   * @param errors the list of error messages.
+   */
+  protected void checkCompatibleSuperiors(Set<ObjectClass> objectClassSuperiors,
+      ObjectClassType objectClassType, List<Message> errors)
+  {
+    SortedSet<String> notCompatibleClasses =
+      new TreeSet<String>(new LowerCaseComparator());
+    for (ObjectClass oc : objectClassSuperiors)
+    {
+      if (oc.getObjectClassType() == ObjectClassType.ABSTRACT)
+      {
+        // Nothing to do.
+      }
+      else if (oc.getObjectClassType() != objectClassType)
+      {
+        notCompatibleClasses.add(oc.getNameOrOID());
+      }
+    }
+    if (!notCompatibleClasses.isEmpty())
+    {
+      String arg = Utilities.getStringFromCollection(notCompatibleClasses,
+          ", ");
+      if (objectClassType == ObjectClassType.STRUCTURAL)
+      {
+        errors.add(
+            ERR_CTRL_PANEL_INCOMPATIBLE_SUPERIORS_WITH_STRUCTURAL.get(arg));
+      }
+      else if (objectClassType == ObjectClassType.AUXILIARY)
+      {
+        errors.add(
+            ERR_CTRL_PANEL_INCOMPATIBLE_SUPERIORS_WITH_AUXILIARY.get(arg));
+      }
+      else if (objectClassType == ObjectClassType.ABSTRACT)
+      {
+        errors.add(
+            ERR_CTRL_PANEL_INCOMPATIBLE_SUPERIORS_WITH_ABSTRACT.get(arg));
+      }
+    }
   }
 }

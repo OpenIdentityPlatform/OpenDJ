@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 package org.opends.guitools.controlpanel.task;
 
@@ -164,11 +164,12 @@ public class ModifyObjectClassTask extends Task
   private ObjectClass getObjectClassToAdd(ObjectClass ocToDelete)
   {
     ObjectClass ocToAdd;
+    Set<ObjectClass> currentSups = ocToDelete.getSuperiorClasses();
     if (ocToDelete.equals(oldObjectClass))
     {
       ocToAdd = newObjectClass;
     }
-    else if (oldObjectClass.equals(ocToDelete.getSuperiorClass()))
+    else if (currentSups.contains(oldObjectClass))
     {
       ArrayList<String> allNames = new ArrayList<String>();
       for (String str : ocToDelete.getNormalizedNames())
@@ -177,13 +178,24 @@ public class ModifyObjectClassTask extends Task
       }
       Map<String, List<String>> extraProperties =
         DeleteSchemaElementsTask.cloneExtraProperties(ocToDelete);
-
+      Set<ObjectClass> newSups = new LinkedHashSet<ObjectClass>();
+      for(ObjectClass oc: currentSups)
+      {
+        if(oc.equals(oldObjectClass))
+        {
+          newSups.add(newObjectClass);
+        }
+        else
+        {
+          newSups.add(oc);
+        }
+      }
       ocToAdd = new ObjectClass("",
           ocToDelete.getPrimaryName(),
           allNames,
           ocToDelete.getOID(),
           ocToDelete.getDescription(),
-          newObjectClass,
+          newSups,
           ocToDelete.getRequiredAttributes(),
           ocToDelete.getOptionalAttributes(),
           ocToDelete.getObjectClassType(),

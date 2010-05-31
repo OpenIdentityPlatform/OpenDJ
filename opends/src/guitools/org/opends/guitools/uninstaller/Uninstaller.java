@@ -1599,7 +1599,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     Utilities.centerOnComponent(loginDialog, qs.getDialog().getFrame());
     loginDialog.setModal(true);
     loginDialog.setVisible(true);
-    if (!loginDialog.isCancelled())
+    if (!loginDialog.isCanceled())
     {
       getUninstallUserData().setAdminUID(loginDialog.getAdministratorUid());
       getUninstallUserData().setAdminPwd(loginDialog.getAdministratorPwd());

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.backends;
 
@@ -2020,8 +2020,7 @@ public class SchemaBackend
     // Make sure that the new objectclass doesn't reference an undefined
     // superior class, or an undefined required or optional attribute type,
     // and that none of them are OBSOLETE.
-    ObjectClass superiorClass = objectClass.getSuperiorClass();
-    if (superiorClass != null)
+    for(ObjectClass superiorClass : objectClass.getSuperiorClasses())
     {
       if (! schema.hasObjectClass(superiorClass.getOID()))
       {
@@ -2213,12 +2212,15 @@ public class SchemaBackend
     // other objectclass.
     for (ObjectClass oc : schema.getObjectClasses().values())
     {
-      ObjectClass superiorClass = oc.getSuperiorClass();
-      if ((superiorClass != null) && superiorClass.equals(removeClass))
+      for(ObjectClass superiorClass : oc.getSuperiorClasses())
       {
-        Message message = ERR_SCHEMA_MODIFY_REMOVE_OC_SUPERIOR_CLASS.get(
-            removeClass.getNameOrOID(), superiorClass.getNameOrOID());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+        if (superiorClass.equals(removeClass))
+        {
+          Message message = ERR_SCHEMA_MODIFY_REMOVE_OC_SUPERIOR_CLASS.get(
+              removeClass.getNameOrOID(), superiorClass.getNameOrOID());
+          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                  message);
+        }
       }
     }
 
@@ -3755,15 +3757,15 @@ public class SchemaBackend
       return;
     }
 
-    ObjectClass superiorClass = objectClass.getSuperiorClass();
-    if ((superiorClass != null) &&
-        schemaFile.equals(superiorClass.getSchemaFile()) &&
-        (! addedClasses.contains(superiorClass)))
+    for(ObjectClass superiorClass : objectClass.getSuperiorClasses())
     {
-      addObjectClassToSchemaFile(schema, schemaFile, superiorClass, values,
-                                 addedClasses, depth+1);
+      if (schemaFile.equals(superiorClass.getSchemaFile()) &&
+          (! addedClasses.contains(superiorClass)))
+      {
+        addObjectClassToSchemaFile(schema, schemaFile, superiorClass, values,
+                                   addedClasses, depth+1);
+      }
     }
-
     values.add(AttributeValues.create(objectClassesType,
                                   objectClass.getDefinition()));
     addedClasses.add(objectClass);

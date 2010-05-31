@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -93,8 +93,8 @@ public final class ObjectClass
   // and its superclasses.
   private final Set<AttributeType> requiredAndOptionalChain;
 
-  // The reference to the superior objectclass.
-  private final ObjectClass superiorClass;
+  // The reference to one or more superior objectclasses.
+  private final Set<ObjectClass> superiorClasses;
 
   // The objectclass type for this objectclass.
   private final ObjectClassType objectClassType;
@@ -132,9 +132,9 @@ public final class ObjectClass
    * @param description
    *          The description for this objectclass, or {@code null} if
    *          there is no description.
-   * @param superiorClass
-   *          The superior class for this objectclass, or {@code null}
-   *          if there is no superior object class.
+   * @param superiorClasses
+   *          The superior classes for this objectclass, or
+   *          {@code null} if there is no superior object class.
    * @param requiredAttributes
    *          The set of required attribute types for this
    *          objectclass.
@@ -152,7 +152,8 @@ public final class ObjectClass
    */
   public ObjectClass(String definition, String primaryName,
                      Collection<String> names, String oid,
-                     String description, ObjectClass superiorClass,
+                     String description,
+                     Set<ObjectClass> superiorClasses,
                      Set<AttributeType> requiredAttributes,
                      Set<AttributeType> optionalAttributes,
                      ObjectClassType objectClassType,
@@ -165,7 +166,14 @@ public final class ObjectClass
 
     ensureNotNull(definition, oid);
 
-    this.superiorClass = superiorClass;
+    // Construct unmodifiable views of the superior classes.
+    if (superiorClasses != null) {
+      this.superiorClasses =  Collections
+          .unmodifiableSet(new LinkedHashSet<ObjectClass>(
+              superiorClasses));
+    } else {
+      this.superiorClasses = Collections.emptySet();
+    }
 
     int schemaFilePos = definition.indexOf(SCHEMA_PROPERTY_FILENAME);
     if (schemaFilePos > 0)
@@ -215,12 +223,15 @@ public final class ObjectClass
       this.requiredAttributes = Collections.emptySet();
     }
 
-    if (this.superiorClass == null) {
+    if (this.superiorClasses.isEmpty()) {
       this.requiredAttributesChain = this.requiredAttributes;
     } else {
       Set<AttributeType> tmp = new HashSet<AttributeType>(
           this.requiredAttributes);
-      tmp.addAll(this.superiorClass.getRequiredAttributeChain());
+      for(ObjectClass oc: this.superiorClasses)
+      {
+        tmp.addAll(oc.getRequiredAttributeChain());
+      }
       this.requiredAttributesChain = Collections.unmodifiableSet(tmp);
     }
 
@@ -233,12 +244,15 @@ public final class ObjectClass
       this.optionalAttributes = Collections.emptySet();
     }
 
-    if (this.superiorClass == null) {
+    if (this.superiorClasses.isEmpty()) {
       this.optionalAttributesChain = this.optionalAttributes;
     } else {
       Set<AttributeType> tmp = new HashSet<AttributeType>(
           this.optionalAttributes);
-      tmp.addAll(this.superiorClass.getOptionalAttributeChain());
+      for(ObjectClass oc : this.superiorClasses)
+      {
+        tmp.addAll(oc.getOptionalAttributeChain());
+      }
       this.optionalAttributesChain = Collections.unmodifiableSet(tmp);
     }
 
@@ -327,15 +341,14 @@ public final class ObjectClass
 
 
   /**
-   * Retrieves the reference to the superior class for this
-   * objectclass.
+   * Retrieves an unmodifiable view of the set of direct superior
+   * classes for this objectclass.
    *
-   * @return The reference to the superior class for this objectlass,
-   *         or <code>null</code> if there is none.
+   * @return An unmodifiable view of the set of  direct superior
+   *                classes for this objectlass,
    */
-  public ObjectClass getSuperiorClass() {
-
-    return superiorClass;
+  public Set<ObjectClass> getSuperiorClasses() {
+    return superiorClasses;
   }
 
 
@@ -351,12 +364,12 @@ public final class ObjectClass
    */
   public boolean isDescendantOf(ObjectClass objectClass) {
 
-    if (superiorClass == null) {
-      return false;
+    for(ObjectClass oc : superiorClasses) {
+      if(oc.equals(objectClass) || oc.isDescendantOf(objectClass)) {
+        return true;
+      }
     }
-
-    return (superiorClass.equals(objectClass) || superiorClass
-        .isDescendantOf(objectClass));
+    return false;
   }
 
 
@@ -528,9 +541,24 @@ public final class ObjectClass
    */
   protected void toStringContent(StringBuilder buffer) {
 
-    if (superiorClass != null) {
+    if (!superiorClasses.isEmpty()) {
       buffer.append(" SUP ");
-      buffer.append(superiorClass.getNameOrOID());
+      Iterator<ObjectClass> iterator = superiorClasses.iterator();
+      ObjectClass oc =  iterator.next();
+
+      if(iterator.hasNext()) {
+        buffer.append("( ");
+        buffer.append(oc.getNameOrOID());
+
+        while(iterator.hasNext()) {
+          buffer.append(" $ ");
+          buffer.append(iterator.next().getNameOrOID());
+        }
+
+        buffer.append(" )");
+      } else {
+        buffer.append(oc.getNameOrOID());
+      }
     }
 
     if (objectClassType != null) {
@@ -580,4 +608,4 @@ public final class ObjectClass
       }
     }
   }
-}
+  }

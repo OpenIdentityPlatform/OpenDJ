@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 package org.opends.guitools.controlpanel.ui.components;
 
@@ -174,7 +174,7 @@ public class ScheduleSummaryPanel extends JPanel
       scheduleDlg.setModal(true);
     }
     scheduleDlg.setVisible(true);
-    if (!schedulePanel.isCancelled())
+    if (!schedulePanel.isCanceled())
     {
       setSchedule(schedulePanel.getSchedule());
     }

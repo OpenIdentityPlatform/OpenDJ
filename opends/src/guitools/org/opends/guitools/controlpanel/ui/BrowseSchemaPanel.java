@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -1492,14 +1492,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
         mustAdd = false;
         for (ObjectClass o : lastSchema.getObjectClasses().values())
         {
-          boolean isChild = false;
-          ObjectClass parent = o.getSuperiorClass();
-          while (!isChild && (parent != null))
-          {
-            isChild = parent == oc;
-            parent = parent.getSuperiorClass();
-          }
-          if (isChild)
+          if (isDescendant(oc, o))
           {
             mustAdd = mustAddObjectClassName(o, f);
             if (mustAdd)
@@ -1511,13 +1504,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       }
       else if (PARENT_CLASS.equals(filterType))
       {
-        mustAdd = false;
-        ObjectClass parentClass = oc.getSuperiorClass();
-        while (!mustAdd && (parentClass != null))
-        {
-          mustAdd = mustAddObjectClassName(parentClass, f);
-          parentClass = parentClass.getSuperiorClass();
-        }
+        mustAdd = mustAddParentObjectClassName(oc, f);
       }
       else
       {
@@ -1525,6 +1512,50 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       }
     }
     return mustAdd;
+  }
+
+  private boolean mustAddParentObjectClassName(ObjectClass oc, String f)
+  {
+    boolean mustAdd = false;
+    Set<ObjectClass> parents = oc.getSuperiorClasses();
+    for (ObjectClass parent : parents)
+    {
+      if (mustAddObjectClassName(parent, f) ||
+          mustAddParentObjectClassName(parent, f))
+      {
+        mustAdd = true;
+        break;
+      }
+    }
+    return mustAdd;
+  }
+
+  /**
+   * Finds out if a class is descendant of another class using equality of
+   * pointers.
+   * @param ocParent the parent object class.
+   * @param oChild the (potentially) descendant object class.
+   * @return {@code true} if the class is a descendant of the parent class
+   * and {@code false} otherwise.
+   */
+  private boolean isDescendant(ObjectClass ocParent, ObjectClass oChild)
+  {
+    Set<ObjectClass> superiors = oChild.getSuperiorClasses();
+    if (superiors == null || superiors.isEmpty())
+    {
+      return false;
+    }
+    else
+    {
+      for (ObjectClass o : oChild.getSuperiorClasses())
+      {
+        if (ocParent == o || isDescendant(ocParent, o))
+        {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   /**
@@ -1759,17 +1790,9 @@ public class BrowseSchemaPanel extends StatusGenericPanel
       int index = -1;
       for (int i=0; i<lOrderedOcs.size(); i++)
       {
-        ObjectClass parent = lOrderedOcs.get(i).getSuperiorClass();
-        while ((parent != null) && (index == -1))
+        if (lOrderedOcs.get(i).isDescendantOf(oc))
         {
-          if (parent.equals(oc))
-          {
-            index = i+1;
-          }
-          else
-          {
-            parent = parent.getSuperiorClass();
-          }
+          index = i+1;
         }
       }
       if (index == -1)
@@ -1830,7 +1853,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     {
       for (ObjectClass o : schema.getObjectClasses().values())
       {
-        if (objectClass.equals(o.getSuperiorClass()))
+        if (o.getSuperiorClasses().contains(objectClass))
         {
           childClasses.add(o);
         }

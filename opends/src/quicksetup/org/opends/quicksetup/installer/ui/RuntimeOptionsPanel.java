@@ -308,7 +308,7 @@ public class RuntimeOptionsPanel extends QuickSetupStepPanel
     dlg.pack();
     dlg.setModal(true);
     dlg.setVisible(true);
-    if (!dlg.isCancelled())
+    if (!dlg.isCanceled())
     {
       serverJavaArgs = dlg.getJavaArguments();
       lServer.setText(JavaArguments.getMessageForJLabel(
@@ -326,7 +326,7 @@ public class RuntimeOptionsPanel extends QuickSetupStepPanel
     dlg.pack();
     dlg.setModal(true);
     dlg.setVisible(true);
-    if (!dlg.isCancelled())
+    if (!dlg.isCanceled())
     {
       importJavaArgs = dlg.getJavaArguments();
       lImport.setText(JavaArguments.getMessageForJLabel(

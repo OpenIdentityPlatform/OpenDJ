@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.browser;
@@ -70,7 +70,7 @@ public abstract class AbstractNodeTask implements Runnable {
    * @return <CODE>true</CODE> if the operation is cancelled and
    * <CODE>false</CODE> otherwise.
    */
-  public boolean isCancelled() {
+  public boolean isCanceled() {
     return cancelled;
   }
 

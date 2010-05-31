@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 package org.opends.guitools.controlpanel.task;
 
@@ -242,7 +242,7 @@ public class ModifyAttributeTask extends Task
           allNames,
           ocToDelete.getOID(),
           ocToDelete.getDescription(),
-          ocToDelete.getSuperiorClass(),
+          ocToDelete.getSuperiorClasses(),
           required,
           optional,
           ocToDelete.getObjectClassType(),

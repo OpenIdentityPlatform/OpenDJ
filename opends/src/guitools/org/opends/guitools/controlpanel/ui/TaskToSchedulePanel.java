@@ -727,7 +727,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
    * @return <CODE>true</CODE> if the user chose to close the dialog discarding
    * the provided input and <CODE>false</CODE> otherwise.
    */
-  public boolean isCancelled()
+  public boolean isCanceled()
   {
     return schedule == null;
   }

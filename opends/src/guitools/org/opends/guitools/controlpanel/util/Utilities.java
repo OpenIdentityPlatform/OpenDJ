@@ -47,6 +47,7 @@ import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -59,6 +60,7 @@ import javax.naming.directory.SearchControls;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
 import javax.swing.BorderFactory;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -90,6 +92,7 @@ import javax.swing.table.TableColumnModel;
 
 import org.opends.guitools.controlpanel.ControlPanel;
 import org.opends.guitools.controlpanel.browser.IconPool;
+import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
 import org.opends.guitools.controlpanel.datamodel.ConfigReadException;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
@@ -2752,5 +2755,95 @@ public class Utilities
   public static void addClickTooltipListener(JComponent comp)
   {
     comp.addMouseListener(new ClickTooltipDisplayer());
+  }
+
+  /**
+   * Updates a combo box model with a number of items.
+   * The method assumes that is being called from the event thread.
+   * @param newElements the new items for the combo box model.
+   * @param model the combo box model to be updated.
+   */
+  public static void updateComboBoxModel(Collection<?> newElements,
+      DefaultComboBoxModel model)
+  {
+    updateComboBoxModel(newElements, model, null);
+  }
+
+  /**
+   * Updates a combo box model with a number of items.
+   * The method assumes that is being called from the event thread.
+   * @param newElements the new items for the combo box model.
+   * @param model the combo box model to be updated.
+   * @param comparator the object that will be used to compare the objects in
+   * the model.  If <CODE>null</CODE>, the equals method will be used.
+   */
+  public static void updateComboBoxModel(Collection<?> newElements,
+      DefaultComboBoxModel model,
+      Comparator<Object> comparator)
+  {
+    boolean changed = newElements.size() != model.getSize();
+    if (!changed)
+    {
+      int i = 0;
+      for (Object newElement : newElements)
+      {
+        if (comparator == null)
+        {
+          changed = !newElement.equals(model.getElementAt(i));
+        }
+        else
+        {
+          changed =
+            comparator.compare(newElement, model.getElementAt(i)) != 0;
+        }
+        if (changed)
+        {
+          break;
+        }
+        i++;
+      }
+    }
+    if (changed)
+    {
+      Object selected = model.getSelectedItem();
+      model.removeAllElements();
+      boolean selectDefault = false;
+      for (Object newElement : newElements)
+      {
+        model.addElement(newElement);
+      }
+      if (selected != null)
+      {
+        if (model.getIndexOf(selected) != -1)
+        {
+          model.setSelectedItem(selected);
+        }
+        else
+        {
+          selectDefault = true;
+        }
+      }
+      else
+      {
+        selectDefault = true;
+      }
+      if (selectDefault)
+      {
+        for (int i=0; i<model.getSize(); i++)
+        {
+          Object o = model.getElementAt(i);
+          if (o instanceof CategorizedComboBoxElement)
+          {
+            if (((CategorizedComboBoxElement)o).getType() ==
+              CategorizedComboBoxElement.Type.CATEGORY)
+            {
+              continue;
+            }
+          }
+          model.setSelectedItem(o);
+          break;
+        }
+      }
+    }
   }
 }

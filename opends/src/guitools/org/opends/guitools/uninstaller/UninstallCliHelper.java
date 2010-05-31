@@ -139,7 +139,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       boolean isInteractive;
       boolean isQuiet;
       boolean isVerbose;
-      boolean isCancelled = false;
+      boolean isCanceled = false;
 
       /* Step 1: analyze the arguments.
        */
@@ -222,7 +222,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         }
         else
         {
-          isCancelled = askWhatToDelete(userData, outsideDbs, outsideLogs);
+          isCanceled = askWhatToDelete(userData, outsideDbs, outsideLogs);
         }
       }
       String adminUid = args.getAdministratorUID();
@@ -275,12 +275,12 @@ public class UninstallCliHelper extends ConsoleApplication {
        * Step 4: check if server is running.  Depending if it is running and the
        * OS we are running, ask for authentication information.
        */
-      if (!isCancelled)
+      if (!isCanceled)
       {
-        isCancelled = checkServerState(userData);
+        isCanceled = checkServerState(userData);
       }
 
-      if (isCancelled && !userData.isForceOnError())
+      if (isCanceled && !userData.isForceOnError())
       {
         LOG.log(Level.INFO, "User cancelled uninstall.");
         userData = null;

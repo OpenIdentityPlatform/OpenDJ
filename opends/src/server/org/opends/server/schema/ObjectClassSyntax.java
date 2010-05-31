@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 import org.opends.messages.Message;
@@ -421,11 +421,11 @@ public class ObjectClassSyntax
     List<String> names = new LinkedList<String>();
     String description = null;
     boolean isObsolete = false;
-    ObjectClass superiorClass = DirectoryServer.getTopObjectClass();
     Set<AttributeType> requiredAttributes = new LinkedHashSet<AttributeType>();
     Set<AttributeType> optionalAttributes = new LinkedHashSet<AttributeType>();
-    ObjectClassType objectClassType = superiorClass
-        .getObjectClassType();
+    Set<ObjectClass> superiorClasses = new LinkedHashSet<ObjectClass>();
+    //Default OC Type is STRUCTURAL ( RFC 4512 4.1.1)
+    ObjectClassType objectClassType = ObjectClassType.STRUCTURAL;
     Map<String, List<String>> extraProperties =
       new LinkedHashMap<String, List<String>>();
 
@@ -604,10 +604,9 @@ public class ObjectClassSyntax
         // by one or more names separated by spaces  and the dollar sign
         //  character, followed by a closing parenthesis.
         c = valueStr.charAt(pos++);
-
+        LinkedList<ObjectClass> listSupOCs = new LinkedList<ObjectClass>();
         if(c == '(')
         {
-          LinkedList<ObjectClass> listSupOCs = new LinkedList<ObjectClass>();
           while(true)
           {
             StringBuilder woidBuffer = new StringBuilder();
@@ -633,21 +632,7 @@ public class ObjectClassSyntax
               }
             }
 
-            //We don't currently support multiple inheritance of objectclasses.
-            //Check to see if we already have a value in the list and make a
-            //decision.
-            if(listSupOCs.size() > 0 )
-            {
-              Message message =
-                      ERR_ATTR_SYNTAX_OBJECTCLASS_MULTIPLE_SUPERIOR_CLASS.
-                      get(oidStr,oid,listSupOCs.get(0).getNameOrOID());
-              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                      message);
-            }
-            else
-            {
-              listSupOCs.add(supOC);
-            }
+            listSupOCs.add(supOC);
             // The next character must be either a dollar sign or a closing
             // parenthesis.
             c = valueStr.charAt(pos++);
@@ -664,13 +649,13 @@ public class ObjectClassSyntax
                                            message);
             }
           }
-          superiorClass = listSupOCs.get(0);
         }
         else
         {
           StringBuilder woidBuffer = new StringBuilder();
           pos = readWOID(lowerStr, woidBuffer, (pos-1));
-          superiorClass = schema.getObjectClass(woidBuffer.toString());
+          ObjectClass superiorClass =
+                  schema.getObjectClass(woidBuffer.toString());
           if (superiorClass == null)
           {
             if (allowUnknownElements)
@@ -689,23 +674,9 @@ public class ObjectClassSyntax
                                            message);
             }
           }
+          listSupOCs.add(superiorClass);
         }
-
-
-        // Use the objectclass type of the superior objectclass to override the
-        // objectclass type for the new one.  This could potentially cause a
-        // problem if the components in the objectclass description are provided
-        // out-of-order, but even if that happens then it doesn't really matter
-        // since the objectclass type currently isn't used for anything anyway.
-        //If the superior oc is top, set the type to STRUCTURAL.
-        if(superiorClass.hasName("top"))
-        {
-          objectClassType = ObjectClassType.STRUCTURAL;
-        }
-        else
-        {
-          objectClassType = superiorClass.getObjectClassType();
-        }
+        superiorClasses.addAll(listSupOCs);
       }
       else if (lowerTokenName.equals("abstract"))
       {
@@ -910,78 +881,81 @@ public class ObjectClassSyntax
       }
     }
 
-
-    if (superiorClass.getOID().equals(oid))
+    //If SUP is not specified, use TOP.
+    ObjectClass top = DirectoryServer.getTopObjectClass();
+    if(superiorClasses.isEmpty() && !top.getOID().equals(oid))
     {
-      // This should only happen for the "top" objectclass.
-      superiorClass = null;
+      superiorClasses.add(top);
     }
     else
     {
-      // Make sure that the inheritance configuration is acceptable.
-      ObjectClassType superiorType = superiorClass.getObjectClassType();
-      switch (objectClassType)
+      for(ObjectClass superiorClass : superiorClasses)
       {
-        case ABSTRACT:
-          // Abstract classes may only inherit from other abstract classes.
-          if (superiorType != ObjectClassType.ABSTRACT)
-          {
-            Message message =
-              WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE.
+        // Make sure that the inheritance configuration is acceptable.
+        ObjectClassType superiorType = superiorClass.getObjectClassType();
+        switch (objectClassType)
+        {
+          case ABSTRACT:
+            // Abstract classes may only inherit from other abstract classes.
+            if (superiorType != ObjectClassType.ABSTRACT)
+            {
+              Message message =
+                WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE.
                   get(oid, objectClassType.toString(), superiorType.toString(),
-                      superiorClass.getNameOrOID());
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                         message);
-          }
-          break;
+                        superiorClass.getNameOrOID());
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                           message);
+            }
+            break;
 
-        case AUXILIARY:
-          // Auxiliary classes may only inherit from abstract classes or other
-          // auxiliary classes.
-          if ((superiorType != ObjectClassType.ABSTRACT) &&
-              (superiorType != ObjectClassType.AUXILIARY))
-          {
-            Message message =
-              WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE.
+          case AUXILIARY:
+            // Auxiliary classes may only inherit from abstract classes or other
+            // auxiliary classes.
+            if ((superiorType != ObjectClassType.ABSTRACT) &&
+                (superiorType != ObjectClassType.AUXILIARY))
+            {
+              Message message =
+                WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE.
                   get(oid, objectClassType.toString(), superiorType.toString(),
-                      superiorClass.getNameOrOID());
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                         message);
-          }
-          break;
+                        superiorClass.getNameOrOID());
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                           message);
+            }
+            break;
 
-        case STRUCTURAL:
-          // Structural classes may only inherit from abstract classes or other
-          // structural classes.
-          if ((superiorType != ObjectClassType.ABSTRACT) &&
-              (superiorType != ObjectClassType.STRUCTURAL))
-          {
-            Message message =
-              WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE.
+          case STRUCTURAL:
+            // Structural classes may only inherit from abstract classes or
+            // other structural classes.
+            if ((superiorType != ObjectClassType.ABSTRACT) &&
+                (superiorType != ObjectClassType.STRUCTURAL))
+            {
+              Message message =
+                WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE.
                   get(oid, objectClassType.toString(), superiorType.toString(),
-                      superiorClass.getNameOrOID());
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                         message);
-          }
+                        superiorClass.getNameOrOID());
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                           message);
+            }
 
-          // Structural classes must have the "top" objectclass somewhere in the
-          // superior chain.
-          if (! superiorChainIncludesTop(superiorClass))
-          {
-            Message message =
-              WARN_ATTR_SYNTAX_OBJECTCLASS_STRUCTURAL_SUPERIOR_NOT_TOP.
-                  get(oid);
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                         message);
-          }
-          break;
+            // Structural classes must have the "top" objectclass somewhere in
+            // the superior chain.
+            if (! superiorChainIncludesTop(superiorClass))
+            {
+              Message message =
+                WARN_ATTR_SYNTAX_OBJECTCLASS_STRUCTURAL_SUPERIOR_NOT_TOP.
+                    get(oid);
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                           message);
+            }
+            break;
+        }
       }
     }
 
 
 
     return new ObjectClass(value.toString(), primaryName, names, oid,
-                           description, superiorClass, requiredAttributes,
+                           description, superiorClasses, requiredAttributes,
                            optionalAttributes, objectClassType, isObsolete,
                            extraProperties);
   }
@@ -1520,8 +1494,15 @@ public class ObjectClassSyntax
     }
     else
     {
-      return superiorChainIncludesTop(superiorClass.getSuperiorClass());
+      for(ObjectClass oc : superiorClass.getSuperiorClasses())
+      {
+        if(superiorChainIncludesTop(oc))
+        {
+          return true;
+        }
+      }
     }
+    return false;
   }
 
 

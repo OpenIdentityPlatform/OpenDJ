@@ -56,6 +56,15 @@ public class SchemaElementComboBoxCellRenderer extends CustomListCellRenderer
   }
 
   /**
+   * Constructor of the cell renderer.
+   * @param list the list containing the elements to be rendered.
+   */
+  public SchemaElementComboBoxCellRenderer(JList list)
+  {
+    super(list);
+  }
+
+  /**
    * {@inheritDoc}
    */
   public Component getListCellRendererComponent(JList list, Object value,

@@ -95,7 +95,7 @@ public class SecurityOptionsDialog extends JDialog
 
   private SelectAliasDialog aliasDlg;
 
-  private boolean isCancelled = true;
+  private boolean isCanceled = true;
 
   private SecurityOptions securityOptions;
 
@@ -147,9 +147,9 @@ public class SecurityOptionsDialog extends JDialog
    * @return <CODE>true</CODE> if the user clicked on cancel and
    * <CODE>false</CODE> otherwise.
    */
-  public boolean isCancelled()
+  public boolean isCanceled()
   {
-    return isCancelled;
+    return isCanceled;
   }
 
   /**
@@ -174,7 +174,7 @@ public class SecurityOptionsDialog extends JDialog
     securityOptions = options;
     updateContents();
 
-    isCancelled = true;
+    isCanceled = true;
 
     setVisible(true);
   }
@@ -653,7 +653,7 @@ public class SecurityOptionsDialog extends JDialog
    */
   private void cancelClicked()
   {
-    isCancelled = true;
+    isCanceled = true;
     dispose();
   }
 
@@ -710,7 +710,7 @@ public class SecurityOptionsDialog extends JDialog
               if (!certificateHasAlias)
               {
                 selectedAlias = null;
-                isCancelled = false;
+                isCanceled = false;
                 dispose();
               }
               else if (aliases.length > 1)
@@ -721,23 +721,23 @@ public class SecurityOptionsDialog extends JDialog
                 }
                 aliasDlg.display(aliases);
 
-                if (!aliasDlg.isCancelled())
+                if (!aliasDlg.isCanceled())
                 {
                   selectedAlias = aliasDlg.getSelectedAlias();
-                  isCancelled = false;
+                  isCanceled = false;
                   dispose();
                 }
               }
               else
               {
                 selectedAlias = aliases[0];
-                isCancelled = false;
+                isCanceled = false;
                 dispose();
               }
             }
             else
             {
-              isCancelled = false;
+              isCanceled = false;
               dispose();
             }
           }

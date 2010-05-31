@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -236,7 +236,7 @@ public class DBEnvironmentMonitoringPanel extends GeneralMonitoringPanel
     }
     operationViewPanel.setSelectedAttributes(attributes);
     operationViewDlg.setVisible(true);
-    if (!operationViewPanel.isCancelled())
+    if (!operationViewPanel.isCanceled())
     {
       attributes = operationViewPanel.getAttributes();
       setOperationsToDisplay(attributes);
