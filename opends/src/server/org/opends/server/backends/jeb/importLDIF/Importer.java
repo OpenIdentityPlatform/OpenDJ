@@ -361,7 +361,7 @@ public class Importer
      for(;threadCount > 0; threadCount--)
      {
        phaseOneBufferCount = 2 * (indexCount * threadCount);
-       bufferSize = (int) (availMem / phaseOneBufferCount);
+       bufferSize = (int) (availMem/ ((4 * indexCount) + phaseOneBufferCount));
        if(bufferSize >= MIN_BUFFER_SIZE)
        {
          break;
@@ -376,7 +376,7 @@ public class Importer
   private boolean getBufferSizes(long availMem)
   {
     boolean maxBuf = false;
-    bufferSize = (int) (availMem/ phaseOneBufferCount);
+    bufferSize = (int) (availMem / ((4 * indexCount) + phaseOneBufferCount));
     if(bufferSize >= MIN_BUFFER_SIZE)
     {
       if(bufferSize > MAX_BUFFER_SIZE)
