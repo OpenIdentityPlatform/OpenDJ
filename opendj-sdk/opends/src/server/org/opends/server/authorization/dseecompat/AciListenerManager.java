@@ -105,7 +105,11 @@ public class AciListenerManager implements
     public void doPostSynchronization(
         PostSynchronizationAddOperation addOperation)
     {
-      doPostAdd(addOperation.getEntryToAdd());
+      Entry entry = addOperation.getEntryToAdd();
+      if (entry != null)
+      {
+        doPostAdd(entry);
+      }
     }
 
 
@@ -116,7 +120,11 @@ public class AciListenerManager implements
     public void doPostSynchronization(
         PostSynchronizationDeleteOperation deleteOperation)
     {
-      doPostDelete(deleteOperation.getEntryToDelete());
+      Entry entry = deleteOperation.getEntryToDelete();
+      if (entry != null)
+      {
+        doPostDelete(entry);
+      }
     }
 
 
@@ -127,8 +135,11 @@ public class AciListenerManager implements
     public void doPostSynchronization(
         PostSynchronizationModifyDNOperation modifyDNOperation)
     {
-      doPostModifyDN(modifyDNOperation.getOriginalEntry().getDN(),
-          modifyDNOperation.getUpdatedEntry().getDN());
+      Entry entry = modifyDNOperation.getUpdatedEntry();
+      if (entry != null)
+      {
+        doPostModifyDN(entry.getDN(), entry.getDN());
+      }
     }
 
 
@@ -139,8 +150,12 @@ public class AciListenerManager implements
     public void doPostSynchronization(
         PostSynchronizationModifyOperation modifyOperation)
     {
-      doPostModify(modifyOperation.getModifications(), modifyOperation
-          .getCurrentEntry(), modifyOperation.getModifiedEntry());
+      Entry entry = modifyOperation.getCurrentEntry();
+      Entry modEntry = modifyOperation.getModifiedEntry();
+      if ((entry != null) && (modEntry != null))
+      {
+        doPostModify(modifyOperation.getModifications(), entry, modEntry);
+      }
     }
 
 
