@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -294,18 +294,25 @@ public class ResetUserPasswordTask extends Task
         NamingEnumeration<SearchResult> entries =
           ctx.search(Utilities.getJNDIName(dn.toString()), filter, ctls);
 
-        while (entries.hasMore())
+        try
         {
-          SearchResult sr = entries.next();
-          Set<String> dns = ConnectionUtils.getValues(sr, attrName);
-          for (String sDn : dns)
+          while (entries.hasMore())
           {
-            if (bindDN.equals(DN.decode(sDn)))
+            SearchResult sr = entries.next();
+            Set<String> dns = ConnectionUtils.getValues(sr, attrName);
+            for (String sDn : dns)
             {
-              isBoundAs = true;
-              break;
+              if (bindDN.equals(DN.decode(sDn)))
+              {
+                isBoundAs = true;
+                break;
+              }
             }
           }
+        }
+        finally
+        {
+          entries.close();
         }
       }
       catch (Throwable t)

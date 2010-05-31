@@ -826,10 +826,17 @@ public class ConfigFromDirContext extends ConfigReader
       javaVersion = null;
       numberConnections = -1;
 
-      while (monitorEntries.hasMore())
+      try
       {
-        SearchResult sr = monitorEntries.next();
-        handleMonitoringSearchResult(sr, "cn=monitor");
+        while (monitorEntries.hasMore())
+        {
+          SearchResult sr = monitorEntries.next();
+          handleMonitoringSearchResult(sr, "cn=monitor");
+        }
+      }
+      finally
+      {
+        monitorEntries.close();
       }
     }
     catch (NamingException ne)
@@ -858,10 +865,17 @@ public class ConfigFromDirContext extends ConfigReader
       NamingEnumeration<SearchResult> taskEntries =
         ctx.search(jndiName, filter, ctls);
 
-      while (taskEntries.hasMore())
+      try
       {
-        SearchResult sr = taskEntries.next();
-        handleTaskSearchResult(sr, ConfigConstants.DN_TASK_ROOT, ts);
+        while (taskEntries.hasMore())
+        {
+          SearchResult sr = taskEntries.next();
+          handleTaskSearchResult(sr, ConfigConstants.DN_TASK_ROOT, ts);
+        }
+      }
+      finally
+      {
+        taskEntries.close();
       }
     }
     catch (NamingException ne)

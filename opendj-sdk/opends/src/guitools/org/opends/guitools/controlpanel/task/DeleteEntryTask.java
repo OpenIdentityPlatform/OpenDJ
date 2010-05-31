@@ -367,16 +367,23 @@ public class DeleteEntryTask extends Task
         ctx.search(Utilities.getJNDIName(dnToRemove.toString()), filter, ctls);
 
       DN entryDNFound = dnToRemove;
-      while (entryDNs.hasMore())
+      try
       {
-        SearchResult sr = entryDNs.next();
-        if (!sr.getName().equals(""))
+        while (entryDNs.hasMore())
         {
-          CustomSearchResult res =
-            new CustomSearchResult(sr, dnToRemove.toString());
-          entryDNFound = DN.decode(res.getDN());
-          deleteSubtreeRecursively(ctx, entryDNFound, null, toNotify);
+          SearchResult sr = entryDNs.next();
+          if (!sr.getName().equals(""))
+          {
+            CustomSearchResult res =
+              new CustomSearchResult(sr, dnToRemove.toString());
+            entryDNFound = DN.decode(res.getDN());
+            deleteSubtreeRecursively(ctx, entryDNFound, null, toNotify);
+          }
         }
+      }
+      finally
+      {
+        entryDNs.close();
       }
 
     } catch (NameNotFoundException nnfe) {

@@ -7745,7 +7745,15 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         NamingEnumeration<SearchResult> res =
           ctx.search(dn, filter, searchControls);
-        SearchResult sr = res.next();
+        SearchResult sr = null;
+        try
+        {
+          sr = res.next();
+        }
+        finally
+        {
+          res.close();
+        }
         String logMsg = getFirstValue(sr, "ds-task-log-message");
         if (logMsg != null)
         {
@@ -7898,7 +7906,15 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         NamingEnumeration<SearchResult> res =
           ctx.search(dn, filter, searchControls);
-        SearchResult sr = res.next();
+        SearchResult sr = null;
+        try
+        {
+          sr = res.next();
+        }
+        finally
+        {
+          res.close();
+        }
 
         // Get the number of entries that have been handled and
         // a percentage...

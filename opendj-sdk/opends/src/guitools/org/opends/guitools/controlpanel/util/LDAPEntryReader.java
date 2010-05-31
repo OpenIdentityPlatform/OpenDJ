@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -72,6 +72,7 @@ public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
   public CustomSearchResult processBackgroundTask() throws Throwable
   {
     isOver = false;
+    NamingEnumeration<SearchResult> en = null;
     try
     {
       SearchControls controls = new SearchControls();
@@ -82,8 +83,7 @@ public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
       controls.setSearchScope(SearchControls.OBJECT_SCOPE);
       final String filter = "(|(objectclass=*)(objectclass=ldapsubentry))";
 
-      NamingEnumeration<SearchResult> en =
-        ctx.search(Utilities.getJNDIName(dn), filter, controls);
+      en = ctx.search(Utilities.getJNDIName(dn), filter, controls);
 
       SearchResult sr = en.next();
 
@@ -94,6 +94,10 @@ public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
       if (isInterrupted())
       {
         isOver = true;
+      }
+      if (en != null)
+      {
+        en.close();
       }
     }
   }

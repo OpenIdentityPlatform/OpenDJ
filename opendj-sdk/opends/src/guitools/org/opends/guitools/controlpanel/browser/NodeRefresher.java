@@ -349,10 +349,17 @@ public class NodeRefresher extends AbstractNodeTask {
     NamingEnumeration<SearchResult> s = ctx.search(new LdapName(node.getDN()),
               controller.getFilter(),
               ctls);
-    if (!s.hasMoreElements())
+    try
     {
-      throw new NameNotFoundException("Entry "+node.getDN()+
-          " does not verify filter "+controller.getFilter());
+      if (!s.hasMoreElements())
+      {
+        throw new NameNotFoundException("Entry "+node.getDN()+
+            " does not verify filter "+controller.getFilter());
+      }
+    }
+    finally
+    {
+      s.close();
     }
   }
 
@@ -372,10 +379,17 @@ public class NodeRefresher extends AbstractNodeTask {
     NamingEnumeration<SearchResult> s = ctx.search(new LdapName(dn),
               controller.getFilter(),
               ctls);
-    if (!s.hasMoreElements())
+    try
     {
-      throw new NameNotFoundException("Entry "+dn+
-          " does not verify filter "+controller.getFilter());
+      if (!s.hasMoreElements())
+      {
+        throw new NameNotFoundException("Entry "+dn+
+            " does not verify filter "+controller.getFilter());
+      }
+    }
+    finally
+    {
+      s.close();
     }
   }
 
@@ -402,11 +416,18 @@ public class NodeRefresher extends AbstractNodeTask {
       NamingEnumeration<SearchResult> s = ctx.search(new LdapName(node.getDN()),
                 controller.getObjectSearchFilter(),
                 ctls);
-      if (s.hasMore())
+      try
       {
-        localEntry = s.next();
-        localEntry.setName(node.getDN());
+        if (s.hasMore())
+        {
+          localEntry = s.next();
+          localEntry.setName(node.getDN());
 
+        }
+      }
+      finally
+      {
+        s.close();
       }
       if (localEntry == null) {
         /* Not enough rights to read the entry or the entry simply does not
@@ -511,23 +532,30 @@ public class NodeRefresher extends AbstractNodeTask {
         NamingEnumeration<SearchResult> sr = ctx.search(remoteDn,
             filter,
             ctls);
-        if (sr.hasMore())
+        try
         {
-          entry = sr.next();
-          String name;
-          if (entry.getName().length() == 0)
+          if (sr.hasMore())
           {
-            name = remoteDn;
+            entry = sr.next();
+            String name;
+            if (entry.getName().length() == 0)
+            {
+              name = remoteDn;
+            }
+            else
+            {
+              name = unquoteRelativeName(entry.getName())+","+remoteDn;
+            }
+            entry.setName(name);
           }
           else
           {
-            name = unquoteRelativeName(entry.getName())+","+remoteDn;
+            throw new NameNotFoundException();
           }
-          entry.setName(name);
         }
-        else
+        finally
         {
-          throw new NameNotFoundException();
+          sr.close();
         }
         throwAbandonIfNeeded(null);
       }
@@ -660,6 +688,17 @@ public class NodeRefresher extends AbstractNodeTask {
       if (ctx != null) {
         controller.releaseLDAPConnection(ctx);
       }
+      if (searchResults != null)
+      {
+        try
+        {
+          searchResults.close();
+        }
+        catch (NamingException x)
+        {
+          throwAbandonIfNeeded(x);
+        }
+      }
     }
   }
 
@@ -731,124 +770,131 @@ public class NodeRefresher extends AbstractNodeTask {
                 controller.getChildSearchFilter(),
                 ctls);
 
-      while (entries.hasMore())
+      try
       {
-        SearchResult r = entries.next();
-        String name;
-        if (r.getName().length() == 0)
+        while (entries.hasMore())
         {
-          continue;
-        }
-        else
-        {
-          name = unquoteRelativeName(r.getName())+","+parentDn;
-        }
-        boolean add = false;
-        if (useCustomFilter())
-        {
-          // Check that is an inmediate child: use a faster method by just
-          // comparing the number of components.
-          DN dn = null;
-          try
+          SearchResult r = entries.next();
+          String name;
+          if (r.getName().length() == 0)
           {
-            dn = DN.decode(name);
-            add = dn.getNumComponents() == parentComponents + 1;
+            continue;
           }
-          catch (Throwable t)
+          else
           {
-            throw new RuntimeException("Error decoding dns: "+t, t);
+            name = unquoteRelativeName(r.getName())+","+parentDn;
           }
-
-          if (!add)
+          boolean add = false;
+          if (useCustomFilter())
           {
-            // Is not a direct child.  Check if the parent has been added,
-            // if it is the case, do not add the parent.  If is not the case,
-            // search for the parent and add it.
-            RDN[] rdns = new RDN[parentComponents + 1];
-            int diff = dn.getNumComponents() - rdns.length;
-            for (int i=0; i < rdns.length; i++)
+            // Check that is an inmediate child: use a faster method by just
+            // comparing the number of components.
+            DN dn = null;
+            try
             {
-              rdns[i] = dn.getRDN(i + diff);
+              dn = DN.decode(name);
+              add = dn.getNumComponents() == parentComponents + 1;
             }
-            final DN parentToAddDN = new DN(rdns);
-            boolean mustAddParent = true;
-            for (SearchResult addedEntry : childEntries)
+            catch (Throwable t)
             {
-              try
+              throw new RuntimeException("Error decoding dns: "+t, t);
+            }
+
+            if (!add)
+            {
+              // Is not a direct child.  Check if the parent has been added,
+              // if it is the case, do not add the parent.  If is not the case,
+              // search for the parent and add it.
+              RDN[] rdns = new RDN[parentComponents + 1];
+              int diff = dn.getNumComponents() - rdns.length;
+              for (int i=0; i < rdns.length; i++)
               {
-                DN addedDN = DN.decode(addedEntry.getName());
-                if (addedDN.equals(parentToAddDN))
+                rdns[i] = dn.getRDN(i + diff);
+              }
+              final DN parentToAddDN = new DN(rdns);
+              boolean mustAddParent = true;
+              for (SearchResult addedEntry : childEntries)
+              {
+                try
                 {
-                  mustAddParent = false;
-                  break;
+                  DN addedDN = DN.decode(addedEntry.getName());
+                  if (addedDN.equals(parentToAddDN))
+                  {
+                    mustAddParent = false;
+                    break;
+                  }
+                }
+                catch (Throwable t)
+                {
+                  throw new RuntimeException("Error decoding dn: "+
+                      addedEntry.getName()+" . "+t, t);
                 }
               }
-              catch (Throwable t)
+              if (mustAddParent)
               {
-                throw new RuntimeException("Error decoding dn: "+
-                    addedEntry.getName()+" . "+t, t);
-              }
-            }
-            if (mustAddParent)
-            {
-              final boolean resultValue[] = {true};
-              // Check the children added to the tree
-              try
-              {
-                SwingUtilities.invokeAndWait(new Runnable()
+                final boolean resultValue[] = {true};
+                // Check the children added to the tree
+                try
                 {
-                  public void run()
+                  SwingUtilities.invokeAndWait(new Runnable()
                   {
-                    for (int i=0; i<getNode().getChildCount(); i++)
+                    public void run()
                     {
-                      BasicNode node = (BasicNode)getNode().getChildAt(i);
-                      try
+                      for (int i=0; i<getNode().getChildCount(); i++)
                       {
-                        DN dn = DN.decode(node.getDN());
-                        if (dn.equals(parentToAddDN))
+                        BasicNode node = (BasicNode)getNode().getChildAt(i);
+                        try
                         {
-                          resultValue[0] = false;
-                          break;
+                          DN dn = DN.decode(node.getDN());
+                          if (dn.equals(parentToAddDN))
+                          {
+                            resultValue[0] = false;
+                            break;
+                          }
+                        }
+                        catch (Throwable t)
+                        {
+                          throw new RuntimeException("Error decoding dn: "+
+                              node.getDN()+" . "+t, t);
                         }
                       }
-                      catch (Throwable t)
-                      {
-                        throw new RuntimeException("Error decoding dn: "+
-                            node.getDN()+" . "+t, t);
-                      }
                     }
-                  }
-                });
+                  });
+                }
+                catch (Throwable t)
+                {
+                  // Ignore
+                }
+                mustAddParent = resultValue[0];
               }
-              catch (Throwable t)
+              if (mustAddParent)
               {
-                // Ignore
+                SearchResult parentResult = searchManuallyEntry(ctx,
+                    parentToAddDN.toString());
+                childEntries.add(parentResult);
               }
-              mustAddParent = resultValue[0];
-            }
-            if (mustAddParent)
-            {
-              SearchResult parentResult = searchManuallyEntry(ctx,
-                  parentToAddDN.toString());
-              childEntries.add(parentResult);
             }
           }
-        }
-        else
-        {
-          add = true;
-        }
-        if (add)
-        {
-          r.setName(name);
-          childEntries.add(r);
-          // Time to time we update the display
-          if (childEntries.size() >= 20) {
-            changeStateTo(State.SEARCHING_CHILDREN);
-            childEntries.clear();
+          else
+          {
+            add = true;
           }
+          if (add)
+          {
+            r.setName(name);
+            childEntries.add(r);
+            // Time to time we update the display
+            if (childEntries.size() >= 20) {
+              changeStateTo(State.SEARCHING_CHILDREN);
+              childEntries.clear();
+            }
+          }
+          throwAbandonIfNeeded(null);
         }
-        throwAbandonIfNeeded(null);
+      }
+      finally
+      {
+        entries.close();
       }
     }
     catch (SizeLimitExceededException slee)
@@ -886,10 +932,17 @@ public class NodeRefresher extends AbstractNodeTask {
               controller.getObjectSearchFilter(),
               ctls);
 
-    while (entries.hasMore())
+    try
     {
-      sr = entries.next();
-      sr.setName(dn);
+      while (entries.hasMore())
+      {
+        sr = entries.next();
+        sr.setName(dn);
+      }
+    }
+    finally
+    {
+      entries.close();
     }
     return sr;
   }

@@ -1754,19 +1754,26 @@ public class Utils
       LdapName jndiName = new LdapName("cn=monitor");
       NamingEnumeration<?> listeners = ctx.search(jndiName, filter, ctls);
 
-      while (listeners.hasMore())
+      try
       {
-        SearchResult sr = (SearchResult)listeners.next();
+        while (listeners.hasMore())
+        {
+          SearchResult sr = (SearchResult)listeners.next();
 
-        v = getFirstValue(sr, "currentTime");
+          v = getFirstValue(sr, "currentTime");
 
-        TimeZone utcTimeZone = TimeZone.getTimeZone("UTC");
+          TimeZone utcTimeZone = TimeZone.getTimeZone("UTC");
 
-        SimpleDateFormat formatter =
-             new SimpleDateFormat("yyyyMMddHHmmss'Z'");
-        formatter.setTimeZone(utcTimeZone);
+          SimpleDateFormat formatter =
+            new SimpleDateFormat("yyyyMMddHHmmss'Z'");
+          formatter.setTimeZone(utcTimeZone);
 
-        time = formatter.parse(v).getTime();
+          time = formatter.parse(v).getTime();
+        }
+      }
+      finally
+      {
+        listeners.close();
       }
     }
     catch (Throwable t)

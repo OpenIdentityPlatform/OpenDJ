@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.admin.ads;
@@ -335,9 +335,9 @@ public class ServerDescriptor
 
     if (!serverProperties.isEmpty())
     {
-      ArrayList s = (ArrayList)serverProperties.get(
+      ArrayList<?> s = (ArrayList<?>)serverProperties.get(
           ServerProperty.LDAP_ENABLED);
-      ArrayList p = (ArrayList)serverProperties.get(
+      ArrayList<?> p = (ArrayList<?>)serverProperties.get(
           ServerProperty.LDAP_PORT);
       if (s != null)
       {
@@ -372,9 +372,9 @@ public class ServerDescriptor
 
     if (!serverProperties.isEmpty())
     {
-      ArrayList s = (ArrayList)serverProperties.get(
+      ArrayList<?> s = (ArrayList<?>)serverProperties.get(
           ServerProperty.LDAPS_ENABLED);
-      ArrayList p = (ArrayList)serverProperties.get(
+      ArrayList<?> p = (ArrayList<?>)serverProperties.get(
           ServerProperty.LDAPS_PORT);
       if (s != null)
       {
@@ -409,9 +409,9 @@ public class ServerDescriptor
 
     if (!serverProperties.isEmpty())
     {
-      ArrayList s = (ArrayList)serverProperties.get(
+      ArrayList<?> s = (ArrayList<?>)serverProperties.get(
           ServerProperty.ADMIN_ENABLED);
-      ArrayList p = (ArrayList)serverProperties.get(
+      ArrayList<?> p = (ArrayList<?>)serverProperties.get(
           ServerProperty.ADMIN_PORT);
       if (s != null)
       {
@@ -439,9 +439,9 @@ public class ServerDescriptor
   public List<Integer> getEnabledAdministrationPorts()
   {
     List<Integer> ports = new ArrayList<Integer>(1);
-    ArrayList s = (ArrayList)serverProperties.get(
+    ArrayList<?> s = (ArrayList<?>)serverProperties.get(
         ServerProperty.ADMIN_ENABLED);
-    ArrayList p = (ArrayList)serverProperties.get(
+    ArrayList<?> p = (ArrayList<?>)serverProperties.get(
         ServerProperty.ADMIN_PORT);
     if (s != null)
     {
@@ -471,9 +471,9 @@ public class ServerDescriptor
 
     if (!serverProperties.isEmpty())
     {
-      ArrayList s = (ArrayList)serverProperties.get(
+      ArrayList<?> s = (ArrayList<?>)serverProperties.get(
           ServerProperty.LDAP_ENABLED);
-      ArrayList p = (ArrayList)serverProperties.get(
+      ArrayList<?> p = (ArrayList<?>)serverProperties.get(
           ServerProperty.LDAP_PORT);
       if (s != null)
       {
@@ -488,9 +488,9 @@ public class ServerDescriptor
       }
       if (securePreferred)
       {
-        s = (ArrayList)serverProperties.get(
+        s = (ArrayList<?>)serverProperties.get(
             ServerProperty.ADMIN_ENABLED);
-        p = (ArrayList)serverProperties.get(ServerProperty.ADMIN_PORT);
+        p = (ArrayList<?>)serverProperties.get(ServerProperty.ADMIN_PORT);
         if (s != null)
         {
           for (int i=0; i<s.size(); i++)
@@ -587,7 +587,7 @@ public class ServerDescriptor
           ServerProperty.ADMIN_ENABLED
       };
       for (ServerProperty prop : props) {
-        ArrayList s = (ArrayList) serverProperties.get(prop);
+        ArrayList<?> s = (ArrayList<?>) serverProperties.get(prop);
         for (Object o : s) {
           buf.append(":").append(o);
         }
@@ -694,8 +694,8 @@ public class ServerDescriptor
 
     for (int i=0; i<sProps.length; i++)
     {
-      ArrayList s = (ArrayList)serverProperties.get(sProps[i][0]);
-      ArrayList p = (ArrayList)serverProperties.get(sProps[i][1]);
+      ArrayList<?> s = (ArrayList<?>)serverProperties.get(sProps[i][0]);
+      ArrayList<?> p = (ArrayList<?>)serverProperties.get(sProps[i][1]);
       if (s != null)
       {
         int port = -1;
@@ -723,7 +723,7 @@ public class ServerDescriptor
       }
     }
 
-    ArrayList array = (ArrayList)serverProperties.get(
+    ArrayList<?> array = (ArrayList<?>)serverProperties.get(
         ServerProperty.STARTTLS_ENABLED);
     boolean startTLSEnabled = false;
     if ((array != null) && !array.isEmpty())
@@ -802,44 +802,53 @@ public class ServerDescriptor
     String filter = "(objectclass=ds-cfg-ldap-connection-handler)";
 
     LdapName jndiName = new LdapName("cn=config");
-    NamingEnumeration listeners = ctx.search(jndiName, filter, ctls);
+    NamingEnumeration<SearchResult> listeners =
+      ctx.search(jndiName, filter, ctls);
 
-    ArrayList<Integer> ldapPorts = new ArrayList<Integer>();
-    ArrayList<Integer> ldapsPorts = new ArrayList<Integer>();
-    ArrayList<Boolean> ldapEnabled = new ArrayList<Boolean>();
-    ArrayList<Boolean> ldapsEnabled = new ArrayList<Boolean>();
-    ArrayList<Boolean> startTLSEnabled = new ArrayList<Boolean>();
-
-    desc.serverProperties.put(ServerProperty.LDAP_PORT, ldapPorts);
-    desc.serverProperties.put(ServerProperty.LDAPS_PORT, ldapsPorts);
-    desc.serverProperties.put(ServerProperty.LDAP_ENABLED, ldapEnabled);
-    desc.serverProperties.put(ServerProperty.LDAPS_ENABLED, ldapsEnabled);
-    desc.serverProperties.put(ServerProperty.STARTTLS_ENABLED, startTLSEnabled);
-
-    while(listeners.hasMore())
+    try
     {
-      SearchResult sr = (SearchResult)listeners.next();
+      ArrayList<Integer> ldapPorts = new ArrayList<Integer>();
+      ArrayList<Integer> ldapsPorts = new ArrayList<Integer>();
+      ArrayList<Boolean> ldapEnabled = new ArrayList<Boolean>();
+      ArrayList<Boolean> ldapsEnabled = new ArrayList<Boolean>();
+      ArrayList<Boolean> startTLSEnabled = new ArrayList<Boolean>();
 
-      String port = getFirstValue(sr, "ds-cfg-listen-port");
+      desc.serverProperties.put(ServerProperty.LDAP_PORT, ldapPorts);
+      desc.serverProperties.put(ServerProperty.LDAPS_PORT, ldapsPorts);
+      desc.serverProperties.put(ServerProperty.LDAP_ENABLED, ldapEnabled);
+      desc.serverProperties.put(ServerProperty.LDAPS_ENABLED, ldapsEnabled);
+      desc.serverProperties.put(ServerProperty.STARTTLS_ENABLED,
+          startTLSEnabled);
 
-      boolean isSecure = "true".equalsIgnoreCase(
-          getFirstValue(sr, "ds-cfg-use-ssl"));
+      while(listeners.hasMore())
+      {
+        SearchResult sr = listeners.next();
 
-      boolean enabled = "true".equalsIgnoreCase(
+        String port = getFirstValue(sr, "ds-cfg-listen-port");
+
+        boolean isSecure = "true".equalsIgnoreCase(
+            getFirstValue(sr, "ds-cfg-use-ssl"));
+
+        boolean enabled = "true".equalsIgnoreCase(
             getFirstValue(sr, "ds-cfg-enabled"));
-      if (isSecure)
-      {
-        ldapsPorts.add(new Integer(port));
-        ldapsEnabled.add(enabled);
+        if (isSecure)
+        {
+          ldapsPorts.add(new Integer(port));
+          ldapsEnabled.add(enabled);
+        }
+        else
+        {
+          ldapPorts.add(new Integer(port));
+          ldapEnabled.add(enabled);
+          enabled = "true".equalsIgnoreCase(
+              getFirstValue(sr, "ds-cfg-allow-start-tls"));
+          startTLSEnabled.add(enabled);
+        }
       }
-      else
-      {
-        ldapPorts.add(new Integer(port));
-        ldapEnabled.add(enabled);
-        enabled = "true".equalsIgnoreCase(
-            getFirstValue(sr, "ds-cfg-allow-start-tls"));
-        startTLSEnabled.add(enabled);
-      }
+    }
+    finally
+    {
+      listeners.close();
     }
   }
 
@@ -857,28 +866,36 @@ public class ServerDescriptor
     String filter = "(objectclass=ds-cfg-administration-connector)";
 
     LdapName jndiName = new LdapName("cn=config");
-    NamingEnumeration listeners = ctx.search(jndiName, filter, ctls);
+    NamingEnumeration<SearchResult> listeners =
+      ctx.search(jndiName, filter, ctls);
 
-    Integer adminConnectorPort = null;
-
-    // we should have a single administration connector
-    if (listeners.hasMore()) {
-      SearchResult sr = (SearchResult) listeners.next();
-      String port = getFirstValue(sr, "ds-cfg-listen-port");
-      adminConnectorPort = new Integer(port);
-    }
-
-    // Even if we have a single port, use an array to be consistent with
-    // other protocols.
-    ArrayList<Integer> adminPorts = new ArrayList<Integer>();
-    ArrayList<Boolean> adminEnabled = new ArrayList<Boolean>();
-    if (adminConnectorPort != null)
+    try
     {
-      adminPorts.add(adminConnectorPort);
-      adminEnabled.add(Boolean.TRUE);
+      Integer adminConnectorPort = null;
+
+      // we should have a single administration connector
+      if (listeners.hasMore()) {
+        SearchResult sr = listeners.next();
+        String port = getFirstValue(sr, "ds-cfg-listen-port");
+        adminConnectorPort = new Integer(port);
+      }
+
+      // Even if we have a single port, use an array to be consistent with
+      // other protocols.
+      ArrayList<Integer> adminPorts = new ArrayList<Integer>();
+      ArrayList<Boolean> adminEnabled = new ArrayList<Boolean>();
+      if (adminConnectorPort != null)
+      {
+        adminPorts.add(adminConnectorPort);
+        adminEnabled.add(Boolean.TRUE);
+      }
+      desc.serverProperties.put(ServerProperty.ADMIN_PORT, adminPorts);
+      desc.serverProperties.put(ServerProperty.ADMIN_ENABLED, adminEnabled);
     }
-    desc.serverProperties.put(ServerProperty.ADMIN_PORT, adminPorts);
-    desc.serverProperties.put(ServerProperty.ADMIN_ENABLED, adminEnabled);
+    finally
+    {
+      listeners.close();
+    }
   }
 
   private static void updateJmxConfiguration(ServerDescriptor desc,
@@ -898,7 +915,8 @@ public class ServerDescriptor
     String filter = "(objectclass=ds-cfg-jmx-connection-handler)";
 
     LdapName jndiName = new LdapName("cn=config");
-    NamingEnumeration listeners = ctx.search(jndiName, filter, ctls);
+    NamingEnumeration<SearchResult> listeners =
+      ctx.search(jndiName, filter, ctls);
 
     ArrayList<Integer> jmxPorts = new ArrayList<Integer>();
     ArrayList<Integer> jmxsPorts = new ArrayList<Integer>();
@@ -910,27 +928,34 @@ public class ServerDescriptor
     desc.serverProperties.put(ServerProperty.JMX_ENABLED, jmxEnabled);
     desc.serverProperties.put(ServerProperty.JMXS_ENABLED, jmxsEnabled);
 
-    while(listeners.hasMore())
+    try
     {
-      SearchResult sr = (SearchResult)listeners.next();
+      while(listeners.hasMore())
+      {
+        SearchResult sr = listeners.next();
 
-      String port = getFirstValue(sr, "ds-cfg-listen-port");
+        String port = getFirstValue(sr, "ds-cfg-listen-port");
 
-      boolean isSecure = "true".equalsIgnoreCase(
-          getFirstValue(sr, "ds-cfg-use-ssl"));
+        boolean isSecure = "true".equalsIgnoreCase(
+            getFirstValue(sr, "ds-cfg-use-ssl"));
 
-      boolean enabled = "true".equalsIgnoreCase(
+        boolean enabled = "true".equalsIgnoreCase(
             getFirstValue(sr, "ds-cfg-enabled"));
-      if (isSecure)
-      {
-        jmxsPorts.add(new Integer(port));
-        jmxsEnabled.add(enabled);
+        if (isSecure)
+        {
+          jmxsPorts.add(new Integer(port));
+          jmxsEnabled.add(enabled);
+        }
+        else
+        {
+          jmxPorts.add(new Integer(port));
+          jmxEnabled.add(enabled);
+        }
       }
-      else
-      {
-        jmxPorts.add(new Integer(port));
-        jmxEnabled.add(enabled);
-      }
+    }
+    finally
+    {
+      listeners.close();
     }
   }
 
@@ -952,81 +977,89 @@ public class ServerDescriptor
     String filter = "(objectclass=ds-cfg-backend)";
 
     LdapName jndiName = new LdapName("cn=config");
-    NamingEnumeration databases = ctx.search(jndiName, filter, ctls);
+    NamingEnumeration<SearchResult> databases =
+      ctx.search(jndiName, filter, ctls);
 
-    while(databases.hasMore())
+    try
     {
-      SearchResult sr = (SearchResult)databases.next();
-
-      String id = getFirstValue(sr, "ds-cfg-backend-id");
-
-      if (!isConfigBackend(id) || isSchemaBackend(id))
+      while(databases.hasMore())
       {
-        Set<String> baseDns = getValues(sr, "ds-cfg-base-dn");
+        SearchResult sr = databases.next();
 
-        Set<String> entries;
-        if (cacheFilter.searchMonitoringInformation())
-        {
-          entries = getBaseDNEntryCount(ctx, id);
-        }
-        else
-        {
-          entries = new HashSet<String>();
-        }
+        String id = getFirstValue(sr, "ds-cfg-backend-id");
 
-        Set<ReplicaDescriptor> replicas = desc.getReplicas();
-        for (String baseDn : baseDns)
+        if (!isConfigBackend(id) || isSchemaBackend(id))
         {
-          boolean addReplica = cacheFilter.searchAllBaseDNs();
-          if (!addReplica)
+          Set<String> baseDns = getValues(sr, "ds-cfg-base-dn");
+
+          Set<String> entries;
+          if (cacheFilter.searchMonitoringInformation())
           {
-            for (String dn : cacheFilter.getBaseDNsToSearch())
-            {
-              addReplica = Utils.areDnsEqual(dn, baseDn);
-              if (addReplica)
-              {
-                break;
-              }
-            }
+            entries = getBaseDNEntryCount(ctx, id);
           }
-          if(addReplica)
+          else
           {
-            SuffixDescriptor suffix = new SuffixDescriptor();
-            suffix.setDN(baseDn);
-            ReplicaDescriptor replica = new ReplicaDescriptor();
-            replica.setServer(desc);
-            replica.setBackendName(id);
-            replicas.add(replica);
-            HashSet<ReplicaDescriptor> r = new HashSet<ReplicaDescriptor>();
-            r.add(replica);
-            suffix.setReplicas(r);
-            replica.setSuffix(suffix);
-            int nEntries = -1;
-            for (String s : entries)
+            entries = new HashSet<String>();
+          }
+
+          Set<ReplicaDescriptor> replicas = desc.getReplicas();
+          for (String baseDn : baseDns)
+          {
+            boolean addReplica = cacheFilter.searchAllBaseDNs();
+            if (!addReplica)
             {
-              int index = s.indexOf(" ");
-              if (index != -1)
+              for (String dn : cacheFilter.getBaseDNsToSearch())
               {
-                String dn = s.substring(index + 1);
-                if (Utils.areDnsEqual(baseDn, dn))
+                addReplica = Utils.areDnsEqual(dn, baseDn);
+                if (addReplica)
                 {
-                  try
-                  {
-                    nEntries = Integer.parseInt(s.substring(0, index));
-                  }
-                  catch (Throwable t)
-                  {
-                    /* Ignore */
-                  }
                   break;
                 }
               }
             }
-            replica.setEntries(nEntries);
+            if(addReplica)
+            {
+              SuffixDescriptor suffix = new SuffixDescriptor();
+              suffix.setDN(baseDn);
+              ReplicaDescriptor replica = new ReplicaDescriptor();
+              replica.setServer(desc);
+              replica.setBackendName(id);
+              replicas.add(replica);
+              HashSet<ReplicaDescriptor> r = new HashSet<ReplicaDescriptor>();
+              r.add(replica);
+              suffix.setReplicas(r);
+              replica.setSuffix(suffix);
+              int nEntries = -1;
+              for (String s : entries)
+              {
+                int index = s.indexOf(" ");
+                if (index != -1)
+                {
+                  String dn = s.substring(index + 1);
+                  if (Utils.areDnsEqual(baseDn, dn))
+                  {
+                    try
+                    {
+                      nEntries = Integer.parseInt(s.substring(0, index));
+                    }
+                    catch (Throwable t)
+                    {
+                      /* Ignore */
+                    }
+                    break;
+                  }
+                }
+              }
+              replica.setEntries(nEntries);
+            }
           }
+          desc.setReplicas(replicas);
         }
-        desc.setReplicas(replicas);
       }
+    }
+    finally
+    {
+      databases.close();
     }
   }
 
@@ -1045,14 +1078,15 @@ public class ServerDescriptor
 
     LdapName jndiName = new LdapName(
       "cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config");
+    NamingEnumeration<SearchResult> syncProviders = null;
 
     try
     {
-      NamingEnumeration syncProviders = ctx.search(jndiName, filter, ctls);
+      syncProviders = ctx.search(jndiName, filter, ctls);
 
       while(syncProviders.hasMore())
       {
-        SearchResult sr = (SearchResult)syncProviders.next();
+        SearchResult sr = syncProviders.next();
 
         if ("true".equalsIgnoreCase(getFirstValue(sr,
           "ds-cfg-enabled")))
@@ -1064,6 +1098,13 @@ public class ServerDescriptor
     catch (NameNotFoundException nse)
     {
       /* ignore */
+    }
+    finally
+    {
+      if (syncProviders != null)
+      {
+        syncProviders.close();
+      }
     }
     desc.serverProperties.put(ServerProperty.IS_REPLICATION_ENABLED,
         replicationEnabled ? Boolean.TRUE : Boolean.FALSE);
@@ -1085,13 +1126,14 @@ public class ServerDescriptor
       jndiName = new LdapName(
       "cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config");
 
+      syncProviders = null;
       try
       {
-        NamingEnumeration syncProviders = ctx.search(jndiName, filter, ctls);
+        syncProviders = ctx.search(jndiName, filter, ctls);
 
         while(syncProviders.hasMore())
         {
-          SearchResult sr = (SearchResult)syncProviders.next();
+          SearchResult sr = syncProviders.next();
 
           int id = Integer.parseInt(
               getFirstValue(sr, "ds-cfg-server-id"));
@@ -1123,6 +1165,13 @@ public class ServerDescriptor
       {
         /* ignore */
       }
+      finally
+      {
+        if (syncProviders != null)
+        {
+          syncProviders.close();
+        }
+      }
     }
 
     ctls = new SearchControls();
@@ -1139,13 +1188,14 @@ public class ServerDescriptor
 
     desc.serverProperties.put(ServerProperty.IS_REPLICATION_SERVER,
         Boolean.FALSE);
+    NamingEnumeration<SearchResult> entries = null;
     try
     {
-      NamingEnumeration entries = ctx.search(jndiName, filter, ctls);
+      entries = ctx.search(jndiName, filter, ctls);
 
-      while(entries.hasMore())
+      while (entries.hasMore())
       {
-        SearchResult sr = (SearchResult)entries.next();
+        SearchResult sr = entries.next();
 
         desc.serverProperties.put(ServerProperty.IS_REPLICATION_SERVER,
             Boolean.TRUE);
@@ -1172,6 +1222,13 @@ public class ServerDescriptor
     {
       /* ignore */
     }
+    finally
+    {
+      if (entries != null)
+      {
+        entries.close();
+      }
+    }
 
     boolean replicationSecure = false;
     if (replicationEnabled)
@@ -1184,14 +1241,21 @@ public class ServerDescriptor
 
       jndiName = new LdapName("cn=Crypto Manager,cn=config");
 
-      NamingEnumeration entries = ctx.search(jndiName, filter, ctls);
+      entries = ctx.search(jndiName, filter, ctls);
 
-      while(entries.hasMore())
+      try
       {
-        SearchResult sr = (SearchResult)entries.next();
+        while (entries.hasMore())
+        {
+          SearchResult sr = entries.next();
 
-        String v = getFirstValue(sr, "ds-cfg-ssl-encryption");
-        replicationSecure = "true".equalsIgnoreCase(v);
+          String v = getFirstValue(sr, "ds-cfg-ssl-encryption");
+          replicationSecure = "true".equalsIgnoreCase(v);
+        }
+      }
+      finally
+      {
+        entries.close();
       }
     }
     desc.serverProperties.put(ServerProperty.IS_REPLICATION_SECURE,
@@ -1269,14 +1333,22 @@ public class ServerDescriptor
     String filter = "|(objectclass=*)(objectclass=ldapsubentry)";
 
     LdapName jndiName = new LdapName("cn=schema");
-    NamingEnumeration listeners = ctx.search(jndiName, filter, ctls);
+    NamingEnumeration<SearchResult> listeners =
+      ctx.search(jndiName, filter, ctls);
 
-    while(listeners.hasMore())
+    try
     {
-      SearchResult sr = (SearchResult)listeners.next();
+      while(listeners.hasMore())
+      {
+        SearchResult sr = listeners.next();
 
-      desc.serverProperties.put(ServerProperty.SCHEMA_GENERATION_ID,
-          getFirstValue(sr, "ds-sync-generation-id"));
+        desc.serverProperties.put(ServerProperty.SCHEMA_GENERATION_ID,
+            getFirstValue(sr, "ds-sync-generation-id"));
+      }
+    }
+    finally
+    {
+      listeners.close();
     }
   }
 
@@ -1346,10 +1418,17 @@ public class ServerDescriptor
       NamingEnumeration<SearchResult> ne = ctx.search(TRUSTSTORE_DN,
           "(objectclass=ds-cfg-instance-key)", sc);
       ArrayList<String> dnsToDelete = new ArrayList<String>();
-      while (ne.hasMore())
+      try
       {
-        SearchResult sr = ne.next();
-        dnsToDelete.add(sr.getName()+","+TRUSTSTORE_DN);
+        while (ne.hasMore())
+        {
+          SearchResult sr = ne.next();
+          dnsToDelete.add(sr.getName()+","+TRUSTSTORE_DN);
+        }
+      }
+      finally
+      {
+        ne.close();
       }
       for (String dn : dnsToDelete)
       {
@@ -1384,13 +1463,21 @@ public class ServerDescriptor
     String filter = "(ds-backend-id="+backendID+")";
 
     LdapName jndiName = new LdapName("cn=monitor");
-    NamingEnumeration listeners = ctx.search(jndiName, filter, ctls);
+    NamingEnumeration<SearchResult> listeners =
+      ctx.search(jndiName, filter, ctls);
 
-    while(listeners.hasMore())
+    try
     {
-      SearchResult sr = (SearchResult)listeners.next();
+      while(listeners.hasMore())
+      {
+        SearchResult sr = listeners.next();
 
-      v.addAll(getValues(sr, "ds-base-dn-entry-count"));
+        v.addAll(getValues(sr, "ds-base-dn-entry-count"));
+      }
+    }
+    finally
+    {
+      listeners.close();
     }
     return v;
   }

@@ -475,13 +475,13 @@ public class TopologyCache
     LdapName jndiName = new LdapName("cn=monitor");
 
     InitialLdapContext ctx = null;
+    NamingEnumeration<SearchResult> monitorEntries = null;
     try
     {
       ServerLoader loader =
         getServerLoader(replicationServer.getAdsProperties());
       ctx = loader.createContext();
-      NamingEnumeration<SearchResult> monitorEntries =
-        ctx.search(jndiName, filter, ctls);
+      monitorEntries = ctx.search(jndiName, filter, ctls);
 
       while(monitorEntries.hasMore())
       {
@@ -537,6 +537,10 @@ public class TopologyCache
     }
     finally
     {
+      if (monitorEntries != null)
+      {
+        monitorEntries.close();
+      }
       if (ctx != null)
       {
         ctx.close();

@@ -649,20 +649,20 @@ public class DeleteSchemaElementsTask extends Task
     }
     boolean hasSuperior = false;
     Set<ObjectClass> newSuperiors = new LinkedHashSet<ObjectClass>();
-    for(ObjectClass sup : ocToDelete.getSuperiorClasses())
+    for (ObjectClass sup : ocToDelete.getSuperiorClasses())
     {
       boolean isFound = false;
-      for(ObjectClass oc: providedOcsToDelete)
+      for (ObjectClass oc: providedOcsToDelete)
       {
         if(sup.equals(oc))
         {
           hasSuperior = true;
           isFound = true;
-          newSuperiors.add(getNewSuperior(oc));
+          newSuperiors.addAll(getNewSuperiors(oc));
           break;
         }
       }
-      if(!isFound)
+      if (!isFound)
       {
         //Use the same super if not found in the list.
         newSuperiors.add(sup);
@@ -715,22 +715,29 @@ public class DeleteSchemaElementsTask extends Task
   }
 
 
-  private ObjectClass getNewSuperior(ObjectClass currentSup)
+  private Set<ObjectClass> getNewSuperiors(ObjectClass currentSup)
   {
-    if(currentSup.getSuperiorClasses() == null ||
-            currentSup.getSuperiorClasses().isEmpty())
-     {
-       return currentSup;
-     }
-
-     if(providedOcsToDelete.contains(currentSup))
-     {
-      for(ObjectClass o : currentSup.getSuperiorClasses())
+    Set<ObjectClass> newSuperiors = new LinkedHashSet<ObjectClass>();
+    if (currentSup.getSuperiorClasses() == null ||
+        currentSup.getSuperiorClasses().isEmpty())
+    {
+      // Nothing to do
+    }
+    else
+    {
+      for (ObjectClass o : currentSup.getSuperiorClasses())
       {
-       return getNewSuperior(o);
+        if (providedOcsToDelete.contains(o))
+        {
+          newSuperiors.addAll(getNewSuperiors(o));
+        }
+        else
+        {
+          newSuperiors.add(o);
+        }
       }
-     }
-     return null;
+    }
+    return newSuperiors;
   }
 
 
