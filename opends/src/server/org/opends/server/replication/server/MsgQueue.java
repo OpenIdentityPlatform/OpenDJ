@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -35,6 +35,7 @@ import java.util.TreeMap;
 import org.opends.messages.Message;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.UpdateMsg;
+import java.util.Arrays;
 
 /**
  * This class is used to build ordered lists of UpdateMsg.
@@ -125,8 +126,35 @@ public class MsgQueue
   {
     synchronized (lock)
     {
-      map.put(update.getChangeNumber(), update);
-      bytesCount += update.size();
+      UpdateMsg msgSameChangeNumber = map.put(update.getChangeNumber(), update);
+      if (msgSameChangeNumber != null)
+      {
+        boolean sameMsgs = false;
+        try
+        {
+          sameMsgs = Arrays.equals(
+              msgSameChangeNumber.getBytes(),update.getBytes());
+        }
+        catch(Exception e)
+        {}
+
+        if (!sameMsgs)
+        {
+          // Adding 2 msgs with the same ChangeNumber is ok only when the 2 msgs
+          // are the same
+          bytesCount += (update.size() - msgSameChangeNumber.size());
+          Message errMsg = ERR_RSQUEUE_DIFFERENT_MSGS_WITH_SAME_CN.get(
+              msgSameChangeNumber.toString(),
+              msgSameChangeNumber.toString(),
+              update.toString());
+          logError(errMsg);
+        }
+      }
+      else
+      {
+        // it is really an ADD
+        bytesCount += update.size();
+      }
     }
   }
 
@@ -144,7 +172,8 @@ public class MsgQueue
       bytesCount -= update.size();
       if ((map.size() == 0) && (bytesCount != 0))
       {
-        Message msg = ERR_BYTE_COUNT.get();
+        // should never happen
+        Message msg = ERR_BYTE_COUNT.get(Integer.toString(bytesCount));
         logError(msg);
         bytesCount = 0;
       }
