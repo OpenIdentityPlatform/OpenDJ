@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication;
 
@@ -444,13 +444,13 @@ public class GenerationIdTest extends ReplicationTestCase
 
       int waitCo=0;
       LDAPReplicationDomain doToco=null;
-      while(waitCo<30)
+      while(waitCo<50)
       {
         doToco =
           LDAPReplicationDomain.retrievesReplicationDomain(baseDn);
         if ((doToco!=null) && (doToco.isConnected()))
           break;
-        Thread.sleep(200);
+        Thread.sleep(waitCo * 200);
         waitCo++;
       }
       assertTrue(doToco.isConnected(), "not connected after #attempt="+waitCo);

@@ -826,8 +826,8 @@ public class ECLServerHandler extends ServerHandler
         // the request is rejected and a full resync is required.
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
           ERR_RESYNC_REQUIRED_MISSING_DOMAIN_IN_PROVIDED_COOKIE.get(
-              missingDomains +
-              ". Possible cookie: <" + (providedCookie + missingDomains)+ ">"));
+              missingDomains,
+              "<" + (providedCookie + missingDomains)+ ">"));
       }
 
       domainCtxts = tmpSet.toArray(new DomainContext[0]);
