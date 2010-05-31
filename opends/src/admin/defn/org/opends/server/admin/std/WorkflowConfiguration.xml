@@ -63,25 +63,6 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="workflow-id" mandatory="true" read-only="true">
-    <adm:synopsis>
-      Provides a name that identifies the
-      <adm:user-friendly-name />.
-    </adm:synopsis>
-    <adm:description>
-      The name must be unique among all
-      <adm:user-friendly-plural-name />
-      in the server.
-    </adm:description>
-    <adm:syntax>
-      <adm:string />
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-workflow-id</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
   <adm:property name="workflow-element" mandatory="true">
     <adm:synopsis>
       Specifies the root Workflow Element in the

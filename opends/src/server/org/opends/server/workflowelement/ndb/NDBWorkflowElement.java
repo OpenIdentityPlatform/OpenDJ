@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.workflowelement.ndb;
 
@@ -236,7 +236,8 @@ public class NDBWorkflowElement extends LocalBackendWorkflowElement
       if (applyChanges)
       {
         super.initialize(
-          configuration.getWorkflowElementId(), BACKEND_WORKFLOW_ELEMENT);
+          configuration.dn().getRDN().getAttributeValue(0).toString(),
+          BACKEND_WORKFLOW_ELEMENT);
         backend = newBackend;
       }
     }
