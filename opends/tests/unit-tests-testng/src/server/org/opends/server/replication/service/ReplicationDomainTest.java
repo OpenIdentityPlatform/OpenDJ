@@ -162,13 +162,15 @@ public class ReplicationDomainTest extends ReplicationTestCase
 
       domain1.setGenerationID(2);
       domain1.resetReplicationLog();
-
+      Thread.sleep(500);
       replServers = domain1.getRsList();
 
       for (RSInfo replServerInfo : replServers)
       {
         // The generation Id of the remote should now be 2
-        assertTrue(replServerInfo.getGenerationId() == 2);
+        assertEquals(replServerInfo.getGenerationId(), 2,
+            "Unexpected value of generationId in RSInfo for RS="
+            + replServerInfo.toString());
       }
 
       int sleepTime = 50;

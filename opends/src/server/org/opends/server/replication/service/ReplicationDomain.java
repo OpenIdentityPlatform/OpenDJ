@@ -591,19 +591,21 @@ public abstract class ReplicationDomain
   }
 
   /**
-   * Check if a remote replica (DS) is connected to the topology based on
-   * the TopologyMsg we received when the remote replica connected or
-   * disconnected.
+   * Returns informations about the DS server related to the provided serverId.
+   * based on the TopologyMsg we received when the remote replica connected or
+   * disconnected. Return null when no server with the provided serverId is
+   * connected.
    *
-   * @param serverId The provided serverId of the remote replica
-   * @return whether the remote replica is connected or not.
+   * @param  serverId The provided serverId of the remote replica
+   * @return the info related to this remote server if it is connected,
+   *                  null is the server is NOT connected.
    */
-  public boolean isRemoteDSConnected(int serverId)
+  public DSInfo isRemoteDSConnected(int serverId)
   {
     for (DSInfo remoteDS : getReplicasList())
       if (remoteDS.getDsId() == serverId)
-        return true;
-    return false;
+        return remoteDS;
+    return null;
   }
 
   /**
@@ -1670,13 +1672,12 @@ public abstract class ReplicationDomain
   }
 
   /*
-   * For all remote servers in tht start list,
+   * For all remote servers in the start list,
    * - wait it has finished the import and present the expected generationID
    * - build the failureList
    */
   private void waitForRemoteEndOfInit()
   {
-    int waitResultAttempt = 0;
     Set<Integer> replicasWeAreWaitingFor =  new HashSet<Integer>(0);
 
     for (Integer sid : ieContext.startList)
@@ -1696,36 +1697,60 @@ public abstract class ReplicationDomain
     do
     {
       done = true;
-      for (DSInfo dsi : getReplicasList())
+      short reconnectMaxDelayInSec = 10;
+      short reconnectWait = 0;
+      for (int serverId : replicasWeAreWaitingFor)
       {
-        if (debugEnabled())
-          TRACER.debugInfo(
-            "[IE] wait for end dsid " + dsi.getDsId()
-            + " " + dsi.getStatus()
-            + " " + dsi.getGenerationId()
-            + " " + this.getGenerationID());
-        if (!ieContext.failureList.contains(dsi.getDsId()))
+        if (ieContext.failureList.contains(serverId))
         {
-          if (dsi.getStatus() == ServerStatus.FULL_UPDATE_STATUS)
+          // this server has already been in error during initialization
+          // dont't wait for it
+          continue;
+        }
+
+        DSInfo dsInfo = null;
+        dsInfo = isRemoteDSConnected(serverId);
+        if (dsInfo == null)
+        {
+          // this server is disconnected
+          // may be for a long time if it crashed or had been stopped
+          // may be just the time to reconnect after import : should be short
+          if (++reconnectWait<reconnectMaxDelayInSec)
+          {
+            // let's still wait to give a chance to this server to reconnect
+            done = false;
+          }
+          else
+          {
+            // we left enough time to the servers to reconnect - now it's too
+            // late
+          }
+        }
+        else
+        {
+          // this server is connected
+          if (dsInfo.getStatus() == ServerStatus.FULL_UPDATE_STATUS)
           {
             // this one is still doing the Full Update ... retry later
             done = false;
-            try
-            { Thread.sleep(1000); } catch (InterruptedException e) {} // 1s
-            waitResultAttempt++;
             break;
           }
           else
           {
             // this one is done with the Full Update
-            if (dsi.getGenerationId() == this.getGenerationID())
+            if (dsInfo.getGenerationId() == this.getGenerationID())
             {
               // and with the expected generationId
-              replicasWeAreWaitingFor.remove(dsi.getDsId());
+              replicasWeAreWaitingFor.remove(serverId);
             }
           }
         }
       }
+
+      // loop and wait
+      if (!done)
+        try { Thread.sleep(1000); } catch (InterruptedException e) {} // 1sec
+
     }
     while ((!done) && (!broker.shuttingDown())); // infinite wait
 
@@ -1921,7 +1946,7 @@ public abstract class ReplicationDomain
           // Other messages received during an import are trashed except
           // the topologyMsg.
           if ((msg instanceof TopologyMsg) &&
-              (!this.isRemoteDSConnected(ieContext.importSource)))
+              (isRemoteDSConnected(ieContext.importSource)==null))
           {
             Message errMsg =
               Message.raw(Category.SYNC, Severity.NOTICE,
@@ -2013,7 +2038,7 @@ public abstract class ReplicationDomain
         throw(new IOException(ieContext.getException().getMessage()));
 
       int slowestServerId = ieContext.getSlowestServer();
-      if (!isRemoteDSConnected(slowestServerId))
+      if (isRemoteDSConnected(slowestServerId)==null)
       {
         ieContext.setException(new DirectoryException(ResultCode.OTHER,
             ERR_INIT_HEARTBEAT_LOST_DURING_EXPORT.get(
@@ -2491,12 +2516,14 @@ public abstract class ReplicationDomain
   {
     boolean allset = true;
 
-    for (int i = 0; i< 10; i++)
+    for (int i = 0; i< 50; i++)
     {
       allset = true;
       for (RSInfo rsInfo : getRsList())
       {
-        if (rsInfo.getGenerationId() != generationID)
+        // the 'empty' RSes (generationId==-1) are considered as good citizens
+        if ((rsInfo.getGenerationId() != -1) &&
+            (rsInfo.getGenerationId() != generationID))
         {
           try
           {
@@ -2513,7 +2540,6 @@ public abstract class ReplicationDomain
         break;
       }
     }
-
     if (!allset)
     {
       ResultCode resultCode = ResultCode.OTHER;
