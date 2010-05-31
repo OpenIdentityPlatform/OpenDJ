@@ -462,8 +462,10 @@ original.archive=${opends.dir.input}/${opends.name.input}.zip</echo>
 
     <java classpath="${temp.dir}/coverage-instr/dsml/WEB-INF/lib/emma.jar"
           classname="emma" fork="true">
-        <jvmarg value="-Demma.metadata.out.file=${temp.dir}/coverage-instr/dsml/WEB-INF/lib/coverage.em" />
+        <jvmarg value="-Demma.metadata.out.file=${temp.dir}/coverage-instr/opends/${opends.name}/coverage.em" />
         <arg value="instr" />
+        <arg value="-merge" />
+        <arg value="yes" />
         <arg value="-m" />
         <arg value="overwrite" />
         <arg value="-ix" />
@@ -483,26 +485,22 @@ original.archive=${opends.dir.input}/${opends.name.input}.zip</echo>
       <matches string="${product.name}" pattern="^OpenDS ."/>
       <then>
         <!-- The war file is not in the opends archive, so we need to repackage the war file -->
-        <zip basedir="${temp.dir}/coverage-instr/dsml" destfile="${opends.dir}/${opends.name}-DSML.war">
-        <zipfileset dir="${temp.dir}/coverage-instr/dsml"
-                    includes="WEB-INF/**,META-INF/**"/>
-        </zip>
+        <zip basedir="${temp.dir}/coverage-instr/dsml" destfile="${opends.dir}/${opends.name}-DSML.war"/>
       </then>
       <else>
         <!-- The war file is in the opends archive, so we need to replace the war file -->
         <delete file="${temp.dir}/coverage-instr/opends/${opends.name}/addons/DSML.war"/>
-        <zip basedir="${temp.dir}/coverage-instr/dsml" destfile="${temp.dir}/coverage-instr/opends/${opends.name}/addons/DSML.war">
-        <zipfileset dir="${temp.dir}/coverage-instr/dsml"
-                    includes="WEB-INF/**,META-INF/**"/>
-        </zip>
+        <zip basedir="${temp.dir}/coverage-instr/dsml" destfile="${temp.dir}/coverage-instr/opends/${opends.name}/addons/DSML.war"/>
       </else>
     </if>
 
     <!-- Repackage OpenDS the product with coverage enabled scripts -->
-    <zip basedir="${temp.dir}/coverage-instr/opends" destfile="${opends.dir}/${opends.name}.zip">
-    <zipfileset dir="${temp.dir}/coverage-instr/opends"
-                includes="${opends.name}/setup,${opends.name}/uninstall,${opends.name}/upgrade,${opends.name}/bin/*,${opends.name}/lib/*.sh"
-                filemode="755" dirmode="755" />
+    <zip basedir="${temp.dir}/coverage-instr/opends"
+         destfile="${opends.dir}/${opends.name}.zip"
+         excludes="${opends.name}/setup,${opends.name}/uninstall,${opends.name}/upgrade,${opends.name}/bin/*,${opends.name}/lib/*.sh">
+      <zipfileset dir="${temp.dir}/coverage-instr/opends"
+                  includes="${opends.name}/setup,${opends.name}/uninstall,${opends.name}/upgrade,${opends.name}/bin/*,${opends.name}/lib/*.sh"
+                  filemode="755" dirmode="755"/>
     </zip>
 
     <delete dir="${temp.dir}/coverage-instr"/>

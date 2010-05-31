@@ -322,13 +322,8 @@
           </script>
 
           <call function="'createFolder'">
-            { 'location'   : STAF_REMOTE_HOSTNAME,
+            { 'location'   : STAXServiceMachine,
               'foldername' : resultsCoveragePath
-            }
-          </call>
-          <call function="'createFolder'">
-            { 'location'   : STAF_REMOTE_HOSTNAME,
-              'foldername' : resultsPath
             }
           </call>
           <call function="'createFolder'">
