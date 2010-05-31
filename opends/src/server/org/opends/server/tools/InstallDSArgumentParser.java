@@ -803,10 +803,10 @@ public class InstallDSArgumentParser extends ArgumentParser
    * must be called after parsing the arguments.
    * @return the timeout to be used to connect in milliseconds.  Returns
    * {@code 0} if there is no timeout.
-   * @throw {@code IllegalStateException} if the method is called before
+   * @throws IllegalStateException if the method is called before
    * parsing the arguments.
    */
-  public int getConnectTimeout()
+  public int getConnectTimeout() throws IllegalStateException
   {
     try
     {
