@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -490,6 +490,26 @@ public final class ArgumentExceptionFactory {
       AbstractManagedObjectDefinition<?, ?> d, String name, String setOption) {
     Message message = ERR_DSCFG_ERROR_UNABLE_TO_RESET_MANDATORY_PROPERTY.get(
         d.getUserFriendlyPluralName(), name, setOption);
+    return new ArgumentException(message);
+  }
+
+
+
+  /**
+   * Creates an argument exception which should be used when an
+   * attempt is made to reset a property with a value.
+   *
+   * @param name
+   *          The name of the mandatory property.
+   * @param resetOption
+   *          The name of the option which should be used to reset the
+   *          property's values.
+   * @return Returns an argument exception.
+   */
+  public static ArgumentException unableToResetPropertyWithValue(String name,
+     String resetOption) {
+    Message message = ERR_DSCFG_ERROR_UNABLE_TO_RESET_PROPERTY_WITH_VALUE.get(
+            resetOption, name, resetOption);
     return new ArgumentException(message);
   }
 

@@ -765,6 +765,13 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
 
     // Reset properties.
     for (String m : propertyResetArgument.getValues()) {
+
+      // Check one does not try to reset with a value
+      if (m.contains(":")) {
+          throw ArgumentExceptionFactory.unableToResetPropertyWithValue(m,
+              OPTION_DSCFG_LONG_RESET);
+      }
+
       // Check the property definition.
       PropertyDefinition<?> pd;
       try {
