@@ -66,6 +66,7 @@ import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.OpenDsException;
+import org.opends.server.util.ServerConstants;
 
 /**
  * This is the panel that contains all the different views to display an entry.
@@ -473,7 +474,8 @@ implements EntryReadListener
         DN.decode(ConfigConstants.DN_TASK_ROOT),
         DN.decode(ConfigConstants.DN_MONITOR_ROOT),
         DN.decode(ConfigConstants.DN_BACKUP_ROOT),
-        DN.decode(Constants.REPLICATION_CHANGES_DN)
+        DN.decode(Constants.REPLICATION_CHANGES_DN),
+        DN.decode(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT)
       };
       nonDeletable = new DN[] {
           DN.decode(ConfigConstants.DN_CONFIG_ROOT),

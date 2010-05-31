@@ -73,6 +73,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.Constants;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.LDAPURL;
+import org.opends.server.util.ServerConstants;
 
 /**
  * This is the main class of the LDAP entry browser.  It is in charge of
@@ -1105,7 +1106,8 @@ implements TreeExpansionListener, ReferralAuthenticationListener
           Utilities.areDnsEqual(dn, ConfigConstants.DN_MONITOR_ROOT) ||
           Utilities.areDnsEqual(dn, ConfigConstants.DN_TRUST_STORE_ROOT) ||
           Utilities.areDnsEqual(dn, ConfigConstants.DN_BACKUP_ROOT) ||
-          Utilities.areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
+          Utilities.areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN) ||
+          Utilities.areDnsEqual(dn, ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT))
       {
         isConfigurationNode = true;
       }
