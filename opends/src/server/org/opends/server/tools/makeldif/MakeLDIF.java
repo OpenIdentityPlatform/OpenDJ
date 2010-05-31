@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.makeldif;
 import org.opends.messages.Message;
@@ -37,6 +37,7 @@ import java.util.LinkedList;
 import java.util.Random;
 
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.AttributeType;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.NullOutputStream;
@@ -434,12 +435,33 @@ public class MakeLDIF
   {
     try
     {
-      ldifWriter.writeTemplateEntry(entry);
-
-      if ((++entriesWritten % 1000) == 0)
+      if (entry.getDN() != null)
       {
-        Message message = INFO_MAKELDIF_PROCESSED_N_ENTRIES.get(entriesWritten);
-        out.println(wrapText(message, MAX_LINE_WIDTH));
+        ldifWriter.writeTemplateEntry(entry);
+
+        if ((++entriesWritten % 1000) == 0)
+        {
+          Message message =
+            INFO_MAKELDIF_PROCESSED_N_ENTRIES.get(entriesWritten);
+          out.println(wrapText(message, MAX_LINE_WIDTH));
+        }
+      }
+      else
+      {
+        AttributeType[] rdnAttrs = entry.getTemplate().getRDNAttributes();
+        String nullRdn = "";
+        for (AttributeType att : rdnAttrs)
+        {
+          if (entry.getValue(att) == null)
+          {
+            nullRdn = att.getNameOrOID();
+            break ;
+          }
+        }
+        Message message =
+          ERR_MAKELDIF_CANNOT_WRITE_ENTRY_WITHOUT_DN.get(nullRdn);
+        err.println(wrapText(message, MAX_LINE_WIDTH));
+        return true;
       }
 
       return true;
