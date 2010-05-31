@@ -910,6 +910,14 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
         searchOperation.getResponseControls().add(control);
         return;
       }
+      if (searchOperation.getSizeLimit() > 0 &&
+        pageRequest.getSize() >= searchOperation.getSizeLimit())
+      {
+        // The RFC says : "If the page size is greater than or equal to the
+        // sizeLimit value, the server should ignore the control as the
+        // request can be satisfied in a single page"
+        pageRequest = null;
+      }
     }
 
     // Handle base-object search first.
