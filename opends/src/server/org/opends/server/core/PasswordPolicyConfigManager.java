@@ -410,7 +410,7 @@ public class PasswordPolicyConfigManager
    *         while creating a password policy from
    *         given subentry.
    */
-  private void checkSubentryAcceptable(Entry entry)
+  public static void checkSubentryAcceptable(Entry entry)
           throws DirectoryException
   {
     SubEntry subentry = new SubEntry(entry);

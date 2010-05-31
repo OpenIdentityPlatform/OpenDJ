@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.plugins;
 
@@ -57,6 +57,7 @@ import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicy;
+import org.opends.server.core.PasswordPolicyConfigManager;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
@@ -325,6 +326,27 @@ public final class PasswordPolicyImportPlugin
   public final PluginResult.ImportLDIF
                doLDIFImport(LDIFImportConfig importConfig, Entry entry)
   {
+    // Check if this entry is a password policy subentry
+    // and if so evaluate whether or not its acceptable.
+    if ((entry.isSubentry() || entry.isLDAPSubentry()) &&
+            entry.isPasswordPolicySubentry())
+    {
+      try
+      {
+        PasswordPolicyConfigManager.checkSubentryAcceptable(entry);
+      }
+      catch (DirectoryException de)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
+        }
+
+        return PluginResult.ImportLDIF.stopEntryProcessing(
+                de.getMessageObject());
+      }
+    }
+
     // See if the entry explicitly states the password policy that it should
     // use.  If so, then only use it to perform the encoding.
     List<Attribute> attrList = entry.getAttribute(customPolicyAttribute);
