@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -52,6 +52,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.common.ChangeNumberGenerator;
+import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
@@ -319,18 +320,13 @@ public class MonitorTest extends ReplicationTestCase
         + "userPassword: password\n" + "initials: AA\n");
   }
 
-  static protected ReplicationMsg createAddMsg(int serverId)
+  static protected ReplicationMsg createAddMsg(ChangeNumber cn,
+      int serverId)
   {
     Entry personWithUUIDEntry = null;
     String user1entryUUID;
     String baseUUID = null;
     String user1dn;
-
-    /*
-     * Create a Change number generator to generate new changenumbers
-     * when we need to send operation messages to the replicationServer.
-     */
-    ChangeNumberGenerator gen = new ChangeNumberGenerator(serverId, 0);
 
     user1entryUUID = "33333333-3333-3333-3333-333333333333";
     user1dn = "uid=user1,ou=People," + baseDnStr;
@@ -360,7 +356,7 @@ public class MonitorTest extends ReplicationTestCase
     }
 
     // Create and publish an update message to add an entry.
-    AddMsg addMsg = new AddMsg(gen.newChangeNumber(),
+    AddMsg addMsg = new AddMsg(cn,
         personWithUUIDEntry.getDN().toString(),
         user1entryUUID,
         baseUUID,
@@ -438,9 +434,15 @@ public class MonitorTest extends ReplicationTestCase
         this.addTestEntriesToDB(ent1);
       }
 
+      /*
+       * Create a Change number generator to generate new changenumbers
+       * when we need to send operation messages to the replicationServer.
+       */
+      ChangeNumberGenerator gen = new ChangeNumberGenerator(server3ID, 0);
+
       for (int i = 0; i < 10; i++)
       {
-        broker3.publish(createAddMsg(server3ID));
+        broker3.publish(createAddMsg(gen.newChangeNumber(), server3ID));
       }
 
       searchMonitor();
