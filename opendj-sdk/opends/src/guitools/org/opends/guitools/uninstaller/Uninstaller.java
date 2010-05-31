@@ -828,7 +828,13 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           notifyListeners(getFormattedWithPoints(
               INFO_PROGRESS_STOPPING_NON_VERBOSE.get()));
         }
-        new ServerController(this).stopServer(!isVerbose());
+        // In case of uninstall, the server stop has to run locally.
+        // In order to bypass the tools.properties mechanism, if any,
+        // we systematically add the --noPropertiesFile flag
+        // when we run the stop-ds command. This is done
+        // by setting the parameter "noPropertiesFile" to 'true'
+        // in the following call.
+        new ServerController(this).stopServer(!isVerbose(),true);
         if (!isVerbose())
         {
           notifyListeners(getFormattedDoneWithLineBreak());

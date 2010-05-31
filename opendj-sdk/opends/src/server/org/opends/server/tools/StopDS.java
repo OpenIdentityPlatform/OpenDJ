@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -827,7 +827,8 @@ public class StopDS
           !"quiet".equals(arg.getName()) &&
           !"showusage".equals(arg.getName()) &&
           !"checkstoppability".equals(arg.getName()) &&
-          !"windowsnetstop".equals(arg.getName()))
+          !"windowsnetstop".equals(arg.getName()) &&
+          ! OPTION_LONG_NO_PROP_FILE.equals(arg.getLongIdentifier()))
       {
         stopThroughProtocol |= arg.isPresent();
       }
