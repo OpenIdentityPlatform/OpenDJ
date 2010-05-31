@@ -1810,8 +1810,12 @@ public class ReplicationBroker
 
   /**
    * Creates a new list that contains only replication servers that have the
-   * passed generation id, from a passed replication server list.
-   * @param bestServers The list of replication servers to filter
+   * provided generation id, from a provided replication server list.
+   * When the selected replication servers have no change (empty serverState)
+   * then the 'empty'(generationId==-1) replication servers are also included
+   * in the result list.
+   *
+   * @param bestServers  The list of replication servers to filter
    * @param generationId The generation id that must match
    * @return The sub list of replication servers matching the requested
    * generation id (which may be empty)
@@ -1822,6 +1826,7 @@ public class ReplicationBroker
   {
     Map<Integer, ReplicationServerInfo> result =
       new HashMap<Integer, ReplicationServerInfo>();
+    boolean emptyState = true;
 
     for (Integer rsId : bestServers.keySet())
     {
@@ -1829,6 +1834,22 @@ public class ReplicationBroker
       if (replicationServerInfo.getGenerationId() == generationId)
       {
         result.put(rsId, replicationServerInfo);
+        if (!replicationServerInfo.serverState.isEmpty())
+          emptyState = false;
+      }
+    }
+
+    if (emptyState)
+    {
+      // If the RS with a generationId have all an empty state,
+      // then the 'empty'(genId=-1) RSes are also candidate
+      for (Integer rsId : bestServers.keySet())
+      {
+        ReplicationServerInfo replicationServerInfo = bestServers.get(rsId);
+        if (replicationServerInfo.getGenerationId() == -1)
+        {
+          result.put(rsId, replicationServerInfo);
+        }
       }
     }
     return result;
