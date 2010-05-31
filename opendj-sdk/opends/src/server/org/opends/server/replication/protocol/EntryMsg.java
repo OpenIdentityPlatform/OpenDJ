@@ -115,15 +115,7 @@ public class EntryMsg extends RoutableMsg
       this.destination = Integer.valueOf(destinationString);
       pos += length +1;
 
-      // entry
-      length = getNextLength(in, pos);
-      this.entryByteArray = new byte[length];
-      for (int i=0; i<length; i++)
-      {
-        entryByteArray[i] = in[pos+i];
-      }
-      pos += length +1;
-
+      // msgCnt
       if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
       {
         // msgCnt
@@ -131,6 +123,14 @@ public class EntryMsg extends RoutableMsg
         String msgcntString = new String(in, pos, length, "UTF-8");
         this.msgId = Integer.valueOf(msgcntString);
         pos += length +1;
+      }
+
+      // data
+      length = in.length - (pos + 1);
+      this.entryByteArray = new byte[length];
+      for (int i=0; i<length; i++)
+      {
+        entryByteArray[i] = in[pos+i];
       }
     }
     catch (UnsupportedEncodingException e)
@@ -188,9 +188,9 @@ public class EntryMsg extends RoutableMsg
 
       pos = addByteArray(senderBytes, resultByteArray, pos);
       pos = addByteArray(destinationBytes, resultByteArray, pos);
-      pos = addByteArray(entryBytes, resultByteArray, pos);
       if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
         pos = addByteArray(msgCntBytes, resultByteArray, pos);
+      pos = addByteArray(entryBytes, resultByteArray, pos);
 
       return resultByteArray;
     }
