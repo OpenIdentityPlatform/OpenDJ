@@ -1327,13 +1327,9 @@ public class Importer
             suffix.removePending(entryDN);
             return;
           }
-          suffix.removePending(entryDN);
         }
-        else
-        {
-          processDN2ID(suffix, entryDN, entryID);
-          suffix.removePending(entryDN);
-        }
+        suffix.removePending(entryDN);
+        processDN2ID(suffix, entryDN, entryID);
       }
       else
       {
