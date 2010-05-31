@@ -1944,28 +1944,6 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     if (!cancelled)
     {
-      boolean localOnly = false;
-      if (!argParser.isExternalInitializationLocalOnly())
-      {
-        println();
-        try
-        {
-          localOnly = askConfirmation(
-              INFO_REPLICATION_PRE_EXTERNAL_INITIALIZATION_LOCAL_PROMPT.get(
-                  ConnectionUtils.getHostPort(ctx)), false, LOG);
-        }
-        catch (CLIException ce)
-        {
-          println(ce.getMessageObject());
-          cancelled = true;
-        }
-      }
-      else
-      {
-        localOnly = true;
-      }
-      uData.setLocalOnly(localOnly);
-
       uData.setHostName(host);
       uData.setPort(port);
       uData.setAdminUid(adminUid);
@@ -2725,7 +2703,6 @@ public class ReplicationCliMain extends ConsoleApplication
     int port = getValue(argParser.getPortToInitializeAll(),
         argParser.getDefaultPortToInitializeAll());
     uData.setPort(port);
-    uData.setLocalOnly(argParser.isExternalInitializationLocalOnly());
   }
 
   /**
@@ -4023,7 +4000,7 @@ public class ReplicationCliMain extends ConsoleApplication
             Message msg = formatter.getFormattedWithPoints(
                 INFO_PROGRESS_PRE_EXTERNAL_INITIALIZATION.get(baseDN));
             printProgress(msg);
-            preExternalInitialization(baseDN, ctx, uData.isLocalOnly(), false);
+            preExternalInitialization(baseDN, ctx, false);
             printProgress(formatter.getFormattedDone());
             printlnProgress();
           }
@@ -4035,25 +4012,12 @@ public class ReplicationCliMain extends ConsoleApplication
             LOG.log(Level.SEVERE, "Complete error stack:", rce);
           }
         }
-        if (uData.isLocalOnly())
-        {
-          printlnProgress();
-          printProgress(
-              INFO_PROGRESS_PRE_INITIALIZATION_LOCAL_FINISHED_PROCEDURE.get(
-                  ConnectionUtils.getHostPort(ctx),
-                  ReplicationCliArgumentParser.
-                  POST_EXTERNAL_INITIALIZATION_SUBCMD_NAME));
-          printlnProgress();
-        }
-        else
-        {
-          printlnProgress();
-          printProgress(
-            INFO_PROGRESS_PRE_INITIALIZATION_FINISHED_PROCEDURE.get(
-                ReplicationCliArgumentParser.
-                POST_EXTERNAL_INITIALIZATION_SUBCMD_NAME));
-          printlnProgress();
-        }
+        printlnProgress();
+        printProgress(
+          INFO_PROGRESS_PRE_INITIALIZATION_FINISHED_PROCEDURE.get(
+              ReplicationCliArgumentParser.
+              POST_EXTERNAL_INITIALIZATION_SUBCMD_NAME));
+        printlnProgress();
       }
       else
       {
@@ -7635,8 +7599,7 @@ public class ReplicationCliMain extends ConsoleApplication
       try
       {
         initializeAllSuffixTry(baseDN, ctx, displayProgress);
-        postPreExternalInitialization(baseDN, ctx, false, displayProgress,
-            false);
+        postPreExternalInitialization(baseDN, ctx, displayProgress, false);
         initDone = true;
       }
       catch (PeerNotFoundException pnfe)
@@ -7671,16 +7634,14 @@ public class ReplicationCliMain extends ConsoleApplication
    * connection on a given base DN.
    * @param baseDN the base DN that we want to reset.
    * @param ctx the connection to the server.
-   * @param localOnly whether the resetting internal operations must only apply
-   * to the server to which we are connected.
    * @param displayProgress whether to display operation progress or not.
    * @throws ReplicationCliException if there is an error performing the
    * operation.
    */
   private void preExternalInitialization(String baseDN, InitialLdapContext ctx,
-      boolean localOnly, boolean displayProgress) throws ReplicationCliException
+      boolean displayProgress) throws ReplicationCliException
   {
-    postPreExternalInitialization(baseDN, ctx, localOnly, displayProgress,
+    postPreExternalInitialization(baseDN, ctx, displayProgress,
         true);
   }
 
@@ -7696,7 +7657,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private void postExternalInitialization(String baseDN, InitialLdapContext ctx,
       boolean displayProgress) throws ReplicationCliException
   {
-    postPreExternalInitialization(baseDN, ctx, false, displayProgress, false);
+    postPreExternalInitialization(baseDN, ctx, displayProgress, false);
   }
 
   /**
@@ -7704,15 +7665,13 @@ public class ReplicationCliMain extends ConsoleApplication
    * provided connection on a given base DN.
    * @param baseDN the base DN that we want to reset.
    * @param ctx the connection to the server.
-   * @param localOnly whether the resetting internal operations must only apply
-   * to the server to which we are connected.
    * @param displayProgress whether to display operation progress or not.
    * @param isPre whether this is the pre operation or the post operation.
    * @throws ReplicationCliException if there is an error performing the
    * operation.
    */
   private void postPreExternalInitialization(String baseDN,
-      InitialLdapContext ctx, boolean localOnly, boolean displayProgress,
+      InitialLdapContext ctx, boolean displayProgress,
       boolean isPre) throws ReplicationCliException
   {
     boolean taskCreated = false;
@@ -7729,27 +7688,7 @@ public class ReplicationCliMain extends ConsoleApplication
         "org.opends.server.tasks.SetGenerationIdTask");
     if (isPre)
     {
-      if (!localOnly)
-      {
-        attrs.put("ds-task-reset-generation-id-new-value", "-1");
-      }
-      else
-      {
-        try
-        {
-          attrs.put("ds-task-reset-generation-id-new-value",
-            String.valueOf(getReplicationDomainId(ctx, baseDN)));
-        }
-        catch (NamingException ne)
-        {
-          LOG.log(Level.SEVERE, "Error get replication domain id for base DN "+
-              baseDN+" on server "+ConnectionUtils.getHostPort(ctx), ne);
-
-          throw new ReplicationCliException(getThrowableMsg(
-              ERR_LAUNCHING_PRE_EXTERNAL_INITIALIZATION.get(), ne),
-              ERROR_LAUNCHING_PRE_EXTERNAL_INITIALIZATION, ne);
-        }
-      }
+      attrs.put("ds-task-reset-generation-id-new-value", "-1");
     }
     attrs.put("ds-task-reset-generation-id-domain-base-dn", baseDN);
     while (!taskCreated)
@@ -8751,34 +8690,6 @@ public class ReplicationCliMain extends ConsoleApplication
       LOG.log(Level.WARNING, "Error initializing trust store: "+ae, ae);
     }
     forceNonInteractive = false;
-  }
-
-  /**
-   * Returns the replication domain ID for a given baseDN on the server.
-   * @param ctx the connection to the server.
-   * @param baseDN the baseDN for which we want the replication domain ID.
-   * @return the replication domain ID or -1 if the replication domain ID
-   * could not be found.
-   * @throws NamingException if an error occurred reading the configuration
-   * information.
-   */
-  private int getReplicationDomainId(InitialLdapContext ctx, String baseDN)
-  throws NamingException
-  {
-    int domainId = -1;
-    TopologyCacheFilter filter = new TopologyCacheFilter();
-    filter.setSearchMonitoringInformation(false);
-    filter.addBaseDNToSearch(baseDN);
-    ServerDescriptor server = ServerDescriptor.createStandalone(ctx, filter);
-    for (ReplicaDescriptor replica : server.getReplicas())
-    {
-      if (Utils.areDnsEqual(replica.getSuffix().getDN(), baseDN))
-      {
-        domainId = replica.getReplicationId();
-        break;
-      }
-    }
-    return domainId;
   }
 
   /**

@@ -222,12 +222,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   private StringArgument baseDNsArg = null;
 
   /**
-   * The argument that specifies if the external initialization will be
-   * performed only on this server.
-   */
-  private BooleanArgument externalInitializationLocalOnlyArg;
-
-  /**
    * The 'quiet' argument.
    */
   BooleanArgument quietArg;
@@ -855,13 +849,13 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         INFO_DESCRIPTION_SUBCMD_PRE_EXTERNAL_INITIALIZATION.get(
             POST_EXTERNAL_INITIALIZATION_SUBCMD_NAME));
     secureArgsList.hostNameArg.setDefaultValue(getDefaultHostValue());
-    externalInitializationLocalOnlyArg = new BooleanArgument(
+    BooleanArgument externalInitializationLocalOnlyArg = new BooleanArgument(
         "local-only",
         'l',
         "local-only",
-        INFO_DESCRIPTION_EXTERNAL_INITIALIZATION_LOCAL.get());
-    externalInitializationLocalOnlyArg.setPropertyName(
-        externalInitializationLocalOnlyArg.getLongIdentifier());
+        Message.EMPTY);
+    externalInitializationLocalOnlyArg.setHidden(true);
+
     Argument[] argsToAdd = { secureArgsList.hostNameArg,
         secureArgsList.portArg,
         externalInitializationLocalOnlyArg};
@@ -887,8 +881,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         INFO_DESCRIPTION_SUBCMD_POST_EXTERNAL_INITIALIZATION.get(
             PRE_EXTERNAL_INITIALIZATION_SUBCMD_NAME));
     secureArgsList.hostNameArg.setDefaultValue(getDefaultHostValue());
-    externalInitializationLocalOnlyArg.setPropertyName(
-        externalInitializationLocalOnlyArg.getLongIdentifier());
     Argument[] argsToAdd = { secureArgsList.hostNameArg,
         secureArgsList.portArg };
     for (int i=0; i<argsToAdd.length; i++)
@@ -1844,18 +1836,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   public boolean isInitializeReplicationSubcommand()
   {
     return isSubcommand(INITIALIZE_REPLICATION_SUBCMD_NAME);
-  }
-
-  /**
-   * Tells whether the user specified to apply the pre (or post) external
-   * initialization operations only on the local server.
-   * @return <CODE>true</CODE> if the user specified to apply the pre (or post)
-   * external initialization operations only on the local server and
-   * <CODE>false</CODE> otherwise.
-   */
-  public boolean isExternalInitializationLocalOnly()
-  {
-    return externalInitializationLocalOnlyArg.isPresent();
   }
 
   /**
