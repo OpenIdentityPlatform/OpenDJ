@@ -22,12 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
 import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
 
+import java.util.ArrayList;
 import java.util.TreeSet;
 
 import org.opends.server.TestCaseUtils;
@@ -36,7 +37,10 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
+import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.ModifyDNMsg;
+import org.opends.server.replication.protocol.DeleteMsg;
+import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.testng.annotations.Test;
@@ -113,7 +117,10 @@ public class NamingConflictTest extends ReplicationTestCase
           TEST_ROOT_DN_STRING,
       "uid=simultaneous2");
 
+      // Put the message in the replay queue
       domain.processUpdate(modDnMsg);
+
+      // Make the domain replay the change from the replay queue
       domain.replay(queue.take().getUpdateMessage());
 
       // This MODIFY DN uses an older DN and should therefore be cancelled
@@ -124,11 +131,283 @@ public class NamingConflictTest extends ReplicationTestCase
           TEST_ROOT_DN_STRING,
       "uid=simulatneouswrong");
 
+      // Put the message in the replay queue
       domain.processUpdate(modDnMsg);
+
+      // Make the domain replay the change from the replay queue
+      // and resolve conflict
       domain.replay(queue.take().getUpdateMessage());
 
+      // Expect the conflict resolution 
       assertFalse(DirectoryServer.entryExists(entry.getDN()),
       "The modDN conflict was not resolved as expected.");
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDn);
+    }
+  }
+
+  /**
+   * Tests for issue 3891
+   *       S1                                       S2
+   *       ADD uid=xx,ou=parent,...          [SUBTREE] DEL ou=parent, ...
+   *
+   * 1/ removeParentConflict1 (on S1)
+   *    - t1(cn1) ADD uid=xx,ou=parent,...
+   *         - t2(cn2) replay SUBTREE DEL ou=parent, ....
+   *    => No conflict : expect the parent entry & subtree to be deleted
+   *
+   * 2/ removeParentConflict2 (on S1)
+   *    - t1(cn1) ADD uid=xx,ou=parent,...
+   *             - replay t2(cn2) DEL ou=parent, ....
+   *    => Conflict and no automatic resolution: expect 
+   *         - the child entry to be renamed under root entry
+   *         - the parent entry to be deleted
+   *
+   * 3/ removeParentConflict3 (on S2)
+   *                         - t2(cn2) DEL or SUBTREE DEL ou=parent, ....
+   *                         - t1(cn1) replay ADD uid=xx,ou=parent,...
+   *                        => Conflict and no automatic resolution: expect 
+   *                           - the child entry to be renamed under root entry
+   *
+   */
+  @Test(enabled=true)
+  public void removeParentConflict1() throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    final DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
+
+    TestSynchronousReplayQueue queue = new TestSynchronousReplayQueue();
+    DomainFakeCfg conf = new DomainFakeCfg(baseDn, 1, new TreeSet<String>());
+    conf.setIsolationPolicy(IsolationPolicy.ACCEPT_ALL_UPDATES);
+
+    LDAPReplicationDomain domain =
+      MultimasterReplication.createNewDomain(conf, queue);
+    domain.start();
+
+    try
+    {
+      /*
+       * Create a Change number generator to generate new ChangeNumbers
+       * when we need to send operations messages to the replicationServer.
+       */
+      ChangeNumberGenerator gen = new ChangeNumberGenerator(201, 0);
+
+      Entry parentEntry = TestCaseUtils.entryFromLdifString(
+          "dn: ou=rpConflict, "+ TEST_ROOT_DN_STRING + "\n"
+          + "objectClass: top\n"
+          + "objectClass: organizationalUnit\n");          
+
+      Entry childEntry = TestCaseUtils.entryFromLdifString(
+          "dn: cn=child, ou=rpConflict,"+ TEST_ROOT_DN_STRING + "\n"
+          + "objectClass: top\n" 
+          + "objectClass: person\n"
+          + "objectClass: organizationalPerson\n"
+          + "objectClass: inetOrgPerson\n" + "uid: user.1\n"
+          + "description: This is the description for Aaccf Amar.\n" + "st: NC\n"
+          + "postalAddress: Aaccf Amar$17984 Thirteenth Street"
+          + "$Rockford, NC  85762\n" + "mail: user.1@example.com\n"
+          + "cn: Aaccf Amar\n" + "l: Rockford\n"
+          + "street: 17984 Thirteenth Street\n"
+          + "employeeNumber: 1\n"
+          + "sn: Amar\n" + "givenName: Aaccf\n" + "postalCode: 85762\n"
+          + "userPassword: password\n" + "initials: AA\n");
+
+      TestCaseUtils.addEntry(parentEntry);
+      TestCaseUtils.addEntry(childEntry);
+
+      String parentUUID = getEntryUUID(parentEntry.getDN());
+      String childUUID = getEntryUUID(childEntry.getDN());
+
+      ChangeNumber cn2 = gen.newChangeNumber();
+
+      DeleteMsg  delMsg = new DeleteMsg(
+          parentEntry.getDN().toNormalizedString(),
+          cn2,
+          parentUUID);
+      delMsg.setSubtreeDelete(true);
+
+      // Put the message in the replay queue
+      domain.processUpdate(delMsg);
+      // Make the domain replay the change from the replay queue
+      domain.replay(queue.take().getUpdateMessage());
+
+      // Expect the subtree to be deleted and no conflict entry created
+      assertFalse(DirectoryServer.entryExists(parentEntry.getDN()),
+      "DEL subtree on parent was not processed as expected.");
+      assertFalse(DirectoryServer.entryExists(parentEntry.getDN()),
+      "DEL subtree on parent was not processed as expected.");
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDn);
+    }
+  }
+
+  @Test(enabled=true)
+  public void removeParentConflict2() throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    final DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
+
+    TestSynchronousReplayQueue queue = new TestSynchronousReplayQueue();
+    DomainFakeCfg conf = new DomainFakeCfg(baseDn, 1, new TreeSet<String>());
+    conf.setIsolationPolicy(IsolationPolicy.ACCEPT_ALL_UPDATES);
+
+    LDAPReplicationDomain domain =
+      MultimasterReplication.createNewDomain(conf, queue);
+    domain.start();
+
+    try
+    {
+      /*
+       * Create a Change number generator to generate new ChangeNumbers
+       * when we need to send operations messages to the replicationServer.
+       */
+      ChangeNumberGenerator gen = new ChangeNumberGenerator(201, 0);
+
+      Entry parentEntry = TestCaseUtils.entryFromLdifString(
+          "dn: ou=rpConflict, "+ TEST_ROOT_DN_STRING + "\n"
+          + "objectClass: top\n"
+          + "objectClass: organizationalUnit\n");          
+
+      Entry childEntry = TestCaseUtils.entryFromLdifString(
+          "dn: cn=child, ou=rpConflict,"+ TEST_ROOT_DN_STRING + "\n"
+          + "objectClass: top\n" 
+          + "objectClass: person\n"
+          + "objectClass: organizationalPerson\n"
+          + "objectClass: inetOrgPerson\n" + "uid: user.1\n"
+          + "description: This is the description for Aaccf Amar.\n" + "st: NC\n"
+          + "postalAddress: Aaccf Amar$17984 Thirteenth Street"
+          + "$Rockford, NC  85762\n" + "mail: user.1@example.com\n"
+          + "cn: Aaccf Amar\n" + "l: Rockford\n"
+          + "street: 17984 Thirteenth Street\n"
+          + "employeeNumber: 1\n"
+          + "sn: Amar\n" + "givenName: Aaccf\n" + "postalCode: 85762\n"
+          + "userPassword: password\n" + "initials: AA\n");
+
+      TestCaseUtils.addEntry(parentEntry);
+      TestCaseUtils.addEntry(childEntry);
+
+      assertTrue(DirectoryServer.entryExists(parentEntry.getDN()),
+      "Parent entry expected to exist.");
+      assertTrue(DirectoryServer.entryExists(childEntry.getDN()),
+      "Child  entry expected to be exist.");
+
+      String parentUUID = getEntryUUID(parentEntry.getDN());
+      String childUUID = getEntryUUID(childEntry.getDN());
+
+      ChangeNumber cn2 = gen.newChangeNumber();
+
+      DeleteMsg  delMsg = new DeleteMsg(
+          parentEntry.getDN().toNormalizedString(),
+          cn2,
+          parentUUID);
+      // NOT SUBTREE
+
+      // Put the message in the replay queue
+      domain.processUpdate(delMsg);
+      // Make the domain replay the change from the replay queue
+      domain.replay(queue.take().getUpdateMessage());
+
+      // Expect the parent entry to be deleted
+      assertTrue(!DirectoryServer.entryExists(parentEntry.getDN()),
+          "Parent entry expected to be deleted : " + parentEntry.getDN());
+
+      // Expect the child entry to be moved as conflict entry under the root
+      // entry of the suffix
+      DN childDN = DN.decode("entryuuid="+childUUID+
+          "+cn=child,o=test");
+      assertTrue(DirectoryServer.entryExists(childDN),
+          "Child entry conflict exist with DN="+childDN);
+
+    }
+    finally
+    {
+      MultimasterReplication.deleteDomain(baseDn);
+    }
+  }
+
+  @Test(enabled=true)
+  public void removeParentConflict3() throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    final DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
+
+    TestSynchronousReplayQueue queue = new TestSynchronousReplayQueue();
+    DomainFakeCfg conf = new DomainFakeCfg(baseDn, 1, new TreeSet<String>());
+    conf.setIsolationPolicy(IsolationPolicy.ACCEPT_ALL_UPDATES);
+
+    LDAPReplicationDomain domain =
+      MultimasterReplication.createNewDomain(conf, queue);
+    domain.start();
+
+    try
+    {
+      /*
+       * Create a Change number generator to generate new ChangeNumbers
+       * when we need to send operations messages to the replicationServer.
+       */
+      ChangeNumberGenerator gen = new ChangeNumberGenerator(201, 0);
+
+      Entry parentEntry = TestCaseUtils.entryFromLdifString(
+          "dn: ou=rpConflict, "+ TEST_ROOT_DN_STRING + "\n"
+          + "objectClass: top\n"
+          + "objectClass: organizationalUnit\n");          
+
+      Entry childEntry = TestCaseUtils.entryFromLdifString(
+          "dn: cn=child, ou=rpConflict,"+ TEST_ROOT_DN_STRING + "\n"
+          + "objectClass: top\n" 
+          + "objectClass: person\n"
+          + "objectClass: organizationalPerson\n"
+          + "objectClass: inetOrgPerson\n" + "uid: user.1\n"
+          + "description: This is the description for Aaccf Amar.\n" + "st: NC\n"
+          + "postalAddress: Aaccf Amar$17984 Thirteenth Street"
+          + "$Rockford, NC  85762\n" + "mail: user.1@example.com\n"
+          + "cn: Aaccf Amar\n" + "l: Rockford\n"
+          + "street: 17984 Thirteenth Street\n"
+          + "employeeNumber: 1\n"
+          + "sn: Amar\n" + "givenName: Aaccf\n" + "postalCode: 85762\n"
+          + "userPassword: password\n" + "initials: AA\n");
+
+
+      TestCaseUtils.addEntry(parentEntry);
+      String parentUUID = getEntryUUID(parentEntry.getDN());
+      TestCaseUtils.deleteEntry(parentEntry);
+
+      ChangeNumber cn1 = gen.newChangeNumber();
+
+      // Create and publish an update message to add the child entry.
+      String childUUID = "44444444-4444-4444-4444-444444444444";
+      AddMsg addMsg = new AddMsg(
+          cn1,
+          childEntry.getDN().toString(),
+          childUUID,
+          parentUUID,
+          childEntry.getObjectClassAttribute(),
+          childEntry.getAttributes(),
+          new ArrayList<Attribute>());
+      
+      // Put the message in the replay queue
+      domain.processUpdate(addMsg);
+      // Make the domain replay the change from the replay queue
+      domain.replay(queue.take().getUpdateMessage());
+
+      // Expect the parent entry to be deleted
+      assertFalse(DirectoryServer.entryExists(parentEntry.getDN()),
+          "Parent entry exists ");
+
+      // Expect the child entry to be moved as conflict entry under the root
+      // entry of the suffix
+      DN childDN = DN.decode("entryuuid="+childUUID+
+          "+cn=child,o=test");
+      assertTrue(DirectoryServer.entryExists(childDN),
+          "Child entry conflict exist with DN="+childDN);
+
     }
     finally
     {

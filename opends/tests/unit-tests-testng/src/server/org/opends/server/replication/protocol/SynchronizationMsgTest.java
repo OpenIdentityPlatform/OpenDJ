@@ -79,7 +79,7 @@ import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperatio
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
+import org.opends.server.controls.SubtreeDeleteControl;
 /**
  * Test the constructors, encoders and decoders of the replication protocol
  * PDUs classes (message classes)
@@ -321,8 +321,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     entryAttrList.add(eattr2);
 
     return new Object[][] {
-        {"dc=com", entryAttrList},
-        {"dc=delete,dc=an,dc=entry,dc=with,dc=a,dc=long dn", null},
+        {"dc=com", entryAttrList, false},
+        {"dc=delete,dc=an,dc=entry,dc=with,dc=a,dc=long dn", null, true},
         };
   }
 
@@ -333,18 +333,23 @@ public class SynchronizationMsgTest extends ReplicationTestCase
    * Finally test that both Msg matches.
    */
   @Test(enabled=true,dataProvider = "createDeleteData")
-  public void deleteMsgTest(String rawDN, List<Attribute> entryAttrList)
+  public void deleteMsgTest(String rawDN, List<Attribute> entryAttrList,
+      boolean subtree)
   throws Exception
   {
     InternalClientConnection connection =
         InternalClientConnection.getRootConnection();
     DeleteOperationBasis opBasis =
       new DeleteOperationBasis(connection, 1, 1,null, DN.decode(rawDN));
+    if (subtree)
+    {
+      opBasis.addRequestControl(new SubtreeDeleteControl(false));
+    }
     LocalBackendDeleteOperation op = new LocalBackendDeleteOperation(opBasis);
     ChangeNumber cn = new ChangeNumber(TimeThread.getTime(),123,  45);
     op.setAttachment(SYNCHROCONTEXT, new DeleteContext(cn, "uniqueid"));
     DeleteMsg msg = new DeleteMsg(op);
-
+    assertTrue((msg.isSubtreeDelete()==subtree));
     // Set ECL entry attributes
     if (entryAttrList != null)
     {
@@ -356,8 +361,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
     assertEquals(msg.toString(), generatedMsg.toString());
     assertEquals(msg.getInitiatorsName(), generatedMsg.getInitiatorsName());
-
     assertEquals(msg.getChangeNumber(), generatedMsg.getChangeNumber());
+    assertEquals(generatedMsg.isSubtreeDelete(), subtree);
 
     // Get ECL entry attributes
     ArrayList<RawAttribute> genAttrList = generatedMsg.getEclIncludes();
@@ -379,6 +384,9 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     Operation generatedOperation = generatedMsg.createOperation(connection);
 
     assertEquals(generatedOperation.getClass(), DeleteOperationBasis.class);
+    assertTrue(
+        (subtree?(generatedOperation.getRequestControl(SubtreeDeleteControl.DECODER)!=null):
+          (generatedOperation.getRequestControl(SubtreeDeleteControl.DECODER)==null)));
 
     DeleteOperationBasis mod2 = (DeleteOperationBasis) generatedOperation;
 
@@ -387,6 +395,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     // Create an update message from this op
     DeleteMsg updateMsg = (DeleteMsg) LDAPUpdateMsg.generateMsg(op);
     assertEquals(msg.getChangeNumber(), updateMsg.getChangeNumber());
+    assertEquals(msg.isSubtreeDelete(), updateMsg.isSubtreeDelete());
   }
 
   @DataProvider(name = "createModifyDnData")

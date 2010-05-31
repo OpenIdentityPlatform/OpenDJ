@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.replication;
@@ -1194,12 +1194,18 @@ public class  UpdateOperationTest extends ReplicationTestCase
     assertNull(getEntry(DN.decode(domain1dn), 10000, false),
         "The DELETE replication message was not replayed");
 
-    // check that domain2 and domain3 have not been renamed as conflicting
-    assertNull(getEntry(conflictDomain2dn, 10000, true),
-        "The conflicting entries were created");
-    assertNull(getEntry(conflictDomain3dn, 10000, true),
-        "The conflicting entries were created");
+    // check that domain2 and domain3 have been renamed as conflicting
+    String confDomain2dn = "entryuuid="+domain2uid+"+dc=domain2,ou=people,"+TEST_ROOT_DN_STRING;
+    String confDomain3dn = "entryuuid="+domain3uid+"+dc=domain3,ou=people,"+TEST_ROOT_DN_STRING;
+    assertTrue(DirectoryServer.entryExists(DN.decode(confDomain2dn)),
+    "The conflicting entry exist for domain2" + confDomain2dn);
+    assertTrue(DirectoryServer.entryExists(DN.decode(confDomain3dn)),
+    "The conflicting entry exist for domain3" + confDomain3dn);
+    // check that unresolved conflict count has been incremented
+    assertEquals(getMonitorDelta(), 1);
 
+    delEntry(DN.decode(confDomain2dn));
+    delEntry(DN.decode(confDomain3dn));
 
     //
     // Check that when an entry is added on one master below an entry
