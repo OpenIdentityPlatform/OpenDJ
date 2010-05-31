@@ -1699,7 +1699,8 @@ public abstract class ReplicationDomain
       done = true;
       short reconnectMaxDelayInSec = 10;
       short reconnectWait = 0;
-      for (int serverId : replicasWeAreWaitingFor)
+      Integer[] servers = replicasWeAreWaitingFor.toArray(new Integer[0]);
+      for (int serverId : servers)
       {
         if (ieContext.failureList.contains(serverId))
         {

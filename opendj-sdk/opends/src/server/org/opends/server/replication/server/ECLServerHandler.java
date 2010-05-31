@@ -1400,7 +1400,7 @@ public class ECLServerHandler extends ServerHandler
                 break;
               }
             } // while DraftCN
-          }
+          } // if draftCompat
 
           // here we have the right oldest change
           // and in the draft case, we have its draft changenumber
@@ -1414,7 +1414,11 @@ public class ECLServerHandler extends ServerHandler
           {
             domainCtxts[iDom].active = false;
           }
-
+          if (draftCompat && (lastDraftCN>0) &&
+              (oldestChange.getDraftChangeNumber()>lastDraftCN))
+          {
+            domainCtxts[iDom].active = false;
+          }
           if (domainCtxts[iDom].active)
           {
             // populates the table with the next eligible msg from idomain
