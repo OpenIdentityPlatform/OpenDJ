@@ -753,19 +753,36 @@
           'unzipdir' : dsDir
         }
       </call>
-      
-      <!--- Install DS Copy zip file -->
-      <message>
-        'Copy DS zip archive %s/%s to %s' % (local.temp,ZIPNAME,dsHost)
-      </message>
-      <call function="'copyFile'">
-        { 'srcfile'    : '%s/%s' % (ZIPPATH,ZIPNAME),
-          'destfile'   : '%s/%s' % (dsDir,ZIPNAME),
-          'remotehost' : dsHost
+
+      <!-- Check if DS Copy zip exists -->
+      <call function="'GetEntry'">
+        {
+        'location'  : dsHost,
+        'entry'     : '%s/%s' % (dsDir,ZIPNAME),
+        'attribute' : 'TYPE'
         }
       </call>
-      
-       <!--- Install DS Extract zip file -->
+      <if expr="RC == 48">
+        <sequence>
+          <!--- Copy DS Copy zip file -->
+          <message>
+            'Copy DS zip archive %s/%s to %s' % (ZIPPATH,ZIPNAME,dsHost)
+          </message>
+          <call function="'copyFile'">
+            { 'srcfile'    : '%s/%s' % (ZIPPATH,ZIPNAME),
+              'destfile'   : '%s/%s' % (dsDir,ZIPNAME),
+              'remotehost' : dsHost
+            }
+          </call>
+        </sequence>
+        <else>
+          <message>
+            'DS zip archive %s/%s already exists, nothing to do' % (dsDir,ZIPNAME)
+          </message>
+        </else>
+      </if>
+
+      <!--- Install DS Extract zip file -->
       <message>
         'Extract DS zip archive to %s on %s' % (dsDir,dsHost)
       </message>
@@ -1847,31 +1864,6 @@
           'filename' : '%s/testdata.zip' % dsDir 
         }
       </call>
-      
-      <!--- Delete OPENDS zip file on remote host-->
-      <message>
-        'Delete OPENDS zip file %s/%s' % (dsDir,ZIPNAME)
-      </message>
-      <call function="'deleteFile'">
-        { 'location' : dsHost, 
-          'filename' : '%s/%s' % (dsDir,ZIPNAME) }
-      </call>
-      
-      <call function="'checkRC'">
-        { 'returncode' : RC ,
-          'result'     : STAXResult 
-        }
-      </call>
-      <if expr="returncode == 0">
-        <message>
-          'Instance removed.'
-        </message>
-        <else>
-          <message>
-            'Failed to remove instance.'
-          </message>
-        </else>
-      </if>
     </sequence>
   </function>
   

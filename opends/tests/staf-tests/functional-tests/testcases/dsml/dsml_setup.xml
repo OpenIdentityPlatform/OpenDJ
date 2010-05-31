@@ -558,13 +558,20 @@
                 if WC_TYPE == 'tomcat':
                   destWebXml = os.path.join(WC_DIRECTORY, 'apache-%s-%s' % (WC_TYPE, WC_VERSION), 'webapps',
                                             'dsml', 'WEB-INF', 'web.xml')
+                  destEmmaProp = os.path.join(WC_DIRECTORY, 'apache-%s-%s' % (WC_TYPE, WC_VERSION), 'webapps',
+                                            'dsml', 'WEB-INF', 'classes', 'emma.properties')
                 elif WC_TYPE == 'glassfish':
                   destWebXml = os.path.join(WC_DIRECTORY, 'glassfishv3', 'glassfish',
                                             'domains', 'domain1', 'applications',
                                             'dsml', 'WEB-INF', 'web.xml')
+                  destEmmaProp = os.path.join(WC_DIRECTORY, 'glassfishv3', 'glassfish',
+                                            'domains', 'domain1', 'applications',
+                                            'dsml', 'WEB-INF', 'classes', 'emma.properties')
                 elif WC_TYPE == 'sunwebserver':
                   destWebXml = os.path.join(WC_DIRECTORY, '%s-%s' % (WC_TYPE, WC_VERSION), 'https-%s' % STAF_REMOTE_HOSTNAME,
                                  'generated', STAF_REMOTE_HOSTNAME, 'dsml', 'WEB-INF', 'web.xml')
+                  destEmmaProp = os.path.join(WC_DIRECTORY, '%s-%s' % (WC_TYPE, WC_VERSION), 'https-%s' % STAF_REMOTE_HOSTNAME,
+                                 'generated', STAF_REMOTE_HOSTNAME, 'dsml', 'WEB-INF', 'classes', 'emma.properties')
 
                 nbLoop = 10
                 loopSleep = 1000 # 1000 millisecondes
@@ -603,6 +610,37 @@
                     'result'     : STAXResult
                     }
                   </call>
+
+                  <script>
+                    ecPath = os.path.join(remote.temp,'coverage',CurrentTestPath['group'],'coverage_dsml.ec')
+
+                    coveragefh = open( '%s/emma_dsml.properties' % local.temp, 'w')
+                    coveragefh.write( 'coverage.out.file=%s\n' % ecPath )
+                    coveragefh.write( 'verbosity.level=silent\n')
+                    coveragefh.write( 'coverage.out.merge=true\n')
+                    coveragefh.close()
+                  </script>
+
+                  <message>
+                    'PATH ORIG %s/emma_dsml.properties' % local.temp
+                  </message>
+                  <message>
+                    'PATH DEST %s' % destEmmaProp
+                  </message>
+                  <call function="'copyFile'">
+                    { 'location'   : STAXServiceMachine,
+                      'remotehost' : '%s' % STAF_REMOTE_HOSTNAME,
+                      'srcfile'    : '%s/emma_dsml.properties' % local.temp,
+                      'destfile'   : destEmmaProp
+                     }
+                  </call>
+                  <call function="'checktestRC'">
+                    {
+                    'returncode' : RC ,
+                    'result'     : STAXResult
+                    }
+                  </call>
+
                   <call function="'stopWebcontainerWithScript'"/>
                   <call function="'startWebcontainerWithScript'"/>
                 </sequence>

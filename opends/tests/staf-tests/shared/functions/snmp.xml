@@ -118,6 +118,26 @@
     </function-map-args>
 
     <sequence>
+      <!-- Check if 'emma.jar' exists -->
+      <call function="'GetEntry'">
+        {
+        'location'  : STAF_REMOTE_HOSTNAME ,
+        'entry'     : '%s/%s/lib/emma.jar' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME) ,
+        'attribute' : 'TYPE'
+        }
+      </call>
+      <if expr="RC != 48">
+        <!-- 'emma.jar' exists -->
+        <script>
+          emma_jarfile='%s/%s/lib/emma.jar' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
+        </script>
+        <else>
+          <script>
+            emma_jarfile=None
+          </script>
+        </else>
+      </if>
+
       <!-- Build the command -->
       <script>
         STAFCmdParamsList=[]
@@ -169,8 +189,7 @@
         snmpPath='%s/snmp' % remote.java
         jdmk_jarfile='%s/jdmkrt.jar' % snmpPath
 
-        emma_jarfile='%s/%s/lib/emma.jar' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
-        if os.path.exists(emma_jarfile):
+        if emma_jarfile:
           cp = 'CLASSPATH=%s%s%s%s%s%s.' \
           % (opends_jarfile,separator,jdmk_jarfile,separator,emma_jarfile,separator)
         else:
@@ -289,6 +308,26 @@
     </function-map-args>
 
     <sequence>
+      <!-- Check if 'emma.jar' exists -->
+      <call function="'GetEntry'">
+        {
+        'location'  : STAF_REMOTE_HOSTNAME ,
+        'entry'     : '%s/%s/lib/emma.jar' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME) ,
+        'attribute' : 'TYPE'
+        }
+      </call>
+      <if expr="RC != 48">
+        <!-- 'emma.jar' exists -->
+        <script>
+          emma_jarfile='%s/%s/lib/emma.jar' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
+        </script>
+        <else>
+          <script>
+            emma_jarfile=None
+          </script>
+        </else>
+      </if>
+
       <!-- Build the command -->
       <script>
         STAFCmdParamsList=[]
@@ -337,8 +376,7 @@
         snmpPath='%s/snmp' % remote.java
         jdmk_jarfile='%s/jdmkrt.jar' % snmpPath
 
-        emma_jarfile='%s/%s/lib/emma.jar' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
-        if os.path.exists(emma_jarfile):
+        if emma_jarfile:
           cp = 'CLASSPATH=%s%s%s%s%s%s.' \
           % (opends_jarfile,separator,jdmk_jarfile,separator,emma_jarfile,separator)
         else:
