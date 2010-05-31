@@ -380,6 +380,23 @@ public class SubentryManager extends InternalDirectoryServerPlugin
           try
           {
             addSubEntry(entry);
+
+            // Notify change listeners.
+            for (SubentryChangeListener changeListener :
+              changeListeners)
+            {
+              try
+              {
+                changeListener.handleSubentryAdd(entry);
+              }
+              catch (Exception e)
+              {
+                if (debugEnabled())
+                {
+                  TRACER.debugCaught(DebugLogLevel.ERROR, e);
+                }
+              }
+            }
           }
           catch (Exception e)
           {
@@ -633,6 +650,24 @@ public class SubentryManager extends InternalDirectoryServerPlugin
           if (backend.handlesEntry(subEntry.getDN()))
           {
             listIterator.remove();
+
+            // Notify change listeners.
+            for (SubentryChangeListener changeListener :
+              changeListeners)
+            {
+              try
+              {
+                changeListener.handleSubentryDelete(
+                        subEntry.getEntry());
+              }
+              catch (Exception e)
+              {
+                if (debugEnabled())
+                {
+                  TRACER.debugCaught(DebugLogLevel.ERROR, e);
+                }
+              }
+            }
           }
         }
         if (subList.isEmpty())
@@ -652,6 +687,24 @@ public class SubentryManager extends InternalDirectoryServerPlugin
           if (backend.handlesEntry(subEntry.getDN()))
           {
             listIterator.remove();
+
+            // Notify change listeners.
+            for (SubentryChangeListener changeListener :
+              changeListeners)
+            {
+              try
+              {
+                changeListener.handleSubentryDelete(
+                        subEntry.getEntry());
+              }
+              catch (Exception e)
+              {
+                if (debugEnabled())
+                {
+                  TRACER.debugCaught(DebugLogLevel.ERROR, e);
+                }
+              }
+            }
           }
         }
         if (subList.isEmpty())
