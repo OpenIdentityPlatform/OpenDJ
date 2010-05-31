@@ -1184,11 +1184,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       
       waitOpResult(searchOp, ResultCode.UNWILLING_TO_PERFORM);
       assertEquals(searchOp.getSearchEntries().size(), 0);
-      assertTrue(searchOp.getErrorMessage().toString().equalsIgnoreCase(
-          "Full resync required. Reason: The provided cookie is missing the replicated domain(s) o=test:;. Possible cookie: <" 
-          + newCookie + "o=test:;>"), "Server output:" +
+      String expectedError = 
+        "Full resync required because the provided cookie is missing the replicated domain(s) o=test:;. The following cookie value can be used to retrieve the missing changes, including the COMPLETE record of changes for the missing domain(s) : <"
+        + newCookie + "o=test:;>";
+      assertTrue(searchOp.getErrorMessage().toString().equalsIgnoreCase(expectedError),
+          "Expected: " + expectedError + "Server output:" +
           searchOp.getErrorMessage().toString());
-
       s1test.stop();
       s1test2.stop();
       s2test.stop();
