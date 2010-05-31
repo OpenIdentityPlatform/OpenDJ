@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -92,7 +92,11 @@ public class ExternalChangeLogSessionImpl
    */
   public void close()
   {
-    if (handler.getDomain() != null)
-      handler.getDomain().stopServer(handler, false);
+    // ECL is a special case in the sense that there is no
+    // ECL replication server domain
+    // The handler is like orphan so no way to use the regular
+    // handler.getDomain().stopServer(handler, ....)
+    // instead call directly handler.
+    handler.shutdown();
   }
 }
