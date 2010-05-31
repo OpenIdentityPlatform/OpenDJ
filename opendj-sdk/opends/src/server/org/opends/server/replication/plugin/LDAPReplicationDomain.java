@@ -77,7 +77,6 @@ import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.backends.jeb.BackendImpl;
 import org.opends.server.backends.task.Task;
 import org.opends.server.config.ConfigException;
-import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -2564,11 +2563,10 @@ public class LDAPReplicationDomain extends ReplicationDomain
               /*
                * Create a new operation as the ConflictResolution
                * different operation.
+               *  Note: When msg is a DeleteMsg, the DeleteOperation is properly
+               *  created with subtreeDelete request control when needed.
                */
               op = msg.createOperation(conn);
-              if (op instanceof DeleteOperation) {
-                op.addRequestControl(new SubtreeDeleteControl(false));
-              }
             }
           }
           else
@@ -3189,21 +3187,14 @@ private boolean solveNamingConflict(ModifyDNOperation op,
           for (SearchResultEntry entry : entries)
           {
             /*
-             * Check the ADD and ModRDN date of the child entry. If it is after
-             * the delete date then keep the entry as a conflicting entry,
-             * otherwise delete the entry with the operation.
+             * Check the ADD and ModRDN date of the child entry (All of them,
+             * not only the one that are newer than the DEL op)
+             * and keep the entry as a conflicting entry,
              */
-            if (cn != null)
-            {
-              Historical hist = Historical.load(entry);
-              if (hist.AddedOrRenamedAfter(cn))
-              {
-                conflict = true;
-                markConflictEntry(conflictOp, entry.getDN(), entryDN);
-                renameConflictEntry(conflictOp, entry.getDN(),
-                                Historical.getEntryUuid(entry));
-              }
-            }
+            conflict = true;
+            markConflictEntry(conflictOp, entry.getDN(), entryDN);
+            renameConflictEntry(conflictOp, entry.getDN(),
+                Historical.getEntryUuid(entry));
           }
         }
       }

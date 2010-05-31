@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -31,6 +31,7 @@ import static org.opends.server.replication.protocol.OperationContext.*;
 import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
+import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.ChangeNumber;
@@ -43,7 +44,10 @@ import org.opends.server.types.operation.PostOperationDeleteOperation;
  */
 public class DeleteMsg extends LDAPUpdateMsg
 {
-  String initiatorsName;
+  private String initiatorsName;
+
+  // whether the DEL operation is a subtree DEL
+  private boolean isSubtreeDelete = false;
 
   /**
    * Creates a new delete message.
@@ -54,15 +58,23 @@ public class DeleteMsg extends LDAPUpdateMsg
   {
     super((OperationContext) operation.getAttachment(SYNCHROCONTEXT),
            operation.getRawEntryDN().toString());
+    try
+    {
+      if (operation.getRequestControl(SubtreeDeleteControl.DECODER) != null)
+        isSubtreeDelete = true;
+    }
+    catch(Exception e)
+    {}
+
   }
 
   /**
    * Creates a new delete message.
    *
-   * @param dn The dn with which the message must be created.
+   * @param dn           The dn with which the message must be created.
    * @param changeNumber The change number with which the message must be
    *                     created.
-   * @param uid The unique id with which the message must be created.
+   * @param uid          The unique id with which the message must be created.
    */
   public DeleteMsg(String dn, ChangeNumber changeNumber, String uid)
   {
@@ -87,6 +99,12 @@ public class DeleteMsg extends LDAPUpdateMsg
     // protocol version has been read as part of the header
     if (protocolVersion >= 4)
       decodeBody_V4(in, pos);
+    else
+    {
+      // Keep the previous protocol version behavior - when we don't know the
+      // truth, we assume 'subtree'
+      isSubtreeDelete = true;
+    }
   }
 
 
@@ -101,6 +119,10 @@ public class DeleteMsg extends LDAPUpdateMsg
         InternalClientConnection.nextOperationID(),
         InternalClientConnection.nextMessageID(), null,
         ByteString.valueOf(newDn));
+
+    if (isSubtreeDelete)
+      del.addRequestControl(new SubtreeDeleteControl(false));
+
     DeleteContext ctx = new DeleteContext(getChangeNumber(), getUniqueId());
     del.setAttachment(SYNCHROCONTEXT, ctx);
     return del;
@@ -152,6 +174,8 @@ public class DeleteMsg extends LDAPUpdateMsg
     {
       bodyLength++;
     }
+    // subtree flag
+    bodyLength++;
 
     /* encode the header in a byte[] large enough to also contain the mods */
     byte [] encodedMsg = encodeHeader(MSG_TYPE_DELETE, bodyLength,
@@ -163,6 +187,9 @@ public class DeleteMsg extends LDAPUpdateMsg
       encodedMsg[pos++] = 0;
     pos = addByteArray(byteEntryAttrLen, encodedMsg, pos);
     pos = addByteArray(encodedEclIncludes, encodedMsg, pos);
+
+    encodedMsg[pos++] = (isSubtreeDelete ? (byte) 1 : (byte) 0);
+
     return encodedMsg;
   }
 
@@ -173,7 +200,6 @@ public class DeleteMsg extends LDAPUpdateMsg
   private void decodeBody_V4(byte[] in, int pos)
   throws DataFormatException, UnsupportedEncodingException
   {
-    // Read ecl attr len
     int length = getNextLength(in, pos);
     if (length != 0)
     {
@@ -185,15 +211,21 @@ public class DeleteMsg extends LDAPUpdateMsg
       initiatorsName = null;
       pos += 1;
     }
+
+    // Read ecl attr len
     length = getNextLength(in, pos);
     int eclAttrLen = Integer.valueOf(new String(in, pos, length,"UTF-8"));
+    // Skip the length
     pos += length + 1;
 
     // Read/Don't decode entry attributes
     encodedEclIncludes = new byte[eclAttrLen];
     try
     {
+      // Copy ecl attr
       System.arraycopy(in, pos, encodedEclIncludes, 0, eclAttrLen);
+      // Skip the attrs
+      pos += eclAttrLen +1;
     } catch (IndexOutOfBoundsException e)
     {
       throw new DataFormatException(e.getMessage());
@@ -204,6 +236,10 @@ public class DeleteMsg extends LDAPUpdateMsg
     {
       throw new DataFormatException(e.getMessage());
     }
+
+    // subtree flag
+    isSubtreeDelete = (in[pos] == 1);
+
   }
 
   /**
@@ -263,4 +299,21 @@ public class DeleteMsg extends LDAPUpdateMsg
     return initiatorsName;
   }
 
+  /**
+   * Set the subtree flag.
+   * @param subtreeDelete the subtree flag.
+   */
+  public void setSubtreeDelete(boolean subtreeDelete)
+  {
+    this.isSubtreeDelete = subtreeDelete;
+  }
+
+  /**
+   * Get the subtree flag.
+   * @return the subtree flag.
+   */
+  public boolean isSubtreeDelete()
+  {
+    return this.isSubtreeDelete;
+  }
 }
