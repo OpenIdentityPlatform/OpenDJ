@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui.nodes;
@@ -82,6 +82,12 @@ public interface BrowserNodeInfo {
    */
   public int getNumSubOrdinates();
 
+
+  /**
+   * Returns the value of hassubordinates for the entry.
+   * @return the value of hassubordinates for the entry.
+   */
+  public boolean hasSubOrdinates();
 
   /**
    * Returns the referrals attached to the displayed entry.

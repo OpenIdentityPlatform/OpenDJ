@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.monitors;
 
@@ -222,7 +222,7 @@ public class BackendMonitor
     else
     {
       // This is done to avoid recalculating the number of entries
-      // using the hasNumSubordinates method in the case where the
+      // using the numSubordinates method in the case where the
       // backend has a single base DN.
       String s = backendCount + " " + baseDNs[0].toString();
       builder.add(AttributeValues.create(baseDNEntryCountType, s));

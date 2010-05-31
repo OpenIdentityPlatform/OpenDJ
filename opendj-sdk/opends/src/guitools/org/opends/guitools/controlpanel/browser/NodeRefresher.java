@@ -406,6 +406,7 @@ public class NodeRefresher extends AbstractNodeTask {
       {
         localEntry = s.next();
         localEntry.setName(node.getDN());
+
       }
       if (localEntry == null) {
         /* Not enough rights to read the entry or the entry simply does not
@@ -606,7 +607,7 @@ public class NodeRefresher extends AbstractNodeTask {
     }
     else {
       SearchResult entry = getDisplayedEntry();
-      isLeafNode = (BrowserController.getNumSubOrdinates(entry) == 0);
+      isLeafNode = !BrowserController.getHasSubOrdinates(entry);
     }
   }
 
@@ -670,8 +671,8 @@ public class NodeRefresher extends AbstractNodeTask {
   private boolean isNumSubOrdinatesUsable() throws NamingException {
     boolean result;
     SearchResult entry = getDisplayedEntry();
-    int numSubOrdinates = BrowserController.getNumSubOrdinates(entry);
-    if (numSubOrdinates == 0) { // We must check
+    boolean hasSubOrdinates = BrowserController.getHasSubOrdinates(entry);
+    if (!hasSubOrdinates) { // We must check
       LDAPURL url = getDisplayedUrl();
       if (controller.getNumSubordinateHacker().contains(url)) {
         // The numSubOrdinate we have is unreliable.
@@ -699,6 +700,7 @@ public class NodeRefresher extends AbstractNodeTask {
     InitialLdapContext ctx = null;
     BasicNode parentNode = getNode();
     parentNode.setSizeLimitReached(false);
+
     try {
       // Send an LDAP search
       SearchControls ctls = controller.getBasicSearchControls();

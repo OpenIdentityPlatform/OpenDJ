@@ -5427,8 +5427,8 @@ public class Entry
             AttributeType t = e.getKey();
             if (t.hasNameOrOID(lowerName))
             {
-              mergeAttributeLists(e.getValue(), userAttrsCopy, t,
-                  attrName, options, omitValues, omitReal,
+              mergeAttributeLists(e.getValue(), operationalAttrsCopy,
+                  t, attrName, options, omitValues, omitReal,
                   omitVirtual);
               continue;
             }

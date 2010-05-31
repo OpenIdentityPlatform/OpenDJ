@@ -33,6 +33,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -59,6 +60,7 @@ import javax.swing.tree.TreePath;
 
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.BrowserEvent;
 import org.opends.guitools.controlpanel.event.BrowserEventListener;
@@ -1276,6 +1278,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
 
     v.add("objectClass");
     v.add("numsubordinates");
+    v.add("hassubordinates");
     v.add("ref");
     if ((displayFlags & DISPLAY_ACI_COUNT) != 0) {
       v.add("aci");
@@ -1315,6 +1318,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       return new String[] {
           "objectClass",
           "numsubordinates",
+          "hassubordinates",
           "ref",
           "aci",
           displayAttribute};
@@ -1322,6 +1326,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       return new String[] {
           "objectClass",
           "numsubordinates",
+          "hassubordinates",
           "ref",
           "aci"
       };
@@ -1656,9 +1661,8 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       // numSubOrdinates attribute. If the child entry's DN
       // is found in the hacker's list, then we ignore
       // the numSubordinate attribute... :((
-      int numSubOrdinates = child.getNumSubOrdinates();
       boolean hasNoSubOrdinates;
-      if ((numSubOrdinates == 0) && dontTrust) {
+      if (!child.hasSubOrdinates() && dontTrust) {
         LDAPURL childUrl = findUrlForDisplayedEntry(child);
         if (numSubordinateHacker.contains(childUrl)) {
           // The numSubOrdinates we have is unreliable.
@@ -1673,7 +1677,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
         }
       }
       else {
-        hasNoSubOrdinates = (numSubOrdinates == 0);
+        hasNoSubOrdinates = !child.hasSubOrdinates();
       }
 
 
@@ -1740,6 +1744,15 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     if (entry != null) {
       // Get the numsubordinates
       node.setNumSubOrdinates(getNumSubOrdinates(entry));
+      if (node.getNumSubOrdinates() > 0)
+      {
+        node.setHasSubOrdinates(true);
+      }
+      else
+      {
+        // Calculate based also in the hasSubordinates attribute
+        node.setHasSubOrdinates(getHasSubOrdinates(entry));
+      }
       node.setReferral(getReferral(entry));
       Set<String> ocValues = ConnectionUtils.getValues(entry, "objectClass");
       if (ocValues != null) {
@@ -1766,7 +1779,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
 
     // Select the icon according the objectClass,...
     int modifiers = 0;
-    if (node.isLeaf() && (node.getNumSubOrdinates() <= 0)) {
+    if (node.isLeaf() && !node.hasSubOrdinates()) {
       modifiers |= IconPool.MODIFIER_LEAF;
     }
     if (node.getReferral() != null) {
@@ -2073,6 +2086,91 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     return result;
   }
 
+  /**
+   * Returns whether the entry has subordinates or not.  It uses an algorithm
+   * based in hassubordinates and numsubordinates attributes.
+   * @param entry the entry to analyze.
+   * @throws NamingException if an error occurs.
+   * @return {@code true} if the entry has subordinates according to the values
+   * of hasSubordinates and numSubordinates, returns {@code false} if none of
+   * the attributes could be found.
+   */
+  public static boolean getHasSubOrdinates(SearchResult entry)
+  throws NamingException
+  {
+    boolean result;
+
+    String v = ConnectionUtils.getFirstValue(entry, "hassubordinates");
+    if (v == null) {
+      result = getNumSubOrdinates(entry) > 0;
+    }
+    else {
+      result = "true".equalsIgnoreCase(v);
+    }
+
+    return result;
+  }
+
+  /**
+   * Get the value of the numsubordinates attribute.
+   * If numsubordinates is not present, returns 0.
+   * @param entry the entry to analyze.
+   * @return the value of the numsubordinate attribute.  0 if the attribute
+   * could not be found.
+   */
+  public static int getNumSubOrdinates(CustomSearchResult entry)
+  {
+    int result;
+
+    List<Object> vs = entry.getAttributeValues("numsubordinates");
+    String v = null;
+    if (vs != null && !vs.isEmpty())
+    {
+      v = vs.get(0).toString();
+    }
+    if (v == null) {
+      result = 0;
+    }
+    else {
+      try {
+        result = Integer.parseInt(v);
+      }
+      catch(NumberFormatException x) {
+        result = 0;
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Returns whether the entry has subordinates or not.  It uses an algorithm
+   * based in hassubordinates and numsubordinates attributes.
+   * @param entry the entry to analyze.
+   * @return {@code true} if the entry has subordinates according to the values
+   * of hasSubordinates and numSubordinates, returns {@code false} if none of
+   * the attributes could be found.
+   */
+  public static boolean getHasSubOrdinates(CustomSearchResult entry)
+  {
+    boolean result;
+
+    List<Object> vs = entry.getAttributeValues("hassubordinates");
+    String v = null;
+    if (vs != null && !vs.isEmpty())
+    {
+      v = vs.get(0).toString();
+    }
+    if (v == null) {
+      result = getNumSubOrdinates(entry) > 0;
+    }
+    else {
+      result = "true".equalsIgnoreCase(v);
+    }
+
+    return result;
+  }
+
 
   /**
    * Returns the value of the 'ref' attribute.
@@ -2210,6 +2308,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     boolean isRootNode;
     String[] referral;
     int numSubOrdinates;
+    boolean hasSubOrdinates;
     int errorType;
     Exception errorException;
     Object errorArg;
@@ -2229,6 +2328,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       isSuffix = node instanceof SuffixNode;
       referral = node.getReferral();
       numSubOrdinates = node.getNumSubOrdinates();
+      hasSubOrdinates = node.hasSubOrdinates();
       objectClassValues = node.getObjectClassValues();
       if (node.getError() != null) {
         BasicNodeError error = node.getError();
@@ -2316,6 +2416,15 @@ implements TreeExpansionListener, ReferralAuthenticationListener
      */
     public int getNumSubOrdinates() {
       return numSubOrdinates;
+    }
+
+    /**
+     * Returns whether the entry has subordinates or not.
+     * @return {@code true} if the entry has subordinates and {@code false}
+     * otherwise.
+     */
+    public boolean hasSubOrdinates() {
+      return hasSubOrdinates;
     }
 
     /**

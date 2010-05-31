@@ -36,7 +36,6 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -627,15 +626,8 @@ implements EntryReadListener
   {
     final ArrayList<Message> errors = new ArrayList<Message>();
     // Check that the entry is correct.
-    // Rely in numsubordinates...
-    boolean isLeaf = true;
-
-    List<Object> o = searchResult.getAttributeValues("numsubordinates");
-    if (!o.isEmpty())
-    {
-      int numsubordinates = Integer.parseInt((String)o.iterator().next());
-      isLeaf = numsubordinates <= 0;
-    }
+    // Rely in numsubordinates and hassubordinates
+    boolean isLeaf = !BrowserController.getHasSubOrdinates(searchResult);
 
     if (treePath != null)
     {
