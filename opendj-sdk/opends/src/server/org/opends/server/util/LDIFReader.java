@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 import org.opends.messages.Message;
@@ -814,6 +814,13 @@ public final class LDIFReader
         if (lines.isEmpty())
         {
           lastEntryLineNumber = lineNumber;
+        }
+        if(((byte)line.charAt(0) == (byte)0xEF) &&
+          ((byte)line.charAt(1) == (byte)0xBB) &&
+          ((byte)line.charAt(2) == (byte)0xBF))
+        {
+          // This is a UTF-8 BOM that Java doesn't skip. We will skip it here.
+          line = line.substring(3, line.length());
         }
         lines.add(new StringBuilder(line));
         lastLine++;
