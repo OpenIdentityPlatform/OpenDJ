@@ -33,8 +33,11 @@ import java.util.Observer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import org.opends.server.admin.std.server.MonitorProviderCfg;
 
 import org.opends.server.admin.std.server.WorkflowElementCfg;
+import org.opends.server.api.MonitorProvider;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Operation;
 import org.opends.server.types.CanceledOperationException;
 
@@ -86,6 +89,8 @@ public abstract class WorkflowElement <T extends WorkflowElementCfg>
   private ObservableWorkflowElementStatus observableStatus =
     new ObservableWorkflowElementStatus(this);
 
+  // The statistics exported by the workflow element
+  private MonitorProvider<MonitorProviderCfg> statistics;
 
   /**
    * Provides the observable state of the workflow element.
@@ -275,6 +280,10 @@ public abstract class WorkflowElement <T extends WorkflowElementCfg>
   {
     this.workflowElementID = workflowElementID;
     this.workflowElementTypeInfo = workflowElementTypeInfo;
+    this.statistics = this.createStatistics();
+    if (this.statistics != null) {
+      DirectoryServer.registerMonitorProvider(this.statistics);
+    }
   }
 
 
@@ -331,7 +340,11 @@ public abstract class WorkflowElement <T extends WorkflowElementCfg>
    */
   public void finalizeWorkflowElement()
   {
-    // No action is required by default.
+    // Deregister the monitor provider.
+    if (this.statistics != null) {
+      DirectoryServer.deregisterMonitorProvider(
+          this.statistics.getMonitorInstanceName());
+    }
   }
 
   /**
@@ -460,5 +473,17 @@ public abstract class WorkflowElement <T extends WorkflowElementCfg>
       }
     }
     return false;
+  }
+
+  /**
+   * Creates the statistics exposed by the workflow element. By default,
+   * workflow elements do not expose anything but specific implementations
+   * can override this method and provide their own stats.
+   * @return the statistics exposed by the workflow element.
+   */
+  public MonitorProvider<MonitorProviderCfg> createStatistics() {
+    // by default, no stats are created;
+    // This method should be overriden if necessary
+    return null;
   }
 }
