@@ -238,7 +238,7 @@ public class MainMenuBar extends GenericMenuBar
           Utilities.getFrame(MainMenuBar.this));
     }
     dlg.setVisible(true);
-    if (!panel.isCancelled())
+    if (!panel.isCanceled())
     {
       getInfo().setPoolingPeriod(panel.getPoolingPeriod());
       getInfo().stopPooling();

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -3223,8 +3223,7 @@ public final class Schema
 
       for (ObjectClass oc : objectClasses.values())
       {
-        if ((oc.getSuperiorClass() != null) &&
-            oc.getSuperiorClass().equals(c))
+        if (oc.getSuperiorClasses().contains(c))
         {
           ObjectClass newOC = oc.recreateFromDefinition();
           deregisterObjectClass(oc);

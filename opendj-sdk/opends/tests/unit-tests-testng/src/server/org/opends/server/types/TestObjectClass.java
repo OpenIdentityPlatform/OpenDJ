@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -58,7 +58,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
       SchemaDefinitionBuilder<ObjectClass> {
     // The superior object class from which this object class
     // inherits.
-    private ObjectClass superior;
+    private Set<ObjectClass> superior;
 
     // The type of object class.
     private ObjectClassType objectClassType;
@@ -172,7 +172,26 @@ public final class TestObjectClass extends TestCommonSchemaElements {
       if (superior != null)
       {
         definition.append(" SUP ");
-        definition.append(superior.getNameOrOID());
+        Iterator<ObjectClass> iterator = superior.iterator();
+        ObjectClass oc =  iterator.next();
+
+        if(iterator.hasNext())
+        {
+          definition.append("( ");
+          definition.append(oc.getNameOrOID());
+
+          while(iterator.hasNext())
+          {
+            definition.append(" $ ");
+            definition.append(iterator.next().getNameOrOID());
+          }
+
+          definition.append(" )");
+        }
+        else
+        {
+          definition.append(oc.getNameOrOID());
+        }
       }
 
       if (objectClassType != null)
@@ -267,7 +286,8 @@ public final class TestObjectClass extends TestCommonSchemaElements {
 
 
       return new ObjectClass(definition.toString(), primaryName, names, oid,
-                             description, superior, requiredAttributeTypes,
+                             description, superior,
+                             requiredAttributeTypes,
                              optionalAttributeTypes, objectClassType,
                              isObsolete, extraProperties);
     }
@@ -292,7 +312,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
      * @param superior
      *          The superior.
      */
-    public void setSuperior(ObjectClass superior) {
+    public void setSuperior(Set<ObjectClass> superior) {
       this.superior = superior;
     }
 
@@ -375,7 +395,8 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     Map<String, List<String>> emptyMap = Collections.emptyMap();
 
     new ObjectClass(null, "test", Collections.singleton("test"), null,
-        "description", DirectoryServer.getTopObjectClass(), emptySet,
+        "description", Collections.singleton(DirectoryServer.getTopObjectClass()),
+        emptySet,
         emptySet, ObjectClassType.STRUCTURAL, false, emptyMap);
   }
 
@@ -494,7 +515,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     ObjectClass parent = builder.getInstance();
 
     builder = new ObjectClassBuilder("child", "1.2.3");
-    builder.setSuperior(parent);
+    builder.setSuperior(Collections.singleton(parent));
     ObjectClass child = builder.getInstance();
 
     Set<AttributeType> chain = child.getOptionalAttributeChain();
@@ -502,6 +523,42 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     Assert.assertTrue(chain.contains(types[0]));
     Assert.assertTrue(chain.contains(types[1]));
     Assert.assertTrue(chain.contains(types[2]));
+  }
+
+
+
+  /**
+   * Check the {@link ObjectClass#getOptionalAttributeChain()} method
+   * with multiple superiors but no optional attributes of its own.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test
+  public void testGetOptionalAttributeChainEmptyMS() throws Exception {
+    ObjectClassBuilder builder1 = new ObjectClassBuilder("parent1",
+        "1.2.3");
+    builder1.addOptionalAttributeTypes(types[0], types[1], types[2]);
+    ObjectClass parent1 = builder1.getInstance();
+
+    ObjectClassBuilder builder2 = new ObjectClassBuilder("parent2","3.4.5");
+    builder2.addOptionalAttributeTypes(types[3], types[4], types[5]);
+    ObjectClass parent2 = builder2.getInstance();
+    Set<ObjectClass> superiors = new LinkedHashSet<ObjectClass>();
+    superiors.add(parent1);
+    superiors.add(parent2);
+    ObjectClassBuilder builder3 = new ObjectClassBuilder("child", "6.7.8");
+    builder3.setSuperior(superiors);
+    ObjectClass child = builder3.getInstance();
+
+    Set<AttributeType> chain = child.getOptionalAttributeChain();
+    Assert.assertEquals(chain.size(), 6);
+    Assert.assertTrue(chain.contains(types[0]));
+    Assert.assertTrue(chain.contains(types[1]));
+    Assert.assertTrue(chain.contains(types[2]));
+    Assert.assertTrue(chain.contains(types[3]));
+    Assert.assertTrue(chain.contains(types[4]));
+    Assert.assertTrue(chain.contains(types[5]));
   }
 
 
@@ -522,7 +579,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
 
     builder = new ObjectClassBuilder("child", "1.2.3");
     builder.addOptionalAttributeTypes(types[3], types[4], types[5]);
-    builder.setSuperior(parent);
+    builder.setSuperior(Collections.singleton(parent));
     ObjectClass child = builder.getInstance();
 
     Set<AttributeType> chain = child.getOptionalAttributeChain();
@@ -533,6 +590,46 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     Assert.assertTrue(chain.contains(types[3]));
     Assert.assertTrue(chain.contains(types[4]));
     Assert.assertTrue(chain.contains(types[5]));
+  }
+
+
+
+  /**
+   * Check the {@link ObjectClass#getOptionalAttributeChain()} method
+   * with multiple superiors and some optional attributes of its own.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test
+  public void testGetOptionalAttributeChainMS() throws Exception {
+    ObjectClassBuilder builder1 = new ObjectClassBuilder("parent1",
+        "1.2.3");
+    builder1.addOptionalAttributeTypes(types[0], types[1], types[2]);
+    ObjectClass parent1 = builder1.getInstance();
+
+    ObjectClassBuilder builder2 = new ObjectClassBuilder("parent2","3.4.5");
+    builder2.addOptionalAttributeTypes(types[3], types[4], types[5]);
+    ObjectClass parent2 = builder2.getInstance();
+    Set<ObjectClass> superiors = new LinkedHashSet<ObjectClass>();
+    superiors.add(parent1);
+    superiors.add(parent2);
+    ObjectClassBuilder builder3 = new ObjectClassBuilder("child", "6.7.8");
+    builder3.addOptionalAttributeTypes(types[6], types[7], types[8]);
+    builder3.setSuperior(superiors);
+    ObjectClass child = builder3.getInstance();
+
+    Set<AttributeType> chain = child.getOptionalAttributeChain();
+    Assert.assertEquals(chain.size(), 9);
+    Assert.assertTrue(chain.contains(types[0]));
+    Assert.assertTrue(chain.contains(types[1]));
+    Assert.assertTrue(chain.contains(types[2]));
+    Assert.assertTrue(chain.contains(types[3]));
+    Assert.assertTrue(chain.contains(types[4]));
+    Assert.assertTrue(chain.contains(types[5]));
+    Assert.assertTrue(chain.contains(types[6]));
+    Assert.assertTrue(chain.contains(types[7]));
+    Assert.assertTrue(chain.contains(types[8]));
   }
 
 
@@ -593,7 +690,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     ObjectClass parent = builder.getInstance();
 
     builder = new ObjectClassBuilder("child", "1.2.3");
-    builder.setSuperior(parent);
+    builder.setSuperior(Collections.singleton(parent));
     ObjectClass child = builder.getInstance();
 
     Assert.assertTrue(child.getOptionalAttributes().isEmpty());
@@ -617,7 +714,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
 
     builder = new ObjectClassBuilder("child", "1.2.3");
     builder.addOptionalAttributeTypes(types[3], types[4], types[5]);
-    builder.setSuperior(parent);
+    builder.setSuperior(Collections.singleton(parent));
     ObjectClass child = builder.getInstance();
 
     Set<AttributeType> chain = child.getOptionalAttributes();
@@ -686,7 +783,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     ObjectClass parent = builder.getInstance();
 
     builder = new ObjectClassBuilder("child", "1.2.3");
-    builder.setSuperior(parent);
+    builder.setSuperior(Collections.singleton(parent));
     ObjectClass child = builder.getInstance();
 
     Set<AttributeType> chain = child.getRequiredAttributeChain();
@@ -694,6 +791,42 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     Assert.assertTrue(chain.contains(types[0]));
     Assert.assertTrue(chain.contains(types[1]));
     Assert.assertTrue(chain.contains(types[2]));
+  }
+
+
+
+  /**
+   * Check the {@link ObjectClass#getRequiredAttributeChain()} method
+   * with multiple superiors but no optional attributes of its own.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test
+  public void testGetRequiredAttributeChainEmptyMS() throws Exception {
+    ObjectClassBuilder builder = new ObjectClassBuilder("parent1",
+        "1.2.3");
+    builder.addRequiredAttributeTypes(types[0], types[1], types[2]);
+    ObjectClass parent1 = builder.getInstance();
+
+    builder = new ObjectClassBuilder("parent2","3.4.5");
+    builder.addRequiredAttributeTypes(types[3], types[4], types[5]);
+    ObjectClass parent2 = builder.getInstance();
+    Set<ObjectClass> superiors = new LinkedHashSet<ObjectClass>();
+    superiors.add(parent1);
+    superiors.add(parent2);
+    builder = new ObjectClassBuilder("child", "6.7.8");
+    builder.setSuperior(superiors);
+    ObjectClass child = builder.getInstance();
+
+    Set<AttributeType> chain = child.getRequiredAttributeChain();
+    Assert.assertEquals(chain.size(), 6);
+    Assert.assertTrue(chain.contains(types[0]));
+    Assert.assertTrue(chain.contains(types[1]));
+    Assert.assertTrue(chain.contains(types[2]));
+    Assert.assertTrue(chain.contains(types[3]));
+    Assert.assertTrue(chain.contains(types[4]));
+    Assert.assertTrue(chain.contains(types[5]));
   }
 
 
@@ -714,7 +847,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
 
     builder = new ObjectClassBuilder("child", "1.2.3");
     builder.addRequiredAttributeTypes(types[3], types[4], types[5]);
-    builder.setSuperior(parent);
+    builder.setSuperior(Collections.singleton(parent));
     ObjectClass child = builder.getInstance();
 
     Set<AttributeType> chain = child.getRequiredAttributeChain();
@@ -725,6 +858,46 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     Assert.assertTrue(chain.contains(types[3]));
     Assert.assertTrue(chain.contains(types[4]));
     Assert.assertTrue(chain.contains(types[5]));
+  }
+
+
+
+  /**
+   * Check the {@link ObjectClass#getRequiredAttributeChain()} method
+   * with multiple superiors and some optional attributes of its own.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test
+  public void testGetRequiredAttributeChainMS() throws Exception {
+     ObjectClassBuilder builder = new ObjectClassBuilder("parent1",
+        "1.2.3");
+    builder.addRequiredAttributeTypes(types[0], types[1], types[2]);
+    ObjectClass parent1 = builder.getInstance();
+
+    builder = new ObjectClassBuilder("parent2","3.4.5");
+    builder.addRequiredAttributeTypes(types[3], types[4], types[5]);
+    ObjectClass parent2 = builder.getInstance();
+    Set<ObjectClass> superiors = new LinkedHashSet<ObjectClass>();
+    superiors.add(parent1);
+    superiors.add(parent2);
+    builder = new ObjectClassBuilder("child", "6.7.8");
+    builder.addRequiredAttributeTypes(types[6], types[7], types[8]);
+    builder.setSuperior(superiors);
+    ObjectClass child = builder.getInstance();
+
+    Set<AttributeType> chain = child.getRequiredAttributeChain();
+    Assert.assertEquals(chain.size(), 9);
+    Assert.assertTrue(chain.contains(types[0]));
+    Assert.assertTrue(chain.contains(types[1]));
+    Assert.assertTrue(chain.contains(types[2]));
+    Assert.assertTrue(chain.contains(types[3]));
+    Assert.assertTrue(chain.contains(types[4]));
+    Assert.assertTrue(chain.contains(types[5]));
+    Assert.assertTrue(chain.contains(types[6]));
+    Assert.assertTrue(chain.contains(types[7]));
+    Assert.assertTrue(chain.contains(types[8]));
   }
 
 
@@ -785,7 +958,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     ObjectClass parent = builder.getInstance();
 
     builder = new ObjectClassBuilder("child", "1.2.3");
-    builder.setSuperior(parent);
+    builder.setSuperior(Collections.singleton(parent));
     ObjectClass child = builder.getInstance();
 
     Assert.assertTrue(child.getRequiredAttributes().isEmpty());
@@ -809,7 +982,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
 
     builder = new ObjectClassBuilder("child", "1.2.3");
     builder.addRequiredAttributeTypes(types[3], types[4], types[5]);
-    builder.setSuperior(parent);
+    builder.setSuperior(Collections.singleton(parent));
     ObjectClass child = builder.getInstance();
 
     Set<AttributeType> chain = child.getRequiredAttributes();
@@ -822,7 +995,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
 
 
   /**
-   * Check the {@link ObjectClass#getSuperiorClass()} method with no
+   * Check the {@link ObjectClass#getSuperiorClasses()} method with no
    * superior.
    *
    * @throws Exception
@@ -833,13 +1006,13 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     ObjectClassBuilder builder = new ObjectClassBuilder("testType",
         "1.2.3");
     ObjectClass c = builder.getInstance();
-    Assert.assertNull(c.getSuperiorClass());
+    Assert.assertTrue(c.getSuperiorClasses().isEmpty());
   }
 
 
 
   /**
-   * Check the {@link ObjectClass#getSuperiorClass()} method with a
+   * Check the {@link ObjectClass#getSuperiorClasses()} method with a
    * superior.
    *
    * @throws Exception
@@ -852,10 +1025,37 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     ObjectClass parent = builder.getInstance();
 
     builder = new ObjectClassBuilder("child", "1.2.3");
-    builder.setSuperior(parent);
+    builder.setSuperior(Collections.singleton(parent));
     ObjectClass child = builder.getInstance();
 
-    Assert.assertEquals(child.getSuperiorClass(), parent);
+    Assert.assertTrue(child.getSuperiorClasses().contains(parent));
+  }
+
+
+
+  /**
+   * Check the {@link ObjectClass#getSuperiorClasses()} method with multiple
+   * superiors.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test
+  public void testGetSuperiorClassWithSuperiors() throws Exception {
+    ObjectClassBuilder builder = new ObjectClassBuilder("parent1",
+        "1.2.3");
+    ObjectClass parent1 = builder.getInstance();
+    builder = new ObjectClassBuilder("parent2",
+            "2.3.4");
+    ObjectClass parent2 = builder.getInstance();
+    Set<ObjectClass> superiors = new LinkedHashSet<ObjectClass>();
+    superiors.add(parent1);
+    superiors.add(parent2);
+    builder = new ObjectClassBuilder("child", "1.2.3.4");
+    builder.setSuperior(superiors);
+    ObjectClass child = builder.getInstance();
+    Assert.assertTrue(child.getSuperiorClasses().contains(parent1));
+    Assert.assertTrue(child.getSuperiorClasses().contains(parent2));
   }
 
 
@@ -895,11 +1095,11 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     ObjectClass grandParent = builder.getInstance();
 
     builder = new ObjectClassBuilder("parent", "1.2.2");
-    builder.setSuperior(grandParent);
+    builder.setSuperior(Collections.singleton(grandParent));
     ObjectClass parent = builder.getInstance();
 
     builder = new ObjectClassBuilder("child", "1.2.3");
-    builder.setSuperior(parent);
+    builder.setSuperior(Collections.singleton(parent));
     ObjectClass child = builder.getInstance();
 
     Assert.assertTrue(parent.isDescendantOf(grandParent));
@@ -908,6 +1108,45 @@ public final class TestObjectClass extends TestCommonSchemaElements {
 
     Assert.assertFalse(child.isDescendantOf(child));
     Assert.assertFalse(parent.isDescendantOf(child));
+    Assert.assertFalse(grandParent.isDescendantOf(child));
+  }
+
+
+
+  /**
+   * Check the {@link ObjectClass#isDescendantOf(ObjectClass)} method
+   * with multiple superiors.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test
+  public void testIsDescendantOfWithMultipleSuperiors() throws Exception {
+    ObjectClassBuilder builder = new ObjectClassBuilder(
+        "grandParent", "1.2.1");
+    ObjectClass grandParent = builder.getInstance();
+
+    builder = new ObjectClassBuilder("parent1", "1.2.2");
+    builder.setSuperior(Collections.singleton(grandParent));
+    ObjectClass parent1 = builder.getInstance();
+
+    builder = new ObjectClassBuilder("parent2","2.2.2");
+    ObjectClass parent2 = builder.getInstance();
+    Set<ObjectClass> superiors = new LinkedHashSet<ObjectClass>();
+    superiors.add(parent1);
+    superiors.add(parent2);
+    builder = new ObjectClassBuilder("child", "1.2.3");
+    builder.setSuperior(superiors);
+    ObjectClass child = builder.getInstance();
+
+    Assert.assertTrue(parent1.isDescendantOf(grandParent));
+    Assert.assertTrue(child.isDescendantOf(parent1));
+    Assert.assertTrue(child.isDescendantOf(parent2));
+    Assert.assertTrue(child.isDescendantOf(grandParent));
+
+    Assert.assertFalse(child.isDescendantOf(child));
+    Assert.assertFalse(parent1.isDescendantOf(child));
+    Assert.assertFalse(parent1.isDescendantOf(parent2));
     Assert.assertFalse(grandParent.isDescendantOf(child));
   }
 
@@ -1001,7 +1240,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     builder.addOptionalAttributeTypes(types[0]);
     ObjectClass parent = builder.getInstance();
     builder = new ObjectClassBuilder("child", "1.2.3");
-    builder.setSuperior(parent);
+    builder.setSuperior(Collections.singleton(parent));
     ObjectClass child = builder.getInstance();
 
     Assert.assertTrue(child.isOptional(types[0]));
@@ -1025,7 +1264,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     ObjectClass parent = builder.getInstance();
     builder = new ObjectClassBuilder("child", "1.2.3");
     builder.addOptionalAttributeTypes(types[1]);
-    builder.setSuperior(parent);
+    builder.setSuperior(Collections.singleton(parent));
     ObjectClass child = builder.getInstance();
 
     Assert.assertTrue(child.isOptional(types[0]));
@@ -1087,7 +1326,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     ObjectClass parent = builder.getInstance();
 
     builder = new ObjectClassBuilder("extensibleObject", "1.2.3");
-    builder.setSuperior(parent);
+    builder.setSuperior(Collections.singleton(parent));
     ObjectClass c = builder.getInstance();
 
     Assert.assertFalse(c.isOptional(types[0]));
@@ -1146,7 +1385,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     builder.addRequiredAttributeTypes(types[0]);
     ObjectClass parent = builder.getInstance();
     builder = new ObjectClassBuilder("child", "1.2.3");
-    builder.setSuperior(parent);
+    builder.setSuperior(Collections.singleton(parent));
     ObjectClass child = builder.getInstance();
 
     Assert.assertTrue(child.isRequired(types[0]));
@@ -1170,7 +1409,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     ObjectClass parent = builder.getInstance();
     builder = new ObjectClassBuilder("child", "1.2.3");
     builder.addRequiredAttributeTypes(types[1]);
-    builder.setSuperior(parent);
+    builder.setSuperior(Collections.singleton(parent));
     ObjectClass child = builder.getInstance();
 
     Assert.assertTrue(child.isRequired(types[0]));
@@ -1234,7 +1473,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     builder.addRequiredAttributeTypes(types[1]);
     ObjectClass parent = builder.getInstance();
     builder = new ObjectClassBuilder("child", "1.2.3");
-    builder.setSuperior(parent);
+    builder.setSuperior(Collections.singleton(parent));
     ObjectClass child = builder.getInstance();
 
     Assert.assertTrue(child.isRequiredOrOptional(types[0]));
@@ -1261,7 +1500,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     builder = new ObjectClassBuilder("child", "1.2.3");
     builder.addOptionalAttributeTypes(types[2]);
     builder.addRequiredAttributeTypes(types[3]);
-    builder.setSuperior(parent);
+    builder.setSuperior(Collections.singleton(parent));
     ObjectClass child = builder.getInstance();
 
     Assert.assertTrue(child.isRequiredOrOptional(types[0]));
@@ -1326,7 +1565,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     ObjectClass parent = builder.getInstance();
 
     builder = new ObjectClassBuilder("extensibleObject", "1.2.3");
-    builder.setSuperior(parent);
+    builder.setSuperior(Collections.singleton(parent));
     ObjectClass c = builder.getInstance();
 
     Assert.assertTrue(c.isRequiredOrOptional(types[0]));
@@ -1367,7 +1606,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     builder.setDescription("A description");
     builder.setObjectClassType(ObjectClassType.ABSTRACT);
     builder.setObsolete(true);
-    builder.setSuperior(parent);
+    builder.setSuperior(Collections.singleton(parent));
     builder.addRequiredAttributeTypes(types[0], types[1], types[2]);
     builder.addOptionalAttributeTypes(types[3]);
     builder.addExtraProperty(
@@ -1378,6 +1617,80 @@ public final class TestObjectClass extends TestCommonSchemaElements {
         + "DESC 'A description' " + "OBSOLETE " + "SUP parentClass "
         + "ABSTRACT " + "MUST ( testType0 $ testType1 $ testType2 ) "
         + "MAY testType3 " + "X-SCHEMA-FILE '/foo/bar' )");
+  }
+
+
+
+  /**
+   * Create test data for testing different combinations of superiors.
+   *
+   * @return Returns the array of test data.
+   */
+  @DataProvider(name = "superiorData")
+  public Object[][] createSuperiorData() {
+    ObjectClassBuilder builder = new ObjectClassBuilder(
+        "parent1", "1.1");
+    builder.setObjectClassType(ObjectClassType.ABSTRACT);
+    ObjectClass parent1 = builder.getInstance();
+
+    builder = new ObjectClassBuilder(
+        "parent2", "1.2");
+    builder.setObjectClassType(ObjectClassType.ABSTRACT);
+    ObjectClass parent2 = builder.getInstance();
+
+    builder = new ObjectClassBuilder(
+        "parent3", "1.3");
+    builder.setObjectClassType(ObjectClassType.STRUCTURAL);
+    ObjectClass parent3 = builder.getInstance();
+
+    builder = new ObjectClassBuilder(
+        "parent4", "1.4");
+    ObjectClass parent4 = builder.getInstance();
+
+    builder = new ObjectClassBuilder(
+        "parent5", "1.5");
+    builder.setObjectClassType(ObjectClassType.AUXILIARY);
+    ObjectClass parent5 = builder.getInstance();
+
+    builder = new ObjectClassBuilder(
+        "parent6", "1.6");
+    builder.setObjectClassType(ObjectClassType.AUXILIARY);
+    ObjectClass parent6 = builder.getInstance();
+
+    return new Object[][] { { parent1, parent2, ObjectClassType.ABSTRACT,true },
+        { parent3, parent4, ObjectClassType.STRUCTURAL,true },
+        { parent5, parent6, ObjectClassType.AUXILIARY,true }
+    };
+  }
+
+
+
+  /**
+   * Check incompatible superiors.
+   *
+   * @param parent1
+   *          First superior
+   * @param parent2
+   *          Second superior
+   * @param type
+   *          The object class type.
+   * @param isValid
+   *          Whether the superior combination is valid.
+   */
+  @Test(dataProvider = "superiorData")
+  public void testMultipleSuperiors(ObjectClass parent1,
+          ObjectClass parent2,
+          ObjectClassType type,
+          boolean isValid) throws Exception {
+    ObjectClassBuilder builder = new ObjectClassBuilder("testType",
+        "1.2.3");
+    builder.setObjectClassType(type);
+    Set<ObjectClass> superiors = new LinkedHashSet<ObjectClass>();
+    superiors.add(parent1);
+    superiors.add(parent2);
+    builder.setSuperior(superiors);
+    ObjectClass child = builder.getInstance();
+    Assert.assertTrue(child.getSuperiorClasses().size()==2);
   }
 
 

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -58,7 +58,7 @@ public class SelectAliasDialog extends JDialog
 {
   private JButton okButton;
   private JComboBox comboAliases;
-  private boolean isCancelled;
+  private boolean isCanceled;
 
   private static final long serialVersionUID = -8140704273612764046L;
 
@@ -103,7 +103,7 @@ public class SelectAliasDialog extends JDialog
       throw new IllegalArgumentException(
           "The provided aliases are null or empty.");
     }
-    isCancelled = true;
+    isCanceled = true;
     TreeSet<String> s = new TreeSet<String>();
     for (int i=0; i<aliases.length; i++)
     {
@@ -122,9 +122,9 @@ public class SelectAliasDialog extends JDialog
    * @return <CODE>true</CODE> if the user clicked on cancel and
    * <CODE>false</CODE> otherwise.
    */
-  public boolean isCancelled()
+  public boolean isCanceled()
   {
-    return isCancelled;
+    return isCanceled;
   }
 
   /**
@@ -231,7 +231,7 @@ public class SelectAliasDialog extends JDialog
    */
   private void cancelClicked()
   {
-    isCancelled = true;
+    isCanceled = true;
     dispose();
   }
 
@@ -241,7 +241,7 @@ public class SelectAliasDialog extends JDialog
    */
   private void okClicked()
   {
-    isCancelled = false;
+    isCanceled = false;
     dispose();
   }
 

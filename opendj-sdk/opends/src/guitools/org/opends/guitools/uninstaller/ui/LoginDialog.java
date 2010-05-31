@@ -96,7 +96,7 @@ public class LoginDialog extends JDialog
   private JButton cancelButton;
   private JButton okButton;
 
-  private boolean isCancelled = true;
+  private boolean isCanceled = true;
 
   private ApplicationTrustManager trustManager;
   private int timeout;
@@ -144,9 +144,9 @@ public class LoginDialog extends JDialog
    * @return <CODE>true</CODE> if the user clicked on cancel and
    * <CODE>false</CODE> otherwise.
    */
-  public boolean isCancelled()
+  public boolean isCanceled()
   {
-    return isCancelled;
+    return isCanceled;
   }
 
   /**
@@ -372,7 +372,7 @@ public class LoginDialog extends JDialog
    */
   private void cancelClicked()
   {
-    isCancelled = true;
+    isCanceled = true;
     dispose();
   }
 
@@ -588,7 +588,7 @@ public class LoginDialog extends JDialog
           UIFactory.setTextStyle(lPwd,
               UIFactory.TextStyle.PRIMARY_FIELD_VALID);
 
-          isCancelled = false;
+          isCanceled = false;
           cancelButton.setEnabled(true);
           okButton.setEnabled(true);
           dispose();

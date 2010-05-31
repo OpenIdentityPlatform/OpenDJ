@@ -32,11 +32,10 @@ import static org.opends.messages.AdminToolMessages.*;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -44,8 +43,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
@@ -63,13 +60,17 @@ import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.event.
  ConfigurationElementCreatedListener;
+import org.opends.guitools.controlpanel.event.SuperiorObjectClassesChangedEvent;
+import org.opends.guitools.controlpanel.event.
+ SuperiorObjectClassesChangedListener;
 import org.opends.guitools.controlpanel.task.NewSchemaElementsTask;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.components.BasicExpander;
 import org.opends.guitools.controlpanel.ui.components.DoubleAddRemovePanel;
+import org.opends.guitools.controlpanel.ui.components.
+ SuperiorObjectClassesEditor;
 import
 org.opends.guitools.controlpanel.ui.renderer.SchemaElementComboBoxCellRenderer;
-import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -91,7 +92,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
  private static final long serialVersionUID = -4956885827963184571L;
   private JLabel lName = Utilities.createPrimaryLabel(
       INFO_CTRL_PANEL_OBJECTCLASS_NAME_LABEL.get());
-  private JLabel lParent = Utilities.createPrimaryLabel(
+  private JLabel lSuperior = Utilities.createPrimaryLabel(
       INFO_CTRL_PANEL_OBJECTCLASS_PARENT_LABEL.get());
   private JLabel lOID = Utilities.createPrimaryLabel(
       INFO_CTRL_PANEL_OBJECTCLASS_OID_LABEL.get());
@@ -114,12 +115,13 @@ public class NewObjectClassPanel extends StatusGenericPanel
   private Set<AttributeType> inheritedRequiredAttributes =
     new HashSet<AttributeType>();
 
-  private JLabel[] labels = {lName, lParent, lOID, lAliases, lOrigin, lFile,
+  private JLabel[] labels = {lName, lSuperior, lOID, lAliases, lOrigin, lFile,
       lDescription, lType, lAttributes
   };
 
   private JTextField name = Utilities.createMediumTextField();
-  private JComboBox parent = Utilities.createComboBox();
+  private SuperiorObjectClassesEditor superiors = new
+  SuperiorObjectClassesEditor();
   private JComboBox type = Utilities.createComboBox();
   private JTextField oid = Utilities.createMediumTextField();
   private JTextField description = Utilities.createLongTextField();
@@ -169,8 +171,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
     final ServerDescriptor desc = ev.getNewDescriptor();
     Schema s = desc.getSchema();
 
-    final boolean firstSchema = schema == null;
-    final boolean[] repack = {firstSchema};
+    final boolean[] repack = {schema == null};
     final boolean[] error = {false};
 
     final boolean schemaChanged;
@@ -193,26 +194,8 @@ public class NewObjectClassPanel extends StatusGenericPanel
     if (schemaChanged)
     {
       schema = s;
-
-      HashMap<String, ObjectClass> objectClassNameMap = new HashMap<String,
-      ObjectClass>();
-      for (String key : schema.getObjectClasses().keySet())
-      {
-        ObjectClass oc = schema.getObjectClass(key);
-        objectClassNameMap.put(oc.getNameOrOID(), oc);
-      }
-      SortedSet<String> orderedKeys =
-        new TreeSet<String>(new LowerCaseComparator());
-      orderedKeys.addAll(objectClassNameMap.keySet());
-      ArrayList<Object> newParents = new ArrayList<Object>();
-      for (String key : orderedKeys)
-      {
-        newParents.add(objectClassNameMap.get(key));
-      }
-      updateComboBoxModel(newParents,
-          ((DefaultComboBoxModel)parent.getModel()));
     }
-    else
+    else if (schema == null)
     {
       updateErrorPane(errorPane,
           ERR_CTRL_PANEL_SCHEMA_NOT_FOUND_SUMMARY.get(),
@@ -230,12 +213,9 @@ public class NewObjectClassPanel extends StatusGenericPanel
         errorPane.setVisible(error[0]);
         if (schema != null)
         {
-          if (firstSchema)
-          {
-            parent.setSelectedItem(schema.getObjectClass("top"));
-          }
           if (schemaChanged)
           {
+            superiors.setSchema(schema);
             updateAttributes();
           }
         }
@@ -335,6 +315,9 @@ public class NewObjectClassPanel extends StatusGenericPanel
       }
     }
 
+    checkCompatibleSuperiors(getObjectClassSuperiors(), getObjectClassType(),
+        errors);
+
     ProgressDialog dlg = new ProgressDialog(
         Utilities.createFrame(),
         Utilities.getParentDialog(this),
@@ -373,6 +356,14 @@ public class NewObjectClassPanel extends StatusGenericPanel
       oid.setText("");
       description.setText("");
       aliases.setText("");
+      superiors.setSelectedSuperiors(
+          Collections.singleton(schema.getObjectClass("top")));
+      attributes.getAvailableListModel().addAll(
+          attributes.getSelectedListModel1().getData());
+      attributes.getAvailableListModel().addAll(
+          attributes.getSelectedListModel2().getData());
+      attributes.getSelectedListModel1().clear();
+      attributes.getSelectedListModel2().clear();
       name.grabFocus();
       Utilities.getParentDialog(this).setVisible(false);
     }
@@ -488,17 +479,14 @@ public class NewObjectClassPanel extends StatusGenericPanel
     gbc.anchor = GridBagConstraints.WEST;
     gbc.insets.bottom = 0;
 
-    SchemaElementComboBoxCellRenderer renderer = new
-    SchemaElementComboBoxCellRenderer(parent);
-    DefaultComboBoxModel model = new DefaultComboBoxModel();
-    parent.setModel(model);
-    parent.setRenderer(renderer);
-    ItemListener itemListener = new ItemListener()
+    SuperiorObjectClassesChangedListener listener =
+      new SuperiorObjectClassesChangedListener()
     {
       /**
        * {@inheritDoc}
        */
-      public void itemStateChanged(ItemEvent ev)
+      public void parentObjectClassesChanged(
+          SuperiorObjectClassesChangedEvent ev)
       {
         // Remove the previous inherited attributes.
         for (AttributeType attr : inheritedRequiredAttributes)
@@ -514,18 +502,16 @@ public class NewObjectClassPanel extends StatusGenericPanel
 
         inheritedOptionalAttributes.clear();
         inheritedRequiredAttributes.clear();
-        ObjectClass p = (ObjectClass)parent.getSelectedItem();
-        while (p != null)
+        for (ObjectClass oc : superiors.getSelectedSuperiors())
         {
-          for (AttributeType attr : p.getRequiredAttributeChain())
+          for (AttributeType attr : oc.getRequiredAttributeChain())
           {
             inheritedRequiredAttributes.add(attr);
           }
-          for (AttributeType attr : p.getOptionalAttributeChain())
+          for (AttributeType attr : oc.getOptionalAttributeChain())
           {
             inheritedOptionalAttributes.add(attr);
           }
-          p = p.getSuperiorClass();
         }
         for (AttributeType attr : inheritedRequiredAttributes)
         {
@@ -551,17 +537,30 @@ public class NewObjectClassPanel extends StatusGenericPanel
           new ArrayList<AttributeType>(inheritedRequiredAttributes);
         unmovableItems.addAll(inheritedOptionalAttributes);
         attributes.setUnmovableItems(unmovableItems);
+
+        if (ev.getNewObjectClasses().size() > 1)
+        {
+          lSuperior.setText(
+              INFO_CTRL_PANEL_OBJECTCLASS_PARENTS_LABEL.get().toString());
+        }
+        else
+        {
+          lSuperior.setText(
+              INFO_CTRL_PANEL_OBJECTCLASS_PARENT_LABEL.get().toString());
+        }
       }
     };
-    parent.addItemListener(itemListener);
+    superiors.addParentObjectClassesChangedListener(listener);
 
-    model = new DefaultComboBoxModel();
+    DefaultComboBoxModel model = new DefaultComboBoxModel();
     for (ObjectClassType t : ObjectClassType.values())
     {
       model.addElement(t);
     }
     type.setModel(model);
     type.setSelectedItem(ObjectClassType.STRUCTURAL);
+    SchemaElementComboBoxCellRenderer renderer = new
+    SchemaElementComboBoxCellRenderer(type);
     type.setRenderer(renderer);
 
     attributes =
@@ -581,8 +580,8 @@ public class NewObjectClassPanel extends StatusGenericPanel
     attributes.getSelectedListModel1().setComparator(comparator);
     attributes.getSelectedListModel2().setComparator(comparator);
 
-    Component[] basicComps = {name, oid, description, parent};
-    JLabel[] basicLabels = {lName, lOID, lDescription, lParent};
+    Component[] basicComps = {name, oid, description, superiors};
+    JLabel[] basicLabels = {lName, lOID, lDescription, lSuperior};
     JLabel[] basicInlineHelp = new JLabel[] {null, null, null, null};
     add(basicLabels, basicComps, basicInlineHelp, this, gbc);
 
@@ -681,9 +680,9 @@ public class NewObjectClassPanel extends StatusGenericPanel
     return o;
   }
 
-  private ObjectClass getSuperior()
+  private Set<ObjectClass> getObjectClassSuperiors()
   {
-    return (ObjectClass)parent.getSelectedItem();
+    return superiors.getSelectedSuperiors();
   }
 
   private Map<String, List<String>> getExtraProperties()
@@ -739,7 +738,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
     ObjectClass oc = new ObjectClass("", getObjectClassName(), getAllNames(),
         getOID(),
         getDescription(),
-        getSuperior(),
+        getObjectClassSuperiors(),
         getRequiredAttributes(),
         getOptionalAttributes(),
         getObjectClassType(),

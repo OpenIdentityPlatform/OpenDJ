@@ -67,7 +67,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
 
  private LinkedHashSet<T> monitoringAttributes;
 
- private boolean isCancelled = true;
+ private boolean isCanceled = true;
 
  // Note: the order of the checkboxes and the elements in the Attributes
  // enumeration will be the same.
@@ -293,7 +293,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
  {
    if (visible)
    {
-     isCancelled = true;
+     isCanceled = true;
    }
  }
 
@@ -321,7 +321,7 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
    }
    else
    {
-     isCancelled = false;
+     isCanceled = false;
      super.closeClicked();
    }
  }
@@ -340,9 +340,9 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
   * @return <CODE>true</CODE> if the user closed the dialog by cancelling it
   * and <CODE>false</CODE> otherwise.
   */
- public boolean isCancelled()
+ public boolean isCanceled()
  {
-   return isCancelled;
+   return isCanceled;
  }
 
  /**

@@ -455,12 +455,11 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
             schema.getObjectClass(ocValue.getStructural().toLowerCase());
           if (oc != null)
           {
-            ObjectClass parent = oc.getSuperiorClass();
-            while (parent != null)
+            Set<String> names = getObjectClassSuperiorValues(oc);
+            for (String name : names)
             {
               sb.append("\n");
-              sb.append(attrName+": "+parent.getNameOrOID());
-              parent = parent.getSuperiorClass();
+              sb.append(attrName+": "+name);
             }
           }
         }
@@ -712,5 +711,28 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
       filteredValue = value;
     }
     return filteredValue;
+  }
+
+
+  /**
+   * Returns the list of superior object classes (to top) for a given object
+   * class.
+   * @param oc the object class.
+   * @return the set of superior object classes for a given object classes.
+   */
+  protected Set<String> getObjectClassSuperiorValues(
+      ObjectClass oc)
+  {
+    Set<String> names = new LinkedHashSet<String>();
+    Set<ObjectClass> parents = oc.getSuperiorClasses();
+    if (parents != null && !parents.isEmpty())
+    {
+      for (ObjectClass parent : parents)
+      {
+        names.add(parent.getNameOrOID());
+        names.addAll(getObjectClassSuperiorValues(parent));
+      }
+    }
+    return names;
   }
 }

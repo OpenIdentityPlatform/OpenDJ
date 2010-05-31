@@ -846,7 +846,7 @@ public class ServerDescriptor
           oc1.getObjectClassType(), oc2.getObjectClassType(),
           oc1.getOptionalAttributes(), oc2.getOptionalAttributes(),
           oc1.getRequiredAttributes(), oc2.getRequiredAttributes(),
-          oc1.getSuperiorClass(), oc2.getSuperiorClass()
+          oc1.getSuperiorClasses(), oc2.getSuperiorClasses()
       };
 
       for (int i=0; i<compareWithEqual.length && areEqual; i++)

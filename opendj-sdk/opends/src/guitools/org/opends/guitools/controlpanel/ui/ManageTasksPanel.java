@@ -894,7 +894,7 @@ public class ManageTasksPanel extends StatusGenericPanel
     operationViewPanel.setSelectedAttributes(
         tableModel.getDisplayedAttributes());
     operationViewDlg.setVisible(true);
-    if (!operationViewPanel.isCancelled())
+    if (!operationViewPanel.isCanceled())
     {
       LinkedHashSet<Message> displayedAttributes =
         operationViewPanel.getAttributes();

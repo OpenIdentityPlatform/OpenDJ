@@ -4467,16 +4467,17 @@ public final class StaticUtils
       HashSet<ObjectClass> additionalClasses = null;
       for (ObjectClass oc : objectClasses.keySet())
       {
-        ObjectClass superiorClass = oc.getSuperiorClass();
-        if ((superiorClass != null) &&
-            (! objectClasses.containsKey(superiorClass)))
+        for(ObjectClass superiorClass : oc.getSuperiorClasses())
         {
-          if (additionalClasses == null)
+          if (! objectClasses.containsKey(superiorClass))
           {
-            additionalClasses = new HashSet<ObjectClass>();
-          }
+            if (additionalClasses == null)
+            {
+              additionalClasses = new HashSet<ObjectClass>();
+            }
 
-          additionalClasses.add(superiorClass);
+            additionalClasses.add(superiorClass);
+          }
         }
       }
 
@@ -4498,11 +4499,12 @@ public final class StaticUtils
         objectClasses.put(objectClass, objectClass.getNameOrOID());
       }
 
-      ObjectClass superiorClass = objectClass.getSuperiorClass();
-      if ((superiorClass != null) &&
-          (! objectClasses.containsKey(superiorClass)))
+      for(ObjectClass superiorClass : objectClass.getSuperiorClasses())
       {
-        addObjectClassChain(superiorClass, objectClasses);
+        if (! objectClasses.containsKey(superiorClass))
+        {
+          addObjectClassChain(superiorClass, objectClasses);
+        }
       }
     }
   }

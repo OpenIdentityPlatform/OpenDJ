@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -648,21 +648,27 @@ public class DeleteSchemaElementsTask extends Task
       }
     }
     boolean hasSuperior = false;
-    ObjectClass newSuperior = ocToDelete.getSuperiorClass();
-    for (ObjectClass oc : providedOcsToDelete)
+    Set<ObjectClass> newSuperiors = new LinkedHashSet<ObjectClass>();
+    for(ObjectClass sup : ocToDelete.getSuperiorClasses())
     {
-      if (ocToDelete.getSuperiorClass().equals(oc))
+      boolean isFound = false;
+      for(ObjectClass oc: providedOcsToDelete)
       {
-        hasSuperior = true;
-        newSuperior = oc.getSuperiorClass();
-        while (newSuperior != null &&
-            providedOcsToDelete.contains(newSuperior))
+        if(sup.equals(oc))
         {
-          newSuperior = newSuperior.getSuperiorClass();
+          hasSuperior = true;
+          isFound = true;
+          newSuperiors.add(getNewSuperior(oc));
+          break;
         }
-        break;
+      }
+      if(!isFound)
+      {
+        //Use the same super if not found in the list.
+        newSuperiors.add(sup);
       }
     }
+
     if (containsAttribute || hasSuperior)
     {
       ArrayList<String> allNames = new ArrayList<String>();
@@ -693,7 +699,7 @@ public class DeleteSchemaElementsTask extends Task
           allNames,
           ocToDelete.getOID(),
           ocToDelete.getDescription(),
-          newSuperior,
+          newSuperiors,
           required,
           optional,
           ocToDelete.getObjectClassType(),
@@ -706,6 +712,25 @@ public class DeleteSchemaElementsTask extends Task
       ocToAdd = ocToDelete;
     }
     return ocToAdd;
+  }
+
+
+  private ObjectClass getNewSuperior(ObjectClass currentSup)
+  {
+    if(currentSup.getSuperiorClasses() == null ||
+            currentSup.getSuperiorClasses().isEmpty())
+     {
+       return currentSup;
+     }
+
+     if(providedOcsToDelete.contains(currentSup))
+     {
+      for(ObjectClass o : currentSup.getSuperiorClasses())
+      {
+       return getNewSuperior(o);
+      }
+     }
+     return null;
   }
 
 
@@ -828,7 +853,7 @@ public class DeleteSchemaElementsTask extends Task
     LinkedHashSet<ObjectClass> children = new LinkedHashSet<ObjectClass>();
     for (ObjectClass oc : schema.getObjectClasses().values())
     {
-      if (objectClass.equals(oc.getSuperiorClass()))
+      if (oc.getSuperiorClasses().contains(objectClass))
       {
         children.addAll(getOrderedChildrenToDelete(oc, schema));
         children.add(oc);

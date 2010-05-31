@@ -2022,7 +2022,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
     /**
      * Returns the value that the component is displaying.  The returned value
-     * is a Set of Strings (for multivalued attributes), a byte[] for binary
+     * is a Set of Strings (for multi-valued attributes), a byte[] for binary
      * values or a String for single-valued attributes.   Single-valued
      * attributes refer to the definition in the schema (and not to the fact
      * that there is a single value for the attribute in this entry).
@@ -2047,12 +2047,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
           ObjectClass oc = schema.getObjectClass(structural.toLowerCase());
           if (oc != null)
           {
-            ObjectClass parent = oc.getSuperiorClass();
-            while (parent != null)
-            {
-              values.add(parent.getNameOrOID());
-              parent = parent.getSuperiorClass();
-            }
+            values.addAll(getObjectClassSuperiorValues(oc));
           }
         }
         returnValue = values;

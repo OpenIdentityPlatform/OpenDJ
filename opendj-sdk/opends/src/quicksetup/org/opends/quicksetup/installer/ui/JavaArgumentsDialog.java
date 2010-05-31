@@ -80,7 +80,7 @@ public class JavaArgumentsDialog extends JDialog
   private JButton cancelButton;
   private JButton okButton;
 
-  private boolean isCancelled = true;
+  private boolean isCanceled = true;
 
   private Message message;
 
@@ -155,9 +155,9 @@ public class JavaArgumentsDialog extends JDialog
    * @return <CODE>true</CODE> if the user clicked on cancel and
    * <CODE>false</CODE> otherwise.
    */
-  public boolean isCancelled()
+  public boolean isCanceled()
   {
-    return isCancelled;
+    return isCanceled;
   }
 
   /**
@@ -453,7 +453,7 @@ public class JavaArgumentsDialog extends JDialog
    */
   private void cancelClicked()
   {
-    isCancelled = true;
+    isCanceled = true;
     dispose();
   }
 
@@ -593,7 +593,7 @@ public class JavaArgumentsDialog extends JDialog
           {
             if (displayWebStartWarningIfRequired())
             {
-              isCancelled = false;
+              isCanceled = false;
               dispose();
             }
           }

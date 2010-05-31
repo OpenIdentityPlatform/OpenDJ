@@ -36,11 +36,10 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,8 +47,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -74,16 +71,20 @@ import org.opends.guitools.controlpanel.datamodel.SortableListModel;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.event.
  ConfigurationElementCreatedListener;
+import org.opends.guitools.controlpanel.event.SuperiorObjectClassesChangedEvent;
+import org.opends.guitools.controlpanel.event.
+ SuperiorObjectClassesChangedListener;
 import org.opends.guitools.controlpanel.event.ScrollPaneBorderListener;
 import org.opends.guitools.controlpanel.task.DeleteSchemaElementsTask;
 import org.opends.guitools.controlpanel.task.ModifyObjectClassTask;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.components.BasicExpander;
 import org.opends.guitools.controlpanel.ui.components.DoubleAddRemovePanel;
+import org.opends.guitools.controlpanel.ui.components.
+ SuperiorObjectClassesEditor;
 import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.ui.renderer.
  SchemaElementComboBoxCellRenderer;
-import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -110,7 +111,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
   private TitlePanel titlePanel = new TitlePanel(Message.EMPTY, Message.EMPTY);
   private JLabel lName = Utilities.createPrimaryLabel(
       INFO_CTRL_PANEL_OBJECTCLASS_NAME_LABEL.get());
-  private JLabel lParent = Utilities.createPrimaryLabel(
+  private JLabel lSuperior = Utilities.createPrimaryLabel(
       INFO_CTRL_PANEL_OBJECTCLASS_PARENT_LABEL.get());
   private JLabel lOID = Utilities.createPrimaryLabel(
       INFO_CTRL_PANEL_OBJECTCLASS_OID_LABEL.get());
@@ -133,12 +134,13 @@ public class CustomObjectClassPanel extends SchemaElementPanel
   private Set<AttributeType> inheritedRequiredAttributes =
     new HashSet<AttributeType>();
 
-  private JLabel[] labels = {lName, lParent, lOID, lAliases, lOrigin, lFile,
+  private JLabel[] labels = {lName, lSuperior, lOID, lAliases, lOrigin, lFile,
       lDescription, lType, lAttributes
   };
 
   private JTextField name = Utilities.createMediumTextField();
-  private JComboBox parent = Utilities.createComboBox();
+  private SuperiorObjectClassesEditor superiors =
+    new SuperiorObjectClassesEditor();
   private JComboBox type = Utilities.createComboBox();
   private JTextField oid = Utilities.createMediumTextField();
   private JTextField description = Utilities.createLongTextField();
@@ -241,31 +243,41 @@ public class CustomObjectClassPanel extends SchemaElementPanel
    */
   protected void createBasicLayout(Container c, GridBagConstraints gbc)
   {
-    SchemaElementComboBoxCellRenderer renderer = new
-    SchemaElementComboBoxCellRenderer(parent);
-    DefaultComboBoxModel model = new DefaultComboBoxModel();
-    parent.setModel(model);
-    parent.setRenderer(renderer);
-    ItemListener itemListener = new ItemListener()
+    SuperiorObjectClassesChangedListener listener =
+      new SuperiorObjectClassesChangedListener()
     {
       /**
        * {@inheritDoc}
        */
-      public void itemStateChanged(ItemEvent ev)
+      public void parentObjectClassesChanged(
+          SuperiorObjectClassesChangedEvent ev)
       {
         if (ignoreChangeEvents) return;
         updateAttributesWithParent(true);
+        checkEnableSaveChanges();
+        if (ev.getNewObjectClasses().size() > 1)
+        {
+          lSuperior.setText(
+              INFO_CTRL_PANEL_OBJECTCLASS_PARENTS_LABEL.get().toString());
+        }
+        else
+        {
+          lSuperior.setText(
+              INFO_CTRL_PANEL_OBJECTCLASS_PARENT_LABEL.get().toString());
+        }
       }
     };
-    parent.addItemListener(itemListener);
+    superiors.addParentObjectClassesChangedListener(listener);
 
-    model = new DefaultComboBoxModel();
+    DefaultComboBoxModel model = new DefaultComboBoxModel();
     for (ObjectClassType t : ObjectClassType.values())
     {
       model.addElement(t);
     }
     type.setModel(model);
     type.setSelectedItem(ObjectClassType.STRUCTURAL);
+    SchemaElementComboBoxCellRenderer renderer = new
+    SchemaElementComboBoxCellRenderer(type);
     type.setRenderer(renderer);
 
     attributes =
@@ -303,8 +315,8 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     gbc.gridwidth = 1;
     gbc.fill = GridBagConstraints.HORIZONTAL;
 
-    Component[] basicComps = {name, oid, description, parent};
-    JLabel[] basicLabels = {lName, lOID, lDescription, lParent};
+    Component[] basicComps = {name, oid, description, superiors};
+    JLabel[] basicLabels = {lName, lOID, lDescription, lSuperior};
     JLabel[] basicInlineHelp = new JLabel[] {null, null, null, null};
     add(basicLabels, basicComps, basicInlineHelp, c, gbc);
 
@@ -425,11 +437,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
       }
     };
 
-    JComboBox[] combos = {parent, type};
-    for (JComboBox combo : combos)
-    {
-      combo.addActionListener(actionListener);
-    }
+    type.addActionListener(actionListener);
 
     ListDataListener dataListener = new ListDataListener()
     {
@@ -497,7 +505,18 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     modelRequired.clear();
     modelAvailable.clear();
 
-    parent.setSelectedItem(oc.getSuperiorClass());
+    superiors.setSelectedSuperiors(oc.getSuperiorClasses());
+    superiors.setObjectClassesToExclude(Collections.singleton(oc));
+    if (oc.getSuperiorClasses().size() > 1)
+    {
+      lSuperior.setText(
+          INFO_CTRL_PANEL_OBJECTCLASS_PARENTS_LABEL.get().toString());
+    }
+    else
+    {
+      lSuperior.setText(
+          INFO_CTRL_PANEL_OBJECTCLASS_PARENT_LABEL.get().toString());
+    }
 
     updateAttributesWithParent(false);
 
@@ -582,33 +601,6 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     {
       schema = s;
 
-      HashMap<String, ObjectClass> objectClassNameMap = new HashMap<String,
-      ObjectClass>();
-      for (String key : schema.getObjectClasses().keySet())
-      {
-        ObjectClass oc = schema.getObjectClass(key);
-        objectClassNameMap.put(oc.getNameOrOID(), oc);
-      }
-      SortedSet<String> orderedKeys =
-        new TreeSet<String>(new LowerCaseComparator());
-      orderedKeys.addAll(objectClassNameMap.keySet());
-      ArrayList<ObjectClass> newParents = new ArrayList<ObjectClass>();
-      for (String key : orderedKeys)
-      {
-        newParents.add(objectClassNameMap.get(key));
-      }
-
-      updateComboBoxModel(newParents,
-          ((DefaultComboBoxModel)parent.getModel()), new Comparator<Object>()
-      {
-        /**
-         * {@inheritDoc}
-         */
-        public int compare(Object arg0, Object arg1)
-        {
-          return String.valueOf(arg0).compareTo(String.valueOf(arg1));
-        }
-      });
       updateErrorPaneIfAuthRequired(desc,
           isLocal() ?
         INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_FOR_OBJECTCLASS_EDIT.get() :
@@ -637,8 +629,9 @@ public class CustomObjectClassPanel extends SchemaElementPanel
             !authenticationRequired(desc)
             && !authenticationRequired(desc)
             && schema != null);
-        if (schemaChanged)
+        if (schemaChanged && schema != null)
         {
+          superiors.setSchema(schema);
           updateAttributes();
         }
       }
@@ -720,9 +713,12 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     {
       for (ObjectClass o : schema.getObjectClasses().values())
       {
-        if (objectClass.equals(o.getSuperiorClass()))
+        for (ObjectClass superior : o.getSuperiorClasses())
         {
-          childClasses.add(o.getNameOrOID());
+          if (objectClass.equals(superior))
+          {
+            childClasses.add(o.getNameOrOID());
+          }
         }
       }
     }
@@ -858,33 +854,13 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     }
 
 
-    ObjectClass superior = getSuperior();
-    if (superior != null)
+   //validate the superiority.
+    for(ObjectClass superior : getObjectClassSuperiors())
     {
-      if (superior.getNameOrOID().equalsIgnoreCase(objectClass.getNameOrOID()))
-      {
-        errors.add(ERR_CTRL_PANEL_OBJECTCLASS_CANNOT_BE_ITS_SUPERIOR.get());
-        setPrimaryInvalid(lParent);
-      }
-      else
-      {
-        // Check whether this object class is defined as parent as the superior.
-        superior = superior.getSuperiorClass();
-        while (superior != null)
-        {
-          if (superior.getNameOrOID().equalsIgnoreCase(
-              objectClass.getNameOrOID()))
-          {
-            errors.add(
-                ERR_CTRL_PANEL_OBJECTCLASS_IS_SUPERIOR_OF_SUPERIOR.get(
-                getSuperior().getNameOrOID()));
-            setPrimaryInvalid(lParent);
-            break;
-          }
-          superior = superior.getSuperiorClass();
-        }
-      }
+      validateSuperiority(superior, errors);
     }
+    checkCompatibleSuperiors(getObjectClassSuperiors(), getObjectClassType(),
+        errors);
 
     if (errors.size() == 0)
     {
@@ -921,6 +897,30 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     if (!errors.isEmpty())
     {
       displayErrorDialog(errors);
+    }
+  }
+
+
+  private void validateSuperiority(ObjectClass superior,
+          ArrayList<Message> errors)
+  {
+    if(superior.getNameOrOID().equalsIgnoreCase(objectClass.getNameOrOID()))
+    {
+      errors.add(ERR_CTRL_PANEL_OBJECTCLASS_CANNOT_BE_ITS_SUPERIOR.get());
+      setPrimaryInvalid(lSuperior);
+      return;
+    }
+    for (ObjectClass obj : superior.getSuperiorClasses())
+    {
+      if (superior.getNameOrOID().equalsIgnoreCase(obj.getNameOrOID()))
+      {
+         errors.add(
+                ERR_CTRL_PANEL_OBJECTCLASS_IS_SUPERIOR_OF_SUPERIOR.get(
+                obj.getNameOrOID()));
+            setPrimaryInvalid(lSuperior);
+        return;
+      }
+      validateSuperiority(obj,errors);
     }
   }
 
@@ -1011,9 +1011,9 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     return description.getText().trim();
   }
 
-  private ObjectClass getSuperior()
+  private Set<ObjectClass> getObjectClassSuperiors()
   {
-    return (ObjectClass)parent.getSelectedItem();
+    return superiors.getSelectedSuperiors();
   }
 
   private ObjectClassType getObjectClassType()
@@ -1044,7 +1044,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
         getAllNames(),
         getOID(),
         getDescription(),
-        getSuperior(),
+        getObjectClassSuperiors(),
         getRequiredAttributes(),
         getOptionalAttributes(),
         getObjectClassType(),
@@ -1148,8 +1148,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
 
     inheritedOptionalAttributes.clear();
     inheritedRequiredAttributes.clear();
-    ObjectClass p = (ObjectClass)parent.getSelectedItem();
-    if (p != null)
+    for (ObjectClass p : getObjectClassSuperiors())
     {
       for (AttributeType attr : p.getRequiredAttributeChain())
       {

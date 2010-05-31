@@ -3803,7 +3803,8 @@ public class DirectoryServer
 
       objectClass = new ObjectClass(definition, name,
                                     Collections.singleton(name), oid, null,
-                                    getTopObjectClass(), null, null,
+                                    Collections.singleton(getTopObjectClass()),
+                                    null, null,
                                     ObjectClassType.STRUCTURAL, false, null);
     }
 
@@ -3834,7 +3835,8 @@ public class DirectoryServer
 
       objectClass = new ObjectClass(definition, name,
                                     Collections.singleton(name), oid, null,
-                                    getTopObjectClass(), null, null,
+                                    Collections.singleton(getTopObjectClass()),
+                                    null, null,
                                     ObjectClassType.AUXILIARY, false, null);
     }
 

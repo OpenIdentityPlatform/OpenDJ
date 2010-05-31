@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -68,6 +68,9 @@ public class StandardObjectClassPanel extends SchemaElementPanel
 {
   private static final long serialVersionUID = 5561268287795223026L;
   private TitlePanel titlePanel = new TitlePanel(Message.EMPTY, Message.EMPTY);
+
+  private JLabel lParent;
+
   private JLabel name = Utilities.createDefaultLabel();
   private JLabel parent = Utilities.createDefaultLabel();
   private JLabel oid = Utilities.createDefaultLabel();
@@ -182,6 +185,10 @@ public class StandardObjectClassPanel extends SchemaElementPanel
       gbc.insets.left = 0;
       gbc.gridx = 0;
       JLabel l = Utilities.createPrimaryLabel(labels[i]);
+      if (i == 1)
+      {
+        lParent = l;
+      }
       c.add(l, gbc);
       gbc.insets.left = 10;
       gbc.gridx = 1;
@@ -309,20 +316,7 @@ public class StandardObjectClassPanel extends SchemaElementPanel
     }
     titlePanel.setDetails(Message.raw(n));
     name.setText(n);
-    ObjectClass superior = oc.getSuperiorClass();
-    if (superior == null)
-    {
-      n = null;
-    }
-    else
-    {
-      n = superior.getPrimaryName();
-    }
-    if (n == null)
-    {
-      n = NOT_APPLICABLE.toString();
-    }
-    parent.setText(n);
+    parent.setText(getSuperiorText(oc));
     oid.setText(oc.getOID());
     origin.setText(getOrigin(oc).toString());
     n = oc.getDescription();
@@ -364,13 +358,31 @@ public class StandardObjectClassPanel extends SchemaElementPanel
     {
       requiredAttrs.add(attr.getNameOrOID());
     }
-    ObjectClass parent = oc.getSuperiorClass();
-    if (parent != null)
+    Set<ObjectClass> parents = oc.getSuperiorClasses();
+    if (parents != null)
     {
-      for (AttributeType attr : parent.getRequiredAttributeChain())
+      if (parents.size() > 1)
       {
-        inheritedAttrs.add(attr.getNameOrOID());
+        lParent.setText(
+            INFO_CTRL_PANEL_OBJECTCLASS_PARENTS_LABEL.get().toString());
       }
+      else
+      {
+        lParent.setText(
+            INFO_CTRL_PANEL_OBJECTCLASS_PARENT_LABEL.get().toString());
+      }
+      for (ObjectClass parent : parents)
+      {
+        for (AttributeType attr : parent.getRequiredAttributeChain())
+        {
+          inheritedAttrs.add(attr.getNameOrOID());
+        }
+      }
+    }
+    else
+    {
+      lParent.setText(
+          INFO_CTRL_PANEL_OBJECTCLASS_PARENT_LABEL.get().toString());
     }
 
     DefaultListModel model = (DefaultListModel)requiredAttributes.getModel();
@@ -396,12 +408,14 @@ public class StandardObjectClassPanel extends SchemaElementPanel
     {
       optionalAttrs.add(attr.getNameOrOID());
     }
-    parent = oc.getSuperiorClass();
-    if (parent != null)
+    if (parents != null)
     {
-      for (AttributeType attr : parent.getOptionalAttributeChain())
+      for (ObjectClass parent : parents)
       {
-        inheritedAttrs.add(attr.getNameOrOID());
+        for (AttributeType attr : parent.getOptionalAttributeChain())
+        {
+          inheritedAttrs.add(attr.getNameOrOID());
+        }
       }
     }
     model = (DefaultListModel)optionalAttributes.getModel();
@@ -420,6 +434,41 @@ public class StandardObjectClassPanel extends SchemaElementPanel
       model.addElement(v);
       hmAttrs.put(v, schema.getAttributeType(attr.toLowerCase()));
     }
+  }
+
+  private String getSuperiorText(ObjectClass oc)
+  {
+    String n;
+    Set<ObjectClass> superiors = oc.getSuperiorClasses();
+    if (superiors == null)
+    {
+      n = null;
+    }
+    else
+    {
+      if (superiors.isEmpty())
+      {
+        n = NOT_APPLICABLE.toString();
+      }
+      else if (superiors.size() == 1)
+      {
+        n = superiors.iterator().next().getPrimaryName();
+      }
+      else
+      {
+        SortedSet<String> names = new TreeSet<String>();
+        for (ObjectClass superior : superiors)
+        {
+          names.add(superior.getPrimaryName());
+        }
+        n = Utilities.getStringFromCollection(names, ", ");
+      }
+    }
+    if (n == null)
+    {
+      n = NOT_APPLICABLE.toString();
+    }
+    return n;
   }
 
   /**

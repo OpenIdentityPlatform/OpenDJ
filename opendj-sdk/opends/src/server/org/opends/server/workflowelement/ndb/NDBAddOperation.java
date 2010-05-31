@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.workflowelement.ndb;
 
@@ -307,16 +307,18 @@ addProcessing:
         HashSet<ObjectClass> additionalClasses = null;
         for (ObjectClass oc : objectClasses.keySet())
         {
-          ObjectClass superiorClass = oc.getSuperiorClass();
-          if ((superiorClass != null) &&
-              (! objectClasses.containsKey(superiorClass)))
+          for(ObjectClass superiorClass : oc.getSuperiorClasses())
           {
-            if (additionalClasses == null)
+            if ((superiorClass != null) &&
+                (! objectClasses.containsKey(superiorClass)))
             {
-              additionalClasses = new HashSet<ObjectClass>();
-            }
+              if (additionalClasses == null)
+              {
+                additionalClasses = new HashSet<ObjectClass>();
+              }
 
-            additionalClasses.add(superiorClass);
+              additionalClasses.add(superiorClass);
+            }
           }
         }
 

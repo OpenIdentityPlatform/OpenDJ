@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -1007,11 +1007,12 @@ addProcessing:
         objectClasses.put(objectClass, objectClass.getNameOrOID());
       }
 
-      ObjectClass superiorClass = objectClass.getSuperiorClass();
-      if ((superiorClass != null) &&
-          (! objectClasses.containsKey(superiorClass)))
+      for(ObjectClass superiorClass : objectClass.getSuperiorClasses())
       {
-        addObjectClassChain(superiorClass);
+        if (!objectClasses.containsKey(superiorClass))
+        {
+          addObjectClassChain(superiorClass);
+        }
       }
     }
   }

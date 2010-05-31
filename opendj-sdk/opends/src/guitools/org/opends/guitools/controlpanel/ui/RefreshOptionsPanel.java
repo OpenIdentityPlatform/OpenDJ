@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -51,7 +51,7 @@ public class RefreshOptionsPanel extends StatusGenericPanel
   private JTextField period;
   private JLabel lPeriod;
 
-  private boolean isCancelled = true;
+  private boolean isCanceled = true;
 
   private int MAX_VALUE = 5000;
 
@@ -143,7 +143,7 @@ public class RefreshOptionsPanel extends StatusGenericPanel
    */
   public void okClicked()
   {
-    isCancelled = true;
+    isCanceled = true;
 
     setPrimaryValid(lPeriod);
     LinkedHashSet<Message> errors = new LinkedHashSet<Message>();
@@ -166,7 +166,7 @@ public class RefreshOptionsPanel extends StatusGenericPanel
     }
     else
     {
-      isCancelled = false;
+      isCanceled = false;
       Utilities.getParentDialog(this).setVisible(false);
     }
   }
@@ -175,9 +175,9 @@ public class RefreshOptionsPanel extends StatusGenericPanel
    * Returns whether this dialog has been cancelled or not.
    * @return whether this dialog has been cancelled or not.
    */
-  public boolean isCancelled()
+  public boolean isCanceled()
   {
-    return isCancelled;
+    return isCanceled;
   }
 
   /**
@@ -187,7 +187,7 @@ public class RefreshOptionsPanel extends StatusGenericPanel
   {
     if (visible)
     {
-      isCancelled = true;
+      isCanceled = true;
       long timeInSeconds = getInfo().getPoolingPeriod() / 1000;
       period.setText(String.valueOf(timeInSeconds));
     }

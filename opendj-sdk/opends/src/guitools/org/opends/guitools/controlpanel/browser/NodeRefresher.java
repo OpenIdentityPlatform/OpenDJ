@@ -934,7 +934,7 @@ public class NodeRefresher extends AbstractNodeTask {
         tax = new SearchAbandonException(State.FAILED, x, null);
       }
     }
-    else if (isCancelled()) {
+    else if (isCanceled()) {
       tax = new SearchAbandonException(State.CANCELLED, null, null);
     }
     if (tax != null) {
