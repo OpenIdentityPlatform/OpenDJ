@@ -42,6 +42,9 @@
   <!-- CONFIGURE: The path of the OpenDS installation. -->
   <property name="opends.install.dir" location=".." />
 
+  <!-- CONFIGURE: The path of Xalan-Java distribution. -->
+  <property name="xalan.directory" location="ext/xalan-j" />
+
   <!-- General properties - should not need changing. -->
   <property name="build.dir" location="build" />
   <property name="src.dir" location="src" />
@@ -80,6 +83,10 @@
     <echo message="  -Dpkg.description=description" />
     <echo message="      The description of this extension - used in the Javadoc title [default: ${pkg.description}]." />
     <echo message="" />
+    <echo message="  -Dxalan.directory=path" />
+    <echo message="      The path of a Xalan-Java distribution [default: ${xalan.directory}]." />
+    <echo message="" />
+
   </target>
 
   <!-- Clean up any files generated during the build process. -->
@@ -165,14 +172,56 @@
     </condition>
   </target>
 
+  <!-- Perform verification for Xalan dependency -->
+  <target name="ensurexalan" description="Verify that the Xalan-Java jar files are accessibles.">
+
+    <if>
+      <not>
+        <available property="xalan.directory.exists" file="${xalan.directory}" />
+      </not>
+      <then>
+        <echo message="Please use -Dxalan.directory to point to a directory " />
+        <echo message="that contains an unzipped delivery of Xalan-Java." />
+        <echo message="You can download Xalan-Java from the Apache website :" />
+        <echo message="  http://xml.apache.org/xalan-j/" />
+        <echo message="" />
+
+        <fail />
+      </then>
+    </if>
+
+    <!-- Xalan-J Class Path : refer to it explicitly from each XSLT task. -->
+    <path id="xalan.class.path">
+      <fileset dir="${xalan.directory}">
+        <include name="*.jar" />
+      </fileset>
+    </path>
+
+    <!-- Verify that all required Xalan jars are present -->
+    <property name="xalan.jar.files" value="serializer.jar,xalan.jar,xercesImpl.jar,xml-apis.jar" />
+    <fail message="Missing at least one Xalan-Java jar files in directory ${xalan.directory} (expecting : ${xalan.jar.files}).">
+      <condition>
+        <not>
+          <resourcecount count="4">
+            <fileset dir="${xalan.directory}" includes="${xalan.jar.files}" />
+          </resourcecount>
+        </not>
+      </condition>
+    </fail>
+
+  </target>
+
   <!-- Compile the Directory Server extension configuration definition files. -->
-  <target name="compileadmin" depends="validateadmin" description="Compile the Directory Server extension configuration definition files.">
+  <target name="compileadmin" depends="ensurexalan,validateadmin" description="Compile the Directory Server extension configuration definition files.">
+   
+    <echo message="classpath = ${xalan.class.path}" />
     <!-- Compile the Directory Server extension configuration meta classes. -->
     <xslt basedir="${src.dir}" destdir="${src.gen.dir}" style="${admin.dir}/metaMO.xsl">
       <include name="**/*Configuration.xml" />
       <exclude name="org/opends/server/admin/std/*.xml" />
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/meta/\2CfgDefn.java" />
       <param name="base-dir" expression="${src.dir}" />
+      <classpath refid="xalan.class.path" />
     </xslt>
 
     <xslt basedir="${src.dir}" destdir="${src.gen.dir}" style="${admin.dir}/package-info.xsl">
@@ -180,6 +229,7 @@
       <exclude name="org/opends/server/admin/std/*.xml" />
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)\.xml$$" to="\1/meta/package-info.java" />
       <param name="type" expression="meta" />
+      <classpath refid="xalan.class.path" />
     </xslt>
 
     <!-- Compile the Directory Server extension configuration client classes. -->
@@ -188,6 +238,7 @@
       <exclude name="org/opends/server/admin/std/*.xml" />
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/client/\2CfgClient.java" />
       <param name="base-dir" expression="${src.dir}" />
+      <classpath refid="xalan.class.path" />
     </xslt>
 
     <xslt basedir="${src.dir}" destdir="${src.gen.dir}" style="${admin.dir}/package-info.xsl">
@@ -195,6 +246,7 @@
       <exclude name="org/opends/server/admin/std/*.xml" />
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)\.xml$$" to="\1/client/package-info.java" />
       <param name="type" expression="client" />
+      <classpath refid="xalan.class.path" />
     </xslt>
 
     <!-- Compile the Directory Server extension configuration server classes. -->
@@ -203,6 +255,7 @@
       <exclude name="org/opends/server/admin/std/*.xml" />
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/server/\2Cfg.java" />
       <param name="base-dir" expression="${src.dir}" />
+      <classpath refid="xalan.class.path" />
     </xslt>
 
     <xslt basedir="${src.dir}" destdir="${src.gen.dir}" style="${admin.dir}/package-info.xsl">
@@ -210,6 +263,7 @@
       <exclude name="org/opends/server/admin/std/*.xml" />
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)\.xml$$" to="\1/server/package-info.java" />
       <param name="type" expression="server" />
+      <classpath refid="xalan.class.path" />
     </xslt>
 
     <!-- Compile the Directory Server extension configuration ldap profile property files. -->
@@ -218,6 +272,7 @@
       <exclude name="org/opends/server/admin/std/*.xml" />
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/meta/\2CfgDefn.properties" />
       <param name="base-dir" expression="${src.dir}" />
+      <classpath refid="xalan.class.path" />
     </xslt>
 
     <!-- Compile the Directory Server extension configuration cli profile property files. -->
@@ -226,6 +281,7 @@
       <exclude name="org/opends/server/admin/std/*.xml" />
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/meta/\2CfgDefn.properties" />
       <param name="base-dir" expression="${src.dir}" />
+      <classpath refid="xalan.class.path" />
     </xslt>
 
     <!-- Compile the Directory Server extension configuration I18N message files. -->
@@ -234,6 +290,7 @@
       <exclude name="org/opends/server/admin/std/*.xml" />
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/meta/\2CfgDefn.properties" />
       <param name="base-dir" expression="${src.dir}" />
+      <classpath refid="xalan.class.path" />
     </xslt>
 
     <!-- Compile the Directory Server extension configuration manifest file. -->
@@ -242,6 +299,7 @@
     <xslt basedir="${src.dir}" destdir="${admin.temp.dir}" extension=".manifest" style="${admin.dir}/manifestMO.xsl">
       <include name="**/*Configuration.xml" />
       <exclude name="org/opends/server/admin/std/*.xml" />
+      <classpath refid="xalan.class.path" />
     </xslt>
     <concat destfile="${classes.dir}/admin/extension.manifest">
       <fileset dir="${admin.temp.dir}" includes="**/*.manifest" />
