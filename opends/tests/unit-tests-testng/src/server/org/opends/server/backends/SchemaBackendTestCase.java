@@ -5403,7 +5403,7 @@ public class SchemaBackendTestCase
 
     // Sleep longer than the TimeThread delay to ensure the modifytimestamp
     // will be different.
-    Thread.sleep(600);
+    Thread.sleep(6000);
     assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
 
     schemaEntry = DirectoryServer.getEntry(DN.decode("cn=schema"));
