@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -169,6 +169,23 @@ public class ModifyMsg extends ModifyCommonMsg
     }
     if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V2)
     {
+      String mods = "";
+      try
+      {
+        ArrayList<RawModification> ldapmods = decodeRawMods(encodedMods);
+
+        for (RawModification mod : ldapmods)
+        {
+          mods += mod.toString();
+        }
+      } catch (LDAPException e)
+      {
+
+      } catch (ASN1Exception e)
+      {
+
+      }
+
       return "ModifyMsg content: " +
         " protocolVersion: " + protocolVersion +
         " dn: " + dn +
@@ -176,7 +193,11 @@ public class ModifyMsg extends ModifyCommonMsg
         " uniqueId: " + uniqueId +
         " assuredFlag: " + assuredFlag +
         " assuredMode: " + assuredMode +
-        " safeDataLevel: " + safeDataLevel;
+        " safeDataLevel: " + safeDataLevel +
+        " size: " + encodedMods.length +
+        mods;
+
+
     }
     return "!!! Unknown version: " + protocolVersion + "!!!";
   }

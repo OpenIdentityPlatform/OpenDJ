@@ -2257,15 +2257,6 @@ public class LDAPReplicationDomain extends ReplicationDomain
         numResolvedModifyConflicts.incrementAndGet();
       }
 
-      if (modifyOperation.getModifications().isEmpty())
-      {
-        /*
-         * This operation becomes a no-op due to conflict resolution
-         * stop the processing and send an OK result
-         */
-        return new SynchronizationProviderResult.StopProcessing(
-            ResultCode.SUCCESS, null);
-      }
     }
     return new SynchronizationProviderResult.ContinueProcessing();
   }
@@ -3160,11 +3151,6 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     // Find an rename child entries.
     InternalClientConnection conn =
       InternalClientConnection.getRootConnection();
-    DeleteContext ctx =
-      (DeleteContext) conflictOp.getAttachment(SYNCHROCONTEXT);
-    ChangeNumber cn = null;
-    if (ctx != null)
-      cn = ctx.getChangeNumber();
 
     try
     {
