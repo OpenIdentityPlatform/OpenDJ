@@ -928,8 +928,10 @@ public class Importer
   {
     initializeIndexBuffers();
     FirstPhaseProgressTask progressTask = new FirstPhaseProgressTask();
-    Timer timer = new Timer();
-    timer.scheduleAtFixedRate(progressTask, TIMER_INTERVAL, TIMER_INTERVAL);
+    ScheduledThreadPoolExecutor timerService =
+      new ScheduledThreadPoolExecutor(1);
+    timerService.scheduleAtFixedRate(progressTask, TIMER_INTERVAL,
+      TIMER_INTERVAL, TimeUnit.MILLISECONDS);
     scratchFileWriterService = Executors.newFixedThreadPool(2 * indexCount);
     bufferSortService = Executors.newFixedThreadPool(threadCount);
     ExecutorService execService = Executors.newFixedThreadPool(threadCount);
@@ -978,15 +980,21 @@ public class Importer
         result.get();
       }
     }
+    // Shutdown the executor services
+    timerService.shutdown();
+    timerService.awaitTermination(30, TimeUnit.SECONDS);
+    execService.shutdown();
+    execService.awaitTermination(30, TimeUnit.SECONDS);
+    bufferSortService.shutdown();
+    bufferSortService.awaitTermination(30, TimeUnit.SECONDS);
+    scratchFileWriterService.shutdown();
+    scratchFileWriterService.awaitTermination(30, TimeUnit.SECONDS);
+
     //Try to clear as much memory as possible.
     scratchFileWriterList.clear();
     scratchFileWriterFutures.clear();
     indexKeyQueMap.clear();
-    execService.shutdown();
     freeBufferQueue.clear();
-    bufferSortService.shutdown();
-    scratchFileWriterService.shutdown();
-    timer.cancel();
   }
 
 
@@ -996,10 +1004,13 @@ public class Importer
   {
     SecondPhaseProgressTask progress2Task =
             new SecondPhaseProgressTask(reader.getEntriesRead());
-    Timer timer2 = new Timer();
-    timer2.scheduleAtFixedRate(progress2Task, TIMER_INTERVAL, TIMER_INTERVAL);
+    ScheduledThreadPoolExecutor timerService =
+      new ScheduledThreadPoolExecutor(1);
+    timerService.scheduleAtFixedRate(progress2Task, TIMER_INTERVAL,
+      TIMER_INTERVAL, TimeUnit.MILLISECONDS);
     processIndexFiles();
-    timer2.cancel();
+    timerService.shutdown();
+    timerService.awaitTermination(30, TimeUnit.SECONDS);
   }
 
 
