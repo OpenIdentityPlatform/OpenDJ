@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -348,7 +348,8 @@ public class WorkflowConfigManager
       ) throws DirectoryException
   {
     // The ID of the workflow to create
-    String workflowId = workflowCfg.getWorkflowId();
+    String workflowId =
+        workflowCfg.dn().getRDN().getAttributeValue(0).toString();
 
     // Create the root workflow element to associate with the workflow
     String rootWorkflowElementID = workflowCfg.getWorkflowElement();

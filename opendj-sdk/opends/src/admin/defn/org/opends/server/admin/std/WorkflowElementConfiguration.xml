@@ -23,13 +23,12 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Copyright 2007-2010 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="workflow-element"
   plural-name="workflow-elements" package="org.opends.server.admin.std"
   xmlns:adm="http://www.opends.org/admin"
-  xmlns:ldap="http://www.opends.org/admin-ldap"
-  xmlns:cli="http://www.opends.org/admin-cli">
+  xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
     <adm:user-friendly-plural-name />
     implement a single processing step in a Work Flow.
@@ -51,9 +50,6 @@
       <ldap:superior>top</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-  <adm:profile name="cli">
-    <cli:managed-object custom="true" />
-  </adm:profile>
   <adm:property name="enabled" mandatory="true">
     <adm:synopsis>
       Indicates whether the
@@ -72,27 +68,6 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-enabled</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
-  <adm:property name="workflow-element-id" mandatory="true"
-    read-only="true">
-    <adm:synopsis>
-      Provides a name that identifies the associated
-      <adm:user-friendly-name />
-      .
-    </adm:synopsis>
-    <adm:description>
-      The name must be unique among all
-      <adm:user-friendly-plural-name />
-      in the server.
-    </adm:description>
-    <adm:syntax>
-      <adm:string />
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-workflow-element-id</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

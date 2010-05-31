@@ -2124,19 +2124,9 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.434
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.436
-  NAME 'ds-cfg-workflow-id'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
-  SINGLE-VALUE
-  X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.437
   NAME 'ds-cfg-workflow'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
-  X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.438
-  NAME 'ds-cfg-workflow-element-id'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
-  SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.439
   NAME 'ds-cfg-workflow-element'
@@ -3983,7 +3973,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.177
   NAME 'ds-cfg-workflow'
   SUP top
   STRUCTURAL
-  MUST ( ds-cfg-workflow-id $
+  MUST ( cn $
          ds-cfg-enabled $
          ds-cfg-workflow-element $
          ds-cfg-base-dn )
@@ -3992,7 +3982,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.178
   NAME 'ds-cfg-workflow-element'
   SUP top
   STRUCTURAL
-  MUST ( ds-cfg-workflow-element-id $
+  MUST ( cn $
          ds-cfg-enabled $
          ds-cfg-java-class )
   X-ORIGIN 'OpenDS Directory Server' )
