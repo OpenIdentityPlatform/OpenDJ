@@ -76,6 +76,8 @@ import static org.opends.server.tools.ToolConstants.*;
 
 import org.opends.server.controls.*;
 import org.opends.server.plugins.ChangeNumberControlPlugin;
+import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
+import org.opends.server.protocols.ldap.LDAPConstants;
 
 
 
@@ -359,42 +361,73 @@ public class LDAPModify
         Message errorMessage = null;
         DN matchedDN = null;
         List<String> referralURLs = null;
-        switch(entry.getChangeOperationType())
+        try
         {
-          case ADD:
-            AddResponseProtocolOp addOp =
-              responseMessage.getAddResponseProtocolOp();
-            resultCode = addOp.getResultCode();
-            errorMessage = addOp.getErrorMessage();
-            matchedDN = addOp.getMatchedDN();
-            referralURLs = addOp.getReferralURLs();
-            break;
-          case DELETE:
-            DeleteResponseProtocolOp delOp =
-              responseMessage.getDeleteResponseProtocolOp();
-            resultCode = delOp.getResultCode();
-            errorMessage = delOp.getErrorMessage();
-            matchedDN = delOp.getMatchedDN();
-            referralURLs = delOp.getReferralURLs();
-            break;
-          case MODIFY:
-            ModifyResponseProtocolOp modOp =
-              responseMessage.getModifyResponseProtocolOp();
-            resultCode = modOp.getResultCode();
-            errorMessage = modOp.getErrorMessage();
-            matchedDN = modOp.getMatchedDN();
-            referralURLs = modOp.getReferralURLs();
-            break;
-          case MODIFY_DN:
-            ModifyDNResponseProtocolOp modDNOp =
-              responseMessage.getModifyDNResponseProtocolOp();
-            resultCode = modDNOp.getResultCode();
-            errorMessage = modDNOp.getErrorMessage();
-            matchedDN = modDNOp.getMatchedDN();
-            referralURLs = modDNOp.getReferralURLs();
-            break;
-          default:
-            break;
+          switch(entry.getChangeOperationType())
+          {
+            case ADD:
+              AddResponseProtocolOp addOp =
+                responseMessage.getAddResponseProtocolOp();
+              resultCode = addOp.getResultCode();
+              errorMessage = addOp.getErrorMessage();
+              matchedDN = addOp.getMatchedDN();
+              referralURLs = addOp.getReferralURLs();
+              break;
+            case DELETE:
+              DeleteResponseProtocolOp delOp =
+                responseMessage.getDeleteResponseProtocolOp();
+              resultCode = delOp.getResultCode();
+              errorMessage = delOp.getErrorMessage();
+              matchedDN = delOp.getMatchedDN();
+              referralURLs = delOp.getReferralURLs();
+              break;
+            case MODIFY:
+              ModifyResponseProtocolOp modOp =
+                responseMessage.getModifyResponseProtocolOp();
+              resultCode = modOp.getResultCode();
+              errorMessage = modOp.getErrorMessage();
+              matchedDN = modOp.getMatchedDN();
+              referralURLs = modOp.getReferralURLs();
+              break;
+            case MODIFY_DN:
+              ModifyDNResponseProtocolOp modDNOp =
+                responseMessage.getModifyDNResponseProtocolOp();
+              resultCode = modDNOp.getResultCode();
+              errorMessage = modDNOp.getErrorMessage();
+              matchedDN = modDNOp.getMatchedDN();
+              referralURLs = modDNOp.getReferralURLs();
+              break;
+            default:
+              break;
+          }
+        }
+        catch (ClassCastException ce)
+        {
+          // It is possible that this is extended response.
+          if (responseMessage.getProtocolOpType() ==
+              LDAPConstants.OP_TYPE_EXTENDED_RESPONSE)
+          {
+            ExtendedResponseProtocolOp extRes =
+              responseMessage.getExtendedResponseProtocolOp();
+            resultCode = extRes.getResultCode();
+            errorMessage = extRes.getErrorMessage();
+            matchedDN = extRes.getMatchedDN();
+            referralURLs = extRes.getReferralURLs();
+          }
+          else
+          {
+            // This shouldnt happen but if it does debug
+            // log it, set the error code to OTHER and
+            // fall thru.
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, ce);
+            }
+            resultCode = ResultCode.OTHER.getIntValue();
+            errorMessage = null;
+            matchedDN = null;
+            referralURLs = null;
+          }
         }
 
         if(resultCode != SUCCESS && resultCode != REFERRAL)
