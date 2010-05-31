@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools.dsreplication;
@@ -36,26 +36,4 @@ package org.opends.server.tools.dsreplication;
  */
 class PreExternalInitializationUserData extends MonoServerReplicationUserData
 {
-  private boolean localOnly;
-
-  /**
-   * Whether the operation must be applied only on the local server or not.
-   * @return <CODE>true</CODE> if the operation must be applied only on the
-   * local server and <CODE>false</CODE> otherwise.
-   */
-  public boolean isLocalOnly()
-  {
-    return localOnly;
-  }
-
-  /**
-   * Sets whether the operation must be applied only on the local server or not.
-   * @param onlyLocal whether the operation must be applied only on the local
-   * server or not.
-   */
-  public void setLocalOnly(boolean onlyLocal)
-  {
-    this.localOnly = onlyLocal;
-  }
-
 }
