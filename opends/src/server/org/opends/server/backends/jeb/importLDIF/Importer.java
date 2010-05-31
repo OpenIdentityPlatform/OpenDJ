@@ -1350,6 +1350,7 @@ public class Importer
       {
         processAllIndexes(suffix, entry, entryID);
       }
+      importCount.getAndIncrement();
     }
 
 
