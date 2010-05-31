@@ -35,7 +35,6 @@ import java.util.TreeMap;
 import org.opends.messages.Message;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.UpdateMsg;
-import java.util.Arrays;
 
 /**
  * This class is used to build ordered lists of UpdateMsg.
@@ -132,23 +131,29 @@ public class MsgQueue
         boolean sameMsgs = false;
         try
         {
-          sameMsgs = Arrays.equals(
-              msgSameChangeNumber.getBytes(),update.getBytes());
+          if (
+            (msgSameChangeNumber.getBytes().length == update.getBytes().length)
+            && (msgSameChangeNumber.isAssured() == update.isAssured())
+            && (msgSameChangeNumber.getVersion() == update.getVersion()) )
+            {
+              sameMsgs = true;
+            }
+
+
+            if (!sameMsgs)
+            {
+              // Adding 2 msgs with the same ChangeNumber is ok only when
+              // the 2 masgs are the same
+              bytesCount += (update.size() - msgSameChangeNumber.size());
+              Message errMsg = ERR_RSQUEUE_DIFFERENT_MSGS_WITH_SAME_CN.get(
+                  msgSameChangeNumber.getChangeNumber().toString(),
+                  msgSameChangeNumber.toString(),
+                  update.toString());
+              logError(errMsg);
+            }
         }
         catch(Exception e)
         {}
-
-        if (!sameMsgs)
-        {
-          // Adding 2 msgs with the same ChangeNumber is ok only when the 2 msgs
-          // are the same
-          bytesCount += (update.size() - msgSameChangeNumber.size());
-          Message errMsg = ERR_RSQUEUE_DIFFERENT_MSGS_WITH_SAME_CN.get(
-              msgSameChangeNumber.toString(),
-              msgSameChangeNumber.toString(),
-              update.toString());
-          logError(errMsg);
-        }
       }
       else
       {

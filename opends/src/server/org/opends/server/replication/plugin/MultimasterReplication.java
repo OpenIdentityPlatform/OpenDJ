@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -505,6 +505,16 @@ public class MultimasterReplication
     }
 
     historicalInformation.generateState(modifyOperation);
+
+    if (modifyOperation.getModifications().isEmpty())
+    {
+      /*
+       * This operation becomes a no-op due to conflict resolution
+       * stop the processing and send an OK result
+       */
+      return new SynchronizationProviderResult.StopProcessing(
+          ResultCode.SUCCESS, null);
+    }
 
     return new SynchronizationProviderResult.ContinueProcessing();
   }
