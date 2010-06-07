@@ -3589,15 +3589,43 @@
         '%s %s' % (STAFCmd, STAFCmdParams)
       </message>
       
-      <call function="'runCommand'">
-        { 'command'   : STAFCmd,
-          'arguments' : STAFCmdParams,
-          'location'  : location,
-          'name'      : 'ldapsearch',
-          'expectedRC': expectedRC,
-          'knownIssue': knownIssue
-        }
-      </call>
+      <!-- Give the changes time to propagate in the ECL -->
+      <script>
+        myCounter = 1
+        taskRC    = 1
+        noOfLoops = 10
+      </script>
+      <loop from="1" to="noOfLoops" while="taskRC != 0">
+        <sequence>
+        
+          <message>
+            'LOOP number %s - %s %s' % (myCounter, STAFCmd, STAFCmdParams)
+          </message>
+    
+          <call function="'runCommand'">
+            { 'command'   : STAFCmd,
+              'arguments' : STAFCmdParams,
+              'location'  : location,
+              'name'      : 'ldapsearch',
+              'expectedRC': expectedRC,
+              'knownIssue': knownIssue
+            }
+          </call>
+          <script>
+            STAFCmdRC     = RC
+            STAFCmdResult = STAXResult
+            myCounter     = myCounter + 1
+          </script>
+          
+          <if expr='STAFCmdResult[0][1] != None and len(STAFCmdResult[0][1].strip()) > 0'>
+            <sequence>
+              <script>taskRC = 0</script>
+              <return>STAFCmdResult</return>
+            </sequence>
+          </if>
+        </sequence>
+      </loop>
+      
       <return>
         STAXResult
       </return>
