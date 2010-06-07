@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.MessageBuilder;
@@ -435,6 +435,9 @@ public class DeleteOperationBasis
       // Stop the processing timer.
       setProcessingStopTime();
 
+      // Log the delete response.
+      logDeleteResponse(this);
+
       if(cancelRequest == null || cancelResult == null ||
           cancelResult.getResultCode() != ResultCode.CANCELED ||
           cancelRequest.notifyOriginalRequestor() ||
@@ -443,9 +446,6 @@ public class DeleteOperationBasis
         clientConnection.sendResponse(this);
       }
 
-
-      // Log the delete response.
-      logDeleteResponse(this);
 
       // Invoke the post-response callbacks.
       if (workflowExecuted) {

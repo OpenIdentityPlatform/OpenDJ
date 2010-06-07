@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -536,6 +536,9 @@ public class ModifyOperationBasis
       // Stop the processing timer.
       setProcessingStopTime();
 
+      // Log the modify response.
+      logModifyResponse(this);
+
       if(cancelRequest == null || cancelResult == null ||
           cancelResult.getResultCode() != ResultCode.CANCELED ||
           cancelRequest.notifyOriginalRequestor() ||
@@ -543,9 +546,6 @@ public class ModifyOperationBasis
       {
         clientConnection.sendResponse(this);
       }
-
-      // Log the modify response.
-      logModifyResponse(this);
 
       // Invoke the post-response callbacks.
       if (workflowExecuted) {

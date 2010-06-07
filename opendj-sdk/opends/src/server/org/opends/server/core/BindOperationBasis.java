@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -836,6 +836,9 @@ public class BindOperationBasis
       // Stop the processing timer.
       setProcessingStopTime();
 
+      // Log the bind response.
+      logBindResponse(this);
+
       // Send the bind response to the client.
       clientConnection.sendResponse(this);
 
@@ -847,9 +850,6 @@ public class BindOperationBasis
       }
 
       clientConnection.finishBindOrStartTLS();
-
-      // Log the bind response.
-      logBindResponse(this);
 
       // Invoke the post-response bind plugins.
       invokePostResponsePlugins(workflowExecuted);

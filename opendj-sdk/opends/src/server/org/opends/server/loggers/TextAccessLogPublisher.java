@@ -1418,7 +1418,7 @@ public class TextAccessLogPublisher extends
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(100);
+    StringBuilder buffer = new StringBuilder(192);
     appendHeader(searchOperation, "SEARCH", CATEGORY_REQUEST, buffer);
     buffer.append(" base=\"");
     buffer.append(searchOperation.getRawBaseDN().toString());
@@ -1470,7 +1470,7 @@ public class TextAccessLogPublisher extends
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(100);
+    StringBuilder buffer = new StringBuilder(128);
     appendHeader(searchOperation, "SEARCH", CATEGORY_RESPONSE, buffer);
     buffer.append(" result=");
     buffer.append(searchOperation.getResultCode().getIntValue());

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.MessageBuilder;
@@ -587,6 +587,9 @@ public class CompareOperationBasis
       // Stop the processing timer.
       setProcessingStopTime();
 
+      // Log the compare response message.
+      logCompareResponse(this);
+
       if(cancelRequest == null || cancelResult == null ||
           cancelResult.getResultCode() != ResultCode.CANCELED ||
           cancelRequest.notifyOriginalRequestor() ||
@@ -594,10 +597,6 @@ public class CompareOperationBasis
       {
         clientConnection.sendResponse(this);
       }
-
-
-      // Log the compare response message.
-      logCompareResponse(this);
 
       // Invoke the post-response compare plugins.
       invokePostResponsePlugins(workflowExecuted);
