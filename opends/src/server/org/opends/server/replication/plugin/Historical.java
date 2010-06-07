@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -447,6 +447,25 @@ public class Historical
       return false;
   }
 
+
+  /**
+   * Returns the lastChangeNumber when the entry DN was modified.
+   *
+   * @return The lastChangeNumber when the entry DN was modified.
+   */
+  public ChangeNumber getDNDate()
+  {
+    if (ADDDate == null)
+      return MODDNDate;
+
+    if (MODDNDate == null)
+      return ADDDate;
+
+    if (MODDNDate.older(ADDDate))
+      return MODDNDate;
+    else
+      return ADDDate;
+  }
 
   /**
    * read the historical information from the entry attribute and
