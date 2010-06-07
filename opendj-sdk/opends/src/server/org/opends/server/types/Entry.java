@@ -1781,17 +1781,21 @@ public class Entry
    * checking will be performed.
    *
    * @param  mod  The modification to apply to this entry.
-   * @param  relaxConstraints indicates if the modification constraints are
-   *                          relaxed to match the ones of a set (add existing
-   *                          value and delete absent value do not fail)
-   * 
-   * @throws  DirectoryException  If a problem occurs while attempting
-   *                              to apply the modification.  Note
+   * @param  relaxConstraints indicates if the modification
+   *                          constraints are relaxed to match
+   *                          the ones of a set (add existing
+   *                          value and delete absent value do not
+   *                          fail)
+   *
+   * @throws  DirectoryException  If a problem occurs while
+   *                              attempting to apply the
+   *                              modification. Note
    *                              that even if a problem occurs, then
    *                              the entry may have been altered in
    *                              some way.
    */
-  public void applyModification(Modification mod, boolean relaxConstraints)
+  public void applyModification(Modification mod,
+                                boolean relaxConstraints)
          throws DirectoryException
   {
     Attribute     a = mod.getAttribute();
