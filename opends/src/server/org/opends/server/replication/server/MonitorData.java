@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -391,7 +391,7 @@ public class MonitorData
     }
     else
     {
-      if ((newFmd!=0) && (newFmd<currentfmd))
+      if (  (newFmd!=0) && ((newFmd<currentfmd) || (currentfmd == 0)) )
         fmd.replace(serverId, newFmd);
     }
   }
