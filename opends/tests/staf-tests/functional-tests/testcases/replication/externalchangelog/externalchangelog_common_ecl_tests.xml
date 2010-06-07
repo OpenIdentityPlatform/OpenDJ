@@ -7591,52 +7591,71 @@
               </script>
               <if expr="searchRC == 0">
                 <sequence>
-                <message>
-                  'This is the ECL entry as read from server %s:%s: \n%s' %\
-                  (replServer.getHostname(), replServer.getPort(), 
-                   searchResult)
-                </message>
-                  <call function="'parseLdifEntry'">
-                    { 'ldifEntry' : searchResult }
-                  </call>
-                  <script>
-                    eclEntry = STAXResult
-                    
-                    if ecl_mode == 'opends':
-                      nextIndex = eclEntry['changelogcookie'][0]
-                    else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)
-                  </script>
                   <message>
-                    'Parsed changelog entry:  \n%s' % eclEntry
+                    'This is the ECL entry as read from server %s:%s: \n%s' %\
+                    (replServer.getHostname(), replServer.getPort(), 
+                     searchResult)
                   </message>
-                  <message>
-                    'Index to use for the next ECL search:  %s' % \
-                    nextIndex
-                  </message>
-                      
-                  <if expr="addedEntry and eclEntry">
-                    <call function="'checkChangelogEntry'">
-                      { 'location'        : masterHost,
-                        'dsPath'          : masterPath,
-                        'changelogEntry'  : eclEntry,
-                        'targetDN'        : myTargetDN,
-                        'changeNumber'    : myChangeNumber,
-                        'changeType'      : myChangeType,
-                        'changeTime'      : myChangeTime,
-                        'targetEntryUUID' : myTargetEntryUUID,
-                        'changes'         : myChanges,
-                        'includeAttrs'    : myIncAttrs
-                      }
-                    </call>
+                  <if expr="len(searchResult) != 0">
+                    <sequence>
+                      <call function="'parseLdifEntry'">
+                        { 'ldifEntry' : searchResult }
+                      </call>
+                      <script>
+                        eclEntry = STAXResult
+                        
+                        if ecl_mode == 'opends':
+                          nextIndex = eclEntry['changelogcookie'][0]
+                        else:
+                          nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                          nextIndex     = str(nextChgNumber)
+                      </script>
+                      <message>
+                        'Parsed changelog entry:  \n%s' % eclEntry
+                      </message>
+                      <message>
+                        'Index to use for the next ECL search:  %s' % \
+                        nextIndex
+                      </message>
+                          
+                      <if expr="addedEntry and eclEntry">
+                        <call function="'checkChangelogEntry'">
+                          { 'location'        : masterHost,
+                            'dsPath'          : masterPath,
+                            'changelogEntry'  : eclEntry,
+                            'targetDN'        : myTargetDN,
+                            'changeNumber'    : myChangeNumber,
+                            'changeType'      : myChangeType,
+                            'changeTime'      : myChangeTime,
+                            'targetEntryUUID' : myTargetEntryUUID,
+                            'changes'         : myChanges,
+                            'includeAttrs'    : myIncAttrs
+                          }
+                        </call>
+                        <else>
+                          <sequence>
+                            <message log="1" level="'Error'">
+                              'Unable to check external changelog entry \
+                              (failed to read LDAP and/or changelog entry)'
+                            </message>
+                            <call function="'testFailed'"/>
+                          </sequence>
+                        </else>
+                      </if>
+                  
+                    </sequence>
                     <else>
                       <sequence>
                         <message log="1" level="'Error'">
-                          'Unable to check external changelog entry \
-                          (failed to read LDAP and/or changelog entry)'
+                         'Expected some ECL entry but NO ENTRY returned'
                         </message>
-                        <call function="'testFailed'"/>
+                        <!-- We may have come across issue CR 6954670:
+                         !   ECL - draft: update ECL-disabled suffix, then
+                         !   non-disabled suffix, make lastChangenumber
+                         !   incoherent --> 
+                        <call function="'setKnownIssue'">
+                          { 'issueId' : 6954670 }
+                        </call>
                       </sequence>
                     </else>
                   </if>
@@ -7836,60 +7855,79 @@
               </script>
               <if expr="searchRC == 0">
                 <sequence>
-                <message>
-                  'This is the ECL entry as read from server %s:%s: \n%s' %\
-                  (replServer.getHostname(), replServer.getPort(), 
-                   searchResult)
-                </message>
-                  <call function="'parseLdifEntry'">
-                    { 'ldifEntry' : searchResult }
-                  </call>
-                  <script>
-                    eclEntry = STAXResult
-                    
-                    if ecl_mode == 'opends':
-                      nextIndex = eclEntry['changelogcookie'][0]
-                    else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)
-                  </script>
                   <message>
-                    'Parsed changelog entry:  \n%s' % eclEntry
+                    'This is the ECL entry as read from server %s:%s: \n%s' %\
+                    (replServer.getHostname(), replServer.getPort(), 
+                     searchResult)
                   </message>
-                  <message>
-                    'Index to use for the next ECL search:  %s' % \
-                    nextIndex
-                  </message>
-                   
-                  <!-- We may come across issue CR 6929416:
-                   !   ECL: updates done on server don't publish include-attrs
-                   !   configured on peer server -->   
-                  <if expr="addedEntry and eclEntry">
-                    <call function="'checkChangelogEntry'">
-                      { 'location'        : masterHost,
-                        'dsPath'          : masterPath,
-                        'changelogEntry'  : eclEntry,
-                        'targetDN'        : myTargetDN,
-                        'changeNumber'    : myChangeNumber,
-                        'changeType'      : myChangeType,
-                        'changeTime'      : myChangeTime,
-                        'targetEntryUUID' : myTargetEntryUUID,
-                        'changes'         : myChanges,
-                        'includeAttrs'    : myIncAttrs,
-                        'knownIssue'      : '6929416'
-                      }
-                    </call>
+                  <if expr="len(searchResult) != 0">
+                    <sequence>
+                      <call function="'parseLdifEntry'">
+                        { 'ldifEntry' : searchResult }
+                      </call>
+                      <script>
+                        eclEntry = STAXResult
+                        
+                        if ecl_mode == 'opends':
+                          nextIndex = eclEntry['changelogcookie'][0]
+                        else:
+                          nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                          nextIndex     = str(nextChgNumber)
+                      </script>
+                      <message>
+                        'Parsed changelog entry:  \n%s' % eclEntry
+                      </message>
+                      <message>
+                        'Index to use for the next ECL search:  %s' % \
+                        nextIndex
+                      </message>
+                       
+                      <!-- We may come across issue CR 6929416:
+                       !   ECL: updates done on server don't publish include-attrs
+                       !   configured on peer server -->   
+                      <if expr="addedEntry and eclEntry">
+                        <call function="'checkChangelogEntry'">
+                          { 'location'        : masterHost,
+                            'dsPath'          : masterPath,
+                            'changelogEntry'  : eclEntry,
+                            'targetDN'        : myTargetDN,
+                            'changeNumber'    : myChangeNumber,
+                            'changeType'      : myChangeType,
+                            'changeTime'      : myChangeTime,
+                            'targetEntryUUID' : myTargetEntryUUID,
+                            'changes'         : myChanges,
+                            'includeAttrs'    : myIncAttrs,
+                            'knownIssue'      : '6929416'
+                          }
+                        </call>
+                        <else>
+                          <sequence>
+                            <message log="1" level="'Error'">
+                              'Unable to check external changelog entry \
+                              (failed to read LDAP and/or changelog entry)'
+                            </message>
+                            <call function="'testFailed'"/>
+                          </sequence>
+                        </else>
+                      </if>
+              
+                    </sequence>
                     <else>
                       <sequence>
                         <message log="1" level="'Error'">
-                          'Unable to check external changelog entry \
-                          (failed to read LDAP and/or changelog entry)'
+                         'Expected some ECL entry but NO ENTRY returned'
                         </message>
-                        <call function="'testFailed'"/>
+                        <!-- We may have come across issue CR 6954670:
+                         !   ECL - draft: update ECL-disabled suffix, then
+                         !   non-disabled suffix, make lastChangenumber
+                         !   incoherent --> 
+                        <call function="'setKnownIssue'">
+                          { 'issueId' : 6954670 }
+                        </call>
                       </sequence>
                     </else>
                   </if>
-              
+
                 </sequence>
                 <else>
                   <message log="1" level="'Error'">
@@ -8131,61 +8169,80 @@
               </script>
               <if expr="searchRC == 0">
                 <sequence>
-                <message>
-                  'This is the ECL entry as read from server %s:%s: \n%s' %\
-                  (replServer.getHostname(), replServer.getPort(), 
-                   searchResult)
-                </message>
-                  <call function="'parseLdifEntry'">
-                    { 'ldifEntry' : searchResult }
-                  </call>
-                  <script>
-                    eclEntry = STAXResult
-                    
-                    if ecl_mode == 'opends':
-                      nextIndex = eclEntry['changelogcookie'][0]
-                    else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)
-                  </script>
                   <message>
-                    'Parsed changelog entry:  \n%s' % eclEntry
+                    'This is the ECL entry as read from server %s:%s: \n%s' %\
+                    (replServer.getHostname(), replServer.getPort(), 
+                     searchResult)
                   </message>
-                  <message>
-                    'Index to use for the next ECL search:  %s' % \
-                    nextIndex
-                  </message>
-                      
-                  <!-- We may come across issue CR 6932197:
-                   !   ECL: old ecl-include attributes still published in 
-                   !   change entries until server restart -->
-                  <if expr="addedEntry and eclEntry">
-                    <call function="'checkChangelogEntry'">
-                      { 'location'        : masterHost,
-                        'dsPath'          : masterPath,
-                        'changelogEntry'  : eclEntry,
-                        'targetDN'        : myTargetDN,
-                        'changeNumber'    : myChangeNumber,
-                        'changeType'      : myChangeType,
-                        'changeTime'      : myChangeTime,
-                        'targetEntryUUID' : myTargetEntryUUID,
-                        'changes'         : myChanges,
-                        'includeAttrs'    : myIncAttrs,
-                        'expectMissingIncAttrs' : myMissingIncAttrs,
-                        'knownIssue'      : '6932197'
-                      }
-                    </call>
+                  <if expr="len(searchResult) != 0">
+                    <sequence>
+                      <call function="'parseLdifEntry'">
+                        { 'ldifEntry' : searchResult }
+                      </call>
+                      <script>
+                        eclEntry = STAXResult
+                        
+                        if ecl_mode == 'opends':
+                          nextIndex = eclEntry['changelogcookie'][0]
+                        else:
+                          nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                          nextIndex     = str(nextChgNumber)
+                      </script>
+                      <message>
+                        'Parsed changelog entry:  \n%s' % eclEntry
+                      </message>
+                      <message>
+                        'Index to use for the next ECL search:  %s' % \
+                        nextIndex
+                      </message>
+                          
+                      <!-- We may come across issue CR 6932197:
+                       !   ECL: old ecl-include attributes still published in 
+                       !   change entries until server restart -->
+                      <if expr="addedEntry and eclEntry">
+                        <call function="'checkChangelogEntry'">
+                          { 'location'        : masterHost,
+                            'dsPath'          : masterPath,
+                            'changelogEntry'  : eclEntry,
+                            'targetDN'        : myTargetDN,
+                            'changeNumber'    : myChangeNumber,
+                            'changeType'      : myChangeType,
+                            'changeTime'      : myChangeTime,
+                            'targetEntryUUID' : myTargetEntryUUID,
+                            'changes'         : myChanges,
+                            'includeAttrs'    : myIncAttrs,
+                            'expectMissingIncAttrs' : myMissingIncAttrs,
+                            'knownIssue'      : '6932197'
+                          }
+                        </call>
+                        <else>
+                          <sequence>
+                            <message log="1" level="'Error'">
+                              'Unable to check external changelog entry \
+                              (failed to read LDAP and/or changelog entry)'
+                            </message>
+                            <call function="'testFailed'"/>
+                          </sequence>
+                        </else>
+                      </if>
+              
+                    </sequence>
                     <else>
                       <sequence>
                         <message log="1" level="'Error'">
-                          'Unable to check external changelog entry \
-                          (failed to read LDAP and/or changelog entry)'
+                         'Expected some ECL entry but NO ENTRY returned'
                         </message>
-                        <call function="'testFailed'"/>
+                        <!-- We may have come across issue CR 6954670:
+                         !   ECL - draft: update ECL-disabled suffix, then
+                         !   non-disabled suffix, make lastChangenumber
+                         !   incoherent --> 
+                        <call function="'setKnownIssue'">
+                          { 'issueId' : 6954670 }
+                        </call>
                       </sequence>
                     </else>
                   </if>
-              
+
                 </sequence>
                 <else>
                   <message log="1" level="'Error'">
@@ -8422,56 +8479,75 @@
               </script>
               <if expr="searchRC == 0">
                 <sequence>
-                <message>
-                  'This is the ECL entry as read from server %s:%s: \n%s' %\
-                  (replServer.getHostname(), replServer.getPort(), 
-                   searchResult)
-                </message>
-                  <call function="'parseLdifEntry'">
-                    { 'ldifEntry' : searchResult }
-                  </call>
-                  <script>
-                    eclEntry = STAXResult
-                    
-                    if ecl_mode == 'opends':
-                      nextIndex = eclEntry['changelogcookie'][0]
-                    else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)
-                  </script>
                   <message>
-                    'Parsed changelog entry:  \n%s' % eclEntry
+                    'This is the ECL entry as read from server %s:%s: \n%s' %\
+                    (replServer.getHostname(), replServer.getPort(), 
+                     searchResult)
                   </message>
-                  <message>
-                    'Index to use for the next ECL search:  %s' % \
-                    nextIndex
-                  </message>
-                      
-                  <if expr="addedEntry and eclEntry">
-                    <call function="'checkChangelogEntry'">
-                      { 'location'        : masterHost,
-                        'dsPath'          : masterPath,
-                        'changelogEntry'  : eclEntry,
-                        'targetDN'        : myTargetDN,
-                        'changeNumber'    : myChangeNumber,
-                        'changeType'      : myChangeType,
-                        'changeTime'      : myChangeTime,
-                        'targetEntryUUID' : myTargetEntryUUID,
-                        'changes'         : myChanges,
-                        'includeAttrs'    : myIncAttrs
-                      }
-                    </call>
+                  <if expr="len(searchResult) != 0">
+                    <sequence>
+                      <call function="'parseLdifEntry'">
+                        { 'ldifEntry' : searchResult }
+                      </call>
+                      <script>
+                        eclEntry = STAXResult
+                        
+                        if ecl_mode == 'opends':
+                          nextIndex = eclEntry['changelogcookie'][0]
+                        else:
+                          nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                          nextIndex     = str(nextChgNumber)
+                      </script>
+                      <message>
+                        'Parsed changelog entry:  \n%s' % eclEntry
+                      </message>
+                      <message>
+                        'Index to use for the next ECL search:  %s' % \
+                        nextIndex
+                      </message>
+                          
+                      <if expr="addedEntry and eclEntry">
+                        <call function="'checkChangelogEntry'">
+                          { 'location'        : masterHost,
+                            'dsPath'          : masterPath,
+                            'changelogEntry'  : eclEntry,
+                            'targetDN'        : myTargetDN,
+                            'changeNumber'    : myChangeNumber,
+                            'changeType'      : myChangeType,
+                            'changeTime'      : myChangeTime,
+                            'targetEntryUUID' : myTargetEntryUUID,
+                            'changes'         : myChanges,
+                            'includeAttrs'    : myIncAttrs
+                          }
+                        </call>
+                        <else>
+                          <sequence>
+                            <message log="1" level="'Error'">
+                              'Unable to check external changelog entry \
+                              (failed to read LDAP and/or changelog entry)'
+                            </message>
+                            <call function="'testFailed'"/>
+                          </sequence>
+                        </else>
+                      </if>
+              
+                    </sequence>
                     <else>
                       <sequence>
                         <message log="1" level="'Error'">
-                          'Unable to check external changelog entry \
-                          (failed to read LDAP and/or changelog entry)'
+                         'Expected some ECL entry but NO ENTRY returned'
                         </message>
-                        <call function="'testFailed'"/>
+                        <!-- We may have come across issue CR 6954670:
+                         !   ECL - draft: update ECL-disabled suffix, then
+                         !   non-disabled suffix, make lastChangenumber
+                         !   incoherent --> 
+                        <call function="'setKnownIssue'">
+                          { 'issueId' : 6954670 }
+                        </call>
                       </sequence>
                     </else>
                   </if>
-              
+
                 </sequence>
                 <else>
                   <message log="1" level="'Error'">
@@ -8681,57 +8757,76 @@
               </script>
               <if expr="searchRC == 0">
                 <sequence>
-                <message>
-                  'This is the ECL entry as read from server %s:%s: \n%s' %\
-                  (replServer.getHostname(), replServer.getPort(), 
-                   searchResult)
-                </message>
-                  <call function="'parseLdifEntry'">
-                    { 'ldifEntry' : searchResult }
-                  </call>
-                  <script>
-                    eclEntry = STAXResult
-                    
-                    if ecl_mode == 'opends':
-                      nextIndex = eclEntry['changelogcookie'][0]
-                    else:
-                      nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                      nextIndex     = str(nextChgNumber)
-                  </script>
                   <message>
-                    'Parsed changelog entry:  \n%s' % eclEntry
+                    'This is the ECL entry as read from server %s:%s: \n%s' %\
+                    (replServer.getHostname(), replServer.getPort(), 
+                     searchResult)
                   </message>
-                  <message>
-                    'Index to use for the next ECL search:  %s' % \
-                    nextIndex
-                  </message>
+                  <if expr="len(searchResult) != 0">
+                    <sequence>
+                      <call function="'parseLdifEntry'">
+                        { 'ldifEntry' : searchResult }
+                      </call>
+                      <script>
+                        eclEntry = STAXResult
+                        
+                        if ecl_mode == 'opends':
+                          nextIndex = eclEntry['changelogcookie'][0]
+                        else:
+                          nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                          nextIndex     = str(nextChgNumber)
+                      </script>
+                      <message>
+                        'Parsed changelog entry:  \n%s' % eclEntry
+                      </message>
+                      <message>
+                        'Index to use for the next ECL search:  %s' % \
+                        nextIndex
+                      </message>
+                          
+                      <if expr="addedEntry and eclEntry">
+                        <call function="'checkChangelogEntry'">
+                          { 'location'        : masterHost,
+                            'dsPath'          : masterPath,
+                            'changelogEntry'  : eclEntry,
+                            'targetDN'        : myTargetDN,
+                            'changeNumber'    : myChangeNumber,
+                            'changeType'      : myChangeType,
+                            'changeTime'      : myChangeTime,
+                            'targetEntryUUID' : myTargetEntryUUID,
+                            'changes'         : myChanges,
+                            'includeAttrs'    : myIncAttrs,
+                            'expectMissingIncAttrs' : myMissingIncAttrs,
+                          }
+                        </call>
+                        <else>
+                          <sequence>
+                            <message log="1" level="'Error'">
+                              'Unable to check external changelog entry \
+                              (failed to read LDAP and/or changelog entry)'
+                            </message>
+                            <call function="'testFailed'"/>
+                          </sequence>
+                        </else>
+                      </if>
                       
-                  <if expr="addedEntry and eclEntry">
-                    <call function="'checkChangelogEntry'">
-                      { 'location'        : masterHost,
-                        'dsPath'          : masterPath,
-                        'changelogEntry'  : eclEntry,
-                        'targetDN'        : myTargetDN,
-                        'changeNumber'    : myChangeNumber,
-                        'changeType'      : myChangeType,
-                        'changeTime'      : myChangeTime,
-                        'targetEntryUUID' : myTargetEntryUUID,
-                        'changes'         : myChanges,
-                        'includeAttrs'    : myIncAttrs,
-                        'expectMissingIncAttrs' : myMissingIncAttrs,
-                      }
-                    </call>
+                    </sequence>
                     <else>
                       <sequence>
                         <message log="1" level="'Error'">
-                          'Unable to check external changelog entry \
-                          (failed to read LDAP and/or changelog entry)'
+                         'Expected some ECL entry but NO ENTRY returned'
                         </message>
-                        <call function="'testFailed'"/>
+                        <!-- We may have come across issue CR 6954670:
+                         !   ECL - draft: update ECL-disabled suffix, then
+                         !   non-disabled suffix, make lastChangenumber
+                         !   incoherent --> 
+                        <call function="'setKnownIssue'">
+                          { 'issueId' : 6954670 }
+                        </call>
                       </sequence>
                     </else>
                   </if>
-              
+
                 </sequence>
                 <else>
                   <message log="1" level="'Error'">
@@ -8983,100 +9078,119 @@
                     % (replServer.getHostname(), replServer.getPort(), 
                        searchResult)
                   </message>
-                  <call function="'parseLdifEntries'">
-                    { 'ldifEntries' : searchResult }
-                  </call>
-                  <script>
-                    eclEntries = STAXResult
-                  </script>
-                  
-                  <if expr="len(addedEntries) != len(eclEntries)">
+                  <if expr="len(searchResult) != 0">
                     <sequence>
-                      <message log="1" level="'Error'">
-                       'Number of added entries %s does not match number of ECL \
-                       entries %s' % (len(addedEntries), len(eclEntries))
-                      </message>
-                    <call function="'testFailed'"/>
-                    </sequence>
-                  </if>
-                  
-                  <iterate var="eclEntry"
-                           in="eclEntries"
-                           indexvar="i">
-                    <sequence>
-                    
+                      <call function="'parseLdifEntries'">
+                        { 'ldifEntries' : searchResult }
+                      </call>
                       <script>
-                        if ecl_mode == 'opends':
-                          nextIndex     = eclEntry['changelogcookie'][0]
-                        else:
-                          nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                          nextIndex     = str(nextChgNumber)
-                          
-                        addedEntry             = addedEntries[i]
-                        myTargetDN             = addedEntry['dn'][0]
-                        myChangeType           = 'add'
-                        myChangeTime           = addedEntry['createtimestamp'][0]
-                        myTargetEntryUUID      = addedEntry['entryuuid'][0]
-                        # myReplicationCSN     = ----> grab from where???
-                        # myReplicatIdentifier = ----> grab from ldap server
-                        myChanges              = {}
-                        myIncAttrs             = {}
-                        
-                        for attr in addedEntry.keys():
-                          if (attr != 'dn') and (attr != 'changelogcookie') :
-                            myChanges[attr] = addedEntry[attr]
-                        
-                        for incAttr in incAttrs:
-                          if incAttr in addedEntry.keys():
-                            myIncAttrs[incAttr] = addedEntry[incAttr]
-                          else:
-                            myIncAttrs[incAttr] = ' '
-                        
-                        if ecl_mode != 'opends':
-                          myIntChangeNumber    = int(searchIndex) + i
-                          myChangeNumber       = str(myIntChangeNumber)
-                        else:
-                          myChangeNumber       = None
+                        eclEntries = STAXResult
                       </script>
-                      <message>
-                        'Parsed changelog entry:  \n%s' % eclEntry
-                      </message>
-                      <message>
-                        'Index to use for the next ECL search:  %s' % nextIndex
-                      </message>
-    
-                      <!-- We may come across issue CR 6929416:
-                       !   ECL: updates done on server don't publish
-                       !   include-attrs configured on peer server -->
-                      <if expr="addedEntry and eclEntry">
-                        <call function="'checkChangelogEntry'">
-                          { 'location'        : masterHost,
-                            'dsPath'          : masterPath,
-                            'changelogEntry'  : eclEntry,
-                            'targetDN'        : myTargetDN,
-                            'changeNumber'    : myChangeNumber,
-                            'changeType'      : myChangeType,
-                            'changeTime'      : myChangeTime,
-                            'targetEntryUUID' : myTargetEntryUUID,
-                            'changes'         : myChanges,
-                            'includeAttrs'    : myIncAttrs,
-                            'knownIssue'      : '6929416'
-                          }
-                        </call>
-                        <else>
-                          <sequence>
-                            <message log="1" level="'Error'">
-                              'Unable to check external changelog entry \
-                              (failed to read LDAP and/or changelog entry)'
-                            </message>
-                            <call function="'testFailed'"/>
-                          </sequence>
-                        </else>
+                      
+                      <if expr="len(addedEntries) != len(eclEntries)">
+                        <sequence>
+                          <message log="1" level="'Error'">
+                           'Number of added entries %s does not match number of ECL \
+                           entries %s' % (len(addedEntries), len(eclEntries))
+                          </message>
+                        <call function="'testFailed'"/>
+                        </sequence>
                       </if>
                       
-                    </sequence>
-                  </iterate>
+                      <iterate var="eclEntry"
+                               in="eclEntries"
+                               indexvar="i">
+                        <sequence>
+                        
+                          <script>
+                            if ecl_mode == 'opends':
+                              nextIndex     = eclEntry['changelogcookie'][0]
+                            else:
+                              nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                              nextIndex     = str(nextChgNumber)
+                              
+                            addedEntry             = addedEntries[i]
+                            myTargetDN             = addedEntry['dn'][0]
+                            myChangeType           = 'add'
+                            myChangeTime           = addedEntry['createtimestamp'][0]
+                            myTargetEntryUUID      = addedEntry['entryuuid'][0]
+                            # myReplicationCSN     = ----> grab from where???
+                            # myReplicatIdentifier = ----> grab from ldap server
+                            myChanges              = {}
+                            myIncAttrs             = {}
+                            
+                            for attr in addedEntry.keys():
+                              if (attr != 'dn') and (attr != 'changelogcookie') :
+                                myChanges[attr] = addedEntry[attr]
+                            
+                            for incAttr in incAttrs:
+                              if incAttr in addedEntry.keys():
+                                myIncAttrs[incAttr] = addedEntry[incAttr]
+                              else:
+                                myIncAttrs[incAttr] = ' '
+                            
+                            if ecl_mode != 'opends':
+                              myIntChangeNumber    = int(searchIndex) + i
+                              myChangeNumber       = str(myIntChangeNumber)
+                            else:
+                              myChangeNumber       = None
+                          </script>
+                          <message>
+                            'Parsed changelog entry:  \n%s' % eclEntry
+                          </message>
+                          <message>
+                            'Index to use for the next ECL search:  %s' % nextIndex
+                          </message>
+        
+                          <!-- We may come across issue CR 6929416:
+                           !   ECL: updates done on server don't publish
+                           !   include-attrs configured on peer server -->
+                          <if expr="addedEntry and eclEntry">
+                            <call function="'checkChangelogEntry'">
+                              { 'location'        : masterHost,
+                                'dsPath'          : masterPath,
+                                'changelogEntry'  : eclEntry,
+                                'targetDN'        : myTargetDN,
+                                'changeNumber'    : myChangeNumber,
+                                'changeType'      : myChangeType,
+                                'changeTime'      : myChangeTime,
+                                'targetEntryUUID' : myTargetEntryUUID,
+                                'changes'         : myChanges,
+                                'includeAttrs'    : myIncAttrs,
+                                'knownIssue'      : '6929416'
+                              }
+                            </call>
+                            <else>
+                              <sequence>
+                                <message log="1" level="'Error'">
+                                  'Unable to check external changelog entry \
+                                  (failed to read LDAP and/or changelog entry)'
+                                </message>
+                                <call function="'testFailed'"/>
+                              </sequence>
+                            </else>
+                          </if>
+                          
+                        </sequence>
+                      </iterate>
                   
+                    </sequence>
+                    <else>
+                      <sequence>
+                        <message log="1" level="'Error'">
+                         'Expected some ECL entry but NO ENTRY returned'
+                        </message>
+                        <!-- We may have come across issue CR 6954670:
+                         !   ECL - draft: update ECL-disabled suffix, then
+                         !   non-disabled suffix, make lastChangenumber
+                         !   incoherent --> 
+                        <call function="'setKnownIssue'">
+                          { 'issueId' : 6954670 }
+                        </call>
+                      </sequence>
+                    </else>
+                  </if>
+
                 </sequence>
                 <else>
                   <message log="1" level="'Error'">
