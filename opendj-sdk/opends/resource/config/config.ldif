@@ -223,6 +223,12 @@ objectClass: ds-cfg-local-db-index
 ds-cfg-attribute: ds-sync-hist
 ds-cfg-index-type: ordering
 
+dn: ds-cfg-attribute=ds-sync-conflict,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: ds-sync-conflict
+ds-cfg-index-type: equality
+
 dn: ds-cfg-attribute=entryUUID,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 objectClass: top
 objectClass: ds-cfg-local-db-index

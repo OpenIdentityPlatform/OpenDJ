@@ -2411,6 +2411,148 @@ public class LDAPReplicationDomain extends ReplicationDomain
         pendingChanges.pushCommittedChanges();
       }
     }
+
+    checkForClearedConflict(op);
+  }
+
+  /**
+   * Check if the operation that just happened has cleared a conflict :
+   * Clearing a conflict happens if the operation has free a DN that
+   * for which an other entry was in conflict.
+   */
+   private void checkForClearedConflict(PostOperationOperation op)
+   {
+     OperationType type = op.getOperationType();
+     if (op.getResultCode() != ResultCode.SUCCESS)
+     {
+       // those operations cannot have cleared a conflict
+       return;
+     }
+
+     DN targetDN;
+     if (type == OperationType.DELETE)
+     {
+       targetDN = ((PostOperationDeleteOperation) op).getEntryDN();
+     }
+     else if (type == OperationType.MODIFY_DN)
+     {
+       targetDN = ((PostOperationModifyDNOperation) op).getEntryDN();
+     }
+     else
+     {
+       return;
+     }
+
+    LDAPFilter filter = null;
+    try
+    {
+      filter = LDAPFilter.decode(
+          DS_SYNC_CONFLICT + "=" + targetDN.toNormalizedString());
+    } catch (LDAPException e)
+    {
+      // Not possible. We know the filter just above is correct.
+    }
+
+     LinkedHashSet<String> attrs = new LinkedHashSet<String>(1);
+     attrs.add(Historical.HISTORICALATTRIBUTENAME);
+     attrs.add(Historical.ENTRYUIDNAME);
+     attrs.add("*");
+     InternalSearchOperation searchOp =  conn.processSearch(
+       ByteString.valueOf(baseDn.toString()),
+       SearchScope.WHOLE_SUBTREE,
+       DereferencePolicy.NEVER_DEREF_ALIASES,
+       0, 0, false, filter,
+       attrs, null);
+
+     LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
+     Entry entrytoRename = null;
+     ChangeNumber entrytoRenameDate = null;
+     for (SearchResultEntry entry : entries)
+     {
+       Historical history = Historical.load(entry);
+       if (entrytoRename == null)
+       {
+         entrytoRename = entry;
+         entrytoRenameDate = history.getDNDate();
+       }
+       else if (!history.AddedOrRenamedAfter(entrytoRenameDate))
+       {
+         // this conflict is older than the previous, keep it.
+         entrytoRename = entry;
+         entrytoRenameDate = history.getDNDate();
+       }
+     }
+
+     if (entrytoRename != null)
+     {
+       DN entryDN = entrytoRename.getDN();
+       ModifyDNOperationBasis newOp = renameEntry(
+           entryDN, targetDN.getRDN(), targetDN.getParent(), false);
+
+       ResultCode res = newOp.getResultCode();
+       if (res != ResultCode.SUCCESS)
+       {
+         Message message =
+           ERR_COULD_NOT_SOLVE_CONFLICT.get(entryDN.toString(), res.toString());
+           logError(message);
+       }
+     }
+   }
+
+  /**
+   * Rename an Entry Using a synchronization, non-replicated operation.
+   * This method should be used instead of the InternalConnection methods
+   * when the operation that need to be run must be local only and therefore
+   * not replicated to the RS.
+   *
+   * @param targetDN     The DN of the entry to rename.
+   * @param newRDN       The new RDN to be used.
+   * @param parentDN     The parentDN to be used.
+   * @param markConflict A boolean indicating is this entry should be marked
+   *                     as a conflicting entry. In such case the
+   *                     DS_SYNC_CONFLICT attribute will be added to the entry
+   *                     with the value of its original DN.
+   *                     If false, the DS_SYNC_CONFLICT attribute will be
+   *                     cleared.
+   *
+   * @return The operation that was run to rename the entry.
+   */
+  private ModifyDNOperationBasis renameEntry(
+      DN targetDN, RDN newRDN, DN parentDN, boolean markConflict)
+  {
+    InternalClientConnection conn =
+      InternalClientConnection.getRootConnection();
+
+    ModifyDNOperationBasis newOp =
+       new ModifyDNOperationBasis(
+           conn, InternalClientConnection.nextOperationID(),
+           InternalClientConnection.nextMessageID(), new ArrayList<Control>(0),
+           targetDN, newRDN, false,
+           parentDN);
+     newOp.setInternalOperation(true);
+     newOp.setSynchronizationOperation(true);
+     newOp.setDontSynchronize(true);
+
+     if (markConflict)
+     {
+       AttributeType attrType =
+         DirectoryServer.getAttributeType(DS_SYNC_CONFLICT, true);
+       Attribute attr = Attributes.create(attrType, AttributeValues.create(
+           attrType, targetDN.toString()));
+       Modification mod = new Modification(ModificationType.REPLACE, attr);
+       newOp.addModification(mod);
+     }
+     else
+     {
+       AttributeType attrType =
+         DirectoryServer.getAttributeType(DS_SYNC_CONFLICT, true);
+       Attribute attr = Attributes.empty(attrType);
+       Modification mod = new Modification(ModificationType.DELETE, attr);
+       newOp.addModification(mod);
+     }
+
+     newOp.run();
+    return newOp;
   }
 
   /**
@@ -3188,7 +3330,6 @@ private boolean solveNamingConflict(ModifyDNOperation op,
              * and keep the entry as a conflicting entry,
              */
             conflict = true;
-            markConflictEntry(conflictOp, entry.getDN(), entryDN);
             renameConflictEntry(conflictOp, entry.getDN(),
                 Historical.getEntryUuid(entry));
           }
@@ -3233,11 +3374,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    */
   private void renameConflictEntry(Operation conflictOp, DN dn, String uid)
   {
-    InternalClientConnection conn =
-      InternalClientConnection.getRootConnection();
-
-    ModifyDNOperation newOp = conn.processModifyDN(
-        dn, generateDeleteConflictDn(uid, dn),false, baseDn);
+    ModifyDNOperation newOp =
+      renameEntry(dn, generateDeleteConflictDn(uid, dn), baseDn, true);
 
     if (newOp.getResultCode() != ResultCode.SUCCESS)
     {
@@ -3275,7 +3413,18 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     List<Modification> mods = new ArrayList<Modification>();
     Modification mod = new Modification(ModificationType.REPLACE, attr);
     mods.add(mod);
-    ModifyOperation newOp = conn.processModify(currentDN, mods);
+
+    ModifyOperationBasis newOp =
+      new ModifyOperationBasis(
+          conn, InternalClientConnection.nextOperationID(),
+          InternalClientConnection.nextMessageID(), new ArrayList<Control>(0),
+          currentDN, mods);
+    newOp.setInternalOperation(true);
+    newOp.setSynchronizationOperation(true);
+    newOp.setDontSynchronize(true);
+
+    newOp.run();
+
     if (newOp.getResultCode() != ResultCode.SUCCESS)
     {
       // Log information for the repair tool.

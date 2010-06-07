@@ -84,6 +84,14 @@
           <adm:value>ds-sync-hist</adm:value>
         </adm:property>
       </adm:default-managed-object>
+      <adm:default-managed-object name="ds-sync-conflict">
+        <adm:property name="index-type">
+          <adm:value>equality</adm:value>
+        </adm:property>
+        <adm:property name="attribute">
+          <adm:value>ds-sync-conflict</adm:value>
+        </adm:property>
+      </adm:default-managed-object>
     </adm:one-to-many>
     <adm:profile name="ldap">
       <ldap:rdn-sequence>cn=Index</ldap:rdn-sequence>
