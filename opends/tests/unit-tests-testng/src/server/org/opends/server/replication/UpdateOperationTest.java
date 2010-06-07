@@ -992,17 +992,6 @@ public class  UpdateOperationTest extends ReplicationTestCase
 
     // delete the entries to clean the database
     delMsg =
-      new DeleteMsg("uid=reallynewrdn,ou=People," + TEST_ROOT_DN_STRING,
-          gen.newChangeNumber(), user1entryUUID);
-    broker.publish(delMsg);
-    resultEntry = getEntry(
-        DN.decode("uid=reallynewrdn,ou=People," + TEST_ROOT_DN_STRING), 10000, false);
-
-    //  check that the delete operation has been applied
-    assertNull(resultEntry,
-        "The DELETE replication message was not replayed");
-
-    delMsg =
       new DeleteMsg("entryUUID = " + user1entrysecondUUID + "+" +
           DN.decode(user1dn).getRDN().toString() +
           ",ou=People," + TEST_ROOT_DN_STRING,
@@ -1014,6 +1003,17 @@ public class  UpdateOperationTest extends ReplicationTestCase
               ",ou=People," + TEST_ROOT_DN_STRING), 10000, false);
 
     // check that the delete operation has been applied
+    assertNull(resultEntry,
+        "The DELETE replication message was not replayed");
+
+    delMsg =
+      new DeleteMsg("uid=reallynewrdn,ou=People," + TEST_ROOT_DN_STRING,
+          gen.newChangeNumber(), user1entryUUID);
+    broker.publish(delMsg);
+    resultEntry = getEntry(
+        DN.decode("uid=reallynewrdn,ou=People," + TEST_ROOT_DN_STRING), 10000, false);
+
+    //  check that the delete operation has been applied
     assertNull(resultEntry,
         "The DELETE replication message was not replayed");
 
@@ -1152,9 +1152,9 @@ public class  UpdateOperationTest extends ReplicationTestCase
 
     // check that the 2 conflicting entries have been correctly marked
     assertTrue(checkEntryHasAttribute(conflictDomain2dn,
-        LDAPReplicationDomain.DS_SYNC_CONFLICT, domain1dn, 1000, true));
+        LDAPReplicationDomain.DS_SYNC_CONFLICT, domain2dn, 1000, true));
     assertTrue(checkEntryHasAttribute(conflictDomain3dn,
-        LDAPReplicationDomain.DS_SYNC_CONFLICT, domain1dn, 1000, true));
+        LDAPReplicationDomain.DS_SYNC_CONFLICT, domain3dn, 1000, true));
 
     // check that unresolved conflict count has been incremented
     assertEquals(getMonitorDelta(), 1);
