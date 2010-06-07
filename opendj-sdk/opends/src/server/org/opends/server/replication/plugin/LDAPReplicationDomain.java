@@ -3374,6 +3374,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    */
   private void renameConflictEntry(Operation conflictOp, DN dn, String uid)
   {
+    Message alertMessage = NOTE_UNRESOLVED_CONFLICT.get(dn.toString());
+    DirectoryServer.sendAlertNotification(this,
+        ALERT_TYPE_REPLICATION_UNRESOLVED_CONFLICT, alertMessage);
+
     ModifyDNOperation newOp =
       renameEntry(dn, generateDeleteConflictDn(uid, dn), baseDn, true);
 
