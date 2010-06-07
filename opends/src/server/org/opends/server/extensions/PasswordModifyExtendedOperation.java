@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 import org.opends.messages.Message;
@@ -946,21 +946,25 @@ public class PasswordModifyExtendedOperation
           {
             if (pwPolicyState.isPasswordInHistory(newPassword))
             {
-              if (oldPassword == null)
+              if (selfChange || (! pwPolicyState.getPolicy().
+                                      skipValidationForAdministrators()))
               {
-                operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+                if (oldPassword == null)
+                {
+                  operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-                operation.appendErrorMessage(
-                        ERR_EXTOP_PASSMOD_PW_IN_HISTORY.get());
-              }
-              else
-              {
-                operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+                  operation.appendErrorMessage(
+                          ERR_EXTOP_PASSMOD_PW_IN_HISTORY.get());
+                }
+                else
+                {
+                  operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
-                operation.appendAdditionalLogMessage(
-                        ERR_EXTOP_PASSMOD_PW_IN_HISTORY.get());
+                  operation.appendAdditionalLogMessage(
+                          ERR_EXTOP_PASSMOD_PW_IN_HISTORY.get());
+                }
+                return;
               }
-              return;
             }
             else
             {
