@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -40,23 +40,23 @@ public class ReplicationRepairControlTest extends ReplicationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    
+
     // Test that we can't add an entry with the entryuuid attribute
-    // without specifying the replication repair control. 
+    // without specifying the replication repair control.
     String path = TestCaseUtils.createTempFile(
         "dn: uid=test.repair," + TEST_ROOT_DN_STRING + "\n" +
         "changetype: add\n" +
         "objectClass: top\n" +
-        "objectClass: person" +
-        "objectClass: organizationalPerson" +
-        "objectClass: inetOrgPerson" +
-        "uid: test.repair" +
-        "givenName: Test" +
-        "sn: User" +
-        "cn: Test User" +
-        "userPassword: password" +
-        "entryuuid: d5b910d8-47cb-4ac0-9e5f-0f4a77de58d4");
-    
+        "objectClass: person\n" +
+        "objectClass: organizationalPerson\n" +
+        "objectClass: inetOrgPerson\n" +
+        "uid: test.repair\n" +
+        "givenName: Test\n" +
+        "sn: User\n" +
+        "cn: Test User\n" +
+        "userPassword: password\n" +
+        "entryuuid: d5b910d8-47cb-4ac0-9e5f-0f4a77de58d4\n");
+
     String[] args =
     {
       "-h", "127.0.0.1",
@@ -66,25 +66,25 @@ public class ReplicationRepairControlTest extends ReplicationTestCase
       "-a",
       "-f", path
     };
-    
-    assertEquals(LDAPModify.mainModify(args, false, null, null), 65);
-    
+
+    assertEquals(LDAPModify.mainModify(args, false, null, null), 53);
+
     // Test that we can't add an entry with the ds-sync-hist attribute
-    // without specifying the replication repair control. 
+    // without specifying the replication repair control.
     String path1 = TestCaseUtils.createTempFile(
         "dn: uid=test.repair," + TEST_ROOT_DN_STRING + "\n" +
         "changetype: add\n" +
         "objectClass: top\n" +
-        "objectClass: person" +
-        "objectClass: organizationalPerson" +
-        "objectClass: inetOrgPerson" +
-        "uid: test.repair" +
-        "givenName: Test" +
-        "sn: User" +
-        "cn: Test User" +
-        "userPassword: password" +
-        "ds-sync-hist: description:00000108b3a6cbb800000001:del:deleted_value");
-    
+        "objectClass: person\n" +
+        "objectClass: organizationalPerson\n" +
+        "objectClass: inetOrgPerson\n" +
+        "uid: test.repair\n" +
+        "givenName: Test\n" +
+        "sn: User\n" +
+        "cn: Test User\n" +
+        "userPassword: password\n" +
+        "ds-sync-hist: description:00000108b3a6cbb800000001:del:deleted_value\n");
+
     String[] args1 =
     {
       "-h", "127.0.0.1",
@@ -96,8 +96,8 @@ public class ReplicationRepairControlTest extends ReplicationTestCase
     };
 
 
-    assertEquals(LDAPModify.mainModify(args1, false, null, null), 65);
-    
+    assertEquals(LDAPModify.mainModify(args1, false, null, null), 53);
+
     // Now Test specifying the replication repair control makes
     // possible to add an entry with the entryuuid and ds-sync-hist attributes
     // (notice the -J repairControlOid in the ldapmodify arguments)
@@ -106,27 +106,27 @@ public class ReplicationRepairControlTest extends ReplicationTestCase
         "changetype: add\n" +
         "objectClass: top\n" +
         "objectClass: person" +
-        "objectClass: organizationalPerson" +
-        "objectClass: inetOrgPerson" +
-        "uid: test.repair" +
-        "givenName: Test" +
-        "sn: User" +
-        "cn: Test User" +
-        "userPassword: password" +
-        "ds-sync-hist: description:00000108b3a6cbb800000001:del:deleted_value" +
-        "entryuuid: d5b910d8-47cb-4ac0-9e5f-0f4a77de58d4");
-    
+        "objectClass: organizationalPerson\n" +
+        "objectClass: inetOrgPerson\n" +
+        "uid: test.repair\n" +
+        "givenName: Test\n" +
+        "sn: User\n" +
+        "cn: Test User\n" +
+        "userPassword: password\n" +
+        "ds-sync-hist: description:00000108b3a6cbb800000001:del:deleted_value\n" +
+        "entryuuid: d5b910d8-47cb-4ac0-9e5f-0f4a77de58d4\n");
+
     String[] args2 =
     {
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-w", "password",
-      "-J", "1.3.6.1.4.1.26027.1.5.2", 
+      "-J", "1.3.6.1.4.1.26027.1.5.2",
       "-a",
       "-f", path2
     };
 
     assertEquals(LDAPModify.mainModify(args2, false, null, null), 0);
-  }  
+  }
 }

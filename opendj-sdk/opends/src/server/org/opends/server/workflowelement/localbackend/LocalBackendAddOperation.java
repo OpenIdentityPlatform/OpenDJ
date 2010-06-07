@@ -203,15 +203,6 @@ addProcessing:
         break addProcessing;
       }
 
-      objectClasses = getObjectClasses();
-      userAttributes = getUserAttributes();
-      operationalAttributes = getOperationalAttributes();
-
-      if ((objectClasses == null ) || (userAttributes == null) ||
-          (operationalAttributes == null))
-      {
-        break addProcessing;
-      }
 
       // Check for a request to cancel this operation.
       checkIfCanceled(false);
@@ -302,6 +293,16 @@ addProcessing:
             setResponseData(de);
             break addProcessing;
           }
+        }
+
+        objectClasses = getObjectClasses();
+        userAttributes = getUserAttributes();
+        operationalAttributes = getOperationalAttributes();
+
+        if ((objectClasses == null ) || (userAttributes == null) ||
+            (operationalAttributes == null))
+        {
+          break addProcessing;
         }
 
         for (AttributeType at : userAttributes.keySet())
