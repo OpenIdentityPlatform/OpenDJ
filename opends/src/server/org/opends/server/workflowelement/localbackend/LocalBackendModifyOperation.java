@@ -120,6 +120,11 @@ public class LocalBackendModifyOperation
   protected boolean noOp;
 
   /**
+   * Indicates whether the request included the Permissive Modify control.
+   */
+  protected boolean permissiveModify = false;
+
+  /**
    * Indicates whether this modify operation includees a password change.
    */
   protected boolean passwordChanged;
@@ -287,7 +292,7 @@ public class LocalBackendModifyOperation
   public void addModification(Modification modification)
     throws DirectoryException
   {
-    modifiedEntry.applyModification(modification);
+    modifiedEntry.applyModification(modification, permissiveModify);
     super.addModification(modification);
   }
 
@@ -838,6 +843,10 @@ modifyProcessing:
         else if (oid.equals(OID_LDAP_NOOP_OPENLDAP_ASSIGNED))
         {
           noOp = true;
+        }
+        else if (oid.equals(OID_PERMISSIVE_MODIFY_CONTROL))
+        {
+          permissiveModify = true;
         }
         else if (oid.equals(OID_LDAP_READENTRY_PREREAD))
         {
@@ -1496,7 +1505,7 @@ modifyProcessing:
     LinkedList<AttributeValue> duplicateValues =
       new LinkedList<AttributeValue>();
     modifiedEntry.addAttribute(attr, duplicateValues);
-    if (!duplicateValues.isEmpty())
+    if (!duplicateValues.isEmpty() && !permissiveModify)
     {
       StringBuilder buffer = new StringBuilder();
       Iterator<AttributeValue> iterator = duplicateValues.iterator();
@@ -1604,18 +1613,21 @@ modifyProcessing:
       }
       else
       {
-        StringBuilder buffer = new StringBuilder();
-        Iterator<AttributeValue> iterator = missingValues.iterator();
-        buffer.append(iterator.next().getValue().toString());
-        while (iterator.hasNext())
+        if (! permissiveModify)
         {
-          buffer.append(", ");
+          StringBuilder buffer = new StringBuilder();
+          Iterator<AttributeValue> iterator = missingValues.iterator();
           buffer.append(iterator.next().getValue().toString());
-        }
+          while (iterator.hasNext())
+          {
+            buffer.append(", ");
+            buffer.append(iterator.next().getValue().toString());
+          }
 
-        throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
+          throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
                        ERR_MODIFY_DELETE_MISSING_VALUES.get(
                             String.valueOf(entryDN), attr.getName(), buffer));
+        }
       }
     }
     else
