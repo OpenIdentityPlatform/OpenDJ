@@ -58,6 +58,10 @@ import org.opends.server.types.operation.PostOperationAddOperation;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
 import org.opends.server.types.operation.PostOperationModifyOperation;
+import org.opends.server.types.operation.PostSynchronizationAddOperation;
+import org.opends.server.types.operation.PostSynchronizationDeleteOperation;
+import org.opends.server.types.operation.PostSynchronizationModifyDNOperation;
+import org.opends.server.types.operation.PostSynchronizationModifyOperation;
 import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationDeleteOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
@@ -127,7 +131,11 @@ public class SubentryManager extends InternalDirectoryServerPlugin
           PluginType.POST_OPERATION_ADD,
           PluginType.POST_OPERATION_DELETE,
           PluginType.POST_OPERATION_MODIFY,
-          PluginType.POST_OPERATION_MODIFY_DN),
+          PluginType.POST_OPERATION_MODIFY_DN,
+          PluginType.POST_SYNCHRONIZATION_ADD,
+          PluginType.POST_SYNCHRONIZATION_DELETE,
+          PluginType.POST_SYNCHRONIZATION_MODIFY,
+          PluginType.POST_SYNCHRONIZATION_MODIFY_DN),
           true);
 
     lock = new ReentrantReadWriteLock();
@@ -719,6 +727,156 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     }
   }
 
+  private void doPostAdd(Entry entry)
+  {
+    if (entry.isSubentry() || entry.isLDAPSubentry())
+    {
+      try
+      {
+        addSubEntry(entry);
+
+        // Notify change listeners.
+        for (SubentryChangeListener changeListener :
+          changeListeners)
+        {
+          try
+          {
+            changeListener.handleSubentryAdd(entry);
+          }
+          catch (Exception e)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            }
+          }
+        }
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        // FIXME -- Handle this.
+      }
+    }
+  }
+
+  private void doPostDelete(Entry entry)
+  {
+    if (entry.isSubentry() || entry.isLDAPSubentry())
+    {
+      removeSubEntry(entry);
+
+      // Notify change listeners.
+      for (SubentryChangeListener changeListener :
+        changeListeners)
+      {
+        try
+        {
+          changeListener.handleSubentryDelete(entry);
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+        }
+      }
+    }
+  }
+
+  private void doPostModify(Entry oldEntry, Entry newEntry)
+  {
+    boolean notify = false;
+
+    if (oldEntry.isSubentry() || oldEntry.isLDAPSubentry())
+    {
+      removeSubEntry(oldEntry);
+      notify = true;
+    }
+    if (newEntry.isSubentry() || newEntry.isLDAPSubentry())
+    {
+      try
+      {
+        addSubEntry(newEntry);
+        notify = true;
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        // FIXME -- Handle this.
+      }
+    }
+
+    if (notify)
+    {
+      // Notify change listeners.
+      for (SubentryChangeListener changeListener :
+        changeListeners)
+      {
+        try
+        {
+          changeListener.handleSubentryModify(
+                  oldEntry, newEntry);
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+        }
+      }
+    }
+  }
+
+  private void doPostModifyDN(Entry oldEntry, Entry newEntry)
+  {
+    if (oldEntry.isSubentry() || oldEntry.isLDAPSubentry())
+    {
+      removeSubEntry(oldEntry);
+      try
+      {
+        addSubEntry(newEntry);
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        // FIXME -- Handle this.
+      }
+
+      // Notify change listeners.
+      for (SubentryChangeListener changeListener :
+        changeListeners)
+      {
+        try
+        {
+          changeListener.handleSubentryModify(
+                  oldEntry, newEntry);
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+        }
+      }
+    }
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -867,42 +1025,9 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   public PostOperation doPostOperation(
           PostOperationAddOperation addOperation)
   {
-    Entry entry = addOperation.getEntryToAdd();
+    doPostAdd(addOperation.getEntryToAdd());
 
-    if (entry.isSubentry() || entry.isLDAPSubentry())
-    {
-      try
-      {
-        addSubEntry(entry);
-
-        // Notify change listeners.
-        for (SubentryChangeListener changeListener :
-          changeListeners)
-        {
-          try
-          {
-            changeListener.handleSubentryAdd(entry);
-          }
-          catch (Exception e)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
-          }
-        }
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        // FIXME -- Handle this.
-      }
-    }
-
+    // If we've gotten here, then everything is acceptable.
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
@@ -913,30 +1038,9 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   public PostOperation doPostOperation(
           PostOperationDeleteOperation deleteOperation)
   {
-    Entry entry = deleteOperation.getEntryToDelete();
+    doPostDelete(deleteOperation.getEntryToDelete());
 
-    if (entry.isSubentry() || entry.isLDAPSubentry())
-    {
-      removeSubEntry(entry);
-
-      // Notify change listeners.
-      for (SubentryChangeListener changeListener :
-        changeListeners)
-      {
-        try
-        {
-          changeListener.handleSubentryDelete(entry);
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-        }
-      }
-    }
-
+    // If we've gotten here, then everything is acceptable.
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
@@ -947,55 +1051,10 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   public PostOperation doPostOperation(
           PostOperationModifyOperation modifyOperation)
   {
-    Entry oldEntry = modifyOperation.getCurrentEntry();
-    Entry newEntry = modifyOperation.getModifiedEntry();
+    doPostModify(modifyOperation.getCurrentEntry(),
+            modifyOperation.getModifiedEntry());
 
-    boolean notify = false;
-
-    if (oldEntry.isSubentry() || oldEntry.isLDAPSubentry())
-    {
-      removeSubEntry(oldEntry);
-      notify = true;
-    }
-    if (newEntry.isSubentry() || newEntry.isLDAPSubentry())
-    {
-      try
-      {
-        addSubEntry(newEntry);
-        notify = true;
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        // FIXME -- Handle this.
-      }
-    }
-
-    if (notify)
-    {
-      // Notify change listeners.
-      for (SubentryChangeListener changeListener :
-        changeListeners)
-      {
-        try
-        {
-          changeListener.handleSubentryModify(
-                  oldEntry, newEntry);
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-        }
-      }
-    }
-
+    // If we've gotten here, then everything is acceptable.
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
@@ -1006,45 +1065,68 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   public PostOperation doPostOperation(
           PostOperationModifyDNOperation modifyDNOperation)
   {
+    doPostModifyDN(modifyDNOperation.getOriginalEntry(),
+            modifyDNOperation.getUpdatedEntry());
+
+    // If we've gotten here, then everything is acceptable.
+    return PluginResult.PostOperation.continueOperationProcessing();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void doPostSynchronization(
+      PostSynchronizationAddOperation addOperation)
+  {
+    Entry entry = addOperation.getEntryToAdd();
+    if (entry != null)
+    {
+      doPostAdd(entry);
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void doPostSynchronization(
+      PostSynchronizationDeleteOperation deleteOperation)
+  {
+    Entry entry = deleteOperation.getEntryToDelete();
+    if (entry != null)
+    {
+      doPostDelete(entry);
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void doPostSynchronization(
+      PostSynchronizationModifyOperation modifyOperation)
+  {
+    Entry entry = modifyOperation.getCurrentEntry();
+    Entry modEntry = modifyOperation.getModifiedEntry();
+    if ((entry != null) && (modEntry != null))
+    {
+      doPostModify(entry, modEntry);
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void doPostSynchronization(
+      PostSynchronizationModifyDNOperation modifyDNOperation)
+  {
     Entry oldEntry = modifyDNOperation.getOriginalEntry();
     Entry newEntry = modifyDNOperation.getUpdatedEntry();
-
-    if (oldEntry.isSubentry() || oldEntry.isLDAPSubentry())
+    if ((oldEntry != null) && (newEntry != null))
     {
-      removeSubEntry(oldEntry);
-      try
-      {
-        addSubEntry(newEntry);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        // FIXME -- Handle this.
-      }
-
-      // Notify change listeners.
-      for (SubentryChangeListener changeListener :
-        changeListeners)
-      {
-        try
-        {
-          changeListener.handleSubentryModify(
-                  oldEntry, newEntry);
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-        }
-      }
+      doPostModifyDN(oldEntry, newEntry);
     }
-
-    return PluginResult.PostOperation.continueOperationProcessing();
   }
 }
