@@ -78,7 +78,12 @@ then
 fi
 
 # Make sure that the OpenDS build directory exists.  If not, then create it.
-BUILD_DIR="${ROOT_DIR}/build"
+if test -z "${BUILD_DIR}"
+then
+  BUILD_DIR="${ROOT_DIR}/build"
+fi
+echo "BUILD_DIR: ${BUILD_DIR}"
+
 if test ! -d "${BUILD_DIR}"
 then
   echo "WARNING:  ${BUILD_DIR} does not exist.  Building the server ..."
@@ -96,7 +101,7 @@ fi
 
 # Determine what the name should be for the OpenDS zip file name, but without
 # the ".zip" extension.
-ZIP_FILEPATH=`ls ${ROOT_DIR}/build/package/OpenDS*.zip`
+ZIP_FILEPATH=`ls ${BUILD_DIR}/package/OpenDS*.zip`
 ZIP_FILENAME=`basename ${ZIP_FILEPATH}`
 ZIP_FILENAME_BASE=`echo ${ZIP_FILENAME} | sed -e 's/\.zip//'`
 
@@ -185,6 +190,6 @@ ENDOFINSTALLJNLP
 
 
 # Tell the user where the files are.
-echo "The deployable content may be found in ${ROOT_DIR}/build/webstart"
+echo "The deployable content may be found in ${BUILD_DIR}/webstart"
 echo "It is intended for deployment at ${INSTALLER_URI}"
 
