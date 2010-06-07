@@ -1781,14 +1781,17 @@ public class Entry
    * checking will be performed.
    *
    * @param  mod  The modification to apply to this entry.
-   *
+   * @param  relaxConstraints indicates if the modification constraints are
+   *                          relaxed to match the ones of a set (add existing
+   *                          value and delete absent value do not fail)
+   * 
    * @throws  DirectoryException  If a problem occurs while attempting
    *                              to apply the modification.  Note
    *                              that even if a problem occurs, then
    *                              the entry may have been altered in
    *                              some way.
    */
-  public void applyModification(Modification mod)
+  public void applyModification(Modification mod, boolean relaxConstraints)
          throws DirectoryException
   {
     Attribute     a = mod.getAttribute();
@@ -1816,11 +1819,14 @@ public class Entry
           {
             if (objectClasses.containsKey(oc))
             {
-              Message message =
+              if (!relaxConstraints)
+              {
+                Message message =
                   ERR_ENTRY_DUPLICATE_VALUES.get(a.getName());
-              throw new DirectoryException(
+                throw new DirectoryException(
                              ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
                              message);
+              }
             }
             else
             {
@@ -1835,10 +1841,13 @@ public class Entry
           {
             if (objectClasses.remove(oc) == null)
             {
-              Message message =
+              if (! relaxConstraints)
+              {
+                Message message =
                   ERR_ENTRY_NO_SUCH_VALUE.get(a.getName());
-              throw new DirectoryException(
+                throw new DirectoryException(
                              ResultCode.NO_SUCH_ATTRIBUTE, message);
+              }
             }
           }
           objectClassAttribute = null;
@@ -1871,7 +1880,7 @@ public class Entry
         LinkedList<AttributeValue> duplicateValues =
              new LinkedList<AttributeValue>();
         addAttribute(a, duplicateValues);
-        if (! duplicateValues.isEmpty())
+        if ((! duplicateValues.isEmpty()) && (! relaxConstraints))
         {
           Message message =
               ERR_ENTRY_DUPLICATE_VALUES.get(a.getName());
@@ -1885,7 +1894,7 @@ public class Entry
         LinkedList<AttributeValue> missingValues =
              new LinkedList<AttributeValue>();
         removeAttribute(a, missingValues);
-        if (! missingValues.isEmpty())
+        if ((! missingValues.isEmpty()) && (! relaxConstraints))
         {
           Message message = ERR_ENTRY_NO_SUCH_VALUE.get(a.getName());
           throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
@@ -1909,7 +1918,23 @@ public class Entry
     }
   }
 
-
+  /**
+   * Applies the provided modification to this entry.  No schema
+   * checking will be performed.
+   *
+   * @param  mod  The modification to apply to this entry.
+   *
+   * @throws  DirectoryException  If a problem occurs while attempting
+   *                              to apply the modification.  Note
+   *                              that even if a problem occurs, then
+   *                              the entry may have been altered in
+   *                              some way.
+   */
+  public void applyModification(Modification mod)
+         throws DirectoryException
+  {
+      applyModification(mod, false);
+  }
 
   /**
    * Applies all of the provided modifications to this entry.

@@ -2275,6 +2275,12 @@ public final class ServerConstants
        "2.16.840.1.113730.3.4.2";
 
 
+  /**
+   * The OID for the Permissive Modify control, defined and used by MSAD
+   */
+  public static final String OID_PERMISSIVE_MODIFY_CONTROL =
+      "1.2.840.113556.1.4.1413";
+
 
   /**
    * The OID for the server-side sort request control.
