@@ -202,7 +202,7 @@ public final class JNDIDirContextAdaptor extends LDAPConnection {
   @Override
   public void createEntry(LdapName dn, Attributes attributes)
       throws NamingException {
-    dirContext.createSubcontext(dn, attributes);
+    dirContext.createSubcontext(dn, attributes).close();
   }
 
 
