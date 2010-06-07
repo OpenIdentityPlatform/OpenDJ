@@ -29,6 +29,7 @@ package org.opends.server.protocols.ldap;
 
 
 import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.loggers.AccessLogger.logConnect;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -265,6 +266,7 @@ public class LDAPRequestHandler
             SocketChannel socketChannel = c.getSocketChannel();
             socketChannel.configureBlocking(false);
             socketChannel.register(selector, SelectionKey.OP_READ, c);
+            logConnect(c);
           }
           catch (Exception e)
           {

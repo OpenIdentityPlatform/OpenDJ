@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.MessageBuilder;
@@ -651,6 +651,9 @@ public class ModifyDNOperationBasis
       // Stop the processing timer.
       setProcessingStopTime();
 
+      // Log the modify DN response.
+      logModifyDNResponse(this);
+
       if(cancelRequest == null || cancelResult == null ||
           cancelResult.getResultCode() != ResultCode.CANCELED ||
           cancelRequest.notifyOriginalRequestor() ||
@@ -658,9 +661,6 @@ public class ModifyDNOperationBasis
       {
         clientConnection.sendResponse(this);
       }
-
-      // Log the modify DN response.
-      logModifyDNResponse(this);
 
       // Invoke the post-response callbacks.
       if (workflowExecuted) {

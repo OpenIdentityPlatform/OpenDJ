@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -811,11 +811,12 @@ public class SearchOperationBasis
     // Send the entry to the client.
     if (pluginResult.sendResponse())
     {
+      // Log the entry sent to the client.
+      logSearchResultEntry(this, searchEntry);
+
       try
       {
         sendSearchEntry(searchEntry);
-        // Log the entry sent to the client.
-        logSearchResultEntry(this, searchEntry);
 
         incrementEntriesSent();
       }
@@ -889,12 +890,13 @@ public class SearchOperationBasis
     // to send any more.
     if (pluginResult.sendResponse())
     {
+      // Log the entry sent to the client.
+      logSearchResultReference(this, reference);
+
       try
       {
         if (sendSearchReference(reference))
         {
-          // Log the entry sent to the client.
-          logSearchResultReference(this, reference);
           incrementReferencesSent();
 
           // FIXME -- Should the size limit apply here?
@@ -931,12 +933,11 @@ public class SearchOperationBasis
     // multithreaded in the event of a persistent search, so do it safely.
     if (responseSent.compareAndSet(false, true))
     {
-      // Send the response to the client.
-      clientConnection.sendResponse(this);
-
       // Log the search result.
       logSearchResultDone(this);
 
+      // Send the response to the client.
+      clientConnection.sendResponse(this);
 
       // Invoke the post-response search plugins.
       invokePostResponsePlugins();

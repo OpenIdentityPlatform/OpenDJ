@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.MessageBuilder;
@@ -520,6 +520,9 @@ public class ExtendedOperationBasis
       // Stop the processing timer.
       setProcessingStopTime();
 
+      // Log the extended response.
+      logExtendedResponse(this);
+
       // Send the response to the client.
       if(cancelRequest == null || cancelResult == null ||
           cancelResult.getResultCode() != ResultCode.CANCELED ||
@@ -533,9 +536,6 @@ public class ExtendedOperationBasis
       {
         clientConnection.finishBindOrStartTLS();
       }
-
-      // Log the extended response.
-      logExtendedResponse(this);
 
       // Invoke the post-response extended plugins.
       pluginConfigManager.invokePostResponseExtendedPlugins(this);

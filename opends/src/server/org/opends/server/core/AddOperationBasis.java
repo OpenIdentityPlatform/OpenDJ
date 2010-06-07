@@ -782,6 +782,9 @@ public class AddOperationBasis
       // Stop the processing timer.
       setProcessingStopTime();
 
+      // Log the add response message.
+      logAddResponse(this);
+
       if(cancelRequest == null || cancelResult == null ||
           cancelResult.getResultCode() != ResultCode.CANCELED ||
           cancelRequest.notifyOriginalRequestor() ||
@@ -790,9 +793,6 @@ public class AddOperationBasis
         clientConnection.sendResponse(this);
       }
 
-
-      // Log the add response message.
-      logAddResponse(this);
 
       // Invoke the post-response callbacks.
       if (workflowExecuted) {

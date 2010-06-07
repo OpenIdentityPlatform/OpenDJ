@@ -22,11 +22,10 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -1156,7 +1155,6 @@ public final class LDAPConnectionHandler extends
 
       if (requestHandler
           .registerClient(clientConnection)) {
-        logConnect(clientConnection);
       }
     } catch (Exception e) {
       if (debugEnabled())
