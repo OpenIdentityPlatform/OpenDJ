@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.ldif;
@@ -341,9 +341,16 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements
 
       final String attributeDescription = attribute
           .getAttributeDescriptionAsString();
-      for (final ByteString value : attribute)
+      if (attribute.isEmpty())
       {
-        writeKeyAndValue(attributeDescription, value);
+        writeKeyAndValue(attributeDescription, ByteString.empty());
+      }
+      else
+      {
+        for (final ByteString value : attribute)
+        {
+          writeKeyAndValue(attributeDescription, value);
+        }
       }
     }
 

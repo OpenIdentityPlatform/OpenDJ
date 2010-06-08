@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
@@ -74,22 +74,18 @@ abstract class AbstractMapEntry extends AbstractEntry
   {
     Validator.ensureNotNull(attribute);
 
-    if (!attribute.isEmpty())
+    final AttributeDescription attributeDescription = attribute
+        .getAttributeDescription();
+    final Attribute oldAttribute = attributes.get(attributeDescription);
+    if (oldAttribute != null)
     {
-      final AttributeDescription attributeDescription = attribute
-          .getAttributeDescription();
-      final Attribute oldAttribute = attributes.get(attributeDescription);
-      if (oldAttribute != null)
-      {
-        return oldAttribute.addAll(attribute, duplicateValues);
-      }
-      else
-      {
-        attributes.put(attributeDescription, attribute);
-        return true;
-      }
+      return oldAttribute.addAll(attribute, duplicateValues);
     }
-    return false;
+    else
+    {
+      attributes.put(attributeDescription, attribute);
+      return true;
+    }
   }
 
 
