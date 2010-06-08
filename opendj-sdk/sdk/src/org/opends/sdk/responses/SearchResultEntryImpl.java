@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.responses;
@@ -319,6 +319,24 @@ final class SearchResultEntryImpl extends
   SearchResultEntry getThis()
   {
     return this;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int hashCode()
+  {
+    return entry.hashCode();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean equals(final Object object)
+  {
+    return entry.equals(object);
   }
 
 }
