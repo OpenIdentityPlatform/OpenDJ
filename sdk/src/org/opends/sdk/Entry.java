@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
@@ -62,11 +62,19 @@ public interface Entry
 {
 
   /**
-   * Adds all of the attribute values contained in {@code attribute} to this
-   * entry, merging with any existing attribute values (optional operation). If
-   * {@code attribute} is empty then this entry is left unchanged.
+   * Ensures that this entry contains the provided attribute and values
+   * (optional operation). This method has the following semantics:
+   * <ul>
+   * <li>If this entry does not already contain an attribute with the same
+   * attribute description, then this entry will be modified such that it
+   * contains {@code attribute}, even if it is empty.
+   * <li>If this entry already contains an attribute with the same attribute
+   * description, then the attribute values contained in {@code attribute} will
+   * be merged with the existing attribute values.
+   * </ul>
    * <p>
-   * <b>NOTE:</b> This method implements LDAP Modify add semantics.
+   * <b>NOTE:</b> When {@code attribute} is non-empty, this method implements
+   * LDAP Modify add semantics.
    *
    * @param attribute
    *          The attribute values to be added to this entry, merging with any
@@ -84,11 +92,19 @@ public interface Entry
 
 
   /**
-   * Adds all of the attribute values contained in {@code attribute} to this
-   * entry, merging with any existing attribute values (optional operation). If
-   * {@code attribute} is empty then this entry is left unchanged.
+   * Ensures that this entry contains the provided attribute and values
+   * (optional operation). This method has the following semantics:
+   * <ul>
+   * <li>If this entry does not already contain an attribute with the same
+   * attribute description, then this entry will be modified such that it
+   * contains {@code attribute}, even if it is empty.
+   * <li>If this entry already contains an attribute with the same attribute
+   * description, then the attribute values contained in {@code attribute} will
+   * be merged with the existing attribute values.
+   * </ul>
    * <p>
-   * <b>NOTE:</b> This method implements LDAP Modify add semantics.
+   * <b>NOTE:</b> When {@code attribute} is non-empty, this method implements
+   * LDAP Modify add semantics.
    *
    * @param attribute
    *          The attribute values to be added to this entry, merging with any
@@ -110,9 +126,16 @@ public interface Entry
 
 
   /**
-   * Adds all of the attribute values contained in {@code values} to this entry,
-   * merging with any existing attribute values (optional operation). If {@code
-   * values} is {@code null} or empty then this entry is left unchanged.
+   * Ensures that this entry contains the provided attribute and values
+   * (optional operation). This method has the following semantics:
+   * <ul>
+   * <li>If this entry does not already contain an attribute with the same
+   * attribute description, then this entry will be modified such that it
+   * contains {@code attribute}, even if it is empty.
+   * <li>If this entry already contains an attribute with the same attribute
+   * description, then the attribute values contained in {@code attribute} will
+   * be merged with the existing attribute values.
+   * </ul>
    * <p>
    * The attribute description will be decoded using the schema associated with
    * this entry (usually the default schema).
@@ -120,7 +143,8 @@ public interface Entry
    * Any attribute values which are not instances of {@code ByteString} will be
    * converted using the {@link ByteString#valueOf(Object)} method.
    * <p>
-   * <b>NOTE:</b> This method implements LDAP Modify add semantics.
+   * <b>NOTE:</b> When {@code attribute} is non-empty, this method implements
+   * LDAP Modify add semantics.
    *
    * @param attributeDescription
    *          The name of the attribute whose values are to be added.
