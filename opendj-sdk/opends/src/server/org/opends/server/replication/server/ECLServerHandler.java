@@ -685,6 +685,12 @@ public class ECLServerHandler extends ServerHandler
       boolean allowUnknownDomains)
   throws DirectoryException
   {
+    // This map is initialized from the providedCookie.
+    // Below, it will be traversed and each domain configured with ECL will be
+    // checked and removed from the map.
+    // At the end, normally the map should be empty.
+    // Depending on allowUnknownDomains provided flag, a non empty map will
+    // be considered as an error when allowUnknownDomains is false.
     HashMap<String,ServerState> startStatesFromProvidedCookie =
       new HashMap<String,ServerState>();
 
@@ -832,6 +838,22 @@ public class ECLServerHandler extends ServerHandler
 
       domainCtxts = tmpSet.toArray(new DomainContext[0]);
 
+      // When it is valid to have the provided cookie containing unknown domains
+      // (allowUnknownDomains is true), 2 cases must be considered :
+      // - if the cookie contains a domain that is replicated but where
+      //   ECL is disabled, then this case is considered above
+      // - if the cookie contains a domain that is even not replicated
+      //   then this case need to be considered here in another loop.
+      if (!startStatesFromProvidedCookie.isEmpty())
+      {
+        if (allowUnknownDomains)
+          for (String providedDomain : startStatesFromProvidedCookie.keySet())
+            if (rs.getReplicationServerDomain(providedDomain, false) == null)
+              // the domain provided in the cookie is not replicated
+              startStatesFromProvidedCookie.remove(providedDomain);
+      }
+
+      // Now do the final checking
       if (!startStatesFromProvidedCookie.isEmpty())
       {
         // After reading all the knows domains from the provided cookie, there
