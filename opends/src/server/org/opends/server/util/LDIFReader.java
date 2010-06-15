@@ -423,6 +423,9 @@ public final class LDIFReader
           suffix.removePending(entryDN);
           continue;
         }
+         //Add any superior objectclass(s) missing in an entries
+        //objectclass map.
+        addSuperiorObjectClasses(entry.getObjectClasses());
       }
       entryInfo.setEntryID(entryID);
       entryInfo.setSuffix(suffix);
