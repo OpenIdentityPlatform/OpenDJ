@@ -865,6 +865,7 @@ public class ReplicationBroker
 
       // Get info from every available replication servers
       replicationServerInfos = collectReplicationServersInfo();
+      String rsis = replicationServerInfos.toString();
 
       ReplicationServerInfo replicationServerInfo = null;
 
@@ -1057,7 +1058,7 @@ public class ReplicationBroker
           connectionError = true;
           connectPhaseLock.notify();
           Message message =
-            NOTE_COULD_NOT_FIND_CHANGELOG.get(baseDn.toString());
+            NOTE_COULD_NOT_FIND_CHANGELOG.get(baseDn.toString(), rsis);
           logError(message);
         }
       }

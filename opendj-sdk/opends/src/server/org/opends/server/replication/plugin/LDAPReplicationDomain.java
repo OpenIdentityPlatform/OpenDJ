@@ -2538,7 +2538,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
        AttributeType attrType =
          DirectoryServer.getAttributeType(DS_SYNC_CONFLICT, true);
        Attribute attr = Attributes.create(attrType, AttributeValues.create(
-           attrType, targetDN.toString()));
+           attrType, targetDN.toNormalizedString()));
        Modification mod = new Modification(ModificationType.REPLACE, attr);
        newOp.addModification(mod);
      }
@@ -3413,7 +3413,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     AttributeType attrType = DirectoryServer.getAttributeType(DS_SYNC_CONFLICT,
         true);
     Attribute attr = Attributes.create(attrType, AttributeValues.create(
-        attrType, conflictDN.toString()));
+        attrType, conflictDN.toNormalizedString()));
     List<Modification> mods = new ArrayList<Modification>();
     Modification mod = new Modification(ModificationType.REPLACE, attr);
     mods.add(mod);
@@ -3458,14 +3458,23 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    */
   private void addConflict(AddMsg msg) throws ASN1Exception
   {
+    String normalizedDN;
+    try
+    {
+      normalizedDN = DN.decode(msg.getDn()).toNormalizedString();
+    } catch (DirectoryException e)
+    {
+      normalizedDN = msg.getDn();
+    }
+
     // Generate an alert to let the administrator know that some
     // conflict could not be solved.
-    Message alertMessage = NOTE_UNRESOLVED_CONFLICT.get(msg.getDn());
+    Message alertMessage = NOTE_UNRESOLVED_CONFLICT.get(normalizedDN);
     DirectoryServer.sendAlertNotification(this,
         ALERT_TYPE_REPLICATION_UNRESOLVED_CONFLICT, alertMessage);
 
     // Add the conflict attribute
-    msg.addAttribute(DS_SYNC_CONFLICT, msg.getDn());
+    msg.addAttribute(DS_SYNC_CONFLICT, normalizedDN);
   }
 
   /**
