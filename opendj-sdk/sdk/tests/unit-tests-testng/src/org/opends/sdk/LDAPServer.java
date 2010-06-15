@@ -133,7 +133,7 @@ public class LDAPServer implements ServerConnection<Integer>,
 
 
   // The mapping between entry DNs and the corresponding entries.
-  private final ConcurrentHashMap<DN, SearchResultEntry> entryMap = new ConcurrentHashMap<DN, SearchResultEntry>();
+  private final ConcurrentHashMap<DN, Entry> entryMap = new ConcurrentHashMap<DN, Entry>();
 
   // The grizzly transport.
   private final TCPNIOTransport transport = TransportFactory.getInstance()
@@ -157,7 +157,7 @@ public class LDAPServer implements ServerConnection<Integer>,
   private LDAPServer()
   {
     // Add the root dse first.
-    entryMap.put(DN.rootDN(), Responses.newSearchResultEntry(DN.rootDN()));
+    entryMap.put(DN.rootDN(), Types.unmodifiableEntry(new LinkedHashMapEntry()));
     for (int i = 0; i < 1000; i++)
     {
       final String dn = String.format("uid=user.%d,ou=people,o=test", i);
@@ -166,10 +166,10 @@ public class LDAPServer implements ServerConnection<Integer>,
       final String uid = String.format("uid: user.%d", i);
 
       final DN d = DN.valueOf(dn);
-      final SearchResultEntry e = Responses.newSearchResultEntry("dn: " + dn,
+      final Entry e = new LinkedHashMapEntry("dn: " + dn,
           "objectclass: person", "objectclass: inetorgperson",
           "objectclass: top", cn, sn, uid);
-      entryMap.put(d, e);
+      entryMap.put(d, Types.unmodifiableEntry(e));
     }
   }
 
@@ -342,7 +342,7 @@ public class LDAPServer implements ServerConnection<Integer>,
     }
 
     // Get the entry.
-    final SearchResultEntry entry = entryMap.get(dn);
+    final Entry entry = entryMap.get(dn);
     final AttributeDescription attrDesc = request.getAttributeDescription();
     for (final Attribute attr : entry.getAllAttributes(attrDesc))
     {
@@ -519,7 +519,8 @@ public class LDAPServer implements ServerConnection<Integer>,
       return;
     }
 
-    final SearchResultEntry e = entryMap.get(dn);
+    final SearchResultEntry e = Responses.newSearchResultEntry(
+        new LinkedHashMapEntry(entryMap.get(dn)));
     // Check we have had any controls in the request.
     for (final Control control : request.getControls())
     {
@@ -543,7 +544,7 @@ public class LDAPServer implements ServerConnection<Integer>,
    * @param port
    * @exception IOException
    */
-  public void start(final int port) throws IOException
+  public synchronized void start(final int port) throws IOException
   {
     if (isRunning)
     {
@@ -562,7 +563,7 @@ public class LDAPServer implements ServerConnection<Integer>,
   /**
    * Stops the server.
    */
-  public void stop()
+  public synchronized void stop()
   {
     if (!isRunning)
     {
