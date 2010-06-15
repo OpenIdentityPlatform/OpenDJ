@@ -154,6 +154,88 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
 
 
 
+  /**
+   * Compares the provided DN values to determine their relative order in a
+   * sorted list.
+   *
+   * @param dn1
+   *          The first DN to be compared. It must not be {@code null}.
+   * @param dn2
+   *          The second DN to be compared. It must not be {@code null}.
+   * @return A negative integer if the first DN should come before the second DN
+   *         in a sorted list, a positive integer if the first DN should come
+   *         after the second DN in a sorted list, or zero if the two DN values
+   *         can be considered equal.
+   */
+  private static int compareTo(final DN dn1, final DN dn2)
+  {
+    // Quickly check if we are comparing against root dse.
+    if (dn1.isRootDN())
+    {
+      if (dn2.isRootDN())
+      {
+        // both are equal.
+        return 0;
+      }
+      else
+      {
+        // dn1 comes before dn2.
+        return -1;
+      }
+    }
+
+    if (dn2.isRootDN())
+    {
+      // dn1 comes after dn2.
+      return 1;
+    }
+
+    int dn1Size = dn1.size - 1;
+    int dn2Size = dn2.size - 1;
+    while (dn1Size >= 0 && dn2Size >= 0)
+    {
+      final DN dn1Parent = dn1.parent(dn1Size--);
+      final DN dn2Parent = dn2.parent(dn2Size--);
+      if (dn1Parent.isRootDN())
+      {
+        if (dn2Parent.isRootDN())
+        {
+          break;
+        }
+        return -1;
+      }
+
+      if (dn2Parent.isRootDN())
+      {
+        return 1;
+      }
+
+      final int result = dn1Parent.rdn.compareTo(dn2Parent.rdn);
+      if (result > 0)
+      {
+        return 1;
+      }
+      else if (result < 0)
+      {
+        return -1;
+      }
+    }
+
+    // What do we have here?
+    if (dn1Size > dn2Size)
+    {
+      return 1;
+    }
+    else if (dn1Size < dn2Size)
+    {
+      return -1;
+    }
+
+    return 0;
+  }
+
+
+
   // Decodes a DN using the provided reader and schema.
   private static DN decode(final String dnString, final SubstringReader reader,
       final Schema schema, final Map<String, DN> cache)
@@ -236,8 +318,6 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
   // We need to store the original string value if provided in order to
   // preserve the original whitespace.
   private String stringValue;
-
-  private String normalizedStringValue = null;
 
 
 
@@ -343,87 +423,6 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
 
 
   /**
-   * Compares the provided DN values to determine their relative order in a
-   * sorted list.
-   *
-   * @param dn1
-   *          The first DN to be compared. It must not be {@code null}.
-   * @param dn2
-   *          The second DN to be compared. It must not be {@code null}.
-   * @return A negative integer if the first DN should come before the second DN
-   *         in a sorted list, a positive integer if the first DN should come
-   *         after the second DN in a sorted list, or zero if the two DN values
-   *         can be considered equal.
-   */
-  public int compareTo(final DN dn1, final DN dn2)
-  {
-    // Quicly check if we are comparing against root dse.
-    if (dn1.isRootDN())
-    {
-      if (dn2.isRootDN())
-      {
-        // both are equal.
-        return 0;
-      }
-      else
-      {
-        // dn1 comes before dn2.
-        return -1;
-      }
-    }
-
-    if (dn2.isRootDN())
-    {
-      // dn1 comes after dn2.
-      return 1;
-    }
-
-    int dn1Size = dn1.size - 1;
-    int dn2Size = dn2.size - 1;
-    while (dn1Size >= 0 && dn2Size >= 0)
-    {
-      final DN dn1Parent = dn1.parent(dn1Size--);
-      final DN dn2Parent = dn2.parent(dn2Size--);
-      if (dn1Parent.isRootDN())
-      {
-        if (dn2Parent.isRootDN())
-        {
-          break;
-        }
-        return -1;
-      }
-
-      if (dn2Parent.isRootDN())
-      {
-        return 1;
-      }
-
-      final int result = dn1Parent.rdn.compareTo(dn2Parent.rdn);
-      if (result > 0)
-      {
-        return 1;
-      }
-      else if (result < 0)
-      {
-        return -1;
-      }
-    }
-    // What do we have here?
-    if (dn1Size > dn2Size)
-    {
-      return 1;
-    }
-    else if (dn1Size < dn2Size)
-    {
-      return -1;
-    }
-
-    return 0;
-  }
-
-
-
-  /**
    * {@inheritDoc}
    */
   @Override
@@ -435,14 +434,22 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
     }
     else if (obj instanceof DN)
     {
-      final String s1 = toNormalizedString();
-      final String s2 = ((DN) obj).toNormalizedString();
-      return s1.equals(s2);
+      DN other = (DN)obj;
+      if(size == other.size())
+      {
+        if(size == 0)
+        {
+          return true;
+        }
+
+        if(rdn.equals(other.rdn))
+        {
+          return parent.equals(other.parent);
+        }
+      }
     }
-    else
-    {
-      return false;
-    }
+
+    return false;
   }
 
 
@@ -453,8 +460,14 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
   @Override
   public int hashCode()
   {
-    final String s = toNormalizedString();
-    return s.hashCode();
+    if (size == 0)
+    {
+      return 0;
+    }
+    else
+    {
+      return 31 * parent.hashCode() + rdn.hashCode();
+    }
   }
 
 
@@ -768,33 +781,6 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
   public int size()
   {
     return size;
-  }
-
-
-
-  /**
-   * Returns the normalized string representation of this DN.
-   *
-   * @return The normalized string representation of this DN.
-   */
-  public String toNormalizedString()
-  {
-    if (rdn == null)
-    {
-      return "".intern();
-    }
-    if (normalizedStringValue == null)
-    {
-      final StringBuilder builder = new StringBuilder();
-      rdn.toNormalizedString(builder);
-      if (!parent.isRootDN())
-      {
-        builder.append(',');
-        builder.append(parent.toNormalizedString());
-      }
-      normalizedStringValue = builder.toString();
-    }
-    return normalizedStringValue;
   }
 
 

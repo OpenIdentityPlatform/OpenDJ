@@ -413,33 +413,6 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN>
 
 
 
-  StringBuilder toNormalizedString(final StringBuilder builder)
-  {
-    final int sz = avas.length;
-    if (sz == 1)
-    {
-      return avas[0].toNormalizedString(builder);
-    }
-    else
-    {
-      // Need to sort the AVAs before comparing.
-      final AVA[] a = new AVA[sz];
-      System.arraycopy(avas, 0, a, 0, sz);
-      Arrays.sort(a);
-      // Normalize the first AVA.
-      a[0].toNormalizedString(builder);
-      for (int i = 1; i < sz; i++)
-      {
-        builder.append('+');
-        a[i].toNormalizedString(builder);
-      }
-
-      return builder;
-    }
-  }
-
-
-
   StringBuilder toString(final StringBuilder builder)
   {
     return builder.append(toString());

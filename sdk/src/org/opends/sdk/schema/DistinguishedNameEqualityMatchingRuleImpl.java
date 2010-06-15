@@ -22,17 +22,18 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 package org.opends.sdk.schema;
 
 
 
-import java.util.Arrays;
-import java.util.Comparator;
+import java.util.TreeSet;
+import java.util.Iterator;
 
 import org.opends.sdk.*;
-
+import com.sun.opends.sdk.util.StaticUtils;
+import static com.sun.opends.sdk.util.StaticUtils.getBytes;
 
 
 /**
@@ -42,166 +43,175 @@ import org.opends.sdk.*;
 final class DistinguishedNameEqualityMatchingRuleImpl extends
     AbstractMatchingRuleImpl
 {
-  private static final Comparator<AVA> ATV_COMPARATOR = new Comparator<AVA>()
-  {
-    public int compare(final AVA o1, final AVA o2)
-    {
-      return o1.getAttributeType().compareTo(o2.getAttributeType());
-    }
-  };
-
-
-
-  @Override
-  public Assertion getAssertion(final Schema schema, final ByteSequence value)
-      throws DecodeException
-  {
-    DN assertion;
-    try
-    {
-      assertion = DN.valueOf(value.toString(), schema);
-    }
-    catch (final LocalizedIllegalArgumentException e)
-    {
-      throw DecodeException.error(e.getMessageObject());
-    }
-
-    final DN finalAssertion = assertion;
-    return new Assertion()
-    {
-      public ConditionResult matches(final ByteSequence attributeValue)
-      {
-        try
-        {
-          final DN attribute = DN.valueOf(attributeValue.toString(), schema);
-          return matchDNs(finalAssertion, attribute);
-        }
-        catch (final LocalizedIllegalArgumentException e)
-        {
-          return ConditionResult.UNDEFINED;
-        }
-      }
-    };
-  }
-
-
-
+  /**
+   * {@inheritDoc}
+   */
   public ByteString normalizeAttributeValue(final Schema schema,
       final ByteSequence value) throws DecodeException
   {
     try
     {
-      return ByteString.valueOf(DN.valueOf(value.toString(), schema)
-          .toNormalizedString());
+      DN dn = DN.valueOf(value.toString(), schema.nonStrict());
+      StringBuilder builder = new StringBuilder(value.length());
+      return ByteString.valueOf(normalizeDN(builder, dn));
     }
     catch (final LocalizedIllegalArgumentException e)
     {
       throw DecodeException.error(e.getMessageObject());
     }
-  }
-
-
-
-  private ConditionResult matchAVAs(final AVA ava1, final AVA ava2)
-  {
-    final AttributeType type = ava1.getAttributeType();
-
-    if (!type.equals(ava2.getAttributeType()))
+    catch (final Exception e)
     {
-      return ConditionResult.FALSE;
-    }
-
-    final MatchingRule matchingRule = type.getEqualityMatchingRule();
-    if (matchingRule != null)
-    {
-      try
-      {
-        final ByteString nv1 = matchingRule.normalizeAttributeValue(ava1
-            .getAttributeValue());
-        final ByteString nv2 = matchingRule.normalizeAttributeValue(ava2
-            .getAttributeValue());
-        return nv1.equals(nv2) ? ConditionResult.TRUE : ConditionResult.FALSE;
-      }
-      catch (final DecodeException de)
-      {
-        return ConditionResult.UNDEFINED;
-      }
-    }
-
-    return ConditionResult.UNDEFINED;
-  }
-
-
-
-  private ConditionResult matchDNs(final DN dn1, final DN dn2)
-  {
-    final int sz1 = dn1.size();
-    final int sz2 = dn2.size();
-
-    if (sz1 != sz2)
-    {
-      return ConditionResult.FALSE;
-    }
-    else
-    {
-      final RDN rdn1 = dn1.rdn();
-      final RDN rdn2 = dn2.rdn();
-      while (rdn1 != null)
-      {
-        final ConditionResult result = matchRDNs(rdn1, rdn2);
-        if (result != ConditionResult.TRUE)
-        {
-          return result;
-        }
-      }
-      return ConditionResult.TRUE;
+      throw DecodeException.error(LocalizableMessage.raw(e.toString()));
     }
   }
 
-
-
-  private ConditionResult matchRDNs(final RDN rdn1, final RDN rdn2)
+  /**
+   * Returns the normalized string representation of a DN.
+   *
+   * @param builder The StringBuilder to use to construct the normalized string.
+   * @param dn The DN.
+   * @return The normalized string representation of the provided DN.
+   */
+  private static StringBuilder normalizeDN(final StringBuilder builder,
+                                          final DN dn)
   {
-    final int sz1 = rdn1.size();
-    final int sz2 = rdn2.size();
-
-    if (sz1 != sz2)
+    if(dn.rdn() == null)
     {
-      return ConditionResult.FALSE;
+      return builder;
     }
-    else if (sz1 == 1)
+
+    int i = dn.size() - 1;
+    normalizeRDN(builder, dn.parent(i).rdn());
+    for (i--; i >= 0; i--)
     {
-      return matchAVAs(rdn1.getFirstAVA(), rdn2.getFirstAVA());
+      builder.append('\u0000');
+      normalizeRDN(builder, dn.parent(i).rdn());
+    }
+    return builder;
+  }
+
+  /**
+   * Returns the normalized string representation of a RDN.
+   *
+   * @param builder The StringBuilder to use to construct the normalized string.
+   * @param rdn The RDN.
+   * @return The normalized string representation of the provided RDN.
+   */
+  private static StringBuilder normalizeRDN(final StringBuilder builder,
+                                           final RDN rdn)
+  {
+    final int sz = rdn.size();
+    if (sz == 1)
+    {
+      return normalizeAVA(builder, rdn.getFirstAVA());
     }
     else
     {
       // Need to sort the AVAs before comparing.
-      final AVA[] a1 = new AVA[sz1];
-      int i = 0;
-      for (final AVA ava : rdn1)
+      TreeSet<AVA> a = new TreeSet<AVA>();
+      for(AVA ava : rdn)
       {
-        a1[i++] = ava;
+        a.add(ava);
       }
-      Arrays.sort(a1, ATV_COMPARATOR);
-
-      final AVA[] a2 = new AVA[sz1];
-      i = 0;
-      for (final AVA ava : rdn2)
+      Iterator<AVA> i = a.iterator();
+      // Normalize the first AVA.
+      normalizeAVA(builder, i.next());
+      while(i.hasNext())
       {
-        a2[i++] = ava;
+        builder.append('\u0001');
+        normalizeAVA(builder, i.next());
       }
-      Arrays.sort(a2, ATV_COMPARATOR);
 
-      for (i = 0; i < sz1; i++)
+      return builder;
+    }
+  }
+
+  /**
+   * Returns the normalized string representation of an AVA.
+   *
+   * @param builder The StringBuilder to use to construct the normalized string.
+   * @param ava The AVA.
+   * @return The normalized string representation of the provided AVA.
+   */
+  private static StringBuilder normalizeAVA(final StringBuilder builder,
+                                           final AVA ava)
+  {
+    ByteString value = ava.getAttributeValue();
+    final MatchingRule matchingRule =
+        ava.getAttributeType().getEqualityMatchingRule();
+    if (matchingRule != null)
+    {
+      try
       {
-        final ConditionResult result = matchAVAs(a1[i], a2[i]);
-        if (result != ConditionResult.TRUE)
+        value =
+            matchingRule.normalizeAttributeValue(ava.getAttributeValue());
+      }
+      catch (final DecodeException de)
+      {
+        // Ignore - we'll drop back to the user provided value.
+      }
+    }
+
+    if (!ava.getAttributeType().getNames().iterator().hasNext())
+    {
+      builder.append(ava.getAttributeType().getOID());
+      builder.append("=#");
+      StaticUtils.toHex(value, builder);
+    }
+    else
+    {
+      final String name = ava.getAttributeType().getNameOrOID();
+      // Normalizing.
+      StaticUtils.toLowerCase(name, builder);
+
+      builder.append("=");
+
+      final Syntax syntax = ava.getAttributeType().getSyntax();
+      if (!syntax.isHumanReadable())
+      {
+        builder.append("#");
+        StaticUtils.toHex(value, builder);
+      }
+      else
+      {
+        final String str = value.toString();
+        if (str.length() == 0)
         {
-          return result;
+          return builder;
+        }
+        char c = str.charAt(0);
+        int startPos = 0;
+        if ((c == ' ') || (c == '#'))
+        {
+          builder.append('\\');
+          builder.append(c);
+          startPos = 1;
+        }
+        final int length = str.length();
+        for (int si = startPos; si < length; si++)
+        {
+          c = str.charAt(si);
+          if (c < ' ')
+          {
+            for (final byte b : getBytes(String.valueOf(c)))
+            {
+              builder.append('\\');
+              builder.append(StaticUtils.byteToLowerHex(b));
+            }
+          }
+          else
+          {
+            if ((c == ' ' && si == length - 1)
+                || (c == '"' || c == '+' || c == ',' || c == ';' || c == '<'
+                    || c == '=' || c == '>' || c == '\\' || c == '\u0000'))
+            {
+              builder.append('\\');
+            }
+            builder.append(c);
+          }
         }
       }
-
-      return ConditionResult.TRUE;
     }
+    return builder;
   }
 }

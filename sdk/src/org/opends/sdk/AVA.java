@@ -844,20 +844,6 @@ public final class AVA implements Comparable<AVA>
 
 
 
-  StringBuilder toNormalizedString(final StringBuilder builder)
-  {
-    return toString(builder, true);
-  }
-
-
-
-  StringBuilder toString(final StringBuilder builder)
-  {
-    return toString(builder, false);
-  }
-
-
-
   private ByteString getNormalizeValue()
   {
     final MatchingRule matchingRule = attributeType.getEqualityMatchingRule();
@@ -877,41 +863,29 @@ public final class AVA implements Comparable<AVA>
 
 
 
-  private StringBuilder toString(final StringBuilder builder,
-      final boolean normalize)
+  StringBuilder toString(final StringBuilder builder)
   {
-    final ByteString value = normalize ? getNormalizeValue() : attributeValue;
-
     if (!attributeType.getNames().iterator().hasNext())
     {
       builder.append(attributeType.getOID());
       builder.append("=#");
-      StaticUtils.toHex(value, builder);
+      StaticUtils.toHex(attributeValue, builder);
     }
     else
     {
       final String name = attributeType.getNameOrOID();
-      if (normalize)
-      {
-        // Normalizing.
-        StaticUtils.toLowerCase(name, builder);
-      }
-      else
-      {
-        builder.append(name);
-      }
-
+      builder.append(name);
       builder.append("=");
 
       final Syntax syntax = attributeType.getSyntax();
       if (!syntax.isHumanReadable())
       {
         builder.append("#");
-        StaticUtils.toHex(value, builder);
+        StaticUtils.toHex(attributeValue, builder);
       }
       else
       {
-        final String str = value.toString();
+        final String str = attributeValue.toString();
         if (str.length() == 0)
         {
           return builder;
