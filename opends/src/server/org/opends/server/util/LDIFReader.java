@@ -411,6 +411,12 @@ public final class LDIFReader
       // appropriate to do so.
       if (checkSchema)
       {
+        //Add the RDN attributes.
+        addRDNAttributesIfNecessary(entryDN,userAttributes,
+                operationalAttributes);
+        //Add any superior objectclass(s) missing in the objectclass map.
+        addSuperiorObjectClasses(objectClasses);
+
         MessageBuilder invalidReason = new MessageBuilder();
         if (! entry.conformsToSchema(null, false, true, false, invalidReason))
         {
@@ -423,9 +429,6 @@ public final class LDIFReader
           suffix.removePending(entryDN);
           continue;
         }
-         //Add any superior objectclass(s) missing in an entries
-        //objectclass map.
-        addSuperiorObjectClasses(entry.getObjectClasses());
       }
       entryInfo.setEntryID(entryID);
       entryInfo.setSuffix(suffix);
@@ -2359,6 +2362,101 @@ public final class LDIFReader
       AttributeBuilder builder = new AttributeBuilder(attribute, true);
       builder.add(attributeValue);
       attrList.add(builder.toAttribute());
+    }
+  }
+
+
+
+  /**
+   * Adds any missing RDN attributes to the entry that is being imported.
+   */
+  private void addRDNAttributesIfNecessary(DN entryDN,
+          HashMap<AttributeType,List<Attribute>>userAttributes,
+          HashMap<AttributeType,List<Attribute>> operationalAttributes)
+  {
+    RDN rdn = entryDN.getRDN();
+    int numAVAs = rdn.getNumValues();
+    for (int i=0; i < numAVAs; i++)
+    {
+      AttributeType  t = rdn.getAttributeType(i);
+      AttributeValue v = rdn.getAttributeValue(i);
+      String         n = rdn.getAttributeName(i);
+      if (t.isOperational())
+      {
+        List<Attribute> attrList = operationalAttributes.get(t);
+        if (attrList == null)
+        {
+          attrList = new ArrayList<Attribute>();
+          attrList.add(Attributes.create(t, n, v));
+          operationalAttributes.put(t, attrList);
+        }
+        else
+        {
+          boolean found = false;
+          for (int j = 0; j < attrList.size(); j++)
+          {
+            Attribute a = attrList.get(j);
+
+            if (a.hasOptions())
+            {
+              continue;
+            }
+
+            if (!a.contains(v))
+            {
+              AttributeBuilder builder = new AttributeBuilder(a);
+              builder.add(v);
+              attrList.set(j, builder.toAttribute());
+            }
+
+            found = true;
+            break;
+          }
+
+          if (!found)
+          {
+            attrList.add(Attributes.create(t, n, v));
+          }
+        }
+      }
+      else
+      {
+        List<Attribute> attrList = userAttributes.get(t);
+        if (attrList == null)
+        {
+          attrList = new ArrayList<Attribute>();
+          attrList.add(Attributes.create(t, n, v));
+          userAttributes.put(t, attrList);
+        }
+        else
+        {
+          boolean found = false;
+          for (int j = 0; j < attrList.size(); j++)
+          {
+            Attribute a = attrList.get(j);
+
+            if (a.hasOptions())
+            {
+              continue;
+            }
+
+            if (!a.contains(v))
+            {
+              AttributeBuilder builder = new AttributeBuilder(a);
+              builder.add(v);
+              attrList.set(j, builder.toAttribute());
+            }
+
+            found = true;
+            break;
+          }
+
+          if (!found)
+          {
+            attrList.add(Attributes.create(t, n, v));
+          }
+        }
+      }
     }
   }
 }

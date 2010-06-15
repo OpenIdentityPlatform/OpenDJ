@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -59,7 +59,7 @@ public class TestImportJob extends JebTestCase
   private String top = "dn: dc=importtest,dc=com\n" +
       "objectclass: top\n" +
       "objectclass: domain\n" +
-      "dc: example\n" +
+      "dc: importtest\n" +
       "\n" +
       "dn: ou=People,dc=importtest,dc=com\n" +
       "objectclass: top\n" +
@@ -74,7 +74,7 @@ public class TestImportJob extends JebTestCase
       "dn: dc=importtest1,dc=com\n" +
       "objectclass: top\n" +
       "objectclass: domain\n" +
-      "dc: example1\n";
+      "dc: importtest1\n";
   private String entries1 =
       "dn: uid=user.0,ou=People,dc=importtest,dc=com\n" +
       "objectClass: top\n" +
