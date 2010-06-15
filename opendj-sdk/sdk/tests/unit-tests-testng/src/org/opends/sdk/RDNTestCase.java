@@ -325,12 +325,8 @@ public final class RDNTestCase extends TypesTestCase
       final String stringRDN) throws Exception
   {
     final RDN rdn = RDN.valueOf(rawRDN);
-    final StringBuilder buffer = new StringBuilder();
-    buffer.append(normRDN);
-    Platform.normalize(buffer);
-    final StringBuilder normalBuffer = new StringBuilder();
-    rdn.toNormalizedString(normalBuffer);
-    assertEquals(normalBuffer.toString(), buffer.toString());
+    final RDN string = RDN.valueOf(stringRDN);
+    assertEquals(rdn, string);
   }
 
 

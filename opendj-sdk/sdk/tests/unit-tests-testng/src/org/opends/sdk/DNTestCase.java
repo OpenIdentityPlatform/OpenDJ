@@ -486,7 +486,6 @@ public class DNTestCase extends SdkTestCase
     assertEquals(c, e);
     assertEquals(c.hashCode(), e.hashCode());
 
-    assertEquals(c.toNormalizedString(), e.toNormalizedString());
     assertEquals(c.toString(), e.toString());
 
     assertEquals(c.rdn(), RDN.valueOf("dc=foo"));
@@ -799,7 +798,6 @@ public class DNTestCase extends SdkTestCase
     assertEquals(p, e);
     assertEquals(p.hashCode(), e.hashCode());
 
-    assertEquals(p.toNormalizedString(), e.toNormalizedString());
     assertEquals(p.toString(), e.toString());
 
     assertEquals(p.rdn(), RDN.valueOf("dc=bar"));
@@ -885,7 +883,6 @@ public class DNTestCase extends SdkTestCase
     final DN nullDN = DN.rootDN();
     assertTrue(nullDN.isRootDN());
     assertTrue(nullDN.size() == 0);
-    assertEquals(nullDN.toNormalizedString(), "");
   }
 
 
@@ -936,21 +933,6 @@ public class DNTestCase extends SdkTestCase
 
 
   /**
-   * Tests the toNoramlizedString methods.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test
-  public void testToNormalizedString() throws Exception
-  {
-    final DN dn = DN.valueOf("dc=example,dc=com");
-    assertEquals(dn.toNormalizedString(), "dc=example,dc=com");
-  }
-
-
-
-  /**
    * Test the RFC 4514 string representation of the DN.
    *
    * @param rawDN
@@ -988,10 +970,8 @@ public class DNTestCase extends SdkTestCase
   public void testValueOfString(final String rawDN, final String normDN,
       final String stringDN) throws Exception
   {
-    final DN dn = DN.valueOf(rawDN);
-    final StringBuilder buffer = new StringBuilder();
-    buffer.append(normDN);
-    Platform.normalize(buffer);
-    assertEquals(dn.toNormalizedString(), buffer.toString());
+    final DN raw = DN.valueOf(rawDN);
+    final DN string = DN.valueOf(stringDN);
+    assertEquals(raw, string);
   }
 }
