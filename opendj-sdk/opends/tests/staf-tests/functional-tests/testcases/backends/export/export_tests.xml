@@ -772,8 +772,7 @@
           </call>
           
           <call function="'checkImport'">
-            { 'expectedEntries' : ['dc=com','dc=example,dc=com'],
-              'missingEntries'  : ['ou=People,dc=example,dc=com'],
+            { 'expectedEntries' : ['dc=com','dc=example,dc=com','ou=People,dc=example,dc=com'],
               'dsPath'          : '%s/%s' % (DsInstanceDir, OPENDSNAME),
               'dsPort'          : DsInstancePort,
               'dsAdminPort'     : DsInstanceAdminPort,

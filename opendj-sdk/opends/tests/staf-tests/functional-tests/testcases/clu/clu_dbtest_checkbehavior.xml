@@ -236,7 +236,7 @@
                 <call function="'checktestString'">
                   { 
                   'returnString'   : returnString ,
-                  'expectedString' : 'Total: 19'
+                  'expectedString' : 'Total: 20'
                   }
                 </call>             
              
@@ -309,7 +309,7 @@
                 <call function="'checktestString'">
                   { 
                   'returnString'   : returnString ,
-                  'expectedString' : 'Total: 23'
+                  'expectedString' : 'Total: 24'
                   }
                 </call>
                 

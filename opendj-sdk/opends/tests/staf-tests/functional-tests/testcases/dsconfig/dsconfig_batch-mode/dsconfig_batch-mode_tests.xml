@@ -222,7 +222,7 @@
 
           <!-- Search for uniqueMember indexes -->
           <call function="'searchString'">
-            { 'expectedString' : 'uniqueMember    : generic : equality',
+            { 'expectedString' : 'uniqueMember     : generic : equality',
               'returnString'   : resultString ,
             }
           </call>

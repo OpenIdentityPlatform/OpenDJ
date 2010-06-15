@@ -209,6 +209,31 @@
               'path'      : remoteCoveragePath
             }
           </call>
+
+          <if expr="RC != 0">
+            <sequence>
+              <message>
+                'Zip up coverage files to %s/coverage.zip' % remote.temp
+              </message>
+              <call function="'zipUpFile'">
+                { 'location'   : STAF_REMOTE_HOSTNAME,
+                  'zipfile'    : '%s/coverage.zip' % remote.temp,
+                  'folder'     : '%s/coverage' % remote.temp,
+                  'relativeto' : remote.temp
+                }
+              </call>
+
+              <message>
+                'Copy coverage zip archive to %s/coverage.zip' % local.temp
+              </message>
+              <call function="'copyFile'">
+                { 'location'   : STAF_REMOTE_HOSTNAME,
+                  'srcfile'    : '%s/coverage.zip' % remote.temp,
+                  'destfile'   : '%s/coverage.zip' % local.temp,
+                  'remotehost' : STAXServiceMachine }
+              </call>
+            </sequence>
+          </if>
         </sequence>
       </if>
 
