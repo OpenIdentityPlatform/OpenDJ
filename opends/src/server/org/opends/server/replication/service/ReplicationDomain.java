@@ -3668,15 +3668,18 @@ public abstract class ReplicationDomain
    * @param serverId    server where these attributes are configured.
    * @param attributes  the configured attributes.
    */
-  synchronized public void setEclInclude(int serverId, Set<String> attributes)
+  public void setEclInclude(int serverId, Set<String> attributes)
   {
-    eclIncludeByServer.put(serverId, attributes);
+    synchronized(eclIncludeByServer)
+    {
+      eclIncludeByServer.put(serverId, attributes);
 
-    // and rebuild the global list to be ready for usage
-    crossServersECLIncludes.clear();
-    for (Set<String> attributesByServer : eclIncludeByServer.values())
-      for (String attribute : attributesByServer)
-        crossServersECLIncludes.add(attribute);
+      // and rebuild the global list to be ready for usage
+      crossServersECLIncludes.clear();
+      for (Set<String> attributesByServer : eclIncludeByServer.values())
+        for (String attribute : attributesByServer)
+          crossServersECLIncludes.add(attribute);
+    }
   }
 
   /**
@@ -3698,7 +3701,10 @@ public abstract class ReplicationDomain
    */
   public Set<String> getEclInclude(int serverId)
   {
-    return eclIncludeByServer.get(serverId);
+    synchronized(eclIncludeByServer)
+    {
+      return eclIncludeByServer.get(serverId);
+    }
   }
 
   /**
