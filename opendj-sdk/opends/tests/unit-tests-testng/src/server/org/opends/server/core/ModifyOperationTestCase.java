@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -54,9 +54,11 @@ import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
+import org.opends.server.util.ServerConstants;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
 
 import static org.testng.Assert.*;
@@ -4612,5 +4614,168 @@ responseLoop:
     assertFalse(DirectoryServer.getEntry(DN.decode("o=test")).hasAttribute(
                      DirectoryServer.getAttributeType("description", true)));
   }
+
+
+  /**
+   * Tests modify operation with the Permissive Modify control.
+   */
+
+  /**
+   * Test to ensure that a modify operation with the Permissive Modify control
+   * succeeds when an attempt is made to add a value that matches one
+   * that already exists.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "baseDNs")
+  public void testSuccessPermissiveModifyControlAddDuplicateValue(String baseDN)
+         throws Exception
+  {
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
+
+    Entry entry = TestCaseUtils.makeEntry(
+         "dn: uid=test.user," + baseDN,
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "uid: test.user",
+         "givenName: Test",
+         "sn: User",
+         "cn: Test User",
+         "displayName: Test User",
+         "userPassword: password");
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    AddOperation addOperation =
+         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+                         entry.getUserAttributes(),
+                         entry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("Test"));
+    LDAPAttribute attr = new LDAPAttribute("givenName", values);
+
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    mods.add(new LDAPModification(ModificationType.ADD, attr));
+
+    ArrayList<Control> requestControls = new ArrayList<Control>();
+    requestControls.add(
+        new LDAPControl(ServerConstants.OID_PERMISSIVE_MODIFY_CONTROL, false));
+
+    ModifyOperation modifyOperation =
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
+                            mods,
+                            requestControls);
+    assertTrue(modifyOperation.getResultCode() == ResultCode.SUCCESS);
+    retrieveSuccessfulOperationElements(modifyOperation);
+  }
+
+  /**
+   * Test to ensure that a modify operation with the Permissive Modify control
+   * succeeds when an attempt is made to delete a non existent value.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "baseDNs")
+  public void testSuccessPermissiveModifyControlRemoveNonExistentValue(String baseDN)
+         throws Exception
+  {
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
+
+    Entry entry = TestCaseUtils.makeEntry(
+         "dn: uid=test.user," + baseDN,
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "uid: test.user",
+         "givenName: Test",
+         "sn: User",
+         "cn: Test User",
+         "displayName: Test User",
+         "userPassword: password");
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    AddOperation addOperation =
+         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+                         entry.getUserAttributes(),
+                         entry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("Foo"));
+    LDAPAttribute attr = new LDAPAttribute("givenName", values);
+
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    mods.add(new LDAPModification(ModificationType.DELETE, attr));
+
+    ArrayList<Control> requestControls = new ArrayList<Control>();
+    requestControls.add(
+        new LDAPControl(ServerConstants.OID_PERMISSIVE_MODIFY_CONTROL, false));
+
+    ModifyOperation modifyOperation =
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
+                            mods,
+                            requestControls);
+    assertTrue(modifyOperation.getResultCode() == ResultCode.SUCCESS);
+    retrieveSuccessfulOperationElements(modifyOperation);
+  }
+
+  /**
+   * Test to ensure that a modify operation with the Permissive Modify control
+   * succeeds when an attempt is made to delete a non existent attribute.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "baseDNs")
+  public void testSuccessPermissiveModifyControlRemoveNonExistentAttribute(String baseDN)
+         throws Exception
+  {
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
+
+    Entry entry = TestCaseUtils.makeEntry(
+         "dn: uid=test.user," + baseDN,
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "uid: test.user",
+         "givenName: Test",
+         "sn: User",
+         "cn: Test User",
+         "displayName: Test User",
+         "userPassword: password");
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    AddOperation addOperation =
+         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+                         entry.getUserAttributes(),
+                         entry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+    LDAPAttribute attr = new LDAPAttribute("displayName");
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    mods.add(new LDAPModification(ModificationType.DELETE, attr));
+
+    ArrayList<Control> requestControls = new ArrayList<Control>();
+    requestControls.add(
+        new LDAPControl(ServerConstants.OID_PERMISSIVE_MODIFY_CONTROL, false));
+
+    ModifyOperation modifyOperation =
+         conn.processModify(ByteString.valueOf("uid=test.user," + baseDN),
+                            mods,
+                            requestControls);
+    assertTrue(modifyOperation.getResultCode() == ResultCode.SUCCESS);
+    retrieveSuccessfulOperationElements(modifyOperation);
+  }
+
 }
 
