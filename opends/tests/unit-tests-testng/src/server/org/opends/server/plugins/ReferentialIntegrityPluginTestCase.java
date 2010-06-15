@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.plugins;
@@ -30,6 +30,7 @@ package org.opends.server.plugins;
 import org.testng.annotations.*;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.config.ConfigException;
+import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.admin.std.server.ReferentialIntegrityPluginCfg;
 import org.opends.server.admin.std.meta.ReferentialIntegrityPluginCfgDefn;
 import org.opends.server.admin.server.AdminTestCaseUtils;
@@ -41,6 +42,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.HashSet;
@@ -117,7 +119,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     replaceAttrEntry(configDN, dsConfigAttrType,"member");
     addAttrEntry(configDN, dsConfigAttrType,"uniquemember", "seealso");
     //Add suffixes to make referential changes under:
-    //o=test, and o=group, ou=unique groups, dc=example, dc=com
+    //o=test, and cn=group, ou=unique groups, dc=example, dc=com
     replaceAttrEntry(configDN, dsConfigBaseDN, testSuffix);
     addAttrEntry(configDN, dsConfigBaseDN, ugroup);
     //Add DNs to groups and special entries
@@ -138,6 +140,61 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
      //This group  not under a suffix, old entries should exist.
     isAttributeValueEntry(spPerson, true,"seealso",
                           user1, user2, user3);
+  }
+
+
+  /**
+   * Test that a delete subtree changes the correct entries under
+   * the correct suffixes.
+   *
+   * FIXME: re-enable when CR 6959320 is fixed.
+   *
+   * @throws Exception If an unexpected result is returned.
+   *
+   */
+  @Test(enabled=false)
+  public void testReferentialDeleteTree() throws Exception {
+    // Add attributes interested in: member, uniquemember, seealso.
+    replaceAttrEntry(configDN, dsConfigAttrType,"member");
+    addAttrEntry(configDN, dsConfigAttrType,"uniquemember", "seealso");
+
+    // Add suffixes to make referential changes under:
+    // o=test, and cn=group, ou=unique groups, dc=example, dc=com
+    replaceAttrEntry(configDN, dsConfigBaseDN, testSuffix);
+    addAttrEntry(configDN, dsConfigBaseDN, ugroup);
+
+    // Add DNs to groups and special entries
+    addAttrEntry(DN.decode(tgroup), "member", user1, user2, user3);
+    addAttrEntry(DN.decode(tugroup), "uniquemember", user1, user2, user3);
+    addAttrEntry(DN.decode(ugroup), "uniquemember", user1, user2, user3);
+    addAttrEntry(DN.decode(spPerson), "seealso", user1, user2, user3);
+
+    // Check group membership before delete.
+    isMember(tgroup, true, user1, user2, user3);
+
+    // Check values exist as before delete.
+    isAttributeValueEntry(tgroup, true, "member", user1, user2, user3);
+    isAttributeValueEntry(tugroup, true, "uniquemember", user1, user2, user3);
+    isAttributeValueEntry(ugroup, true, "uniquemember", user1, user2, user3);
+    isAttributeValueEntry(spPerson, true, "seealso", user1, user2, user3);
+
+    // Perform the subtree delete.
+    deleteSubtree(oldSuperior);
+
+    // Check group membership before delete.
+    //
+    // This simply checks that the group cache is updated
+    // rather than RI plugin works (it fails at the moment).
+    //
+    // isMember(tgroup, false, user1, user2, user3);
+
+    // Check values exist as before delete.
+    isAttributeValueEntry(tgroup, false, "member", user1, user2, user3);
+    isAttributeValueEntry(tugroup, false, "uniquemember", user1, user2, user3);
+    isAttributeValueEntry(ugroup, false, "uniquemember", user1, user2, user3);
+
+    // This entry not managed by RI.
+    isAttributeValueEntry(spPerson, true, "seealso", user1, user2, user3);
   }
 
    /**
@@ -885,6 +942,24 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     }
   }
 
+
+
+  private void deleteSubtree(String... dns) throws Exception
+  {
+    InternalClientConnection conn = InternalClientConnection
+        .getRootConnection();
+
+    SubtreeDeleteControl control = new SubtreeDeleteControl(true);
+    List<Control> controls = new ArrayList<Control>(1);
+    controls.add(control);
+
+    for (String dn : dns)
+    {
+      DeleteOperation op = conn.processDelete(DN.decode(dn), controls);
+      assertEquals(op.getResultCode(), ResultCode.SUCCESS);
+    }
+  }
+
   /**
    * Check membership in a static group of the specified dns. The expected
    * boolean is used to check if the dns are expected or not expected in the
@@ -903,7 +978,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
   private void isMember(String group, boolean expected, String... dns)
   throws Exception {
    GroupManager groupManager=DirectoryServer.getGroupManager();
-   Group instance=groupManager.getGroupInstance(DN.decode(group));
+   Group<?> instance=groupManager.getGroupInstance(DN.decode(group));
    for(String dn : dns)
      assertEquals(instance.isMember(DN.decode(dn)), expected);
   }
