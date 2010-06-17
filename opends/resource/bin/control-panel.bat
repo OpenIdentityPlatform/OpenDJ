@@ -44,7 +44,7 @@ set SCRIPT_NAME=control-panel
 
 rem Set environment variables
 set SCRIPT_UTIL_CMD=set-full-environment
-call "%INSTALL_ROOT%\lib\_script-util.bat" $*
+call "%INSTALL_ROOT%\lib\_script-util.bat" %*
 if NOT %errorlevel% == 0 exit /B %errorlevel%
 
 if "%~1" == "" goto callLaunch
