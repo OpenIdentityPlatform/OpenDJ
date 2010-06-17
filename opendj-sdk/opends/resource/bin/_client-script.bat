@@ -52,7 +52,7 @@ goto end
 
 :launchCommand
 set SCRIPT_UTIL_CMD=set-full-environment
-call "%INSTALL_ROOT%\lib\_script-util.bat" $*
+call "%INSTALL_ROOT%\lib\_script-util.bat" %*
 if NOT %errorlevel% == 0 exit /B %errorlevel%
 
 "%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% %OPENDS_INVOKE_CLASS% %*
