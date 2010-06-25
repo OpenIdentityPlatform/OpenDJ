@@ -571,8 +571,8 @@ public class DraftCNDbHandler implements Runnable
     catch(Exception e)
     {
       if (debugEnabled())
-        TRACER.debugInfo("In DraftCNDbHandler.getGeneralizedState, read: " +
-          " key=" + key + " genServerState returned is null" +
+        TRACER.debugInfo("In DraftCNDbHandler.getValue, read: " +
+          " key=" + key + " value returned is null" +
           " first=" + db.readFirstDraftCN() +
           " last=" + db.readLastDraftCN() +
           " count=" + db.count() +
@@ -585,5 +585,71 @@ public class DraftCNDbHandler implements Runnable
         draftCNDBCursor.close();
     }
     return value;
+  }
+
+  /**
+   * Get the CN associated to a provided key.
+   * @param key the provided key.
+   * @return the associated CN, null when none.
+   */
+  public ChangeNumber getChangeNumber(int key)
+  {
+    ChangeNumber cn = null;
+    DraftCNDBCursor draftCNDBCursor = null;
+    try
+    {
+      draftCNDBCursor = db.openReadCursor(key);
+      cn = draftCNDBCursor.currentChangeNumber();
+    }
+    catch(Exception e)
+    {
+      if (debugEnabled())
+        TRACER.debugInfo("In DraftCNDbHandler.getChangeNumber, read: " +
+          " key=" + key + " changeNumber returned is null" +
+          " first=" + db.readFirstDraftCN() +
+          " last=" + db.readLastDraftCN() +
+          " count=" + db.count() +
+          " exception" + e + " " + e.getMessage());
+      return null;
+    }
+    finally
+    {
+      if (draftCNDBCursor != null)
+        draftCNDBCursor.close();
+    }
+    return cn;
+  }
+
+  /**
+   * Get the serviceID associated to a provided key.
+   * @param key the provided key.
+   * @return the serviceID, null when none.
+   */
+  public String getServiceID(int key)
+  {
+    String sid = null;
+    DraftCNDBCursor draftCNDBCursor = null;
+    try
+    {
+      draftCNDBCursor = db.openReadCursor(key);
+      sid = draftCNDBCursor.currentServiceID();
+    }
+    catch(Exception e)
+    {
+      if (debugEnabled())
+        TRACER.debugInfo("In DraftCNDbHandler.getServiceID, read: " +
+          " key=" + key + " serviceID returned is null" +
+          " first=" + db.readFirstDraftCN() +
+          " last=" + db.readLastDraftCN() +
+          " count=" + db.count() +
+          " exception" + e + " " + e.getMessage());
+      return null;
+    }
+    finally
+    {
+      if (draftCNDBCursor != null)
+        draftCNDBCursor.close();
+    }
+    return sid;
   }
 }

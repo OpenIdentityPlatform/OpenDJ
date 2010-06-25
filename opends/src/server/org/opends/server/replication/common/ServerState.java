@@ -312,6 +312,26 @@ public class ServerState implements Iterable<Integer>
   }
 
   /**
+   * Get the largest ChangeNumber.
+   * @return the largest ChangeNumber
+   */
+  public ChangeNumber getMaxChangeNumber()
+  {
+    ChangeNumber maxCN = null;
+
+    synchronized (list)
+    {
+      for (int id : list.keySet())
+      {
+        ChangeNumber tmpMax = list.get(id);
+        if ((maxCN==null) || (tmpMax.newer(maxCN)))
+          maxCN = tmpMax;
+      }
+    }
+    return maxCN;
+  }
+
+  /**
    * Add the tail into resultByteArray at position pos.
    */
   private int addByteArray(byte[] tail, byte[] resultByteArray, int pos)
