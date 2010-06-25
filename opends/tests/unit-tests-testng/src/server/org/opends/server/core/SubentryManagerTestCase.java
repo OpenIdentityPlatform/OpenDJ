@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.core;
@@ -37,6 +37,8 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
+import org.opends.server.tools.LDAPDelete;
+import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValues;
 import org.opends.server.types.ByteString;
@@ -55,6 +57,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
 public class SubentryManagerTestCase extends CoreTestCase
@@ -72,94 +75,7 @@ public class SubentryManagerTestCase extends CoreTestCase
   {
     TestCaseUtils.startServer();
     TestCaseUtils.clearJEBackend(false, "userRoot", SUFFIX);
-
-    InternalClientConnection connection =
-         InternalClientConnection.getRootConnection();
-
-    // Add suffix entry.
-    DN suffixDN = DN.decode(SUFFIX);
-    if (DirectoryServer.getEntry(suffixDN) == null)
-    {
-      Entry suffixEntry = StaticUtils.createEntry(suffixDN);
-      AddOperation addOperation =
-           connection.processAdd(suffixEntry.getDN(),
-                                 suffixEntry.getObjectClasses(),
-                                 suffixEntry.getUserAttributes(),
-                                 suffixEntry.getOperationalAttributes());
-      assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-      assertNotNull(DirectoryServer.getEntry(suffixEntry.getDN()));
-    }
-
-    // Add base entry.
-    DN baseDN = DN.decode(BASE);
-    if (DirectoryServer.getEntry(baseDN) == null)
-    {
-      Entry baseEntry = StaticUtils.createEntry(baseDN);
-      AddOperation addOperation =
-           connection.processAdd(baseEntry.getDN(),
-                                 baseEntry.getObjectClasses(),
-                                 baseEntry.getUserAttributes(),
-                                 baseEntry.getOperationalAttributes());
-      assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-      assertNotNull(DirectoryServer.getEntry(baseEntry.getDN()));
-    }
-
-    // Add test entry.
-    testEntry = TestCaseUtils.makeEntry(
-         "dn: uid=rogasawara," + BASE,
-         "objectclass: top",
-         "objectclass: person",
-         "objectclass: organizationalPerson",
-         "objectclass: inetOrgPerson",
-         "uid: rogasawara",
-         "userpassword: password",
-         "mail: rogasawara@example.com",
-         "givenname: Rodney",
-         "sn: Ogasawara",
-         "cn: Rodney Ogasawara",
-         "title: Sales, Director"
-    );
-    AddOperation addOperation =
-         connection.processAdd(testEntry.getDN(),
-                               testEntry.getObjectClasses(),
-                               testEntry.getUserAttributes(),
-                               testEntry.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(testEntry.getDN()));
-
-    // Add test subentry.
-    ldapSubentry = TestCaseUtils.makeEntry(
-         "dn: cn=Subentry," + SUFFIX,
-         "objectClass: top",
-         "objectclass: subentry",
-         "subtreeSpecification: {base \"ou=Test SubEntry Manager\"}",
-         "cn: Subentry");
-    addOperation =
-         connection.processAdd(ldapSubentry.getDN(),
-                               ldapSubentry.getObjectClasses(),
-                               ldapSubentry.getUserAttributes(),
-                               ldapSubentry.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(ldapSubentry.getDN()));
-
-    // Add test collective subentry.
-    collectiveSubentry = TestCaseUtils.makeEntry(
-         "dn: cn=Collective Subentry," + SUFFIX,
-         "objectClass: top",
-         "objectclass: subentry",
-         "objectClass: collectiveAttributeSubentry",
-         "objectClass: extensibleObject",
-         "c-l: Savoie",
-         "preferredLanguage;collective: fr",
-         "subtreeSpecification: {base \"ou=Test SubEntry Manager\"}",
-         "cn: Collective Subentry");
-    addOperation =
-         connection.processAdd(collectiveSubentry.getDN(),
-                               collectiveSubentry.getObjectClasses(),
-                               collectiveSubentry.getUserAttributes(),
-                               collectiveSubentry.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(collectiveSubentry.getDN()));
+    addTestEntries();
   }
 
   @AfterClass
@@ -451,5 +367,176 @@ public class SubentryManagerTestCase extends CoreTestCase
          conn.processModify(ByteString.valueOf(
          testEntry.getDN().toNormalizedString()), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+
+  @Test
+  public void testSubtreeDelete() throws Exception
+  {
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-J", OID_SUBTREE_DELETE_CONTROL + ":true",
+      "--noPropertiesFile",
+      SUFFIX
+    };
+    assertEquals(LDAPDelete.mainDelete(args, false, null, System.err), 0);
+
+    assertTrue(DirectoryServer.getSubentryManager().getCollectiveSubentries(
+            DN.decode("uid=rogasawara," + BASE)).isEmpty());
+
+    assertTrue(DirectoryServer.getSubentryManager().getSubentries(
+            DN.decode("uid=rogasawara," + BASE)).isEmpty());
+
+    // Re-add entries.
+    addTestEntries();
+  }
+
+  @Test
+  public void testSubtreeModify() throws Exception
+  {
+    String OLDBASE = "ou=Test SubEntry Manager";
+    String NEWBASE = "ou=New SubEntry Manager Base";
+
+    String newPath = TestCaseUtils.createTempFile(
+         "dn: " + BASE,
+         "changetype: moddn",
+         "newRDN: " + NEWBASE,
+         "deleteOldRDN: 1");
+
+    String[] newArgs =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "--noPropertiesFile",
+      "-f", newPath
+    };
+    assertEquals(LDAPModify.mainModify(newArgs, false, null, System.err), 0);
+
+    assertNotNull(DirectoryServer.getEntry(DN.decode(
+            "uid=rogasawara," + NEWBASE + "," + SUFFIX)));
+    assertTrue(DirectoryServer.getSubentryManager().getCollectiveSubentries(
+          DN.decode("uid=rogasawara," + NEWBASE + "," + SUFFIX)).isEmpty());
+    assertTrue(DirectoryServer.getSubentryManager().getSubentries(
+          DN.decode("uid=rogasawara," + NEWBASE + "," + SUFFIX)).isEmpty());
+
+    // Move it back.
+    String oldPath = TestCaseUtils.createTempFile(
+         "dn: " + NEWBASE + "," + SUFFIX,
+         "changetype: moddn",
+         "newRDN: " + OLDBASE,
+         "deleteOldRDN: 1");
+    String[] oldArgs =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "--noPropertiesFile",
+      "-f", oldPath
+    };
+    assertEquals(LDAPModify.mainModify(oldArgs, false, null, System.err), 0);
+
+    assertNotNull(DirectoryServer.getEntry(DN.decode(
+            "uid=rogasawara," + OLDBASE + "," + SUFFIX)));
+    assertFalse(DirectoryServer.getSubentryManager().getCollectiveSubentries(
+          DN.decode("uid=rogasawara," + OLDBASE + "," + SUFFIX)).isEmpty());
+    assertFalse(DirectoryServer.getSubentryManager().getSubentries(
+          DN.decode("uid=rogasawara," + OLDBASE + "," + SUFFIX)).isEmpty());
+  }
+
+  private void addTestEntries() throws Exception
+  {
+    InternalClientConnection connection =
+         InternalClientConnection.getRootConnection();
+
+    // Add suffix entry.
+    DN suffixDN = DN.decode(SUFFIX);
+    if (DirectoryServer.getEntry(suffixDN) == null)
+    {
+      Entry suffixEntry = StaticUtils.createEntry(suffixDN);
+      AddOperation addOperation =
+           connection.processAdd(suffixEntry.getDN(),
+                                 suffixEntry.getObjectClasses(),
+                                 suffixEntry.getUserAttributes(),
+                                 suffixEntry.getOperationalAttributes());
+      assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+      assertNotNull(DirectoryServer.getEntry(suffixEntry.getDN()));
+    }
+
+    // Add base entry.
+    DN baseDN = DN.decode(BASE);
+    if (DirectoryServer.getEntry(baseDN) == null)
+    {
+      Entry baseEntry = StaticUtils.createEntry(baseDN);
+      AddOperation addOperation =
+           connection.processAdd(baseEntry.getDN(),
+                                 baseEntry.getObjectClasses(),
+                                 baseEntry.getUserAttributes(),
+                                 baseEntry.getOperationalAttributes());
+      assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+      assertNotNull(DirectoryServer.getEntry(baseEntry.getDN()));
+    }
+
+    // Add test entry.
+    testEntry = TestCaseUtils.makeEntry(
+         "dn: uid=rogasawara," + BASE,
+         "objectclass: top",
+         "objectclass: person",
+         "objectclass: organizationalPerson",
+         "objectclass: inetOrgPerson",
+         "uid: rogasawara",
+         "userpassword: password",
+         "mail: rogasawara@example.com",
+         "givenname: Rodney",
+         "sn: Ogasawara",
+         "cn: Rodney Ogasawara",
+         "title: Sales, Director"
+    );
+    AddOperation addOperation =
+         connection.processAdd(testEntry.getDN(),
+                               testEntry.getObjectClasses(),
+                               testEntry.getUserAttributes(),
+                               testEntry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    assertNotNull(DirectoryServer.getEntry(testEntry.getDN()));
+
+    // Add test subentry.
+    ldapSubentry = TestCaseUtils.makeEntry(
+         "dn: cn=Subentry," + SUFFIX,
+         "objectClass: top",
+         "objectclass: subentry",
+         "subtreeSpecification: {base \"ou=Test SubEntry Manager\"}",
+         "cn: Subentry");
+    addOperation =
+         connection.processAdd(ldapSubentry.getDN(),
+                               ldapSubentry.getObjectClasses(),
+                               ldapSubentry.getUserAttributes(),
+                               ldapSubentry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    assertNotNull(DirectoryServer.getEntry(ldapSubentry.getDN()));
+
+    // Add test collective subentry.
+    collectiveSubentry = TestCaseUtils.makeEntry(
+         "dn: cn=Collective Subentry," + SUFFIX,
+         "objectClass: top",
+         "objectclass: subentry",
+         "objectClass: collectiveAttributeSubentry",
+         "objectClass: extensibleObject",
+         "c-l: Savoie",
+         "preferredLanguage;collective: fr",
+         "subtreeSpecification: {base \"ou=Test SubEntry Manager\"}",
+         "cn: Collective Subentry");
+    addOperation =
+         connection.processAdd(collectiveSubentry.getDN(),
+                               collectiveSubentry.getObjectClasses(),
+                               collectiveSubentry.getUserAttributes(),
+                               collectiveSubentry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    assertNotNull(DirectoryServer.getEntry(collectiveSubentry.getDN()));
   }
 }

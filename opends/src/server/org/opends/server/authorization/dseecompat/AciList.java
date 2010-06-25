@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -32,9 +32,11 @@ import org.opends.server.api.Backend;
 import static org.opends.server.authorization.dseecompat.AciHandler.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.messages.AccessControlMessages.*;
+import org.opends.server.api.DITCacheMap;
 import org.opends.server.types.*;
 
 import java.util.*;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * The AciList class performs caching of the ACI attribute values
@@ -46,8 +48,14 @@ public class AciList {
    * A map containing all the ACIs.
    * We use the copy-on-write technique to avoid locking when reading.
    */
-  private volatile LinkedHashMap<DN, List<Aci>> aciList =
-       new LinkedHashMap<DN, List<Aci>>();
+  private volatile DITCacheMap<List<Aci>> aciList =
+       new DITCacheMap<List<Aci>>();
+
+  /*
+   * Lock to protect internal data structures.
+   */
+  private final ReentrantReadWriteLock lock =
+          new ReentrantReadWriteLock();
 
   /*
   * The configuration DN used to compare against the global ACI entry DN.
@@ -60,23 +68,6 @@ public class AciList {
    */
   public AciList(DN configDN) {
      this.configDN=configDN;
-  }
-
-  /**
-   * Accessor to the ACI list intended to be called from within unsynchronized
-   * read-only methods.
-   * @return   The current ACI list.
-   */
-  private LinkedHashMap<DN, List<Aci>> getList() {
-    return aciList;
-  }
-
-  /**
-   * Used by synchronized write methods to make a copy of the ACI list.
-   * @return A copy of the ACI list.
-   */
-  private LinkedHashMap<DN,List<Aci>> copyList() {
-    return new LinkedHashMap<DN, List<Aci>>(aciList);
   }
 
   /**
@@ -93,39 +84,52 @@ public class AciList {
   public LinkedList<Aci> getCandidateAcis(DN baseDN) {
     LinkedList<Aci> candidates = new LinkedList<Aci>();
     if(baseDN == null)
+    {
       return candidates;
-
-    // Save a reference to the current ACI list, in case it gets changed.
-    LinkedHashMap<DN, List<Aci>> aciList = getList();
-    //Save the baseDN in case we need to evaluate a global ACI.
-    DN entryDN=baseDN;
-    while(baseDN != null) {
-      List<Aci> acis = aciList.get(baseDN);
-      if (acis != null) {
-       //Check if there are global ACIs. Global ACI has a NULL DN.
-       if(baseDN.isNullDN()) {
-           for(Aci aci : acis) {
-               AciTargets targets=aci.getTargets();
-               //If there is a target, evaluate it to see if this ACI should
-               //be included in the candidate set.
-               if(targets != null) {
-                   boolean ret=AciTargets.isTargetApplicable(aci, targets,
-                                                             entryDN);
-                   if(ret)
-                      candidates.add(aci);  //Add this ACI to the candidates.
-               }
-           }
-       } else
-           candidates.addAll(acis);
-      }
-      if(baseDN.isNullDN())
-        break;
-      DN parentDN=baseDN.getParent();
-      if(parentDN == null)
-        baseDN=DN.nullDN();
-      else
-        baseDN=parentDN;
     }
+
+    lock.readLock().lock();
+    try
+    {
+      //Save the baseDN in case we need to evaluate a global ACI.
+      DN entryDN=baseDN;
+      while (baseDN != null) {
+        List<Aci> acis = aciList.get(baseDN);
+        if (acis != null) {
+          //Check if there are global ACIs. Global ACI has a NULL DN.
+          if (baseDN.isNullDN()) {
+            for (Aci aci : acis) {
+              AciTargets targets = aci.getTargets();
+              //If there is a target, evaluate it to see if this ACI should
+              //be included in the candidate set.
+              if (targets != null) {
+                boolean ret = AciTargets.isTargetApplicable(aci, targets,
+                        entryDN);
+                if (ret) {
+                  candidates.add(aci);  //Add this ACI to the candidates.
+                }
+              }
+            }
+          } else {
+            candidates.addAll(acis);
+          }
+        }
+        if(baseDN.isNullDN()) {
+          break;
+        }
+        DN parentDN=baseDN.getParent();
+        if(parentDN == null) {
+          baseDN=DN.nullDN();
+        } else {
+          baseDN=parentDN;
+        }
+      }
+    }
+    finally
+    {
+      lock.readLock().unlock();
+    }
+
     return candidates;
   }
 
@@ -138,23 +142,27 @@ public class AciList {
    *                      exceptions.
    * @return The number of valid ACI attribute values added to the ACI list.
    */
-  public synchronized int addAci(List<? extends Entry> entries,
+  public int addAci(List<? extends Entry> entries,
                                  LinkedList<Message> failedACIMsgs)
   {
-    // Copy the ACI list.
-    LinkedHashMap<DN,List<Aci>> aciCopy = copyList();
-
     int validAcis=0;
-    for (Entry entry : entries) {
-      DN dn=entry.getDN();
-      List<Attribute> attributeList =
-           entry.getOperationalAttribute(AciHandler.aciType);
-      validAcis += addAciAttributeList(aciCopy, dn, configDN,
-                                       attributeList, failedACIMsgs);
+
+    lock.writeLock().lock();
+    try
+    {
+      for (Entry entry : entries) {
+        DN dn=entry.getDN();
+        List<Attribute> attributeList =
+             entry.getOperationalAttribute(AciHandler.aciType);
+        validAcis += addAciAttributeList(aciList, dn, configDN,
+                                         attributeList, failedACIMsgs);
+      }
+    }
+    finally
+    {
+      lock.writeLock().unlock();
     }
 
-    // Replace the ACI list with the copy.
-    aciList = aciCopy;
     return validAcis;
   }
 
@@ -167,8 +175,16 @@ public class AciList {
    * @param acis A set of ACIs to add to the ACI list.
    *
    */
-  public synchronized void addAci(DN dn, SortedSet<Aci> acis) {
-    aciList.put(dn, new LinkedList<Aci>(acis));
+  public void addAci(DN dn, SortedSet<Aci> acis) {
+    lock.writeLock().lock();
+    try
+    {
+      aciList.put(dn, new LinkedList<Aci>(acis));
+    }
+    finally
+    {
+      lock.writeLock().unlock();
+    }
   }
 
   /**
@@ -182,29 +198,34 @@ public class AciList {
    *                      exceptions.
    * @return The number of valid ACI attribute values added to the ACI list.
    */
-  public synchronized int addAci(Entry entry,  boolean hasAci,
+  public int addAci(Entry entry,  boolean hasAci,
                                  boolean hasGlobalAci,
                                  LinkedList<Message> failedACIMsgs) {
     int validAcis=0;
 
-    // Copy the ACI list.
-    LinkedHashMap<DN,List<Aci>> aciCopy = copyList();
-    //Process global "ds-cfg-global-aci" attribute type. The oldentry
-    //DN is checked to verify it is equal to the config DN. If not those
-    //attributes are skipped.
-    if(hasGlobalAci && entry.getDN().equals(configDN)) {
-        List<Attribute> attributeList = entry.getAttribute(globalAciType);
-        validAcis = addAciAttributeList(aciCopy, DN.nullDN(), configDN,
-                                        attributeList, failedACIMsgs);
+    lock.writeLock().lock();
+    try
+    {
+      //Process global "ds-cfg-global-aci" attribute type. The oldentry
+      //DN is checked to verify it is equal to the config DN. If not those
+      //attributes are skipped.
+      if(hasGlobalAci && entry.getDN().equals(configDN)) {
+          List<Attribute> attributeList = entry.getAttribute(globalAciType);
+          validAcis = addAciAttributeList(aciList, DN.nullDN(), configDN,
+                                          attributeList, failedACIMsgs);
+      }
+
+      if(hasAci) {
+          List<Attribute> attributeList = entry.getAttribute(aciType);
+          validAcis += addAciAttributeList(aciList, entry.getDN(), configDN,
+                                           attributeList, failedACIMsgs);
+      }
+    }
+    finally
+    {
+      lock.writeLock().unlock();
     }
 
-    if(hasAci) {
-        List<Attribute> attributeList = entry.getAttribute(aciType);
-        validAcis += addAciAttributeList(aciCopy, entry.getDN(), configDN,
-                                         attributeList, failedACIMsgs);
-    }
-    // Replace the ACI list with the copy.
-    aciList = aciCopy;
     return validAcis;
   }
 
@@ -223,7 +244,7 @@ public class AciList {
    *                      exceptions.
    * @return The number of valid attribute values added to the ACI list.
    */
-  private static int addAciAttributeList(LinkedHashMap<DN,List<Aci>> aciList,
+  private static int addAciAttributeList(DITCacheMap<List<Aci>> aciList,
                                          DN dn, DN configDN,
                                          List<Attribute> attributeList,
                                          LinkedList<Message> failedACIMsgs) {
@@ -271,33 +292,37 @@ public class AciList {
    * @param hasGlobalAci True if the "ds-cfg-global-aci" attribute type was
    * seen in the entry.
    */
-  public synchronized void modAciOldNewEntry(Entry oldEntry, Entry newEntry,
+  public void modAciOldNewEntry(Entry oldEntry, Entry newEntry,
                                              boolean hasAci,
                                              boolean hasGlobalAci) {
 
-      // Copy the ACI list.
-      LinkedHashMap<DN,List<Aci>> aciCopy = copyList();
+    lock.writeLock().lock();
+    try
+    {
       LinkedList<Message>failedACIMsgs=new LinkedList<Message>();
       //Process "aci" attribute types.
       if(hasAci) {
-          aciCopy.remove(oldEntry.getDN());
+          aciList.remove(oldEntry.getDN());
           List<Attribute> attributeList =
                   newEntry.getOperationalAttribute(aciType);
-          addAciAttributeList(aciCopy,newEntry.getDN(), configDN,
+          addAciAttributeList(aciList,newEntry.getDN(), configDN,
                               attributeList, failedACIMsgs);
       }
       //Process global "ds-cfg-global-aci" attribute type. The oldentry
       //DN is checked to verify it is equal to the config DN. If not those
       //attributes are skipped.
       if(hasGlobalAci && oldEntry.getDN().equals(configDN)) {
-          aciCopy.remove(DN.nullDN());
+          aciList.remove(DN.nullDN());
           List<Attribute> attributeList =
                   newEntry.getAttribute(globalAciType);
-          addAciAttributeList(aciCopy, DN.nullDN(), configDN,
+          addAciAttributeList(aciList, DN.nullDN(), configDN,
                               attributeList, failedACIMsgs);
       }
-      // Replace the ACI list with the copy.
-      aciList = aciCopy;
+    }
+    finally
+    {
+      lock.writeLock().unlock();
+    }
   }
 
   /**
@@ -308,7 +333,7 @@ public class AciList {
    * @param dn The DN to use as the key.
    * @param acis The ACI to be added.
    */
-  private static void addAci(LinkedHashMap<DN,List<Aci>> aciList, DN dn,
+  private static void addAci(DITCacheMap<List<Aci>> aciList, DN dn,
                              List<Aci> acis)
   {
     if(aciList.containsKey(dn)) {
@@ -331,19 +356,33 @@ public class AciList {
    * seen in the entry.
    * @return  True if the ACI set was deleted.
    */
-  public synchronized boolean removeAci(Entry entry,  boolean hasAci,
+  public boolean removeAci(Entry entry,  boolean hasAci,
                                                       boolean hasGlobalAci) {
-      // Copy the ACI list.
-      LinkedHashMap<DN,List<Aci>> aciCopy = copyList();
+    DN entryDN = entry.getDN();
 
-      if(hasGlobalAci && entry.getDN().equals(configDN) &&
-         aciCopy.remove(DN.nullDN()) == null)
-          return false;
-      if(hasAci && aciCopy.remove(entry.getDN()) == null)
-          return false;
-      // Replace the ACI list with the copy.
-      aciList = aciCopy;
-      return true;
+    lock.writeLock().lock();
+    try
+    {
+      if (hasGlobalAci && entryDN.equals(configDN) &&
+          aciList.remove(DN.nullDN()) == null)
+      {
+        return false;
+      }
+      if (hasAci && aciList.remove(entryDN) == null)
+      {
+        return false;
+      }
+      if (!hasGlobalAci && !hasAci)
+      {
+        return aciList.removeSubtree(entryDN, null);
+      }
+    }
+    finally
+    {
+      lock.writeLock().unlock();
+    }
+
+    return true;
   }
 
   /**
@@ -351,22 +390,26 @@ public class AciList {
    * @param backend  The backend to check if each DN is handled by that
    * backend.
    */
-  public synchronized void removeAci(Backend backend) {
-    // Copy the ACI list.
-    LinkedHashMap<DN,List<Aci>> aciCopy = copyList();
+  public void removeAci(Backend backend) {
 
-    Iterator<Map.Entry<DN,List<Aci>>> iterator = aciCopy.entrySet().iterator();
-    while (iterator.hasNext())
+    lock.writeLock().lock();
+    try
     {
-      Map.Entry<DN,List<Aci>> mapEntry = iterator.next();
-      if (backend.handlesEntry(mapEntry.getKey()))
+      Iterator<Map.Entry<DN,List<Aci>>> iterator =
+              aciList.entrySet().iterator();
+      while (iterator.hasNext())
       {
-        iterator.remove();
+        Map.Entry<DN,List<Aci>> mapEntry = iterator.next();
+        if (backend.handlesEntry(mapEntry.getKey()))
+        {
+          iterator.remove();
+        }
       }
     }
-
-    // Replace the ACI list with the copy.
-    aciList = aciCopy;
+    finally
+    {
+      lock.writeLock().unlock();
+    }
   }
 
   /**
@@ -375,41 +418,54 @@ public class AciList {
    * @param oldDN The DN of the original entry that was moved.
    * @param newDN The DN of the new entry.
    */
-  public synchronized void renameAci(DN oldDN, DN newDN ) {
-    LinkedHashMap<DN, List<Aci>> newCopyList =
-            new LinkedHashMap<DN, List<Aci>>();
+  public void renameAci(DN oldDN, DN newDN ) {
+
     int oldRDNCount=oldDN.getNumComponents();
     int newRDNCount=newDN.getNumComponents();
-    for (Map.Entry<DN,List<Aci>> hashEntry : aciList.entrySet()) {
-      if(hashEntry.getKey().isDescendantOf(oldDN)) {
-        int keyRDNCount=hashEntry.getKey().getNumComponents();
-        int keepRDNCount=keyRDNCount - oldRDNCount;
-        RDN[] newRDNs = new RDN[keepRDNCount + newRDNCount];
-        for (int i=0; i < keepRDNCount; i++)
-          newRDNs[i] = hashEntry.getKey().getRDN(i);
-        for (int i=keepRDNCount, j=0; j < newRDNCount; i++,j++)
-          newRDNs[i] = newDN.getRDN(j);
-        DN relocateDN=new DN(newRDNs);
-        List<Aci> acis = new LinkedList<Aci>();
-        for(Aci aci : hashEntry.getValue()) {
-          try {
-             Aci newAci =
-               Aci.decode(ByteString.valueOf(aci.toString()), relocateDN);
-             acis.add(newAci);
-          } catch (AciException ex) {
-            //This should never happen since only a copy of the
-            //ACI with a new DN is being made. Log a message if it does and
-            //keep going.
-            Message message = WARN_ACI_ADD_LIST_FAILED_DECODE.get(
-                aci.toString(), String.valueOf(relocateDN), ex.getMessage());
-            logError(message);
+
+    lock.writeLock().lock();
+    try
+    {
+      Map<DN,List<Aci>> tempAciList = new HashMap<DN,List<Aci>>();
+      Iterator<Map.Entry<DN,List<Aci>>> iterator =
+              aciList.entrySet().iterator();
+      while (iterator.hasNext()) {
+        Map.Entry<DN,List<Aci>> hashEntry = iterator.next();
+        if(hashEntry.getKey().isDescendantOf(oldDN)) {
+          int keyRDNCount=hashEntry.getKey().getNumComponents();
+          int keepRDNCount=keyRDNCount - oldRDNCount;
+          RDN[] newRDNs = new RDN[keepRDNCount + newRDNCount];
+          for (int i=0; i < keepRDNCount; i++) {
+            newRDNs[i] = hashEntry.getKey().getRDN(i);
           }
+          for (int i=keepRDNCount, j=0; j < newRDNCount; i++,j++) {
+            newRDNs[i] = newDN.getRDN(j);
+          }
+          DN relocateDN=new DN(newRDNs);
+          List<Aci> acis = new LinkedList<Aci>();
+          for(Aci aci : hashEntry.getValue()) {
+            try {
+               Aci newAci =
+                 Aci.decode(ByteString.valueOf(aci.toString()), relocateDN);
+               acis.add(newAci);
+            } catch (AciException ex) {
+              //This should never happen since only a copy of the
+              //ACI with a new DN is being made. Log a message if it does and
+              //keep going.
+              Message message = WARN_ACI_ADD_LIST_FAILED_DECODE.get(
+                  aci.toString(), String.valueOf(relocateDN), ex.getMessage());
+              logError(message);
+            }
+          }
+          tempAciList.put(relocateDN, acis);
+          iterator.remove();
         }
-        newCopyList.put(relocateDN, acis);
-      }  else
-        newCopyList.put(hashEntry.getKey(), hashEntry.getValue());
+      }
+      aciList.putAll(tempAciList);
     }
-    // Replace the ACI list with the copy.
-    aciList = newCopyList;
+    finally
+    {
+      lock.writeLock().unlock();
+    }
   }
 }

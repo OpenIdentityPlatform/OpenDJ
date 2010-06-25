@@ -35,6 +35,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -53,6 +54,7 @@ import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.api.plugin.*;
 import org.opends.server.config.ConfigException;
+import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -136,6 +138,12 @@ public class ReferentialIntegrityPlugin
    */
   public static final String MODIFYDN_DNS="modifyDNs";
 
+  /**
+   * Used to save a set in the delete operation attachment map that
+   * holds the subordinate entry DNs related to a delete operation.
+   */
+  public static final String DELETE_DNS="deleteDNs";
+
   //The buffered reader that is used to read the log file by the background
   //thread.
   private BufferedReader reader;
@@ -163,6 +171,7 @@ public class ReferentialIntegrityPlugin
         case POST_OPERATION_DELETE:
         case POST_OPERATION_MODIFY_DN:
         case SUBORDINATE_MODIFY_DN:
+        case SUBORDINATE_DELETE:
           // These are acceptable.
           break;
 
@@ -305,6 +314,7 @@ public class ReferentialIntegrityPlugin
         case POSTOPERATIONDELETE:
         case POSTOPERATIONMODIFYDN:
         case SUBORDINATEMODIFYDN:
+        case SUBORDINATEDELETE:
           // These are acceptable.
           break;
         default:
@@ -370,23 +380,18 @@ public class ReferentialIntegrityPlugin
       return PluginResult.PostOperation.continueOperationProcessing();
     }
 
-    if (modifyDNOperation.getNewSuperior() == null)
+    Map<DN,DN>modDNmap=
+         (Map<DN, DN>) modifyDNOperation.getAttachment(MODIFYDN_DNS);
+    if(modDNmap == null)
     {
-      // The entry was simply renamed below the same parent.
-      DN oldEntryDN=modifyDNOperation.getOriginalEntry().getDN();
-      DN newEntryDN=modifyDNOperation.getUpdatedEntry().getDN();
-      Map<DN,DN> modDNmap=new LinkedHashMap<DN,DN>();
-      modDNmap.put(oldEntryDN, newEntryDN);
-      processModifyDN(modDNmap,(interval != 0));
+      modDNmap=new LinkedHashMap<DN,DN>();
+      modifyDNOperation.setAttachment(MODIFYDN_DNS, modDNmap);
     }
-    else
-    {
-      // The entry was moved below a new parent.  Use the saved map of old DNs
-      // and new DNs from the operation attachment.
-      Map<DN,DN> modDNmap =
-           (Map<DN, DN>) modifyDNOperation.getAttachment(MODIFYDN_DNS);
-      processModifyDN(modDNmap, (interval != 0));
-    }
+    DN oldEntryDN=modifyDNOperation.getOriginalEntry().getDN();
+    DN newEntryDN=modifyDNOperation.getUpdatedEntry().getDN();
+    modDNmap.put(oldEntryDN, newEntryDN);
+
+    processModifyDN(modDNmap, (interval != 0));
 
     return PluginResult.PostOperation.continueOperationProcessing();
   }
@@ -396,6 +401,7 @@ public class ReferentialIntegrityPlugin
   /**
    * {@inheritDoc}
    */
+  @SuppressWarnings("unchecked")
   public PluginResult.PostOperation doPostOperation(
               PostOperationDeleteOperation deleteOperation)
   {
@@ -406,7 +412,16 @@ public class ReferentialIntegrityPlugin
       return PluginResult.PostOperation.continueOperationProcessing();
     }
 
-    processDelete(deleteOperation.getEntryDN(), (interval != 0));
+    Set<DN> deleteDNset =
+         (Set<DN>) deleteOperation.getAttachment(DELETE_DNS);
+    if(deleteDNset == null)
+    {
+      deleteDNset = new HashSet<DN>();
+      deleteOperation.setAttachment(MODIFYDN_DNS, deleteDNset);
+    }
+    deleteDNset.add(deleteOperation.getEntryDN());
+
+    processDelete(deleteDNset, (interval != 0));
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
@@ -433,6 +448,27 @@ public class ReferentialIntegrityPlugin
     return PluginResult.SubordinateModifyDN.continueOperationProcessing();
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @SuppressWarnings("unchecked")
+  public PluginResult.SubordinateDelete processSubordinateDelete(
+          DeleteOperation deleteOperation, Entry entry)
+  {
+    // This cast gives an unchecked cast warning, suppress it
+    // since the cast is ok.
+    Set<DN> deleteDNset =
+         (Set<DN>) deleteOperation.getAttachment(DELETE_DNS);
+    if(deleteDNset == null)
+    {
+      // First time through, create the set and set it in
+      // the operation attachment.
+      deleteDNset = new HashSet<DN>();
+      deleteOperation.setAttachment(DELETE_DNS, deleteDNset);
+    }
+    deleteDNset.add(entry.getDN());
+    return PluginResult.SubordinateDelete.continueOperationProcessing();
+  }
 
   /**
    * Verify that the specified attribute has either a distinguished name syntax
@@ -546,17 +582,17 @@ public class ReferentialIntegrityPlugin
    *            a later time.
    *
    */
-  private void processDelete(DN entryDN, boolean log)
+  private void processDelete(Set<DN> deleteDNset, boolean log)
   {
     if(log)
     {
-      writeLog(entryDN);
+      writeLog(deleteDNset);
     }
     else
     {
       for(DN baseDN : getBaseDNsToSearch())
       {
-        searchBaseDN(baseDN, entryDN, null);
+        doBaseDN(baseDN, deleteDNset);
       }
     }
   }
@@ -670,6 +706,24 @@ public class ReferentialIntegrityPlugin
     for(Map.Entry<DN,DN> mapEntry: modifyDNmap.entrySet())
     {
       searchBaseDN(baseDN, mapEntry.getKey(), mapEntry.getValue());
+    }
+  }
+
+  /**
+   * This method is used in foreground processing of a delete operation.
+   * It uses the specified set to perform base DN searching for each
+   * element.
+   *
+   * @param baseDN The DN to base the search at.
+   *
+   * @param deleteDNset The set containing the delete DNs.
+   *
+   */
+  private void doBaseDN(DN baseDN, Set<DN> deleteDNset)
+  {
+    for(DN deletedEntryDN : deleteDNset)
+    {
+      searchBaseDN(baseDN, deletedEntryDN, null);
     }
   }
 
@@ -812,18 +866,23 @@ public class ReferentialIntegrityPlugin
   }
 
   /**
-   * Write the specified entry DN to the log file. This entry DN is related to
-   * a delete operation.
+   * Write the specified entry DNs to the log file.
+   * These entry DNs are related to a delete operation.
    *
    * @param deletedEntryDN The DN of the deleted entry.
    *
    */
-  private void writeLog(DN deletedEntryDN) {
-    synchronized(logFile) {
-      try {
+  private void writeLog(Set<DN> deleteDNset) {
+    synchronized(logFile)
+    {
+      try
+      {
         setupWriter();
-        writer.write(deletedEntryDN.toNormalizedString());
-        writer.newLine();
+        for (DN deletedEntryDN : deleteDNset)
+        {
+          writer.write(deletedEntryDN.toNormalizedString());
+          writer.newLine();
+        }
         writer.flush();
         writer.close();
       }
@@ -860,7 +919,7 @@ public class ReferentialIntegrityPlugin
             DN origDn = DN.decode(a[0]);
             //If there is only a single DN string than it must be a delete.
             if(a.length == 1) {
-              processDelete(origDn, false);
+              processDelete(Collections.singleton(origDn), false);
             } else {
               DN movedDN=DN.decode(a[1]);
               processModifyDN(origDn, movedDN);

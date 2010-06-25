@@ -34,6 +34,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackendInitializationListener;
+import org.opends.server.api.DITCacheMap;
 import org.opends.server.api.SubentryChangeListener;
 import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
@@ -101,6 +102,9 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   // A mapping between the DNs and applicable collective subentries.
   private HashMap<DN,List<SubEntry>> dn2CollectiveSubEntry;
 
+  // A mapping between subentry DNs and subentry objects.
+  private DITCacheMap<SubEntry> dit2SubEntry;
+
   // Internal search all operational attributes.
   private LinkedHashSet<String> requestAttrs;
 
@@ -142,6 +146,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
 
     dn2SubEntry = new HashMap<DN,List<SubEntry>>();
     dn2CollectiveSubEntry = new HashMap<DN,List<SubEntry>>();
+    dit2SubEntry = new DITCacheMap<SubEntry>();
 
     changeListeners =
             new CopyOnWriteArrayList<SubentryChangeListener>();
@@ -228,6 +233,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
           dn2SubEntry.put(subDN, subList);
         }
       }
+      dit2SubEntry.put(entry.getDN(), subEntry);
       subList.add(subEntry);
     }
     finally
@@ -258,6 +264,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
           SubEntry subEntry = listIterator.next();
           if (subEntry.getDN().equals(entry.getDN()))
           {
+            dit2SubEntry.remove(entry.getDN());
             listIterator.remove();
             removed = true;
             break;
@@ -283,6 +290,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
           SubEntry subEntry = listIterator.next();
           if (subEntry.getDN().equals(entry.getDN()))
           {
+            dit2SubEntry.remove(entry.getDN());
             listIterator.remove();
             removed = true;
             break;
@@ -657,6 +665,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
           SubEntry subEntry = listIterator.next();
           if (backend.handlesEntry(subEntry.getDN()))
           {
+            dit2SubEntry.remove(subEntry.getDN());
             listIterator.remove();
 
             // Notify change listeners.
@@ -694,6 +703,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
           SubEntry subEntry = listIterator.next();
           if (backend.handlesEntry(subEntry.getDN()))
           {
+            dit2SubEntry.remove(subEntry.getDN());
             listIterator.remove();
 
             // Notify change listeners.
@@ -731,17 +741,63 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   {
     if (entry.isSubentry() || entry.isLDAPSubentry())
     {
+      lock.writeLock().lock();
       try
       {
-        addSubEntry(entry);
+        try
+        {
+          addSubEntry(entry);
+
+          // Notify change listeners.
+          for (SubentryChangeListener changeListener :
+            changeListeners)
+          {
+            try
+            {
+              changeListener.handleSubentryAdd(entry);
+            }
+            catch (Exception e)
+            {
+              if (debugEnabled())
+              {
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
+              }
+            }
+          }
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+
+          // FIXME -- Handle this.
+        }
+      }
+      finally
+      {
+        lock.writeLock().unlock();
+      }
+    }
+  }
+
+  private void doPostDelete(Entry entry)
+  {
+    lock.writeLock().lock();
+    try
+    {
+      for (SubEntry subEntry : dit2SubEntry.getSubtree(entry.getDN()))
+      {
+        removeSubEntry(subEntry.getEntry());
 
         // Notify change listeners.
         for (SubentryChangeListener changeListener :
-          changeListeners)
+                changeListeners)
         {
           try
           {
-            changeListener.handleSubentryAdd(entry);
+            changeListener.handleSubentryDelete(subEntry.getEntry());
           }
           catch (Exception e)
           {
@@ -752,40 +808,10 @@ public class SubentryManager extends InternalDirectoryServerPlugin
           }
         }
       }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        // FIXME -- Handle this.
-      }
     }
-  }
-
-  private void doPostDelete(Entry entry)
-  {
-    if (entry.isSubentry() || entry.isLDAPSubentry())
+    finally
     {
-      removeSubEntry(entry);
-
-      // Notify change listeners.
-      for (SubentryChangeListener changeListener :
-        changeListeners)
-      {
-        try
-        {
-          changeListener.handleSubentryDelete(entry);
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-        }
-      }
+      lock.writeLock().unlock();
     }
   }
 
@@ -793,39 +819,20 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   {
     boolean notify = false;
 
-    if (oldEntry.isSubentry() || oldEntry.isLDAPSubentry())
+    lock.writeLock().lock();
+    try
     {
-      removeSubEntry(oldEntry);
-      notify = true;
-    }
-    if (newEntry.isSubentry() || newEntry.isLDAPSubentry())
-    {
-      try
+      if (oldEntry.isSubentry() || oldEntry.isLDAPSubentry())
       {
-        addSubEntry(newEntry);
+        removeSubEntry(oldEntry);
         notify = true;
       }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        // FIXME -- Handle this.
-      }
-    }
-
-    if (notify)
-    {
-      // Notify change listeners.
-      for (SubentryChangeListener changeListener :
-        changeListeners)
+      if (newEntry.isSubentry() || newEntry.isLDAPSubentry())
       {
         try
         {
-          changeListener.handleSubentryModify(
-                  oldEntry, newEntry);
+          addSubEntry(newEntry);
+          notify = true;
         }
         catch (Exception e)
         {
@@ -833,47 +840,95 @@ public class SubentryManager extends InternalDirectoryServerPlugin
           {
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
+
+          // FIXME -- Handle this.
         }
       }
+
+      if (notify)
+      {
+        // Notify change listeners.
+        for (SubentryChangeListener changeListener :
+          changeListeners)
+        {
+          try
+          {
+            changeListener.handleSubentryModify(
+                    oldEntry, newEntry);
+          }
+          catch (Exception e)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            }
+          }
+        }
+      }
+    }
+    finally
+    {
+      lock.writeLock().unlock();
     }
   }
 
   private void doPostModifyDN(Entry oldEntry, Entry newEntry)
   {
-    if (oldEntry.isSubentry() || oldEntry.isLDAPSubentry())
+    String oldDNString = oldEntry.getDN().toNormalizedString();
+    String newDNString = newEntry.getDN().toNormalizedString();
+
+    lock.writeLock().lock();
+    try
     {
-      removeSubEntry(oldEntry);
-      try
+      Collection<SubEntry> setToDelete =
+              dit2SubEntry.getSubtree(oldEntry.getDN());
+      for (SubEntry subentry : setToDelete)
       {
-        addSubEntry(newEntry);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        // FIXME -- Handle this.
-      }
-
-      // Notify change listeners.
-      for (SubentryChangeListener changeListener :
-        changeListeners)
-      {
+        removeSubEntry(subentry.getEntry());
+        oldEntry = subentry.getEntry();
         try
         {
-          changeListener.handleSubentryModify(
-                  oldEntry, newEntry);
+          StringBuilder builder = new StringBuilder(
+              subentry.getEntry().getDN().toNormalizedString());
+          int oldDNIndex = builder.lastIndexOf(oldDNString);
+          builder.replace(oldDNIndex, builder.length(),
+                  newDNString);
+          String subentryDNString = builder.toString();
+          newEntry = subentry.getEntry().duplicate(false);
+          newEntry.setDN(DN.decode(subentryDNString));
+          addSubEntry(newEntry);
         }
         catch (Exception e)
         {
+          // Shouldnt happen.
           if (debugEnabled())
           {
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
         }
+
+        // Notify change listeners.
+        for (SubentryChangeListener changeListener :
+          changeListeners)
+        {
+          try
+          {
+            changeListener.handleSubentryModify(
+                    oldEntry, newEntry);
+          }
+          catch (Exception e)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            }
+          }
+        }
       }
+    }
+    finally
+    {
+      lock.writeLock().unlock();
     }
   }
 
@@ -920,26 +975,35 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   {
     Entry entry = deleteOperation.getEntryToDelete();
 
-    if (entry.isSubentry() || entry.isLDAPSubentry())
+    lock.readLock().lock();
+    try
     {
-      for (SubentryChangeListener changeListener :
-              changeListeners)
+      for (SubEntry subEntry : dit2SubEntry.getSubtree(entry.getDN()))
       {
-        try
+        for (SubentryChangeListener changeListener :
+                changeListeners)
         {
-          changeListener.checkSubentryDeleteAcceptable(entry);
-        }
-        catch (DirectoryException de)
-        {
-          if (debugEnabled())
+          try
           {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
+            changeListener.checkSubentryDeleteAcceptable(
+                    subEntry.getEntry());
           }
+          catch (DirectoryException de)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, de);
+            }
 
-          return PluginResult.PreOperation.stopProcessing(
-                  de.getResultCode(), de.getMessageObject());
+            return PluginResult.PreOperation.stopProcessing(
+                    de.getResultCode(), de.getMessageObject());
+          }
         }
       }
+    }
+    finally
+    {
+      lock.readLock().unlock();
     }
 
     return PluginResult.PreOperation.continueOperationProcessing();
@@ -991,28 +1055,60 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   {
     Entry oldEntry = modifyDNOperation.getOriginalEntry();
     Entry newEntry = modifyDNOperation.getUpdatedEntry();
+    String oldDNString = oldEntry.getDN().toNormalizedString();
+    String newDNString = newEntry.getDN().toNormalizedString();
 
-    if (oldEntry.isSubentry() || oldEntry.isLDAPSubentry())
+    lock.readLock().lock();
+    try
     {
-      for (SubentryChangeListener changeListener :
-              changeListeners)
+      Collection<SubEntry> setToDelete =
+              dit2SubEntry.getSubtree(oldEntry.getDN());
+      for (SubEntry subentry : setToDelete)
       {
+        oldEntry = subentry.getEntry();
         try
         {
-          changeListener.checkSubentryModifyAcceptable(
-                  oldEntry, newEntry);
+          StringBuilder builder = new StringBuilder(
+              subentry.getEntry().getDN().toNormalizedString());
+          int oldDNIndex = builder.lastIndexOf(oldDNString);
+          builder.replace(oldDNIndex, builder.length(),
+                  newDNString);
+          String subentryDNString = builder.toString();
+          newEntry = subentry.getEntry().duplicate(false);
+          newEntry.setDN(DN.decode(subentryDNString));
         }
-        catch (DirectoryException de)
+        catch (Exception e)
         {
+          // Shouldnt happen.
           if (debugEnabled())
           {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
+        }
+        for (SubentryChangeListener changeListener :
+                changeListeners)
+        {
+          try
+          {
+            changeListener.checkSubentryModifyAcceptable(
+                    oldEntry, newEntry);
+          }
+          catch (DirectoryException de)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, de);
+            }
 
-          return PluginResult.PreOperation.stopProcessing(
-                  de.getResultCode(), de.getMessageObject());
+            return PluginResult.PreOperation.stopProcessing(
+                    de.getResultCode(), de.getMessageObject());
+          }
         }
       }
+    }
+    finally
+    {
+      lock.readLock().unlock();
     }
 
     return PluginResult.PreOperation.continueOperationProcessing();

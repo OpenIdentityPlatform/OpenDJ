@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Copyright 2007-2010 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="referential-integrity-plugin"
   plural-name="referential-integrity-plugins"
@@ -67,6 +67,7 @@
         <adm:value>postoperationdelete</adm:value>
         <adm:value>postoperationmodifydn</adm:value>
         <adm:value>subordinatemodifydn</adm:value>
+        <adm:value>subordinatedelete</adm:value>
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>

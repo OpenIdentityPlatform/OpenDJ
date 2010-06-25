@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.api.plugin;
 
@@ -454,6 +454,15 @@ public enum PluginType
    * operation.
    */
   SUBORDINATE_MODIFY_DN("subordinatemodifydn"),
+
+
+
+  /**
+   * The plugin type for plugins that are to be invoked on each
+   * subordinate entry that is deleted as part of a subtree
+   * delete operation.
+   */
+  SUBORDINATE_DELETE("subordinatedelete"),
 
 
 

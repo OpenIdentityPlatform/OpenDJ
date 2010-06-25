@@ -1786,6 +1786,7 @@ ds-cfg-enabled: false
 ds-cfg-plugin-type: postOperationDelete
 ds-cfg-plugin-type: postOperationModifyDN
 ds-cfg-plugin-type: subordinateModifyDN
+ds-cfg-plugin-type: subordinateDelete
 ds-cfg-attribute-type: member
 ds-cfg-attribute-type: uniqueMember
 ds-cfg-invoke-for-internal-operations: true

@@ -144,15 +144,13 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
 
 
   /**
-   * Test that a delete subtree changes the correct entries under
-   * the correct suffixes.
-   *
-   * FIXME: re-enable when CR 6959320 is fixed.
+   * Test that a delete subtree changes the correct entries
+   * under the correct suffixes.
    *
    * @throws Exception If an unexpected result is returned.
    *
    */
-  @Test(enabled=false)
+  @Test()
   public void testReferentialDeleteTree() throws Exception {
     // Add attributes interested in: member, uniquemember, seealso.
     replaceAttrEntry(configDN, dsConfigAttrType,"member");
@@ -181,12 +179,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     // Perform the subtree delete.
     deleteSubtree(oldSuperior);
 
-    // Check group membership before delete.
-    //
-    // This simply checks that the group cache is updated
-    // rather than RI plugin works (it fails at the moment).
-    //
-    // isMember(tgroup, false, user1, user2, user3);
+    // Check that the group cache is updated.
+    isMember(tgroup, false, user1, user2, user3);
 
     // Check values exist as before delete.
     isAttributeValueEntry(tgroup, false, "member", user1, user2, user3);

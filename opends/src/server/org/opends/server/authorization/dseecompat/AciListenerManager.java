@@ -240,14 +240,11 @@ public class AciListenerManager implements
     private void doPostDelete(Entry deletedEntry)
     {
       // This entry might have both global and aci attribute types.
-      boolean hasAci, hasGlobalAci = false;
-      if ((hasAci = deletedEntry
-          .hasOperationalAttribute(AciHandler.aciType))
-          || (hasGlobalAci = deletedEntry
-              .hasAttribute(AciHandler.globalAciType)))
-      {
-        aciList.removeAci(deletedEntry, hasAci, hasGlobalAci);
-      }
+      boolean hasAci = deletedEntry.hasOperationalAttribute(
+              AciHandler.aciType);
+      boolean hasGlobalAci = deletedEntry.hasAttribute(
+              AciHandler.globalAciType);
+      aciList.removeAci(deletedEntry, hasAci, hasGlobalAci);
     }
 
 

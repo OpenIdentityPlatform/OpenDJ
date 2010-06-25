@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -45,6 +45,8 @@ import org.opends.server.extensions.StaticGroup;
 import org.opends.server.extensions.VirtualStaticGroup;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.tools.LDAPDelete;
+import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DereferencePolicy;
@@ -60,6 +62,7 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 
+import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
 
@@ -2281,6 +2284,170 @@ public class GroupManagerTestCase
   }
 
   /**
+   * Tests subtree delete operation on groups tree.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testSubtreeDelete() throws Exception {
+    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    GroupManager groupManager = DirectoryServer.getGroupManager();
+    groupManager.deregisterAllGroups();
+    addSubtreeGroupTestEntries();
+
+    Group group1 = groupManager.getGroupInstance(
+            DN.decode("cn=group1,ou=moregroups,dc=example,dc=com"));
+    assertNotNull(group1);
+    Group group2 = groupManager.getGroupInstance(
+            DN.decode("cn=group1,ou=groups,dc=example,dc=com"));
+    assertNotNull(group2);
+    Group group3 = groupManager.getGroupInstance(
+            DN.decode("cn=group2,ou=groups,dc=example,dc=com"));
+    assertNotNull(group3);
+
+    // Get a client connection authenticated as user1 and make sure it handles
+    // group operations correctly.
+    DN userDN = DN.decode("uid=test1,ou=people,dc=example,dc=com");
+    InternalClientConnection conn = new InternalClientConnection(userDN);
+    InternalSearchOperation searchOperation =
+         new InternalSearchOperation(conn, conn.nextOperationID(),
+                  conn.nextMessageID(), null, DN.nullDN(),
+                  SearchScope.BASE_OBJECT,
+                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  SearchFilter.createFilterFromString("(objectClass=*)"), null,
+                  null);
+
+    assertTrue(conn.isMemberOf(group1, null));
+    assertTrue(conn.isMemberOf(group2, null));
+    assertTrue(conn.isMemberOf(group3, null));
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-J", OID_SUBTREE_DELETE_CONTROL + ":true",
+      "--noPropertiesFile",
+      "ou=groups,dc=example,dc=com"
+    };
+    assertEquals(LDAPDelete.mainDelete(args, false, null, System.err), 0);
+
+    InternalClientConnection conn1 =
+            new InternalClientConnection(userDN);
+    searchOperation =
+         new InternalSearchOperation(conn1, conn1.nextOperationID(),
+                  conn1.nextMessageID(), null, DN.nullDN(),
+                  SearchScope.BASE_OBJECT,
+                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  SearchFilter.createFilterFromString("(objectClass=*)"), null,
+                  null);
+
+    group1 = groupManager.getGroupInstance(
+            DN.decode("cn=group1,ou=moregroups,dc=example,dc=com"));
+    assertNotNull(group1);
+    assertTrue(conn1.isMemberOf(group1, null));
+    group2 = groupManager.getGroupInstance(
+            DN.decode("cn=group1,ou=groups,dc=example,dc=com"));
+    assertNull(group2);
+    group3 = groupManager.getGroupInstance(
+            DN.decode("cn=group2,ou=groups,dc=example,dc=com"));
+    assertNull(group3);
+
+    // Cleanup.
+    TestCaseUtils.clearJEBackend(false,
+       "userRoot", "dc=example,dc=com");
+  }
+
+  /**
+   * Tests subtree modify operation on groups tree.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testSubtreeModify() throws Exception {
+    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    GroupManager groupManager = DirectoryServer.getGroupManager();
+    groupManager.deregisterAllGroups();
+    addSubtreeGroupTestEntries();
+
+    Group group1 = groupManager.getGroupInstance(
+            DN.decode("cn=group1,ou=moregroups,dc=example,dc=com"));
+    assertNotNull(group1);
+    Group group2 = groupManager.getGroupInstance(
+            DN.decode("cn=group1,ou=groups,dc=example,dc=com"));
+    assertNotNull(group2);
+    Group group3 = groupManager.getGroupInstance(
+            DN.decode("cn=group2,ou=groups,dc=example,dc=com"));
+    assertNotNull(group3);
+
+    // Get a client connection authenticated as user1 and make sure it handles
+    // group operations correctly.
+    DN userDN = DN.decode("uid=test1,ou=people,dc=example,dc=com");
+    InternalClientConnection conn = new InternalClientConnection(userDN);
+    InternalSearchOperation searchOperation =
+         new InternalSearchOperation(conn, conn.nextOperationID(),
+                  conn.nextMessageID(), null, DN.nullDN(),
+                  SearchScope.BASE_OBJECT,
+                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  SearchFilter.createFilterFromString("(objectClass=*)"), null,
+                  null);
+
+    assertTrue(conn.isMemberOf(group1, null));
+    assertTrue(conn.isMemberOf(group2, null));
+    assertTrue(conn.isMemberOf(group3, null));
+
+    String path = TestCaseUtils.createTempFile(
+         "dn: ou=groups,dc=example,dc=com",
+         "changetype: moddn",
+         "newRDN: ou=newgroups",
+         "deleteOldRDN: 1");
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "--noPropertiesFile",
+      "-f", path
+    };
+    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+
+    InternalClientConnection conn1 =
+            new InternalClientConnection(userDN);
+    searchOperation =
+         new InternalSearchOperation(conn1, conn1.nextOperationID(),
+                  conn1.nextMessageID(), null, DN.nullDN(),
+                  SearchScope.BASE_OBJECT,
+                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  SearchFilter.createFilterFromString("(objectClass=*)"), null,
+                  null);
+
+    group1 = groupManager.getGroupInstance(
+            DN.decode("cn=group1,ou=moregroups,dc=example,dc=com"));
+    assertNotNull(group1);
+    assertTrue(conn1.isMemberOf(group1, null));
+    group2 = groupManager.getGroupInstance(
+            DN.decode("cn=group1,ou=groups,dc=example,dc=com"));
+    assertNull(group2);
+    group3 = groupManager.getGroupInstance(
+            DN.decode("cn=group2,ou=groups,dc=example,dc=com"));
+    assertNull(group3);
+    Group newGroup2 = groupManager.getGroupInstance(
+            DN.decode("cn=group1,ou=newgroups,dc=example,dc=com"));
+    assertNotNull(newGroup2);
+    assertTrue(conn.isMemberOf(newGroup2, null));
+    Group newGroup3 = groupManager.getGroupInstance(
+            DN.decode("cn=group2,ou=newgroups,dc=example,dc=com"));
+    assertNotNull(newGroup3);
+    assertTrue(conn.isMemberOf(newGroup3, null));
+
+    // Cleanup.
+    TestCaseUtils.clearJEBackend(false,
+       "userRoot", "dc=example,dc=com");
+  }
+
+  /**
    * Adds nested group entries.
    *
    * @throws Exception If a problem adding the entries occurs.
@@ -2373,6 +2540,59 @@ public class GroupManagerTestCase
       "sn: 5",
       "cn: User 5",
       "userPassword: password");
+  }
+
+  /**
+   * Adds entries for subtree operations tests.
+   *
+   * @throws Exception If a problem adding the entries occurs.
+   */
+  private void addSubtreeGroupTestEntries() throws Exception {
+
+    TestCaseUtils.addEntries(
+      "dn: ou=people,dc=example,dc=com",
+      "objectClass: organizationalUnit",
+      "objectClass: top",
+      "ou: people",
+      "",
+      "dn: uid=test1,ou=people,dc=example,dc=com",
+      "objectClass: person",
+      "objectClass: inetOrgPerson",
+      "objectClass: organizationalPerson",
+      "objectClass: top",
+      "uid: test1",
+      "cn: test",
+      "sn: test",
+      "userPassword: password",
+      "",
+      "dn: ou=groups,dc=example,dc=com",
+      "objectClass: organizationalUnit",
+      "objectClass: top",
+      "ou: groups",
+      "",
+      "dn: cn=group1,ou=groups,dc=example,dc=com",
+      "objectClass: groupOfNames",
+      "objectClass: top",
+      "member: uid=test1,ou=people,dc=example,dc=com",
+      "cn: group1",
+      "",
+      "dn: cn=group2,ou=groups,dc=example,dc=com",
+      "objectClass: groupOfNames",
+      "objectClass: top",
+      "member: uid=test1,ou=people,dc=example,dc=com",
+      "cn: group2",
+      "",
+      "dn: ou=moregroups,dc=example,dc=com",
+      "objectClass: organizationalUnit",
+      "objectClass: top",
+      "ou: moregroups",
+      "",
+      "dn: cn=group1,ou=moregroups,dc=example,dc=com",
+      "objectClass: groupOfNames",
+      "objectClass: top",
+      "member: uid=test1,ou=people,dc=example,dc=com",
+      "cn: group1"
+    );
   }
 }
 

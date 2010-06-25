@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -31,6 +31,7 @@ package org.opends.server.core;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.ClassPropertyDefinition;
@@ -44,6 +45,7 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.api.ChangeNotificationListener;
+import org.opends.server.api.DITCacheMap;
 import org.opends.server.api.Group;
 import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -55,6 +57,7 @@ import org.opends.server.types.Control;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
@@ -103,7 +106,7 @@ public class GroupManager
 
   //Used by group instances to determine if new groups have been
   //registered or groups deleted.
-  private long refreshToken=0;
+  private volatile long refreshToken=0;
 
 
   // A mapping between the DNs of the config entries and the associated
@@ -112,7 +115,10 @@ public class GroupManager
 
   // A mapping between the DNs of all group entries and the corresponding
   // group instances.
-  private ConcurrentHashMap<DN,Group> groupInstances;
+  private DITCacheMap<Group> groupInstances;
+
+  // Lock to protect internal data structures.
+  private final ReentrantReadWriteLock lock;
 
 
 
@@ -122,7 +128,9 @@ public class GroupManager
   public GroupManager()
   {
     groupImplementations = new ConcurrentHashMap<DN,Group>();
-    groupInstances       = new ConcurrentHashMap<DN,Group>();
+    groupInstances       = new DITCacheMap<Group>();
+
+    lock = new ReentrantReadWriteLock();
 
     DirectoryServer.registerBackendInitializationListener(this);
     DirectoryServer.registerChangeNotificationListener(this);
@@ -289,14 +297,22 @@ public class GroupManager
     Group group = groupImplementations.remove(configuration.dn());
     if (group != null)
     {
-      Iterator<Group> iterator = groupInstances.values().iterator();
-      while (iterator.hasNext())
+      lock.writeLock().lock();
+      try
       {
-        Group g = iterator.next();
-        if (g.getClass().getName().equals(group.getClass().getName()))
+        Iterator<Group> iterator = groupInstances.values().iterator();
+        while (iterator.hasNext())
         {
-          iterator.remove();
+          Group g = iterator.next();
+          if (g.getClass().getName().equals(group.getClass().getName()))
+          {
+            iterator.remove();
+          }
         }
+      }
+      finally
+      {
+        lock.writeLock().unlock();
       }
 
       group.finalizeGroupImplementation();
@@ -360,14 +376,22 @@ public class GroupManager
         Group group = groupImplementations.remove(configuration.dn());
         if (group != null)
         {
-          Iterator<Group> iterator = groupInstances.values().iterator();
-          while (iterator.hasNext())
+          lock.writeLock().lock();
+          try
           {
-            Group g = iterator.next();
-            if (g.getClass().getName().equals(group.getClass().getName()))
+            Iterator<Group> iterator = groupInstances.values().iterator();
+            while (iterator.hasNext())
             {
-              iterator.remove();
+              Group g = iterator.next();
+              if (g.getClass().getName().equals(group.getClass().getName()))
+              {
+                iterator.remove();
+              }
             }
+          }
+          finally
+          {
+            lock.writeLock().unlock();
           }
 
           group.finalizeGroupImplementation();
@@ -543,7 +567,18 @@ public class GroupManager
    */
   public Iterable<Group> getGroupInstances()
   {
-    return groupInstances.values();
+    lock.readLock().lock();
+    try
+    {
+      // Return a copy to protect from structural changes.
+      ArrayList<Group> values = new ArrayList<Group>();
+      values.addAll(groupInstances.values());
+      return values;
+    }
+    finally
+    {
+      lock.readLock().unlock();
+    }
   }
 
 
@@ -559,7 +594,18 @@ public class GroupManager
    */
   public Group getGroupInstance(DN entryDN)
   {
-    Group group = groupInstances.get(entryDN);
+    Group group = null;
+
+    lock.readLock().lock();
+    try
+    {
+      group = groupInstances.get(entryDN);
+    }
+    finally
+    {
+      lock.readLock().unlock();
+    }
+
     if (group == null)
     {
       // FIXME -- Should we try to retrieve the corresponding entry and see if
@@ -654,24 +700,32 @@ public class GroupManager
           continue;
         }
 
-        for (SearchResultEntry entry : internalSearch.getSearchEntries())
+        lock.writeLock().lock();
+        try
         {
-          try
+          for (SearchResultEntry entry : internalSearch.getSearchEntries())
           {
-            Group groupInstance = groupImplementation.newInstance(entry);
-            groupInstances.put(entry.getDN(), groupInstance);
-            refreshToken++;
-          }
-          catch (Exception e)
-          {
-            if (debugEnabled())
+            try
             {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+              Group groupInstance = groupImplementation.newInstance(entry);
+              groupInstances.put(entry.getDN(), groupInstance);
+              refreshToken++;
             }
+            catch (Exception e)
+            {
+              if (debugEnabled())
+              {
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
+              }
 
-            // FIXME -- Handle this.
-            continue;
+              // FIXME -- Handle this.
+              continue;
+            }
           }
+        }
+        finally
+        {
+          lock.writeLock().unlock();
         }
       }
     }
@@ -685,16 +739,24 @@ public class GroupManager
    */
   public void performBackendFinalizationProcessing(Backend backend)
   {
-    Iterator<Map.Entry<DN,Group>> iterator =
-         groupInstances.entrySet().iterator();
-    while (iterator.hasNext())
+    lock.writeLock().lock();
+    try
     {
-      Map.Entry<DN,Group> mapEntry = iterator.next();
-      DN groupEntryDN = mapEntry.getKey();
-      if (backend.handlesEntry(groupEntryDN))
+      Iterator<Map.Entry<DN,Group>> iterator =
+           groupInstances.entrySet().iterator();
+      while (iterator.hasNext())
       {
-        iterator.remove();
+        Map.Entry<DN,Group> mapEntry = iterator.next();
+        DN groupEntryDN = mapEntry.getKey();
+        if (backend.handlesEntry(groupEntryDN))
+        {
+          iterator.remove();
+        }
       }
+    }
+    finally
+    {
+      lock.writeLock().unlock();
     }
   }
 
@@ -719,10 +781,15 @@ public class GroupManager
         }
       }
     }
-    synchronized (groupInstances)
+    lock.writeLock().lock();
+    try
     {
       createAndRegisterGroup(entry);
       refreshToken++;
+    }
+    finally
+    {
+      lock.writeLock().unlock();
     }
   }
 
@@ -746,10 +813,15 @@ public class GroupManager
         }
       }
     }
-    synchronized (groupInstances)
+    lock.writeLock().lock();
+    try
     {
-      groupInstances.remove(entry.getDN());
+      groupInstances.removeSubtree(entry.getDN(), null);
       refreshToken++;
+    }
+    finally
+    {
+      lock.writeLock().unlock();
     }
   }
 
@@ -775,20 +847,23 @@ public class GroupManager
       }
     }
 
-
-    if (groupInstances.containsKey(oldEntry.getDN()))
+    lock.writeLock().lock();
+    try
     {
-      synchronized (groupInstances)
+      if (groupInstances.containsKey(oldEntry.getDN()))
       {
         if (! oldEntry.getDN().equals(newEntry.getDN()))
         {
           // This should never happen, but check for it anyway.
           groupInstances.remove(oldEntry.getDN());
         }
-
         createAndRegisterGroup(newEntry);
         refreshToken++;
       }
+    }
+    finally
+    {
+      lock.writeLock().unlock();
     }
   }
 
@@ -816,14 +891,44 @@ public class GroupManager
       }
     }
 
-    if (groupInstances.containsKey(oldEntry.getDN()))
+    lock.writeLock().lock();
+    try
     {
-      synchronized (groupInstances)
+      Set<Group> groupSet = new HashSet<Group>();
+      groupInstances.removeSubtree(oldEntry.getDN(), groupSet);
+      String oldDNString = oldEntry.getDN().toNormalizedString();
+      String newDNString = newEntry.getDN().toNormalizedString();
+      for (Group group : groupSet)
       {
-        createAndRegisterGroup(newEntry);
-        groupInstances.remove(oldEntry.getDN());
-        refreshToken++;
+        StringBuilder builder = new StringBuilder(
+                group.getGroupDN().toNormalizedString());
+        int oldDNIndex = builder.lastIndexOf(oldDNString);
+        builder.replace(oldDNIndex, builder.length(),
+                newDNString);
+        String groupDNString = builder.toString();
+        DN groupDN = DN.NULL_DN;
+        try
+        {
+          groupDN = DN.decode(groupDNString);
+        }
+        catch (DirectoryException de)
+        {
+          // Should not happen but if it does all we
+          // can do here is debug log it and continue.
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, de);
+          }
+          continue;
+        }
+        group.setGroupDN(groupDN);
+        groupInstances.put(groupDN, group);
       }
+      refreshToken++;
+    }
+    finally
+    {
+      lock.writeLock().unlock();
     }
   }
 
@@ -845,7 +950,16 @@ public class GroupManager
         if (groupImplementation.isGroupDefinition(entry))
         {
           Group groupInstance = groupImplementation.newInstance(entry);
-          groupInstances.put(entry.getDN(), groupInstance);
+
+          lock.writeLock().lock();
+          try
+          {
+            groupInstances.put(entry.getDN(), groupInstance);
+          }
+          finally
+          {
+            lock.writeLock().unlock();
+          }
         }
       }
       catch (Exception e)
@@ -869,7 +983,15 @@ public class GroupManager
    */
   void deregisterAllGroups()
   {
-    groupInstances.clear();
+    lock.writeLock().lock();
+    try
+    {
+      groupInstances.clear();
+    }
+    finally
+    {
+      lock.writeLock().unlock();
+    }
   }
 
 

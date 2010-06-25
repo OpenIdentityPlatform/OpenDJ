@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2009 Sun Microsystems, Inc.
+  !      Copyright 2007-2010 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="plugin" plural-name="plugins"
   package="org.opends.server.admin.std"
@@ -360,6 +360,12 @@
           <adm:synopsis>
             Invoked in the course of moving or renaming an entry
             subordinate to the target of a modify DN operation.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="subordinatedelete">
+          <adm:synopsis>
+            Invoked in the course of deleting a subordinate
+            entry of a delete operation.
           </adm:synopsis>
         </adm:value>
         <adm:value name="intermediateresponse">

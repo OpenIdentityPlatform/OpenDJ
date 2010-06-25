@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -362,6 +362,26 @@ public final class AuthenticationInfo
 
 
   /**
+   * Sets the DN of the user as whom the client is authenticated,
+   * does nothing if the client is unauthenticated.
+   *
+   * @param dn authentication identity DN.
+   */
+  public void setAuthenticationDN(DN dn)
+  {
+    if (authenticationEntry == null)
+    {
+      return;
+    }
+    else
+    {
+      authenticationEntry.setDN(dn);
+    }
+  }
+
+
+
+  /**
    * Retrieves the entry for the user that should be used as the
    * default authorization identity.
    *
@@ -395,6 +415,27 @@ public final class AuthenticationInfo
     else
     {
       return authorizationEntry.getDN();
+    }
+  }
+
+
+
+  /**
+   * Sets the DN for the user that should be used as the default
+   * authorization identity, does nothing if the client is
+   * unauthorized.
+   *
+   * @param dn authorization identity DN.
+   */
+  public void setAuthorizationDN(DN dn)
+  {
+    if (authorizationEntry == null)
+    {
+      return;
+    }
+    else
+    {
+      authorizationEntry.setDN(dn);
     }
   }
 
@@ -470,6 +511,7 @@ public final class AuthenticationInfo
    * @return  A string representation of this authentication info
    *          structure.
    */
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();

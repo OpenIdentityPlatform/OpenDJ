@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -45,11 +45,13 @@ import org.opends.server.tools.LDAPSearch;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
+import org.opends.messages.Message;
+import org.opends.server.tools.LDAPDelete;
+import org.opends.server.tools.LDAPModify;
 
 import static org.testng.Assert.*;
-
+import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import org.opends.messages.Message;
 
 
 /**
@@ -2018,6 +2020,170 @@ public class BindOperationTestCase
     assertNull(DirectoryServer.getAuthenticatedUsers().get(userDN));
 
     s.close();
+  }
+
+
+
+  /**
+   * Tests to ensure that performing subtree delete will
+   * cause the connection to no longer be associated
+   * with the previous identity.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(groups = "slow")
+  public void testSubtreeDeleteClearsAuthInfo()
+         throws Exception
+  {
+    TestCaseUtils.restartServer();
+    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.addEntries(
+      "dn: ou=people,dc=example,dc=com",
+      "objectClass: organizationalUnit",
+      "objectClass: top",
+      "ou: people",
+      "",
+      "dn: uid=test,ou=people,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: test",
+      "givenName: test",
+      "sn: Test",
+      "cn: Test",
+      "userPassword: password");
+
+    String dnString = "uid=test,ou=people,dc=example,dc=com";
+    DN userDN = DN.decode(dnString);
+
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
+    s.setSoTimeout(6000);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+
+    BindRequestProtocolOp bindRequest =
+         new BindRequestProtocolOp(ByteString.valueOf(dnString),
+                                   3, ByteString.valueOf("password"));
+    LDAPMessage message = new LDAPMessage(1, bindRequest);
+    w.writeMessage(message);
+
+    message = r.readMessage();
+    BindResponseProtocolOp bindResponse =
+            message.getBindResponseProtocolOp();
+    assertEquals(bindResponse.getResultCode(), 0);
+
+    assertNotNull(DirectoryServer.getAuthenticatedUsers().get(
+            userDN));
+    assertEquals(DirectoryServer.getAuthenticatedUsers().get(
+            userDN).size(), 1);
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-J", OID_SUBTREE_DELETE_CONTROL + ":true",
+      "--noPropertiesFile",
+      "ou=people,dc=example,dc=com"
+    };
+    assertEquals(LDAPDelete.mainDelete(args, false, null, System.err), 0);
+
+    assertNull(DirectoryServer.getAuthenticatedUsers().get(userDN));
+
+    s.close();
+
+    // Cleanup.
+    TestCaseUtils.clearJEBackend(false,
+       "userRoot", "dc=example,dc=com");
+  }
+
+
+
+  /**
+   * Tests to ensure that performing subtree modify will
+   * cause the connection to be associated with new auth
+   * identity instead of the previous identity.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(groups = "slow")
+  public void testSubtreeModifyUpdatesAuthInfo()
+         throws Exception
+  {
+    TestCaseUtils.restartServer();
+    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.addEntries(
+      "dn: ou=people,dc=example,dc=com",
+      "objectClass: organizationalUnit",
+      "objectClass: top",
+      "ou: people",
+      "",
+      "dn: uid=test,ou=people,dc=example,dc=com",
+      "objectClass: top",
+      "objectClass: person",
+      "objectClass: organizationalPerson",
+      "objectClass: inetOrgPerson",
+      "uid: test",
+      "givenName: test",
+      "sn: Test",
+      "cn: Test",
+      "userPassword: password");
+
+    String dnString = "uid=test,ou=people,dc=example,dc=com";
+    DN userDN = DN.decode(dnString);
+
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
+    s.setSoTimeout(6000);
+    LDAPReader r = new LDAPReader(s);
+    LDAPWriter w = new LDAPWriter(s);
+
+    BindRequestProtocolOp bindRequest =
+         new BindRequestProtocolOp(ByteString.valueOf(dnString),
+                                   3, ByteString.valueOf("password"));
+    LDAPMessage message = new LDAPMessage(1, bindRequest);
+    w.writeMessage(message);
+
+    message = r.readMessage();
+    BindResponseProtocolOp bindResponse =
+            message.getBindResponseProtocolOp();
+    assertEquals(bindResponse.getResultCode(), 0);
+
+    assertNotNull(DirectoryServer.getAuthenticatedUsers().get(
+            userDN));
+    assertEquals(DirectoryServer.getAuthenticatedUsers().get(
+            userDN).size(), 1);
+
+    String path = TestCaseUtils.createTempFile(
+         "dn: ou=people,dc=example,dc=com",
+         "changetype: moddn",
+         "newRDN: ou=users",
+         "deleteOldRDN: 1");
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "--noPropertiesFile",
+      "-f", path
+    };
+    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+
+    String newDNString = "uid=test,ou=users,dc=example,dc=com";
+    DN newUserDN = DN.decode(newDNString);
+
+    assertNotNull(DirectoryServer.getAuthenticatedUsers().get(
+            newUserDN));
+    assertEquals(DirectoryServer.getAuthenticatedUsers().get(
+            newUserDN).size(), 1);
+
+    s.close();
+
+    // Cleanup.
+    TestCaseUtils.clearJEBackend(false,
+       "userRoot", "dc=example,dc=com");
   }
 
 
