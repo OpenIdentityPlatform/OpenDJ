@@ -205,7 +205,7 @@ public class Importer
   //Rebuild-index instance.
   private
   Importer(RebuildConfig rebuildConfig, LocalDBBackendCfg cfg,
-            EnvironmentConfig envConfig) throws IOException,
+            EnvironmentConfig envConfig) throws
           InitializationException, JebException, ConfigException
   {
     importConfiguration = null;
@@ -230,7 +230,7 @@ public class Importer
     {
       Message message =
                 ERR_JEB_IMPORT_CREATE_TMPDIR_ERROR.get(String.valueOf(tempDir));
-      throw new IOException(message.toString());
+      throw new InitializationException(message);
     }
     skipDNValidation = true;
     if(envConfig != null)
@@ -246,13 +246,11 @@ public class Importer
    * @param importConfiguration The LDIF import configuration.
    * @param localDBBackendCfg The local DB back-end configuration.
    * @param envConfig The JEB environment config.
-   * @throws IOException  If a problem occurs while opening the LDIF file for
-   *                      reading.
    * @throws  InitializationException If a problem occurs during initialization.
    */
   private Importer(LDIFImportConfig importConfiguration,
                    LocalDBBackendCfg localDBBackendCfg,
-                   EnvironmentConfig envConfig) throws IOException,
+                   EnvironmentConfig envConfig) throws
           InitializationException, DatabaseException
   {
     rebuildManager = null;
@@ -289,7 +287,7 @@ public class Importer
     {
       Message message =
                 ERR_JEB_IMPORT_CREATE_TMPDIR_ERROR.get(String.valueOf(tempDir));
-      throw new IOException(message.toString());
+      throw new InitializationException(message);
     }
     skipDNValidation = importConfiguration.getSkipDNValidation();
     initializeDBEnv(envConfig);
@@ -315,14 +313,13 @@ public class Importer
    * @param envCfg The JEB environment config to use.
    * @return A import LDIF instance.
    *
-   * @throws IOException If an I/O error occurs.
    * @throws InitializationException If the instance cannot be initialized.
    */
   public static
   Importer getInstance(LDIFImportConfig importCfg,
                        LocalDBBackendCfg localDBBackendCfg,
                        EnvironmentConfig envCfg)
-          throws IOException, InitializationException
+          throws InitializationException
   {
      return  new Importer(importCfg, localDBBackendCfg, envCfg);
   }
@@ -336,7 +333,6 @@ public class Importer
    * @param envCfg The JEB environment config to use.
    * @return An import rebuild index instance.
    *
-   * @throws IOException If an I/O error occurs.
    * @throws InitializationException If the instance cannot be initialized.
    * @throws JebException If a JEB exception occurs.
    * @throws ConfigException If the instance cannot be configured.
@@ -345,7 +341,7 @@ public class Importer
   Importer getInstance(RebuildConfig rebuildCfg,
                        LocalDBBackendCfg localDBBackendCfg,
                        EnvironmentConfig envCfg)
-  throws IOException, InitializationException, JebException, ConfigException
+  throws InitializationException, JebException, ConfigException
   {
       return new Importer(rebuildCfg, localDBBackendCfg, envCfg);
   }
@@ -764,15 +760,13 @@ public class Importer
    *
    * @throws ConfigException If a configuration error occurred.
    * @throws InitializationException If an initialization error occurred.
-   * @throws IOException If an IO error occurred.
    * @throws JebException If the JEB database had an error.
-   * @throws DatabaseException If a database error occurred.
    * @throws InterruptedException If an interrupted error occurred.
    * @throws ExecutionException If an execution error occurred.
    */
   public void
   rebuildIndexes(RootContainer rootContainer) throws ConfigException,
-          InitializationException, IOException, JebException, DatabaseException,
+          InitializationException, JebException,
           InterruptedException, ExecutionException
   {
     this.rootContainer = rootContainer;
@@ -793,23 +787,30 @@ public class Importer
    * @return A LDIF result.
    * @throws ConfigException If the import failed because of an configuration
    *                         error.
-   * @throws IOException If the import failed because of an IO error.
    * @throws InitializationException If the import failed because of an
    *               initialization error.
    * @throws JebException If the import failed due to a database error.
    * @throws InterruptedException If the import failed due to an interrupted
    *                              error.
    * @throws ExecutionException If the import failed due to an execution error.
-   * @throws DatabaseException If the import failed due to a database error.
    */
   public LDIFImportResult
   processImport(RootContainer rootContainer) throws ConfigException,
-          InitializationException, IOException, JebException, DatabaseException,
+          InitializationException, JebException,
           InterruptedException, ExecutionException
   {
     this.rootContainer = rootContainer;
+    try
+    {
     reader = new LDIFReader(importConfiguration, rootContainer,
                                  READER_WRITER_BUFFER_SIZE);
+    }
+    catch(IOException ioe)
+    {
+      Message message = ERR_JEB_IMPORT_LDIF_READER_IO_ERROR.get();
+      throw new InitializationException(message, ioe);
+    }
+
     try
     {
       Message message =
@@ -2311,7 +2312,7 @@ public class Importer
     /**
      * {@inheritDoc}
      */
-    public Void call() throws Exception
+    public Void call() throws IOException
     {
       long offset = 0;
       List<IndexBuffer> l = new LinkedList<IndexBuffer>();
@@ -2362,11 +2363,11 @@ public class Importer
           }
         }
       }
-      catch (Exception e)
+      catch (IOException e)
       {
         Message message =
-                ERR_JEB_IMPORT_LDIF_INDEX_FILEWRITER_ERR.get(file.getName(),
-                        e.getMessage());
+                ERR_JEB_IMPORT_LDIF_INDEX_FILEWRITER_ERR.get(
+                    file.getAbsolutePath(), e.getMessage());
         logError(message);
         isPhaseOneCanceled = true;
         throw e;
@@ -2776,7 +2777,8 @@ public class Importer
         try {
           getNextRecord();
         } catch(IOException ex) {
-           Message message = ERR_JEB_IO_ERROR.get(ex.getMessage());
+           Message message =
+               ERR_JEB_IMPORT_BUFFER_IO_ERROR.get(indexMgr.getFileName());
            logError(message);
            ex.printStackTrace();
            System.exit(1);
