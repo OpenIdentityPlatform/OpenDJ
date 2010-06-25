@@ -484,50 +484,25 @@ public class GenerateMessageFile extends Task {
   public void setDestJava(File dest) {
     this.dest = dest;
 
-    /*
-     * Set the descriptors.reg pathname to the same directory as the one used
-     * to generate files and ensure all messages are generated in one place.
-     */
-    String projectBase = null;
     try {
-      projectBase = getProjectBase().getCanonicalPath();
-    } catch( java.io.IOException e) {
-      throw new BuildException("Error processing " + dest +
-            ": unable to retrieve project's directory of ant's project (" +
-            e + ")");
-    }
+      File descriptorsRegFile =
+        new File(dest.getParentFile(), DESCRIPTORS_REG);
 
-    String registry = dest.getAbsolutePath();
-
-    // strip project directory prefix and replace properties filename with
-    // $DESCRIPTORS_REG
-    registry = registry.substring(projectBase.length()+1,
-                                 registry.lastIndexOf(File.separator)+1)
-                       .concat(DESCRIPTORS_REG);
-
-    if ( REGISTRY_FILE_NAME == null ) {
-      REGISTRY_FILE_NAME = registry;
-    } else {
-      if ( ! REGISTRY_FILE_NAME.equals(registry) ) {
-        // multiple messages are generated in several packages
-        StringBuilder sb = new StringBuilder();
-        // full pathname of $REGISTRY_FILE_NAME
-        sb.append(projectBase)
-          .append(File.separator)
-          .append(REGISTRY_FILE_NAME);
-        // change from generated directory to properties files directory
-        sb.replace(0,
-                   getProject().getProperty("msg.javagen.dir").length(),
-                   getProject().getProperty("msg.dir"));
-        // replace properties filename with source filename
-        sb.replace(sb.lastIndexOf(File.separator)+1,
-                   sb.length(),
-                   source.getName());
-        throw new BuildException("Error processing " + dest +
-              ": all messages must be located in the same package thus " +
-              "name of the source file should be " + sb);
-
+      if (REGISTRY_FILE_NAME != null) {
+        // if REGISTRY_FILE_NAME is already set, ensure that we computed the
+        // same one
+        File prevDescriptorsRegFile = new File(REGISTRY_FILE_NAME);
+        if (!prevDescriptorsRegFile.equals(descriptorsRegFile)) {
+          throw new BuildException("Error processing " + dest
+            + ": all messages must be located in the same package thus "
+            + "name of the source file should be "
+            + new File(prevDescriptorsRegFile.getParent(), dest.getName()));
+        }
+      } else {
+        REGISTRY_FILE_NAME = descriptorsRegFile.getCanonicalPath();
       }
+    } catch (Exception e) {
+      throw (new BuildException(e));
     }
   }
 
@@ -921,7 +896,7 @@ public class GenerateMessageFile extends Task {
   }
 
   private File getRegistryFile() throws IOException {
-    File registry = new File(getProjectBase(), REGISTRY_FILE_NAME);
+    File registry = new File(REGISTRY_FILE_NAME);
     if (!registry.exists()) {
       File parent = registry.getParentFile();
       if (!parent.exists()) {
