@@ -390,21 +390,9 @@ public class PasswordModifyExtendedOperation
             userEntry = identityMapper.getEntryForID(authzIDStr.substring(2));
             if (userEntry == null)
             {
-              if (oldPassword == null)
-              {
-                operation.setResultCode(ResultCode.NO_SUCH_OBJECT);
-
-                operation.appendErrorMessage(
-                        ERR_EXTOP_PASSMOD_CANNOT_MAP_USER.get(authzIDStr));
-              }
-              else
-              {
-                operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-                operation.appendAdditionalLogMessage(
-                        ERR_EXTOP_PASSMOD_CANNOT_MAP_USER.get(authzIDStr));
-              }
-
+              operation.setResultCode(ResultCode.NO_SUCH_OBJECT);
+              operation.appendErrorMessage(
+                      ERR_EXTOP_PASSMOD_CANNOT_MAP_USER.get(authzIDStr));
               return;
             }
             else
@@ -419,23 +407,10 @@ public class PasswordModifyExtendedOperation
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            if (oldPassword == null)
-            {
-              operation.setResultCode(de.getResultCode());
-
-              operation.appendErrorMessage(ERR_EXTOP_PASSMOD_ERROR_MAPPING_USER
-                      .get(authzIDStr,de.getMessageObject()));
-            }
-            else
-            {
-              operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-              operation.appendAdditionalLogMessage(
-                      ERR_EXTOP_PASSMOD_ERROR_MAPPING_USER.get(
-                              authzIDStr,
-                              de.getMessageObject()));
-            }
-
+            //Encountered an exception while resolving identity.
+            operation.setResultCode(de.getResultCode());
+            operation.appendErrorMessage(ERR_EXTOP_PASSMOD_ERROR_MAPPING_USER
+                    .get(authzIDStr,de.getMessageObject()));
             return;
           }
         }
@@ -451,6 +426,10 @@ public class PasswordModifyExtendedOperation
           }
           catch (DirectoryException de)
           {
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, de);
+            }
             // IGNORE.
           }
 
@@ -469,6 +448,10 @@ public class PasswordModifyExtendedOperation
             }
             catch (DirectoryException de)
             {
+              if (debugEnabled())
+              {
+                TRACER.debugCaught(DebugLogLevel.ERROR, de);
+              }
               // IGNORE.
             }
           }
@@ -558,16 +541,8 @@ public class PasswordModifyExtendedOperation
 
         Message message = ERR_EXTOP_PASSMOD_ACCOUNT_DISABLED.get();
 
-        if (oldPassword == null)
-        {
-          operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-          operation.appendErrorMessage(message);
-        }
-        else
-        {
-          operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-          operation.appendAdditionalLogMessage(message);
-        }
+        operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+        operation.appendErrorMessage(message);
 
         return;
       }
@@ -588,18 +563,10 @@ public class PasswordModifyExtendedOperation
 
         Message message = ERR_EXTOP_PASSMOD_ACCOUNT_LOCKED.get();
 
-        if (oldPassword == null)
-        {
-          operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-          operation.appendErrorMessage(message);
-        }
-        else
-        {
-          operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-          operation.appendAdditionalLogMessage(message);
-        }
+        operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+        operation.appendErrorMessage(message);
 
-        return;
+          return;
       }
 
 
@@ -633,7 +600,7 @@ public class PasswordModifyExtendedOperation
         if (pwPolicyState.getPolicy().requireSecureAuthentication() &&
             (! operation.getClientConnection().isSecure()))
         {
-          operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+          operation.setResultCode(ResultCode.CONFIDENTIALITY_REQUIRED);
 
           operation.appendAdditionalLogMessage(
                   ERR_EXTOP_PASSMOD_SECURE_AUTH_REQUIRED.get());
@@ -680,21 +647,10 @@ public class PasswordModifyExtendedOperation
                                                  pwPolicyErrorType));
         }
 
-        if (oldPassword == null)
-        {
-          operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+        operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-          operation.appendErrorMessage(
-                  ERR_EXTOP_PASSMOD_USER_PW_CHANGES_NOT_ALLOWED.get());
-        }
-        else
-        {
-          operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-          operation.appendAdditionalLogMessage(
-                  ERR_EXTOP_PASSMOD_USER_PW_CHANGES_NOT_ALLOWED.get());
-        }
-
+        operation.appendErrorMessage(
+                ERR_EXTOP_PASSMOD_USER_PW_CHANGES_NOT_ALLOWED.get());
         return;
       }
 
@@ -704,21 +660,11 @@ public class PasswordModifyExtendedOperation
       if (pwPolicyState.getPolicy().requireSecurePasswordChanges() &&
           (! operation.getClientConnection().isSecure()))
       {
-        if (oldPassword == null)
-        {
-          operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-          operation.appendErrorMessage(
-                  ERR_EXTOP_PASSMOD_SECURE_CHANGES_REQUIRED.get());
-        }
-        else
-        {
-          operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+        operation.setResultCode(ResultCode.CONFIDENTIALITY_REQUIRED);
 
-          operation.appendAdditionalLogMessage(
-                  ERR_EXTOP_PASSMOD_SECURE_CHANGES_REQUIRED.get());
-        }
-
+        operation.appendErrorMessage(
+                ERR_EXTOP_PASSMOD_SECURE_CHANGES_REQUIRED.get());
         return;
       }
 
@@ -737,19 +683,9 @@ public class PasswordModifyExtendedOperation
                                                  pwPolicyErrorType));
         }
 
-        if (oldPassword == null)
-        {
-          operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+        operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-          operation.appendErrorMessage(ERR_EXTOP_PASSMOD_IN_MIN_AGE.get());
-        }
-        else
-        {
-          operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-          operation.appendAdditionalLogMessage(
-                  ERR_EXTOP_PASSMOD_IN_MIN_AGE.get());
-        }
+        operation.appendErrorMessage(ERR_EXTOP_PASSMOD_IN_MIN_AGE.get());
 
         return;
       }
@@ -770,21 +706,10 @@ public class PasswordModifyExtendedOperation
                                                  pwPolicyErrorType));
         }
 
-        if (oldPassword == null)
-        {
-          operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+        operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-          operation.appendErrorMessage(
-                  ERR_EXTOP_PASSMOD_PASSWORD_IS_EXPIRED.get());
-        }
-        else
-        {
-          operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-          operation.appendAdditionalLogMessage(
-                  ERR_EXTOP_PASSMOD_PASSWORD_IS_EXPIRED.get());
-        }
-
+        operation.appendErrorMessage(
+                ERR_EXTOP_PASSMOD_PASSWORD_IS_EXPIRED.get());
         return;
       }
 
@@ -801,21 +726,10 @@ public class PasswordModifyExtendedOperation
           newPassword = pwPolicyState.generatePassword();
           if (newPassword == null)
           {
-            if (oldPassword == null)
-            {
-              operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+            operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-              operation.appendErrorMessage(
-                      ERR_EXTOP_PASSMOD_NO_PW_GENERATOR.get());
-            }
-            else
-            {
-              operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-              operation.appendAdditionalLogMessage(
-                      ERR_EXTOP_PASSMOD_NO_PW_GENERATOR.get());
-            }
-
+            operation.appendErrorMessage(
+                    ERR_EXTOP_PASSMOD_NO_PW_GENERATOR.get());
             return;
           }
           else
@@ -830,23 +744,11 @@ public class PasswordModifyExtendedOperation
             TRACER.debugCaught(DebugLogLevel.ERROR, de);
           }
 
-          if (oldPassword == null)
-          {
-            operation.setResultCode(de.getResultCode());
+          operation.setResultCode(de.getResultCode());
 
-            operation.appendErrorMessage(
-                    ERR_EXTOP_PASSMOD_CANNOT_GENERATE_PW.get(
-                            de.getMessageObject()));
-          }
-          else
-          {
-            operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-            operation.appendAdditionalLogMessage(
-                    ERR_EXTOP_PASSMOD_CANNOT_GENERATE_PW.get(
-                            de.getMessageObject()));
-          }
-
+          operation.appendErrorMessage(
+                  ERR_EXTOP_PASSMOD_CANNOT_GENERATE_PW.get(
+                          de.getMessageObject()));
           return;
         }
       }
@@ -860,21 +762,10 @@ public class PasswordModifyExtendedOperation
           isPreEncoded = true;
           if (! pwPolicyState.getPolicy().allowPreEncodedPasswords())
           {
-            if (oldPassword == null)
-            {
-              operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+            operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-              operation.appendErrorMessage(
-                      ERR_EXTOP_PASSMOD_PRE_ENCODED_NOT_ALLOWED.get());
-            }
-            else
-            {
-              operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-              operation.appendAdditionalLogMessage(
-                      ERR_EXTOP_PASSMOD_PRE_ENCODED_NOT_ALLOWED.get());
-            }
-
+            operation.appendErrorMessage(
+                    ERR_EXTOP_PASSMOD_PRE_ENCODED_NOT_ALLOWED.get());
             return;
           }
         }
@@ -919,23 +810,11 @@ public class PasswordModifyExtendedOperation
                                                        pwPolicyErrorType));
               }
 
-              if (oldPassword == null)
-              {
-                operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+              operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-                operation.appendErrorMessage(
-                        ERR_EXTOP_PASSMOD_UNACCEPTABLE_PW.get(
-                                String.valueOf(invalidReason)));
-              }
-              else
-              {
-                operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-                operation.appendAdditionalLogMessage(
-                        ERR_EXTOP_PASSMOD_UNACCEPTABLE_PW.get(
-                                String.valueOf(invalidReason)));
-              }
-
+              operation.appendErrorMessage(
+                      ERR_EXTOP_PASSMOD_UNACCEPTABLE_PW.get(
+                              String.valueOf(invalidReason)));
               return;
             }
           }
@@ -949,20 +828,10 @@ public class PasswordModifyExtendedOperation
               if (selfChange || (! pwPolicyState.getPolicy().
                                       skipValidationForAdministrators()))
               {
-                if (oldPassword == null)
-                {
-                  operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+                operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
-                  operation.appendErrorMessage(
-                          ERR_EXTOP_PASSMOD_PW_IN_HISTORY.get());
-                }
-                else
-                {
-                  operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-                  operation.appendAdditionalLogMessage(
-                          ERR_EXTOP_PASSMOD_PW_IN_HISTORY.get());
-                }
+                operation.appendErrorMessage(
+                        ERR_EXTOP_PASSMOD_PW_IN_HISTORY.get());
                 return;
               }
             }
@@ -995,23 +864,11 @@ public class PasswordModifyExtendedOperation
             TRACER.debugCaught(DebugLogLevel.ERROR, de);
           }
 
-          if (oldPassword == null)
-          {
-            operation.setResultCode(de.getResultCode());
+          operation.setResultCode(de.getResultCode());
 
-            operation.appendErrorMessage(
-                    ERR_EXTOP_PASSMOD_CANNOT_ENCODE_PASSWORD.get(
-                            de.getMessageObject()));
-          }
-          else
-          {
-            operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-            operation.appendAdditionalLogMessage(
-                    ERR_EXTOP_PASSMOD_CANNOT_ENCODE_PASSWORD.get(
-                            de.getMessageObject()));
-          }
-
+          operation.appendErrorMessage(
+                  ERR_EXTOP_PASSMOD_CANNOT_ENCODE_PASSWORD.get(
+                          de.getMessageObject()));
           return;
         }
       }

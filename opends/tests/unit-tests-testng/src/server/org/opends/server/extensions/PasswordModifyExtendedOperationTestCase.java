@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -1113,7 +1113,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     int exitCode =
          LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertEquals(exitCode, 49);
+    assertEquals(exitCode, 32);
   }
 
 
@@ -1571,7 +1571,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     int exitCode =
          LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertEquals(exitCode, 49);
+    assertEquals(exitCode, 53);
 
 
     mods.clear();
@@ -1708,7 +1708,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     int exitCode =
          LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertEquals(exitCode, 49);
+    assertEquals(exitCode, 13);
 
 
     mods.clear();
@@ -1845,7 +1845,7 @@ public class PasswordModifyExtendedOperationTestCase
 
     int exitCode =
          LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertEquals(exitCode, 49);
+    assertEquals(exitCode, 13);
 
 
     mods.clear();
@@ -1980,7 +1980,7 @@ public class PasswordModifyExtendedOperationTestCase
     };
     int exitCode =
          LDAPPasswordModify.mainPasswordModify(args, false, null, null);
-    assertEquals(exitCode, 49);
+    assertEquals(exitCode, 53);
 
 
     mods.clear();
