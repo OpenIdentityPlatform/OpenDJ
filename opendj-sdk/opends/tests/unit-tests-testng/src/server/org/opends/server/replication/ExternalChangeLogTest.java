@@ -141,7 +141,8 @@ import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
+import static org.opends.messages.ReplicationMessages.*;
+import org.opends.messages.Message;
 
 /**
  * Tests for the replicationServer code.
@@ -1123,8 +1124,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       
       waitOpResult(searchOp, ResultCode.UNWILLING_TO_PERFORM);
       assertEquals(searchOp.getSearchEntries().size(), 0);
-      assertTrue(searchOp.getErrorMessage().toString().startsWith(
-          "Invalid syntax of the provided cookie"),
+      assertTrue(searchOp.getErrorMessage().toString().equals(
+          ERR_INVALID_COOKIE_SYNTAX.get().toString()),
           searchOp.getErrorMessage().toString());
       
       // Test unknown domain in provided cookie
@@ -1154,7 +1155,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       waitOpResult(searchOp, ResultCode.UNWILLING_TO_PERFORM);
       assertEquals(searchOp.getSearchEntries().size(), 0);
       assertTrue(searchOp.getErrorMessage().toString().startsWith(
-          "Full resync required. Reason: The provided cookie contains unknown replicated domain {o=test6=}. Possible cookie: <"),
+          ERR_RESYNC_REQUIRED_UNKNOWN_DOMAIN_IN_PROVIDED_COOKIE.get("{o=test6=}").toString().replace(")","")),
           searchOp.getErrorMessage().toString());
       // The cookie value is not tested because it is build from a hashmap in
       // the server and the order of domains is not predictable.
@@ -1180,9 +1181,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       
       waitOpResult(searchOp, ResultCode.UNWILLING_TO_PERFORM);
       assertEquals(searchOp.getSearchEntries().size(), 0);
-      String expectedError = 
-        "Full resync required because the provided cookie is missing the replicated domain(s) o=test:;. The following cookie value can be used to retrieve the missing changes, including the COMPLETE record of changes for the missing domain(s) : <"
-        + newCookie + "o=test:;>";
+      String expectedError = ERR_RESYNC_REQUIRED_MISSING_DOMAIN_IN_PROVIDED_COOKIE
+          .get("o=test:;","<"+ newCookie + "o=test:;>").toString();
       assertTrue(searchOp.getErrorMessage().toString().equalsIgnoreCase(expectedError),
           "Expected: " + expectedError + "Server output:" +
           searchOp.getErrorMessage().toString());
@@ -1365,7 +1365,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       waitOpResult(searchOp, ResultCode.UNWILLING_TO_PERFORM);
       assertEquals(searchOp.getSearchEntries().size(), 0);
       assertTrue(searchOp.getErrorMessage().toString().startsWith(
-          "Full resync required. Reason: The provided cookie is older than the start of historical in the server for the replicated domain : o=test"),
+          ERR_RESYNC_REQUIRED_TOO_OLD_DOMAIN_IN_PROVIDED_COOKIE.get("o=test")
+	  .toString()),
           searchOp.getErrorMessage().toString());
 
       // Clean
