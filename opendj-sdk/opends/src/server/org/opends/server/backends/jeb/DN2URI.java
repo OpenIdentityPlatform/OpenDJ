@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -37,11 +37,7 @@ import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.opends.server.util.ServerConstants.ATTR_REFERRAL_URL;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -65,7 +61,10 @@ public class DN2URI extends DatabaseContainer
   /**
    * The key comparator used for the DN database.
    */
-  private Comparator<byte[]> dn2uriComparator;
+  private final Comparator<byte[]> dn2uriComparator;
+
+
+  private final int prefixRDNComponents;
 
 
   /**
@@ -100,7 +99,8 @@ public class DN2URI extends DatabaseContainer
   {
     super(name, env, entryContainer);
 
-    dn2uriComparator = new EntryContainer.KeyReverseComparator();
+    dn2uriComparator = new AttributeIndex.KeyComparator();
+    prefixRDNComponents = entryContainer.getBaseDN().getNumComponents();
     DatabaseConfig dn2uriConfig = new DatabaseConfig();
 
     if(env.getConfig().getReadOnly())
@@ -140,10 +140,10 @@ public class DN2URI extends DatabaseContainer
    * @return true if the record was inserted, false if it was not.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public boolean insert(Transaction txn, DN dn, String labeledURI)
+  private boolean insert(Transaction txn, DN dn, String labeledURI)
        throws DatabaseException
   {
-    byte[] normDN = StaticUtils.getBytes(dn.toNormalizedString());
+    byte[] normDN = JebFormat.dnToDNKey(dn, prefixRDNComponents);
     byte[] URIBytes = StaticUtils.getBytes(labeledURI);
     DatabaseEntry key = new DatabaseEntry(normDN);
     DatabaseEntry data = new DatabaseEntry(URIBytes);
@@ -173,7 +173,7 @@ public class DN2URI extends DatabaseContainer
   public boolean delete(Transaction txn, DN dn)
        throws DatabaseException
   {
-    byte[] normDN = StaticUtils.getBytes(dn.toNormalizedString());
+    byte[] normDN = JebFormat.dnToDNKey(dn, prefixRDNComponents);
     DatabaseEntry key = new DatabaseEntry(normDN);
     OperationStatus status;
 
@@ -199,7 +199,7 @@ public class DN2URI extends DatabaseContainer
        throws DatabaseException
   {
     CursorConfig cursorConfig = null;
-    byte[] normDN = StaticUtils.getBytes(dn.toNormalizedString());
+    byte[] normDN = JebFormat.dnToDNKey(dn, prefixRDNComponents);
     byte[] URIBytes = StaticUtils.getBytes(labeledURI);
     DatabaseEntry key = new DatabaseEntry(normDN);
     DatabaseEntry data = new DatabaseEntry(URIBytes);
@@ -552,8 +552,7 @@ public class DN2URI extends DatabaseContainer
              dn = entryContainer.getParentWithinBase(dn))
         {
           // Look for a record whose key matches the current DN.
-          String normDN = dn.toNormalizedString();
-          key.setData(StaticUtils.getBytes(normDN));
+          key.setData(JebFormat.dnToDNKey(dn, prefixRDNComponents));
           OperationStatus status =
              cursor.getSearchKey(key, data, LockMode.DEFAULT);
           if (status == OperationStatus.SUCCESS)
@@ -625,9 +624,12 @@ public class DN2URI extends DatabaseContainer
      * find subordinates of the base entry from the top of the tree
      * downwards.
      */
-    DN baseDN = searchOp.getBaseDN();
-    String normBaseDN = baseDN.toNormalizedString();
-    byte[] suffix = StaticUtils.getBytes("," + normBaseDN);
+    byte[] baseDN = JebFormat.dnToDNKey(searchOp.getBaseDN(),
+                                          prefixRDNComponents);
+    byte[] suffix = Arrays.copyOf(baseDN, baseDN.length+1);
+    suffix[suffix.length-1] = 0x00;
+    byte[] end = suffix.clone();
+    end[end.length-1] = (byte) (end[end.length-1] + 1);
 
     /*
      * Set the ending value to a value of equal length but slightly
@@ -635,7 +637,6 @@ public class DN2URI extends DatabaseContainer
      * reverse order we must set the first byte (the comma).
      * No possibility of overflow here.
      */
-    byte[] end = null;
 
     DatabaseEntry data = new DatabaseEntry();
     DatabaseEntry key = new DatabaseEntry(suffix);
@@ -652,11 +653,6 @@ public class DN2URI extends DatabaseContainer
              status == OperationStatus.SUCCESS;
              status = cursor.getNextNoDup(key, data, LockMode.DEFAULT))
         {
-          if (end == null)
-          {
-            end = suffix.clone();
-            end[0] = (byte) (end[0] + 1);
-          }
 
           int cmp = dn2uriComparator.compare(key.getData(), end);
           if (cmp >= 0)
@@ -666,13 +662,14 @@ public class DN2URI extends DatabaseContainer
           }
 
           // We have found a subordinate referral.
-          DN dn = DN.decode(ByteString.wrap(key.getData()));
+          DN dn = JebFormat.dnFromDNKey(key.getData(), 0, key.getSize(),
+                                        entryContainer.getBaseDN());
 
           // Make sure the referral is within scope.
           if (searchOp.getScope() == SearchScope.SINGLE_LEVEL)
           {
-            if ((dn.getNumComponents() !=
-                 baseDN.getNumComponents() + 1))
+            if(JebFormat.findDNKeyParent(key.getData(), 0,
+                                       key.getSize()) == baseDN.length)
             {
               continue;
             }
@@ -705,6 +702,7 @@ public class DN2URI extends DatabaseContainer
               {
                 if (ldapurl.getBaseDN().isNullDN())
                 {
+
                   ldapurl.setBaseDN(dn);
                 }
                 ldapurl.getAttributes().clear();
@@ -761,15 +759,5 @@ public class DN2URI extends DatabaseContainer
     }
 
     return true;
-  }
-
-  /**
-   * Gets the comparator for records stored in this database.
-   *
-   * @return The comparator used for records stored in this database.
-   */
-  public Comparator<byte[]> getComparator()
-  {
-    return dn2uriComparator;
   }
 }

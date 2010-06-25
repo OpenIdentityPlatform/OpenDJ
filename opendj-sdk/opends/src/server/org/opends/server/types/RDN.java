@@ -1063,25 +1063,7 @@ public final class RDN
 
     if (attributeNames.length == 1)
     {
-      buffer.append(
-          attributeTypes[0].getNormalizedPrimaryNameOrOID());
-      buffer.append('=');
-
-      try
-      {
-        String s = attributeValues[0].getNormalizedValue().toString();
-        buffer.append(getDNValue(s));
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        String s = attributeValues[0].getValue().toString();
-        buffer.append(getDNValue(s));
-      }
+      getAVAString(0, buffer);
     }
     else
     {
@@ -1090,26 +1072,7 @@ public final class RDN
       for (int i=0; i < attributeNames.length; i++)
       {
         StringBuilder b2 = new StringBuilder();
-        b2.append(attributeTypes[i].getNormalizedPrimaryNameOrOID());
-        b2.append('=');
-
-        try
-        {
-          String s =
-              attributeValues[i].getNormalizedValue().toString();
-          b2.append(getDNValue(s));
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-
-          String s = attributeValues[i].getValue().toString();
-          b2.append(getDNValue(s));
-        }
-
+        getAVAString(i, b2);
         rdnElementStrings.add(b2.toString());
       }
 
@@ -1127,6 +1090,40 @@ public final class RDN
     {
       normalizedRDN = buffer.toString();
     }
+  }
+
+
+
+  /**
+   * Appends a normalized string representation of this RDN to the
+   * provided buffer.
+   *
+   * @param  pos  The position of the attribute type and value to
+   *              retrieve.
+   * @param  buffer  The buffer to which to append the information.
+   */
+  public void getAVAString(int pos, StringBuilder buffer)
+  {
+      buffer.append(
+          attributeTypes[pos].getNormalizedPrimaryNameOrOID());
+      buffer.append('=');
+
+      try
+      {
+        String s =
+            attributeValues[pos].getNormalizedValue().toString();
+        buffer.append(getDNValue(s));
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        String s = attributeValues[pos].getValue().toString();
+        buffer.append(getDNValue(s));
+      }
   }
 
 

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -228,11 +228,11 @@ public class TestVerifyJob extends JebTestCase
            new DatabaseEntry(StaticUtils.getBytes(badDN));
       DatabaseEntry data =
            new EntryID(37).getDatabaseEntry();
-      assertTrue(dn2id.putRaw(txn, key, data));
+      assertEquals(dn2id.put(txn, key, data), OperationStatus.SUCCESS);
       //Add DN key with malformed entryID
       key=new DatabaseEntry(StaticUtils.getBytes(junkDN2));
       data= new DatabaseEntry(new byte[3]);
-      assertTrue(dn2id.putRaw(txn, key, data));
+      assertEquals(dn2id.put(txn, key, data), OperationStatus.SUCCESS);
       //Try to break JebFormat version
       addID2EntryReturnKey(junkDN3, 20, true);
       id=new EntryID(20);
@@ -445,7 +445,7 @@ public class TestVerifyJob extends JebTestCase
            ID2Entry.entryToDatabase(testEntry,
                                      new DataConfig(false, false, null));
       DatabaseEntry data= new DatabaseEntry(entryBytes.toByteArray());
-      assertTrue(id2entry.putRaw(txn, key, data));
+      assertEquals(id2entry.put(txn, key, data), OperationStatus.SUCCESS);
 
       //add entry with ramdom bytes
       DatabaseEntry key1= new EntryID(4).getDatabaseEntry();
@@ -456,7 +456,7 @@ public class TestVerifyJob extends JebTestCase
       //set version correctly
       eBytes[0]=0x01;
       DatabaseEntry data1= new DatabaseEntry(eBytes);
-      assertTrue(id2entry.putRaw(txn, key1, data1));
+      assertEquals(id2entry.put(txn, key1, data1), OperationStatus.SUCCESS);
       performBECompleteVerify("telephoneNumber", 3);
     }
     finally
@@ -778,7 +778,7 @@ public class TestVerifyJob extends JebTestCase
     if(trashFormat)
       entryBytes[0] = 0x67;
     DatabaseEntry data= new DatabaseEntry(entryBytes);
-    assertTrue(id2entry.putRaw(txn, key, data));
+    assertEquals(id2entry.put(txn, key, data), OperationStatus.SUCCESS);
     return key;
   }
 

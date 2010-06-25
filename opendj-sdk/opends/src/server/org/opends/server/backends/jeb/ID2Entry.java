@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -381,16 +381,11 @@ public class ID2Entry extends DatabaseContainer
    * @return true if the entry was written, false if it was not.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public boolean putRaw(Transaction txn, DatabaseEntry key, DatabaseEntry data)
+  public OperationStatus put(Transaction txn, DatabaseEntry key,
+                             DatabaseEntry data)
        throws DatabaseException
   {
-    OperationStatus status;
-    status = put(txn, key, data);
-    if (status != OperationStatus.SUCCESS)
-    {
-      return false;
-    }
-    return true;
+    return super.put(txn, key, data);
   }
 
   /**

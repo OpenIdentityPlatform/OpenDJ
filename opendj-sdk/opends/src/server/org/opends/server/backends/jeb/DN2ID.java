@@ -22,14 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
 import com.sleepycat.je.*;
 
 import org.opends.server.types.DN;
-import org.opends.server.util.StaticUtils;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 
@@ -50,7 +49,9 @@ public class DN2ID extends DatabaseContainer
   /**
    * The key comparator used for the DN database.
    */
-  private Comparator<byte[]> dn2idComparator;
+  private final Comparator<byte[]> comparator;
+
+  private final int prefixRDNComponents;
 
   /**
    * Create a DN2ID instance for the DN database in a given entryContainer.
@@ -66,7 +67,8 @@ public class DN2ID extends DatabaseContainer
   {
     super(name, env, entryContainer);
 
-    dn2idComparator = new EntryContainer.KeyReverseComparator();
+    comparator = new AttributeIndex.KeyComparator();
+    prefixRDNComponents = entryContainer.getBaseDN().getNumComponents();
     DatabaseConfig dn2idConfig = new DatabaseConfig();
 
     if(env.getConfig().getReadOnly())
@@ -88,22 +90,15 @@ public class DN2ID extends DatabaseContainer
     }
 
     this.dbConfig = dn2idConfig;
+    this.dbConfig.setKeyPrefixing(true);
+
     //This line causes an unchecked cast error if the SuppressWarnings
     //annotation is removed at the beginning of this method.
     this.dbConfig.setBtreeComparator((Class<? extends Comparator<byte[]>>)
-                                     dn2idComparator.getClass());
+                                     comparator.getClass());
   }
 
-  /**
-   * Create a DN database key from an entry DN.
-   * @param dn The entry DN.
-   * @return A DatabaseEntry containing the key.
-   */
-  private static DatabaseEntry DNdata(DN dn)
-  {
-    byte[] normDN = StaticUtils.getBytes(dn.toNormalizedString());
-    return new DatabaseEntry(normDN);
-  }
+
 
   /**
    * Insert a new record into the DN database.
@@ -119,7 +114,8 @@ public class DN2ID extends DatabaseContainer
   public boolean insert(Transaction txn, DN dn, EntryID id)
        throws DatabaseException
   {
-    DatabaseEntry key = DNdata(dn);
+    DatabaseEntry key = new DatabaseEntry(
+        JebFormat.dnToDNKey(dn, prefixRDNComponents));
     DatabaseEntry data = id.getDatabaseEntry();
 
     OperationStatus status;
@@ -147,7 +143,8 @@ public class DN2ID extends DatabaseContainer
   public boolean put(Transaction txn, DN dn, EntryID id)
        throws DatabaseException
   {
-    DatabaseEntry key = DNdata(dn);
+    DatabaseEntry key = new DatabaseEntry(
+        JebFormat.dnToDNKey(dn, prefixRDNComponents));
     DatabaseEntry data = id.getDatabaseEntry();
 
     OperationStatus status;
@@ -170,16 +167,11 @@ public class DN2ID extends DatabaseContainer
    * @throws DatabaseException If an error occurred while attempting to write
    * the record.
    */
-  public boolean putRaw(Transaction txn, DatabaseEntry key, DatabaseEntry data)
+  public OperationStatus put(Transaction txn, DatabaseEntry key,
+                             DatabaseEntry data)
        throws DatabaseException
   {
-    OperationStatus status;
-    status = put(txn, key, data);
-    if (status != OperationStatus.SUCCESS)
-    {
-      return false;
-    }
-    return true;
+    return super.put(txn, key, data);
   }
 
   /**
@@ -194,7 +186,9 @@ public class DN2ID extends DatabaseContainer
   public boolean remove(Transaction txn, DN dn)
        throws DatabaseException
   {
-    DatabaseEntry key = DNdata(dn);
+    DatabaseEntry key = new DatabaseEntry(
+        JebFormat.dnToDNKey(dn, prefixRDNComponents)
+    );
 
     OperationStatus status = delete(txn, key);
     if (status != OperationStatus.SUCCESS)
@@ -202,6 +196,16 @@ public class DN2ID extends DatabaseContainer
       return false;
     }
     return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected OperationStatus delete(Transaction txn, DatabaseEntry key)
+      throws DatabaseException
+  {
+    return super.delete(txn, key);
   }
 
   /**
@@ -216,7 +220,9 @@ public class DN2ID extends DatabaseContainer
   public EntryID get(Transaction txn, DN dn, LockMode lockMode)
        throws DatabaseException
   {
-    DatabaseEntry key = DNdata(dn);
+    DatabaseEntry key = new DatabaseEntry(
+        JebFormat.dnToDNKey(dn, prefixRDNComponents)
+    );
     DatabaseEntry data = new DatabaseEntry();
 
     OperationStatus status;
@@ -229,12 +235,23 @@ public class DN2ID extends DatabaseContainer
   }
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  public OperationStatus read(Transaction txn,
+                              DatabaseEntry key, DatabaseEntry data,
+                              LockMode lockMode)
+  {
+    return super.read(txn, key, data, lockMode);
+  }
+
+  /**
    * Gets the comparator for records stored in this database.
    *
    * @return The comparator for records stored in this database.
    */
   public Comparator<byte[]> getComparator()
   {
-    return dn2idComparator;
+    return comparator;
   }
 }

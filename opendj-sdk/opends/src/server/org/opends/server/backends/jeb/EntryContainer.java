@@ -1274,7 +1274,10 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
      * "cn=joe,ou=people,dc=example,dc=com" will appear after the entry
      * "ou=people,dc=example,dc=com".
      */
-    byte[] suffix = StaticUtils.getBytes("," + baseDN.toNormalizedString());
+    byte[] baseDNKey = JebFormat.dnToDNKey(baseDN,
+                                             this.baseDN.getNumComponents());
+    byte[] suffix = Arrays.copyOf(baseDNKey, baseDNKey.length+1);
+    suffix[suffix.length-1] = 0x00;
 
     /*
      * Set the ending value to a value of equal length but slightly
@@ -1283,7 +1286,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
      * No possibility of overflow here.
      */
     byte[] end = suffix.clone();
-    end[0] = (byte) (end[0] + 1);
+    end[end.length-1] = (byte) (end[end.length-1] + 1);
 
     // Set the starting value.
     byte[] begin;
@@ -1352,14 +1355,13 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
           // We have found a subordinate entry.
 
           EntryID entryID = new EntryID(data);
-          DN dn = DN.decode(ByteString.wrap(key.getData()));
 
           boolean isInScope = true;
           if (searchScope == SearchScope.SINGLE_LEVEL)
           {
             // Check if this entry is an immediate child.
-            if ((dn.getNumComponents() !=
-              baseDN.getNumComponents() + 1))
+            if(JebFormat.findDNKeyParent(key.getData(), 0,
+                                       key.getSize()) == baseDNKey.length)
             {
               isInScope = false;
             }
@@ -1911,15 +1913,17 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
        * find subordinates of the target entry from the top of the tree
        * downwards.
        */
-      byte[] suffix = StaticUtils.getBytes("," +
-          entryDN.toNormalizedString());
+      byte[] entryDNKey = JebFormat.dnToDNKey(entryDN,
+                                               this.baseDN.getNumComponents());
+      byte[] suffix = Arrays.copyOf(entryDNKey, entryDNKey.length+1);
+      suffix[suffix.length-1] = 0x00;
 
       /*
        * Set the ending value to a value of equal length but slightly
        * greater than the suffix.
        */
       byte[] end = suffix.clone();
-      end[0] = (byte) (end[0] + 1);
+      end[end.length-1] = (byte) (end[end.length-1] + 1);
 
       int subordinateEntriesDeleted = 0;
 
@@ -1976,7 +1980,6 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
            * we have been deleting from the bottom of the tree upwards.
            */
           EntryID entryID = new EntryID(data);
-          DN subordinateDN = DN.decode(ByteString.wrap(key.getData()));
 
           // Invoke any subordinate delete plugins on the entry.
           if (!deleteOperation.isSynchronizationOperation())
@@ -1993,13 +1996,14 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
             {
               Message message =
                       ERR_JEB_DELETE_ABORTED_BY_SUBORDINATE_PLUGIN.get(
-                      subordinateDN.toString());
+                      JebFormat.dnFromDNKey(key.getData(), 0, 0, getBaseDN()).
+                          toString());
               throw new DirectoryException(
                   DirectoryServer.getServerErrorResultCode(), message);
             }
           }
 
-          deleteEntry(txn, indexBuffer, true, entryDN, subordinateDN, entryID);
+          deleteEntry(txn, indexBuffer, true, entryDN, key, entryID);
           subordinateEntriesDeleted++;
 
           if(deleteOperation != null)
@@ -2081,30 +2085,38 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       IndexBuffer indexBuffer,
       boolean manageDsaIT,
       DN targetDN,
-      DN leafDN,
+      DatabaseEntry leafDNKey,
       EntryID leafID)
   throws DatabaseException, DirectoryException, JebException
   {
-    if(leafID == null || leafDN == null)
+    if(leafID == null || leafDNKey == null)
     {
       // Read the entry ID from dn2id.
-      leafDN = targetDN;
-      leafID = dn2id.get(txn, leafDN, LockMode.RMW);
-      if (leafID == null)
+      if(leafDNKey == null)
+      {
+        leafDNKey =
+            new DatabaseEntry(JebFormat.dnToDNKey(
+                targetDN, this.baseDN.getNumComponents()));
+      }
+      DatabaseEntry value = new DatabaseEntry();
+      OperationStatus status;
+      status = dn2id.read(txn, leafDNKey, value, LockMode.RMW);
+      if (status != OperationStatus.SUCCESS)
       {
         Message message =
-          ERR_JEB_DELETE_NO_SUCH_OBJECT.get(leafDN.toString());
+          ERR_JEB_DELETE_NO_SUCH_OBJECT.get(leafDNKey.toString());
         DN matchedDN = getMatchedDN(baseDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
             message, matchedDN, null);
       }
+      leafID = new EntryID(value);
     }
 
     // Remove from dn2id.
-    if (!dn2id.remove(txn, leafDN))
+    if (dn2id.delete(txn, leafDNKey) != OperationStatus.SUCCESS)
     {
       // Do not expect to ever come through here.
-      Message message = ERR_JEB_DELETE_NO_SUCH_OBJECT.get(leafDN.toString());
+      Message message = ERR_JEB_DELETE_NO_SUCH_OBJECT.get(leafDNKey.toString());
       DN matchedDN = getMatchedDN(baseDN);
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
           message, matchedDN, null);
@@ -2203,7 +2215,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     EntryCache<?> entryCache = DirectoryServer.getEntryCache();
     if (entryCache != null)
     {
-      entryCache.removeEntry(leafDN);
+      entryCache.removeEntry(entry.getDN());
     }
   }
 
@@ -2563,15 +2575,17 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
        * find subordinates of the target entry from the top of the tree
        * downwards.
        */
-      byte[] suffix = StaticUtils.getBytes("," +
-          currentDN.toNormalizedString());
+      byte[] currentDNKey = JebFormat.dnToDNKey(currentDN,
+                                               this.baseDN.getNumComponents());
+      byte[] suffix = Arrays.copyOf(currentDNKey, currentDNKey.length+1);
+      suffix[suffix.length-1] = 0x00;
 
       /*
        * Set the ending value to a value of equal length but slightly
        * greater than the suffix.
        */
       byte[] end = suffix.clone();
-      end[0] = (byte) (end[0] + 1);
+      end[end.length-1] = (byte) (end[end.length-1] + 1);
 
       DatabaseEntry data = new DatabaseEntry();
       DatabaseEntry key = new DatabaseEntry(suffix);
@@ -2980,56 +2994,6 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     }
 
     return new DN(newDNComponents);
-  }
-
-  /**
-   * A lexicographic byte array comparator that compares in
-   * reverse byte order. This is used for the dn2id database.
-   * If we want to find all the entries in a subtree dc=com we know that
-   * all subordinate entries must have ,dc=com as a common suffix. In reversing
-   * the order of comparison we turn the subtree base into a common prefix
-   * and are able to iterate through the keys having that prefix.
-   */
-  static public class KeyReverseComparator implements Comparator<byte[]>
-  {
-    /**
-     * Compares its two arguments for order.  Returns a negative integer,
-     * zero, or a positive integer as the first argument is less than, equal
-     * to, or greater than the second.
-     *
-     * @param a the first object to be compared.
-     * @param b the second object to be compared.
-     * @return a negative integer, zero, or a positive integer as the
-     *         first argument is less than, equal to, or greater than the
-     *         second.
-     */
-    public int compare(byte[] a, byte[] b)
-    {
-      for (int ai = a.length - 1, bi = b.length - 1;
-      ai >= 0 && bi >= 0; ai--, bi--)
-      {
-        if (a[ai] > b[bi])
-        {
-          return 1;
-        }
-        else if (a[ai] < b[bi])
-        {
-          return -1;
-        }
-      }
-      if (a.length == b.length)
-      {
-        return 0;
-      }
-      if (a.length > b.length)
-      {
-        return 1;
-      }
-      else
-      {
-        return -1;
-      }
-    }
   }
 
   /**
