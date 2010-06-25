@@ -1428,7 +1428,8 @@
             'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
             'dsCountEntries'   : 'True' ,
             'dsBaseDN'         : 'ou=people,dc=example,dc=com',
-            'dsFilter'         : 'objectClass=*'
+            'dsFilter'         : 'objectClass=*',
+            'knownIssue'       : '6962694'
           }
           </call>
 

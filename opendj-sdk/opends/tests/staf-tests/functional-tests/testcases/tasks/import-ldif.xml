@@ -80,6 +80,7 @@
                 'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
                 'ldifFile'            : '%s/tasks/import.ldif' % remote.data,
                 'append'              : ' ',
+                'startTask'           : '0',
                 'backEnd'             : DIRECTORY_INSTANCE_BE}
               </call>
   
@@ -90,7 +91,15 @@
                 'startDS'     : 'False'              
                 }
               </call>
-              
+
+              <if expr="RC != 0">
+                <sequence>
+                  <call function="'setKnownIssue'">
+                    { 'issueId' : 6962694 }
+                  </call>
+                </sequence>
+              </if>
+
               <!-- Delete entries -->
               <call function="'DeleteEntry'">
                 { 'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
@@ -150,6 +159,14 @@
                 'startDS'     : 'False'              
                 }
               </call>
+
+              <if expr="RC != 0">
+                <sequence>
+                  <call function="'setKnownIssue'">
+                    { 'issueId' : 6962694 }
+                  </call>
+                </sequence>
+              </if>
               
               <!-- Delete entries -->
               <call function="'DeleteEntry'">

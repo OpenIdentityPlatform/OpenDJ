@@ -1,24 +1,18 @@
-HTTP/1.1 200 OK
-Cache-control: no-cache
-Date: Mon, 01 Jan 2001 12:00:00 GMT
-Accept-Ranges: none
-Server: Sun-Java(tm)-System-Directory/6.2
-Content-Type: text/xml; charset="utf-8"
-Content-Length: 538
+HTTP1.1 200 OK
+Date: Wed, 19 Aug 2009 08:28:06 GMT
+Server: Apache-Coyote/1.1
+Content-Type: text/xml
+Connection: close
 
-<?xml version='1.0' encoding='UTF-8' ?>
-<soap-env:Envelope 
-   xmlns:xsd='http://www.w3.org/2001/XMLSchema' 
-   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' 
-   xmlns:soap-env='http://schemas.xmlsoap.org/soap/envelope/' 
-   >
-<soap-env:Body>
-<batchResponse 
-   xmlns:xsd='http://www.w3.org/2001/XMLSchema' 
-   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' 
-   xmlns='urn:oasis:names:tc:DSML:2:0:core' 
-   requestID='[attr] element has no child [value] element'
-   >
-</batchResponse>
-</soap-env:Body>
-</soap-env:Envelope>
+
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+  <SOAP-ENV:Body>
+    <batchResponse xmlns="urn:oasis:names:tc:DSML:2:0:core" requestID="[attr] element has no child [value] element">
+      <addResponse>
+        <resultCode code="32"/>
+        <errorMessage>Entry uid=abergin,ou=People,dc=siroe,dc=com cannot be added because its parent entry ou=People,dc=siroe,dc=com does not exist in the server
+        </errorMessage>
+      </addResponse>
+    </batchResponse>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

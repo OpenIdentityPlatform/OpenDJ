@@ -1179,6 +1179,14 @@
             }
           </call>
 
+          <if expr="RC != 0">
+            <sequence>
+              <call function="'setKnownIssue'">
+                { 'issueId' : 6962694 }
+              </call>
+            </sequence>
+          </if>
+          
         </sequence>
 
         <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
@@ -1236,7 +1244,15 @@
               'startDS'         : 'no'
             }
           </call>
-  
+
+          <if expr="RC != 0">
+            <sequence>
+              <call function="'setKnownIssue'">
+                { 'issueId' : 6962694 }
+              </call>
+            </sequence>
+          </if>
+
         </sequence>
 
         <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
