@@ -574,6 +574,8 @@ public class MultimasterReplication
     if (!addOperation.isSynchronizationOperation())
       domain.doPreOperation(addOperation);
 
+    Historical.generateState(addOperation);
+
     return new SynchronizationProviderResult.ContinueProcessing();
   }
 

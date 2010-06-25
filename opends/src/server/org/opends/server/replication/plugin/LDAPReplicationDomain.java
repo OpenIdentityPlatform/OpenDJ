@@ -2280,7 +2280,6 @@ public class LDAPReplicationDomain extends ReplicationDomain
         findEntryId(addOperation.getEntryDN().getParentDNInSuffix()));
 
     addOperation.setAttachment(SYNCHROCONTEXT, ctx);
-    Historical.generateState(addOperation);
   }
 
   /**

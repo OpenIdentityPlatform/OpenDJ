@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -42,6 +42,7 @@ import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.plugin.Historical;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationAddOperation;
 
@@ -344,8 +345,9 @@ public class AddMsg extends LDAPUpdateMsg
       {
         for (Attribute a : list)
         {
-          if (!a.isVirtual())
-            new LDAPAttribute(a).write(writer);
+          if (!Historical.isHistoricalAttribute(a))
+            if (!a.isVirtual())
+              new LDAPAttribute(a).write(writer);
         }
       }
 
@@ -354,8 +356,9 @@ public class AddMsg extends LDAPUpdateMsg
       {
         for (Attribute a : list)
         {
-          if (!a.isVirtual())
-            new LDAPAttribute(a).write(writer);
+          if (!Historical.isHistoricalAttribute(a))
+            if (!a.isVirtual())
+              new LDAPAttribute(a).write(writer);
         }
       }
     }
