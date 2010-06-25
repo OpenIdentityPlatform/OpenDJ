@@ -95,10 +95,6 @@ public class Importer
 
   //The DN attribute type.
   private static AttributeType dnType;
-
-  //Comparators for DN and indexes respectively.
-  private static final IndexBuffer.DNComparator dnComparator
-          = new IndexBuffer.DNComparator();
   private static final IndexBuffer.IndexComparator indexComparator =
           new IndexBuffer.IndexComparator();
 
@@ -1133,8 +1129,8 @@ public class Importer
                   entryContainer.getDN2ID().getComparator();
           try {
             for(DN excludedDN : suffix.getExcludeBranches()) {
-              byte[] bytes =
-                      StaticUtils.getBytes(excludedDN.toNormalizedString());
+              byte[] bytes = JebFormat.dnToDNKey(
+                  excludedDN, suffix.getBaseDN().getNumComponents());
               key.setData(bytes);
               status = cursor.getSearchKeyRange(key, data, lockMode);
               if(status == OperationStatus.SUCCESS &&
@@ -1142,9 +1138,8 @@ public class Importer
                 // This is the base entry for a branch that was excluded in the
                 // import so we must migrate all entries in this branch over to
                 // the new entry container.
-                byte[] end = StaticUtils.getBytes("," +
-                                excludedDN.toNormalizedString());
-                end[0] = (byte) (end[0] + 1);
+                byte[] end = Arrays.copyOf(bytes, bytes.length+1);
+                end[end.length-1] = 0x01;
 
                 while(status == OperationStatus.SUCCESS &&
                       comparator.compare(key.getData(), end) < 0 &&
@@ -1190,6 +1185,17 @@ public class Importer
     public Void call() throws Exception
     {
       for(Suffix suffix : dnSuffixMap.values()) {
+        List<byte[]> includeBranches =
+            new ArrayList<byte[]>(suffix.getIncludeBranches().size());
+        for(DN includeBranch : suffix.getIncludeBranches())
+        {
+          if(includeBranch.isDescendantOf(suffix.getBaseDN()))
+          {
+            includeBranches.add(JebFormat.dnToDNKey(
+                includeBranch, suffix.getBaseDN().getNumComponents()));
+          }
+        }
+
         EntryContainer entryContainer = suffix.getSrcEntryContainer();
         if(entryContainer != null &&
                 !suffix.getIncludeBranches().isEmpty()) {
@@ -1207,8 +1213,17 @@ public class Importer
             status = cursor.getFirst(key, data, lockMode);
             while(status == OperationStatus.SUCCESS &&
                     !importConfiguration.isCancelled() && !isPhaseOneCanceled) {
-              DN dn = DN.decode(ByteString.wrap(key.getData()));
-              if(!suffix.getIncludeBranches().contains(dn)) {
+
+              boolean found = false;
+              for(byte[] includeBranch : includeBranches)
+              {
+                if(Arrays.equals(includeBranch, key.getData()))
+                {
+                  found = true;
+                  break;
+                }
+              }
+              if(!found) {
                 EntryID id = new EntryID(data);
                 Entry entry =
                         entryContainer.getID2Entry().get(null,
@@ -1231,9 +1246,8 @@ public class Importer
                  * (the comma).
                  * No possibility of overflow here.
                  */
-                byte[] begin =
-                        StaticUtils.getBytes("," + dn.toNormalizedString());
-                begin[0] = (byte) (begin[0] + 1);
+                byte[] begin = Arrays.copyOf(key.getData(), key.getSize()+1);
+                begin[begin.length-1] = 0x01;
                 key.setData(begin);
                 status = cursor.getSearchKeyRange(key, data, lockMode);
               }
@@ -1647,14 +1661,7 @@ public class Importer
           IndexBuffer indexBuffer = e.getValue();
           setIterator.remove();
           ImportIndexType indexType = indexKey.getIndexType();
-          if(indexType.equals(ImportIndexType.DN))
-          {
-            indexBuffer.setComparator(dnComparator);
-          }
-          else
-          {
-            indexBuffer.setComparator(indexComparator);
-          }
+          indexBuffer.setComparator(indexComparator);
           indexBuffer.setIndexKey(indexKey);
           indexBuffer.setDiscard();
           Future<Void> future =
@@ -1717,9 +1724,10 @@ public class Importer
     void processDN2ID(Suffix suffix, DN dn, EntryID entryID)
             throws ConfigException, InterruptedException
     {
-      DatabaseContainer dn2id = suffix.getDN2ID();
-      byte[] dnBytes = StaticUtils.getBytes(dn.toNormalizedString());
-      int id = processKey(dn2id, dnBytes, entryID, dnComparator,
+      DN2ID dn2id = suffix.getDN2ID();
+      byte[] dnBytes =
+          JebFormat.dnToDNKey(dn, suffix.getBaseDN().getNumComponents());
+      int id = processKey(dn2id, dnBytes, entryID, indexComparator,
                  new IndexKey(dnType, ImportIndexType.DN, 1), true);
       idECMap.putIfAbsent(id, suffix.getEntryContainer());
     }
@@ -1975,11 +1983,10 @@ public class Importer
     {
       private final int DN_STATE_CACHE_SIZE = 64 * KB;
 
-      private DN parentDN, lastDN;
+      private ByteBuffer parentDN, lastDN;
       private EntryID parentID, lastID, entryID;
       private final DatabaseEntry DNKey, DNValue;
-      private final TreeMap<DN, EntryID> parentIDMap =
-                    new TreeMap<DN, EntryID>();
+      private final TreeMap<ByteBuffer, EntryID> parentIDMap;
       private final EntryContainer entryContainer;
       private final Map<byte[], ImportIDSet> id2childTree;
       private final Map<byte[], ImportIDSet> id2subtreeTree;
@@ -1990,6 +1997,7 @@ public class Importer
       DNState(EntryContainer entryContainer)
       {
         this.entryContainer = entryContainer;
+        parentIDMap = new TreeMap<ByteBuffer, EntryID>();
         Comparator<byte[]> childComparator =
                 entryContainer.getID2Children().getComparator();
         id2childTree = new TreeMap<byte[], ImportIDSet>(childComparator);
@@ -2002,80 +2010,124 @@ public class Importer
         id2subtreeTree =  new TreeMap<byte[], ImportIDSet>(subComparator);
         DNKey = new DatabaseEntry();
         DNValue = new DatabaseEntry();
+        lastDN = ByteBuffer.allocate(BYTE_BUFFER_CAPACITY);
       }
 
 
+      private ByteBuffer getParent(ByteBuffer buffer)
+      {
+        int parentIndex =
+            JebFormat.findDNKeyParent(buffer.array(), 0, buffer.limit());
+        if(parentIndex < 0)
+        {
+          // This is the root or base DN
+          return null;
+        }
+        ByteBuffer parent = buffer.duplicate();
+        parent.limit(parentIndex);
+        return parent;
+      }
+
+      private ByteBuffer deepCopy(ByteBuffer srcBuffer, ByteBuffer destBuffer)
+      {
+        if(destBuffer == null ||
+           destBuffer.clear().remaining() < srcBuffer.limit())
+        {
+          byte[] bytes = new byte[srcBuffer.limit()];
+          System.arraycopy(srcBuffer.array(), 0, bytes, 0,
+                           srcBuffer.limit());
+          return ByteBuffer.wrap(bytes);
+        }
+        else
+        {
+          destBuffer.put(srcBuffer);
+          destBuffer.flip();
+          return destBuffer;
+        }
+      }
+
+      // Why do we still need this if we are checking parents in the first
+      // phase?
       private boolean checkParent(ImportIDSet record) throws DirectoryException,
               DatabaseException
       {
-        DN dn = DN.decode(new String(record.getKey().array(), 0 ,
-                                     record.getKey().limit()));
         DNKey.setData(record.getKey().array(), 0 , record.getKey().limit());
         byte[] v = record.toDatabase();
         long v1 = JebFormat.entryIDFromDatabase(v);
         DNValue.setData(v);
 
         entryID = new EntryID(v1);
+        parentDN = getParent(record.getKey());
+
         //Bypass the cache for append data, lookup the parent in DN2ID and
         //return.
         if(importConfiguration != null &&
            importConfiguration.appendToExistingData())
         {
-          parentDN = entryContainer.getParentWithinBase(dn);
           //If null is returned than this is a suffix DN.
           if(parentDN != null)
           {
-            parentID =
-                entryContainer.getDN2ID().get(null, parentDN, LockMode.DEFAULT);
+            DatabaseEntry key = new DatabaseEntry(parentDN.array());
+            DatabaseEntry value = new DatabaseEntry();
+            OperationStatus status;
+            status =
+                entryContainer.getDN2ID().read(null, key, value,
+                                               LockMode.DEFAULT);
+            if(status == OperationStatus.SUCCESS)
+            {
+              parentID = new EntryID(value);
+            }
+            else
+            {
+              // We have a missing parent. Maybe parent checking was turned off?
+              // Just ignore.
+              parentID = null;
+              return false;
+            }
           }
         }
         else
         {
           if(parentIDMap.isEmpty())
           {
-            parentIDMap.put(dn, entryID);
+            parentIDMap.put(deepCopy(record.getKey(), null), entryID);
             return true;
           }
-          else if(lastDN != null && lastDN.isAncestorOf(dn))
+          else if(lastDN != null && lastDN.equals(parentDN))
           {
-            parentIDMap.put(lastDN, lastID);
-            parentDN = lastDN;
+            parentIDMap.put(deepCopy(lastDN, null), lastID);
             parentID = lastID;
-            lastDN = dn;
+            lastDN = deepCopy(record.getKey(), lastDN);
             lastID = entryID;
             return true;
           }
-          else if(parentIDMap.lastKey().isAncestorOf(dn))
+          else if(parentIDMap.lastKey().equals(parentDN))
           {
-            parentDN = parentIDMap.lastKey();
             parentID = parentIDMap.get(parentDN);
-            lastDN = dn;
+            lastDN = deepCopy(record.getKey(), lastDN);
             lastID = entryID;
             return true;
           }
           else
           {
-            DN newParentDN = entryContainer.getParentWithinBase(dn);
-            if(parentIDMap.containsKey(newParentDN))
+            if(parentIDMap.containsKey(parentDN))
             {
-              EntryID newParentID = parentIDMap.get(newParentDN);
-              DN lastDN = parentIDMap.lastKey();
-              while(!newParentDN.equals(lastDN)) {
-                parentIDMap.remove(lastDN);
-                lastDN = parentIDMap.lastKey();
+              EntryID newParentID = parentIDMap.get(parentDN);
+              ByteBuffer key = parentIDMap.lastKey();
+              while(!parentDN.equals(key)) {
+                parentIDMap.remove(key);
+                key = parentIDMap.lastKey();
               }
-              parentIDMap.put(dn, entryID);
-              parentDN = newParentDN;
+              parentIDMap.put(deepCopy(record.getKey(), null), entryID);
               parentID = newParentID;
-              lastDN = dn;
+              lastDN = deepCopy(record.getKey(), lastDN);
               lastID = entryID;
             }
             else
             {
-              Message message =
-                      NOTE_JEB_IMPORT_LDIF_DN_NO_PARENT.get(dn.toString());
-              Entry e = new Entry(dn, null, null, null);
-              reader.rejectEntry(e, message);
+              // We have a missing parent. Maybe parent checking was turned off?
+              // Just ignore.
+              parentID = null;
               return false;
             }
           }
@@ -2105,7 +2157,7 @@ public class Importer
       }
 
 
-      private EntryID getParentID(DN dn) throws DatabaseException
+      private EntryID getParentID(ByteBuffer dn) throws DatabaseException
       {
         EntryID nodeID;
         //Bypass the cache for append data, lookup the parent DN in the DN2ID
@@ -2113,7 +2165,20 @@ public class Importer
         if (importConfiguration != null &&
             importConfiguration.appendToExistingData())
         {
-          nodeID = entryContainer.getDN2ID().get(null, dn, LockMode.DEFAULT);
+            DatabaseEntry key = new DatabaseEntry(dn.array());
+            DatabaseEntry value = new DatabaseEntry();
+            OperationStatus status;
+            status =
+                entryContainer.getDN2ID().read(null, key, value,
+                                               LockMode.DEFAULT);
+            if(status == OperationStatus.SUCCESS)
+            {
+              nodeID = new EntryID(value);
+            }
+            else
+            {
+              nodeID = null;
+            }
         }
         else
         {
@@ -2137,8 +2202,10 @@ public class Importer
           idSet = id2subtreeTree.get(parentID.getDatabaseEntry().getData());
         }
         idSet.addEntryID(childID);
-        for (DN dn = entryContainer.getParentWithinBase(parentDN); dn != null;
-             dn = entryContainer.getParentWithinBase(dn))
+        // TODO:
+        //  Instead of doing this, we can just walk to parent cache if available
+        for (ByteBuffer dn = getParent(parentDN); dn != null;
+             dn = getParent(dn))
         {
           EntryID nodeID = getParentID(dn);
           if(nodeID == null)
@@ -2167,7 +2234,7 @@ public class Importer
 
       public void writeToDB() throws DatabaseException, DirectoryException
       {
-        entryContainer.getDN2ID().putRaw(null, DNKey, DNValue);
+        entryContainer.getDN2ID().put(null, DNKey, DNValue);
         indexMgr.addTotDNCount(1);
         if(parentDN != null)
         {
@@ -2850,16 +2917,8 @@ public class Importer
       {
         getIndexID();
       }
-      if(indexMgr.isDN2ID())
-      {
-        rc = dnComparator.compare(keyBuf.array(), 0, keyBuf.limit(),
-                                 cKey.array(), cKey.limit());
-      }
-      else
-      {
-        rc = indexComparator.compare(keyBuf.array(), 0, keyBuf.limit(),
+      rc = indexComparator.compare(keyBuf.array(), 0, keyBuf.limit(),
                                      cKey.array(), cKey.limit());
-      }
       if(rc != 0) {
         returnCode = 1;
       }
@@ -2888,16 +2947,8 @@ public class Importer
       int returnCode;
       byte[] oKey = o.getKeyBuf().array();
       int oLen = o.getKeyBuf().limit();
-      if(indexMgr.isDN2ID())
-      {
-        returnCode = dnComparator.compare(keyBuf.array(), 0, keyBuf.limit(),
-                                          oKey, oLen);
-      }
-      else
-      {
-        returnCode = indexComparator.compare(keyBuf.array(), 0, keyBuf.limit(),
+      returnCode = indexComparator.compare(keyBuf.array(), 0, keyBuf.limit(),
                                              oKey, oLen);
-      }
       if(returnCode == 0)
       {
         if(indexID.intValue() == o.getIndexID().intValue())
@@ -4772,7 +4823,7 @@ public class Importer
       {
         int pLen = PackedInteger.getReadIntLength(bytes, pos);
         len =  PackedInteger.readInt(bytes, pos);
-        if(dnComparator.compare(bytes, pos + pLen, len, dnBytes,
+        if(indexComparator.compare(bytes, pos + pLen, len, dnBytes,
                 dnBytes.length) == 0)
         {
           return true;

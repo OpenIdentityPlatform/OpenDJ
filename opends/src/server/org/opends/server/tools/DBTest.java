@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 
@@ -1161,8 +1161,6 @@ public class DBTest
         OperationStatus status;
         Comparator<byte[]> defaultComparator =
             new AttributeIndex.KeyComparator();
-        Comparator<byte[]> dnComparator =
-            new EntryContainer.KeyReverseComparator();
         byte[] start = null;
         byte[] end = null;
         int minSize = -1;
@@ -1320,14 +1318,14 @@ public class DBTest
           {
             if(databaseContainer instanceof DN2ID)
             {
-              if(dnComparator.compare(key.getData(), end) > 0)
+              if(defaultComparator.compare(key.getData(), end) > 0)
               {
                 break;
               }
             }
             else if(databaseContainer instanceof DN2URI)
             {
-              if(dnComparator.compare(key.getData(), end) > 0)
+              if(defaultComparator.compare(key.getData(), end) > 0)
               {
                 break;
               }
@@ -1372,8 +1370,9 @@ public class DBTest
               {
                 try
                 {
-                  formatedKey = DN.decode(ByteString.wrap(key.getData())).
-                    toNormalizedString();
+                  formatedKey = JebFormat.dnFromDNKey(
+                      key.getData(), 0, key.getSize(), ec.getBaseDN()).
+                      toNormalizedString();
                   keyLabel = INFO_LABEL_DBTEST_ENTRY_DN.get();
                 }
                 catch(Exception e)
@@ -1411,8 +1410,7 @@ public class DBTest
               {
                 try
                 {
-                  formatedKey = DN.decode(ByteString.wrap(
-                    key.getData())).toNormalizedString();
+                  formatedKey = new String(key.getData());
                   keyLabel = INFO_LABEL_DBTEST_ENTRY_DN.get();
                 }
                 catch(Exception e)

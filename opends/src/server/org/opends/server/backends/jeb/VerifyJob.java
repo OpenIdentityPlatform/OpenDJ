@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -575,24 +575,6 @@ public class VerifyJob
       {
         keyCount++;
 
-        DN dn;
-        try
-        {
-          dn = DN.decode(ByteString.wrap(key.getData()));
-        }
-        catch (DirectoryException e)
-        {
-          errorCount++;
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-
-            TRACER.debugError("File dn2id has malformed key %s.%n",
-                       StaticUtils.bytesToHex(key.getData()));
-          }
-          continue;
-        }
-
         EntryID entryID;
         try
         {
@@ -606,7 +588,7 @@ public class VerifyJob
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
             TRACER.debugError("File dn2id has malformed ID for DN <%s>:%n%s%n",
-                       dn.toNormalizedString(),
+                       new String(key.getData()),
                        StaticUtils.bytesToHex(data.getData()));
           }
           continue;
@@ -633,18 +615,20 @@ public class VerifyJob
           if (debugEnabled())
           {
             TRACER.debugError("File dn2id has DN <%s> referencing unknown " +
-                "ID %d%n", dn.toNormalizedString(), entryID.longValue());
+                "ID %d%n", new String(key.getData()), entryID.longValue());
           }
         }
         else
         {
-          if (!entry.getDN().equals(dn))
+          if (!Arrays.equals(JebFormat.dnToDNKey(
+              entry.getDN(), verifyConfig.getBaseDN().getNumComponents()),
+                             key.getData()))
           {
             errorCount++;
             if (debugEnabled())
             {
               TRACER.debugError("File dn2id has DN <%s> referencing entry " +
-                  "with wrong DN <%s>%n", dn.toNormalizedString(),
+                  "with wrong DN <%s>%n", new String(key.getData()),
                                           entry.getDN().toNormalizedString());
             }
           }

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -52,9 +52,8 @@ public class TestEntryContainer extends JebTestCase {
   private  String beID="userRoot";
   private BackendImpl be;
 
-  private static final String ldifString = "dn: dc=com\n"
-      + "objectClass: top\n" + "objectClass: domain\n" + "\n"
-      + "dn: dc=example,dc=com\n" + "objectClass: top\n"
+  private static final String ldifString = "dn: dc=example,dc=com\n"
+      + "objectClass: top\n"
       + "objectClass: domain\n" + "\n"
       + "dn: ou=People,dc=example,dc=com\n" + "objectClass: top\n"
       + "objectClass: organizationalUnit\n" + "\n"
@@ -72,9 +71,9 @@ public class TestEntryContainer extends JebTestCase {
       + "telephoneNumber: 216-564-6748\n" + "employeeNumber: 1\n"
       + "sn: Amar\n" + "givenName: Aaccf\n" + "postalCode: 85762\n"
       + "userPassword: password\n" + "initials: AA\n" + "\n"
-      + "dn: o=Airius\n" + "objectClass: top\n"
+      + "dn: o=Airius,dc=example,dc=com\n" + "objectClass: top\n"
       + "objectClass: organization\n" + "\n"
-      + "dn:: b3U95Za25qWt6YOoLG89QWlyaXVz\n"
+      + "dn:: b3U95Za25qWt6YOoLG89QWlyaXVzLGRjPWV4YW1wbGUsZGM9Y29t\n"
       + "# dn:: ou=<JapaneseOU>,o=Airius\n" + "objectclass: top\n"
       + "objectclass: organizationalUnit\n" + "ou:: 5Za25qWt6YOo\n"
       + "# ou:: <JapaneseOU>\n" + "ou;lang-ja:: 5Za25qWt6YOo\n"
@@ -82,7 +81,7 @@ public class TestEntryContainer extends JebTestCase {
       + "ou;lang-ja;phonetic:: 44GI44GE44GO44KH44GG44G2\n"
       + "# ou;lang-ja:: <JapaneseOU_in_phonetic_representation>\n"
       + "ou;lang-en: Sales\n" + "description: Japanese office\n" + "\n"
-      + "dn:: dWlkPXJvZ2FzYXdhcmEsb3U95Za25qWt6YOoLG89QWlyaXVz\n"
+      + "dn:: dWlkPXJvZ2FzYXdhcmEsb3U95Za25qWt6YOoLG89QWlyaXVzLGRjPWV4YW1wbGUsZGM9Y29t\n"
       + "# dn:: uid=<uid>,ou=<JapaneseOU>,o=Airius\n"
       + "userpassword: {SHA}O3HSv1MusyL4kTjP+HKI5uxuNoM=\n"
       + "objectclass: top\n" + "objectclass: person\n"

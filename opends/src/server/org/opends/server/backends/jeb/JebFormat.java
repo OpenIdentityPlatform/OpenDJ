@@ -22,12 +22,20 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.DN;
+import org.opends.server.types.RDN;
+import org.opends.server.types.ByteStringBuilder;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.util.StaticUtils;
+
+import java.util.TreeSet;
+import java.util.Iterator;
 
 /**
  * Handles the disk representation of LDAP data.
@@ -226,5 +234,139 @@ public class JebFormat
     }
 
     return bytes;
+  }
+
+  /**
+   * Decode a DN value from its database key representation.
+   *
+   * @param dnKey The database key value of the DN.
+   * @param offset Starting position in the database key data.
+   * @param length The length of the database key data.
+   * @param prefix The DN to prefix the deocded DN value.
+   * @return The decoded DN value.
+   * @throws DirectoryException if an error occurs while decoding the DN value.
+   */
+  public static DN dnFromDNKey(byte[] dnKey, int offset, int length, DN prefix)
+      throws DirectoryException
+  {
+    DN dn = prefix;
+    int start = offset;
+    boolean escaped = false;
+    ByteStringBuilder buffer = new ByteStringBuilder();
+    for(int i = start; i < length; i++)
+    {
+      if(dnKey[i] == 0x5C)
+      {
+        escaped = true;
+        continue;
+      }
+      else if(!escaped && dnKey[i] == 0x01)
+      {
+        buffer.append(0x01);
+        escaped = false;
+        continue;
+      }
+      else if(!escaped && dnKey[i] == 0x00)
+      {
+        if(buffer.length() > 0)
+        {
+          dn = dn.concat(RDN.decode(buffer.toString()));
+          buffer.clear();
+        }
+      }
+      else
+      {
+        if(escaped)
+        {
+          buffer.append(0x5C);
+          escaped = false;
+        }
+        buffer.append(dnKey[i]);
+      }
+    }
+
+    if(buffer.length() > 0)
+    {
+      dn = dn.concat(RDN.decode(buffer.toString()));
+    }
+
+    return dn;
+  }
+
+  /**
+   * Find the length of bytes that represents the superior DN of the given
+   * DN key. The superior DN is represented by the initial bytes of the DN key.
+   *
+   * @param dnKey The database key value of the DN.
+   * @param offset Starting position in the database key data.
+   * @param length The length of the database key data.
+   * @return The length of the superior DN or -1 if the given dn is the
+   *         root DN or 0 if the superior DN is removed.
+   */
+  public static int findDNKeyParent(byte[] dnKey, int offset, int length)
+  {
+    if(length == 0)
+    {
+      // This is the root or base DN
+      return -1;
+    }
+
+    // We will walk backwords through the buffer and find the first
+    // unescaped comma
+    for(int i = offset+length - 1; i >= offset; i--)
+    {
+      if(dnKey[i] == 0x00 && i-1 >= offset && dnKey[i-1] != 0x5C)
+      {
+        return i;
+      }
+    }
+    return offset;
+  }
+
+  /**
+   * Create a DN database key from an entry DN.
+   * @param dn The entry DN.
+   * @param prefixRDNs The number of prefix RDNs to remove from the encoded
+   *                   representation.
+   * @return A DatabaseEntry containing the key.
+   */
+  public static byte[] dnToDNKey(DN dn, int prefixRDNs)
+  {
+    StringBuilder buffer = new StringBuilder();
+    for (int i = dn.getNumComponents() - prefixRDNs - 1; i >= 0; i--)
+    {
+      buffer.append('\u0000');
+      formatRDNKey(dn.getRDN(i), buffer);
+    }
+
+    return StaticUtils.getBytes(buffer.toString());
+  }
+
+  private static void formatRDNKey(RDN rdn, StringBuilder buffer)
+  {
+    if (!rdn.isMultiValued())
+    {
+      rdn.toNormalizedString(buffer);
+    }
+    else
+    {
+      TreeSet<String> rdnElementStrings = new TreeSet<String>();
+
+      for (int i=0; i < rdn.getNumValues(); i++)
+      {
+        StringBuilder b2 = new StringBuilder();
+        rdn.getAVAString(i, b2);
+        rdnElementStrings.add(b2.toString());
+      }
+
+      Iterator<String> iterator = rdnElementStrings.iterator();
+      buffer.append(iterator.next().replace("\u0001", "\\\u0001"));
+
+      while (iterator.hasNext())
+      {
+        buffer.append('\u0001');
+        buffer.append(iterator.next().replace("\u0001", "\\\u0001"));
+      }
+    }
   }
 }
