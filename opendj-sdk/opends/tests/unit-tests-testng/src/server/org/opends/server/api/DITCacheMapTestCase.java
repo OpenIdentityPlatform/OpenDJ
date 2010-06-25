@@ -292,6 +292,21 @@ public class DITCacheMapTestCase extends APITestCase
     assertFalse(subtreeSet.isEmpty());
     assertEquals(subtreeSet.size(), 1);
     assertTrue(subtreeSet.contains(dn0String));
+
+    subtreeSet = ditMap.getSubtree(dn1);
+    assertFalse(subtreeSet.isEmpty());
+    assertEquals(subtreeSet.size(), 1);
+    assertTrue(subtreeSet.contains(dn1String));
+
+    subtreeSet = ditMap.getSubtree(dn2);
+    assertFalse(subtreeSet.isEmpty());
+    assertEquals(subtreeSet.size(), 1);
+    assertTrue(subtreeSet.contains(dn2String));
+
+    subtreeSet = ditMap.getSubtree(dn3);
+    assertFalse(subtreeSet.isEmpty());
+    assertEquals(subtreeSet.size(), 1);
+    assertTrue(subtreeSet.contains(dn3String));
   }
 
   @Test()
@@ -486,6 +501,69 @@ public class DITCacheMapTestCase extends APITestCase
     assertTrue(ditMap.containsKey(dn1));
     assertTrue(ditMap.containsKey(dn2));
     assertTrue(ditMap.containsKey(dn3));
+    assertTrue(ditMap.containsKey(dn4));
+    assertTrue(ditMap.containsKey(dn5));
+    assertTrue(ditMap.containsKey(dn6));
+    assertTrue(ditMap.containsKey(dn7));
+    assertTrue(ditMap.containsKey(dn8));
+    assertTrue(ditMap.containsKey(dn9));
+
+    clearTestMap();
+
+    putAllAndVerify();
+
+    removeSet.clear();
+    assertTrue(ditMap.removeSubtree(dn1,
+            removeSet));
+    assertFalse(removeSet.isEmpty());
+    assertEquals(removeSet.size(), 1);
+    assertTrue(removeSet.contains(dn1String));
+    assertEquals(ditMap.size(), 9);
+    assertTrue(ditMap.containsKey(dn0));
+    assertTrue(ditMap.containsKey(dn2));
+    assertTrue(ditMap.containsKey(dn3));
+    assertTrue(ditMap.containsKey(dn4));
+    assertTrue(ditMap.containsKey(dn5));
+    assertTrue(ditMap.containsKey(dn6));
+    assertTrue(ditMap.containsKey(dn7));
+    assertTrue(ditMap.containsKey(dn8));
+    assertTrue(ditMap.containsKey(dn9));
+
+    clearTestMap();
+
+    putAllAndVerify();
+
+    removeSet.clear();
+    assertTrue(ditMap.removeSubtree(dn2,
+            removeSet));
+    assertFalse(removeSet.isEmpty());
+    assertEquals(removeSet.size(), 1);
+    assertTrue(removeSet.contains(dn2String));
+    assertEquals(ditMap.size(), 9);
+    assertTrue(ditMap.containsKey(dn0));
+    assertTrue(ditMap.containsKey(dn1));
+    assertTrue(ditMap.containsKey(dn3));
+    assertTrue(ditMap.containsKey(dn4));
+    assertTrue(ditMap.containsKey(dn5));
+    assertTrue(ditMap.containsKey(dn6));
+    assertTrue(ditMap.containsKey(dn7));
+    assertTrue(ditMap.containsKey(dn8));
+    assertTrue(ditMap.containsKey(dn9));
+
+    clearTestMap();
+
+    putAllAndVerify();
+
+    removeSet.clear();
+    assertTrue(ditMap.removeSubtree(dn3,
+            removeSet));
+    assertFalse(removeSet.isEmpty());
+    assertEquals(removeSet.size(), 1);
+    assertTrue(removeSet.contains(dn3String));
+    assertEquals(ditMap.size(), 9);
+    assertTrue(ditMap.containsKey(dn0));
+    assertTrue(ditMap.containsKey(dn1));
+    assertTrue(ditMap.containsKey(dn2));
     assertTrue(ditMap.containsKey(dn4));
     assertTrue(ditMap.containsKey(dn5));
     assertTrue(ditMap.containsKey(dn6));

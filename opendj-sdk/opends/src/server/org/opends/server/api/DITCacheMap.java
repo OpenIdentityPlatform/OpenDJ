@@ -116,7 +116,7 @@ public class DITCacheMap<T> extends AbstractMap<DN,T>
   private Map<DN,Node<T>> ditCacheMap;
 
   /**
-   * Default contructor.
+   * Default constructor.
    */
   public DITCacheMap()
   {
@@ -124,7 +124,7 @@ public class DITCacheMap<T> extends AbstractMap<DN,T>
   }
 
   /**
-   * Contructs a new DITCacheMap from a given Map.
+   * Constructs a new DITCacheMap from a given Map.
    * @param m existing Map to construct new
    *          DITCacheMap from.
    */
@@ -683,6 +683,13 @@ public class DITCacheMap<T> extends AbstractMap<DN,T>
       {
         if (rootNode != null)
         {
+          if (node == rootNode)
+          {
+            if (rootNode.element != null)
+            {
+              return true;
+            }
+          }
           while (node != null)
           {
             if (node.element != null)
@@ -695,13 +702,10 @@ public class DITCacheMap<T> extends AbstractMap<DN,T>
             }
             else
             {
-              if (node != rootNode)
+              while ((node.next == null) &&
+                     (node.parent != rootNode))
               {
-                while ((node.next == null) &&
-                       (node.parent != rootNode))
-                {
-                  node = node.parent;
-                }
+                node = node.parent;
               }
               node = node.next;
             }
@@ -719,6 +723,14 @@ public class DITCacheMap<T> extends AbstractMap<DN,T>
 
         if (rootNode != null)
         {
+          if (node == rootNode)
+          {
+            node = rootNode.child;
+            if (rootNode.element != null)
+            {
+              return rootNode.element;
+            }
+          }
           while (node != null)
           {
             if (node.element != null)
@@ -735,13 +747,10 @@ public class DITCacheMap<T> extends AbstractMap<DN,T>
             }
             else
             {
-              if (node != rootNode)
+              while ((node.next == null) &&
+                     (node.parent != rootNode))
               {
-                while ((node.next == null) &&
-                       (node.parent != rootNode))
-                {
-                  node = node.parent;
-                }
+                node = node.parent;
               }
               node = node.next;
             }
