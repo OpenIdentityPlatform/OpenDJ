@@ -65,9 +65,9 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
   private static final int NDS = 20;
   // Number of RSs
   private static final int NRS = 4;
-  private LDAPReplicationDomain rd[] = new LDAPReplicationDomain[NDS];
-  private ReplicationServer rs[] = new ReplicationServer[NRS];
-  private int[] rsPort = new int[NRS];
+  private final LDAPReplicationDomain rd[] = new LDAPReplicationDomain[NDS];
+  private final ReplicationServer rs[] = new ReplicationServer[NRS];
+  private final int[] rsPort = new int[NRS];
 
   private static final int RS1_ID = 501;
   private static final int RS2_ID = 502;
@@ -892,6 +892,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
         new int[] {3, 8, -1, 9},
         new int[] {4, 6, -1, 10},
         new int[] {4, 7, -1, 9},
+        new int[] {4, 8, -1, 8},
         new int[] {5, 6, -1, 9}},
         "Stopped RS3");
 
