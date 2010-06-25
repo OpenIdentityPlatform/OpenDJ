@@ -1013,7 +1013,7 @@ public class BackendImpl
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
       }
-      Message message = ERR_JEB_IO_ERROR.get(ioe.getMessage());
+      Message message = ERR_JEB_EXPORT_IO_ERROR.get(ioe.getMessage());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
     }
@@ -1138,7 +1138,7 @@ public class BackendImpl
       rootContainer = initializeRootContainer(envConfig);
       return importer.processImport(rootContainer);
     }
-        catch (ExecutionException execEx)
+    catch (ExecutionException execEx)
     {
       if (debugEnabled())
       {
@@ -1158,16 +1158,6 @@ public class BackendImpl
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
               message);
     }
-    catch (IOException ioe)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
-      }
-      Message message = ERR_JEB_IO_ERROR.get(ioe.getMessage());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message);
-    }
     catch (JebException je)
     {
       if (debugEnabled())
@@ -1176,16 +1166,6 @@ public class BackendImpl
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    je.getMessageObject());
-    }
-    catch (DatabaseException ex)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-      }
-       Message message = ERR_DATABASE_ERROR.get(ex.getMessage());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-              message);
     }
     catch (InitializationException ie)
     {
@@ -1392,16 +1372,6 @@ public class BackendImpl
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
               message);
     }
-    catch (IOException ioe)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, ioe);
-      }
-      Message message = ERR_JEB_IO_ERROR.get(ioe.getMessage());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-              message);
-    }
     catch (ConfigException ce)
     {
       if (debugEnabled())
@@ -1410,14 +1380,6 @@ public class BackendImpl
       }
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
               ce.getMessageObject());
-    }
-    catch (DatabaseException e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-      throw createDirectoryException(e);
     }
     catch (JebException e)
     {
