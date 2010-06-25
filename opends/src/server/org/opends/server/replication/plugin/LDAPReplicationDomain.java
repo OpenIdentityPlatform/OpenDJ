@@ -61,7 +61,6 @@ import java.util.TreeMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.zip.CheckedOutputStream;
 import java.util.zip.DataFormatException;
 
 import org.opends.messages.Message;
@@ -3962,8 +3961,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   {
     long genID = 0;
     Backend backend = retrievesBackend(this.baseDn);
-    long bec = backend.numSubordinates(baseDn, true) + 1;
-    long entryCount = (bec<1000?bec:1000);
+    long numberOfEntries = backend.numSubordinates(baseDn, true) + 1;
+    long entryCount = ( (numberOfEntries < 1000 )? numberOfEntries : 1000);
 
     //  Acquire a shared lock for the backend.
     try
@@ -3989,16 +3988,16 @@ private boolean solveNamingConflict(ModifyDNOperation op,
           ResultCode.OTHER, message, null);
     }
 
-    OutputStream os;
+    OutputStream os = null;
     ReplLDIFOutputStream ros = null;
 
     if (checksumOutput)
     {
-      ros = new ReplLDIFOutputStream(this, entryCount);
-      os = new CheckedOutputStream(ros, new GenerationIdChecksum());
+      os = (OutputStream)new ReplLDIFOutputStream(entryCount);
+      ros = (ReplLDIFOutputStream)os;
       try
       {
-        os.write((Long.toString(backend.numSubordinates(baseDn, true) + 1)).
+        os.write((Long.toString(numberOfEntries)).
             getBytes());
       }
       catch(Exception e)
@@ -4074,8 +4073,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
       if (checksumOutput)
       {
-        genID =
-         ((CheckedOutputStream)os).getChecksum().getValue();
+        genID = ros.getChecksumValue();
       }
 
       //  Release the shared lock on the backend.

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication;
 
@@ -61,6 +61,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.replication.common.ServerState;
+import org.opends.server.replication.plugin.GenerationIdChecksum;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.plugin.PersistentServerState;
@@ -106,12 +107,12 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   // This matches the backend obtained calling:
   // TestCaseUtils.initializeTestBackend(true).
   // (using the default TestCaseUtils.TEST_ROOT_DN_STRING suffix)
-  protected static final long TEST_DN_WITH_ROOT_ENTRY_GENID = 5095L;
+  protected static final long TEST_DN_WITH_ROOT_ENTRY_GENID = 5055L;
 
   /**
    * Generation id for a fully empty domain.
    */
-  public static final long EMPTY_DN_GENID = 48L;
+  public static final long EMPTY_DN_GENID = GenerationIdChecksum.EMPTY_BACKEND_GENERATION_ID;
 
   /**
   * The internal connection used for operation
@@ -188,7 +189,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   /**
    * Retrieves the domain associated to the baseDn, and the value of the generationId
    * of this domain. If the domain does not exist, returns the default hard-coded\
-   * value of the generationId corresponding to 'no entry'.
+   * value of the generationId corresponding to test backend with its default
+   * initial o=test root root entry.
    *
    * @param baseDn The baseDn for which we want the generationId
    * @return The value of the generationId.

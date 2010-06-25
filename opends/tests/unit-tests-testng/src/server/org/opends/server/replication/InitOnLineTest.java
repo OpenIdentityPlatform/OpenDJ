@@ -1019,21 +1019,24 @@ public class InitOnLineTest extends ReplicationTestCase
       makeBrokerPublishEntries(server2, server2ID, server1ID, server2ID);
 
       // wait until the replication domain has expected generationID
-      // this should indicate that the import occured correctly.
+      // this should indicate that the import occurred correctly.
+      final long EXPECTED_GENERATION_ID = 52955L;
+      long readGenerationId = -1L;
       for (int count = 0; count < 120; count++)
       {
-        if (replDomain.getGenerationID() == 53235)
+        readGenerationId = replDomain.getGenerationID();
+        if ( readGenerationId == EXPECTED_GENERATION_ID)
           break;
-        log(testCase + " genId=" + replDomain.getGenerationID());
+        log(testCase + " genId=" + readGenerationId);
         Thread.sleep(1000);
       }
 
-      if (replDomain.getGenerationID() != 53235)
+      if (readGenerationId != EXPECTED_GENERATION_ID)
       {
         fail(testCase + " Import success waited longer than expected \n" + 
             TestCaseUtils.threadStacksToString());
       }
-      
+
       // Test that entries have been imported in S1
       testEntriesInDb();
 

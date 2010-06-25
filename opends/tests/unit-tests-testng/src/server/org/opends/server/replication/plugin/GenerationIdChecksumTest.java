@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -47,7 +47,7 @@ public class GenerationIdChecksumTest extends ReplicationTestCase
     GenerationIdChecksum checksum = new GenerationIdChecksum();
 
     // Default value test
-    assertEquals(checksum.getValue(), 0L);
+    assertEquals(checksum.getValue(), GenerationIdChecksum.EMPTY_BACKEND_GENERATION_ID);
 
     // Update method simple version test
     checksum.update(3);
@@ -59,7 +59,7 @@ public class GenerationIdChecksumTest extends ReplicationTestCase
 
     // Reset test
     checksum.reset();
-    assertEquals(checksum.getValue(), 0L);
+    assertEquals(checksum.getValue(), GenerationIdChecksum.EMPTY_BACKEND_GENERATION_ID);
 
     // Update method simple version test, again
     checksum.update(101);
@@ -77,7 +77,7 @@ public class GenerationIdChecksumTest extends ReplicationTestCase
   protected Object[][] arrayUpdateProvider()
   {
     return new Object[][] {
-      {new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, 0, 10, 55},
+      {new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, 0, 10, 45},
       {new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, 0, 1, 1},
       {new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, 0, 2, 3},
       {new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, 0, 3, 6},
@@ -86,9 +86,9 @@ public class GenerationIdChecksumTest extends ReplicationTestCase
       {new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, 3, 3, 15},
       {new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, 7, 1, 8},
       {new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, 7, 2, 17},
-      {new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, 7, 3, 27},
-      {new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, 9, 1, 10},
-      {new byte[]{2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 0, 10, 65},
+      {new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, 7, 3, 17},
+      {new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 9, 2, 11},
+      {new byte[]{2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 0, 10, 55},
       {new byte[]{118, 119, 120, 121, 122, 123, 124, 125, 126, 127}, 0, 10, 1225}};
   }
 
