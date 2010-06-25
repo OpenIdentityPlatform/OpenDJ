@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -30,19 +30,15 @@ package org.opends.server.replication.plugin;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.util.ServerConstants;
 
 /**
  * This class creates an output stream that can be used to export entries
- * to a synchonization domain.
+ * to a synchronization domain.
  */
 public class ReplLDIFOutputStream
        extends OutputStream
 {
-  // The synchronization domain on which the export is done
-  ReplicationDomain domain;
-
   // The number of entries to be exported
   long numEntries;
 
@@ -50,16 +46,17 @@ public class ReplLDIFOutputStream
   private long numExportedEntries;
   String entryBuffer = "";
 
+  // The checksum for computing the generation id
+  private GenerationIdChecksum checkSum = new GenerationIdChecksum();
+
   /**
    * Creates a new ReplLDIFOutputStream related to a replication
    * domain.
    *
-   * @param domain The replication domain
    * @param numEntries The max number of entry to process.
    */
-  public ReplLDIFOutputStream(ReplicationDomain domain, long numEntries)
+  public ReplLDIFOutputStream(long numEntries)
   {
-    this.domain = domain;
     this.numEntries = numEntries;
   }
 
@@ -69,6 +66,15 @@ public class ReplLDIFOutputStream
   public void write(int i) throws IOException
   {
     throw new IOException("Invalid call");
+  }
+
+  /**
+   * Get the value of the underlying checksum.
+   * @return The value of the underlying checksum
+   */
+  public long getChecksumValue()
+  {
+    return checkSum.getValue();
   }
 
   /**
@@ -104,6 +110,10 @@ public class ReplLDIFOutputStream
           // of entries to export.
           throw(new IOException());
         }
+
+        // Add the entry bytes to the checksum
+        byte[] entryBytes = entryBuffer.getBytes();
+        checkSum.update(entryBytes, 0, entryBytes.length);
 
         numExportedEntries++;
         entryBuffer = "";

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication;
 
@@ -360,7 +360,7 @@ public class DependencyTest extends ReplicationTestCase
   }
 
 
-  private final long CLEAN_DB_GENERATION_ID =  7933L;
+  private final long CLEAN_DB_GENERATION_ID =  7883L;
   /**
    * Clean the database and replace with a single entry.
    *
