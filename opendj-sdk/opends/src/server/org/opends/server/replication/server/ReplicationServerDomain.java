@@ -3467,6 +3467,33 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
+   * This methods count the changes, server by server :
+   * - from a start time
+   * - to (inclusive) an end point (the provided endCN).
+   * @param startTime The provided start time.
+   * @param endCN The provided end change number.
+   * @return The number of changes between startTime and endCN.
+   */
+  public long getEligibleCount(long startTime, ChangeNumber endCN)
+  {
+    long sidRes = 0;
+    long res = 0;
+
+    // Parses the dbState of the domain , server by server
+    ServerState dbState = this.getDbServerState();
+    Iterator<Integer> serverIDIterator = dbState.iterator();
+    while (serverIDIterator.hasNext())
+    {
+      // process one sid
+      int sid = serverIDIterator.next();
+      ChangeNumber startCN = new ChangeNumber(startTime, 0, sid);
+      sidRes += getCount(sid, startCN, endCN);
+      res+=sidRes;
+    }
+    return res;
+  }
+
+  /**
    * Get the latest (more recent) trim date of the changelog dbs associated
    * to this domain.
    * @return The latest trim date.

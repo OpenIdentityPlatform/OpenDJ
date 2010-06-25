@@ -1966,11 +1966,14 @@ public class ReplicationServer
     int firstDraftCN;
     int lastDraftCN;
     boolean DraftCNdbIsEmpty;
+    Long newestDate = 0L;
     DraftCNDbHandler draftCNDbH = this.getDraftCNDbHandler();
 
     // Get the first DraftCN from the DraftCNdb
     firstDraftCN = draftCNDbH.getFirstKey();
     HashMap<String,ServerState> domainsServerStateForLastSeqnum = null;
+    ChangeNumber changeNumberForLastSeqnum = null;
+    String domainForLastSeqnum = null;
     if (firstDraftCN < 1)
     {
       DraftCNdbIsEmpty=true;
@@ -1992,6 +1995,12 @@ public class ReplicationServer
         domainsServerStateForLastSeqnum = MultiDomainServerState.
           splitGenStateToServerStates(lastSeqnumGenState);
       }
+
+      // Get the changeNumber associated with the current last DraftCN
+      changeNumberForLastSeqnum = draftCNDbH.getChangeNumber(lastDraftCN);
+
+      // Get the domain associated with the current last DraftCN
+      domainForLastSeqnum = draftCNDbH.getServiceID(lastDraftCN);
     }
 
     // Domain by domain
@@ -2009,28 +2018,32 @@ public class ReplicationServer
         // for this domain, have the state in the replchangelog
         // where the last DraftCN update is
         long ec =0;
-        ServerState domainServerStateForLastSeqnum;
-        if ((domainsServerStateForLastSeqnum == null) ||
-            (domainsServerStateForLastSeqnum.get(rsd.getBaseDn())==null))
+        if (domainsServerStateForLastSeqnum == null)
         {
-          domainServerStateForLastSeqnum = new ServerState();
+          // Count changes of this domain from the beginning of the changelog
+          ec = rsd.getEligibleCount(
+              new ServerState(), crossDomainEligibleCN);
         }
         else
         {
-          domainServerStateForLastSeqnum =
-            domainsServerStateForLastSeqnum.get(rsd.getBaseDn());
-          ec--;
+          // There are records in the draftDB (so already returned to clients)
+          // BUT
+          //  There is nothing related to this domain in the last draft record
+          //  (may be this domain was disabled when this record was returned).
+          // In that case, are counted the changes from
+          //  the date of the most recent change from this last draft record
+          if (newestDate == 0L)
+          {
+            newestDate = changeNumberForLastSeqnum.getTime();
+          }
+
+          // And count changes of this domain from the date of the
+          // lastseqnum record (that does not refer to this domain)
+          ec = rsd.getEligibleCount(newestDate, crossDomainEligibleCN);
+
+          if (domainForLastSeqnum.equalsIgnoreCase(rsd.getBaseDn()))
+            ec--;
         }
-
-        // Count the number of (eligible) changes from this place
-        // to the eligible CN (cross server)
-        ec = rsd.getEligibleCount(
-            domainServerStateForLastSeqnum, crossDomainEligibleCN);
-
-        // the state from which we started is the one BEFORE the lastdraftCN
-        // so we must decrement 1 to the EligibleCount
-        if ((ec>0) && (DraftCNdbIsEmpty==false))
-          ec--;
 
         // cumulates on domains
         lastDraftCN += ec;
