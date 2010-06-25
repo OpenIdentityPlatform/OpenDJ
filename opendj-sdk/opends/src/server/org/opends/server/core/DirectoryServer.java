@@ -2654,7 +2654,20 @@ public class DirectoryServer
   public void initializeGroupManager()
          throws ConfigException, InitializationException
   {
-    groupManager = new GroupManager();
+    try
+    {
+      groupManager = new GroupManager();
+    }
+    catch (DirectoryException de)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
+      }
+
+      throw new InitializationException(de.getMessageObject());
+    }
+
     groupManager.initializeGroupImplementations();
 
     // The configuration backend has already been registered by this point

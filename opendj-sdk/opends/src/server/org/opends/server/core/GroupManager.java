@@ -44,9 +44,12 @@ import org.opends.server.admin.std.server.GroupImplementationCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackendInitializationListener;
-import org.opends.server.api.ChangeNotificationListener;
 import org.opends.server.api.DITCacheMap;
 import org.opends.server.api.Group;
+import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
+import org.opends.server.api.plugin.PluginResult;
+import org.opends.server.api.plugin.PluginResult.PostOperation;
+import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -64,10 +67,15 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 import org.opends.server.types.SearchFilter;
-import org.opends.server.types.operation.PostResponseAddOperation;
-import org.opends.server.types.operation.PostResponseDeleteOperation;
-import org.opends.server.types.operation.PostResponseModifyOperation;
-import org.opends.server.types.operation.PostResponseModifyDNOperation;
+import org.opends.server.types.operation.PluginOperation;
+import org.opends.server.types.operation.PostOperationAddOperation;
+import org.opends.server.types.operation.PostOperationDeleteOperation;
+import org.opends.server.types.operation.PostOperationModifyDNOperation;
+import org.opends.server.types.operation.PostOperationModifyOperation;
+import org.opends.server.types.operation.PostSynchronizationAddOperation;
+import org.opends.server.types.operation.PostSynchronizationDeleteOperation;
+import org.opends.server.types.operation.PostSynchronizationModifyDNOperation;
+import org.opends.server.types.operation.PostSynchronizationModifyOperation;
 import org.opends.server.workflowelement.localbackend.
             LocalBackendSearchOperation;
 
@@ -91,12 +99,11 @@ import static org.opends.server.util.StaticUtils.*;
  * memory.  If it is determined that this approach is not workable in all cases,
  * then we will need an alternate strategy.
  */
-public class GroupManager
+public class GroupManager extends InternalDirectoryServerPlugin
        implements ConfigurationChangeListener<GroupImplementationCfg>,
                   ConfigurationAddListener<GroupImplementationCfg>,
                   ConfigurationDeleteListener<GroupImplementationCfg>,
-                  BackendInitializationListener,
-                  ChangeNotificationListener
+                  BackendInitializationListener
 {
   /**
    * The tracer object for the debug logger.
@@ -120,20 +127,38 @@ public class GroupManager
   // Lock to protect internal data structures.
   private final ReentrantReadWriteLock lock;
 
+  // Dummy configuration DN for Group Manager.
+  private static final String CONFIG_DN = "cn=Group Manager,cn=config";
+
 
 
   /**
    * Creates a new instance of this group manager.
+   *
+   * @throws DirectoryException If a problem occurs while
+   *                            creating an instance of
+   *                            the group manager.
    */
-  public GroupManager()
+  public GroupManager() throws DirectoryException
   {
+    super(DN.decode(CONFIG_DN), EnumSet.of(
+          PluginType.POST_OPERATION_ADD,
+          PluginType.POST_OPERATION_DELETE,
+          PluginType.POST_OPERATION_MODIFY,
+          PluginType.POST_OPERATION_MODIFY_DN,
+          PluginType.POST_SYNCHRONIZATION_ADD,
+          PluginType.POST_SYNCHRONIZATION_DELETE,
+          PluginType.POST_SYNCHRONIZATION_MODIFY,
+          PluginType.POST_SYNCHRONIZATION_MODIFY_DN),
+          true);
+
     groupImplementations = new ConcurrentHashMap<DN,Group>();
     groupInstances       = new DITCacheMap<Group>();
 
     lock = new ReentrantReadWriteLock();
 
+    DirectoryServer.registerInternalPlugin(this);
     DirectoryServer.registerBackendInitializationListener(this);
-    DirectoryServer.registerChangeNotificationListener(this);
   }
 
 
@@ -532,6 +557,9 @@ public class GroupManager
    */
   public void finalizeGroupManager()
   {
+    DirectoryServer.deregisterInternalPlugin(this);
+    DirectoryServer.deregisterBackendInitializationListener(this);
+
     deregisterAllGroups();
 
     for (Group groupImplementation : groupImplementations.values())
@@ -763,12 +791,12 @@ public class GroupManager
 
 
   /**
-   * {@inheritDoc}  In this case, each entry is checked to see if it contains
-   * a group definition, and if so it will be instantiated and registered with
-   * this group manager.
+   * In this case, each entry is checked to see if it contains
+   * a group definition, and if so it will be instantiated and
+   * registered with this group manager.
    */
-  public void handleAddOperation(PostResponseAddOperation addOperation,
-                                 Entry entry)
+  private void doPostAdd(PluginOperation addOperation,
+          Entry entry)
   {
     List<Control> requestControls = addOperation.getRequestControls();
     if (requestControls != null)
@@ -796,11 +824,11 @@ public class GroupManager
 
 
   /**
-   * {@inheritDoc}  In this case, if the entry is associated with a registered
+   * In this case, if the entry is associated with a registered
    * group instance, then that group instance will be deregistered.
    */
-  public void handleDeleteOperation(PostResponseDeleteOperation deleteOperation,
-                                    Entry entry)
+  private void doPostDelete(PluginOperation deleteOperation,
+          Entry entry)
   {
     List<Control> requestControls = deleteOperation.getRequestControls();
     if (requestControls != null)
@@ -828,12 +856,13 @@ public class GroupManager
 
 
   /**
-   * {@inheritDoc}  In this case, if the entry is associated with a registered
-   * group instance, then that instance will be recreated from the contents of
-   * the provided entry and re-registered with the group manager.
+   * In this case, if the entry is associated with a registered
+   * group instance, then that instance will be recreated from
+   * the contents of the provided entry and re-registered with
+   * the group manager.
    */
-  public void handleModifyOperation(PostResponseModifyOperation modifyOperation,
-                                    Entry oldEntry, Entry newEntry)
+  private void doPostModify(PluginOperation modifyOperation,
+          Entry oldEntry, Entry newEntry)
   {
     List<Control> requestControls = modifyOperation.getRequestControls();
     if (requestControls != null)
@@ -870,14 +899,14 @@ public class GroupManager
 
 
   /**
-   * {@inheritDoc}  In this case, if the entry is associated with a registered
-   * group instance, then that instance will be recreated from the contents of
-   * the provided entry and re-registered with the group manager under the new
-   * DN, and the old instance will be deregistered.
+   * In this case, if the entry is associated with a registered
+   * group instance, then that instance will be recreated from
+   * the contents of the provided entry and re-registered with
+   * the group manager under the new DN, and the old instance
+   * will be deregistered.
    */
-  public void handleModifyDNOperation(
-                   PostResponseModifyDNOperation modifyDNOperation,
-                   Entry oldEntry, Entry newEntry)
+  private void doPostModifyDN(PluginOperation modifyDNOperation,
+          Entry oldEntry, Entry newEntry)
   {
     List<Control> requestControls = modifyDNOperation.getRequestControls();
     if (requestControls != null)
@@ -929,6 +958,122 @@ public class GroupManager
     finally
     {
       lock.writeLock().unlock();
+    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public PostOperation doPostOperation(
+          PostOperationAddOperation addOperation)
+  {
+    doPostAdd(addOperation, addOperation.getEntryToAdd());
+
+    // If we've gotten here, then everything is acceptable.
+    return PluginResult.PostOperation.continueOperationProcessing();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public PostOperation doPostOperation(
+          PostOperationDeleteOperation deleteOperation)
+  {
+    doPostDelete(deleteOperation, deleteOperation.getEntryToDelete());
+
+    // If we've gotten here, then everything is acceptable.
+    return PluginResult.PostOperation.continueOperationProcessing();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public PostOperation doPostOperation(
+          PostOperationModifyOperation modifyOperation)
+  {
+    doPostModify(modifyOperation,
+            modifyOperation.getCurrentEntry(),
+            modifyOperation.getModifiedEntry());
+
+    // If we've gotten here, then everything is acceptable.
+    return PluginResult.PostOperation.continueOperationProcessing();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public PostOperation doPostOperation(
+          PostOperationModifyDNOperation modifyDNOperation)
+  {
+    doPostModifyDN(modifyDNOperation,
+            modifyDNOperation.getOriginalEntry(),
+            modifyDNOperation.getUpdatedEntry());
+
+    // If we've gotten here, then everything is acceptable.
+    return PluginResult.PostOperation.continueOperationProcessing();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void doPostSynchronization(
+      PostSynchronizationAddOperation addOperation)
+  {
+    Entry entry = addOperation.getEntryToAdd();
+    if (entry != null)
+    {
+      doPostAdd(addOperation, entry);
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void doPostSynchronization(
+      PostSynchronizationDeleteOperation deleteOperation)
+  {
+    Entry entry = deleteOperation.getEntryToDelete();
+    if (entry != null)
+    {
+      doPostDelete(deleteOperation, entry);
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void doPostSynchronization(
+      PostSynchronizationModifyOperation modifyOperation)
+  {
+    Entry entry = modifyOperation.getCurrentEntry();
+    Entry modEntry = modifyOperation.getModifiedEntry();
+    if ((entry != null) && (modEntry != null))
+    {
+      doPostModify(modifyOperation, entry, modEntry);
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void doPostSynchronization(
+      PostSynchronizationModifyDNOperation modifyDNOperation)
+  {
+    Entry oldEntry = modifyDNOperation.getOriginalEntry();
+    Entry newEntry = modifyDNOperation.getUpdatedEntry();
+    if ((oldEntry != null) && (newEntry != null))
+    {
+      doPostModifyDN(modifyDNOperation, oldEntry, newEntry);
     }
   }
 
