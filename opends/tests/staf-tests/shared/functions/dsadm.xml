@@ -759,7 +759,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>
       </function-arg-def>
-      <function-arg-def name="startTask" type="optional" default="'0'">
+      <function-arg-def name="startTask" type="optional">
         <function-arg-description>
           Optional exclude attributes
         </function-arg-description>
@@ -1328,7 +1328,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>
       </function-arg-def>
-      <function-arg-def name="startTask" type="optional" default="'0'">
+      <function-arg-def name="startTask" type="optional">
         <function-arg-description>
           Optional exclude attributes
         </function-arg-description>

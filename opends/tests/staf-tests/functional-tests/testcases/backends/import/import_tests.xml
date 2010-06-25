@@ -1146,6 +1146,10 @@
             }                        
           </call>
 
+          <call function="'setKnownIssue'">
+            { 'issueId' : 6962694 }
+          </call>
+
         </sequence>
             
         <catch exception="'STAXException.*'" typevar="eType" var="eInfo">
@@ -1199,6 +1203,10 @@
                                     'uid=fvinker,ou=Departed,ou=People,dc=example,dc=com',
                                     'uid=brammage,ou=Departed,ou=People,dc=example,dc=com']
             }                        
+          </call>
+
+          <call function="'setKnownIssue'">
+            { 'issueId' : 6962694 }
           </call>
 
         </sequence>
