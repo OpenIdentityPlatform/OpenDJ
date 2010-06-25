@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -136,6 +136,7 @@ public class PluginConfigManager
   private DirectoryServerPlugin[] searchResultEntryPlugins;
   private DirectoryServerPlugin[] searchResultReferencePlugins;
   private DirectoryServerPlugin[] subordinateModifyDNPlugins;
+  private DirectoryServerPlugin[] subordinateDeletePlugins;
   private DirectoryServerPlugin[] intermediateResponsePlugins;
 
 
@@ -222,6 +223,7 @@ public class PluginConfigManager
     searchResultEntryPlugins           = new DirectoryServerPlugin[0];
     searchResultReferencePlugins       = new DirectoryServerPlugin[0];
     subordinateModifyDNPlugins         = new DirectoryServerPlugin[0];
+    subordinateDeletePlugins           = new DirectoryServerPlugin[0];
     intermediateResponsePlugins        = new DirectoryServerPlugin[0];
     registeredPlugins                  =
          new ConcurrentHashMap<DN,
@@ -481,6 +483,7 @@ public class PluginConfigManager
       case SEARCHRESULTENTRY:      return PluginType.SEARCH_RESULT_ENTRY;
       case SEARCHRESULTREFERENCE:  return PluginType.SEARCH_RESULT_REFERENCE;
       case SUBORDINATEMODIFYDN:    return PluginType.SUBORDINATE_MODIFY_DN;
+      case SUBORDINATEDELETE:      return PluginType.SUBORDINATE_DELETE;
       case INTERMEDIATERESPONSE:   return PluginType.INTERMEDIATE_RESPONSE;
       case POSTSYNCHRONIZATIONADD:
                 return PluginType.POST_SYNCHRONIZATION_ADD;
@@ -862,6 +865,11 @@ public class PluginConfigManager
         subordinateModifyDNPlugins =
             addPlugin(subordinateModifyDNPlugins, plugin, t,
                 pluginRootConfig.getPluginOrderSubordinateModifyDN());
+        break;
+      case SUBORDINATE_DELETE:
+        subordinateDeletePlugins =
+            addPlugin(subordinateDeletePlugins, plugin, t,
+                pluginRootConfig.getPluginOrderSubordinateDelete());
         break;
       case INTERMEDIATE_RESPONSE:
         intermediateResponsePlugins =
@@ -1372,6 +1380,10 @@ public class PluginConfigManager
         case SUBORDINATE_MODIFY_DN:
           subordinateModifyDNPlugins =
                removePlugin(subordinateModifyDNPlugins, plugin);
+          break;
+        case SUBORDINATE_DELETE:
+          subordinateDeletePlugins =
+               removePlugin(subordinateDeletePlugins, plugin);
           break;
         case INTERMEDIATE_RESPONSE:
           intermediateResponsePlugins =
@@ -5281,6 +5293,84 @@ public class PluginConfigManager
       // This should only happen if there were no subordinate modify DN plugins
       // registered, which is fine.
       result = PluginResult.SubordinateModifyDN.continueOperationProcessing();
+    }
+
+    return result;
+  }
+
+
+
+  /**
+   * Invokes the set of subordinate delete plugins that have been configured
+   * in the Directory Server.
+   *
+   * @param  deleteOperation  The delete operation with which the
+   *                          subordinate entry is associated.
+   * @param  entry            The subordinate entry being deleted.
+   *
+   * @return The result of processing the subordinate delete plugins.
+   */
+  public PluginResult.SubordinateDelete invokeSubordinateDeletePlugins(
+              DeleteOperation deleteOperation, Entry entry)
+  {
+    PluginResult.SubordinateDelete result = null;
+
+    for (DirectoryServerPlugin p : subordinateDeletePlugins)
+    {
+      if (deleteOperation.isInternalOperation() &&
+          (! p.invokeForInternalOperations()))
+      {
+        continue;
+      }
+
+      try
+      {
+        DirectoryServerPlugin<? extends PluginCfg> gp =
+             (DirectoryServerPlugin<? extends PluginCfg>) p;
+        result = gp.processSubordinateDelete(deleteOperation, entry);
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        Message message =
+            ERR_PLUGIN_SUBORDINATE_DELETE_PLUGIN_EXCEPTION.get(
+                String.valueOf(p.getPluginEntryDN()),
+                deleteOperation.getConnectionID(),
+                deleteOperation.getOperationID(),
+                stackTraceToSingleLineString(e));
+        logError(message);
+
+        return PluginResult.SubordinateDelete.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
+      }
+
+      if (result == null)
+      {
+        Message message =
+            ERR_PLUGIN_SUBORDINATE_DELETE_PLUGIN_RETURNED_NULL.get(
+                        String.valueOf(p.getPluginEntryDN()),
+                        deleteOperation.getConnectionID(),
+                        String.valueOf(deleteOperation.getOperationID()));
+        logError(message);
+
+        return PluginResult.SubordinateDelete.stopProcessing(
+            DirectoryServer.getServerErrorResultCode(), message);
+      }
+      else if (! result.continuePluginProcessing())
+      {
+        return result;
+      }
+    }
+
+    if (result == null)
+    {
+      // This should only happen if there were no subordinate modify DN plugins
+      // registered, which is fine.
+      result = PluginResult.SubordinateDelete.continueOperationProcessing();
     }
 
     return result;

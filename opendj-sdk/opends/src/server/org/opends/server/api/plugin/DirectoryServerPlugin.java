@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.api.plugin;
 import org.opends.messages.Message;
@@ -35,6 +35,7 @@ import java.util.Set;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.config.ConfigException;
+import org.opends.server.core.DeleteOperation;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.*;
 
@@ -1105,6 +1106,28 @@ public abstract class DirectoryServerPlugin
                                        modifyDNOperation,
                                   Entry oldEntry, Entry newEntry,
                                   List<Modification> modifications)
+  {
+    Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
+            String.valueOf(pluginDN),
+            PluginType.SUBORDINATE_MODIFY_DN.getName());
+    throw new UnsupportedOperationException(message.toString());
+  }
+
+
+
+  /**
+   * Performs any necessary processing that should be done whenever a
+   * subordinate entry is deleted as part of subtree delete operation.
+   *
+   * @param  deleteOperation  The delete operation with which the
+   *                          subordinate entry is associated.
+   * @param  entry            The subordinate entry being deleted.
+   *
+   * @return Information about the result of the plugin processing.
+   */
+  public PluginResult.SubordinateDelete
+       processSubordinateDelete(DeleteOperation
+         deleteOperation, Entry entry)
   {
     Message message = ERR_PLUGIN_TYPE_NOT_SUPPORTED.get(
             String.valueOf(pluginDN),

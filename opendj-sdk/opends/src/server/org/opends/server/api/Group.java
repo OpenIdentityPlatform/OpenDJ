@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 import org.opends.messages.Message;
@@ -205,6 +205,17 @@ public abstract class Group<T extends GroupImplementationCfg>
    *          this group.
    */
   public abstract DN getGroupDN();
+
+
+
+  /**
+   * Sets the DN of the entry that contains the definition for
+   * this group.
+   *
+   * @param  groupDN  The DN of the entry that contains the
+   *                  definition for this group.
+   */
+  public abstract void setGroupDN(DN groupDN);
 
 
 

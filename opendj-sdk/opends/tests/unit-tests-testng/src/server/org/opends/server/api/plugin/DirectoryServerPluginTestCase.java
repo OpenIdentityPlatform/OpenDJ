@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.api.plugin;
 
@@ -548,6 +548,15 @@ import static org.testng.Assert.*;
     sigList.add("org.opends.server.types.Entry");
     sigList.add("org.opends.server.types.Entry");
     sigList.add("java.util.List");
+    expectedPublicMethods.add(sigList);
+
+    sigList = new LinkedList<String>();
+    sigList.add("processSubordinateDelete");
+    sigList.add("org.opends.server.api.plugin." +
+        "PluginResult$SubordinateDelete");
+    sigList.add("org.opends.server.core." +
+                "DeleteOperation");
+    sigList.add("org.opends.server.types.Entry");
     expectedPublicMethods.add(sigList);
 
     sigList = new LinkedList<String>();

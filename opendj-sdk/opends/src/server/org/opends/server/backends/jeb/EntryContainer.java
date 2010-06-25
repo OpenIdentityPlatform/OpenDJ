@@ -1977,6 +1977,28 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
            */
           EntryID entryID = new EntryID(data);
           DN subordinateDN = DN.decode(ByteString.wrap(key.getData()));
+
+          // Invoke any subordinate delete plugins on the entry.
+          if (!deleteOperation.isSynchronizationOperation())
+          {
+            Entry subordinateEntry = id2entry.get(
+                    txn, entryID, LockMode.DEFAULT);
+            PluginConfigManager pluginManager =
+              DirectoryServer.getPluginConfigManager();
+            PluginResult.SubordinateDelete pluginResult =
+              pluginManager.invokeSubordinateDeletePlugins(
+                  deleteOperation, subordinateEntry);
+
+            if (!pluginResult.continueProcessing())
+            {
+              Message message =
+                      ERR_JEB_DELETE_ABORTED_BY_SUBORDINATE_PLUGIN.get(
+                      subordinateDN.toString());
+              throw new DirectoryException(
+                  DirectoryServer.getServerErrorResultCode(), message);
+            }
+          }
+
           deleteEntry(txn, indexBuffer, true, entryDN, subordinateDN, entryID);
           subordinateEntriesDeleted++;
 

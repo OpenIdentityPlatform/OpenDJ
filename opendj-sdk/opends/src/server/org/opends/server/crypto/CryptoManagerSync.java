@@ -551,6 +551,9 @@ public class CryptoManagerSync
     RDN srcRDN = entry.getDN().getRDN();
 
     // Only process the entry if it has the expected form of RDN.
+    // FIXME: Technically it is possible to perform a subtree in
+    // this case however such subtree delete would essentially be
+    // removing configuration branches which should not happen.
     if (!srcRDN.isMultiValued() &&
          srcRDN.getAttributeType(0).equals(attrAlias))
     {
@@ -644,5 +647,8 @@ public class CryptoManagerSync
        Entry newEntry)
   {
     // No implementation required.
+    // FIXME: Technically it is possible to perform a subtree modDN
+    // in this case however such subtree modDN would essentially be
+    // moving configuration branches which should not happen.
   }
 }

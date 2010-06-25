@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.api.plugin;
 
@@ -959,6 +959,198 @@ public final class PluginResult
         ResultCode resultCode, Message errorMessage)
     {
       return new SubordinateModifyDN(false, false, errorMessage,
+          resultCode, null, null);
+    }
+
+    /**
+     * Whether to continue operation processing.
+     *
+     * @return <code>true</code> if processing should continue
+     * or <code>false</code> otherwise.
+     */
+    public boolean continueProcessing()
+    {
+      return continueProcessing;
+    }
+
+    /**
+     * Whether to invoke the rest of the plugins.
+     *
+     * @return <code>true</code> if the rest of the plugins should
+     * be invoked for <code>false</code> to skip the rest of the
+     * plugins.
+     */
+    public boolean continuePluginProcessing()
+    {
+      return continuePluginProcessing;
+    }
+
+    /**
+     * Retrieves the error message if <code>continueProcessing</code>
+     * returned <code>false</code>.
+     *
+     * @return An error message explaining why processing should
+     * stop or <code>null</code> if none is provided.
+     */
+    public Message getErrorMessage()
+    {
+      return errorMessage;
+    }
+
+    /**
+     * Retrieves the result code for the operation
+     * if <code>continueProcessing</code> returned <code>false</code>.
+     *
+     * @return the result code for the operation or <code>null</code>
+     * if none is provided.
+     */
+    public ResultCode getResultCode()
+    {
+      return resultCode;
+    }
+
+    /**
+     * Retrieves the matched DN for the operation
+     * if <code>continueProcessing</code> returned <code>false</code>.
+     *
+     * @return the matched DN for the operation or <code>null</code>
+     * if none is provided.
+     */
+    public DN getMatchedDN()
+    {
+      return matchedDN;
+    }
+
+    /**
+     * Retrieves the referral URLs for the operation
+     * if <code>continueProcessing</code> returned <code>false</code>.
+     *
+     * @return the refferal URLs for the operation or
+     * <code>null</code> if none is provided.
+     */
+    public List<String> getReferralURLs()
+    {
+      return referralURLs;
+    }
+  }
+
+  /**
+   * Defines a subordinate delete plugin result for core server
+   * operation processing consisting of either continue, skip
+   * further plugins, or stop operation processing with a result
+   * code, matched DN, referral URLs, and error message.
+   */
+  public static final class SubordinateDelete
+  {
+    // Whether to continue operation processing.
+    private final boolean continueProcessing;
+
+    // Whether to invoke the rest of the plugins.
+    private final boolean continuePluginProcessing;
+
+    // An message explaining why processing should stop.
+    private final Message errorMessage;
+
+    // The matched DN for this result.
+    private final DN matchedDN;
+
+    // The set of referral URLs for this result.
+    private final List<String> referralURLs;
+
+    // The result code for this result.
+    private final ResultCode resultCode;
+
+    private static SubordinateDelete DEFAULT_RESULT =
+        new SubordinateDelete(true, true, null, null, null, null);
+
+    /**
+     * Construct a new subordinate delete plugin result.
+     *
+     * @param continueProcessing Whether to continue startup.
+     * @param continuePluginProcessing Whether to invoke the rest
+     * of the plugins.
+     * @param errorMessage An message explaining why processing
+     * should stop.
+     * @param resultCode The result code for this result.
+     * @param matchedDN The matched DN for this result.
+     * @param referralURLs The set of referral URLs for this result.
+     * stop.
+     */
+    private SubordinateDelete(boolean continueProcessing,
+                              boolean continuePluginProcessing,
+                              Message errorMessage,
+                              ResultCode resultCode, DN matchedDN,
+                              List<String> referralURLs)
+    {
+      this.continueProcessing = continueProcessing;
+      this.errorMessage = errorMessage;
+      this.continuePluginProcessing = continuePluginProcessing;
+      this.resultCode = resultCode;
+      this.matchedDN = matchedDN;
+      this.referralURLs = referralURLs;
+    }
+
+    /**
+     * Defines a continue processing subordinate delete plugin
+     *  result.
+     *
+     * @return a continue processing subordinate delete plugin
+     *  result.
+     */
+    public static SubordinateDelete continueOperationProcessing()
+    {
+      return DEFAULT_RESULT;
+    }
+
+    /**
+     * Defines a skip further plugin processing subordinate delete
+     * plugin result.
+     *
+     * @return  a skip further plugin processing subordinate delete
+     * plugin result.
+     */
+    public static SubordinateDelete skipFurtherPluginProcesssing()
+    {
+      return new SubordinateDelete(true, false, null, null, null,
+          null);
+    }
+
+    /**
+     * Defines a new stop processing subordinate delete plugin
+     * result.
+     *
+     * @param resultCode The result code for this result.
+     * @param errorMessage An message explaining why processing
+     * should stop.
+     * @param matchedDN The matched DN for this result.
+     * @param referralURLs The set of referral URLs for this result.
+     *
+     * @return a new stop processing subordinate delete plugin
+     * result.
+     */
+    public static SubordinateDelete stopProcessing(
+        ResultCode resultCode, Message errorMessage, DN matchedDN,
+        List<String> referralURLs)
+    {
+      return new SubordinateDelete(false, false, errorMessage,
+          resultCode, matchedDN, referralURLs);
+    }
+
+    /**
+     * Contrust a new stop processing subordinate delete plugin
+     * result.
+     *
+     * @param resultCode The result code for this result.
+     * @param errorMessage An message explaining why processing
+     * should stop.
+     *
+     * @return a new stop processing subordinate delete plugin
+     * result.
+     */
+    public static SubordinateDelete stopProcessing(
+        ResultCode resultCode, Message errorMessage)
+    {
+      return new SubordinateDelete(false, false, errorMessage,
           resultCode, null, null);
     }
 
