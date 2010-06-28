@@ -1159,4 +1159,22 @@
             <zipfileset dir="${srcgen.dir}" filemode="644" dirmode="755" />
         </zip>
     </target>
+    <!-- The build target that should be used for nightly builds. -->
+    <target name="nightly"
+       depends="nightlybuild,nightlytests"
+       description="Perform all processing needed for nightly builds.">
+    </target>
+
+    <!-- The build target that should be used for build part of nightly builds. -->
+    <target name="nightlybuild"
+       depends="package,checkprecommit,checkstyle,srczip,javadoc"
+       description="Perform all processing related to build  for nightly builds.">
+    </target>
+
+    <!-- The build target that should be used for test part of nightly builds. -->
+    <target name="nightlytests"
+       depends="testwithcoverage"
+       description="Perform all processing related to unit tests for nightly builds.">
+    </target>
+
 </project>
