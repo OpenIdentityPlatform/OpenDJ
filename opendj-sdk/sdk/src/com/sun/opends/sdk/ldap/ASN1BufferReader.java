@@ -683,7 +683,7 @@ final class ASN1BufferReader extends AbstractASN1Reader implements ASN1Reader
 
   void disposeBytesRead()
   {
-    this.buffer.disposeUnused();
+    this.buffer.shrink();
   }
 
 
