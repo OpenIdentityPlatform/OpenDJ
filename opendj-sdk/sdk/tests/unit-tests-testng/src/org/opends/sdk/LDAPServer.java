@@ -157,7 +157,8 @@ public class LDAPServer implements ServerConnection<Integer>,
   private LDAPServer()
   {
     // Add the root dse first.
-    entryMap.put(DN.rootDN(), Types.unmodifiableEntry(new LinkedHashMapEntry()));
+    entryMap.put(DN.rootDN(),
+        Entries.unmodifiableEntry(new LinkedHashMapEntry()));
     for (int i = 0; i < 1000; i++)
     {
       final String dn = String.format("uid=user.%d,ou=people,o=test", i);
@@ -169,7 +170,7 @@ public class LDAPServer implements ServerConnection<Integer>,
       final Entry e = new LinkedHashMapEntry("dn: " + dn,
           "objectclass: person", "objectclass: inetorgperson",
           "objectclass: top", cn, sn, uid);
-      entryMap.put(d, Types.unmodifiableEntry(e));
+      entryMap.put(d, Entries.unmodifiableEntry(e));
     }
   }
 
