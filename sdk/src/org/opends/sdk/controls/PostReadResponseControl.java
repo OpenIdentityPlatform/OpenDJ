@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.controls;
@@ -121,7 +121,7 @@ public final class PostReadResponseControl implements Control
        * rather than an Entry. Can we assume that the response will not contain
        * a nested set of controls?
        */
-      return new PostReadResponseControl(control.isCritical(), Types
+      return new PostReadResponseControl(control.isCritical(), Entries
           .unmodifiableEntry(searchEntry));
     }
 
@@ -155,7 +155,7 @@ public final class PostReadResponseControl implements Control
      * SearchResultEntry rather than an Entry. Can we assume that the response
      * will not contain a nested set of controls?
      */
-    return new PostReadResponseControl(false, Types.unmodifiableEntry(entry));
+    return new PostReadResponseControl(false, Entries.unmodifiableEntry(entry));
   }
 
 

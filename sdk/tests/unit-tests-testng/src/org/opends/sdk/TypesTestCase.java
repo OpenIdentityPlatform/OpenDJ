@@ -87,10 +87,10 @@ public class TypesTestCase extends SdkTestCase
         Schema.getCoreSchema());
     final AttributeDescription desc2 = AttributeDescription.valueOf(desc,
         Schema.getCoreSchema());
-    final Attribute attr1 = Types.emptyAttribute(desc1);
+    final Attribute attr1 = Attributes.emptyAttribute(desc1);
     try
     {
-      Types.renameAttribute(attr1, desc2);
+      Attributes.renameAttribute(attr1, desc2);
     }
     catch (final Exception e)
     {
@@ -114,7 +114,7 @@ public class TypesTestCase extends SdkTestCase
   {
     final AttributeDescription desc = AttributeDescription.valueOf(attrDesc,
         Schema.getCoreSchema());
-    final Attribute attr = Types.emptyAttribute(desc);
+    final Attribute attr = Attributes.emptyAttribute(desc);
     assertTrue(attr.isEmpty());
   }
 
@@ -130,10 +130,10 @@ public class TypesTestCase extends SdkTestCase
   {
     final AttributeDescription desc = AttributeDescription.valueOf(attrDesc,
         Schema.getCoreSchema());
-    final Attribute attr = Types.emptyAttribute(desc);
+    final Attribute attr = Attributes.emptyAttribute(desc);
     attr.add("test"); // should go through.
     // Make it unmodifiable.
-    final Attribute attr1 = Types.unmodifiableAttribute(attr);
+    final Attribute attr1 = Attributes.unmodifiableAttribute(attr);
     attr1.add("test");
   }
 
@@ -150,7 +150,7 @@ public class TypesTestCase extends SdkTestCase
     final Entry entry = new LinkedHashMapEntry("cn=test");
     // add a value.
     entry.clearAttributes();
-    final Entry entry1 = Types.unmodifiableEntry(entry);
+    final Entry entry1 = Entries.unmodifiableEntry(entry);
     entry1.clearAttributes();
   }
 }
