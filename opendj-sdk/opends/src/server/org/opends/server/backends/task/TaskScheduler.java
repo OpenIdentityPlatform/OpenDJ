@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.task;
 
@@ -671,19 +671,25 @@ public class TaskScheduler
           }
           catch (DirectoryException de)
           {
-            if (debugEnabled())
+            // This task might have been already scheduled from before
+            // and thus got initialized from backing file, otherwise
+            // log error and continue.
+            if (de.getResultCode() != ResultCode.ENTRY_ALREADY_EXISTS)
             {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
+              if (debugEnabled())
+              {
+                TRACER.debugCaught(DebugLogLevel.ERROR, de);
+              }
+
+              Message message =
+                  ERR_TASKSCHED_ERROR_SCHEDULING_RECURRING_ITERATION.
+                    get(recurringTaskID, de.getMessageObject());
+              logError(message);
+
+              DirectoryServer.sendAlertNotification(this,
+                   ALERT_TYPE_CANNOT_SCHEDULE_RECURRING_ITERATION,
+                      message);
             }
-
-            Message message =
-                ERR_TASKSCHED_ERROR_SCHEDULING_RECURRING_ITERATION.
-                  get(recurringTaskID, de.getMessageObject());
-            logError(message);
-
-            DirectoryServer.sendAlertNotification(this,
-                 ALERT_TYPE_CANNOT_SCHEDULE_RECURRING_ITERATION,
-                    message);
           }
         }
       }
