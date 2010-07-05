@@ -563,7 +563,10 @@ public final class Importer
         configuredMemory = backendConfiguration.getDBCachePercent()
             * Runtime.getRuntime().maxMemory() / 100;
       }
-      availableMemory = Math.min(usableMemory, configuredMemory);
+
+      // Round up to minimum of 16MB (e.g. unit tests only use 2% cache).
+      availableMemory = Math.max(Math.min(usableMemory, configuredMemory),
+          16 * MB);
     }
     else
     {
@@ -3240,14 +3243,22 @@ public final class Importer
           result.get();
         }
       }
-      //Try to clear as much memory as possible.
+
+      // Try to clear as much memory as possible.
+      rebuildIndexService.shutdown();
+      rebuildIndexService.awaitTermination(30, TimeUnit.SECONDS);
+      bufferSortService.shutdown();
+      bufferSortService.awaitTermination(30, TimeUnit.SECONDS);
+      scratchFileWriterService.shutdown();
+      scratchFileWriterService.awaitTermination(30, TimeUnit.SECONDS);
+      timer.cancel();
+
       tasks.clear();
       results.clear();
-      rebuildIndexService.shutdown();
+      scratchFileWriterList.clear();
+      scratchFileWriterFutures.clear();
+      indexKeyQueMap.clear();
       freeBufferQueue.clear();
-      bufferSortService.shutdown();
-      scratchFileWriterService.shutdown();
-      timer.cancel();
     }
 
 
