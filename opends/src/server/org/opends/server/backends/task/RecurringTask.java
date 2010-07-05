@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.task;
 import java.text.SimpleDateFormat;
@@ -608,6 +608,7 @@ public class RecurringTask
     calendar.setFirstDayOfWeek(GregorianCalendar.SUNDAY);
     calendar.add(GregorianCalendar.MINUTE, 1);
     calendar.set(GregorianCalendar.SECOND, 0);
+    calendar.set(GregorianCalendar.MILLISECOND, 0);
     calendar.setLenient(false);
 
     // Weekday
