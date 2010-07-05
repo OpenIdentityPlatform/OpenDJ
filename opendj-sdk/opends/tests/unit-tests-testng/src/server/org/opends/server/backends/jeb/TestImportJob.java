@@ -565,10 +565,12 @@ public class TestImportJob extends JebTestCase
   }
 
 
-
-  @Test(dependsOnMethods = "testImportReplaceExisting")
+  // Re-enable when 6962694 fixed.
+  @Test(enabled=false, dependsOnMethods = "testImportReplaceExisting")
   public void testImportAppend() throws Exception
   {
+    TestCaseUtils.clearJEBackend(false, beID, null);
+
     LDIFImportConfig importConfig = new LDIFImportConfig(homeDirName
         + File.separator + "top.ldif");
     importConfig.setAppendToExistingData(false);
