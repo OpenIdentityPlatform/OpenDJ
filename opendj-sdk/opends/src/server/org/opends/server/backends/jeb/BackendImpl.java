@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import java.io.FileInputStream;
 import java.io.FilenameFilter;
@@ -39,6 +40,7 @@ import java.util.zip.Adler32;
 import java.util.zip.CheckedInputStream;
 
 import com.sleepycat.je.DatabaseException;
+import com.sleepycat.je.Durability;
 import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.EnvironmentFailureException;
 
@@ -1110,8 +1112,18 @@ public class BackendImpl
 
     try
     {
-      EnvironmentConfig envConfig =
-              ConfigurableEnvironment.parseConfigEntry(cfg);
+      EnvironmentConfig envConfig = new EnvironmentConfig();
+
+      envConfig.setAllowCreate(true);
+      envConfig.setTransactional(false);
+      envConfig.setDurability(Durability.COMMIT_NO_SYNC);
+      envConfig.setLockTimeout(0, TimeUnit.SECONDS);
+      envConfig.setTxnTimeout(0, TimeUnit.SECONDS);
+      envConfig.setConfigParam(EnvironmentConfig.CLEANER_MIN_FILE_UTILIZATION,
+          String.valueOf(cfg.getDBCleanerMinUtilization()));
+      envConfig.setConfigParam(EnvironmentConfig.LOG_FILE_MAX, String
+          .valueOf(cfg.getDBLogFileMax()));
+
       if(!importConfig.appendToExistingData()) {
         if(importConfig.clearBackend() || cfg.getBaseDN().size() <= 1) {
           // We have the writer lock on the environment, now delete the
@@ -1126,15 +1138,8 @@ public class BackendImpl
           }
         }
       }
-      envConfig.setReadOnly(false);
-      envConfig.setAllowCreate(true);
-      envConfig.setTransactional(false);
-      envConfig.setConfigParam(EnvironmentConfig.ENV_IS_LOCKING, "true");
-      envConfig.setConfigParam(EnvironmentConfig.ENV_RUN_CHECKPOINTER, "false");
-      envConfig.setConfigParam(EnvironmentConfig.ENV_RUN_CLEANER, "false");
-      envConfig.setConfigParam(EnvironmentConfig.EVICTOR_LRU_ONLY, "false");
-      envConfig.setConfigParam(EnvironmentConfig.EVICTOR_NODES_PER_SCAN, "128");
-      Importer importer = Importer.getInstance(importConfig, cfg, envConfig);
+
+      Importer importer = new Importer(importConfig, cfg, envConfig);
       rootContainer = initializeRootContainer(envConfig);
       return importer.processImport(rootContainer);
     }
@@ -1320,36 +1325,41 @@ public class BackendImpl
     boolean openRootContainer = rootContainer == null;
 
     /*
-      If the rootContainer is open, the backend is initialized by something
-      else. We can't do any rebuild of system indexes while others are using
-      this backend.
-   */
+     * If the rootContainer is open, the backend is initialized by something
+     * else. We can't do any rebuild of system indexes while others are using
+     * this backend.
+     */
     if(!openRootContainer && rebuildConfig.includesSystemIndex())
     {
       Message message = ERR_JEB_REBUILD_BACKEND_ONLINE.get();
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
               message);
     }
-    Importer importer;
+
     try
     {
-      EnvironmentConfig envConfig =
-              ConfigurableEnvironment.parseConfigEntry(cfg);
-      importer = Importer.getInstance(rebuildConfig, cfg, envConfig);
+      EnvironmentConfig envConfig;
       if (openRootContainer)
       {
-        envConfig.setReadOnly(false);
+        envConfig = new EnvironmentConfig();
         envConfig.setAllowCreate(true);
         envConfig.setTransactional(false);
-        envConfig.setConfigParam(EnvironmentConfig.ENV_IS_LOCKING, "true");
+        envConfig.setDurability(Durability.COMMIT_NO_SYNC);
+        envConfig.setLockTimeout(0, TimeUnit.SECONDS);
+        envConfig.setTxnTimeout(0, TimeUnit.SECONDS);
         envConfig.setConfigParam(
-                               EnvironmentConfig.ENV_RUN_CHECKPOINTER, "false");
-        envConfig.setConfigParam(EnvironmentConfig.ENV_RUN_CLEANER, "false");
-        envConfig.setConfigParam(EnvironmentConfig.EVICTOR_LRU_ONLY, "false");
-        envConfig.setConfigParam(
-                               EnvironmentConfig.EVICTOR_NODES_PER_SCAN, "128");
+            EnvironmentConfig.CLEANER_MIN_FILE_UTILIZATION, String.valueOf(cfg
+                .getDBCleanerMinUtilization()));
+        envConfig.setConfigParam(EnvironmentConfig.LOG_FILE_MAX, String
+            .valueOf(cfg.getDBLogFileMax()));
         rootContainer = initializeRootContainer(envConfig);
       }
+      else
+      {
+        envConfig = ConfigurableEnvironment.parseConfigEntry(cfg);
+      }
+
+      Importer importer = new Importer(rebuildConfig, cfg, envConfig);
       importer.rebuildIndexes(rootContainer);
     }
     catch (ExecutionException execEx)

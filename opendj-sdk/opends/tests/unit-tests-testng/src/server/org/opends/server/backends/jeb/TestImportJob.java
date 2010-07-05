@@ -565,8 +565,7 @@ public class TestImportJob extends JebTestCase
   }
 
 
-  // Re-enable when 6962694 fixed.
-  @Test(enabled=false, dependsOnMethods = "testImportReplaceExisting")
+  @Test(dependsOnMethods = "testImportReplaceExisting")
   public void testImportAppend() throws Exception
   {
     TestCaseUtils.clearJEBackend(false, beID, null);

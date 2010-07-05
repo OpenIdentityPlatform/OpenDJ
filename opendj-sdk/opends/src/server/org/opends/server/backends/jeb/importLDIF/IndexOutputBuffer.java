@@ -51,7 +51,7 @@ import com.sleepycat.util.PackedInteger;
  * This class is not thread safe.
  *
  */
-public class IndexBuffer implements Comparable<IndexBuffer> {
+public final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
 
   /**
   * Enumeration used when sorting a buffer.
@@ -110,23 +110,16 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
   private boolean discard = false;
 
 
-  private IndexBuffer(int size) {
-    this.size = size;
-    this.buffer = new byte[size];
-    this.bytesLeft = size;
-    this.recordOffset = size - 1;
-  }
-
-
   /**
    * Create an instance of a IndexBuffer using the specified size.
    *
    * @param size The size of the underlying byte array.
-   * @return A newly created instance of an IndexBuffer.
    */
-  public static
-  IndexBuffer createIndexBuffer(int size) {
-    return new IndexBuffer(size);
+  public IndexOutputBuffer(int size) {
+    this.size = size;
+    this.buffer = new byte[size];
+    this.bytesLeft = size;
+    this.recordOffset = size - 1;
   }
 
 
@@ -160,7 +153,7 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
    *
    * @return The value of a buffer's ID.
    */
-  public long getBufferID()
+  private long getBufferID()
   {
     return this.id;
   }
@@ -261,14 +254,14 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
    * Add the specified key byte array and EntryID to the buffer.
    *
    * @param keyBytes The key byte array.
-   * @param IDEntry The EntryID.
+   * @param entryID The EntryID.
    * @param indexID The index ID the record belongs.
    * @param insert <CODE>True</CODE> if key is an insert, false otherwise.
    */
 
-  public void add(byte[] keyBytes, EntryID IDEntry, int indexID,
+  public void add(byte[] keyBytes, EntryID entryID, int indexID,
                   boolean insert) {
-    recordOffset = addRecord(keyBytes, IDEntry.longValue(), indexID, insert);
+    recordOffset = addRecord(keyBytes, entryID.longValue(), indexID, insert);
     System.arraycopy(getIntBytes(recordOffset), 0, buffer, keyOffset, 4);
     keyOffset += 4;
     bytesLeft = recordOffset - keyOffset;
@@ -488,7 +481,7 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
    * @return  0 if the buffers are equal, -1 if the current buffer is less
    *          than the specified buffer, or 1 if it is greater.
    */
-  public int compareTo(IndexBuffer b)
+  public int compareTo(IndexOutputBuffer b)
   {
     ByteBuffer keyBuf = b.getKeyBuf(b.position);
     int offset = getIntegerValue(position * 4);
@@ -799,7 +792,7 @@ public class IndexBuffer implements Comparable<IndexBuffer> {
    * they are non-DN indexes.
    */
   public static
-  class IndexComparator implements IndexBuffer.ComparatorBuffer<byte[]>
+  class IndexComparator implements IndexOutputBuffer.ComparatorBuffer<byte[]>
   {
 
     /**
