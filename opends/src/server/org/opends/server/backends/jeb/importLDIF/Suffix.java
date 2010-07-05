@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.backends.jeb.importLDIF;
@@ -54,7 +54,7 @@ public class Suffix
   private final EntryContainer srcEntryContainer;
   private EntryContainer entryContainer;
   private final Object synchObject = new Object();
-  private static final int PARENT_ID_SET_SIZE = 16 * KB;
+  private static final int PARENT_ID_SET_SIZE = 16 * 1024;
   private ConcurrentHashMap<DN, CountDownLatch> pendingMap =
           new ConcurrentHashMap<DN, CountDownLatch>();
   private Set<DN> parentSet = new HashSet<DN>(PARENT_ID_SET_SIZE);

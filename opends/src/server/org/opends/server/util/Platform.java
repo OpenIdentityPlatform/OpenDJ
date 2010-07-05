@@ -35,9 +35,13 @@ import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.List;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryPoolMXBean;
+import java.lang.management.MemoryUsage;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import org.opends.messages.Message;
@@ -391,6 +395,72 @@ public final class Platform
      *          The buffer to normalize.
      */
     public abstract void normalize(StringBuilder buffer);
+
+
+
+    /**
+     * Calculates the usable memory which could potentially be used by the
+     * application for caching objects.
+     *
+     * @return The usable memory which could potentially be used by the
+     *         application for caching objects.
+     */
+    public long getUsableMemoryForCaching()
+    {
+      long youngGenSize = 0;
+      long oldGenSize = 0;
+
+      List<MemoryPoolMXBean> mpools = ManagementFactory.getMemoryPoolMXBeans();
+      for (MemoryPoolMXBean mpool : mpools)
+      {
+        MemoryUsage usage = mpool.getUsage();
+        if (usage != null)
+        {
+          String name = mpool.getName();
+          if (name.equalsIgnoreCase("PS Eden Space"))
+          {
+            // Parallel.
+            youngGenSize = usage.getMax();
+          }
+          else if (name.equalsIgnoreCase("PS Old Gen"))
+          {
+            // Parallel.
+            oldGenSize = usage.getMax();
+          }
+          else if (name.equalsIgnoreCase("Par Eden Space"))
+          {
+            // CMS.
+            youngGenSize = usage.getMax();
+          }
+          else if (name.equalsIgnoreCase("CMS Old Gen"))
+          {
+            // CMS.
+            oldGenSize = usage.getMax();
+          }
+        }
+      }
+
+      if (youngGenSize > 0 && oldGenSize > youngGenSize)
+      {
+        // We can calculate available memory based on GC info.
+        return oldGenSize - youngGenSize;
+      }
+      else if (oldGenSize > 0)
+      {
+        // Small old gen. It is going to be difficult to avoid full GCs if the
+        // young gen is bigger.
+        return oldGenSize * 40 / 100;
+      }
+      else
+      {
+        // Unknown GC (G1, JRocket, etc).
+        Runtime runTime = Runtime.getRuntime();
+        runTime.gc();
+        runTime.gc();
+        return (runTime.freeMemory() + (runTime.maxMemory() - runTime
+            .totalMemory())) * 40 / 100;
+      }
+    }
   }
 
 
@@ -626,5 +696,33 @@ public final class Platform
   {
     String javaVendor = System.getProperty("java.vendor");
     return javaVendor.startsWith(vendor);
+  }
+
+
+
+  /**
+   * Calculates the usable memory which could potentially be used by the
+   * application for caching objects. This method <b>does not</b> look at the
+   * amount of free memory, but instead tries to query the JVM's GC settings in
+   * order to determine the amount of usable memory in the old generation (or
+   * equivalent). More specifically, applications may also need to take into
+   * account the amount of memory already in use, for example by performing the
+   * following:
+   *
+   * <pre>
+   * Runtime runTime = Runtime.getRuntime();
+   * runTime.gc();
+   * runTime.gc();
+   * long freeCommittedMemory = runTime.freeMemory();
+   * long uncommittedMemory = runTime.maxMemory() - runTime.totalMemory();
+   * long freeMemory = freeCommittedMemory + uncommittedMemory;
+   * </pre>
+   *
+   * @return The usable memory which could potentially be used by the
+   *         application for caching objects.
+   */
+  public static long getUsableMemoryForCaching()
+  {
+    return IMPL.getUsableMemoryForCaching();
   }
 }

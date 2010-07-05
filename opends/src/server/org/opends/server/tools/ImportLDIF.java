@@ -46,7 +46,6 @@ import java.util.Random;
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
-import org.opends.server.api.DebugLogPublisher;
 import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigException;
@@ -58,8 +57,6 @@ import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.TextErrorLogPublisher;
 import org.opends.server.loggers.TextWriter;
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.TextDebugLogPublisher;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.tasks.ImportTask;
 import org.opends.server.tools.makeldif.TemplateFile;
@@ -729,7 +726,7 @@ public class ImportLDIF extends TaskTool {
   /**
    * {@inheritDoc}
    */
-  public Class getTaskClass() {
+  public Class<?> getTaskClass() {
     return ImportTask.class;
   }
 
@@ -866,14 +863,10 @@ public class ImportLDIF extends TaskTool {
       {
         try
         {
-          ErrorLogPublisher errorLogPublisher =
+          ErrorLogPublisher<?> errorLogPublisher =
               TextErrorLogPublisher.getStartupTextErrorPublisher(
                   new TextWriter.STREAM(out));
-          DebugLogPublisher debugLogPublisher =
-              TextDebugLogPublisher.getStartupTextDebugPublisher(
-                  new TextWriter.STREAM(out));
           ErrorLogger.addErrorLogPublisher(errorLogPublisher);
-          DebugLogger.addDebugLogPublisher(debugLogPublisher);
         }
         catch(Exception e)
         {
