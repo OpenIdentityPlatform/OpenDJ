@@ -1361,7 +1361,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
           {
             // Check if this entry is an immediate child.
             if(JebFormat.findDNKeyParent(key.getData(), 0,
-                                       key.getSize()) == baseDNKey.length)
+                                       key.getSize()) != baseDNKey.length)
             {
               isInScope = false;
             }
