@@ -1152,10 +1152,7 @@ public final class LDAPConnectionHandler extends
       if (requestHandlerIndex >= numRequestHandlers) {
         requestHandlerIndex = 0;
       }
-
-      if (requestHandler
-          .registerClient(clientConnection)) {
-      }
+      requestHandler.registerClient(clientConnection);
     } catch (Exception e) {
       if (debugEnabled())
       {
