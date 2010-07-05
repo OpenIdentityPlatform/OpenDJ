@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2009 Parametric Technology Corporation (PTC)
  */
 package org.opends.server.crypto;
@@ -1526,14 +1526,24 @@ public class CryptoManagerImpl
     public SecretKeyEntry(final String algorithm, final int keyLengthBits)
     throws CryptoManagerException {
       KeyGenerator keyGen;
+      int maxAllowedKeyLengthBits;
       try {
         keyGen = KeyGenerator.getInstance(algorithm);
+        maxAllowedKeyLengthBits = Cipher.getMaxAllowedKeyLength(algorithm);
       }
       catch (NoSuchAlgorithmException ex) {
         throw new CryptoManagerException(
                ERR_CRYPTOMGR_INVALID_SYMMETRIC_KEY_ALGORITHM.get(
                        algorithm, getExceptionMessage(ex)), ex);
       }
+      //See if key length is beyond the permissible value.
+      if(maxAllowedKeyLengthBits < keyLengthBits)
+      {
+        throw new CryptoManagerException(
+                ERR_CRYPTOMGR_INVALID_SYMMETRIC_KEY_LENGTH.get(keyLengthBits,
+                maxAllowedKeyLengthBits));
+      }
+
       keyGen.init(keyLengthBits, secureRandom);
       final byte[] key = keyGen.generateKey().getEncoded();
 
