@@ -19,244 +19,244 @@ Content-Length: 7631
    xmlns='urn:oasis:names:tc:DSML:2:0:core' 
    >
    <searchResponse>
-   <searchResultEntry dn='cn=Nicholas Bakers, ou=Corporate Tax, ou=Fin-Accounting, ou=Americas, ou=Search, o=IMC, c=US'>
-      <attr name='cn'>
+   <searchResultEntry dn="cn=Nicholas Bakers,ou=Corporate Tax,ou=Fin-Accounting,ou=Americas,ou=Search,o=IMC,c=US">
+      <attr name="cn">
       <value>Nicholas Bakers</value>
       </attr>
-      <attr name='sn'>
+      <attr name="sn">
       <value>Bakers</value>
       </attr>
-      <attr name='givenName'>
+      <attr name="givenName">
       <value>Nicholas</value>
       </attr>
-      <attr name='objectClass'>
+      <attr name="objectClass">
       <value>top</value>
       <value>person</value>
       <value>organizationalperson</value>
       <value>inetorgperson</value>
       </attr>
-      <attr name='telephoneNumber'>
+      <attr name="telephoneNumber">
       <value>+1 408 827 0113</value>
       </attr>
-      <attr name='mail'>
+      <attr name="mail">
       <value>Nicholas.Bakers@dirconnect2.org</value>
       </attr>
-      <attr name='title'>
+      <attr name="title">
       <value>Accountant</value>
       </attr>
-      <attr name='employeeNumber'>
+      <attr name="employeeNumber">
       <value>1100144</value>
       </attr>
    </searchResultEntry>
-   <searchResultEntry dn='cn=Oprah Bakers, ou=Corporate Tax, ou=Fin-Accounting, ou=Americas, ou=Search, o=IMC, c=US'>
-      <attr name='cn'>
+   <searchResultEntry dn="cn=Oprah Bakers,ou=Corporate Tax,ou=Fin-Accounting,ou=Americas,ou=Search,o=IMC,c=US">
+      <attr name="cn">
       <value>Oprah Bakers</value>
       </attr>
-      <attr name='sn'>
+      <attr name="sn">
       <value>Bakers</value>
       </attr>
-      <attr name='givenName'>
+      <attr name="givenName">
       <value>Oprah</value>
       </attr>
-      <attr name='objectClass'>
+      <attr name="objectClass">
       <value>top</value>
       <value>person</value>
       <value>organizationalperson</value>
       <value>inetorgperson</value>
       </attr>
-      <attr name='telephoneNumber'>
+      <attr name="telephoneNumber">
       <value>+1 408 827 0114</value>
       </attr>
-      <attr name='mail'>
+      <attr name="mail">
       <value>Oprah.Bakers@dirconnect2.org</value>
       </attr>
-      <attr name='title'>
+      <attr name="title">
       <value>Lawyer</value>
       </attr>
-      <attr name='employeeNumber'>
+      <attr name="employeeNumber">
       <value>1100145</value>
       </attr>
    </searchResultEntry>
-   <searchResultEntry dn='cn=Pat Bakers, ou=Corporate Tax, ou=Fin-Accounting, ou=Americas, ou=Search, o=IMC, c=US'>
-      <attr name='cn'>
+   <searchResultEntry dn="cn=Pat Bakers,ou=Corporate Tax,ou=Fin-Accounting,ou=Americas,ou=Search,o=IMC,c=US">
+      <attr name="cn">
       <value>Pat Bakers</value>
       </attr>
-      <attr name='sn'>
+      <attr name="sn">
       <value>Bakers</value>
       </attr>
-      <attr name='givenName'>
+      <attr name="givenName">
       <value>Pat</value>
       </attr>
-      <attr name='objectClass'>
+      <attr name="objectClass">
       <value>top</value>
       <value>person</value>
       <value>organizationalperson</value>
       <value>inetorgperson</value>
       </attr>
-      <attr name='telephoneNumber'>
+      <attr name="telephoneNumber">
       <value>+1 408 827 0115</value>
       </attr>
-      <attr name='mail'>
+      <attr name="mail">
       <value>Pat.Bakers@dirconnect2.org</value>
       </attr>
-      <attr name='title'>
+      <attr name="title">
       <value>Accountant</value>
       </attr>
-      <attr name='employeeNumber'>
+      <attr name="employeeNumber">
       <value>1100146</value>
       </attr>
    </searchResultEntry>
-   <searchResultEntry dn='cn=\+Pat Bakers, ou=Corporate Tax, ou=Fin-Accounting, ou=Americas, ou=Search, o=IMC, c=US'>
-      <attr name='cn'>
+   <searchResultEntry dn="cn=\+Pat Bakers,ou=Corporate Tax,ou=Fin-Accounting,ou=Americas,ou=Search,o=IMC,c=US">
+      <attr name="cn">
       <value>Pat Bakers</value>
-      <value>\+Pat Bakers</value>
+      <value>+Pat Bakers</value>
       </attr>
-      <attr name='sn'>
+      <attr name="sn">
       <value>Bakers</value>
       </attr>
-      <attr name='givenName'>
+      <attr name="givenName">
       <value>Pat</value>
       </attr>
-      <attr name='objectClass'>
+      <attr name="objectClass">
       <value>top</value>
       <value>person</value>
       <value>organizationalperson</value>
       <value>inetorgperson</value>
       </attr>
-      <attr name='telephoneNumber'>
+      <attr name="telephoneNumber">
       <value>+1 408 827 0115</value>
       </attr>
-      <attr name='mail'>
+      <attr name="mail">
       <value>Pat.Bakers@dirconnect2.org</value>
       </attr>
-      <attr name='title'>
+      <attr name="title">
       <value>Accountant</value>
       </attr>
-      <attr name='employeeNumber'>
+      <attr name="employeeNumber">
       <value>1100146</value>
       </attr>
    </searchResultEntry>
-   <searchResultEntry dn='cn=Pat\, Bakers, ou=Corporate Tax, ou=Fin-Accounting, ou=Americas, ou=Search, o=IMC, c=US'>
-      <attr name='cn'>
+   <searchResultEntry dn="cn=Pat\, Bakers,ou=Corporate Tax,ou=Fin-Accounting,ou=Americas,ou=Search,o=IMC,c=US">
+      <attr name="cn">
       <value>Pat Bakers</value>
-      <value>Pat\, Bakers</value>
+      <value>Pat, Bakers</value>
       </attr>
-      <attr name='sn'>
+      <attr name="sn">
       <value>Bakers</value>
       </attr>
-      <attr name='givenName'>
+      <attr name="givenName">
       <value>Pat</value>
       </attr>
-      <attr name='objectClass'>
+      <attr name="objectClass">
       <value>top</value>
       <value>person</value>
       <value>organizationalperson</value>
       <value>inetorgperson</value>
       </attr>
-      <attr name='telephoneNumber'>
+      <attr name="telephoneNumber">
       <value>+1 408 827 0115</value>
       </attr>
-      <attr name='mail'>
+      <attr name="mail">
       <value>Pat.Bakers@dirconnect2.org</value>
       </attr>
-      <attr name='title'>
+      <attr name="title">
       <value>Accountant</value>
       </attr>
-      <attr name='employeeNumber'>
+      <attr name="employeeNumber">
       <value>1100146</value>
       </attr>
    </searchResultEntry>
-   <searchResultEntry dn='cn=\&quot;Pat Bakers\&quot;, ou=Corporate Tax, ou=Fin-Accounting, ou=Americas, ou=Search, o=IMC, c=US'>
-      <attr name='cn'>
+   <searchResultEntry dn="cn=\&quot;Pat Bakers\&quot;,ou=Corporate Tax,ou=Fin-Accounting,ou=Americas,ou=Search,o=IMC,c=US">
+      <attr name="cn">
       <value>Pat Bakers</value>
-      <value>\&quot;Pat Bakers\&quot;</value>
+      <value>"Pat Bakers"</value>
       
       </attr>
-      <attr name='sn'>
+      <attr name="sn">
       <value>Bakers</value>
       </attr>
-      <attr name='givenName'>
+      <attr name="givenName">
       <value>Pat</value>
       </attr>
-      <attr name='objectClass'>
+      <attr name="objectClass">
       <value>top</value>
       <value>person</value>
       <value>organizationalperson</value>
       <value>inetorgperson</value>
       </attr>
-      <attr name='telephoneNumber'>
+      <attr name="telephoneNumber">
       <value>+1 408 827 0115</value>
       </attr>
-      <attr name='mail'>
+      <attr name="mail">
       <value>Pat.Bakers@dirconnect2.org</value>
       </attr>
-      <attr name='title'>
+      <attr name="title">
       <value>Accountant</value>
       </attr>
-      <attr name='employeeNumber'>
+      <attr name="employeeNumber">
       <value>1100146</value>
       </attr>
    </searchResultEntry>
-   <searchResultEntry dn='cn=Patrick Bakers, ou=Corporate Tax, ou=Fin-Accounting, ou=Americas, ou=Search, o=IMC, c=US'>
-      <attr name='cn'>
+   <searchResultEntry dn="cn=Patrick Bakers,ou=Corporate Tax,ou=Fin-Accounting,ou=Americas,ou=Search,o=IMC,c=US">
+      <attr name="cn">
       <value>Patrick Bakers</value>
       </attr>
-      <attr name='sn'>
+      <attr name="sn">
       <value>Bakers</value>
       </attr>
-      <attr name='givenName'>
+      <attr name="givenName">
       <value>Patrick</value>
       </attr>
-      <attr name='objectClass'>
+      <attr name="objectClass">
       <value>top</value>
       <value>person</value>
       <value>organizationalperson</value>
       <value>inetorgperson</value>
       </attr>
-      <attr name='telephoneNumber'>
+      <attr name="telephoneNumber">
       <value>+1 408 827 0116</value>
       </attr>
-      <attr name='mail'>
+      <attr name="mail">
       <value>Patrick.Bakers@dirconnect2.org</value>
       </attr>
-      <attr name='title'>
+      <attr name="title">
       <value>Lawyer</value>
       </attr>
-      <attr name='employeeNumber'>
+      <attr name="employeeNumber">
       <value>1100147</value>
       </attr>
    </searchResultEntry>
-   <searchResultEntry dn='cn=Paul Bakers, ou=Corporate Tax, ou=Fin-Accounting, ou=Americas, ou=Search, o=IMC, c=US'>
-      <attr name='cn'>
+   <searchResultEntry dn="cn=Paul Bakers,ou=Corporate Tax,ou=Fin-Accounting,ou=Americas,ou=Search,o=IMC,c=US">
+      <attr name="cn">
       <value>Paul Bakers</value>
       </attr>
-      <attr name='sn'>
+      <attr name="sn">
       <value>Bakers</value>
       </attr>
-      <attr name='givenName'>
+      <attr name="givenName">
       <value>Paul</value>
       </attr>
-      <attr name='objectClass'>
+      <attr name="objectClass">
       <value>top</value>
       <value>person</value>
       <value>organizationalperson</value>
       <value>inetorgperson</value>
       </attr>
-      <attr name='telephoneNumber'>
+      <attr name="telephoneNumber">
       <value>+1 408 827 0117</value>
       </attr>
-      <attr name='mail'>
+      <attr name="mail">
       <value>Paul.Bakers@dirconnect2.org</value>
       </attr>
-      <attr name='title'>
+      <attr name="title">
       <value>Clerk</value>
       </attr>
-      <attr name='employeeNumber'>
+      <attr name="employeeNumber">
       <value>1100148</value>
       </attr>
    </searchResultEntry>
    <searchResultDone>
-      <resultCode code='0' descr='success'/>
+      <resultCode code="0" descr="success"/>
    </searchResultDone>
    </searchResponse>
 </batchResponse>
