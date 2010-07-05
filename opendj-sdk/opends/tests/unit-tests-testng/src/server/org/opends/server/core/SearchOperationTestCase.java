@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.core;
@@ -57,6 +57,7 @@ import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
+import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.ByteString;
@@ -1424,5 +1425,96 @@ public class SearchOperationTestCase extends OperationTestCase
 
     assertTrue(actualNames.containsAll(expectedAttributes),
         "Expected: " + expectedAttributes + " got " + actualNames);
+  }
+
+
+  /**
+   * Tests the one-level search with a lower allid threshold value.
+   */
+  @Test()
+  public void testOneLevelSearchWithAllIDThreshold() throws Exception
+  {
+    //Set a lower value for allid threshold. We set 2.
+    setAllIdThreshold(2);
+    //Add entries.
+    String filePath = TestCaseUtils.createTempFile(
+    "dn: ou=unit1,dc=example,dc=com\n" +
+    "objectclass: top\n" +
+    "objectclass: organizationalUnit\n" +
+    "ou: unit1\n" +
+    "\n" +
+    "dn: ou=unit2,dc=example,dc=com\n" +
+    "objectclass: top\n" +
+    "objectclass: organizationalUnit\n" +
+    "ou: unit2\n" +
+    "\n" +
+    "dn: ou=unit3,dc=example,dc=com\n" +
+    "objectclass: top\n" +
+    "objectclass: organizationalUnit\n" +
+    "ou: unit3\n");
+
+    String[]  args = new String []
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D","cn=directory manager",
+      "-w","password",
+      "-a",
+      "-f", filePath
+    };
+    int err = LDAPModify.mainModify(args, false, null,null);
+
+    assertEquals(err,0);
+
+    //Search for the entries.
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    InternalSearchOperation searchOperation =
+         new InternalSearchOperation(
+              conn,
+              InternalClientConnection.nextOperationID(),
+              InternalClientConnection.nextMessageID(),
+              new ArrayList<Control>(),
+              ByteString.valueOf("dc=example,dc=com"),
+              SearchScope.SINGLE_LEVEL,
+              DereferencePolicy.NEVER_DEREF_ALIASES,
+              Integer.MAX_VALUE,
+              Integer.MAX_VALUE,
+              false,
+              LDAPFilter.decode("(objectclass=organizationalUnit)"),
+              null, null);
+
+    searchOperation.run();
+    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+    assertEquals(searchOperation.getSearchEntries().size(),3);
+    //restore the allid threshold.
+    setAllIdThreshold(4000);
+  }
+
+
+  //Sets a value of the allid threshold.
+  private void setAllIdThreshold(int value) throws Exception
+  {
+    //Change the allid threshold value.
+    String filePath = TestCaseUtils.createTempFile(
+    "dn: ds-cfg-backend-id=userRoot,cn=Backends,cn=config",
+    "changetype: modify",
+    "delete: ds-cfg-index-entry-limit",
+    "-",
+    "add: ds-cfg-index-entry-limit",
+    "ds-cfg-index-entry-limit: "+value
+    );
+    String[] args = new String []
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D","cn=directory manager",
+      "-w","password",
+      "-a",
+      "-f", filePath
+    };
+    int err = LDAPModify.mainModify(args, false, null,null);
+    assertEquals(err, 0);
   }
 }
