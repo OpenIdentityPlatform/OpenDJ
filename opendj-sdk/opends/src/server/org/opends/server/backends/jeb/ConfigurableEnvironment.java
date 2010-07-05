@@ -318,9 +318,11 @@ public class ConfigurableEnvironment
 
         if (attrName.equals(ATTR_NUM_CLEANER_THREADS) && value == null)
         {
-          // Automatically choose based on the number of processors.
+          // Automatically choose based on the number of processors. We will use
+          // similar heuristics to those used to define the default number of
+          // worker threads.
           int cpus = Runtime.getRuntime().availableProcessors();
-          value = Integer.valueOf(Math.max(2, cpus / 2));
+          value = Integer.valueOf(Math.max(24, cpus * 2));
 
           Message message =
               INFO_ERGONOMIC_SIZING_OF_JE_CLEANER_THREADS.get(String
@@ -335,7 +337,7 @@ public class ConfigurableEnvironment
           // We'll assume that the user has also allowed automatic
           // configuration of cleaners and workers.
           int cpus = Runtime.getRuntime().availableProcessors();
-          int cleaners = Math.max(2, cpus / 2);
+          int cleaners = Math.max(24, cpus * 2);
           int workers = Math.max(24, cpus * 2);
           BigInteger tmp = BigInteger.valueOf((cleaners + workers) * 2);
           value = tmp.nextProbablePrime();
