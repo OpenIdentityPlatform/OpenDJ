@@ -1646,7 +1646,7 @@ Content-Length: 405327
    <searchResultEntry dn='cn=\+Pat Bakers, ou=Corporate Tax, ou=Fin-Accounting, ou=Americas, ou=Search, o=IMC, c=US'>
       <attr name='cn'>
       <value>Pat Bakers</value>
-      <value>\+Pat Bakers</value>
+      <value>+Pat Bakers</value>
       </attr>
       <attr name='sn'>
       <value>Bakers</value>
@@ -1676,7 +1676,7 @@ Content-Length: 405327
    <searchResultEntry dn='cn=Pat\, Bakers, ou=Corporate Tax, ou=Fin-Accounting, ou=Americas, ou=Search, o=IMC, c=US'>
       <attr name='cn'>
       <value>Pat Bakers</value>
-      <value>Pat\, Bakers</value>
+      <value>Pat, Bakers</value>
       </attr>
       <attr name='sn'>
       <value>Bakers</value>
@@ -1706,7 +1706,7 @@ Content-Length: 405327
    <searchResultEntry dn='cn=\"Pat Bakers\", ou=Corporate Tax, ou=Fin-Accounting, ou=Americas, ou=Search, o=IMC, c=US'>
       <attr name='cn'>
       <value>Pat Bakers</value>
-      <value>\&quot;Pat Bakers\&quot;</value>
+      <value>"Pat Bakers"</value>
       </attr>
       <attr name='sn'>
       <value>Bakers</value>

@@ -4484,7 +4484,7 @@ userPassword: {SSHA}C3ll67rKryA+e6KK7E+zANS1CI3hQOIhuDulHA==
 dn: cn=\+Pat Bakers, ou=Corporate Tax, ou=Fin-Accounting, ou=Americas, ou=Sear
  ch, o=IMC, c=US
 cn: Pat Bakers
-cn: \+Pat Bakers
+cn: +Pat Bakers
 sn: Bakers
 givenName: Pat
 objectClass: top
@@ -4500,7 +4500,7 @@ userPassword: {SSHA}S1wzAhrCy2H2UPsU4obFRsrPG1FhJTk1H1/6aQ==
 dn: cn=Pat\, Bakers, ou=Corporate Tax, ou=Fin-Accounting, ou=Americas, ou=Sear
  ch, o=IMC, c=US
 cn: Pat Bakers
-cn: Pat\, Bakers
+cn: Pat, Bakers
 sn: Bakers
 givenName: Pat
 objectClass: top
@@ -4516,7 +4516,7 @@ userPassword: {SSHA}U5X7IeNk31HRSXtaFIzlLJnVprHqDNJbgwMQXg==
 dn: cn=\"Pat Bakers\", ou=Corporate Tax, ou=Fin-Accounting, ou=Americas, ou=Se
  arch, o=IMC, c=US
 cn: Pat Bakers
-cn: \"Pat Bakers\"
+cn: "Pat Bakers"
 sn: Bakers
 givenName: Pat
 objectClass: top
@@ -15190,42 +15190,36 @@ dn: cn=Ac\#illes, ou=Syntaxes, ou=Search, o=IMC, c=US
 objectClass: top
 objectClass: person
 cn: Ac#illes
-cn: Ac\#illes
 sn: Smith
 
 dn: cn=Mars\\Ares, ou=Syntaxes, ou=Search, o=IMC, c=US
 objectClass: top
 objectClass: person
 cn: Mars\Ares
-cn: Mars\\Ares
 sn: Smith
 
 dn: cn=Rome\<Athens, ou=Syntaxes, ou=Search, o=IMC, c=US
 objectClass: top
 objectClass: person
 cn: Rome<Athens
-cn: Rome\<Athens
 sn: Smith
 
 dn: cn=Athens\>Rome, ou=Syntaxes, ou=Search, o=IMC, c=US
 objectClass: top
 objectClass: person
 cn: Athens>Rome
-cn: Athens\>Rome
 sn: Smith
 
 dn: cn=Perse\;phone, ou=Syntaxes, ou=Search, o=IMC, c=US
 objectClass: top
 objectClass: person
 cn: Perse;phone
-cn: Perse\;phone
 sn: Smith
 
 dn: cn=Time\=Money, ou=Syntaxes, ou=Search, o=IMC, c=US
 objectClass: top
 objectClass: person
 cn: Time=Money
-cn: Time\=Money
 sn: Smith
 
 dn: cn="Easy Come, Easy Go", ou=Syntaxes, ou=Search, o=IMC, c=US
