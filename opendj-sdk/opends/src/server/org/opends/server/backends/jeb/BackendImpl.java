@@ -1352,15 +1352,18 @@ public class BackendImpl
                 .getDBCleanerMinUtilization()));
         envConfig.setConfigParam(EnvironmentConfig.LOG_FILE_MAX, String
             .valueOf(cfg.getDBLogFileMax()));
+
+        Importer importer = new Importer(rebuildConfig, cfg, envConfig);
         rootContainer = initializeRootContainer(envConfig);
+        importer.rebuildIndexes(rootContainer);
       }
       else
       {
         envConfig = ConfigurableEnvironment.parseConfigEntry(cfg);
-      }
 
-      Importer importer = new Importer(rebuildConfig, cfg, envConfig);
-      importer.rebuildIndexes(rootContainer);
+        Importer importer = new Importer(rebuildConfig, cfg, envConfig);
+        importer.rebuildIndexes(rootContainer);
+      }
     }
     catch (ExecutionException execEx)
     {
