@@ -1755,36 +1755,38 @@ public class BackendImpl
 
   /**
    * {@inheritDoc}
+   * @param monitor
    */
-  public void diskLowThresholdReached(long bytesFree) {
+  public void diskLowThresholdReached(DiskSpaceMonitor monitor) {
     Message msg = ERR_JEB_DISK_LOW_THRESHOLD_REACHED.get(
-        getFileForPath(cfg.getDBDirectory()).getPath(), cfg.getBackendId(),
-        bytesFree, Math.max(cfg.getDiskLowThreshold(),
-            cfg.getDiskFullThreshold()));
+        monitor.getDirectory().getPath(), cfg.getBackendId(),
+        monitor.getFreeSpace(), Math.max(monitor.getLowThreshold(),
+            monitor.getFullThreshold()));
     DirectoryServer.sendAlertNotification(this,
         ALERT_TYPE_DISK_SPACE_LOW, msg);
   }
 
   /**
    * {@inheritDoc}
+   * @param monitor
    */
-  public void diskFullThresholdReached(long bytesFree) {
+  public void diskFullThresholdReached(DiskSpaceMonitor monitor) {
     Message msg = ERR_JEB_DISK_FULL_THRESHOLD_REACHED.get(
-        getFileForPath(cfg.getDBDirectory()).getPath(), cfg.getBackendId(),
-        bytesFree, Math.max(cfg.getDiskLowThreshold(),
-            cfg.getDiskFullThreshold()));
+        monitor.getDirectory().getPath(), cfg.getBackendId(),
+        monitor.getFreeSpace(), Math.max(monitor.getLowThreshold(),
+            monitor.getFullThreshold()));
     DirectoryServer.sendAlertNotification(this,
         ALERT_TYPE_DISK_FULL, msg);
   }
 
   /**
    * {@inheritDoc}
+   * @param monitor
    */
-  public void diskSpaceRestored(long bytesFree) {
-    Message msg = NOTE_JEB_DISK_SPACE_RESTORED.get(bytesFree,
-        getFileForPath(cfg.getDBDirectory()).getPath(), cfg.getBackendId(),
-        Math.max(cfg.getDiskLowThreshold(),
-            cfg.getDiskFullThreshold()));
+  public void diskSpaceRestored(DiskSpaceMonitor monitor) {
+    Message msg = NOTE_JEB_DISK_SPACE_RESTORED.get(monitor.getFreeSpace(),
+        monitor.getDirectory().getPath(), cfg.getBackendId(),
+        Math.max(monitor.getLowThreshold(), monitor.getFullThreshold()));
     logError(msg);
   }
 

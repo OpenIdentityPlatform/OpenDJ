@@ -276,33 +276,36 @@ public class Suffix
 
 
   /**
-   * Sets all of the indexes, vlvIndexes, id2children and id2subtree indexes to
-   * trusted.
+   * Sets the trusted status of all of the indexes, vlvIndexes, id2children
+   * and id2subtree indexes.
+   *
+   * @param trusted True if the indexes should be trusted or false
+   *                otherwise.
    *
    * @throws DatabaseException If an error occurred setting the indexes to
    *                           trusted.
    */
-  public void setIndexesTrusted() throws DatabaseException
+  public void setIndexesTrusted(boolean trusted) throws DatabaseException
   {
-    entryContainer.getID2Children().setTrusted(null,true);
-    entryContainer.getID2Subtree().setTrusted(null, true);
+    entryContainer.getID2Children().setTrusted(null,trusted);
+    entryContainer.getID2Subtree().setTrusted(null, trusted);
     for(AttributeIndex attributeIndex :
             entryContainer.getAttributeIndexes()) {
       Index index;
       if((index = attributeIndex.getEqualityIndex()) != null) {
-        index.setTrusted(null, true);
+        index.setTrusted(null, trusted);
       }
       if((index=attributeIndex.getPresenceIndex()) != null) {
-        index.setTrusted(null, true);
+        index.setTrusted(null, trusted);
       }
       if((index=attributeIndex.getSubstringIndex()) != null) {
-        index.setTrusted(null, true);
+        index.setTrusted(null, trusted);
       }
       if((index=attributeIndex.getOrderingIndex()) != null) {
-        index.setTrusted(null, true);
+        index.setTrusted(null, trusted);
       }
       if((index=attributeIndex.getApproximateIndex()) != null) {
-        index.setTrusted(null, true);
+        index.setTrusted(null, trusted);
       }
       Map<String,Collection<Index>> exIndexes =
               attributeIndex.getExtensibleIndexes();
@@ -312,20 +315,20 @@ public class Suffix
                 get(EXTENSIBLE_INDEXER_ID_SUBSTRING);
         if(subIndexes != null) {
           for(Index subIndex : subIndexes) {
-            subIndex.setTrusted(null, true);
+            subIndex.setTrusted(null, trusted);
           }
         }
         Collection<Index> sharedIndexes = attributeIndex.
                 getExtensibleIndexes().get(EXTENSIBLE_INDEXER_ID_SHARED);
         if(sharedIndexes !=null) {
           for(Index sharedIndex : sharedIndexes) {
-            sharedIndex.setTrusted(null, true);
+            sharedIndex.setTrusted(null, trusted);
           }
         }
       }
     }
     for(VLVIndex vlvIdx : entryContainer.getVLVIndexes()) {
-      vlvIdx.setTrusted(null, true);
+      vlvIdx.setTrusted(null, trusted);
     }
   }
 

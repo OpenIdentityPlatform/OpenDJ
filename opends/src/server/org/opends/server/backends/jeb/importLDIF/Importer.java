@@ -48,9 +48,11 @@ import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.admin.std.server.LocalDBIndexCfg;
+import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.backends.jeb.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.types.*;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.Platform;
@@ -64,7 +66,7 @@ import com.sleepycat.util.PackedInteger;
  * This class provides the engine that performs both importing of LDIF files and
  * the rebuilding of indexes.
  */
-public final class Importer
+public final class Importer implements DiskSpaceMonitorHandler
 {
   private static final int TIMER_INTERVAL = 10000;
   private static final int KB = 1024;
@@ -187,14 +189,16 @@ public final class Importer
   //Used to synchronize when a scratch file index writer is first setup.
   private final Object synObj = new Object();
 
-  //Rebuld index manager used when rebuilding indexes.
+  //Rebuild index manager used when rebuilding indexes.
   private final RebuildIndexManager rebuildManager;
 
   //Set to true if the backend was cleared.
   private boolean clearedBackend = false;
 
   //Used to shutdown import if an error occurs in phase one.
-  private volatile boolean isPhaseOneCanceled = false;
+  private volatile boolean isCanceled = false;
+
+  private volatile boolean isPhaseOneDone = false;
 
   //Number of phase one buffers
   private int phaseOneBufferCount;
@@ -600,7 +604,7 @@ public final class Importer
   }
 
 
-  private void initializeSuffixes() throws DatabaseException, JebException,
+  private void initializeSuffixes() throws DatabaseException,
            ConfigException, InitializationException
   {
     for(EntryContainer ec : rootContainer.getEntryContainers())
@@ -670,8 +674,7 @@ public final class Importer
 
 
   private Suffix getSuffix(EntryContainer entryContainer)
-     throws DatabaseException, JebException, ConfigException,
-            InitializationException {
+     throws ConfigException, InitializationException {
    DN baseDN = entryContainer.getBaseDN();
    EntryContainer sourceEntryContainer = null;
    List<DN> includeBranches = new ArrayList<DN>();
@@ -799,11 +802,45 @@ public final class Importer
   {
     this.rootContainer = rootContainer;
     long startTime = System.currentTimeMillis();
-    rebuildManager.initialize();
-    rebuildManager.printStartMessage();
-    rebuildManager.rebuldIndexes();
-    recursiveDelete(tempDir);
-    rebuildManager.printStopMessage(startTime);
+
+    DiskSpaceMonitor tmpMonitor = new DiskSpaceMonitor(
+        backendConfiguration.getBackendId() +
+            " backend index rebuild tmp directory",
+        tempDir, backendConfiguration.getDiskLowThreshold(),
+        backendConfiguration.getDiskFullThreshold(), 5,
+        TimeUnit.SECONDS, this);
+    tmpMonitor.initializeMonitorProvider(null);
+    DirectoryServer.registerMonitorProvider(tmpMonitor);
+    File parentDirectory =
+        getFileForPath(backendConfiguration.getDBDirectory());
+    File backendDirectory =
+        new File(parentDirectory, backendConfiguration.getBackendId());
+    DiskSpaceMonitor dbMonitor = new DiskSpaceMonitor(
+        backendConfiguration.getBackendId() +
+            " backend index rebuild DB directory",
+        backendDirectory, backendConfiguration.getDiskLowThreshold(),
+        backendConfiguration.getDiskFullThreshold(), 5,
+        TimeUnit.SECONDS, this);
+    dbMonitor.initializeMonitorProvider(null);
+    DirectoryServer.registerMonitorProvider(dbMonitor);
+
+    try
+    {
+      rebuildManager.initialize();
+      rebuildManager.printStartMessage();
+      rebuildManager.rebuildIndexes();
+      recursiveDelete(tempDir);
+      rebuildManager.printStopMessage(startTime);
+    }
+    finally
+    {
+      DirectoryServer.deregisterMonitorProvider(
+          tmpMonitor.getMonitorInstanceName());
+      DirectoryServer.deregisterMonitorProvider(
+          dbMonitor.getMonitorInstanceName());
+      tmpMonitor.finalizeMonitorProvider();
+      dbMonitor.finalizeMonitorProvider();
+    }
   }
 
 
@@ -839,6 +876,25 @@ public final class Importer
       throw new InitializationException(message, ioe);
     }
 
+    DiskSpaceMonitor tmpMonitor = new DiskSpaceMonitor(
+        backendConfiguration.getBackendId() + " backend import tmp directory",
+        tempDir, backendConfiguration.getDiskLowThreshold(),
+        backendConfiguration.getDiskFullThreshold(), 5,
+        TimeUnit.SECONDS, this);
+    tmpMonitor.initializeMonitorProvider(null);
+    DirectoryServer.registerMonitorProvider(tmpMonitor);
+    File parentDirectory =
+        getFileForPath(backendConfiguration.getDBDirectory());
+    File backendDirectory =
+        new File(parentDirectory, backendConfiguration.getBackendId());
+    DiskSpaceMonitor dbMonitor = new DiskSpaceMonitor(
+        backendConfiguration.getBackendId() + " backend import DB directory",
+        backendDirectory, backendConfiguration.getDiskLowThreshold(),
+        backendConfiguration.getDiskFullThreshold(), 5,
+        TimeUnit.SECONDS, this);
+    dbMonitor.initializeMonitorProvider(null);
+    DirectoryServer.registerMonitorProvider(dbMonitor);
+
     try
     {
       Message message = NOTE_JEB_IMPORT_STARTING.get(
@@ -847,21 +903,27 @@ public final class Importer
       message = NOTE_JEB_IMPORT_THREAD_COUNT.get(threadCount);
       logError(message);
       initializeSuffixes();
+      setIndexesTrusted(false);
       long startTime = System.currentTimeMillis();
       phaseOne();
+      isPhaseOneDone = true;
       long phaseOneFinishTime = System.currentTimeMillis();
       if (!skipDNValidation)
       {
         tmpEnv.shutdown();
       }
-      if (isPhaseOneCanceled)
+      if (isCanceled)
       {
         throw new InterruptedException("Import processing canceled.");
       }
       long phaseTwoTime = System.currentTimeMillis();
       phaseTwo();
+      if (isCanceled)
+      {
+        throw new InterruptedException("Import processing canceled.");
+      }
       long phaseTwoFinishTime = System.currentTimeMillis();
-      setIndexesTrusted();
+      setIndexesTrusted(true);
       switchContainers();
       recursiveDelete(tempDir);
       long finishTime = System.currentTimeMillis();
@@ -880,6 +942,12 @@ public final class Importer
     finally
     {
       reader.close();
+      DirectoryServer.deregisterMonitorProvider(
+          tmpMonitor.getMonitorInstanceName());
+      DirectoryServer.deregisterMonitorProvider(
+          dbMonitor.getMonitorInstanceName());
+      tmpMonitor.finalizeMonitorProvider();
+      dbMonitor.finalizeMonitorProvider();
     }
     return new LDIFImportResult(reader.getEntriesRead(),
         reader.getEntriesRejected(), reader.getEntriesIgnored());
@@ -930,11 +998,11 @@ public final class Importer
 
 
 
-  private void setIndexesTrusted() throws JebException
+  private void setIndexesTrusted(boolean trusted) throws JebException
   {
     try {
       for(Suffix s : dnSuffixMap.values()) {
-        s.setIndexesTrusted();
+        s.setIndexesTrusted(trusted);
       }
     }
     catch (DatabaseException ex)
@@ -1032,8 +1100,7 @@ public final class Importer
 
 
 
-  private void phaseTwo() throws InitializationException, InterruptedException,
-      JebException, ExecutionException
+  private void phaseTwo() throws InterruptedException, ExecutionException
   {
     SecondPhaseProgressTask progress2Task = new SecondPhaseProgressTask(
         reader.getEntriesRead());
@@ -1054,8 +1121,8 @@ public final class Importer
 
 
 
-  private void processIndexFiles() throws InitializationException,
-      InterruptedException, JebException, ExecutionException
+  private void processIndexFiles()
+      throws InterruptedException, ExecutionException
   {
     if(bufferCount.get() == 0)
     {
@@ -1208,7 +1275,7 @@ public final class Importer
                 while(status == OperationStatus.SUCCESS &&
                       comparator.compare(key.getData(), end) < 0 &&
                       !importConfiguration.isCancelled() &&
-                      !isPhaseOneCanceled) {
+                      !isCanceled) {
                   EntryID id = new EntryID(data);
                   Entry entry = entryContainer.getID2Entry().get(null,
                           id, LockMode.DEFAULT);
@@ -1219,7 +1286,6 @@ public final class Importer
                 }
               }
             }
-            cursor.close();
             flushIndexBuffers();
           }
           catch (Exception e)
@@ -1227,8 +1293,12 @@ public final class Importer
             message =
               ERR_JEB_IMPORT_LDIF_MIGRATE_EXCLUDED_TASK_ERR.get(e.getMessage());
             logError(message);
-            isPhaseOneCanceled =true;
+            isCanceled =true;
             throw e;
+          }
+          finally
+          {
+            cursor.close();
           }
         }
       }
@@ -1276,7 +1346,7 @@ public final class Importer
           try {
             status = cursor.getFirst(key, data, lockMode);
             while(status == OperationStatus.SUCCESS &&
-                    !importConfiguration.isCancelled() && !isPhaseOneCanceled) {
+                    !importConfiguration.isCancelled() && !isCanceled) {
 
               boolean found = false;
               for(byte[] includeBranch : includeBranches)
@@ -1316,7 +1386,6 @@ public final class Importer
                 status = cursor.getSearchKeyRange(key, data, lockMode);
               }
             }
-            cursor.close();
             flushIndexBuffers();
           }
           catch(Exception e)
@@ -1324,8 +1393,12 @@ public final class Importer
             message =
               ERR_JEB_IMPORT_LDIF_MIGRATE_EXISTING_TASK_ERR.get(e.getMessage());
             logError(message);
-            isPhaseOneCanceled =true;
+            isCanceled =true;
             throw e;
+          }
+          finally
+          {
+            cursor.close();
           }
         }
       }
@@ -1354,7 +1427,7 @@ public final class Importer
       {
         while (true)
         {
-          if (importConfiguration.isCancelled() || isPhaseOneCanceled)
+          if (importConfiguration.isCancelled() || isCanceled)
           {
             IndexOutputBuffer indexBuffer = new IndexOutputBuffer(0);
             freeBufferQueue.add(indexBuffer);
@@ -1377,7 +1450,7 @@ public final class Importer
         Message message =
                 ERR_JEB_IMPORT_LDIF_APPEND_REPLACE_TASK_ERR.get(e.getMessage());
         logError(message);
-        isPhaseOneCanceled = true;
+        isCanceled = true;
         throw e;
       }
       return null;
@@ -1385,7 +1458,7 @@ public final class Importer
 
 
     void processEntry(Entry entry, Suffix suffix)
-            throws DatabaseException, ConfigException, DirectoryException,
+            throws DatabaseException, DirectoryException,
             JebException, InterruptedException
 
     {
@@ -1431,7 +1504,7 @@ public final class Importer
     void
     processAllIndexes(Suffix suffix, Entry entry, EntryID entryID) throws
             DatabaseException, DirectoryException, JebException,
-            ConfigException, InterruptedException
+            InterruptedException
     {
 
       for(Map.Entry<AttributeType, AttributeIndex> mapEntry :
@@ -1498,7 +1571,7 @@ public final class Importer
 
     void processAttribute(Index index, Entry entry, EntryID entryID,
                    IndexKey indexKey) throws DatabaseException,
-            ConfigException, InterruptedException
+            InterruptedException
     {
       if(oldEntry != null)
       {
@@ -1542,7 +1615,7 @@ public final class Importer
       {
         while (true)
         {
-          if (importConfiguration.isCancelled() || isPhaseOneCanceled)
+          if (importConfiguration.isCancelled() || isCanceled)
           {
             IndexOutputBuffer indexBuffer = new IndexOutputBuffer(0);
             freeBufferQueue.add(indexBuffer);
@@ -1564,7 +1637,7 @@ public final class Importer
         Message message =
                 ERR_JEB_IMPORT_LDIF_IMPORT_TASK_ERR.get(e.getMessage());
         logError(message);
-        isPhaseOneCanceled = true;
+        isCanceled = true;
         throw e;
       }
       return null;
@@ -1572,7 +1645,7 @@ public final class Importer
 
 
     void processEntry(Entry entry, EntryID entryID, Suffix suffix)
-            throws DatabaseException, ConfigException, DirectoryException,
+            throws DatabaseException, DirectoryException,
             JebException, InterruptedException
 
     {
@@ -1633,7 +1706,7 @@ public final class Importer
     void
     processIndexes(Suffix suffix, Entry entry, EntryID entryID) throws
             DatabaseException, DirectoryException, JebException,
-            ConfigException, InterruptedException
+            InterruptedException
     {
       for(Map.Entry<AttributeType, AttributeIndex> mapEntry :
               suffix.getAttrIndexMap().entrySet()) {
@@ -1702,7 +1775,7 @@ public final class Importer
 
    void processAttribute(Index index, Entry entry, EntryID entryID,
                            IndexKey indexKey) throws DatabaseException,
-            ConfigException, InterruptedException
+            InterruptedException
     {
       insertKeySet.clear();
       index.indexer.indexEntry(entry, insertKeySet);
@@ -1740,7 +1813,7 @@ public final class Importer
     processKey(DatabaseContainer container, byte[] key, EntryID entryID,
          IndexOutputBuffer.ComparatorBuffer<byte[]> comparator,
          IndexKey indexKey, boolean insert)
-         throws ConfigException, InterruptedException
+         throws InterruptedException
     {
       IndexOutputBuffer indexBuffer = indexBufferMap.get(indexKey);
       if (indexBuffer == null)
@@ -1762,8 +1835,7 @@ public final class Importer
     }
 
 
-    IndexOutputBuffer getNewIndexBuffer() throws ConfigException,
-      InterruptedException
+    IndexOutputBuffer getNewIndexBuffer() throws InterruptedException
     {
       IndexOutputBuffer indexBuffer = freeBufferQueue.take();
         if(indexBuffer == null)
@@ -1783,7 +1855,7 @@ public final class Importer
 
 
     void processDN2ID(Suffix suffix, DN dn, EntryID entryID)
-            throws ConfigException, InterruptedException
+            throws InterruptedException
     {
       DN2ID dn2id = suffix.getDN2ID();
       byte[] dnBytes =
@@ -1950,7 +2022,7 @@ public final class Importer
      * @throws Exception
      *           If an exception occurred.
      */
-    public void endWriteTask() throws Exception
+    public void endWriteTask()
     {
       isRunning = false;
 
@@ -1969,9 +2041,12 @@ public final class Importer
           {
             dnState.flush();
           }
-          Message msg = NOTE_JEB_IMPORT_LDIF_DN_CLOSE
-              .get(indexMgr.getDNCount());
-          logError(msg);
+          if(!isCanceled)
+          {
+            Message msg = NOTE_JEB_IMPORT_LDIF_DN_CLOSE
+                .get(indexMgr.getDNCount());
+            logError(msg);
+          }
         }
         else
         {
@@ -1979,9 +2054,12 @@ public final class Importer
           {
             index.closeCursor();
           }
-          Message message = NOTE_JEB_IMPORT_LDIF_INDEX_CLOSE.get(indexMgr
-              .getBufferFileName());
-          logError(message);
+          if(!isCanceled)
+          {
+            Message message = NOTE_JEB_IMPORT_LDIF_INDEX_CLOSE.get(indexMgr
+                .getBufferFileName());
+            logError(message);
+          }
         }
       }
       finally
@@ -2062,6 +2140,11 @@ public final class Importer
       ImportIDSet deleteIDSet = null;
       Integer indexID = null;
 
+      if(isCanceled)
+      {
+        return null;
+      }
+
       try
       {
         beginWriteTask();
@@ -2069,6 +2152,11 @@ public final class Importer
         NavigableSet<IndexInputBuffer> bufferSet;
         while ((bufferSet = getNextBufferBatch()) != null)
         {
+          if(isCanceled)
+          {
+            return null;
+          }
+
           while (!bufferSet.isEmpty())
           {
             IndexInputBuffer b = bufferSet.pollFirst();
@@ -2169,8 +2257,7 @@ public final class Importer
 
 
     private void addToDB(ImportIDSet insertSet, ImportIDSet deleteSet,
-                         int indexID) throws InterruptedException,
-            DatabaseException, DirectoryException
+                         int indexID)
     {
       if(!indexMgr.isDN2ID())
       {
@@ -2206,7 +2293,6 @@ public final class Importer
 
 
     private void addDN2ID(ImportIDSet record, Integer indexID)
-            throws DatabaseException, DirectoryException
     {
       DNState dnState;
       if(!dnStateMap.containsKey(indexID))
@@ -2307,8 +2393,7 @@ public final class Importer
 
       // Why do we still need this if we are checking parents in the first
       // phase?
-      private boolean checkParent(ImportIDSet record) throws DirectoryException,
-              DatabaseException
+      private boolean checkParent(ImportIDSet record) throws DatabaseException
       {
         dnKey.setData(record.getKey().array(), 0 , record.getKey().limit());
         byte[] v = record.toDatabase();
@@ -2397,7 +2482,6 @@ public final class Importer
 
 
       private void id2child(EntryID childID)
-              throws DatabaseException, DirectoryException
       {
         ImportIDSet idSet;
         if(!id2childTree.containsKey(parentID.getDatabaseEntry().getData()))
@@ -2449,7 +2533,6 @@ public final class Importer
 
 
       private void id2SubTree(EntryID childID)
-              throws DatabaseException, DirectoryException
       {
         ImportIDSet idSet;
         if(!id2subtreeTree.containsKey(parentID.getDatabaseEntry().getData()))
@@ -2492,7 +2575,7 @@ public final class Importer
       }
 
 
-      public void writeToDB() throws DatabaseException, DirectoryException
+      public void writeToDB()
       {
         entryContainer.getDN2ID().put(null, dnKey, dnValue);
         indexMgr.addTotDNCount(1);
@@ -2506,7 +2589,6 @@ public final class Importer
 
       private void flushMapToDB(Map<byte[], ImportIDSet> map, Index index,
                                 boolean clearMap)
-              throws DatabaseException, DirectoryException
       {
         for(Map.Entry<byte[], ImportIDSet> e : map.entrySet())
         {
@@ -2523,7 +2605,7 @@ public final class Importer
       }
 
 
-      public void flush() throws DatabaseException, DirectoryException
+      public void flush()
       {
         flushMapToDB(id2childTree, entryContainer.getID2Children(), false);
         flushMapToDB(id2subtreeTree,  entryContainer.getID2Subtree(), false);
@@ -2633,7 +2715,7 @@ public final class Importer
         Message message = ERR_JEB_IMPORT_LDIF_INDEX_FILEWRITER_ERR.get(indexMgr
             .getBufferFile().getAbsolutePath(), e.getMessage());
         logError(message);
-        isPhaseOneCanceled = true;
+        isCanceled = true;
         throw e;
       }
       finally
@@ -2874,9 +2956,9 @@ public final class Importer
     public Void call() throws Exception
     {
       if (importConfiguration != null && importConfiguration.isCancelled()
-          || isPhaseOneCanceled)
+          || isCanceled)
       {
-        isPhaseOneCanceled = true;
+        isCanceled = true;
         return null;
       }
       indexBuffer.sort();
@@ -3081,7 +3163,9 @@ public final class Importer
   /**
    * The rebuild index manager handles all rebuild index related processing.
    */
-  private class RebuildIndexManager extends ImportTask {
+  private class RebuildIndexManager extends ImportTask
+      implements DiskSpaceMonitorHandler
+  {
 
    //Rebuild index configuration.
    private final RebuildConfig rebuildConfig;
@@ -3221,7 +3305,7 @@ public final class Importer
              status == OperationStatus.SUCCESS;
              status = cursor.getNext(key, data, lockMode))
         {
-          if(isPhaseOneCanceled)
+          if(isCanceled)
           {
             return null;
           }
@@ -3240,8 +3324,12 @@ public final class Importer
         Message message =
                 ERR_JEB_IMPORT_LDIF_REBUILD_INDEX_TASK_ERR.get(e.getMessage());
         logError(message);
-        isPhaseOneCanceled = true;
+        isCanceled = true;
         throw e;
+      }
+      finally
+      {
+        cursor.close();
       }
       return null;
     }
@@ -3262,49 +3350,58 @@ public final class Importer
      * @throws JebException
      *           If an JEB error occurred.
      */
-    public void rebuldIndexes() throws InitializationException,
+    public void rebuildIndexes() throws
         DatabaseException, InterruptedException, ExecutionException,
         JebException
     {
+      if (rebuildAll)
+      {
+        setAllIndexesTrusted(false);
+      }
+      else
+      {
+        setRebuildListIndexesTrusted(false);
+      }
       phaseOne();
-      if (isPhaseOneCanceled)
+      if (isCanceled)
       {
         throw new InterruptedException("Rebuild Index canceled.");
       }
       phaseTwo();
       if (rebuildAll)
       {
-        setAllIndexesTrusted();
+        setAllIndexesTrusted(true);
       }
       else
       {
-        setRebuildListIndexesTrusted();
+        setRebuildListIndexesTrusted(true);
       }
     }
 
 
-    private void setRebuildListIndexesTrusted()  throws JebException
+    private void setRebuildListIndexesTrusted(boolean trusted)
+        throws JebException
     {
       try
       {
         if(dn2id != null)
         {
           EntryContainer ec = suffix.getEntryContainer();
-          ec.getID2Children().setTrusted(null,true);
-          ec.getID2Subtree().setTrusted(null, true);
+          ec.getID2Children().setTrusted(null,trusted);
+          ec.getID2Subtree().setTrusted(null, trusted);
         }
         if(!indexMap.isEmpty())
         {
           for(Map.Entry<IndexKey, Index> mapEntry : indexMap.entrySet()) {
             Index index = mapEntry.getValue();
-            index.setTrusted(null, true);
+            index.setTrusted(null, trusted);
           }
         }
         if(!vlvIndexes.isEmpty())
         {
           for(VLVIndex vlvIndex : vlvIndexes)
           {
-            vlvIndex.setTrusted(null, true);
+            vlvIndex.setTrusted(null, trusted);
           }
         }
         if(!extensibleIndexMap.isEmpty())
@@ -3313,7 +3410,7 @@ public final class Importer
           {
             if(subIndexes != null) {
               for(Index subIndex : subIndexes) {
-                subIndex.setTrusted(null, true);
+                subIndex.setTrusted(null, trusted);
               }
             }
           }
@@ -3328,10 +3425,10 @@ public final class Importer
     }
 
 
-    private void setAllIndexesTrusted() throws JebException
+    private void setAllIndexesTrusted(boolean trusted) throws JebException
     {
       try {
-        suffix.setIndexesTrusted();
+        suffix.setIndexesTrusted(trusted);
       }
       catch (DatabaseException ex)
       {
@@ -3399,8 +3496,8 @@ public final class Importer
 
 
 
-    private void phaseTwo() throws InitializationException,
-        InterruptedException, JebException, ExecutionException
+    private void phaseTwo()
+        throws InterruptedException, ExecutionException
     {
       SecondPhaseProgressTask progressTask = new SecondPhaseProgressTask(
           entriesProcessed.get());
@@ -3904,8 +4001,7 @@ public final class Importer
 
     private
     void processEntry(Entry entry, EntryID entryID) throws DatabaseException,
-            ConfigException, DirectoryException, JebException,
-            InterruptedException
+            DirectoryException, JebException, InterruptedException
     {
       if(dn2id != null)
       {
@@ -3933,8 +4029,7 @@ public final class Importer
 
     private
     void processExtensibleIndexes(Entry entry, EntryID entryID) throws
-            DatabaseException, DirectoryException, JebException,
-            ConfigException, InterruptedException
+            InterruptedException
     {
       for(Map.Entry<IndexKey, Collection<Index>> mapEntry :
               this.extensibleIndexMap.entrySet()) {
@@ -3952,8 +4047,7 @@ public final class Importer
 
     private void
     processIndexes(Entry entry, EntryID entryID) throws
-            DatabaseException, DirectoryException, JebException,
-            ConfigException, InterruptedException
+            DatabaseException, InterruptedException
     {
       for(Map.Entry<IndexKey, Index> mapEntry :
               indexMap.entrySet()) {
@@ -3998,6 +4092,22 @@ public final class Importer
     public long getTotEntries()
     {
       return this.totalEntries;
+    }
+
+    public void diskLowThresholdReached(DiskSpaceMonitor monitor) {
+      diskFullThresholdReached(monitor);
+    }
+
+    public void diskFullThresholdReached(DiskSpaceMonitor monitor) {
+      isCanceled = true;
+      Message msg = ERR_REBUILD_INDEX_LACK_DISK.get(
+          monitor.getDirectory().getPath(), monitor.getFreeSpace(),
+          monitor.getLowThreshold());
+      logError(msg);
+    }
+
+    public void diskSpaceRestored(DiskSpaceMonitor monitor) {
+      // Do nothing
     }
   }
 
@@ -4835,8 +4945,8 @@ public final class Importer
    * Uncaught exception handler. Try and catch any uncaught exceptions, log
    * them and print a stack trace.
    */
-  public
-  class DefaultExceptionHandler implements Thread.UncaughtExceptionHandler {
+  private class DefaultExceptionHandler
+      implements Thread.UncaughtExceptionHandler {
 
     /**
      * {@inheritDoc}
@@ -4847,5 +4957,40 @@ public final class Importer
       e.printStackTrace();
       System.exit(1);
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void diskLowThresholdReached(DiskSpaceMonitor monitor) {
+    diskFullThresholdReached(monitor);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void diskFullThresholdReached(DiskSpaceMonitor monitor) {
+    isCanceled = true;
+    Message msg;
+    if(!isPhaseOneDone)
+    {
+      msg = ERR_IMPORT_LDIF_LACK_DISK_PHASE_ONE.get(
+          monitor.getDirectory().getPath(), monitor.getFreeSpace(),
+          monitor.getLowThreshold());
+    }
+    else
+    {
+      msg = ERR_IMPORT_LDIF_LACK_DISK_PHASE_TWO.get(
+          monitor.getDirectory().getPath(), monitor.getFreeSpace(),
+          monitor.getLowThreshold());
+    }
+    logError(msg);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void diskSpaceRestored(DiskSpaceMonitor monitor) {
+    // Do nothing.
   }
 }
