@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 import org.opends.messages.Message;
@@ -30,17 +30,15 @@ import org.opends.messages.Message;
 
 
 import java.util.List;
+import java.util.concurrent.*;
 
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.Attribute;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ObjectClass;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -60,39 +58,33 @@ import static org.opends.server.util.ServerConstants.*;
      mayExtend=true,
      mayInvoke=false)
 public abstract class MonitorProvider<T extends MonitorProviderCfg>
-       extends DirectoryThread
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
-
-  // Indicates whether a request has been received to stop running.
-  private boolean stopRequested;
-
-  // The thread used to run this monitor provider.
-  private Thread monitorThread;
-
-
+  // The scheduler.
+  private static final ScheduledExecutorService SCHEDULER =
+      Executors.newSingleThreadScheduledExecutor(
+          new MonitorThreadFactory());
 
   /**
-   * Initializes this monitor provider.  Note that no initialization
-   * should be done here, since it should be performed in the
-   * {@code initializeMonitorProvider} class.
-   *
-   * @param  threadName  The name to use for this thread for debugging
-   *                     purposes.
+   * Thread factory used by the scheduled execution service.
    */
-  protected MonitorProvider(String threadName)
+  private static final class MonitorThreadFactory implements
+      ThreadFactory
   {
-    super(threadName);
 
+    /**
+     * {@inheritDoc}
+     */
+    public Thread newThread(Runnable r)
+    {
+      Thread t =
+          new DirectoryThread(r, "Monitor Provider State Updater");
+      t.setDaemon(true);
+      return t;
+    }
 
-    stopRequested = false;
-    monitorThread = null;
   }
 
-
+  private ScheduledFuture<?> scheduledFuture;
 
   /**
    * Initializes this monitor provider based on the information in the
@@ -157,22 +149,9 @@ public abstract class MonitorProvider<T extends MonitorProviderCfg>
    */
   public void finalizeMonitorProvider()
   {
-    // Signal the monitor thread that it should stop.
-    stopRequested = true;
-
-    try
+    if(scheduledFuture != null)
     {
-      if (monitorThread != null)
-      {
-        monitorThread.interrupt();
-      }
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      scheduledFuture.cancel(true);
     }
   }
 
@@ -207,29 +186,32 @@ public abstract class MonitorProvider<T extends MonitorProviderCfg>
   }
 
 
-
   /**
-   * Retrieves the length of time in milliseconds that should elapse
-   * between calls to the {@code updateMonitorData} method.  A
-   * negative or zero return value indicates that the
-   * {@code updateMonitorData} method should not be periodically
-   * invoked.
-   *
-   * @return  The length of time in milliseconds that should elapse
-   *          between calls to the {@code updateMonitorData()} method.
-   */
-  public abstract long getUpdateInterval();
-
-
-
-  /**
-   * Performs any processing periodic processing that may be desired
+   * Schedules any periodic processing that may be desired
    * to update the information associated with this monitor.  Note
    * that best-effort attempts will be made to ensure that calls to
    * this method come {@code getUpdateInterval} milliseconds apart,
    * but no guarantees will be made.
+   *
+   * @param updater The updater to execute.
+   * @param initialDelay The time to delay first execution.
+   * @param period The period between successive executions.
+   * @param unit The time unit of the initialDelay and period
+   *             parameters.
    */
-  public abstract void updateMonitorData();
+  protected final void scheduleUpdate(Runnable updater,
+                                      long initialDelay,
+                                      long period, TimeUnit unit)
+  {
+    if(scheduledFuture != null)
+    {
+      scheduledFuture.cancel(true);
+    }
+
+    scheduledFuture =
+        SCHEDULER.scheduleAtFixedRate(updater, initialDelay,
+            period, unit);
+  }
 
 
 
@@ -243,73 +225,5 @@ public abstract class MonitorProvider<T extends MonitorProviderCfg>
    *          entry is requested.
    */
   public abstract List<Attribute> getMonitorData();
-
-
-
-  /**
-   * Enters a loop, periodically invoking the
-   * {@code getUpdateInterval} method to updates the data associated
-   * with this monitor.
-   */
-  public final void run()
-  {
-    monitorThread = Thread.currentThread();
-
-
-    // If this monitor should not perform any checks to periodically
-    // update its information, then there is no need to run this
-    // method.
-    if (getUpdateInterval() <= 0)
-    {
-      return;
-    }
-
-
-    // Set the name of this thread for debugging purposes.
-    setName(getMonitorInstanceName() + " Monitor Provider");
-
-
-    // Operate in a loop until it is detected that the server is
-    // shutting down.
-    while (! stopRequested)
-    {
-      long stopSleepTime =
-           System.currentTimeMillis() + getUpdateInterval();
-      try
-      {
-        updateMonitorData();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-      }
-
-      long remainingSleepTime =
-           stopSleepTime - System.currentTimeMillis();
-      while ((! stopRequested) && (remainingSleepTime > 0))
-      {
-        if (remainingSleepTime > 1000)
-        {
-          try
-          {
-            Thread.sleep(1000);
-          } catch (Exception e) {}
-        }
-        else
-        {
-          try
-          {
-            Thread.sleep(remainingSleepTime);
-          } catch (Exception e) {}
-        }
-
-        remainingSleepTime =
-             stopSleepTime - System.currentTimeMillis();
-      }
-    }
-  }
 }
 

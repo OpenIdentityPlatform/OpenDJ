@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Copyright 2007-2010 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="root-dn" plural-name="root-dns"
   package="org.opends.server.admin.std"
@@ -58,6 +58,7 @@
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
+        <adm:value>bypass-lockdown</adm:value>
         <adm:value>bypass-acl</adm:value>
         <adm:value>modify-acl</adm:value>
         <adm:value>config-read</adm:value>
@@ -66,6 +67,7 @@
         <adm:value>ldif-export</adm:value>
         <adm:value>backend-backup</adm:value>
         <adm:value>backend-restore</adm:value>
+        <adm:value>server-lockdown</adm:value>
         <adm:value>server-shutdown</adm:value>
         <adm:value>server-restart</adm:value>
         <adm:value>disconnect-client</adm:value>
@@ -78,6 +80,11 @@
     </adm:default-behavior>
     <adm:syntax>
       <adm:enumeration>
+        <adm:value name="bypass-lockdown">
+          <adm:synopsis>
+            Allows the associated user to bypass server lockdown mode.
+          </adm:synopsis>
+        </adm:value>
         <adm:value name="bypass-acl">
           <adm:synopsis>
             Allows the associated user to bypass access control checks
@@ -139,6 +146,11 @@
           <adm:synopsis>
             Allows the user to request that the server process restore
             tasks.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="server-lockdown">
+          <adm:synopsis>
+            Allows the user to place and bring the server of lockdown mode.
           </adm:synopsis>
         </adm:value>
         <adm:value name="server-shutdown">

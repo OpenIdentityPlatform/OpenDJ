@@ -53,7 +53,6 @@ public class WorkflowElementStatistics
    */
   public WorkflowElementStatistics(WorkflowElement<?> workflowElement)
   {
-    super(workflowElement.getWorkflowElementID());
     this.instanceName = workflowElement.getWorkflowElementID();
     this.workflowElement = workflowElement;
   }
@@ -75,25 +74,6 @@ public class WorkflowElementStatistics
   public String getMonitorInstanceName()
   {
     return this.instanceName + ",cn=Workflow Elements";
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public long getUpdateInterval()
-  {
-    // This monitor should not run periodically.
-    return -1;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void updateMonitorData()
-  {
-    // No implementation is required since this does not do periodic updates.
   }
 
   /**

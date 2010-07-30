@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.replication;
@@ -95,7 +95,7 @@ public class StressTest extends ReplicationTestCase
 
     ReplicationBroker broker =
       openReplicationSession(baseDn, 18, 100, replServerPort, 5000, true);
-    Monitor monitor = new Monitor("stress test monitor");
+    Monitor monitor = new Monitor();
     DirectoryServer.registerMonitorProvider(monitor);
 
     try {
@@ -350,11 +350,6 @@ public class StressTest extends ReplicationTestCase
 
   private class Monitor extends MonitorProvider<MonitorProviderCfg>
   {
-    protected Monitor(String threadName)
-    {
-      super(threadName);
-    }
-
     @Override
     public List<Attribute> getMonitorData()
     {
@@ -378,25 +373,11 @@ public class StressTest extends ReplicationTestCase
     }
 
     @Override
-    public void updateMonitorData()
-    {
-      // nothing to do
-
-    }
-
-    @Override
     public void initializeMonitorProvider(MonitorProviderCfg configuration)
     throws ConfigException, InitializationException
     {
       // nothing to do
 
-    }
-
-    @Override
-    public long getUpdateInterval()
-    {
-      // we don't wont to do polling on this monitor
-      return 0;
     }
 
 

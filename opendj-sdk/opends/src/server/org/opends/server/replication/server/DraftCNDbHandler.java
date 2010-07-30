@@ -433,11 +433,6 @@ public class DraftCNDbHandler implements Runnable
    */
   private class DbMonitorProvider extends MonitorProvider<MonitorProviderCfg>
   {
-    private DbMonitorProvider()
-    {
-      super("ReplicationServer DraftCN Database");
-    }
-
     /**
      * {@inheritDoc}
      */
@@ -467,29 +462,10 @@ public class DraftCNDbHandler implements Runnable
      * {@inheritDoc}
      */
     @Override
-    public long getUpdateInterval()
-    {
-      /* we don't wont to do polling on this monitor */
-      return 0;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public void initializeMonitorProvider(MonitorProviderCfg configuration)
                             throws ConfigException,InitializationException
     {
       // Nothing to do for now
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void updateMonitorData()
-    {
-      // As long as getUpdateInterval() returns 0, this will never get called
     }
   }
 

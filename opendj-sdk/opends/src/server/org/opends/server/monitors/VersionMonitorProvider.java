@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.monitors;
 
@@ -140,18 +140,6 @@ public class VersionMonitorProvider
 
 
   /**
-   * Initializes this monitor provider.
-   */
-  public VersionMonitorProvider()
-  {
-    super("Version Monitor Provider");
-
-    // No initialization should be performed here.
-  }
-
-
-
-  /**
    * {@inheritDoc}
    */
   public void initializeMonitorProvider(VersionMonitorProviderCfg configuration)
@@ -172,39 +160,6 @@ public class VersionMonitorProvider
   {
     return "Version";
   }
-
-
-
-  /**
-   * Retrieves the length of time in milliseconds that should elapse between
-   * calls to the <CODE>updateMonitorData()</CODE> method.  A negative or zero
-   * return value indicates that the <CODE>updateMonitorData()</CODE> method
-   * should not be periodically invoked.
-   *
-   * @return  The length of time in milliseconds that should elapse between
-   *          calls to the <CODE>updateMonitorData()</CODE> method.
-   */
-  public long getUpdateInterval()
-  {
-    // This monitor does not need to run periodically.
-    return 0;
-  }
-
-
-
-  /**
-   * Performs any processing periodic processing that may be desired to update
-   * the information associated with this monitor.  Note that best-effort
-   * attempts will be made to ensure that calls to this method come
-   * <CODE>getUpdateInterval()</CODE> milliseconds apart, but no guarantees will
-   * be made.
-   */
-  public void updateMonitorData()
-  {
-    // This monitor does not need to run periodically.
-    return;
-  }
-
 
 
   /**

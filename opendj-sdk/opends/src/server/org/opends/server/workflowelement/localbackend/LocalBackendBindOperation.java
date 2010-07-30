@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -52,21 +52,7 @@ import org.opends.server.core.PasswordPolicy;
 import org.opends.server.core.PasswordPolicyState;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.AccountStatusNotification;
-import org.opends.server.types.AccountStatusNotificationType;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.Control;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LockManager;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.WritabilityMode;
+import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationBindOperation;
 import org.opends.server.types.operation.PostResponseBindOperation;
 import org.opends.server.types.operation.PreOperationBindOperation;
@@ -621,15 +607,15 @@ bindProcessing:
       {
         setResultCode(ResultCode.SUCCESS);
 
-        boolean isRoot = DirectoryServer.isRootDN(userEntry.getDN());
-        if (DirectoryServer.lockdownMode() && (! isRoot))
+        if (DirectoryServer.lockdownMode() &&
+            (! ClientConnection.hasPrivilege(userEntry,
+                Privilege.BYPASS_LOCKDOWN)))
         {
           throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-                                       ERR_BIND_REJECTED_LOCKDOWN_MODE.get());
+                                 ERR_BIND_REJECTED_LOCKDOWN_MODE.get());
         }
         setAuthenticationInfo(new AuthenticationInfo(userEntry, getBindDN(),
-            simplePassword,
-                                                     isRoot));
+            simplePassword, DirectoryServer.isRootDN(userEntry.getDN())));
 
 
         // Set resource limits for the authenticated user.
@@ -816,7 +802,8 @@ bindProcessing:
       {
         if ((resultCode != ResultCode.SUCCESS) ||
             (saslAuthUserEntry == null) ||
-            (! DirectoryServer.isRootDN(saslAuthUserEntry.getDN())))
+            (! ClientConnection.hasPrivilege(saslAuthUserEntry,
+                Privilege.BYPASS_LOCKDOWN)))
         {
           throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
                                        ERR_BIND_REJECTED_LOCKDOWN_MODE.get());

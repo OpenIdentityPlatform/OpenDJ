@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.monitors;
 
@@ -34,6 +34,7 @@ import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryUsage;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 
 import org.opends.server.admin.std.server.MemoryUsageMonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
@@ -48,6 +49,7 @@ import org.opends.server.types.*;
  */
 public class MemoryUsageMonitorProvider
        extends MonitorProvider<MemoryUsageMonitorProviderCfg>
+       implements Runnable
 {
   // A map of the last GC counts seen by this monitor for calculating recent
   // stats.
@@ -67,28 +69,14 @@ public class MemoryUsageMonitorProvider
 
 
   /**
-   * Initializes this monitor provider.
-   */
-  public MemoryUsageMonitorProvider()
-  {
-    super("JVM Memory Usage Monitor Provider");
-
-    // No initialization should be performed here.
-  }
-
-
-
-  /**
    * {@inheritDoc}
    */
   public void initializeMonitorProvider(
                    MemoryUsageMonitorProviderCfg configuration)
          throws ConfigException, InitializationException
   {
-    // No initialization is required.
+    scheduleUpdate(this, 0, 1, TimeUnit.SECONDS);
   }
-
-
 
   /**
    * {@inheritDoc}
@@ -100,24 +88,10 @@ public class MemoryUsageMonitorProvider
   }
 
 
-
   /**
    * {@inheritDoc}
    */
-  @Override()
-  public long getUpdateInterval()
-  {
-    // Update the information once every second.
-    return 1000;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void updateMonitorData()
+  public void run()
   {
     for (GarbageCollectorMXBean gc :
          ManagementFactory.getGarbageCollectorMXBeans())

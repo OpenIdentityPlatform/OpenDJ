@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.core.networkgroups;
@@ -71,7 +71,6 @@ public class NetworkGroupStatistics
    * @param networkGroup The network group owning these stats
    */
   public NetworkGroupStatistics(NetworkGroup networkGroup) {
-    super(networkGroup.getID());
     this.instanceName = networkGroup.getID();
     this.networkGroup = networkGroup;
     DirectoryServer.registerMonitorProvider(this);
@@ -154,23 +153,6 @@ public class NetworkGroupStatistics
   @Override
   public String getMonitorInstanceName() {
       return this.instanceName+",cn=Network Groups";
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public long getUpdateInterval() {
-    // This monitor should not run periodically.
-    return -1;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void updateMonitorData() {
-    // No implementation is required since this does not do periodic updates.
   }
 
   /**

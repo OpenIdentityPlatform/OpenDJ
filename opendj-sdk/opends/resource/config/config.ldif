@@ -198,6 +198,8 @@ ds-cfg-db-logging-file-handler-on: true
 ds-cfg-db-logging-level: CONFIG
 ds-cfg-db-checkpointer-bytes-interval: 20 megabytes
 ds-cfg-db-checkpointer-wakeup-interval: 30 seconds
+ds-cfg-disk-full-threshold: 20 megabytes
+ds-cfg-disk-low-threshold: 100 megabytes
 
 dn: cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 objectClass: top
@@ -1858,6 +1860,7 @@ dn: cn=Root DNs,cn=config
 objectClass: top
 objectClass: ds-cfg-root-dn
 cn: Root DNs
+ds-cfg-default-root-privilege-name: bypass-lockdown
 ds-cfg-default-root-privilege-name: bypass-acl
 ds-cfg-default-root-privilege-name: modify-acl
 ds-cfg-default-root-privilege-name: config-read
@@ -1866,6 +1869,7 @@ ds-cfg-default-root-privilege-name: ldif-import
 ds-cfg-default-root-privilege-name: ldif-export
 ds-cfg-default-root-privilege-name: backend-backup
 ds-cfg-default-root-privilege-name: backend-restore
+ds-cfg-default-root-privilege-name: server-lockdown
 ds-cfg-default-root-privilege-name: server-shutdown
 ds-cfg-default-root-privilege-name: server-restart
 ds-cfg-default-root-privilege-name: disconnect-client

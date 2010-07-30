@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -119,6 +119,9 @@ public class RootPrivilegeChangeListener
     {
       switch (p)
       {
+        case BYPASS_LOCKDOWN:
+          privSet.add(Privilege.BYPASS_LOCKDOWN);
+          break;
         case BYPASS_ACL:
           privSet.add(Privilege.BYPASS_ACL);
           break;
@@ -151,6 +154,9 @@ public class RootPrivilegeChangeListener
           break;
         case BACKEND_RESTORE:
           privSet.add(Privilege.BACKEND_RESTORE);
+          break;
+        case SERVER_LOCKDOWN:
+          privSet.add(Privilege.SERVER_LOCKDOWN);
           break;
         case SERVER_SHUTDOWN:
           privSet.add(Privilege.SERVER_SHUTDOWN);

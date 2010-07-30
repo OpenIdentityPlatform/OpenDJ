@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -909,9 +909,9 @@ public class RootContainer
       // Create the directory if it doesn't exist.
       if(!cfg.getDBDirectory().equals(this.config.getDBDirectory()))
       {
-        File parentDirectory = getFileForPath(config.getDBDirectory());
+        File parentDirectory = getFileForPath(cfg.getDBDirectory());
         File backendDirectory =
-          new File(parentDirectory, config.getBackendId());
+          new File(parentDirectory, cfg.getBackendId());
 
         if (!backendDirectory.exists())
         {

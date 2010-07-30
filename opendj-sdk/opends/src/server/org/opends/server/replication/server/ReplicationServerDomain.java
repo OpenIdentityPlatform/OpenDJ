@@ -199,8 +199,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   public ReplicationServerDomain(
       String baseDn, ReplicationServer replicationServer)
   {
-    super("Replication Server " + replicationServer.getReplicationPort() + " "
-        + baseDn + " " + replicationServer.getServerId());
     this.baseDn = baseDn;
     this.replicationServer = replicationServer;
     this.assuredTimeoutTimer = new Timer("Replication Assured Timer for " +
@@ -376,7 +374,9 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         if ( (generationId>0) && (generationId != handler.getGenerationId()) )
         {
           if (debugEnabled())
-            TRACER.debugInfo("In " + this.getName() +
+            TRACER.debugInfo("In " + "Replication Server " +
+              replicationServer.getReplicationPort() + " " +
+              baseDn + " " + replicationServer.getServerId() +
               " for dn " + baseDn + ", update " +
               update.getChangeNumber().toString() +
               " will not be sent to replication server " +
@@ -3048,26 +3048,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * {@inheritDoc}
    */
   @Override
-  public long getUpdateInterval()
-  {
-    /* we don't wont to do polling on this monitor */
-    return 0;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void updateMonitorData()
-  {
-    // As long as getUpdateInterval() returns 0, this will never get called
-
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public ArrayList<Attribute> getMonitorData()
   {
     /*
@@ -3328,7 +3308,9 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       if (!sidConnected)
       {
         if (debugEnabled())
-          TRACER.debugInfo("In " + this.getName() +
+          TRACER.debugInfo("In " + "Replication Server " +
+            replicationServer.getReplicationPort() + " " +
+            baseDn + " " + replicationServer.getServerId() +
             " Server " + sid
             + " is not considered for eligibility ... potentially down");
         continue;
@@ -3352,8 +3334,9 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
     if (debugEnabled())
       TRACER.debugInfo(
-        "In " + this.getName() + " getEligibleCN() returns result ="
-        + eligibleCN);
+        "In " + "Replication Server " + replicationServer.getReplicationPort() +
+        " " + baseDn + " " + replicationServer.getServerId() +
+        " getEligibleCN() returns result =" + eligibleCN);
     return eligibleCN;
   }
 
@@ -3396,7 +3379,9 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           } catch (IOException e)
           {
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            logError(ERR_CHANGELOG_ERROR_SENDING_MSG.get(rsHandler.getName()));
+            logError(ERR_CHANGELOG_ERROR_SENDING_MSG.get(
+                "Replication Server " + replicationServer.getReplicationPort() +
+                " " + baseDn + " " + replicationServer.getServerId()));
             stopServer(rsHandler, false);
           }
         }

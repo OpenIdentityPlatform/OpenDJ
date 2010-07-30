@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -126,10 +126,6 @@ public class MonitorConfigManager
           MonitorProvider<? extends MonitorProviderCfg> monitor =
                loadMonitor(className, monitorConfig);
           monitors.put(monitorConfig.dn(), monitor);
-          if (monitor.getUpdateInterval() > 0)
-          {
-            monitor.start();
-          }
           DirectoryServer.registerMonitorProvider(monitor);
         }
         catch (InitializationException ie)
@@ -211,10 +207,6 @@ public class MonitorConfigManager
     if (resultCode == ResultCode.SUCCESS)
     {
       monitors.put(configuration.dn(), monitor);
-      if (monitor.getUpdateInterval() > 0)
-      {
-        monitor.start();
-      }
       DirectoryServer.registerMonitorProvider(monitor);
     }
 
@@ -358,10 +350,6 @@ public class MonitorConfigManager
     if (resultCode == ResultCode.SUCCESS)
     {
       monitors.put(configuration.dn(), monitor);
-      if (monitor.getUpdateInterval() > 0)
-      {
-        monitor.start();
-      }
       DirectoryServer.registerMonitorProvider(monitor);
     }
 

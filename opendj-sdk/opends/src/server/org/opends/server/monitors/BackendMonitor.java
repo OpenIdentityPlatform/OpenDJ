@@ -89,9 +89,6 @@ public class BackendMonitor
    */
   public BackendMonitor(Backend backend)
   {
-    super(backend.getBackendID() + " Backend");
-
-
     this.backend = backend;
   }
 
@@ -150,28 +147,6 @@ public class BackendMonitor
   {
     return DirectoryConfig.getObjectClass(OC_MONITOR_BACKEND, true);
   }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public long getUpdateInterval()
-  {
-    // We don't need do anything on a periodic basis.
-    return 0;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void updateMonitorData()
-  {
-    // No implementaiton is required.
-  }
-
 
 
   /**
