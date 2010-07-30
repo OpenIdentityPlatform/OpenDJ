@@ -1771,7 +1771,7 @@ public class LDAPSearch
       AtomicInteger nextMessageID = new AtomicInteger(1);
       connection = new LDAPConnection(hostNameValue, portNumber,
                                       connectionOptions, out, err);
-      int timeout = connectTimeout.getIntValue();
+      int timeout = pSearchInfo.isPresent()?0:connectTimeout.getIntValue();
       connection.connectToHost(bindDNValue, bindPasswordValue, nextMessageID,
           timeout);
 

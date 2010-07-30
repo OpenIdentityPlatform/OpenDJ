@@ -2485,6 +2485,11 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.612
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.613
+  NAME 'ds-cfg-max-psearches'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -3247,6 +3252,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.71
   STRUCTURAL
   MUST ( cn $
          ds-cfg-java-class )
+ MAY  ds-cfg-max-psearches
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.72
   NAME 'ds-cfg-traditional-work-queue'

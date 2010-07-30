@@ -104,6 +104,9 @@ public class ParallelWorkQueue
   // a configuration change has not been completely applied).
   private int numWorkerThreads;
 
+   // The number of maximum allowed persistent searches.
+  private int maxPSearches;
+
   // The queue that will be used to actually hold the pending operations.
   private ConcurrentLinkedQueue<AbstractOperation> opQueue;
 
@@ -141,6 +144,17 @@ public class ParallelWorkQueue
 
     // Get the necessary configuration from the provided entry.
     numWorkerThreads = getNumWorkerThreads(configuration);
+
+    //Check the value of the maximum persistent searches attribute.
+    //We don't allow a value greater than the number of threads.
+    maxPSearches = configuration.getMaxPsearches()==null?
+      numWorkerThreads:configuration.getMaxPsearches();
+    if(maxPSearches >  numWorkerThreads)
+    {
+      Message message = ERR_CONFIG_CORE_INVALID_MAX_PSEARCH_LIMIT.get(
+              maxPSearches, numWorkerThreads, numWorkerThreads);
+      throw new ConfigException(message);
+    }
 
     // Create the actual work queue.
     opQueue = new ConcurrentLinkedQueue<AbstractOperation>();
@@ -498,7 +512,19 @@ public class ParallelWorkQueue
                       ParallelWorkQueueCfg configuration,
                       List<Message> unacceptableReasons)
   {
-    // The provided configuration will always be acceptable.
+    //Check if the max persistent search value is under limit.
+    if(configuration.getMaxPsearches() !=null)
+    {
+      int nPSearches = configuration.getMaxPsearches();
+      int nWorkerThreads = getNumWorkerThreads(configuration);
+      if(nPSearches >  nWorkerThreads)
+      {
+        Message message = ERR_CONFIG_CORE_INVALID_MAX_PSEARCH_LIMIT.get(
+                nPSearches, nWorkerThreads, nWorkerThreads);
+        unacceptableReasons.add(message);
+        return false;
+      }
+    }
     return true;
   }
 
@@ -550,6 +576,9 @@ public class ParallelWorkQueue
         }
       }
     }
+     //Get the new maximum psearch value.
+     maxPSearches = configuration.getMaxPsearches()==null?
+      numWorkerThreads:configuration.getMaxPsearches();
 
     return new ConfigChangeResult(ResultCode.SUCCESS, false, resultMessages);
   }
@@ -578,6 +607,16 @@ public class ParallelWorkQueue
 
       return true;
     }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public int getMaxPersistentSearchLimit()
+  {
+    return maxPSearches;
   }
 
 

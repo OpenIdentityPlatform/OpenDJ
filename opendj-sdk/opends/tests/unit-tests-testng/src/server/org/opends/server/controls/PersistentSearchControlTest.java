@@ -22,14 +22,21 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.controls;
 
+import java.util.ArrayList;
 import static org.opends.server.util.ServerConstants.*;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
+import org.opends.messages.Message;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.core.ModifyOperation;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -39,8 +46,13 @@ import static org.testng.Assert.*;
 import org.opends.server.types.*;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPReader;
 import org.opends.server.protocols.ldap.LDAPControl;
+import org.opends.server.protocols.ldap.LDAPModification;
+import org.opends.server.tools.LDAPSearch;
 
 /**
  * Test ChangeNumber and ChangeNumberGenerator
@@ -522,5 +534,79 @@ public class PersistentSearchControlTest
     }
     toString = toString +")";
     assertEquals(toString, ecnc.toString());
+  }
+
+
+  /**
+   * Tests the maximum persistent search limit imposed by the server.
+   */
+  @Test()
+  public void testMaxPSearch() throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    //Modify the configuration to allow only 1 concurrent persistent search.
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    ArrayList<ByteString> values = new ArrayList<ByteString>();
+    values.add(ByteString.valueOf("1"));
+    LDAPAttribute attr = new LDAPAttribute("ds-cfg-max-psearches", values);
+
+    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    mods.add(new LDAPModification(ModificationType.REPLACE, attr));
+
+    ModifyOperation modifyOperation =
+         conn.processModify(ByteString.valueOf("cn=Work Queue,cn=config"), mods);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+
+    //Create a persistent search request.
+    LinkedHashSet<String> attributes = new LinkedHashSet<String>();
+    attributes.add("cn");
+    List<Control> controls = new LinkedList<Control>();
+          // Creates psearch control
+    HashSet<PersistentSearchChangeType> changeTypes =
+      new HashSet<PersistentSearchChangeType>();
+    changeTypes.add(PersistentSearchChangeType.ADD);
+    changeTypes.add(PersistentSearchChangeType.DELETE);
+    changeTypes.add(PersistentSearchChangeType.MODIFY);
+    changeTypes.add(PersistentSearchChangeType.MODIFY_DN);
+    PersistentSearchControl persSearchControl = new PersistentSearchControl(
+          changeTypes, true, true);
+      controls.add(persSearchControl);
+    final InternalSearchOperation search =
+        conn.processSearch("o=test", SearchScope.BASE_OBJECT,
+            DereferencePolicy.NEVER_DEREF_ALIASES, 0, // Size limit
+            0, // Time limit
+            true, // Types only
+            "(objectClass=*)", attributes, controls, null);
+  
+    Thread t = new Thread(new Runnable() {
+      public void run() {
+        try {
+          search.run();
+        }
+        catch(Exception ex) {}
+      }
+    },"Persistent Search Test");
+    t.start();
+    t.join(2000);
+     //Create a persistent search request.
+    final String[] args =
+     {
+     "-D", "cn=Directory Manager",
+     "-w", "password",
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-b", "o=test",
+      "-s", "sub",
+      "-C","ps:add:true:true",
+      "--noPropertiesFile",
+      "(objectClass=*)"
+    };
+
+    assertEquals(LDAPSearch.mainSearch(args, false,
+                  true, null, System.err),11);
+    //cancel the persisting persistent search.
+    search.cancel(new CancelRequest(true,Message.EMPTY));
   }
 }

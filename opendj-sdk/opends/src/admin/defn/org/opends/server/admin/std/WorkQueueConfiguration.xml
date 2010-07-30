@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Copyright 2007-2010 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="work-queue" plural-name="work-queues"
   package="org.opends.server.admin.std"
@@ -33,7 +33,7 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    provides the configuration for the server work queue and 
+    provides the configuration for the server work queue and
     is responsible for ensuring that requests received from clients are
     processed in a timely manner.
   </adm:synopsis>
@@ -72,6 +72,33 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-java-class</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="max-psearches">
+    <adm:synopsis>
+      Defines the maximum number of concurrent persistent searches that
+      can be performed on Directory Server
+    </adm:synopsis>
+    <adm:description>
+      The persistent search mechanism provides an active channel through which entries that change,
+      and information about the changes that occur, can be communicated. Because each persistent search
+      operation uses one thread, limiting the number of simultaneous persistent searches prevents certain
+      kinds of denial of service attacks. A value of 0 indicates that there is no limit on the persistent searches.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Let the server decide.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="0" upper-limit="2147483647" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-max-psearches</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

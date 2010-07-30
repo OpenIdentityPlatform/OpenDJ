@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.api;
 import org.opends.messages.Message;
@@ -165,5 +165,16 @@ public abstract class WorkQueue<T extends WorkQueueCfg>
 
     return false;
   }
+
+
+
+ /**
+   * Specifies the maximum number of simultaneous persistent
+   * searches that are allowed.
+   *
+   * @return   The maximum number of simultaneous persistent
+  *                      searches that are allowed.
+   */
+  public abstract int getMaxPersistentSearchLimit();
 }
 

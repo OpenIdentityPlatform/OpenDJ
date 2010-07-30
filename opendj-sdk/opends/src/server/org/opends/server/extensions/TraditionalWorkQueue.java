@@ -113,6 +113,9 @@ public class TraditionalWorkQueue
   // a configuration change has not been completely applied).
   private int numWorkerThreads;
 
+  //The maximum number of concurrent persistent searches.
+  private int maxPSearches;
+
   // The queue that will be used to actually hold the pending operations.
   private LinkedBlockingQueue<AbstractOperation> opQueue;
 
@@ -152,6 +155,17 @@ public class TraditionalWorkQueue
 
     // Get the necessary configuration from the provided entry.
     numWorkerThreads = getNumWorkerThreads(configuration);
+    //Check the value of the maximum persistent searches attribute.
+    //We don't allow a value greater than the number of threads.
+    maxPSearches = configuration.getMaxPsearches()==null?
+      numWorkerThreads:configuration.getMaxPsearches();
+    if(maxPSearches >  numWorkerThreads)
+    {
+      Message message = ERR_CONFIG_CORE_INVALID_MAX_PSEARCH_LIMIT.get(
+              maxPSearches, numWorkerThreads, numWorkerThreads);
+      throw new ConfigException(message);
+    }
+
     maxCapacity      = configuration.getMaxWorkQueueCapacity();
 
 
@@ -551,7 +565,19 @@ public class TraditionalWorkQueue
                       TraditionalWorkQueueCfg configuration,
                       List<Message> unacceptableReasons)
   {
-    // The provided configuration will always be acceptable.
+    //Check if the max persistent search value is under limit.
+    if(configuration.getMaxPsearches() !=null)
+    {
+      int nPSearches = configuration.getMaxPsearches();
+      int nWorkerThreads = getNumWorkerThreads(configuration);
+      if(nPSearches >  nWorkerThreads)
+      {
+        Message message = ERR_CONFIG_CORE_INVALID_MAX_PSEARCH_LIMIT.get(
+                nPSearches, nWorkerThreads, nWorkerThreads);
+        unacceptableReasons.add(message);
+        return false;
+      }
+    }
     return true;
   }
 
@@ -606,6 +632,10 @@ public class TraditionalWorkQueue
       }
     }
 
+
+   //Get the new maximum psearch value.
+    maxPSearches = configuration.getMaxPsearches()==null?
+      numWorkerThreads:configuration.getMaxPsearches();
 
     // Apply a change to the maximum capacity if appropriate.  Since we can't
     // change capacity on the fly, then we'll have to create a new queue and
@@ -705,6 +735,15 @@ public class TraditionalWorkQueue
 
       return true;
     }
+  }
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public int getMaxPersistentSearchLimit()
+  {
+    return maxPSearches;
   }
 
 
