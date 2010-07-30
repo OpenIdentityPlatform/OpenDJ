@@ -22,20 +22,22 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 
 
-
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.security.KeyStoreException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
@@ -44,6 +46,7 @@ import java.util.LinkedList;
 import java.util.Set;
 
 import java.util.Random;
+
 import org.opends.server.types.OperatingSystem;
 
 
@@ -94,6 +97,14 @@ public class SetupUtils
    */
   public static final String LIBRARIES_PATH_RELATIVE = "lib";
 
+  /**
+   * The relative path where the setup stores the name of the host the user
+   * provides. This is used for instance to generate the self-signed admin
+   * certificate the first time the server starts.
+   */
+  public static final String HOST_NAME_FILE = "config" + File.separatorChar
+      + "hostname";
+
   /* These string values must be synchronized with Directory Server's main
    * method.  These string values are considered stable by the server team and
    * not candidates for internationalization. */
@@ -133,6 +144,12 @@ public class SetupUtils
   public static final String BUILD_JVM_VENDOR = "Build JVM Vendor";
   /** The build number. */
   public static final String BUILD_NUMBER = "Build Number";
+
+  /**
+   * A variable used to keep the latest read host name from the file written
+   * by the setup.
+   */
+  private static String lastReadHostName;
 
   /**
    * Creates a MakeLDIF template file using the provided information.
@@ -635,5 +652,61 @@ public class SetupUtils
     return (random.nextInt() & modulo);
   }
 
+  /**
+   * Returns the host name to be used to create self-signed certificates. <br>
+   * The method will first try to read the host name file written by the setup
+   * where the user provided the host name where OpenDS has been installed. If
+   * the file cannot be read, the class {@link java.net.InetAddress} is used.
+   *
+   * @param installationRoot the path where the server is installed.
+   * @return the host name to be used to create self-signed certificates.
+   * @throws UnknownHostException
+   *           if a host name could not be used.
+   */
+  public static String getHostNameForCertificate(
+      String installationRoot) throws UnknownHostException
+  {
+    String hostName = null;
+    File f = new File(installationRoot + File.separator + HOST_NAME_FILE);
+    BufferedReader br = null;
+    try
+    {
+      br = new BufferedReader(new FileReader(f));
+      String s = br.readLine();
+      s = s.trim();
+
+      if (s.length() > 0)
+      {
+        hostName = s;
+        lastReadHostName = hostName;
+      }
+    }
+    catch (IOException ioe)
+    {
+    }
+    finally
+    {
+      try
+      {
+        if (br != null)
+        {
+          br.close();
+        }
+      }
+      catch (Exception e)
+      {
+        // ignore
+      }
+    }
+    if (hostName == null)
+    {
+      hostName = lastReadHostName;
+    }
+    if (hostName == null)
+    {
+      hostName = java.net.InetAddress.getLocalHost().getHostName();
+    }
+    return hostName;
+  }
 }
 

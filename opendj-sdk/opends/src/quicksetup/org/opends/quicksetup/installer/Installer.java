@@ -26,7 +26,9 @@
  */
 package org.opends.quicksetup.installer;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.util.*;
@@ -165,7 +167,7 @@ public abstract class Installer extends GuiApplication {
   protected Set<InstallProgressStep>
           completedProgress = new HashSet<InstallProgressStep>();
 
-  private List<WizardStep> lstSteps = new ArrayList<WizardStep>();
+  private final List<WizardStep> lstSteps = new ArrayList<WizardStep>();
 
   private final HashSet<WizardStep> SUBSTEPS = new HashSet<WizardStep>();
   {
@@ -175,7 +177,7 @@ public abstract class Installer extends GuiApplication {
     SUBSTEPS.add(Step.REMOTE_REPLICATION_PORTS);
   }
 
-  private HashMap<WizardStep, WizardStep> hmPreviousSteps =
+  private final HashMap<WizardStep, WizardStep> hmPreviousSteps =
     new HashMap<WizardStep, WizardStep>();
 
   private char[] selfSignedCertPw = null;
@@ -232,6 +234,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isCancellable() {
     return true;
   }
@@ -239,6 +242,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public UserData createUserData() {
     UserData ud = new UserData();
     ud.setServerLocation(getDefaultServerLocation());
@@ -273,6 +277,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public void forceToDisplay() {
     forceToDisplaySetup = true;
   }
@@ -280,6 +285,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean canGoBack(WizardStep step) {
     return step != WELCOME &&
             step != PROGRESS &&
@@ -289,6 +295,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean canGoForward(WizardStep step) {
     return step != REVIEW &&
             step != PROGRESS &&
@@ -298,6 +305,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean canFinish(WizardStep step) {
     return step == REVIEW;
   }
@@ -305,6 +313,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean canQuit(WizardStep step) {
     return step != PROGRESS &&
     step != FINISHED;
@@ -313,6 +322,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isSubStep(WizardStep step)
   {
     return SUBSTEPS.contains(step);
@@ -321,6 +331,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isVisible(WizardStep step, UserData userData)
   {
     boolean isVisible;
@@ -373,6 +384,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isVisible(WizardStep step, QuickSetup qs)
   {
     return isVisible(step, getUserData());
@@ -381,6 +393,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean finishClicked(final WizardStep cStep, final QuickSetup qs) {
     if (cStep == Step.REVIEW) {
         updateUserDataForReviewPanel(qs);
@@ -397,6 +410,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public void nextClicked(WizardStep cStep, QuickSetup qs) {
     if (cStep == PROGRESS) {
       throw new IllegalStateException(
@@ -412,6 +426,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public void closeClicked(WizardStep cStep, QuickSetup qs) {
     if (cStep == PROGRESS) {
       if (isFinished()
@@ -432,6 +447,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isFinished()
   {
     return getCurrentProgressStep() == InstallProgressStep.FINISHED_SUCCESSFULLY
@@ -442,6 +458,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public void cancel() {
     setCurrentProgressStep(InstallProgressStep.WAITING_TO_CANCEL);
     notifyListeners(null);
@@ -451,6 +468,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public void quitClicked(WizardStep cStep, QuickSetup qs) {
     if (cStep == FINISHED)
     {
@@ -475,6 +493,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public ButtonName getInitialFocusButtonName() {
     ButtonName name = null;
     if (!installStatus.isInstalled() || forceToDisplaySetup)
@@ -497,6 +516,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public JPanel createFramePanel(QuickSetupDialog dlg) {
     JPanel p;
     javaVersionCheckFailed = true;
@@ -542,6 +562,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public Set<? extends WizardStep> getWizardSteps() {
     return Collections.unmodifiableSet(new HashSet<WizardStep>(lstSteps));
   }
@@ -549,6 +570,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public QuickSetupStepPanel createWizardStepPanel(WizardStep step) {
     QuickSetupStepPanel p = null;
     if (step == WELCOME) {
@@ -582,6 +604,7 @@ public abstract class Installer extends GuiApplication {
   /**
   * {@inheritDoc}
   */
+  @Override
   public void windowClosing(QuickSetupDialog dlg, WindowEvent evt) {
 
     if (installStatus.isInstalled() && forceToDisplaySetup) {
@@ -601,6 +624,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public Message getCloseButtonToolTip() {
     return INFO_CLOSE_BUTTON_INSTALL_TOOLTIP.get();
   }
@@ -608,6 +632,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public Message getQuitButtonToolTip() {
     return INFO_QUIT_BUTTON_INSTALL_TOOLTIP.get();
   }
@@ -615,6 +640,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public Message getFinishButtonToolTip() {
     return INFO_FINISH_BUTTON_INSTALL_TOOLTIP.get();
   }
@@ -622,6 +648,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public int getExtraDialogHeight() {
     return UIFactory.EXTRA_DIALOG_HEIGHT;
   }
@@ -629,6 +656,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public void previousClicked(WizardStep cStep, QuickSetup qs) {
     if (cStep == WELCOME) {
       throw new IllegalStateException(
@@ -645,6 +673,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public Message getFrameTitle() {
     return Utils.getCustomizedObject("INFO_FRAME_INSTALL_TITLE",
         INFO_FRAME_INSTALL_TITLE.get(DynamicConstants.PRODUCT_NAME),
@@ -658,6 +687,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setWizardDialogState(QuickSetupDialog dlg,
                                       UserData userData,
                                       WizardStep step) {
@@ -681,6 +711,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public ProgressStep getCurrentProgressStep()
   {
     return currentProgressStep;
@@ -689,6 +720,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public WizardStep getFirstWizardStep() {
     return WELCOME;
   }
@@ -696,6 +728,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public WizardStep getNextWizardStep(WizardStep step) {
     WizardStep next = null;
     if (step == Step.REPLICATION_OPTIONS)
@@ -760,6 +793,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public LinkedHashSet<WizardStep> getOrderedSteps()
   {
     LinkedHashSet<WizardStep> orderedSteps = new LinkedHashSet<WizardStep>();
@@ -783,6 +817,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public WizardStep getPreviousWizardStep(WizardStep step) {
     //  Try with the steps calculated in method getNextWizardStep.
     WizardStep prev = hmPreviousSteps.get(step);
@@ -800,6 +835,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public WizardStep getFinishedStep() {
     return Step.FINISHED;
   }
@@ -859,6 +895,8 @@ public abstract class Installer extends GuiApplication {
     notifyListeners(getFormattedWithPoints(INFO_PROGRESS_CONFIGURING.get()));
 
     writeOpenDSJavaHome();
+
+    writeHostName();
 
     if (Utils.isWebStart())
     {
@@ -1024,6 +1062,7 @@ public abstract class Installer extends GuiApplication {
     setNotifyListeners(false);
     InvokeThread thread = new InvokeThread()
     {
+      @Override
       public void run()
       {
         int result = -1;
@@ -1058,6 +1097,7 @@ public abstract class Installer extends GuiApplication {
         }
         isOver = true;
       }
+      @Override
       public void abort()
       {
         // TODO: implement the abort
@@ -1279,6 +1319,7 @@ public abstract class Installer extends GuiApplication {
 
     InvokeThread thread = new InvokeThread()
     {
+      @Override
       public void run()
       {
         try
@@ -1303,6 +1344,7 @@ public abstract class Installer extends GuiApplication {
         }
         isOver = true;
       }
+      @Override
       public void abort()
       {
         // TODO: implement the abort
@@ -1387,6 +1429,7 @@ public abstract class Installer extends GuiApplication {
 
     InvokeThread thread = new InvokeThread()
     {
+      @Override
       public void run()
       {
         try
@@ -1416,6 +1459,7 @@ public abstract class Installer extends GuiApplication {
         }
         isOver = true;
       }
+      @Override
       public void abort()
       {
         // TODO: implement the abort
@@ -1501,6 +1545,7 @@ public abstract class Installer extends GuiApplication {
 
     InvokeThread thread = new InvokeThread()
     {
+      @Override
       public void run()
       {
         try
@@ -1536,6 +1581,7 @@ public abstract class Installer extends GuiApplication {
         }
         isOver = true;
       }
+      @Override
       public void abort()
       {
         // TODO: implement the abort
@@ -2232,6 +2278,7 @@ public abstract class Installer extends GuiApplication {
    *
    * @throws ApplicationException thrown if <code>canceled</code>
    */
+  @Override
   public void checkAbort() throws ApplicationException {
     if (canceled) {
       setCurrentProgressStep(InstallProgressStep.CANCELING);
@@ -2243,12 +2290,55 @@ public abstract class Installer extends GuiApplication {
   }
 
   /**
+   * Writes the host name to a file that will be used by the server to generate
+   * a self-signed certificate.
+   */
+  private void writeHostName()
+  {
+    BufferedWriter writer = null;
+    try
+    {
+      writer = new BufferedWriter(new FileWriter(getHostNameFile(), false));
+      writer.append(getUserData().getHostName());
+    }
+    catch (IOException ioe)
+    {
+      LOG.log(Level.WARNING, "Error writing host name file: "+ioe, ioe);
+    }
+    finally
+    {
+      try
+      {
+        if (writer != null)
+        {
+          writer.close();
+        }
+      }
+      catch (Exception ex)
+      {
+      }
+    }
+  }
+
+  /**
+   * Returns the file path where the host name is to be written.
+   * @return the file path where the host name is to be written.
+   */
+  private String getHostNameFile()
+  {
+    String file = Utils.getPath(
+        getInstallation().getRootDirectory().getAbsolutePath(),
+        SetupUtils.HOST_NAME_FILE);
+    return file;
+  }
+
+  /**
    * Writes the java home that we are using for the setup in a file.
    * This way we can use this java home even if the user has not set
    * OPENDS_JAVA_HOME when running the different scripts.
    *
    */
-  protected void writeOpenDSJavaHome()
+  private void writeOpenDSJavaHome()
   {
     try
     {
@@ -2272,6 +2362,7 @@ public abstract class Installer extends GuiApplication {
    *           valid.
    *
    */
+  @Override
   public void updateUserData(WizardStep cStep, QuickSetup qs)
           throws UserDataException
   {
@@ -5065,6 +5156,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   protected void applicationPrintStreamReceived(String message)
   {
     InstallerHelper helper = new InstallerHelper();
@@ -5117,6 +5209,7 @@ abstract class InvokeThread extends Thread implements Runnable
   /**
    * Runnable implementation.
    */
+  @Override
   public abstract void run();
 
   /**

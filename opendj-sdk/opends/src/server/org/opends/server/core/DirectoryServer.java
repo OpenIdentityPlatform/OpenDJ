@@ -1576,6 +1576,14 @@ public class DirectoryServer
       {
         serverStartingFile.delete();
       }
+
+      // If a host name file exists, then remove it.
+      File hostNameFile = new File(configHandler.getInstanceRoot() +
+          File.separator + SetupUtils.HOST_NAME_FILE);
+      if (hostNameFile.exists())
+      {
+        hostNameFile.delete();
+      }
     }
   }
 
