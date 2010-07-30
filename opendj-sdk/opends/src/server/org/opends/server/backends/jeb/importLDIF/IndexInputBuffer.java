@@ -50,12 +50,13 @@ import com.sleepycat.util.PackedInteger;
 public final class IndexInputBuffer implements Comparable<IndexInputBuffer>
 {
   private final IndexManager indexMgr;
+  private final FileChannel channel;
   private final long begin;
   private final long end;
   private final int id;
 
   private long offset;
-  private ByteBuffer cache;
+  private final ByteBuffer cache;
   private Integer indexID = null;
   private ByteBuffer keyBuf = ByteBuffer.allocate(128);
 
@@ -80,35 +81,30 @@ public final class IndexInputBuffer implements Comparable<IndexInputBuffer>
    *
    * @param indexMgr
    *          The index manager.
+   * @param channel
+   *          The index file channel.
    * @param begin
    *          The position of the start of the buffer in the scratch file.
    * @param end
    *          The position of the end of the buffer in the scratch file.
    * @param id
    *          The index ID.
+   * @param cacheSize
+   *          The cache size.
+   * @throws IOException
+   *           If an IO error occurred when priming the cache.
    */
-  public IndexInputBuffer(IndexManager indexMgr, long begin, long end, int id)
+  public IndexInputBuffer(IndexManager indexMgr, FileChannel channel,
+      long begin, long end, int id, int cacheSize) throws IOException
   {
     this.indexMgr = indexMgr;
+    this.channel = channel;
     this.begin = begin;
     this.end = end;
     this.offset = 0;
     this.id = id;
-  }
+    this.cache = ByteBuffer.allocate(Math.max(cacheSize - 384, 256));
 
-
-
-  /**
-   * Initializes this index input buffer using the provided cache size.
-   *
-   * @param cacheSize
-   *          The cache size.
-   * @throws IOException
-   *           If an IO error occurred.
-   */
-  void initializeCache(long cacheSize) throws IOException
-  {
-    cache = ByteBuffer.allocate((int) Math.max(cacheSize - 256, 256));
     loadCache();
     cache.flip();
     keyBuf.flip();
@@ -118,8 +114,7 @@ public final class IndexInputBuffer implements Comparable<IndexInputBuffer>
 
   private void loadCache() throws IOException
   {
-    FileChannel fileChannel = indexMgr.getChannel();
-    fileChannel.position(begin + offset);
+    channel.position(begin + offset);
     long leftToRead = end - (begin + offset);
     long bytesToRead;
     if (leftToRead < cache.remaining())
@@ -134,7 +129,7 @@ public final class IndexInputBuffer implements Comparable<IndexInputBuffer>
     int bytesRead = 0;
     while (bytesRead < bytesToRead)
     {
-      bytesRead += fileChannel.read(cache);
+      bytesRead += channel.read(cache);
     }
     offset += bytesRead;
     indexMgr.addBytesRead(bytesRead);
@@ -199,7 +194,7 @@ public final class IndexInputBuffer implements Comparable<IndexInputBuffer>
       catch (IOException ex)
       {
         Message message = ERR_JEB_IMPORT_BUFFER_IO_ERROR.get(indexMgr
-            .getFileName());
+            .getBufferFileName());
         logError(message);
         ex.printStackTrace();
         System.exit(1);
