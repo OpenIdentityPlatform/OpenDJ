@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *       Copyright year Sun Microsystems, Inc.
+ *       Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.extensions;
@@ -265,7 +265,7 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg>
           lastState = 2;
           if(handler != null)
           {
-            handler.diskFullThresholdReached(lastFreeSpace);
+            handler.diskFullThresholdReached(this);
           }
         }
       }
@@ -280,7 +280,7 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg>
           lastState = 1;
           if(handler != null)
           {
-            handler.diskLowThresholdReached(lastFreeSpace);
+            handler.diskLowThresholdReached(this);
           }
         }
       }
@@ -293,7 +293,7 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg>
         lastState = 0;
         if(handler != null)
         {
-          handler.diskSpaceRestored(lastFreeSpace);
+          handler.diskSpaceRestored(this);
         }
       }
     }

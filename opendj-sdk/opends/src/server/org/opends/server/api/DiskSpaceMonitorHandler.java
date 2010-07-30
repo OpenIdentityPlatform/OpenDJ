@@ -27,6 +27,8 @@
 
 package org.opends.server.api;
 
+import org.opends.server.extensions.DiskSpaceMonitor;
+
 /**
  * This interface defines the set of methods that must be implemented
  * for a DiskSpaceMonitorHandler.  Disk space monitor handlers are
@@ -38,24 +40,22 @@ public interface DiskSpaceMonitorHandler {
   /**
    * Notifies that the registered "low" threshold have been reached.
    *
-   * @param bytesFree The number of bytes free when threshold
-   *                                 was reached.
+   * @param monitor The DiskSpaceMonitor that detected this event.
    */
-  public void diskLowThresholdReached(long bytesFree);
+  public void diskLowThresholdReached(DiskSpaceMonitor monitor);
 
   /**
    * Notifies that the registered "full" threshold have been reached.
    *
-   * @param bytesFree The number of bytes free when threshold
-   *                                 was reached.
+   * @param monitor The DiskSpaceMonitor that detected this event.
    */
-  public void diskFullThresholdReached(long bytesFree);
+  public void diskFullThresholdReached(DiskSpaceMonitor monitor);
 
   /**
    * Notifies that the free disk space is now above both "low" and
    * "full" thresholds.
    *
-   * @param bytesFree The number of bytes free.
+   * @param monitor The DiskSpaceMonitor that detected this event.
    */
-  public void diskSpaceRestored(long bytesFree);
+  public void diskSpaceRestored(DiskSpaceMonitor monitor);
 }
