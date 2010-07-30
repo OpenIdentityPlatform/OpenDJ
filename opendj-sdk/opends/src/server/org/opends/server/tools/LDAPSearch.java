@@ -25,7 +25,7 @@
  *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
-import org.opends.admin.ads.util.ConnectionUtils;
+
 import org.opends.messages.Message;
 
 import java.io.BufferedReader;
@@ -83,13 +83,13 @@ public class LDAPSearch
   private List<Control> responseControls;
 
   // The message ID counter to use for requests.
-  private AtomicInteger nextMessageID;
+  private final AtomicInteger nextMessageID;
 
   // The print stream to use for standard error.
-  private PrintStream err;
+  private final PrintStream err;
 
   // The print stream to use for standard output.
-  private PrintStream out;
+  private final PrintStream out;
 
 
 
@@ -1022,11 +1022,10 @@ public class LDAPSearch
       version.setPropertyName(OPTION_LONG_PROTOCOL_VERSION);
       argParser.addArgument(version);
 
-      int defaultTimeout = ConnectionUtils.getDefaultLDAPTimeout();
       connectTimeout = new IntegerArgument(OPTION_LONG_CONNECT_TIMEOUT,
           null, OPTION_LONG_CONNECT_TIMEOUT,
           false, false, true, INFO_TIMEOUT_PLACEHOLDER.get(),
-          defaultTimeout, null,
+          0, null,
           true, 0, false, Integer.MAX_VALUE,
           INFO_DESCRIPTION_CONNECTION_TIMEOUT.get());
       connectTimeout.setPropertyName(OPTION_LONG_CONNECT_TIMEOUT);
