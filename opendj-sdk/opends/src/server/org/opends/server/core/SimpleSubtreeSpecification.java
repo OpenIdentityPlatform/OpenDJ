@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -404,16 +404,9 @@ public abstract class SimpleSubtreeSpecification extends
   }
 
   /**
-   * Determine if the specified DN is within the scope of the subtree
-   * specification.
-   *
-   * @param dn
-   *          The distringuished name.
-   * @return Returns <code>true</code> if the DN is within the scope
-   *         of the subtree specification, or <code>false</code>
-   *         otherwise.
+   * {@inheritDoc}
    */
-  protected final boolean isDNWithinScope(DN dn) {
+  public final boolean isDNWithinScope(DN dn) {
 
     if (!dn.isDescendantOf(baseDN)) {
       return false;
@@ -460,11 +453,9 @@ public abstract class SimpleSubtreeSpecification extends
   }
 
   /**
-   * Get the absolute base DN of the subtree specification.
-   *
-   * @return Returns the absolute base DN of the subtree specification.
+   * {@inheritDoc}
    */
-  protected final DN getBaseDN() {
+  public final DN getBaseDN() {
     return baseDN;
   }
 

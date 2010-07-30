@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.schema;
 
@@ -798,30 +798,6 @@ public class SchemaConstants
    * The OID for the telephoneNumberSubstringsMatch substring matching rule.
    */
   public static final String SMR_TELEPHONE_OID = "2.5.13.21";
-
-
-
-  /**
-   * The OID for the absolute subtree specification attribute syntax.
-   */
-  public static final String SYNTAX_ABSOLUTE_SUBTREE_SPECIFICATION_OID =
-       OID_OPENDS_SERVER_ATTRIBUTE_SYNTAX_BASE + ".3";
-
-
-
-  /**
-   * The description for the absolute subtree specification attribute syntax.
-   */
-  public static final String SYNTAX_ABSOLUTE_SUBTREE_SPECIFICATION_DESCRIPTION =
-    "Absolute Subtree Specification";
-
-
-
-  /**
-   * The name for the absolute subtree specification attribute syntax.
-   */
-  public static final String SYNTAX_ABSOLUTE_SUBTREE_SPECIFICATION_NAME =
-    "ds-absolute-subtree-specification";
 
 
 
@@ -1668,26 +1644,26 @@ public class SchemaConstants
 
 
   /**
-   * The OID for the relative subtree specification attribute syntax.
+   * The OID for the subtree specification attribute syntax.
    */
-  public static final String SYNTAX_RELATIVE_SUBTREE_SPECIFICATION_OID =
-       OID_OPENDS_SERVER_ATTRIBUTE_SYNTAX_BASE + ".2";
+  public static final String SYNTAX_SUBTREE_SPECIFICATION_OID =
+    "1.3.6.1.4.1.1466.115.121.1.45";
 
 
 
   /**
-   * The description for the relative subtree specification attribute syntax.
+   * The description for the subtree specification attribute syntax.
    */
-  public static final String SYNTAX_RELATIVE_SUBTREE_SPECIFICATION_DESCRIPTION =
-    "Relative Subtree Specification";
+  public static final String SYNTAX_SUBTREE_SPECIFICATION_DESCRIPTION =
+    "Subtree Specification";
 
 
 
   /**
-   * The name for the relative subtree specification attribute syntax.
+   * The name for the subtree specification attribute syntax.
    */
-  public static final String SYNTAX_RELATIVE_SUBTREE_SPECIFICATION_NAME =
-    "ds-relative-subtree-specification";
+  public static final String SYNTAX_SUBTREE_SPECIFICATION_NAME =
+    "SubtreeSpecification";
 
 
 
@@ -1695,7 +1671,7 @@ public class SchemaConstants
    * The OID for the RFC3672 subtree specification attribute syntax.
    */
   public static final String SYNTAX_RFC3672_SUBTREE_SPECIFICATION_OID =
-    "1.3.6.1.4.1.1466.115.121.1.45";
+    SYNTAX_SUBTREE_SPECIFICATION_OID;
 
 
 
@@ -1711,7 +1687,55 @@ public class SchemaConstants
    * The name for the RFC3672 subtree specification attribute syntax.
    */
   public static final String SYNTAX_RFC3672_SUBTREE_SPECIFICATION_NAME =
-    "SubtreeSpecification";
+    SYNTAX_SUBTREE_SPECIFICATION_NAME;
+
+
+
+  /**
+   * The OID for the absolute subtree specification attribute syntax.
+   */
+  public static final String SYNTAX_ABSOLUTE_SUBTREE_SPECIFICATION_OID =
+       SYNTAX_SUBTREE_SPECIFICATION_OID;
+
+
+
+  /**
+   * The description for the absolute subtree specification attribute syntax.
+   */
+  public static final String SYNTAX_ABSOLUTE_SUBTREE_SPECIFICATION_DESCRIPTION =
+    "Absolute Subtree Specification";
+
+
+
+  /**
+   * The name for the absolute subtree specification attribute syntax.
+   */
+  public static final String SYNTAX_ABSOLUTE_SUBTREE_SPECIFICATION_NAME =
+    SYNTAX_SUBTREE_SPECIFICATION_NAME;
+
+
+
+  /**
+   * The OID for the relative subtree specification attribute syntax.
+   */
+  public static final String SYNTAX_RELATIVE_SUBTREE_SPECIFICATION_OID =
+       SYNTAX_SUBTREE_SPECIFICATION_OID;
+
+
+
+  /**
+   * The description for the relative subtree specification attribute syntax.
+   */
+  public static final String SYNTAX_RELATIVE_SUBTREE_SPECIFICATION_DESCRIPTION =
+    "Relative Subtree Specification";
+
+
+
+  /**
+   * The name for the relative subtree specification attribute syntax.
+   */
+  public static final String SYNTAX_RELATIVE_SUBTREE_SPECIFICATION_NAME =
+    SYNTAX_SUBTREE_SPECIFICATION_NAME;
 
 
 

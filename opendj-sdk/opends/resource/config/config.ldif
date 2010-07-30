@@ -1982,13 +1982,6 @@ objectClass: top
 objectClass: ds-cfg-branch
 cn: Syntaxes
 
-dn: cn=Absolute Subtree Specification,cn=Syntaxes,cn=config
-objectClass: top
-objectClass: ds-cfg-attribute-syntax
-cn: Absolute Subtree Specification
-ds-cfg-java-class: org.opends.server.schema.AbsoluteSubtreeSpecificationSyntax
-ds-cfg-enabled: true
-
 dn: cn=Sun-defined Access Control Information,cn=Syntaxes,cn=config
 objectClass: top
 objectClass: ds-cfg-attribute-syntax
@@ -2252,13 +2245,6 @@ cn: Protocol Information
 ds-cfg-java-class: org.opends.server.schema.ProtocolInformationSyntax
 ds-cfg-enabled: true
 
-dn: cn=Relative Subtree Specification,cn=Syntaxes,cn=config
-objectClass: top
-objectClass: ds-cfg-attribute-syntax
-cn: Relative Subtree Specification
-ds-cfg-java-class: org.opends.server.schema.RelativeSubtreeSpecificationSyntax
-ds-cfg-enabled: true
-
 dn: cn=Substring Assertion,cn=Syntaxes,cn=config
 objectClass: top
 objectClass: ds-cfg-attribute-syntax
@@ -2270,7 +2256,7 @@ dn: cn=Subtree Specification,cn=Syntaxes,cn=config
 objectClass: top
 objectClass: ds-cfg-attribute-syntax
 cn: Subtree Specification
-ds-cfg-java-class: org.opends.server.schema.RFC3672SubtreeSpecificationSyntax
+ds-cfg-java-class: org.opends.server.schema.SubtreeSpecificationSyntax
 ds-cfg-enabled: true
 
 dn: cn=Supported Algorithm,cn=Syntaxes,cn=config

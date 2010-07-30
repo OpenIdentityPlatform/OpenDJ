@@ -28,6 +28,7 @@ package org.opends.server.core;
 
 
 
+import org.opends.server.api.SubtreeSpecification;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -206,7 +207,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   private void addSubEntry(Entry entry) throws DirectoryException
   {
     SubEntry subEntry = new SubEntry(entry);
-    RFC3672SubtreeSpecification subSpec =
+    SubtreeSpecification subSpec =
             subEntry.getSubTreeSpecification();
     DN subDN = subSpec.getBaseDN();
     List<SubEntry> subList = null;
@@ -488,7 +489,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
         {
           for (SubEntry subEntry : subList)
           {
-            RFC3672SubtreeSpecification subSpec =
+            SubtreeSpecification subSpec =
                     subEntry.getSubTreeSpecification();
             if (subSpec.isDNWithinScope(dn))
             {
@@ -534,7 +535,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
         {
           for (SubEntry subEntry : subList)
           {
-            RFC3672SubtreeSpecification subSpec =
+            SubtreeSpecification subSpec =
                     subEntry.getSubTreeSpecification();
             if (subSpec.isWithinScope(entry))
             {
@@ -580,7 +581,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
         {
           for (SubEntry subEntry : subList)
           {
-            RFC3672SubtreeSpecification subSpec =
+            SubtreeSpecification subSpec =
                     subEntry.getSubTreeSpecification();
             if (subSpec.isDNWithinScope(dn))
             {
@@ -626,7 +627,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
         {
           for (SubEntry subEntry : subList)
           {
-            RFC3672SubtreeSpecification subSpec =
+            SubtreeSpecification subSpec =
                     subEntry.getSubTreeSpecification();
             if (subSpec.isWithinScope(entry))
             {
