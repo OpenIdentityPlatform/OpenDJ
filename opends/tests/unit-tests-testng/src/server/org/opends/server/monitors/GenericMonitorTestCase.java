@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.monitors;
 
@@ -117,34 +117,6 @@ public abstract class GenericMonitorTestCase
          throws Exception
   {
     getMonitorInstance().getMonitorInstanceName();
-  }
-
-
-
-  /**
-   * Tests the <CODE>getUpdateInterval</CODE> method.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testGetUpdateInterval()
-         throws Exception
-  {
-    getMonitorInstance().getUpdateInterval();
-  }
-
-
-
-  /**
-   * Tests the <CODE>getUpdateMonitorData</CODE> method.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testUpdateMonitorData()
-         throws Exception
-  {
-    getMonitorInstance().updateMonitorData();
   }
 
 

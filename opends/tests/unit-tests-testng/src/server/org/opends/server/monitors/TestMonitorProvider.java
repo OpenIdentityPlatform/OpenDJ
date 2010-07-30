@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.monitors;
@@ -41,11 +41,6 @@ import java.util.Collections;
  */
 class TestMonitorProvider extends MonitorProvider<MonitorProviderCfg>
 {
-  public TestMonitorProvider()
-  {
-    super("Test Monitor Thread");
-  }
-
   public void initializeMonitorProvider(MonitorProviderCfg configuration)
        throws ConfigException, InitializationException
   {
@@ -55,16 +50,6 @@ class TestMonitorProvider extends MonitorProvider<MonitorProviderCfg>
   public String getMonitorInstanceName()
   {
     return "Test monitor for dc=example,dc=com";
-  }
-
-  public long getUpdateInterval()
-  {
-    return 0;
-  }
-
-  public void updateMonitorData()
-  {
-    // No implementation required.
   }
 
   public List<Attribute> getMonitorData()

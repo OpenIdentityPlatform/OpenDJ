@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.monitors;
 
@@ -68,8 +68,6 @@ public class ClientConnectionMonitorProvider extends
    */
   public ClientConnectionMonitorProvider()
   {
-    super("Client Connection Monitor Provider");
-
     // This will monitor all connection handlers.
     this.handler = null;
   }
@@ -84,8 +82,6 @@ public class ClientConnectionMonitorProvider extends
    */
   public ClientConnectionMonitorProvider(ConnectionHandler handler)
   {
-    super("Client Connection Monitor Provider");
-
     this.handler = handler;
   }
 
@@ -124,42 +120,6 @@ public class ClientConnectionMonitorProvider extends
       return "Client Connections" + ",cn="
           + handler.getConnectionHandlerName();
     }
-  }
-
-
-
-  /**
-   * Retrieves the length of time in milliseconds that should elapse
-   * between calls to the <CODE>updateMonitorData()</CODE> method. A
-   * negative or zero return value indicates that the
-   * <CODE>updateMonitorData()</CODE> method should not be periodically
-   * invoked.
-   *
-   * @return The length of time in milliseconds that should elapse
-   *         between calls to the <CODE>updateMonitorData()</CODE>
-   *         method.
-   */
-  @Override
-  public long getUpdateInterval()
-  {
-    // This monitor does not need to run periodically.
-    return 0;
-  }
-
-
-
-  /**
-   * Performs any processing periodic processing that may be desired to
-   * update the information associated with this monitor. Note that
-   * best-effort attempts will be made to ensure that calls to this
-   * method come <CODE>getUpdateInterval()</CODE> milliseconds apart,
-   * but no guarantees will be made.
-   */
-  @Override
-  public void updateMonitorData()
-  {
-    // This monitor does not need to run periodically.
-    return;
   }
 
 

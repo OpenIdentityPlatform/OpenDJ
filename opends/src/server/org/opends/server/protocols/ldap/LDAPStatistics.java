@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.ldap;
 
@@ -139,7 +139,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
    */
   public LDAPStatistics(String instanceName)
   {
-    super("LDAP Statistics Monitor Provider");
     this.instanceName = instanceName;
   }
 
@@ -175,42 +174,6 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   public String getMonitorInstanceName()
   {
     return instanceName;
-  }
-
-
-
-  /**
-   * Retrieves the length of time in milliseconds that should elapse
-   * between calls to the <CODE>updateMonitorData()</CODE> method. A
-   * negative or zero return value indicates that the
-   * <CODE>updateMonitorData()</CODE> method should not be periodically
-   * invoked.
-   *
-   * @return The length of time in milliseconds that should elapse
-   *         between calls to the <CODE>updateMonitorData()</CODE>
-   *         method.
-   */
-  @Override
-  public long getUpdateInterval()
-  {
-    // This monitor should not run periodically.
-    return -1;
-  }
-
-
-
-  /**
-   * Performs any processing periodic processing that may be desired to
-   * update the information associated with this monitor. Note that
-   * best-effort attempts will be made to ensure that calls to this
-   * method come <CODE>getUpdateInterval()</CODE> milliseconds apart,
-   * but no guarantees will be made.
-   */
-  @Override
-  public void updateMonitorData()
-  {
-    // No implementation is required since this does not do periodic
-    // updates.
   }
 
 

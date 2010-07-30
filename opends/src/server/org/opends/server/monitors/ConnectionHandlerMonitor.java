@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.monitors;
 
@@ -84,8 +84,6 @@ public class ConnectionHandlerMonitor
   public ConnectionHandlerMonitor(
        ConnectionHandler<? extends ConnectionHandlerCfg> connectionHandler)
   {
-    super(connectionHandler.getConnectionHandlerName());
-
     this.connectionHandler = connectionHandler;
   }
 
@@ -141,27 +139,6 @@ public class ConnectionHandlerMonitor
   public ObjectClass getMonitorObjectClass()
   {
     return DirectoryConfig.getObjectClass(OC_MONITOR_CONNHANDLER, true);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public long getUpdateInterval()
-  {
-    // We don't need do anything on a periodic basis.
-    return 0;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void updateMonitorData()
-  {
-    // No implementaiton is required.
   }
 
 

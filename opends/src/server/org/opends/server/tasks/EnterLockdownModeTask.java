@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.tasks;
 import org.opends.messages.Message;
@@ -34,10 +34,7 @@ import java.net.InetAddress;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Operation;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 import static org.opends.messages.TaskMessages.*;
 
@@ -71,7 +68,8 @@ public class EnterLockdownModeTask
     if (operation != null)
     {
       DN authzDN = operation.getAuthorizationDN();
-      if ((authzDN == null) || (! DirectoryServer.isRootDN(authzDN)))
+      if ((authzDN == null) || (! operation.getClientConnection().hasPrivilege(
+          Privilege.SERVER_LOCKDOWN, operation)))
       {
         Message message = ERR_TASK_ENTERLOCKDOWN_NOT_ROOT.get();
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);

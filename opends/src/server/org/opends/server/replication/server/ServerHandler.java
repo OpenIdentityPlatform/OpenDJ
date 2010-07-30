@@ -719,22 +719,6 @@ public abstract class ServerHandler extends MessageHandler
   protected abstract ServerStatus getStatus();
 
   /**
-   * Retrieves the length of time in milliseconds that should elapse between
-   * calls to the <CODE>updateMonitorData()</CODE> method.  A negative or zero
-   * return value indicates that the <CODE>updateMonitorData()</CODE> method
-   * should not be periodically invoked.
-   *
-   * @return  The length of time in milliseconds that should elapse between
-   *          calls to the <CODE>updateMonitorData()</CODE> method.
-   */
-  @Override
-  public long getUpdateInterval()
-  {
-    /* we don't wont to do polling on this monitor */
-    return 0;
-  }
-
-  /**
    * Increment the number of updates received from the server in assured safe
    * data mode.
    */
@@ -1235,19 +1219,6 @@ public abstract class ServerHandler extends MessageHandler
     {
       replicationServerDomain.startMonitoringPublisher();
     }
-  }
-
-  /**
-   * Performs any processing periodic processing that may be desired to update
-   * the information associated with this monitor.  Note that best-effort
-   * attempts will be made to ensure that calls to this method come
-   * <CODE>getUpdateInterval()</CODE> milliseconds apart, but no guarantees will
-   * be made.
-   */
-  @Override
-  public void updateMonitorData()
-  {
-    // As long as getUpdateInterval() returns 0, this will never get called
   }
   /**
    * Update the send window size based on the credit specified in the

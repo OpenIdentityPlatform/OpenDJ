@@ -22,13 +22,14 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.monitors;
 
 
 
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.AttributeSyntax;
@@ -50,6 +51,7 @@ import org.opends.server.types.InitializationException;
  */
 public class ParallelWorkQueueMonitor
        extends MonitorProvider<MonitorProviderCfg>
+       implements Runnable
 {
   /**
    * The name to use for the monitor attribute that provides the current request
@@ -106,9 +108,6 @@ public class ParallelWorkQueueMonitor
    */
   public ParallelWorkQueueMonitor(ParallelWorkQueue workQueue)
   {
-    super("Work Queue Monitor Provider");
-
-
     this.workQueue = workQueue;
   }
 
@@ -123,6 +122,7 @@ public class ParallelWorkQueueMonitor
     maxBacklog   = 0;
     totalBacklog = 0;
     numPolls     = 0;
+    scheduleUpdate(this, 0, 10, TimeUnit.SECONDS);
   }
 
 
@@ -139,32 +139,10 @@ public class ParallelWorkQueueMonitor
   }
 
 
-
   /**
-   * Retrieves the length of time in milliseconds that should elapse between
-   * calls to the <CODE>updateMonitorData()</CODE> method.  A negative or zero
-   * return value indicates that the <CODE>updateMonitorData()</CODE> method
-   * should not be periodically invoked.
-   *
-   * @return  The length of time in milliseconds that should elapse between
-   *          calls to the <CODE>updateMonitorData()</CODE> method.
+   * {@inheritDoc}
    */
-  public long getUpdateInterval()
-  {
-    // We will poll the work queue every 10 seconds.
-    return 10000;
-  }
-
-
-
-  /**
-   * Performs any processing periodic processing that may be desired to update
-   * the information associated with this monitor.  Note that best-effort
-   * attempts will be made to ensure that calls to this method come
-   * <CODE>getUpdateInterval()</CODE> milliseconds apart, but no guarantees will
-   * be made.
-   */
-  public void updateMonitorData()
+  public void run()
   {
     int backlog = workQueue.size();
     totalBacklog += backlog;

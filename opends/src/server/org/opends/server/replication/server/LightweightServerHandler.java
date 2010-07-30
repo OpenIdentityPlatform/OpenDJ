@@ -117,7 +117,6 @@ public class LightweightServerHandler
     AssuredMode assuredMode, byte safeDataLevel, Set<String> eclInclude,
     short protocolVersion)
   {
-    super("Server Handler");
     this.replServerHandler = replServerHandler;
     this.rsDomain = replServerHandler.getDomain();
     this.replicationServerId = replicationServerId;
@@ -218,36 +217,6 @@ replServerHandler.getDomain().getReplicationServer().getMonitorInstanceName() +
     String str = serverURL + " " + String.valueOf(serverId);
     return "Undirect Replica " + str +
                           ",cn=" + replServerHandler.getMonitorInstanceName();
-  }
-
-  /**
-   * Retrieves the length of time in milliseconds that should elapse between
-   * calls to the <CODE>updateMonitorData()</CODE> method.  A negative or zero
-   * return value indicates that the <CODE>updateMonitorData()</CODE> method
-   * should not be periodically invoked.
-   *
-   * @return  The length of time in milliseconds that should elapse between
-   *          calls to the <CODE>updateMonitorData()</CODE> method.
-   */
-  @Override
-  public long getUpdateInterval()
-  {
-    /* we don't wont to do polling on this monitor */
-    return 0;
-  }
-
-  /**
-   * Performs any processing periodic processing that may be desired to update
-   * the information associated with this monitor.  Note that best-effort
-   * attempts will be made to ensure that calls to this method come
-   * <CODE>getUpdateInterval()</CODE> milliseconds apart, but no guarantees will
-   * be made.
-   */
-  @Override
-  public void updateMonitorData()
-  {
-    // As long as getUpdateInterval() returns 0, this will never get called
-
   }
 
   /**

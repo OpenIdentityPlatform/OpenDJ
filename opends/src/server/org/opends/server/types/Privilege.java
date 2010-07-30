@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -52,6 +52,14 @@ public enum Privilege
    * evaluation.
    */
   BYPASS_ACL("bypass-acl"),
+
+
+
+  /**
+   * The privilege that provides the ability to bypass server
+   * lockdown mode.
+   */
+  BYPASS_LOCKDOWN("bypass-lockdown"),
 
 
 
@@ -132,6 +140,13 @@ public enum Privilege
    * restore operations.
    */
   BACKEND_RESTORE("backend-restore"),
+
+
+
+  /**
+   * The privilege that provides the ability to lockdown a server.
+   */
+  SERVER_LOCKDOWN("server-lockdown"),
 
 
 
@@ -250,6 +265,7 @@ public enum Privilege
   static
   {
     PRIV_MAP.put("bypass-acl", BYPASS_ACL);
+    PRIV_MAP.put("bypass-lockdown", BYPASS_LOCKDOWN);
     PRIV_MAP.put("modify-acl", MODIFY_ACL);
     PRIV_MAP.put("config-read", CONFIG_READ);
     PRIV_MAP.put("config-write", CONFIG_WRITE);
@@ -260,6 +276,7 @@ public enum Privilege
     PRIV_MAP.put("ldif-export", LDIF_EXPORT);
     PRIV_MAP.put("backend-backup", BACKEND_BACKUP);
     PRIV_MAP.put("backend-restore", BACKEND_RESTORE);
+    PRIV_MAP.put("server-lockdown", SERVER_LOCKDOWN);
     PRIV_MAP.put("server-shutdown", SERVER_SHUTDOWN);
     PRIV_MAP.put("server-restart", SERVER_RESTART);
     PRIV_MAP.put("proxied-auth", PROXIED_AUTH);
@@ -272,6 +289,7 @@ public enum Privilege
     PRIV_MAP.put("unindexed-search", UNINDEXED_SEARCH);
 
     PRIV_NAMES.add("bypass-acl");
+    PRIV_NAMES.add("bypass-lockdown");
     PRIV_NAMES.add("modify-acl");
     PRIV_NAMES.add("config-read");
     PRIV_NAMES.add("config-write");
@@ -282,6 +300,7 @@ public enum Privilege
     PRIV_NAMES.add("ldif-export");
     PRIV_NAMES.add("backend-backup");
     PRIV_NAMES.add("backend-restore");
+    PRIV_NAMES.add("server-lockdown");
     PRIV_NAMES.add("server-shutdown");
     PRIV_NAMES.add("server-restart");
     PRIV_NAMES.add("proxied-auth");
@@ -294,6 +313,7 @@ public enum Privilege
     PRIV_NAMES.add("unindexed-search");
 
     DEFAULT_ROOT_PRIV_SET.add(BYPASS_ACL);
+    DEFAULT_ROOT_PRIV_SET.add(BYPASS_LOCKDOWN);
     DEFAULT_ROOT_PRIV_SET.add(MODIFY_ACL);
     DEFAULT_ROOT_PRIV_SET.add(CONFIG_READ);
     DEFAULT_ROOT_PRIV_SET.add(CONFIG_WRITE);
@@ -301,6 +321,7 @@ public enum Privilege
     DEFAULT_ROOT_PRIV_SET.add(LDIF_EXPORT);
     DEFAULT_ROOT_PRIV_SET.add(BACKEND_BACKUP);
     DEFAULT_ROOT_PRIV_SET.add(BACKEND_RESTORE);
+    DEFAULT_ROOT_PRIV_SET.add(SERVER_LOCKDOWN);
     DEFAULT_ROOT_PRIV_SET.add(SERVER_SHUTDOWN);
     DEFAULT_ROOT_PRIV_SET.add(SERVER_RESTART);
     DEFAULT_ROOT_PRIV_SET.add(DISCONNECT_CLIENT);

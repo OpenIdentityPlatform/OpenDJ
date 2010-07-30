@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.server;
 
@@ -144,7 +144,6 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
       int replicationServerId,
       ReplicationServer replicationServer)
   {
-    super("Message Handler");
     this.maxQueueSize = queueSize;
     this.maxQueueBytesSize = queueSize * 100;
     this.replicationServerURL = replicationServerURL;
@@ -637,22 +636,6 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
-   * Retrieves the length of time in milliseconds that should elapse between
-   * calls to the <CODE>updateMonitorData()</CODE> method.  A negative or zero
-   * return value indicates that the <CODE>updateMonitorData()</CODE> method
-   * should not be periodically invoked.
-   *
-   * @return  The length of time in milliseconds that should elapse between
-   *          calls to the <CODE>updateMonitorData()</CODE> method.
-   */
-  @Override
-  public long getUpdateInterval()
-  {
-    /* we don't wont to do polling on this monitor */
-    return 0;
-  }
-
-  /**
    * Increase the counter of update received from the server.
    */
   public void incrementInCount()
@@ -768,19 +751,6 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
     }
 
     DirectoryServer.deregisterMonitorProvider(getMonitorInstanceName());
-  }
-
-  /**
-   * Performs any processing periodic processing that may be desired to update
-   * the information associated with this monitor.  Note that best-effort
-   * attempts will be made to ensure that calls to this method come
-   * <CODE>getUpdateInterval()</CODE> milliseconds apart, but no guarantees will
-   * be made.
-   */
-  @Override
-  public void updateMonitorData()
-  {
-    // As long as getUpdateInterval() returns 0, this will never get called
   }
 
   /**

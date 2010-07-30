@@ -1810,6 +1810,48 @@ public final class ServerConstants
 
   /**
    * The description for the alert type that will be used for the alert
+   * notification generated when the free disk space have reached
+   * the low threshold.
+   */
+  public static final String ALERT_DESCRIPTION_DISK_SPACE_LOW =
+      "This alert type will be used to provide notification that the " +
+      "free disk space have reached the low threshold.";
+
+
+
+  /**
+   * The alert type string that will be used for the alert notification
+   * generated when the JE Environment needs to be reopened by restarting
+   * the Directory Server.
+   */
+  public static final String ALERT_TYPE_DISK_SPACE_LOW =
+       "org.opends.server.DiskSpaceLow";
+
+
+
+  /**
+   * The description for the alert type that will be used for the alert
+   * notification generated when the free disk space have reached
+   * the full threshold.
+   */
+  public static final String ALERT_DESCRIPTION_DISK_FULL =
+      "This alert type will be used to provide notification that the " +
+      "free disk space have reached the full threshold.";
+
+
+
+  /**
+   * The alert type string that will be used for the alert notification
+   * generated when the JE Environment needs to be reopened by restarting
+   * the Directory Server.
+   */
+  public static final String ALERT_TYPE_DISK_FULL =
+       "org.opends.server.DiskFull";
+
+
+
+  /**
+   * The description for the alert type that will be used for the alert
    * notification generated when the LDIF backend cannot write an updated LDIF
    * file.
    */

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.workflowelement.ndb;
 
@@ -31,22 +31,13 @@ package org.opends.server.workflowelement.ndb;
 import java.util.List;
 
 import org.opends.messages.Message;
+import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicyState;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.AccountStatusNotification;
-import org.opends.server.types.AccountStatusNotificationType;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 import org.opends.server.workflowelement.localbackend.LocalBackendBindOperation;
 import static org.opends.messages.CoreMessages.*;
@@ -173,14 +164,15 @@ public class NDBBindOperation
     if (pwPolicyState.passwordMatches(simplePassword)) {
       setResultCode(ResultCode.SUCCESS);
 
-      boolean isRoot = DirectoryServer.isRootDN(userEntry.getDN());
-      if (DirectoryServer.lockdownMode() && (!isRoot)) {
+      if (DirectoryServer.lockdownMode() &&
+            (! ClientConnection.hasPrivilege(userEntry,
+                Privilege.BYPASS_LOCKDOWN)))
+      {
         throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
           ERR_BIND_REJECTED_LOCKDOWN_MODE.get());
       }
       setAuthenticationInfo(new AuthenticationInfo(userEntry, getBindDN(),
-          simplePassword,
-        isRoot));
+          simplePassword, DirectoryServer.isRootDN(userEntry.getDN())));
 
 
       // Set resource limits for the authenticated user.

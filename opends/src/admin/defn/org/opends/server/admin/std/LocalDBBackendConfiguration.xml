@@ -804,6 +804,55 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="disk-low-threshold" advanced="true">
+      <adm:synopsis>
+        Low disk threshold to limit database updates
+      </adm:synopsis>
+      <adm:description>
+        Specifies the "low" free space on the disk. When the available
+        free space on the disk used by this database instance falls below the
+        value specified, protocol updates on this database are permitted only
+        by a user with the BYPASS_LOCKDOWN privilege.
+      </adm:description>
+      <adm:default-behavior>
+          <adm:defined>
+              <adm:value>100 megabytes</adm:value>
+          </adm:defined>
+      </adm:default-behavior>
+      <adm:syntax>
+          <adm:size lower-limit="0" />
+      </adm:syntax>
+      <adm:profile name="ldap">
+          <ldap:attribute>
+              <ldap:name>ds-cfg-disk-low-threshold</ldap:name>
+          </ldap:attribute>
+      </adm:profile>
+  </adm:property>
+  <adm:property name="disk-full-threshold" advanced="true">
+      <adm:synopsis>
+        Full disk threshold to limit database updates
+      </adm:synopsis>
+      <adm:description>
+        When the available free space on the disk used by this database
+        instance falls below the value specified, no updates
+        are permitted and the server returns an UNWILLING_TO_PERFORM error.
+        Updates are allowed again as soon as free space rises above the
+        threshold.
+      </adm:description>
+      <adm:default-behavior>
+          <adm:defined>
+              <adm:value>20 megabytes</adm:value>
+          </adm:defined>
+      </adm:default-behavior>
+      <adm:syntax>
+          <adm:size lower-limit="0" />
+      </adm:syntax>
+      <adm:profile name="ldap">
+          <ldap:attribute>
+              <ldap:name>ds-cfg-disk-full-threshold</ldap:name>
+          </ldap:attribute>
+      </adm:profile>
+  </adm:property>
   <adm:property name="je-property" advanced="true"
     multi-valued="true">
     <adm:synopsis>

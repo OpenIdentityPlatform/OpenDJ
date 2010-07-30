@@ -45,9 +45,10 @@ import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.EnvironmentFailureException;
 
 import java.util.logging.Level;
+
+import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.backends.jeb.importLDIF.*;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
-import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.api.AlertGenerator;
@@ -58,6 +59,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.RuntimeInformation;
 import org.opends.server.util.Validator;
@@ -82,7 +84,8 @@ import org.opends.server.types.DN;
  */
 public class BackendImpl
     extends Backend
-    implements ConfigurationChangeListener<LocalDBBackendCfg>, AlertGenerator
+    implements ConfigurationChangeListener<LocalDBBackendCfg>, AlertGenerator,
+    DiskSpaceMonitorHandler
 {
   /**
    * The tracer object for the debug logger.
@@ -118,15 +121,12 @@ public class BackendImpl
   private final AtomicInteger threadWriteCount = new AtomicInteger(0);
 
   /**
-   * A list of monitor providers created for this backend instance.
-   */
-  private ArrayList<MonitorProvider<?>> monitorProviders =
-      new ArrayList<MonitorProvider<?>>();
-
-  /**
    * The base DNs defined for this backend instance.
    */
   private DN[] baseDNs;
+
+  private MonitorProvider<?> rootContainerMonitor;
+  private DiskSpaceMonitor diskMonitor;
 
   /**
    * The controls supported by this backend.
@@ -360,10 +360,18 @@ public class BackendImpl
     }
 
     // Register a monitor provider for the environment.
-    MonitorProvider<? extends MonitorProviderCfg> monitorProvider =
-        rootContainer.getMonitorProvider();
-    monitorProviders.add(monitorProvider);
-    DirectoryServer.registerMonitorProvider(monitorProvider);
+    rootContainerMonitor = rootContainer.getMonitorProvider();
+    DirectoryServer.registerMonitorProvider(rootContainerMonitor);
+
+    // Register as disk space monitor handler
+    File parentDirectory = getFileForPath(cfg.getDBDirectory());
+    File backendDirectory =
+        new File(parentDirectory, cfg.getBackendId());
+    diskMonitor = new DiskSpaceMonitor(getBackendID() + " backend",
+        backendDirectory, cfg.getDiskLowThreshold(), cfg.getDiskFullThreshold(),
+        5, TimeUnit.SECONDS, this);
+    diskMonitor.initializeMonitorProvider(null);
+    DirectoryServer.registerMonitorProvider(diskMonitor);
 
     //Register as an AlertGenerator.
     DirectoryServer.registerAlertGenerator(this);
@@ -398,13 +406,11 @@ public class BackendImpl
       }
     }
 
-    // Deregister our monitor providers.
-    for (MonitorProvider<?> monitor : monitorProviders)
-    {
-      DirectoryServer.deregisterMonitorProvider(
-           monitor.getMonitorInstanceName().toLowerCase());
-    }
-    monitorProviders = new ArrayList<MonitorProvider<?>>();
+    DirectoryServer.deregisterMonitorProvider(
+        rootContainerMonitor.getMonitorInstanceName());
+
+    DirectoryServer.deregisterMonitorProvider(
+        diskMonitor.getMonitorInstanceName());
 
     // We presume the server will prevent more operations coming into this
     // backend, but there may be existing operations already in the
@@ -755,6 +761,7 @@ public class BackendImpl
   public void addEntry(Entry entry, AddOperation addOperation)
       throws DirectoryException, CanceledOperationException
   {
+    checkDiskSpace(addOperation);
     writerBegin();
     DN entryDN = entry.getDN();
 
@@ -799,6 +806,7 @@ public class BackendImpl
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
       throws DirectoryException, CanceledOperationException
   {
+    checkDiskSpace(deleteOperation);
     writerBegin();
 
     EntryContainer ec;
@@ -843,6 +851,7 @@ public class BackendImpl
       ModifyOperation modifyOperation) throws DirectoryException,
       CanceledOperationException
   {
+    checkDiskSpace(modifyOperation);
     writerBegin();
 
     DN entryDN = newEntry.getDN();
@@ -887,7 +896,9 @@ public class BackendImpl
   @Override()
   public void renameEntry(DN currentDN, Entry entry,
                           ModifyDNOperation modifyDNOperation)
-      throws DirectoryException, CanceledOperationException {
+      throws DirectoryException, CanceledOperationException
+  {
+    checkDiskSpace(modifyDNOperation);
     writerBegin();
 
     EntryContainer currentContainer;
@@ -1580,6 +1591,14 @@ public class BackendImpl
 
         baseDNs = newBaseDNs;
       }
+
+      if(cfg.getDiskFullThreshold() != newCfg.getDiskFullThreshold() ||
+          cfg.getDiskLowThreshold() != newCfg.getDiskLowThreshold())
+      {
+        diskMonitor.setFullThreshold(newCfg.getDiskFullThreshold());
+        diskMonitor.setLowThreshold(newCfg.getDiskLowThreshold());
+      }
+
       // Put the new configuration in place.
       this.cfg = newCfg;
     }
@@ -1692,6 +1711,10 @@ public class BackendImpl
 
     alerts.put(ALERT_TYPE_BACKEND_ENVIRONMENT_UNUSABLE,
             ALERT_DESCRIPTION_BACKEND_ENVIRONMENT_UNUSABLE);
+    alerts.put(ALERT_TYPE_DISK_SPACE_LOW,
+            ALERT_DESCRIPTION_DISK_SPACE_LOW);
+    alerts.put(ALERT_TYPE_DISK_FULL,
+            ALERT_DESCRIPTION_DISK_FULL);
     return alerts;
   }
 
@@ -1728,5 +1751,52 @@ public class BackendImpl
     EntryCachePreloader preloader =
             new EntryCachePreloader(this);
     preloader.preload();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void diskLowThresholdReached(long bytesFree) {
+    Message msg = ERR_JEB_DISK_LOW_THRESHOLD_REACHED.get(
+        getFileForPath(cfg.getDBDirectory()).getPath(), cfg.getBackendId(),
+        bytesFree, Math.max(cfg.getDiskLowThreshold(),
+            cfg.getDiskFullThreshold()));
+    DirectoryServer.sendAlertNotification(this,
+        ALERT_TYPE_DISK_SPACE_LOW, msg);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void diskFullThresholdReached(long bytesFree) {
+    Message msg = ERR_JEB_DISK_FULL_THRESHOLD_REACHED.get(
+        getFileForPath(cfg.getDBDirectory()).getPath(), cfg.getBackendId(),
+        bytesFree, Math.max(cfg.getDiskLowThreshold(),
+            cfg.getDiskFullThreshold()));
+    DirectoryServer.sendAlertNotification(this,
+        ALERT_TYPE_DISK_FULL, msg);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void diskSpaceRestored(long bytesFree) {
+    Message msg = NOTE_JEB_DISK_SPACE_RESTORED.get(bytesFree,
+        getFileForPath(cfg.getDBDirectory()).getPath(), cfg.getBackendId(),
+        Math.max(cfg.getDiskLowThreshold(),
+            cfg.getDiskFullThreshold()));
+    logError(msg);
+  }
+
+  private void checkDiskSpace(Operation operation) throws DirectoryException
+  {
+    if(diskMonitor.isFullThresholdReached() ||
+        (diskMonitor.isLowThresholdReached() && operation != null &&
+            !operation.getClientConnection().hasPrivilege(
+                Privilege.BYPASS_LOCKDOWN, operation)))
+    {
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+          WARN_JEB_OUT_OF_DISK_SPACE.get());
+    }
   }
 }

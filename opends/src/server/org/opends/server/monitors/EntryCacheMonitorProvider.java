@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.monitors;
 
@@ -66,7 +66,6 @@ public class EntryCacheMonitorProvider
    */
   public EntryCacheMonitorProvider()
   {
-    super("Entry Caches Monitor Provider");
     this.entryCacheName = "Entry Caches";
     this.entryCache = (EntryCache<?>) DirectoryServer.getEntryCache();
   }
@@ -82,7 +81,6 @@ public class EntryCacheMonitorProvider
     String entryCacheName,
     EntryCache<? extends EntryCacheCfg> entryCache)
   {
-    super(entryCacheName + " Entry Cache Monitor Provider");
     this.entryCacheName = entryCacheName + " Entry Cache";
     this.entryCache = entryCache;
   }
@@ -123,24 +121,6 @@ public class EntryCacheMonitorProvider
   public String getMonitorInstanceName()
   {
     return monitorName;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public long getUpdateInterval()
-  {
-    // This monitor does not need to run periodically.
-    return 0;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void updateMonitorData()
-  {
-    // This monitor does not need to run periodically.
-    return;
   }
 
   /**

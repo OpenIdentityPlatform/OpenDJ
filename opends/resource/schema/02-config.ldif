@@ -2470,6 +2470,16 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.609
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.610
+  NAME 'ds-cfg-disk-full-threshold'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.611
+  NAME 'ds-cfg-disk-low-threshold'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -2539,7 +2549,9 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.6
         ds-cfg-db-num-lock-tables $
         ds-cfg-db-num-cleaner-threads $
         ds-cfg-compact-encoding $
-        ds-cfg-je-property )
+        ds-cfg-je-property $
+        ds-cfg-disk-full-threshold $
+        ds-cfg-disk-low-threshold )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.7
   NAME 'ds-cfg-local-db-index'

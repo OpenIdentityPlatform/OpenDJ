@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2009 Sun Microsystems, Inc.
+  !      Copyright 2007-2010 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="global" plural-name="globals"
   package="org.opends.server.admin.std"
@@ -540,6 +540,11 @@
     </adm:default-behavior>
     <adm:syntax>
       <adm:enumeration>
+        <adm:value name="bypass-lockdown">
+          <adm:synopsis>
+            Allows the associated user to bypass server lockdown mode.
+          </adm:synopsis>
+        </adm:value>
         <adm:value name="bypass-acl">
           <adm:synopsis>
             Allows the associated user to bypass access control checks
@@ -601,6 +606,11 @@
           <adm:synopsis>
             Allows the user to request that the server process restore
             tasks.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="server-lockdown">
+          <adm:synopsis>
+            Allows the user to place and bring the server of lockdown mode.
           </adm:synopsis>
         </adm:value>
         <adm:value name="server-shutdown">

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -164,7 +164,6 @@ public class ParallelWorkQueue
       ParallelWorkQueueMonitor monitor =
            new ParallelWorkQueueMonitor(this);
       monitor.initializeMonitorProvider(null);
-      monitor.start();
       DirectoryServer.registerMonitorProvider(monitor);
     }
     catch (Exception e)

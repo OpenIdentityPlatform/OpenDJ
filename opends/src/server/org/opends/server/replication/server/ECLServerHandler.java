@@ -998,7 +998,7 @@ public class ECLServerHandler extends ServerHandler
       localString += serverId + " " + serverURL + " " + getServiceId()
        + " " + this.getOperationId();
     else
-      localString += this.getName();
+      localString += this.getClass().getCanonicalName()+ " " + operationId;
     return localString;
   }
   /**
@@ -1030,7 +1030,6 @@ public class ECLServerHandler extends ServerHandler
   {
 
     this.operationId = startECLSessionMsg.getOperationId();
-    this.setName(this.getClass().getCanonicalName()+ " " + operationId);
 
     isPersistent  = startECLSessionMsg.isPersistent();
     lastDraftCN   = startECLSessionMsg.getLastDraftChangeNumber();
@@ -1149,7 +1148,8 @@ public class ECLServerHandler extends ServerHandler
 
     if (debugEnabled())
       TRACER.debugInfo(
-          this.getName() + " initialized: " +
+          this.getClass().getCanonicalName()+ " " + operationId +
+          " initialized: " +
           " " + dumpState() + " " +
           " " + clDomCtxtsToString(""));
 

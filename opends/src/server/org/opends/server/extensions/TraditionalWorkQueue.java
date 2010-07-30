@@ -185,7 +185,6 @@ public class TraditionalWorkQueue
       TraditionalWorkQueueMonitor monitor =
            new TraditionalWorkQueueMonitor(this);
       monitor.initializeMonitorProvider(null);
-      monitor.start();
       DirectoryServer.registerMonitorProvider(monitor);
     }
     catch (Exception e)
