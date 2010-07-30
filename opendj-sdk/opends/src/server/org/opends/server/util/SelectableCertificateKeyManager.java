@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.util;
 
@@ -55,10 +55,10 @@ public final class SelectableCertificateKeyManager
        extends X509ExtendedKeyManager
 {
   // The alias of the certificate that should be selected from the key manager.
-  private String alias;
+  private final String alias;
 
   // The key manager that is wrapped by this key manager.
-  private X509KeyManager keyManager;
+  private final X509KeyManager keyManager;
 
 
 
@@ -83,7 +83,7 @@ public final class SelectableCertificateKeyManager
 
   /**
    * Chooses the alias of the client certificate that should be used based on
-   * the provided critieria.  This will either return the preferred alias
+   * the provided criteria.  This will either return the preferred alias
    * configured for this key manager, or {@code null} if no client certificate
    * with that alias is configured in the underlying key manager.
    *
@@ -134,6 +134,7 @@ public final class SelectableCertificateKeyManager
    * @return  The alias configured for this key manager, or {@code null} if no
    *          such client certificate is available with that alias.
    */
+  @Override
   public String chooseEngineClientAlias(String[] keyType, Principal[] issuers,
                                         SSLEngine engine)
   {
@@ -208,6 +209,7 @@ public final class SelectableCertificateKeyManager
    * @return  The alias configured for this key manager, or {@code null} if no
    *          such server certificate is available with that alias.
    */
+  @Override
   public String chooseEngineServerAlias(String keyType, Principal[] issuers,
                                         SSLEngine engine)
   {
