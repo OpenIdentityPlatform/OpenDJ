@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.backends;
 
@@ -77,6 +77,7 @@ import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.opends.server.util.CertificateManager;
+import org.opends.server.util.SetupUtils;
 import org.opends.server.util.Validator;
 
 
@@ -1730,9 +1731,9 @@ public class TrustStoreBackend
   private static String getADSCertificateSubjectDN()
        throws UnknownHostException
   {
-    String hostname =
-         java.net.InetAddress.getLocalHost().getCanonicalHostName();
-    return "cn=" + Rdn.escapeValue(hostname) + ",O=OpenDS Certificate";
+    String hostName =
+      SetupUtils.getHostNameForCertificate(DirectoryServer.getServerRoot());
+    return "cn=" + Rdn.escapeValue(hostName) + ",O=OpenDS Certificate";
   }
 
   /**
@@ -1874,6 +1875,7 @@ public class TrustStoreBackend
   /**
    * {@inheritDoc}
    */
+  @Override
   public void preloadEntryCache() throws UnsupportedOperationException {
     throw new UnsupportedOperationException("Operation not supported.");
   }

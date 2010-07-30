@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.admin;
 
@@ -62,6 +62,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.CertificateManager;
+import org.opends.server.util.SetupUtils;
 import org.opends.server.admin.std.server.TrustManagerProviderCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
@@ -69,7 +70,6 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.FilePermission;
-import org.opends.server.util.SetupUtils;
 
 /**
  * This class is a wrapper on top of LDAPConnectionHandler to manage
@@ -690,8 +690,10 @@ public final class AdministrationConnector implements
       CertificateManager certManager = new CertificateManager(
           getFullPath(fbKeyManagerConfig.getKeyStoreFile()), fbKeyManagerConfig
               .getKeyStoreType(), pwd);
+      String hostName =
+        SetupUtils.getHostNameForCertificate(DirectoryServer.getServerRoot());
       String subjectDN = "cn="
-          + Rdn.escapeValue(InetAddress.getLocalHost().getHostName()) + ",O="
+          + Rdn.escapeValue(hostName) + ",O="
           + FRIENDLY_NAME + " Self-Signed Certificate";
       certManager.generateSelfSignedCertificate(certAlias, subjectDN,
           ADMIN_CERT_VALIDITY);
