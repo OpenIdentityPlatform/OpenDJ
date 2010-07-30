@@ -26,6 +26,10 @@
  */
 package org.opends.server.replication;
 
+import static org.opends.messages.ReplicationMessages.ERR_INVALID_COOKIE_SYNTAX;
+import static org.opends.messages.ReplicationMessages.ERR_RESYNC_REQUIRED_MISSING_DOMAIN_IN_PROVIDED_COOKIE;
+import static org.opends.messages.ReplicationMessages.ERR_RESYNC_REQUIRED_TOO_OLD_DOMAIN_IN_PROVIDED_COOKIE;
+import static org.opends.messages.ReplicationMessages.ERR_RESYNC_REQUIRED_UNKNOWN_DOMAIN_IN_PROVIDED_COOKIE;
 import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
@@ -54,6 +58,10 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import static org.opends.server.loggers.ErrorLogger.logError;
+import org.opends.messages.Category;
+import org.opends.messages.Message;
+import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ConnectionHandler;
@@ -141,8 +149,6 @@ import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import static org.opends.messages.ReplicationMessages.*;
-import org.opends.messages.Message;
 
 /**
  * Tests for the replicationServer code.
@@ -330,16 +336,16 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     // Request from an invalid draft change number
     ECLCompatBadSeqnum();
 
-    // Write changes and read ECL from start
+    // Write 4 changes and read ECL from start
     int ts = ECLCompatWriteReadAllOps(1);
 
-    // Write additional changes and read ECL from a provided draft change number
+    // Write 4 additional changes and read ECL from a provided draft change number
     ts = ECLCompatWriteReadAllOps(5);
 
-    // Test request from a provided change number
+    // Test request from a provided change number - read 6
     ECLCompatReadFrom(6);
 
-    // Test request from a provided change number interval
+    // Test request from a provided change number interval - read 5-7
     ECLCompatReadFromTo(5,7);
 
     // Test first and last draft changenumber

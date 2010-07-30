@@ -53,7 +53,7 @@ import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.replication.plugin.Historical;
+import org.opends.server.replication.plugin.EntryHistorical;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
@@ -644,7 +644,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
   {
     CustomSearchResult filteredSr;
     List<Object> values =
-      sr.getAttributeValues(Historical.HISTORICALATTRIBUTENAME);
+      sr.getAttributeValues(EntryHistorical.HISTORICALATTRIBUTENAME);
     if (values != null)
     {
       List<Object> newValues = new ArrayList<Object>();
@@ -659,7 +659,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
       else
       {
         filteredSr = sr.clone();
-        filteredSr.set(Historical.HISTORICALATTRIBUTENAME, newValues);
+        filteredSr.set(EntryHistorical.HISTORICALATTRIBUTENAME, newValues);
       }
     }
     else

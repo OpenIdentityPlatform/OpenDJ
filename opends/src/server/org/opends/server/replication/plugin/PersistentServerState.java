@@ -422,7 +422,7 @@ public class PersistentServerState
     ChangeNumber serverStateMaxCn;
     ChangeNumber dbMaxCn;
     final AttributeType histType =
-      DirectoryServer.getAttributeType(Historical.HISTORICALATTRIBUTENAME);
+      DirectoryServer.getAttributeType(EntryHistorical.HISTORICALATTRIBUTENAME);
 
     // Retrieves the entries that have changed since the
     // maxCn stored in the serverState
@@ -461,7 +461,8 @@ public class PersistentServerState
             while (true)
             {
               AttributeValue attrVal = iav.next();
-              HistVal histVal = new HistVal(attrVal.toString());
+              HistoricalAttributeValue histVal =
+                new HistoricalAttributeValue(attrVal.toString());
               ChangeNumber cn = histVal.getCn();
 
               if ((cn != null) && (cn.getServerId() == serverId))

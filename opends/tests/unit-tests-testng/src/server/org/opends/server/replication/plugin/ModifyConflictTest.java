@@ -48,7 +48,7 @@ import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.plugin.FakeOperation;
 import org.opends.server.replication.plugin.FakeOperationComparator;
-import org.opends.server.replication.plugin.Historical;
+import org.opends.server.replication.plugin.EntryHistorical;
 import org.opends.server.replication.protocol.ModifyContext;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.types.*;
@@ -86,7 +86,7 @@ public class ModifyConflictTest
     Entry entry = initializeEntry();
 
     // load historical from the entry
-    Historical hist = Historical.load(entry);
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
      * simulate a modify-replace done at time t10
@@ -128,7 +128,7 @@ public class ModifyConflictTest
     Entry entry = initializeEntry();
 
     // load historical from the entry
-    Historical hist = Historical.load(entry);
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
      * simulate a modify-replace done at time t10
@@ -171,7 +171,7 @@ public class ModifyConflictTest
     Entry entry = initializeEntry();
 
     // load historical from the entry
-    Historical hist = Historical.load(entry);
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
      * simulate a replace with null done at time t3
@@ -212,7 +212,7 @@ public class ModifyConflictTest
     Entry entry = initializeEntry();
 
     // load historical from the entry
-    Historical hist = Historical.load(entry);
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
      * simulate a modify-add done at time t10
@@ -254,7 +254,7 @@ public class ModifyConflictTest
     Entry entry = initializeEntry();
 
     // load historical from the entry
-    Historical hist = Historical.load(entry);
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
      * simulate a modify-add done at time 2
@@ -289,7 +289,7 @@ public class ModifyConflictTest
 
 
     // load historical from the entry
-    Historical hist = Historical.load(entry);
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
      * simulate a delete of the whole description attribute done at time
@@ -345,7 +345,7 @@ public class ModifyConflictTest
 
 
     // load historical from the entry
-    Historical hist = Historical.load(entry);
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
      * simulate a delete of the description attribute value "value1"
@@ -401,7 +401,7 @@ public class ModifyConflictTest
 
 
     // load historical from the entry
-    Historical hist = Historical.load(entry);
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
      * simulate a delete of the description attribute values
@@ -449,7 +449,7 @@ public class ModifyConflictTest
     entry.addAttribute(attribute, duplicateValues);
 
     // load historical from the entry
-    Historical hist = Historical.load(entry);
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
      * simulate a delete of attribute employeenumber.
@@ -483,7 +483,7 @@ public class ModifyConflictTest
     entry.addAttribute(attribute, duplicateValues);
 
     // load historical from the entry
-    Historical hist = Historical.load(entry);
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
      * now simulate a delete of value "value1"
@@ -523,7 +523,7 @@ public class ModifyConflictTest
     entry.addAttribute(builder.toAttribute(), duplicateValues);
 
     // load historical from the entry
-    Historical hist = Historical.load(entry);
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
      * simulate a delete of the description attribute value "value1"
@@ -569,7 +569,7 @@ public class ModifyConflictTest
     entry.addAttribute(attribute, duplicateValues);
 
     // load historical from the entry
-    Historical hist = Historical.load(entry);
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
      * simulate a delete of the whole description attribute done at time
@@ -612,7 +612,7 @@ public class ModifyConflictTest
 
 
     // load historical from the entry
-    Historical hist = Historical.load(entry);
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
      * simulate a delete of the whole description attribute done at time
@@ -657,7 +657,7 @@ public class ModifyConflictTest
     entry.addAttribute(builder.toAttribute(), duplicateValues);
 
     // load historical from the entry
-    Historical hist = Historical.load(entry);
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // simulate a REPLACE of the attribute with values : value1, value2, value3
     // at time t1.
@@ -714,7 +714,7 @@ public class ModifyConflictTest
     entry.addAttribute(builder.toAttribute(), duplicateValues);
 
     // load historical from the entry
-    Historical hist = Historical.load(entry);
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // simulate a DELETE of the attribute values : value3 and value4
     // at time t2.
@@ -786,7 +786,7 @@ public class ModifyConflictTest
     entry.addAttribute(attribute, duplicateValues);
 
     // load historical from the entry
-    Historical hist = Historical.load(entry);
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
      * simulate a delete of the whole description attribute done at time
@@ -813,7 +813,7 @@ public class ModifyConflictTest
     Entry entry = initializeEntry();
 
     // load historical from the entry
-    Historical hist = Historical.load(entry);
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
      * simulate a add of the description attribute done at time t10
@@ -855,7 +855,7 @@ public class ModifyConflictTest
     Entry entry = initializeEntry();
 
     // load historical from the entry
-    Historical hist = Historical.load(entry);
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
      * simulate a add of the description attribute done at time t10
@@ -898,7 +898,7 @@ public class ModifyConflictTest
     Entry entry = initializeEntry();
 
     // load historical from the entry
-    Historical hist = Historical.load(entry);
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
      * Now simulate a del and a add in the same operation
@@ -937,7 +937,7 @@ public class ModifyConflictTest
     Entry entry = initializeEntry();
 
     // load historical from the entry
-    Historical hist = Historical.load(entry);
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
      * simulate a add of the description attribute done at time 1
@@ -967,7 +967,7 @@ public class ModifyConflictTest
     entry = initializeEntry();
 
     // load historical from the entry
-    hist = Historical.load(entry);
+    hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
      * simulate an add of the description attribute values
@@ -1002,7 +1002,7 @@ public class ModifyConflictTest
     Entry entry = initializeEntry();
 
     // load historical from the entry
-    Historical hist = Historical.load(entry);
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
      * simulate a add of the description attribute done at time t10
@@ -1044,7 +1044,7 @@ public class ModifyConflictTest
     Entry entry = initializeEntry();
 
     // load historical from the entry
-    Historical hist = Historical.load(entry);
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
      * simulate a add of the description attribute done at time t1
@@ -1082,7 +1082,7 @@ public class ModifyConflictTest
     Entry entry = initializeEntry();
 
     // load historical from the entry
-    Historical hist = Historical.load(entry);
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
      * simulate a add of the description attribute done at time t1
@@ -1134,7 +1134,7 @@ public class ModifyConflictTest
   {
     AttributeType entryuuidAttrType =
       DirectoryServer.getSchema().getAttributeType(
-          Historical.ENTRYUIDNAME);
+          EntryHistorical.ENTRYUIDNAME);
 
     /*
      * Objectclass and DN do not have any impact on the modify conflict
@@ -1174,14 +1174,14 @@ public class ModifyConflictTest
    * helper function.
    */
   private void testHistoricalAndFake(
-      Historical hist, Entry entry)
+      EntryHistorical hist, Entry entry)
   {
     AttributeType entryuuidAttrType =
-      DirectoryServer.getSchema().getAttributeType(Historical.ENTRYUIDNAME);
+      DirectoryServer.getSchema().getAttributeType(EntryHistorical.ENTRYUIDNAME);
 
     // Get the historical uuid associated to the entry
     // (the one that needs to be tested)
-    String uuid = Historical.getEntryUuid(entry);
+    String uuid = EntryHistorical.getEntryUuid(entry);
 
     // Get the Entry uuid in String format
     List<Attribute> uuidAttrs = entry
@@ -1202,7 +1202,7 @@ public class ModifyConflictTest
     // Test FakeOperation
     try
     {
-      Iterable<FakeOperation> fks = Historical.generateFakeOperations(entry);
+      Iterable<FakeOperation> fks = EntryHistorical.generateFakeOperations(entry);
       if (fks.iterator().hasNext())
       {
         FakeOperation fk = fks.iterator().next();
@@ -1230,7 +1230,7 @@ public class ModifyConflictTest
    *
    */
   private void testModify(Entry entry,
-      Historical hist, String attrName,
+      EntryHistorical hist, String attrName,
       ModificationType modType, String value,
       int date, boolean keepChangeResult) throws DirectoryException
   {
@@ -1242,7 +1242,7 @@ public class ModifyConflictTest
    *
    */
   private void testModify(Entry entry,
-      Historical hist, String attrName, Modification mod,
+      EntryHistorical hist, String attrName, Modification mod,
       int date, boolean keepChangeResult) throws DirectoryException
   {
     List<Modification> mods = replayModify(entry, hist, mod, date);
@@ -1273,7 +1273,7 @@ public class ModifyConflictTest
    */
 
   private void replayModifies(
-      Entry entry, Historical hist, List<Modification> mods, int date)
+      Entry entry, EntryHistorical hist, List<Modification> mods, int date)
   {
     InternalClientConnection connection =
       InternalClientConnection.getRootConnection();
@@ -1289,11 +1289,11 @@ public class ModifyConflictTest
   }
 
   private List<Modification> replayModify(
-      Entry entry, Historical hist, Modification mod, int date)
+      Entry entry, EntryHistorical hist, Modification mod, int date)
   {
     AttributeType historicalAttrType =
       DirectoryServer.getSchema().getAttributeType(
-          Historical.HISTORICALATTRIBUTENAME);
+          EntryHistorical.HISTORICALATTRIBUTENAME);
 
     InternalClientConnection connection =
       InternalClientConnection.getRootConnection();
@@ -1330,7 +1330,7 @@ public class ModifyConflictTest
      */
     entry.removeAttribute(historicalAttrType);
     entry.addAttribute(hist.encode(), null);
-    Historical hist2 = Historical.load(entry);
+    EntryHistorical hist2 = EntryHistorical.newInstanceFromEntry(entry);
     assertEquals(hist2.encode().toString(), hist.encode().toString());
 
     return mods;
@@ -1367,15 +1367,15 @@ public class ModifyConflictTest
    *
    */
   private void testHistorical(
-      Historical hist, LocalBackendAddOperation addOp)
+      EntryHistorical hist, LocalBackendAddOperation addOp)
   {
     AttributeType entryuuidAttrType =
       DirectoryServer.getSchema().getAttributeType(
-          Historical.ENTRYUIDNAME);
+          EntryHistorical.ENTRYUIDNAME);
 
     // Get the historical uuid associated to the entry
     // (the one that needs to be tested)
-    String uuid = Historical.getEntryUuid(addOp);
+    String uuid = EntryHistorical.getEntryUuid(addOp);
 
     // Get the op uuid in String format
     List<Attribute> uuidAttrs = addOp.getOperationalAttributes().get(

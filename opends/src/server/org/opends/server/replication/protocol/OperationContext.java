@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.protocol;
 
@@ -101,7 +101,8 @@ public abstract class OperationContext
   }
 
   /**
-   * Get the change number of an operation.
+   * Get the change number of an operation from the synchronization context
+   * attached to the provided operation.
    *
    * @param  op The operation.
    *

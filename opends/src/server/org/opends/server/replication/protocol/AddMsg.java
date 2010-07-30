@@ -42,7 +42,7 @@ import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.plugin.Historical;
+import org.opends.server.replication.plugin.EntryHistorical;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationAddOperation;
 
@@ -345,7 +345,7 @@ public class AddMsg extends LDAPUpdateMsg
       {
         for (Attribute a : list)
         {
-          if (!Historical.isHistoricalAttribute(a))
+          if (!EntryHistorical.isHistoricalAttribute(a))
             if (!a.isVirtual())
               new LDAPAttribute(a).write(writer);
         }
@@ -356,7 +356,7 @@ public class AddMsg extends LDAPUpdateMsg
       {
         for (Attribute a : list)
         {
-          if (!Historical.isHistoricalAttribute(a))
+          if (!EntryHistorical.isHistoricalAttribute(a))
             if (!a.isVirtual())
               new LDAPAttribute(a).write(writer);
         }

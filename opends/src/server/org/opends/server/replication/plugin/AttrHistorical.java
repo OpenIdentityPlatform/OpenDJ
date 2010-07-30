@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -37,11 +37,9 @@ import org.opends.server.types.Modification;
 
 
 /**
- * This classes is used to store historical information.
- * One object of this type is created for each attribute that was changed in
- * the entry.
+ * This class store historical information for a provided attribute.
  */
-public abstract class AttributeInfo
+public abstract class AttrHistorical
 {
   /**
    * This method will be called when replaying an operation.
@@ -76,18 +74,18 @@ public abstract class AttributeInfo
       ChangeNumber changeNumber, Modification mod);
 
   /**
-   * Create a new AttributeInfo object that will be used with the given type.
+   * Create a new object from a provided attribute type. Historical is empty.
    *
-   * @param type the AttrbuteType with which the ATtributeInfo is going to be
-   *             used.
+   * @param type the provided attribute type.
    * @return a new AttributeInfo object.
    */
-  public static AttributeInfo createAttributeInfo(AttributeType type)
+  public static AttrHistorical createAttributeHistorical(
+      AttributeType type)
   {
     if (type.isSingleValue())
-      return new AttrInfoSingle();
+      return new AttrHistoricalSingle();
     else
-      return new AttrInfoMultiple();
+      return new AttrHistoricalMultiple();
   }
 
   /**
@@ -95,25 +93,25 @@ public abstract class AttributeInfo
    *
    * @return the List of ValueInfo
    */
-  public abstract ArrayList<ValueInfo> getValuesInfo();
+  public abstract ArrayList<AttrValueHistorical> getValuesHistorical();
 
 
   /**
-   * Returns the last time when the attribute was deleted.
+   * Returns the last time when this attribute was deleted.
    *
-   * @return the last time when the attribute was deleted
+   * @return the last time when this attribute was deleted
    */
   public abstract ChangeNumber getDeleteTime();
 
   /**
-   * Load the provided information.
+   * Assign the provided information to this object.
    *
-   * @param histKey the key to load.
+   * @param histKey the key to assign.
    * @param value   the associated value or null if there is no value;
    * @param cn      the associated ChangeNumber.
    */
-  public abstract void load(
-      HistKey histKey, AttributeValue value, ChangeNumber cn);
+  public abstract void assign(
+      HistAttrModificationKey histKey, AttributeValue value, ChangeNumber cn);
 
 }
 

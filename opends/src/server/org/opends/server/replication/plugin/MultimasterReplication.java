@@ -493,18 +493,17 @@ public class MultimasterReplication
     if ((domain == null) || (!domain.solveConflict()))
       return new SynchronizationProviderResult.ContinueProcessing();
 
-    Historical historicalInformation = (Historical)
-                            modifyOperation.getAttachment(
-                                    Historical.HISTORICAL);
+    EntryHistorical historicalInformation = (EntryHistorical)
+      modifyOperation.getAttachment(EntryHistorical.HISTORICAL);
     if (historicalInformation == null)
     {
       Entry entry = modifyOperation.getModifiedEntry();
-      historicalInformation = Historical.load(entry);
-      modifyOperation.setAttachment(Historical.HISTORICAL,
-              historicalInformation);
+      historicalInformation = EntryHistorical.newInstanceFromEntry(entry);
+      modifyOperation.setAttachment(EntryHistorical.HISTORICAL,
+          historicalInformation);
     }
 
-    historicalInformation.generateState(modifyOperation);
+    historicalInformation.setHistoricalAttrToOperation(modifyOperation);
 
     if (modifyOperation.getModifications().isEmpty())
     {
@@ -543,18 +542,22 @@ public class MultimasterReplication
     if ((domain == null) || (!domain.solveConflict()))
       return new SynchronizationProviderResult.ContinueProcessing();
 
-    Historical historicalInformation = (Historical)
-    modifyDNOperation.getAttachment(
-        Historical.HISTORICAL);
+    // The historical object is retrieved from the attachment created
+    // in the HandleConflictResolution phase.
+    EntryHistorical historicalInformation = (EntryHistorical)
+    modifyDNOperation.getAttachment(EntryHistorical.HISTORICAL);
     if (historicalInformation == null)
     {
+      // When no Historical attached, create once by loading from the entry
+      // and attach it to the operation
       Entry entry = modifyDNOperation.getUpdatedEntry();
-      historicalInformation = Historical.load(entry);
-      modifyDNOperation.setAttachment(Historical.HISTORICAL,
+      historicalInformation = EntryHistorical.newInstanceFromEntry(entry);
+      modifyDNOperation.setAttachment(EntryHistorical.HISTORICAL,
           historicalInformation);
     }
 
-    historicalInformation.generateState(modifyDNOperation);
+    // Add to the operation the historical attribute : "dn:changeNumger:moddn"
+    historicalInformation.setHistoricalAttrToOperation(modifyDNOperation);
 
     return new SynchronizationProviderResult.ContinueProcessing();
   }
@@ -566,15 +569,18 @@ public class MultimasterReplication
   public SynchronizationProviderResult doPreOperation(
          PreOperationAddOperation addOperation)
   {
+    // Check replication domain
     LDAPReplicationDomain domain =
       findDomain(addOperation.getEntryDN(), addOperation);
     if (domain == null)
       return new SynchronizationProviderResult.ContinueProcessing();
 
+    // For LOCAL op only, generate ChangeNumber and attach Context
     if (!addOperation.isSynchronizationOperation())
       domain.doPreOperation(addOperation);
 
-    Historical.generateState(addOperation);
+    // Add to the operation the historical attribute : "dn:changeNumger:add"
+    EntryHistorical.setHistoricalAttrToOperation(addOperation);
 
     return new SynchronizationProviderResult.ContinueProcessing();
   }

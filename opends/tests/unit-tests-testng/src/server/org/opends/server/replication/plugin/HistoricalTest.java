@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.replication.plugin;
@@ -183,11 +183,11 @@ public class HistoricalTest
     DN dn = DN.decode("uid=user.1," + TEST_ROOT_DN_STRING);
     Entry entry = DirectoryServer.getEntry(dn);
 
-    List<Attribute> attrs = Historical.getHistoricalAttr(entry);
+    List<Attribute> attrs = EntryHistorical.getHistoricalAttr(entry);
     Attribute before = attrs.get(0);
 
     // Check that encoding and decoding preserves the history information.
-    Historical hist = Historical.load(entry);
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
     Attribute after = hist.encode();
 
     assertEquals(after, before);
@@ -368,7 +368,7 @@ public class HistoricalTest
     // This will ensure both that the Add historical information is
     // correctly added and also that the code that rebuild operation
     // from this historical information is working.
-    Iterable<FakeOperation> ops = Historical.generateFakeOperations(entry);
+    Iterable<FakeOperation> ops = EntryHistorical.generateFakeOperations(entry);
 
     // Perform a few check on the Operation to see that it
     // was correctly generated.
@@ -387,7 +387,7 @@ public class HistoricalTest
 
     // use historical information to generate new list of operations
     // equivalent to the operations that have been applied to this entry.
-    ops = Historical.generateFakeOperations(entry);
+    ops = EntryHistorical.generateFakeOperations(entry);
 
     // Perform a few check on the operation list to see that it
     // was correctly generated.
@@ -406,7 +406,7 @@ public class HistoricalTest
 
     // use historical information to generate new list of operations
     // equivalent to the operations that have been applied to this entry.
-    ops = Historical.generateFakeOperations(entry);
+    ops = EntryHistorical.generateFakeOperations(entry);
 
     // Perform a few check on the operation list to see that it
     // was correctly generated.
@@ -450,7 +450,7 @@ public class HistoricalTest
         assertTrue(addOp.getChangeNumber() != null);
         AddMsg addmsg = addOp.generateMessage();
         assertTrue(dn1.equals(DN.decode(addmsg.getDn())));
-        assertTrue(addmsg.getUniqueId().equals(Historical.getEntryUuid(entry)));
+        assertTrue(addmsg.getUniqueId().equals(EntryHistorical.getEntryUuid(entry)));
         String parentId = LDAPReplicationDomain.findEntryId(dn1.getParent());
         assertTrue(addmsg.getParentUid().equals(parentId));
         addmsg.createOperation(InternalClientConnection.getRootConnection());

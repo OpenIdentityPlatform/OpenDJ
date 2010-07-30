@@ -22,14 +22,22 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
 /**
- * Enumeration used for storing type of historical information.
+ * Enumeration used for storing type of attribute modification
+ * in the value of the replication historical information.
+ *
+ * Example of ds-sync-hist values:
+ * ds-sync-hist: attrName1:changeNumber1:repl:newReplacingValue
+ * ds-sync-hist: attrName1:changeNumber2:del:deletedValue
+ * ds-sync-hist: attrName3:changeNumber3:add:newAddedvalue
+ * ds-sync-hist: attrName3:changeNumber4:attrDel
+ *
  */
-public enum HistKey
+public enum HistAttrModificationKey
 {
   /**
    * The key for attribute value deletion.
@@ -59,7 +67,7 @@ public enum HistKey
    *
    * @param histkey The key string
    */
-  private HistKey(String histkey)
+  private HistAttrModificationKey(String histkey)
   {
     this.key = histkey;
   }
@@ -70,22 +78,22 @@ public enum HistKey
    * @param histkey the String to decode
    * @return the key from the enum type
    */
-  public static HistKey decodeKey(String histkey)
+  public static HistAttrModificationKey decodeKey(String histkey)
   {
      if (histkey == null)
        return null;
 
      if (histkey.compareTo("repl") == 0)
-       return HistKey.REPL;
+       return HistAttrModificationKey.REPL;
 
      if (histkey.compareTo("add") == 0)
-       return HistKey.ADD;
+       return HistAttrModificationKey.ADD;
 
      if (histkey.compareTo("del") == 0)
-       return HistKey.DEL;
+       return HistAttrModificationKey.DEL;
 
      if (histkey.compareTo("attrDel") == 0)
-       return HistKey.DELATTR;
+       return HistAttrModificationKey.DELATTR;
 
      return null;
   }

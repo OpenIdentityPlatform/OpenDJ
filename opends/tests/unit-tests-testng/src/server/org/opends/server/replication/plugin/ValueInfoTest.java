@@ -22,14 +22,14 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.plugin.ValueInfo;
+import org.opends.server.replication.plugin.AttrValueHistorical;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AttributeValues;
@@ -80,9 +80,9 @@ public class ValueInfoTest extends ReplicationTestCase
          throws Exception
   {
     AttributeType type = DirectoryServer.getAttributeType("description");
-    ValueInfo valInfo1 = new ValueInfo(value,CNupdate,CNdelete);
-    ValueInfo valInfo2 = new ValueInfo(value,CNupdate,CNupdate);
-    ValueInfo valInfo3 = new ValueInfo(AttributeValues.create(type,"Test"),
+    AttrValueHistorical valInfo1 = new AttrValueHistorical(value,CNupdate,CNdelete);
+    AttrValueHistorical valInfo2 = new AttrValueHistorical(value,CNupdate,CNupdate);
+    AttrValueHistorical valInfo3 = new AttrValueHistorical(AttributeValues.create(type,"Test"),
         CNupdate,CNupdate);
 
     // Check equals
@@ -107,7 +107,7 @@ public class ValueInfoTest extends ReplicationTestCase
     }
 
     // Check getValue
-    assertTrue(valInfo1.getValue().equals(value)) ;
+    assertTrue(valInfo1.getAttributeValue().equals(value)) ;
 
     // Chek valueUpdateTime
     if (CNupdate == null)
