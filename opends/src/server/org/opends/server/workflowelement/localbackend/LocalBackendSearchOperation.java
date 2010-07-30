@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -251,6 +251,15 @@ searchProcessing:
       // If there's a persistent search, then register it with the server.
       if (persistentSearch != null)
       {
+        //The Core server maintains the count of concurrent persistent searches
+        //so that all the backends (Remote and Local)  are aware of it. Verify
+        //with the core if we have already reached the threshold.
+        if(!DirectoryServer.allowNewPersistentSearch())
+        {
+          setResultCode(ResultCode.ADMIN_LIMIT_EXCEEDED);
+          appendErrorMessage(ERR_MAX_PSEARCH_LIMIT_EXCEEDED.get());
+          break searchProcessing;
+        }
         wfe.registerPersistentSearch(persistentSearch);
         persistentSearch.enable();
       }

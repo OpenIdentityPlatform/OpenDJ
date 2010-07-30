@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -120,6 +120,9 @@ public final class PersistentSearch
       // The persistent search can no longer be cancelled.
       psearch.searchOperation.getClientConnection().deregisterPersistentSearch(
           psearch);
+
+      //Decrement of psearch count maintained by the server.
+      DirectoryServer.deregisterPersistentSearch();
 
       // Notify any cancellation callbacks.
       for (CancellationCallback callback : psearch.cancellationCallbacks)
@@ -774,6 +777,8 @@ public final class PersistentSearch
   {
     searchOperation.getClientConnection().registerPersistentSearch(this);
     searchOperation.setSendResponse(false);
+    //Register itself with the Core.
+    DirectoryServer.registerPersistentSearch();
   }
 
 

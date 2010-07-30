@@ -60,6 +60,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.lang.management.ManagementFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
@@ -611,6 +612,9 @@ public class DirectoryServer
   // The maxiumum number of candidates that should be check for matches during
   // a search.
   private int lookthroughLimit;
+
+  // The current active persistent searches.
+  private AtomicInteger activePSearches = new AtomicInteger(0);
 
   // Whether to use collect operation processing times in nanosecond resolution
   private boolean useNanoTime;
@@ -8863,6 +8867,54 @@ public class DirectoryServer
   public static void setLookthroughLimit(int lookthroughLimit)
   {
     directoryServer.lookthroughLimit = lookthroughLimit;
+  }
+
+
+
+  /**
+   *  Registers a new persistent search by increasing the count
+   *  of active persistent searches. After receiving a persistent
+   *  search request, a Local or Remote WFE must call this method to
+   *  let the core server manage the count of concurrent persistent
+   *  searches.
+   */
+  public static void registerPersistentSearch()
+  {
+    directoryServer.activePSearches.incrementAndGet();
+  }
+
+
+
+  /**
+   * Deregisters a canceled persistent search.  After a persistent
+   * search is canceled, the handler must call this method to let
+   * the core server manage the count of concurrent persistent
+   *  searches.
+   */
+  public static void deregisterPersistentSearch()
+  {
+    directoryServer.activePSearches.decrementAndGet();
+  }
+
+
+
+  /**
+   * Indicates whether a new persistent search is allowed.
+   *
+   * @return <CODE>true</CODE>if a new persistent search is allowed
+   *          or <CODE>false</CODE>f if not.
+   */
+  public static boolean allowNewPersistentSearch()
+  {
+    //0 indicates that there is no limit.
+    int maxAllowedPSearch = getWorkQueue().getMaxPersistentSearchLimit();
+    if(maxAllowedPSearch ==0 ||
+            directoryServer.activePSearches.get() <
+            maxAllowedPSearch)
+    {
+      return true;
+    }
+    return false;
   }
 
 
