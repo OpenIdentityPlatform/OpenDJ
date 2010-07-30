@@ -36,6 +36,8 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.ApproximateMatchingRule;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
+
+import org.opends.server.monitors.DatabaseEnvironmentMonitor;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.opends.server.admin.std.server.LocalDBIndexCfg;
@@ -945,14 +947,23 @@ public class AttributeIndex
    * @param debugBuffer If not null, a diagnostic string will be written
    *                     which will help determine how the indexes contributed
    *                     to this search.
+   * @param monitor The database environment monitor provider that will keep
+   *                index filter usage statistics.
    * @return The candidate entry IDs that might contain the filter
    *         assertion value.
    */
   public EntryIDSet evaluateEqualityFilter(SearchFilter equalityFilter,
-                                           StringBuilder debugBuffer)
+                                           StringBuilder debugBuffer,
+                                           DatabaseEnvironmentMonitor monitor)
   {
     if (equalityIndex == null)
     {
+      if(monitor.isFilterUseEnabled())
+      {
+        monitor.updateStats(equalityFilter,
+            INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get("equality",
+                indexConfig.getAttribute().getNameOrOID()));
+      }
       return new EntryIDSet();
     }
 
@@ -972,7 +983,33 @@ public class AttributeIndex
       }
 
       // Read the key.
-      return equalityIndex.readKey(key, null, LockMode.DEFAULT);
+      EntryIDSet idSet = equalityIndex.readKey(key, null, LockMode.DEFAULT);
+      if(monitor.isFilterUseEnabled())
+      {
+        if(idSet.isDefined())
+        {
+          monitor.updateStats(equalityFilter, idSet.size());
+        }
+        else if(!equalityIndex.isTrusted())
+        {
+          monitor.updateStats(equalityFilter,
+              INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED.get(
+                  equalityIndex.getName()));
+        }
+        else if(equalityIndex.isRebuildRunning())
+        {
+          monitor.updateStats(equalityFilter,
+              INFO_JEB_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS.get(
+                  equalityIndex.getName()));
+        }
+        else
+        {
+          monitor.updateStats(equalityFilter,
+              INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(
+                  equalityIndex.getName()));
+        }
+      }
+      return idSet;
     }
     catch (DirectoryException e)
     {
@@ -991,14 +1028,23 @@ public class AttributeIndex
    * @param debugBuffer If not null, a diagnostic string will be written
    *                     which will help determine how the indexes contributed
    *                     to this search.
+   * @param monitor The database environment monitor provider that will keep
+   *                index filter usage statistics.
    * @return The candidate entry IDs that might contain one or more
    *         values of the attribute type in the filter.
    */
   public EntryIDSet evaluatePresenceFilter(SearchFilter filter,
-                                           StringBuilder debugBuffer)
+                                           StringBuilder debugBuffer,
+                                           DatabaseEnvironmentMonitor monitor)
   {
     if (presenceIndex == null)
     {
+      if(monitor.isFilterUseEnabled())
+      {
+        monitor.updateStats(filter,
+            INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get("presence",
+                indexConfig.getAttribute().getNameOrOID()));
+      }
       return new EntryIDSet();
     }
 
@@ -1011,7 +1057,34 @@ public class AttributeIndex
     }
 
     // Read the presence key
-    return presenceIndex.readKey(presenceKey, null, LockMode.DEFAULT);
+    EntryIDSet idSet =
+        presenceIndex.readKey(presenceKey, null, LockMode.DEFAULT);
+    if(monitor.isFilterUseEnabled())
+    {
+      if(idSet.isDefined())
+      {
+        monitor.updateStats(filter, idSet.size());
+      }
+      else if(!presenceIndex.isTrusted())
+      {
+        monitor.updateStats(filter,
+            INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED.get(
+                  presenceIndex.getName()));
+      }
+      else if(presenceIndex.isRebuildRunning())
+      {
+        monitor.updateStats(filter,
+            INFO_JEB_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS.get(
+                  presenceIndex.getName()));
+      }
+      else
+      {
+        monitor.updateStats(filter,
+            INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(
+                  presenceIndex.getName()));
+      }
+    }
+    return idSet;
   }
 
   /**
@@ -1021,14 +1094,23 @@ public class AttributeIndex
    * @param debugBuffer If not null, a diagnostic string will be written
    *                     which will help determine how the indexes contributed
    *                     to this search.
+   * @param monitor The database environment monitor provider that will keep
+   *                index filter usage statistics.
    * @return The candidate entry IDs that might contain a value
    *         greater than or equal to the filter assertion value.
    */
-  public EntryIDSet evaluateGreaterOrEqualFilter(SearchFilter filter,
-                                                 StringBuilder debugBuffer)
+  public EntryIDSet evaluateGreaterOrEqualFilter(
+      SearchFilter filter, StringBuilder debugBuffer,
+      DatabaseEnvironmentMonitor monitor)
   {
     if (orderingIndex == null)
     {
+      if(monitor.isFilterUseEnabled())
+      {
+        monitor.updateStats(filter,
+            INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get("ordering",
+                indexConfig.getAttribute().getNameOrOID()));
+      }
       return new EntryIDSet();
     }
 
@@ -1054,7 +1136,33 @@ public class AttributeIndex
       }
 
       // Read the range: lower <= keys < upper.
-      return orderingIndex.readRange(lower, upper, true, false);
+      EntryIDSet idSet = orderingIndex.readRange(lower, upper, true, false);
+      if(monitor.isFilterUseEnabled())
+      {
+        if(idSet.isDefined())
+        {
+          monitor.updateStats(filter, idSet.size());
+        }
+        else if(!orderingIndex.isTrusted())
+        {
+          monitor.updateStats(filter,
+              INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED.get(
+                  orderingIndex.getName()));
+        }
+        else if(orderingIndex.isRebuildRunning())
+        {
+          monitor.updateStats(filter,
+              INFO_JEB_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS.get(
+                  orderingIndex.getName()));
+        }
+        else
+        {
+          monitor.updateStats(filter,
+              INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(
+                  orderingIndex.getName()));
+        }
+      }
+      return idSet;
     }
     catch (DirectoryException e)
     {
@@ -1073,14 +1181,23 @@ public class AttributeIndex
    * @param debugBuffer If not null, a diagnostic string will be written
    *                     which will help determine how the indexes contributed
    *                     to this search.
+   * @param monitor The database environment monitor provider that will keep
+   *                index filter usage statistics.
    * @return The candidate entry IDs that might contain a value
    *         less than or equal to the filter assertion value.
    */
   public EntryIDSet evaluateLessOrEqualFilter(SearchFilter filter,
-                                              StringBuilder debugBuffer)
+                                              StringBuilder debugBuffer,
+                                             DatabaseEnvironmentMonitor monitor)
   {
     if (orderingIndex == null)
     {
+      if(monitor.isFilterUseEnabled())
+      {
+        monitor.updateStats(filter,
+            INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get("ordering",
+                indexConfig.getAttribute().getNameOrOID()));
+      }
       return new EntryIDSet();
     }
 
@@ -1106,7 +1223,33 @@ public class AttributeIndex
       }
 
       // Read the range: lower < keys <= upper.
-      return orderingIndex.readRange(lower, upper, false, true);
+      EntryIDSet idSet = orderingIndex.readRange(lower, upper, false, true);
+      if(monitor.isFilterUseEnabled())
+      {
+        if(idSet.isDefined())
+        {
+          monitor.updateStats(filter, idSet.size());
+        }
+        else if(!orderingIndex.isTrusted())
+        {
+          monitor.updateStats(filter,
+              INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED.get(
+                  orderingIndex.getName()));
+        }
+        else if(orderingIndex.isRebuildRunning())
+        {
+          monitor.updateStats(filter,
+              INFO_JEB_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS.get(
+                  orderingIndex.getName()));
+        }
+        else
+        {
+          monitor.updateStats(filter,
+              INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(
+                  orderingIndex.getName()));
+        }
+      }
+      return idSet;
     }
     catch (DirectoryException e)
     {
@@ -1125,11 +1268,14 @@ public class AttributeIndex
    * @param debugBuffer If not null, a diagnostic string will be written
    *                     which will help determine how the indexes contributed
    *                     to this search.
+   * @param monitor The database environment monitor provider that will keep
+   *                index filter usage statistics.
    * @return The candidate entry IDs that might contain a value
    *         that matches the filter substrings.
    */
   public EntryIDSet evaluateSubstringFilter(SearchFilter filter,
-                                            StringBuilder debugBuffer)
+                                            StringBuilder debugBuffer,
+                                            DatabaseEnvironmentMonitor monitor)
   {
     SubstringMatchingRule matchRule =
          filter.getAttributeType().getSubstringMatchingRule();
@@ -1164,6 +1310,10 @@ public class AttributeIndex
               debugBuffer.append("equality]");
             }
 
+            if(monitor.isFilterUseEnabled())
+            {
+              monitor.updateStats(filter, results.size());
+            }
             return results;
           }
         }
@@ -1175,6 +1325,49 @@ public class AttributeIndex
 
       if (substringIndex == null)
       {
+        if(monitor.isFilterUseEnabled())
+        {
+          if(!results.isDefined())
+          {
+            if(filter.getSubInitialElement() != null)
+            {
+              if(equalityIndex == null)
+              {
+                monitor.updateStats(filter,
+                    INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get("equality",
+                        indexConfig.getAttribute().getNameOrOID()));
+              }
+              else if(!equalityIndex.isTrusted())
+              {
+                monitor.updateStats(filter,
+                    INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED.get(
+                        equalityIndex.getName()));
+              }
+              else if(equalityIndex.isRebuildRunning())
+              {
+                monitor.updateStats(filter,
+                    INFO_JEB_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS.get(
+                        equalityIndex.getName()));
+              }
+              else
+              {
+                monitor.updateStats(filter,
+                    INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(
+                        equalityIndex.getName()));
+              }
+            }
+            else
+            {
+              monitor.updateStats(filter,
+                  INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get("substring",
+                      indexConfig.getAttribute().getNameOrOID()));
+            }
+          }
+          else
+          {
+            monitor.updateStats(filter, results.size());
+          }
+        }
         return results;
       }
 
@@ -1215,6 +1408,32 @@ public class AttributeIndex
         debugBuffer.append(indexConfig.getAttribute().getNameOrOID());
         debugBuffer.append(".");
         debugBuffer.append("substring]");
+      }
+
+      if(monitor.isFilterUseEnabled())
+      {
+        if(results.isDefined())
+        {
+          monitor.updateStats(filter, results.size());
+        }
+        else if(!substringIndex.isTrusted())
+        {
+          monitor.updateStats(filter,
+              INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED.get(
+                  substringIndex.getName()));
+        }
+        else if(substringIndex.isRebuildRunning())
+        {
+          monitor.updateStats(filter,
+              INFO_JEB_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS.get(
+                  substringIndex.getName()));
+        }
+        else
+        {
+          monitor.updateStats(filter,
+              INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(
+                  substringIndex.getName()));
+        }
       }
 
       return results;
@@ -1326,14 +1545,23 @@ public class AttributeIndex
    * @param debugBuffer If not null, a diagnostic string will be written
    *                     which will help determine how the indexes contributed
    *                     to this search.
+   * @param monitor The database environment monitor provider that will keep
+   *                index filter usage statistics.
    * @return The candidate entry IDs that might contain the filter
    *         assertion value.
    */
   public EntryIDSet evaluateApproximateFilter(SearchFilter approximateFilter,
-                                              StringBuilder debugBuffer)
+                                              StringBuilder debugBuffer,
+                                             DatabaseEnvironmentMonitor monitor)
   {
     if (approximateIndex == null)
     {
+      if(monitor.isFilterUseEnabled())
+      {
+        monitor.updateStats(approximateFilter,
+            INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get("approximate",
+                indexConfig.getAttribute().getNameOrOID()));
+      }
       return new EntryIDSet();
     }
 
@@ -1356,7 +1584,33 @@ public class AttributeIndex
       }
 
       // Read the key.
-      return approximateIndex.readKey(key, null, LockMode.DEFAULT);
+      EntryIDSet idSet = approximateIndex.readKey(key, null, LockMode.DEFAULT);
+      if(monitor.isFilterUseEnabled())
+      {
+        if(idSet.isDefined())
+        {
+          monitor.updateStats(approximateFilter, idSet.size());
+        }
+        else if(!approximateIndex.isTrusted())
+        {
+          monitor.updateStats(approximateFilter,
+              INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED.get(
+                  approximateIndex.getName()));
+        }
+        else if(approximateIndex.isRebuildRunning())
+        {
+          monitor.updateStats(approximateFilter,
+              INFO_JEB_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS.get(
+                  approximateIndex.getName()));
+        }
+        else
+        {
+          monitor.updateStats(approximateFilter,
+              INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(
+                  approximateIndex.getName()));
+        }
+      }
+      return idSet;
     }
     catch (DirectoryException e)
     {
@@ -2366,11 +2620,14 @@ public class AttributeIndex
    * @param debugBuffer If not null, a diagnostic string will be written
    *                     which will help determine how the indexes contributed
    *                     to this search.
+   * @param monitor The database environment monitor provider that will keep
+   *                index filter usage statistics.
    * @return The candidate entry IDs that might contain the filter
    *         assertion value.
    */
   public EntryIDSet evaluateExtensibleFilter(SearchFilter extensibleFilter,
-                                              StringBuilder debugBuffer)
+                                             StringBuilder debugBuffer,
+                                             DatabaseEnvironmentMonitor monitor)
   {
     //Get the Matching Rule OID of the filter.
     String nOID  = extensibleFilter.getMatchingRuleID();
@@ -2388,7 +2645,13 @@ public class AttributeIndex
       if(equalityIndex == null)
       {
         // There is no index on this matching rule.
-        return IndexQuery.createNullIndexQuery().evaluate();
+        if(monitor.isFilterUseEnabled())
+        {
+          monitor.updateStats(extensibleFilter,
+              INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get("equality",
+                  indexConfig.getAttribute().getNameOrOID()));
+        }
+        return IndexQuery.createNullIndexQuery().evaluate(null);
       }
       try
       {
@@ -2407,7 +2670,33 @@ public class AttributeIndex
         }
 
         // Read the key.
-        return equalityIndex.readKey(key, null, LockMode.DEFAULT);
+        EntryIDSet idSet = equalityIndex.readKey(key, null, LockMode.DEFAULT);
+        if(monitor.isFilterUseEnabled())
+        {
+          if(idSet.isDefined())
+          {
+            monitor.updateStats(extensibleFilter, idSet.size());
+          }
+          else if(!equalityIndex.isTrusted())
+          {
+            monitor.updateStats(extensibleFilter,
+                INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED.get(
+                  equalityIndex.getName()));
+          }
+          else if(equalityIndex.isRebuildRunning())
+          {
+            monitor.updateStats(extensibleFilter,
+                INFO_JEB_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS.get(
+                  equalityIndex.getName()));
+          }
+          else
+          {
+            monitor.updateStats(extensibleFilter,
+                INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(
+                  equalityIndex.getName()));
+          }
+        }
+        return idSet;
       }
       catch (DirectoryException e)
       {
@@ -2415,7 +2704,7 @@ public class AttributeIndex
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
-        return IndexQuery.createNullIndexQuery().evaluate();
+        return IndexQuery.createNullIndexQuery().evaluate(null);
       }
     }
     ExtensibleMatchingRule rule =
@@ -2425,7 +2714,13 @@ public class AttributeIndex
             || (factory = extensibleIndexes.getQueryFactory(rule))==null)
     {
       // There is no index on this matching rule.
-      return IndexQuery.createNullIndexQuery().evaluate();
+      if(monitor.isFilterUseEnabled())
+      {
+        monitor.updateStats(extensibleFilter,
+            INFO_JEB_INDEX_FILTER_MATCHING_RULE_NOT_INDEXED.get(nOID,
+                indexConfig.getAttribute().getNameOrOID()));
+      }
+      return IndexQuery.createNullIndexQuery().evaluate(null);
     }
 
     try
@@ -2451,7 +2746,28 @@ public class AttributeIndex
       ByteString assertionValue =
               extensibleFilter.getAssertionValue().getValue();
       IndexQuery expression = rule.createIndexQuery(assertionValue, factory);
-      return expression.evaluate();
+      List<Message> debugMessages =
+          monitor.isFilterUseEnabled() ? new ArrayList<Message>() : null;
+      EntryIDSet idSet = expression.evaluate(debugMessages);
+      if(monitor.isFilterUseEnabled())
+      {
+        if(idSet.isDefined())
+        {
+          monitor.updateStats(extensibleFilter, idSet.size());
+        }
+        else
+        {
+          if(debugMessages != null && !debugMessages.isEmpty())
+          {
+            monitor.updateStats(extensibleFilter, debugMessages.get(0));
+          }
+          else
+          {
+            monitor.updateStats(extensibleFilter, Message.EMPTY);
+          }
+        }
+      }
+      return idSet;
     }
     catch (DirectoryException e)
     {
@@ -2459,7 +2775,7 @@ public class AttributeIndex
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      return IndexQuery.createNullIndexQuery().evaluate();
+      return IndexQuery.createNullIndexQuery().evaluate(null);
     }
   }
 

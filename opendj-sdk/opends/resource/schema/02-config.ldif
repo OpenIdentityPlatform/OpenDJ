@@ -2480,6 +2480,11 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.611
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.612
+  NAME 'ds-cfg-index-filter-analyzer-enabled'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -2551,7 +2556,9 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.6
         ds-cfg-compact-encoding $
         ds-cfg-je-property $
         ds-cfg-disk-full-threshold $
-        ds-cfg-disk-low-threshold )
+        ds-cfg-disk-low-threshold $
+        ds-cfg-index-filter-analyzer-enabled $
+        ds-cfg-max-entries )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.7
   NAME 'ds-cfg-local-db-index'

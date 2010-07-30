@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.backends.jeb;
@@ -32,10 +32,19 @@ package org.opends.server.backends.jeb;
 import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.LockMode;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+
+import org.opends.messages.Message;
 import org.opends.server.api.IndexQueryFactory;
 import org.opends.server.types.ByteSequence;
 
+import static org.opends.messages.JebMessages.
+    INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED;
+import static org.opends.messages.JebMessages.
+    INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED;
+import static org.opends.messages.JebMessages.
+    INFO_JEB_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS;
 
 
 /**
@@ -76,7 +85,7 @@ public final class IndexQueryFactoryImpl implements
       {
 
         @Override
-        public EntryIDSet evaluate()
+        public EntryIDSet evaluate(List<Message> debugMessages)
         {
           // Read the database and get Record for the key.
           DatabaseEntry key = new DatabaseEntry(value.toByteArray());
@@ -85,6 +94,27 @@ public final class IndexQueryFactoryImpl implements
           Index index = indexMap.get(indexID);
           EntryIDSet entrySet =
               index.readKey(key, null, LockMode.DEFAULT);
+          if(debugMessages != null && !entrySet.isDefined())
+          {
+            if(!index.isTrusted())
+            {
+              debugMessages.add(
+                  INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED.get(
+                      index.getName()));
+            }
+            else if(index.isRebuildRunning())
+            {
+              debugMessages.add(
+                  INFO_JEB_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS.get(
+                      index.getName()));
+            }
+            else
+            {
+              debugMessages.add(
+                  INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(
+                      index.getName()));
+            }
+          }
           return entrySet;
         }
       };
@@ -103,13 +133,34 @@ public final class IndexQueryFactoryImpl implements
       {
 
         @Override
-        public EntryIDSet evaluate()
+        public EntryIDSet evaluate(List<Message> debugMessages)
         {
           // Find the right index.
           Index index = indexMap.get(indexID);
           EntryIDSet entrySet =
               index.readRange(lowerBound.toByteArray(), upperBound
                   .toByteArray(), includeLowerBound, includeUpperBound);
+          if(debugMessages != null && !entrySet.isDefined())
+          {
+            if(!index.isTrusted())
+            {
+              debugMessages.add(
+                  INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED.get(
+                      index.getName()));
+            }
+            else if(index.isRebuildRunning())
+            {
+              debugMessages.add(
+                  INFO_JEB_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS.get(
+                      index.getName()));
+            }
+            else
+            {
+              debugMessages.add(
+                  INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(
+                      index.getName()));
+            }
+          }
           return entrySet;
         }
       };
@@ -150,7 +201,7 @@ public final class IndexQueryFactoryImpl implements
       {
 
         @Override
-        public EntryIDSet evaluate()
+        public EntryIDSet evaluate(List<Message> debugMessages)
         {
           return new EntryIDSet();
         }

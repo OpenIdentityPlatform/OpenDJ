@@ -962,6 +962,13 @@ public class DBTest
       builder.appendHeading(INFO_LABEL_DBTEST_INDEX_TYPE.get());
       builder.appendHeading(INFO_LABEL_DBTEST_JE_DATABASE_NAME.get());
       builder.appendHeading(INFO_LABEL_DBTEST_INDEX_STATUS.get());
+      builder.appendHeading(INFO_LABEL_DBTEST_JE_RECORD_COUNT.get());
+      builder.appendHeading(
+          INFO_LABEL_DBTEST_INDEX_UNDEFINED_RECORD_COUNT.get());
+      builder.appendHeading(Message.raw("95%"));
+      builder.appendHeading(Message.raw("90%"));
+      builder.appendHeading(Message.raw("85%"));
+
 
       EntryContainer ec = rc.getEntryContainer(base);
 
@@ -974,6 +981,8 @@ public class DBTest
 
       ArrayList<DatabaseContainer> databaseContainers =
           new ArrayList<DatabaseContainer>();
+      Map<Index, StringBuilder> undefinedKeys =
+          new HashMap<Index, StringBuilder>();
       ec.listDatabases(databaseContainers);
       for(DatabaseContainer dc : databaseContainers)
       {
@@ -994,6 +1003,86 @@ public class DBTest
             builder.appendCell(ec.getState().getIndexTrustState(null,
                                                                ((VLVIndex)dc)));
           }
+          builder.appendCell(dc.getRecordCount());
+
+          if(dc instanceof Index)
+          {
+            Index index = (Index)dc;
+            long undefined = 0, ninetyFive = 0, ninety = 0, eighty = 0;
+            DatabaseEntry key = new DatabaseEntry();
+            DatabaseEntry data = new DatabaseEntry();
+            LockMode lockMode = LockMode.DEFAULT;
+            OperationStatus status;
+
+            Cursor cursor = dc.openCursor(null, CursorConfig.DEFAULT);
+            status = cursor.getFirst(key, data, lockMode);
+            while(status == OperationStatus.SUCCESS)
+            {
+              byte[] bytes = data.getData();
+              if (bytes.length == 0 || ((bytes[0] & 0x80) == 0x80))
+              {
+                // Entry limit has exceeded and there is no encoded
+                //  undefined set size.
+                undefined ++;
+                StringBuilder keyList = undefinedKeys.get(index);
+                if(keyList == null)
+                {
+                  keyList = new StringBuilder();
+                  undefinedKeys.put(index, keyList);
+                }
+                else
+                {
+                  keyList.append(" ");
+                }
+                if(index == ec.getID2Children() || index == ec.getID2Subtree())
+                {
+                  keyList.append("[").append(
+                    JebFormat.entryIDFromDatabase(key.getData())).append("]");
+                }
+                else
+                {
+                  keyList.append("[").append(
+                    new String(key.getData())).append("]");
+                }
+              }
+              else
+              {
+                // Seems like entry limit has not been exceeded and the bytes
+                // is a list of entry IDs.
+                double percentFull =
+                    (bytes.length / 8) / index.getIndexEntryLimit();
+                if(percentFull >= .8)
+                {
+                  if(percentFull < .9)
+                  {
+                    eighty++;
+                  }
+                  else if(percentFull < .95)
+                  {
+                    ninety++;
+                  }
+                  else
+                  {
+                    ninetyFive++;
+                  }
+                }
+              }
+              status = cursor.getNext(key, data, lockMode);
+            }
+            builder.appendCell(undefined);
+            builder.appendCell(ninetyFive);
+            builder.appendCell(ninety);
+            builder.appendCell(eighty);
+            cursor.close();
+          }
+          else
+          {
+            builder.appendCell("-");
+            builder.appendCell("-");
+            builder.appendCell("-");
+            builder.appendCell("-");
+          }
+
           count++;
         }
       }
@@ -1001,6 +1090,12 @@ public class DBTest
       TextTablePrinter printer = new TextTablePrinter(out);
       builder.print(printer);
       out.format("%nTotal: %d%n", count);
+      for(Map.Entry<Index, StringBuilder> e : undefinedKeys.entrySet())
+      {
+        out.format("%nIndex: %s%n",
+            e.getKey().getName().replace(ec.getDatabasePrefix()+"_", ""));
+        out.format("Undefined keys: %s%n", e.getValue().toString());
+      }
       return 0;
     }
     catch(DatabaseException de)

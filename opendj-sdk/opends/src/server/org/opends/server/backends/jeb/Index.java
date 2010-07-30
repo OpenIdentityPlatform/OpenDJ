@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
@@ -1438,6 +1438,15 @@ public class Index extends DatabaseContainer
   public synchronized boolean isTrusted()
   {
     return trusted;
+  }
+
+  /**
+   * Return <code>true</code> iff this index is being rebuilt.
+   * @return The rebuild state of this index
+   */
+  public synchronized boolean isRebuildRunning()
+  {
+    return rebuildRunning;
   }
 
   /**
