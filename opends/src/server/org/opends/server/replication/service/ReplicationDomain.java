@@ -2284,7 +2284,7 @@ public abstract class ReplicationDomain
       Message msg = NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_START.get(
           Integer.toString(serverID),
           serviceID,
-          Long.toString(initTargetMsgReceived.getInitiatorID()));
+          Long.toString(initTargetMsgReceived.getSenderID()));
       logError(msg);
 
       // Go into full update status
@@ -2421,7 +2421,7 @@ public abstract class ReplicationDomain
         Message msg = NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_END.get(
             Integer.toString(serverID),
             serviceID,
-            Long.toString(initTargetMsgReceived.getInitiatorID()),
+            Long.toString(initTargetMsgReceived.getSenderID()),
             (ieContext.getException()!=null?
                 ieContext.getException().getLocalizedMessage():""));
         logError(msg);
