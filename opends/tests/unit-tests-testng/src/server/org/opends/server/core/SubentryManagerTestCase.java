@@ -27,6 +27,7 @@
 
 package org.opends.server.core;
 
+import org.opends.server.api.SubtreeSpecification;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -447,6 +448,87 @@ public class SubentryManagerTestCase extends CoreTestCase
           DN.decode("uid=rogasawara," + OLDBASE + "," + SUFFIX)).isEmpty());
     assertFalse(DirectoryServer.getSubentryManager().getSubentries(
           DN.decode("uid=rogasawara," + OLDBASE + "," + SUFFIX)).isEmpty());
+  }
+
+  @Test
+  public void testExtendedSubtreeSpecification() throws Exception
+  {
+    // This one should have been added during test setup so just
+    // do a quick check here to make sure it is available there.
+    assertNotNull(DirectoryServer.getEntry(ldapSubentry.getDN()));
+
+    // RFC3672 Spec test subentry.
+    List<SubEntry> rfc3672SubList =
+            DirectoryServer.getSubentryManager().getSubentries();
+    for (SubEntry subentry : rfc3672SubList)
+    {
+      if (subentry.getDN().equals(ldapSubentry.getDN()))
+      {
+        SubtreeSpecification spec = subentry.getSubTreeSpecification();
+        assertTrue(spec instanceof RFC3672SubtreeSpecification);
+      }
+    }
+
+    InternalClientConnection connection =
+         InternalClientConnection.getRootConnection();
+
+    // Add Relative Spec test subentry.
+    Entry relativeSubentry = TestCaseUtils.makeEntry(
+         "dn: cn=Relative Subentry," + SUFFIX,
+         "objectClass: top",
+         "objectclass: subentry",
+         "subtreeSpecification: {relativeBase \"ou=Test SubEntry Manager\"}",
+         "cn: Subentry");
+    AddOperation addOperation =
+         connection.processAdd(relativeSubentry.getDN(),
+                               relativeSubentry.getObjectClasses(),
+                               relativeSubentry.getUserAttributes(),
+                               relativeSubentry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    assertNotNull(DirectoryServer.getEntry(relativeSubentry.getDN()));
+
+    List<SubEntry> relativeSubList =
+            DirectoryServer.getSubentryManager().getSubentries();
+    for (SubEntry subentry : relativeSubList)
+    {
+      if (subentry.getDN().equals(relativeSubentry.getDN()))
+      {
+        SubtreeSpecification spec = subentry.getSubTreeSpecification();
+        assertTrue(spec instanceof RelativeSubtreeSpecification);
+      }
+    }
+
+    // Remove Relative Spec test subentry.
+    TestCaseUtils.deleteEntry(relativeSubentry.getDN());
+
+    // Add Absolute Spec test subentry.
+    Entry absoluteSubentry = TestCaseUtils.makeEntry(
+         "dn: cn=Absolute Subentry," + SUFFIX,
+         "objectClass: top",
+         "objectclass: subentry",
+         "subtreeSpecification: {absoluteBase \"ou=Test SubEntry Manager\"}",
+         "cn: Subentry");
+    addOperation =
+         connection.processAdd(absoluteSubentry.getDN(),
+                               absoluteSubentry.getObjectClasses(),
+                               absoluteSubentry.getUserAttributes(),
+                               absoluteSubentry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    assertNotNull(DirectoryServer.getEntry(absoluteSubentry.getDN()));
+
+    List<SubEntry> absoluteSubList =
+            DirectoryServer.getSubentryManager().getSubentries();
+    for (SubEntry subentry : absoluteSubList)
+    {
+      if (subentry.getDN().equals(absoluteSubentry.getDN()))
+      {
+        SubtreeSpecification spec = subentry.getSubTreeSpecification();
+        assertTrue(spec instanceof AbsoluteSubtreeSpecification);
+      }
+    }
+
+    // Remove Absolute Spec test subentry.
+    TestCaseUtils.deleteEntry(absoluteSubentry.getDN());
   }
 
   private void addTestEntries() throws Exception

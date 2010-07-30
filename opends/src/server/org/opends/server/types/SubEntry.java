@@ -27,6 +27,10 @@
 
 package org.opends.server.types;
 
+import org.opends.messages.Message;
+import org.opends.server.core.AbsoluteSubtreeSpecification;
+import org.opends.server.core.RelativeSubtreeSpecification;
+import org.opends.server.api.SubtreeSpecification;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
@@ -37,6 +41,7 @@ import org.opends.server.core.RFC3672SubtreeSpecification;
 
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.messages.SchemaMessages.*;
 
 /**
  * This class represents RFC 3672 subentries and RFC 3671
@@ -113,7 +118,7 @@ public class SubEntry {
   private Entry entry;
 
   // Subtree specification.
-  private RFC3672SubtreeSpecification subTreeSpec;
+  private SubtreeSpecification subTreeSpec;
 
   // Collective subentry flag.
   private boolean isCollective = false;
@@ -138,6 +143,8 @@ public class SubEntry {
 
     // Process subtree specification.
     this.subTreeSpec = null;
+    String specString = null;
+    boolean isValidSpec = true;
     AttributeType specAttrType = DirectoryServer.getAttributeType(
             ATTR_SUBTREE_SPEC_LC, true);
     List<Attribute> specAttrList =
@@ -148,8 +155,46 @@ public class SubEntry {
       {
         for (AttributeValue value : attr)
         {
-          this.subTreeSpec = RFC3672SubtreeSpecification.valueOf(
-                  entry.getDN().getParent(), value.toString());
+          // Try parsing the value with every subtree spec known.
+          specString = value.toString();
+          try
+          {
+            this.subTreeSpec = RFC3672SubtreeSpecification.valueOf(
+                    entry.getDN().getParent(), specString);
+            isValidSpec = true;
+          }
+          catch (DirectoryException de)
+          {
+            isValidSpec = false;
+          }
+          if (this.subTreeSpec != null)
+          {
+            break;
+          }
+          try
+          {
+            this.subTreeSpec = RelativeSubtreeSpecification.valueOf(
+                    entry.getDN().getParent(), specString);
+            isValidSpec = true;
+          }
+          catch (DirectoryException de)
+          {
+            isValidSpec = false;
+          }
+          if (this.subTreeSpec != null)
+          {
+            break;
+          }
+          try
+          {
+            this.subTreeSpec = AbsoluteSubtreeSpecification.valueOf(
+                    specString);
+            isValidSpec = true;
+          }
+          catch (DirectoryException de)
+          {
+            isValidSpec = false;
+          }
           break;
         }
         if (this.subTreeSpec != null)
@@ -158,6 +203,18 @@ public class SubEntry {
         }
       }
     }
+
+    // Check that the subtree spec is flaged as valid. If it is not
+    // that means all parsers have failed and it is ivalid syntax.
+    if (!isValidSpec)
+    {
+      Message message =
+        ERR_ATTR_SYNTAX_SUBTREE_SPECIFICATION_INVALID.get(
+          specString);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+    }
+
     // Subentry has to to have a subtree specification.
     if (this.subTreeSpec == null)
     {
@@ -258,7 +315,7 @@ public class SubEntry {
    * Getter for subentry subtree specification.
    * @return subtree specification for this subentry.
    */
-  public RFC3672SubtreeSpecification getSubTreeSpecification()
+  public SubtreeSpecification getSubTreeSpecification()
   {
     return this.subTreeSpec;
   }
