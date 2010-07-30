@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.types;
@@ -31,7 +31,7 @@ import org.opends.messages.Message;
 
 /**
  * This class defines an exception that is thrown in the case of
- * problems with encryption key managagment, and is a wrapper for a
+ * problems with encryption key management, and is a wrapper for a
  * variety of other cipher related exceptions.
  */
 @org.opends.server.types.PublicAPI(
