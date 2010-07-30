@@ -22,14 +22,18 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.backends.jeb;
 
 
 
+import org.opends.messages.Message;
+
 import java.util.Collection;
+import java.util.List;
+
 import static org.opends.server.backends.jeb.IndexFilter.*;
 
 
@@ -47,9 +51,12 @@ public abstract class IndexQuery
   /**
    * Evaluates the index query and returns the EntryIDSet.
    *
+   * @param debugMessages If not null, diagnostic messages will be written
+   *                      which will help to determine why the returned
+   *                      EntryIDSet is not defined.
    * @return The EntryIDSet as a result of evaulation of this query.
    */
-  public abstract EntryIDSet evaluate();
+  public abstract EntryIDSet evaluate(List<Message> debugMessages);
 
 
 
@@ -107,9 +114,10 @@ public abstract class IndexQuery
   {
     /**
      * {@inheritDoc}
+     * @param debugMessages
      */
     @Override
-    public EntryIDSet evaluate()
+    public EntryIDSet evaluate(List<Message> debugMessages)
     {
       return new EntryIDSet();
     }
@@ -143,20 +151,21 @@ public abstract class IndexQuery
 
     /**
      * {@inheritDoc}
+     * @param debugMessages
      */
     @Override
-    public EntryIDSet evaluate()
+    public EntryIDSet evaluate(List<Message> debugMessages)
     {
       EntryIDSet entryIDs = null;
       for (IndexQuery query : subIndexQueries)
       {
         if (entryIDs == null)
         {
-          entryIDs = query.evaluate();
+          entryIDs = query.evaluate(debugMessages);
         }
         else
         {
-          entryIDs.retainAll(query.evaluate());
+          entryIDs.retainAll(query.evaluate(debugMessages));
         }
         if (entryIDs.isDefined()
             && entryIDs.size() <= FILTER_CANDIDATE_THRESHOLD)
@@ -195,20 +204,21 @@ public abstract class IndexQuery
 
     /**
      * {@inheritDoc}
+     * @param debugMessages
      */
     @Override
-    public EntryIDSet evaluate()
+    public EntryIDSet evaluate(List<Message> debugMessages)
     {
       EntryIDSet entryIDs = null;
       for (IndexQuery query : subIndexQueries)
       {
         if (entryIDs == null)
         {
-          entryIDs = query.evaluate();
+          entryIDs = query.evaluate(debugMessages);
         }
         else
         {
-          entryIDs.addAll(query.evaluate());
+          entryIDs.addAll(query.evaluate(debugMessages));
         }
         if (entryIDs.isDefined()
             && entryIDs.size() <= FILTER_CANDIDATE_THRESHOLD)

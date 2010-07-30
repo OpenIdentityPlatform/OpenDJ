@@ -124,6 +124,7 @@ public class ValidateConfigDefinitionsTest extends DirectoryServerTestCase {
   // Exceptions to properties ending in -enabled being exactly 'enabled'.
   private static final List<String> ENABLED_PROPERTY_EXCEPTIONS =
           Arrays.asList(new String[]{
+                  "index-filter-analyzer-enabled"
                   // e.g. "prop-name-ending-with-enabled"
           });
 

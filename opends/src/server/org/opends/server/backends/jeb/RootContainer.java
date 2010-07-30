@@ -124,6 +124,10 @@ public class RootContainer
     this.config = config;
     this.compressedSchema = null;
 
+    getMonitorProvider().enableFilterUseStats(
+        config.isIndexFilterAnalyzerEnabled());
+    getMonitorProvider().setMaxEntries(config.getMaxEntries());
+
     config.addLocalDBChangeListener(this);
     importForceCheckPoint.setForce(true);
   }
@@ -1004,6 +1008,10 @@ public class RootContainer
           }
         }
       }
+
+      getMonitorProvider().enableFilterUseStats(
+          cfg.isIndexFilterAnalyzerEnabled());
+      getMonitorProvider().setMaxEntries(cfg.getMaxEntries());
 
       this.config = cfg;
     }

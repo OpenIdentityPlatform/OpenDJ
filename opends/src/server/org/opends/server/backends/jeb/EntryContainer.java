@@ -1016,7 +1016,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     {
       // Create an index filter to get the search result candidate entries.
       IndexFilter indexFilter =
-        new IndexFilter(this, searchOperation, debugBuffer);
+        new IndexFilter(this, searchOperation, debugBuffer,
+            rootContainer.getMonitorProvider());
 
       // Evaluate the filter against the attribute indexes.
       entryIDList = indexFilter.evaluate();
@@ -1129,11 +1130,19 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
 
     if (entryIDList.isDefined())
     {
+      if(rootContainer.getMonitorProvider().isFilterUseEnabled())
+      {
+        rootContainer.getMonitorProvider().updateIndexedSearchCount();
+      }
       searchIndexed(entryIDList, candidatesAreInScope, searchOperation,
           pageRequest);
     }
     else
     {
+      if(rootContainer.getMonitorProvider().isFilterUseEnabled())
+      {
+        rootContainer.getMonitorProvider().updateUnindexedSearchCount();
+      }
       // See if we could use a virtual attribute rule to process the search.
       for (VirtualAttributeRule rule : DirectoryServer.getVirtualAttributes())
       {

@@ -22,14 +22,17 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.jeb;
 
 import org.opends.server.core.SearchOperation;
+import org.opends.server.monitors.DatabaseEnvironmentMonitor;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.FilterType;
 import org.opends.server.types.SearchFilter;
+
+import static org.opends.messages.JebMessages.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,25 +53,28 @@ public class IndexFilter
   /**
    * The entry entryContainer holding the attribute indexes.
    */
-  private EntryContainer entryContainer;
+  private final EntryContainer entryContainer;
 
   /**
    * The search operation provides the search base, scope and filter.
    * It can also be checked periodically for cancellation.
    */
-  private SearchOperation searchOp;
+  private final SearchOperation searchOp;
 
   /**
    * A string builder to hold a diagnostic string which helps determine
    * how the indexed contributed to the search operation.
    */
-  private StringBuilder buffer;
+  private final StringBuilder buffer;
+
+  private final DatabaseEnvironmentMonitor monitor;
 
   /**
    * Construct an index filter for a search operation.
    *
    * @param entryContainer The entry entryContainer.
    * @param searchOp       The search operation to be evaluated.
+   * @param monitor        The monitor to gather filter usage stats.
    *
    * @param debugBuilder If not null, a diagnostic string will be written
    *                     which will help determine how the indexes contributed
@@ -76,11 +82,13 @@ public class IndexFilter
    */
   public IndexFilter(EntryContainer entryContainer,
                      SearchOperation searchOp,
-                     StringBuilder debugBuilder)
+                     StringBuilder debugBuilder,
+                     DatabaseEnvironmentMonitor monitor)
   {
     this.entryContainer = entryContainer;
     this.searchOp = searchOp;
     this.buffer = debugBuilder;
+    this.monitor = monitor;
   }
 
   /**
@@ -296,6 +304,12 @@ public class IndexFilter
              entryContainer.getAttributeIndex(rangeEntry.getKey());
         if (attributeIndex == null)
         {
+          if(monitor.isFilterUseEnabled())
+          {
+            monitor.updateStats(SearchFilter.createANDFilter(rangeList),
+                INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get("ordering",
+                    rangeEntry.getKey().getNameOrOID()));
+          }
           continue;
         }
 
@@ -312,6 +326,33 @@ public class IndexFilter
             a.toString(buffer);
             b.toString(buffer);
             set.toString(buffer);
+          }
+
+          if(monitor.isFilterUseEnabled())
+          {
+            if(set.isDefined())
+            {
+              monitor.updateStats(SearchFilter.createANDFilter(rangeList),
+                  set.size());
+            }
+            else if(!attributeIndex.orderingIndex.isTrusted())
+            {
+              monitor.updateStats(SearchFilter.createANDFilter(rangeList),
+                  INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED.get(
+                      attributeIndex.orderingIndex.getName()));
+            }
+            else if(attributeIndex.orderingIndex.isRebuildRunning())
+            {
+              monitor.updateStats(SearchFilter.createANDFilter(rangeList),
+                  INFO_JEB_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS.get(
+                      attributeIndex.orderingIndex.getName()));
+            }
+            else
+            {
+              monitor.updateStats(SearchFilter.createANDFilter(rangeList),
+                  INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(
+                      attributeIndex.orderingIndex.getName()));
+            }
           }
 
           if (retainAll(results, set))
@@ -334,6 +375,34 @@ public class IndexFilter
             b.toString(buffer);
             set.toString(buffer);
           }
+
+          if(monitor.isFilterUseEnabled())
+          {
+            if(set.isDefined())
+            {
+              monitor.updateStats(SearchFilter.createANDFilter(rangeList),
+                  set.size());
+            }
+            else if(!attributeIndex.orderingIndex.isTrusted())
+            {
+              monitor.updateStats(SearchFilter.createANDFilter(rangeList),
+                  INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED.get(
+                      attributeIndex.orderingIndex.getName()));
+            }
+            else if(attributeIndex.orderingIndex.isRebuildRunning())
+            {
+              monitor.updateStats(SearchFilter.createANDFilter(rangeList),
+                  INFO_JEB_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS.get(
+                      attributeIndex.orderingIndex.getName()));
+            }
+            else
+            {
+              monitor.updateStats(SearchFilter.createANDFilter(rangeList),
+                  INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(
+                      attributeIndex.orderingIndex.getName()));
+            }
+          }
+
 
           if (retainAll(results, set))
           {
@@ -378,12 +447,8 @@ public class IndexFilter
     // We may have reached the point of diminishing returns where
     // it is quicker to stop now and process the current small number of
     // candidates.
-    if (a.isDefined() && a.size() <= FILTER_CANDIDATE_THRESHOLD)
-    {
-      return true;
-    }
+    return a.isDefined() && a.size() <= FILTER_CANDIDATE_THRESHOLD;
 
-    return false;
   }
 
   /**
@@ -423,12 +488,18 @@ public class IndexFilter
          entryContainer.getAttributeIndex(equalityFilter.getAttributeType());
     if (attributeIndex == null)
     {
+      if(monitor.isFilterUseEnabled())
+      {
+        monitor.updateStats(equalityFilter,
+            INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get("equality",
+                equalityFilter.getAttributeType().getNameOrOID()));
+      }
       candidates = new EntryIDSet();
     }
     else
     {
-      candidates =
-          attributeIndex.evaluateEqualityFilter(equalityFilter, buffer);
+      candidates = attributeIndex.evaluateEqualityFilter(equalityFilter,
+          buffer, monitor);
     }
     return candidates;
   }
@@ -446,11 +517,18 @@ public class IndexFilter
          entryContainer.getAttributeIndex(filter.getAttributeType());
     if (attributeIndex == null)
     {
+      if(monitor.isFilterUseEnabled())
+      {
+        monitor.updateStats(filter,
+            INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get("presence",
+                filter.getAttributeType().getNameOrOID()));
+      }
       candidates = new EntryIDSet();
     }
     else
     {
-      candidates = attributeIndex.evaluatePresenceFilter(filter, buffer);
+      candidates = attributeIndex.evaluatePresenceFilter(filter, buffer,
+          monitor);
     }
     return candidates;
   }
@@ -468,11 +546,18 @@ public class IndexFilter
          entryContainer.getAttributeIndex(filter.getAttributeType());
     if (attributeIndex == null)
     {
+      if(monitor.isFilterUseEnabled())
+      {
+        monitor.updateStats(filter,
+            INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get("ordering",
+                filter.getAttributeType().getNameOrOID()));
+      }
       candidates = new EntryIDSet();
     }
     else
     {
-      candidates = attributeIndex.evaluateGreaterOrEqualFilter(filter, buffer);
+      candidates = attributeIndex.evaluateGreaterOrEqualFilter(filter,
+          buffer, monitor);
     }
     return candidates;
   }
@@ -490,11 +575,18 @@ public class IndexFilter
          entryContainer.getAttributeIndex(filter.getAttributeType());
     if (attributeIndex == null)
     {
+      if(monitor.isFilterUseEnabled())
+      {
+        monitor.updateStats(filter,
+            INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get("ordering",
+                filter.getAttributeType().getNameOrOID()));
+      }
       candidates = new EntryIDSet();
     }
     else
     {
-      candidates = attributeIndex.evaluateLessOrEqualFilter(filter, buffer);
+      candidates = attributeIndex.evaluateLessOrEqualFilter(filter, buffer,
+          monitor);
     }
     return candidates;
   }
@@ -512,11 +604,19 @@ public class IndexFilter
          entryContainer.getAttributeIndex(filter.getAttributeType());
     if (attributeIndex == null)
     {
+      if(monitor.isFilterUseEnabled())
+      {
+        monitor.updateStats(filter,
+            INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get(
+                "substring or equality",
+                filter.getAttributeType().getNameOrOID()));
+      }
       candidates = new EntryIDSet();
     }
     else
     {
-      candidates = attributeIndex.evaluateSubstringFilter(filter, buffer);
+      candidates = attributeIndex.evaluateSubstringFilter(filter,
+          buffer, monitor);
     }
     return candidates;
   }
@@ -534,12 +634,18 @@ public class IndexFilter
          entryContainer.getAttributeIndex(approximateFilter.getAttributeType());
     if (attributeIndex == null)
     {
+      if(monitor.isFilterUseEnabled())
+      {
+        monitor.updateStats(approximateFilter,
+            INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get("approximate",
+                approximateFilter.getAttributeType().getNameOrOID()));
+      }
       candidates = new EntryIDSet();
     }
     else
     {
-      candidates =
-          attributeIndex.evaluateApproximateFilter(approximateFilter, buffer);
+      candidates = attributeIndex.evaluateApproximateFilter(approximateFilter,
+          buffer, monitor);
     }
     return candidates;
   }
@@ -557,12 +663,13 @@ public class IndexFilter
          entryContainer.getAttributeIndex(extensibleFilter.getAttributeType());
     if (attributeIndex == null)
     {
-      candidates = IndexQuery.createNullIndexQuery().evaluate();
+      candidates = IndexQuery.createNullIndexQuery().evaluate(null);
     }
     else
     {
       candidates =
-          attributeIndex.evaluateExtensibleFilter(extensibleFilter, buffer);
+          attributeIndex.evaluateExtensibleFilter(extensibleFilter, buffer,
+              monitor);
     }
     return candidates;
   }
