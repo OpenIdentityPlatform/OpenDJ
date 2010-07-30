@@ -201,7 +201,8 @@ public class LDAPDelete
         }
         if (!deleteOptions.continueOnError())
         {
-          throw new IOException(ae.getMessage());
+          String msg = LDAPToolUtils.getMessageForConnectionException(ae);
+          throw new IOException(msg, ae);
         }
         else
         {

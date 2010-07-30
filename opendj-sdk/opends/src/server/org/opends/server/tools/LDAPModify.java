@@ -98,13 +98,13 @@ public class LDAPModify
   private static final String CLASS_NAME = "org.opends.server.tools.LDAPModify";
 
   // The message ID counter to use for requests.
-  private AtomicInteger nextMessageID;
+  private final AtomicInteger nextMessageID;
 
   // The print stream to use for standard error.
-  private PrintStream err;
+  private final PrintStream err;
 
   // The print stream to use for standard output.
-  private PrintStream out;
+  private final PrintStream out;
 
   // The LDIF file name.
   private String fileName = null;
@@ -352,7 +352,8 @@ public class LDAPModify
           err.println(wrapText(ae.getMessage(), MAX_LINE_WIDTH));
           if (!modifyOptions.continueOnError())
           {
-            throw new IOException(ae.getMessage());
+            String msg = LDAPToolUtils.getMessageForConnectionException(ae);
+            throw new IOException(msg, ae);
           }
           return;
         }

@@ -87,13 +87,13 @@ public class LDAPCompare
 
 
   // The message ID counter to use for requests.
-  private AtomicInteger nextMessageID;
+  private final AtomicInteger nextMessageID;
 
   // The print stream to use for standard error.
-  private PrintStream err;
+  private final PrintStream err;
 
   // The print stream to use for standard output.
-  private PrintStream out;
+  private final PrintStream out;
 
   // Tells whether the command-line is being executed in script friendly mode
   // or not.
@@ -225,7 +225,8 @@ public class LDAPCompare
         }
         if (!compareOptions.continueOnError())
         {
-          throw new IOException(ae.getMessage());
+          String message = LDAPToolUtils.getMessageForConnectionException(ae);
+          throw new IOException(message, ae);
         }
         else
         {
@@ -990,7 +991,6 @@ public class LDAPCompare
       int timeout = connectTimeout.getIntValue();
       connection.connectToHost(bindDNValue, bindPasswordValue, nextMessageID,
           timeout);
-
 
       ldapCompare = new LDAPCompare(nextMessageID, out, err);
       ldapCompare.isScriptFriendly = scriptFriendlyArgument.isPresent();
