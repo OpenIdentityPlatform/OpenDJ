@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -1231,12 +1231,25 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
             arg.addValue(children.get(children.firstKey()));
           } else {
             // Set relation: need the short type name.
-            String longName = children.firstKey();
-            try {
-              AbstractManagedObjectDefinition<?,?> cd = d.getChild(longName);
+            String friendlyName = children.firstKey();
+            String shortName = children.get(friendlyName);
+            try
+            {
+              AbstractManagedObjectDefinition<?, ?> cd = null;
+              try
+              {
+                cd = d.getChild(shortName);
+              }
+              catch (IllegalArgumentException e)
+              {
+                // Last resource: try with friendly name
+                cd = d.getChild(friendlyName);
+              }
               arg.addValue(getShortTypeName(r.getChildDefinition(), cd));
-            } catch (IllegalArgumentException e) {
-              arg.addValue(children.get(children.firstKey()));
+            }
+            catch (IllegalArgumentException e)
+            {
+              arg.addValue(shortName);
             }
           }
           getCommandBuilder().addArgument(arg);
