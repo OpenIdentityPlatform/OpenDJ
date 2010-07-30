@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -45,7 +45,7 @@ import org.opends.server.types.ModificationType;
  * It allows to record the last time a given value was added,
  * and the last time the whole attribute was deleted.
  */
-public class AttrInfoSingle extends AttributeInfo
+public class AttrHistoricalSingle extends AttrHistorical
 {
   private ChangeNumber deleteTime = null; // last time when the attribute was
                                           // deleted
@@ -58,23 +58,24 @@ public class AttrInfoSingle extends AttributeInfo
   @Override
   public ChangeNumber getDeleteTime()
   {
-    return deleteTime;
+    return this.deleteTime;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public ArrayList<ValueInfo> getValuesInfo()
+  public ArrayList<AttrValueHistorical> getValuesHistorical()
   {
     if (addTime == null)
     {
-      return new ArrayList<ValueInfo>();
+      return new ArrayList<AttrValueHistorical>();
     }
     else
     {
-      ArrayList<ValueInfo> values = new ArrayList<ValueInfo>();
-      values.add(new ValueInfo(value, addTime, null));
+      ArrayList<AttrValueHistorical> values =
+        new ArrayList<AttrValueHistorical>();
+      values.add(new AttrValueHistorical(value, addTime, null));
       return values;
     }
   }
@@ -96,26 +97,26 @@ public class AttrInfoSingle extends AttributeInfo
     switch (mod.getModificationType())
     {
     case DELETE:
-      deleteTime = changeNumber;
-      value = newValue;
+      this.deleteTime = changeNumber;
+      this.value = newValue;
       break;
 
     case ADD:
-      addTime = changeNumber;
-      value = newValue;
+      this.addTime = changeNumber;
+      this.value = newValue;
       break;
 
     case REPLACE:
       if (newValue == null)
       {
         // REPLACE with null value is actually a DELETE
-        deleteTime = changeNumber;
+        this.deleteTime = changeNumber;
       }
       else
       {
-        deleteTime = addTime = changeNumber;
+        this.deleteTime = addTime = changeNumber;
       }
-      value = newValue;
+      this.value = newValue;
       break;
 
     case INCREMENT:
@@ -229,29 +230,30 @@ public class AttrInfoSingle extends AttributeInfo
    * {@inheritDoc}
    */
   @Override
-  public void load(HistKey histKey, AttributeValue value, ChangeNumber cn)
+  public void assign(HistAttrModificationKey histKey,
+      AttributeValue value, ChangeNumber cn)
   {
     switch (histKey)
     {
     case ADD:
-      addTime = cn;
+      this.addTime = cn;
       this.value = value;
       break;
 
     case DEL:
-      deleteTime = cn;
+      this.deleteTime = cn;
       if (value != null)
         this.value = value;
       break;
 
     case REPL:
-      addTime = deleteTime = cn;
+      this.addTime = this.deleteTime = cn;
       if (value != null)
         this.value = value;
       break;
 
     case DELATTR:
-      deleteTime = cn;
+      this.deleteTime = cn;
       break;
     }
   }

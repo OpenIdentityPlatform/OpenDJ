@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -34,16 +34,16 @@ import java.util.Set;
  * Used to store historical information.
  * Contain a map of AttrInfo for each options of a given attribute type.
  */
-public class AttrInfoWithOptions
+public class AttrHistoricalWithOptions
 {
-  private HashMap<Set<String> ,AttributeInfo> attributesInfo;
+  private HashMap<Set<String> ,AttrHistorical> attributesInfo;
 
   /**
    * creates a new AttrInfoWithOptions.
    */
-  public AttrInfoWithOptions()
+  public AttrHistoricalWithOptions()
   {
-    attributesInfo = new HashMap<Set<String> ,AttributeInfo>();
+    attributesInfo = new HashMap<Set<String> ,AttrHistorical>();
   }
 
   /**
@@ -52,7 +52,7 @@ public class AttrInfoWithOptions
    * @param options the options
    * @return the information
    */
-  public AttributeInfo get(Set<String> options)
+  public AttrHistorical get(Set<String> options)
   {
     return attributesInfo.get(options);
   }
@@ -64,7 +64,7 @@ public class AttrInfoWithOptions
    * @param attrInfo the info to associate
    * @return the info to associate
    */
-  public AttributeInfo put(Set<String> options, AttributeInfo attrInfo )
+  public AttrHistorical put(Set<String> options, AttrHistorical attrInfo )
   {
     return attributesInfo.put(options, attrInfo);
   }
@@ -73,7 +73,7 @@ public class AttrInfoWithOptions
    * get the Attributes information associated to this object.
    * @return the set of informations
    */
-  public HashMap<Set<String>, AttributeInfo> getAttributesInfo()
+  public HashMap<Set<String>, AttrHistorical> getAttributesInfo()
   {
     return attributesInfo;
   }

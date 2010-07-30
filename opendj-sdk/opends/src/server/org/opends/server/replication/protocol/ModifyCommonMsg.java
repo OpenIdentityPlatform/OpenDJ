@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.replication.protocol;
@@ -37,7 +37,7 @@ import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.plugin.Historical;
+import org.opends.server.replication.plugin.EntryHistorical;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeUsage;
@@ -153,7 +153,7 @@ public abstract class ModifyCommonMsg extends LDAPUpdateMsg {
         }
       }
 
-      if (!Historical.isHistoricalAttribute(attr))
+      if (!EntryHistorical.isHistoricalAttribute(attr))
       {
         LDAPModification ldapmod = new LDAPModification(
           mod.getModificationType(), new LDAPAttribute(mod.getAttribute()));

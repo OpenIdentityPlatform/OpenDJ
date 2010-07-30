@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -65,7 +65,7 @@ public class FakeModdnOperation extends FakeOperation
   {
     DN dn = entry.getDN();
     return new ModifyDNMsg(dn.toString(), this.getChangeNumber(),
-        Historical.getEntryUuid(entry),
+        EntryHistorical.getEntryUuid(entry),
         LDAPReplicationDomain.findEntryId(dn.getParent()),
         false, dn.getParent().toString(), dn.getRDN().toString());
   }

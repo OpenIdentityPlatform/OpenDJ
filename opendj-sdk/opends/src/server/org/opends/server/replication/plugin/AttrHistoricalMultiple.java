@@ -48,42 +48,43 @@ import org.opends.server.types.ModificationType;
  * time a given value was deleted and the last time the whole attribute was
  * deleted.
  */
-public class AttrInfoMultiple extends AttributeInfo
+public class AttrHistoricalMultiple extends AttrHistorical
 {
    private ChangeNumber deleteTime, // last time when the attribute was deleted
                         lastUpdateTime; // last time the attribute was modified
-   private ArrayList<ValueInfo> valuesInfo; // creation or deletion time for
-                                            // given values
-  /**
-    * create a new AttrInfo object.
-    * @param deleteTime the deletion time
-    * @param updateTime the update time
-    * @param valuesInfo of Value Info
+   private ArrayList<AttrValueHistorical> valuesHist;
+
+   /**
+    * Create a new object from the provided informations.
+    * @param deleteTime the last time this attribute was deleted
+    * @param updateTime the last time this attribute was updated
+    * @param valuesHist the new attribute values when updated.
     */
-   public AttrInfoMultiple(ChangeNumber deleteTime, ChangeNumber updateTime,
-       ArrayList<ValueInfo> valuesInfo)
+   public AttrHistoricalMultiple(ChangeNumber deleteTime,
+       ChangeNumber updateTime,
+       ArrayList<AttrValueHistorical> valuesHist)
    {
      this.deleteTime = deleteTime;
      this.lastUpdateTime = updateTime;
-     if (valuesInfo == null)
-       this.valuesInfo = new ArrayList<ValueInfo>();
+     if (valuesHist == null)
+       this.valuesHist = new ArrayList<AttrValueHistorical>();
      else
-       this.valuesInfo = valuesInfo;
+       this.valuesHist = valuesHist;
    }
 
    /**
-    * create a new empty AttrInfo object.
+    * Create a new object.
     */
-   public AttrInfoMultiple()
+   public AttrHistoricalMultiple()
    {
      this.deleteTime = null;
      this.lastUpdateTime = null;
-     this.valuesInfo = new ArrayList<ValueInfo>();
+     this.valuesHist = new ArrayList<AttrValueHistorical>();
    }
 
    /**
-    * Returns the last time when the entry was updated.
-    * @return the last time when the entry was updated
+    * Returns the last time when the attribute was updated.
+    * @return the last time when the attribute was updated
     */
    private ChangeNumber getLastUpdateTime()
    {
@@ -92,7 +93,6 @@ public class AttrInfoMultiple extends AttributeInfo
 
    /**
     * Returns the last time when the attribute was deleted.
-    *
     * @return the last time when the attribute was deleted
     */
    public ChangeNumber getDeleteTime()
@@ -101,15 +101,15 @@ public class AttrInfoMultiple extends AttributeInfo
    }
 
    /**
-    * Duplicate an AttrInfo.
+    * Duplicate an object.
     * ChangeNumber are duplicated by references
-    * @return the duplicated AttrInfo
+    * @return the duplicated object.
     */
-   AttrInfoMultiple duplicate()
+   AttrHistoricalMultiple duplicate()
    {
-     AttrInfoMultiple dup =
-       new AttrInfoMultiple(this.deleteTime, this.lastUpdateTime,
-           this.valuesInfo);
+     AttrHistoricalMultiple dup =
+       new AttrHistoricalMultiple(this.deleteTime, this.lastUpdateTime,
+           this.valuesHist);
      return dup;
    }
 
@@ -124,10 +124,10 @@ public class AttrInfoMultiple extends AttributeInfo
      // iterate through the values in the valuesInfo
      // and suppress all the values that have not been added
      // after the date of this delete.
-     Iterator<ValueInfo> it = this.valuesInfo.iterator();
+     Iterator<AttrValueHistorical> it = this.valuesHist.iterator();
      while (it.hasNext())
      {
-       ValueInfo info = it.next();
+       AttrValueHistorical info = it.next();
        if (CN.newerOrEquals(info.getValueUpdateTime()) &&
            CN.newerOrEquals(info.getValueDeleteTime()))
          it.remove();
@@ -145,15 +145,16 @@ public class AttrInfoMultiple extends AttributeInfo
    }
 
    /**
-    * Change historical information after a delete value.
+    * Update the historical of this attribute after a delete value.
+    *
     * @param val value that was deleted
     * @param CN time when the delete was done
     */
    protected void delete(AttributeValue val, ChangeNumber CN)
    {
-     ValueInfo info = new ValueInfo(val, null, CN);
-     this.valuesInfo.remove(info);
-     this.valuesInfo.add(info);
+     AttrValueHistorical info = new AttrValueHistorical(val, null, CN);
+     this.valuesHist.remove(info);
+     this.valuesHist.add(info);
      if (CN.newer(lastUpdateTime))
      {
        lastUpdateTime = CN;
@@ -161,8 +162,7 @@ public class AttrInfoMultiple extends AttributeInfo
    }
 
    /**
-     * Change historical information after a delete of a set of
-     * values.
+     * Update the historical of this attribute after deleting a set of values.
      *
      * @param attr
      *          the attribute containing the set of values that were
@@ -174,9 +174,9 @@ public class AttrInfoMultiple extends AttributeInfo
   {
     for (AttributeValue val : attr)
     {
-      ValueInfo info = new ValueInfo(val, null, CN);
-      this.valuesInfo.remove(info);
-      this.valuesInfo.add(info);
+      AttrValueHistorical info = new AttrValueHistorical(val, null, CN);
+      this.valuesHist.remove(info);
+      this.valuesHist.add(info);
       if (CN.newer(lastUpdateTime))
       {
         lastUpdateTime = CN;
@@ -187,16 +187,16 @@ public class AttrInfoMultiple extends AttributeInfo
    /**
      * Update the historical information when a value is added.
      *
-     * @param val
+     * @param addedValue
      *          values that was added
      * @param CN
      *          time when the value was added
      */
-   protected void add(AttributeValue val, ChangeNumber CN)
+   protected void add(AttributeValue addedValue, ChangeNumber CN)
    {
-     ValueInfo info = new ValueInfo(val, CN, null);
-     this.valuesInfo.remove(info);
-     valuesInfo.add(info);
+     AttrValueHistorical info = new AttrValueHistorical(addedValue, CN, null);
+     this.valuesHist.remove(info);
+     valuesHist.add(info);
      if (CN.newer(lastUpdateTime))
      {
        lastUpdateTime = CN;
@@ -215,9 +215,9 @@ public class AttrInfoMultiple extends AttributeInfo
   {
     for (AttributeValue val : attr)
     {
-      ValueInfo info = new ValueInfo(val, CN, null);
-      this.valuesInfo.remove(info);
-      valuesInfo.add(info);
+      AttrValueHistorical info = new AttrValueHistorical(val, CN, null);
+      this.valuesHist.remove(info);
+      valuesHist.add(info);
       if (CN.newer(lastUpdateTime))
       {
         lastUpdateTime = CN;
@@ -226,13 +226,13 @@ public class AttrInfoMultiple extends AttributeInfo
   }
 
   /**
-   * Get the List of ValueInfo for this attribute Info.
+   * Get the list of historical informations for the values.
    *
-   * @return the List of ValueInfo
+   * @return the list of historical informations for the values.
    */
-  public ArrayList<ValueInfo> getValuesInfo()
+  public ArrayList<AttrValueHistorical> getValuesHistorical()
   {
-    return valuesInfo;
+    return valuesHist;
   }
 
   /**
@@ -417,9 +417,10 @@ public class AttrInfoMultiple extends AttributeInfo
       m.setModificationType(ModificationType.REPLACE);
       AttributeBuilder builder = new AttributeBuilder(modAttr, true);
 
-      for (Iterator<ValueInfo> it = getValuesInfo().iterator(); it.hasNext();)
+      for (Iterator<AttrValueHistorical> it = getValuesHistorical().iterator();
+        it.hasNext();)
       {
-        ValueInfo valInfo; valInfo = it.next();
+        AttrValueHistorical valInfo; valInfo = it.next();
 
         if (changeNumber.older(valInfo.getValueUpdateTime()))
         {
@@ -427,7 +428,7 @@ public class AttrInfoMultiple extends AttributeInfo
            * this value has been updated after this delete, therefore
            * this value must be kept
            */
-          builder.add(valInfo.getValue());
+          builder.add(valInfo.getAttributeValue());
         }
         else
         {
@@ -459,7 +460,7 @@ public class AttrInfoMultiple extends AttributeInfo
       /*
        * we are processing DELETE of some attribute values
        */
-      ArrayList<ValueInfo> valuesInfo = getValuesInfo();
+      ArrayList<AttrValueHistorical> valuesInfo = getValuesHistorical();
       AttributeBuilder builder = new AttributeBuilder(modAttr);
 
       for (AttributeValue val : modAttr)
@@ -468,12 +469,13 @@ public class AttrInfoMultiple extends AttributeInfo
         Boolean addedInCurrentOp = false;
 
         /* update historical information */
-        ValueInfo valInfo = new ValueInfo(val, null, changeNumber);
+        AttrValueHistorical valInfo =
+          new AttrValueHistorical(val, null, changeNumber);
         int index = valuesInfo.indexOf(valInfo);
         if (index != -1)
         {
           /* this value already exist in the historical information */
-          ValueInfo oldValInfo  = valuesInfo.get(index);
+          AttrValueHistorical oldValInfo  = valuesInfo.get(index);
           if (changeNumber.equals(oldValInfo.getValueUpdateTime()))
           {
             // This value was added earlier in the same operation
@@ -561,8 +563,9 @@ public class AttrInfoMultiple extends AttributeInfo
     AttributeBuilder builder = new AttributeBuilder(m.getAttribute());
     for (AttributeValue addVal : m.getAttribute())
     {
-      ArrayList<ValueInfo> valuesInfo = getValuesInfo();
-      ValueInfo valInfo = new ValueInfo(addVal, changeNumber, null);
+      ArrayList<AttrValueHistorical> valuesInfo = getValuesHistorical();
+      AttrValueHistorical valInfo =
+        new AttrValueHistorical(addVal, changeNumber, null);
       int index = valuesInfo.indexOf(valInfo);
       if (index == -1)
       {
@@ -574,7 +577,7 @@ public class AttrInfoMultiple extends AttributeInfo
       }
       else
       {
-        ValueInfo oldValueInfo = valuesInfo.get(index);
+        AttrValueHistorical oldValueInfo = valuesInfo.get(index);
         if  (oldValueInfo.isUpdate())
         {
           /* if the value is already present
@@ -637,7 +640,8 @@ public class AttrInfoMultiple extends AttributeInfo
    * {@inheritDoc}
    */
   @Override
-  public void load(HistKey histKey, AttributeValue value, ChangeNumber cn)
+  public void assign(HistAttrModificationKey histKey, AttributeValue value,
+      ChangeNumber cn)
   {
     switch (histKey)
     {

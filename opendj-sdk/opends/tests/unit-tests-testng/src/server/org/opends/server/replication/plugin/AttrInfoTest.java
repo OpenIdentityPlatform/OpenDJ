@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -31,8 +31,8 @@ import java.util.ArrayList;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.plugin.AttrInfoMultiple;
-import org.opends.server.replication.plugin.ValueInfo;
+import org.opends.server.replication.plugin.AttrHistoricalMultiple;
+import org.opends.server.replication.plugin.AttrValueHistorical;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Attributes;
@@ -85,50 +85,50 @@ public class AttrInfoTest
       throws Exception
   {
     // Create an empty AttrInfo
-    AttrInfoMultiple attrInfo1 = new AttrInfoMultiple();
+    AttrHistoricalMultiple attrInfo1 = new AttrHistoricalMultiple();
 
     // Check add(AttributeValue val, ChangeNumber CN)
     attrInfo1.add(att, updateTime);
-    ArrayList<ValueInfo> values1 = attrInfo1.getValuesInfo();
+    ArrayList<AttrValueHistorical> values1 = attrInfo1.getValuesHistorical();
     assertTrue(values1.size() == 1);
-    ValueInfo valueInfo1 = new ValueInfo(att, updateTime, null);
+    AttrValueHistorical valueInfo1 = new AttrValueHistorical(att, updateTime, null);
     assertTrue(values1.get(0).equals(valueInfo1));
 
     // Check constructor with parameter
-    ValueInfo valueInfo2 = new ValueInfo(att, updateTime, deleteTime);
-    ArrayList<ValueInfo> values = new ArrayList<ValueInfo>();
+    AttrValueHistorical valueInfo2 = new AttrValueHistorical(att, updateTime, deleteTime);
+    ArrayList<AttrValueHistorical> values = new ArrayList<AttrValueHistorical>();
     values.add(valueInfo2);
-    AttrInfoMultiple attrInfo2 = new AttrInfoMultiple(deleteTime, updateTime, values);
+    AttrHistoricalMultiple attrInfo2 = new AttrHistoricalMultiple(deleteTime, updateTime, values);
 
     // Check equality
     //assertTrue(attrInfo1.getDeleteTime().compareTo(attrInfo2.getDeleteTime())==0);
 
     //  Check constructor with time parameter and not Value
-    AttrInfoMultiple attrInfo3 = new AttrInfoMultiple(deleteTime, updateTime, null);
+    AttrHistoricalMultiple attrInfo3 = new AttrHistoricalMultiple(deleteTime, updateTime, null);
     attrInfo3.add(att, updateTime);
-    ArrayList<ValueInfo> values3 = attrInfo3.getValuesInfo();
+    ArrayList<AttrValueHistorical> values3 = attrInfo3.getValuesHistorical();
     assertTrue(values3.size() == 1);
-    valueInfo1 = new ValueInfo(att, updateTime, null);
+    valueInfo1 = new AttrValueHistorical(att, updateTime, null);
     assertTrue(values3.get(0).equals(valueInfo1));
 
     // Check duplicate
-    AttrInfoMultiple attrInfo4 = attrInfo3.duplicate();
-    ArrayList<ValueInfo> values4 = attrInfo4.getValuesInfo();
+    AttrHistoricalMultiple attrInfo4 = attrInfo3.duplicate();
+    ArrayList<AttrValueHistorical> values4 = attrInfo4.getValuesHistorical();
     assertTrue(attrInfo4.getDeleteTime().compareTo(attrInfo3.getDeleteTime())==0);
     assertEquals(values4.size(), values3.size());
 
     // Check delete(AttributeValue val, ChangeNumber CN)
     attrInfo4.delete(att, updateTime);
-    assertTrue(attrInfo4.getValuesInfo().size() == 1);
+    assertTrue(attrInfo4.getValuesHistorical().size() == 1);
 
     // Check delete(LinkedHashSet<AttributeValue> values, ChangeNumber CN)
     AttributeType type = DirectoryServer.getAttributeType("description");
     attrInfo3.delete(Attributes.create(type, att), updateTime) ;
-    assertTrue(attrInfo3.getValuesInfo().size() == 1);
+    assertTrue(attrInfo3.getValuesHistorical().size() == 1);
 
     // Check delete(ChangeNumber CN)
     attrInfo2.delete(updateTime) ;
-    assertTrue(attrInfo2.getValuesInfo().size() == 0);
+    assertTrue(attrInfo2.getValuesHistorical().size() == 0);
 
   }
 }

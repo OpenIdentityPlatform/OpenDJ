@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -35,56 +35,60 @@ import org.opends.server.types.*;
 
 
 /**
- * This Class is used to encode/decode historical information
- * from the String form to the internal usable form.
+ * This class stores an internal usable representation of the value of
+ * the historical related to an entry.
+ * It encodes/decodes from the String form stored in the DB attribute
+ * from/to the internal usable form.
+ *
+ *
+ * an historical attribute value looks like :
+ *  description:00000108b3a6554100000001:add:added_value
+ *  or
+ *  description:00000108b3a6cbb800000001:del:deleted_value
+ *  or
+ *  description:00000108b3a6cbb800000001:repl:new_value
+ *  or
+ *  description:00000108b3a6cbb800000001:delAttr
+ *  or
+ *  description:00000108b3a6554100000001:add
+ *  or
+ *  dn:00000108b3a6554100000001:add (ADD operation)
+ *  or
+ *  dn:00000108b3a6554100000001:moddn (MODIFYDN operation)
+ *
+ *  so after split
+ *  token[0] will contain the attribute name
+ *  token[1] will contain the change number
+ *  token[2] will contain the type of historical information
+ *  token[3] will contain the attribute value
+ *
+ *  options are stored with the attribute names using; as a separator
+ *  example :
+ *  description;FR;France:00000108b3a6554100000001:add:added_value
+ *
+ *
  */
-public class HistVal
+public class HistoricalAttributeValue
 {
   private AttributeType attrType;
   private String attrString;
   private AttributeValue attributeValue;
   private ChangeNumber cn;
   private LinkedHashSet<String> options;
-  private HistKey histKey;
+  private HistAttrModificationKey histKey;
   private String stringValue;
 
-  // This flag indicates that this HistVal was generated to store the last date
+  // This flag indicates that this value was generated to store the last date
   // when the entry was renamed.
   private boolean ismodDN = false;
 
   /**
-   * Create a new HistVal from the String encoded form.
+   * Create a new object from the String encoded form.
    *
-   * @param strVal The String encoded form of historical information.
+   * @param strVal The String encoded form of historical attribute value.
    */
-  public HistVal(String strVal)
+  public HistoricalAttributeValue(String strVal)
   {
-    /*
-     * an historical attribute value looks like :
-     *  description:00000108b3a6554100000001:add:added_value
-     *  or
-     *  description:00000108b3a6cbb800000001:del:deleted_value
-     *  or
-     *  description:00000108b3a6cbb800000001:repl:new_value
-     *  or
-     *  description:00000108b3a6cbb800000001:delAttr
-     *  or
-     *  description:00000108b3a6554100000001:add
-     *  or
-     *  dn:00000108b3a6554100000001:add (ADD operation)
-     *  or
-     *  dn:00000108b3a6554100000001:moddn (MODIFYDN operation)
-     *
-     *  so after split
-     *  token[0] will contain the attribute name
-     *  token[1] will contain the change number
-     *  token[2] will contain the type of historical information
-     *  token[3] will contain the attribute value
-     *
-     *  options are stored with the attribute names using; as a separator
-     *  example :
-     *  description;FR;France:00000108b3a6554100000001:add:added_value
-     */
     String[] token = strVal.split(":", 4);
 
     options = new LinkedHashSet<String>();
@@ -124,9 +128,9 @@ public class HistVal
     }
 
     cn = new ChangeNumber(token[1]);
-    histKey = HistKey.decodeKey(token[2]);
+    histKey = HistAttrModificationKey.decodeKey(token[2]);
     stringValue = null;
-    if (histKey != HistKey.DELATTR)
+    if (histKey != HistAttrModificationKey.DELATTR)
     {
       if (token.length == 4)
       {
@@ -177,7 +181,7 @@ public class HistVal
    * Get the HistKey.
    * @return Returns the histKey.
    */
-  public HistKey getHistKey()
+  public HistAttrModificationKey getHistKey()
   {
     return histKey;
   }
@@ -210,16 +214,18 @@ public class HistVal
   }
 
   /**
-   * Generate a Modification equivalent to this HistVal.
+   * Generate a Modification equivalent to this value of the historical
+   * attribute.
    *
-   * @return A Modification equivalent to this HistVal.
+   * @return A modification equivalent to this value of the historical
+   * attribute.
    */
   public Modification generateMod()
   {
     AttributeBuilder builder = new AttributeBuilder(attrType, attrString);
     builder.setOptions(options);
 
-    if (histKey != HistKey.DELATTR)
+    if (histKey != HistAttrModificationKey.DELATTR)
     {
       builder.add(attributeValue);
     }
@@ -247,9 +253,10 @@ public class HistVal
   }
 
   /**
-   * Indicates if the HistVal was generated for a ADD operation.
+   * Indicates if this value of the historical attribute was generated
+   * for a ADD operation.
    *
-   * @return a boolean indicating if the HistVal was generated for a ADD
+   * @return a boolean indicating if this was generated for a ADD
    *         operation.
    */
   public boolean isADDOperation()
@@ -258,9 +265,10 @@ public class HistVal
   }
 
   /**
-   * Indicates if the HistVal was generated for a MODDN operation.
+   * Indicates if this value of the historical attribute was generated
+   * for a MODDN operation.
    *
-   * @return a boolean indicating if the HistVal was generated for a ADDMODDN
+   * @return a boolean indicating if this was generated for a ADDMODDN
    *         operation.
    */
   public boolean isMODDNOperation()

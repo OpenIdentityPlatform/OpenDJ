@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -141,7 +141,7 @@ public class HistoricalCsnOrderingTest
       long startTime = TimeThread.getTime();
     final DN dn1 = DN.decode("cn=test1," + baseDn.toString());
     final AttributeType histType =
-      DirectoryServer.getAttributeType(Historical.HISTORICALATTRIBUTENAME);
+      DirectoryServer.getAttributeType(EntryHistorical.HISTORICALATTRIBUTENAME);
 
     logError(Message.raw(Category.SYNC, Severity.INFORMATION,
     "Starting replication test : changesCmpTest"));

@@ -31,7 +31,7 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.replication.plugin.Historical.ENTRYUIDNAME;
+import static org.opends.server.replication.plugin.EntryHistorical.ENTRYUIDNAME;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.createEntry;
@@ -203,7 +203,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
       // after startingChangeNumber and before endChangeNumber and
       // add them to the replayOperations list
       Iterable<FakeOperation> updates =
-        Historical.generateFakeOperations(searchEntry);
+        EntryHistorical.generateFakeOperations(searchEntry);
 
       for (FakeOperation op : updates)
       {
@@ -1842,7 +1842,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
        * as it was in the original message.
        */
       String operationEntryUUID = ctx.getEntryUid();
-      String modifiedEntryUUID = Historical.getEntryUuid(deletedEntry);
+      String modifiedEntryUUID = EntryHistorical.getEntryUuid(deletedEntry);
       if (!operationEntryUUID.equals(modifiedEntryUUID))
       {
         /*
@@ -1865,7 +1865,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
       // There is no replication context attached to the operation
       // so this is not a replication operation.
       ChangeNumber changeNumber = generateChangeNumber(deleteOperation);
-      String modifiedEntryUUID = Historical.getEntryUuid(deletedEntry);
+      String modifiedEntryUUID = EntryHistorical.getEntryUuid(deletedEntry);
       ctx = new DeleteContext(changeNumber, modifiedEntryUUID);
       deleteOperation.setAttachment(SYNCHROCONTEXT, ctx);
 
@@ -2084,7 +2084,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
        * as was in the original message.
        */
       String modifiedEntryUUID =
-        Historical.getEntryUuid(modifyDNOperation.getOriginalEntry());
+        EntryHistorical.getEntryUuid(modifyDNOperation.getOriginalEntry());
       if (!modifiedEntryUUID.equals(ctx.getEntryUid()))
       {
         /*
@@ -2119,7 +2119,8 @@ public class LDAPReplicationDomain extends ReplicationDomain
        * If the object has been renamed more recently than this
        * operation, cancel the operation.
        */
-      Historical hist = Historical.load(modifyDNOperation.getOriginalEntry());
+      EntryHistorical hist = EntryHistorical.newInstanceFromEntry(
+          modifyDNOperation.getOriginalEntry());
       if (hist.AddedOrRenamedAfter(ctx.getChangeNumber()))
       {
         return new SynchronizationProviderResult.StopProcessing(
@@ -2138,7 +2139,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
       }
 
       Entry modifiedEntry = modifyDNOperation.getOriginalEntry();
-      String modifiedEntryUUID = Historical.getEntryUuid(modifiedEntry);
+      String modifiedEntryUUID = EntryHistorical.getEntryUuid(modifiedEntry);
       ctx = new ModifyDnContext(changeNumber, modifiedEntryUUID, newParentId);
       modifyDNOperation.setAttachment(SYNCHROCONTEXT, ctx);
     }
@@ -2214,22 +2215,26 @@ public class LDAPReplicationDomain extends ReplicationDomain
     Entry modifiedEntry = modifyOperation.getModifiedEntry();
     if (ctx == null)
     {
-      // There is no replication context attached to the operation
-      // so this is not a replication operation.
+      // No replication ctxt attached => not a replicated operation
+      // - create a ctxt with : changeNumber, entryUUID
+      // - attach the context to the op
+
       ChangeNumber changeNumber = generateChangeNumber(modifyOperation);
-      String modifiedEntryUUID = Historical.getEntryUuid(modifiedEntry);
+      String modifiedEntryUUID = EntryHistorical.getEntryUuid(modifiedEntry);
       if (modifiedEntryUUID == null)
         modifiedEntryUUID = modifyOperation.getEntryDN().toString();
       ctx = new ModifyContext(changeNumber, modifiedEntryUUID);
+
       modifyOperation.setAttachment(SYNCHROCONTEXT, ctx);
     }
     else
     {
-      // This is a replayed operation, it is necessary to
+      // Replication ctxt attached => this is a replicated operation being
+      // replayed here, it is necessary to
       // - check if the entry has been renamed
       // - check for conflicts
       String modifiedEntryUUID = ctx.getEntryUid();
-      String currentEntryUUID = Historical.getEntryUuid(modifiedEntry);
+      String currentEntryUUID = EntryHistorical.getEntryUuid(modifiedEntry);
       if ((currentEntryUUID != null) &&
           (!currentEntryUUID.equals(modifiedEntryUUID)))
       {
@@ -2251,8 +2256,9 @@ public class LDAPReplicationDomain extends ReplicationDomain
       /*
        * Solve the conflicts between modify operations
        */
-      Historical historicalInformation = Historical.load(modifiedEntry);
-      modifyOperation.setAttachment(Historical.HISTORICAL,
+      EntryHistorical historicalInformation =
+        EntryHistorical.newInstanceFromEntry(modifiedEntry);
+      modifyOperation.setAttachment(EntryHistorical.HISTORICAL,
                                     historicalInformation);
 
       if (historicalInformation.replayOperation(modifyOperation, modifiedEntry))
@@ -2276,7 +2282,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
   public void doPreOperation(PreOperationAddOperation addOperation)
   {
     AddContext ctx = new AddContext(generateChangeNumber(addOperation),
-        Historical.getEntryUuid(addOperation),
+        EntryHistorical.getEntryUuid(addOperation),
         findEntryId(addOperation.getEntryDN().getParentDNInSuffix()));
 
     addOperation.setAttachment(SYNCHROCONTEXT, ctx);
@@ -2452,8 +2458,8 @@ public class LDAPReplicationDomain extends ReplicationDomain
     }
 
      LinkedHashSet<String> attrs = new LinkedHashSet<String>(1);
-     attrs.add(Historical.HISTORICALATTRIBUTENAME);
-     attrs.add(Historical.ENTRYUIDNAME);
+     attrs.add(EntryHistorical.HISTORICALATTRIBUTENAME);
+     attrs.add(EntryHistorical.ENTRYUIDNAME);
      attrs.add("*");
      InternalSearchOperation searchOp =  conn.processSearch(
        ByteString.valueOf(baseDn.toString()),
@@ -2467,7 +2473,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
      ChangeNumber entrytoRenameDate = null;
      for (SearchResultEntry entry : entries)
      {
-       Historical history = Historical.load(entry);
+       EntryHistorical history = EntryHistorical.newInstanceFromEntry(entry);
        if (entrytoRename == null)
        {
          entrytoRename = entry;
@@ -2848,7 +2854,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
           SearchResultEntry resultEntry = result.getFirst();
           if (resultEntry != null)
           {
-            return Historical.getEntryUuid(resultEntry);
+            return EntryHistorical.getEntryUuid(resultEntry);
           }
         }
       }
@@ -3306,7 +3312,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     {
       LinkedHashSet<String> attrs = new LinkedHashSet<String>(1);
       attrs.add(ENTRYUIDNAME);
-      attrs.add(Historical.HISTORICALATTRIBUTENAME);
+      attrs.add(EntryHistorical.HISTORICALATTRIBUTENAME);
 
       SearchFilter ALLMATCH;
       ALLMATCH = SearchFilter.createFilterFromString("(objectClass=*)");
@@ -3329,7 +3335,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
              */
             conflict = true;
             renameConflictEntry(conflictOp, entry.getDN(),
-                Historical.getEntryUuid(entry));
+                EntryHistorical.getEntryUuid(entry));
           }
         }
       }
@@ -4849,13 +4855,13 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
 
     LDAPFilter filter = LDAPFilter.decode(
-       "(&(" + Historical.HISTORICALATTRIBUTENAME + ">=dummy:"
-       + fromChangeNumber + ")(" + Historical.HISTORICALATTRIBUTENAME +
+       "(&(" + EntryHistorical.HISTORICALATTRIBUTENAME + ">=dummy:"
+       + fromChangeNumber + ")(" + EntryHistorical.HISTORICALATTRIBUTENAME +
        "<=dummy:" + maxValueForId + "))");
 
     LinkedHashSet<String> attrs = new LinkedHashSet<String>(1);
-    attrs.add(Historical.HISTORICALATTRIBUTENAME);
-    attrs.add(Historical.ENTRYUIDNAME);
+    attrs.add(EntryHistorical.HISTORICALATTRIBUTENAME);
+    attrs.add(EntryHistorical.ENTRYUIDNAME);
     attrs.add("*");
     return conn.processSearch(
       ByteString.valueOf(baseDn.toString()),

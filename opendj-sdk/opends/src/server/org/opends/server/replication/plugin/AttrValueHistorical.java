@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.replication.plugin;
 
@@ -30,22 +30,22 @@ import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.types.AttributeValue;
 
 /**
- * Allows to store historical information about specific values
- * for a given attribute.
+ * Store historical information for an attribute value.
  */
-public class ValueInfo
+public class AttrValueHistorical
 {
   private AttributeValue value;
   private ChangeNumber valueDeleteTime;
   private ChangeNumber valueUpdateTime;
 
   /**
-   * Build a new ValueInfo.
-   * @param value value for which ValueInfo is built
-   * @param CNupdate last time when value was updated last
-   * @param CNdelete last time when value for deleted
+   * Build an AttrValueHistorical for a provided AttributeValue, providing
+   * the last time the provided value is either updated or deleted.
+   * @param value    the provided attributeValue
+   * @param CNupdate last time when this value was updated
+   * @param CNdelete last time when this value for deleted
    */
-  public ValueInfo(AttributeValue value,
+  public AttrValueHistorical(AttributeValue value,
                    ChangeNumber CNupdate,
                    ChangeNumber CNdelete)
   {
@@ -63,10 +63,10 @@ public class ValueInfo
   @Override
   public boolean equals(Object obj)
   {
-    if (obj instanceof ValueInfo)
+    if (obj instanceof AttrValueHistorical)
     {
-      ValueInfo objVal = (ValueInfo) obj;
-      return (value.equals(objVal.getValue()));
+      AttrValueHistorical objVal = (AttrValueHistorical) obj;
+      return (value.equals(objVal.getAttributeValue()));
     }
     else
     {
@@ -104,17 +104,17 @@ public class ValueInfo
   }
 
   /**
-   * Get the value for which this ValueInfo was generated.
-   * @return the value for which this ValueInfo was generated
+   * Get the attributeValue for which this object was generated.
+   * @return the value for which this object was generated
    */
-  public AttributeValue getValue()
+  public AttributeValue getAttributeValue()
   {
     return value;
   }
 
   /**
-   * Check if the value associated with this ValueInfo was updated.
-   * @return true if the value associated with this ValueInfo was updated
+   * Check if the value associated with this object was updated.
+   * @return true if the value associated with this object was updated
    */
   public boolean isUpdate()
   {
