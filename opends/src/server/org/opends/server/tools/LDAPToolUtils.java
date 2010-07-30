@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -31,7 +31,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.SocketTimeoutException;
 
+import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.DN;
@@ -276,6 +278,44 @@ public class LDAPToolUtils
     {
       err.println(ERR_TOOL_MATCHED_DN.get(matchedDN.toString()));
     }
+  }
+
+  /**
+   * Returns the message to be displayed to the user when an exception occurs.
+   * <br>
+   * The code simply checks that the exception corresponds to a client side
+   * time out.
+   * @param ae the asn1exception that occurred connecting to the server or
+   * handling the response from the server.
+   * @return the message to be displayed to the user when an exception occurs.
+   */
+  public static String getMessageForConnectionException(ASN1Exception ae)
+  {
+    String msg;
+    Throwable cause = ae.getCause();
+    if (cause != null)
+    {
+      boolean isTimeout = false;
+      while (cause != null && !isTimeout)
+      {
+        isTimeout = cause instanceof SocketTimeoutException;
+        cause = cause.getCause();
+      }
+      if (isTimeout)
+      {
+        msg = ERR_CLIENT_SIDE_TIMEOUT.get(
+            ae.getMessageObject().toString()).toString();
+      }
+      else
+      {
+        msg = ae.getMessageObject().toString();
+      }
+    }
+    else
+    {
+      msg = ae.getMessageObject().toString();
+    }
+    return msg;
   }
 }
 
