@@ -31,6 +31,7 @@ import java.io.PrintStream;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -82,8 +83,8 @@ public class LDAPConnection
   private LDAPReader ldapReader;
   private int versionNumber = 3;
 
-  private PrintStream out;
-  private PrintStream err;
+  private final PrintStream out;
+  private final PrintStream err;
 
   /**
    * Constructor for the LDAPConnection object.
@@ -508,6 +509,24 @@ public class LDAPConnection
       }
       throw new LDAPConnectionException(
               Message.raw(ex.getLocalizedMessage()),ex);
+    }
+    finally
+    {
+      if (timeout > 0)
+      {
+        try
+        {
+          socket.setSoTimeout(0);
+        }
+        catch (SocketException e)
+        {
+          e.printStackTrace();
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+        }
+      }
     }
 
   }

@@ -25,6 +25,7 @@
  *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.tools;
+import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.messages.Message;
 
 
@@ -406,10 +407,11 @@ public class LDAPPasswordModify
       controlStr.setPropertyName("control");
       argParser.addArgument(controlStr);
 
+      int defaultTimeout = ConnectionUtils.getDefaultLDAPTimeout();
       connectTimeout = new IntegerArgument(OPTION_LONG_CONNECT_TIMEOUT,
           null, OPTION_LONG_CONNECT_TIMEOUT,
           false, false, true, INFO_TIMEOUT_PLACEHOLDER.get(),
-          0, null,
+          defaultTimeout, null,
           true, 0, false, Integer.MAX_VALUE,
           INFO_DESCRIPTION_CONNECTION_TIMEOUT.get());
       connectTimeout.setPropertyName(OPTION_LONG_CONNECT_TIMEOUT);
