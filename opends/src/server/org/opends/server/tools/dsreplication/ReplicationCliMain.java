@@ -164,8 +164,8 @@ public class ReplicationCliMain extends ConsoleApplication
     Logger.getLogger(ReplicationCliMain.class.getName());
 
   // Always use SSL with the administration connector
-  private boolean useSSL = true;
-  private boolean useStartTLS = false;
+  private final boolean useSSL = true;
+  private final boolean useStartTLS = false;
 
   /**
    * The enumeration containing the different options we display when we ask
@@ -3682,7 +3682,6 @@ public class ReplicationCliMain extends ConsoleApplication
 
     if (ctx != null)
     {
-      uData.setBaseDNs(uData.getBaseDNs());
       try
       {
         displayStatus(ctx, uData);
@@ -8623,6 +8622,7 @@ public class ReplicationCliMain extends ConsoleApplication
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isAdvancedMode() {
     return false;
   }
@@ -8632,6 +8632,7 @@ public class ReplicationCliMain extends ConsoleApplication
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isInteractive() {
     if (forceNonInteractive)
     {
@@ -8654,6 +8655,7 @@ public class ReplicationCliMain extends ConsoleApplication
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isQuiet()
   {
     return argParser.isQuiet();
@@ -8664,6 +8666,7 @@ public class ReplicationCliMain extends ConsoleApplication
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isScriptFriendly() {
     return argParser.isScriptFriendly();
   }
@@ -8673,6 +8676,7 @@ public class ReplicationCliMain extends ConsoleApplication
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isVerbose() {
     return true;
   }
