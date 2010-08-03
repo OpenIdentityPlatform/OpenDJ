@@ -55,10 +55,11 @@ import org.opends.quicksetup.util.Utils;
  */
 public class ServerDescriptor
 {
-  private Map<ADSContext.ServerProperty, Object> adsProperties =
+  private final Map<ADSContext.ServerProperty, Object> adsProperties =
     new HashMap<ADSContext.ServerProperty, Object>();
-  private Set<ReplicaDescriptor> replicas = new HashSet<ReplicaDescriptor>();
-  private Map<ServerProperty, Object> serverProperties =
+  private final Set<ReplicaDescriptor> replicas =
+    new HashSet<ReplicaDescriptor>();
+  private final Map<ServerProperty, Object> serverProperties =
     new HashMap<ServerProperty, Object>();
   private TopologyCacheException lastException;
 
@@ -1330,7 +1331,7 @@ public class ServerDescriptor
         new String[] {
             "ds-sync-generation-id"
         });
-    String filter = "|(objectclass=*)(objectclass=ldapsubentry)";
+    String filter = "(|(objectclass=*)(objectclass=ldapsubentry))";
 
     LdapName jndiName = new LdapName("cn=schema");
     NamingEnumeration<SearchResult> listeners =
