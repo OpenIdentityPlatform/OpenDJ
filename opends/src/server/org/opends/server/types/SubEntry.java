@@ -110,6 +110,41 @@ public class SubEntry {
   public static final String ATTR_COLLECTIVE_CONFLICT_BEHAVIOR =
           "collectiveconflictbehavior";
 
+  /**
+   * The name of the "inheritFromDNAttribute" attribute type,
+   * formatted in all lowercase characters.
+   */
+  public static final String ATTR_INHERIT_COLLECTIVE_FROM_DN =
+          "inheritfromdnattribute";
+
+  /**
+   * The name of the "inheritFromRDNAttribute" attribute type,
+   * formatted in all lowercase characters.
+   */
+  public static final String ATTR_INHERIT_COLLECTIVE_FROM_RDN =
+          "inheritfromrdnattribute";
+
+  /**
+   * The name of the "inheritFromRDNType" attribute type,
+   * formatted in all lowercase characters.
+   */
+  public static final String ATTR_INHERIT_COLLECTIVE_FROM_RDN_TYPE =
+          "inheritfromrdntype";
+
+  /**
+   * The name of the "inheritFromBaseDN" attribute type,
+   * formatted in all lowercase characters.
+   */
+  public static final String ATTR_INHERIT_COLLECTIVE_FROM_BASE =
+          "inheritfrombasedn";
+
+  /**
+   * The name of the "inheritAttribute" attribute type,
+   * formatted in all lowercase characters.
+   */
+  public static final String ATTR_INHERIT_COLLECTIVE_ATTR =
+          "inheritattribute";
+
   // Attribute option to mark attributes collective.
   private static final String ATTR_OPTION_COLLECTIVE =
           "collective";
@@ -122,6 +157,33 @@ public class SubEntry {
 
   // Collective subentry flag.
   private boolean isCollective = false;
+
+  // Inherited collective subentry flag.
+  private boolean isInheritedCollective = false;
+
+  // Inherited collective from DN subentry flag.
+  private boolean isInheritedFromDNCollective = false;
+
+  // Inherited collective from RDN subentry flag.
+  private boolean isInheritedFromRDNCollective = false;
+
+  // Inherited collective DN attribute type.
+  private AttributeType inheritFromDNType = null;
+
+  // Inherited collective RDN attribute type.
+  private AttributeType inheritFromRDNAttrType = null;
+
+  // Inherited collective RDN type attribute type.
+  private AttributeType inheritFromRDNType = null;
+
+  // Inherited collective RDN attribute value.
+  private AttributeValue inheritFromRDNAttrValue = null;
+
+  // Inherited collective from DN value.
+  private AttributeValue inheritFromDNAttrValue = null;
+
+  // Inherited collective from base DN.
+  private DN inheritFromBaseDN = null;
 
   // Collective attributes.
   private List<Attribute> collectiveAttributes;
@@ -228,6 +290,18 @@ public class SubEntry {
     // Determine if this subentry is collective attribute subentry.
     this.isCollective = entry.isCollectiveAttributeSubentry();
 
+    // Determine if this subentry is inherited collective
+    // attribute subentry and if so what kind.
+    this.isInheritedCollective =
+            entry.isInheritedCollectiveAttributeSubentry();
+    if (this.isInheritedCollective)
+    {
+      this.isInheritedFromDNCollective =
+              entry.isInheritedFromDNCollectiveAttributeSubentry();
+      this.isInheritedFromRDNCollective =
+              entry.isInheritedFromRDNCollectiveAttributeSubentry();
+    }
+
     // Process collective attributes.
     this.collectiveAttributes = new ArrayList<Attribute>();
     if (this.isCollective)
@@ -257,7 +331,102 @@ public class SubEntry {
           this.collectiveAttributes.add(collectiveAttr);
         }
       }
-      // Conflict behavior.
+    }
+
+    // Process inherited collective attributes.
+    if (this.isInheritedCollective)
+    {
+      if (this.isInheritedFromDNCollective)
+      {
+        List<Attribute> attrList = entry.getAttribute(
+                ATTR_INHERIT_COLLECTIVE_FROM_DN);
+        if ((attrList != null) && !attrList.isEmpty())
+        {
+          for (Attribute attr : attrList)
+          {
+            for (AttributeValue value : attr)
+            {
+              this.inheritFromDNType =
+                      DirectoryServer.getAttributeType(
+                      value.toString().toLowerCase(),
+                      true);
+              this.inheritFromDNAttrValue = value;
+              break;
+            }
+          }
+        }
+      }
+
+      if (this.isInheritedFromRDNCollective)
+      {
+        List<Attribute> attrList = entry.getAttribute(
+                ATTR_INHERIT_COLLECTIVE_FROM_RDN);
+        if ((attrList != null) && !attrList.isEmpty())
+        {
+          for (Attribute attr : attrList)
+          {
+            for (AttributeValue value : attr)
+            {
+              this.inheritFromRDNAttrType =
+                      DirectoryServer.getAttributeType(
+                      value.toString().toLowerCase(),
+                      true);
+              this.inheritFromRDNAttrValue = value;
+              break;
+            }
+          }
+        }
+        attrList = entry.getAttribute(
+                ATTR_INHERIT_COLLECTIVE_FROM_RDN_TYPE);
+        if ((attrList != null) && !attrList.isEmpty())
+        {
+          for (Attribute attr : attrList)
+          {
+            for (AttributeValue value : attr)
+            {
+              this.inheritFromRDNType =
+                      DirectoryServer.getAttributeType(
+                      value.toString().toLowerCase(),
+                      true);
+              break;
+            }
+          }
+        }
+        attrList = entry.getAttribute(
+                ATTR_INHERIT_COLLECTIVE_FROM_BASE);
+        if ((attrList != null) && !attrList.isEmpty())
+        {
+          for (Attribute attr : attrList)
+          {
+            for (AttributeValue value : attr)
+            {
+              this.inheritFromBaseDN =
+                      DN.decode(value.getNormalizedValue());
+              break;
+            }
+          }
+        }
+      }
+
+      List<Attribute> attrList = entry.getAttribute(
+              ATTR_INHERIT_COLLECTIVE_ATTR);
+      if ((attrList != null) && !attrList.isEmpty())
+      {
+        for (Attribute attr : attrList)
+        {
+          for (AttributeValue value : attr)
+          {
+            this.collectiveAttributes.add(
+                    Attributes.empty(
+                    value.toString()));
+          }
+        }
+      }
+    }
+
+    // Establish collective attribute conflict behavior.
+    if (this.isCollective || this.isInheritedCollective)
+    {
       List<Attribute> attrList = entry.getAttribute(
               ATTR_COLLECTIVE_CONFLICT_BEHAVIOR);
       if ((attrList != null) && !attrList.isEmpty())
@@ -309,6 +478,110 @@ public class SubEntry {
   public boolean isCollective()
   {
     return this.isCollective;
+  }
+
+  /**
+   * Indicates whether or not this subentry is
+   * an inherited collective attribute subentry.
+   * @return <code>true</code> if inherited
+   *         collective, <code>false</code>
+   *         otherwise.
+   */
+  public boolean isInheritedCollective()
+  {
+    return this.isInheritedCollective;
+  }
+
+  /**
+   * Indicates whether or not this subentry is
+   * an inherited from DN collective attribute
+   * subentry.
+   * @return <code>true</code> if inherited
+   *         from DN collective,
+   *         <code>false</code> otherwise.
+   */
+  public boolean isInheritedFromDNCollective()
+  {
+    return this.isInheritedFromDNCollective;
+  }
+
+  /**
+   * Indicates whether or not this subentry is
+   * an inherited from RDN collective attribute
+   * subentry.
+   * @return <code>true</code> if inherited
+   *         from RDN collective,
+   *         <code>false</code> otherwise.
+   */
+  public boolean isInheritedFromRDNCollective()
+  {
+    return this.isInheritedFromRDNCollective;
+  }
+
+  /**
+   * Getter to retrieve inheritFromDNAttribute type
+   * for inherited collective attribute subentry.
+   * @return Type of inheritFromDNAttribute or,
+   *         <code>null</code> if there is none.
+   */
+  public AttributeType getInheritFromDNType()
+  {
+    return this.inheritFromDNType;
+  }
+
+  /**
+   * Getter to retrieve inheritFromRDNAttribute type
+   * for inherited collective attribute subentry.
+   * @return Type of inheritFromRDNAttribute or,
+   *         <code>null</code> if there is none.
+   */
+  public AttributeType getInheritFromRDNAttrType()
+  {
+    return this.inheritFromRDNAttrType;
+  }
+
+  /**
+   * Getter to retrieve inheritFromRDNAttribute value
+   * for inherited collective attribute subentry.
+   * @return AttributeValue of inheritFromRDNAttribute
+   *         or, <code>null</code> if there is none.
+   */
+  public AttributeValue getInheritFromRDNAttrValue()
+  {
+    return this.inheritFromRDNAttrValue;
+  }
+
+  /**
+   * Getter to retrieve RDN type of inheritFromRDNType
+   * for inherited collective attribute subentry.
+   * @return RDN Type of inheritFromRDNAttribute or,
+   *         <code>null</code> if there is none.
+   */
+  public AttributeType getInheritFromRDNType()
+  {
+    return this.inheritFromRDNType;
+  }
+
+  /**
+   * Getter to retrieve inheritFromDNAttribute value
+   * for inherited collective attribute subentry.
+   * @return AttributeValue of inheritFromDNAttribute
+   *         or, <code>null</code> if there is none.
+   */
+  public AttributeValue getInheritFromDNAttrValue()
+  {
+    return this.inheritFromDNAttrValue;
+  }
+
+  /**
+   * Getter to retrieve inheritFromBaseDN DN
+   * for inherited collective attribute subentry.
+   * @return DN of inheritFromBaseDN or,
+   *         <code>null</code> if there is none.
+   */
+  public DN getInheritFromBaseDN()
+  {
+    return this.inheritFromBaseDN;
   }
 
   /**

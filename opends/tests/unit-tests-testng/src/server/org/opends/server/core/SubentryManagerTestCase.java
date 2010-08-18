@@ -160,6 +160,75 @@ public class SubentryManagerTestCase extends CoreTestCase
   }
 
   @Test
+  public void testInheritedCollectiveAttributes() throws Exception
+  {
+    InternalClientConnection connection =
+         InternalClientConnection.getRootConnection();
+
+    // Add test inherited from DN collective subentry.
+    Entry collectiveDNInheritedSubentry = TestCaseUtils.makeEntry(
+         "dn: cn=Inherited From DN Collective Subentry," + SUFFIX,
+         "objectClass: top",
+         "objectclass: subentry",
+         "objectClass: inheritedCollectiveAttributeSubentry",
+         "objectClass: inheritedFromDNCollectiveAttributeSubentry",
+         "inheritFromDNAttribute: manager",
+         "inheritAttribute: postalAddress",
+         "subtreeSpecification: {base \"ou=Test SubEntry Manager\"}",
+         "cn: Inherited From DN Collective Subentry");
+    AddOperation addOperation =
+         connection.processAdd(collectiveDNInheritedSubentry.getDN(),
+             collectiveDNInheritedSubentry.getObjectClasses(),
+             collectiveDNInheritedSubentry.getUserAttributes(),
+             collectiveDNInheritedSubentry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    assertNotNull(DirectoryServer.getEntry(
+            collectiveDNInheritedSubentry.getDN()));
+
+    // Add test inherited from RDN collective subentry.
+    Entry collectiveRDNInheritedSubentry = TestCaseUtils.makeEntry(
+         "dn: cn=Inherited From RDN Collective Subentry," + SUFFIX,
+         "objectClass: top",
+         "objectclass: subentry",
+         "objectClass: inheritedCollectiveAttributeSubentry",
+         "objectClass: inheritedFromRDNCollectiveAttributeSubentry",
+         "inheritFromBaseDN: " + BASE,
+         "inheritFromRDNAttribute: title",
+         "inheritFromRDNType: cn",
+         "inheritAttribute: telephoneNumber",
+         "subtreeSpecification: {base \"ou=Test SubEntry Manager\"}",
+         "cn: Inherited From RDN Collective Subentry");
+    addOperation =
+         connection.processAdd(collectiveRDNInheritedSubentry.getDN(),
+             collectiveRDNInheritedSubentry.getObjectClasses(),
+             collectiveRDNInheritedSubentry.getUserAttributes(),
+             collectiveRDNInheritedSubentry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    assertNotNull(DirectoryServer.getEntry(
+            collectiveRDNInheritedSubentry.getDN()));
+
+    // Test Inherited Collective Attributes on test entry.
+    Entry entry = DirectoryServer.getEntry(testEntry.getDN());
+    AttributeType attrType = DirectoryServer.getAttributeType(
+            "postaladdress");
+    assertTrue(entry.hasAttribute(attrType));
+    assertTrue(entry.hasValue(attrType, null,
+            AttributeValues.create(attrType,
+            "Sub City, Collective Street, AK 47")));
+
+    attrType = DirectoryServer.getAttributeType(
+            "telephonenumber");
+    assertTrue(entry.hasAttribute(attrType));
+    assertTrue(entry.hasValue(attrType, null,
+            AttributeValues.create(attrType,
+            "+1 999 999 9999")));
+
+    // Cleanup.
+    TestCaseUtils.deleteEntry(collectiveRDNInheritedSubentry.getDN());
+    TestCaseUtils.deleteEntry(collectiveDNInheritedSubentry.getDN());
+  }
+
+  @Test
   public void testCollectiveAttributeConflict() throws Exception
   {
     InternalClientConnection conn =
@@ -564,6 +633,23 @@ public class SubentryManagerTestCase extends CoreTestCase
       assertNotNull(DirectoryServer.getEntry(baseEntry.getDN()));
     }
 
+    // Add role entry.
+    Entry roleEntry = TestCaseUtils.makeEntry(
+         "dn: cn=Sales," + BASE,
+         "objectclass: top",
+         "objectclass: organizationalRole",
+         "postalAddress: Sub City, Collective Street, AK 47",
+         "telephoneNumber: +1 999 999 9999",
+         "cn: Sales"
+    );
+    AddOperation addOperation =
+         connection.processAdd(roleEntry.getDN(),
+                               roleEntry.getObjectClasses(),
+                               roleEntry.getUserAttributes(),
+                               roleEntry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    assertNotNull(DirectoryServer.getEntry(roleEntry.getDN()));
+
     // Add test entry.
     testEntry = TestCaseUtils.makeEntry(
          "dn: uid=rogasawara," + BASE,
@@ -577,9 +663,10 @@ public class SubentryManagerTestCase extends CoreTestCase
          "givenname: Rodney",
          "sn: Ogasawara",
          "cn: Rodney Ogasawara",
-         "title: Sales, Director"
+         "manager: cn=Sales," + BASE,
+         "title: Sales"
     );
-    AddOperation addOperation =
+    addOperation =
          connection.processAdd(testEntry.getDN(),
                                testEntry.getObjectClasses(),
                                testEntry.getUserAttributes(),

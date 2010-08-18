@@ -214,7 +214,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     lock.writeLock().lock();
     try
     {
-      if (subEntry.isCollective())
+      if (subEntry.isCollective() || subEntry.isInheritedCollective())
       {
         subList = dn2CollectiveSubEntry.get(subDN);
       }
@@ -225,7 +225,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
       if (subList == null)
       {
         subList = new ArrayList<SubEntry>();
-        if (subEntry.isCollective())
+        if (subEntry.isCollective() || subEntry.isInheritedCollective())
         {
           dn2CollectiveSubEntry.put(subDN, subList);
         }

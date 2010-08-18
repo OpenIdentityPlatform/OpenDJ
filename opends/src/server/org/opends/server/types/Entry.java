@@ -3424,6 +3424,152 @@ public class Entry
 
 
   /**
+   * Indicates whether the entry meets the criteria to consider it an
+   * inherited collective attributes subentry (i.e., it contains
+   * the "inheritedCollectiveAttributeSubentry" objectclass).
+   *
+   * @return  <CODE>true</CODE> if this entry meets the criteria to
+   *          consider it an inherited collective attributes
+   *          subentry, or <CODE>false</CODE> if not.
+   */
+  public boolean isInheritedCollectiveAttributeSubentry()
+  {
+    ObjectClass inheritedCollectiveAttributeSubentryOC =
+         DirectoryServer.getObjectClass(
+         OC_INHERITED_COLLECTIVE_ATTR_SUBENTRY_LC);
+    if (inheritedCollectiveAttributeSubentryOC == null)
+    {
+      // This should not happen -- The server doesn't have
+      // an inheritedCollectiveAttributeSubentry object
+      // class defined.
+      if (debugEnabled())
+      {
+        TRACER.debugWarning(
+            "No %s objectclass is defined in the server schema.",
+                     OC_INHERITED_COLLECTIVE_ATTR_SUBENTRY);
+      }
+
+      for (String ocName : objectClasses.values())
+      {
+        if (ocName.equalsIgnoreCase(
+                OC_INHERITED_COLLECTIVE_ATTR_SUBENTRY))
+        {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+
+    // Make the determination based on whether this entry
+    // has the inheritedCollectiveAttributeSubentry
+    // objectclass.
+    return objectClasses.containsKey(
+            inheritedCollectiveAttributeSubentryOC);
+  }
+
+
+
+  /**
+   * Indicates whether the entry meets the criteria to consider it
+   * an inherited from DN collective attributes subentry (i.e., it
+   * contains the "inheritedFromDNCollectiveAttributeSubentry"
+   * objectclass).
+   *
+   * @return  <CODE>true</CODE> if this entry meets the criteria to
+   *          consider it an inherited from DN collective attributes
+   *          subentry, or <CODE>false</CODE> if not.
+   */
+  public boolean isInheritedFromDNCollectiveAttributeSubentry()
+  {
+    ObjectClass inheritedFromDNCollectiveAttributeSubentryOC =
+         DirectoryServer.getObjectClass(
+         OC_INHERITED_FROM_DN_COLLECTIVE_ATTR_SUBENTRY_LC);
+    if (inheritedFromDNCollectiveAttributeSubentryOC == null)
+    {
+      // This should not happen -- The server doesn't have
+      // an inheritedFromDNCollectiveAttributeSubentry
+      // object class defined.
+      if (debugEnabled())
+      {
+        TRACER.debugWarning(
+            "No %s objectclass is defined in the server schema.",
+            OC_INHERITED_FROM_DN_COLLECTIVE_ATTR_SUBENTRY);
+      }
+
+      for (String ocName : objectClasses.values())
+      {
+        if (ocName.equalsIgnoreCase(
+                OC_INHERITED_FROM_DN_COLLECTIVE_ATTR_SUBENTRY))
+        {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+
+    // Make the determination based on whether this entry
+    // has the inheritedCollectiveAttributeSubentry
+    // objectclass.
+    return objectClasses.containsKey(
+            inheritedFromDNCollectiveAttributeSubentryOC);
+  }
+
+
+
+  /**
+   * Indicates whether the entry meets the criteria to consider it
+   * an inherited from RDN collective attributes subentry (i.e.,
+   * it contains the "inheritedFromRDNCollectiveAttributeSubentry"
+   * objectclass).
+   *
+   * @return  <CODE>true</CODE> if this entry meets the criteria to
+   *          consider it an inherited from RDN collective attributes
+   *          subentry, or <CODE>false</CODE> if not.
+   */
+  public boolean isInheritedFromRDNCollectiveAttributeSubentry()
+  {
+    ObjectClass inheritedFromRDNCollectiveAttributeSubentryOC =
+         DirectoryServer.getObjectClass(
+         OC_INHERITED_FROM_RDN_COLLECTIVE_ATTR_SUBENTRY_LC);
+    if (inheritedFromRDNCollectiveAttributeSubentryOC == null)
+    {
+      // This should not happen -- The server doesn't have
+      // an inheritedFromRDNCollectiveAttributeSubentry
+      // object class defined.
+      if (debugEnabled())
+      {
+        TRACER.debugWarning(
+            "No %s objectclass is defined in the server schema.",
+            OC_INHERITED_FROM_RDN_COLLECTIVE_ATTR_SUBENTRY);
+      }
+
+      for (String ocName : objectClasses.values())
+      {
+        if (ocName.equalsIgnoreCase(
+                OC_INHERITED_FROM_RDN_COLLECTIVE_ATTR_SUBENTRY))
+        {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+
+    // Make the determination based on whether this entry
+    // has the inheritedCollectiveAttributeSubentry
+    // objectclass.
+    return objectClasses.containsKey(
+            inheritedFromRDNCollectiveAttributeSubentryOC);
+  }
+
+
+
+  /**
    * Indicates whether the entry meets the criteria to consider it a
    * LDAP password policy subentry (i.e., it contains the "pwdPolicy"
    * objectclass of LDAP Password Policy Internet-Draft).
@@ -3543,8 +3689,83 @@ public class Entry
     // Process collective attributes.
     for (SubEntry subEntry : collectiveAttrSubentries)
     {
-      if (subEntry.isCollective())
+      if (subEntry.isCollective() || subEntry.isInheritedCollective())
       {
+        Entry inheritFromEntry = null;
+        if (subEntry.isInheritedCollective())
+        {
+          if (subEntry.isInheritedFromDNCollective() &&
+              hasAttribute(subEntry.getInheritFromDNType()))
+          {
+            try
+            {
+              DN inheritFromDN = null;
+              for (Attribute attr : getAttribute(
+                   subEntry.getInheritFromDNType()))
+              {
+                for (AttributeValue value : attr)
+                {
+                  inheritFromDN = DN.decode(
+                          value.getNormalizedValue());
+                  break;
+                }
+              }
+              if (inheritFromDN == null)
+              {
+                continue;
+              }
+
+              // TODO : ACI check; needs re-factoring to happen.
+              inheritFromEntry = DirectoryServer.getEntry(
+                    inheritFromDN);
+            }
+            catch (DirectoryException de)
+            {
+              if (debugEnabled())
+              {
+                TRACER.debugCaught(DebugLogLevel.ERROR, de);
+              }
+            }
+          }
+          else if (subEntry.isInheritedFromRDNCollective() &&
+                   hasAttribute(subEntry.getInheritFromRDNAttrType()))
+          {
+            DN inheritFromDN = subEntry.getInheritFromBaseDN();
+            if (inheritFromDN != null)
+            {
+              try
+              {
+                for (Attribute attr : getAttribute(
+                   subEntry.getInheritFromRDNAttrType()))
+                {
+                  inheritFromDN = subEntry.getInheritFromBaseDN();
+                  for (AttributeValue value : attr)
+                  {
+                    inheritFromDN = inheritFromDN.concat(
+                        RDN.create(subEntry.getInheritFromRDNType(),
+                        value));
+                    break;
+                  }
+                }
+
+                // TODO : ACI check; needs re-factoring to happen.
+                inheritFromEntry = DirectoryServer.getEntry(
+                        inheritFromDN);
+              }
+              catch (DirectoryException de)
+              {
+                if (debugEnabled())
+                {
+                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
+                }
+              }
+            }
+            else
+            {
+              continue;
+            }
+          }
+        }
         List<Attribute> collectiveAttrList =
                 subEntry.getCollectiveAttributes();
         for (Attribute collectiveAttr : collectiveAttrList)
@@ -3555,6 +3776,24 @@ public class Entry
                   attributeType.getNormalizedPrimaryNameOrOID()))
           {
             continue;
+          }
+          if (subEntry.isInheritedCollective())
+          {
+            if (inheritFromEntry != null)
+            {
+              collectiveAttr = inheritFromEntry.getExactAttribute(
+                      collectiveAttr.getAttributeType(),
+                      collectiveAttr.getOptions());
+              if ((collectiveAttr == null) ||
+                  (collectiveAttr.isEmpty()))
+              {
+                continue;
+              }
+            }
+            else
+            {
+              continue;
+            }
           }
           List<Attribute> attrList =
                   userAttributes.get(attributeType);

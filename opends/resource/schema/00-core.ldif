@@ -399,6 +399,21 @@ ldapSyntaxes: ( 1.3.6.1.4.1.26027.1.3.6 DESC 'Collective Conflict Behavior'
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.606
   NAME 'collectiveConflictBehavior' SYNTAX 1.3.6.1.4.1.26027.1.3.6
   SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.621 NAME 'inheritFromDNAttribute'
+  EQUALITY objectIdentifierMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.38
+  SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.622 NAME 'inheritFromBaseDN'
+  EQUALITY distinguishedNameMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
+  SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.623 NAME 'inheritFromRDNType'
+  EQUALITY objectIdentifierMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.38
+  SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.624 NAME 'inheritFromRDNAttribute'
+  EQUALITY objectIdentifierMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.38
+  SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.625 NAME 'inheritAttribute'
+  EQUALITY objectIdentifierMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.38
+  X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 2.5.4.7.1 NAME 'c-l' SUP l COLLECTIVE X-ORIGIN 'RFC 3671' )
 attributeTypes: ( 2.5.4.8.1 NAME 'c-st' SUP st COLLECTIVE X-ORIGIN 'RFC 3671' )
 attributeTypes: ( 2.5.4.9.1 NAME 'c-street' SUP street COLLECTIVE
@@ -659,6 +674,23 @@ objectClasses: ( 2.5.17.0 NAME 'subentry'
 objectClasses: ( 2.5.17.2 NAME 'collectiveAttributeSubentry'
   DESC 'LDAP Collective Attributes Subentry class' AUXILIARY
   X-ORIGIN 'RFC 3671' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.238 NAME
+  'inheritedCollectiveAttributeSubentry'
+  DESC 'Inherited Collective Attributes Subentry class' SUP subentry
+  STRUCTURAL MUST inheritAttribute MAY collectiveConflictBehavior
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.239 NAME
+  'inheritedFromDNCollectiveAttributeSubentry'
+  DESC 'Inherited from DN Collective Attributes Subentry class'
+  SUP inheritedCollectiveAttributeSubentry STRUCTURAL
+  MUST ( inheritFromDNAttribute )
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.240 NAME
+  'inheritedFromRDNCollectiveAttributeSubentry'
+  DESC 'Inherited from RDN Collective Attributes Subentry class'
+  SUP inheritedCollectiveAttributeSubentry STRUCTURAL
+  MUST ( inheritFromRDNAttribute $ inheritFromRDNType $ inheritFromBaseDN )
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 2.16.840.1.113730.3.2.33 NAME 'groupOfURLs'
   DESC 'Sun-defined objectclass' SUP top STRUCTURAL MUST ( cn )
   MAY ( memberURL $ businessCategory $ description $ o $ ou $ owner $ seeAlso )
