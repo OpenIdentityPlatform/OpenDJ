@@ -1445,16 +1445,28 @@ public abstract class ReplicationDomain
     // - to update the task with the server(s) where this test failed
 
     if (serverToInitialize == RoutableMsg.ALL_SERVERS)
+    {
       for (DSInfo dsi : getReplicasList())
         ieContext.startList.add(dsi.getDsId());
+
+      // We manage the list of servers with which a flow control can be enabled
+      for (DSInfo dsi : getReplicasList())
+      {
+        if (dsi.getProtocolVersion()>= ProtocolVersion.REPLICATION_PROTOCOL_V4)
+          ieContext.setAckVal(dsi.getDsId(), 0);
+      }
+    }
     else
+    {
       ieContext.startList.add(serverToInitialize);
 
-    // We manage the list of servers with which a flow control can be enabled
-    for (DSInfo dsi : getReplicasList())
-    {
-      if (dsi.getProtocolVersion()>= ProtocolVersion.REPLICATION_PROTOCOL_V4)
-        ieContext.setAckVal(dsi.getDsId(), 0);
+      // We manage the list of servers with which a flow control can be enabled
+      for (DSInfo dsi : getReplicasList())
+      {
+        if (dsi.getDsId() == serverToInitialize)
+         if (dsi.getProtocolVersion()>= ProtocolVersion.REPLICATION_PROTOCOL_V4)
+          ieContext.setAckVal(dsi.getDsId(), 0);
+      }
     }
 
     // loop for the case where the exporter is the initiator
