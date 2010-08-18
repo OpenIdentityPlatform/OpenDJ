@@ -1329,9 +1329,9 @@ public class ModifyConflictTest
      * as the initial value.
      */
     entry.removeAttribute(historicalAttrType);
-    entry.addAttribute(hist.encode(), null);
+    entry.addAttribute(hist.encodeAndPurge(), null);
     EntryHistorical hist2 = EntryHistorical.newInstanceFromEntry(entry);
-    assertEquals(hist2.encode().toString(), hist.encode().toString());
+    assertEquals(hist2.encodeAndPurge().toString(), hist.encodeAndPurge().toString());
 
     return mods;
   }

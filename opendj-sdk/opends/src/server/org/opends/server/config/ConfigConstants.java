@@ -4370,5 +4370,48 @@ public final class ConfigConstants
    */
   public static final String ATTR_IMPORT_CLEAR_BACKEND =
        NAME_PREFIX_TASK + "import-clear-backend";
+
+  /**
+   * The name of the attribute in a purge conflicts historical task definition
+   * that specifies the base dn related to the synchonization domain to purge.
+   */
+  public static final String ATTR_TASK_CONFLICTS_HIST_PURGE_DOMAIN_DN =
+       NAME_PREFIX_TASK + "purge-conflicts-historical-domain-dn";
+
+  /**
+   * The name of the attribute in a purge conflicts historical task definition
+   * that specifies the maximum duration of the task.
+   */
+  public static final String ATTR_TASK_CONFLICTS_HIST_PURGE_MAX_DURATION =
+       NAME_PREFIX_TASK + "purge-conflicts-historical-maximum-duration";
+
+  /**
+   * The name of the attribute in a purge conflicts historical task definition
+   * that specifies the maximum duration of the task.
+   */
+  public static final String ATTR_TASK_CONFLICTS_HIST_PURGE_FIRST_CN =
+     NAME_PREFIX_TASK + "purge-conflicts-historical-first-purged-changenumber";
+
+  /**
+   * The name of the attribute in a purge conflicts historical task definition
+   * that specifies the maximum duration of the task.
+   */
+  public static final String ATTR_TASK_CONFLICTS_HIST_PURGE_LAST_CN =
+       NAME_PREFIX_TASK + "purge-conflicts-historical-last-purged-changenumber";
+
+  /**
+   * The name of the attribute in a purge conflicts historical task definition
+   * that specifies the maximum duration of the task.
+   */
+  public static final String ATTR_TASK_CONFLICTS_HIST_PURGE_COMPLETED_IN_TIME =
+       NAME_PREFIX_TASK + "purge-conflicts-historical-purge-completed-in-time";
+
+  /**
+   * The name of the attribute in a purge conflicts historical task definition
+   * that specifies the maximum duration of the task.
+   */
+  public static final String ATTR_TASK_CONFLICTS_HIST_PURGE_COUNT =
+       NAME_PREFIX_TASK + "purge-conflicts-historical-purged-values-count";
+
 }
 

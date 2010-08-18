@@ -503,6 +503,8 @@ public class MultimasterReplication
           historicalInformation);
     }
 
+    historicalInformation.setPurgeDelay(domain.getHistoricalPurgeDelay());
+
     historicalInformation.setHistoricalAttrToOperation(modifyOperation);
 
     if (modifyOperation.getModifications().isEmpty())
@@ -555,6 +557,8 @@ public class MultimasterReplication
       modifyDNOperation.setAttachment(EntryHistorical.HISTORICAL,
           historicalInformation);
     }
+
+    historicalInformation.setPurgeDelay(domain.getHistoricalPurgeDelay());
 
     // Add to the operation the historical attribute : "dn:changeNumger:moddn"
     historicalInformation.setHistoricalAttrToOperation(modifyDNOperation);
