@@ -929,6 +929,66 @@ public final class ServerConstants
 
 
   /**
+   * The name of the "inheritedCollectiveAttributeSubentry" objectclass
+   * (which is a special type of objectclass that makes a kind of COS
+   * template subentry), formatted in camel case.
+   */
+  public static final String OC_INHERITED_COLLECTIVE_ATTR_SUBENTRY =
+          "inheritedCollectiveAttributeSubentry";
+
+
+
+  /**
+   * The name of the "inheritedCollectiveAttributeSubentry" objectclass
+   * (which is a special type of objectclass that makes a kind of COS
+   * template subentry), formatted in all lowercase.
+   */
+  public static final String OC_INHERITED_COLLECTIVE_ATTR_SUBENTRY_LC =
+          "inheritedcollectiveattributesubentry";
+
+
+
+  /**
+   * The name of the "inheritedFromDNCollectiveAttributeSubentry" objectclass
+   * (which is a special type of objectclass that makes a kind of indirect
+   * COS template subentry), formatted in camel case.
+   */
+  public static final String OC_INHERITED_FROM_DN_COLLECTIVE_ATTR_SUBENTRY =
+          "inheritedFromDNCollectiveAttributeSubentry";
+
+
+
+  /**
+   * The name of the "inheritedFromDNCollectiveAttributeSubentry" objectclass
+   * (which is a special type of objectclass that makes a kind of indirect
+   * COS template subentry), formatted in all lowercase.
+   */
+  public static final String OC_INHERITED_FROM_DN_COLLECTIVE_ATTR_SUBENTRY_LC =
+          "inheritedfromdncollectiveattributesubentry";
+
+
+
+  /**
+   * The name of the "inheritedFromRDNCollectiveAttributeSubentry" objectclass
+   * (which is a special type of objectclass that makes a kind of classic
+   * COS template subentry), formatted in camel case.
+   */
+  public static final String OC_INHERITED_FROM_RDN_COLLECTIVE_ATTR_SUBENTRY =
+          "inheritedFromRDNCollectiveAttributeSubentry";
+
+
+
+  /**
+   * The name of the "inheritedFromRDNCollectiveAttributeSubentry" objectclass
+   * (which is a special type of objectclass that makes a kind of classic
+   * COS template subentry), formatted in all lowercase.
+   */
+  public static final String OC_INHERITED_FROM_RDN_COLLECTIVE_ATTR_SUBENTRY_LC =
+          "inheritedfromrdncollectiveattributesubentry";
+
+
+
+  /**
    * The name of the LDAP Password Policy Internet-Draft
    * "pwdPolicy" objectclass, formatted in camel case.
    */

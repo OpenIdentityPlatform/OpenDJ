@@ -115,7 +115,8 @@ public class CollectiveAttributeSubentriesVirtualAttributeProvider
               DirectoryServer.getAttributeType("2.5.4.49");
       for (SubEntry subentry : subentries)
       {
-        if (subentry.isCollective())
+        if (subentry.isCollective() ||
+            subentry.isInheritedCollective())
         {
           DN subentryDN = subentry.getDN();
           AttributeValue value = AttributeValues.create(
