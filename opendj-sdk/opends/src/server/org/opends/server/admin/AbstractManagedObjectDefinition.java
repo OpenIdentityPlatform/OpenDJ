@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.admin;
@@ -867,8 +867,6 @@ public abstract class AbstractManagedObjectDefinition
    *         definition is the {@link TopCfgDefn}.
    */
   public final boolean isTop() {
-    // Casting to Object and instanceof check are required
-    // to workaround a bug in JDK versions prior to 1.5.0_08.
     return (this instanceof TopCfgDefn);
   }
 
@@ -998,7 +996,7 @@ public abstract class AbstractManagedObjectDefinition
     propertyDefinitions.put(propName, d);
     allPropertyDefinitions.put(propName, d);
 
-    if (d instanceof AggregationPropertyDefinition) {
+    if (d instanceof AggregationPropertyDefinition<?,?>) {
       AggregationPropertyDefinition<?, ?> apd =
         (AggregationPropertyDefinition<?, ?>) d;
       aggregationPropertyDefinitions.put(propName, apd);

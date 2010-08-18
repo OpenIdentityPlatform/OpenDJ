@@ -22,7 +22,7 @@
  ! CDDL HEADER END
  !
  !
- !      Copyright 2008 Sun Microsystems, Inc.
+ !      Copyright 2008-2010 Sun Microsystems, Inc.
  ! -->
 
 <project name="Directory Server Extension" basedir="." default="package">
@@ -100,7 +100,7 @@
   <!-- Compile the Directory Server extension source files. -->
   <target name="compile" depends="init,compileadmin,generate-messages" description="Compile the Directory Server extension source files.">
     <mkdir dir="${classes.dir}" />
-    <javac srcdir="${src.dir}:${src.gen.dir}" destdir="${classes.dir}" optimize="true" excludes="**/package-info.java" debug="on" debuglevel="lines,source" source="1.5" target="1.5" deprecation="true" fork="true" memoryInitialSize="${MEM}" memoryMaximumSize="${MEM}">
+    <javac srcdir="${src.dir}:${src.gen.dir}" destdir="${classes.dir}" optimize="true" excludes="**/package-info.java" debug="on" debuglevel="lines,source" source="1.6" target="1.6" deprecation="true" fork="true" memoryInitialSize="${MEM}" memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
       <classpath>
         <fileset dir="${lib.dir}">
@@ -116,7 +116,7 @@
   <!-- Generate JavaDoc documentation from the source files. -->
   <target name="javadoc" depends="init,compile" description="Generate JavaDoc documentation.">
     <mkdir dir="${javadoc.dir}" />
-    <javadoc destdir="${javadoc.dir}" source="1.5" additionalparam="-quiet" linksource="yes" windowtitle="${pkg.description} API Documentation" maxmemory="${MEM}">
+    <javadoc destdir="${javadoc.dir}" source="1.6" additionalparam="-quiet" linksource="yes" windowtitle="${pkg.description} API Documentation" maxmemory="${MEM}">
       <classpath>
         <fileset dir="${lib.dir}">
           <include name="*.jar" />

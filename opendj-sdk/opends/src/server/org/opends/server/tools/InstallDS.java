@@ -95,7 +95,7 @@ import org.opends.server.util.cli.MenuResult;
  */
 public class InstallDS extends ConsoleApplication
 {
-  private PlainTextProgressMessageFormatter formatter =
+  private final PlainTextProgressMessageFormatter formatter =
     new PlainTextProgressMessageFormatter();
   /** Prefix for log files. */
   static public final String LOG_FILE_PREFIX = "opends-setup-";
@@ -388,7 +388,7 @@ public class InstallDS extends ConsoleApplication
         LOG.log(Level.WARNING, "Error while trying to update the contents of "+
             "the set-java-home file in test only mode: "+t, t);
       }
-      // Test that we are running a compatible java 1.5 version.
+      // Test that we are running a compatible java 1.6 version.
       try
       {
         Utils.checkJavaVersion();
@@ -703,6 +703,7 @@ public class InstallDS extends ConsoleApplication
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isQuiet()
   {
     return argParser.quietArg.isPresent();
@@ -711,6 +712,7 @@ public class InstallDS extends ConsoleApplication
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isInteractive()
   {
     return !argParser.noPromptArg.isPresent();
@@ -727,6 +729,7 @@ public class InstallDS extends ConsoleApplication
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isScriptFriendly() {
     return false;
   }
@@ -734,6 +737,7 @@ public class InstallDS extends ConsoleApplication
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isAdvancedMode() {
     return false;
   }
@@ -742,6 +746,7 @@ public class InstallDS extends ConsoleApplication
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isVerbose() {
     return argParser.verboseArg.isPresent();
   }

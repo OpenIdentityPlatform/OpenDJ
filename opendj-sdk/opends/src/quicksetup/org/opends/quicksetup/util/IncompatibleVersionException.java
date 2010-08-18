@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.quicksetup.util;
 
@@ -31,8 +31,8 @@ import org.opends.server.types.OpenDsException;
 
 /**
  * The exception representing an incompatible java version being used.  Even
- * if the code can be run under 1.5, some bugs have been found in some versions
- * of the JVM that prevent OpenDS to work properly (see
+ * if the code can be run under 1.6, some bugs might be found that prevent from
+ * using some of the 1.6 releases.
  */
 public class IncompatibleVersionException extends OpenDsException
 {

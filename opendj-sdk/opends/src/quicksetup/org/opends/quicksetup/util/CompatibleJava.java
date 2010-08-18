@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.quicksetup.util;
@@ -34,7 +34,7 @@ package org.opends.quicksetup.util;
  */
 enum CompatibleJava
 {
-  JDK_SUN("Sun Microsystems Inc.", "1.5.0_08");
+  JDK_SUN("Sun Microsystems Inc.", "1.6.0_10");
   private String vendor;
   private String version;
 

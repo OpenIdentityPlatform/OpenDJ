@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.extensions;
 
@@ -130,13 +130,8 @@ public class UserDefinedVirtualAttributeProviderTestCase
       {
         if (rule.getAttributeType().equals(descriptionType))
         {
-          // Due to a bug in JDK versions prior to 1.5.0_08, we have to
-          // rewrite the following code.
-          // UserDefinedVirtualAttributeProvider provider =
-          // (UserDefinedVirtualAttributeProvider)
-          Object providerAsObject = rule.getProvider();
           UserDefinedVirtualAttributeProvider provider =
-              (UserDefinedVirtualAttributeProvider) providerAsObject;
+              (UserDefinedVirtualAttributeProvider) rule.getProvider();
 
           assertFalse(provider.isMultiValued());
           assertFalse(provider.isSearchable(rule, searchOperation));
@@ -202,13 +197,8 @@ public class UserDefinedVirtualAttributeProviderTestCase
       {
         if (rule.getAttributeType().equals(descriptionType))
         {
-          // Due to a bug in JDK versions prior to 1.5.0_08, we have to
-          // rewrite the following code.
-          // UserDefinedVirtualAttributeProvider provider =
-          // (UserDefinedVirtualAttributeProvider)
-          Object providerAsObject = rule.getProvider();
           UserDefinedVirtualAttributeProvider provider =
-              (UserDefinedVirtualAttributeProvider) providerAsObject;
+              (UserDefinedVirtualAttributeProvider) rule.getProvider();
 
           assertTrue(provider.isMultiValued());
           assertFalse(provider.isSearchable(rule, searchOperation));
