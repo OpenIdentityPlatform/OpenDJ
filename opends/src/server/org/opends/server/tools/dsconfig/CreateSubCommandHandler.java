@@ -572,11 +572,9 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
 
     try {
       for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
-        if (pd instanceof AggregationPropertyDefinition) {
-          // Runtime cast is required to workaround a
-          // bug in JDK versions prior to 1.5.0_08.
+        if (pd instanceof AggregationPropertyDefinition<?,?>) {
           AggregationPropertyDefinition<?, ?> apd =
-            AggregationPropertyDefinition.class.cast(pd);
+            (AggregationPropertyDefinition<?, ?>)pd;
 
           // Skip this aggregation if the referenced managed objects
           // do not need to be enabled.

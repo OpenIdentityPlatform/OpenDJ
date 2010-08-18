@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.messages;
@@ -58,7 +58,7 @@ public final class Message implements CharSequence, Formattable,
 
   // Variable used to workaround a bug in AIX Java 1.6
   // TODO: remove this code once the JDK issue referenced in 3077 is closed.
-  private final boolean isAIXPost5 = isAIXPost5();
+  private final boolean isAIX = isAIX();
 
   /**
    * Creates an uninternationalized message that will render itself
@@ -168,6 +168,7 @@ public final class Message implements CharSequence, Formattable,
    * Gets the string representation of this message.
    * @return String representation of this message
    */
+  @Override
   public String toString() {
     return toString(Locale.getDefault());
   }
@@ -186,7 +187,7 @@ public final class Message implements CharSequence, Formattable,
       try {
         // TODO: remove this code once the JDK issue referenced in 3077 is
         // closed.
-        if (isAIXPost5)
+        if (isAIX)
         {
           // Java 6 in AIX Formatter does not handle properly Formattable
           // arguments; this code is a workaround for the problem.
@@ -452,6 +453,7 @@ public final class Message implements CharSequence, Formattable,
    * @see     #hashCode()
    * @see     java.util.Hashtable
    */
+  @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
@@ -468,6 +470,7 @@ public final class Message implements CharSequence, Formattable,
    * @see     java.lang.Object#equals(java.lang.Object)
    * @see     java.util.Hashtable
    */
+  @Override
   public int hashCode() {
     int result;
     result = 31 * toString().hashCode();
@@ -477,24 +480,13 @@ public final class Message implements CharSequence, Formattable,
 
   // TODO: remove this code once the JDK issue referenced in 3077 is closed.
   /**
-   * Returns whether we are running post 1.5 on AIX or not.
-   * @return <CODE>true</CODE> if we are running post 1.5 on AIX and
+   * Returns whether we are running on AIX or not.
+   * @return <CODE>true</CODE> if we are running on AIX and
    * <CODE>false</CODE> otherwise.
    */
-  private boolean isAIXPost5()
+  private boolean isAIX()
   {
-    boolean isJDK15 = false;
-    try
-    {
-      String javaRelease = System.getProperty ("java.version");
-      isJDK15 = javaRelease.startsWith("1.5");
-    }
-    catch (Throwable t)
-    {
-      System.err.println("Cannot get the java version: " + t);
-    }
-    boolean isAIX = "aix".equalsIgnoreCase(System.getProperty("os.name"));
-    return !isJDK15 && isAIX;
+    return "aix".equalsIgnoreCase(System.getProperty("os.name"));
   }
 
 }

@@ -169,7 +169,7 @@ cat > "${INSTALL_JNLP_FILENAME}" <<ENDOFINSTALLJNLP
   </security>
 
   <resources>
-    <j2se version="1.5+" java-vm-args="-client"/>
+    <j2se version="1.6+" java-vm-args="-client"/>
     <jar href="lib/quicksetup.jar" download="eager" main="true"/>
     <jar href="lib/OpenDS.jar" download="lazy"/>
     <jar href="lib/je.jar" download="lazy"/>
@@ -181,7 +181,7 @@ cat > "${INSTALL_JNLP_FILENAME}" <<ENDOFINSTALLJNLP
   </resources>
   
   <resources os="AIX">
-    <j2se version="1.5+"/>
+    <j2se version="1.6+"/>
   </resources>
   
   <application-desc main-class="org.opends.quicksetup.SplashScreen"/>

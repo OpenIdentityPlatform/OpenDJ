@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.admin;
 
@@ -30,9 +30,6 @@ package org.opends.server.admin;
 
 /**
  * A mock LDAP profile wrapper for testing purposes.
- *
- * NOTE:  The seemingly unnecessary casts throughout this class are
- * required to work around a bug in JDK versions prior to 1.5.0_08.
  */
 public final class MockLDAPProfile extends LDAPProfile.Wrapper {
 
@@ -50,8 +47,7 @@ public final class MockLDAPProfile extends LDAPProfile.Wrapper {
   public String getAttributeName(AbstractManagedObjectDefinition<?, ?> d,
       PropertyDefinition<?> pd) {
 
-    // These casts throughout are required to work around a bug in JDK versions prior to 1.5.0_08.
-    if (d == (AbstractManagedObjectDefinition<?, ?>)TestParentCfgDefn.getInstance()) {
+    if (d == TestParentCfgDefn.getInstance()) {
       TestParentCfgDefn td = TestParentCfgDefn.getInstance();
 
       if (pd == (PropertyDefinition<?>)td.getMandatoryBooleanPropertyPropertyDefinition()) {
@@ -67,7 +63,7 @@ public final class MockLDAPProfile extends LDAPProfile.Wrapper {
         throw new RuntimeException("Unexpected test-parent property"
             + pd.getName());
       }
-    } else if (d == (AbstractManagedObjectDefinition<?, ?>)TestChildCfgDefn.getInstance()) {
+    } else if (d == TestChildCfgDefn.getInstance()) {
       TestChildCfgDefn td = TestChildCfgDefn.getInstance();
 
       if (pd == (PropertyDefinition<?>)td.getMandatoryBooleanPropertyPropertyDefinition()) {
@@ -117,10 +113,9 @@ public final class MockLDAPProfile extends LDAPProfile.Wrapper {
    */
   @Override
   public String getObjectClass(AbstractManagedObjectDefinition<?, ?> d) {
-    // These casts throughout are required to work around a bug in JDK versions prior to 1.5.0_08.
-    if (d == (AbstractManagedObjectDefinition<?, ?>)TestParentCfgDefn.getInstance()) {
+    if (d == TestParentCfgDefn.getInstance()) {
       return "ds-cfg-test-parent-dummy";
-    } else if (d == (AbstractManagedObjectDefinition<?, ?>)TestChildCfgDefn.getInstance()) {
+    } else if (d == TestChildCfgDefn.getInstance()) {
       return "ds-cfg-test-child-dummy";
     } else {
       // Not known.

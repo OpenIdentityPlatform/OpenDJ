@@ -68,32 +68,16 @@ public final class Platform
   static
   {
     String vendor = System.getProperty("java.vendor");
-    String ver = System.getProperty("java.version");
 
     if (vendor.startsWith("IBM"))
     {
       pkgPrefix = IBM_SEC;
-      if (ver.startsWith("1.5"))
-      {
-        IMPL = new IBM5PlatformIMPL();
-      }
-      else
-      {
-        IMPL = new DefaultPlatformIMPL();
-      }
     }
     else
     {
       pkgPrefix = SUN_SEC;
-      if (ver.startsWith("1.5"))
-      {
-        IMPL = new Sun5PlatformIMPL();
-      }
-      else
-      {
-        IMPL = new DefaultPlatformIMPL();
-      }
     }
+    IMPL = new DefaultPlatformIMPL();
   }
 
 
@@ -553,58 +537,6 @@ public final class Platform
         validity);
   }
 
-
-
-  /**
-   * Sun 5 JDK platform class.
-   */
-  private static class Sun5PlatformIMPL extends PlatformIMPL
-  {
-    // normalize method.
-    private static final Method NORMALIZE;
-    // Normalized form method.
-    private static final Object FORM_NFKC;
-
-    static
-    {
-      Method normalize = null;
-      Object formNFKC = null;
-      try
-      {
-        Class<?> normalizer = Class.forName("sun.text.Normalizer");
-        formNFKC = normalizer.getField("DECOMP_COMPAT").get(null);
-        Class<?> normalizerForm = Class.forName("sun.text.Normalizer$Mode");
-        normalize = normalizer.getMethod("normalize", String.class,
-            normalizerForm, Integer.TYPE);
-      }
-      catch (Exception ex)
-      {
-        // Do not use Normalizer. The values are already set to null.
-      }
-      NORMALIZE = normalize;
-      FORM_NFKC = formNFKC;
-    }
-
-
-
-    @Override
-    public void normalize(StringBuilder buffer)
-    {
-      try
-      {
-        String normal = (String) NORMALIZE.invoke(null, buffer.toString(),
-            FORM_NFKC, 0);
-        buffer.replace(0, buffer.length(), normal);
-      }
-      catch (Exception ex)
-      {
-        // Don't do anything. buffer should be used.
-      }
-    }
-  }
-
-
-
   /**
    * Default platform class.
    */
@@ -652,23 +584,6 @@ public final class Platform
       }
     }
   }
-
-
-
-  /**
-   * IBM JDK 5 platform class.
-   */
-  private static class IBM5PlatformIMPL extends PlatformIMPL
-  {
-
-    @Override
-    public void normalize(StringBuilder buffer)
-    {
-      // No implementation.
-    }
-  }
-
-
 
   /**
    * Normalize the specified buffer.
