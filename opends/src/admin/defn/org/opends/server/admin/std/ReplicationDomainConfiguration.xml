@@ -536,4 +536,26 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="conflicts-historical-purge-delay">
+    <adm:synopsis>
+      This delay indicates the time (in minutes) the domain keeps the historical
+      information necessary to solve conflicts.When a change stored in the 
+      historical part of the user entry has a date (from its replication ChangeNumber)
+      older than this delay, it is candidate to be purged.
+      The purge is applied on 2 events: modify of the entry, dedicated purge task.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>1440m</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration base-unit="m" allow-unlimited="false" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-conflicts-historical-purge-delay</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
 </adm:managed-object>

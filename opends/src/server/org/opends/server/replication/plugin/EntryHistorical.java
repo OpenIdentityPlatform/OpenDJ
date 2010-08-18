@@ -46,6 +46,7 @@ import org.opends.server.types.*;
 import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
+import org.opends.server.util.TimeThread;
 
 /**
  * This class is used to store historical information that is
@@ -82,6 +83,33 @@ public class EntryHistorical
    * Name of the entryuuid attribute.
    */
   public static final String ENTRYUIDNAME = "entryuuid";
+
+  /* The delay to purge the historical informations
+   * This delay indicates the time the domain keeps the historical
+   * information necessary to solve conflicts.When a change stored in the
+   * historical part of the user entry has a date (from its replication
+   * ChangeNumber) older than this delay, it is candidate to be purged.
+   * The purge is triggered on 2 events: modify of the entry, dedicated purge
+   * task.
+   *
+   * The purge is done when the historical is encoded.
+   */
+  private long purgeDelayInMillisec = -1;
+
+  /*
+   * The oldest ChangeNumber stored in this entry historical attribute.
+   * null when this historical object has been created from
+   * an entry that has no historical attribute and after the last
+   * historical has been purged.
+   */
+  private ChangeNumber oldestChangeNumber = null;
+
+  /**
+   * For stats/monitoring purpose, the number of historical values
+   * purged the last time a purge has been applied on this entry historical.
+   */
+  private int lastPurgedValuesCount = 0;
+
 
   /**
    * The in-memory historical information is made of.
@@ -140,7 +168,7 @@ public class EntryHistorical
   public String toString()
   {
     StringBuilder builder = new StringBuilder();
-    builder.append(encode());
+    builder.append(encodeAndPurge());
     return builder.toString();
   }
 
@@ -224,7 +252,7 @@ public class EntryHistorical
     //
     // - add the modification of the ds-sync-hist attribute,
     // to the current modifications of the MOD operation
-    Attribute attr = encode();
+    Attribute attr = encodeAndPurge();
     Modification mod = new Modification(ModificationType.REPLACE, attr);
     mods.add(mod);
     // - update the already modified entry
@@ -251,7 +279,7 @@ public class EntryHistorical
     Entry modifiedEntry = modifyDNOperation.getUpdatedEntry();
     List<Modification> mods = modifyDNOperation.getModifications();
 
-    Attribute attr = encode();
+    Attribute attr = encodeAndPurge();
 
     // Now do the 2 updates required by the core to be consistent:
     //
@@ -394,20 +422,40 @@ public class EntryHistorical
   }
 
   /**
-   * Encode this historical information object in an operational attribute.
+   * For stats/monitoring purpose, returns the number of historical values
+   * purged the last time a purge has been applied on this entry historical.
+   *
+   * @return the purged values count.
+   */
+  public int getLastPurgedValuesCount()
+  {
+    return this.lastPurgedValuesCount;
+  }
+
+  /**
+   * Encode this historical information object in an operational attribute
+   * and purge it from the values older than the purge delay.
    *
    * @return The historical information encoded in an operational attribute.
    */
-  public Attribute encode()
+  public Attribute encodeAndPurge()
   {
+    long purgeDate = 0;
+
+    // Set the stats counter to 0 and compute the purgeDate to now minus
+    // the potentially set purge delay.
+    this.lastPurgedValuesCount = 0;
+    if (purgeDelayInMillisec>0)
+      purgeDate = TimeThread.getTime() - purgeDelayInMillisec;
+
     AttributeType historicalAttrType =
       DirectoryServer.getSchema().getAttributeType(HISTORICALATTRIBUTENAME);
     AttributeBuilder builder = new AttributeBuilder(historicalAttrType);
 
-    // Encode the historical information for modify operation.
     for (Map.Entry<AttributeType, AttrHistoricalWithOptions> entryWithOptions :
           attributesHistorical.entrySet())
     {
+      // Encode an attribute type
       AttributeType type = entryWithOptions.getKey();
       HashMap<Set<String> , AttrHistorical> attrwithoptions =
                                 entryWithOptions.getValue().getAttributesInfo();
@@ -415,10 +463,11 @@ public class EntryHistorical
       for (Map.Entry<Set<String>, AttrHistorical> entry :
            attrwithoptions.entrySet())
       {
+        // Encode an (attribute type/option)
         boolean delAttr = false;
         Set<String> options = entry.getKey();
         String optionsString = "";
-        AttrHistorical info = entry.getValue();
+        AttrHistorical attrHist = entry.getValue();
 
 
         if (options != null)
@@ -432,49 +481,63 @@ public class EntryHistorical
           optionsString = optionsBuilder.toString();
         }
 
-        ChangeNumber deleteTime = info.getDeleteTime();
+        ChangeNumber deleteTime = attrHist.getDeleteTime();
         /* generate the historical information for deleted attributes */
         if (deleteTime != null)
         {
           delAttr = true;
         }
 
-        /* generate the historical information for modified attribute values */
-        for (AttrValueHistorical valInfo : info.getValuesHistorical())
+        for (AttrValueHistorical attrValHist : attrHist.getValuesHistorical())
         {
+          // Encode an attribute value
           String strValue;
-          if (valInfo.getValueDeleteTime() != null)
+          if (attrValHist.getValueDeleteTime() != null)
           {
+            // this hist must be purged now, so skip its encoding
+            if ((purgeDelayInMillisec>0) &&
+                (attrValHist.getValueDeleteTime().getTime()<=purgeDate))
+            {
+              this.lastPurgedValuesCount++;
+              continue;
+            }
             strValue = type.getNormalizedPrimaryName() + optionsString + ":" +
-            valInfo.getValueDeleteTime().toString() +
-            ":del:" + valInfo.getAttributeValue().toString();
+            attrValHist.getValueDeleteTime().toString() +
+            ":del:" + attrValHist.getAttributeValue().toString();
             AttributeValue val = AttributeValues.create(historicalAttrType,
                                                     strValue);
             builder.add(val);
           }
-          else if (valInfo.getValueUpdateTime() != null)
+          else if (attrValHist.getValueUpdateTime() != null)
           {
-            if ((delAttr && valInfo.getValueUpdateTime() == deleteTime)
-               && (valInfo.getAttributeValue() != null))
+            if ((purgeDelayInMillisec>0) &&
+                (attrValHist.getValueUpdateTime().getTime()<=purgeDate))
+            {
+              // this hist must be purged now, so skip its encoding
+              this.lastPurgedValuesCount++;
+              continue;
+            }
+            if ((delAttr && attrValHist.getValueUpdateTime() == deleteTime)
+               && (attrValHist.getAttributeValue() != null))
             {
               strValue = type.getNormalizedPrimaryName() + optionsString + ":" +
-              valInfo.getValueUpdateTime().toString() +  ":repl:" +
-              valInfo.getAttributeValue().toString();
+              attrValHist.getValueUpdateTime().toString() +  ":repl:" +
+              attrValHist.getAttributeValue().toString();
               delAttr = false;
             }
             else
             {
-              if (valInfo.getAttributeValue() == null)
+              if (attrValHist.getAttributeValue() == null)
               {
                 strValue = type.getNormalizedPrimaryName() + optionsString
-                           + ":" + valInfo.getValueUpdateTime().toString() +
+                           + ":" + attrValHist.getValueUpdateTime().toString() +
                            ":add";
               }
               else
               {
                 strValue = type.getNormalizedPrimaryName() + optionsString
-                           + ":" + valInfo.getValueUpdateTime().toString() +
-                           ":add:" + valInfo.getAttributeValue().toString();
+                           + ":" + attrValHist.getValueUpdateTime().toString() +
+                           ":add:" + attrValHist.getAttributeValue().toString();
               }
             }
 
@@ -486,6 +549,14 @@ public class EntryHistorical
 
         if (delAttr)
         {
+          // Stores the attr deletion hist when not older than the purge delay
+          if ((purgeDelayInMillisec>0) &&
+              (deleteTime.getTime()<=purgeDate))
+          {
+            // this hist must be purged now, so skip its encoding
+            this.lastPurgedValuesCount++;
+            continue;
+          }
           String strValue = type.getNormalizedPrimaryName()
               + optionsString + ":" + deleteTime.toString()
               + ":attrDel";
@@ -499,16 +570,45 @@ public class EntryHistorical
     // Encode the historical information for the ADD Operation.
     if (entryADDDate != null)
     {
-      builder.add(encodeAddHistorical(entryADDDate));
+      // Stores the ADDDate when not older than the purge delay
+      if ((purgeDelayInMillisec>0) &&
+          (entryADDDate.getTime()<=purgeDate))
+      {
+        this.lastPurgedValuesCount++;
+      }
+      else
+      {
+        builder.add(encodeAddHistorical(entryADDDate));
+      }
     }
 
     // Encode the historical information for the MODDN Operation.
     if (entryMODDNDate != null)
     {
-      builder.add(encodeMODDNHistorical(entryMODDNDate));
+      // Stores the MODDNDate when not older than the purge delay
+      if ((purgeDelayInMillisec>0) &&
+          (entryMODDNDate.getTime()<=purgeDate))
+      {
+        this.lastPurgedValuesCount++;
+      }
+      else
+      {
+        builder.add(encodeMODDNHistorical(entryMODDNDate));
+      }
     }
 
     return builder.toAttribute();
+  }
+
+  /**
+   * Set the delay to purge the historical informations. The purge is applied
+   * only when historical attribute is updated (write operations).
+   *
+   * @param purgeDelay the purge delay in ms
+   */
+  public void setPurgeDelay(long purgeDelay)
+  {
+    this.purgeDelayInMillisec = purgeDelay;
   }
 
   /**
@@ -601,6 +701,9 @@ public class EntryHistorical
           ChangeNumber cn = histVal.getCn();
           AttributeValue value = histVal.getAttributeValue();
           HistAttrModificationKey histKey = histVal.getHistKey();
+
+          // update the oldest ChangeNumber stored in the new entry historical
+          newHistorical.updateOldestCN(cn);
 
           if (histVal.isADDOperation())
           {
@@ -833,6 +936,37 @@ public class EntryHistorical
     AttributeType attrType = attr.getAttributeType();
     return
       attrType.getNameOrOID().equals(EntryHistorical.HISTORICALATTRIBUTENAME);
+  }
+
+  /**
+   * Potentially update the oldest ChangeNumber stored in this entry historical
+   * with the provided ChangeNumber when its older than the current oldest.
+   *
+   * @param cn the provided ChangeNumber.
+   */
+  private void updateOldestCN(ChangeNumber cn)
+  {
+    if (cn != null)
+    {
+      if (this.oldestChangeNumber == null)
+        this.oldestChangeNumber = cn;
+      else
+        if (cn.older(this.oldestChangeNumber))
+            this.oldestChangeNumber = cn;
+    }
+  }
+
+  /**
+   * Returns the oldest ChangeNumber stored in this entry historical attribute.
+   *
+   * @return the oldest ChangeNumber stored in this entry historical attribute.
+   *         Returns null when this historical object has been created from
+   *         an entry that has no historical attribute and after the last
+   *         historical has been purged.
+   */
+  public ChangeNumber getOldestCN()
+  {
+    return this.oldestChangeNumber;
   }
 }
 

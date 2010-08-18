@@ -492,4 +492,18 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   {
     return true;
   }
+  
+  /**
+   * Gets the "conflicts-historical-purge-delay" property.
+   * <p>
+   * This delay indicates the time (in minutes) the domain keeps the
+   * historical information necessary to solve conflicts.
+   *
+   * @return Returns the value of the "conflicts-historical-purge-delay" property.
+   **/
+  public long getConflictsHistoricalPurgeDelay()
+  {
+    return 1440;
+  }
+
 }

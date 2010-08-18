@@ -2490,6 +2490,41 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.613
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.614
+  NAME 'ds-cfg-conflicts-historical-purge-delay'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.615
+  NAME 'ds-task-purge-conflicts-historical-domain-dn'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.616
+  NAME 'ds-task-purge-conflicts-historical-maximum-duration'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.617
+  NAME 'ds-task-purge-conflicts-historical-last-purged-changenumber'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.618
+  NAME 'ds-task-purge-conflicts-historical-purge-completed-in-time'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.619
+  NAME 'ds-task-purge-conflicts-historical-purged-values-count'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.620
+  NAME 'ds-task-purge-conflicts-historical-first-purged-changenumber'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -3057,6 +3092,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.57
         ds-cfg-fractional-exclude $
         ds-cfg-fractional-include $
         ds-cfg-solve-conflicts $
+        ds-cfg-conflicts-historical-purge-delay $
         ds-cfg-changetime-heartbeat-interval $
         ds-cfg-log-changenumber $
         ds-cfg-initialization-window-size )
@@ -4195,5 +4231,16 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.236
   NAME 'ds-cfg-password-policy-subentry-virtual-attribute'
   SUP ds-cfg-virtual-attribute
   STRUCTURAL
+  X-ORIGIN 'OpenDS Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.237
+  NAME 'ds-task-purge-conflicts-historical'
+  SUP ds-task
+  STRUCTURAL
+  MUST ( ds-task-purge-conflicts-historical-domain-dn )
+  MAY ( ds-task-purge-conflicts-historical-maximum-duration $
+        ds-task-purge-conflicts-historical-first-purged-changenumber $
+        ds-task-purge-conflicts-historical-last-purged-changenumber $
+        ds-task-purge-conflicts-historical-purge-completed-in-time $
+        ds-task-purge-conflicts-historical-purged-values-count )
   X-ORIGIN 'OpenDS Directory Server' )
 
