@@ -29,10 +29,13 @@ package org.opends.server.backends.jeb.importLDIF;
 
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.DynamicConstants.BUILD_ID;
 import static org.opends.server.util.DynamicConstants.REVISION_NUMBER;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.getFileForPath;
+import static org.opends.server.util.StaticUtils.stackTraceToString;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -53,6 +56,7 @@ import org.opends.server.backends.jeb.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.DiskSpaceMonitor;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.Platform;
@@ -68,6 +72,11 @@ import com.sleepycat.util.PackedInteger;
  */
 public final class Importer implements DiskSpaceMonitorHandler
 {
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
   private static final int TIMER_INTERVAL = 10000;
   private static final int KB = 1024;
   private static final int MB =  (KB * KB);
@@ -2018,9 +2027,6 @@ public final class Importer implements DiskSpaceMonitorHandler
 
     /**
      * Finishes this task.
-     *
-     * @throws Exception
-     *           If an exception occurred.
      */
     public void endWriteTask()
     {
@@ -2251,6 +2257,9 @@ public final class Importer implements DiskSpaceMonitorHandler
       finally
       {
         endWriteTask();
+
+        // Clear the default exception handler.
+        Thread.setDefaultUncaughtExceptionHandler(null);
       }
       return null;
     }
@@ -3339,8 +3348,6 @@ public final class Importer implements DiskSpaceMonitorHandler
     /**
      * Perform rebuild index processing.
      *
-     * @throws InitializationException
-     *           If an initialization error occurred.
      * @throws DatabaseException
      *           If an database error occurred.
      * @throws InterruptedException
@@ -4952,9 +4959,14 @@ public final class Importer implements DiskSpaceMonitorHandler
      * {@inheritDoc}
      */
     public void uncaughtException(Thread t, Throwable e) {
-      Message message =  ERR_JEB_IMPORT_UNCAUGHT_EXCEPTION.get(e.getMessage());
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      Message message =
+        ERR_JEB_IMPORT_UNCAUGHT_EXCEPTION.get(stackTraceToString(e));
       logError(message);
-      e.printStackTrace();
       System.exit(1);
     }
   }
