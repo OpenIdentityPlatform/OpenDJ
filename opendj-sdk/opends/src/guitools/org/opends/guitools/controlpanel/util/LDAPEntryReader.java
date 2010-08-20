@@ -48,9 +48,10 @@ import org.opends.guitools.controlpanel.event.EntryReadListener;
  */
 public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
 {
-  private String dn;
-  private InitialLdapContext ctx;
-  private Set<EntryReadListener> listeners = new HashSet<EntryReadListener>();
+  private final String dn;
+  private final InitialLdapContext ctx;
+  private final Set<EntryReadListener> listeners =
+    new HashSet<EntryReadListener>();
   private boolean isOver;
   private boolean notifyListeners;
 
@@ -69,6 +70,7 @@ public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
   /**
    * {@inheritDoc}
    */
+  @Override
   public CustomSearchResult processBackgroundTask() throws Throwable
   {
     isOver = false;
@@ -76,7 +78,6 @@ public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
     try
     {
       SearchControls controls = new SearchControls();
-      controls.setCountLimit(1);
 
       String[] attrs = {"*", "+"};
       controls.setReturningAttributes(attrs);
@@ -85,7 +86,11 @@ public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
 
       en = ctx.search(Utilities.getJNDIName(dn), filter, controls);
 
-      SearchResult sr = en.next();
+      SearchResult sr = null;
+      while (en.hasMore())
+      {
+        sr = en.next();
+      }
 
       return new CustomSearchResult(sr, dn);
     }
@@ -105,6 +110,7 @@ public class LDAPEntryReader extends BackgroundTask<CustomSearchResult>
   /**
    * {@inheritDoc}
    */
+  @Override
   public void backgroundTaskCompleted(CustomSearchResult sr,
       Throwable throwable)
   {

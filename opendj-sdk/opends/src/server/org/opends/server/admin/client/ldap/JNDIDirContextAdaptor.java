@@ -228,17 +228,20 @@ public final class JNDIDirContextAdaptor extends LDAPConnection {
    */
   @Override
   public boolean entryExists(LdapName dn) throws NamingException {
+    boolean entryExists = false;
     String filter = "(objectClass=*)";
     SearchControls controls = new SearchControls();
     controls.setSearchScope(SearchControls.OBJECT_SCOPE);
-
+    controls.setReturningAttributes(new String[]{"1.1"});
     try {
       NamingEnumeration<SearchResult> results = dirContext.search(dn, filter,
           controls);
       try
       {
-        if (results.hasMore()) {
-          return true;
+        while (results.hasMore()) {
+          // To avoid having a systematic abandon in the server.
+          results.next();
+          entryExists = true;
         }
       }
       finally
@@ -248,7 +251,7 @@ public final class JNDIDirContextAdaptor extends LDAPConnection {
     } catch (NameNotFoundException e) {
       // Fall through - entry not found.
     }
-    return false;
+    return entryExists;
   }
 
 

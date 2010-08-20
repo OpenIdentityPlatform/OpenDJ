@@ -55,8 +55,10 @@ import java.util.List;
 import javax.naming.CompositeName;
 import javax.naming.InvalidNameException;
 import javax.naming.Name;
+import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.SearchControls;
+import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
 import javax.swing.BorderFactory;
@@ -628,6 +630,7 @@ public class Utilities
       col.setCellRenderer(renderer);
     }
     MouseAdapter listMouseListener = new MouseAdapter() {
+      @Override
       public void mouseClicked(MouseEvent e) {
         TableColumnModel columnModel = table.getColumnModel();
         int viewColumn = columnModel.getColumnIndexAtX(e.getX());
@@ -2448,12 +2451,23 @@ public class Utilities
      * Search for the config to check that it is the directory manager.
      */
     SearchControls searchControls = new SearchControls();
-    searchControls.setCountLimit(1);
     searchControls.setSearchScope(
     SearchControls. OBJECT_SCOPE);
     searchControls.setReturningAttributes(
     new String[] {"1.1"});
-    ctx.search("cn=config", "objectclass=*", searchControls);
+    NamingEnumeration<SearchResult> sr =
+      ctx.search("cn=config", "objectclass=*", searchControls);
+    try
+    {
+      while (sr.hasMore())
+      {
+        sr.next();
+      }
+    }
+    finally
+    {
+      sr.close();
+    }
   }
 
   /**
