@@ -236,7 +236,7 @@ public class HistoricalTest
     assertTrue(!after.isEmpty());
 
     // Now wait for the purge time to be done
-    Thread.sleep(testPurgeDelayInMillisec);
+    Thread.sleep(testPurgeDelayInMillisec + 200);
 
     // Read the entry back to get its history operational attribute.
     // The hist attribute should now be empty since purged
