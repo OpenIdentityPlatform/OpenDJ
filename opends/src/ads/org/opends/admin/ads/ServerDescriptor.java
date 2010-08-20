@@ -875,7 +875,7 @@ public class ServerDescriptor
       Integer adminConnectorPort = null;
 
       // we should have a single administration connector
-      if (listeners.hasMore()) {
+      while (listeners.hasMore()) {
         SearchResult sr = listeners.next();
         String port = getFirstValue(sr, "ds-cfg-listen-port");
         adminConnectorPort = new Integer(port);

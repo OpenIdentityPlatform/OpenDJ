@@ -4643,7 +4643,6 @@ public abstract class Installer extends GuiApplication {
     }
     // Wait until it is over
     SearchControls searchControls = new SearchControls();
-    searchControls.setCountLimit(1);
     searchControls.setSearchScope(
         SearchControls. OBJECT_SCOPE);
     String filter = "objectclass=*";
@@ -4689,7 +4688,10 @@ public abstract class Installer extends GuiApplication {
         SearchResult sr = null;
         try
         {
-          sr = res.next();
+          while (res.hasMore())
+          {
+            sr = res.next();
+          }
         }
         finally
         {
@@ -4965,7 +4967,6 @@ public abstract class Installer extends GuiApplication {
     }
     // Wait until it is over
     SearchControls searchControls = new SearchControls();
-    searchControls.setCountLimit(1);
     searchControls.setSearchScope(
         SearchControls. OBJECT_SCOPE);
     String filter = "objectclass=*";
@@ -4991,7 +4992,10 @@ public abstract class Installer extends GuiApplication {
         SearchResult sr = null;
         try
         {
-          sr = res.next();
+          while (res.hasMore())
+          {
+            sr = res.next();
+          }
         }
         finally
         {

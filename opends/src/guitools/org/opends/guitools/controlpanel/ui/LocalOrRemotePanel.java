@@ -122,6 +122,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public Message getTitle()
   {
     return INFO_CTRL_PANEL_LOCAL_OR_REMOTE_PANEL_TITLE.get();
@@ -130,6 +131,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.OK_CANCEL;
@@ -406,6 +408,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public Component getPreferredFocusComponent()
   {
     if (pwd.isVisible())
@@ -428,6 +431,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public void toBeDisplayed(boolean visible)
   {
     super.toBeDisplayed(visible);
@@ -436,6 +440,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
       // Do it outside the event thread if the panel requires it.
       BackgroundTask<Void> worker = new BackgroundTask<Void>()
       {
+        @Override
         public Void processBackgroundTask() throws Throwable
         {
           try
@@ -451,6 +456,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
         }
 
 
+        @Override
         public void backgroundTaskCompleted(Void returnValue,
             Throwable t)
         {
@@ -479,6 +485,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public void okClicked()
   {
     setPrimaryValid(portLabel);
@@ -553,6 +560,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
         /**
          * {@inheritDoc}
          */
+        @Override
         public InitialLdapContext processBackgroundTask() throws Throwable
         {
           getInfo().stopPooling();
@@ -638,6 +646,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
         /**
          * {@inheritDoc}
          */
+        @Override
         public void backgroundTaskCompleted(InitialLdapContext ctx,
             Throwable throwable)
         {
@@ -818,6 +827,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public void cancelClicked()
   {
     setPrimaryValid(dnLabel);
@@ -945,7 +955,6 @@ public class LocalOrRemotePanel extends StatusGenericPanel
        * Search for the version on the remote server.
        */
       SearchControls searchControls = new SearchControls();
-      searchControls.setCountLimit(1);
       searchControls.setSearchScope(
       SearchControls.OBJECT_SCOPE);
       searchControls.setReturningAttributes(
@@ -961,7 +970,10 @@ public class LocalOrRemotePanel extends StatusGenericPanel
       SearchResult sr = null;
       try
       {
-        sr = en.next();
+        while (en.hasMore())
+        {
+          sr = en.next();
+        }
       }
       finally
       {

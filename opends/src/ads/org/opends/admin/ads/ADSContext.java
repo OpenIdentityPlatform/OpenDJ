@@ -784,7 +784,7 @@ public class ADSContext
       ne = attrs.getAll();
       while (ne.hasMore())
       {
-        Attribute attr = (Attribute)ne.next();
+        Attribute attr = ne.next();
         String attrID = attr.getID();
 
         if (!attrID.toLowerCase().equals(
@@ -870,14 +870,16 @@ public class ADSContext
 
             ne2 = dirContext.search(getInstanceKeysContainerDN(),
                 "(ds-cfg-key-id="+keyId+")", sc);
-            if (ne2.hasMore())
+            boolean found = false;
+            while (ne2.hasMore())
             {
               SearchResult certEntry = ne2.next();
               Attribute certAttr = certEntry.getAttributes().get(attrIDs[0]);
               properties.put(ServerProperty.INSTANCE_PUBLIC_KEY_CERTIFICATE,
                   certAttr.get());
+              found = true;
             }
-            else
+            if (!found)
             {
               LOG.log(Level.WARNING, "Could not find public key for "+
                   properties);
@@ -1412,10 +1414,20 @@ public class ADSContext
         sc.setReturningAttributes(attList);
         NamingEnumeration<SearchResult> ne = dirContext.search(
             dnCentralAdmin, "(objectclass=*)", sc);
-        SearchResult sr = ne.next();
+        try
+        {
+          while (ne.hasMore())
+          {
+            SearchResult sr = ne.next();
 
-        currentPrivileges = sr.getAttributes().get("ds-privilege-name")
-        .getAll();
+            currentPrivileges = sr.getAttributes().get("ds-privilege-name")
+            .getAll();
+          }
+        }
+        finally
+        {
+          handleCloseNamingEnumeration(ne);
+        }
       }
 
 
@@ -2237,7 +2249,22 @@ public class ADSContext
       SearchControls sc = new SearchControls();
 
       sc.setSearchScope(SearchControls.OBJECT_SCOPE);
-      result = getDirContext().search(dn, "(objectclass=*)", sc).hasMore();
+      sc.setReturningAttributes(new String[] {"1.1"});
+      NamingEnumeration<SearchResult> sr =
+        getDirContext().search(dn, "(objectclass=*)", sc);
+      result = false;
+      try
+      {
+        while (sr.hasMore())
+        {
+          sr.next();
+          result = true;
+        }
+      }
+      finally
+      {
+        sr.close();
+      }
     }
     catch (NameNotFoundException x)
     {

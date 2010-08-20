@@ -39,6 +39,7 @@ import java.util.logging.Logger;
 
 import javax.naming.CommunicationException;
 import javax.naming.Context;
+import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
@@ -626,13 +627,23 @@ public class ConnectionUtils
        * Search for the config to check that it is the directory manager.
        */
       SearchControls searchControls = new SearchControls();
-      searchControls.setCountLimit(1);
       searchControls.setSearchScope(
           SearchControls. OBJECT_SCOPE);
       searchControls.setReturningAttributes(
           new String[] {"1.1"});
-      ctx.search("cn=config", "objectclass=*", searchControls);
-
+      NamingEnumeration<SearchResult> sr =
+       ctx.search("cn=config", "objectclass=*", searchControls);
+      try
+      {
+        while (sr.hasMore())
+        {
+          sr.next();
+        }
+      }
+      finally
+      {
+        sr.close();
+      }
       connectedAsAdministrativeUser = true;
     } catch (NamingException ne)
     {

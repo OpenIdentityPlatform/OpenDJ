@@ -235,15 +235,17 @@ public class ADSContextHelper
     NamingEnumeration<SearchResult> results = null;
     try
     {
-     results = ctx.search(ADSContext.getInstanceKeysContainerDN(), keyAttrs,
+      results = ctx.search(ADSContext.getInstanceKeysContainerDN(), keyAttrs,
          attrIDs);
-      if (results.hasMore()) {
+      boolean found = false;
+      while (results.hasMore()) {
         final Attribute keyIdAttr =
           results.next().getAttributes().get(attrIDs[0]);
         if (null != keyIdAttr) {
           /* attribute ds-cfg-key-id is the entry is a MUST in the schema */
           keyID = (String)keyIdAttr.get();
         }
+        found = true;
       }
       /* TODO: It is possible (but unexpected) that the caller specifies a
    ds-cfg-key-id value for which there is a certificate entry in ADS, but
@@ -251,7 +253,7 @@ public class ADSContextHelper
    above search would not return the entry, but the below attempt to add
    an new entry with the supplied ds-cfg-key-id will fail (throw a
    NameAlreadyBoundException) */
-      else {
+      if (!found) {
         /* create key ID, if it was not supplied in serverProperties */
         if (null == keyID) {
           keyID = CryptoManagerImpl.getInstanceKeyID(
@@ -334,7 +336,7 @@ public class ADSContextHelper
     {
       results = ctx.search(
           ADSContext.getInstanceKeysContainerDN(), keyAttrs, attrIDs);
-      if (results.hasMore()) {
+      while (results.hasMore()) {
         SearchResult res = results.next();
         ctx.destroySubcontext(res.getNameInNamespace());
       }

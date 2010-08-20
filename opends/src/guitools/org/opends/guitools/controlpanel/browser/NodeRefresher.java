@@ -267,6 +267,7 @@ public class NodeRefresher extends AbstractNodeTask {
   /**
    * The method that actually does the refresh.
    */
+  @Override
   public void run() {
     final BasicNode node = getNode();
 
@@ -351,11 +352,23 @@ public class NodeRefresher extends AbstractNodeTask {
               ctls);
     try
     {
-      if (!s.hasMoreElements())
+      if (!s.hasMore())
       {
         throw new NameNotFoundException("Entry "+node.getDN()+
             " does not verify filter "+controller.getFilter());
       }
+      while (s.hasMore())
+      {
+        s.next();
+      }
+    }
+    catch (SizeLimitExceededException slme)
+    {
+      // We are just searching for an entry, but if there is more than one
+      // this exception will be thrown.  We call sr.hasMore after the
+      // first entry has been retrieved to avoid sending a systematic
+      // abandon when closing the s NamingEnumeration.
+      // See CR 6976906.
     }
     finally
     {
@@ -381,11 +394,23 @@ public class NodeRefresher extends AbstractNodeTask {
               ctls);
     try
     {
-      if (!s.hasMoreElements())
+      if (!s.hasMore())
       {
         throw new NameNotFoundException("Entry "+dn+
             " does not verify filter "+controller.getFilter());
       }
+      while (s.hasMore())
+      {
+        s.next();
+      }
+    }
+    catch (SizeLimitExceededException slme)
+    {
+      // We are just searching for an entry, but if there is more than one
+      // this exception will be thrown.  We call sr.hasMore after the
+      // first entry has been retrieved to avoid sending a systematic
+      // abandon when closing the s NamingEnumeration.
+      // See CR 6976906.
     }
     finally
     {
@@ -418,7 +443,7 @@ public class NodeRefresher extends AbstractNodeTask {
                 ctls);
       try
       {
-        if (s.hasMore())
+        while (s.hasMore())
         {
           localEntry = s.next();
           localEntry.setName(node.getDN());
@@ -534,7 +559,8 @@ public class NodeRefresher extends AbstractNodeTask {
             ctls);
         try
         {
-          if (sr.hasMore())
+          boolean found = false;
+          while (sr.hasMore())
           {
             entry = sr.next();
             String name;
@@ -547,11 +573,20 @@ public class NodeRefresher extends AbstractNodeTask {
               name = unquoteRelativeName(entry.getName())+","+remoteDn;
             }
             entry.setName(name);
+            found = true;
           }
-          else
+          if (!found)
           {
             throw new NameNotFoundException();
           }
+        }
+        catch (SizeLimitExceededException sle)
+        {
+          // We are just searching for an entry, but if there is more than one
+          // this exception will be thrown.  We call sr.hasMore after the
+          // first entry has been retrieved to avoid sending a systematic
+          // abandon when closing the sr NamingEnumeration.
+          // See CR 6976906.
         }
         finally
         {
@@ -673,13 +708,19 @@ public class NodeRefresher extends AbstractNodeTask {
           ctls);
 
       throwAbandonIfNeeded(null);
-
-      if (searchResults.hasMoreElements()) { // May be parentNode has children
+      isLeafNode = true;
+      // Check if parentNode has children
+      while (searchResults.hasMoreElements()) {
         isLeafNode = false;
       }
-      else { // parentNode has no children
-        isLeafNode = true;
-      }
+    }
+    catch (SizeLimitExceededException e)
+    {
+      // We are just searching for an entry, but if there is more than one
+      // this exception will be thrown.  We call sr.hasMore after the
+      // first entry has been retrieved to avoid sending a systematic
+      // abandon when closing the searchResults NamingEnumeration.
+      // See CR 6976906.
     }
     catch (NamingException x) {
       throwAbandonIfNeeded(x);
@@ -787,7 +828,7 @@ public class NodeRefresher extends AbstractNodeTask {
           boolean add = false;
           if (useCustomFilter())
           {
-            // Check that is an inmediate child: use a faster method by just
+            // Check that is an immediate child: use a faster method by just
             // comparing the number of components.
             DN dn = null;
             try

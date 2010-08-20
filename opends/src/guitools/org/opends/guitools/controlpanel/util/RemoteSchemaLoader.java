@@ -96,7 +96,10 @@ public class RemoteSchemaLoader extends SchemaLoader
     SearchResult sr = null;
     try
     {
-      sr = srs.next();
+      while (srs.hasMore())
+      {
+        sr = srs.next();
+      }
     }
     finally
     {
@@ -187,6 +190,7 @@ public class RemoteSchemaLoader extends SchemaLoader
    * Returns the schema that was read.
    * @return the schema that was read.
    */
+  @Override
   public Schema getSchema()
   {
     return schema;
