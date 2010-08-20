@@ -96,32 +96,36 @@
                 }
               </call>
 
-              <message>
-              'Security: SSL Check behaviors: ldapsearch, client trustall \
-               server cert,missing Trustall option'
-              </message>
+              <if expr="not is_windows_platform(STAF_REMOTE_HOSTNAME)">
+                <sequence>
+                  <message>
+                  'Security: SSL Check behaviors: ldapsearch, client trustall \
+                   server cert,missing Trustall option'
+                  </message>
 
-              <call function="'ldapSearchWithScript'">
-                {
-                'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
-                'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
-                'dsUseSSL'         : ' ' ,
-                'dsBaseDN'         : 'dc=com' ,
-                'dsFilter'         : 'uid=user.340' ,
-                'dsAttributes'     : 'postalCode',
-                'expectedRC'       : 'noCheck',
-                }
-              </call>
+                  <call function="'ldapSearchWithScript'">
+                    {
+                    'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                    'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
+                    'dsUseSSL'         : ' ' ,
+                    'dsBaseDN'         : 'dc=com' ,
+                    'dsFilter'         : 'uid=user.340' ,
+                    'dsAttributes'     : 'postalCode',
+                    'expectedRC'       : 'noCheck',
+                    }
+                  </call>
 
-              <script>
-                returnString = STAXResult[0][1]
-              </script>
-              <call function="'checktestString'">
-                {
-                'returnString'     : returnString ,
-                'expectedString'   : 'server is using the following certificate'
-                }
-              </call>
+                  <script>
+                    returnString = STAXResult[0][1]
+                  </script>
+                  <call function="'checktestString'">
+                    {
+                    'returnString'   : returnString ,
+                    'expectedString' : 'server is using the following certificate'
+                    }
+                  </call>
+                </sequence>
+              </if>
 
               <message>
               'Security: SSL Check behaviors: ldapsearch, client trustall \

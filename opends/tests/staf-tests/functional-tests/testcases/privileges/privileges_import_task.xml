@@ -117,7 +117,7 @@
                   </script>
 
                   <call function="'searchString'">
-                  { 'expectedString' : 'Tasks cannot be\nadded due to insufficient access rights\n',
+                  { 'expectedString' : 'Tasks cannot be%sadded due to insufficient access rights' % newLine,
                     'returnString'	 : resultString ,
                     }
                   </call>

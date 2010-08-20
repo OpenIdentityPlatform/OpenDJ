@@ -25,7 +25,6 @@
 #
 get-account-status-notification-handler-prop:handler-name:Error Log Handler:account-status-notification-type:
 get-alert-handler-prop:handler-name:JMX Alert Handler:disabled-alert-type:enabled-alert-type:
-get-attribute-syntax-prop:syntax-name:Absolute Subtree Specification:enabled:java-class:
 get-attribute-syntax-prop:syntax-name:Attribute Type Description:enabled:
 get-attribute-syntax-prop:syntax-name:Authentication Password:enabled:java-class:
 get-attribute-syntax-prop:syntax-name:Binary:enabled:java-class:
@@ -62,7 +61,6 @@ get-attribute-syntax-prop:syntax-name:Postal Address:enabled:java-class:
 get-attribute-syntax-prop:syntax-name:Presentation Address:enabled:java-class:
 get-attribute-syntax-prop:syntax-name:Printable String:enabled:java-class:
 get-attribute-syntax-prop:syntax-name:Protocol Information:enabled:java-class:
-get-attribute-syntax-prop:syntax-name:Relative Subtree Specification:enabled:java-class:
 get-attribute-syntax-prop:syntax-name:Substring Assertion:enabled:java-class:
 get-attribute-syntax-prop:syntax-name:Subtree Specification:enabled:java-class:
 get-attribute-syntax-prop:syntax-name:Sun-defined Access Control Information:enabled:java-class:
