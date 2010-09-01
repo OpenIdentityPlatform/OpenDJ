@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.ldap;
@@ -47,7 +47,7 @@ final class LDAPFutureResultImpl extends AbstractLDAPFutureResultImpl<Result>
 
 
   LDAPFutureResultImpl(final int messageID, final Request request,
-      final ResultHandler<Result> resultHandler,
+      final ResultHandler<? super Result> resultHandler,
       final IntermediateResponseHandler intermediateResponseHandler,
       final AsynchronousConnection connection)
   {

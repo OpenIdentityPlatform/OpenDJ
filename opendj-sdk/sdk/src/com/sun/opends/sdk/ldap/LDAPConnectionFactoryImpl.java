@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.ldap;
@@ -62,7 +62,7 @@ public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
     implements ConnectionFactory
 {
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   private final class FutureResultImpl implements CompletionHandler<Connection>
   {
     private final FutureResultTransformer<Result, AsynchronousConnection> futureStartTLSResult;
@@ -123,6 +123,8 @@ public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
           {
             final StartTLSExtendedRequest startTLS = Requests
                 .newStartTLSExtendedRequest(options.getSSLContext());
+            startTLS.setEnabledCipherSuites(options.getEnabledCipherSuites());
+            startTLS.setEnabledProtocols(options.getEnabledProtocols());
             return connection.extendedRequest(startTLS, handler);
           }
 
@@ -131,6 +133,8 @@ public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
             try
             {
               connection.startTLS(options.getSSLContext(),
+                  options.getEnabledProtocols(),
+                  options.getEnabledCipherSuites(),
                   new EmptyCompletionHandler<SSLEngine>()
                   {
                     @Override
@@ -269,7 +273,7 @@ public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
    */
   @Override
   public FutureResult<AsynchronousConnection> getAsynchronousConnection(
-      final ResultHandler<AsynchronousConnection> handler)
+      final ResultHandler<? super AsynchronousConnection> handler)
   {
     final FutureResultImpl future = new FutureResultImpl(handler);
 

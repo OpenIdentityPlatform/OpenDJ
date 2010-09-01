@@ -29,17 +29,17 @@ package org.opends.sdk;
 
 
 
-import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.util.List;
 
+import org.opends.sdk.ldif.EntryReader;
 import org.opends.sdk.requests.Requests;
 import org.opends.sdk.responses.BindResult;
 import org.opends.sdk.responses.CompareResult;
 import org.opends.sdk.responses.Result;
-import org.opends.sdk.responses.SearchResultEntry;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -155,10 +155,11 @@ public class SynchronousConnectionTestCase extends TypesTestCase
   public void testSearchRequest() throws Exception
   {
     final SynchronousConnection con = new SynchronousConnection(asyncCon);
-    final List<SearchResultEntry> entries = con.search(
+    final EntryReader reader = con.search(
         "uid=user.0,ou=people,o=test", SearchScope.BASE_OBJECT,
         "objectclass=*", "cn");
-    assertEquals(entries.size(), 1);
+    reader.readEntry();
+    assertNull(reader.readEntry());
   }
   // TODO: add more tests.
 }

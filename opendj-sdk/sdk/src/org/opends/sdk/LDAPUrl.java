@@ -463,7 +463,7 @@ public final class LDAPUrl
     else
     {
       listenPort = port.intValue();
-      if (listenPort < 1 && listenPort > Integer.MAX_VALUE)
+      if (listenPort < 1 || listenPort > 65535)
       {
         final LocalizableMessage msg = ERR_LDAPURL_BAD_PORT.get(listenPort);
         throw new LocalizedIllegalArgumentException(msg);

@@ -22,13 +22,14 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
 
 
 
+import org.opends.sdk.responses.Result;
 import org.opends.sdk.responses.SearchResultEntry;
 import org.opends.sdk.responses.SearchResultReference;
 
@@ -48,7 +49,7 @@ import org.opends.sdk.responses.SearchResultReference;
  * avoid keeping the invoking thread from dispatching to other completion
  * handlers.
  */
-public interface SearchResultHandler
+public interface SearchResultHandler extends ResultHandler<Result>
 {
   /**
    * Invoked each time a search result entry is returned from an asynchronous

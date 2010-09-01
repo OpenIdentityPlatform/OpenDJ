@@ -56,7 +56,7 @@ public interface ServerConnection<C>
    * @throws UnsupportedOperationException
    *           If this server connection does not handle abandon requests.
    */
-  void abandon(C requestContext, AbandonRequest request)
+  void handleAbandon(C requestContext, AbandonRequest request)
       throws UnsupportedOperationException;
 
 
@@ -77,8 +77,8 @@ public interface ServerConnection<C>
    * @throws UnsupportedOperationException
    *           If this server connection does not handle add requests.
    */
-  void add(C requestContext, AddRequest request,
-      ResultHandler<Result> resultHandler,
+  void handleAdd(C requestContext, AddRequest request,
+      ResultHandler<? super Result> resultHandler,
       IntermediateResponseHandler intermediateResponseHandler)
       throws UnsupportedOperationException;
 
@@ -102,34 +102,10 @@ public interface ServerConnection<C>
    * @throws UnsupportedOperationException
    *           If this server connection does not handle bind requests.
    */
-  void bind(C requestContext, int version, BindRequest request,
+  void handleBind(C requestContext, int version, BindRequest request,
       ResultHandler<? super BindResult> resultHandler,
       IntermediateResponseHandler intermediateResponseHandler)
       throws UnsupportedOperationException;
-
-
-
-  /**
-   * Invoked when the client closes the connection, possibly using an unbind
-   * request.
-   *
-   * @param requestContext
-   *          The request context.
-   * @param request
-   *          The unbind request, which may be {@code null} if one was not sent
-   *          before the connection was closed.
-   */
-  void closed(C requestContext, UnbindRequest request);
-
-
-
-  /**
-   * Invoked when an error occurs on the connection and it is no longer usable.
-   *
-   * @param error
-   *          The exception describing the problem that occurred.
-   */
-  void closed(Throwable error);
 
 
 
@@ -149,10 +125,34 @@ public interface ServerConnection<C>
    * @throws UnsupportedOperationException
    *           If this server connection does not handle compare requests.
    */
-  void compare(C requestContext, CompareRequest request,
+  void handleCompare(C requestContext, CompareRequest request,
       ResultHandler<? super CompareResult> resultHandler,
       IntermediateResponseHandler intermediateResponseHandler)
       throws UnsupportedOperationException;
+
+
+
+  /**
+   * Invoked when the client closes the connection, possibly using an unbind
+   * request.
+   *
+   * @param requestContext
+   *          The request context.
+   * @param request
+   *          The unbind request, which may be {@code null} if one was not sent
+   *          before the connection was closed.
+   */
+  void handleConnectionClosed(C requestContext, UnbindRequest request);
+
+
+
+  /**
+   * Invoked when an error occurs on the connection and it is no longer usable.
+   *
+   * @param error
+   *          The exception describing the problem that occurred.
+   */
+  void handleConnectionException(Throwable error);
 
 
 
@@ -172,8 +172,8 @@ public interface ServerConnection<C>
    * @throws UnsupportedOperationException
    *           If this server connection does not handle delete requests.
    */
-  void delete(C requestContext, DeleteRequest request,
-      ResultHandler<Result> resultHandler,
+  void handleDelete(C requestContext, DeleteRequest request,
+      ResultHandler<? super Result> resultHandler,
       IntermediateResponseHandler intermediateResponseHandler)
       throws UnsupportedOperationException;
 
@@ -197,8 +197,8 @@ public interface ServerConnection<C>
    * @throws UnsupportedOperationException
    *           If this server connection does not handle extended requests.
    */
-  <R extends ExtendedResult> void extendedRequest(C requestContext,
-      ExtendedRequest<R> request, ResultHandler<R> resultHandler,
+  <R extends ExtendedResult> void handleExtendedRequest(C requestContext,
+      ExtendedRequest<R> request, ResultHandler<? super R> resultHandler,
       IntermediateResponseHandler intermediateResponseHandler)
       throws UnsupportedOperationException;
 
@@ -220,8 +220,8 @@ public interface ServerConnection<C>
    * @throws UnsupportedOperationException
    *           If this server connection does not handle modify requests.
    */
-  void modify(C requestContext, ModifyRequest request,
-      ResultHandler<Result> resultHandler,
+  void handleModify(C requestContext, ModifyRequest request,
+      ResultHandler<? super Result> resultHandler,
       IntermediateResponseHandler intermediateResponseHandler)
       throws UnsupportedOperationException;
 
@@ -243,8 +243,8 @@ public interface ServerConnection<C>
    * @throws UnsupportedOperationException
    *           If this server connection does not handle modify DN requests.
    */
-  void modifyDN(C requestContext, ModifyDNRequest request,
-      ResultHandler<Result> resultHandler,
+  void handleModifyDN(C requestContext, ModifyDNRequest request,
+      ResultHandler<? super Result> resultHandler,
       IntermediateResponseHandler intermediateResponseHandler)
       throws UnsupportedOperationException;
 
@@ -269,8 +269,8 @@ public interface ServerConnection<C>
    * @throws UnsupportedOperationException
    *           If this server connection does not handle search requests.
    */
-  void search(C requestContext, SearchRequest request,
-      ResultHandler<Result> resultHandler,
+  void handleSearch(C requestContext, SearchRequest request,
+      ResultHandler<? super Result> resultHandler,
       SearchResultHandler searchResulthandler,
       IntermediateResponseHandler intermediateResponseHandler)
       throws UnsupportedOperationException;

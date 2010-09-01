@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.tools;
@@ -332,7 +332,7 @@ final class ArgumentParserConnectionFactory extends AbstractConnectionFactory
    */
   @Override
   public FutureResult<AsynchronousConnection> getAsynchronousConnection(
-      final ResultHandler<AsynchronousConnection> handler)
+      final ResultHandler<? super AsynchronousConnection> handler)
   {
     return connFactory.getAsynchronousConnection(handler);
   }

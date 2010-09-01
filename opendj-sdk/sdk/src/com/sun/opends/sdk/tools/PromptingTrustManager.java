@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.tools;
@@ -161,7 +161,14 @@ final class PromptingTrustManager implements X509TrustManager
     else
     {
       final FileInputStream fos = new FileInputStream(onDiskTrustStorePath);
-      onDiskTrustStore.load(fos, DEFAULT_PASSWORD);
+      try
+      {
+        onDiskTrustStore.load(fos, DEFAULT_PASSWORD);
+      }
+      finally
+      {
+        fos.close();
+      }
     }
     final TrustManagerFactory tmf = TrustManagerFactory
         .getInstance(TrustManagerFactory.getDefaultAlgorithm());

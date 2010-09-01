@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 package org.opends.sdk.schema;
 
@@ -1462,21 +1462,21 @@ public final class Schema
 
   private static volatile Schema defaultSchema = CoreSchemaImpl.getInstance();
 
-  private static final String ATTR_ATTRIBUTE_TYPES = "attributeTypes";
+  static final String ATTR_ATTRIBUTE_TYPES = "attributeTypes";
 
-  private static final String ATTR_DIT_CONTENT_RULES = "dITContentRules";
+  static final String ATTR_DIT_CONTENT_RULES = "dITContentRules";
 
-  private static final String ATTR_DIT_STRUCTURE_RULES = "dITStructureRules";
+  static final String ATTR_DIT_STRUCTURE_RULES = "dITStructureRules";
 
-  private static final String ATTR_LDAP_SYNTAXES = "ldapSyntaxes";
+  static final String ATTR_LDAP_SYNTAXES = "ldapSyntaxes";
 
-  private static final String ATTR_MATCHING_RULE_USE = "matchingRuleUse";
+  static final String ATTR_MATCHING_RULE_USE = "matchingRuleUse";
 
-  private static final String ATTR_MATCHING_RULES = "matchingRules";
+  static final String ATTR_MATCHING_RULES = "matchingRules";
 
-  private static final String ATTR_NAME_FORMS = "nameForms";
+  static final String ATTR_NAME_FORMS = "nameForms";
 
-  private static final String ATTR_OBJECT_CLASSES = "objectClasses";
+  static final String ATTR_OBJECT_CLASSES = "objectClasses";
 
   private static final String ATTR_SUBSCHEMA_SUBENTRY = "subschemaSubentry";
 
@@ -1679,7 +1679,7 @@ public final class Schema
    */
   public static FutureResult<Schema> readSchemaForEntry(
       final AsynchronousConnection connection, final DN name,
-      final ResultHandler<Schema> handler)
+      final ResultHandler<? super Schema> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
@@ -1780,137 +1780,7 @@ public final class Schema
    */
   public static Schema valueOf(final Entry entry)
   {
-    final SchemaBuilder builder = new SchemaBuilder(entry.getName().toString());
-
-    Attribute attr = entry.getAttribute(ATTR_LDAP_SYNTAXES);
-    if (attr != null)
-    {
-      for (final ByteString def : attr)
-      {
-        try
-        {
-          builder.addSyntax(def.toString(), true);
-        }
-        catch (final LocalizedIllegalArgumentException e)
-        {
-          builder.addWarning(e.getMessageObject());
-        }
-      }
-    }
-
-    attr = entry.getAttribute(ATTR_ATTRIBUTE_TYPES);
-    if (attr != null)
-    {
-      for (final ByteString def : attr)
-      {
-        try
-        {
-          builder.addAttributeType(def.toString(), true);
-        }
-        catch (final LocalizedIllegalArgumentException e)
-        {
-          builder.addWarning(e.getMessageObject());
-        }
-      }
-    }
-
-    attr = entry.getAttribute(ATTR_OBJECT_CLASSES);
-    if (attr != null)
-    {
-      for (final ByteString def : attr)
-      {
-        try
-        {
-          builder.addObjectClass(def.toString(), true);
-        }
-        catch (final LocalizedIllegalArgumentException e)
-        {
-          builder.addWarning(e.getMessageObject());
-        }
-      }
-    }
-
-    attr = entry.getAttribute(ATTR_MATCHING_RULE_USE);
-    if (attr != null)
-    {
-      for (final ByteString def : attr)
-      {
-        try
-        {
-          builder.addMatchingRuleUse(def.toString(), true);
-        }
-        catch (final LocalizedIllegalArgumentException e)
-        {
-          builder.addWarning(e.getMessageObject());
-        }
-      }
-    }
-
-    attr = entry.getAttribute(ATTR_MATCHING_RULES);
-    if (attr != null)
-    {
-      for (final ByteString def : attr)
-      {
-        try
-        {
-          builder.addMatchingRule(def.toString(), true);
-        }
-        catch (final LocalizedIllegalArgumentException e)
-        {
-          builder.addWarning(e.getMessageObject());
-        }
-      }
-    }
-
-    attr = entry.getAttribute(ATTR_DIT_CONTENT_RULES);
-    if (attr != null)
-    {
-      for (final ByteString def : attr)
-      {
-        try
-        {
-          builder.addDITContentRule(def.toString(), true);
-        }
-        catch (final LocalizedIllegalArgumentException e)
-        {
-          builder.addWarning(e.getMessageObject());
-        }
-      }
-    }
-
-    attr = entry.getAttribute(ATTR_DIT_STRUCTURE_RULES);
-    if (attr != null)
-    {
-      for (final ByteString def : attr)
-      {
-        try
-        {
-          builder.addDITStructureRule(def.toString(), true);
-        }
-        catch (final LocalizedIllegalArgumentException e)
-        {
-          builder.addWarning(e.getMessageObject());
-        }
-      }
-    }
-
-    attr = entry.getAttribute(ATTR_NAME_FORMS);
-    if (attr != null)
-    {
-      for (final ByteString def : attr)
-      {
-        try
-        {
-          builder.addNameForm(def.toString(), true);
-        }
-        catch (final LocalizedIllegalArgumentException e)
-        {
-          builder.addWarning(e.getMessageObject());
-        }
-      }
-    }
-
-    return builder.toSchema();
+    return new SchemaBuilder(entry).toSchema();
   }
 
 
@@ -2637,6 +2507,105 @@ public final class Schema
     {
       return this;
     }
+  }
+
+
+
+  /**
+   * Adds the definitions of all the schema elements contained in this schema to
+   * the provided subschema subentry. Any existing attributes (including schema
+   * definitions) contained in the provided entry will be preserved.
+   *
+   * @param entry
+   *          The subschema subentry to which all schema definitions should be
+   *          added.
+   * @return The updated subschema subentry.
+   * @throws NullPointerException
+   *           If {@code entry} was {@code null}.
+   */
+  public Entry toEntry(Entry entry) throws NullPointerException
+  {
+    Attribute attr = new LinkedAttribute(Schema.ATTR_LDAP_SYNTAXES);
+    for (Syntax syntax : getSyntaxes())
+    {
+      attr.add(syntax.toString());
+    }
+    if (!attr.isEmpty())
+    {
+      entry.addAttribute(attr);
+    }
+
+    attr = new LinkedAttribute(Schema.ATTR_ATTRIBUTE_TYPES);
+    for (AttributeType attributeType : getAttributeTypes())
+    {
+      attr.add(attributeType.toString());
+    }
+    if (!attr.isEmpty())
+    {
+      entry.addAttribute(attr);
+    }
+
+    attr = new LinkedAttribute(Schema.ATTR_OBJECT_CLASSES);
+    for (ObjectClass objectClass : getObjectClasses())
+    {
+      attr.add(objectClass.toString());
+    }
+    if (!attr.isEmpty())
+    {
+      entry.addAttribute(attr);
+    }
+
+    attr = new LinkedAttribute(Schema.ATTR_MATCHING_RULE_USE);
+    for (MatchingRuleUse matchingRuleUse : getMatchingRuleUses())
+    {
+      attr.add(matchingRuleUse.toString());
+    }
+    if (!attr.isEmpty())
+    {
+      entry.addAttribute(attr);
+    }
+
+    attr = new LinkedAttribute(Schema.ATTR_MATCHING_RULES);
+    for (MatchingRule matchingRule : getMatchingRules())
+    {
+      attr.add(matchingRule.toString());
+    }
+    if (!attr.isEmpty())
+    {
+      entry.addAttribute(attr);
+    }
+
+    attr = new LinkedAttribute(Schema.ATTR_DIT_CONTENT_RULES);
+    for (DITContentRule ditContentRule : getDITContentRules())
+    {
+      attr.add(ditContentRule.toString());
+    }
+    if (!attr.isEmpty())
+    {
+      entry.addAttribute(attr);
+    }
+
+    attr = new LinkedAttribute(Schema.ATTR_DIT_STRUCTURE_RULES);
+    for (DITStructureRule ditStructureRule : getDITStuctureRules())
+    {
+      attr.add(ditStructureRule.toString());
+    }
+    if (!attr.isEmpty())
+    {
+      entry.addAttribute(attr);
+    }
+
+    attr = new LinkedAttribute(Schema.ATTR_NAME_FORMS);
+    for (NameForm nameForm : getNameForms())
+    {
+      attr.add(nameForm.toString());
+    }
+    if (!attr.isEmpty())
+    {
+      entry.addAttribute(attr);
+    }
+
+    return entry;
   }
 
 

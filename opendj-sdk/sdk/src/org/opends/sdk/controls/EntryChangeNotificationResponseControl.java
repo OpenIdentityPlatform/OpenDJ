@@ -157,16 +157,19 @@ public final class EntryChangeNotificationResponseControl implements Control
 
       final Schema schema = options.getSchemaResolver().resolveSchema(
           previousDNString);
-      DN previousDN;
-      try
+      DN previousDN = null;
+      if (previousDNString != null)
       {
-        previousDN = DN.valueOf(previousDNString, schema);
-      }
-      catch (final LocalizedIllegalArgumentException e)
-      {
-        final LocalizableMessage message = ERR_ECN_INVALID_PREVIOUS_DN
-            .get(getExceptionMessage(e));
-        throw DecodeException.error(message, e);
+        try
+        {
+          previousDN = DN.valueOf(previousDNString, schema);
+        }
+        catch (final LocalizedIllegalArgumentException e)
+        {
+          final LocalizableMessage message = ERR_ECN_INVALID_PREVIOUS_DN
+              .get(getExceptionMessage(e));
+          throw DecodeException.error(message, e);
+        }
       }
 
       return new EntryChangeNotificationResponseControl(control.isCritical(),

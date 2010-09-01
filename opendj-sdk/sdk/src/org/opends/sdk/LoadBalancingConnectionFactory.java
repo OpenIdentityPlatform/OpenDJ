@@ -54,7 +54,7 @@ final class LoadBalancingConnectionFactory extends AbstractConnectionFactory
 
   @Override
   public FutureResult<AsynchronousConnection> getAsynchronousConnection(
-      final ResultHandler<AsynchronousConnection> resultHandler)
+      final ResultHandler<? super AsynchronousConnection> resultHandler)
   {
     ConnectionFactory factory;
 

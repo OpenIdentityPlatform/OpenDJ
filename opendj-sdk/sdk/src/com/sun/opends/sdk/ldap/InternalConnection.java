@@ -49,7 +49,7 @@ import com.sun.opends.sdk.util.Validator;
  */
 public final class InternalConnection extends AbstractAsynchronousConnection
 {
-  private final class InternalBindFutureResultImpl extends
+  private static final class InternalBindFutureResultImpl extends
       AbstractLDAPFutureResultImpl<BindResult> implements
       FutureResult<BindResult>
   {
@@ -125,7 +125,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
       NullPointerException
   {
     final int i = messageID.getAndIncrement();
-    serverConnection.abandon(i, request);
+    serverConnection.handleAbandon(i, request);
     return new CompletedFutureResult<Void>((Void) null, i);
   }
 
@@ -135,7 +135,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
    * {@inheritDoc}
    */
   public FutureResult<Result> add(final AddRequest request,
-      final ResultHandler<Result> resultHandler,
+      final ResultHandler<? super Result> resultHandler,
       final IntermediateResponseHandler intermediateResponseHandler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
@@ -143,7 +143,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
     final int i = messageID.getAndIncrement();
     final LDAPFutureResultImpl future = new LDAPFutureResultImpl(i, request,
         resultHandler, intermediateResponseHandler, this);
-    serverConnection.add(i, request, future, future);
+    serverConnection.handleAdd(i, request, future, future);
     return future;
   }
 
@@ -173,7 +173,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
     final int i = messageID.getAndIncrement();
     final InternalBindFutureResultImpl future = new InternalBindFutureResultImpl(
         i, request, resultHandler, intermediateResponseHandler, this);
-    serverConnection.bind(i, 3, request, future, future);
+    serverConnection.handleBind(i, 3, request, future, future);
     return future;
   }
 
@@ -185,7 +185,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
   public void close(final UnbindRequest request, final String reason)
   {
     final int i = messageID.getAndIncrement();
-    serverConnection.closed(i, request);
+    serverConnection.handleConnectionClosed(i, request);
   }
 
 
@@ -202,7 +202,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
     final int i = messageID.getAndIncrement();
     final LDAPCompareFutureResultImpl future = new LDAPCompareFutureResultImpl(
         i, request, resultHandler, intermediateResponseHandler, this);
-    serverConnection.compare(i, request, future, future);
+    serverConnection.handleCompare(i, request, future, future);
     return future;
   }
 
@@ -212,7 +212,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
    * {@inheritDoc}
    */
   public FutureResult<Result> delete(final DeleteRequest request,
-      final ResultHandler<Result> resultHandler,
+      final ResultHandler<? super Result> resultHandler,
       final IntermediateResponseHandler intermediateResponseHandler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
@@ -220,7 +220,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
     final int i = messageID.getAndIncrement();
     final LDAPFutureResultImpl future = new LDAPFutureResultImpl(i, request,
         resultHandler, intermediateResponseHandler, this);
-    serverConnection.delete(i, request, future, future);
+    serverConnection.handleDelete(i, request, future, future);
     return future;
   }
 
@@ -239,7 +239,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
     final int i = messageID.getAndIncrement();
     final LDAPExtendedFutureResultImpl<R> future = new LDAPExtendedFutureResultImpl<R>(
         i, request, resultHandler, intermediateResponseHandler, this);
-    serverConnection.extendedRequest(i, request, future, future);
+    serverConnection.handleExtendedRequest(i, request, future, future);
     return future;
   }
 
@@ -271,7 +271,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
    * {@inheritDoc}
    */
   public FutureResult<Result> modify(final ModifyRequest request,
-      final ResultHandler<Result> resultHandler,
+      final ResultHandler<? super Result> resultHandler,
       final IntermediateResponseHandler intermediateResponseHandler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
@@ -279,7 +279,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
     final int i = messageID.getAndIncrement();
     final LDAPFutureResultImpl future = new LDAPFutureResultImpl(i, request,
         resultHandler, intermediateResponseHandler, this);
-    serverConnection.modify(i, request, future, future);
+    serverConnection.handleModify(i, request, future, future);
     return future;
   }
 
@@ -289,7 +289,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
    * {@inheritDoc}
    */
   public FutureResult<Result> modifyDN(final ModifyDNRequest request,
-      final ResultHandler<Result> resultHandler,
+      final ResultHandler<? super Result> resultHandler,
       final IntermediateResponseHandler intermediateResponseHandler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
@@ -297,7 +297,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
     final int i = messageID.getAndIncrement();
     final LDAPFutureResultImpl future = new LDAPFutureResultImpl(i, request,
         resultHandler, intermediateResponseHandler, this);
-    serverConnection.modifyDN(i, request, future, future);
+    serverConnection.handleModifyDN(i, request, future, future);
     return future;
   }
 
@@ -319,17 +319,15 @@ public final class InternalConnection extends AbstractAsynchronousConnection
    * {@inheritDoc}
    */
   public FutureResult<Result> search(final SearchRequest request,
-      final ResultHandler<Result> resultHandler,
-      final SearchResultHandler searchResulthandler,
+      final SearchResultHandler resultHandler,
       final IntermediateResponseHandler intermediateResponseHandler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
     final int i = messageID.getAndIncrement();
     final LDAPSearchFutureResultImpl future = new LDAPSearchFutureResultImpl(i,
-        request, resultHandler, searchResulthandler,
-        intermediateResponseHandler, this);
-    serverConnection.search(i, request, future, future, future);
+        request, resultHandler, intermediateResponseHandler, this);
+    serverConnection.handleSearch(i, request, future, future, future);
     return future;
   }
 }

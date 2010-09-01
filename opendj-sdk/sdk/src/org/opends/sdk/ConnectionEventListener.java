@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
@@ -39,16 +39,6 @@ import org.opends.sdk.responses.ExtendedResult;
  * An object that registers to be notified when a connection is closed by the
  * application, receives an unsolicited notification, or experiences a fatal
  * error.
- * <p>
- * TODO: isolate fatal connection errors as a sub-type of ErrorResultException.
- * <p>
- * TODO: do we need client initiated close notification as in JCA / JDBC? A
- * simpler approach would be for the connection pool to wrap the underlying
- * physical connection with its own. It can then intercept the close request
- * from the client. This has the disadvantage in that we lose any specialized
- * methods exposed by the underlying physical connection (i.e. if the physical
- * connection extends Connection and provides additional methods) since the
- * connection pool effectively hides them via its wrapper.
  */
 public interface ConnectionEventListener extends EventListener
 {
@@ -58,7 +48,7 @@ public interface ConnectionEventListener extends EventListener
    * notified immediately after the application calls the {@code close} method
    * on the associated connection.
    */
-  void connectionClosed();
+  void handleConnectionClosed();
 
 
 
@@ -69,10 +59,10 @@ public interface ConnectionEventListener extends EventListener
    * the provided {@link ErrorResultException} to the application.
    * <p>
    * <b>Note:</b> disconnect notifications are treated as fatal connection
-   * errors and are handled by this method. In this case {@code
-   * isDisconnectNotification} will be {@code true} and {@code error} will
-   * contain the result code and any diagnostic information contained in the
-   * notification message.
+   * errors and are handled by this method. In this case
+   * {@code isDisconnectNotification} will be {@code true} and {@code error}
+   * will contain the result code and any diagnostic information contained in
+   * the notification message.
    *
    * @param isDisconnectNotification
    *          {@code true} if the error was triggered by a disconnect
@@ -80,7 +70,7 @@ public interface ConnectionEventListener extends EventListener
    * @param error
    *          The exception that is about to be thrown to the application.
    */
-  void connectionErrorOccurred(boolean isDisconnectNotification,
+  void handleConnectionError(boolean isDisconnectNotification,
       ErrorResultException error);
 
 
@@ -90,10 +80,10 @@ public interface ConnectionEventListener extends EventListener
    * received the provided unsolicited notification from the server.
    * <p>
    * <b>Note:</b> disconnect notifications are treated as fatal connection
-   * errors and are handled by the {@link #connectionErrorOccurred} method.
+   * errors and are handled by the {@link #handleConnectionError} method.
    *
    * @param notification
-   *          The unsolicited notification
+   *          The unsolicited notification.
    */
-  void connectionReceivedUnsolicitedNotification(ExtendedResult notification);
+  void handleUnsolicitedNotification(ExtendedResult notification);
 }

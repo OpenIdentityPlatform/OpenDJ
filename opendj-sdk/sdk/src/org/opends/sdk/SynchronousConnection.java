@@ -22,22 +22,21 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
 
 
 
+import org.opends.sdk.ldif.ConnectionEntryReader;
 import org.opends.sdk.requests.*;
-import org.opends.sdk.responses.BindResult;
-import org.opends.sdk.responses.CompareResult;
-import org.opends.sdk.responses.ExtendedResult;
-import org.opends.sdk.responses.Result;
+import org.opends.sdk.responses.*;
 import org.opends.sdk.schema.Schema;
 
 import com.sun.opends.sdk.util.Validator;
 
+import java.util.concurrent.BlockingQueue;
 
 
 /**
@@ -350,8 +349,7 @@ public class SynchronousConnection extends AbstractConnection
       InterruptedException, UnsupportedOperationException,
       IllegalStateException, NullPointerException
   {
-    final FutureResult<Result> future = connection.search(request, null,
-        handler);
+    final FutureResult<Result> future = connection.search(request, handler);
     try
     {
       return future.get();
@@ -363,4 +361,15 @@ public class SynchronousConnection extends AbstractConnection
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  public ConnectionEntryReader search(final SearchRequest request,
+                            BlockingQueue<Response> entries)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException
+  {
+    return new ConnectionEntryReader(getAsynchronousConnection(),
+        request, entries);
+  }
 }

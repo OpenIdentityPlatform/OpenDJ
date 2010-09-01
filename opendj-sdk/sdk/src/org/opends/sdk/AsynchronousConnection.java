@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
@@ -120,10 +120,10 @@ public interface AsynchronousConnection extends Closeable
    * Abandons the unfinished operation identified in the provided abandon
    * request.
    * <p>
-   * Since abandon requests do not have a response, invoking the method {@code
-   * get()} on the returned future will not block, nor return anything (it is
-   * {@code Void}), but may throw an exception if a problem occurred while
-   * sending the abandon request.
+   * Since abandon requests do not have a response, invoking the method
+   * {@code get()} on the returned future will not block, nor return anything
+   * (it is {@code Void}), but may throw an exception if a problem occurred
+   * while sending the abandon request.
    * <p>
    * <b>Note:</b> a more convenient approach to abandoning unfinished operations
    * is provided via the {@link FutureResult#cancel(boolean)} method.
@@ -134,8 +134,8 @@ public interface AsynchronousConnection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support abandon operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
@@ -158,12 +158,13 @@ public interface AsynchronousConnection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support add operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
-  FutureResult<Result> add(AddRequest request, ResultHandler<Result> handler)
+  FutureResult<Result> add(AddRequest request,
+      ResultHandler<? super Result> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
@@ -184,13 +185,13 @@ public interface AsynchronousConnection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support add operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
   FutureResult<Result> add(AddRequest request,
-      ResultHandler<Result> resultHandler,
+      ResultHandler<? super Result> resultHandler,
       IntermediateResponseHandler intermediateResponseHandler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
@@ -206,8 +207,8 @@ public interface AsynchronousConnection extends Closeable
    *          The listener which wants to be notified when events occur on this
    *          connection.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If the {@code listener} was {@code null}.
    */
@@ -229,8 +230,8 @@ public interface AsynchronousConnection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support bind operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
@@ -256,8 +257,8 @@ public interface AsynchronousConnection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support bind operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
@@ -329,8 +330,8 @@ public interface AsynchronousConnection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support compare operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
@@ -357,8 +358,8 @@ public interface AsynchronousConnection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support compare operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
@@ -383,14 +384,15 @@ public interface AsynchronousConnection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support delete operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
   FutureResult<Result> delete(DeleteRequest request,
-      ResultHandler<Result> handler) throws UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+      ResultHandler<? super Result> handler)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
 
 
 
@@ -410,13 +412,13 @@ public interface AsynchronousConnection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support delete operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
   FutureResult<Result> delete(DeleteRequest request,
-      ResultHandler<Result> resultHandler,
+      ResultHandler<? super Result> resultHandler,
       IntermediateResponseHandler intermediateResponseHandler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
@@ -438,8 +440,8 @@ public interface AsynchronousConnection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support extended operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
@@ -467,8 +469,8 @@ public interface AsynchronousConnection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support extended operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
@@ -505,9 +507,9 @@ public interface AsynchronousConnection extends Closeable
 
   /**
    * Returns {@code true} if this connection has not been closed and no fatal
-   * errors have been detected. This method is guaranteed to return {@code
-   * false} only when it is called after the method {@code close} has been
-   * called.
+   * errors have been detected. This method is guaranteed to return
+   * {@code false} only when it is called after the method {@code close} has
+   * been called.
    *
    * @return {@code true} if the connection is valid, {@code false} otherwise.
    */
@@ -528,14 +530,15 @@ public interface AsynchronousConnection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support modify operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
   FutureResult<Result> modify(ModifyRequest request,
-      ResultHandler<Result> handler) throws UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+      ResultHandler<? super Result> handler)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
 
 
 
@@ -555,13 +558,13 @@ public interface AsynchronousConnection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support modify operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
   FutureResult<Result> modify(ModifyRequest request,
-      ResultHandler<Result> resultHandler,
+      ResultHandler<? super Result> resultHandler,
       IntermediateResponseHandler intermediateResponseHandler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
@@ -581,14 +584,15 @@ public interface AsynchronousConnection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support modify DN operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
   FutureResult<Result> modifyDN(ModifyDNRequest request,
-      ResultHandler<Result> handler) throws UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+      ResultHandler<? super Result> handler)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
 
 
 
@@ -608,13 +612,13 @@ public interface AsynchronousConnection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support modify DN operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
   FutureResult<Result> modifyDN(ModifyDNRequest request,
-      ResultHandler<Result> resultHandler,
+      ResultHandler<? super Result> resultHandler,
       IntermediateResponseHandler intermediateResponseHandler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
@@ -649,8 +653,8 @@ public interface AsynchronousConnection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If the {@code name} was {@code null}.
    */
@@ -676,10 +680,10 @@ public interface AsynchronousConnection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    */
-  FutureResult<RootDSE> readRootDSE(ResultHandler<RootDSE> handler)
+  FutureResult<RootDSE> readRootDSE(ResultHandler<? super RootDSE> handler)
       throws UnsupportedOperationException, IllegalStateException;
 
 
@@ -703,10 +707,10 @@ public interface AsynchronousConnection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    */
-  FutureResult<Schema> readSchema(DN name, ResultHandler<Schema> handler)
+  FutureResult<Schema> readSchema(DN name, ResultHandler<? super Schema> handler)
       throws UnsupportedOperationException, IllegalStateException;
 
 
@@ -734,10 +738,11 @@ public interface AsynchronousConnection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    */
-  FutureResult<Schema> readSchemaForEntry(DN name, ResultHandler<Schema> handler)
+  FutureResult<Schema> readSchemaForEntry(DN name,
+      ResultHandler<? super Schema> handler)
       throws UnsupportedOperationException, IllegalStateException;
 
 
@@ -765,10 +770,7 @@ public interface AsynchronousConnection extends Closeable
    *
    * @param request
    *          The search request.
-   * @param resultHandler
-   *          A result handler which can be used to asynchronously process the
-   *          operation result when it is received, may be {@code null}.
-   * @param searchResulthandler
+   * @param handler
    *          A search result handler which can be used to asynchronously
    *          process the search result entries and references as they are
    *          received, may be {@code null}.
@@ -776,14 +778,13 @@ public interface AsynchronousConnection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
   FutureResult<Result> search(SearchRequest request,
-      ResultHandler<Result> resultHandler,
-      SearchResultHandler searchResulthandler)
+      SearchResultHandler handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
@@ -795,9 +796,6 @@ public interface AsynchronousConnection extends Closeable
    * @param request
    *          The search request.
    * @param resultHandler
-   *          A result handler which can be used to asynchronously process the
-   *          operation result when it is received, may be {@code null}.
-   * @param searchResulthandler
    *          A search result handler which can be used to asynchronously
    *          process the search result entries and references as they are
    *          received, may be {@code null}.
@@ -808,14 +806,13 @@ public interface AsynchronousConnection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
   FutureResult<Result> search(SearchRequest request,
-      ResultHandler<Result> resultHandler,
-      SearchResultHandler searchResulthandler,
+      SearchResultHandler resultHandler,
       IntermediateResponseHandler intermediateResponseHandler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
@@ -841,8 +838,8 @@ public interface AsynchronousConnection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If the {@code request} was {@code null}.
    */

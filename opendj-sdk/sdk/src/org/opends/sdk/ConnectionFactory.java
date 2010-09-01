@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
@@ -66,7 +66,7 @@ public interface ConnectionFactory
    * @return A future which can be used to retrieve the asynchronous connection.
    */
   FutureResult<AsynchronousConnection> getAsynchronousConnection(
-      ResultHandler<AsynchronousConnection> handler);
+      ResultHandler<? super AsynchronousConnection> handler);
 
 
 

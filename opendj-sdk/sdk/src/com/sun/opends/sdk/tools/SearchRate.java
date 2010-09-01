@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.tools;
@@ -169,7 +169,7 @@ public final class SearchRate extends ConsoleApplication
           sr.setFilter(String.format(filter, data));
           sr.setName(String.format(baseDN, data));
         }
-        return connection.search(sr, handler, handler);
+        return connection.search(sr, handler);
       }
     }
 
@@ -393,6 +393,10 @@ public final class SearchRate extends ConsoleApplication
 
     try
     {
+      if(System.getProperty("org.opends.sdk.ldap.transport.linger") == null)
+      {
+        System.setProperty("org.opends.sdk.ldap.transport.linger", "0");
+      }
       connectionFactory = new ArgumentParserConnectionFactory(argParser, this);
       runner = new SearchPerformanceRunner(argParser, this);
 

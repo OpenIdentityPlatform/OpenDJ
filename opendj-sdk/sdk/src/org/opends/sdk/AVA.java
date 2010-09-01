@@ -164,7 +164,7 @@ public final class AVA implements Comparable<AVA>
       return;
     }
 
-    if ((length % 2) == 1)
+    if ((length % 2) != 0)
     {
       final LocalizableMessage message = ERR_HEX_DECODE_INVALID_LENGTH
           .get(hexBuffer);

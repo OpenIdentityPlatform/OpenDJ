@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.ldap;
@@ -53,14 +53,13 @@ final class LDAPSearchFutureResultImpl extends
 
 
   LDAPSearchFutureResultImpl(final int messageID, final SearchRequest request,
-      final ResultHandler<Result> resultHandler,
-      final SearchResultHandler searchResultHandler,
+      final SearchResultHandler resultHandler,
       final IntermediateResponseHandler intermediateResponseHandler,
       final AsynchronousConnection connection)
   {
     super(messageID, resultHandler, intermediateResponseHandler, connection);
     this.request = request;
-    this.searchResultHandler = searchResultHandler;
+    this.searchResultHandler = resultHandler;
   }
 
 

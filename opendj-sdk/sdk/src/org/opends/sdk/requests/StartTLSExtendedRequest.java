@@ -117,6 +117,62 @@ public interface StartTLSExtendedRequest extends
 
 
   /**
+   * Set the protocol versions enabled for secure connections with the
+   * Directory Server.
+   *
+   * The protocols must be supported by the SSLContext specified in
+   * {@link #setSSLContext(SSLContext)}. Following a successful call to
+   * this method, only the protocols listed in the protocols parameter are
+   * enabled for use.
+   *
+   * @param protocols Names of all the protocols to enable or {@code null} to
+   *                  use the default protocols.
+   * @return A reference to this LDAP connection options.
+   */
+  StartTLSExtendedRequest setEnabledProtocols(String[] protocols);
+
+
+
+  /**
+   * Set the cipher suites enabled for secure connections with the
+   * Directory Server.
+   *
+   * The suites must be supported by the SSLContext specified in
+   * {@link #setSSLContext(SSLContext)}. Following a successful call to
+   * this method, only the suites listed in the protocols parameter are
+   * enabled for use.
+   *
+   * @param suites Names of all the suites to enable or {@code null} to
+   *                  use the default cipher suites.
+   * @return A reference to this LDAP connection options.
+   */
+  StartTLSExtendedRequest setEnabledCipherSuites(String[] suites);
+
+
+
+  /**
+   * Returns the names of the protocol versions which are currently enabled
+   * for secure connections with the Directory Server.
+   *
+   * @return an array of protocols or {@code null} if the default protocols
+   * are to be used.
+   */
+  String[] getEnabledProtocols();
+
+
+
+  /**
+   * Returns the names of the protocol versions which are currently enabled
+   * for secure connections with the Directory Server.
+   *
+   * @return an array of protocols or {@code null} if the default protocols
+   * are to be used.
+   */
+  String[] getEnabledCipherSuites();
+
+
+
+  /**
    * {@inheritDoc}
    */
   ByteString getValue();

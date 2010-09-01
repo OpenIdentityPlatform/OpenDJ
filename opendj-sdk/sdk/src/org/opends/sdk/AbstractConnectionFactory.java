@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
@@ -50,7 +50,7 @@ public abstract class AbstractConnectionFactory implements ConnectionFactory
    * {@inheritDoc}
    */
   public abstract FutureResult<AsynchronousConnection> getAsynchronousConnection(
-      ResultHandler<AsynchronousConnection> handler);
+      ResultHandler<? super AsynchronousConnection> handler);
 
 
 

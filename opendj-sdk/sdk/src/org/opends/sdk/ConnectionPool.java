@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
@@ -104,7 +104,7 @@ final class ConnectionPool extends AbstractConnectionFactory
 
 
     public FutureResult<Result> add(final AddRequest request,
-        final ResultHandler<Result> handler)
+        final ResultHandler<? super Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -118,7 +118,7 @@ final class ConnectionPool extends AbstractConnectionFactory
 
 
     public FutureResult<Result> add(final AddRequest request,
-        final ResultHandler<Result> resultHandler,
+        final ResultHandler<? super Result> resultHandler,
         final IntermediateResponseHandler intermediateResponseHandler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
@@ -254,14 +254,14 @@ final class ConnectionPool extends AbstractConnectionFactory
 
 
 
-    public void connectionClosed()
+    public void handleConnectionClosed()
     {
       // Ignore - we intercept close via the close method.
     }
 
 
 
-    public void connectionErrorOccurred(final boolean isDisconnectNotification,
+    public void handleConnectionError(final boolean isDisconnectNotification,
         final ErrorResultException error)
     {
       // Remove this connection from the pool if its in there. If not,
@@ -289,7 +289,7 @@ final class ConnectionPool extends AbstractConnectionFactory
 
 
 
-    public void connectionReceivedUnsolicitedNotification(
+    public void handleUnsolicitedNotification(
         final ExtendedResult notification)
     {
       // Ignore
@@ -298,7 +298,7 @@ final class ConnectionPool extends AbstractConnectionFactory
 
 
     public FutureResult<Result> delete(final DeleteRequest request,
-        final ResultHandler<Result> handler)
+        final ResultHandler<? super Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -312,7 +312,7 @@ final class ConnectionPool extends AbstractConnectionFactory
 
 
     public FutureResult<Result> delete(final DeleteRequest request,
-        final ResultHandler<Result> resultHandler,
+        final ResultHandler<? super Result> resultHandler,
         final IntermediateResponseHandler intermediateResponseHandler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
@@ -386,7 +386,7 @@ final class ConnectionPool extends AbstractConnectionFactory
 
 
     public FutureResult<Result> modify(final ModifyRequest request,
-        final ResultHandler<Result> handler)
+        final ResultHandler<? super Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -400,7 +400,7 @@ final class ConnectionPool extends AbstractConnectionFactory
 
 
     public FutureResult<Result> modify(final ModifyRequest request,
-        final ResultHandler<Result> resultHandler,
+        final ResultHandler<? super Result> resultHandler,
         final IntermediateResponseHandler intermediateResponseHandler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
@@ -416,7 +416,7 @@ final class ConnectionPool extends AbstractConnectionFactory
 
 
     public FutureResult<Result> modifyDN(final ModifyDNRequest request,
-        final ResultHandler<Result> handler)
+        final ResultHandler<? super Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -430,7 +430,7 @@ final class ConnectionPool extends AbstractConnectionFactory
 
 
     public FutureResult<Result> modifyDN(final ModifyDNRequest request,
-        final ResultHandler<Result> resultHandler,
+        final ResultHandler<? super Result> resultHandler,
         final IntermediateResponseHandler intermediateResponseHandler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
@@ -467,7 +467,7 @@ final class ConnectionPool extends AbstractConnectionFactory
      * {@inheritDoc}
      */
     public FutureResult<RootDSE> readRootDSE(
-        final ResultHandler<RootDSE> handler)
+        final ResultHandler<? super RootDSE> handler)
         throws UnsupportedOperationException, IllegalStateException
     {
       if (isClosed())
@@ -483,7 +483,7 @@ final class ConnectionPool extends AbstractConnectionFactory
      * {@inheritDoc}
      */
     public FutureResult<Schema> readSchema(final DN name,
-        final ResultHandler<Schema> handler)
+        final ResultHandler<? super Schema> handler)
         throws UnsupportedOperationException, IllegalStateException
     {
       if (isClosed())
@@ -499,7 +499,7 @@ final class ConnectionPool extends AbstractConnectionFactory
      * {@inheritDoc}
      */
     public FutureResult<Schema> readSchemaForEntry(final DN name,
-        final ResultHandler<Schema> handler)
+        final ResultHandler<? super Schema> handler)
         throws UnsupportedOperationException, IllegalStateException
     {
       if (isClosed())
@@ -523,8 +523,7 @@ final class ConnectionPool extends AbstractConnectionFactory
 
 
     public FutureResult<Result> search(final SearchRequest request,
-        final ResultHandler<Result> resultHandler,
-        final SearchResultHandler searchResulthandler)
+        final SearchResultHandler handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -532,14 +531,13 @@ final class ConnectionPool extends AbstractConnectionFactory
       {
         throw new IllegalStateException();
       }
-      return connection.search(request, resultHandler, searchResulthandler);
+      return connection.search(request, handler);
     }
 
 
 
     public FutureResult<Result> search(final SearchRequest request,
-        final ResultHandler<Result> resultHandler,
-        final SearchResultHandler searchResulthandler,
+        final SearchResultHandler resultHandler,
         final IntermediateResponseHandler intermediateResponseHandler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
@@ -548,7 +546,7 @@ final class ConnectionPool extends AbstractConnectionFactory
       {
         throw new IllegalStateException();
       }
-      return connection.search(request, resultHandler, searchResulthandler,
+      return connection.search(request, resultHandler,
           intermediateResponseHandler);
     }
 
@@ -654,7 +652,7 @@ final class ConnectionPool extends AbstractConnectionFactory
 
   @Override
   public synchronized FutureResult<AsynchronousConnection> getAsynchronousConnection(
-      final ResultHandler<AsynchronousConnection> handler)
+      final ResultHandler<? super AsynchronousConnection> handler)
   {
     // This entire method is synchronized to ensure new connects are
     // done synchronously to avoid the "pending connect" case.

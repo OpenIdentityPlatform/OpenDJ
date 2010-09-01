@@ -33,8 +33,7 @@ import static com.sun.opends.sdk.ldap.LDAPConstants.OID_NOTICE_OF_DISCONNECTION;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
@@ -66,8 +65,8 @@ final class LDAPServerFilter extends BaseFilter
   private abstract class AbstractHandler<R extends Result> implements
       IntermediateResponseHandler, ResultHandler<R>
   {
-    protected int messageID;
-    protected Connection<?> connection;
+    protected final int messageID;
+    protected final Connection<?> connection;
 
 
 
@@ -80,6 +79,7 @@ final class LDAPServerFilter extends BaseFilter
 
 
 
+    @Override
     public boolean handleIntermediateResponse(
         final IntermediateResponse response)
     {
@@ -91,7 +91,7 @@ final class LDAPServerFilter extends BaseFilter
       }
       catch (final IOException ioe)
       {
-        closeConnection(connection, ioe);
+        notifyConnectionException(connection, ioe);
         return false;
       }
       finally
@@ -114,6 +114,7 @@ final class LDAPServerFilter extends BaseFilter
 
 
 
+    @Override
     public void handleErrorResult(final ErrorResultException error)
     {
       handleResult(error.getResult());
@@ -121,6 +122,7 @@ final class LDAPServerFilter extends BaseFilter
 
 
 
+    @Override
     public void handleResult(final Result result)
     {
       final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
@@ -131,7 +133,7 @@ final class LDAPServerFilter extends BaseFilter
       }
       catch (final IOException ioe)
       {
-        closeConnection(connection, ioe);
+        notifyConnectionException(connection, ioe);
       }
       finally
       {
@@ -151,6 +153,7 @@ final class LDAPServerFilter extends BaseFilter
 
 
 
+    @Override
     public void handleErrorResult(final ErrorResultException error)
     {
       final Result result = error.getResult();
@@ -175,6 +178,7 @@ final class LDAPServerFilter extends BaseFilter
 
 
 
+    @Override
     public void handleResult(final BindResult result)
     {
       final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
@@ -185,7 +189,7 @@ final class LDAPServerFilter extends BaseFilter
       }
       catch (final IOException ioe)
       {
-        closeConnection(connection, ioe);
+        notifyConnectionException(connection, ioe);
       }
       finally
       {
@@ -198,7 +202,16 @@ final class LDAPServerFilter extends BaseFilter
 
   private final class ClientContextImpl implements LDAPClientContext
   {
-    protected Connection<?> connection;
+    private final Connection<?> connection;
+
+    // Connection state guarded by stateLock.
+    private final Object stateLock = new Object();
+    private List<ConnectionEventListener> connectionEventListeners = null;
+    private boolean isClosed = false;
+    private Throwable connectionError = null;
+    private ExtendedResult disconnectNotification = null;
+
+    private ServerConnection<Integer> serverConnection = null;
 
 
 
@@ -209,20 +222,64 @@ final class LDAPServerFilter extends BaseFilter
 
 
 
-    public void disconnect(final boolean sendNotification)
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void addConnectionEventListener(
+        final ConnectionEventListener listener) throws NullPointerException
     {
-      if (sendNotification)
+      Validator.ensureNotNull(listener);
+
+      boolean invokeImmediately = false;
+      synchronized (stateLock)
       {
-        final GenericExtendedResult notification = Responses
-            .newGenericExtendedResult(ResultCode.SUCCESS);
-        notification.setOID(OID_NOTICE_OF_DISCONNECTION);
-        sendUnsolicitedNotification(notification);
+        if (isClosed)
+        {
+          invokeImmediately = true;
+        }
+        else
+        {
+          if (connectionEventListeners == null)
+          {
+            connectionEventListeners = new LinkedList<ConnectionEventListener>();
+          }
+          connectionEventListeners.add(listener);
+        }
       }
-      closeConnection(connection, -1, null);
+
+      // Invoke listener immediately if this connection is already closed.
+      if (invokeImmediately)
+      {
+        invokeListener(listener);
+      }
     }
 
 
 
+    @Override
+    public void disconnect()
+    {
+      LDAPServerFilter.notifyConnectionClosed(connection, -1, null);
+    }
+
+
+
+    @Override
+    public void disconnect(final ResultCode resultCode, final String message)
+    {
+      Validator.ensureNotNull(resultCode);
+
+      final GenericExtendedResult notification = Responses
+          .newGenericExtendedResult(resultCode)
+          .setOID(OID_NOTICE_OF_DISCONNECTION).setDiagnosticMessage(message);
+      sendUnsolicitedNotification(notification);
+      disconnect();
+    }
+
+
+
+    @Override
     public InetSocketAddress getLocalAddress()
     {
       return (InetSocketAddress) connection.getLocalAddress();
@@ -230,6 +287,7 @@ final class LDAPServerFilter extends BaseFilter
 
 
 
+    @Override
     public InetSocketAddress getPeerAddress()
     {
       return (InetSocketAddress) connection.getPeerAddress();
@@ -237,6 +295,7 @@ final class LDAPServerFilter extends BaseFilter
 
 
 
+    @Override
     public int getSecurityStrengthFactor()
     {
       int ssf = 0;
@@ -260,6 +319,43 @@ final class LDAPServerFilter extends BaseFilter
 
 
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isClosed()
+    {
+      final boolean tmp;
+      synchronized (stateLock)
+      {
+        tmp = isClosed;
+      }
+      return tmp;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void removeConnectionEventListener(
+        final ConnectionEventListener listener) throws NullPointerException
+    {
+      Validator.ensureNotNull(listener);
+
+      synchronized (stateLock)
+      {
+        if (connectionEventListeners != null)
+        {
+          connectionEventListeners.remove(listener);
+        }
+      }
+    }
+
+
+
+    @Override
     public void sendUnsolicitedNotification(final ExtendedResult notification)
     {
       final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
@@ -270,16 +366,49 @@ final class LDAPServerFilter extends BaseFilter
       }
       catch (final IOException ioe)
       {
-        closeConnection(connection, ioe);
+        LDAPServerFilter.notifyConnectionException(connection, ioe);
       }
       finally
       {
         asn1Writer.recycle();
       }
+
+      // Update state and notify event listeners if necessary, only if the
+      // notification was sent successfully.
+      if (notification.getOID().equals(OID_NOTICE_OF_DISCONNECTION))
+      {
+        // Don't notify listeners yet - wait for disconnect.
+        synchronized (stateLock)
+        {
+          disconnectNotification = notification;
+        }
+      }
+      else
+      {
+        // Notify listeners.
+        List<ConnectionEventListener> tmpList = null;
+        synchronized (stateLock)
+        {
+          if (!isClosed && connectionEventListeners != null)
+          {
+            tmpList = new ArrayList<ConnectionEventListener>(
+                connectionEventListeners);
+          }
+        }
+
+        if (tmpList != null)
+        {
+          for (final ConnectionEventListener listener : tmpList)
+          {
+            listener.handleUnsolicitedNotification(notification);
+          }
+        }
+      }
     }
 
 
 
+    @Override
     public void startSASL(final ConnectionSecurityLayer bindContext)
     {
       installFilter(connection, new SASLFilter(bindContext));
@@ -287,15 +416,119 @@ final class LDAPServerFilter extends BaseFilter
 
 
 
-    public void startTLS(final SSLContext sslContext)
+    @Override
+    public void startTLS(final SSLContext sslContext, final String[] protocols,
+        final String[] suites, final boolean wantClientAuth,
+        final boolean needClientAuth)
     {
       Validator.ensureNotNull(sslContext);
       SSLEngineConfigurator sslEngineConfigurator;
 
       sslEngineConfigurator = new SSLEngineConfigurator(sslContext, false,
           false, false);
+      sslEngineConfigurator.setEnabledCipherSuites(suites);
+      sslEngineConfigurator.setEnabledProtocols(protocols);
+      sslEngineConfigurator.setWantClientAuth(wantClientAuth);
+      sslEngineConfigurator.setNeedClientAuth(needClientAuth);
       installFilter(connection, new SSLFilter(sslEngineConfigurator, null));
     }
+
+
+
+    private ServerConnection<Integer> getServerConnection()
+    {
+      return serverConnection;
+    }
+
+
+
+    private void invokeListener(final ConnectionEventListener listener)
+    {
+      if (connectionError != null)
+      {
+        final Result result;
+        if (connectionError instanceof DecodeException)
+        {
+          final DecodeException e = (DecodeException) connectionError;
+          result = Responses.newResult(ResultCode.PROTOCOL_ERROR)
+              .setDiagnosticMessage(e.getMessage()).setCause(connectionError);
+        }
+        else
+        {
+          result = Responses.newResult(ResultCode.OTHER)
+              .setDiagnosticMessage(connectionError.getMessage())
+              .setCause(connectionError);
+        }
+        listener
+            .handleConnectionError(false, ErrorResultException.wrap(result));
+      }
+      else if (disconnectNotification != null)
+      {
+        listener.handleConnectionError(true,
+            ErrorResultException.wrap(disconnectNotification));
+      }
+      else
+      {
+        listener.handleConnectionClosed();
+      }
+    }
+
+
+
+    private void notifyConnectionClosed(final int messageID,
+        final UnbindRequest unbindRequest)
+    {
+      final List<ConnectionEventListener> tmpList;
+      synchronized (stateLock)
+      {
+        if (!isClosed)
+        {
+          isClosed = true;
+        }
+        tmpList = connectionEventListeners;
+        connectionEventListeners = null;
+      }
+      if (tmpList != null)
+      {
+        for (final ConnectionEventListener listener : tmpList)
+        {
+          invokeListener(listener);
+        }
+      }
+    }
+
+
+
+    private void notifyConnectionException(final Throwable error)
+    {
+      final List<ConnectionEventListener> tmpList;
+      synchronized (stateLock)
+      {
+        if (!isClosed)
+        {
+          connectionError = error;
+          isClosed = true;
+        }
+        tmpList = connectionEventListeners;
+        connectionEventListeners = null;
+      }
+      if (tmpList != null)
+      {
+        for (final ConnectionEventListener listener : tmpList)
+        {
+          invokeListener(listener);
+        }
+      }
+    }
+
+
+
+    private void setServerConnection(
+        final ServerConnection<Integer> serverConnection)
+    {
+      this.serverConnection = serverConnection;
+    }
+
   }
 
 
@@ -309,6 +542,7 @@ final class LDAPServerFilter extends BaseFilter
 
 
 
+    @Override
     public void handleErrorResult(final ErrorResultException error)
     {
       final Result result = error.getResult();
@@ -333,6 +567,7 @@ final class LDAPServerFilter extends BaseFilter
 
 
 
+    @Override
     public void handleResult(final CompareResult result)
     {
       final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
@@ -343,7 +578,7 @@ final class LDAPServerFilter extends BaseFilter
       }
       catch (final IOException ioe)
       {
-        closeConnection(connection, ioe);
+        notifyConnectionException(connection, ioe);
       }
       finally
       {
@@ -363,6 +598,7 @@ final class LDAPServerFilter extends BaseFilter
 
 
 
+    @Override
     public void handleErrorResult(final ErrorResultException error)
     {
       handleResult(error.getResult());
@@ -370,6 +606,7 @@ final class LDAPServerFilter extends BaseFilter
 
 
 
+    @Override
     public void handleResult(final Result result)
     {
       final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
@@ -380,7 +617,7 @@ final class LDAPServerFilter extends BaseFilter
       }
       catch (final IOException ioe)
       {
-        closeConnection(connection, ioe);
+        notifyConnectionException(connection, ioe);
       }
       finally
       {
@@ -401,6 +638,7 @@ final class LDAPServerFilter extends BaseFilter
 
 
 
+    @Override
     public void handleErrorResult(final ErrorResultException error)
     {
       final Result result = error.getResult();
@@ -425,6 +663,7 @@ final class LDAPServerFilter extends BaseFilter
 
 
 
+    @Override
     public void handleResult(final ExtendedResult result)
     {
       final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
@@ -435,7 +674,7 @@ final class LDAPServerFilter extends BaseFilter
       }
       catch (final IOException ioe)
       {
-        closeConnection(connection, ioe);
+        notifyConnectionException(connection, ioe);
       }
       finally
       {
@@ -455,6 +694,7 @@ final class LDAPServerFilter extends BaseFilter
 
 
 
+    @Override
     public void handleErrorResult(final ErrorResultException error)
     {
       handleResult(error.getResult());
@@ -462,6 +702,7 @@ final class LDAPServerFilter extends BaseFilter
 
 
 
+    @Override
     public void handleResult(final Result result)
     {
       final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
@@ -472,7 +713,7 @@ final class LDAPServerFilter extends BaseFilter
       }
       catch (final IOException ioe)
       {
-        closeConnection(connection, ioe);
+        notifyConnectionException(connection, ioe);
       }
       finally
       {
@@ -492,6 +733,7 @@ final class LDAPServerFilter extends BaseFilter
 
 
 
+    @Override
     public void handleErrorResult(final ErrorResultException error)
     {
       handleResult(error.getResult());
@@ -499,6 +741,7 @@ final class LDAPServerFilter extends BaseFilter
 
 
 
+    @Override
     public void handleResult(final Result result)
     {
       final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
@@ -509,7 +752,7 @@ final class LDAPServerFilter extends BaseFilter
       }
       catch (final IOException ioe)
       {
-        closeConnection(connection, ioe);
+        notifyConnectionException(connection, ioe);
       }
       finally
       {
@@ -530,6 +773,7 @@ final class LDAPServerFilter extends BaseFilter
 
 
 
+    @Override
     public boolean handleEntry(final SearchResultEntry entry)
     {
       final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
@@ -540,7 +784,7 @@ final class LDAPServerFilter extends BaseFilter
       }
       catch (final IOException ioe)
       {
-        closeConnection(connection, ioe);
+        notifyConnectionException(connection, ioe);
         return false;
       }
       finally
@@ -552,6 +796,7 @@ final class LDAPServerFilter extends BaseFilter
 
 
 
+    @Override
     public void handleErrorResult(final ErrorResultException error)
     {
       handleResult(error.getResult());
@@ -559,6 +804,7 @@ final class LDAPServerFilter extends BaseFilter
 
 
 
+    @Override
     public boolean handleReference(final SearchResultReference reference)
     {
       final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
@@ -569,7 +815,7 @@ final class LDAPServerFilter extends BaseFilter
       }
       catch (final IOException ioe)
       {
-        closeConnection(connection, ioe);
+        notifyConnectionException(connection, ioe);
         return false;
       }
       finally
@@ -581,6 +827,7 @@ final class LDAPServerFilter extends BaseFilter
 
 
 
+    @Override
     public void handleResult(final Result result)
     {
       final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
@@ -591,7 +838,7 @@ final class LDAPServerFilter extends BaseFilter
       }
       catch (final IOException ioe)
       {
-        closeConnection(connection, ioe);
+        notifyConnectionException(connection, ioe);
       }
       finally
       {
@@ -627,24 +874,101 @@ final class LDAPServerFilter extends BaseFilter
 
   private static final LDAPWriter LDAP_WRITER = new LDAPWriter();
 
-  private static final Attribute<ServerConnection<Integer>>
-    LDAP_CONNECTION_ATTR = Grizzly.DEFAULT_ATTRIBUTE_BUILDER.
-      createAttribute("LDAPServerConnection");
+  private static final Attribute<ClientContextImpl> LDAP_CONNECTION_ATTR =
+    Grizzly.DEFAULT_ATTRIBUTE_BUILDER
+      .createAttribute("LDAPServerConnection");
 
   private static final Attribute<ASN1BufferReader> LDAP_ASN1_READER_ATTR =
-    Grizzly.DEFAULT_ATTRIBUTE_BUILDER.createAttribute("LDAPASN1Reader");
+    Grizzly.DEFAULT_ATTRIBUTE_BUILDER
+      .createAttribute("LDAPASN1Reader");
 
-  private final AbstractLDAPMessageHandler<FilterChainContext>
-    serverRequestHandler = new AbstractLDAPMessageHandler<FilterChainContext>()
+
+
+  private static void notifyConnectionClosed(final Connection<?> connection,
+      final int messageID, final UnbindRequest unbindRequest)
+  {
+    final ClientContextImpl clientContext = LDAP_CONNECTION_ATTR
+        .remove(connection);
+    if (clientContext != null)
+    {
+      // First notify connection event listeners.
+      clientContext.notifyConnectionClosed(messageID, unbindRequest);
+
+      // Notify the server connection: it may be null if disconnect is invoked
+      // during accept.
+      final ServerConnection<Integer> serverConnection = clientContext
+          .getServerConnection();
+      if (serverConnection != null)
+      {
+        serverConnection.handleConnectionClosed(messageID, unbindRequest);
+      }
+
+      // If this close was a result of an unbind request then the connection
+      // won't actually be closed yet. To avoid TIME_WAIT TCP state, let the
+      // client disconnect.
+      if (unbindRequest != null)
+      {
+        return;
+      }
+
+      // Close the connection.
+      try
+      {
+        connection.close();
+      }
+      catch (final IOException e)
+      {
+        StaticUtils.DEBUG_LOG.warning("Error closing connection: " + e);
+      }
+    }
+  }
+
+
+
+  private static void notifyConnectionException(final Connection<?> connection,
+      final Throwable error)
+  {
+    final ClientContextImpl clientContext = LDAP_CONNECTION_ATTR
+        .remove(connection);
+    if (clientContext != null)
+    {
+      // First notify connection event listeners.
+      clientContext.notifyConnectionException(error);
+
+      // Notify the server connection: it may be null if disconnect is invoked
+      // during accept.
+      final ServerConnection<Integer> serverConnection = clientContext
+          .getServerConnection();
+      if (serverConnection != null)
+      {
+        serverConnection.handleConnectionException(error);
+      }
+
+      // Close the connection.
+      try
+      {
+        connection.close();
+      }
+      catch (final IOException e)
+      {
+        StaticUtils.DEBUG_LOG.warning("Error closing connection: " + e);
+      }
+    }
+  }
+
+
+
+  private final AbstractLDAPMessageHandler<FilterChainContext> serverRequestHandler =
+    new AbstractLDAPMessageHandler<FilterChainContext>()
   {
     @Override
     public void abandonRequest(final FilterChainContext ctx,
         final int messageID, final AbandonRequest request)
         throws UnexpectedRequestException
     {
-      final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR.get(ctx
-          .getConnection());
-      conn.abandon(messageID, request);
+      final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR.get(
+          ctx.getConnection()).getServerConnection();
+      conn.handleAbandon(messageID, request);
     }
 
 
@@ -653,10 +977,10 @@ final class LDAPServerFilter extends BaseFilter
     public void addRequest(final FilterChainContext ctx, final int messageID,
         final AddRequest request) throws UnexpectedRequestException
     {
-      final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR.get(ctx
-          .getConnection());
+      final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR.get(
+          ctx.getConnection()).getServerConnection();
       final AddHandler handler = new AddHandler(messageID, ctx.getConnection());
-      conn.add(messageID, request, handler, handler);
+      conn.handleAdd(messageID, request, handler, handler);
     }
 
 
@@ -666,11 +990,11 @@ final class LDAPServerFilter extends BaseFilter
         final int version, final GenericBindRequest bindContext)
         throws UnexpectedRequestException
     {
-      final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR.get(ctx
-          .getConnection());
-      final BindHandler handler = new BindHandler(messageID, ctx
-          .getConnection());
-      conn.bind(messageID, version, bindContext, handler, handler);
+      final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR.get(
+          ctx.getConnection()).getServerConnection();
+      final BindHandler handler = new BindHandler(messageID,
+          ctx.getConnection());
+      conn.handleBind(messageID, version, bindContext, handler, handler);
     }
 
 
@@ -680,11 +1004,11 @@ final class LDAPServerFilter extends BaseFilter
         final int messageID, final CompareRequest request)
         throws UnexpectedRequestException
     {
-      final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR.get(ctx
-          .getConnection());
-      final CompareHandler handler = new CompareHandler(messageID, ctx
-          .getConnection());
-      conn.compare(messageID, request, handler, handler);
+      final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR.get(
+          ctx.getConnection()).getServerConnection();
+      final CompareHandler handler = new CompareHandler(messageID,
+          ctx.getConnection());
+      conn.handleCompare(messageID, request, handler, handler);
     }
 
 
@@ -694,11 +1018,11 @@ final class LDAPServerFilter extends BaseFilter
         final int messageID, final DeleteRequest request)
         throws UnexpectedRequestException
     {
-      final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR.get(ctx
-          .getConnection());
-      final DeleteHandler handler = new DeleteHandler(messageID, ctx
-          .getConnection());
-      conn.delete(messageID, request, handler, handler);
+      final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR.get(
+          ctx.getConnection()).getServerConnection();
+      final DeleteHandler handler = new DeleteHandler(messageID,
+          ctx.getConnection());
+      conn.handleDelete(messageID, request, handler, handler);
     }
 
 
@@ -708,12 +1032,12 @@ final class LDAPServerFilter extends BaseFilter
         final FilterChainContext ctx, final int messageID,
         final ExtendedRequest<R> request) throws UnexpectedRequestException
     {
-      final ExtendedHandler<R> handler = new ExtendedHandler<R>(messageID, ctx
-          .getConnection());
+      final ExtendedHandler<R> handler = new ExtendedHandler<R>(messageID,
+          ctx.getConnection());
 
-      final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR.get(ctx
-          .getConnection());
-      conn.extendedRequest(messageID, request, handler, handler);
+      final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR.get(
+          ctx.getConnection()).getServerConnection();
+      conn.handleExtendedRequest(messageID, request, handler, handler);
     }
 
 
@@ -723,11 +1047,11 @@ final class LDAPServerFilter extends BaseFilter
         final int messageID, final ModifyDNRequest request)
         throws UnexpectedRequestException
     {
-      final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR.get(ctx
-          .getConnection());
-      final ModifyDNHandler handler = new ModifyDNHandler(messageID, ctx
-          .getConnection());
-      conn.modifyDN(messageID, request, handler, handler);
+      final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR.get(
+          ctx.getConnection()).getServerConnection();
+      final ModifyDNHandler handler = new ModifyDNHandler(messageID,
+          ctx.getConnection());
+      conn.handleModifyDN(messageID, request, handler, handler);
     }
 
 
@@ -737,11 +1061,11 @@ final class LDAPServerFilter extends BaseFilter
         final int messageID, final ModifyRequest request)
         throws UnexpectedRequestException
     {
-      final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR.get(ctx
-          .getConnection());
-      final ModifyHandler handler = new ModifyHandler(messageID, ctx
-          .getConnection());
-      conn.modify(messageID, request, handler, handler);
+      final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR.get(
+          ctx.getConnection()).getServerConnection();
+      final ModifyHandler handler = new ModifyHandler(messageID,
+          ctx.getConnection());
+      conn.handleModify(messageID, request, handler, handler);
     }
 
 
@@ -751,11 +1075,11 @@ final class LDAPServerFilter extends BaseFilter
         final int messageID, final SearchRequest request)
         throws UnexpectedRequestException
     {
-      final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR.get(ctx
-          .getConnection());
-      final SearchHandler handler = new SearchHandler(messageID, ctx
-          .getConnection());
-      conn.search(messageID, request, handler, handler, handler);
+      final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR.get(
+          ctx.getConnection()).getServerConnection();
+      final SearchHandler handler = new SearchHandler(messageID,
+          ctx.getConnection());
+      conn.handleSearch(messageID, request, handler, handler, handler);
     }
 
 
@@ -764,7 +1088,7 @@ final class LDAPServerFilter extends BaseFilter
     public void unbindRequest(final FilterChainContext ctx,
         final int messageID, final UnbindRequest request)
     {
-      closeConnection(ctx.getConnection(), messageID, request);
+      notifyConnectionClosed(ctx.getConnection(), messageID, request);
     }
 
 
@@ -774,13 +1098,14 @@ final class LDAPServerFilter extends BaseFilter
         final int messageID, final byte messageTag,
         final ByteString messageBytes)
     {
-      closeConnection(ctx.getConnection(), new UnsupportedMessageException(
-          messageID, messageTag, messageBytes));
+      notifyConnectionException(ctx.getConnection(),
+          new UnsupportedMessageException(messageID, messageTag, messageBytes));
     }
   };
-
   private final int maxASN1ElementSize;
+
   private final LDAPReader ldapReader;
+
   private final LDAPListenerImpl listener;
 
 
@@ -799,7 +1124,7 @@ final class LDAPServerFilter extends BaseFilter
   public void exceptionOccurred(final FilterChainContext ctx,
       final Throwable error)
   {
-    closeConnection(ctx.getConnection(), error);
+    notifyConnectionException(ctx.getConnection(), error);
   }
 
 
@@ -810,12 +1135,13 @@ final class LDAPServerFilter extends BaseFilter
   {
     final Connection<?> connection = ctx.getConnection();
     connection.configureBlocking(true);
-    ServerConnection<Integer> serverConn;
     try
     {
-      serverConn = listener.getConnectionFactory().accept(
-          new ClientContextImpl(connection));
-      LDAP_CONNECTION_ATTR.set(connection, serverConn);
+      final ClientContextImpl clientContext = new ClientContextImpl(connection);
+      final ServerConnection<Integer> serverConn = listener
+          .getConnectionFactory().accept(clientContext);
+      clientContext.setServerConnection(serverConn);
+      LDAP_CONNECTION_ATTR.set(connection, clientContext);
     }
     catch (final ErrorResultException e)
     {
@@ -831,7 +1157,7 @@ final class LDAPServerFilter extends BaseFilter
   public NextAction handleClose(final FilterChainContext ctx)
       throws IOException
   {
-    closeConnection(ctx.getConnection(), -1, null);
+    notifyConnectionClosed(ctx.getConnection(), -1, null);
     return ctx.getStopAction();
   }
 
@@ -863,48 +1189,6 @@ final class LDAPServerFilter extends BaseFilter
     }
 
     return ctx.getStopAction();
-  }
-
-
-
-  private void closeConnection(final Connection<?> connection,
-      final int messageID, final UnbindRequest unbindRequest)
-  {
-    final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR
-        .remove(connection);
-    if (conn != null)
-    {
-      conn.closed(messageID, unbindRequest);
-      try
-      {
-        connection.close();
-      }
-      catch (final IOException e)
-      {
-        StaticUtils.DEBUG_LOG.warning("Error closing connection: " + e);
-      }
-    }
-  }
-
-
-
-  private void closeConnection(final Connection<?> connection,
-      final Throwable error)
-  {
-    final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR
-        .remove(connection);
-    if (conn != null)
-    {
-      conn.closed(error);
-      try
-      {
-        connection.close();
-      }
-      catch (final IOException e)
-      {
-        StaticUtils.DEBUG_LOG.warning("Error closing connection: " + e);
-      }
-    }
   }
 
 

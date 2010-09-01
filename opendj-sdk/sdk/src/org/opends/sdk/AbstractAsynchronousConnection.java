@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
@@ -53,8 +53,7 @@ public abstract class AbstractAsynchronousConnection implements
 {
 
   private static final class SingleEntryFuture implements
-      FutureResult<SearchResultEntry>, ResultHandler<Result>,
-      SearchResultHandler
+      FutureResult<SearchResultEntry>, SearchResultHandler
   {
     private final ResultHandler<? super SearchResultEntry> handler;
 
@@ -231,7 +230,7 @@ public abstract class AbstractAsynchronousConnection implements
    * {@inheritDoc}
    */
   public FutureResult<Result> add(final AddRequest request,
-      final ResultHandler<Result> handler)
+      final ResultHandler<? super Result> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
@@ -280,7 +279,7 @@ public abstract class AbstractAsynchronousConnection implements
    * {@inheritDoc}
    */
   public FutureResult<Result> delete(final DeleteRequest request,
-      final ResultHandler<Result> handler)
+      final ResultHandler<? super Result> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
@@ -316,7 +315,7 @@ public abstract class AbstractAsynchronousConnection implements
    * {@inheritDoc}
    */
   public FutureResult<Result> modify(final ModifyRequest request,
-      final ResultHandler<Result> handler)
+      final ResultHandler<? super Result> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
@@ -329,7 +328,7 @@ public abstract class AbstractAsynchronousConnection implements
    * {@inheritDoc}
    */
   public FutureResult<Result> modifyDN(final ModifyDNRequest request,
-      final ResultHandler<Result> handler)
+      final ResultHandler<? super Result> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
@@ -358,7 +357,8 @@ public abstract class AbstractAsynchronousConnection implements
   /**
    * {@inheritDoc}
    */
-  public FutureResult<RootDSE> readRootDSE(final ResultHandler<RootDSE> handler)
+  public FutureResult<RootDSE> readRootDSE(
+      final ResultHandler<? super RootDSE> handler)
       throws UnsupportedOperationException, IllegalStateException
   {
     return RootDSE.readRootDSE(this, handler);
@@ -370,7 +370,7 @@ public abstract class AbstractAsynchronousConnection implements
    * {@inheritDoc}
    */
   public FutureResult<Schema> readSchema(final DN name,
-      final ResultHandler<Schema> handler)
+      final ResultHandler<? super Schema> handler)
       throws UnsupportedOperationException, IllegalStateException
   {
     return Schema.readSchema(this, name, handler);
@@ -382,7 +382,7 @@ public abstract class AbstractAsynchronousConnection implements
    * {@inheritDoc}
    */
   public FutureResult<Schema> readSchemaForEntry(final DN name,
-      final ResultHandler<Schema> handler)
+      final ResultHandler<? super Schema> handler)
       throws UnsupportedOperationException, IllegalStateException
   {
     return Schema.readSchema(this, name, handler);
@@ -394,12 +394,11 @@ public abstract class AbstractAsynchronousConnection implements
    * {@inheritDoc}
    */
   public FutureResult<Result> search(final SearchRequest request,
-      final ResultHandler<Result> resultHandler,
-      final SearchResultHandler searchResulthandler)
+      final SearchResultHandler handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
-    return search(request, resultHandler, searchResulthandler, null);
+    return search(request, handler, null);
   }
 
 
@@ -414,8 +413,7 @@ public abstract class AbstractAsynchronousConnection implements
       NullPointerException
   {
     final SingleEntryFuture innerFuture = new SingleEntryFuture(handler);
-    final FutureResult<Result> future = search(request, innerFuture,
-        innerFuture);
+    final FutureResult<Result> future = search(request, innerFuture);
     innerFuture.setResultFuture(future);
     return innerFuture;
   }

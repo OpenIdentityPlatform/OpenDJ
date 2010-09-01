@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.tools;
@@ -65,10 +65,17 @@ final class DataSource
     {
       lines = new ArrayList<String>();
       final BufferedReader in = new BufferedReader(new FileReader(file));
-      String line;
-      while ((line = in.readLine()) != null)
+      try
       {
-        lines.add(line);
+        String line;
+        while ((line = in.readLine()) != null)
+        {
+          lines.add(line);
+        }
+      }
+      finally
+      {
+        in.close();
       }
     }
 
@@ -151,10 +158,17 @@ final class DataSource
       lines = new ArrayList<String>();
       random = new Random(seed);
       final BufferedReader in = new BufferedReader(new FileReader(file));
-      String line;
-      while ((line = in.readLine()) != null)
+      try
       {
-        lines.add(line);
+        String line;
+        while ((line = in.readLine()) != null)
+        {
+          lines.add(line);
+        }
+      }
+      finally
+      {
+        in.close();
       }
     }
 
