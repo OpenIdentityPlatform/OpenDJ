@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.ldap;
@@ -31,6 +31,7 @@ package com.sun.opends.sdk.ldap;
 
 import org.opends.sdk.*;
 import org.opends.sdk.requests.ExtendedRequest;
+import org.opends.sdk.requests.StartTLSExtendedRequest;
 import org.opends.sdk.responses.ExtendedResult;
 
 
@@ -70,6 +71,16 @@ final class LDAPExtendedFutureResultImpl<R extends ExtendedResult> extends
     super.toString(sb);
     sb.append(")");
     return sb.toString();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected boolean isCancelable() {
+    return !request.getOID().equals(StartTLSExtendedRequest.OID);
   }
 
 

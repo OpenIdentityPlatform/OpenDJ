@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.tools;
@@ -334,6 +334,10 @@ public final class ModRate extends ConsoleApplication
 
     try
     {
+      if(System.getProperty("org.opends.sdk.ldap.transport.linger") == null)
+      {
+        System.setProperty("org.opends.sdk.ldap.transport.linger", "0");
+      }
       connectionFactory = new ArgumentParserConnectionFactory(argParser, this);
       runner = new ModifyPerformanceRunner(argParser, this);
       propertiesFileArgument = new StringArgument("propertiesFilePath", null,

@@ -33,16 +33,21 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
+import org.opends.sdk.requests.Requests;
+import org.opends.sdk.requests.SearchRequest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.testng.annotations.DataProvider;
 
+import javax.net.ssl.SSLContext;
 
 
 /**
  * Tests the connectionfactory classes.
  */
-public abstract class ConnectionFactoryTestCase extends SdkTestCase
+public class ConnectionFactoryTestCase extends SdkTestCase
 {
   class MyResultHandler implements ResultHandler<AsynchronousConnection>
   {
@@ -90,7 +95,63 @@ public abstract class ConnectionFactoryTestCase extends SdkTestCase
     TestCaseUtils.startServer();
   }
 
+  @DataProvider(name = "connectionFactories")
+  public Object[][] getModifyDNRequests() throws Exception
+  {
+    Object[][] factories = new Object[7][1];
 
+    // HeartBeatConnectionFactory
+    // Use custom search request.
+    SearchRequest request = Requests.newSearchRequest(
+        "uid=user.0,ou=people,o=test", SearchScope.BASE_OBJECT, "objectclass=*",
+        "cn");
+
+    factories[0][0] = new HeartBeatConnectionFactory(
+        new LDAPConnectionFactory("localhost", TestCaseUtils.getLdapPort()),
+        1000, TimeUnit.MILLISECONDS, request);
+
+    // InternalConnectionFactory
+    factories[1][0] = Connections
+      .newInternalConnectionFactory(LDAPServer.getInstance(), null);
+
+    // AuthenticatedConnectionFactory
+    factories[2][0] = new AuthenticatedConnectionFactory(
+      new LDAPConnectionFactory("localhost", TestCaseUtils.getLdapPort()),
+      Requests.newSimpleBindRequest("", ""));
+
+    // AuthenticatedConnectionFactory with multi-stage SASL
+    factories[3][0] = new AuthenticatedConnectionFactory(
+      new LDAPConnectionFactory("localhost", TestCaseUtils.getLdapPort()),
+      Requests.newCRAMMD5SASLBindRequest("id:user",
+            ByteString.valueOf("password")));
+
+    // LDAPConnectionFactory with default options
+    factories[4][0] = new LDAPConnectionFactory(
+      "localhost", TestCaseUtils.getLdapPort());
+
+    // LDAPConnectionFactory with startTLS
+    SSLContext sslContext = new SSLContextBuilder().
+        setTrustManager(TrustManagers.trustAll()).getSSLContext();
+    LDAPOptions options = new LDAPOptions().setSSLContext(sslContext).
+        setUseStartTLS(true).setEnabledCipherSuites(
+        new String[]{"SSL_DH_anon_EXPORT_WITH_DES40_CBC_SHA",
+                         "SSL_DH_anon_EXPORT_WITH_RC4_40_MD5",
+                         "SSL_DH_anon_WITH_3DES_EDE_CBC_SHA",
+                         "SSL_DH_anon_WITH_DES_CBC_SHA",
+                         "SSL_DH_anon_WITH_RC4_128_MD5",
+                         "TLS_DH_anon_WITH_AES_128_CBC_SHA",
+                         "TLS_DH_anon_WITH_AES_256_CBC_SHA"});
+    factories[5][0] = new LDAPConnectionFactory(
+        "localhost", TestCaseUtils.getLdapPort(), options);
+
+    // startTLS + SASL confidentiality
+    factories[6][0] = new AuthenticatedConnectionFactory(
+        new LDAPConnectionFactory("localhost", TestCaseUtils.getLdapPort(),
+            options), Requests.newDigestMD5SASLBindRequest("id:user",
+            ByteString.valueOf("password")));
+
+    return factories;
+  }
 
   /**
    * Tests the async connection in the blocking mode. This is not fully async as
@@ -98,10 +159,12 @@ public abstract class ConnectionFactoryTestCase extends SdkTestCase
    *
    * @throws Exception
    */
-  @Test()
-  public void testBlockingFutureNoHandler() throws Exception
+  @Test(dataProvider = "connectionFactories")
+  public void testBlockingFutureNoHandler(ConnectionFactory factory)
+      throws Exception
   {
-    final FutureResult<AsynchronousConnection> future = getAsynchronousConnection(null);
+    final FutureResult<AsynchronousConnection> future =
+        factory.getAsynchronousConnection(null);
     final AsynchronousConnection con = future.get();
     // quickly check if iit is a valid connection.
     // Don't use a result handler.
@@ -116,13 +179,15 @@ public abstract class ConnectionFactoryTestCase extends SdkTestCase
    *
    * @throws Exception
    */
-  @Test()
-  public void testNonBlockingFutureWithHandler() throws Exception
+  @Test(dataProvider = "connectionFactories")
+  public void testNonBlockingFutureWithHandler(ConnectionFactory factory)
+      throws Exception
   {
     // Use the handler to get the result asynchronously.
     final CountDownLatch latch = new CountDownLatch(1);
     final MyResultHandler handler = new MyResultHandler(latch);
-    final FutureResult<AsynchronousConnection> future = getAsynchronousConnection(handler);
+    final FutureResult<AsynchronousConnection> future =
+        factory.getAsynchronousConnection(handler);
     // Since we don't have anything to do, we would rather
     // be notified by the latch when the other thread calls our handler.
     latch.await(); // should do a timed wait rather?
@@ -140,32 +205,14 @@ public abstract class ConnectionFactoryTestCase extends SdkTestCase
    *
    * @throws Exception
    */
-  @Test()
-  public void testSynchronousConnection() throws Exception
+  @Test(dataProvider = "connectionFactories")
+  public void testSynchronousConnection(ConnectionFactory factory)
+      throws Exception
   {
-    final Connection con = getConnection();
+    final Connection con = factory.getConnection();
     assertNotNull(con);
     // quickly check if iit is a valid connection.
     assertTrue(con.readRootDSE().getEntry().getName().isRootDN());
     con.close();
   }
-
-
-
-  /**
-   * Gets the future result from the implementations.
-   *
-   * @return FutureResult.
-   */
-  protected abstract FutureResult<AsynchronousConnection> getAsynchronousConnection(
-      ResultHandler<AsynchronousConnection> handler) throws Exception;
-
-
-
-  /**
-   * Gets the connection from the implementations.
-   *
-   * @return Connection
-   */
-  protected abstract Connection getConnection() throws Exception;
 }

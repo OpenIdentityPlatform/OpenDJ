@@ -46,13 +46,45 @@ import org.opends.sdk.responses.ExtendedResult;
 public interface LDAPClientContext
 {
   /**
-   * Disconnects the client and optionally sends a disconnect notification.
+   * Registers the provided connection event listener so that it will be
+   * notified when the underlying connection is closed by the client, receives
+   * an unsolicited notification, or experiences a fatal error.
+   * <p>
+   * This method provides a event notification mechanism which can be used by
+   * asynchronous request handler implementations to detect connection
+   * termination.
    *
-   * @param sendNotification
-   *          {@code true} to send a disconnect notification, or {@code false}
-   *          otherwise.
+   * @param listener
+   *          The listener which wants to be notified when events occur on the
+   *          underlying connection.
+   * @throws NullPointerException
+   *           If the {@code listener} was {@code null}.
+   * @see #isClosed
    */
-  void disconnect(boolean sendNotification);
+  void addConnectionEventListener(ConnectionEventListener listener)
+      throws NullPointerException;
+
+
+
+  /**
+   * Disconnects the client without sending a disconnect notification.
+   */
+  void disconnect();
+
+
+
+  /**
+   * Disconnects the client and sends a disconnect notification, if possible,
+   * containing the provided result code and diagnostic message.
+   *
+   * @param resultCode
+   *          The result code which should be included with the disconnect
+   *          notification.
+   * @param message
+   *          The diagnostic message, which may be empty or {@code null}
+   *          indicating that none was provided.
+   */
+  void disconnect(ResultCode resultCode, String message);
 
 
 
@@ -86,6 +118,39 @@ public interface LDAPClientContext
 
 
   /**
+   * Returns {@code true} if the underlying connection is closed by the client,
+   * receives an unsolicited notification, or experiences a fatal error.
+   * <p>
+   * This method provides a polling mechanism which can be used by synchronous
+   * request handler implementations to detect connection termination.
+   *
+   * @return {@code true} if the underlying connection is closed by the client,
+   *         receives an unsolicited notification, or experiences a fatal error,
+   *         otherwise {@code false}.
+   * @see #addConnectionEventListener
+   */
+  boolean isClosed();
+
+
+
+  /**
+   * Removes the provided connection event listener from this client context so
+   * that it will no longer be notified when the underlying connection is closed
+   * by the application, receives an unsolicited notification, or experiences a
+   * fatal error.
+   *
+   * @param listener
+   *          The listener which no longer wants to be notified when events
+   *          occur on the underlying connection.
+   * @throws NullPointerException
+   *           If the {@code listener} was {@code null}.
+   */
+  void removeConnectionEventListener(ConnectionEventListener listener)
+      throws NullPointerException;
+
+
+
+  /**
    * Sends an unsolicited notification to the client.
    *
    * @param notification
@@ -112,7 +177,19 @@ public interface LDAPClientContext
    *
    * @param sslContext
    *          The {@code SSLContext} which should be used to secure the
-   *          connection.
+   * @param protocols
+   *          Names of all the protocols to enable or {@code null} to use the
+   *          default protocols.
+   * @param suites
+   *          Names of all the suites to enable or {@code null} to use the
+   *          default cipher suites.
+   * @param wantClientAuth
+   *          Set to {@code true} if client authentication is requested, or
+   *          {@code false} if no client authentication is desired.
+   * @param needClientAuth
+   *          Set to {@code true} if client authentication is required, or
+   *          {@code false} if no client authentication is desired.
    */
-  void startTLS(SSLContext sslContext);
+  void startTLS(SSLContext sslContext, String[] protocols, String[] suites,
+      boolean wantClientAuth, boolean needClientAuth);
 }

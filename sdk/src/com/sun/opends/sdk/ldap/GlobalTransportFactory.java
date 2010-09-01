@@ -76,6 +76,12 @@ public final class GlobalTransportFactory extends NIOTransportFactory
 
   private int selectors;
 
+  private int linger = -1;
+
+  private boolean tcpNoDelay = true;
+
+  private boolean reuseAddress = true;
+
   private TCPNIOTransport globalTCPNIOTransport = null;
 
 
@@ -117,12 +123,15 @@ public final class GlobalTransportFactory extends NIOTransportFactory
    * @return instance of TCP {@link com.sun.grizzly.Transport}.
    */
   @Override
-  public TCPNIOTransport createTCPTransport()
+  public synchronized TCPNIOTransport createTCPTransport()
   {
     if (globalTCPNIOTransport == null)
     {
       globalTCPNIOTransport = setupTransport(new TCPNIOTransport());
       globalTCPNIOTransport.setSelectorRunnersCount(selectors);
+      globalTCPNIOTransport.setLinger(linger);
+      globalTCPNIOTransport.setTcpNoDelay(tcpNoDelay);
+      globalTCPNIOTransport.setReuseAddress(reuseAddress);
 
       try
       {
@@ -177,6 +186,27 @@ public final class GlobalTransportFactory extends NIOTransportFactory
     ThreadPoolConfig.DEFAULT.setCorePoolSize(threads);
     ThreadPoolConfig.DEFAULT.setMaxPoolSize(threads);
     ThreadPoolConfig.DEFAULT.setPoolName("OpenDS SDK Worker(Grizzly)");
+
+    final String lingerStr = System
+        .getProperty("org.opends.sdk.ldap.transport.linger");
+    if (lingerStr != null)
+    {
+      linger = Integer.parseInt(lingerStr);
+    }
+
+    final String tcpNoDelayStr = System
+        .getProperty("org.opends.sdk.ldap.transport.tcpNoDelay");
+    if (tcpNoDelayStr != null)
+    {
+      tcpNoDelay = Integer.parseInt(tcpNoDelayStr) != 0;
+    }
+
+    final String reuseAddressStr = System
+        .getProperty("org.opends.sdk.ldap.transport.reuseAddress");
+    if (reuseAddressStr != null)
+    {
+      reuseAddress = Integer.parseInt(reuseAddressStr) != 0;
+    }
 
     super.initialize();
   }

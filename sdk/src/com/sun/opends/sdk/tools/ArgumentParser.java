@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package com.sun.opends.sdk.tools;
 
@@ -327,7 +327,8 @@ final class ArgumentParser
 
     if (versionArgument != null)
     {
-      if (shortID == versionArgument.getShortIdentifier())
+      if (shortID != null &&
+          shortID.equals(versionArgument.getShortIdentifier()))
       {
         // Update the version argument to not display its short
         // identifier.

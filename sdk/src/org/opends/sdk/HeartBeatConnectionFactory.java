@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
@@ -53,7 +53,7 @@ final class HeartBeatConnectionFactory extends AbstractConnectionFactory
    * operations.
    */
   private final class AsynchronousConnectionImpl implements
-      AsynchronousConnection, ConnectionEventListener, ResultHandler<Result>
+      AsynchronousConnection, ConnectionEventListener, SearchResultHandler
   {
     private final AsynchronousConnection connection;
 
@@ -80,7 +80,7 @@ final class HeartBeatConnectionFactory extends AbstractConnectionFactory
 
 
     public FutureResult<Result> add(final AddRequest request,
-        final ResultHandler<Result> handler)
+        final ResultHandler<? super Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -90,7 +90,7 @@ final class HeartBeatConnectionFactory extends AbstractConnectionFactory
 
 
     public FutureResult<Result> add(final AddRequest request,
-        final ResultHandler<Result> resultHandler,
+        final ResultHandler<? super Result> resultHandler,
         final IntermediateResponseHandler intermediateResponseHandler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
@@ -179,14 +179,14 @@ final class HeartBeatConnectionFactory extends AbstractConnectionFactory
 
 
 
-    public void connectionClosed()
+    public void handleConnectionClosed()
     {
       // Ignore - we intercept close through the close method.
     }
 
 
 
-    public void connectionErrorOccurred(final boolean isDisconnectNotification,
+    public void handleConnectionError(final boolean isDisconnectNotification,
         final ErrorResultException error)
     {
       synchronized (activeConnections)
@@ -198,7 +198,7 @@ final class HeartBeatConnectionFactory extends AbstractConnectionFactory
 
 
 
-    public void connectionReceivedUnsolicitedNotification(
+    public void handleUnsolicitedNotification(
         final ExtendedResult notification)
     {
       // Do nothing
@@ -207,7 +207,7 @@ final class HeartBeatConnectionFactory extends AbstractConnectionFactory
 
 
     public FutureResult<Result> delete(final DeleteRequest request,
-        final ResultHandler<Result> handler)
+        final ResultHandler<? super Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -217,7 +217,7 @@ final class HeartBeatConnectionFactory extends AbstractConnectionFactory
 
 
     public FutureResult<Result> delete(final DeleteRequest request,
-        final ResultHandler<Result> resultHandler,
+        final ResultHandler<? super Result> resultHandler,
         final IntermediateResponseHandler intermediateResponseHandler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
@@ -261,10 +261,32 @@ final class HeartBeatConnectionFactory extends AbstractConnectionFactory
 
 
 
+    /**
+     * {@inheritDoc}
+     */
+    public boolean handleEntry(SearchResultEntry entry)
+    {
+      // Ignore.
+      return true;
+    }
+
+
+
     public void handleErrorResult(final ErrorResultException error)
     {
       connection.close(Requests.newUnbindRequest(), "Heartbeat retured error: "
           + error);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean handleReference(SearchResultReference reference)
+    {
+      // Ignore.
+      return true;
     }
 
 
@@ -299,7 +321,7 @@ final class HeartBeatConnectionFactory extends AbstractConnectionFactory
 
 
     public FutureResult<Result> modify(final ModifyRequest request,
-        final ResultHandler<Result> handler)
+        final ResultHandler<? super Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -309,7 +331,7 @@ final class HeartBeatConnectionFactory extends AbstractConnectionFactory
 
 
     public FutureResult<Result> modify(final ModifyRequest request,
-        final ResultHandler<Result> resultHandler,
+        final ResultHandler<? super Result> resultHandler,
         final IntermediateResponseHandler intermediateResponseHandler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
@@ -321,7 +343,7 @@ final class HeartBeatConnectionFactory extends AbstractConnectionFactory
 
 
     public FutureResult<Result> modifyDN(final ModifyDNRequest request,
-        final ResultHandler<Result> handler)
+        final ResultHandler<? super Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -331,7 +353,7 @@ final class HeartBeatConnectionFactory extends AbstractConnectionFactory
 
 
     public FutureResult<Result> modifyDN(final ModifyDNRequest request,
-        final ResultHandler<Result> resultHandler,
+        final ResultHandler<? super Result> resultHandler,
         final IntermediateResponseHandler intermediateResponseHandler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
@@ -360,7 +382,7 @@ final class HeartBeatConnectionFactory extends AbstractConnectionFactory
      * {@inheritDoc}
      */
     public FutureResult<RootDSE> readRootDSE(
-        final ResultHandler<RootDSE> handler)
+        final ResultHandler<? super RootDSE> handler)
         throws UnsupportedOperationException, IllegalStateException
     {
       return connection.readRootDSE(handler);
@@ -372,7 +394,7 @@ final class HeartBeatConnectionFactory extends AbstractConnectionFactory
      * {@inheritDoc}
      */
     public FutureResult<Schema> readSchema(final DN name,
-        final ResultHandler<Schema> handler)
+        final ResultHandler<? super Schema> handler)
         throws UnsupportedOperationException, IllegalStateException
     {
       return connection.readSchema(name, handler);
@@ -384,7 +406,7 @@ final class HeartBeatConnectionFactory extends AbstractConnectionFactory
      * {@inheritDoc}
      */
     public FutureResult<Schema> readSchemaForEntry(final DN name,
-        final ResultHandler<Schema> handler)
+        final ResultHandler<? super Schema> handler)
         throws UnsupportedOperationException, IllegalStateException
     {
       return connection.readSchemaForEntry(name, handler);
@@ -401,24 +423,22 @@ final class HeartBeatConnectionFactory extends AbstractConnectionFactory
 
 
     public FutureResult<Result> search(final SearchRequest request,
-        final ResultHandler<Result> resultHandler,
-        final SearchResultHandler searchResultHandler)
+        final SearchResultHandler handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
-      return connection.search(request, resultHandler, searchResultHandler);
+      return connection.search(request, handler);
     }
 
 
 
     public FutureResult<Result> search(final SearchRequest request,
-        final ResultHandler<Result> resultHandler,
-        final SearchResultHandler searchResulthandler,
+        final SearchResultHandler resultHandler,
         final IntermediateResponseHandler intermediateResponseHandler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
-      return connection.search(request, resultHandler, searchResulthandler,
+      return connection.search(request, resultHandler,
           intermediateResponseHandler);
     }
 
@@ -590,7 +610,7 @@ final class HeartBeatConnectionFactory extends AbstractConnectionFactory
 
   @Override
   public FutureResult<AsynchronousConnection> getAsynchronousConnection(
-      final ResultHandler<AsynchronousConnection> handler)
+      final ResultHandler<? super AsynchronousConnection> handler)
   {
     final FutureResultImpl future = new FutureResultImpl(handler);
     future.setFutureResult(parentFactory.getAsynchronousConnection(future));

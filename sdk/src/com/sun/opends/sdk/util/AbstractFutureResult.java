@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.util;
@@ -125,7 +125,7 @@ public abstract class AbstractFutureResult<M> implements FutureResult<M>,
 
     boolean innerCancel(final boolean mayInterruptIfRunning)
     {
-      if (!setStatePending())
+      if (!isCancelable() || !setStatePending())
       {
         return false;
       }
@@ -405,6 +405,20 @@ public abstract class AbstractFutureResult<M> implements FutureResult<M>,
   {
     // Do nothing by default.
     return null;
+  }
+
+
+
+  /**
+   * Indicates whether this future result can be canceled.
+   *
+   * @return {@code true} if this future result is cancelable or {@code false}
+   *         otherwise.
+   */
+  protected boolean isCancelable()
+  {
+    // Return true by default.
+    return true;
   }
 
 

@@ -61,7 +61,7 @@ final class InternalConnectionFactory<C> extends AbstractConnectionFactory
 
   @Override
   public FutureResult<AsynchronousConnection> getAsynchronousConnection(
-      final ResultHandler<AsynchronousConnection> handler)
+      final ResultHandler<? super AsynchronousConnection> handler)
   {
     final ServerConnection<Integer> serverConnection;
     try

@@ -78,7 +78,7 @@ class FailoverLoadBalancingAlgorithm implements LoadBalancingAlgorithm
 
     @Override
     public FutureResult<AsynchronousConnection> getAsynchronousConnection(
-        final ResultHandler<AsynchronousConnection> resultHandler)
+        final ResultHandler<? super AsynchronousConnection> resultHandler)
     {
       final ResultHandler<AsynchronousConnection> handler =
         new ResultHandler<AsynchronousConnection>()

@@ -42,9 +42,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.LocalizableMessage;
-import org.opends.sdk.LocalizedIllegalArgumentException;
+import org.opends.sdk.*;
 
 import com.sun.opends.sdk.util.StaticUtils;
 import com.sun.opends.sdk.util.SubstringReader;
@@ -111,6 +109,152 @@ public final class SchemaBuilder
   public SchemaBuilder()
   {
     initBuilder(null);
+  }
+
+
+
+  /**
+   * Creates a new schema builder containing all of the schema elements
+   * contained in the provided a subschema subentry. Any problems encountered
+   * while parsing the entry can be retrieved using the returned schema's
+   * {@link Schema#getWarnings()} method.
+   *
+   * @param entry
+   *          The subschema subentry to be parsed.
+   * @throws NullPointerException
+   *           If {@code entry} was {@code null}.
+   */
+  public SchemaBuilder(final Entry entry) throws NullPointerException
+  {
+    initBuilder(entry.getName().toString());
+
+    Attribute attr = entry.getAttribute(Schema.ATTR_LDAP_SYNTAXES);
+    if (attr != null)
+    {
+      for (final ByteString def : attr)
+      {
+        try
+        {
+          addSyntax(def.toString(), true);
+        }
+        catch (final LocalizedIllegalArgumentException e)
+        {
+          addWarning(e.getMessageObject());
+        }
+      }
+    }
+
+    attr = entry.getAttribute(Schema.ATTR_ATTRIBUTE_TYPES);
+    if (attr != null)
+    {
+      for (final ByteString def : attr)
+      {
+        try
+        {
+          addAttributeType(def.toString(), true);
+        }
+        catch (final LocalizedIllegalArgumentException e)
+        {
+          addWarning(e.getMessageObject());
+        }
+      }
+    }
+
+    attr = entry.getAttribute(Schema.ATTR_OBJECT_CLASSES);
+    if (attr != null)
+    {
+      for (final ByteString def : attr)
+      {
+        try
+        {
+          addObjectClass(def.toString(), true);
+        }
+        catch (final LocalizedIllegalArgumentException e)
+        {
+          addWarning(e.getMessageObject());
+        }
+      }
+    }
+
+    attr = entry.getAttribute(Schema.ATTR_MATCHING_RULE_USE);
+    if (attr != null)
+    {
+      for (final ByteString def : attr)
+      {
+        try
+        {
+          addMatchingRuleUse(def.toString(), true);
+        }
+        catch (final LocalizedIllegalArgumentException e)
+        {
+          addWarning(e.getMessageObject());
+        }
+      }
+    }
+
+    attr = entry.getAttribute(Schema.ATTR_MATCHING_RULES);
+    if (attr != null)
+    {
+      for (final ByteString def : attr)
+      {
+        try
+        {
+          addMatchingRule(def.toString(), true);
+        }
+        catch (final LocalizedIllegalArgumentException e)
+        {
+          addWarning(e.getMessageObject());
+        }
+      }
+    }
+
+    attr = entry.getAttribute(Schema.ATTR_DIT_CONTENT_RULES);
+    if (attr != null)
+    {
+      for (final ByteString def : attr)
+      {
+        try
+        {
+          addDITContentRule(def.toString(), true);
+        }
+        catch (final LocalizedIllegalArgumentException e)
+        {
+          addWarning(e.getMessageObject());
+        }
+      }
+    }
+
+    attr = entry.getAttribute(Schema.ATTR_DIT_STRUCTURE_RULES);
+    if (attr != null)
+    {
+      for (final ByteString def : attr)
+      {
+        try
+        {
+          addDITStructureRule(def.toString(), true);
+        }
+        catch (final LocalizedIllegalArgumentException e)
+        {
+          addWarning(e.getMessageObject());
+        }
+      }
+    }
+
+    attr = entry.getAttribute(Schema.ATTR_NAME_FORMS);
+    if (attr != null)
+    {
+      for (final ByteString def : attr)
+      {
+        try
+        {
+          addNameForm(def.toString(), true);
+        }
+        catch (final LocalizedIllegalArgumentException e)
+        {
+          addWarning(e.getMessageObject());
+        }
+      }
+    }
   }
 
 

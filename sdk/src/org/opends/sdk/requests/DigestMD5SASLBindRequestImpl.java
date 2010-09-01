@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -122,26 +122,22 @@ final class DigestMD5SASLBindRequestImpl extends
     public boolean evaluateResult(final BindResult result)
         throws ErrorResultException
     {
-      if (result.getResultCode() == ResultCode.SASL_BIND_IN_PROGRESS
-          && result.getServerSASLCredentials() != null)
+      try
       {
-        try
-        {
-          setNextSASLCredentials(saslClient.evaluateChallenge(result
-              .getServerSASLCredentials().toByteArray()));
-          return false;
-        }
-        catch (final SaslException e)
-        {
-          // FIXME: I18N need to have a better error message.
-          // FIXME: Is this the best result code?
-          throw ErrorResultException.wrap(Responses.newResult(
-              ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
-              "An error occurred during multi-stage authentication")
-              .setCause(e));
-        }
+        setNextSASLCredentials(saslClient.evaluateChallenge(result
+            .getServerSASLCredentials() == null ? new byte[0] :
+            result.getServerSASLCredentials().toByteArray()));
+        return saslClient.isComplete();
       }
-      return true;
+      catch (final SaslException e)
+      {
+        // FIXME: I18N need to have a better error message.
+        // FIXME: Is this the best result code?
+        throw ErrorResultException.wrap(Responses.newResult(
+            ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
+            "An error occurred during multi-stage authentication")
+            .setCause(e));
+      }
     }
 
 

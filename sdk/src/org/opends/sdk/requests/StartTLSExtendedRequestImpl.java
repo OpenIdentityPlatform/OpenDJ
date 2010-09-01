@@ -98,6 +98,16 @@ final class StartTLSExtendedRequestImpl extends
 
   private SSLContext sslContext;
 
+  /**
+   * The list of cipher suite
+   */
+  private String[] enabledCipherSuites = null;
+
+  /**
+   * the list of protocols
+   */
+  private String[] enabledProtocols = null;
+
   // No need to expose this.
   private static final ExtendedResultDecoder<ExtendedResult> RESULT_DECODER = new ResultDecoder();
 
@@ -147,6 +157,48 @@ final class StartTLSExtendedRequestImpl extends
   public SSLContext getSSLContext()
   {
     return sslContext;
+  }
+
+
+
+  /**
+   * {@inheritDoc}}
+   */
+  public StartTLSExtendedRequest setEnabledProtocols(String[] protocols)
+  {
+    this.enabledProtocols = protocols;
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}}
+   */
+  public StartTLSExtendedRequest setEnabledCipherSuites(String[] suites)
+  {
+    this.enabledCipherSuites = suites;
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}}
+   */
+  public String[] getEnabledProtocols()
+  {
+    return this.enabledProtocols;
+  }
+
+
+
+  /**
+   * {@inheritDoc}}
+   */
+  public String[] getEnabledCipherSuites()
+  {
+    return this.enabledCipherSuites;
   }
 
 

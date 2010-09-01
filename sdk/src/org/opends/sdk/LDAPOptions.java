@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
@@ -49,6 +49,16 @@ public class LDAPOptions
   private long timeoutInMillis;
 
   private DecodeOptions decodeOptions;
+
+  /**
+   * The list of cipher suite
+   */
+  private String[] enabledCipherSuites = null;
+
+  /**
+   * the list of protocols
+   */
+  private String[] enabledProtocols = null;
 
 
 
@@ -80,6 +90,8 @@ public class LDAPOptions
     this.timeoutInMillis = options.timeoutInMillis;
     this.useStartTLS = options.useStartTLS;
     this.decodeOptions = new DecodeOptions(options.decodeOptions);
+    this.enabledCipherSuites = options.enabledCipherSuites;
+    this.enabledProtocols = options.enabledProtocols;
   }
 
 
@@ -222,6 +234,68 @@ public class LDAPOptions
   public final boolean useStartTLS()
   {
     return useStartTLS;
+  }
+
+  /**
+   * Set the protocol versions enabled for secure connections with the
+   * Directory Server.
+   *
+   * The protocols must be supported by the SSLContext specified in
+   * {@link #setSSLContext(SSLContext)}. Following a successful call to
+   * this method, only the protocols listed in the protocols parameter are
+   * enabled for use.
+   *
+   * @param protocols Names of all the protocols to enable or {@code null} to
+   *                  use the default protocols.
+   * @return A reference to this LDAP connection options.
+   */
+  public final LDAPOptions setEnabledProtocols(String[] protocols)
+  {
+    this.enabledProtocols = protocols;
+    return this;
+  }
+
+  /**
+   * Set the cipher suites enabled for secure connections with the
+   * Directory Server.
+   *
+   * The suites must be supported by the SSLContext specified in
+   * {@link #setSSLContext(SSLContext)}. Following a successful call to
+   * this method, only the suites listed in the protocols parameter are
+   * enabled for use.
+   *
+   * @param suites Names of all the suites to enable or {@code null} to
+   *                  use the default cipher suites.
+   * @return A reference to this LDAP connection options.
+   */
+  public final LDAPOptions setEnabledCipherSuites(String[] suites)
+  {
+    this.enabledCipherSuites = suites;
+    return this;
+  }
+
+  /**
+   * Returns the names of the protocol versions which are currently enabled
+   * for secure connections with the Directory Server.
+   *
+   * @return an array of protocols or {@code null} if the default protocols
+   * are to be used.
+   */
+  public final String[] getEnabledProtocols()
+  {
+    return this.enabledProtocols;
+  }
+
+  /**
+   * Returns the names of the protocol versions which are currently enabled
+   * for secure connections with the Directory Server.
+   *
+   * @return an array of protocols or {@code null} if the default protocols
+   * are to be used.
+   */
+  public final  String[] getEnabledCipherSuites()
+  {
+    return this.enabledCipherSuites;
   }
 
 }

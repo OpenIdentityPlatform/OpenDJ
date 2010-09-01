@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
@@ -31,8 +31,9 @@ package org.opends.sdk;
 
 import java.io.Closeable;
 import java.util.Collection;
-import java.util.List;
+import java.util.concurrent.BlockingQueue;
 
+import org.opends.sdk.ldif.ConnectionEntryReader;
 import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.*;
 import org.opends.sdk.schema.Schema;
@@ -1102,21 +1103,19 @@ public interface Connection extends Closeable
 
   /**
    * Searches the Directory Server using the provided search parameters. Any
-   * matching entries returned by the search will be added to a {@code List}
-   * which is returned if the search succeeds. Search result references will be
-   * discarded.
+   * matching entries returned by the search will be exposed through the
+   * {@code EntryReader} interface.
    * <p>
-   * <b>Warning:</b> Usage of this method is discouraged if the search request
-   * is expected to yield a large number of search results since the entire set
-   * of results will be stored in memory, potentially causing an {@code
-   * OutOfMemoryError}.
+   * <b>Warning:</b> When using a queue with an optional capacity bound,
+   * the connection will stop reading responses and wait if necessary for
+   * space to become available.
    * <p>
    * This method is equivalent to the following code:
    *
    * <pre>
    * SearchRequest request = new SearchRequest(baseDN, scope, filter,
    *     attributeDescriptions);
-   * connection.search(request, new LinkedList&lt;SearchResultEntry&gt;());
+   * connection.search(request, new LinkedBlockingQueue&lt;Response&gt;());
    * </pre>
    *
    * @param baseObject
@@ -1129,16 +1128,7 @@ public interface Connection extends Closeable
    *          order for an entry to be returned.
    * @param attributeDescriptions
    *          The names of the attributes to be included with each entry.
-   * @return A list containing any matching entries returned by the search.
-   * @throws ErrorResultException
-   *           If the result code indicates that the request failed for some
-   *           reason.
-   * @throws InterruptedException
-   *           If the current thread was interrupted while waiting.
-   * @throws LocalizedIllegalArgumentException
-   *           If {@code baseObject} could not be decoded using the default
-   *           schema or if {@code filter} is not a valid LDAP string
-   *           representation of a filter.
+   * @return An entry reader exposing the returned entries.
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
    * @throws IllegalStateException
@@ -1148,12 +1138,38 @@ public interface Connection extends Closeable
    *           If the {@code baseObject}, {@code scope}, or {@code filter} were
    *           {@code null}.
    */
-  List<SearchResultEntry> search(String baseObject, SearchScope scope,
+  ConnectionEntryReader search(String baseObject, SearchScope scope,
       String filter, String... attributeDescriptions)
-      throws ErrorResultException, InterruptedException,
-      LocalizedIllegalArgumentException, UnsupportedOperationException,
+      throws UnsupportedOperationException,
       IllegalStateException, NullPointerException;
 
+
+  /**
+   * Searches the Directory Server using the provided search parameters. Any
+   * matching entries returned by the search will be exposed through the
+   * {@code EntryReader} interface.
+   * <p>
+   * <b>Warning:</b> When using a queue with an optional capacity bound,
+   * the connection will stop reading responses and wait if necessary for
+   * space to become available.
+   *
+   * @param request
+   *          The search request.
+   * @param entries
+   *          The queue to which matching entries should be added.
+   * @return The result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support search operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if {@code
+   *           isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code request} or {@code entries} was {@code null}.
+   */
+  ConnectionEntryReader search(SearchRequest request,
+                               BlockingQueue<Response> entries)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
 
 
   /**

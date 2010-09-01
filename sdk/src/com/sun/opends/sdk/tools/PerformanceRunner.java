@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.tools;
@@ -214,8 +214,8 @@ abstract class PerformanceRunner implements ConnectionEventListener
         if (successCount > 0)
         {
           strings[2] = String.format("%.3f",
-              (waitTime - (gcDuration - lastGCDuration)) / successCount
-                  / 1000000.0);
+              (waitTime - (gcDuration - lastGCDuration))
+                  / (double) successCount / 1000000.0);
         }
         else
         {
@@ -224,7 +224,7 @@ abstract class PerformanceRunner implements ConnectionEventListener
         if (totalSuccessCount > 0)
         {
           strings[3] = String.format("%.3f", (totalWaitTime - gcDuration)
-              / totalSuccessCount / 1000000.0);
+              / (double) totalSuccessCount / 1000000.0);
         }
         else
         {
@@ -438,7 +438,8 @@ abstract class PerformanceRunner implements ConnectionEventListener
       R handler;
 
       final double targetTimeInMS =
-        (1.0 / (targetThroughput / (numThreads * numConnections))) * 1000.0;
+        (1.0 / (targetThroughput /
+            (double) (numThreads * numConnections))) * 1000.0;
       double sleepTimeInMS = 0;
       long start;
       while (!stopRequested && !(maxIterations > 0 && count >= maxIterations))
@@ -706,7 +707,7 @@ abstract class PerformanceRunner implements ConnectionEventListener
       int parent;
       while (child > start)
       {
-        parent = (int) Math.floor((child - 1) / 2);
+        parent = (int) Math.floor((child - 1) / 2.0);
         if (get(parent) > get(child))
         {
           swap(parent, child);
@@ -865,14 +866,14 @@ abstract class PerformanceRunner implements ConnectionEventListener
 
 
 
-  public void connectionClosed()
+  public void handleConnectionClosed()
   {
     // Ignore
   }
 
 
 
-  public synchronized void connectionErrorOccurred(
+  public synchronized void handleConnectionError(
       final boolean isDisconnectNotification, final ErrorResultException error)
   {
     if (!stopRequested)
@@ -889,7 +890,7 @@ abstract class PerformanceRunner implements ConnectionEventListener
 
 
 
-  public void connectionReceivedUnsolicitedNotification(
+  public void handleUnsolicitedNotification(
       final ExtendedResult notification)
   {
     // Ignore

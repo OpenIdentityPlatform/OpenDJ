@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
@@ -34,9 +34,10 @@ import static com.sun.opends.sdk.messages.Messages.ERR_UNEXPECTED_SEARCH_RESULT_
 import static com.sun.opends.sdk.messages.Messages.ERR_UNEXPECTED_SEARCH_RESULT_REFERENCES;
 
 import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
+import org.opends.sdk.ldif.ConnectionEntryReader;
 import org.opends.sdk.requests.Requests;
 import org.opends.sdk.requests.SearchRequest;
 import org.opends.sdk.responses.*;
@@ -82,6 +83,26 @@ public abstract class AbstractConnection implements Connection
         firstReference = reference;
       }
       return true;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void handleErrorResult(ErrorResultException error)
+    {
+      // Ignore.
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void handleResult(Result result)
+    {
+      // Ignore.
     }
 
   }
@@ -353,6 +374,26 @@ public abstract class AbstractConnection implements Connection
         }
         return true;
       }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      public void handleErrorResult(ErrorResultException error)
+      {
+        // Ignore.
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      public void handleResult(Result result)
+      {
+        // Ignore.
+      }
     };
 
     return search(request, handler);
@@ -363,18 +404,16 @@ public abstract class AbstractConnection implements Connection
   /**
    * {@inheritDoc}
    */
-  public List<SearchResultEntry> search(final String baseObject,
+  public ConnectionEntryReader search(final String baseObject,
       final SearchScope scope, final String filter,
-      final String... attributeDescriptions) throws ErrorResultException,
-      InterruptedException, LocalizedIllegalArgumentException,
-      UnsupportedOperationException, IllegalStateException,
+      final String... attributeDescriptions)
+      throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
-    final List<SearchResultEntry> entries = new LinkedList<SearchResultEntry>();
+    final BlockingQueue<Response> entries = new LinkedBlockingQueue<Response>();
     final SearchRequest request = Requests.newSearchRequest(baseObject, scope,
         filter, attributeDescriptions);
-    search(request, entries);
-    return entries;
+    return search(request, entries);
   }
 
 

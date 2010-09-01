@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
@@ -85,7 +85,7 @@ final class AuthenticatedConnectionFactory extends AbstractConnectionFactory
 
 
     public FutureResult<Result> add(final AddRequest request,
-        final ResultHandler<Result> handler)
+        final ResultHandler<? super Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -95,7 +95,7 @@ final class AuthenticatedConnectionFactory extends AbstractConnectionFactory
 
 
     public FutureResult<Result> add(final AddRequest request,
-        final ResultHandler<Result> resultHandler,
+        final ResultHandler<? super Result> resultHandler,
         final IntermediateResponseHandler intermediateResponseHandler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
@@ -179,7 +179,7 @@ final class AuthenticatedConnectionFactory extends AbstractConnectionFactory
 
 
     public FutureResult<Result> delete(final DeleteRequest request,
-        final ResultHandler<Result> handler)
+        final ResultHandler<? super Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -189,7 +189,7 @@ final class AuthenticatedConnectionFactory extends AbstractConnectionFactory
 
 
     public FutureResult<Result> delete(final DeleteRequest request,
-        final ResultHandler<Result> resultHandler,
+        final ResultHandler<? super Result> resultHandler,
         final IntermediateResponseHandler intermediateResponseHandler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
@@ -254,7 +254,7 @@ final class AuthenticatedConnectionFactory extends AbstractConnectionFactory
 
 
     public FutureResult<Result> modify(final ModifyRequest request,
-        final ResultHandler<Result> handler)
+        final ResultHandler<? super Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -264,7 +264,7 @@ final class AuthenticatedConnectionFactory extends AbstractConnectionFactory
 
 
     public FutureResult<Result> modify(final ModifyRequest request,
-        final ResultHandler<Result> resultHandler,
+        final ResultHandler<? super Result> resultHandler,
         final IntermediateResponseHandler intermediateResponseHandler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
@@ -276,7 +276,7 @@ final class AuthenticatedConnectionFactory extends AbstractConnectionFactory
 
 
     public FutureResult<Result> modifyDN(final ModifyDNRequest request,
-        final ResultHandler<Result> handler)
+        final ResultHandler<? super Result> handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
@@ -286,7 +286,7 @@ final class AuthenticatedConnectionFactory extends AbstractConnectionFactory
 
 
     public FutureResult<Result> modifyDN(final ModifyDNRequest request,
-        final ResultHandler<Result> resultHandler,
+        final ResultHandler<? super Result> resultHandler,
         final IntermediateResponseHandler intermediateResponseHandler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
@@ -315,7 +315,7 @@ final class AuthenticatedConnectionFactory extends AbstractConnectionFactory
      * {@inheritDoc}
      */
     public FutureResult<RootDSE> readRootDSE(
-        final ResultHandler<RootDSE> handler)
+        final ResultHandler<? super RootDSE> handler)
         throws UnsupportedOperationException, IllegalStateException
     {
       return connection.readRootDSE(handler);
@@ -327,7 +327,7 @@ final class AuthenticatedConnectionFactory extends AbstractConnectionFactory
      * {@inheritDoc}
      */
     public FutureResult<Schema> readSchema(final DN name,
-        final ResultHandler<Schema> handler)
+        final ResultHandler<? super Schema> handler)
         throws UnsupportedOperationException, IllegalStateException
     {
       return connection.readSchema(name, handler);
@@ -339,7 +339,7 @@ final class AuthenticatedConnectionFactory extends AbstractConnectionFactory
      * {@inheritDoc}
      */
     public FutureResult<Schema> readSchemaForEntry(final DN name,
-        final ResultHandler<Schema> handler)
+        final ResultHandler<? super Schema> handler)
         throws UnsupportedOperationException, IllegalStateException
     {
       return connection.readSchemaForEntry(name, handler);
@@ -356,24 +356,22 @@ final class AuthenticatedConnectionFactory extends AbstractConnectionFactory
 
 
     public FutureResult<Result> search(final SearchRequest request,
-        final ResultHandler<Result> resultHandler,
-        final SearchResultHandler searchResulthandler)
+        final SearchResultHandler handler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
-      return connection.search(request, resultHandler, searchResulthandler);
+      return connection.search(request, handler);
     }
 
 
 
     public FutureResult<Result> search(final SearchRequest request,
-        final ResultHandler<Result> resultHandler,
-        final SearchResultHandler searchResulthandler,
+        final SearchResultHandler resultHandler,
         final IntermediateResponseHandler intermediateResponseHandler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
-      return connection.search(request, resultHandler, searchResulthandler,
+      return connection.search(request, resultHandler,
           intermediateResponseHandler);
     }
 
@@ -496,7 +494,7 @@ final class AuthenticatedConnectionFactory extends AbstractConnectionFactory
    */
   @Override
   public FutureResult<AsynchronousConnection> getAsynchronousConnection(
-      final ResultHandler<AsynchronousConnection> handler)
+      final ResultHandler<? super AsynchronousConnection> handler)
   {
     final FutureResultImpl future = new FutureResultImpl(request, handler);
     future.futureConnectionResult.setFutureResult(parentFactory

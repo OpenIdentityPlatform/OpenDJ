@@ -63,15 +63,17 @@ public class DummyServer implements
 
 
 
-    public void abandon(final Integer context, final AbandonRequest request)
-        throws UnsupportedOperationException
+    @Override
+    public void handleAbandon(final Integer context,
+        final AbandonRequest request) throws UnsupportedOperationException
     {
     }
 
 
 
-    public void add(final Integer context, final AddRequest request,
-        final ResultHandler<Result> handler,
+    @Override
+    public void handleAdd(final Integer context, final AddRequest request,
+        final ResultHandler<? super Result> handler,
         final IntermediateResponseHandler intermediateResponseHandler)
         throws UnsupportedOperationException
     {
@@ -79,7 +81,8 @@ public class DummyServer implements
 
 
 
-    public void bind(final Integer context, final int version,
+    @Override
+    public void handleBind(final Integer context, final int version,
         final BindRequest request,
         final ResultHandler<? super BindResult> resultHandler,
         final IntermediateResponseHandler intermediateResponseHandler)
@@ -90,21 +93,9 @@ public class DummyServer implements
 
 
 
-    public void closed(final Integer context, final UnbindRequest request)
-    {
-      System.out.println(request);
-    }
-
-
-
-    public void closed(final Throwable error)
-    {
-      System.out.println(error);
-    }
-
-
-
-    public void compare(final Integer context, final CompareRequest request,
+    @Override
+    public void handleCompare(final Integer context,
+        final CompareRequest request,
         final ResultHandler<? super CompareResult> resultHandler,
         final IntermediateResponseHandler intermediateResponseHandler)
         throws UnsupportedOperationException
@@ -113,8 +104,27 @@ public class DummyServer implements
 
 
 
-    public void delete(final Integer context, final DeleteRequest request,
-        final ResultHandler<Result> handler,
+    @Override
+    public void handleConnectionClosed(final Integer context,
+        final UnbindRequest request)
+    {
+      System.out.println(request);
+    }
+
+
+
+    @Override
+    public void handleConnectionException(final Throwable error)
+    {
+      System.out.println(error);
+    }
+
+
+
+    @Override
+    public void handleDelete(final Integer context,
+        final DeleteRequest request,
+        final ResultHandler<? super Result> handler,
         final IntermediateResponseHandler intermediateResponseHandler)
         throws UnsupportedOperationException
     {
@@ -122,9 +132,10 @@ public class DummyServer implements
 
 
 
-    public <R extends ExtendedResult> void extendedRequest(
+    @Override
+    public <R extends ExtendedResult> void handleExtendedRequest(
         final Integer context, final ExtendedRequest<R> request,
-        final ResultHandler<R> resultHandler,
+        final ResultHandler<? super R> resultHandler,
         final IntermediateResponseHandler intermediateResponseHandler)
         throws UnsupportedOperationException
     {
@@ -133,14 +144,16 @@ public class DummyServer implements
         final R result = request.getResultDecoder().adaptExtendedErrorResult(
             ResultCode.SUCCESS, "", "");
         resultHandler.handleResult(result);
-        clientContext.startTLS(sslContext);
+        clientContext.startTLS(sslContext, null, null, false, false);
       }
     }
 
 
 
-    public void modify(final Integer context, final ModifyRequest request,
-        final ResultHandler<Result> resultHandler,
+    @Override
+    public void handleModify(final Integer context,
+        final ModifyRequest request,
+        final ResultHandler<? super Result> resultHandler,
         final IntermediateResponseHandler intermediateResponseHandler)
         throws UnsupportedOperationException
     {
@@ -148,8 +161,10 @@ public class DummyServer implements
 
 
 
-    public void modifyDN(final Integer context, final ModifyDNRequest request,
-        final ResultHandler<Result> resultHandler,
+    @Override
+    public void handleModifyDN(final Integer context,
+        final ModifyDNRequest request,
+        final ResultHandler<? super Result> resultHandler,
         final IntermediateResponseHandler intermediateResponseHandler)
         throws UnsupportedOperationException
     {
@@ -157,8 +172,10 @@ public class DummyServer implements
 
 
 
-    public void search(final Integer context, final SearchRequest request,
-        final ResultHandler<Result> resultHandler,
+    @Override
+    public void handleSearch(final Integer context,
+        final SearchRequest request,
+        final ResultHandler<? super Result> resultHandler,
         final SearchResultHandler searchResulthandler,
         final IntermediateResponseHandler intermediateResponseHandler)
         throws UnsupportedOperationException
@@ -252,6 +269,7 @@ public class DummyServer implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public ServerConnection<Integer> accept(final LDAPClientContext context)
   {
     System.out.println("Connection from: " + context.getPeerAddress());

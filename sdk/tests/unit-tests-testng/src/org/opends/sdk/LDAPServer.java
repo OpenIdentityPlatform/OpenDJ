@@ -29,13 +29,19 @@ package org.opends.sdk;
 
 
 
+import static com.sun.opends.sdk.ldap.LDAPConstants.TYPE_AUTHENTICATION_SASL;
+
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.net.ssl.SSLContext;
+import javax.security.auth.callback.*;
+import javax.security.sasl.*;
+
+import org.opends.sdk.asn1.ASN1;
+import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.controls.Control;
 import org.opends.sdk.controls.ControlDecoder;
 import org.opends.sdk.requests.*;
@@ -53,7 +59,7 @@ import com.sun.opends.sdk.ldap.GrizzlyLDAPListenerOptions;
  * A simple ldap server that manages 1000 entries and used for running
  * testcases. //FIXME: make it MT-safe.
  */
-public class LDAPServer implements ServerConnection<Integer>,
+public class LDAPServer implements
     ServerConnectionFactory<LDAPClientContext, Integer>
 {
   // Creates an abandonable request from the ordinary requests.
@@ -132,6 +138,525 @@ public class LDAPServer implements ServerConnection<Integer>,
 
 
 
+  private class LDAPServerConnection implements ServerConnection<Integer>
+  {
+
+    private final LDAPClientContext clientContext;
+    private SaslServer saslServer;
+
+
+
+    private LDAPServerConnection(LDAPClientContext clientContext)
+    {
+      this.clientContext = clientContext;
+    }
+
+
+
+    /**
+     * Abandons the request sent by the client.
+     *
+     * @param context
+     * @param request
+     * @throws UnsupportedOperationException
+     */
+    public void handleAbandon(final Integer context,
+        final AbandonRequest request) throws UnsupportedOperationException
+    {
+      // Check if we have any concurrent operation with this message id.
+      final AbandonableRequest req = requestsInProgress.get(context);
+      if (req == null)
+      {
+        // Nothing to do here.
+        return;
+      }
+      // Cancel the request
+      req.cancel();
+      // No response is needed.
+    }
+
+
+
+    /**
+     * Adds the request sent by the client.
+     *
+     * @param context
+     * @param request
+     * @param handler
+     * @param intermediateResponseHandler
+     * @throws UnsupportedOperationException
+     */
+    public void handleAdd(final Integer context, final AddRequest request,
+        final ResultHandler<? super Result> handler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException
+    {
+      Result result = null;
+      final AbandonableRequest abReq = new AbandonableRequest(request);
+      requestsInProgress.put(context, abReq);
+      // Get the DN.
+      final DN dn = request.getName();
+      if (entryMap.containsKey(dn))
+      {
+        // duplicate entry.
+        result = Responses.newResult(ResultCode.ENTRY_ALREADY_EXISTS);
+        final ErrorResultException ere = ErrorResultException.wrap(result);
+        handler.handleErrorResult(ere);
+        // doesn't matter if it was canceled.
+        requestsInProgress.remove(context);
+        return;
+      }
+
+      // Create an entry out of this request.
+      final SearchResultEntry entry = Responses.newSearchResultEntry(dn);
+      for (final Control control : request.getControls())
+      {
+        entry.addControl(control);
+      }
+
+      for (final Attribute attr : request.getAllAttributes())
+      {
+        entry.addAttribute(attr);
+      }
+
+      if (abReq.isCanceled())
+      {
+        result = Responses.newResult(ResultCode.CANCELLED);
+        final ErrorResultException ere = ErrorResultException.wrap(result);
+        handler.handleErrorResult(ere);
+        requestsInProgress.remove(context);
+        return;
+      }
+      // Add this to the map.
+      entryMap.put(dn, entry);
+      requestsInProgress.remove(context);
+      result = Responses.newResult(ResultCode.SUCCESS);
+      handler.handleResult(result);
+    }
+
+
+
+    /**
+     * @param context
+     * @param version
+     * @param request
+     * @param resultHandler
+     * @param intermediateResponseHandler
+     * @throws UnsupportedOperationException
+     */
+    public void handleBind(final Integer context, final int version,
+        final BindRequest request,
+        final ResultHandler<? super BindResult> resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException
+    {
+      // TODO: all bind types.
+      final AbandonableRequest abReq = new AbandonableRequest(request);
+      requestsInProgress.put(context, abReq);
+      if (request.getAuthenticationType() == TYPE_AUTHENTICATION_SASL
+          && request instanceof GenericBindRequest)
+      {
+        ASN1Reader reader = ASN1.getReader(((GenericBindRequest) request)
+            .getAuthenticationValue());
+        try
+        {
+          String saslMech = reader.readOctetStringAsString();
+          ByteString saslCred;
+          if (reader.hasNextElement())
+          {
+            saslCred = reader.readOctetString();
+          }
+          else
+          {
+            saslCred = ByteString.empty();
+          }
+
+          if (saslServer == null
+              || !saslServer.getMechanismName().equalsIgnoreCase(saslMech))
+          {
+            final Map<String, String> props = new HashMap<String, String>();
+            props.put(Sasl.QOP, "auth-conf,auth-int,auth");
+            saslServer = Sasl.createSaslServer(saslMech, "ldap", clientContext
+                .getLocalAddress().getHostName(), props, new CallbackHandler()
+            {
+              public void handle(Callback[] callbacks) throws IOException,
+                  UnsupportedCallbackException
+              {
+                for (final Callback callback : callbacks)
+                {
+                  if (callback instanceof NameCallback)
+                  {
+                    // Do nothing
+                  }
+                  else if (callback instanceof PasswordCallback)
+                  {
+                    ((PasswordCallback) callback).setPassword("password"
+                        .toCharArray());
+                  }
+                  else if (callback instanceof AuthorizeCallback)
+                  {
+                    ((AuthorizeCallback) callback).setAuthorized(true);
+                  }
+                  else if (callback instanceof RealmCallback)
+                  {
+                    // Do nothing
+                  }
+                  else
+                  {
+                    throw new UnsupportedCallbackException(callback);
+
+                  }
+                }
+              }
+            });
+          }
+
+          byte[] challenge = saslServer
+              .evaluateResponse(saslCred.toByteArray());
+          if (saslServer.isComplete())
+          {
+            resultHandler.handleResult(Responses.newBindResult(
+                ResultCode.SUCCESS).setServerSASLCredentials(
+                ByteString.wrap(challenge)));
+
+            String qop = (String) saslServer.getNegotiatedProperty(Sasl.QOP);
+            if (qop != null
+                && (qop.equalsIgnoreCase("auth-int") || qop
+                    .equalsIgnoreCase("auth-conf")))
+            {
+              ConnectionSecurityLayer csl = new ConnectionSecurityLayer()
+              {
+                public void dispose()
+                {
+                  try
+                  {
+                    saslServer.dispose();
+                  }
+                  catch (SaslException e)
+                  {
+                    e.printStackTrace();
+                  }
+                }
+
+
+
+                public byte[] unwrap(byte[] incoming, int offset, int len)
+                    throws ErrorResultException
+                {
+                  try
+                  {
+                    return saslServer.unwrap(incoming, offset, len);
+                  }
+                  catch (SaslException e)
+                  {
+                    throw ErrorResultException.wrap(Responses.newResult(
+                        ResultCode.OPERATIONS_ERROR).setCause(e));
+                  }
+                }
+
+
+
+                public byte[] wrap(byte[] outgoing, int offset, int len)
+                    throws ErrorResultException
+                {
+                  try
+                  {
+                    return saslServer.wrap(outgoing, offset, len);
+                  }
+                  catch (SaslException e)
+                  {
+                    throw ErrorResultException.wrap(Responses.newResult(
+                        ResultCode.OPERATIONS_ERROR).setCause(e));
+                  }
+                }
+              };
+
+              clientContext.startSASL(csl);
+            }
+
+          }
+          else
+          {
+            resultHandler.handleResult(Responses.newBindResult(
+                ResultCode.SASL_BIND_IN_PROGRESS).setServerSASLCredentials(
+                ByteString.wrap(challenge)));
+          }
+        }
+        catch (Exception e)
+        {
+          resultHandler.handleErrorResult(ErrorResultException.wrap(Responses
+              .newBindResult(ResultCode.OPERATIONS_ERROR).setCause(e)
+              .setDiagnosticMessage(e.toString())));
+        }
+      }
+      else
+      {
+        resultHandler.handleResult(Responses.newBindResult(ResultCode.SUCCESS));
+      }
+      requestsInProgress.remove(context);
+    }
+
+
+
+    /**
+     * @param context
+     * @param request
+     */
+    public void handleConnectionClosed(final Integer context,
+        final UnbindRequest request)
+    {
+      if (saslServer != null)
+      {
+        try
+        {
+          saslServer.dispose();
+        }
+        catch (SaslException e)
+        {
+          e.printStackTrace();
+        }
+      }
+    }
+
+
+
+    /**
+     * @param error
+     */
+    public void handleConnectionException(final Throwable error)
+    {
+
+    }
+
+
+
+    /**
+     * @param context
+     * @param request
+     * @param resultHandler
+     * @param intermediateResponseHandler
+     * @throws UnsupportedOperationException
+     */
+    public void handleCompare(final Integer context,
+        final CompareRequest request,
+        final ResultHandler<? super CompareResult> resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException
+    {
+      CompareResult result = null;
+      final AbandonableRequest abReq = new AbandonableRequest(request);
+      requestsInProgress.put(context, abReq);
+      // Get the DN.
+      final DN dn = request.getName();
+      if (!entryMap.containsKey(dn))
+      {
+        // entry not found.
+        result = Responses.newCompareResult(ResultCode.NO_SUCH_ATTRIBUTE);
+        final ErrorResultException ere = ErrorResultException.wrap(result);
+        resultHandler.handleErrorResult(ere);
+        // doesn't matter if it was canceled.
+        requestsInProgress.remove(context);
+        return;
+      }
+
+      // Get the entry.
+      final Entry entry = entryMap.get(dn);
+      final AttributeDescription attrDesc = request.getAttributeDescription();
+      for (final Attribute attr : entry.getAllAttributes(attrDesc))
+      {
+        final Iterator<ByteString> it = attr.iterator();
+        while (it.hasNext())
+        {
+          final ByteString s = it.next();
+          if (abReq.isCanceled())
+          {
+            final Result r = Responses.newResult(ResultCode.CANCELLED);
+            final ErrorResultException ere = ErrorResultException.wrap(r);
+            resultHandler.handleErrorResult(ere);
+            requestsInProgress.remove(context);
+            return;
+          }
+          if (s.equals(request.getAssertionValue()))
+          {
+            result = Responses.newCompareResult(ResultCode.COMPARE_TRUE);
+            resultHandler.handleResult(result);
+          }
+        }
+      }
+      result = Responses.newCompareResult(ResultCode.COMPARE_FALSE);
+      resultHandler.handleResult(result);
+      requestsInProgress.remove(context);
+    }
+
+
+
+    /**
+     * @param context
+     * @param request
+     * @param handler
+     * @param intermediateResponseHandler
+     * @throws UnsupportedOperationException
+     */
+    public void handleDelete(final Integer context,
+        final DeleteRequest request,
+        final ResultHandler<? super Result> handler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException
+    {
+      Result result = null;
+      final AbandonableRequest abReq = new AbandonableRequest(request);
+      requestsInProgress.put(context, abReq);
+      // Get the DN.
+      final DN dn = request.getName();
+      if (!entryMap.containsKey(dn))
+      {
+        // entry is not found.
+        result = Responses.newResult(ResultCode.NO_SUCH_OBJECT);
+        final ErrorResultException ere = ErrorResultException.wrap(result);
+        handler.handleErrorResult(ere);
+        // doesn't matter if it was canceled.
+        requestsInProgress.remove(context);
+        return;
+      }
+
+      if (abReq.isCanceled())
+      {
+        result = Responses.newResult(ResultCode.CANCELLED);
+        final ErrorResultException ere = ErrorResultException.wrap(result);
+        handler.handleErrorResult(ere);
+        requestsInProgress.remove(context);
+        return;
+      }
+      // Remove this from the map.
+      entryMap.remove(dn);
+      requestsInProgress.remove(context);
+    }
+
+
+
+    /**
+     * @param context
+     * @param request
+     * @param resultHandler
+     * @param intermediateResponseHandler
+     * @throws UnsupportedOperationException
+     */
+    public <R extends ExtendedResult> void handleExtendedRequest(
+        final Integer context, final ExtendedRequest<R> request,
+        final ResultHandler<? super R> resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException
+    {
+      if (request.getOID().equals(StartTLSExtendedRequest.OID))
+      {
+        final R result = request.getResultDecoder().adaptExtendedErrorResult(
+            ResultCode.SUCCESS, "", "");
+        resultHandler.handleResult(result);
+        clientContext.startTLS(sslContext, null, sslContext.getSocketFactory()
+            .getSupportedCipherSuites(), false, false);
+      }
+    }
+
+
+
+    /**
+     * @param context
+     * @param request
+     * @param resultHandler
+     * @param intermediateResponseHandler
+     * @throws UnsupportedOperationException
+     */
+    public void handleModify(final Integer context,
+        final ModifyRequest request,
+        final ResultHandler<? super Result> resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException
+    {
+      // TODO:
+    }
+
+
+
+    /**
+     * @param context
+     * @param request
+     * @param resultHandler
+     * @param intermediateResponseHandler
+     * @throws UnsupportedOperationException
+     */
+    public void handleModifyDN(final Integer context,
+        final ModifyDNRequest request,
+        final ResultHandler<? super Result> resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException
+    {
+      // TODO
+    }
+
+
+
+    /**
+     * @param context
+     * @param request
+     * @param resultHandler
+     * @param searchResulthandler
+     * @param intermediateResponseHandler
+     * @throws UnsupportedOperationException
+     */
+    public void handleSearch(final Integer context,
+        final SearchRequest request,
+        final ResultHandler<? super Result> resultHandler,
+        final SearchResultHandler searchResulthandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException
+    {
+      Result result = null;
+      final AbandonableRequest abReq = new AbandonableRequest(request);
+      requestsInProgress.put(context, abReq);
+      // Get the DN.
+      final DN dn = request.getName();
+      if (!entryMap.containsKey(dn))
+      {
+        // Entry not found.
+        result = Responses.newResult(ResultCode.NO_SUCH_OBJECT);
+        final ErrorResultException ere = ErrorResultException.wrap(result);
+        resultHandler.handleErrorResult(ere);
+        // Should searchResultHandler handle anything?
+
+        // doesn't matter if it was canceled.
+        requestsInProgress.remove(context);
+        return;
+      }
+
+      if (abReq.isCanceled())
+      {
+        result = Responses.newResult(ResultCode.CANCELLED);
+        final ErrorResultException ere = ErrorResultException.wrap(result);
+        resultHandler.handleErrorResult(ere);
+        requestsInProgress.remove(context);
+        return;
+      }
+
+      final SearchResultEntry e = Responses
+          .newSearchResultEntry(new LinkedHashMapEntry(entryMap.get(dn)));
+      // Check we have had any controls in the request.
+      for (final Control control : request.getControls())
+      {
+        if (control.getOID().equals(AccountUsabilityRequestControl.OID))
+        {
+          e.addControl(AccountUsabilityResponseControl.newControl(false, false,
+              false, 10, false, 0));
+        }
+      }
+      searchResulthandler.handleEntry(e);
+      result = Responses.newResult(ResultCode.SUCCESS);
+      resultHandler.handleResult(result);
+      requestsInProgress.remove(context);
+    }
+  }
+
+
+
   // The mapping between entry DNs and the corresponding entries.
   private final ConcurrentHashMap<DN, Entry> entryMap = new ConcurrentHashMap<DN, Entry>();
 
@@ -151,6 +676,8 @@ public class LDAPServer implements ServerConnection<Integer>,
 
   // The Set used for locking dns.
   private final HashSet<DN> lockedDNs = new HashSet<DN>();
+
+  private SSLContext sslContext;
 
 
 
@@ -177,258 +704,12 @@ public class LDAPServer implements ServerConnection<Integer>,
 
 
   /**
-   * Abandons the request sent by the client.
-   *
-   * @param context
-   * @param request
-   * @throws UnsupportedOperationException
-   */
-  public void abandon(final Integer context, final AbandonRequest request)
-      throws UnsupportedOperationException
-  {
-    // Check if we have any concurrent operation with this message id.
-    final AbandonableRequest req = requestsInProgress.get(context);
-    if (req == null)
-    {
-      // Nothing to do here.
-      return;
-    }
-    // Cancel the request
-    req.cancel();
-    // No response is needed.
-  }
-
-
-
-  /**
    * @param context
    * @return
    */
   public ServerConnection<Integer> accept(final LDAPClientContext context)
   {
-    return this;
-  }
-
-
-
-  /**
-   * Adds the request sent by the client.
-   *
-   * @param context
-   * @param request
-   * @param handler
-   * @param intermediateResponseHandler
-   * @throws UnsupportedOperationException
-   */
-  public void add(final Integer context, final AddRequest request,
-      final ResultHandler<Result> handler,
-      final IntermediateResponseHandler intermediateResponseHandler)
-      throws UnsupportedOperationException
-  {
-    Result result = null;
-    final AbandonableRequest abReq = new AbandonableRequest(request);
-    requestsInProgress.put(context, abReq);
-    // Get the DN.
-    final DN dn = request.getName();
-    if (entryMap.containsKey(dn))
-    {
-      // duplicate entry.
-      result = Responses.newResult(ResultCode.ENTRY_ALREADY_EXISTS);
-      final ErrorResultException ere = ErrorResultException.wrap(result);
-      handler.handleErrorResult(ere);
-      // doesn't matter if it was canceled.
-      requestsInProgress.remove(context);
-      return;
-    }
-
-    // Create an entry out of this request.
-    final SearchResultEntry entry = Responses.newSearchResultEntry(dn);
-    for (final Control control : request.getControls())
-    {
-      entry.addControl(control);
-    }
-
-    for (final Attribute attr : request.getAllAttributes())
-    {
-      entry.addAttribute(attr);
-    }
-
-    if (abReq.isCanceled())
-    {
-      result = Responses.newResult(ResultCode.CANCELLED);
-      final ErrorResultException ere = ErrorResultException.wrap(result);
-      handler.handleErrorResult(ere);
-      requestsInProgress.remove(context);
-      return;
-    }
-    // Add this to the map.
-    entryMap.put(dn, entry);
-    requestsInProgress.remove(context);
-    result = Responses.newResult(ResultCode.SUCCESS);
-    handler.handleResult(result);
-  }
-
-
-
-  /**
-   * @param context
-   * @param version
-   * @param request
-   * @param resultHandler
-   * @param intermediateResponseHandler
-   * @throws UnsupportedOperationException
-   */
-  public void bind(final Integer context, final int version,
-      final BindRequest request,
-      final ResultHandler<? super BindResult> resultHandler,
-      final IntermediateResponseHandler intermediateResponseHandler)
-      throws UnsupportedOperationException
-  {
-    // TODO: all bind types.
-    final AbandonableRequest abReq = new AbandonableRequest(request);
-    requestsInProgress.put(context, abReq);
-    resultHandler.handleResult(Responses.newBindResult(ResultCode.SUCCESS));
-    requestsInProgress.remove(context);
-  }
-
-
-
-  /**
-   * @param context
-   * @param request
-   */
-  public void closed(final Integer context, final UnbindRequest request)
-  {
-
-  }
-
-
-
-  /**
-   * @param error
-   */
-  public void closed(final Throwable error)
-  {
-
-  }
-
-
-
-  /**
-   * @param context
-   * @param request
-   * @param resultHandler
-   * @param intermediateResponseHandler
-   * @throws UnsupportedOperationException
-   */
-  public void compare(final Integer context, final CompareRequest request,
-      final ResultHandler<? super CompareResult> resultHandler,
-      final IntermediateResponseHandler intermediateResponseHandler)
-      throws UnsupportedOperationException
-  {
-    CompareResult result = null;
-    final AbandonableRequest abReq = new AbandonableRequest(request);
-    requestsInProgress.put(context, abReq);
-    // Get the DN.
-    final DN dn = request.getName();
-    if (!entryMap.containsKey(dn))
-    {
-      // entry not found.
-      result = Responses.newCompareResult(ResultCode.NO_SUCH_ATTRIBUTE);
-      final ErrorResultException ere = ErrorResultException.wrap(result);
-      resultHandler.handleErrorResult(ere);
-      // doesn't matter if it was canceled.
-      requestsInProgress.remove(context);
-      return;
-    }
-
-    // Get the entry.
-    final Entry entry = entryMap.get(dn);
-    final AttributeDescription attrDesc = request.getAttributeDescription();
-    for (final Attribute attr : entry.getAllAttributes(attrDesc))
-    {
-      final Iterator<ByteString> it = attr.iterator();
-      while (it.hasNext())
-      {
-        final ByteString s = it.next();
-        if (abReq.isCanceled())
-        {
-          final Result r = Responses.newResult(ResultCode.CANCELLED);
-          final ErrorResultException ere = ErrorResultException.wrap(r);
-          resultHandler.handleErrorResult(ere);
-          requestsInProgress.remove(context);
-          return;
-        }
-        if (s.equals(request.getAssertionValue()))
-        {
-          result = Responses.newCompareResult(ResultCode.COMPARE_TRUE);
-          resultHandler.handleResult(result);
-        }
-      }
-    }
-    result = Responses.newCompareResult(ResultCode.COMPARE_FALSE);
-    resultHandler.handleResult(result);
-    requestsInProgress.remove(context);
-  }
-
-
-
-  /**
-   * @param context
-   * @param request
-   * @param handler
-   * @param intermediateResponseHandler
-   * @throws UnsupportedOperationException
-   */
-  public void delete(final Integer context, final DeleteRequest request,
-      final ResultHandler<Result> handler,
-      final IntermediateResponseHandler intermediateResponseHandler)
-      throws UnsupportedOperationException
-  {
-    Result result = null;
-    final AbandonableRequest abReq = new AbandonableRequest(request);
-    requestsInProgress.put(context, abReq);
-    // Get the DN.
-    final DN dn = request.getName();
-    if (!entryMap.containsKey(dn))
-    {
-      // entry is not found.
-      result = Responses.newResult(ResultCode.NO_SUCH_OBJECT);
-      final ErrorResultException ere = ErrorResultException.wrap(result);
-      handler.handleErrorResult(ere);
-      // doesn't matter if it was canceled.
-      requestsInProgress.remove(context);
-      return;
-    }
-
-    if (abReq.isCanceled())
-    {
-      result = Responses.newResult(ResultCode.CANCELLED);
-      final ErrorResultException ere = ErrorResultException.wrap(result);
-      handler.handleErrorResult(ere);
-      requestsInProgress.remove(context);
-      return;
-    }
-    // Remove this from the map.
-    entryMap.remove(dn);
-    requestsInProgress.remove(context);
-  }
-
-
-
-  /**
-   * @param context
-   * @param request
-   * @param resultHandler
-   * @param intermediateResponseHandler
-   * @throws UnsupportedOperationException
-   */
-  public <R extends ExtendedResult> void extendedRequest(final Integer context,
-      final ExtendedRequest<R> request, final ResultHandler<R> resultHandler,
-      final IntermediateResponseHandler intermediateResponseHandler)
-      throws UnsupportedOperationException
-  {
-    // TODO:
+    return new LDAPServerConnection(context);
   }
 
 
@@ -446,113 +727,21 @@ public class LDAPServer implements ServerConnection<Integer>,
 
 
   /**
-   * @param context
-   * @param request
-   * @param resultHandler
-   * @param intermediateResponseHandler
-   * @throws UnsupportedOperationException
-   */
-  public void modify(final Integer context, final ModifyRequest request,
-      final ResultHandler<Result> resultHandler,
-      final IntermediateResponseHandler intermediateResponseHandler)
-      throws UnsupportedOperationException
-  {
-    // TODO:
-  }
-
-
-
-  /**
-   * @param context
-   * @param request
-   * @param resultHandler
-   * @param intermediateResponseHandler
-   * @throws UnsupportedOperationException
-   */
-  public void modifyDN(final Integer context, final ModifyDNRequest request,
-      final ResultHandler<Result> resultHandler,
-      final IntermediateResponseHandler intermediateResponseHandler)
-      throws UnsupportedOperationException
-  {
-    // TODO
-  }
-
-
-
-  /**
-   * @param context
-   * @param request
-   * @param resultHandler
-   * @param searchResulthandler
-   * @param intermediateResponseHandler
-   * @throws UnsupportedOperationException
-   */
-  public void search(final Integer context, final SearchRequest request,
-      final ResultHandler<Result> resultHandler,
-      final SearchResultHandler searchResulthandler,
-      final IntermediateResponseHandler intermediateResponseHandler)
-      throws UnsupportedOperationException
-  {
-    Result result = null;
-    final AbandonableRequest abReq = new AbandonableRequest(request);
-    requestsInProgress.put(context, abReq);
-    // Get the DN.
-    final DN dn = request.getName();
-    if (!entryMap.containsKey(dn))
-    {
-      // Entry not found.
-      result = Responses.newResult(ResultCode.NO_SUCH_OBJECT);
-      final ErrorResultException ere = ErrorResultException.wrap(result);
-      resultHandler.handleErrorResult(ere);
-      // Should searchResultHandler handle anything?
-
-      // doesn't matter if it was canceled.
-      requestsInProgress.remove(context);
-      return;
-    }
-
-    if (abReq.isCanceled())
-    {
-      result = Responses.newResult(ResultCode.CANCELLED);
-      final ErrorResultException ere = ErrorResultException.wrap(result);
-      resultHandler.handleErrorResult(ere);
-      requestsInProgress.remove(context);
-      return;
-    }
-
-    final SearchResultEntry e = Responses.newSearchResultEntry(
-        new LinkedHashMapEntry(entryMap.get(dn)));
-    // Check we have had any controls in the request.
-    for (final Control control : request.getControls())
-    {
-      if (control.getOID().equals(AccountUsabilityRequestControl.OID))
-      {
-        e.addControl(AccountUsabilityResponseControl.newControl(false, false,
-            false, 10, false, 0));
-      }
-    }
-    searchResulthandler.handleEntry(e);
-    result = Responses.newResult(ResultCode.SUCCESS);
-    resultHandler.handleResult(result);
-    requestsInProgress.remove(context);
-  }
-
-
-
-  /**
    * Starts the server.
    *
    * @param port
    * @exception IOException
    */
-  public synchronized void start(final int port) throws IOException
+  public synchronized void start(final int port) throws Exception
   {
     if (isRunning)
     {
       return;
     }
+    sslContext = new SSLContextBuilder().getSSLContext();
+
     transport.setSelectorRunnersCount(2);
-    listener = new LDAPListener(port, new LDAPServer(),
+    listener = new LDAPListener(port, getInstance(),
         new GrizzlyLDAPListenerOptions().setTCPNIOTransport(transport)
             .setBacklog(4096));
     transport.start();

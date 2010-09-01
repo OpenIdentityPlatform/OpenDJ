@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.ldap;
@@ -54,6 +54,16 @@ final class LDAPBindFutureResultImpl extends
   {
     super(messageID, resultHandler, intermediateResponseHandler, connection);
     this.bindClient = bindClient;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected boolean isCancelable() {
+    return false;
   }
 
 

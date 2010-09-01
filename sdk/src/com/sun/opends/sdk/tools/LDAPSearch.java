@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.tools;
@@ -179,6 +179,26 @@ public final class LDAPSearch extends ConsoleApplication
     {
       println(LocalizableMessage.raw(reference.toString()));
       return true;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void handleErrorResult(ErrorResultException error)
+    {
+      // Ignore.
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void handleResult(Result result)
+    {
+      // Ignore.
     }
   }
 
