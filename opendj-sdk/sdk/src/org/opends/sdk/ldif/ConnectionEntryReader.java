@@ -30,6 +30,7 @@ package org.opends.sdk.ldif;
 
 
 import java.io.InterruptedIOException;
+import java.util.NoSuchElementException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -60,21 +61,29 @@ import com.sun.opends.sdk.util.Validator;
  *
  * <pre>
  * Connection connection = ...;
- * ConnectionEntryReader results = connection.search(
- *     &quot;dc=example,dc=com&quot;,
- *     SearchScope.WHOLE_SUBTREE,
- *     &quot;(objectClass=person)&quot;);
- * SearchResultEntry entry;
+ * ConnectionEntryReader results = connection.search(&quot;dc=example,dc=com&quot;,
+ *     SearchScope.WHOLE_SUBTREE, &quot;(objectClass=person)&quot;);
  * try
  * {
- *   while ((entry = results.readEntry()) != null)
+ *   while (reader.hasNext())
  *   {
- *     // Process search result entry.
+ *     if (!reader.isReference())
+ *     {
+ *       SearchResultEntry entry = reader.readEntry();
+ *
+ *       // Handle entry...
+ *     }
+ *     else
+ *     {
+ *       SearchResultReference ref = reader.readReference();
+ *
+ *       // Handle continuation reference...
+ *     }
  *   }
  * }
- * catch (Exception e)
+ * catch (IOException e)
  * {
- *   // Handle exceptions
+ *   // Handle exceptions...
  * }
  * finally
  * {
@@ -181,6 +190,7 @@ public final class ConnectionEntryReader implements EntryReader
 
   private final BufferHandler buffer;
   private final FutureResult<Result> future;
+  private Response nextResponse = null;
 
 
 
@@ -242,70 +252,178 @@ public final class ConnectionEntryReader implements EntryReader
 
 
   /**
-   * Returns the next search result entry contained in the search results,
-   * waiting if necessary until one becomes available.
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean hasNext() throws ErrorResultIOException,
+      InterruptedIOException
+  {
+    // Poll for the next response if needed.
+    final Response r = getNextResponse();
+    if (!(r instanceof Result))
+    {
+      // Entry or reference.
+      return true;
+    }
+
+    // Final result.
+    final Result result = (Result) r;
+    if (result.isSuccess())
+    {
+      return false;
+    }
+
+    final ErrorResultException e = ErrorResultException.wrap(result);
+    throw new ErrorResultIOException(e);
+  }
+
+
+
+  /**
+   * Waits for the next search result entry or reference to become available and
+   * returns {@code true} if it is a reference, or {@code false} if it is an
+   * entry.
    *
-   * @return The next search result entry, or {@code null} if there are no more
-   *         entries in the search results.
-   * @throws SearchResultReferenceIOException
-   *           If the next search response was a search result reference. This
-   *           connection entry reader may still contain remaining search
-   *           results and references which can be retrieved using additional
-   *           calls to this method.
+   * @return {@code true} if the next search result is a reference, or
+   *         {@code false} if it is an entry.
    * @throws ErrorResultIOException
-   *           If the result code indicates that the search operation failed for
+   *           If there are no more search result entries or references and the
+   *           search result code indicates that the search operation failed for
    *           some reason.
    * @throws InterruptedIOException
    *           If the current thread was interrupted while waiting.
+   * @throws NoSuchElementException
+   *           If there are no more search result entries or references and the
+   *           search result code indicates that the search operation succeeded.
    */
-  @Override
-  public SearchResultEntry readEntry() throws SearchResultReferenceIOException,
-      ErrorResultIOException, InterruptedIOException
+  public boolean isReference() throws ErrorResultIOException,
+      InterruptedIOException, NoSuchElementException
   {
-    Response r;
-    try
+    // Throws ErrorResultIOException if search returned error.
+    if (!hasNext())
     {
-      while ((r = buffer.responses.poll(50, TimeUnit.MILLISECONDS)) == null)
-      {
-        if (buffer.isInterrupted)
-        {
-          // The worker thread processing the result was interrupted so no
-          // result will ever arrive. We don't want to hang this thread forever
-          // while we wait, so terminate now.
-          r = Responses.newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR);
-          break;
-        }
-      }
-    }
-    catch (final InterruptedException e)
-    {
-      throw new InterruptedIOException(e.getMessage());
+      // Search has completed successfully.
+      throw new NoSuchElementException();
     }
 
+    // Entry or reference.
+    final Response r = nextResponse;
     if (r instanceof SearchResultEntry)
     {
-      return (SearchResultEntry) r;
+      return false;
     }
     else if (r instanceof SearchResultReference)
     {
-      throw new SearchResultReferenceIOException((SearchResultReference) r);
-    }
-    else if (r instanceof Result)
-    {
-      final Result result = (Result) r;
-      if (result.isSuccess())
-      {
-        return null;
-      }
-      else
-      {
-        throw new ErrorResultIOException(ErrorResultException.wrap(result));
-      }
+      return true;
     }
     else
     {
       throw new RuntimeException("Unexpected response type: "
           + r.getClass().toString());
     }
+  }
+
+
+
+  /**
+   * Waits for the next search result entry or reference to become available
+   * and, if it is an entry, returns it as a {@code SearchResultEntry}. If the
+   * next search response is a reference then this method will throw a
+   * {@code SearchResultReferenceIOException}.
+   *
+   * @return The next search result entry.
+   * @throws SearchResultReferenceIOException
+   *           If the next search response was a search result reference. This
+   *           connection entry reader may still contain remaining search
+   *           results and references which can be retrieved using additional
+   *           calls to this method.
+   * @throws ErrorResultIOException
+   *           If there are no more search result entries or references and the
+   *           search result code indicates that the search operation failed for
+   *           some reason.
+   * @throws InterruptedIOException
+   *           If the current thread was interrupted while waiting.
+   * @throws NoSuchElementException
+   *           If there are no more search result entries or references and the
+   *           search result code indicates that the search operation succeeded.
+   */
+  @Override
+  public SearchResultEntry readEntry() throws SearchResultReferenceIOException,
+      ErrorResultIOException, InterruptedIOException, NoSuchElementException
+  {
+    if (!isReference())
+    {
+      final SearchResultEntry entry = (SearchResultEntry) nextResponse;
+      nextResponse = null;
+      return entry;
+    }
+    else
+    {
+      final SearchResultReference reference = (SearchResultReference) nextResponse;
+      nextResponse = null;
+      throw new SearchResultReferenceIOException(reference);
+    }
+  }
+
+
+
+  /**
+   * Waits for the next search result entry or reference to become available
+   * and, if it is a reference, returns it as a {@code SearchResultReference}.
+   * If the next search response is an entry then this method will return
+   * {@code null}.
+   *
+   * @return The next search result reference, or {@code null} if the next
+   *         response was a search result entry.
+   * @throws ErrorResultIOException
+   *           If there are no more search result entries or references and the
+   *           search result code indicates that the search operation failed for
+   *           some reason.
+   * @throws InterruptedIOException
+   *           If the current thread was interrupted while waiting.
+   * @throws NoSuchElementException
+   *           If there are no more search result entries or references and the
+   *           search result code indicates that the search operation succeeded.
+   */
+  public SearchResultReference readReference() throws ErrorResultIOException,
+      InterruptedIOException, NoSuchElementException
+  {
+    if (isReference())
+    {
+      final SearchResultReference reference = (SearchResultReference) nextResponse;
+      nextResponse = null;
+      return reference;
+    }
+    else
+    {
+      return null;
+    }
+  }
+
+
+
+  private Response getNextResponse() throws InterruptedIOException
+  {
+    while (nextResponse == null)
+    {
+      try
+      {
+        nextResponse = buffer.responses.poll(50, TimeUnit.MILLISECONDS);
+      }
+      catch (final InterruptedException e)
+      {
+        throw new InterruptedIOException(e.getMessage());
+      }
+
+      if (nextResponse == null && buffer.isInterrupted)
+      {
+        // The worker thread processing the result was interrupted so no
+        // result will ever arrive. We don't want to hang this thread
+        // forever while we wait, so terminate now.
+        nextResponse = Responses.newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR);
+        break;
+      }
+    }
+    return nextResponse;
   }
 }

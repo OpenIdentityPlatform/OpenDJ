@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.ldif;
@@ -31,8 +31,8 @@ package org.opends.sdk.ldif;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.NoSuchElementException;
 
-import org.opends.sdk.DecodeException;
 import org.opends.sdk.Entry;
 
 
@@ -46,10 +46,6 @@ import org.opends.sdk.Entry;
  * malformed change records and, if it is possible, how they are handled.
  * <li>Any synchronization limitations.
  * </ul>
- * <p>
- * TODO: LDIFInputStreamReader
- * <p>
- * TODO: SearchResultEntryReader
  */
 public interface EntryReader extends Closeable
 {
@@ -62,19 +58,32 @@ public interface EntryReader extends Closeable
    * @throws IOException
    *           If an unexpected IO error occurred while closing.
    */
+  @Override
   void close() throws IOException;
+
+
+
+  /**
+   * Returns {@code true} if this reader contains another entry, blocking if
+   * necessary until either the next entry is available or the end of the stream
+   * is reached.
+   *
+   * @return {@code true} if this reader contains another entry.
+   * @throws IOException
+   *           If an unexpected IO error occurred.
+   */
+  boolean hasNext() throws IOException;
 
 
 
   /**
    * Reads the next entry, blocking if necessary until an entry is available.
    *
-   * @return The next entry or {@code null} if there are no more entries to be
-   *         read.
-   * @throws DecodeException
-   *           If the entry could not be decoded because it was malformed.
+   * @return The next entry.
    * @throws IOException
    *           If an unexpected IO error occurred while reading the entry.
+   * @throws NoSuchElementException
+   *           If this reader does not contain any more entries.
    */
-  Entry readEntry() throws DecodeException, IOException;
+  Entry readEntry() throws IOException, NoSuchElementException;
 }

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.ldif;
@@ -32,9 +32,12 @@ package org.opends.sdk.ldif;
 import static org.testng.Assert.assertNotNull;
 
 import java.io.FileInputStream;
+import java.util.NoSuchElementException;
 
-import org.opends.sdk.AbstractEntry;
+import org.opends.sdk.DN;
+import org.opends.sdk.Entry;
 import org.opends.sdk.TestCaseUtils;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 
@@ -44,6 +47,45 @@ import org.testng.annotations.Test;
  */
 public final class LDIFEntryReaderTestCase extends LDIFTestCase
 {
+  /**
+   * Tests readEntry method of LDIFEntryReader class.See
+   * https://opends.dev.java.net/issues/show_bug.cgi?id=4545 for more details.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test()
+  public void testEmpty() throws Exception
+  {
+    final String path = TestCaseUtils.createTempFile("");
+    final FileInputStream in = new FileInputStream(path);
+    final LDIFEntryReader reader = new LDIFEntryReader(in);
+    try
+    {
+      reader.setValidateSchema(false);
+
+      Assert.assertFalse(reader.hasNext());
+      Assert.assertFalse(reader.hasNext());
+      try
+      {
+        reader.readEntry();
+        Assert
+            .fail("reader.readEntry() should have thrown NoSuchElementException");
+      }
+      catch (NoSuchElementException e)
+      {
+        // This is expected.
+      }
+      Assert.assertFalse(reader.hasNext());
+    }
+    finally
+    {
+      reader.close();
+    }
+  }
+
+
+
   /**
    * Tests readEntry method of LDIFEntryReader class.See
    * https://opends.dev.java.net/issues/show_bug.cgi?id=4545 for more details.
@@ -80,9 +122,31 @@ public final class LDIFEntryReaderTestCase extends LDIFTestCase
             "postalAddress: Aaccf Amar$01251 Chestnut Street$Panama City, DE  50369",
             "description: This is the description for Aaccf Amar.");
     final FileInputStream in = new FileInputStream(path);
-    final LDIFEntryReader entryReader = new LDIFEntryReader(in);
-    entryReader.setValidateSchema(false);
-    final AbstractEntry entry = (AbstractEntry) entryReader.readEntry();
-    assertNotNull(entry);
+    final LDIFEntryReader reader = new LDIFEntryReader(in);
+    try
+    {
+      reader.setValidateSchema(false);
+
+      Assert.assertTrue(reader.hasNext());
+      final Entry entry = reader.readEntry();
+      assertNotNull(entry);
+      Assert.assertEquals(entry.getName(),
+          DN.valueOf("uid=1,ou=people,dc=ucsf,dc=edu"));
+      Assert.assertFalse(reader.hasNext());
+      try
+      {
+        reader.readEntry();
+        Assert
+            .fail("reader.readEntry() should have thrown NoSuchElementException");
+      }
+      catch (NoSuchElementException e)
+      {
+        // This is expected.
+      }
+    }
+    finally
+    {
+      reader.close();
+    }
   }
 }

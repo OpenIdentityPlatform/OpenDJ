@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.tools;
@@ -762,13 +762,12 @@ public final class LDAPModify extends ConsoleApplication
         reader = new LDIFChangeRecordReader(getInputStream());
       }
 
-      ChangeRecord cr;
       try
       {
-        int result;
-        while ((cr = reader.readChangeRecord()) != null)
+        while (reader.hasNext())
         {
-          result = cr.accept(visitor, null);
+          final ChangeRecord cr = reader.readChangeRecord();
+          final int result = cr.accept(visitor, null);
           if (result != 0 && !continueOnError.isPresent())
           {
             return result;

@@ -22,24 +22,20 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.ldif;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.
-  WARN_READ_LDIF_RECORD_MULTIPLE_CHANGE_RECORDS_FOUND;
-import static com.sun.opends.sdk.messages.Messages.
-  WARN_READ_LDIF_RECORD_NO_CHANGE_RECORD_FOUND;
-import static com.sun.opends.sdk.messages.Messages.
-  WARN_READ_LDIF_RECORD_UNEXPECTED_IO_ERROR;
+import static com.sun.opends.sdk.messages.Messages.*;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.opends.sdk.*;
 import org.opends.sdk.schema.Schema;
@@ -58,6 +54,11 @@ import com.sun.opends.sdk.util.Validator;
 public final class LDIFEntryReader extends AbstractLDIFReader implements
     EntryReader
 {
+  // Poison used to indicate end of LDIF.
+  private static final Entry EOF = new LinkedHashMapEntry();
+
+
+
   /**
    * Parses the provided array of LDIF lines as a single LDIF entry.
    *
@@ -77,9 +78,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
     final LDIFEntryReader reader = new LDIFEntryReader(ldifLines);
     try
     {
-      final Entry entry = reader.readEntry();
-
-      if (entry == null)
+      if (!reader.hasNext())
       {
         // No change record found.
         final LocalizableMessage message = WARN_READ_LDIF_RECORD_NO_CHANGE_RECORD_FOUND
@@ -87,7 +86,9 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
         throw new LocalizedIllegalArgumentException(message);
       }
 
-      if (reader.readEntry() != null)
+      final Entry entry = reader.readEntry();
+
+      if (reader.hasNext())
       {
         // Multiple change records found.
         final LocalizableMessage message = WARN_READ_LDIF_RECORD_MULTIPLE_CHANGE_RECORDS_FOUND
@@ -110,6 +111,10 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
       throw new LocalizedIllegalArgumentException(message);
     }
   }
+
+
+
+  private Entry nextEntry = null;
 
 
 
@@ -164,6 +169,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public void close() throws IOException
   {
     close0();
@@ -173,75 +179,36 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
 
   /**
    * {@inheritDoc}
+   *
+   * @throws DecodeException
+   *           If the entry could not be decoded because it was malformed.
    */
+  @Override
+  public boolean hasNext() throws DecodeException, IOException
+  {
+    return getNextEntry() != EOF;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   *
+   * @throws DecodeException
+   *           If the entry could not be decoded because it was malformed.
+   */
+  @Override
   public Entry readEntry() throws DecodeException, IOException
   {
-    // Continue until an unfiltered entry is obtained.
-    while (true)
+    if (!hasNext())
     {
-      LDIFRecord record = null;
-
-      // Read the set of lines that make up the next entry.
-      record = readLDIFRecord();
-      if (record == null)
-      {
-        return null;
-      }
-
-      // Read the DN of the entry and see if it is one that should be
-      // included in the import.
-      DN entryDN;
-      try
-      {
-        entryDN = readLDIFRecordDN(record);
-        if (entryDN == null)
-        {
-          // Skip version record.
-          continue;
-        }
-      }
-      catch (final DecodeException e)
-      {
-        rejectLDIFRecord(record, e.getMessageObject());
-        continue;
-      }
-
-      // Skip if branch containing the entry DN is excluded.
-      if (isBranchExcluded(entryDN))
-      {
-        final LocalizableMessage message = LocalizableMessage
-            .raw("Skipping entry because it is in excluded branch");
-        skipLDIFRecord(record, message);
-        continue;
-      }
-
-      // Use an Entry for the AttributeSequence.
-      final Entry entry = new LinkedHashMapEntry(entryDN);
-      try
-      {
-        while (record.iterator.hasNext())
-        {
-          final String ldifLine = record.iterator.next();
-          readLDIFRecordAttributeValue(record, ldifLine, entry);
-        }
-      }
-      catch (final DecodeException e)
-      {
-        rejectLDIFRecord(record, e.getMessageObject());
-        continue;
-      }
-
-      // Skip if the entry is excluded by any filters.
-      if (isEntryExcluded(entry))
-      {
-        final LocalizableMessage message = LocalizableMessage
-            .raw("Skipping entry due to exclusing filters");
-        skipLDIFRecord(record, message);
-        continue;
-      }
-
-      return entry;
+      // LDIF reader has completed successfully.
+      throw new NoSuchElementException();
     }
+
+    final Entry entry = nextEntry;
+    nextEntry = null;
+    return entry;
   }
 
 
@@ -269,8 +236,8 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
    * entries that are read from LDIF. The default is {@code false}.
    *
    * @param excludeUserAttributes
-   *          {@code true} if all user attributes should be excluded, or {@code
-   *          false} otherwise.
+   *          {@code true} if all user attributes should be excluded, or
+   *          {@code false} otherwise.
    * @return A reference to this {@code LDIFEntryReader}.
    */
   public LDIFEntryReader setExcludeAllUserAttributes(
@@ -414,14 +381,88 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
    * that are read from LDIF. The default is {@code true}.
    *
    * @param validateSchema
-   *          {@code true} if schema validation should be performed, or {@code
-   *          false} otherwise.
+   *          {@code true} if schema validation should be performed, or
+   *          {@code false} otherwise.
    * @return A reference to this {@code LDIFEntryReader}.
    */
   public LDIFEntryReader setValidateSchema(final boolean validateSchema)
   {
     this.validateSchema = validateSchema;
     return this;
+  }
+
+
+
+  private Entry getNextEntry() throws DecodeException, IOException
+  {
+    while (nextEntry == null)
+    {
+      LDIFRecord record = null;
+
+      // Read the set of lines that make up the next entry.
+      record = readLDIFRecord();
+      if (record == null)
+      {
+        nextEntry = EOF;
+        break;
+      }
+
+      // Read the DN of the entry and see if it is one that should be
+      // included in the import.
+      DN entryDN;
+      try
+      {
+        entryDN = readLDIFRecordDN(record);
+        if (entryDN == null)
+        {
+          // Skip version record.
+          continue;
+        }
+      }
+      catch (final DecodeException e)
+      {
+        rejectLDIFRecord(record, e.getMessageObject());
+        continue;
+      }
+
+      // Skip if branch containing the entry DN is excluded.
+      if (isBranchExcluded(entryDN))
+      {
+        final LocalizableMessage message = LocalizableMessage
+            .raw("Skipping entry because it is in excluded branch");
+        skipLDIFRecord(record, message);
+        continue;
+      }
+
+      // Use an Entry for the AttributeSequence.
+      final Entry entry = new LinkedHashMapEntry(entryDN);
+      try
+      {
+        while (record.iterator.hasNext())
+        {
+          final String ldifLine = record.iterator.next();
+          readLDIFRecordAttributeValue(record, ldifLine, entry);
+        }
+      }
+      catch (final DecodeException e)
+      {
+        rejectLDIFRecord(record, e.getMessageObject());
+        continue;
+      }
+
+      // Skip if the entry is excluded by any filters.
+      if (isEntryExcluded(entry))
+      {
+        final LocalizableMessage message = LocalizableMessage
+            .raw("Skipping entry due to exclusing filters");
+        skipLDIFRecord(record, message);
+        continue;
+      }
+
+      nextEntry = entry;
+    }
+
+    return nextEntry;
   }
 
 }
