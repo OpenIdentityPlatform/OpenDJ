@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package com.sun.opends.sdk.tools;
 
@@ -512,8 +512,7 @@ final class IntegerArgument extends Argument
     }
 
     // If there is a lower bound, then the value must be greater than or
-    // equal
-    // to it.
+    // equal to it.
     if (hasLowerBound && (intValue < lowerBound))
     {
       invalidReason.append(ERR_INTARG_VALUE_BELOW_LOWER_BOUND.get(getName(),
@@ -522,8 +521,7 @@ final class IntegerArgument extends Argument
     }
 
     // If there is an upper bound, then the value must be less than or
-    // equal to
-    // it.
+    // equal to it.
     if (hasUpperBound && (intValue > upperBound))
     {
 

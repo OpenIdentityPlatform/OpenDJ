@@ -835,10 +835,11 @@ abstract class PerformanceRunner implements ConnectionEventListener
     argParser.addArgument(targetThroughputArgument);
 
     percentilesArgument = new IntegerArgument("percentile", 'e', "percentile",
-        false, true, LocalizableMessage.raw("{percentile}"), true, 50, true,
+        false, true, LocalizableMessage.raw("{percentile}"), true, 0, true,
         100, LocalizableMessage.raw("Calculate max response time for a "
             + "percentile of operations"));
     percentilesArgument.setPropertyName("percentile");
+    percentilesArgument.setMultiValued(true);
     argParser.addArgument(percentilesArgument);
 
     keepConnectionsOpen = new BooleanArgument("keepConnectionsOpen", 'f',
