@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.ldif;
@@ -31,8 +31,7 @@ package org.opends.sdk.ldif;
 
 import java.io.Closeable;
 import java.io.IOException;
-
-import org.opends.sdk.DecodeException;
+import java.util.NoSuchElementException;
 
 
 
@@ -46,10 +45,6 @@ import org.opends.sdk.DecodeException;
  * malformed change records and, if it is possible, how they are handled.
  * <li>Any synchronization limitations.
  * </ul>
- * <p>
- * TODO: LDIFInputStreamReader
- * <p>
- * TODO: SearchResultEntryReader
  */
 public interface ChangeRecordReader extends Closeable
 {
@@ -62,7 +57,21 @@ public interface ChangeRecordReader extends Closeable
    * @throws IOException
    *           If an unexpected IO error occurred while closing.
    */
+  @Override
   void close() throws IOException;
+
+
+
+  /**
+   * Returns {@code true} if this reader contains another change record,
+   * blocking if necessary until either the next change record is available or
+   * the end of the stream is reached.
+   *
+   * @return {@code true} if this reader contains another change record.
+   * @throws IOException
+   *           If an unexpected IO error occurred.
+   */
+  boolean hasNext() throws IOException;
 
 
 
@@ -71,14 +80,12 @@ public interface ChangeRecordReader extends Closeable
    * is available. If the next change record does not contain a change type then
    * it will be treated as an {@code Add} change record.
    *
-   * @return The next change record, or {@code null} if there are no more change
-   *         records to be read.
-   * @throws DecodeException
-   *           If the change record could not be decoded because it was
-   *           malformed.
+   * @return The next change record.
    * @throws IOException
    *           If an unexpected IO error occurred while reading the change
    *           record.
+   * @throws NoSuchElementException
+   *           If this reader does not contain any more change records.
    */
-  ChangeRecord readChangeRecord() throws DecodeException, IOException;
+  ChangeRecord readChangeRecord() throws IOException, NoSuchElementException;
 }

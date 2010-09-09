@@ -29,17 +29,18 @@ package org.opends.sdk;
 
 
 
-import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
-import java.util.List;
+import java.util.NoSuchElementException;
 
-import org.opends.sdk.ldif.EntryReader;
+import org.opends.sdk.ldif.ConnectionEntryReader;
 import org.opends.sdk.requests.Requests;
 import org.opends.sdk.responses.BindResult;
 import org.opends.sdk.responses.CompareResult;
 import org.opends.sdk.responses.Result;
+import org.opends.sdk.responses.SearchResultEntry;
+import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -155,11 +156,27 @@ public class SynchronousConnectionTestCase extends TypesTestCase
   public void testSearchRequest() throws Exception
   {
     final SynchronousConnection con = new SynchronousConnection(asyncCon);
-    final EntryReader reader = con.search(
+    final ConnectionEntryReader reader = con.search(
         "uid=user.0,ou=people,o=test", SearchScope.BASE_OBJECT,
         "objectclass=*", "cn");
-    reader.readEntry();
-    assertNull(reader.readEntry());
+    Assert.assertTrue(reader.hasNext());
+    Assert.assertFalse(reader.isReference());
+    Assert.assertTrue(reader.hasNext());
+    SearchResultEntry entry = reader.readEntry();
+    Assert.assertEquals(entry.getName(),
+        DN.valueOf("uid=user.0,ou=people,o=test"));
+    Assert.assertFalse(reader.hasNext());
+    try
+    {
+      reader.readEntry();
+      Assert
+          .fail("reader.readEntry() should have thrown NoSuchElementException");
+    }
+    catch (NoSuchElementException e)
+    {
+      // This is expected.
+    }
+    Assert.assertFalse(reader.hasNext());
   }
   // TODO: add more tests.
 }

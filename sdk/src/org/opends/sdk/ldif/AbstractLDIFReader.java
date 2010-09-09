@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.ldif;
@@ -141,8 +141,11 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
      */
     public void close() throws IOException
     {
-      reader.close();
-      reader = null;
+      if (reader != null)
+      {
+        reader.close();
+        reader = null;
+      }
     }
 
 
