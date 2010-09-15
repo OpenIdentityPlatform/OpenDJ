@@ -421,18 +421,6 @@ abstract class PerformanceRunner implements ConnectionEventListener
     @Override
     public void run()
     {
-      if (dataSources.get() == null)
-      {
-        try
-        {
-          dataSources.set(DataSource.parse(arguments.getValues()));
-        }
-        catch (final IOException ioe)
-        {
-          // Ignore as this shouldn've been handled eariler
-        }
-      }
-
       FutureResult<?> future;
       AsynchronousConnection connection;
       R handler;
@@ -749,12 +737,33 @@ abstract class PerformanceRunner implements ConnectionEventListener
 
   private final AtomicLong waitRecentTime = new AtomicLong();
 
-  private final AtomicReference<ReversableArray> eTimeBuffer = new AtomicReference<ReversableArray>(
-      new ReversableArray(100000));
+  private final AtomicReference<ReversableArray> eTimeBuffer =
+    new AtomicReference<ReversableArray>(new ReversableArray(100000));
 
   private final ConsoleApplication app;
 
-  private final ThreadLocal<DataSource[]> dataSources = new ThreadLocal<DataSource[]>();
+  private DataSource[] dataSourcePrototypes;
+
+  // Thread local copies of the data sources
+  private final ThreadLocal<DataSource[]> dataSources =
+    new ThreadLocal<DataSource[]>()
+  {
+    /**
+     * {@inheritDoc}
+     */
+    protected DataSource[] initialValue()
+    {
+      final DataSource[] prototypes = getDataSources();
+      final int sz = prototypes.length;
+      final DataSource[] threadLocalCopy = new DataSource[sz];
+      for (int i = 0; i < sz; i++)
+      {
+        threadLocalCopy[i] = prototypes[i].duplicate();
+      }
+      return threadLocalCopy;
+    }
+
+  };
 
   private volatile boolean stopRequested;
 
@@ -899,7 +908,7 @@ abstract class PerformanceRunner implements ConnectionEventListener
 
 
 
-  public void validate() throws ArgumentException
+  public final void validate() throws ArgumentException
   {
     numConnections = numConnectionsArgument.getIntValue();
     numThreads = numThreadsArgument.getIntValue();
@@ -926,7 +935,7 @@ abstract class PerformanceRunner implements ConnectionEventListener
 
     try
     {
-      DataSource.parse(arguments.getValues());
+      dataSourcePrototypes = DataSource.parse(arguments.getValues());
     }
     catch (final IOException ioe)
     {
@@ -939,15 +948,12 @@ abstract class PerformanceRunner implements ConnectionEventListener
 
   final DataSource[] getDataSources()
   {
-    try
+    if (dataSourcePrototypes == null)
     {
-      return DataSource.parse(arguments.getValues());
+      throw new IllegalStateException(
+          "dataSources are null - validate() must be called first");
     }
-    catch (final IOException ioe)
-    {
-      // Ignore as this shouldn've been handled eariler
-    }
-    return new DataSource[0];
+    return dataSourcePrototypes;
   }
 
 
