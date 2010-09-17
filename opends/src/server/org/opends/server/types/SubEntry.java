@@ -409,9 +409,10 @@ public class SubEntry {
         {
           for (AttributeValue value : attr)
           {
-            this.collectiveAttributes.add(
-                    Attributes.empty(
-                    value.toString()));
+            CollectiveVirtualAttribute collectiveAttr =
+              new CollectiveVirtualAttribute(
+                Attributes.empty(value.toString()));
+            this.collectiveAttributes.add(collectiveAttr);
           }
         }
       }
