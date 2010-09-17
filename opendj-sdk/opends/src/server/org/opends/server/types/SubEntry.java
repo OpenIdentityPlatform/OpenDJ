@@ -28,7 +28,6 @@
 package org.opends.server.types;
 
 import org.opends.messages.Message;
-import org.opends.server.core.AbsoluteSubtreeSpecification;
 import org.opends.server.core.RelativeSubtreeSpecification;
 import org.opends.server.api.SubtreeSpecification;
 import java.util.List;
@@ -247,17 +246,6 @@ public class SubEntry {
           {
             break;
           }
-          try
-          {
-            this.subTreeSpec = AbsoluteSubtreeSpecification.valueOf(
-                    specString);
-            isValidSpec = true;
-          }
-          catch (DirectoryException de)
-          {
-            isValidSpec = false;
-          }
-          break;
         }
         if (this.subTreeSpec != null)
         {

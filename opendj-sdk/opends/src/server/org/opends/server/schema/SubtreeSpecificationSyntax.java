@@ -43,7 +43,6 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.api.SubtreeSpecification;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.AbsoluteSubtreeSpecification;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.RFC3672SubtreeSpecification;
 import org.opends.server.core.RelativeSubtreeSpecification;
@@ -120,11 +119,6 @@ public final class SubtreeSpecificationSyntax
       try {
         subTreeSpec = RelativeSubtreeSpecification.valueOf(
                 rootDN, specString);
-        return subTreeSpec;
-      } catch (DirectoryException de) {}
-      try {
-        subTreeSpec = AbsoluteSubtreeSpecification.valueOf(
-                specString);
         return subTreeSpec;
       } catch (DirectoryException de) {}
 
@@ -292,11 +286,6 @@ public final class SubtreeSpecificationSyntax
     try {
       subTreeSpec = RelativeSubtreeSpecification.valueOf(
               DN.nullDN(), specString);
-      return true;
-    } catch (DirectoryException de) {}
-    try {
-      subTreeSpec = AbsoluteSubtreeSpecification.valueOf(
-              specString);
       return true;
     } catch (DirectoryException de) {}
 

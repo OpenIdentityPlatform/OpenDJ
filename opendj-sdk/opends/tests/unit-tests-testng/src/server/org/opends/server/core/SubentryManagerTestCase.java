@@ -569,35 +569,6 @@ public class SubentryManagerTestCase extends CoreTestCase
 
     // Remove Relative Spec test subentry.
     TestCaseUtils.deleteEntry(relativeSubentry.getDN());
-
-    // Add Absolute Spec test subentry.
-    Entry absoluteSubentry = TestCaseUtils.makeEntry(
-         "dn: cn=Absolute Subentry," + SUFFIX,
-         "objectClass: top",
-         "objectclass: subentry",
-         "subtreeSpecification: {absoluteBase \"ou=Test SubEntry Manager\"}",
-         "cn: Subentry");
-    addOperation =
-         connection.processAdd(absoluteSubentry.getDN(),
-                               absoluteSubentry.getObjectClasses(),
-                               absoluteSubentry.getUserAttributes(),
-                               absoluteSubentry.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(absoluteSubentry.getDN()));
-
-    List<SubEntry> absoluteSubList =
-            DirectoryServer.getSubentryManager().getSubentries();
-    for (SubEntry subentry : absoluteSubList)
-    {
-      if (subentry.getDN().equals(absoluteSubentry.getDN()))
-      {
-        SubtreeSpecification spec = subentry.getSubTreeSpecification();
-        assertTrue(spec instanceof AbsoluteSubtreeSpecification);
-      }
-    }
-
-    // Remove Absolute Spec test subentry.
-    TestCaseUtils.deleteEntry(absoluteSubentry.getDN());
   }
 
   private void addTestEntries() throws Exception
