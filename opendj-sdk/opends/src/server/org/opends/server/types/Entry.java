@@ -3795,6 +3795,8 @@ public class Entry
               {
                 continue;
               }
+              collectiveAttr = new CollectiveVirtualAttribute(
+                      collectiveAttr);
             }
             else
             {
