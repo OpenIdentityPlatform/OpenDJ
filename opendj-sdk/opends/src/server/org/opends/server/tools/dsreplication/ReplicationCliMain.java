@@ -1656,8 +1656,9 @@ public class ReplicationCliMain extends ConsoleApplication
 
       TaskScheduleInteraction interaction =
         new TaskScheduleInteraction(uData.getTaskSchedule(), argParser.taskArgs,
-            this, formatter, taskEntries,
-            INFO_PURGE_HISTORICAL_TASK_NAME.get());
+            this, INFO_PURGE_HISTORICAL_TASK_NAME.get());
+      interaction.setFormatter(formatter);
+      interaction.setTaskEntries(taskEntries);
       try
       {
         interaction.run();

@@ -37,6 +37,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.opends.messages.Message;
+import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.server.admin.client.cli.TaskScheduleArgs;
 import org.opends.server.backends.task.FailedDependencyAction;
@@ -64,8 +65,10 @@ public class TaskScheduleInteraction
   private final TaskScheduleArgs args;
   private final ConsoleApplication app;
   private final Message taskName;
-  private final List<? extends TaskEntry> taskEntries;
-  private final ProgressMessageFormatter formatter;
+  private List<? extends TaskEntry> taskEntries =
+    Collections.emptyList();
+  private ProgressMessageFormatter formatter =
+    new PlainTextProgressMessageFormatter();
 
   /**
    * The enumeration used by the menu displayed to ask the user about the
@@ -103,21 +106,16 @@ public class TaskScheduleInteraction
    * @param args the object with the arguments provided by the user.  The code
    * assumes that the arguments have already been parsed.
    * @param app the console application object used to prompt for data.
-   * @param formatter the formatter to be used to generated the messages.
-   * @param taskEntries the list of task entries defined in the server.
    * @param taskName the name of the task to be used in the prompt messages.
    */
   public TaskScheduleInteraction(TaskScheduleUserData uData,
       TaskScheduleArgs args, ConsoleApplication app,
-      ProgressMessageFormatter formatter, List<? extends TaskEntry> taskEntries,
       Message taskName)
   {
     this.uData = uData;
     this.args = args;
     this.app = app;
     this.taskName = taskName;
-    this.taskEntries = taskEntries;
-    this.formatter = formatter;
   }
 
   /**
@@ -140,6 +138,45 @@ public class TaskScheduleInteraction
     {
       runFailedDependencyAction();
     }
+  }
+
+  /**
+   * Returns the task entries that are defined in the server.  These are
+   * used to prompt the user about the task dependencies.
+   * @return the task entries that are defined in the server.
+   */
+  public List<? extends TaskEntry> getTaskEntries()
+  {
+    return taskEntries;
+  }
+
+  /**
+   * Sets the task entries that are defined in the server.  These are
+   * used to prompt the user about the task dependencies.  If no task entries
+   * are provided, the user will not be prompted for task dependencies.
+   * @param taskEntries the task entries that are defined in the server.
+   */
+  public void setTaskEntries(List<? extends TaskEntry> taskEntries)
+  {
+    this.taskEntries = taskEntries;
+  }
+
+  /**
+   * Returns the formatter that is used to generate messages.
+   * @return the formatter that is used to generate messages.
+   */
+  public ProgressMessageFormatter getFormatter()
+  {
+    return formatter;
+  }
+
+  /**
+   * Sets the formatter that is used to generate messages.
+   * @param formatter the formatter that is used to generate messages.
+   */
+  public void setFormatter(ProgressMessageFormatter formatter)
+  {
+    this.formatter = formatter;
   }
 
   private void runFailedDependencyAction() throws CLIException
