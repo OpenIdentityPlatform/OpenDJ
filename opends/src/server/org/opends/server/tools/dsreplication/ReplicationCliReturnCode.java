@@ -61,12 +61,12 @@ public enum ReplicationCliReturnCode
   ERROR_USER_DATA(2, ERR_REPLICATION_NO_MESSAGE.get()),
 
   /**
-   * The user cancelled the operation in interactive mode.
+   * The user canceled the operation in interactive mode.
    */
   USER_CANCELLED(3, ERR_REPLICATION_USER_CANCELLED.get()),
 
   /**
-   * Unexpected error (potential bug).
+   * Conflicting arguments.
    */
   CONFLICTING_ARGS(4, ERR_REPLICATION_NO_MESSAGE.get()),
 

@@ -265,11 +265,11 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   BooleanArgument advancedArg;
 
   // The argument set by the user to specify the configuration class
-  // (useful when dsreplication purge-historical runs locally/starts the server)
+  // (useful when dsreplication purge-historical runs locally)
   private StringArgument  configClassArg;
 
   // The argument set by the user to specify the configuration file
-  // (useful when dsreplication purge-historical runs locally/starts the server)
+  // (useful when dsreplication purge-historical runs locally)
   private StringArgument  configFileArg;
 
   TaskScheduleArgs taskArgs;
