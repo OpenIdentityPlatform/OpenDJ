@@ -236,7 +236,15 @@ public abstract class TaskTool implements TaskScheduleInformation {
    * @throws CLIException if there is a problem with one of the values provided
    * by the user.
    */
-  protected void validateTaskArgs() throws ArgumentException, CLIException {
+  protected void validateTaskArgs() throws ArgumentException, CLIException
+  {
+    if ((startArg.isPresent() || recurringArg.isPresent()) &&
+            !processAsTask())
+    {
+      throw new ArgumentException(
+              ERR_TASK_TOOL_NO_VALID_LDAP_OPTIONS.get());
+    }
+
     if (startArg.isPresent() && !NOW.equals(startArg.getValue())) {
       try {
         Date date = StaticUtils.parseDateTimeString(startArg.getValue());
