@@ -3453,13 +3453,13 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
   /**
    * This methods count the changes, server by server :
-   * - from a start time
+   * - from a start CN
    * - to (inclusive) an end point (the provided endCN).
-   * @param startTime The provided start time.
+   * @param startCN The provided start changeNumber.
    * @param endCN The provided end change number.
    * @return The number of changes between startTime and endCN.
    */
-  public long getEligibleCount(long startTime, ChangeNumber endCN)
+  public long getEligibleCount(ChangeNumber startCN, ChangeNumber endCN)
   {
     long sidRes = 0;
     long res = 0;
@@ -3471,8 +3471,9 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     {
       // process one sid
       int sid = serverIDIterator.next();
-      ChangeNumber startCN = new ChangeNumber(startTime, 0, sid);
-      sidRes += getCount(sid, startCN, endCN);
+      ChangeNumber lStartCN =
+        new ChangeNumber(startCN.getTime(), startCN.getSeqnum(), sid);
+      sidRes += getCount(sid, lStartCN, endCN);
       res+=sidRes;
     }
     return res;
