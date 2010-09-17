@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -331,6 +331,7 @@ public class ConfigFromFile extends ConfigReader
                   if (baseDN.getDn().equals(dn))
                   {
                     baseDN.setType(BaseDNDescriptor.Type.REPLICATED);
+                    baseDN.setReplicaID(domain.getServerId());
                   }
                 }
               }

@@ -64,6 +64,9 @@ import static org.opends.server.util.ServerConstants.*;
 /**
  * This class defines a information about a recurring task, which will be used
  * to repeatedly schedule tasks for processing.
+ * <br>
+ * It also provides some static methods that allow to validate strings in
+ * crontab (5) format.
  */
 public class RecurringTask
 {
@@ -102,6 +105,12 @@ public class RecurringTask
    */
   private static enum TaskTab {MINUTE, HOUR, DAY, MONTH, WEEKDAY};
 
+  private final static int MINUTE_INDEX = 0;
+  private final static int HOUR_INDEX = 1;
+  private final static int DAY_INDEX = 2;
+  private final static int MONTH_INDEX = 3;
+  private final static int WEEKDAY_INDEX = 4;
+
   // Exact match pattern.
   private static final Pattern exactPattern =
     Pattern.compile("\\d+");
@@ -115,11 +124,11 @@ public class RecurringTask
     Pattern.compile("^(\\d+,)(.*)(\\d+)$");
 
   // Boolean arrays holding task tab slots.
-  private boolean[] minutesArray;
-  private boolean[] hoursArray;
-  private boolean[] daysArray;
-  private boolean[] monthArray;
-  private boolean[] weekdayArray;
+  private final boolean[] minutesArray;
+  private final boolean[] hoursArray;
+  private final boolean[] daysArray;
+  private final boolean[] monthArray;
+  private final boolean[] weekdayArray;
 
   /**
    * Creates a new recurring task based on the information in the provided
@@ -225,7 +234,16 @@ public class RecurringTask
     }
 
     String taskScheduleTab = value.toString();
-    parseTaskTab(taskScheduleTab);
+
+    boolean[][] taskArrays = new boolean[][]{null, null, null, null, null};
+
+    parseTaskTab(taskScheduleTab, taskArrays, true);
+
+    minutesArray = taskArrays[MINUTE_INDEX];
+    hoursArray = taskArrays[HOUR_INDEX];
+    daysArray = taskArrays[DAY_INDEX];
+    monthArray = taskArrays[MONTH_INDEX];
+    weekdayArray = taskArrays[WEEKDAY_INDEX];
 
     // Get the class name from the entry.  If there isn't one, then fail.
     attrType = DirectoryServer.getAttributeType(
@@ -451,14 +469,41 @@ public class RecurringTask
    * @param taskSchedule recurring task schedule tab in crontab(5) format.
    * @throws DirectoryException to indicate an error.
    */
-  private void parseTaskTab(String taskSchedule) throws DirectoryException
+  public static void parseTaskTab(String taskSchedule) throws DirectoryException
+  {
+    parseTaskTab(taskSchedule, new boolean[][]{null, null, null, null, null},
+        false);
+  }
+
+  /**
+   * Parse and validate recurring task schedule.
+   * @param taskSchedule recurring task schedule tab in crontab(5) format.
+   * @param arrays, an array of 5 boolean arrays.  The array has the following
+   * structure: {minutesArray, hoursArray, daysArray, monthArray, weekdayArray}.
+   * @param referToTaskEntryAttribute whether the error messages must refer
+   * to the task entry attribute or not.  This is used to have meaningful
+   * messages when the {@link #parseTaskTab(String)} is called to validate
+   * a crontab formatted string.
+   * @throws DirectoryException to indicate an error.
+   */
+  private static void parseTaskTab(String taskSchedule,
+      boolean[][] arrays,
+      boolean referToTaskEntryAttribute) throws DirectoryException
   {
     StringTokenizer st = new StringTokenizer(taskSchedule);
 
     if (st.countTokens() != TASKTAB_NUM_TOKENS) {
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-        ERR_RECURRINGTASK_INVALID_N_TOKENS.get(
-        ATTR_RECURRING_TASK_SCHEDULE));
+      if (referToTaskEntryAttribute)
+      {
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+            ERR_RECURRINGTASK_INVALID_N_TOKENS.get(
+                ATTR_RECURRING_TASK_SCHEDULE));
+      }
+      else
+      {
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+            ERR_RECURRINGTASK_INVALID_N_TOKENS_SIMPLE.get());
+      }
     }
 
     for (TaskTab taskTabToken : TaskTab.values()) {
@@ -466,47 +511,87 @@ public class RecurringTask
       switch (taskTabToken) {
         case MINUTE:
           try {
-            minutesArray = parseTaskTabField(token, 0, 59);
+            arrays[MINUTE_INDEX] = parseTaskTabField(token, 0, 59);
           } catch (IllegalArgumentException e) {
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-              ERR_RECURRINGTASK_INVALID_MINUTE_TOKEN.get(
-              ATTR_RECURRING_TASK_SCHEDULE));
+            if (referToTaskEntryAttribute)
+            {
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                  ERR_RECURRINGTASK_INVALID_MINUTE_TOKEN.get(
+                      ATTR_RECURRING_TASK_SCHEDULE));
+            }
+            else
+            {
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                  ERR_RECURRINGTASK_INVALID_MINUTE_TOKEN_SIMPLE.get());
+            }
           }
           break;
         case HOUR:
           try {
-            hoursArray = parseTaskTabField(token, 0, 23);
+            arrays[HOUR_INDEX] = parseTaskTabField(token, 0, 23);
           } catch (IllegalArgumentException e) {
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-              ERR_RECURRINGTASK_INVALID_HOUR_TOKEN.get(
-              ATTR_RECURRING_TASK_SCHEDULE));
+            if (referToTaskEntryAttribute)
+            {
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                  ERR_RECURRINGTASK_INVALID_HOUR_TOKEN.get(
+                      ATTR_RECURRING_TASK_SCHEDULE));
+            }
+            else
+            {
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                  ERR_RECURRINGTASK_INVALID_HOUR_TOKEN_SIMPLE.get());
+            }
           }
           break;
         case DAY:
           try {
-            daysArray = parseTaskTabField(token, 1, 31);
+            arrays[DAY_INDEX] = parseTaskTabField(token, 1, 31);
           } catch (IllegalArgumentException e) {
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-              ERR_RECURRINGTASK_INVALID_DAY_TOKEN.get(
-              ATTR_RECURRING_TASK_SCHEDULE));
+            if (referToTaskEntryAttribute)
+            {
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                  ERR_RECURRINGTASK_INVALID_DAY_TOKEN.get(
+                      ATTR_RECURRING_TASK_SCHEDULE));
+            }
+            else
+            {
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                  ERR_RECURRINGTASK_INVALID_DAY_TOKEN_SIMPLE.get());
+            }
           }
           break;
         case MONTH:
           try {
-            monthArray = parseTaskTabField(token, 1, 12);
+            arrays[MONTH_INDEX] = parseTaskTabField(token, 1, 12);
           } catch (IllegalArgumentException e) {
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-              ERR_RECURRINGTASK_INVALID_MONTH_TOKEN.get(
-              ATTR_RECURRING_TASK_SCHEDULE));
+            if (referToTaskEntryAttribute)
+            {
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                  ERR_RECURRINGTASK_INVALID_MONTH_TOKEN.get(
+                      ATTR_RECURRING_TASK_SCHEDULE));
+            }
+            else
+            {
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                  ERR_RECURRINGTASK_INVALID_MONTH_TOKEN_SIMPLE.get());
+            }
           }
           break;
         case WEEKDAY:
           try {
-            weekdayArray = parseTaskTabField(token, 0, 6);
+            arrays[WEEKDAY_INDEX] = parseTaskTabField(token, 0, 6);
           } catch (IllegalArgumentException e) {
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-              ERR_RECURRINGTASK_INVALID_WEEKDAY_TOKEN.get(
-              ATTR_RECURRING_TASK_SCHEDULE));
+            if (referToTaskEntryAttribute)
+            {
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                  ERR_RECURRINGTASK_INVALID_WEEKDAY_TOKEN.get(
+                      ATTR_RECURRING_TASK_SCHEDULE));
+            }
+            else
+            {
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                  ERR_RECURRINGTASK_INVALID_WEEKDAY_TOKEN_SIMPLE.get());
+            }
           }
           break;
       }

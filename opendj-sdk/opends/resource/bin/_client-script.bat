@@ -23,7 +23,7 @@ rem
 rem CDDL HEADER END
 rem
 rem
-rem      Copyright 2006-2009 Sun Microsystems, Inc.
+rem      Copyright 2006-2010 Sun Microsystems, Inc.
 
 rem This script is used to invoke various client-side processes.  It should not
 rem be invoked directly by end users.
@@ -55,7 +55,7 @@ set SCRIPT_UTIL_CMD=set-full-environment
 call "%INSTALL_ROOT%\lib\_script-util.bat" %*
 if NOT %errorlevel% == 0 exit /B %errorlevel%
 
-"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% %OPENDS_INVOKE_CLASS% %*
+"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_ARGS% %SCRIPT_NAME_ARG% %OPENDS_INVOKE_CLASS% %*
 
 :end
 

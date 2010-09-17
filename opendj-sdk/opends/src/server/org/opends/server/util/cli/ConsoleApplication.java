@@ -62,9 +62,6 @@ import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.OpendsCertificateException;
 import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
-import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
-import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.ClientException;
@@ -1116,120 +1113,6 @@ public abstract class ConsoleApplication {
     return pwd;
   }
 
-  /**
-   * The default period time used to write points in the output.
-   */
-  protected static final long DEFAULT_PERIOD_TIME = 3000;
-  /**
-   * Class used to add points periodically to the end of the output.
-   *
-   */
-  protected class PointAdder implements Runnable
-  {
-    private Thread t;
-    private boolean stopPointAdder;
-    private boolean pointAdderStopped;
-    private long periodTime = DEFAULT_PERIOD_TIME;
-    private boolean isError;
-    private ProgressMessageFormatter formatter;
-
-    /**
-     * Default constructor.
-     * Creates a PointAdder that writes to the standard output with the default
-     * period time.
-     */
-    public PointAdder()
-    {
-      this(DEFAULT_PERIOD_TIME, false, new PlainTextProgressMessageFormatter());
-    }
-
-    /**
-     * Default constructor.
-     * @param periodTime the time between printing two points.
-     * @param isError whether the points must be printed in error stream
-     * or output stream.
-     * @param formatter the text formatter.
-     */
-    public PointAdder(long periodTime, boolean isError,
-        ProgressMessageFormatter formatter)
-    {
-      this.periodTime = periodTime;
-      this.isError = isError;
-      this.formatter = formatter;
-    }
-
-    /**
-     * Starts the PointAdder: points are added at the end of the logs
-     * periodically.
-     */
-    public void start()
-    {
-      MessageBuilder mb = new MessageBuilder();
-      mb.append(formatter.getSpace());
-      for (int i=0; i< 5; i++)
-      {
-        mb.append(formatter.getFormattedPoint());
-      }
-      if (isError)
-      {
-        print(mb.toMessage());
-      }
-      else
-      {
-        printProgress(mb.toMessage());
-      }
-      t = new Thread(this);
-      t.start();
-    }
-
-    /**
-     * Stops the PointAdder: points are no longer added at the end of the logs
-     * periodically.
-     */
-    public synchronized void stop()
-    {
-      stopPointAdder = true;
-      while (!pointAdderStopped)
-      {
-        try
-        {
-          t.interrupt();
-          // To allow the thread to set the boolean.
-          Thread.sleep(100);
-        }
-        catch (Throwable t)
-        {
-        }
-      }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public void run()
-    {
-      while (!stopPointAdder)
-      {
-        try
-        {
-          Thread.sleep(periodTime);
-          if (isError)
-          {
-            print(formatter.getFormattedPoint());
-          }
-          else
-          {
-            printProgress(formatter.getFormattedPoint());
-          }
-        }
-        catch (Throwable t)
-        {
-        }
-      }
-      pointAdderStopped = true;
-    }
-  }
-
   private OpendsCertificateException getCertificateRootException(Throwable t)
   {
     OpendsCertificateException oce = null;
@@ -1243,4 +1126,89 @@ public abstract class ConsoleApplication {
     }
     return oce;
   }
+
+
+  /**
+   * Commodity method used to repeatidly ask the user to provide an
+   * integer value.
+   * @param prompt the prompt message.
+   * @param defaultValue the default value to be proposed to the user.
+   * @param logger the logger where the errors will be written.
+   * @return the value provided by the user.
+   */
+  protected int askInteger(Message prompt, int defaultValue,
+      Logger logger)
+  {
+    int newInt = -1;
+    while (newInt == -1)
+    {
+      try
+      {
+        newInt = readInteger(prompt, defaultValue);
+      }
+      catch (CLIException ce)
+      {
+        newInt = -1;
+        logger.log(Level.WARNING, "Error reading input: "+ce, ce);
+      }
+    }
+    return newInt;
+  }
+
+  /**
+   * Interactively retrieves an integer value from the console.
+   *
+   * @param prompt
+   *          The message prompt.
+   * @param defaultValue
+   *          The default value.
+   * @return Returns the value.
+   * @throws CLIException
+   *           If the value could not be retrieved for some reason.
+   */
+  public final int readInteger(Message prompt, final int defaultValue)
+  throws CLIException
+  {
+    ValidationCallback<Integer> callback = new ValidationCallback<Integer>()
+    {
+      public Integer validate(ConsoleApplication app, String input)
+          throws CLIException
+      {
+        String ninput = input.trim();
+        if (ninput.length() == 0)
+        {
+          return defaultValue;
+        }
+        else
+        {
+          try
+          {
+            int i = Integer.parseInt(ninput);
+            if (i < 1)
+            {
+              throw new NumberFormatException();
+            }
+            return i;
+          }
+          catch (NumberFormatException e)
+          {
+            // Try again...
+            app.println();
+            app.println(ERR_LDAP_CONN_BAD_INTEGER.get(ninput));
+            app.println();
+            return null;
+          }
+        }
+      }
+
+    };
+
+    if (defaultValue != -1) {
+      prompt = INFO_PROMPT_SINGLE_DEFAULT.get(prompt.toString(),
+          String.valueOf(defaultValue));
+    }
+
+    return readValidatedInput(prompt, callback, CONFIRMATION_MAX_TRIES);
+  }
+
 }

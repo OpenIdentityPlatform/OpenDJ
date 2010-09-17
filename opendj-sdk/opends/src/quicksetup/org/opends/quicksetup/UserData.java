@@ -84,7 +84,8 @@ public class UserData
 
   private SuffixesToReplicateOptions suffixesToReplicateOptions;
 
-  private Map<ServerDescriptor, AuthenticationData> remoteWithNoReplicationPort;
+  private final Map<ServerDescriptor, AuthenticationData>
+  remoteWithNoReplicationPort;
 
   private boolean quiet;
 
@@ -880,7 +881,8 @@ public class UserData
   {
     return new String[]
     {
-        "backup.offline", "encode-password", "export-ldif.offline",
+        "backup.offline", "dsreplication.offline",
+        "encode-password", "export-ldif.offline",
         IMPORT_SCRIPT_NAME, "ldif-diff", "ldifmodify", "ldifsearch",
         "make-ldif", "rebuild-index", "restore.offline", SERVER_SCRIPT_NAME,
         "upgrade", "verify-index", "dbtest"

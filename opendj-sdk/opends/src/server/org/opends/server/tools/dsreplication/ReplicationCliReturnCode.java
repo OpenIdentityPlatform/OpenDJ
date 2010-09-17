@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools.dsreplication;
@@ -181,7 +181,49 @@ public enum ReplicationCliReturnCode
   /**
    * Error disabling replication server.
    */
-  ERROR_DISABLING_REPLICATION_SERVER(25, ERR_REPLICATION_NO_MESSAGE.get());
+  ERROR_DISABLING_REPLICATION_SERVER(25, ERR_REPLICATION_NO_MESSAGE.get()),
+
+  /**
+   * Error executing purge historical.
+   */
+  ERROR_EXECUTING_PURGE_HISTORICAL(26,
+      ERR_REPLICATION_NO_MESSAGE.get()),
+
+  /**
+   * The provided base DNs cannot be purged.
+   */
+  HISTORICAL_CANNOT_BE_PURGED_ON_BASEDN(27,
+      ERR_REPLICATION_NO_MESSAGE.get()),
+
+  /**
+    * Error launching purge historical.
+    */
+  ERROR_LAUNCHING_PURGE_HISTORICAL(28,
+      ERR_REPLICATION_NO_MESSAGE.get()),
+
+  /**
+    * Error loading configuration class in local purge historical.
+    */
+  ERROR_LOCAL_PURGE_HISTORICAL_CLASS_LOAD(29,
+         ERR_REPLICATION_NO_MESSAGE.get()),
+
+  /**
+   * Error starting server in local purge historical.
+   */
+   ERROR_LOCAL_PURGE_HISTORICAL_SERVER_START(30,
+       ERR_REPLICATION_NO_MESSAGE.get()),
+
+  /**
+    * Timeout error in local purge historical.
+    */
+  ERROR_LOCAL_PURGE_HISTORICAL_TIMEOUT(31,
+       ERR_REPLICATION_NO_MESSAGE.get()),
+
+  /**
+    * Generic error executing local purge historical.
+    */
+  ERROR_LOCAL_PURGE_HISTORICAL_EXECUTING(32,
+      ERR_REPLICATION_NO_MESSAGE.get());
 
 
   private Message message;

@@ -23,10 +23,23 @@ rem
 rem CDDL HEADER END
 rem
 rem
-rem      Copyright 2008 Sun Microsystems, Inc.
+rem      Copyright 2008-2010 Sun Microsystems, Inc.
 
 setlocal
 
 set OPENDS_INVOKE_CLASS="org.opends.server.tools.dsreplication.ReplicationCliMain"
+if "%RECURSIVE_LOCAL_CALL%" == "true" goto callOffline
+goto callOnline
+
+:callOffline
+set SCRIPT_ARGS=
+set SCRIPT_NAME=dsreplication.offline
+goto callScript
+
+:callOnline
+set SCRIPT_ARGS=-Dorg.opends.server.dsreplicationcallstatus=firstcall
 set SCRIPT_NAME=dsreplication
-for %%i in (%~sf0) do call "%%~dPsi\..\lib\_client-script.bat" %*
+goto callScript
+
+:callScript
+for %%i in (%~sf0) do call "%%~dPsi\..\lib\_server-script.bat" %*

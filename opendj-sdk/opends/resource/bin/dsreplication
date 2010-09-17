@@ -23,16 +23,27 @@
 # CDDL HEADER END
 #
 #
-#      Copyright 2008 Sun Microsystems, Inc.
+#      Copyright 2008-2010 Sun Microsystems, Inc.
 
 
 # This script may be used to perform some replication specific operations.
 OPENDS_INVOKE_CLASS="org.opends.server.tools.dsreplication.ReplicationCliMain"
 export OPENDS_INVOKE_CLASS
 
-SCRIPT_NAME="dsreplication"
-export SCRIPT_NAME
-
 SCRIPT_DIR=`dirname "${0}"`
-"${SCRIPT_DIR}/../lib/_client-script.sh" "${@}"
+
+if test "${RECURSIVE_LOCAL_CALL}" = "true"
+then
+  SCRIPT_ARGS=""
+  export SCRIPT_ARGS
+  SCRIPT_NAME="dsreplication.offline"
+  export SCRIPT_NAME
+else
+  SCRIPT_ARGS="-Dorg.opends.server.dsreplicationcallstatus=firstcall"
+  export SCRIPT_ARGS
+  SCRIPT_NAME="dsreplication"
+  export SCRIPT_NAME
+fi
+"${SCRIPT_DIR}/../lib/_server-script.sh" "${@}"
+
 

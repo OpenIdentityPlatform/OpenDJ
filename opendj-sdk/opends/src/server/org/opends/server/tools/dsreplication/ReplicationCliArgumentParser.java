@@ -44,6 +44,10 @@ import org.opends.quicksetup.util.Utils;
 import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.admin.client.cli.SecureConnectionCliParser;
+import org.opends.server.admin.client.cli.TaskScheduleArgs;
+import org.opends.server.extensions.ConfigFileHandler;
+import org.opends.server.tasks.PurgeConflictsHistoricalTask;
+import org.opends.server.types.OpenDsException;
 import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentGroup;
@@ -68,6 +72,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   private SubCommand postExternalInitializationSubCmd;
   private SubCommand preExternalInitializationSubCmd;
   private SubCommand statusReplicationSubCmd;
+  private SubCommand purgeHistoricalSubCmd;
 
   int defaultAdminPort =
     AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT;
@@ -219,7 +224,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   /**
    * The 'suffixes' global argument.
    */
-  private StringArgument baseDNsArg = null;
+  StringArgument baseDNsArg = null;
 
   /**
    * The 'quiet' argument.
@@ -259,6 +264,22 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   BooleanArgument advancedArg;
 
+  // The argument set by the user to specify the configuration class
+  // (useful when dsreplication purge-historical runs locally/starts the server)
+  private StringArgument  configClassArg;
+
+  // The argument set by the user to specify the configuration file
+  // (useful when dsreplication purge-historical runs locally/starts the server)
+  private StringArgument  configFileArg;
+
+  TaskScheduleArgs taskArgs;
+
+
+  /**
+   * The 'maximumDuration' argument for the purge of historical.
+   */
+  IntegerArgument maximumDurationArg;
+
   /**
    * The text of the enable replication subcommand.
    */
@@ -297,6 +318,11 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   public static final String STATUS_REPLICATION_SUBCMD_NAME = "status";
 
+  /**
+   * The text of the purge historical subcommand.
+   */
+  public static final String PURGE_HISTORICAL_SUBCMD_NAME = "purge-historical";
+
   // This CLI is always using the administration connector with SSL
   private final boolean alwaysSSL = true;
 
@@ -329,6 +355,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   public void initializeParser(OutputStream outStream)
       throws ArgumentException
   {
+    taskArgs = new TaskScheduleArgs();
     initializeGlobalArguments(outStream);
     try
     {
@@ -345,6 +372,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     createPreExternalInitializationSubCommand();
     createPostExternalInitializationSubCommand();
     createStatusReplicationSubCommand();
+    createPurgeHistoricalSubCommand();
   }
 
   /**
@@ -365,6 +393,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   /**
    * {@inheritDoc}
    */
+  @Override
   public int validateGlobalOptions(MessageBuilder buf)
   {
     int returnValue;
@@ -418,7 +447,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
       {
         errors.add(ERR_REPLICATION_NO_BASE_DN_PROVIDED.get());
       }
-      if (getBindPasswordAdmin() == null)
+      if (getBindPasswordAdmin() == null &&
+          !isPurgeHistoricalSubcommand())
       {
         errors.add(ERR_REPLICATION_NO_ADMINISTRATOR_PASSWORD_PROVIDED.get(
             "--"+secureArgsList.bindPasswordArg.getLongIdentifier(),
@@ -556,6 +586,23 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         INFO_REPLICATION_DESCRIPTION_ADVANCED.get());
     defaultArgs.add(index++, advancedArg);
 
+    configClassArg =
+      new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
+                         OPTION_LONG_CONFIG_CLASS, true, false,
+                         true, INFO_CONFIGCLASS_PLACEHOLDER.get(),
+                         ConfigFileHandler.class.getName(), null,
+                         INFO_DESCRIPTION_CONFIG_CLASS.get());
+    configClassArg.setHidden(true);
+    defaultArgs.add(index++, configClassArg);
+
+    configFileArg =
+      new StringArgument("configfile", 'f', "configFile", true, false,
+                         true, INFO_CONFIGFILE_PLACEHOLDER.get(), null,
+                         null,
+                         INFO_DESCRIPTION_CONFIG_FILE.get());
+    configFileArg.setHidden(true);
+    defaultArgs.add(index++, configFileArg);
+
     for (int i=0; i<index; i++)
     {
       Argument arg = defaultArgs.get(i);
@@ -585,6 +632,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @throws ArgumentException if there is a conflict with the provided
    * arguments.
    */
+  @Override
   protected void initializeGlobalArguments(
           Collection<Argument> args,
           ArgumentGroup argGroup)
@@ -625,6 +673,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     port1Arg = new IntegerArgument("port1", OPTION_SHORT_PORT, "port1",
         false, false, true, INFO_PORT_PLACEHOLDER.get(),
         defaultAdminPort, null,
+        true, 1,
+        true, 65336,
         INFO_DESCRIPTION_ENABLE_REPLICATION_SERVER_PORT1.get());
 
     bindDn1Arg = new StringArgument("bindDN1", OPTION_SHORT_BINDDN,
@@ -645,6 +695,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     replicationPort1Arg = new IntegerArgument("replicationPort1", 'r',
         "replicationPort1", false, false, true, INFO_PORT_PLACEHOLDER.get(),
         8989, null,
+        true, 1,
+        true, 65336,
         INFO_DESCRIPTION_ENABLE_REPLICATION_PORT1.get());
 
     secureReplication1Arg = new BooleanArgument("secureReplication1", null,
@@ -666,6 +718,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
 
     port2Arg = new IntegerArgument("port2", null, "port2",
         false, false, true, INFO_PORT_PLACEHOLDER.get(), defaultAdminPort, null,
+        true, 1,
+        true, 65336,
         INFO_DESCRIPTION_ENABLE_REPLICATION_SERVER_PORT2.get());
 
     bindDn2Arg = new StringArgument("bindDN2", null,
@@ -686,6 +740,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     replicationPort2Arg = new IntegerArgument("replicationPort2", 'R',
         "replicationPort2", false, false, true, INFO_PORT_PLACEHOLDER.get(),
         8989, null,
+        true, 1,
+        true, 65336,
         INFO_DESCRIPTION_ENABLE_REPLICATION_PORT2.get());
 
     secureReplication2Arg = new BooleanArgument("secureReplication2", null,
@@ -783,6 +839,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     portSourceArg = new IntegerArgument("portSource", OPTION_SHORT_PORT,
         "portSource", false, false, true, INFO_PORT_PLACEHOLDER.get(),
         defaultAdminPort, null,
+        true, 1,
+        true, 65336,
         INFO_DESCRIPTION_INITIALIZE_REPLICATION_SERVER_PORT_SOURCE.get());
 
     hostNameDestinationArg = new StringArgument("hostDestination", 'O',
@@ -794,6 +852,8 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         "portDestination", false, false, true, INFO_PORT_PLACEHOLDER.get(),
         defaultAdminPort,
         null,
+        true, 1,
+        true, 65336,
         INFO_DESCRIPTION_INITIALIZE_REPLICATION_SERVER_PORT_DESTINATION.get());
 
     initializeReplicationSubCmd = new SubCommand(this,
@@ -912,6 +972,50 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     for (int i=0; i<argsToAdd.length; i++)
     {
       statusReplicationSubCmd.addArgument(argsToAdd[i]);
+    }
+  }
+
+  /**
+   * Creates the purge historical subcommand and all the specific options
+   * for the subcommand.  Note: this method assumes that
+   * initializeGlobalArguments has already been called and that hostNameArg and
+   * portArg have been created.
+   */
+  private void createPurgeHistoricalSubCommand()
+  throws ArgumentException
+  {
+    maximumDurationArg = new IntegerArgument(
+        "maximumDuration",
+        null, // shortId
+        "maximumDuration",
+        true, // isRequired
+        false, // isMultivalued
+        true,  // needsValue
+        INFO_MAXIMUM_DURATION_PLACEHOLDER.get(),
+        PurgeConflictsHistoricalTask.DEFAULT_MAX_DURATION,
+        null,
+        true, 0,
+        false, Integer.MAX_VALUE,
+        INFO_DESCRIPTION_PURGE_HISTORICAL_MAXIMUM_DURATION.get());
+
+    purgeHistoricalSubCmd = new SubCommand(
+        this,
+        PURGE_HISTORICAL_SUBCMD_NAME,
+        INFO_DESCRIPTION_SUBCMD_PURGE_HISTORICAL.get());
+
+    Argument[] argsToAdd = {
+        secureArgsList.hostNameArg,
+        secureArgsList.portArg,
+        maximumDurationArg};
+
+    for (int i=0; i<argsToAdd.length; i++)
+    {
+      argsToAdd[i].setPropertyName(argsToAdd[i].getLongIdentifier());
+      purgeHistoricalSubCmd.addArgument(argsToAdd[i]);
+    }
+    for (Argument arg : taskArgs.getArguments())
+    {
+      purgeHistoricalSubCmd.addArgument(arg);
     }
   }
 
@@ -1061,6 +1165,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * Returns the Administrator UID explicitly provided in the command-line.
    * @return the Administrator UID explicitly provided in the command-line.
    */
+  @Override
   public String getAdministratorUID()
   {
     return getValue(secureArgsList.adminUidArg);
@@ -1642,6 +1747,28 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   }
 
   /**
+   * Returns the config class value provided in the hidden argument of the
+   * command-line.
+   * @return the config class value provided in the hidden argument of the
+   * command-line.
+   */
+  public String getConfigClass()
+  {
+    return getValue(configClassArg);
+  }
+
+  /**
+   * Returns the config file value provided in the hidden argument of the
+   * command-line.
+   * @return the config file value provided in the hidden argument of the
+   * command-line.
+   */
+  public String getConfigFile()
+  {
+    return getValue(configFileArg);
+  }
+
+  /**
    * Returns the value of the provided argument only if the user provided it
    * explicitly.
    * @param arg the StringArgument to be handled.
@@ -1752,12 +1879,45 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     {
       validatePostExternalInitializationOptions(buf);
     }
+    else if (isPurgeHistoricalSubcommand())
+    {
+      validatePurgeHistoricalOptions(buf);
+    }
 
     else
     {
       // This can occur if the user did not provide any subcommand.  We assume
       // that the error informing of this will be generated in
       // validateGlobalOptions.
+    }
+  }
+
+  /**
+   * Checks the purge historical subcommand options and updates the
+   * provided MessageBuilder with the errors that were encountered with the
+   * subcommand options.
+   *
+   * This method assumes that the method parseArguments for the parser has
+   * already been called.
+   * @param buf the MessageBuilder object where we add the error messages
+   * describing the errors encountered.
+   */
+  private void validatePurgeHistoricalOptions(MessageBuilder buf)
+  {
+    try
+    {
+      if (!isInteractive() && !connectionArgumentsPresent())
+      {
+        taskArgs.validateArgsIfOffline();
+      }
+      else
+      {
+        taskArgs.validateArgs();
+      }
+    }
+    catch (OpenDsException ode)
+    {
+      addMessage(buf, ode.getMessageObject());
     }
   }
 
@@ -1792,6 +1952,17 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   public boolean isStatusReplicationSubcommand()
   {
     return isSubcommand(STATUS_REPLICATION_SUBCMD_NAME);
+  }
+
+  /**
+   * Returns whether the user provided subcommand is the purge historical
+   * or not.
+   * @return <CODE>true</CODE> if the user provided subcommand is the
+   * purge historical and <CODE>false</CODE> otherwise.
+   */
+  public boolean isPurgeHistoricalSubcommand()
+  {
+    return isSubcommand(PURGE_HISTORICAL_SUBCMD_NAME);
   }
 
   /**
@@ -2070,5 +2241,61 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   public SecureConnectionCliArgs getSecureArgsList()
   {
     return secureArgsList;
+  }
+
+  /**
+   * Returns the TaskScheduleArgs object containing the arguments
+   * of this parser.
+   * @return the TaskScheduleArgs object containing the arguments
+   * of this parser.
+   */
+  public TaskScheduleArgs getTaskArgsList()
+  {
+    return taskArgs;
+  }
+
+  /**
+   * Returns whether the user specified connection arguments or not.
+   * @return {@code true} if the user specified connection arguments and
+   * {@code false} otherwise.
+   */
+  public boolean connectionArgumentsPresent()
+  {
+    if (isPurgeHistoricalSubcommand()) {
+      boolean secureArgsPresent = getSecureArgsList() != null &&
+      getSecureArgsList().argumentsPresent();
+      // This have to be explicitly specified because their original definition
+      // has been replaced.
+      boolean adminArgsPresent = secureArgsList.adminUidArg.isPresent() ||
+      secureArgsList.bindPasswordArg.isPresent() ||
+      secureArgsList.bindPasswordFileArg.isPresent();
+      return secureArgsPresent || adminArgsPresent;
+    }
+    else
+    {
+      return true;
+    }
+  }
+
+  /**
+    * Returns the maximum duration explicitly provided in the purge historical
+    * replication subcommand.
+    * @return the maximum duration explicitly provided in the purge historical
+    * replication subcommand.  Returns -1 if no port was explicitly provided.
+    */
+  public int getMaximumDuration()
+  {
+     return getValue(maximumDurationArg);
+  }
+
+  /**
+   * Returns the maximum duration default value in the purge historical
+   * replication subcommand.
+   * @return the maximum duration default value in the purge historical
+   * replication subcommand.
+   */
+  public int getDefaultMaximumDuration()
+  {
+    return getDefaultValue(maximumDurationArg);
   }
 }
