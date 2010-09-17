@@ -326,6 +326,9 @@ public class CoreConfigManager
           case UPDATE_SCHEMA:
             disabledPrivileges.add(Privilege.UPDATE_SCHEMA);
             break;
+          case SUBENTRY_WRITE:
+            disabledPrivileges.add(Privilege.SUBENTRY_WRITE);
+            break;
         }
       }
     }

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.jmx;
 
@@ -180,6 +180,7 @@ public class JmxPrivilegeTestCase
       "ds-privilege-name: unindexed-search",
       "ds-privilege-name: jmx-read",
       "ds-privilege-name: jmx-write",
+      "ds-privilege-name: subentry-write",
       "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
            "cn=Password Policies,cn=config",
       "",

@@ -226,7 +226,15 @@ public enum Privilege
    * The privilege that provides the ability to perform an unindexed
    * search in the JE backend.
    */
-  UNINDEXED_SEARCH("unindexed-search");
+  UNINDEXED_SEARCH("unindexed-search"),
+
+
+
+  /**
+   * The privilege that provides the ability to perform write
+   * operations on LDAP subentries.
+   */
+  SUBENTRY_WRITE("subentry-write");
 
 
 
@@ -287,6 +295,7 @@ public enum Privilege
     PRIV_MAP.put("update-schema", UPDATE_SCHEMA);
     PRIV_MAP.put("privilege-change", PRIVILEGE_CHANGE);
     PRIV_MAP.put("unindexed-search", UNINDEXED_SEARCH);
+    PRIV_MAP.put("subentry-write", SUBENTRY_WRITE);
 
     PRIV_NAMES.add("bypass-acl");
     PRIV_NAMES.add("bypass-lockdown");
@@ -311,6 +320,7 @@ public enum Privilege
     PRIV_NAMES.add("update-schema");
     PRIV_NAMES.add("privilege-change");
     PRIV_NAMES.add("unindexed-search");
+    PRIV_NAMES.add("subentry-write");
 
     DEFAULT_ROOT_PRIV_SET.add(BYPASS_ACL);
     DEFAULT_ROOT_PRIV_SET.add(BYPASS_LOCKDOWN);
@@ -330,6 +340,7 @@ public enum Privilege
     DEFAULT_ROOT_PRIV_SET.add(UPDATE_SCHEMA);
     DEFAULT_ROOT_PRIV_SET.add(PRIVILEGE_CHANGE);
     DEFAULT_ROOT_PRIV_SET.add(UNINDEXED_SEARCH);
+    DEFAULT_ROOT_PRIV_SET.add(SUBENTRY_WRITE);
   }
 
 

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Copyright 2007-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.types;
 
@@ -141,6 +141,7 @@ public class PrivilegeTestCase
       "ds-privilege-name: -backend-backup",
       "ds-privilege-name: -backend-restore",
       "ds-privilege-name: -unindexed-search",
+      "ds-privilege-name: -subentry-write",
       "",
       "dn: cn=Proxy Root,cn=Root DNs,cn=config",
       "objectClass: top",
@@ -176,6 +177,7 @@ public class PrivilegeTestCase
       "ds-privilege-name: proxied-auth",
       "ds-privilege-name: bypass-acl",
       "ds-privilege-name: unindexed-search",
+      "ds-privilege-name: subentry-write",
       "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
            "cn=Password Policies,cn=config",
       "",
@@ -192,6 +194,15 @@ public class PrivilegeTestCase
       "userPassword: password",
       "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
            "cn=Password Policies,cn=config",
+      "",
+      "dn: cn=Subentry Target,o=test",
+      "objectClass: top",
+      "objectClass: subentry",
+      "objectClass: collectiveAttributeSubentry",
+      "objectClass: extensibleObject",
+      "cn: Subentry Target",
+      "l;collective: Test",
+      "subtreeSpecification: {}",
       "",
       "dn: cn=PWReset Target,o=test",
       "objectClass: top",
@@ -622,6 +633,153 @@ public class PrivilegeTestCase
       // at least we need to make sure we're getting past the privilege check.
       assertEquals(modifyDNOperation.getResultCode(),
                    ResultCode.UNWILLING_TO_PERFORM);
+    }
+    else
+    {
+      assertEquals(modifyDNOperation.getResultCode(),
+                   ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+    }
+  }
+
+
+
+  /**
+   * Tests to ensure that add and delete operations
+   * properly respect the SUBENTRY_WRITE privilege.
+   *
+   * @param  conn          The client connection to use to perform the
+   *                       operations.
+   * @param  hasPrivilege  Indicates whether the authenticated user is expected
+   *                       to have the SUBENTRY_WRITE privilege and therefore
+   *                       the operations should succeed.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "testdata")
+  public void testSubentryWriteAddAndDelete(InternalClientConnection conn,
+                                          boolean hasPrivilege)
+         throws Exception
+  {
+    assertEquals(conn.hasPrivilege(Privilege.SUBENTRY_WRITE, null),
+            hasPrivilege);
+
+    Entry entry = TestCaseUtils.makeEntry(
+      "dn: cn=Test Subentry,o=test",
+      "objectClass: top",
+      "objectClass: subentry",
+      "objectClass: collectiveAttributeSubentry",
+      "objectClass: extensibleObject",
+      "cn: Test Subentry",
+      "l;collective: Test",
+      "subtreeSpecification: {}");
+
+    AddOperation addOperation =
+         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+                         entry.getUserAttributes(),
+                         entry.getOperationalAttributes());
+    if (hasPrivilege)
+    {
+      assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+      DeleteOperation deleteOperation = conn.processDelete(entry.getDN());
+      assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    }
+    else
+    {
+      assertEquals(addOperation.getResultCode(),
+                   ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+
+      DeleteOperation deleteOperation =
+           conn.processDelete(
+                DN.decode("cn=Subentry Target,o=test"));
+      assertEquals(deleteOperation.getResultCode(),
+                   ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+    }
+  }
+
+
+
+  /**
+   * Tests to ensure that modify operations properly respect
+   * the SUBENTRY_WRITE privilege.
+   *
+   * @param  conn          The client connection to use to perform the modify
+   *                       operation.
+   * @param  hasPrivilege  Indicates whether the authenticated user is expected
+   *                       to have the SUBENTRY_WRITE privilege and therefore
+   *                       the modify should succeed.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "testdata")
+  public void testSubentryWriteModify(InternalClientConnection conn,
+                                    boolean hasPrivilege)
+         throws Exception
+  {
+    assertEquals(conn.hasPrivilege(Privilege.SUBENTRY_WRITE, null),
+            hasPrivilege);
+
+    ArrayList<Modification> mods = new ArrayList<Modification>();
+
+    mods.add(new Modification(ModificationType.REPLACE,
+                              Attributes.create("subtreeSpecification",
+                              "{base \"ou=doesnotexist\"}")));
+
+    ModifyOperation modifyOperation =
+         conn.processModify(DN.decode("cn=Subentry Target,o=test"), mods);
+    if (hasPrivilege)
+    {
+      assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+
+      mods.clear();
+      mods.add(new Modification(ModificationType.REPLACE,
+          Attributes.create("subtreeSpecification", "{}")));
+
+      modifyOperation = conn.processModify(
+              DN.decode("cn=Subentry Target,o=test"), mods);
+      assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    }
+    else
+    {
+      assertEquals(modifyOperation.getResultCode(),
+                   ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+    }
+  }
+
+
+
+  /**
+   * Tests to ensure that modify DN operations
+   * properly respect the SUBENTRY_WRITE privilege.
+   *
+   * @param  conn          The client connection to use to perform the modify DN
+   *                       operation.
+   * @param  hasPrivilege  Indicates whether the authenticated user is expected
+   *                       to have the SUBENTRY_WRITE privilege and therefore
+   *                       the modify DN should succeed.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "testdata")
+  public void testSubentryWriteModifyDN(InternalClientConnection conn,
+                                      boolean hasPrivilege)
+         throws Exception
+  {
+    assertEquals(conn.hasPrivilege(Privilege.SUBENTRY_WRITE, null),
+            hasPrivilege);
+
+    ModifyDNOperation modifyDNOperation =
+         conn.processModifyDN(DN.decode("cn=Subentry Target,o=test"),
+                              RDN.decode("cn=New Subentry Target"),
+                              true, null);
+    if (hasPrivilege)
+    {
+      assertEquals(modifyDNOperation.getResultCode(),
+                   ResultCode.SUCCESS);
+      modifyDNOperation =
+         conn.processModifyDN(DN.decode("cn=New Subentry Target,o=test"),
+                              RDN.decode("cn=Subentry Target"),
+                              true, null);
     }
     else
     {
