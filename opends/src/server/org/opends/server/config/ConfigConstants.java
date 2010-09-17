@@ -1365,23 +1365,6 @@ public final class ConfigConstants
 
 
   /**
-   * The name of the configuration attribute that indicates the maximum number
-   * of pending operations that may be in the work queue at any given time.
-   */
-  public static final String ATTR_MAX_WORK_QUEUE_CAPACITY =
-       "ds-cfg-max-work-queue-capacity";
-
-
-
-  /**
-   * The default maximum capacity that should be used for the work queue if none
-   * is specified in the configuration.
-   */
-  public static final int DEFAULT_MAX_WORK_QUEUE_CAPACITY = 0;
-
-
-
-  /**
    * The name of the configuration attribute that holds the fully-qualified name
    * for the monitor provider class.
    */

@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2009 Sun Microsystems, Inc.
+  !      Copyright 2007-2010 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="traditional-work-queue"
   plural-name="traditional-work-queues" extends="work-queue"
@@ -95,23 +95,16 @@
     </adm:synopsis>
     <adm:description>
       If the work queue is already full and additional requests are
-      received by the server, the requests are rejected.
-      A value of zero indicates that there is no limit to the size 
-      of the queue.
+      received by the server, then the server front end, and possibly the
+      client, will be blocked until the work queue has available capacity. 
     </adm:description>
-    <adm:requires-admin-action>
-      <adm:server-restart />
-    </adm:requires-admin-action>
     <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          The work queue does not impose any limit on the number of
-          operations that can be enqueued at any one time.
-        </adm:synopsis>
-      </adm:alias>
+      <adm:defined>
+        <adm:value>1000</adm:value>
+      </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:integer lower-limit="0" upper-limit="2147483647"/>
+      <adm:integer lower-limit="1" upper-limit="2147483647"/>
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
