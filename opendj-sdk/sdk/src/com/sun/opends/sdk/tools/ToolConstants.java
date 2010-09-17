@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package com.sun.opends.sdk.tools;
 
@@ -557,6 +557,11 @@ final class ToolConstants
    * Long form of option specifying no wrapping of the command-line.
    */
   static final String OPTION_LONG_DONT_WRAP = "dontWrap";
+
+  /**
+   * The value for the long option targetDN.
+   */
+  static final String OPTION_LONG_TARGETDN = "targetDN";
 
   /**
    * Long form of email notification upon completion option.

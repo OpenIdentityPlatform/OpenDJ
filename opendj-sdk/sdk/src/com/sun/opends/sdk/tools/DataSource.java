@@ -34,8 +34,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
+import com.sun.opends.sdk.util.StaticUtils;
 import com.sun.opends.sdk.util.Validator;
-
+import org.opends.sdk.LocalizableMessage;
 
 
 /**
@@ -104,6 +105,12 @@ final class DataSource
 
       return lines.get(next++);
     }
+
+    public static LocalizableMessage getUsage()
+    {
+      return LocalizableMessage.raw(
+        "\"inc({filename})\" Consecutive, incremental line from file");
+    }
   }
 
 
@@ -140,6 +147,12 @@ final class DataSource
       }
 
       return next++;
+    }
+
+    public static LocalizableMessage getUsage()
+    {
+      return LocalizableMessage.raw(
+        "\"inc({min},{max})\" Consecutive, incremental number");
     }
   }
 
@@ -185,6 +198,12 @@ final class DataSource
     {
       return lines.get(random.nextInt(lines.size()));
     }
+
+    public static LocalizableMessage getUsage()
+    {
+      return LocalizableMessage.raw(
+        "\"rand({filename})\" Random line from file");
+    }
   }
 
 
@@ -217,6 +236,12 @@ final class DataSource
     public Object getData()
     {
       return random.nextInt(range) + offset;
+    }
+
+    public static LocalizableMessage getUsage()
+    {
+      return LocalizableMessage.raw(
+          "\"rand({min},{max})\" Random number");
     }
   }
 
@@ -276,6 +301,17 @@ final class DataSource
         str[i] = charSet[random.nextInt(charSet.length)];
       }
       return new String(str);
+    }
+
+    public static LocalizableMessage getUsage()
+    {
+      return LocalizableMessage.raw(
+        "\"randStr({length},<charSet>)\" Random string of specified " +
+            "length and optionally from characters in " +
+            "the charSet string. A range of character " +
+            "can be specified with [start-end] charSet notation. " +
+            "If no charSet is specified, the default charSet of " +
+            "[A-Z][a-z][0-9] will be used");
     }
   }
 
@@ -351,11 +387,11 @@ final class DataSource
    * @param sources
    *          The list of source definitions to parse.
    * @return The array of parsed data sources.
-   * @throws IOException
-   *           If an exception occurs while reading a file.
+   * @throws ArgumentException
+   *           If an exception occurs while parsing.
    */
   public static DataSource[] parse(final List<String> sources)
-      throws IOException
+      throws ArgumentException
   {
     Validator.ensureNotNull(sources);
     final DataSource[] dataSources = new DataSource[sources.size()];
@@ -367,22 +403,47 @@ final class DataSource
         final int lparenPos = dataSourceDef.indexOf("(");
         final int commaPos = dataSourceDef.indexOf(",");
         final int rparenPos = dataSourceDef.indexOf(")");
+
         if (commaPos < 0)
         {
-          // This is a file name
-          dataSources[i] = new DataSource(new RandomLineFileDataSource(0,
-              dataSourceDef.substring(lparenPos + 1, rparenPos)));
+          try
+          {
+            // This is a file name
+            dataSources[i] = new DataSource(new RandomLineFileDataSource(0,
+                dataSourceDef.substring(lparenPos + 1, rparenPos)));
+          }
+          catch(IOException ioe)
+          {
+            throw new ArgumentException(LocalizableMessage.raw(
+                "Error opening file %s: %s",
+                dataSourceDef.substring(lparenPos + 1, rparenPos),
+                ioe.getMessage()), ioe);
+          }
+          catch(Exception e)
+          {
+            throw new ArgumentException(LocalizableMessage.raw(
+                "Error parsing value generator: %s", e.getMessage()), e);
+          }
         }
         else
         {
-          // This range of integers
-          final int low = Integer.parseInt(dataSourceDef.substring(
-              lparenPos + 1, commaPos));
-          final int high = Integer.parseInt(dataSourceDef.substring(
-              commaPos + 1, rparenPos));
-          dataSources[i] = new DataSource(new RandomNumberDataSource(Thread
-              .currentThread().getId(), low, high));
+          try
+          {
+            // This range of integers
+            final int low = Integer.parseInt(dataSourceDef.substring(
+                lparenPos + 1, commaPos));
+            final int high = Integer.parseInt(dataSourceDef.substring(
+                commaPos + 1, rparenPos));
+            dataSources[i] = new DataSource(new RandomNumberDataSource(Thread
+                .currentThread().getId(), low, high));
+          }
+          catch(Exception e)
+          {
+            throw new ArgumentException(LocalizableMessage.raw(
+                "Error parsing value generator: %s", e.getMessage()), e);
+          }
         }
+
       }
       else if (dataSourceDef.startsWith("randstr(")
           && dataSourceDef.endsWith(")"))
@@ -392,22 +453,29 @@ final class DataSource
         final int rparenPos = dataSourceDef.indexOf(")");
         int length;
         String charSet;
-        if (commaPos < 0)
+        try
         {
-          length = Integer.parseInt(dataSourceDef.substring(lparenPos + 1,
-              rparenPos));
-          charSet = "[A-Z][a-z][0-9]";
+          if (commaPos < 0)
+          {
+            length = Integer.parseInt(dataSourceDef.substring(lparenPos + 1,
+                rparenPos));
+            charSet = "[A-Z][a-z][0-9]";
+          }
+          else
+          {
+            // length and charSet
+            length = Integer.parseInt(dataSourceDef.substring(lparenPos + 1,
+                commaPos));
+            charSet = dataSourceDef.substring(commaPos + 1, rparenPos);
+          }
+          dataSources[i] = new DataSource(new RandomStringDataSource(0, length,
+              charSet));
         }
-        else
+        catch(Exception e)
         {
-          // length and charSet
-          length = Integer.parseInt(dataSourceDef.substring(lparenPos + 1,
-              commaPos));
-          charSet = dataSourceDef.substring(commaPos + 1, rparenPos);
+          throw new ArgumentException(LocalizableMessage.raw(
+              "Error parsing value generator: %s", e.getMessage()), e);
         }
-        dataSources[i] = new DataSource(new RandomStringDataSource(0, length,
-            charSet));
-
       }
       else if (dataSourceDef.startsWith("inc(") && dataSourceDef.endsWith(")"))
       {
@@ -416,18 +484,41 @@ final class DataSource
         final int rparenPos = dataSourceDef.indexOf(")");
         if (commaPos < 0)
         {
-          // This is a file name
-          dataSources[i] = new DataSource(new IncrementLineFileDataSource(
-              dataSourceDef.substring(lparenPos + 1, rparenPos)));
+          try
+          {
+            // This is a file name
+            dataSources[i] = new DataSource(new IncrementLineFileDataSource(
+                dataSourceDef.substring(lparenPos + 1, rparenPos)));
+          }
+          catch(IOException ioe)
+          {
+            throw new ArgumentException(LocalizableMessage.raw(
+                "Error opening file %s: %s",
+                dataSourceDef.substring(lparenPos + 1, rparenPos),
+                ioe.getMessage()), ioe);
+          }
+          catch(Exception e)
+          {
+            throw new ArgumentException(LocalizableMessage.raw(
+                "Error parsing value generator: %s", e.getMessage()), e);
+          }
         }
         else
         {
-          final int low = Integer.parseInt(dataSourceDef.substring(
-              lparenPos + 1, commaPos));
-          final int high = Integer.parseInt(dataSourceDef.substring(
-              commaPos + 1, rparenPos));
-          dataSources[i] = new DataSource(new IncrementNumberDataSource(low,
-              high));
+          try
+          {
+            final int low = Integer.parseInt(dataSourceDef.substring(
+                lparenPos + 1, commaPos));
+            final int high = Integer.parseInt(dataSourceDef.substring(
+                commaPos + 1, rparenPos));
+            dataSources[i] = new DataSource(new IncrementNumberDataSource(low,
+                high));
+          }
+          catch(Exception e)
+          {
+            throw new ArgumentException(LocalizableMessage.raw(
+                "Error parsing value generator: %s", e.getMessage()), e);
+          }
         }
       }
       else
@@ -445,6 +536,22 @@ final class DataSource
     }
 
     return dataSources;
+  }
+
+
+  public static LocalizableMessage getUsage()
+  {
+    StringBuilder builder = new StringBuilder();
+    builder.append(IncrementLineFileDataSource.getUsage());
+    builder.append(StaticUtils.EOL);
+    builder.append(IncrementNumberDataSource.getUsage());
+    builder.append(StaticUtils.EOL);
+    builder.append(RandomLineFileDataSource.getUsage());
+    builder.append(StaticUtils.EOL);
+    builder.append(RandomNumberDataSource.getUsage());
+    builder.append(StaticUtils.EOL);
+    builder.append(RandomStringDataSource.getUsage());
+    return LocalizableMessage.raw(builder.toString());
   }
 
 
