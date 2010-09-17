@@ -100,6 +100,14 @@ public class RecurringTask
   // Number of tokens in the task schedule tab.
   private static final int TASKTAB_NUM_TOKENS = 5;
 
+  // Maximum year month days.
+  static final int MONTH_LENGTH[]
+        = {31,28,31,30,31,30,31,31,30,31,30,31};
+
+  // Maximum leap year month days.
+  static final int LEAP_MONTH_LENGTH[]
+        = {31,29,31,30,31,30,31,31,30,31,30,31};
+
   /**
    * Task tab fields.
    */
@@ -417,6 +425,11 @@ public class RecurringTask
     try {
       nextTaskDate = getNextIteration(calendar);
     } catch (IllegalArgumentException e) {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
         ERR_RECURRINGTASK_INVALID_TOKENS_COMBO.get(
         ATTR_RECURRING_TASK_SCHEDULE));
@@ -665,7 +678,7 @@ public class RecurringTask
   }
 
   /**
-   * Get next reccuring slot from the range.
+   * Get next recurring slot from the range.
    * @param timesList the range.
    * @param fromNow the current slot.
    * @return next recurring slot in the range.
@@ -744,8 +757,20 @@ public class RecurringTask
           calendar.set(GregorianCalendar.MONTH, 0);
           calendar.add(GregorianCalendar.YEAR, 1);
         } else {
-          calendar.set(GregorianCalendar.MONTH, (month - 1));
-          break;
+          if ((day > LEAP_MONTH_LENGTH[month - 1]) &&
+              ((getNextTimeSlice(daysArray, 1) != day) ||
+               (getNextTimeSlice(monthArray, 1) != month)))
+          {
+            calendar.set(GregorianCalendar.DAY_OF_MONTH, 1);
+            calendar.add(GregorianCalendar.MONTH, 1);
+          } else if ((day > MONTH_LENGTH[month - 1]) &&
+                     (!calendar.isLeapYear(calendar.get(
+                      GregorianCalendar.YEAR)))) {
+            calendar.add(GregorianCalendar.YEAR, 1);
+          } else {
+            calendar.set(GregorianCalendar.MONTH, (month - 1));
+            break;
+          }
         }
       }
       weekday = getNextTimeSlice(weekdayArray,

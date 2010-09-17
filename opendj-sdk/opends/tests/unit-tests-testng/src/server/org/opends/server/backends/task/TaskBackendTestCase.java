@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.backends.task;
 
@@ -442,6 +442,7 @@ public class TaskBackendTestCase
         { "* * * * 1-7",   false },
         { "* * * * 1,7",   false },
         { "* * 31 2 *",    false },
+        { "* * 29 2 *",    true },
         { "* * * * *",     true },
         { "59 * * * *",    true },
         { "0 * * * *",     true },
