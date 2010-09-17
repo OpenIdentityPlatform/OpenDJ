@@ -62,20 +62,17 @@ import org.opends.server.replication.common.ChangeNumber;
 public class PurgeConflictsHistoricalTask extends Task
 {
   /**
+   * The default value for the maximum duration of the purge expressed in
+   * seconds.
+   */
+  public static final int DEFAULT_MAX_DURATION = 60 * 60;
+  /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
 
   private String  domainString = null;
   private LDAPReplicationDomain domain = null;
-
-  // The last changeNumber purged : help the user to know how well the purge
-  // processing has done its job.
-  // We want to help the user know:
-  // - the task has started at dateX time, will end at dateY max
-  //   and is currently purging dateZ
-  long currentCNPurgedDate = 0;
-  long taskMaxEndDate = 0;
 
   /**
    *                 current historical purge delay
@@ -95,7 +92,7 @@ public class PurgeConflictsHistoricalTask extends Task
    *
    */
 
-  long purgeTaskMaxDurationInSec = 3600; // Default:1h
+  private int purgeTaskMaxDurationInSec = DEFAULT_MAX_DURATION;
 
   TaskState initState;
 
@@ -112,6 +109,7 @@ public class PurgeConflictsHistoricalTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   public Message getDisplayName() {
     return TaskMessages.INFO_TASK_PURGE_CONFLICTS_HIST_NAME.get();
   }
@@ -162,7 +160,7 @@ public class PurgeConflictsHistoricalTask extends Task
     {
       try
       {
-        purgeTaskMaxDurationInSec = Long.decode(maxDurationStringInSec);
+        purgeTaskMaxDurationInSec = Integer.decode(maxDurationStringInSec);
       }
       catch(Exception e)
       {
@@ -177,6 +175,7 @@ public class PurgeConflictsHistoricalTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   protected TaskState runTask()
   {
     Boolean purgeCompletedInTime = false;

@@ -5680,7 +5680,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
          attrs, null);
 
      int count = 0;
-     task.setProgressStats(lastChangeNumberPurgedFromHist, count);
+
+     if (task != null)
+       task.setProgressStats(lastChangeNumberPurgedFromHist, count);
 
      LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
      for (SearchResultEntry entry : entries)
@@ -5731,7 +5733,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
        }
        else
        {
-         task.setProgressStats(lastChangeNumberPurgedFromHist, count);
+         if (task != null)
+           task.setProgressStats(lastChangeNumberPurgedFromHist, count);
        }
      }
    }

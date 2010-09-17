@@ -23,7 +23,7 @@
 # CDDL HEADER END
 #
 #
-#      Copyright 2008 Sun Microsystems, Inc.
+#      Copyright 2008-2010 Sun Microsystems, Inc.
 
 
 # This script is used to invoke processes that might be run on server or
@@ -78,7 +78,7 @@ SCRIPT_NAME_ARG=-Dorg.opends.server.scriptName=${OLD_SCRIPT_NAME}
 export SCRIPT_NAME_ARG
 
 # Check whether is local or remote
-"${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} "${OPENDS_INVOKE_CLASS}" \
+"${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_ARGS}  ${SCRIPT_NAME_ARG} "${OPENDS_INVOKE_CLASS}" \
      --configClass org.opends.server.extensions.ConfigFileHandler \
      --configFile "${INSTANCE_ROOT}/config/config.ldif" --testIfOffline "${@}"  
 EC=${?}
@@ -119,7 +119,7 @@ then
   export SCRIPT_NAME_ARG
   
   # Launch the server utility.
-  "${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} "${OPENDS_INVOKE_CLASS}" \
+  "${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_ARGS} ${SCRIPT_NAME_ARG} "${OPENDS_INVOKE_CLASS}" \
        --configClass org.opends.server.extensions.ConfigFileHandler \
        --configFile "${INSTANCE_ROOT}/config/config.ldif" "${@}"
 fi

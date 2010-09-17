@@ -96,7 +96,7 @@ public class ConfigFromDirContext extends ConfigReader
 
   private boolean isLocal = true;
 
-  private Map<String, CustomSearchResult> hmConnectionHandlersMonitor =
+  private final Map<String, CustomSearchResult> hmConnectionHandlersMonitor =
     new HashMap<String, CustomSearchResult>();
 
   /**
@@ -784,11 +784,13 @@ public class ConfigFromDirContext extends ConfigReader
    * @param sr the search result.
    * @param searchBaseDN the base search.
    * @param taskEntries the collection of TaskEntries to be updated.
+   * @param ex the list of exceptions to be updated if an error occurs.
    * @throws NamingException if there is an error retrieving the values of the
    * search result.
    */
-  protected void handleTaskSearchResult(SearchResult sr, String searchBaseDN,
-      Collection<TaskEntry> taskEntries)
+  private void handleTaskSearchResult(SearchResult sr,
+      String searchBaseDN,
+      Collection<TaskEntry> taskEntries, List<OpenDsException> ex)
   throws NamingException
   {
     CustomSearchResult csr = new CustomSearchResult(sr, searchBaseDN);
@@ -801,7 +803,7 @@ public class ConfigFromDirContext extends ConfigReader
     }
     catch (OpenDsException ode)
     {
-      exceptions.add(ode);
+      ex.add(ode);
     }
   }
 
@@ -847,7 +849,15 @@ public class ConfigFromDirContext extends ConfigReader
     }
   }
 
-  private void updateTaskInformation(InitialLdapContext ctx,
+  /**
+   * Updates the provided list of TaskEntry with the task entries found in
+   * a server.
+   * @param ctx the connection to the server.
+   * @param ex the list of exceptions encountered while retrieving the task
+   * entries.
+   * @param ts the list of task entries to be updated.
+   */
+  public void updateTaskInformation(InitialLdapContext ctx,
       List<OpenDsException> ex, Collection<TaskEntry> ts)
   {
     // Read monitoring information: since it is computed, it is faster
@@ -870,7 +880,7 @@ public class ConfigFromDirContext extends ConfigReader
         while (taskEntries.hasMore())
         {
           SearchResult sr = taskEntries.next();
-          handleTaskSearchResult(sr, ConfigConstants.DN_TASK_ROOT, ts);
+          handleTaskSearchResult(sr, ConfigConstants.DN_TASK_ROOT, ts, ex);
         }
       }
       finally
@@ -1052,7 +1062,8 @@ public class ConfigFromDirContext extends ConfigReader
     return isConnectionHandler;
   }
 
-  private boolean isTaskEntry(CustomSearchResult csr) throws OpenDsException
+  private static boolean isTaskEntry(CustomSearchResult csr)
+  throws OpenDsException
   {
     boolean isTaskEntry = false;
     List<Object> vs = csr.getAttributeValues("objectclass");

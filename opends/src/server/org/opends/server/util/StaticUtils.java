@@ -4121,11 +4121,23 @@ public final class StaticUtils
     {
       if (timeStr.endsWith("Z"))
       {
-        SimpleDateFormat dateFormat =
+        try
+        {
+          SimpleDateFormat dateFormat =
             new SimpleDateFormat(DATE_FORMAT_GENERALIZED_TIME);
-        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-        dateFormat.setLenient(true);
-        dateTime = dateFormat.parse(timeStr);
+          dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+          dateFormat.setLenient(true);
+          dateTime = dateFormat.parse(timeStr);
+        }
+        catch (ParseException pe)
+        {
+          // Best effort: try with GMT time.
+          SimpleDateFormat dateFormat =
+            new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
+          dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+          dateFormat.setLenient(true);
+          dateTime = dateFormat.parse(timeStr);
+        }
       }
       else
       {

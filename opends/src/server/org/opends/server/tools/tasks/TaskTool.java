@@ -27,6 +27,7 @@
 
 package org.opends.server.tools.tasks;
 
+import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
 import org.opends.server.util.args.ArgumentException;
@@ -37,7 +38,6 @@ import org.opends.server.util.cli.CLIException;
 import static org.opends.server.util.StaticUtils.wrapText;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
 import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
-import org.opends.server.util.StaticUtils;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.tools.LDAPConnection;
 import org.opends.server.tools.LDAPConnectionException;
@@ -46,6 +46,7 @@ import static org.opends.server.tools.ToolConstants.*;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.admin.client.cli.TaskScheduleArgs;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.backends.task.FailedDependencyAction;
 import org.opends.messages.Message;
@@ -53,14 +54,10 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.messages.TaskMessages.*;
 
 import java.io.PrintStream;
-import java.text.ParseException;
 import java.util.Date;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.List;
-import java.util.LinkedList;
-import java.util.EnumSet;
-import java.util.Collections;
 import java.io.IOException;
 
 /**
@@ -75,9 +72,17 @@ public abstract class TaskTool implements TaskScheduleInformation {
    * this operation to run immediately as a task as opposed to running
    * the operation in the local VM.
    */
-  public static final String NOW = "0";
+  public static final String NOW = TaskScheduleArgs.NOW;
 
+  /**
+   * The error code used by the mixed-script to know if the java
+   * arguments for the off-line mode must be used.
+   */
   private static final int RUN_OFFLINE = 51;
+  /**
+   * The error code used by the mixed-script to know if the java
+   * arguments for the on-line mode must be used.
+   */
   private static final int RUN_ONLINE = 52;
 
   // Number of milliseconds this utility will wait before reloading
@@ -86,25 +91,9 @@ public abstract class TaskTool implements TaskScheduleInformation {
 
   private LDAPConnectionArgumentParser argParser;
 
-  // Argument for describing the task's start time
-  private StringArgument startArg;
+  private TaskScheduleArgs taskScheduleArgs;
 
-  // Argument to indicate a recurring task
-  private StringArgument recurringArg;
-
-  // Argument for specifying completion notifications
-  private StringArgument completionNotificationArg;
-
-  // Argument for specifying error notifications
-  private StringArgument errorNotificationArg;
-
-  // Argument for specifying dependency
-  private StringArgument dependencyArg;
-
-  // Argument for specifying a failed dependency action
-  private StringArgument failedDependencyActionArg;
-
-  // Argument used to know whether we must test if we must run in offline
+  // Argument used to know whether we must test if we must run in off-line
   // mode.
   private BooleanArgument testIfOfflineArg;
 
@@ -160,66 +149,17 @@ public abstract class TaskTool implements TaskScheduleInformation {
       argParser.addArgument(noPropertiesFileArgument);
       argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
-      startArg = new StringArgument(
-        OPTION_LONG_START_DATETIME,
-        OPTION_SHORT_START_DATETIME,
-        OPTION_LONG_START_DATETIME, false, false,
-        true, INFO_START_DATETIME_PLACEHOLDER.get(),
-        null, null,
-        INFO_DESCRIPTION_START_DATETIME.get());
-      argParser.addArgument(startArg, taskGroup);
+      taskScheduleArgs = new TaskScheduleArgs();
 
-      recurringArg = new StringArgument(
-        OPTION_LONG_RECURRING_TASK,
-        OPTION_SHORT_RECURRING_TASK,
-        OPTION_LONG_RECURRING_TASK, false, false,
-        true, INFO_RECURRING_TASK_PLACEHOLDER.get(),
-        null, null,
-        INFO_DESCRIPTION_RECURRING_TASK.get());
-      argParser.addArgument(recurringArg, taskGroup);
+      for (Argument arg : taskScheduleArgs.getArguments())
+      {
+        argParser.addArgument(arg, taskGroup);
+      }
 
-      completionNotificationArg = new StringArgument(
-        OPTION_LONG_COMPLETION_NOTIFICATION_EMAIL,
-        OPTION_SHORT_COMPLETION_NOTIFICATION_EMAIL,
-        OPTION_LONG_COMPLETION_NOTIFICATION_EMAIL,
-        false, true, true, INFO_EMAIL_ADDRESS_PLACEHOLDER.get(),
-        null, null, INFO_DESCRIPTION_TASK_COMPLETION_NOTIFICATION.get());
-      argParser.addArgument(completionNotificationArg, taskGroup);
-
-      errorNotificationArg = new StringArgument(
-        OPTION_LONG_ERROR_NOTIFICATION_EMAIL,
-        OPTION_SHORT_ERROR_NOTIFICATION_EMAIL,
-        OPTION_LONG_ERROR_NOTIFICATION_EMAIL,
-        false, true, true, INFO_EMAIL_ADDRESS_PLACEHOLDER.get(),
-        null, null, INFO_DESCRIPTION_TASK_ERROR_NOTIFICATION.get());
-      argParser.addArgument(errorNotificationArg, taskGroup);
-
-      dependencyArg = new StringArgument(
-        OPTION_LONG_DEPENDENCY,
-        OPTION_SHORT_DEPENDENCY,
-        OPTION_LONG_DEPENDENCY,
-        false, true, true, INFO_TASK_ID_PLACEHOLDER.get(),
-        null, null, INFO_DESCRIPTION_TASK_DEPENDENCY_ID.get());
-      argParser.addArgument(dependencyArg, taskGroup);
-
-      Set<FailedDependencyAction> fdaValSet =
-        EnumSet.allOf(FailedDependencyAction.class);
-      failedDependencyActionArg = new StringArgument(
-        OPTION_LONG_FAILED_DEPENDENCY_ACTION,
-        OPTION_SHORT_FAILED_DEPENDENCY_ACTION,
-        OPTION_LONG_FAILED_DEPENDENCY_ACTION,
-        false, true, true, INFO_ACTION_PLACEHOLDER.get(),
-        null, null, INFO_DESCRIPTION_TASK_FAILED_DEPENDENCY_ACTION.get(
-        StaticUtils.collectionToString(fdaValSet, ","),
-        FailedDependencyAction.defaultValue().name()));
-      argParser.addArgument(failedDependencyActionArg, taskGroup);
-
-      testIfOfflineArg = new BooleanArgument(
-        "testIfOffline", null, "testIfOffline",
-        INFO_DESCRIPTION_TEST_IF_OFFLINE.get());
+      testIfOfflineArg = new BooleanArgument("testIfOffline", null,
+          "testIfOffline", INFO_DESCRIPTION_TEST_IF_OFFLINE.get());
       testIfOfflineArg.setHidden(true);
       argParser.addArgument(testIfOfflineArg);
-
     } catch (ArgumentException e) {
       // should never happen
     }
@@ -238,81 +178,13 @@ public abstract class TaskTool implements TaskScheduleInformation {
    */
   protected void validateTaskArgs() throws ArgumentException, CLIException
   {
-    if ((startArg.isPresent() || recurringArg.isPresent()) &&
-            !processAsTask())
+    if (processAsTask())
     {
-      throw new ArgumentException(
-              ERR_TASK_TOOL_NO_VALID_LDAP_OPTIONS.get());
+      taskScheduleArgs.validateArgs();
     }
-
-    if (startArg.isPresent() && !NOW.equals(startArg.getValue())) {
-      try {
-        Date date = StaticUtils.parseDateTimeString(startArg.getValue());
-        // Check that the provided date is not previous to the current date.
-        Date currentDate = new Date(System.currentTimeMillis());
-        if (currentDate.after(date))
-        {
-          throw new CLIException(ERR_START_DATETIME_ALREADY_PASSED.get(
-              startArg.getValue()));
-        }
-      } catch (ParseException pe) {
-        throw new ArgumentException(ERR_START_DATETIME_FORMAT.get());
-      }
-    }
-
-    if (!processAsTask() && completionNotificationArg.isPresent()) {
-      throw new ArgumentException(ERR_TASKTOOL_OPTIONS_FOR_TASK_ONLY.get(
-              completionNotificationArg.getLongIdentifier()));
-    }
-
-    if (!processAsTask() && errorNotificationArg.isPresent()) {
-      throw new ArgumentException(ERR_TASKTOOL_OPTIONS_FOR_TASK_ONLY.get(
-              errorNotificationArg.getLongIdentifier()));
-    }
-
-    if (!processAsTask() && dependencyArg.isPresent()) {
-      throw new ArgumentException(ERR_TASKTOOL_OPTIONS_FOR_TASK_ONLY.get(
-              dependencyArg.getLongIdentifier()));
-    }
-
-    if (!processAsTask() && failedDependencyActionArg.isPresent()) {
-      throw new ArgumentException(ERR_TASKTOOL_OPTIONS_FOR_TASK_ONLY.get(
-              failedDependencyActionArg.getLongIdentifier()));
-    }
-
-    if (completionNotificationArg.isPresent()) {
-      LinkedList<String> addrs = completionNotificationArg.getValues();
-      for (String addr : addrs) {
-        if (!StaticUtils.isEmailAddress(addr)) {
-          throw new ArgumentException(ERR_TASKTOOL_INVALID_EMAIL_ADDRESS.get(
-                  addr, completionNotificationArg.getLongIdentifier()));
-        }
-      }
-    }
-
-    if (errorNotificationArg.isPresent()) {
-      LinkedList<String> addrs = errorNotificationArg.getValues();
-      for (String addr : addrs) {
-        if (!StaticUtils.isEmailAddress(addr)) {
-          throw new ArgumentException(ERR_TASKTOOL_INVALID_EMAIL_ADDRESS.get(
-                  addr, errorNotificationArg.getLongIdentifier()));
-        }
-      }
-    }
-
-    if (failedDependencyActionArg.isPresent()) {
-
-      if (!dependencyArg.isPresent()) {
-        throw new ArgumentException(ERR_TASKTOOL_FDA_WITH_NO_DEPENDENCY.get());
-      }
-
-      String fda = failedDependencyActionArg.getValue();
-      if (null == FailedDependencyAction.fromString(fda)) {
-        Set<FailedDependencyAction> fdaValSet =
-          EnumSet.allOf(FailedDependencyAction.class);
-        throw new ArgumentException(ERR_TASKTOOL_INVALID_FDA.get(fda,
-                        StaticUtils.collectionToString(fdaValSet, ",")));
-      }
+    else
+    {
+      taskScheduleArgs.validateArgsIfOffline();
     }
   }
 
@@ -320,79 +192,42 @@ public abstract class TaskTool implements TaskScheduleInformation {
    * {@inheritDoc}
    */
   public Date getStartDateTime() {
-    Date start = null;
-
-    // If the start time arg is present parse its value
-    if (startArg != null && startArg.isPresent()) {
-      if (NOW.equals(startArg.getValue())) {
-        start = new Date();
-      } else {
-        try {
-          start = StaticUtils.parseDateTimeString(startArg.getValue());
-        } catch (ParseException pe) {
-          // ignore; validated in validateTaskArgs()
-        }
-      }
-    }
-    return start;
+    return taskScheduleArgs.getStartDateTime();
   }
 
   /**
    * {@inheritDoc}
    */
   public String getRecurringDateTime() {
-    String pattern = null;
-
-    // If the recurring task arg is present parse its value
-    if (recurringArg != null && recurringArg.isPresent()) {
-      pattern = recurringArg.getValue();
-    }
-    return pattern;
+    return taskScheduleArgs.getRecurringDateTime();
   }
 
   /**
    * {@inheritDoc}
    */
   public List<String> getDependencyIds() {
-    if (dependencyArg.isPresent()) {
-      return dependencyArg.getValues();
-    } else {
-      return Collections.emptyList();
-    }
+    return taskScheduleArgs.getDependencyIds();
   }
 
   /**
    * {@inheritDoc}
    */
   public FailedDependencyAction getFailedDependencyAction() {
-    FailedDependencyAction fda = null;
-    if (failedDependencyActionArg.isPresent()) {
-      String fdaString = failedDependencyActionArg.getValue();
-      fda = FailedDependencyAction.fromString(fdaString);
-    }
-    return fda;
+    return taskScheduleArgs.getFailedDependencyAction();
   }
 
   /**
    * {@inheritDoc}
    */
   public List<String> getNotifyUponCompletionEmailAddresses() {
-    if (completionNotificationArg.isPresent()) {
-      return completionNotificationArg.getValues();
-    } else {
-      return Collections.emptyList();
-    }
+    return taskScheduleArgs.getNotifyUponCompletionEmailAddresses();
   }
 
   /**
    * {@inheritDoc}
    */
   public List<String> getNotifyUponErrorEmailAddresses() {
-    if (errorNotificationArg.isPresent()) {
-      return errorNotificationArg.getValues();
-    } else {
-      return Collections.emptyList();
-    }
+    return taskScheduleArgs.getNotifyUponErrorEmailAddresses();
   }
 
   /**
@@ -467,7 +302,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
                           taskEntry.getScheduledStartTime()),
                   MAX_LINE_WIDTH));
         }
-        if (!startArg.isPresent()) {
+        if (!taskScheduleArgs.startArg.isPresent()) {
 
           // Poll the task printing log messages until finished
           String taskId = taskEntry.getId();
@@ -562,22 +397,6 @@ public abstract class TaskTool implements TaskScheduleInformation {
   }
 
   /**
-   * Indicates whether we must return if the command must be run in offline
-   * mode.
-   * @return <CODE>true</CODE> if we must return if the command must be run in
-   * offline mode and <CODE>false</CODE> otherwise.
-   */
-  private boolean testIfOffline()
-  {
-    boolean returnValue = false;
-    if (testIfOfflineArg != null)
-    {
-      returnValue = testIfOfflineArg.isPresent();
-    }
-    return returnValue;
-  }
-
-  /**
    * Returns {@code true} if the provided exception was caused by trying to
    * connect to the wrong port and {@code false} otherwise.
    * @param t the exception to be analyzed.
@@ -602,5 +421,22 @@ public abstract class TaskTool implements TaskScheduleInformation {
       }
     }
     return isWrongPortException;
+  }
+
+
+  /**
+   * Indicates whether we must return if the command must be run in off-line
+   * mode.
+   * @return <CODE>true</CODE> if we must return if the command must be run in
+   * off-line mode and <CODE>false</CODE> otherwise.
+   */
+  public boolean testIfOffline()
+  {
+    boolean returnValue = false;
+    if (testIfOfflineArg != null)
+    {
+      returnValue = testIfOfflineArg.isPresent();
+    }
+    return returnValue;
   }
 }

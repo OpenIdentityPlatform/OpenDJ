@@ -23,7 +23,7 @@
 # CDDL HEADER END
 #
 #
-#      Copyright 2006-2008 Sun Microsystems, Inc.
+#      Copyright 2006-2010 Sun Microsystems, Inc.
 
 
 # This script is used to invoke various client-side processes.  It should not
@@ -66,4 +66,4 @@ then
 fi
 
 # Launch the appropriate client utility.
-"${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} "${OPENDS_INVOKE_CLASS}" "${@}"
+"${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_ARGS} ${SCRIPT_NAME_ARG} "${OPENDS_INVOKE_CLASS}" "${@}"

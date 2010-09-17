@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.tools.tasks;
@@ -100,29 +100,86 @@ public class TaskClient {
   }
 
   /**
-   * Schedule a task for execution by writing an entry to the task backend.
-   *
-   * @param information to be scheduled
-   * @return String task ID assigned the new task
-   * @throws IOException if there is a stream communication problem
-   * @throws LDAPException if there is a problem getting information
-   *         out to the directory
-   * @throws ASN1Exception if there is a problem with the encoding
-   * @throws TaskClientException if there is a problem with the task entry
+   * Returns the ID of the task entry for a given list of task attributes.
+   * @param taskAttributes the task attributes.
+   * @return the ID of the task entry for a given list of task attributes.
    */
-  public synchronized TaskEntry schedule(TaskScheduleInformation information)
-          throws LDAPException, IOException, ASN1Exception, TaskClientException
+  public static String getTaskID(List<RawAttribute> taskAttributes)
   {
     String taskID = null;
-    ByteString entryDN = null;
-    boolean scheduleRecurring = false;
 
-    LDAPReader reader = connection.getLDAPReader();
-    LDAPWriter writer = connection.getLDAPWriter();
+    RawAttribute recurringIDAttr = getAttribute(ATTR_RECURRING_TASK_ID,
+        taskAttributes);
+
+    if (recurringIDAttr != null) {
+      taskID = recurringIDAttr.getValues().get(0).toString();
+    } else {
+      RawAttribute taskIDAttr = getAttribute(ATTR_TASK_ID,
+          taskAttributes);
+      taskID = taskIDAttr.getValues().get(0).toString();
+    }
+
+    return taskID;
+  }
+
+  private static RawAttribute getAttribute(String attrName,
+      List<RawAttribute> taskAttributes)
+  {
+    for (RawAttribute attr : taskAttributes)
+    {
+      if (attr.getAttributeType().equalsIgnoreCase(attrName))
+      {
+        return attr;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Returns the DN of the task entry for a given list of task attributes.
+   * @param taskAttributes the task attributes.
+   * @return the DN of the task entry for a given list of task attributes.
+   */
+  public static String getTaskDN(List<RawAttribute> taskAttributes)
+  {
+    String entryDN = null;
+    String taskID = getTaskID(taskAttributes);
+    RawAttribute recurringIDAttr = getAttribute(ATTR_RECURRING_TASK_ID,
+        taskAttributes);
+
+    if (recurringIDAttr != null) {
+      entryDN = ATTR_RECURRING_TASK_ID + "=" +
+      taskID + "," + RECURRING_TASK_BASE_RDN + "," + DN_TASK_ROOT;
+    } else {
+      entryDN = ATTR_TASK_ID + "=" + taskID + "," +
+      SCHEDULED_TASK_BASE_RDN + "," + DN_TASK_ROOT;
+    }
+    return entryDN;
+  }
+
+  private static boolean isScheduleRecurring(
+      TaskScheduleInformation information)
+  {
+    boolean scheduleRecurring = false;
 
     if (information.getRecurringDateTime() != null) {
       scheduleRecurring = true;
     }
+    return scheduleRecurring;
+  }
+
+  /**
+   * This is a commodity method that returns the common attributes (those
+   * related to scheduling) of a task entry for a given
+   * {@link TaskScheduleInformation} object.
+   * @param information the scheduling information.
+   * @return the schedule attributes of the task entry.
+   */
+  public static ArrayList<RawAttribute> getTaskAttributes(
+      TaskScheduleInformation information)
+  {
+    String taskID = null;
+    boolean scheduleRecurring = isScheduleRecurring(information);
 
     if (scheduleRecurring) {
       taskID = information.getTaskId();
@@ -130,18 +187,12 @@ public class TaskClient {
         taskID = information.getTaskClass().getSimpleName() +
           "-" + UUID.randomUUID().toString();
       }
-      entryDN = ByteString.valueOf(ATTR_RECURRING_TASK_ID + "=" +
-        taskID + "," + RECURRING_TASK_BASE_RDN + "," + DN_TASK_ROOT);
     } else {
       // Use a formatted time/date for the ID so that is remotely useful
       SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmssSSS");
       taskID = df.format(new Date());
-
-      entryDN = ByteString.valueOf(ATTR_TASK_ID + "=" + taskID + "," +
-        SCHEDULED_TASK_BASE_RDN + "," + DN_TASK_ROOT);
     }
 
-    ArrayList<Control> controls = new ArrayList<Control>();
     ArrayList<RawAttribute> attributes = new ArrayList<RawAttribute>();
 
     ArrayList<ByteString> ocValues = new ArrayList<ByteString>(3);
@@ -238,6 +289,30 @@ public class TaskClient {
 
     information.addTaskAttributes(attributes);
 
+    return attributes;
+  }
+
+  /**
+   * Schedule a task for execution by writing an entry to the task backend.
+   *
+   * @param information to be scheduled
+   * @return String task ID assigned the new task
+   * @throws IOException if there is a stream communication problem
+   * @throws LDAPException if there is a problem getting information
+   *         out to the directory
+   * @throws ASN1Exception if there is a problem with the encoding
+   * @throws TaskClientException if there is a problem with the task entry
+   */
+  public synchronized TaskEntry schedule(TaskScheduleInformation information)
+          throws LDAPException, IOException, ASN1Exception, TaskClientException
+  {
+    LDAPReader reader = connection.getLDAPReader();
+    LDAPWriter writer = connection.getLDAPWriter();
+
+    ArrayList<Control> controls = new ArrayList<Control>();
+    ArrayList<RawAttribute> attributes = getTaskAttributes(information);
+
+    ByteString entryDN = ByteString.valueOf(getTaskDN(attributes));
     AddRequestProtocolOp addRequest = new AddRequestProtocolOp(entryDN,
                                                                attributes);
     LDAPMessage requestMessage =
@@ -271,7 +346,7 @@ public class TaskClient {
               LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
               addResponse.getErrorMessage());
     }
-    return getTaskEntry(taskID);
+    return getTaskEntry(getTaskID(attributes));
   }
 
   /**
