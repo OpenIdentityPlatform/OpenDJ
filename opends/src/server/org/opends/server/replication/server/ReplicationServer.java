@@ -2039,7 +2039,9 @@ public class ReplicationServer
 
           // And count changes of this domain from the date of the
           // lastseqnum record (that does not refer to this domain)
-          ec = rsd.getEligibleCount(newestDate, crossDomainEligibleCN);
+          ChangeNumber cnx = new ChangeNumber(newestDate,
+              changeNumberForLastSeqnum.getSeqnum(), 0);
+          ec = rsd.getEligibleCount(cnx, crossDomainEligibleCN);
 
           if (domainForLastSeqnum.equalsIgnoreCase(rsd.getBaseDn()))
             ec--;
