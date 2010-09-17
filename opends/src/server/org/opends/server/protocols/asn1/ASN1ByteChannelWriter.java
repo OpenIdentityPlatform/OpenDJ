@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.asn1;
 
@@ -115,14 +115,16 @@ final class ASN1ByteChannelWriter implements ASN1Writer
    * Constructs a new ASN1ByteChannelWriter.
    *
    * @param byteChannel The WritableByteChannel to write to.
+   * @param writeLock The write lock to use when flushing to the destination.
    * @param writeBufferSize The NIO ByteBuffer size.
    */
   ASN1ByteChannelWriter(WritableByteChannel byteChannel,
-                               int writeBufferSize)
+                        ReentrantLock writeLock,
+                        int writeBufferSize)
   {
     this.byteChannel = byteChannel;
     this.byteBuffer = ByteBuffer.allocate(writeBufferSize);
-    this.flushLock = new ReentrantLock(false);
+    this.flushLock = writeLock;
 
     ByteBufferOutputStream bufferStream = new ByteBufferOutputStream();
     this.writer = new ASN1OutputStreamWriter(bufferStream);
@@ -319,12 +321,12 @@ final class ASN1ByteChannelWriter implements ASN1Writer
   public void flush() throws IOException
   {
     byteBuffer.flip();
+    if (!flushLock.isHeldByCurrentThread())
+    {
+      flushLock.lock();
+    }
     try
     {
-      if (!flushLock.isHeldByCurrentThread())
-      {
-        flushLock.lock();
-      }
       byteChannel.write(byteBuffer);
     }
     finally
@@ -347,9 +349,17 @@ final class ASN1ByteChannelWriter implements ASN1Writer
     {
       flushLock.lock();
     }
-    while(byteBuffer.hasRemaining())
+    try
     {
-      byteChannel.write(byteBuffer);
+      while (byteBuffer.hasRemaining())
+      {
+        byteChannel.write(byteBuffer);
+      }
+    }
+    catch (IOException e)
+    {
+      flushLock.unlock();
+      throw e;
     }
     byteBuffer.clear();
   }
