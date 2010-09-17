@@ -23,7 +23,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2009 Sun Microsystems, Inc.
+  !      Copyright 2009-2010 Sun Microsystems, Inc.
   ! -->
 <adm:managed-object name="resource-limits-qos-policy"
   plural-name="resource-limits-qos-policies"
@@ -219,6 +219,56 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-min-substring-length</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="max-ops-per-interval">
+    <adm:synopsis>
+      Specifies the maximum number of operations that can take place on
+      the same network group during the specified interval.
+    </adm:synopsis>
+    <adm:description>
+      When the maximum number of operations per interval is reached, all
+      subsequent operations on the same network group are refused until the
+      end of the time interval. This parameter allows to limit the throughput
+      on the network group.
+      A value of 0 indicates that no limit is enforced.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>0</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="0"/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-max-ops-per-interval</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="max-ops-interval">
+    <adm:synopsis>
+      Specifies the interval during which the number of operations is limited.
+    </adm:synopsis>
+    <adm:description>
+      When the maximum number of operations per interval is reached, all
+      subsequent operations on the same network group are refused until the
+      end of the time interval. This parameter allows to limit the throughput
+      on the network group.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>1s</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration base-unit="ms" lower-limit="1"/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-max-ops-interval</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
