@@ -165,16 +165,5 @@ public abstract class WorkQueue<T extends WorkQueueCfg>
 
     return false;
   }
-
-
-
- /**
-   * Specifies the maximum number of simultaneous persistent
-   * searches that are allowed.
-   *
-   * @return   The maximum number of simultaneous persistent
-  *                      searches that are allowed.
-   */
-  public abstract int getMaxPersistentSearchLimit();
 }
 

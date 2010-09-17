@@ -34,7 +34,7 @@
     Global Configurations
   </adm:user-friendly-plural-name>
   <adm:synopsis>
-    The 
+    The
     <adm:user-friendly-name />
     contains properties that affect the overall
     operation of the
@@ -53,7 +53,7 @@
       Indicates whether schema enforcement is active.
     </adm:synopsis>
     <adm:description>
-      When schema enforcement is activated, the Directory Server 
+      When schema enforcement is activated, the Directory Server
       ensures that all operations result in entries are valid
       according to the defined server schema. It is strongly recommended
       that this option be left enabled to prevent the inadvertent
@@ -111,7 +111,7 @@
   <adm:property name="allow-attribute-name-exceptions"
     advanced="true">
     <adm:synopsis>
-      Indicates whether the Directory Server should allow underscores 
+      Indicates whether the Directory Server should allow underscores
       in attribute names and allow attribute names
       to begin with numeric digits (both of which are violations of the
       LDAP standards).
@@ -175,7 +175,7 @@
   </adm:property>
   <adm:property name="server-error-result-code" advanced="true">
     <adm:synopsis>
-      Specifies the numeric value of the result code when request 
+      Specifies the numeric value of the result code when request
       processing fails due to an internal server error.
     </adm:synopsis>
     <adm:default-behavior>
@@ -195,7 +195,7 @@
   <adm:property name="single-structural-objectclass-behavior"
     advanced="true">
     <adm:synopsis>
-      Specifies how the Directory Server should handle operations an entry does 
+      Specifies how the Directory Server should handle operations an entry does
       not contain a structural object class or contains multiple structural
       classes.
     </adm:synopsis>
@@ -861,6 +861,31 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-max-allowed-client-connections</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="max-psearches">
+    <adm:synopsis>
+      Defines the maximum number of concurrent persistent searches that
+      can be performed on Directory Server
+    </adm:synopsis>
+    <adm:description>
+      The persistent search mechanism provides an active channel through which entries that change,
+      and information about the changes that occur, can be communicated. Because each persistent search
+      operation consumes resources, limiting the number of simultaneous persistent searches keeps the
+      performance impact minimal. A value of -1 indicates that there is no limit on the persistent searches.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>-1</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="0" allow-unlimited="true" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-max-psearches</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

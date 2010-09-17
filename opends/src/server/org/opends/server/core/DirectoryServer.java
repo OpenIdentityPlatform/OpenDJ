@@ -616,6 +616,9 @@ public class DirectoryServer
   // The current active persistent searches.
   private AtomicInteger activePSearches = new AtomicInteger(0);
 
+  //The maximum number of concurrent persistent searches.
+  private int maxPSearches;
+
   // Whether to use collect operation processing times in nanosecond resolution
   private boolean useNanoTime;
 
@@ -8872,6 +8875,20 @@ public class DirectoryServer
 
 
   /**
+   * Specifies the maximum number of simultaneous persistent
+   * searches that are allowed.
+   *
+   * @param maxPSearches   The maximum number of simultaneous persistent
+  *                      searches that are allowed.
+   */
+  public static void setMaxPersistentSearchLimit(int maxPSearches)
+  {
+    directoryServer.maxPSearches = maxPSearches;
+  }
+
+
+
+  /**
    *  Registers a new persistent search by increasing the count
    *  of active persistent searches. After receiving a persistent
    *  search request, a Local or Remote WFE must call this method to
@@ -8906,11 +8923,10 @@ public class DirectoryServer
    */
   public static boolean allowNewPersistentSearch()
   {
-    //0 indicates that there is no limit.
-    int maxAllowedPSearch = getWorkQueue().getMaxPersistentSearchLimit();
-    if(maxAllowedPSearch ==0 ||
+    //-1 indicates that there is no limit.
+    if(directoryServer.maxPSearches ==-1 ||
             directoryServer.activePSearches.get() <
-            maxAllowedPSearch)
+            directoryServer.maxPSearches)
     {
       return true;
     }
