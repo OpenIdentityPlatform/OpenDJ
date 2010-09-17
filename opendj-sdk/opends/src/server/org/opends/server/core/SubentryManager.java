@@ -28,6 +28,7 @@ package org.opends.server.core;
 
 
 
+import org.opends.server.api.ClientConnection;
 import org.opends.server.api.SubtreeSpecification;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -52,6 +53,8 @@ import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
+import org.opends.server.types.Privilege;
+import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 import org.opends.server.types.SearchFilter;
@@ -944,6 +947,15 @@ public class SubentryManager extends InternalDirectoryServerPlugin
 
     if (entry.isSubentry() || entry.isLDAPSubentry())
     {
+      ClientConnection conn = addOperation.getClientConnection();
+      if (!conn.hasPrivilege(Privilege.SUBENTRY_WRITE,
+           conn.getOperationInProgress(
+             addOperation.getMessageID())))
+      {
+        return PluginResult.PreOperation.stopProcessing(
+                ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+                ERR_SUBENTRY_WRITE_INSUFFICIENT_PRIVILEGES.get());
+      }
       for (SubentryChangeListener changeListener :
               changeListeners)
       {
@@ -975,12 +987,29 @@ public class SubentryManager extends InternalDirectoryServerPlugin
           PreOperationDeleteOperation deleteOperation)
   {
     Entry entry = deleteOperation.getEntryToDelete();
+    boolean hasSubentryWritePrivilege = false;
 
     lock.readLock().lock();
     try
     {
       for (SubEntry subEntry : dit2SubEntry.getSubtree(entry.getDN()))
       {
+        if (!hasSubentryWritePrivilege)
+        {
+          ClientConnection conn = deleteOperation.getClientConnection();
+          if (!conn.hasPrivilege(Privilege.SUBENTRY_WRITE,
+               conn.getOperationInProgress(
+                 deleteOperation.getMessageID())))
+          {
+            return PluginResult.PreOperation.stopProcessing(
+                    ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+                    ERR_SUBENTRY_WRITE_INSUFFICIENT_PRIVILEGES.get());
+          }
+          else
+          {
+            hasSubentryWritePrivilege = true;
+          }
+        }
         for (SubentryChangeListener changeListener :
                 changeListeners)
         {
@@ -1023,6 +1052,15 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     if ((newEntry.isSubentry() || newEntry.isLDAPSubentry()) ||
         (oldEntry.isSubentry() || oldEntry.isLDAPSubentry()))
     {
+      ClientConnection conn = modifyOperation.getClientConnection();
+      if (!conn.hasPrivilege(Privilege.SUBENTRY_WRITE,
+           conn.getOperationInProgress(
+             modifyOperation.getMessageID())))
+      {
+        return PluginResult.PreOperation.stopProcessing(
+                ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+                ERR_SUBENTRY_WRITE_INSUFFICIENT_PRIVILEGES.get());
+      }
       for (SubentryChangeListener changeListener :
               changeListeners)
       {
@@ -1058,6 +1096,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     Entry newEntry = modifyDNOperation.getUpdatedEntry();
     String oldDNString = oldEntry.getDN().toNormalizedString();
     String newDNString = newEntry.getDN().toNormalizedString();
+    boolean hasSubentryWritePrivilege = false;
 
     lock.readLock().lock();
     try
@@ -1066,6 +1105,22 @@ public class SubentryManager extends InternalDirectoryServerPlugin
               dit2SubEntry.getSubtree(oldEntry.getDN());
       for (SubEntry subentry : setToDelete)
       {
+        if (!hasSubentryWritePrivilege)
+        {
+          ClientConnection conn = modifyDNOperation.getClientConnection();
+          if (!conn.hasPrivilege(Privilege.SUBENTRY_WRITE,
+               conn.getOperationInProgress(
+                 modifyDNOperation.getMessageID())))
+          {
+            return PluginResult.PreOperation.stopProcessing(
+                    ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+                    ERR_SUBENTRY_WRITE_INSUFFICIENT_PRIVILEGES.get());
+          }
+          else
+          {
+            hasSubentryWritePrivilege = true;
+          }
+        }
         oldEntry = subentry.getEntry();
         try
         {

@@ -1695,6 +1695,7 @@ public class ADSContext
     privilege.add("update-schema");
     privilege.add("privilege-change");
     privilege.add("unindexed-search");
+    privilege.add("subentry-write");
     return privilege;
   }
 

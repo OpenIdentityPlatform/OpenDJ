@@ -188,6 +188,9 @@ public class RootPrivilegeChangeListener
         case UNINDEXED_SEARCH:
           privSet.add(Privilege.UNINDEXED_SEARCH);
           break;
+        case SUBENTRY_WRITE:
+          privSet.add(Privilege.SUBENTRY_WRITE);
+          break;
       }
     }
 

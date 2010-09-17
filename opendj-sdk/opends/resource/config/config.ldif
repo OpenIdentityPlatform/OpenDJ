@@ -82,7 +82,6 @@ ds-cfg-global-aci: (target="ldap:///")(targetscope="base")(targetattr="objectCla
 ds-cfg-global-aci: (targetattr="createTimestamp||creatorsName||modifiersName||modifyTimestamp||entryDN||entryUUID||subschemaSubentry")(version 3.0; acl "User-Visible Operational Attributes"; allow (read,search,compare) userdn="ldap:///anyone";)
 ds-cfg-global-aci: (target="ldap:///dc=replicationchanges")(targetattr="*")(version 3.0; acl "Replication backend access"; deny (all) userdn="ldap:///anyone";)
 ds-cfg-global-aci: (target="ldap:///cn=changelog")(targetattr="*")(version 3.0; acl "External changelog access"; deny (all) userdn="ldap:///anyone";)
-ds-cfg-global-aci: (targetfilter="(|(objectclass=subentry)(objectclass=ldapsubentry))")(version 3.0; acl "Subentry write access"; deny (add,write,delete) userdn="ldap:///anyone";)
 cn: Access Control Handler
 ds-cfg-java-class: org.opends.server.authorization.dseecompat.AciHandler
 ds-cfg-enabled: true
@@ -1880,6 +1879,7 @@ ds-cfg-default-root-privilege-name: password-reset
 ds-cfg-default-root-privilege-name: update-schema
 ds-cfg-default-root-privilege-name: privilege-change
 ds-cfg-default-root-privilege-name: unindexed-search
+ds-cfg-default-root-privilege-name: subentry-write
 
 dn: cn=Directory Manager,cn=Root DNs,cn=config
 objectClass: top

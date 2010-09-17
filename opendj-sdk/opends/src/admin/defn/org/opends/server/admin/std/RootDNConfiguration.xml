@@ -76,6 +76,7 @@
         <adm:value>update-schema</adm:value>
         <adm:value>privilege-change</adm:value>
         <adm:value>unindexed-search</adm:value>
+        <adm:value>subentry-write</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -208,6 +209,12 @@
           <adm:synopsis>
             Allows the user to request that the server process a search
             that cannot be optimized using server indexes.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="subentry-write">
+          <adm:synopsis>
+            Allows the associated user to perform LDAP subentry write
+            operations.
           </adm:synopsis>
         </adm:value>
       </adm:enumeration>

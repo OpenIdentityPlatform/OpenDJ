@@ -131,11 +131,11 @@ public class SubEntry {
           "inheritfromrdntype";
 
   /**
-   * The name of the "inheritFromBaseDN" attribute type,
+   * The name of the "inheritFromBaseRDN" attribute type,
    * formatted in all lowercase characters.
    */
   public static final String ATTR_INHERIT_COLLECTIVE_FROM_BASE =
-          "inheritfrombasedn";
+          "inheritfrombaserdn";
 
   /**
    * The name of the "inheritAttribute" attribute type,
@@ -390,6 +390,11 @@ public class SubEntry {
             {
               this.inheritFromBaseDN =
                       DN.decode(value.getNormalizedValue());
+              // Has to have a parent since subentry itself
+              // cannot be a suffix entry within the server.
+              this.inheritFromBaseDN =
+                      getDN().getParent().concat(
+                        inheritFromBaseDN);
               break;
             }
           }
@@ -442,7 +447,7 @@ public class SubEntry {
    * Retrieves the distinguished name for this subentry.
    * @return  The distinguished name for this subentry.
    */
-  public DN getDN()
+  public final DN getDN()
   {
     return this.entry.getDN();
   }
@@ -452,7 +457,7 @@ public class SubEntry {
    * for this subentry.
    * @return entry object for this subentry.
    */
-  public Entry getEntry()
+  public final Entry getEntry()
   {
     return this.entry;
   }
@@ -562,9 +567,9 @@ public class SubEntry {
   }
 
   /**
-   * Getter to retrieve inheritFromBaseDN DN
+   * Getter to retrieve inheritFromBaseRDN DN
    * for inherited collective attribute subentry.
-   * @return DN of inheritFromBaseDN or,
+   * @return DN of inheritFromBaseRDN or,
    *         <code>null</code> if there is none.
    */
   public DN getInheritFromBaseDN()

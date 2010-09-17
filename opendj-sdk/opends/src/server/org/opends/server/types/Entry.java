@@ -3707,6 +3707,12 @@ public class Entry
                 {
                   inheritFromDN = DN.decode(
                           value.getNormalizedValue());
+                  // Respect subentry root scope.
+                  if (!inheritFromDN.isDescendantOf(
+                       subEntry.getDN().getParent()))
+                  {
+                    inheritFromDN = null;
+                  }
                   break;
                 }
               }

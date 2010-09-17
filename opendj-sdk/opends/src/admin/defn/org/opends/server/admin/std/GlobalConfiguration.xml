@@ -670,6 +670,12 @@
             that cannot be optimized using server indexes.
           </adm:synopsis>
         </adm:value>
+        <adm:value name="subentry-write">
+          <adm:synopsis>
+            Allows the associated user to perform LDAP subentry write
+            operations.
+          </adm:synopsis>
+        </adm:value>
       </adm:enumeration>
     </adm:syntax>
     <adm:profile name="ldap">

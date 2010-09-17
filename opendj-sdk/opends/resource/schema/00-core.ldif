@@ -402,7 +402,7 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.606
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.621 NAME 'inheritFromDNAttribute'
   EQUALITY objectIdentifierMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.38
   SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.26027.1.1.622 NAME 'inheritFromBaseDN'
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.622 NAME 'inheritFromBaseRDN'
   EQUALITY distinguishedNameMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
   SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.623 NAME 'inheritFromRDNType'
@@ -689,7 +689,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.240 NAME
   'inheritedFromRDNCollectiveAttributeSubentry'
   DESC 'Inherited from RDN Collective Attributes Subentry class'
   SUP inheritedCollectiveAttributeSubentry STRUCTURAL
-  MUST ( inheritFromRDNAttribute $ inheritFromRDNType $ inheritFromBaseDN )
+  MUST ( inheritFromRDNAttribute $ inheritFromRDNType $ inheritFromBaseRDN )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 2.16.840.1.113730.3.2.33 NAME 'groupOfURLs'
   DESC 'Sun-defined objectclass' SUP top STRUCTURAL MUST ( cn )

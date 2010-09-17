@@ -64,8 +64,8 @@ import static org.testng.Assert.*;
 public class SubentryManagerTestCase extends CoreTestCase
 {
   private static final String SUFFIX = "dc=example,dc=com";
-  private static final String BASE =
-          "ou=Test SubEntry Manager," + SUFFIX;
+  private static final String BASE_RDN = "ou=Test SubEntry Manager";
+  private static final String BASE = BASE_RDN + "," + SUFFIX;
 
   private Entry testEntry;
   private Entry ldapSubentry;
@@ -192,7 +192,7 @@ public class SubentryManagerTestCase extends CoreTestCase
          "objectclass: subentry",
          "objectClass: inheritedCollectiveAttributeSubentry",
          "objectClass: inheritedFromRDNCollectiveAttributeSubentry",
-         "inheritFromBaseDN: " + BASE,
+         "inheritFromBaseRDN: " + BASE_RDN,
          "inheritFromRDNAttribute: title",
          "inheritFromRDNType: cn",
          "inheritAttribute: telephoneNumber",
