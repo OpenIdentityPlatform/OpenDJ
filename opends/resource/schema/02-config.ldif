@@ -2525,6 +2525,14 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.620
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.627
+  NAME 'ds-cfg-max-ops-per-interval'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
+  X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.26027.1.1.628
+  NAME 'ds-cfg-max-ops-interval'
+  SYNTAX  1.3.6.1.4.1.1466.115.121.1.15
+  X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -4120,7 +4128,9 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.185
         ds-cfg-max-concurrent-ops-per-connection $
         ds-cfg-size-limit $
         ds-cfg-time-limit $
-        ds-cfg-min-substring-length)
+        ds-cfg-min-substring-length $
+        ds-cfg-max-ops-per-interval $
+        ds-cfg-max-ops-interval)
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.186
   NAME 'ds-cfg-network-group-plugin'

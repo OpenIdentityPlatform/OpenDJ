@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core.networkgroups;
 
@@ -245,5 +245,66 @@ public class ResourceLimitsPolicyTest extends DirectoryServerTestCase {
     limits.removeConnection(conn1);
   }
 
+
+  /**
+   * Tests the 'max number of operations per interval' resource limit.
+   * @throws Exception If the test failed unexpectedly.
+   */
+  @Test (groups = "virtual")
+  public void testMaxThroughput()
+          throws Exception
+  {
+    ArrayList<Message> messages = new ArrayList<Message>();
+    final long interval = 1000; // Unit is milliseconds
+
+    ResourceLimitsPolicyFactory factory = new ResourceLimitsPolicyFactory();
+    ResourceLimitsPolicy limits = factory.createQOSPolicy(
+      new MockResourceLimitsQOSPolicyCfg() {
+        @Override
+        public int getMaxOpsPerInterval()
+        {
+          return 1;
+        }
+
+        @Override
+        public long getMaxOpsInterval()
+        {
+          return interval;
+        }
+      });
+
+    InternalClientConnection conn = new InternalClientConnection(DN.NULL_DN);
+    limits.addConnection(conn);
+
+    InternalSearchOperation search1 = conn.processSearch(
+      DN.decode("dc=example,dc=com"),
+      SearchScope.BASE_OBJECT,
+      LDAPFilter.decode("(objectclass=*)").toSearchFilter());
+
+    // First operation is allowed
+    boolean check = limits.isAllowed(conn, search1, true, messages);
+    assertTrue(check);
+
+    InternalSearchOperation search2 = conn.processSearch(
+      DN.decode("dc=example,dc=com"),
+      SearchScope.BASE_OBJECT,
+      LDAPFilter.decode("(objectclass=*)").toSearchFilter());
+
+    // Second operation in the same interval is refused
+    check = limits.isAllowed(conn, search2, true, messages);
+    assertFalse(check);
+
+    // Wait for the end of the interval => counters are reset
+    Thread.sleep(interval);
+
+    InternalSearchOperation search3 = conn.processSearch(
+      DN.decode("dc=example,dc=com"),
+      SearchScope.BASE_OBJECT,
+      LDAPFilter.decode("(objectclass=*)").toSearchFilter());
+
+    // The operation is allowed
+    check = limits.isAllowed(conn, search3, true, messages);
+    assertTrue(check);
+  }
 
 }

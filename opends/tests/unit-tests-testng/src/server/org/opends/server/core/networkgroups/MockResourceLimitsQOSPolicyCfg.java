@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.server.core.networkgroups;
@@ -188,4 +188,23 @@ public abstract class MockResourceLimitsQOSPolicyCfg implements
     return null;
   }
 
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public long getMaxOpsInterval()
+  {
+    return 1;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public int getMaxOpsPerInterval()
+  {
+    return 0;
+  }
 }

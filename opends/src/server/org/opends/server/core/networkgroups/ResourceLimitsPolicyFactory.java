@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *    Copyright 2009 Sun Microsystems, Inc.
+ *    Copyright 2009-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core.networkgroups;
 
@@ -131,7 +131,13 @@ public final class ResourceLimitsPolicyFactory implements
     // The maximum time for a search.
     private int timeLimit;
 
+    // The time interval for throughput limits
+    private long interval;
+    private long intervalStartTime = 0;
 
+    // The max number of operations during the interval
+    private int maxOperationsPerInterval;
+    private int operationsPerInterval = 0;
 
     /**
      * Creates a new resource limits policy.
@@ -306,6 +312,29 @@ public final class ResourceLimitsPolicyFactory implements
         }
       }
 
+      // Check the throughput
+      if (operation != null && maxOperationsPerInterval > 0) {
+        synchronized(mutex) {
+          long now = System.currentTimeMillis();
+          // if the start time has never been set, or the interval has already
+          // expired, reset the start time and number of operations
+          if (intervalStartTime == 0 || now > (intervalStartTime + interval)) {
+            intervalStartTime = now;
+            operationsPerInterval = 0;
+          }
+
+          operationsPerInterval++;
+          if (operationsPerInterval > maxOperationsPerInterval) {
+            messages.add(INFO_ERROR_MAX_THROUGHPUT_EXCEEDED.get(
+                maxOperationsPerInterval,interval));
+            result = false;
+          }
+        }
+        if (!result) {
+          return result;
+        }
+      }
+
       return true;
     }
 
@@ -438,6 +467,19 @@ public final class ResourceLimitsPolicyFactory implements
       }
 
       minSearchSubstringLength = configuration.getMinSubstringLength();
+
+      // Update the Max Ops Per Time Interval parameters
+      long previousInterval = interval;
+      int previousMax = maxOperationsPerInterval;
+
+      interval = configuration.getMaxOpsInterval();
+      maxOperationsPerInterval = configuration.getMaxOpsPerInterval();
+      // If the values have been modified, reset the counters
+      if ((previousInterval != interval)
+          || (previousMax != maxOperationsPerInterval)) {
+        intervalStartTime = 0;
+        operationsPerInterval = 0;
+      }
     }
   }
 
@@ -448,7 +490,13 @@ public final class ResourceLimitsPolicyFactory implements
       ResourceLimitsQOSPolicyCfg configuration,
       List<Message> unacceptableReasons)
   {
-    // Always valid.
+    // maxOpsPerInterval must be positive
+    long tmpMaxOps = configuration.getMaxOpsInterval();
+    if (tmpMaxOps < 0) {
+      unacceptableReasons.add(ERR_MAX_OPS_PER_INTERVAL.get(tmpMaxOps));
+      return false;
+    }
+
     return true;
   }
 
