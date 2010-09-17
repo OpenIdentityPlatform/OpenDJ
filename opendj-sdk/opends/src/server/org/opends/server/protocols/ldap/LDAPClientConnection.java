@@ -51,6 +51,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -362,6 +363,7 @@ public class LDAPClientConnection extends ClientConnection implements
 
   private final RedirectingByteChannel saslChannel;
   private final RedirectingByteChannel tlsChannel;
+  private final ReentrantLock writeLock;
   private volatile ConnectionSecurityProvider activeProvider = null;
   private volatile ConnectionSecurityProvider tlsPendingProvider = null;
   private volatile ConnectionSecurityProvider saslPendingProvider = null;
@@ -427,6 +429,7 @@ public class LDAPClientConnection extends ClientConnection implements
     this.asn1Reader =
         ASN1.getReader(saslChannel, APPLICATION_BUFFER_SIZE, connectionHandler
             .getMaxRequestSize());
+    writeLock = new ReentrantLock();
 
     asn1WriterMap = new ConcurrentHashMap<Thread,ASN1Writer>();
 
@@ -933,11 +936,11 @@ public class LDAPClientConnection extends ClientConnection implements
         if (isSecure())
         {
           int appBufSize = activeProvider.getAppBufSize();
-          asn1Writer = ASN1.getWriter(saslChannel, appBufSize);
+          asn1Writer = ASN1.getWriter(saslChannel, writeLock, appBufSize);
         }
         else
         {
-          asn1Writer = ASN1.getWriter(saslChannel,
+          asn1Writer = ASN1.getWriter(saslChannel, writeLock,
                   APPLICATION_BUFFER_SIZE);
         }
         asn1WriterMap.put(currentThread, asn1Writer);

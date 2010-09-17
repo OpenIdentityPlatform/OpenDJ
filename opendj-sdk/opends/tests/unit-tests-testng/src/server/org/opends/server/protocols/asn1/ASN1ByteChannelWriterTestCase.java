@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.asn1;
 
@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Test class for ASN1ByteChannelWriter
@@ -40,7 +41,8 @@ public class ASN1ByteChannelWriterTestCase extends ASN1WriterTestCase
 {
   private ByteArrayOutputStream outStream = new ByteArrayOutputStream();
   private WritableByteChannel outChannel = Channels.newChannel(outStream);
-  private ASN1Writer writer = new ASN1ByteChannelWriter(outChannel, 500);
+  private ASN1Writer writer = new ASN1ByteChannelWriter(outChannel,
+      new ReentrantLock(), 500);
 
   @Override
   ASN1Writer getWriter() throws IOException

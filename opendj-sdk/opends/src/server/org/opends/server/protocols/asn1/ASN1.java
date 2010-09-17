@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.protocols.asn1;
 
@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.opends.server.types.ByteSequence;
 import org.opends.server.types.ByteString;
@@ -263,11 +264,14 @@ public final class ASN1
    *
    * @param channel
    *          The writable byte channel.
+   * @param writeLock
+   *          The write lock to use when flushing to the destination.
    * @return The new ASN.1 writer.
    */
-  public static ASN1Writer getWriter(WritableByteChannel channel)
+  public static ASN1Writer getWriter(WritableByteChannel channel,
+                                     ReentrantLock writeLock)
   {
-    return new ASN1ByteChannelWriter(channel, 4096);
+    return new ASN1ByteChannelWriter(channel, writeLock, 4096);
   }
 
 
@@ -282,14 +286,17 @@ public final class ASN1
    *
    * @param channel
    *          The writable byte channel.
+   * @param writeLock
+   *          The write lock to use when flushing to the destination.
    * @param bufferSize
    *          The buffer size to use when writing to the channel.
    * @return The new ASN.1 writer.
    */
   public static ASN1Writer getWriter(WritableByteChannel channel,
+                                     ReentrantLock writeLock,
                                      int bufferSize)
   {
-    return new ASN1ByteChannelWriter(channel, bufferSize);
+    return new ASN1ByteChannelWriter(channel, writeLock, bufferSize);
   }
 
 
