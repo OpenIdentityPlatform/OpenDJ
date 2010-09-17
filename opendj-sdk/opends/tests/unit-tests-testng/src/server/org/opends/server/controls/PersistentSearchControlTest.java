@@ -556,7 +556,7 @@ public class PersistentSearchControlTest
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
-         conn.processModify(ByteString.valueOf("cn=Work Queue,cn=config"), mods);
+         conn.processModify(ByteString.valueOf("cn=config"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     //Create a persistent search request.

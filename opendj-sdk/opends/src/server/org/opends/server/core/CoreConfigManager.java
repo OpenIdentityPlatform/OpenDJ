@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -365,6 +365,9 @@ public class CoreConfigManager
 
     DirectoryServer.setMaxAllowedConnections(
         globalConfig.getMaxAllowedClientConnections());
+
+    DirectoryServer.setMaxPersistentSearchLimit(
+        globalConfig.getMaxPsearches());
   }
 
 
