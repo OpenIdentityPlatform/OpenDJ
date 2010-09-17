@@ -318,12 +318,11 @@ public final class ModRate extends ConsoleApplication
   {
     // Create the command-line argument parser for use with this
     // program.
-    final LocalizableMessage toolDescription = LocalizableMessage
-        .raw("This utility can be used to " + "measure modify performance");
-    // TODO: correct usage
+    final LocalizableMessage toolDescription =
+        INFO_MODRATE_TOOL_DESCRIPTION.get();
     final ArgumentParser argParser = new ArgumentParser(
         ModRate.class.getName(), toolDescription, false, true, 1, 0,
-        "[modifyString ...]");
+        "[(attribute:value format string) ...]");
     ArgumentParserConnectionFactory connectionFactory;
     ModifyPerformanceRunner runner;
 
@@ -353,9 +352,9 @@ public final class ModRate extends ConsoleApplication
       argParser.addArgument(noPropertiesFileArgument);
       argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
-      baseDN = new StringArgument("baseDN", OPTION_SHORT_BASEDN,
-          OPTION_LONG_BASEDN, true, false, true, INFO_BASEDN_PLACEHOLDER.get(),
-          null, null, INFO_SEARCH_DESCRIPTION_BASEDN.get());
+      baseDN = new StringArgument("targetDN", OPTION_SHORT_BASEDN,
+          OPTION_LONG_TARGETDN, true, false, true, INFO_TARGETDN_PLACEHOLDER.get(),
+          null, null, INFO_MODRATE_TOOL_DESCRIPTION_TARGETDN.get());
       baseDN.setPropertyName(OPTION_LONG_BASEDN);
       argParser.addArgument(baseDN);
 

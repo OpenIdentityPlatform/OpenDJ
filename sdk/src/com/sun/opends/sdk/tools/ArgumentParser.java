@@ -1884,59 +1884,9 @@ final class ArgumentParser
     // indent the description five characters and try our best to wrap
     // at or
     // before column 79 so it will be friendly to 80-column displays.
-    final LocalizableMessage description = a.getDescription();
-    final int descMaxLength = MAX_LENGTH - indentLength - 1;
-    if (description.length() <= descMaxLength)
-    {
-      buffer.append(INDENT);
-      buffer.append(description);
-      buffer.append(EOL);
-    }
-    else
-    {
-      String s = description.toString();
-      while (s.length() > descMaxLength)
-      {
-        int spacePos = s.lastIndexOf(' ', descMaxLength);
-        if (spacePos > 0)
-        {
-          buffer.append(INDENT);
-          buffer.append(s.substring(0, spacePos).trim());
-          s = s.substring(spacePos + 1).trim();
-          buffer.append(EOL);
-        }
-        else
-        {
-          // There are no spaces in the first 74 columns. See if there
-          // is one
-          // after that point. If so, then break there. If not, then
-          // don't
-          // break at all.
-          spacePos = s.indexOf(' ');
-          if (spacePos > 0)
-          {
-            buffer.append(INDENT);
-            buffer.append(s.substring(0, spacePos).trim());
-            s = s.substring(spacePos + 1).trim();
-            buffer.append(EOL);
-          }
-          else
-          {
-            buffer.append(INDENT);
-            buffer.append(s);
-            s = "";
-            buffer.append(EOL);
-          }
-        }
-      }
-
-      if (s.length() > 0)
-      {
-        buffer.append(INDENT);
-        buffer.append(s);
-        buffer.append(EOL);
-      }
-    }
+    buffer.append(
+        Utils.wrapText(a.getDescription(), MAX_LENGTH, indentLength));
+    buffer.append(EOL);
 
     if (a.needsValue() && (a.getDefaultValue() != null)
         && (a.getDefaultValue().length() > 0))

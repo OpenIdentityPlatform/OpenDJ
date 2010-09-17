@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.sun.opends.sdk.util.StaticUtils;
 import org.opends.sdk.*;
 import org.opends.sdk.responses.ExtendedResult;
 import org.opends.sdk.responses.Result;
@@ -810,21 +811,21 @@ abstract class PerformanceRunner implements ConnectionEventListener
     numThreadsArgument = new IntegerArgument("numThreads", 't', "numThreads",
         false, false, true, LocalizableMessage.raw("{numThreads}"), 1, null,
         true, 1, false, 0, LocalizableMessage
-            .raw("number of search threads per connection"));
+            .raw("Number of worker threads per connection"));
     numThreadsArgument.setPropertyName("numThreads");
     argParser.addArgument(numThreadsArgument);
 
     numConnectionsArgument = new IntegerArgument("numConnections", 'c',
         "numConnections", false, false, true, LocalizableMessage
             .raw("{numConnections}"), 1, null, true, 1, false, 0,
-        LocalizableMessage.raw("number of connections"));
+        LocalizableMessage.raw("Number of connections"));
     numThreadsArgument.setPropertyName("numConnections");
     argParser.addArgument(numConnectionsArgument);
 
     maxIterationsArgument = new IntegerArgument("maxIterations", 'm',
         "maxIterations", false, false, true, LocalizableMessage
             .raw("{maxIterations}"), 0, null, LocalizableMessage
-            .raw("max searches per thread, 0 for unlimited"));
+            .raw("Max iterations, 0 for unlimited"));
     numThreadsArgument.setPropertyName("maxIterations");
     argParser.addArgument(maxIterationsArgument);
 
@@ -852,25 +853,31 @@ abstract class PerformanceRunner implements ConnectionEventListener
     argParser.addArgument(percentilesArgument);
 
     keepConnectionsOpen = new BooleanArgument("keepConnectionsOpen", 'f',
-        "keepConnectionsOpen", LocalizableMessage.raw("keep connections open"));
+        "keepConnectionsOpen", LocalizableMessage.raw("Keep connections open"));
     keepConnectionsOpen.setPropertyName("keepConnectionsOpen");
     argParser.addArgument(keepConnectionsOpen);
 
     noRebindArgument = new BooleanArgument("noRebind", 'F', "noRebind",
-        LocalizableMessage.raw("keep connections open and don't rebind"));
+        LocalizableMessage.raw("Keep connections open and don't rebind"));
     keepConnectionsOpen.setPropertyName("noRebind");
     argParser.addArgument(noRebindArgument);
 
     asyncArgument = new BooleanArgument("asynchronous", 'A', "asynchronous",
-        LocalizableMessage.raw("asynch, don't wait for results"));
+        LocalizableMessage.raw("Use asynchronous mode and don't " +
+            "wait for results before sending the next request"));
     keepConnectionsOpen.setPropertyName("asynchronous");
     argParser.addArgument(asyncArgument);
 
-    arguments = new StringArgument("arguments", 'g', "arguments", false, true,
-        true, LocalizableMessage.raw("{arguments}"), null, null,
-        LocalizableMessage
-            .raw("arguments for variables in the filter and/or base DN"));
-    arguments.setPropertyName("arguments");
+    arguments = new StringArgument("argument", 'g', "argument", false, true,
+        true, LocalizableMessage.raw("{generator function or static string}"),
+        null, null,
+        LocalizableMessage.raw("Argument used to evaluate the Java " +
+            "style format strings in program parameters (ie. Base DN, " +
+            "Search Filter). The set of all arguments provided form the " +
+            "the argument list in order. Besides static string " +
+            "arguments, they can be generated per iteration with the " +
+            "following functions: " + StaticUtils.EOL +
+            DataSource.getUsage()));
     argParser.addArgument(arguments);
   }
 
@@ -912,7 +919,8 @@ abstract class PerformanceRunner implements ConnectionEventListener
   {
     numConnections = numConnectionsArgument.getIntValue();
     numThreads = numThreadsArgument.getIntValue();
-    maxIterations = maxIterationsArgument.getIntValue();
+    maxIterations = maxIterationsArgument.getIntValue() /
+        numConnections / numThreads;
     statsInterval = statsIntervalArgument.getIntValue() * 1000;
     targetThroughput = targetThroughputArgument.getIntValue();
 
@@ -933,15 +941,7 @@ abstract class PerformanceRunner implements ConnectionEventListener
           + " must be used when using --" + asyncArgument.getLongIdentifier()));
     }
 
-    try
-    {
-      dataSourcePrototypes = DataSource.parse(arguments.getValues());
-    }
-    catch (final IOException ioe)
-    {
-      throw new ArgumentException(LocalizableMessage
-          .raw("Error occured while parsing arguments: " + ioe.toString()));
-    }
+    dataSourcePrototypes = DataSource.parse(arguments.getValues());
   }
 
 

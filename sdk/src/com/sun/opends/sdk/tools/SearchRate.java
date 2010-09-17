@@ -374,12 +374,11 @@ public final class SearchRate extends ConsoleApplication
   {
     // Create the command-line argument parser for use with this
     // program.
-    final LocalizableMessage toolDescription = LocalizableMessage
-        .raw("This utility can be used to " + "measure search performance");
-    // TODO: correct usage
+    final LocalizableMessage toolDescription =
+        INFO_SEARCHRATE_TOOL_DESCRIPTION.get();
     final ArgumentParser argParser = new ArgumentParser(SearchRate.class
         .getName(), toolDescription, false, true, 1, 0,
-        "[filter] [attributes ...]");
+        "[filter format string] [attributes ...]");
 
     ArgumentParserConnectionFactory connectionFactory;
     SearchPerformanceRunner runner;
@@ -420,7 +419,7 @@ public final class SearchRate extends ConsoleApplication
 
       baseDN = new StringArgument("baseDN", OPTION_SHORT_BASEDN,
           OPTION_LONG_BASEDN, true, false, true, INFO_BASEDN_PLACEHOLDER.get(),
-          null, null, INFO_SEARCH_DESCRIPTION_BASEDN.get());
+          null, null, INFO_SEARCHRATE_TOOL_DESCRIPTION_BASEDN.get());
       baseDN.setPropertyName(OPTION_LONG_BASEDN);
       argParser.addArgument(baseDN);
 

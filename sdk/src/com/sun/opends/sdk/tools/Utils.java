@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Copyright 2006-2010 Sun Microsystems, Inc.
  */
 package com.sun.opends.sdk.tools;
 
@@ -616,7 +616,7 @@ final class Utils
           // It's an end-of-line character, so append it as-is.
           buffer.append(line);
         }
-        else if (line.length() < width)
+        else if (line.length() <= width)
         {
           // The line fits in the specified width, so append it as-is.
           buffer.append(padding);
