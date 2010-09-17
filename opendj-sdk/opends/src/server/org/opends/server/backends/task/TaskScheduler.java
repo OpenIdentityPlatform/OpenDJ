@@ -1170,7 +1170,19 @@ public class TaskScheduler
               Task task = entryToScheduledTask(entry, null);
               if (TaskState.isDone(task.getTaskState()))
               {
-                completedTasks.add(task);
+                String id = task.getTaskID();
+                if (tasks.containsKey(id))
+                {
+                  Message message =
+                      WARN_TASKSCHED_DUPLICATE_TASK_ID.get(
+                      String.valueOf(id));
+                  logError(message);
+                }
+                else
+                {
+                  completedTasks.add(task);
+                  tasks.put(id, task);
+                }
               }
               else
               {
