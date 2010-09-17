@@ -1692,30 +1692,6 @@ public class SchemaConstants
 
 
   /**
-   * The OID for the absolute subtree specification attribute syntax.
-   */
-  public static final String SYNTAX_ABSOLUTE_SUBTREE_SPECIFICATION_OID =
-       SYNTAX_SUBTREE_SPECIFICATION_OID;
-
-
-
-  /**
-   * The description for the absolute subtree specification attribute syntax.
-   */
-  public static final String SYNTAX_ABSOLUTE_SUBTREE_SPECIFICATION_DESCRIPTION =
-    "Absolute Subtree Specification";
-
-
-
-  /**
-   * The name for the absolute subtree specification attribute syntax.
-   */
-  public static final String SYNTAX_ABSOLUTE_SUBTREE_SPECIFICATION_NAME =
-    SYNTAX_SUBTREE_SPECIFICATION_NAME;
-
-
-
-  /**
    * The OID for the relative subtree specification attribute syntax.
    */
   public static final String SYNTAX_RELATIVE_SUBTREE_SPECIFICATION_OID =
