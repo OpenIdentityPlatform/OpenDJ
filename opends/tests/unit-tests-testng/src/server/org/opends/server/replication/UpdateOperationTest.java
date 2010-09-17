@@ -72,6 +72,8 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import static org.opends.server.TestCaseUtils.*;
+import org.opends.server.util.TimeThread;
+
 
 /**
  * Test synchronization of update operations on the directory server and through
@@ -519,10 +521,12 @@ public class  UpdateOperationTest extends ReplicationTestCase
          attrs.get(0).iterator().next().getValue().toString();
 
     // A change on a first server.
-    ChangeNumber t1 = new ChangeNumber(1,  0,  3);
+    long changeTime = TimeThread.getTime();
+    ChangeNumber t1 = new ChangeNumber(changeTime,  0,  3);
 
     // A change on a second server.
-    ChangeNumber t2 = new ChangeNumber(2,  0,  4);
+    changeTime++;
+    ChangeNumber t2 = new ChangeNumber(changeTime,  0,  4);
 
     // Simulate the ordering t2:replace:B followed by t1:add:A that
     updateMonitorCount(baseDn, monitorAttr);
@@ -560,10 +564,12 @@ public class  UpdateOperationTest extends ReplicationTestCase
     // Simulate the ordering t2:delete:displayname followed by
     // t1:replace:displayname
     // A change on a first server.
-    t1 = new ChangeNumber(3,  0,  3);
+    changeTime++;
+    t1 = new ChangeNumber(changeTime,  0,  3);
 
     // A change on a second server.
-    t2 = new ChangeNumber(4,  0,  4);
+    changeTime++;
+    t2 = new ChangeNumber(changeTime,  0,  4);
 
     // Simulate the ordering t2:delete:displayname followed by t1:replace:A
     updateMonitorCount(baseDn, monitorAttr);
