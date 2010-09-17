@@ -1194,16 +1194,16 @@ public class LDAPClientConnection extends ClientConnection implements
     // We need to grab a lock to ensure that no one else can add
     // operations to the queue while we are performing some preliminary
     // checks.
-    synchronized (opsInProgressLock)
+    try
     {
-      try
+      synchronized (opsInProgressLock)
       {
         // If we're already in the process of disconnecting the client,
         // then reject the operation.
         if (disconnectRequested)
         {
           Message message =
-              WARN_LDAP_CLIENT_DISCONNECT_IN_PROGRESS.get();
+            WARN_LDAP_CLIENT_DISCONNECT_IN_PROGRESS.get();
           throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
               message);
         }
@@ -1217,41 +1217,41 @@ public class LDAPClientConnection extends ClientConnection implements
         if (op != null)
         {
           Message message =
-              WARN_LDAP_CLIENT_DUPLICATE_MESSAGE_ID.get(messageID);
+            WARN_LDAP_CLIENT_DUPLICATE_MESSAGE_ID.get(messageID);
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
               message);
         }
-
-        // Try to add the operation to the work queue,
-        // or run it synchronously (typically for the administration
-        // connector)
-        connectionHandler.getQueueingStrategy().enqueueRequest(
-            operation);
       }
-      catch (DirectoryException de)
+
+      // Try to add the operation to the work queue,
+      // or run it synchronously (typically for the administration
+      // connector)
+      connectionHandler.getQueueingStrategy().enqueueRequest(
+          operation);
+    }
+    catch (DirectoryException de)
+    {
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
-
-        operationsInProgress.remove(messageID);
-        lastCompletionTime.set(TimeThread.getTime());
-
-        throw de;
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
       }
-      catch (Exception e)
+
+      operationsInProgress.remove(messageID);
+      lastCompletionTime.set(TimeThread.getTime());
+
+      throw de;
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message =
-            WARN_LDAP_CLIENT_CANNOT_ENQUEUE.get(getExceptionMessage(e));
-        throw new DirectoryException(DirectoryServer
-            .getServerErrorResultCode(), message, e);
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
+
+      Message message =
+        WARN_LDAP_CLIENT_CANNOT_ENQUEUE.get(getExceptionMessage(e));
+      throw new DirectoryException(DirectoryServer
+          .getServerErrorResultCode(), message, e);
     }
   }
 

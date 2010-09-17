@@ -2486,7 +2486,7 @@ objectClass: ds-cfg-work-queue
 objectClass: ds-cfg-traditional-work-queue
 cn: Work Queue
 ds-cfg-java-class: org.opends.server.extensions.TraditionalWorkQueue
-ds-cfg-max-work-queue-capacity: 0
+ds-cfg-max-work-queue-capacity: 1000
 
 dn: cn=Administration Connector,cn=config
 objectClass: top
