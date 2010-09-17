@@ -2466,11 +2466,16 @@ public class ReplicationBroker
         }
         if ((!credit) && (currentWindowSemaphore.availablePermits() == 0))
         {
-          // the window is still closed.
-          // Send a WindowProbeMsg message to wakeup the receiver in case the
-          // window update message was lost somehow...
-          // then loop to check again if connection was closed.
-          session.publish(new WindowProbeMsg());
+          synchronized (connectPhaseLock)
+          {
+            // the window is still closed.
+            // Send a WindowProbeMsg message to wakeup the receiver in case the
+            // window update message was lost somehow...
+            // then loop to check again if connection was closed.
+            if (session != null) {
+              session.publish(new WindowProbeMsg());
+            }
+          }
         }
       } catch (IOException e)
       {
