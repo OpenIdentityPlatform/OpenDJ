@@ -35,6 +35,7 @@ import static org.testng.Assert.assertTrue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.opends.sdk.requests.DigestMD5SASLBindRequest;
 import org.opends.sdk.requests.Requests;
 import org.opends.sdk.requests.SearchRequest;
 import org.testng.annotations.BeforeClass;
@@ -148,7 +149,9 @@ public class ConnectionFactoryTestCase extends SdkTestCase
     factories[6][0] = new AuthenticatedConnectionFactory(
         new LDAPConnectionFactory("localhost", TestCaseUtils.getLdapPort(),
             options), Requests.newDigestMD5SASLBindRequest("id:user",
-            ByteString.valueOf("password")));
+            ByteString.valueOf("password")).setQOP(
+            DigestMD5SASLBindRequest.QOPOption.AUTH_CONF).setCipher(
+            DigestMD5SASLBindRequest.CipherOption.TRIPLE_DES_RC4));
 
     return factories;
   }

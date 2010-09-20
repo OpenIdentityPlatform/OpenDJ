@@ -31,13 +31,17 @@ package org.opends.sdk.requests;
 
 import org.opends.sdk.ByteString;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
+import java.util.Arrays;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 /**
  * Tests GSSAPI SASL Bind requests.
  */
-public abstract class GSSAPISASLBindRequestTestCase extends BindRequestTestCase
+public class GSSAPISASLBindRequestTestCase extends BindRequestTestCase
 {
   @DataProvider(name = "GSSAPISASLBindRequests")
   public Object[][] getGSSAPISASLBindRequests() throws Exception
@@ -66,5 +70,44 @@ public abstract class GSSAPISASLBindRequestTestCase extends BindRequestTestCase
       ops[i] = (GSSAPISASLBindRequest) objs[i][0];
     }
     return ops;
+  }
+
+  @Test(enabled = false)
+  public void testBindClient(BindRequest request) throws Exception {
+    // Should setup a test krb server...
+    super.testBindClient(request);
+  }
+
+  @Test(dataProvider = "GSSAPISASLBindRequests")
+  public void testQOP(GSSAPISASLBindRequest request) throws Exception
+  {
+    GSSAPISASLBindRequest.QOPOption [] options =
+        new GSSAPISASLBindRequest.QOPOption[]{
+            GSSAPISASLBindRequest.QOPOption.AUTH,
+            GSSAPISASLBindRequest.QOPOption.AUTH_INT,
+            GSSAPISASLBindRequest.QOPOption.AUTH_CONF};
+    request.setQOP(options);
+    assertTrue(Arrays.deepEquals(options, request.getQOP()));
+  }
+
+  @Test(dataProvider = "GSSAPISASLBindRequests")
+  public void testServerAuth(GSSAPISASLBindRequest request) throws Exception
+  {
+    request.setServerAuth(true);
+    assertEquals(request.getServerAuth(), true);
+  }
+
+  @Test(dataProvider = "GSSAPISASLBindRequests")
+  public void testSendBuffer(GSSAPISASLBindRequest request) throws Exception
+  {
+    request.setMaxSendBufferSize(512);
+    assertEquals(request.getMaxSendBufferSize(), 512);
+  }
+
+  @Test(dataProvider = "GSSAPISASLBindRequests")
+  public void testRecieveBuffer(GSSAPISASLBindRequest request) throws Exception
+  {
+    request.setMaxReceiveBufferSize(512);
+    assertEquals(request.getMaxReceiveBufferSize(), 512);
   }
 }

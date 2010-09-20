@@ -67,6 +67,62 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest
 
 
   /**
+   * Supported quality-of-protection options.
+   */
+  public static enum QOPOption
+  {
+    /**
+     * Authentication only.
+     */
+    AUTH,
+
+    /**
+     * Authentication plus integrity protection.
+     */
+    AUTH_INT,
+
+    /**
+     * Authentication plus integrity and confidentiality protection.
+     */
+    AUTH_CONF
+  }
+
+
+
+  /**
+   * Cipher options for use with the security layer.
+   */
+  public static enum CipherOption
+  {
+    /**
+     * Triple DES
+     *   The "triple DES" cipher in CBC mode with EDE with the
+     *   same key for each E stage (aka "two keys mode") for a
+     *   total key length of 112 bits.
+     * <p>
+     * RC4 128 bits
+     *   The RC4 cipher with a 128 bit key.
+     */
+    TRIPLE_DES_RC4,
+
+    /**
+     * DES
+     *   The Data Encryption Standard (DES) cipher [FIPS] in
+     *   cipher block chaining (CBC) mode with a 56 bit key.
+     * <p>
+     * RC4 56 bits
+     *   The RC4 cipher with a 56 bit key.
+     */
+    DES_RC4_56,
+
+    /**
+     * RC4 40 bits
+     *   The RC4 cipher with a 40 bit key.
+     */
+    RC4_40
+  }
+
+  /**
    * {@inheritDoc}
    */
   DigestMD5SASLBindRequest addControl(Control control)
@@ -167,6 +223,64 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest
 
 
   /**
+   * Returns the quality-of-protection options to use.
+   * The order of the list specifies the preference order.
+   *
+   * @return The list of quality-of-protection options to use.
+   */
+  QOPOption[] getQOP();
+
+
+
+  /**
+   * Returns the ciphers to use with the optional security layer
+   * offered by the {@code AUTH_CONF} quality-of-protection. The order
+   * of the list specifies the preference order. When there is
+   * more than one choice for a particular option, the cipher
+   * selected depends on the availability of the ciphers in the
+   * underlying platform.
+   *
+   * @return The list of cipher options to use.
+   */
+  CipherOption[] getCipher();
+
+
+
+  /**
+   * Returns whether the server must authenticate to the client.
+   *
+   * @return {@code true} if the server must authenticate
+   *         to the client or {@code false} otherwise.
+   */
+  boolean getServerAuth();
+
+
+
+  /**
+   * Returns the maximum size of the receive buffer in bytes.
+   * The actual maximum number of bytes will
+   * be the minimum of this number and the peer's maximum send
+   * buffer size.
+   *
+   * @return The maximum size of the receive buffer in bytes.
+   */
+  int getMaxReceiveBufferSize();
+
+
+
+  /**
+   * Returns the maximum size of the send buffer in bytes.
+   * The actual maximum number of bytes will
+   * be the minimum of this number and the peer's maximum receive
+   * buffer size.
+   *
+   * @return The maximum size of the send buffer in bytes.
+   */
+  int getMaxSendBufferSize();
+
+
+
+  /**
    * Sets the authentication ID of the user. The authentication ID usually has
    * the form "dn:" immediately followed by the distinguished name of the user,
    * or "u:" followed by a user ID string, but other forms are permitted.
@@ -253,4 +367,67 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest
   DigestMD5SASLBindRequest setRealm(String realm)
       throws UnsupportedOperationException, NullPointerException;
 
+
+
+  /**
+   * Specifies the quality-of-protection options to use.
+   * The order of the list specifies the preference order.
+   *
+   * @param qopOptions The list of quality-of-protection options to
+   *                   use.
+   * @return This bind request.
+   */
+  DigestMD5SASLBindRequest setQOP(QOPOption... qopOptions);
+
+
+
+  /**
+   * Specifies the ciphers to use with the optional security layer
+   * offered by the {@code AUTH_CONF} quality-of-protection. The order
+   * of the list specifies the preference order. When there is
+   * more than one choice for a particular option, the cipher
+   * selected depends on the availability of the ciphers in the
+   * underlying platform.
+   *
+   * @param cipherOptions The list of cipher options to use.
+   * @return his bind request.
+   */
+  DigestMD5SASLBindRequest setCipher(CipherOption... cipherOptions);
+
+
+
+  /**
+   * Specifies whether the server must authenticate to the client.
+   *
+   * @param serverAuth {@code true} if the server must authenticate
+   *                   to the client or {@code false} otherwise.
+   * @return This bind request.
+   */
+  DigestMD5SASLBindRequest setServerAuth(boolean serverAuth);
+
+
+
+  /**
+   * Specifies the maximum size of the receive buffer in bytes.
+   * The actual maximum number of bytes will
+   * be the minimum of this number and the peer's maximum send
+   * buffer size.
+   *
+   * @param maxBuffer The maximum size of the receive buffer in bytes.
+   * @return This bind request.
+   */
+  DigestMD5SASLBindRequest setMaxReceiveBufferSize(int maxBuffer);
+
+
+
+  /**
+   * Specifies the maximum size of the send buffer in bytes.
+   * The actual maximum number of bytes will
+   * be the minimum of this number and the peer's maximum receive
+   * buffer size.
+   *
+   * @param maxBuffer The maximum size of the send buffer in bytes.
+   * @return This bind request.
+   */
+  DigestMD5SASLBindRequest setMaxSendBufferSize(int maxBuffer);
 }
