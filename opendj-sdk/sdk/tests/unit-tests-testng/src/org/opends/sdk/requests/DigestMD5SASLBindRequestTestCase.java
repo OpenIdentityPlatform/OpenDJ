@@ -31,7 +31,12 @@ package org.opends.sdk.requests;
 
 import org.opends.sdk.ByteString;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
+import java.util.Arrays;
+
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.assertEquals;
 
 
 /**
@@ -68,4 +73,53 @@ public class DigestMD5SASLBindRequestTestCase extends BindRequestTestCase
     return ops;
   }
 
+  @Test(dataProvider = "DigestMD5SASLBindRequests")
+  public void testQOP(DigestMD5SASLBindRequest request) throws Exception
+  {
+    DigestMD5SASLBindRequest.QOPOption [] options =
+        new DigestMD5SASLBindRequest.QOPOption[]{
+            DigestMD5SASLBindRequest.QOPOption.AUTH,
+            DigestMD5SASLBindRequest.QOPOption.AUTH_INT,
+            DigestMD5SASLBindRequest.QOPOption.AUTH_CONF};
+    request.setQOP(options);
+
+    DigestMD5SASLBindRequest.QOPOption [] results = request.getQOP();
+    for(int i = 0; i < options.length; i++)
+    {
+      assertEquals(options[i], results[i]);
+    }
+  }
+
+  @Test(dataProvider = "DigestMD5SASLBindRequests" )
+  public void testStrength(DigestMD5SASLBindRequest request) throws Exception
+  {
+    DigestMD5SASLBindRequest.CipherOption[] options =
+        new DigestMD5SASLBindRequest.CipherOption[]{
+            DigestMD5SASLBindRequest.CipherOption.RC4_40,
+            DigestMD5SASLBindRequest.CipherOption.TRIPLE_DES_RC4,
+            DigestMD5SASLBindRequest.CipherOption.DES_RC4_56};
+    request.setCipher(options);
+    assertTrue(Arrays.deepEquals(options, request.getCipher()));
+  }
+
+  @Test(dataProvider = "DigestMD5SASLBindRequests")
+  public void testServerAuth(DigestMD5SASLBindRequest request) throws Exception
+  {
+    request.setServerAuth(true);
+    assertEquals(request.getServerAuth(), true);
+  }
+
+  @Test(dataProvider = "DigestMD5SASLBindRequests")
+  public void testSendBuffer(DigestMD5SASLBindRequest request) throws Exception
+  {
+    request.setMaxSendBufferSize(1024);
+    assertEquals(request.getMaxSendBufferSize(), 1024);
+  }
+
+  @Test(dataProvider = "DigestMD5SASLBindRequests")
+  public void testRecieveBuffer(DigestMD5SASLBindRequest request) throws Exception
+  {;
+    request.setMaxReceiveBufferSize(1024);
+    assertEquals(request.getMaxReceiveBufferSize(), 1024);
+  }
 }

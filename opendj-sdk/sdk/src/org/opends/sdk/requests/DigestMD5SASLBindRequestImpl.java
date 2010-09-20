@@ -375,6 +375,224 @@ final class DigestMD5SASLBindRequestImpl extends
 
 
 
+  /**
+   * {@inheritDoc}
+   */
+  public QOPOption[] getQOP() {
+    String value = System.getProperty(Sasl.QOP);
+    if(value == null || value.length() == 0)
+    {
+      return new QOPOption[]{QOPOption.AUTH};
+    }
+    String[] values = value.split(",");
+    QOPOption[] options = new QOPOption[values.length];
+
+    for(int i = 0; i < values.length; i++)
+    {
+      String v = values[i].trim();
+      if(v.equalsIgnoreCase("auth"))
+      {
+        options[i] = QOPOption.AUTH;
+      }
+      else if(v.equalsIgnoreCase("auth-int"))
+      {
+        options[i] = QOPOption.AUTH_INT;
+      }
+      else if(v.equalsIgnoreCase("auth-conf"))
+      {
+        options[i] = QOPOption.AUTH_CONF;
+      }
+    }
+    return options;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public CipherOption[] getCipher() {
+    String value = System.getProperty(Sasl.STRENGTH);
+    if(value == null || value.length() == 0)
+    {
+      return new CipherOption[]{CipherOption.TRIPLE_DES_RC4,
+          CipherOption.DES_RC4_56, CipherOption.RC4_40};
+    }
+    String[] values = value.split(",");
+    CipherOption[] options = new CipherOption[values.length];
+
+    for(int i = 0; i < values.length; i++)
+    {
+      String v = values[i].trim();
+      if(v.equalsIgnoreCase("high"))
+      {
+        options[i] = CipherOption.TRIPLE_DES_RC4;
+      }
+      else if(v.equalsIgnoreCase("medium"))
+      {
+        options[i] = CipherOption.DES_RC4_56;
+      }
+      else if(v.equalsIgnoreCase("low"))
+      {
+        options[i] = CipherOption.RC4_40;
+      }
+    }
+    return options;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean getServerAuth() {
+    String value = System.getProperty(Sasl.SERVER_AUTH);
+    return !(value == null || value.length() == 0) &&
+        value.equalsIgnoreCase("true");
+
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public int getMaxReceiveBufferSize() {
+    String value = System.getProperty(Sasl.MAX_BUFFER);
+    if(value == null || value.length() == 0)
+    {
+      return 65536;
+    }
+    return Integer.parseInt(value);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public int getMaxSendBufferSize() {
+    String value = System.getProperty("javax.security.sasl.sendmaxbuffer");
+    if(value == null || value.length() == 0)
+    {
+      return 65536;
+    }
+    return Integer.parseInt(value);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public DigestMD5SASLBindRequest setQOP(QOPOption... qopOptions) {
+    String values = null;
+    for(QOPOption option : qopOptions)
+    {
+      String value = null;
+      if(option == QOPOption.AUTH)
+      {
+        value = "auth";
+      }
+      else if(option == QOPOption.AUTH_INT)
+      {
+        value = "auth-int";
+      }
+      else if(option == QOPOption.AUTH_CONF)
+      {
+        value = "auth-conf";
+      }
+
+      if(value != null)
+      {
+        if(values == null)
+        {
+          values = value;
+        }
+        else
+        {
+          values += (", " + value);
+        }
+      }
+    }
+
+    System.setProperty(Sasl.QOP, values);
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public DigestMD5SASLBindRequest setCipher(CipherOption... cipherOptions) {
+    String values = null;
+    for(CipherOption option : cipherOptions)
+    {
+      String value = null;
+      if(option == CipherOption.TRIPLE_DES_RC4)
+      {
+        value = "high";
+      }
+      else if(option == CipherOption.DES_RC4_56)
+      {
+        value = "medium";
+      }
+      else if(option == CipherOption.RC4_40)
+      {
+        value = "low";
+      }
+
+      if(value != null)
+      {
+        if(values == null)
+        {
+          values = value;
+        }
+        else
+        {
+          values += (", " + value);
+        }
+      }
+    }
+
+    System.setProperty(Sasl.STRENGTH, values);
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public DigestMD5SASLBindRequest setServerAuth(boolean serverAuth) {
+    System.setProperty(Sasl.SERVER_AUTH, String.valueOf(serverAuth));
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public DigestMD5SASLBindRequest setMaxReceiveBufferSize(int maxBuffer) {
+    System.setProperty(Sasl.MAX_BUFFER, String.valueOf(maxBuffer));
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public DigestMD5SASLBindRequest setMaxSendBufferSize(int maxBuffer) {
+    System.setProperty("javax.security.sasl.sendmaxbuffer",
+        String.valueOf(maxBuffer));
+    return this;
+  }
+
+
+
   @Override
   public String toString()
   {

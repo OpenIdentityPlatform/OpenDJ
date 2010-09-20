@@ -66,6 +66,29 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
 
 
   /**
+   * Supported quality-of-protection options.
+   */
+  public static enum QOPOption
+  {
+    /**
+     * Authentication only.
+     */
+    AUTH,
+
+    /**
+     * Authentication plus integrity protection.
+     */
+    AUTH_INT,
+
+    /**
+     * Authentication plus integrity and confidentiality protection.
+     */
+    AUTH_CONF
+  }
+
+
+
+  /**
    * {@inheritDoc}
    */
   GSSAPISASLBindRequest addControl(Control control)
@@ -193,6 +216,52 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
    * @return The Kerberos subject of the user to be authenticated.
    */
   Subject getSubject();
+
+
+
+  /**
+   * Returns the quality-of-protection options to use.
+   * The order of the list specifies the preference order.
+   *
+   * @return The list of quality-of-protection options to use.
+   */
+  QOPOption[] getQOP();
+
+
+
+  /**
+   * Returns whether the server must authenticate to the client.
+   * The default is {@code false}.
+   *
+   * @return {@code true} if the server must authenticate
+   *         to the client or {@code false} otherwise.
+   */
+  boolean getServerAuth();
+
+
+
+  /**
+   * Returns the maximum size of the receive buffer in bytes. The
+   * default is 65536. The actual maximum number of bytes will
+   * be the minimum of this number and the peer's maximum send
+   * buffer size.
+   *
+   * @return The maximum size of the receive buffer in bytes.
+   */
+  int getMaxReceiveBufferSize();
+
+
+
+  /**
+   * Returns the maximum size of the send buffer in bytes. The
+   * default is 65536. The actual maximum number of bytes will
+   * be the minimum of this number and the peer's maximum receive
+   * buffer size.
+   *
+   * @return The maximum size of the send buffer in bytes.
+   */
+  int getMaxSendBufferSize();
+
 
 
 
@@ -326,5 +395,54 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
    *           If {@code subject} was {@code null}.
    */
   GSSAPISASLBindRequest setSubject(Subject subject) throws NullPointerException;
+
+
+
+  /**
+   * Specifies the quality-of-protection options to use.
+   * The order of the list specifies the preference order.
+   *
+   * @param qopOptions The list of quality-of-protection options to
+   *                   use.
+   * @return This bind request.
+   */
+  GSSAPISASLBindRequest setQOP(QOPOption... qopOptions);
+
+
+
+  /**
+   * Specifies whether the server must authenticate to the client.
+   *
+   * @param serverAuth {@code true} if the server must authenticate
+   *                   to the client or {@code false} otherwise.
+   * @return This bind request.
+   */
+  GSSAPISASLBindRequest setServerAuth(boolean serverAuth);
+
+
+
+  /**
+   * Specifies the maximum size of the receive buffer in bytes.
+   * The actual maximum number of bytes will
+   * be the minimum of this number and the peer's maximum send
+   * buffer size.
+   *
+   * @param maxBuffer The maximum size of the receive buffer in bytes.
+   * @return This bind request.
+   */
+  GSSAPISASLBindRequest setMaxReceiveBufferSize(int maxBuffer);
+
+
+
+  /**
+   * Specifies the maximum size of the send buffer in bytes.
+   *  The actual maximum number of bytes will
+   * be the minimum of this number and the peer's maximum receive
+   * buffer size.
+   *
+   * @param maxBuffer The maximum size of the send buffer in bytes.
+   * @return This bind request.
+   */
+  GSSAPISASLBindRequest setMaxSendBufferSize(int maxBuffer);
 
 }

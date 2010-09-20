@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -531,6 +531,150 @@ final class GSSAPISASLBindRequestImpl extends
       throws NullPointerException
   {
     this.subject = subject;
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public QOPOption[] getQOP() {
+    String value = System.getProperty(Sasl.QOP);
+    if(value == null || value.length() == 0)
+    {
+      return new QOPOption[]{QOPOption.AUTH};
+    }
+    String[] values = value.split(",");
+    QOPOption[] options = new QOPOption[values.length];
+
+    for(int i = 0; i < values.length; i++)
+    {
+      String v = values[i].trim();
+      if(v.equalsIgnoreCase("auth"))
+      {
+        options[i] = QOPOption.AUTH;
+      }
+      else if(v.equalsIgnoreCase("auth-int"))
+      {
+        options[i] = QOPOption.AUTH_INT;
+      }
+      else if(v.equalsIgnoreCase("auth-conf"))
+      {
+        options[i] = QOPOption.AUTH_CONF;
+      }
+    }
+    return options;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean getServerAuth() {
+    String value = System.getProperty(Sasl.SERVER_AUTH);
+    return !(value == null || value.length() == 0) &&
+        value.equalsIgnoreCase("true");
+
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public int getMaxReceiveBufferSize() {
+    String value = System.getProperty(Sasl.MAX_BUFFER);
+    if(value == null || value.length() == 0)
+    {
+      return 65536;
+    }
+    return Integer.parseInt(value);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public int getMaxSendBufferSize() {
+    String value = System.getProperty("javax.security.sasl.sendmaxbuffer");
+    if(value == null || value.length() == 0)
+    {
+      return 65536;
+    }
+    return Integer.parseInt(value);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public GSSAPISASLBindRequest setQOP(QOPOption... qopOptions) {
+    String values = null;
+    for(QOPOption option : qopOptions)
+    {
+      String value = null;
+      if(option == QOPOption.AUTH)
+      {
+        value = "auth";
+      }
+      else if(option == QOPOption.AUTH_INT)
+      {
+        value = "auth-int";
+      }
+      else if(option == QOPOption.AUTH_CONF)
+      {
+        value = "auth-conf";
+      }
+
+      if(value != null)
+      {
+        if(values == null)
+        {
+          values = value;
+        }
+        else
+        {
+          values += (", " + value);
+        }
+      }
+    }
+
+    System.setProperty(Sasl.QOP, values);
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public GSSAPISASLBindRequest setServerAuth(boolean serverAuth) {
+    System.setProperty(Sasl.SERVER_AUTH, String.valueOf(serverAuth));
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public GSSAPISASLBindRequest setMaxReceiveBufferSize(int maxBuffer) {
+    System.setProperty(Sasl.MAX_BUFFER, String.valueOf(maxBuffer));
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public GSSAPISASLBindRequest setMaxSendBufferSize(int maxBuffer) {
+    System.setProperty("javax.security.sasl.sendmaxbuffer",
+        String.valueOf(maxBuffer));
     return this;
   }
 
