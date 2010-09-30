@@ -105,7 +105,7 @@ public final class AdministrationConnector implements
   private static final String ADMIN_CLASS_NAME =
     "org.opends.server.protocols.ldap.LDAPConnectionHandler";
 
-  private static final boolean ADMIN_ALLOW_LDAP_V2 = true;
+  private static final boolean ADMIN_ALLOW_LDAP_V2 = false;
 
   private static final boolean ADMIN_ALLOW_START_TLS = false;
 

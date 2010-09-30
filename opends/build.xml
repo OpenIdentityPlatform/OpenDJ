@@ -2593,7 +2593,7 @@
     </javac>
   </target>
 
-  <import file="build-svr4.xml"/>
+  <!-- import file="build-svr4.xml"/ -->
 
   <!-- Copy NDB Backend dependencies to build lib directory -->
   <target name="copyndbdeps" if="ismysqldirpresent"
