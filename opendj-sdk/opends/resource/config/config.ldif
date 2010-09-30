@@ -2369,7 +2369,7 @@ dn: cn=entryUUID,cn=Virtual Attributes,cn=config
 objectClass: top
 objectClass: ds-cfg-virtual-attribute
 objectClass: ds-cfg-entry-uuid-virtual-attribute
-cn: entryUUIUD
+cn: entryUUID
 ds-cfg-java-class: org.opends.server.extensions.EntryUUIDVirtualAttributeProvider
 ds-cfg-enabled: true
 ds-cfg-attribute-type: entryUUID

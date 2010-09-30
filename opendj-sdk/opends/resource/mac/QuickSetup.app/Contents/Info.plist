@@ -3,7 +3,7 @@
 <plist version="0.9">
 <dict>
 	<key>CFBundleName</key>
-	<string>OpenDS QuickSetup</string>
+	<string>OpenDJ QuickSetup</string>
 	<key>CFBundleIdentifier</key>
 	<string>org.opends.quicksetup.installer.SetupLauncher</string>
 	<key>CFBundleVersion</key>
@@ -32,20 +32,20 @@
 		<string>1.6+</string>
 		<key>ClassPath</key>
 			<array>
-			<string>$JAVAROOT/../../../../lib/OpenDS.jar</string>
+			<string>$JAVAROOT/../../../../lib/OpenDJ.jar</string>
 			<string>$JAVAROOT/../../../../lib/activation.jar</string>
 			<string>$JAVAROOT/../../../../lib/je.jar</string>
 			<string>$JAVAROOT/../../../../lib/mail.jar</string>
 			<string>$JAVAROOT/../../../../lib/quicksetup.jar</string>
-			<string>$JAVAROOT/../../../../lib/OpenDS_ca_ES.jar</string>
-			<string>$JAVAROOT/../../../../lib/OpenDS_de.jar</string>
-			<string>$JAVAROOT/../../../../lib/OpenDS_es.jar</string>
-			<string>$JAVAROOT/../../../../lib/OpenDS_fr.jar</string>
-			<string>$JAVAROOT/../../../../lib/OpenDS_ja.jar</string>
-			<string>$JAVAROOT/../../../../lib/OpenDS_ko.jar</string>
-			<string>$JAVAROOT/../../../../lib/OpenDS_pl.jar</string>
-			<string>$JAVAROOT/../../../../lib/OpenDS_zh_CN.jar</string>
-			<string>$JAVAROOT/../../../../lib/OpenDS_zh_TW.jar</string>
+			<string>$JAVAROOT/../../../../lib/OpenDJ_ca_ES.jar</string>
+			<string>$JAVAROOT/../../../../lib/OpenDJ_de.jar</string>
+			<string>$JAVAROOT/../../../../lib/OpenDJ_es.jar</string>
+			<string>$JAVAROOT/../../../../lib/OpenDJ_fr.jar</string>
+			<string>$JAVAROOT/../../../../lib/OpenDJ_ja.jar</string>
+			<string>$JAVAROOT/../../../../lib/OpenDJ_ko.jar</string>
+			<string>$JAVAROOT/../../../../lib/OpenDJ_pl.jar</string>
+			<string>$JAVAROOT/../../../../lib/OpenDJ_zh_CN.jar</string>
+			<string>$JAVAROOT/../../../../lib/OpenDJ_zh_TW.jar</string>
 			</array>
 	</dict>
 </dict>
