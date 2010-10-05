@@ -1,12 +1,12 @@
-How To Install OpenDS
+How To Install OpenDJ
 =====================
 
-If you are reading this page, you have already downloaded and unzipped an OpenDS build.
+If you are reading this page, you have already downloaded and unzipped an OpenDJ build.
 
-You can install OpenDS in two modes:
+You can install OpenDJ in two modes:
 
  * Graphical User Interface (GUI) mode. The GUI mode uses QuickSetup, a Java-based graphical tool 
-   that enables you to install and configure an OpenDS directory server, load it with data and get 
+   that enables you to install and configure an OpenDJ directory server, load it with data and get
    it running in very little time.
  * Interactive Command-line mode. The interactive command-line utility prompts you for required 
    information before the installation and configuration begin.
@@ -15,18 +15,18 @@ Before You Install
 ------------------
 A Java SE 6.0 (version 1.6.0_10) or higher runtime environment must be installed. It is 
 recommended that your system have at least 100MB of disk space and 256MB of free memory to run 
-OpenDS for evaluation purposes. Note that you can configure OpenDS in such a way that it requires 
-substantially less, or more, disk space. For more information, see the OpenDS System Requirements 
+OpenDJ for evaluation purposes. Note that you can configure OpenDJ in such a way that it requires
+substantially less, or more, disk space. For more information, see the OpenDS System Requirements
 at https://www.opends.org/wiki/page/OpenDSSystemRequirements.
 
-To Install OpenDS in GUI mode
+To Install OpenDJ in GUI mode
 -----------------------------
 You can run QuickSetup remotely via Java Web Start, or locally from within the build that you 
 have downloaded and unzipped.
 
 If you run QuickSetup remotely, it automatically downloads and unzips the latest weekly build, 
 and handles server configuration. To launch QuickSetup via Java Web Start, point your 
-browser to http://opends.org/install/QuickSetup.jnlp.
+browser to http://www.forgerock.org/downloads/opendj/2.4.0beta1/install/QuickSetup.jnlp.
 
 To run QuickSetup locally:
 

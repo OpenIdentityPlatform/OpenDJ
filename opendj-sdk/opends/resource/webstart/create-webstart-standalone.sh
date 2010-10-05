@@ -33,7 +33,7 @@ echo "PROTOCOL:       ${PROTOCOL}"
 
 if test -z "${ADDRESS}"
 then
-  ADDRESS="www.forgerock.com"
+  ADDRESS="www.forgerock.org"
 fi
 echo "ADDRESS:        ${ADDRESS}"
 echo "PORT:           ${PORT}"
@@ -57,6 +57,8 @@ else
   INSTALLER_URI="${PROTOCOL}://${ADDRESS}:${PORT}${BASE_PATH}"
 fi
 
+VENDOR="http://www.forgerock.com/"
+HOMEPAGE="http://www.forgerock.com/opendj.html"
 
 # See if we can find the location of the dependencies in the Java environment.
 # If not, then fail.
@@ -135,15 +137,12 @@ cp -Rp "${SCRIPT_DIR}/images" "${INSTALL_DIR}"
 find "${INSTALL_DIR}/images" -type d -name '.svn' -exec rm -rf {} \;
 
 
-# Copy the appropriate OpenDJ library files and make sure they are signed.
+# Copy the appropriate OpenDS library files and make sure they are signed.
 PKG_LIB_DIR="${BUILD_DIR}/package/${ZIP_FILENAME_BASE}/lib"
 CERT_KEYSTORE="${ROOT_DIR}/tests/unit-tests-testng/resource/server.keystore"
 CERT_KEYSTORE_PIN="password"
 CERT_ALIAS="server-cert"
-for LIBFILE in ${PRODUCT_NAME}.jar je.jar quicksetup.jar \
- ${PRODUCT_NAME}_fr.jar ${PRODUCT_NAME}_zh_CN.jar ${PRODUCT_NAME}_ca_ES.jar \
- ${PRODUCT_NAME}_ja.jar ${PRODUCT_NAME}_zh_TW.jar ${PRODUCT_NAME}_de.jar \
- ${PRODUCT_NAME}_ko.jar ${PRODUCT_NAME}_es.jar ${PRODUCT_NAME}_pl.jar
+for LIBFILE in ${PRODUCT_NAME}.jar je.jar quicksetup.jar 
 do
   echo "Signing ${LIBFILE} ..."
   cp "${PKG_LIB_DIR}/${LIBFILE}" "${INSTALL_DIR}/lib"
@@ -173,8 +172,8 @@ cat > "${INSTALL_JNLP_FILENAME}" <<ENDOFINSTALLJNLP
   codebase="${INSTALLER_URI}" href="${INSTALL_JNLP_FILENAME}">
   <information>
     <title>${PRODUCT_NAME} QuickSetup Application</title>
-    <vendor>http://www.forgerock.com/</vendor>
-    <homepage href="http://www.forgerock.com/opendj.html"/>
+    <vendor>${VENDOR}</vendor>
+    <homepage href="${HOMEPAGE}"/>
     <description>${PRODUCT_NAME} QuickSetup Application</description>
     <description kind="short">${PRODUCT_NAME} Web Start Installer</description>
     <icon href="images/opendshref.png" height="128" width="128"/>
@@ -191,20 +190,9 @@ cat > "${INSTALL_JNLP_FILENAME}" <<ENDOFINSTALLJNLP
     <jar href="lib/${PRODUCT_NAME}.jar" download="lazy"/>
     <jar href="lib/je.jar" download="lazy"/>
     <jar href="lib/zipped.jar" download="lazy"/>
-    <jar href="lib/${PRODUCT_NAME}_ca_ES.jar" download="lazy"/>
-    <jar href="lib/${PRODUCT_NAME}_de.jar" download="lazy"/>
-    <jar href="lib/${PRODUCT_NAME}_fr.jar" download="lazy"/>
-    <jar href="lib/${PRODUCT_NAME}_es.jar" download="lazy"/>
-    <jar href="lib/${PRODUCT_NAME}_ja.jar" download="lazy"/>
-    <jar href="lib/${PRODUCT_NAME}_ko.jar" download="lazy"/>
-    <jar href="lib/${PRODUCT_NAME}_pl.jar" download="lazy"/>
-    <jar href="lib/${PRODUCT_NAME}_zh_CN_.jar" download="lazy"/>
-    <jar href="lib/${PRODUCT_NAME}_zh_TW.jar" download="lazy"/>
     <property name="org.opends.quicksetup.iswebstart" value="true" />
     <property name="org.opends.quicksetup.Application.class" value="org.opends.quicksetup.installandupgrader.InstallAndUpgrader"/>
-    <property name="org.opends.quicksetup.lazyjarurls" value="${INSTALLER_URI}/lib/${PRODUCT_NAME}.jar ${INSTALLER_URI}/lib/zipped.jar ${INSTALLER_URI}/lib/je.jar
- ${INSTALLER_URI}/lib/${PRODUCT_NAME}_ca_ES.jar  ${INSTALLER_URI}/lib/${PRODUCT_NAME}_de.jar ${INSTALLER_URI}/lib/${PRODUCT_NAME}_es.jar ${INSTALLER_URI}/lib/${PRODUCT_NAME}_fr.jar
- ${INSTALLER_URI}/lib/${PRODUCT_NAME}_ja.jar ${INSTALLER_URI}/lib/${PRODUCT_NAME}_ko.jar ${INSTALLER_URI}/lib/${PRODUCT_NAME}_pl.jar ${INSTALLER_URI}/lib/${PRODUCT_NAME}_zh_CN.jar ${INSTALLER_URI}/lib/${PRODUCT_NAME}_zh_TW.jar" />
+    <property name="org.opends.quicksetup.lazyjarurls" value="${INSTALLER_URI}/lib/${PRODUCT_NAME}.jar ${INSTALLER_URI}/lib/zipped.jar ${INSTALLER_URI}/lib/je.jar" />
     <property name="org.opends.quicksetup.zipfilename" value="${ZIP_FILENAME_BASE}.zip"/>
   </resources>
   
