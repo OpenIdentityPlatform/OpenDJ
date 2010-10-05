@@ -1,38 +1,39 @@
 # The official full product name for the Directory Server.
-PRODUCT_NAME=OpenDS Directory Server
+PRODUCT_NAME=OpenDJ
 
 # The short name that should be used if the full name is not appropriate.
-SHORT_NAME=OpenDS
+SHORT_NAME=OpenDJ
 
 # The major version number for the Directory Server.  It must be an integer.
 MAJOR_VERSION=2
 
 # The minor version number for the Directory Server.  It must be an integer.
-MINOR_VERSION=3
+MINOR_VERSION=4
 
 # The point version number for the Directory Server.  It must be an integer.
 POINT_VERSION=0
 
 # The product reference site
-DOC_REFERENCE_HOME=http://opends.org
+DOC_REFERENCE_HOME=http://www.forgerock.com/opendj.html
 
 # The product documentation set reference
-DOC_REFERENCE_WIKI=https://docs.opends.org/2.2/page/Main
+# wikis.forgerock.org/opendj
+DOC_REFERENCE_WIKI=https://wikis.forgerock.org/confluence/display/opendj/Home
 
 # The setup document reference site
-DOC_REFERENCE_SETUP=https://docs.opends.org/2.2/page/InstallationGuide
+DOC_REFERENCE_SETUP=https://wikis.forgerock.org/confluence/display/opendj/Home
 
 # The Quick reference guide documentation set reference
-DOC_QUICK_REFERENCE_GUIDE=https://docs.opends.org/2.2/page/AdministrationGuide
+DOC_QUICK_REFERENCE_GUIDE=https://wikis.forgerock.org/confluence/display/opendj/Home
 
 # The Administration Guide reference
-ADMINISTRATION_GUIDE_URL=https://docs.opends.org/2.2/page/AdministrationGuide
+ADMINISTRATION_GUIDE_URL=https://wikis.forgerock.org/confluence/display/opendj/Home
 
 # The version qualifier string for the Directory Server.  It should be blank
 # for the first official release with a new major, minor, and point version
 # number but may include additional text like "BETA1" or "HOTFIX2" for updates
 # that do not warrant incrementing the version number.
-VERSION_QUALIFIER=
+VERSION_QUALIFIER=BETA1
 
 # A comma-delimited list of bug IDs for fixes included in this build.  This
 # should be set in any non-official build given to a customer to address a
