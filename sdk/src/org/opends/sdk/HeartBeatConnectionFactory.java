@@ -198,8 +198,7 @@ final class HeartBeatConnectionFactory extends AbstractConnectionFactory
 
 
 
-    public void handleUnsolicitedNotification(
-        final ExtendedResult notification)
+    public void handleUnsolicitedNotification(final ExtendedResult notification)
     {
       // Do nothing
     }
@@ -455,14 +454,27 @@ final class HeartBeatConnectionFactory extends AbstractConnectionFactory
     {
       return connection.searchSingleEntry(request, resultHandler);
     }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public String toString()
+    {
+      StringBuilder builder = new StringBuilder();
+      builder.append("HeartBeatConnection(");
+      builder.append(connection);
+      builder.append(')');
+      return builder.toString();
+    }
   }
 
 
 
   private final class FutureResultImpl extends
       FutureResultTransformer<AsynchronousConnection, AsynchronousConnection>
-      implements FutureResult<AsynchronousConnection>,
-      ResultHandler<AsynchronousConnection>
+      implements ResultHandler<AsynchronousConnection>
   {
 
     private FutureResultImpl(
@@ -615,5 +627,19 @@ final class HeartBeatConnectionFactory extends AbstractConnectionFactory
     final FutureResultImpl future = new FutureResultImpl(handler);
     future.setFutureResult(parentFactory.getAsynchronousConnection(future));
     return future;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String toString()
+  {
+    final StringBuilder builder = new StringBuilder();
+    builder.append("HeartBeatConnectionFactory(");
+    builder.append(String.valueOf(parentFactory));
+    builder.append(')');
+    return builder.toString();
   }
 }

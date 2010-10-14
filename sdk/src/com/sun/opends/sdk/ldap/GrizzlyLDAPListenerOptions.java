@@ -31,7 +31,7 @@ package com.sun.opends.sdk.ldap;
 
 import org.opends.sdk.LDAPListenerOptions;
 
-import com.sun.grizzly.nio.transport.TCPNIOTransport;
+import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 
 
 

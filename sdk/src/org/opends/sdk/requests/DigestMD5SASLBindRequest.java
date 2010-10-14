@@ -30,6 +30,7 @@ package org.opends.sdk.requests;
 
 
 import java.util.List;
+import java.util.Map;
 
 import org.opends.sdk.*;
 import org.opends.sdk.controls.Control;
@@ -64,68 +65,98 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest
    */
   public static final String SASL_MECHANISM_NAME = "DIGEST-MD5";
 
+  /**
+   * Indicates that the client will accept authentication only. More
+   * specifically, the underlying connection will not be protected using
+   * integrity protection or encryption, unless previously established using
+   * SSL/TLS. This is the default if no QOP option is present in the bind
+   * request.
+   */
+  public static final String QOP_AUTH = "auth";
+
+  /**
+   * Indicates that the client will accept authentication with connection
+   * integrity protection. More specifically, the underlying connection will not
+   * be encrypted, unless previously established using SSL/TLS.
+   */
+  public static final String QOP_AUTH_INT = "auth-int";
+
+  /**
+   * Indicates that the client will accept authentication with connection
+   * integrity protection and encryption.
+   */
+  public static final String QOP_AUTH_CONF = "auth-conf";
+
+  /**
+   * Indicates that the client will accept connection encryption using the high
+   * strength triple-DES cipher.
+   */
+  public static final String CIPHER_3DES = "3des";
+
+  /**
+   * Indicates that the client will accept connection encryption using the high
+   * strength 128-bit RC4 cipher.
+   */
+  public static final String CIPHER_RC4_128 = "rc4";
+
+  /**
+   * Indicates that the client will accept connection encryption using the
+   * medium strength DES cipher.
+   */
+  public static final String CIPHER_DES = "des";
+
+  /**
+   * Indicates that the client will accept connection encryption using the
+   * medium strength 56-bit RC4 cipher.
+   */
+  public static final String CIPHER_RC4_56 = "rc4-56";
+
+  /**
+   * Indicates that the client will accept connection encryption using the low
+   * strength 40-bit RC4 cipher.
+   */
+  public static final String CIPHER_RC4_40 = "rc4-40";
+
+  /**
+   * Indicates that the client will accept connection encryption using the
+   * strongest supported cipher, as long as the cipher is considered to be high
+   * strength.
+   */
+  public static final String CIPHER_HIGH = "high";
+
+  /**
+   * Indicates that the client will accept connection encryption using the
+   * strongest supported cipher, as long as the cipher is considered to be high
+   * or medium strength.
+   */
+  public static final String CIPHER_MEDIUM = "medium";
+
+  /**
+   * Indicates that the client will accept connection encryption using the
+   * strongest supported cipher, even if the strongest cipher is considered to
+   * be medium or low strength.
+   */
+  public static final String CIPHER_LOW = "low";
+
 
 
   /**
-   * Supported quality-of-protection options.
+   * Adds the provided additional authentication parameter to the list of
+   * parameters to be passed to the underlying mechanism implementation. This
+   * method is provided in order to allow for future extensions.
+   *
+   * @param name
+   *          The name of the additional authentication parameter.
+   * @param value
+   *          The value of the additional authentication parameter.
+   * @return This bind request.
+   * @throws UnsupportedOperationException
+   *           If this bind request does not permit additional authentication
+   *           parameters to be added.
+   * @throws NullPointerException
+   *           If {@code name} or {@code value} was {@code null}.
    */
-  public static enum QOPOption
-  {
-    /**
-     * Authentication only.
-     */
-    AUTH,
-
-    /**
-     * Authentication plus integrity protection.
-     */
-    AUTH_INT,
-
-    /**
-     * Authentication plus integrity and confidentiality protection.
-     */
-    AUTH_CONF
-  }
-
-
-
-  /**
-   * Cipher options for use with the security layer.
-   */
-  public static enum CipherOption
-  {
-    /**
-     * Triple DES
-     *   The "triple DES" cipher in CBC mode with EDE with the
-     *   same key for each E stage (aka "two keys mode") for a
-     *   total key length of 112 bits.
-     * <p>
-     * RC4 128 bits
-     *   The RC4 cipher with a 128 bit key.
-     */
-    TRIPLE_DES_RC4,
-
-    /**
-     * DES
-     *   The Data Encryption Standard (DES) cipher [FIPS] in
-     *   cipher block chaining (CBC) mode with a 56 bit key.
-     * <p>
-     * RC4 56 bits
-     *   The RC4 cipher with a 56 bit key.
-     */
-    DES_RC4_56,
-
-    /**
-     * RC4 40 bits
-     *   The RC4 cipher with a 40 bit key.
-     */
-    RC4_40
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  DigestMD5SASLBindRequest addControl(Control control)
+  DigestMD5SASLBindRequest addAdditionalAuthParam(String name, String value)
       throws UnsupportedOperationException, NullPointerException;
 
 
@@ -133,7 +164,54 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest
   /**
    * {@inheritDoc}
    */
+  @Override
+  DigestMD5SASLBindRequest addControl(Control control)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Adds the provided quality of protection (QOP) values to the ordered list of
+   * QOP values that the client is willing to accept. The order of the list
+   * specifies the preference order, high to low. Authentication will fail if no
+   * QOP values are recognized or accepted by the server.
+   * <p>
+   * By default the client will accept {@link #QOP_AUTH AUTH}.
+   *
+   * @param qopValues
+   *          The quality of protection values that the client is willing to
+   *          accept.
+   * @return This bind request.
+   * @throws UnsupportedOperationException
+   *           If this bind request does not permit QOP values to be added.
+   * @throws NullPointerException
+   *           If {@code qopValues} was {@code null}.
+   * @see #QOP_AUTH
+   * @see #QOP_AUTH_INT
+   * @see #QOP_AUTH_CONF
+   */
+  DigestMD5SASLBindRequest addQOP(String... qopValues)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   BindClient createBindClient(String serverName) throws ErrorResultException;
+
+
+
+  /**
+   * Returns a map containing the provided additional authentication parameters
+   * to be passed to the underlying mechanism implementation. This method is
+   * provided in order to allow for future extensions.
+   *
+   * @return A map containing the provided additional authentication parameters
+   *         to be passed to the underlying mechanism implementation.
+   */
+  Map<String, String> getAdditionalAuthParams();
 
 
 
@@ -154,6 +232,7 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest
    *
    * @return The authentication mechanism identifier.
    */
+  @Override
   byte getAuthenticationType();
 
 
@@ -172,8 +251,26 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest
 
 
   /**
+   * Returns the cipher name or strength that the client is willing to use when
+   * connection encryption quality of protection, {@link #QOP_AUTH_CONF
+   * AUTH-CONF}, is requested.
+   * <p>
+   * By default the client will accept connection encryption using the strongest
+   * supported cipher, even if the strongest cipher is considered to be medium
+   * or low strength. This is equivalent to {@link #CIPHER_LOW}.
+   *
+   * @return The cipher that the client is willing to use if connection
+   *         encryption QOP is negotiated. May be {@code null}, indicating that
+   *         the default cipher should be used.
+   */
+  String getCipher();
+
+
+
+  /**
    * {@inheritDoc}
    */
+  @Override
   <C extends Control> C getControl(ControlDecoder<C> decoder,
       DecodeOptions options) throws NullPointerException, DecodeException;
 
@@ -182,7 +279,30 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest
   /**
    * {@inheritDoc}
    */
+  @Override
   List<Control> getControls();
+
+
+
+  /**
+   * Returns the maximum size of the receive buffer in bytes. The actual maximum
+   * number of bytes will be the minimum of this number and the peer's maximum
+   * send buffer size. The default size is 65536.
+   *
+   * @return The maximum size of the receive buffer in bytes.
+   */
+  int getMaxReceiveBufferSize();
+
+
+
+  /**
+   * Returns the maximum size of the send buffer in bytes. The actual maximum
+   * number of bytes will be the minimum of this number and the peer's maximum
+   * receive buffer size. The default size is 65536.
+   *
+   * @return The maximum size of the send buffer in bytes.
+   */
+  int getMaxSendBufferSize();
 
 
 
@@ -192,6 +312,7 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest
    *
    * @return The name of the Directory object that the client wishes to bind as.
    */
+  @Override
   String getName();
 
 
@@ -202,6 +323,22 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest
    * @return The password of the user that the client wishes to bind as.
    */
   ByteString getPassword();
+
+
+
+  /**
+   * Returns the ordered list of quality of protection (QOP) values that the
+   * client is willing to accept. The order of the list specifies the preference
+   * order, high to low. Authentication will fail if no QOP values are
+   * recognized or accepted by the server.
+   * <p>
+   * By default the client will accept {@link #QOP_AUTH AUTH}.
+   *
+   * @return The list of quality of protection values that the client is willing
+   *         to accept. The returned list may be empty indicating that the
+   *         default QOP will be accepted.
+   */
+  List<String> getQOPs();
 
 
 
@@ -218,65 +355,18 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest
   /**
    * {@inheritDoc}
    */
+  @Override
   String getSASLMechanism();
 
 
 
   /**
-   * Returns the quality-of-protection options to use.
-   * The order of the list specifies the preference order.
+   * Returns {@code true} if the server must authenticate to the client. The
+   * default is {@code false}.
    *
-   * @return The list of quality-of-protection options to use.
+   * @return {@code true} if the server must authenticate to the client.
    */
-  QOPOption[] getQOP();
-
-
-
-  /**
-   * Returns the ciphers to use with the optional security layer
-   * offered by the {@code AUTH_CONF} quality-of-protection. The order
-   * of the list specifies the preference order. When there is
-   * more than one choice for a particular option, the cipher
-   * selected depends on the availability of the ciphers in the
-   * underlying platform.
-   *
-   * @return The list of cipher options to use.
-   */
-  CipherOption[] getCipher();
-
-
-
-  /**
-   * Returns whether the server must authenticate to the client.
-   *
-   * @return {@code true} if the server must authenticate
-   *         to the client or {@code false} otherwise.
-   */
-  boolean getServerAuth();
-
-
-
-  /**
-   * Returns the maximum size of the receive buffer in bytes.
-   * The actual maximum number of bytes will
-   * be the minimum of this number and the peer's maximum send
-   * buffer size.
-   *
-   * @return The maximum size of the receive buffer in bytes.
-   */
-  int getMaxReceiveBufferSize();
-
-
-
-  /**
-   * Returns the maximum size of the send buffer in bytes.
-   * The actual maximum number of bytes will
-   * be the minimum of this number and the peer's maximum receive
-   * buffer size.
-   *
-   * @return The maximum size of the send buffer in bytes.
-   */
-  int getMaxSendBufferSize();
+  boolean isServerAuth();
 
 
 
@@ -291,11 +381,15 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest
    * @throws LocalizedIllegalArgumentException
    *           If {@code authenticationID} was non-empty and did not contain a
    *           valid authorization ID type.
+   * @throws UnsupportedOperationException
+   *           If this bind request does not permit the authentication ID to be
+   *           set.
    * @throws NullPointerException
    *           If {@code authenticationID} was {@code null}.
    */
   DigestMD5SASLBindRequest setAuthenticationID(String authenticationID)
-      throws LocalizedIllegalArgumentException, NullPointerException;
+      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
+      NullPointerException;
 
 
 
@@ -312,9 +406,76 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest
    * @throws LocalizedIllegalArgumentException
    *           If {@code authorizationID} was non-empty and did not contain a
    *           valid authorization ID type.
+   * @throws UnsupportedOperationException
+   *           If this bind request does not permit the authorization ID to be
+   *           set.
    */
   DigestMD5SASLBindRequest setAuthorizationID(String authorizationID)
-      throws LocalizedIllegalArgumentException;
+      throws LocalizedIllegalArgumentException, UnsupportedOperationException;
+
+
+
+  /**
+   * Sets the cipher name or strength that the client is willing to use when
+   * connection encryption quality of protection, {@link #QOP_AUTH_CONF
+   * AUTH-CONF}, is requested.
+   * <p>
+   * By default the client will accept connection encryption using the strongest
+   * supported cipher, even if the strongest cipher is considered to be medium
+   * or low strength. This is equivalent to {@link #CIPHER_LOW}.
+   *
+   * @param cipher
+   *          The cipher that the client is willing to use if connection
+   *          encryption QOP is negotiated. May be {@code null}, indicating that
+   *          the default cipher should be used.
+   * @return This bind request.
+   * @throws UnsupportedOperationException
+   *           If this bind request does not permit the cipher name or strength
+   *           to be set.
+   * @see #QOP_AUTH_CONF
+   * @see #CIPHER_3DES
+   * @see #CIPHER_RC4_128
+   * @see #CIPHER_DES
+   * @see #CIPHER_RC4_56
+   * @see #CIPHER_RC4_40
+   * @see #CIPHER_HIGH
+   * @see #CIPHER_MEDIUM
+   * @see #CIPHER_LOW
+   */
+  DigestMD5SASLBindRequest setCipher(String cipher)
+      throws UnsupportedOperationException;
+
+
+
+  /**
+   * Sets the maximum size of the receive buffer in bytes. The actual maximum
+   * number of bytes will be the minimum of this number and the peer's maximum
+   * send buffer size. The default size is 65536.
+   *
+   * @param size
+   *          The maximum size of the receive buffer in bytes.
+   * @return This bind request.
+   * @throws UnsupportedOperationException
+   *           If this bind request does not permit the buffer size to be set.
+   */
+  DigestMD5SASLBindRequest setMaxReceiveBufferSize(int size)
+      throws UnsupportedOperationException;
+
+
+
+  /**
+   * Sets the maximum size of the send buffer in bytes. The actual maximum
+   * number of bytes will be the minimum of this number and the peer's maximum
+   * receive buffer size. The default size is 65536.
+   *
+   * @param size
+   *          The maximum size of the send buffer in bytes.
+   * @return This bind request.
+   * @throws UnsupportedOperationException
+   *           If this bind request does not permit the buffer size to be set.
+   */
+  DigestMD5SASLBindRequest setMaxSendBufferSize(int size)
+      throws UnsupportedOperationException;
 
 
 
@@ -370,64 +531,16 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest
 
 
   /**
-   * Specifies the quality-of-protection options to use.
-   * The order of the list specifies the preference order.
+   * Specifies whether or not the server must authenticate to the client. The
+   * default is {@code false}.
    *
-   * @param qopOptions The list of quality-of-protection options to
-   *                   use.
+   * @param serverAuth
+   *          {@code true} if the server must authenticate to the client or
+   *          {@code false} otherwise.
    * @return This bind request.
+   * @throws UnsupportedOperationException
+   *           If this bind request does not permit server auth to be set.
    */
-  DigestMD5SASLBindRequest setQOP(QOPOption... qopOptions);
-
-
-
-  /**
-   * Specifies the ciphers to use with the optional security layer
-   * offered by the {@code AUTH_CONF} quality-of-protection. The order
-   * of the list specifies the preference order. When there is
-   * more than one choice for a particular option, the cipher
-   * selected depends on the availability of the ciphers in the
-   * underlying platform.
-   *
-   * @param cipherOptions The list of cipher options to use.
-   * @return his bind request.
-   */
-  DigestMD5SASLBindRequest setCipher(CipherOption... cipherOptions);
-
-
-
-  /**
-   * Specifies whether the server must authenticate to the client.
-   *
-   * @param serverAuth {@code true} if the server must authenticate
-   *                   to the client or {@code false} otherwise.
-   * @return This bind request.
-   */
-  DigestMD5SASLBindRequest setServerAuth(boolean serverAuth);
-
-
-
-  /**
-   * Specifies the maximum size of the receive buffer in bytes.
-   * The actual maximum number of bytes will
-   * be the minimum of this number and the peer's maximum send
-   * buffer size.
-   *
-   * @param maxBuffer The maximum size of the receive buffer in bytes.
-   * @return This bind request.
-   */
-  DigestMD5SASLBindRequest setMaxReceiveBufferSize(int maxBuffer);
-
-
-
-  /**
-   * Specifies the maximum size of the send buffer in bytes.
-   * The actual maximum number of bytes will
-   * be the minimum of this number and the peer's maximum receive
-   * buffer size.
-   *
-   * @param maxBuffer The maximum size of the send buffer in bytes.
-   * @return This bind request.
-   */
-  DigestMD5SASLBindRequest setMaxSendBufferSize(int maxBuffer);
+  DigestMD5SASLBindRequest setServerAuth(boolean serverAuth)
+      throws UnsupportedOperationException;
 }

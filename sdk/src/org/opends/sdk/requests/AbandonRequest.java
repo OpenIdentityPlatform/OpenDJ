@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -70,23 +70,23 @@ public interface AbandonRequest extends Request
 
 
   /**
-   * Returns the message ID of the request to be abandoned.
+   * Returns the request ID of the request to be abandoned.
    *
-   * @return The message ID of the request to be abandoned.
+   * @return The request ID of the request to be abandoned.
    */
-  int getMessageID();
+  int getRequestID();
 
 
 
   /**
-   * Sets the message ID of the request to be abandoned.
+   * Sets the request ID of the request to be abandoned.
    *
    * @param id
-   *          The message ID of the request to be abandoned.
+   *          The request ID of the request to be abandoned.
    * @return This abandon request.
    * @throws UnsupportedOperationException
-   *           If this abandon request does not permit the message ID to be set.
+   *           If this abandon request does not permit the request ID to be set.
    */
-  AbandonRequest setMessageID(int id) throws UnsupportedOperationException;
+  AbandonRequest setRequestID(int id) throws UnsupportedOperationException;
 
 }

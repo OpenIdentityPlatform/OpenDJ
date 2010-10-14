@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.ldap;
@@ -204,7 +204,7 @@ final class LDAPWriter implements LDAPMessageHandler<ASN1Writer>
           request));
     }
     encodeMessageHeader(writer, messageID);
-    writer.writeInteger(OP_TYPE_ABANDON_REQUEST, request.getMessageID());
+    writer.writeInteger(OP_TYPE_ABANDON_REQUEST, request.getRequestID());
     encodeMessageFooter(writer, request);
   }
 

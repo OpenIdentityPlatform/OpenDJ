@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -47,20 +47,20 @@ import org.opends.sdk.controls.ControlDecoder;
 public interface SearchRequest extends Request
 {
   /**
-   * Adds the provided attribute name to the list of attributes to be included
-   * with each entry that matches the search criteria. Attributes that are
-   * sub-types of listed attributes are implicitly included.
+   * Adds the provided attribute name(s) to the list of attributes to be
+   * included with each entry that matches the search criteria. Attributes that
+   * are sub-types of listed attributes are implicitly included.
    *
-   * @param attributeDescription
-   *          The name of the attribute to be included with each entry.
+   * @param attributeDescriptions
+   *          The name(s) of the attribute to be included with each entry.
    * @return This search request.
    * @throws UnsupportedOperationException
    *           If this search request does not permit attribute names to be
    *           added.
    * @throws NullPointerException
-   *           If {@code attributeDescription} was {@code null}.
+   *           If {@code attributeDescriptions} was {@code null}.
    */
-  SearchRequest addAttribute(String attributeDescription)
+  SearchRequest addAttribute(String... attributeDescriptions)
       throws UnsupportedOperationException, NullPointerException;
 
 

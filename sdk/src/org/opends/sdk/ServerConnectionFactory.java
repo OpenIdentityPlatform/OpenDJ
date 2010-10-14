@@ -31,17 +31,26 @@ package org.opends.sdk;
 
 /**
  * A handler interface for accepting new connections from clients.
+ * <p>
+ * A connection listener implementation, such as {@link LDAPListener} or
+ * {@link Connections#newInternalConnectionFactory newInternalConnectionFactory}
+ * , invoke the method {@link #handleAccept(Object) handleAccept} whenever a new
+ * client connection is accepted.
  *
  * @param <C>
  *          The type of client context.
  * @param <R>
  *          The type of request context.
+ * @see LDAPListener
+ * @see Connections#newInternalConnectionFactory(ServerConnectionFactory,
+ *      Object) newInternalConnectionFactory
  */
 public interface ServerConnectionFactory<C, R>
 {
   /**
-   * Returns a {@code ServerConnection} which will be used to handle requests
-   * from a client connection.
+   * Invoked when a new client connection is accepted by the associated
+   * listener. Implementations should return a {@code ServerConnection} which
+   * will be used to handle requests from the client connection.
    *
    * @param clientContext
    *          The protocol dependent context information associated with the
@@ -49,11 +58,11 @@ public interface ServerConnectionFactory<C, R>
    *          information about the client such as their address and level
    *          connection security. It may also be used to manage the state of
    *          the client's connection.
-   * @return a {@code ServerConnection} which will be used to handle requests
+   * @return A {@code ServerConnection} which will be used to handle requests
    *         from a client connection.
    * @throws ErrorResultException
    *           If this server connection factory cannot accept the client
    *           connection.
    */
-  ServerConnection<R> accept(C clientContext) throws ErrorResultException;
+  ServerConnection<R> handleAccept(C clientContext) throws ErrorResultException;
 }

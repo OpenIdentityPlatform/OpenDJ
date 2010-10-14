@@ -31,10 +31,7 @@ package org.opends.sdk.requests;
 
 import org.opends.sdk.*;
 import org.opends.sdk.controls.Control;
-import org.opends.sdk.responses.ExtendedResult;
-import org.opends.sdk.responses.ExtendedResultDecoder;
-import org.opends.sdk.responses.Responses;
-import org.opends.sdk.responses.WhoAmIExtendedResult;
+import org.opends.sdk.responses.*;
 
 
 
@@ -66,10 +63,10 @@ final class WhoAmIExtendedRequestImpl extends
 
 
 
-  private static final class ResultDecoder implements
-      ExtendedResultDecoder<WhoAmIExtendedResult>
+  private static final class ResultDecoder extends
+      AbstractExtendedResultDecoder<WhoAmIExtendedResult>
   {
-    public WhoAmIExtendedResult adaptExtendedErrorResult(
+    public WhoAmIExtendedResult newExtendedErrorResult(
         final ResultCode resultCode, final String matchedDN,
         final String diagnosticMessage)
     {

@@ -50,8 +50,7 @@ import com.sun.opends.sdk.util.Validator;
 public final class InternalConnection extends AbstractAsynchronousConnection
 {
   private static final class InternalBindFutureResultImpl extends
-      AbstractLDAPFutureResultImpl<BindResult> implements
-      FutureResult<BindResult>
+      AbstractLDAPFutureResultImpl<BindResult>
   {
     private final BindRequest bindRequest;
 
@@ -90,8 +89,8 @@ public final class InternalConnection extends AbstractAsynchronousConnection
     BindResult newErrorResult(final ResultCode resultCode,
         final String diagnosticMessage, final Throwable cause)
     {
-      return Responses.newBindResult(resultCode).setDiagnosticMessage(
-          diagnosticMessage).setCause(cause);
+      return Responses.newBindResult(resultCode)
+          .setDiagnosticMessage(diagnosticMessage).setCause(cause);
     }
   }
 
@@ -120,6 +119,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
   /**
    * {@inheritDoc}
    */
+  @Override
   public FutureResult<Void> abandon(final AbandonRequest request)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
@@ -134,6 +134,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
   /**
    * {@inheritDoc}
    */
+  @Override
   public FutureResult<Result> add(final AddRequest request,
       final ResultHandler<? super Result> resultHandler,
       final IntermediateResponseHandler intermediateResponseHandler)
@@ -152,6 +153,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
   /**
    * {@inheritDoc}
    */
+  @Override
   public void addConnectionEventListener(final ConnectionEventListener listener)
       throws IllegalStateException, NullPointerException
   {
@@ -164,6 +166,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
   /**
    * {@inheritDoc}
    */
+  @Override
   public FutureResult<BindResult> bind(final BindRequest request,
       final ResultHandler<? super BindResult> resultHandler,
       final IntermediateResponseHandler intermediateResponseHandler)
@@ -182,6 +185,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
   /**
    * {@inheritDoc}
    */
+  @Override
   public void close(final UnbindRequest request, final String reason)
   {
     final int i = messageID.getAndIncrement();
@@ -193,6 +197,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
   /**
    * {@inheritDoc}
    */
+  @Override
   public FutureResult<CompareResult> compare(final CompareRequest request,
       final ResultHandler<? super CompareResult> resultHandler,
       final IntermediateResponseHandler intermediateResponseHandler)
@@ -211,6 +216,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
   /**
    * {@inheritDoc}
    */
+  @Override
   public FutureResult<Result> delete(final DeleteRequest request,
       final ResultHandler<? super Result> resultHandler,
       final IntermediateResponseHandler intermediateResponseHandler)
@@ -229,6 +235,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
   /**
    * {@inheritDoc}
    */
+  @Override
   public <R extends ExtendedResult> FutureResult<R> extendedRequest(
       final ExtendedRequest<R> request,
       final ResultHandler<? super R> resultHandler,
@@ -248,6 +255,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isClosed()
   {
     // FIXME: this should be true after close has been called.
@@ -259,6 +267,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isValid()
   {
     // FIXME: this should be false if this connection is disconnected.
@@ -270,6 +279,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
   /**
    * {@inheritDoc}
    */
+  @Override
   public FutureResult<Result> modify(final ModifyRequest request,
       final ResultHandler<? super Result> resultHandler,
       final IntermediateResponseHandler intermediateResponseHandler)
@@ -288,6 +298,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
   /**
    * {@inheritDoc}
    */
+  @Override
   public FutureResult<Result> modifyDN(final ModifyDNRequest request,
       final ResultHandler<? super Result> resultHandler,
       final IntermediateResponseHandler intermediateResponseHandler)
@@ -306,6 +317,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
   /**
    * {@inheritDoc}
    */
+  @Override
   public void removeConnectionEventListener(
       final ConnectionEventListener listener) throws NullPointerException
   {
@@ -318,6 +330,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
   /**
    * {@inheritDoc}
    */
+  @Override
   public FutureResult<Result> search(final SearchRequest request,
       final SearchResultHandler resultHandler,
       final IntermediateResponseHandler intermediateResponseHandler)
@@ -327,7 +340,22 @@ public final class InternalConnection extends AbstractAsynchronousConnection
     final int i = messageID.getAndIncrement();
     final LDAPSearchFutureResultImpl future = new LDAPSearchFutureResultImpl(i,
         request, resultHandler, intermediateResponseHandler, this);
-    serverConnection.handleSearch(i, request, future, future, future);
+    serverConnection.handleSearch(i, request, future, future);
     return future;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String toString()
+  {
+    StringBuilder builder = new StringBuilder();
+    builder.append("InternalConnection(");
+    builder.append(String.valueOf(serverConnection));
+    builder.append(')');
+    return builder.toString();
+  }
+
 }

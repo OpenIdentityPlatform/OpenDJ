@@ -22,11 +22,11 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 /**
- * Classes implementing common LDAP controls.
+ * Classes and interfaces for common LDAP controls.
  */
 package org.opends.sdk.controls;
 

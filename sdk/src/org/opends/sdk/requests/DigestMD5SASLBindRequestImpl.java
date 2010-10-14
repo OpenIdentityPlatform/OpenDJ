@@ -31,9 +31,9 @@ package org.opends.sdk.requests;
 
 import static com.sun.opends.sdk.messages.Messages.ERR_SASL_PROTOCOL_ERROR;
 import static com.sun.opends.sdk.util.StaticUtils.getExceptionMessage;
+import static com.sun.opends.sdk.util.StaticUtils.joinCollection;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
@@ -76,15 +76,69 @@ final class DigestMD5SASLBindRequestImpl extends
       this.password = initialBindRequest.getPassword();
       this.realm = initialBindRequest.getRealm();
 
+      // Create property map containing all the parameters.
       final Map<String, String> props = new HashMap<String, String>();
-      props.put(Sasl.QOP, "auth-conf,auth-int,auth");
 
+      final List<String> qopValues = initialBindRequest.getQOPs();
+      if (!qopValues.isEmpty())
+      {
+        props.put(Sasl.QOP, joinCollection(qopValues, ","));
+      }
+
+      final String cipher = initialBindRequest.getCipher();
+      if (cipher != null)
+      {
+        if (cipher.equalsIgnoreCase(CIPHER_LOW))
+        {
+          props.put(Sasl.STRENGTH, "high,medium,low");
+        }
+        else if (cipher.equalsIgnoreCase(CIPHER_MEDIUM))
+        {
+          props.put(Sasl.STRENGTH, "high,medium");
+        }
+        else if (cipher.equalsIgnoreCase(CIPHER_HIGH))
+        {
+          props.put(Sasl.STRENGTH, "high");
+        }
+        else
+        {
+          // Default strength allows all ciphers, so specifying a single cipher
+          // cannot be incompatible with the strength.
+          props.put("com.sun.security.sasl.digest.cipher", cipher);
+        }
+      }
+
+      final Boolean serverAuth = initialBindRequest.isServerAuth();
+      if (serverAuth != null)
+      {
+        props.put(Sasl.SERVER_AUTH, String.valueOf(serverAuth));
+      }
+
+      Integer size = initialBindRequest.getMaxReceiveBufferSize();
+      if (size != null)
+      {
+        props.put(Sasl.MAX_BUFFER, String.valueOf(size));
+      }
+
+      size = initialBindRequest.getMaxSendBufferSize();
+      if (size != null)
+      {
+        props.put("javax.security.sasl.sendmaxbuffer", String.valueOf(size));
+      }
+
+      for (final Map.Entry<String, String> e : initialBindRequest
+          .getAdditionalAuthParams().entrySet())
+      {
+        props.put(e.getKey(), e.getValue());
+      }
+
+      // Now create the client.
       try
       {
         saslClient = Sasl.createSaslClient(
-            new String[] { SASL_MECHANISM_NAME }, initialBindRequest
-                .getAuthorizationID(), SASL_DEFAULT_PROTOCOL, serverName,
-            props, this);
+            new String[] { SASL_MECHANISM_NAME },
+            initialBindRequest.getAuthorizationID(), SASL_DEFAULT_PROTOCOL,
+            serverName, props, this);
         if (saslClient.hasInitialResponse())
         {
           setNextSASLCredentials(saslClient.evaluateChallenge(new byte[0]));
@@ -125,17 +179,18 @@ final class DigestMD5SASLBindRequestImpl extends
       try
       {
         setNextSASLCredentials(saslClient.evaluateChallenge(result
-            .getServerSASLCredentials() == null ? new byte[0] :
-            result.getServerSASLCredentials().toByteArray()));
+            .getServerSASLCredentials() == null ? new byte[0] : result
+            .getServerSASLCredentials().toByteArray()));
         return saslClient.isComplete();
       }
       catch (final SaslException e)
       {
         // FIXME: I18N need to have a better error message.
         // FIXME: Is this the best result code?
-        throw ErrorResultException.wrap(Responses.newResult(
-            ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
-            "An error occurred during multi-stage authentication")
+        throw ErrorResultException.wrap(Responses
+            .newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR)
+            .setDiagnosticMessage(
+                "An error occurred during multi-stage authentication")
             .setCause(e));
       }
     }
@@ -170,9 +225,9 @@ final class DigestMD5SASLBindRequestImpl extends
       {
         final LocalizableMessage msg = ERR_SASL_PROTOCOL_ERROR.get(
             SASL_MECHANISM_NAME, getExceptionMessage(e));
-        throw ErrorResultException.wrap(Responses.newResult(
-            ResultCode.CLIENT_SIDE_DECODING_ERROR).setDiagnosticMessage(
-            msg.toString()).setCause(e));
+        throw ErrorResultException.wrap(Responses
+            .newResult(ResultCode.CLIENT_SIDE_DECODING_ERROR)
+            .setDiagnosticMessage(msg.toString()).setCause(e));
       }
     }
 
@@ -190,9 +245,9 @@ final class DigestMD5SASLBindRequestImpl extends
       {
         final LocalizableMessage msg = ERR_SASL_PROTOCOL_ERROR.get(
             SASL_MECHANISM_NAME, getExceptionMessage(e));
-        throw ErrorResultException.wrap(Responses.newResult(
-            ResultCode.CLIENT_SIDE_ENCODING_ERROR).setDiagnosticMessage(
-            msg.toString()).setCause(e));
+        throw ErrorResultException.wrap(Responses
+            .newResult(ResultCode.CLIENT_SIDE_ENCODING_ERROR)
+            .setDiagnosticMessage(msg.toString()).setCause(e));
       }
     }
 
@@ -234,10 +289,19 @@ final class DigestMD5SASLBindRequestImpl extends
 
 
 
+  private final Map<String, String> additionalAuthParams = new LinkedHashMap<String, String>();
+  private final List<String> qopValues = new LinkedList<String>();
+  private String cipher = null;
+
+  // Don't use primitives for these so that we can distinguish between default
+  // settings (null) and values set by the caller.
+  private Boolean serverAuth = null;
+  private Integer maxReceiveBufferSize = null;
+  private Integer maxSendBufferSize = null;
+
   private String authenticationID;
   private String authorizationID = null;
   private ByteString password;
-
   private String realm = null;
 
 
@@ -255,6 +319,38 @@ final class DigestMD5SASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
+  @Override
+  public DigestMD5SASLBindRequest addAdditionalAuthParam(final String name,
+      final String value) throws UnsupportedOperationException,
+      NullPointerException
+  {
+    Validator.ensureNotNull(name, value);
+    additionalAuthParams.put(name, value);
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DigestMD5SASLBindRequest addQOP(final String... qopValues)
+      throws UnsupportedOperationException, NullPointerException
+  {
+    for (final String qopValue : qopValues)
+    {
+      this.qopValues.add(Validator.ensureNotNull(qopValue));
+    }
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public BindClient createBindClient(final String serverName)
       throws ErrorResultException
   {
@@ -266,6 +362,18 @@ final class DigestMD5SASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
+  @Override
+  public Map<String, String> getAdditionalAuthParams()
+  {
+    return additionalAuthParams;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public String getAuthenticationID()
   {
     return authenticationID;
@@ -276,6 +384,7 @@ final class DigestMD5SASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getAuthorizationID()
   {
     return authorizationID;
@@ -286,6 +395,40 @@ final class DigestMD5SASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
+  @Override
+  public String getCipher()
+  {
+    return cipher;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int getMaxReceiveBufferSize()
+  {
+    return maxReceiveBufferSize == null ? 65536 : maxReceiveBufferSize;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int getMaxSendBufferSize()
+  {
+    return maxSendBufferSize == null ? 65536 : maxSendBufferSize;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public ByteString getPassword()
   {
     return password;
@@ -296,6 +439,18 @@ final class DigestMD5SASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
+  @Override
+  public List<String> getQOPs()
+  {
+    return qopValues;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public String getRealm()
   {
     return realm;
@@ -306,6 +461,7 @@ final class DigestMD5SASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getSASLMechanism()
   {
     return SASL_MECHANISM_NAME;
@@ -316,6 +472,18 @@ final class DigestMD5SASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
+  @Override
+  public boolean isServerAuth()
+  {
+    return serverAuth == null ? false : serverAuth;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public DigestMD5SASLBindRequest setAuthenticationID(
       final String authenticationID) throws NullPointerException
   {
@@ -329,6 +497,7 @@ final class DigestMD5SASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public DigestMD5SASLBindRequest setAuthorizationID(
       final String authorizationID)
   {
@@ -341,6 +510,46 @@ final class DigestMD5SASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
+  @Override
+  public DigestMD5SASLBindRequest setCipher(final String cipher)
+      throws UnsupportedOperationException
+  {
+    this.cipher = cipher;
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DigestMD5SASLBindRequest setMaxReceiveBufferSize(final int size)
+      throws UnsupportedOperationException
+  {
+    maxReceiveBufferSize = size;
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DigestMD5SASLBindRequest setMaxSendBufferSize(final int size)
+      throws UnsupportedOperationException
+  {
+    maxSendBufferSize = size;
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public DigestMD5SASLBindRequest setPassword(final ByteString password)
       throws NullPointerException
   {
@@ -354,6 +563,7 @@ final class DigestMD5SASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public DigestMD5SASLBindRequest setPassword(final String password)
       throws NullPointerException
   {
@@ -367,6 +577,7 @@ final class DigestMD5SASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public DigestMD5SASLBindRequest setRealm(final String realm)
   {
     this.realm = realm;
@@ -378,216 +589,11 @@ final class DigestMD5SASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public QOPOption[] getQOP() {
-    String value = System.getProperty(Sasl.QOP);
-    if(value == null || value.length() == 0)
-    {
-      return new QOPOption[]{QOPOption.AUTH};
-    }
-    String[] values = value.split(",");
-    QOPOption[] options = new QOPOption[values.length];
-
-    for(int i = 0; i < values.length; i++)
-    {
-      String v = values[i].trim();
-      if(v.equalsIgnoreCase("auth"))
-      {
-        options[i] = QOPOption.AUTH;
-      }
-      else if(v.equalsIgnoreCase("auth-int"))
-      {
-        options[i] = QOPOption.AUTH_INT;
-      }
-      else if(v.equalsIgnoreCase("auth-conf"))
-      {
-        options[i] = QOPOption.AUTH_CONF;
-      }
-    }
-    return options;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public CipherOption[] getCipher() {
-    String value = System.getProperty(Sasl.STRENGTH);
-    if(value == null || value.length() == 0)
-    {
-      return new CipherOption[]{CipherOption.TRIPLE_DES_RC4,
-          CipherOption.DES_RC4_56, CipherOption.RC4_40};
-    }
-    String[] values = value.split(",");
-    CipherOption[] options = new CipherOption[values.length];
-
-    for(int i = 0; i < values.length; i++)
-    {
-      String v = values[i].trim();
-      if(v.equalsIgnoreCase("high"))
-      {
-        options[i] = CipherOption.TRIPLE_DES_RC4;
-      }
-      else if(v.equalsIgnoreCase("medium"))
-      {
-        options[i] = CipherOption.DES_RC4_56;
-      }
-      else if(v.equalsIgnoreCase("low"))
-      {
-        options[i] = CipherOption.RC4_40;
-      }
-    }
-    return options;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean getServerAuth() {
-    String value = System.getProperty(Sasl.SERVER_AUTH);
-    return !(value == null || value.length() == 0) &&
-        value.equalsIgnoreCase("true");
-
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public int getMaxReceiveBufferSize() {
-    String value = System.getProperty(Sasl.MAX_BUFFER);
-    if(value == null || value.length() == 0)
-    {
-      return 65536;
-    }
-    return Integer.parseInt(value);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public int getMaxSendBufferSize() {
-    String value = System.getProperty("javax.security.sasl.sendmaxbuffer");
-    if(value == null || value.length() == 0)
-    {
-      return 65536;
-    }
-    return Integer.parseInt(value);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public DigestMD5SASLBindRequest setQOP(QOPOption... qopOptions) {
-    String values = null;
-    for(QOPOption option : qopOptions)
-    {
-      String value = null;
-      if(option == QOPOption.AUTH)
-      {
-        value = "auth";
-      }
-      else if(option == QOPOption.AUTH_INT)
-      {
-        value = "auth-int";
-      }
-      else if(option == QOPOption.AUTH_CONF)
-      {
-        value = "auth-conf";
-      }
-
-      if(value != null)
-      {
-        if(values == null)
-        {
-          values = value;
-        }
-        else
-        {
-          values += (", " + value);
-        }
-      }
-    }
-
-    System.setProperty(Sasl.QOP, values);
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public DigestMD5SASLBindRequest setCipher(CipherOption... cipherOptions) {
-    String values = null;
-    for(CipherOption option : cipherOptions)
-    {
-      String value = null;
-      if(option == CipherOption.TRIPLE_DES_RC4)
-      {
-        value = "high";
-      }
-      else if(option == CipherOption.DES_RC4_56)
-      {
-        value = "medium";
-      }
-      else if(option == CipherOption.RC4_40)
-      {
-        value = "low";
-      }
-
-      if(value != null)
-      {
-        if(values == null)
-        {
-          values = value;
-        }
-        else
-        {
-          values += (", " + value);
-        }
-      }
-    }
-
-    System.setProperty(Sasl.STRENGTH, values);
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public DigestMD5SASLBindRequest setServerAuth(boolean serverAuth) {
-    System.setProperty(Sasl.SERVER_AUTH, String.valueOf(serverAuth));
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public DigestMD5SASLBindRequest setMaxReceiveBufferSize(int maxBuffer) {
-    System.setProperty(Sasl.MAX_BUFFER, String.valueOf(maxBuffer));
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public DigestMD5SASLBindRequest setMaxSendBufferSize(int maxBuffer) {
-    System.setProperty("javax.security.sasl.sendmaxbuffer",
-        String.valueOf(maxBuffer));
+  @Override
+  public DigestMD5SASLBindRequest setServerAuth(final boolean serverAuth)
+      throws UnsupportedOperationException
+  {
+    this.serverAuth = serverAuth;
     return this;
   }
 

@@ -38,7 +38,7 @@ import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.*;
 import org.opends.sdk.schema.Schema;
 
-import com.sun.opends.sdk.util.AbstractFutureResult;
+import com.sun.opends.sdk.util.AsynchronousFutureResult;
 import com.sun.opends.sdk.util.CompletedFutureResult;
 import com.sun.opends.sdk.util.StaticUtils;
 
@@ -51,24 +51,13 @@ final class ConnectionPool extends AbstractConnectionFactory
 {
   // Future used for waiting for pooled connections to become available.
   private static final class FuturePooledConnection extends
-      AbstractFutureResult<AsynchronousConnection>
+      AsynchronousFutureResult<AsynchronousConnection>
   {
     private FuturePooledConnection(
         final ResultHandler<? super AsynchronousConnection> handler)
     {
       super(handler);
     }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public int getRequestID()
-    {
-      return -1;
-    }
-
   }
 
 
@@ -289,8 +278,7 @@ final class ConnectionPool extends AbstractConnectionFactory
 
 
 
-    public void handleUnsolicitedNotification(
-        final ExtendedResult notification)
+    public void handleUnsolicitedNotification(final ExtendedResult notification)
     {
       // Ignore
     }
@@ -567,6 +555,20 @@ final class ConnectionPool extends AbstractConnectionFactory
       }
       return connection.searchSingleEntry(request, resultHandler);
     }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public String toString()
+    {
+      StringBuilder builder = new StringBuilder();
+      builder.append("PooledConnection(");
+      builder.append(connection);
+      builder.append(')');
+      return builder.toString();
+    }
   }
 
 
@@ -738,7 +740,22 @@ final class ConnectionPool extends AbstractConnectionFactory
       handler.handleResult(pooledConnection);
     }
     return new CompletedFutureResult<AsynchronousConnection>(pooledConnection);
+  }
 
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String toString()
+  {
+    final StringBuilder builder = new StringBuilder();
+    builder.append("ConnectionPool(");
+    builder.append(String.valueOf(connectionFactory));
+    builder.append(',');
+    builder.append(poolSize);
+    builder.append(')');
+    return builder.toString();
   }
 
 

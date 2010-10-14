@@ -363,7 +363,7 @@
         <mkdir dir="${classes.dir}" />
         <mkdir dir="${build.lib.dir}" />
 
-        <javac srcdir="${src.dir}:${srcgen.dir}"
+        <javac srcdir="${src.dir}:${srcgen.dir}:${examples.dir}"
                destdir="${classes.dir}"
                debug="on"
                debuglevel="${build.debuglevel}"
@@ -408,11 +408,11 @@
 
         <jar jarfile="${pdir}/lib/${SHORT_NAME}.jar"
              basedir="${classes.dir}"
-             excludes="**/*_fr.properties,**/*_ja.properties,**/*_de.properties,**/*_es.properties,**/*_zh_TW.properties,**/*_zh_CN.properties,**/*_ko.properties"
+             excludes="**/examples/**,**/*_fr.properties,**/*_ja.properties,**/*_de.properties,**/*_es.properties,**/*_zh_TW.properties,**/*_zh_CN.properties,**/*_ko.properties"
              compress="true"
              index="true" />
 
-        <jar jarfile="${pdir}/lib/${SHORT_NAME}_fr.jar"
+    	<jar jarfile="${pdir}/lib/${SHORT_NAME}_fr.jar"
              basedir="${classes.dir}"
              includes="**/*_fr.properties"
              compress="true"
@@ -453,6 +453,29 @@
              includes="**/*_zh_TW.properties"
              compress="true"
              index="true" />
+    	
+    	<mkdir dir="${build.dir}/examples"/>
+    	
+    	<!-- Create examples.zip -->
+    	<jar jarfile="${build.dir}/examples/examples.jar"
+    	                     basedir="${classes.dir}"
+    	                     includes="**/examples/**"
+    	                     compress="true"
+    	                     index="true" />
+    	
+    	<zip destfile="${build.dir}/examples/src.zip">
+            <zipfileset dir="${examples.dir}" filemode="644" dirmode="755" />
+    	</zip>
+
+        <copy todir="${build.dir}/examples">
+            <fileset file="${resource.dir}/example-2000.ldif.zip" />
+        </copy>
+
+    	<zip destfile="${pdir}/examples.zip">
+    	    <zipfileset dir="${build.dir}/examples"
+    	                filemode="644"
+    	                dirmode="700" />
+        </zip>
 
         <copy todir="${pdir}/lib">
             <fileset file="${lib.dir}/*.jar" />
@@ -510,13 +533,15 @@
         <mkdir dir="${javadoc.dir}" />
 
         <javadoc access="protected"
-                 windowtitle="${PRODUCT_NAME} API Documentation"
+                 windowtitle="${PRODUCT_NAME} Documentation"
+        	     doctitle="${PRODUCT_NAME} Documentation"
                  maxmemory="${MEM}"
                  classpath="${lib.dir}/grizzly.jar"
                  destdir="${javadoc.dir}"
                  packagenames="org.opends.sdk.*"
                  source="1.5"
-                 sourcepath="src:src-generated">
+                 sourcepath="src:src-generated"
+                 overview="src/overview.html">
             <link href="http://java.sun.com/javase/6/docs/api/" />
         </javadoc>
     </target>
@@ -1159,6 +1184,7 @@
             <zipfileset dir="${srcgen.dir}" filemode="644" dirmode="755" />
         </zip>
     </target>
+	
     <!-- The build target that should be used for nightly builds. -->
     <target name="nightly"
        depends="nightlybuild,nightlytests"

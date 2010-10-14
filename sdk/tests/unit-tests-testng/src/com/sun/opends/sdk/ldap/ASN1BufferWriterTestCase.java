@@ -37,8 +37,8 @@ import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.asn1.ASN1WriterTestCase;
 
-import com.sun.grizzly.Buffer;
-import com.sun.grizzly.memory.ByteBufferWrapper;
+import org.glassfish.grizzly.Buffer;
+import org.glassfish.grizzly.memory.ByteBufferWrapper;
 
 
 

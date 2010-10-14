@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
@@ -31,6 +31,7 @@ package org.opends.sdk;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
@@ -41,7 +42,21 @@ import com.sun.opends.sdk.util.Validator;
 
 /**
  * An LDAP server connection listener which waits for LDAP connection requests
- * to come in over the network and binds them to a {@link ServerConnection}.
+ * to come in over the network and binds them to a {@link ServerConnection}
+ * created using the provided {@link ServerConnectionFactory}.
+ * <p>
+ * When processing requests, {@code ServerConnection} implementations are passed
+ * an integer as the first parameter. This integer represents the
+ * {@code requestID} associated with the client request and corresponds to the
+ * {@code requestID} passed as a parameter to abandon and cancel extended
+ * requests. The request ID may also be useful for logging purposes.
+ * <p>
+ * An {@code LDAPListener} does not require {@code ServerConnection}
+ * implementations to return a result when processing requests. More
+ * specifically, an {@code LDAPListener} does not maintain any internal state
+ * information associated with each request which must be released. This is
+ * useful when implementing LDAP abandon operations which may prevent results
+ * being sent for abandoned operations.
  * <p>
  * The following code illustrates how to create a simple LDAP server:
  *
@@ -59,7 +74,7 @@ import com.sun.opends.sdk.util.Validator;
  *
  *
  *
- *   public void add(Integer context, AddRequest request,
+ *   public void add(Integer requestID, AddRequest request,
  *       ResultHandler&lt;Result&gt; handler,
  *       IntermediateResponseHandler intermediateResponseHandler)
  *       throws UnsupportedOperationException
@@ -73,9 +88,10 @@ import com.sun.opends.sdk.util.Validator;
  *
  *
  *
- * class MyServer implements ServerConnectionFactory&lt;LDAPClientContext, Integer&gt;
+ * class MyServer implements
+ *     ServerConnectionFactory&lt;LDAPClientContext, RequestContext&gt;
  * {
- *   public ServerConnection&lt;Integer&gt; accept(LDAPClientContext context)
+ *   public ServerConnection&lt;RequestContext&gt; accept(LDAPClientContext context)
  *   {
  *     System.out.println(&quot;Connection from: &quot; + context.getPeerAddress());
  *     return new MyClientConnection(context);
@@ -160,64 +176,6 @@ public final class LDAPListener implements Closeable
    * Creates a new LDAP listener implementation which will listen for LDAP
    * client connections at the provided address.
    *
-   * @param port
-   *          The port to listen on.
-   * @param host
-   *          The address to listen on.
-   * @param factory
-   *          The server connection factory which will be used to create server
-   *          connections.
-   * @throws IOException
-   *           If an error occurred while trying to listen on the provided
-   *           address.
-   * @throws NullPointerException
-   *           If {@code host} or {code factory} was {@code null}.
-   */
-  public LDAPListener(final int port, final String host,
-      final ServerConnectionFactory<LDAPClientContext, Integer> factory)
-      throws IOException, NullPointerException
-  {
-    this(port, host, factory, new LDAPListenerOptions());
-  }
-
-
-
-  /**
-   * Creates a new LDAP listener implementation which will listen for LDAP
-   * client connections at the provided address.
-   *
-   * @param port
-   *          The port to listen on.
-   * @param host
-   *          The address to listen on.
-   * @param factory
-   *          The server connection factory which will be used to create server
-   *          connections.
-   * @param options
-   *          The LDAP listener options.
-   * @throws IOException
-   *           If an error occurred while trying to listen on the provided
-   *           address.
-   * @throws NullPointerException
-   *           If {@code host}, {code factory}, or {@code options} was {@code
-   *           null}.
-   */
-  public LDAPListener(final int port, final String host,
-      final ServerConnectionFactory<LDAPClientContext, Integer> factory,
-      final LDAPListenerOptions options) throws IOException,
-      NullPointerException
-  {
-    Validator.ensureNotNull(host, factory, options);
-    final SocketAddress address = new InetSocketAddress(host, port);
-    this.impl = new LDAPListenerImpl(address, factory, options);
-  }
-
-
-
-  /**
-   * Creates a new LDAP listener implementation which will listen for LDAP
-   * client connections at the provided address.
-   *
    * @param address
    *          The address to listen on.
    * @param factory
@@ -268,14 +226,158 @@ public final class LDAPListener implements Closeable
 
 
   /**
-   * Closes this LDAP connection listener.
+   * Creates a new LDAP listener implementation which will listen for LDAP
+   * client connections at the provided address.
    *
+   * @param host
+   *          The address to listen on.
+   * @param port
+   *          The port to listen on.
+   * @param factory
+   *          The server connection factory which will be used to create server
+   *          connections.
    * @throws IOException
-   *           If an IO error occurred while closing this listener.
+   *           If an error occurred while trying to listen on the provided
+   *           address.
+   * @throws NullPointerException
+   *           If {@code host} or {code factory} was {@code null}.
    */
-  public void close() throws IOException
+  public LDAPListener(final String host, final int port,
+      final ServerConnectionFactory<LDAPClientContext, Integer> factory)
+      throws IOException, NullPointerException
+  {
+    this(host, port, factory, new LDAPListenerOptions());
+  }
+
+
+
+  /**
+   * Creates a new LDAP listener implementation which will listen for LDAP
+   * client connections at the provided address.
+   *
+   * @param host
+   *          The address to listen on.
+   * @param port
+   *          The port to listen on.
+   * @param factory
+   *          The server connection factory which will be used to create server
+   *          connections.
+   * @param options
+   *          The LDAP listener options.
+   * @throws IOException
+   *           If an error occurred while trying to listen on the provided
+   *           address.
+   * @throws NullPointerException
+   *           If {@code host}, {code factory}, or {@code options} was
+   *           {@code null}.
+   */
+  public LDAPListener(final String host, final int port,
+      final ServerConnectionFactory<LDAPClientContext, Integer> factory,
+      final LDAPListenerOptions options) throws IOException,
+      NullPointerException
+  {
+    Validator.ensureNotNull(host, factory, options);
+    final SocketAddress address = new InetSocketAddress(host, port);
+    this.impl = new LDAPListenerImpl(address, factory, options);
+  }
+
+
+
+  /**
+   * Closes this LDAP connection listener.
+   */
+  @Override
+  public void close()
   {
     impl.close();
+  }
+
+
+
+  /**
+   * Returns the {@code InetAddress} that this LDAP listener is listening on.
+   *
+   * @return The {@code InetAddress} that this LDAP listener is listening on, or
+   *         {@code null} if it is unknown.
+   */
+  public InetAddress getAddress()
+  {
+    final SocketAddress socketAddress = getSocketAddress();
+    if (socketAddress instanceof InetSocketAddress)
+    {
+      final InetSocketAddress inetSocketAddress = (InetSocketAddress) socketAddress;
+      return inetSocketAddress.getAddress();
+    }
+    else
+    {
+      return null;
+    }
+  }
+
+
+
+  /**
+   * Returns the host name that this LDAP listener is listening on.
+   *
+   * @return The host name that this LDAP listener is listening on, or
+   *         {@code null} if it is unknown.
+   */
+  public String getHostname()
+  {
+    final SocketAddress socketAddress = getSocketAddress();
+    if (socketAddress instanceof InetSocketAddress)
+    {
+      final InetSocketAddress inetSocketAddress = (InetSocketAddress) socketAddress;
+      return inetSocketAddress.getHostName();
+    }
+    else
+    {
+      return null;
+    }
+  }
+
+
+
+  /**
+   * Returns the port that this LDAP listener is listening on.
+   *
+   * @return The port that this LDAP listener is listening on, or {@code -1} if
+   *         it is unknown.
+   */
+  public int getPort()
+  {
+    final SocketAddress socketAddress = getSocketAddress();
+    if (socketAddress instanceof InetSocketAddress)
+    {
+      final InetSocketAddress inetSocketAddress = (InetSocketAddress) socketAddress;
+      return inetSocketAddress.getPort();
+    }
+    else
+    {
+      return -1;
+    }
+  }
+
+
+
+  /**
+   * Returns the address that this LDAP listener is listening on.
+   *
+   * @return The address that this LDAP listener is listening on.
+   */
+  public SocketAddress getSocketAddress()
+  {
+    return impl.getSocketAddress();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String toString()
+  {
+    return impl.toString();
   }
 
 }

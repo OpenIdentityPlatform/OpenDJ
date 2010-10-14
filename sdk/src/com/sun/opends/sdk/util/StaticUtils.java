@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.util;
@@ -35,6 +35,10 @@ import static com.sun.opends.sdk.messages.Messages.ERR_HEX_DECODE_INVALID_LENGTH
 import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.DataFormatException;
@@ -66,6 +70,10 @@ public final class StaticUtils
   // UTC TimeZone is assumed to never change over JVM lifetime
   private static final TimeZone TIME_ZONE_UTC_OBJ = TimeZone
       .getTimeZone(TIME_ZONE_UTC);
+
+  private static ScheduledExecutorService defaultScheduler = null;
+
+  private static final Object DEFAULT_SCHEDULER_LOCK = new Object();
 
 
 
@@ -1394,6 +1402,27 @@ public final class StaticUtils
 
 
   /**
+   * Returns the default scheduler which should be used by the SDK.
+   *
+   * @return The default scheduler.
+   */
+  public static ScheduledExecutorService getDefaultScheduler()
+  {
+    synchronized (DEFAULT_SCHEDULER_LOCK)
+    {
+      if (defaultScheduler == null)
+      {
+        final ThreadFactory factory = newThreadFactory(null,
+            "OpenDS SDK Default Scheduler", true);
+        defaultScheduler = Executors.newSingleThreadScheduledExecutor(factory);
+      }
+    }
+    return defaultScheduler;
+  }
+
+
+
+  /**
    * Retrieves the best human-readable message for the provided exception. For
    * exceptions defined in the OpenDS project, it will attempt to use the
    * message (combining it with the message ID if available). For some
@@ -1708,6 +1737,83 @@ public final class StaticUtils
     return cp != null ? cp.isHexDigit() : false;
   }
 
+
+
+  /**
+   * Returns a string whose content is the string representation of the objects
+   * contained in the provided collection concatenated together using the
+   * provided separator.
+   *
+   * @param c
+   *          The collection whose elements are to be joined.
+   * @param separator
+   *          The separator string.
+   * @return A string whose content is the string representation of the objects
+   *         contained in the provided collection concatenated together using
+   *         the provided separator.
+   * @throws NullPointerException
+   *           If {@code c} or {@code separator} were {@code null}.
+   */
+  public static String joinCollection(Collection<?> c, String separator)
+      throws NullPointerException
+  {
+    Validator.ensureNotNull(c, separator);
+
+    switch (c.size())
+    {
+    case 0:
+      return "";
+    case 1:
+      return String.valueOf(c.iterator().next());
+    default:
+      StringBuilder builder = new StringBuilder();
+      Iterator<?> i = c.iterator();
+      builder.append(i.next());
+      while (i.hasNext())
+      {
+        builder.append(separator);
+        builder.append(i.next());
+      }
+      String s = builder.toString();
+      return s;
+    }
+  }
+
+
+
+
+  /**
+   * Creates a new thread factory which will create threads using the specified
+   * thread group, naming template, and daemon status.
+   *
+   * @param group
+   *          The thread group, which may be {@code null}.
+   * @param nameTemplate
+   *          The thread name format string which may contain a "%d" format
+   *          option which will be substituted with the thread count.
+   * @param isDaemon
+   *          Indicates whether or not threads should be daemon threads.
+   * @return The new thread factory.
+   */
+  public static ThreadFactory newThreadFactory(final ThreadGroup group,
+      final String nameTemplate, final boolean isDaemon)
+  {
+    return new ThreadFactory()
+    {
+      private final AtomicInteger count = new AtomicInteger();
+
+
+
+      public Thread newThread(Runnable r)
+      {
+        final String name = String
+            .format(nameTemplate, count.getAndIncrement());
+        final Thread t = new Thread(group, r, name);
+        t.setDaemon(isDaemon);
+        return t;
+      }
+    };
+  }
 
 
   /**

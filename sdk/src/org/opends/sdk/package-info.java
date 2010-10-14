@@ -22,11 +22,12 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 /**
- * Core OpenDS SDK API including connections, entries, and attributes.
+ * Classes and interfaces for core types including connections, entries, and
+ * attributes.
  */
 package org.opends.sdk;
 

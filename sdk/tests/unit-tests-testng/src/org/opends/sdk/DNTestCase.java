@@ -188,11 +188,16 @@ public class DNTestCase extends SdkTestCase
         { "cn=aaaa,dc=com", "cn=AAA,dc=com", 1 },
         { "cn=aaab,dc=com", "cn=aaaa,dc=com", 1 },
         { "cn=aaaa,dc=com", "cn=aaab,dc=com", -1 },
-        { "dc=aaa,dc=aaa", "dc=bbb", -1 }, { "dc=bbb,dc=aaa", "dc=bbb", -1 },
-        { "dc=ccc,dc=aaa", "dc=bbb", -1 }, { "dc=aaa,dc=bbb", "dc=bbb", 1 },
-        { "dc=bbb,dc=bbb", "dc=bbb", 1 }, { "dc=ccc,dc=bbb", "dc=bbb", 1 },
-        { "dc=aaa,dc=ccc", "dc=bbb", 1 }, { "dc=bbb,dc=ccc", "dc=bbb", 1 },
-        { "dc=ccc,dc=ccc", "dc=bbb", 1 }, { "", "dc=bbb", -1 },
+        { "dc=aaa,dc=aaa", "dc=bbb", -1 },
+        { "dc=bbb,dc=aaa", "dc=bbb", -1 },
+        { "dc=ccc,dc=aaa", "dc=bbb", -1 },
+        { "dc=aaa,dc=bbb", "dc=bbb", 1 },
+        { "dc=bbb,dc=bbb", "dc=bbb", 1 },
+        { "dc=ccc,dc=bbb", "dc=bbb", 1 },
+        { "dc=aaa,dc=ccc", "dc=bbb", 1 },
+        { "dc=bbb,dc=ccc", "dc=bbb", 1 },
+        { "dc=ccc,dc=ccc", "dc=bbb", 1 },
+        { "", "dc=bbb", -1 },
         { "dc=bbb", "", 1 } };
   }
 

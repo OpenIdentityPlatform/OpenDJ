@@ -93,18 +93,18 @@ public interface CancelExtendedRequest extends ExtendedRequest<ExtendedResult>
 
 
   /**
-   * Returns the message ID of the request to be abandoned.
-   *
-   * @return The message ID of the request to be abandoned.
+   * {@inheritDoc}
    */
-  int getMessageID();
+  String getOID();
 
 
 
   /**
-   * {@inheritDoc}
+   * Returns the request ID of the request to be abandoned.
+   *
+   * @return The request ID of the request to be abandoned.
    */
-  String getOID();
+  int getRequestID();
 
 
 
@@ -130,14 +130,14 @@ public interface CancelExtendedRequest extends ExtendedRequest<ExtendedResult>
 
 
   /**
-   * Sets the message ID of the request to be abandoned.
+   * Sets the request ID of the request to be abandoned.
    *
    * @param id
-   *          The message ID of the request to be abandoned.
+   *          The request ID of the request to be abandoned.
    * @return This abandon request.
    * @throws UnsupportedOperationException
-   *           If this abandon request does not permit the message ID to be set.
+   *           If this abandon request does not permit the request ID to be set.
    */
-  CancelExtendedRequest setMessageID(int id)
+  CancelExtendedRequest setRequestID(int id)
       throws UnsupportedOperationException;
 }

@@ -36,8 +36,8 @@ import java.util.Random;
 
 import org.testng.annotations.Test;
 
-import com.sun.grizzly.TransportFactory;
-import com.sun.grizzly.nio.transport.TCPNIOTransport;
+import org.glassfish.grizzly.TransportFactory;
+import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 
 
 

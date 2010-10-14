@@ -38,6 +38,7 @@ import org.opends.sdk.controls.Control;
 import org.opends.sdk.requests.AbstractExtendedRequest;
 import org.opends.sdk.requests.ExtendedRequest;
 import org.opends.sdk.requests.ExtendedRequestDecoder;
+import org.opends.sdk.responses.AbstractExtendedResultDecoder;
 import org.opends.sdk.responses.ExtendedResult;
 import org.opends.sdk.responses.ExtendedResultDecoder;
 
@@ -75,13 +76,13 @@ public final class GetConnectionIDExtendedRequest
 
 
 
-  private static final class ResultDecoder implements
-      ExtendedResultDecoder<GetConnectionIDExtendedResult>
+  private static final class ResultDecoder extends
+      AbstractExtendedResultDecoder<GetConnectionIDExtendedResult>
   {
     /**
      * {@inheritDoc}
      */
-    public GetConnectionIDExtendedResult adaptExtendedErrorResult(
+    public GetConnectionIDExtendedResult newExtendedErrorResult(
         final ResultCode resultCode, final String matchedDN,
         final String diagnosticMessage)
     {

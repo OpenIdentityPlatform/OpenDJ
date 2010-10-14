@@ -22,14 +22,13 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
 
 
 
-import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
 import org.opends.sdk.requests.BindRequest;
@@ -104,69 +103,6 @@ public final class Connections
 
 
   /**
-   * Creates a new connection factory providing fault tolerance across multiple
-   * underlying connection factories.
-   * <p>
-   * The returned fail-over connection factory forwards connection requests to
-   * one of the provided connection factories. If the request fails for some
-   * reason (for example, due to network failure), then the fail-over connection
-   * factory switches to another connection faction, repeating the process until
-   * the connection request succeeds, or until all the connection factories are
-   * determined to be unavailable, in which case the connection request will
-   * fail.
-   * <p>
-   * The implementation periodically attempts to connect to failed connection
-   * factories in order to determine if they have become available again.
-   *
-   * @param factories
-   *          The connection factories which will be used for fail-over.
-   * @return The new fail-over connection factory.
-   * @throws NullPointerException
-   *           If {@code factories} was {@code null}.
-   */
-  public static ConnectionFactory newFailoverConnectionFactory(
-      final Collection<ConnectionFactory> factories)
-      throws NullPointerException
-  {
-    final FailoverLoadBalancingAlgorithm algorithm = new FailoverLoadBalancingAlgorithm(
-        factories);
-    return new LoadBalancingConnectionFactory(algorithm);
-  }
-
-
-
-  /**
-   * Creates a new connection factory providing fault tolerance across multiple
-   * underlying connection factories.
-   * <p>
-   * The returned fail-over connection factory forwards connection requests to
-   * one of the provided connection factories. If the request fails for some
-   * reason (for example, due to network failure), then the fail-over connection
-   * factory switches to another connection faction, repeating the process until
-   * the connection request succeeds, or until all the connection factories are
-   * determined to be unavailable, in which case the connection request will
-   * fail.
-   * <p>
-   * The implementation periodically attempts to connect to failed connection
-   * factories in order to determine if they have become available again.
-   *
-   * @param factories
-   *          The connection factories which will be used for fail-over.
-   * @return The new fail-over connection factory.
-   * @throws NullPointerException
-   *           If {@code factories} was {@code null}.
-   */
-  public static ConnectionFactory newFailoverConnectionFactory(
-      final ConnectionFactory... factories) throws NullPointerException
-  {
-    final FailoverLoadBalancingAlgorithm algorithm = new FailoverLoadBalancingAlgorithm(
-        factories);
-    return new LoadBalancingConnectionFactory(algorithm);
-  }
-
-
-
-  /**
    * Creates a new connection factory which will create connections using the
    * provided connection factory and periodically probe any created connections
    * in order to detect that they are still alive.
@@ -230,10 +166,21 @@ public final class Connections
 
 
   /**
-   * Creates a new connection factory which will create internal connections
-   * using the provided server connection factory. The server connection will be
-   * provided with request context whose value is unique integer associated with
-   * the request.
+   * Creates a new connection factory which binds internal client connections to
+   * {@link ServerConnection}s created using the provided
+   * {@link ServerConnectionFactory}.
+   * <p>
+   * When processing requests, {@code ServerConnection} implementations are
+   * passed an integer as the first parameter. This integer represents a pseudo
+   * {@code requestID} which is incremented for each successive internal request
+   * on a per client connection basis. The request ID may be useful for logging
+   * purposes.
+   * <p>
+   * An internal connection factory does not require {@code ServerConnection}
+   * implementations to return a result when processing requests. However, it is
+   * recommended that implementations do always return results even for
+   * abandoned requests. This is because application client threads may block
+   * indefinitely waiting for results.
    *
    * @param <C>
    *          The type of client context.
@@ -251,6 +198,81 @@ public final class Connections
   {
     Validator.ensureNotNull(factory);
     return new InternalConnectionFactory<C>(factory, clientContext);
+  }
+
+
+
+  /**
+   * Creates a new load balancer which will obtain connections using the
+   * provided load balancing algorithm.
+   *
+   * @param algorithm
+   *          The load balancing algorithm which will be used to obtain the next
+   * @return The new load balancer.
+   * @throws NullPointerException
+   *           If {@code algorithm} was {@code null}.
+   */
+  public static ConnectionFactory newLoadBalancer(
+      final LoadBalancingAlgorithm algorithm) throws NullPointerException
+  {
+    return new LoadBalancer(algorithm);
+  }
+
+
+
+  /**
+   * Creates a new connection factory which forwards connection requests to the
+   * provided factory, but whose {@code toString} method will always return
+   * {@code name}.
+   * <p>
+   * This method may be useful for debugging purposes in order to more easily
+   * identity connection factories.
+   *
+   * @param factory
+   *          The connection factory to be named.
+   * @param name
+   *          The name of the connection factory.
+   * @return The named connection factory.
+   * @throws NullPointerException
+   *           If {@code factory} or {@code name} was {@code null}.
+   */
+  public static ConnectionFactory newNamedConnectionFactory(
+      final ConnectionFactory factory, final String name)
+      throws NullPointerException
+  {
+    Validator.ensureNotNull(factory, name);
+
+    return new ConnectionFactory()
+    {
+
+      @Override
+      public FutureResult<AsynchronousConnection> getAsynchronousConnection(
+          final ResultHandler<? super AsynchronousConnection> handler)
+      {
+        return factory.getAsynchronousConnection(handler);
+      }
+
+
+
+      @Override
+      public Connection getConnection() throws ErrorResultException,
+          InterruptedException
+      {
+        return factory.getConnection();
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public String toString()
+      {
+        return name;
+      }
+
+    };
   }
 
 

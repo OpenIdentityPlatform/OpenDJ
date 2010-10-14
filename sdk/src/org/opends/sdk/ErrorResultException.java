@@ -31,6 +31,7 @@ package org.opends.sdk;
 
 import java.util.concurrent.ExecutionException;
 
+import org.opends.sdk.responses.Responses;
 import org.opends.sdk.responses.Result;
 
 
@@ -42,6 +43,60 @@ import org.opends.sdk.responses.Result;
 @SuppressWarnings("serial")
 public class ErrorResultException extends ExecutionException
 {
+
+  /**
+   * Creates a new error result exception with the provided result code and
+   * diagnostic message.
+   *
+   * @param resultCode
+   *          The result code.
+   * @param diagnosticMessage
+   *          The diagnostic message, which may be empty or {@code null}
+   *          indicating that none was provided.
+   * @return The new error result exception.
+   * @throws IllegalArgumentException
+   *           If the provided result code does not represent a failure.
+   * @throws NullPointerException
+   *           If {@code resultCode} was {@code null}.
+   */
+  public static ErrorResultException newErrorResult(ResultCode resultCode,
+      String diagnosticMessage) throws IllegalArgumentException,
+      NullPointerException
+  {
+    return newErrorResult(resultCode, diagnosticMessage, null);
+  }
+
+
+
+  /**
+   * Creates a new error result exception with the provided result code,
+   * diagnostic message, and cause.
+   *
+   * @param resultCode
+   *          The result code.
+   * @param diagnosticMessage
+   *          The diagnostic message, which may be empty or {@code null}
+   *          indicating that none was provided.
+   * @param cause
+   *          The throwable cause, which may be null indicating that none was
+   *          provided.
+   * @return The new error result exception.
+   * @throws IllegalArgumentException
+   *           If the provided result code does not represent a failure.
+   * @throws NullPointerException
+   *           If {@code resultCode} was {@code null}.
+   */
+  public static ErrorResultException newErrorResult(ResultCode resultCode,
+      String diagnosticMessage, Throwable cause)
+      throws IllegalArgumentException, NullPointerException
+  {
+    Result result = Responses.newResult(resultCode)
+        .setDiagnosticMessage(diagnosticMessage).setCause(cause);
+    return wrap(result);
+  }
+
+
+
   /**
    * Wraps the provided result in an appropriate error result exception. The
    * type of error result exception used depends on the underlying result code.

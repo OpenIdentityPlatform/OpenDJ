@@ -33,11 +33,11 @@ import static com.sun.opends.sdk.messages.Messages.ERR_LDAPAUTH_GSSAPI_LOCAL_AUT
 import static com.sun.opends.sdk.messages.Messages.ERR_SASL_CONTEXT_CREATE_ERROR;
 import static com.sun.opends.sdk.messages.Messages.ERR_SASL_PROTOCOL_ERROR;
 import static com.sun.opends.sdk.util.StaticUtils.getExceptionMessage;
+import static com.sun.opends.sdk.util.StaticUtils.joinCollection;
 
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import javax.security.auth.Subject;
 import javax.security.auth.login.LoginException;
@@ -118,9 +118,9 @@ final class GSSAPISASLBindRequestImpl extends
         // FIXME: Is this the best result code?
         final LocalizableMessage message = ERR_LDAPAUTH_GSSAPI_LOCAL_AUTHENTICATION_FAILED
             .get(StaticUtils.getExceptionMessage(e));
-        throw ErrorResultException.wrap(Responses.newResult(
-            ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
-            message.toString()).setCause(e));
+        throw ErrorResultException.wrap(Responses
+            .newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR)
+            .setDiagnosticMessage(message.toString()).setCause(e));
       }
       return subject;
     }
@@ -128,7 +128,6 @@ final class GSSAPISASLBindRequestImpl extends
 
 
     private final SaslClient saslClient;
-    private final String serverName;
     private final String authorizationID;
     private final Subject subject;
 
@@ -137,6 +136,7 @@ final class GSSAPISASLBindRequestImpl extends
     private final PrivilegedExceptionAction<Boolean> evaluateAction =
       new PrivilegedExceptionAction<Boolean>()
     {
+      @Override
       public Boolean run() throws ErrorResultException
       {
         if (lastResult.getResultCode() == ResultCode.SASL_BIND_IN_PROGRESS
@@ -152,44 +152,14 @@ final class GSSAPISASLBindRequestImpl extends
           {
             // FIXME: I18N need to have a better error message.
             // FIXME: Is this the best result code?
-            throw ErrorResultException.wrap(Responses.newResult(
-                ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
-                "An error occurred during multi-stage authentication")
+            throw ErrorResultException.wrap(Responses
+                .newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR)
+                .setDiagnosticMessage(
+                    "An error occurred during multi-stage authentication")
                 .setCause(e));
           }
         }
         return true;
-      }
-    };
-
-    private final PrivilegedExceptionAction<SaslClient> invokeAction =
-      new PrivilegedExceptionAction<SaslClient>()
-    {
-      public SaslClient run() throws ErrorResultException
-      {
-        final Map<String, String> props = new HashMap<String, String>();
-        props.put(Sasl.QOP, "auth-conf,auth-int,auth");
-
-        try
-        {
-          final SaslClient saslClient = Sasl.createSaslClient(
-              new String[] { SASL_MECHANISM_NAME }, authorizationID,
-              SASL_DEFAULT_PROTOCOL, serverName, props, Client.this);
-          if (saslClient.hasInitialResponse())
-          {
-            setNextSASLCredentials(saslClient.evaluateChallenge(new byte[0]));
-          }
-          else
-          {
-            setNextSASLCredentials((ByteString) null);
-          }
-        }
-        catch (final SaslException e)
-        {
-          throw ErrorResultException.wrap(Responses.newResult(
-              ResultCode.CLIENT_SIDE_LOCAL_ERROR).setCause(e));
-        }
-        return saslClient;
       }
     };
 
@@ -211,11 +181,72 @@ final class GSSAPISASLBindRequestImpl extends
             initialBindRequest.getPassword(), initialBindRequest.getRealm(),
             initialBindRequest.getKDCAddress());
       }
-      this.serverName = serverName;
 
       try
       {
-        this.saslClient = Subject.doAs(subject, invokeAction);
+        this.saslClient = Subject.doAs(subject,
+            new PrivilegedExceptionAction<SaslClient>()
+            {
+              @Override
+              public SaslClient run() throws ErrorResultException
+              {
+                // Create property map containing all the parameters.
+                final Map<String, String> props = new HashMap<String, String>();
+
+                final List<String> qopValues = initialBindRequest.getQOPs();
+                if (!qopValues.isEmpty())
+                {
+                  props.put(Sasl.QOP, joinCollection(qopValues, ","));
+                }
+
+                final Boolean serverAuth = initialBindRequest.isServerAuth();
+                if (serverAuth != null)
+                {
+                  props.put(Sasl.SERVER_AUTH, String.valueOf(serverAuth));
+                }
+
+                Integer size = initialBindRequest.getMaxReceiveBufferSize();
+                if (size != null)
+                {
+                  props.put(Sasl.MAX_BUFFER, String.valueOf(size));
+                }
+
+                size = initialBindRequest.getMaxSendBufferSize();
+                if (size != null)
+                {
+                  props.put("javax.security.sasl.sendmaxbuffer",
+                      String.valueOf(size));
+                }
+
+                for (final Map.Entry<String, String> e : initialBindRequest
+                    .getAdditionalAuthParams().entrySet())
+                {
+                  props.put(e.getKey(), e.getValue());
+                }
+
+                try
+                {
+                  final SaslClient saslClient = Sasl.createSaslClient(
+                      new String[] { SASL_MECHANISM_NAME }, authorizationID,
+                      SASL_DEFAULT_PROTOCOL, serverName, props, Client.this);
+                  if (saslClient.hasInitialResponse())
+                  {
+                    setNextSASLCredentials(saslClient
+                        .evaluateChallenge(new byte[0]));
+                  }
+                  else
+                  {
+                    setNextSASLCredentials((ByteString) null);
+                  }
+                }
+                catch (final SaslException e)
+                {
+                  throw ErrorResultException.wrap(Responses.newResult(
+                      ResultCode.CLIENT_SIDE_LOCAL_ERROR).setCause(e));
+                }
+                return saslClient;
+              }
+            });
       }
       catch (final PrivilegedActionException e)
       {
@@ -228,9 +259,9 @@ final class GSSAPISASLBindRequestImpl extends
           // This should not happen. Must be a bug.
           final LocalizableMessage msg = ERR_SASL_CONTEXT_CREATE_ERROR.get(
               SASL_MECHANISM_NAME, getExceptionMessage(e));
-          throw ErrorResultException.wrap(Responses.newResult(
-              ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
-              msg.toString()).setCause(e));
+          throw ErrorResultException.wrap(Responses
+              .newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR)
+              .setDiagnosticMessage(msg.toString()).setCause(e));
         }
       }
     }
@@ -272,9 +303,9 @@ final class GSSAPISASLBindRequestImpl extends
           // This should not happen. Must be a bug.
           final LocalizableMessage msg = ERR_SASL_PROTOCOL_ERROR.get(
               SASL_MECHANISM_NAME, getExceptionMessage(e));
-          throw ErrorResultException.wrap(Responses.newResult(
-              ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
-              msg.toString()).setCause(e));
+          throw ErrorResultException.wrap(Responses
+              .newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR)
+              .setDiagnosticMessage(msg.toString()).setCause(e));
         }
       }
     }
@@ -309,9 +340,9 @@ final class GSSAPISASLBindRequestImpl extends
       {
         final LocalizableMessage msg = ERR_SASL_PROTOCOL_ERROR.get(
             SASL_MECHANISM_NAME, getExceptionMessage(e));
-        throw ErrorResultException.wrap(Responses.newResult(
-            ResultCode.CLIENT_SIDE_DECODING_ERROR).setDiagnosticMessage(
-            msg.toString()).setCause(e));
+        throw ErrorResultException.wrap(Responses
+            .newResult(ResultCode.CLIENT_SIDE_DECODING_ERROR)
+            .setDiagnosticMessage(msg.toString()).setCause(e));
       }
     }
 
@@ -329,9 +360,9 @@ final class GSSAPISASLBindRequestImpl extends
       {
         final LocalizableMessage msg = ERR_SASL_PROTOCOL_ERROR.get(
             SASL_MECHANISM_NAME, getExceptionMessage(e));
-        throw ErrorResultException.wrap(Responses.newResult(
-            ResultCode.CLIENT_SIDE_ENCODING_ERROR).setDiagnosticMessage(
-            msg.toString()).setCause(e));
+        throw ErrorResultException.wrap(Responses
+            .newResult(ResultCode.CLIENT_SIDE_ENCODING_ERROR)
+            .setDiagnosticMessage(msg.toString()).setCause(e));
       }
     }
 
@@ -341,6 +372,7 @@ final class GSSAPISASLBindRequestImpl extends
 
   // If null then authenticationID and password must be present.
   private Subject subject = null;
+
   // Ignored if subject is non-null.
   private String authenticationID = null;
   private ByteString password = null;
@@ -350,6 +382,15 @@ final class GSSAPISASLBindRequestImpl extends
 
   // Optional authorization ID.
   private String authorizationID = null;
+
+  private final Map<String, String> additionalAuthParams = new LinkedHashMap<String, String>();
+  private final List<String> qopValues = new LinkedList<String>();
+
+  // Don't use primitives for these so that we can distinguish between default
+  // settings (null) and values set by the caller.
+  private Boolean serverAuth = null;
+  private Integer maxReceiveBufferSize = null;
+  private Integer maxSendBufferSize = null;
 
 
 
@@ -374,6 +415,38 @@ final class GSSAPISASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
+  @Override
+  public GSSAPISASLBindRequest addAdditionalAuthParam(final String name,
+      final String value) throws UnsupportedOperationException,
+      NullPointerException
+  {
+    Validator.ensureNotNull(name, value);
+    additionalAuthParams.put(name, value);
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public GSSAPISASLBindRequest addQOP(final String... qopValues)
+      throws UnsupportedOperationException, NullPointerException
+  {
+    for (final String qopValue : qopValues)
+    {
+      this.qopValues.add(Validator.ensureNotNull(qopValue));
+    }
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public BindClient createBindClient(final String serverName)
       throws ErrorResultException
   {
@@ -385,6 +458,18 @@ final class GSSAPISASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
+  @Override
+  public Map<String, String> getAdditionalAuthParams()
+  {
+    return additionalAuthParams;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public String getAuthenticationID()
   {
     return authenticationID;
@@ -395,6 +480,7 @@ final class GSSAPISASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getAuthorizationID()
   {
     return authorizationID;
@@ -405,6 +491,7 @@ final class GSSAPISASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getKDCAddress()
   {
     return kdcAddress;
@@ -415,6 +502,29 @@ final class GSSAPISASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
+  @Override
+  public int getMaxReceiveBufferSize()
+  {
+    return maxReceiveBufferSize == null ? 65536 : maxReceiveBufferSize;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int getMaxSendBufferSize()
+  {
+    return maxSendBufferSize == null ? 65536 : maxSendBufferSize;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public ByteString getPassword()
   {
     return password;
@@ -425,6 +535,18 @@ final class GSSAPISASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
+  @Override
+  public List<String> getQOPs()
+  {
+    return qopValues;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public String getRealm()
   {
     return realm;
@@ -435,6 +557,7 @@ final class GSSAPISASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getSASLMechanism()
   {
     return SASL_MECHANISM_NAME;
@@ -445,6 +568,7 @@ final class GSSAPISASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public Subject getSubject()
   {
     return subject;
@@ -455,6 +579,18 @@ final class GSSAPISASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
+  @Override
+  public boolean isServerAuth()
+  {
+    return serverAuth == null ? false : serverAuth;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public GSSAPISASLBindRequest setAuthenticationID(final String authenticationID)
       throws NullPointerException
   {
@@ -468,6 +604,7 @@ final class GSSAPISASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public GSSAPISASLBindRequest setAuthorizationID(final String authorizationID)
   {
     this.authorizationID = authorizationID;
@@ -479,6 +616,7 @@ final class GSSAPISASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public GSSAPISASLBindRequest setKDCAddress(final String address)
   {
     this.kdcAddress = address;
@@ -490,6 +628,33 @@ final class GSSAPISASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
+  @Override
+  public GSSAPISASLBindRequest setMaxReceiveBufferSize(final int size)
+      throws UnsupportedOperationException
+  {
+    maxReceiveBufferSize = size;
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public GSSAPISASLBindRequest setMaxSendBufferSize(final int size)
+      throws UnsupportedOperationException
+  {
+    maxSendBufferSize = size;
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public GSSAPISASLBindRequest setPassword(final ByteString password)
       throws NullPointerException
   {
@@ -503,6 +668,7 @@ final class GSSAPISASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public GSSAPISASLBindRequest setPassword(final String password)
       throws NullPointerException
   {
@@ -516,6 +682,7 @@ final class GSSAPISASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public GSSAPISASLBindRequest setRealm(final String realm)
   {
     this.realm = realm;
@@ -527,154 +694,24 @@ final class GSSAPISASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
+  @Override
+  public GSSAPISASLBindRequest setServerAuth(final boolean serverAuth)
+      throws UnsupportedOperationException
+  {
+    this.serverAuth = serverAuth;
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public GSSAPISASLBindRequest setSubject(final Subject subject)
       throws NullPointerException
   {
     this.subject = subject;
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public QOPOption[] getQOP() {
-    String value = System.getProperty(Sasl.QOP);
-    if(value == null || value.length() == 0)
-    {
-      return new QOPOption[]{QOPOption.AUTH};
-    }
-    String[] values = value.split(",");
-    QOPOption[] options = new QOPOption[values.length];
-
-    for(int i = 0; i < values.length; i++)
-    {
-      String v = values[i].trim();
-      if(v.equalsIgnoreCase("auth"))
-      {
-        options[i] = QOPOption.AUTH;
-      }
-      else if(v.equalsIgnoreCase("auth-int"))
-      {
-        options[i] = QOPOption.AUTH_INT;
-      }
-      else if(v.equalsIgnoreCase("auth-conf"))
-      {
-        options[i] = QOPOption.AUTH_CONF;
-      }
-    }
-    return options;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean getServerAuth() {
-    String value = System.getProperty(Sasl.SERVER_AUTH);
-    return !(value == null || value.length() == 0) &&
-        value.equalsIgnoreCase("true");
-
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public int getMaxReceiveBufferSize() {
-    String value = System.getProperty(Sasl.MAX_BUFFER);
-    if(value == null || value.length() == 0)
-    {
-      return 65536;
-    }
-    return Integer.parseInt(value);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public int getMaxSendBufferSize() {
-    String value = System.getProperty("javax.security.sasl.sendmaxbuffer");
-    if(value == null || value.length() == 0)
-    {
-      return 65536;
-    }
-    return Integer.parseInt(value);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public GSSAPISASLBindRequest setQOP(QOPOption... qopOptions) {
-    String values = null;
-    for(QOPOption option : qopOptions)
-    {
-      String value = null;
-      if(option == QOPOption.AUTH)
-      {
-        value = "auth";
-      }
-      else if(option == QOPOption.AUTH_INT)
-      {
-        value = "auth-int";
-      }
-      else if(option == QOPOption.AUTH_CONF)
-      {
-        value = "auth-conf";
-      }
-
-      if(value != null)
-      {
-        if(values == null)
-        {
-          values = value;
-        }
-        else
-        {
-          values += (", " + value);
-        }
-      }
-    }
-
-    System.setProperty(Sasl.QOP, values);
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public GSSAPISASLBindRequest setServerAuth(boolean serverAuth) {
-    System.setProperty(Sasl.SERVER_AUTH, String.valueOf(serverAuth));
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public GSSAPISASLBindRequest setMaxReceiveBufferSize(int maxBuffer) {
-    System.setProperty(Sasl.MAX_BUFFER, String.valueOf(maxBuffer));
-    return this;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public GSSAPISASLBindRequest setMaxSendBufferSize(int maxBuffer) {
-    System.setProperty("javax.security.sasl.sendmaxbuffer",
-        String.valueOf(maxBuffer));
     return this;
   }
 

@@ -35,8 +35,8 @@ import java.nio.ByteBuffer;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1ReaderTestCase;
 
-import com.sun.grizzly.memory.ByteBufferWrapper;
-import com.sun.grizzly.memory.DefaultMemoryManager;
+import org.glassfish.grizzly.memory.ByteBufferWrapper;
+import org.glassfish.grizzly.memory.DefaultMemoryManager;
 
 
 

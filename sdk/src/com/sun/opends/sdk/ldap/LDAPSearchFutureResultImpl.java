@@ -42,8 +42,7 @@ import org.opends.sdk.responses.SearchResultReference;
  * Search result future implementation.
  */
 final class LDAPSearchFutureResultImpl extends
-    AbstractLDAPFutureResultImpl<Result> implements FutureResult<Result>,
-    SearchResultHandler
+    AbstractLDAPFutureResultImpl<Result> implements SearchResultHandler
 {
 
   private SearchResultHandler searchResultHandler;
@@ -52,12 +51,12 @@ final class LDAPSearchFutureResultImpl extends
 
 
 
-  LDAPSearchFutureResultImpl(final int messageID, final SearchRequest request,
+  LDAPSearchFutureResultImpl(final int requestID, final SearchRequest request,
       final SearchResultHandler resultHandler,
       final IntermediateResponseHandler intermediateResponseHandler,
       final AsynchronousConnection connection)
   {
-    super(messageID, resultHandler, intermediateResponseHandler, connection);
+    super(requestID, resultHandler, intermediateResponseHandler, connection);
     this.request = request;
     this.searchResultHandler = resultHandler;
   }

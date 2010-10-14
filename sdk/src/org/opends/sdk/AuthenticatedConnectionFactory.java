@@ -389,6 +389,20 @@ final class AuthenticatedConnectionFactory extends AbstractConnectionFactory
       return connection.searchSingleEntry(request, resultHandler);
     }
 
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public String toString()
+    {
+      StringBuilder builder = new StringBuilder();
+      builder.append("AuthenticatedConnection(");
+      builder.append(connection);
+      builder.append(')');
+      return builder.toString();
+    }
+
   }
 
 
@@ -500,6 +514,20 @@ final class AuthenticatedConnectionFactory extends AbstractConnectionFactory
     future.futureConnectionResult.setFutureResult(parentFactory
         .getAsynchronousConnection(future.futureConnectionResult));
     return future.futureBindResult;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String toString()
+  {
+    final StringBuilder builder = new StringBuilder();
+    builder.append("AuthenticatedConnectionFactory(");
+    builder.append(String.valueOf(parentFactory));
+    builder.append(')');
+    return builder.toString();
   }
 
 }

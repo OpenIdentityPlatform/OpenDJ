@@ -31,11 +31,11 @@ package com.sun.opends.sdk.ldap;
 
 import java.io.IOException;
 
-import com.sun.grizzly.TransportFactory;
-import com.sun.grizzly.nio.NIOTransportFactory;
-import com.sun.grizzly.nio.transport.TCPNIOTransport;
-import com.sun.grizzly.nio.transport.UDPNIOTransport;
-import com.sun.grizzly.threadpool.ThreadPoolConfig;
+import org.glassfish.grizzly.TransportFactory;
+import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
+import org.glassfish.grizzly.nio.transport.UDPNIOTransport;
+import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
+
 import com.sun.opends.sdk.util.StaticUtils;
 
 
@@ -43,9 +43,9 @@ import com.sun.opends.sdk.util.StaticUtils;
 /**
  * A static Grizzly transport that can be used by default globally in the SDK.
  */
-public final class GlobalTransportFactory extends NIOTransportFactory
+public final class GlobalTransportFactory extends TransportFactory
 {
-  private static final GlobalTransportFactory INSTANCE = new GlobalTransportFactory();
+  private static boolean isInitialized = false;
 
 
 
@@ -54,22 +54,14 @@ public final class GlobalTransportFactory extends NIOTransportFactory
    *
    * @return The global Grizzly transport factory.
    */
-  public static TransportFactory getInstance()
+  public static synchronized TransportFactory getInstance()
   {
-    return INSTANCE;
-  }
-
-
-
-  /**
-   * Sets the global Grizzly transport factory.
-   *
-   * @param factory
-   *          The global Grizzly transport factory.
-   */
-  public static void setInstance(final TransportFactory factory)
-  {
-    throw new UnsupportedOperationException("not yet implemented");
+    if (!isInitialized)
+    {
+      TransportFactory.setInstance(new GlobalTransportFactory());
+      isInitialized = true;
+    }
+    return TransportFactory.getInstance();
   }
 
 
@@ -94,7 +86,7 @@ public final class GlobalTransportFactory extends NIOTransportFactory
 
 
   /**
-   * Close the {@link com.sun.grizzly.TransportFactory} and release all
+   * Close the {@link org.glassfish.grizzly.TransportFactory} and release all
    * resources.
    */
   @Override
@@ -118,9 +110,9 @@ public final class GlobalTransportFactory extends NIOTransportFactory
 
 
   /**
-   * Create instance of TCP {@link com.sun.grizzly.Transport}.
+   * Create instance of TCP {@link org.glassfish.grizzly.Transport}.
    *
-   * @return instance of TCP {@link com.sun.grizzly.Transport}.
+   * @return instance of TCP {@link org.glassfish.grizzly.Transport}.
    */
   @Override
   public synchronized TCPNIOTransport createTCPTransport()
@@ -149,8 +141,9 @@ public final class GlobalTransportFactory extends NIOTransportFactory
 
 
   /**
-   * Creating an UDP transport is unsupported with this factory. A {@code
-   * UnsupportedOperationException} will be thrown when this method is called.
+   * Creating an UDP transport is unsupported with this factory. A
+   * {@code UnsupportedOperationException} will be thrown when this method is
+   * called.
    *
    * @return This method will always throw {@code UnsupportedOperationException}
    *         .
@@ -210,4 +203,5 @@ public final class GlobalTransportFactory extends NIOTransportFactory
 
     super.initialize();
   }
+
 }

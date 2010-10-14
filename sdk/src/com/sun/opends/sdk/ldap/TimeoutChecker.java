@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.sun.grizzly.utils.LinkedTransferQueue;
+import org.glassfish.grizzly.utils.LinkedTransferQueue;
 import com.sun.opends.sdk.util.StaticUtils;
 
 

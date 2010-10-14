@@ -43,19 +43,19 @@ import org.opends.sdk.responses.ExtendedResult;
  *          The type of result returned by this future.
  */
 final class LDAPExtendedFutureResultImpl<R extends ExtendedResult> extends
-    AbstractLDAPFutureResultImpl<R> implements FutureResult<R>
+    AbstractLDAPFutureResultImpl<R>
 {
   private final ExtendedRequest<R> request;
 
 
 
-  LDAPExtendedFutureResultImpl(final int messageID,
+  LDAPExtendedFutureResultImpl(final int requestID,
       final ExtendedRequest<R> request,
       final ResultHandler<? super R> resultHandler,
       final IntermediateResponseHandler intermediateResponseHandler,
       final AsynchronousConnection connection)
   {
-    super(messageID, resultHandler, intermediateResponseHandler, connection);
+    super(requestID, resultHandler, intermediateResponseHandler, connection);
     this.request = request;
   }
 
@@ -107,7 +107,7 @@ final class LDAPExtendedFutureResultImpl<R extends ExtendedResult> extends
   R newErrorResult(final ResultCode resultCode, final String diagnosticMessage,
       final Throwable cause)
   {
-    return request.getResultDecoder().adaptExtendedErrorResult(resultCode, "",
+    return request.getResultDecoder().newExtendedErrorResult(resultCode, "",
         diagnosticMessage);
   }
 }

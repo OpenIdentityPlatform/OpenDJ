@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -36,26 +36,26 @@ final class AbandonRequestImpl extends AbstractRequestImpl<AbandonRequest>
     implements AbandonRequest
 {
 
-  private int messageID;
+  private int requestID;
 
 
 
   /**
    * Creates a new abandon request using the provided message ID.
    *
-   * @param messageID
+   * @param requestID
    *          The message ID of the request to be abandoned.
    */
-  AbandonRequestImpl(final int messageID)
+  AbandonRequestImpl(final int requestID)
   {
-    this.messageID = messageID;
+    this.requestID = requestID;
   }
 
 
 
-  public int getMessageID()
+  public int getRequestID()
   {
-    return messageID;
+    return requestID;
   }
 
 
@@ -63,10 +63,10 @@ final class AbandonRequestImpl extends AbstractRequestImpl<AbandonRequest>
   /**
    * {@inheritDoc}
    */
-  public AbandonRequest setMessageID(final int id)
+  public AbandonRequest setRequestID(final int id)
       throws UnsupportedOperationException
   {
-    this.messageID = id;
+    this.requestID = id;
     return this;
   }
 
@@ -79,8 +79,8 @@ final class AbandonRequestImpl extends AbstractRequestImpl<AbandonRequest>
   public String toString()
   {
     final StringBuilder builder = new StringBuilder();
-    builder.append("AbandonRequest(messageID=");
-    builder.append(getMessageID());
+    builder.append("AbandonRequest(requestID=");
+    builder.append(getRequestID());
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");

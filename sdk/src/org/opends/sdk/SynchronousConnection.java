@@ -39,6 +39,7 @@ import com.sun.opends.sdk.util.Validator;
 import java.util.concurrent.BlockingQueue;
 
 
+
 /**
  * A {@code SynchronousConnection} adapts an {@code AsynchronousConnection} into
  * a synchronous {@code Connection}.
@@ -361,15 +362,27 @@ public class SynchronousConnection extends AbstractConnection
     }
   }
 
+
+
   /**
    * {@inheritDoc}
    */
   public ConnectionEntryReader search(final SearchRequest request,
-                            BlockingQueue<Response> entries)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
+      BlockingQueue<Response> entries) throws UnsupportedOperationException,
+      IllegalStateException, NullPointerException
   {
-    return new ConnectionEntryReader(getAsynchronousConnection(),
-        request, entries);
+    return new ConnectionEntryReader(getAsynchronousConnection(), request,
+        entries);
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String toString()
+  {
+    return connection.toString();
+  }
+
 }

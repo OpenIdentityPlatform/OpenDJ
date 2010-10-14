@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
@@ -57,31 +57,6 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
-    boolean addAll(final LinkedAttribute attribute,
-        final Collection<? extends ByteString> values,
-        final Collection<? super ByteString> duplicateValues)
-        throws NullPointerException
-    {
-      // TODO: could optimize if values is a BasicAttribute.
-      ensureCapacity(attribute, values.size());
-      boolean modified = false;
-      for (final ByteString value : values)
-      {
-        if (add(attribute, value))
-        {
-          modified = true;
-        }
-        else if (duplicateValues != null)
-        {
-          duplicateValues.add(value);
-        }
-      }
-      resize(attribute);
-      return modified;
-    }
-
-
-
     abstract void clear(LinkedAttribute attribute);
 
 
@@ -93,7 +68,8 @@ public final class LinkedAttribute extends AbstractAttribute
     boolean containsAll(final LinkedAttribute attribute,
         final Collection<?> values)
     {
-      // TODO: could optimize if objects is a BasicAttribute.
+      // TODO: could optimize if objects is a LinkedAttribute having the same
+      // equality matching rule.
       for (final Object value : values)
       {
         if (!contains(attribute, ByteString.valueOf(value)))
@@ -103,10 +79,6 @@ public final class LinkedAttribute extends AbstractAttribute
       }
       return true;
     }
-
-
-
-    abstract void ensureCapacity(LinkedAttribute attribute, int size);
 
 
 
@@ -120,31 +92,6 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
     abstract boolean remove(LinkedAttribute attribute, ByteString value);
-
-
-
-    <T> boolean removeAll(final LinkedAttribute attribute,
-        final Collection<T> values, final Collection<? super T> missingValues)
-    {
-      // TODO: could optimize if objects is a BasicAttribute.
-      boolean modified = false;
-      for (final T value : values)
-      {
-        if (remove(attribute, ByteString.valueOf(value)))
-        {
-          modified = true;
-        }
-        else if (missingValues != null)
-        {
-          missingValues.add(value);
-        }
-      }
-      return modified;
-    }
-
-
-
-    abstract void resize(LinkedAttribute attribute);
 
 
 
@@ -196,14 +143,6 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
     @Override
-    void ensureCapacity(final LinkedAttribute attribute, final int size)
-    {
-      // Nothing to do.
-    }
-
-
-
-    @Override
     ByteString firstValue(final LinkedAttribute attribute)
         throws NoSuchElementException
     {
@@ -224,6 +163,7 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
+        @Override
         public boolean hasNext()
         {
           return iterator.hasNext();
@@ -231,6 +171,7 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
+        @Override
         public ByteString next()
         {
           if (attribute.pimpl != expectedImpl)
@@ -245,6 +186,7 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
+        @Override
         public void remove()
         {
           if (attribute.pimpl != expectedImpl)
@@ -292,37 +234,11 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
     @Override
-    void resize(final LinkedAttribute attribute)
-    {
-      // May need to resize if initial size estimate was wrong (e.g. all
-      // values in added collection were the same).
-      switch (attribute.multipleValues.size())
-      {
-      case 0:
-        attribute.multipleValues = null;
-        attribute.pimpl = ZERO_VALUE_IMPL;
-        break;
-      case 1:
-        final Map.Entry<ByteString, ByteString> e = attribute.multipleValues
-            .entrySet().iterator().next();
-        attribute.singleValue = e.getValue();
-        attribute.normalizedSingleValue = e.getKey();
-        attribute.multipleValues = null;
-        attribute.pimpl = SINGLE_VALUE_IMPL;
-        break;
-      default:
-        // Nothing to do.
-        break;
-      }
-    }
-
-
-
-    @Override
     <T> boolean retainAll(final LinkedAttribute attribute,
         final Collection<T> values, final Collection<? super T> missingValues)
     {
-      // TODO: could optimize if objects is a BasicAttribute.
+      // TODO: could optimize if objects is a LinkedAttribute having the same
+      // equality matching rule.
       if (values.isEmpty())
       {
         clear(attribute);
@@ -366,6 +282,32 @@ public final class LinkedAttribute extends AbstractAttribute
     int size(final LinkedAttribute attribute)
     {
       return attribute.multipleValues.size();
+    }
+
+
+
+    private void resize(final LinkedAttribute attribute)
+    {
+      // May need to resize if initial size estimate was wrong (e.g. all
+      // values in added collection were the same).
+      switch (attribute.multipleValues.size())
+      {
+      case 0:
+        attribute.multipleValues = null;
+        attribute.pimpl = ZERO_VALUE_IMPL;
+        break;
+      case 1:
+        final Map.Entry<ByteString, ByteString> e = attribute.multipleValues
+            .entrySet().iterator().next();
+        attribute.singleValue = e.getValue();
+        attribute.normalizedSingleValue = e.getKey();
+        attribute.multipleValues = null;
+        attribute.pimpl = SINGLE_VALUE_IMPL;
+        break;
+      default:
+        // Nothing to do.
+        break;
+      }
     }
   }
 
@@ -416,25 +358,6 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
     @Override
-    void ensureCapacity(final LinkedAttribute attribute, final int size)
-    {
-      if (size == 0)
-      {
-        return;
-      }
-
-      attribute.multipleValues = new LinkedHashMap<ByteString, ByteString>(
-          1 + size);
-      attribute.multipleValues.put(attribute.normalizedSingleValue,
-          attribute.singleValue);
-      attribute.singleValue = null;
-      attribute.normalizedSingleValue = null;
-      attribute.pimpl = MULTI_VALUE_IMPL;
-    }
-
-
-
-    @Override
     ByteString firstValue(final LinkedAttribute attribute)
         throws NoSuchElementException
     {
@@ -461,6 +384,7 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
+        @Override
         public boolean hasNext()
         {
           return hasNext;
@@ -468,6 +392,7 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
+        @Override
         public ByteString next()
         {
           if (attribute.pimpl != expectedImpl)
@@ -487,6 +412,7 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
+        @Override
         public void remove()
         {
           if (attribute.pimpl != expectedImpl)
@@ -526,18 +452,11 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
     @Override
-    void resize(final LinkedAttribute attribute)
-    {
-      // Nothing to do.
-    }
-
-
-
-    @Override
     <T> boolean retainAll(final LinkedAttribute attribute,
         final Collection<T> values, final Collection<? super T> missingValues)
     {
-      // TODO: could optimize if objects is a BasicAttribute.
+      // TODO: could optimize if objects is a LinkedAttribute having the same
+      // equality matching rule.
       if (values.isEmpty())
       {
         clear(attribute);
@@ -549,8 +468,8 @@ public final class LinkedAttribute extends AbstractAttribute
       boolean retained = false;
       for (final T value : values)
       {
-        final ByteString normalizedValue = normalizeValue(attribute, ByteString
-            .valueOf(value));
+        final ByteString normalizedValue = normalizeValue(attribute,
+            ByteString.valueOf(value));
         if (normalizedSingleValue.equals(normalizedValue))
         {
           if (missingValues == null)
@@ -627,20 +546,6 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
     @Override
-    void ensureCapacity(final LinkedAttribute attribute, final int size)
-    {
-      if (size < 2)
-      {
-        return;
-      }
-
-      attribute.multipleValues = new LinkedHashMap<ByteString, ByteString>(size);
-      attribute.pimpl = MULTI_VALUE_IMPL;
-    }
-
-
-
-    @Override
     ByteString firstValue(final LinkedAttribute attribute)
         throws NoSuchElementException
     {
@@ -654,6 +559,7 @@ public final class LinkedAttribute extends AbstractAttribute
     {
       return new Iterator<ByteString>()
       {
+        @Override
         public boolean hasNext()
         {
           return false;
@@ -661,6 +567,7 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
+        @Override
         public ByteString next()
         {
           if (attribute.pimpl != ZERO_VALUE_IMPL)
@@ -675,6 +582,7 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
+        @Override
         public void remove()
         {
           if (attribute.pimpl != ZERO_VALUE_IMPL)
@@ -696,14 +604,6 @@ public final class LinkedAttribute extends AbstractAttribute
     boolean remove(final LinkedAttribute attribute, final ByteString value)
     {
       return false;
-    }
-
-
-
-    @Override
-    void resize(final LinkedAttribute attribute)
-    {
-      // Nothing to do.
     }
 
 
@@ -736,6 +636,7 @@ public final class LinkedAttribute extends AbstractAttribute
    */
   public static final AttributeFactory FACTORY = new AttributeFactory()
   {
+    @Override
     public Attribute newAttribute(
         final AttributeDescription attributeDescription)
         throws NullPointerException
@@ -843,8 +744,8 @@ public final class LinkedAttribute extends AbstractAttribute
    * @param values
    *          The attribute values.
    * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code values} was {@code
-   *           null}.
+   *           If {@code attributeDescription} or {@code values} was
+   *           {@code null}.
    */
   public LinkedAttribute(final AttributeDescription attributeDescription,
       final ByteString... values) throws NullPointerException
@@ -864,8 +765,8 @@ public final class LinkedAttribute extends AbstractAttribute
    * @param values
    *          The attribute values.
    * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code values} was {@code
-   *           null}.
+   *           If {@code attributeDescription} or {@code values} was
+   *           {@code null}.
    */
   public LinkedAttribute(final AttributeDescription attributeDescription,
       final Collection<ByteString> values) throws NullPointerException
@@ -941,8 +842,8 @@ public final class LinkedAttribute extends AbstractAttribute
    *           If {@code attributeDescription} could not be decoded using the
    *           default schema.
    * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code values} was {@code
-   *           null}.
+   *           If {@code attributeDescription} or {@code values} was
+   *           {@code null}.
    */
   public LinkedAttribute(final String attributeDescription,
       final Object... values) throws LocalizedIllegalArgumentException,
@@ -978,7 +879,22 @@ public final class LinkedAttribute extends AbstractAttribute
       throws NullPointerException
   {
     Validator.ensureNotNull(values);
-    return pimpl.addAll(this, values, duplicateValues);
+
+    // TODO: could optimize if objects is a LinkedAttribute having the same
+    // equality matching rule.
+    boolean modified = false;
+    for (final ByteString value : values)
+    {
+      if (add(value))
+      {
+        modified = true;
+      }
+      else if (duplicateValues != null)
+      {
+        duplicateValues.add(value);
+      }
+    }
+    return modified;
   }
 
 
@@ -1072,7 +988,22 @@ public final class LinkedAttribute extends AbstractAttribute
       final Collection<? super T> missingValues) throws NullPointerException
   {
     Validator.ensureNotNull(values);
-    return pimpl.removeAll(this, values, missingValues);
+
+    // TODO: could optimize if objects is a LinkedAttribute having the same
+    // equality matching rule.
+    boolean modified = false;
+    for (final T value : values)
+    {
+      if (remove(ByteString.valueOf(value)))
+      {
+        modified = true;
+      }
+      else if (missingValues != null)
+      {
+        missingValues.add(value);
+      }
+    }
+    return modified;
   }
 
 

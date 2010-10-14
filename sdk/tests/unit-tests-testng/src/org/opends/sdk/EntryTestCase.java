@@ -36,7 +36,7 @@ import org.testng.annotations.Test;
 
 
 /**
- * Test {@code BasicAttribute}.
+ * Test {@code Entry}.
  */
 public final class EntryTestCase extends SdkTestCase
 {

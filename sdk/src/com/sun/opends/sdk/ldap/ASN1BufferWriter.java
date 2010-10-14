@@ -42,10 +42,10 @@ import org.opends.sdk.LocalizableMessage;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.asn1.AbstractASN1Writer;
 
-import com.sun.grizzly.Buffer;
-import com.sun.grizzly.Cacheable;
-import com.sun.grizzly.ThreadCache;
-import com.sun.grizzly.memory.ByteBufferWrapper;
+import org.glassfish.grizzly.Buffer;
+import org.glassfish.grizzly.Cacheable;
+import org.glassfish.grizzly.ThreadCache;
+import org.glassfish.grizzly.memory.ByteBufferWrapper;
 import com.sun.opends.sdk.util.StaticUtils;
 
 

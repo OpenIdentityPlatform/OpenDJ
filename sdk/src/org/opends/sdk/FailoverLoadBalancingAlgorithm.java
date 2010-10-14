@@ -29,15 +29,9 @@ package org.opends.sdk;
 
 
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.logging.Level;
-
-import org.opends.sdk.responses.Responses;
-
-import com.sun.opends.sdk.util.StaticUtils;
-import com.sun.opends.sdk.util.Validator;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 
 
@@ -45,213 +39,115 @@ import com.sun.opends.sdk.util.Validator;
  * A fail-over load balancing algorithm provides fault tolerance across multiple
  * underlying connection factories.
  * <p>
+ * This algorithm is typically used for load-balancing <i>between</i> data
+ * centers, where there is preference to always always forward connection
+ * requests to the <i>closest available</i> data center. This algorithm
+ * contrasts with the {@link RoundRobinLoadBalancingAlgorithm} which is used for
+ * load-balancing <i>within</i> a data center.
+ * <p>
+ * This algorithm selects connection factories based on the order in which they
+ * were provided during construction. More specifically, an attempt to obtain a
+ * connection factory will always return the <i>first operational</i> connection
+ * factory in the list. Applications should, therefore, organize the connection
+ * factories such that the <i>preferred</i> (usually the closest) connection
+ * factories appear before those which are less preferred.
+ * <p>
  * If a problem occurs that temporarily prevents connections from being obtained
- * for one of the connection factories, then this algorithm "fails over" to
- * another operational connection factory in the list. If none of the connection
- * factories are operational then a {@code ConnectionException} is returned to
- * the client.
+ * for one of the connection factories, then this algorithm automatically
+ * "fails over" to the next operational connection factory in the list. If none
+ * of the connection factories are operational then a
+ * {@code ConnectionException} is returned to the client.
  * <p>
  * The implementation periodically attempts to connect to failed connection
  * factories in order to determine if they have become available again.
+ *
+ * @see RoundRobinLoadBalancingAlgorithm
+ * @see Connections#newLoadBalancer(LoadBalancingAlgorithm)
  */
-class FailoverLoadBalancingAlgorithm implements LoadBalancingAlgorithm
+public final class FailoverLoadBalancingAlgorithm extends
+    AbstractLoadBalancingAlgorithm
 {
-  private static final class MonitoredConnectionFactory extends
-      AbstractConnectionFactory implements
-      ResultHandler<AsynchronousConnection>
-  {
-    private final ConnectionFactory factory;
-
-    private volatile boolean isOperational;
-
-    private volatile FutureResult<?> pendingConnectFuture;
-
-
-
-    private MonitoredConnectionFactory(final ConnectionFactory factory)
-    {
-      this.factory = factory;
-      this.isOperational = true;
-    }
-
-
-
-    @Override
-    public FutureResult<AsynchronousConnection> getAsynchronousConnection(
-        final ResultHandler<? super AsynchronousConnection> resultHandler)
-    {
-      final ResultHandler<AsynchronousConnection> handler =
-        new ResultHandler<AsynchronousConnection>()
-      {
-        public void handleErrorResult(final ErrorResultException error)
-        {
-          isOperational = false;
-          if (resultHandler != null)
-          {
-            resultHandler.handleErrorResult(error);
-          }
-          if (StaticUtils.DEBUG_LOG.isLoggable(Level.WARNING))
-          {
-            StaticUtils.DEBUG_LOG
-                .warning(String.format("Connection factory " + factory
-                    + " is no longer operational: " + error.getMessage()));
-          }
-        }
-
-
-
-        public void handleResult(final AsynchronousConnection result)
-        {
-          isOperational = true;
-          if (resultHandler != null)
-          {
-            resultHandler.handleResult(result);
-          }
-          if (StaticUtils.DEBUG_LOG.isLoggable(Level.WARNING))
-          {
-            StaticUtils.DEBUG_LOG.warning(String.format("Connection factory "
-                + factory + " is now operational"));
-          }
-        }
-      };
-      return factory.getAsynchronousConnection(handler);
-    }
-
-
-
-    public void handleErrorResult(final ErrorResultException error)
-    {
-      isOperational = false;
-    }
-
-
-
-    public void handleResult(final AsynchronousConnection result)
-    {
-      isOperational = true;
-      // TODO: Notify the server is back up
-      result.close();
-    }
-
-
-
-    private boolean isOperational()
-    {
-      return isOperational;
-    }
-  }
-
-
-
-  private final class MonitorThread extends Thread
-  {
-    private MonitorThread()
-    {
-      super("Connection Factory Health Monitor");
-      this.setDaemon(true);
-    }
-
-
-
-    @Override
-    public void run()
-    {
-      while (true)
-      {
-        for (final MonitoredConnectionFactory f : monitoredFactories)
-        {
-          if (!f.isOperational
-              && (f.pendingConnectFuture == null || f.pendingConnectFuture
-                  .isDone()))
-          {
-            if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
-            {
-              StaticUtils.DEBUG_LOG.finest(String
-                  .format("Attempting connect on factory " + f));
-            }
-            f.pendingConnectFuture = f.factory.getAsynchronousConnection(f);
-          }
-        }
-
-        try
-        {
-          sleep(10000);
-        }
-        catch (final InterruptedException e)
-        {
-          // Termination requested - exit.
-          break;
-        }
-      }
-    }
-  }
-
-
-
-  private final List<MonitoredConnectionFactory> monitoredFactories;
-
-
 
   /**
-   * Creates a new fail-over load balancing algorithm which will fail-over
-   * across the provided collection of connection factories.
+   * Creates a new fail-over load balancing algorithm which will use a default
+   * scheduler for monitoring offline connection factories every 10 seconds.
    *
    * @param factories
-   *          The connection factories which will be used for fail-over.
+   *          The ordered collection of connection factories.
    */
   public FailoverLoadBalancingAlgorithm(
       final Collection<ConnectionFactory> factories)
   {
-    Validator.ensureNotNull(factories);
-
-    monitoredFactories = new ArrayList<MonitoredConnectionFactory>(factories
-        .size());
-    for (final ConnectionFactory f : factories)
-    {
-      monitoredFactories.add(new MonitoredConnectionFactory(f));
-    }
-
-    new MonitorThread().start();
+    super(factories);
   }
 
 
 
   /**
-   * Creates a new fail-over load balancing algorithm which will fail-over
-   * across the provided list of connection factories.
+   * Creates a new fail-over load balancing algorithm which will use the
+   * provided scheduler for monitoring offline connection factories every 10
+   * seconds.
    *
    * @param factories
-   *          The connection factories which will be used for fail-over.
+   *          The ordered collection of connection factories.
+   * @param scheduler
+   *          The scheduler which should for periodically monitoring offline
+   *          connection factories to see if they are usable again.
    */
-  public FailoverLoadBalancingAlgorithm(final ConnectionFactory... factories)
+  public FailoverLoadBalancingAlgorithm(
+      final Collection<ConnectionFactory> factories,
+      final ScheduledExecutorService scheduler)
   {
-    Validator.ensureNotNull((Object[]) factories);
-
-    monitoredFactories = new ArrayList<MonitoredConnectionFactory>(
-        factories.length);
-    for (final ConnectionFactory f : factories)
-    {
-      monitoredFactories.add(new MonitoredConnectionFactory(f));
-    }
-
-    new MonitorThread().start();
+    super(factories, scheduler);
   }
 
 
 
-  public ConnectionFactory getNextConnectionFactory()
-      throws ErrorResultException
+  /**
+   * Creates a new fail-over load balancing algorithm which will use the
+   * provided scheduler for monitoring offline connection factories.
+   *
+   * @param factories
+   *          The ordered collection of connection factories.
+   * @param scheduler
+   *          The scheduler which should for periodically monitoring offline
+   *          connection factories to see if they are usable again.
+   * @param interval
+   *          The interval between attempts to poll offline connection
+   *          factories.
+   * @param unit
+   *          The time unit for the interval between attempts to poll offline
+   *          connection factories.
+   */
+  public FailoverLoadBalancingAlgorithm(
+      final Collection<ConnectionFactory> factories,
+      final ScheduledExecutorService scheduler, final long interval,
+      final TimeUnit unit)
   {
-    for (final MonitoredConnectionFactory f : monitoredFactories)
-    {
-      if (f.isOperational())
-      {
-        return f;
-      }
-    }
-
-    throw ErrorResultException.wrap(Responses.newResult(
-        ResultCode.CLIENT_SIDE_CONNECT_ERROR).setDiagnosticMessage(
-        "No operational connection factories available"));
+    super(factories, scheduler, interval, unit);
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  String getAlgorithmName()
+  {
+    return "Failover";
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  int getInitialConnectionFactoryIndex()
+  {
+    // Always start with the first connection factory.
+    return 0;
+  }
+
 }

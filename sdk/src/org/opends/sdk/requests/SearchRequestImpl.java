@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -94,11 +94,13 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest>
   /**
    * {@inheritDoc}
    */
-  public SearchRequest addAttribute(final String attributeDescription)
+  public SearchRequest addAttribute(final String... attributeDescriptions)
       throws NullPointerException
   {
-    Validator.ensureNotNull(attributeDescription);
-    attributes.add(attributeDescription);
+    for (String attributeDescription : attributeDescriptions)
+    {
+      attributes.add(Validator.ensureNotNull(attributeDescription));
+    }
     return this;
   }
 

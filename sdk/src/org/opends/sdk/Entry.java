@@ -57,6 +57,8 @@ import java.util.Collection;
  * {@link #replaceAttribute} and the conditions, if any, where a reference to
  * the passed in attribute is maintained.
  * </ul>
+ *
+ * @see Entries
  */
 public interface Entry
 {

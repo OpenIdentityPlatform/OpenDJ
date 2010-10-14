@@ -481,4 +481,14 @@ public abstract class AbstractConnection implements Connection
     return searchSingleEntry(request);
   }
 
+
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Sub-classes should provide an implementation which returns an appropriate
+   * description of the connection which may be used for debugging purposes.
+   */
+  public abstract String toString();
+
 }

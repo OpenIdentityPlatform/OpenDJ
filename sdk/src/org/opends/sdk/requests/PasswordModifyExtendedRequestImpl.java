@@ -39,10 +39,7 @@ import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.controls.Control;
-import org.opends.sdk.responses.ExtendedResult;
-import org.opends.sdk.responses.ExtendedResultDecoder;
-import org.opends.sdk.responses.PasswordModifyExtendedResult;
-import org.opends.sdk.responses.Responses;
+import org.opends.sdk.responses.*;
 
 
 
@@ -105,10 +102,10 @@ final class PasswordModifyExtendedRequestImpl
 
 
 
-  private static final class ResultDecoder implements
-      ExtendedResultDecoder<PasswordModifyExtendedResult>
+  private static final class ResultDecoder extends
+      AbstractExtendedResultDecoder<PasswordModifyExtendedResult>
   {
-    public PasswordModifyExtendedResult adaptExtendedErrorResult(
+    public PasswordModifyExtendedResult newExtendedErrorResult(
         final ResultCode resultCode, final String matchedDN,
         final String diagnosticMessage)
     {

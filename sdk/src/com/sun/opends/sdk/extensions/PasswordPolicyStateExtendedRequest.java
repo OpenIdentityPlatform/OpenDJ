@@ -49,6 +49,7 @@ import org.opends.sdk.controls.Control;
 import org.opends.sdk.requests.AbstractExtendedRequest;
 import org.opends.sdk.requests.ExtendedRequest;
 import org.opends.sdk.requests.ExtendedRequestDecoder;
+import org.opends.sdk.responses.AbstractExtendedResultDecoder;
 import org.opends.sdk.responses.ExtendedResult;
 import org.opends.sdk.responses.ExtendedResultDecoder;
 
@@ -227,14 +228,14 @@ public final class PasswordPolicyStateExtendedRequest
 
 
 
-  private static final class ResultDecoder implements
-      ExtendedResultDecoder<PasswordPolicyStateExtendedResult>
+  private static final class ResultDecoder extends
+      AbstractExtendedResultDecoder<PasswordPolicyStateExtendedResult>
   {
 
     /**
      * {@inheritDoc}
      */
-    public PasswordPolicyStateExtendedResult adaptExtendedErrorResult(
+    public PasswordPolicyStateExtendedResult newExtendedErrorResult(
         final ResultCode resultCode, final String matchedDN,
         final String diagnosticMessage)
     {

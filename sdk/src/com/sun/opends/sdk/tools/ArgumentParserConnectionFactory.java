@@ -644,6 +644,16 @@ final class ArgumentParserConnectionFactory extends AbstractConnectionFactory
 
 
 
+  /**
+   * {@inheritDoc}
+   */
+  public String toString()
+  {
+    return connFactory.toString();
+  }
+
+
+
   private String getKDC() throws ArgumentException, CLIException
   {
     String value = null;
