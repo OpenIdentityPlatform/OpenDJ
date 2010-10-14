@@ -29,13 +29,11 @@ package com.sun.opends.sdk.tools;
 
 
 
-import java.util.Collection;
-
 import org.opends.sdk.*;
-import org.opends.sdk.requests.*;
-import org.opends.sdk.responses.*;
-import org.opends.sdk.schema.Schema;
+import org.opends.sdk.requests.BindRequest;
+import org.opends.sdk.responses.BindResult;
 
+import com.sun.opends.sdk.util.AsynchronousConnectionDecorator;
 import com.sun.opends.sdk.util.FutureResultTransformer;
 import com.sun.opends.sdk.util.RecursiveFutureResult;
 import com.sun.opends.sdk.util.Validator;
@@ -70,15 +68,13 @@ final class AuthenticatedConnectionFactory extends AbstractConnectionFactory
    * An authenticated asynchronous connection supports all operations except
    * Bind operations.
    */
-  public static final class AuthenticatedAsynchronousConnection implements
-      AsynchronousConnection
+  public static final class AuthenticatedAsynchronousConnection extends
+      AsynchronousConnectionDecorator
   {
 
     private final BindRequest request;
 
     private volatile BindResult result;
-
-    private final AsynchronousConnection connection;
 
 
 
@@ -86,49 +82,9 @@ final class AuthenticatedConnectionFactory extends AbstractConnectionFactory
         final AsynchronousConnection connection, final BindRequest request,
         final BindResult result)
     {
-      this.connection = connection;
+      super(connection);
       this.request = request;
       this.result = result;
-    }
-
-
-
-    public FutureResult<Void> abandon(final AbandonRequest request)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
-    {
-      return connection.abandon(request);
-    }
-
-
-
-    public FutureResult<Result> add(final AddRequest request,
-        final ResultHandler<? super Result> handler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
-    {
-      return connection.add(request, handler);
-    }
-
-
-
-    public FutureResult<Result> add(final AddRequest request,
-        final ResultHandler<? super Result> resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
-    {
-      return connection
-          .add(request, resultHandler, intermediateResponseHandler);
-    }
-
-
-
-    public void addConnectionEventListener(
-        final ConnectionEventListener listener) throws IllegalStateException,
-        NullPointerException
-    {
-      connection.addConnectionEventListener(listener);
     }
 
 
@@ -147,96 +103,17 @@ final class AuthenticatedConnectionFactory extends AbstractConnectionFactory
 
 
 
+    /**
+     * Bind operations are not supported by pre-authenticated connections. This
+     * method will always throw {@code UnsupportedOperationException}.
+     */
     public FutureResult<BindResult> bind(final BindRequest request,
         final ResultHandler<? super BindResult> resultHandler,
         final IntermediateResponseHandler intermediateResponseHandler)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
-      return connection.bind(request, resultHandler,
-          intermediateResponseHandler);
-    }
-
-
-
-    public void close()
-    {
-      connection.close();
-    }
-
-
-
-    public void close(final UnbindRequest request, final String reason)
-        throws NullPointerException
-    {
-      connection.close(request, reason);
-    }
-
-
-
-    public FutureResult<CompareResult> compare(final CompareRequest request,
-        final ResultHandler<? super CompareResult> handler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
-    {
-      return connection.compare(request, handler);
-    }
-
-
-
-    public FutureResult<CompareResult> compare(final CompareRequest request,
-        final ResultHandler<? super CompareResult> resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
-    {
-      return connection.compare(request, resultHandler,
-          intermediateResponseHandler);
-    }
-
-
-
-    public FutureResult<Result> delete(final DeleteRequest request,
-        final ResultHandler<? super Result> handler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
-    {
-      return connection.delete(request, handler);
-    }
-
-
-
-    public FutureResult<Result> delete(final DeleteRequest request,
-        final ResultHandler<? super Result> resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
-    {
-      return connection.delete(request, resultHandler,
-          intermediateResponseHandler);
-    }
-
-
-
-    public <R extends ExtendedResult> FutureResult<R> extendedRequest(
-        final ExtendedRequest<R> request, final ResultHandler<? super R> handler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
-    {
-      return connection.extendedRequest(request, handler);
-    }
-
-
-
-    public <R extends ExtendedResult> FutureResult<R> extendedRequest(
-        final ExtendedRequest<R> request,
-        final ResultHandler<? super R> resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
-    {
-      return connection.extendedRequest(request, resultHandler,
-          intermediateResponseHandler);
+      throw new UnsupportedOperationException();
     }
 
 
@@ -251,127 +128,6 @@ final class AuthenticatedConnectionFactory extends AbstractConnectionFactory
     public BindResult getAuthenticatedBindResult()
     {
       return result;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public Connection getSynchronousConnection()
-    {
-      return new SynchronousConnection(connection);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isClosed()
-    {
-      return connection.isClosed();
-    }
-
-
-
-    public boolean isValid()
-    {
-      return connection.isValid();
-    }
-
-
-
-    public FutureResult<Result> modify(final ModifyRequest request,
-        final ResultHandler<? super Result> handler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
-    {
-      return connection.modify(request, handler);
-    }
-
-
-
-    public FutureResult<Result> modify(final ModifyRequest request,
-        final ResultHandler<? super Result> resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
-    {
-      return connection.modify(request, resultHandler,
-          intermediateResponseHandler);
-    }
-
-
-
-    public FutureResult<Result> modifyDN(final ModifyDNRequest request,
-        final ResultHandler<? super Result> handler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
-    {
-      return connection.modifyDN(request, handler);
-    }
-
-
-
-    public FutureResult<Result> modifyDN(final ModifyDNRequest request,
-        final ResultHandler<? super Result> resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
-    {
-      return connection.modifyDN(request, resultHandler,
-          intermediateResponseHandler);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public FutureResult<SearchResultEntry> readEntry(final DN name,
-        final Collection<String> attributeDescriptions,
-        final ResultHandler<? super SearchResultEntry> resultHandler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
-    {
-      return connection.readEntry(name, attributeDescriptions, resultHandler);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public FutureResult<RootDSE> readRootDSE(
-        final ResultHandler<? super RootDSE> handler)
-        throws UnsupportedOperationException, IllegalStateException
-    {
-      return connection.readRootDSE(handler);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public FutureResult<Schema> readSchema(final DN name,
-        final ResultHandler<? super Schema> handler)
-        throws UnsupportedOperationException, IllegalStateException
-    {
-      return connection.readSchema(name, handler);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public FutureResult<Schema> readSchemaForEntry(final DN name,
-        final ResultHandler<? super Schema> handler)
-        throws UnsupportedOperationException, IllegalStateException
-    {
-      return connection.readSchemaForEntry(name, handler);
     }
 
 
@@ -435,50 +191,6 @@ final class AuthenticatedConnectionFactory extends AbstractConnectionFactory
       };
 
       return connection.bind(request, handlerWrapper);
-    }
-
-
-
-    public void removeConnectionEventListener(
-        final ConnectionEventListener listener) throws NullPointerException
-    {
-      connection.removeConnectionEventListener(listener);
-    }
-
-
-
-    public FutureResult<Result> search(final SearchRequest request,
-        final SearchResultHandler handler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
-    {
-      return connection.search(request, handler);
-    }
-
-
-
-    public FutureResult<Result> search(final SearchRequest request,
-        final SearchResultHandler resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
-    {
-      return connection.search(request, resultHandler,
-          intermediateResponseHandler);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public FutureResult<SearchResultEntry> searchSingleEntry(
-        final SearchRequest request,
-        final ResultHandler<? super SearchResultEntry> resultHandler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
-    {
-      return connection.searchSingleEntry(request, resultHandler);
     }
 
 

@@ -196,7 +196,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm
           {
             // Enable monitoring.
             monitoringFuture = scheduler.scheduleWithFixedDelay(
-                new MonitorThread(), 0, monitoringInterval,
+                new MonitorRunnable(), 0, monitoringInterval,
                 monitoringIntervalTimeUnit);
           }
         }
@@ -237,9 +237,9 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm
 
 
 
-  private final class MonitorThread implements Runnable
+  private final class MonitorRunnable implements Runnable
   {
-    private MonitorThread()
+    private MonitorRunnable()
     {
       // Nothing to do.
     }
@@ -277,43 +277,26 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm
 
 
   /**
-   * Creates a new abstract load balancing algorithm.
+   * Creates a new abstract load balancing algorithm which will monitor offline
+   * connection factories every 10 seconds using the default scheduler.
    *
    * @param factories
    *          The connection factories.
    */
   AbstractLoadBalancingAlgorithm(final Collection<ConnectionFactory> factories)
   {
-    this(factories, StaticUtils.getDefaultScheduler());
+    this(factories, 10, TimeUnit.SECONDS, StaticUtils.getDefaultScheduler());
   }
 
 
 
   /**
-   * Creates a new abstract load balancing algorithm.
+   * Creates a new abstract load balancing algorithm which will monitor offline
+   * connection factories using the specified frequency using the default
+   * scheduler.
    *
    * @param factories
    *          The connection factories.
-   * @param scheduler
-   *          The scheduler which should for periodically monitoring dead
-   *          connection factories to see if they are usable again.
-   */
-  AbstractLoadBalancingAlgorithm(final Collection<ConnectionFactory> factories,
-      final ScheduledExecutorService scheduler)
-  {
-    this(factories, StaticUtils.getDefaultScheduler(), 10, TimeUnit.SECONDS);
-  }
-
-
-
-  /**
-   * Creates a new abstract load balancing algorithm.
-   *
-   * @param factories
-   *          The connection factories.
-   * @param scheduler
-   *          The scheduler which should for periodically monitoring dead
-   *          connection factories to see if they are usable again.
    * @param interval
    *          The interval between attempts to poll offline factories.
    * @param unit
@@ -321,8 +304,31 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm
    *          factories.
    */
   AbstractLoadBalancingAlgorithm(final Collection<ConnectionFactory> factories,
-      final ScheduledExecutorService scheduler, final long interval,
-      final TimeUnit unit)
+      final long interval, final TimeUnit unit)
+  {
+    this(factories, interval, unit, StaticUtils.getDefaultScheduler());
+  }
+
+
+
+  /**
+   * Creates a new abstract load balancing algorithm which will monitor offline
+   * connection factories using the specified frequency and scheduler.
+   *
+   * @param factories
+   *          The connection factories.
+   * @param interval
+   *          The interval between attempts to poll offline factories.
+   * @param unit
+   *          The time unit for the interval between attempts to poll offline
+   *          factories.
+   * @param scheduler
+   *          The scheduler which should for periodically monitoring dead
+   *          connection factories to see if they are usable again.
+   */
+  AbstractLoadBalancingAlgorithm(final Collection<ConnectionFactory> factories,
+      final long interval, final TimeUnit unit,
+      final ScheduledExecutorService scheduler)
   {
     Validator.ensureNotNull(factories, scheduler, unit);
 
