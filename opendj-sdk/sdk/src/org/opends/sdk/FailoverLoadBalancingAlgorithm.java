@@ -69,8 +69,8 @@ public final class FailoverLoadBalancingAlgorithm extends
 {
 
   /**
-   * Creates a new fail-over load balancing algorithm which will use a default
-   * scheduler for monitoring offline connection factories every 10 seconds.
+   * Creates a new fail-over load balancing algorithm which will monitor offline
+   * connection factories every 10 seconds using the default scheduler.
    *
    * @param factories
    *          The ordered collection of connection factories.
@@ -84,47 +84,47 @@ public final class FailoverLoadBalancingAlgorithm extends
 
 
   /**
-   * Creates a new fail-over load balancing algorithm which will use the
-   * provided scheduler for monitoring offline connection factories every 10
-   * seconds.
+   * Creates a new fail-over load balancing algorithm which will monitor offline
+   * connection factories using the specified frequency using the default
+   * scheduler.
    *
    * @param factories
-   *          The ordered collection of connection factories.
-   * @param scheduler
-   *          The scheduler which should for periodically monitoring offline
-   *          connection factories to see if they are usable again.
+   *          The connection factories.
+   * @param interval
+   *          The interval between attempts to poll offline factories.
+   * @param unit
+   *          The time unit for the interval between attempts to poll offline
+   *          factories.
    */
   public FailoverLoadBalancingAlgorithm(
-      final Collection<ConnectionFactory> factories,
-      final ScheduledExecutorService scheduler)
+      final Collection<ConnectionFactory> factories, final long interval,
+      final TimeUnit unit)
   {
-    super(factories, scheduler);
+    super(factories, interval, unit);
   }
 
 
 
   /**
-   * Creates a new fail-over load balancing algorithm which will use the
-   * provided scheduler for monitoring offline connection factories.
+   * Creates a new fail-over load balancing algorithm which will monitor offline
+   * connection factories using the specified frequency and scheduler.
    *
    * @param factories
-   *          The ordered collection of connection factories.
-   * @param scheduler
-   *          The scheduler which should for periodically monitoring offline
-   *          connection factories to see if they are usable again.
+   *          The connection factories.
    * @param interval
-   *          The interval between attempts to poll offline connection
-   *          factories.
+   *          The interval between attempts to poll offline factories.
    * @param unit
    *          The time unit for the interval between attempts to poll offline
-   *          connection factories.
+   *          factories.
+   * @param scheduler
+   *          The scheduler which should for periodically monitoring dead
+   *          connection factories to see if they are usable again.
    */
   public FailoverLoadBalancingAlgorithm(
-      final Collection<ConnectionFactory> factories,
-      final ScheduledExecutorService scheduler, final long interval,
-      final TimeUnit unit)
+      final Collection<ConnectionFactory> factories, final long interval,
+      final TimeUnit unit, final ScheduledExecutorService scheduler)
   {
-    super(factories, scheduler, interval, unit);
+    super(factories, interval, unit, scheduler);
   }
 
 

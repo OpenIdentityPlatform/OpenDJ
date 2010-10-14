@@ -29,6 +29,7 @@ package org.opends.sdk;
 
 
 
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.opends.sdk.requests.BindRequest;
@@ -103,64 +104,120 @@ public final class Connections
 
 
   /**
-   * Creates a new connection factory which will create connections using the
-   * provided connection factory and periodically probe any created connections
-   * in order to detect that they are still alive.
+   * Creates a new heart-beat connection factory which will create connections
+   * using the provided connection factory and periodically ping any created
+   * connections in order to detect that they are still alive every 10 seconds
+   * using the default scheduler.
    *
    * @param factory
    *          The connection factory to use for creating connections.
-   * @param timeout
-   *          The time to wait between keep-alive probes.
-   * @param unit
-   *          The time unit of the timeout argument.
    * @return The new heart-beat connection factory.
-   * @throws IllegalArgumentException
-   *           If {@code timeout} was negative.
    * @throws NullPointerException
-   *           If {@code factory} or {@code unit} was {@code null}.
+   *           If {@code factory} was {@code null}.
    */
   public static ConnectionFactory newHeartBeatConnectionFactory(
-      final ConnectionFactory factory, final long timeout, final TimeUnit unit)
-      throws IllegalArgumentException, NullPointerException
+      final ConnectionFactory factory) throws NullPointerException
   {
-    Validator.ensureNotNull(factory, unit);
-    Validator.ensureTrue(timeout >= 0, "negative timeout");
-
-    return new HeartBeatConnectionFactory(factory, timeout, unit);
+    return new HeartBeatConnectionFactory(factory);
   }
 
 
 
   /**
-   * Creates a new connection factory which will create connections using the
-   * provided connection factory and periodically probe any created connections
-   * using the specified search request in order to detect that they are still
-   * alive.
+   * Creates a new heart-beat connection factory which will create connections
+   * using the provided connection factory and periodically ping any created
+   * connections in order to detect that they are still alive using the
+   * specified frequency and the default scheduler.
    *
    * @param factory
    *          The connection factory to use for creating connections.
-   * @param timeout
-   *          The time to wait between keep-alive probes.
+   * @param interval
+   *          The interval between keepalive pings.
    * @param unit
-   *          The time unit of the timeout argument.
-   * @param heartBeat
-   *          The search request to use when pinging connections.
+   *          The time unit for the interval between keepalive pings.
    * @return The new heart-beat connection factory.
    * @throws IllegalArgumentException
-   *           If {@code timeout} was negative.
+   *           If {@code interval} was negative.
+   * @throws NullPointerException
+   *           If {@code factory} or {@code unit} was {@code null}.
+   */
+  public static ConnectionFactory newHeartBeatConnectionFactory(
+      final ConnectionFactory factory, final long interval, final TimeUnit unit)
+      throws IllegalArgumentException, NullPointerException
+  {
+    return new HeartBeatConnectionFactory(factory, interval, unit);
+  }
+
+
+
+
+
+
+  /**
+   * Creates a new heart-beat connection factory which will create connections
+   * using the provided connection factory and periodically ping any created
+   * connections using the specified search request in order to detect that they
+   * are still alive.
+   *
+   * @param factory
+   *          The connection factory to use for creating connections.
+   * @param interval
+   *          The interval between keepalive pings.
+   * @param unit
+   *          The time unit for the interval between keepalive pings.
+   * @param heartBeat
+   *          The search request to use for keepalive pings.
+   * @return The new heart-beat connection factory.
+   * @throws IllegalArgumentException
+   *           If {@code interval} was negative.
+   * @throws NullPointerException
+   *           If {@code factory}, {@code unit}, or {@code heartBeat} was {@code null}.
+   */
+  public static ConnectionFactory newHeartBeatConnectionFactory(
+      final ConnectionFactory factory, final long interval, final TimeUnit unit,
+      final SearchRequest heartBeat) throws IllegalArgumentException,
+      NullPointerException
+  {
+    return new HeartBeatConnectionFactory(factory, interval, unit, heartBeat);
+  }
+
+
+
+
+
+
+  /**
+   * Creates a new heart-beat connection factory which will create connections
+   * using the provided connection factory and periodically ping any created
+   * connections using the specified search request in order to detect that they
+   * are still alive.
+   *
+   * @param factory
+   *          The connection factory to use for creating connections.
+   * @param interval
+   *          The interval between keepalive pings.
+   * @param unit
+   *          The time unit for the interval between keepalive pings.
+   * @param heartBeat
+   *          The search request to use for keepalive pings.
+   * @param scheduler
+   *          The scheduler which should for periodically sending keepalive
+   *          pings.
+   * @return The new heart-beat connection factory.
+   * @throws IllegalArgumentException
+   *           If {@code interval} was negative.
    * @throws NullPointerException
    *           If {@code factory}, {@code unit}, or {@code heartBeat} was
    *           {@code null}.
    */
   public static ConnectionFactory newHeartBeatConnectionFactory(
-      final ConnectionFactory factory, final long timeout, final TimeUnit unit,
-      final SearchRequest heartBeat) throws IllegalArgumentException,
-      NullPointerException
+      final ConnectionFactory factory, final long interval,
+      final TimeUnit unit, final SearchRequest heartBeat,
+      final ScheduledExecutorService scheduler)
+      throws IllegalArgumentException, NullPointerException
   {
-    Validator.ensureNotNull(factory, unit, heartBeat);
-    Validator.ensureTrue(timeout >= 0, "negative timeout");
-
-    return new HeartBeatConnectionFactory(factory, timeout, unit, heartBeat);
+    return new HeartBeatConnectionFactory(factory, interval, unit, heartBeat,
+        scheduler);
   }
 
 
