@@ -31,15 +31,9 @@ package org.opends.sdk.requests;
 
 import javax.net.ssl.SSLContext;
 
-import org.opends.sdk.ByteString;
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.DecodeOptions;
-import org.opends.sdk.ResultCode;
+import org.opends.sdk.*;
 import org.opends.sdk.controls.Control;
-import org.opends.sdk.responses.ExtendedResult;
-import org.opends.sdk.responses.ExtendedResultDecoder;
-import org.opends.sdk.responses.GenericExtendedResult;
-import org.opends.sdk.responses.Responses;
+import org.opends.sdk.responses.*;
 
 import com.sun.opends.sdk.util.Validator;
 
@@ -72,10 +66,10 @@ final class StartTLSExtendedRequestImpl extends
 
 
 
-  private static final class ResultDecoder implements
-      ExtendedResultDecoder<ExtendedResult>
+  private static final class ResultDecoder extends
+      AbstractExtendedResultDecoder<ExtendedResult>
   {
-    public GenericExtendedResult adaptExtendedErrorResult(
+    public GenericExtendedResult newExtendedErrorResult(
         final ResultCode resultCode, final String matchedDN,
         final String diagnosticMessage)
     {

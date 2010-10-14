@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
@@ -31,6 +31,9 @@ package org.opends.sdk;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 
 
 
@@ -47,10 +50,10 @@ public final class TestCaseUtils
   public static final String PROPERTY_LDAP_PORT = "org.opends.server.LdapPort";
 
   /**
-   * Port number that's used by the server. Need to be used by the testcases to
+   * Port number that's used by the server. Need to be used by the test cases to
    * create connections.
    */
-  public static int port = 11389;
+  public static int port;
 
   static
   {
@@ -58,6 +61,10 @@ public final class TestCaseUtils
     if (ldapPort != null)
     {
       port = Integer.valueOf(ldapPort);
+    }
+    else
+    {
+      port = findFreePort();
     }
   }
 
@@ -67,6 +74,8 @@ public final class TestCaseUtils
    * Creates a temporary text file with the specified contents. It will be
    * marked for automatic deletion when the JVM exits.
    *
+   * @param lines
+   *          The file contents.
    * @return The absolute path to the file that was created.
    * @throws Exception
    *           If an unexpected problem occurs.
@@ -85,6 +94,31 @@ public final class TestCaseUtils
     w.close();
 
     return f.getAbsolutePath();
+  }
+
+
+
+  /**
+   * Finds a free server socket port on the local host.
+   *
+   * @return The free port.
+   */
+  public static int findFreePort()
+  {
+    int port;
+    try
+    {
+      ServerSocket serverLdapSocket = new ServerSocket();
+      serverLdapSocket.setReuseAddress(true);
+      serverLdapSocket.bind(new InetSocketAddress("127.0.0.1", 0));
+      port = serverLdapSocket.getLocalPort();
+      serverLdapSocket.close();
+    }
+    catch (IOException e)
+    {
+      throw new RuntimeException(e);
+    }
+    return port;
   }
 
 
@@ -122,10 +156,10 @@ public final class TestCaseUtils
    * Starts the test ldap server.
    *
    * @throws Exception
+   *           If an error occurs when starting the server.
    */
   public static void startServer() throws Exception
   {
-    // TODO:Try a couple of random ports before throwing exception.
     LDAPServer.getInstance().start(port);
   }
 

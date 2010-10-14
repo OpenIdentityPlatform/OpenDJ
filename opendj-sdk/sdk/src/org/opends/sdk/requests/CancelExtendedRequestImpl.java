@@ -40,6 +40,7 @@ import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.controls.Control;
+import org.opends.sdk.responses.AbstractExtendedResultDecoder;
 import org.opends.sdk.responses.ExtendedResult;
 import org.opends.sdk.responses.ExtendedResultDecoder;
 import org.opends.sdk.responses.Responses;
@@ -94,10 +95,10 @@ final class CancelExtendedRequestImpl extends
 
 
 
-  private static final class ResultDecoder implements
-      ExtendedResultDecoder<ExtendedResult>
+  private static final class ResultDecoder extends
+      AbstractExtendedResultDecoder<ExtendedResult>
   {
-    public ExtendedResult adaptExtendedErrorResult(final ResultCode resultCode,
+    public ExtendedResult newExtendedErrorResult(final ResultCode resultCode,
         final String matchedDN, final String diagnosticMessage)
     {
       return Responses.newGenericExtendedResult(resultCode).setMatchedDN(
@@ -116,7 +117,7 @@ final class CancelExtendedRequestImpl extends
 
 
 
-  private int messageID;
+  private int requestID;
 
   // No need to expose this.
   private static final ExtendedResultDecoder<ExtendedResult> RESULT_DECODER = new ResultDecoder();
@@ -124,9 +125,9 @@ final class CancelExtendedRequestImpl extends
 
 
   // Instantiation via factory.
-  CancelExtendedRequestImpl(final int messageID)
+  CancelExtendedRequestImpl(final int requestID)
   {
-    this.messageID = messageID;
+    this.requestID = requestID;
   }
 
 
@@ -134,9 +135,9 @@ final class CancelExtendedRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public int getMessageID()
+  public int getRequestID()
   {
-    return messageID;
+    return requestID;
   }
 
 
@@ -175,7 +176,7 @@ final class CancelExtendedRequestImpl extends
     try
     {
       writer.writeStartSequence();
-      writer.writeInteger(messageID);
+      writer.writeInteger(requestID);
       writer.writeEndSequence();
     }
     catch (final IOException ioe)
@@ -203,9 +204,9 @@ final class CancelExtendedRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public CancelExtendedRequest setMessageID(final int id)
+  public CancelExtendedRequest setRequestID(final int id)
   {
-    this.messageID = id;
+    this.requestID = id;
     return this;
   }
 
@@ -220,8 +221,8 @@ final class CancelExtendedRequestImpl extends
     final StringBuilder builder = new StringBuilder();
     builder.append("CancelExtendedRequest(requestName=");
     builder.append(getOID());
-    builder.append(", messageID=");
-    builder.append(messageID);
+    builder.append(", requestID=");
+    builder.append(requestID);
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");

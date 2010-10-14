@@ -30,6 +30,7 @@ package org.opends.sdk.requests;
 
 
 import java.util.List;
+import java.util.Map;
 
 import javax.security.auth.Subject;
 
@@ -63,35 +64,93 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
    */
   public static final String SASL_MECHANISM_NAME = "GSSAPI";
 
+  /**
+   * Indicates that the client will accept authentication only. More
+   * specifically, the underlying connection will not be protected using
+   * integrity protection or encryption, unless previously established using
+   * SSL/TLS. This is the default if no QOP option is present in the bind
+   * request.
+   */
+  public static final String QOP_AUTH = "auth";
+
+  /**
+   * Indicates that the client will accept authentication with connection
+   * integrity protection. More specifically, the underlying connection will not
+   * be encrypted, unless previously established using SSL/TLS.
+   */
+  public static final String QOP_AUTH_INT = "auth-int";
+
+  /**
+   * Indicates that the client will accept authentication with connection
+   * integrity protection and encryption.
+   */
+  public static final String QOP_AUTH_CONF = "auth-conf";
+
 
 
   /**
-   * Supported quality-of-protection options.
+   * Adds the provided additional authentication parameter to the list of
+   * parameters to be passed to the underlying mechanism implementation. This
+   * method is provided in order to allow for future extensions.
+   *
+   * @param name
+   *          The name of the additional authentication parameter.
+   * @param value
+   *          The value of the additional authentication parameter.
+   * @return This bind request.
+   * @throws UnsupportedOperationException
+   *           If this bind request does not permit additional authentication
+   *           parameters to be added.
+   * @throws NullPointerException
+   *           If {@code name} or {@code value} was {@code null}.
    */
-  public static enum QOPOption
-  {
-    /**
-     * Authentication only.
-     */
-    AUTH,
+  GSSAPISASLBindRequest addAdditionalAuthParam(String name, String value)
+      throws UnsupportedOperationException, NullPointerException;
 
-    /**
-     * Authentication plus integrity protection.
-     */
-    AUTH_INT,
 
-    /**
-     * Authentication plus integrity and confidentiality protection.
-     */
-    AUTH_CONF
-  }
+
+  /**
+   * Returns a map containing the provided additional authentication parameters
+   * to be passed to the underlying mechanism implementation. This method is
+   * provided in order to allow for future extensions.
+   *
+   * @return A map containing the provided additional authentication parameters
+   *         to be passed to the underlying mechanism implementation.
+   */
+  Map<String, String> getAdditionalAuthParams();
 
 
 
   /**
    * {@inheritDoc}
    */
+  @Override
   GSSAPISASLBindRequest addControl(Control control)
+      throws UnsupportedOperationException, NullPointerException;
+
+
+
+  /**
+   * Adds the provided quality of protection (QOP) values to the ordered list of
+   * QOP values that the client is willing to accept. The order of the list
+   * specifies the preference order, high to low. Authentication will fail if no
+   * QOP values are recognized or accepted by the server.
+   * <p>
+   * By default the client will accept {@link #QOP_AUTH AUTH}.
+   *
+   * @param qopValues
+   *          The quality of protection values that the client is willing to
+   *          accept.
+   * @return This bind request.
+   * @throws UnsupportedOperationException
+   *           If this bind request does not permit QOP values to be added.
+   * @throws NullPointerException
+   *           If {@code qopValues} was {@code null}.
+   * @see #QOP_AUTH
+   * @see #QOP_AUTH_INT
+   * @see #QOP_AUTH_CONF
+   */
+  GSSAPISASLBindRequest addQOP(String... qopValues)
       throws UnsupportedOperationException, NullPointerException;
 
 
@@ -99,6 +158,7 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
   /**
    * {@inheritDoc}
    */
+  @Override
   BindClient createBindClient(String serverName) throws ErrorResultException;
 
 
@@ -123,6 +183,7 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
    *
    * @return The authentication mechanism identifier.
    */
+  @Override
   byte getAuthenticationType();
 
 
@@ -143,6 +204,7 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
   /**
    * {@inheritDoc}
    */
+  @Override
   <C extends Control> C getControl(ControlDecoder<C> decoder,
       DecodeOptions options) throws NullPointerException, DecodeException;
 
@@ -151,6 +213,7 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
   /**
    * {@inheritDoc}
    */
+  @Override
   List<Control> getControls();
 
 
@@ -168,11 +231,34 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
 
 
   /**
+   * Returns the maximum size of the receive buffer in bytes. The actual maximum
+   * number of bytes will be the minimum of this number and the peer's maximum
+   * send buffer size. The default size is 65536.
+   *
+   * @return The maximum size of the receive buffer in bytes.
+   */
+  int getMaxReceiveBufferSize();
+
+
+
+  /**
+   * Returns the maximum size of the send buffer in bytes. The actual maximum
+   * number of bytes will be the minimum of this number and the peer's maximum
+   * receive buffer size. The default size is 65536.
+   *
+   * @return The maximum size of the send buffer in bytes.
+   */
+  int getMaxSendBufferSize();
+
+
+
+  /**
    * Returns the name of the Directory object that the client wishes to bind as,
    * which is always the empty string for SASL authentication.
    *
    * @return The name of the Directory object that the client wishes to bind as.
    */
+  @Override
   String getName();
 
 
@@ -185,6 +271,22 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
    * @return The password of the user that the client wishes to bind as.
    */
   ByteString getPassword();
+
+
+
+  /**
+   * Returns the ordered list of quality of protection (QOP) values that the
+   * client is willing to accept. The order of the list specifies the preference
+   * order, high to low. Authentication will fail if no QOP values are
+   * recognized or accepted by the server.
+   * <p>
+   * By default the client will accept {@link #QOP_AUTH AUTH}.
+   *
+   * @return The list of quality of protection values that the client is willing
+   *         to accept. The returned list may be empty indicating that the
+   *         default QOP will be accepted.
+   */
+  List<String> getQOPs();
 
 
 
@@ -203,6 +305,7 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
   /**
    * {@inheritDoc}
    */
+  @Override
   String getSASLMechanism();
 
 
@@ -220,48 +323,12 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
 
 
   /**
-   * Returns the quality-of-protection options to use.
-   * The order of the list specifies the preference order.
+   * Returns {@code true} if the server must authenticate to the client. The
+   * default is {@code false}.
    *
-   * @return The list of quality-of-protection options to use.
+   * @return {@code true} if the server must authenticate to the client.
    */
-  QOPOption[] getQOP();
-
-
-
-  /**
-   * Returns whether the server must authenticate to the client.
-   * The default is {@code false}.
-   *
-   * @return {@code true} if the server must authenticate
-   *         to the client or {@code false} otherwise.
-   */
-  boolean getServerAuth();
-
-
-
-  /**
-   * Returns the maximum size of the receive buffer in bytes. The
-   * default is 65536. The actual maximum number of bytes will
-   * be the minimum of this number and the peer's maximum send
-   * buffer size.
-   *
-   * @return The maximum size of the receive buffer in bytes.
-   */
-  int getMaxReceiveBufferSize();
-
-
-
-  /**
-   * Returns the maximum size of the send buffer in bytes. The
-   * default is 65536. The actual maximum number of bytes will
-   * be the minimum of this number and the peer's maximum receive
-   * buffer size.
-   *
-   * @return The maximum size of the send buffer in bytes.
-   */
-  int getMaxSendBufferSize();
-
+  boolean isServerAuth();
 
 
 
@@ -326,6 +393,38 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
 
 
   /**
+   * Sets the maximum size of the receive buffer in bytes. The actual maximum
+   * number of bytes will be the minimum of this number and the peer's maximum
+   * send buffer size. The default size is 65536.
+   *
+   * @param size
+   *          The maximum size of the receive buffer in bytes.
+   * @return This bind request.
+   * @throws UnsupportedOperationException
+   *           If this bind request does not permit the buffer size to be set.
+   */
+  GSSAPISASLBindRequest setMaxReceiveBufferSize(int size)
+      throws UnsupportedOperationException;
+
+
+
+  /**
+   * Sets the maximum size of the send buffer in bytes. The actual maximum
+   * number of bytes will be the minimum of this number and the peer's maximum
+   * receive buffer size. The default size is 65536.
+   *
+   * @param size
+   *          The maximum size of the send buffer in bytes.
+   * @return This bind request.
+   * @throws UnsupportedOperationException
+   *           If this bind request does not permit the buffer size to be set.
+   */
+  GSSAPISASLBindRequest setMaxSendBufferSize(int size)
+      throws UnsupportedOperationException;
+
+
+
+  /**
    * Sets the password of the user that the client wishes to bind as.
    * <p>
    * <b>NOTE</b>: this will not be used if a {@code Subject} is specified.
@@ -383,6 +482,22 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
 
 
   /**
+   * Specifies whether or not the server must authenticate to the client. The
+   * default is {@code false}.
+   *
+   * @param serverAuth
+   *          {@code true} if the server must authenticate to the client or
+   *          {@code false} otherwise.
+   * @return This bind request.
+   * @throws UnsupportedOperationException
+   *           If this bind request does not permit server auth to be set.
+   */
+  GSSAPISASLBindRequest setServerAuth(boolean serverAuth)
+      throws UnsupportedOperationException;
+
+
+
+  /**
    * Sets the Kerberos subject of the user to be authenticated.
    * <p>
    * <b>NOTE</b>: if a {@code Subject} is specified then the authentication ID,
@@ -395,54 +510,4 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
    *           If {@code subject} was {@code null}.
    */
   GSSAPISASLBindRequest setSubject(Subject subject) throws NullPointerException;
-
-
-
-  /**
-   * Specifies the quality-of-protection options to use.
-   * The order of the list specifies the preference order.
-   *
-   * @param qopOptions The list of quality-of-protection options to
-   *                   use.
-   * @return This bind request.
-   */
-  GSSAPISASLBindRequest setQOP(QOPOption... qopOptions);
-
-
-
-  /**
-   * Specifies whether the server must authenticate to the client.
-   *
-   * @param serverAuth {@code true} if the server must authenticate
-   *                   to the client or {@code false} otherwise.
-   * @return This bind request.
-   */
-  GSSAPISASLBindRequest setServerAuth(boolean serverAuth);
-
-
-
-  /**
-   * Specifies the maximum size of the receive buffer in bytes.
-   * The actual maximum number of bytes will
-   * be the minimum of this number and the peer's maximum send
-   * buffer size.
-   *
-   * @param maxBuffer The maximum size of the receive buffer in bytes.
-   * @return This bind request.
-   */
-  GSSAPISASLBindRequest setMaxReceiveBufferSize(int maxBuffer);
-
-
-
-  /**
-   * Specifies the maximum size of the send buffer in bytes.
-   *  The actual maximum number of bytes will
-   * be the minimum of this number and the peer's maximum receive
-   * buffer size.
-   *
-   * @param maxBuffer The maximum size of the send buffer in bytes.
-   * @return This bind request.
-   */
-  GSSAPISASLBindRequest setMaxSendBufferSize(int maxBuffer);
-
 }

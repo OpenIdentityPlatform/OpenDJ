@@ -35,8 +35,20 @@ import com.sun.opends.sdk.util.CompletedFutureResult;
 
 
 /**
- * A special {@code ConnectionFactory} that can be used to perform internal
- * operations against a {@code ServerConnectionFactory} implementation.
+ * A special {@code ConnectionFactory} which waits for internal connection
+ * requests and binds them to a {@link ServerConnection} created using the
+ * provided {@link ServerConnectionFactory}.
+ * <p>
+ * When processing requests, {@code ServerConnection} implementations are passed
+ * an integer as the first parameter. This integer represents a pseudo
+ * {@code requestID} which is incremented for each successive internal request
+ * on a per connection basis. The request ID may be useful for logging purposes.
+ * <p>
+ * An {@code InternalConnectionFactory} does not require
+ * {@code ServerConnection} implementations to return a result when processing
+ * requests. However, it is recommended that implementations do always return
+ * results even for abandoned requests. This is because application client
+ * threads may block indefinitely waiting for results.
  *
  * @param <C>
  *          The type of client context.
@@ -66,7 +78,7 @@ final class InternalConnectionFactory<C> extends AbstractConnectionFactory
     final ServerConnection<Integer> serverConnection;
     try
     {
-      serverConnection = factory.accept(clientContext);
+      serverConnection = factory.handleAccept(clientContext);
     }
     catch (final ErrorResultException e)
     {
@@ -84,5 +96,21 @@ final class InternalConnectionFactory<C> extends AbstractConnectionFactory
       handler.handleResult(connection);
     }
     return new CompletedFutureResult<AsynchronousConnection>(connection);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String toString()
+  {
+    final StringBuilder builder = new StringBuilder();
+    builder.append("InternalConnectionFactory(");
+    builder.append(String.valueOf(clientContext));
+    builder.append(',');
+    builder.append(String.valueOf(factory));
+    builder.append(')');
+    return builder.toString();
   }
 }

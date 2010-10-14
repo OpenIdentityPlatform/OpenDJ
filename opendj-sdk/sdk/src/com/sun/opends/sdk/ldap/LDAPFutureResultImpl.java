@@ -29,7 +29,10 @@ package com.sun.opends.sdk.ldap;
 
 
 
-import org.opends.sdk.*;
+import org.opends.sdk.AsynchronousConnection;
+import org.opends.sdk.IntermediateResponseHandler;
+import org.opends.sdk.ResultCode;
+import org.opends.sdk.ResultHandler;
 import org.opends.sdk.requests.Request;
 import org.opends.sdk.responses.Responses;
 import org.opends.sdk.responses.Result;
@@ -40,18 +43,17 @@ import org.opends.sdk.responses.Result;
  * Result future implementation.
  */
 final class LDAPFutureResultImpl extends AbstractLDAPFutureResultImpl<Result>
-    implements FutureResult<Result>
 {
   private final Request request;
 
 
 
-  LDAPFutureResultImpl(final int messageID, final Request request,
+  LDAPFutureResultImpl(final int requestID, final Request request,
       final ResultHandler<? super Result> resultHandler,
       final IntermediateResponseHandler intermediateResponseHandler,
       final AsynchronousConnection connection)
   {
-    super(messageID, resultHandler, intermediateResponseHandler, connection);
+    super(requestID, resultHandler, intermediateResponseHandler, connection);
     this.request = request;
   }
 
@@ -85,7 +87,7 @@ final class LDAPFutureResultImpl extends AbstractLDAPFutureResultImpl<Result>
   Result newErrorResult(final ResultCode resultCode,
       final String diagnosticMessage, final Throwable cause)
   {
-    return Responses.newResult(resultCode).setDiagnosticMessage(
-        diagnosticMessage).setCause(cause);
+    return Responses.newResult(resultCode)
+        .setDiagnosticMessage(diagnosticMessage).setCause(cause);
   }
 }

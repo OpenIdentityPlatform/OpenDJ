@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.util;
@@ -54,7 +54,7 @@ import org.opends.sdk.ResultHandler;
 public abstract class RecursiveFutureResult<M, N> implements FutureResult<N>,
     ResultHandler<M>
 {
-  private final class FutureResultImpl extends AbstractFutureResult<N>
+  private final class FutureResultImpl extends AsynchronousFutureResult<N>
   {
     private FutureResultImpl(final ResultHandler<? super N> handler)
     {

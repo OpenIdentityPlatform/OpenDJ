@@ -32,21 +32,23 @@ package com.sun.opends.sdk.ldap;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.SocketAddress;
+import java.util.logging.Level;
 
 import javax.net.ssl.SSLContext;
 
+import org.glassfish.grizzly.filterchain.DefaultFilterChain;
+import org.glassfish.grizzly.filterchain.FilterChain;
+import org.glassfish.grizzly.filterchain.TransportFilter;
+import org.glassfish.grizzly.nio.transport.TCPNIOServerConnection;
+import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
+import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
+import org.glassfish.grizzly.ssl.SSLFilter;
 import org.opends.sdk.DecodeOptions;
 import org.opends.sdk.LDAPClientContext;
 import org.opends.sdk.LDAPListenerOptions;
 import org.opends.sdk.ServerConnectionFactory;
 
-import com.sun.grizzly.filterchain.DefaultFilterChain;
-import com.sun.grizzly.filterchain.FilterChain;
-import com.sun.grizzly.filterchain.TransportFilter;
-import com.sun.grizzly.nio.transport.TCPNIOServerConnection;
-import com.sun.grizzly.nio.transport.TCPNIOTransport;
-import com.sun.grizzly.ssl.SSLEngineConfigurator;
-import com.sun.grizzly.ssl.SSLFilter;
+import com.sun.opends.sdk.util.StaticUtils;
 
 
 
@@ -118,9 +120,53 @@ public final class LDAPListenerImpl implements Closeable
   /**
    * {@inheritDoc}
    */
-  public void close() throws IOException
+  @Override
+  public void close()
   {
-    transport.unbind(serverConnection);
+    try
+    {
+      serverConnection.close().get();
+    }
+    catch (final InterruptedException e)
+    {
+      // Cannot handle here.
+      Thread.currentThread().interrupt();
+    }
+    catch (final Exception e)
+    {
+      // Ignore the exception.
+      if (StaticUtils.DEBUG_LOG.isLoggable(Level.WARNING))
+      {
+        StaticUtils.DEBUG_LOG.log(Level.WARNING,
+            "Exception occurred while closing listener:" + e.getMessage(), e);
+      }
+    }
+  }
+
+
+
+  /**
+   * Returns the address that this LDAP listener is listening on.
+   *
+   * @return The address that this LDAP listener is listening on.
+   */
+  public SocketAddress getSocketAddress()
+  {
+    return serverConnection.getLocalAddress();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String toString()
+  {
+    final StringBuilder builder = new StringBuilder();
+    builder.append("LDAPListener(");
+    builder.append(getSocketAddress().toString());
+    builder.append(')');
+    return builder.toString();
   }
 
 

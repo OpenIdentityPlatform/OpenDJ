@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -59,13 +59,13 @@ public final class Requests
   /**
    * Creates a new abandon request using the provided message ID.
    *
-   * @param messageID
-   *          The message ID of the request to be abandoned.
+   * @param requestID
+   *          The request ID of the request to be abandoned.
    * @return The new abandon request.
    */
-  public static AbandonRequest newAbandonRequest(final int messageID)
+  public static AbandonRequest newAbandonRequest(final int requestID)
   {
-    return new AbandonRequestImpl(messageID);
+    return new AbandonRequestImpl(requestID);
   }
 
 
@@ -187,14 +187,14 @@ public final class Requests
   /**
    * Creates a new cancel extended request using the provided message ID.
    *
-   * @param messageID
-   *          The message ID of the request to be abandoned.
+   * @param requestID
+   *          The request ID of the request to be abandoned.
    * @return The new cancel extended request.
    */
   public static CancelExtendedRequest newCancelExtendedRequest(
-      final int messageID)
+      final int requestID)
   {
-    return new CancelExtendedRequestImpl(messageID);
+    return new CancelExtendedRequestImpl(requestID);
   }
 
 
@@ -584,6 +584,42 @@ public final class Requests
   {
     Validator.ensureNotNull(name);
     return new ModifyRequestImpl(name);
+  }
+
+
+
+  /**
+   * Creates a new modify request containing a list of modifications which can
+   * be used to transform {@code fromEntry} into entry {@code toEntry}.
+   * <p>
+   * The modify request is reversible: it will contain only modifications of
+   * type {@link ModificationType#ADD ADD} and {@link ModificationType#DELETE
+   * DELETE}.
+   * <p>
+   * Finally, the modify request will use the distinguished name taken from
+   * {@code fromEntry}. Moreover, this method will not check to see if both
+   * {@code fromEntry} and {@code toEntry} have the same distinguished name.
+   * <p>
+   * This method is equivalent to:
+   *
+   * <pre>
+   * ModifyRequest request = Entries.diffEntries(fromEntry, toEntry);
+   * </pre>
+   *
+   * @param fromEntry
+   *          The source entry.
+   * @param toEntry
+   *          The destination entry.
+   * @return A modify request containing a list of modifications which can be
+   *         used to transform {@code fromEntry} into entry {@code toEntry}.
+   * @throws NullPointerException
+   *           If {@code fromEntry} or {@code toEntry} were {@code null}.
+   * @see Entries#diffEntries(Entry, Entry)
+   */
+  public static final ModifyRequest newModifyRequest(Entry fromEntry,
+      Entry toEntry) throws NullPointerException
+  {
+    return Entries.diffEntries(fromEntry, toEntry);
   }
 
 

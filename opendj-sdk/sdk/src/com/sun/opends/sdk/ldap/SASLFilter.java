@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.ldap;
@@ -31,8 +31,8 @@ package com.sun.opends.sdk.ldap;
 
 import org.opends.sdk.ConnectionSecurityLayer;
 
-import com.sun.grizzly.Buffer;
-import com.sun.grizzly.filterchain.AbstractCodecFilter;
+import org.glassfish.grizzly.Buffer;
+import org.glassfish.grizzly.filterchain.AbstractCodecFilter;
 
 
 

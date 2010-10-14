@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -41,8 +41,6 @@ import org.opends.sdk.controls.ControlDecoder;
 /**
  * The base class of all Requests provides methods for querying and manipulating
  * the set of Controls included with a Request.
- * <p>
- * TODO: added complete description including sub-types.
  */
 public interface Request
 {

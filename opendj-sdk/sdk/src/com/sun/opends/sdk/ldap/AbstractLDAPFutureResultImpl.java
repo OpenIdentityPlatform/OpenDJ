@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.ldap;
@@ -34,7 +34,7 @@ import org.opends.sdk.requests.Requests;
 import org.opends.sdk.responses.IntermediateResponse;
 import org.opends.sdk.responses.Result;
 
-import com.sun.opends.sdk.util.AbstractFutureResult;
+import com.sun.opends.sdk.util.AsynchronousFutureResult;
 
 
 
@@ -45,12 +45,11 @@ import com.sun.opends.sdk.util.AbstractFutureResult;
  *          The type of result returned by this future.
  */
 abstract class AbstractLDAPFutureResultImpl<S extends Result> extends
-    AbstractFutureResult<S> implements FutureResult<S>,
-    IntermediateResponseHandler
+    AsynchronousFutureResult<S> implements IntermediateResponseHandler
 {
   private final AsynchronousConnection connection;
 
-  private final int messageID;
+  private final int requestID;
 
   private IntermediateResponseHandler intermediateResponseHandler;
 
@@ -58,13 +57,13 @@ abstract class AbstractLDAPFutureResultImpl<S extends Result> extends
 
 
 
-  AbstractLDAPFutureResultImpl(final int messageID,
+  AbstractLDAPFutureResultImpl(final int requestID,
       final ResultHandler<? super S> resultHandler,
       final IntermediateResponseHandler intermediateResponseHandler,
       final AsynchronousConnection connection)
   {
     super(resultHandler);
-    this.messageID = messageID;
+    this.requestID = requestID;
     this.connection = connection;
     this.intermediateResponseHandler = intermediateResponseHandler;
     this.timestamp = System.currentTimeMillis();
@@ -75,13 +74,15 @@ abstract class AbstractLDAPFutureResultImpl<S extends Result> extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public final int getRequestID()
   {
-    return messageID;
+    return requestID;
   }
 
 
 
+  @Override
   public final boolean handleIntermediateResponse(
       final IntermediateResponse response)
   {
@@ -112,7 +113,7 @@ abstract class AbstractLDAPFutureResultImpl<S extends Result> extends
   protected final ErrorResultException handleCancelRequest(
       final boolean mayInterruptIfRunning)
   {
-    connection.abandon(Requests.newAbandonRequest(messageID));
+    connection.abandon(Requests.newAbandonRequest(requestID));
     return null;
   }
 
@@ -121,8 +122,8 @@ abstract class AbstractLDAPFutureResultImpl<S extends Result> extends
   @Override
   protected void toString(final StringBuilder sb)
   {
-    sb.append(" messageID = ");
-    sb.append(messageID);
+    sb.append(" requestID = ");
+    sb.append(requestID);
     sb.append(" timestamp = ");
     sb.append(timestamp);
     super.toString(sb);
@@ -132,8 +133,8 @@ abstract class AbstractLDAPFutureResultImpl<S extends Result> extends
 
   final void adaptErrorResult(final Result result)
   {
-    final S errorResult = newErrorResult(result.getResultCode(), result
-        .getDiagnosticMessage(), result.getCause());
+    final S errorResult = newErrorResult(result.getResultCode(),
+        result.getDiagnosticMessage(), result.getCause());
     setResultOrError(errorResult);
   }
 

@@ -32,6 +32,8 @@ package org.opends.sdk.responses;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.DecodeOptions;
 import org.opends.sdk.ResultCode;
+import org.opends.sdk.ResultHandler;
+import org.opends.sdk.requests.ExtendedRequest;
 
 
 
@@ -44,25 +46,46 @@ import org.opends.sdk.ResultCode;
  */
 public interface ExtendedResultDecoder<S extends ExtendedResult>
 {
+
   /**
-   * Adapts the provided error result parameters to an extended operation
-   * result. This method is called when a generic failure occurs, such as a
-   * connection failure, and the error result needs to be converted to a {@code
-   * Result} of type {@code S}.
+   * Creates a new extended operation error result using the provided decoding
+   * exception. This method should be used to adapt {@code DecodeException}
+   * encountered while decoding an extended request or result. The returned
+   * error result will have the result code {@link ResultCode#PROTOCOL_ERROR}.
    *
-   * @param resultCode
-   *          The result code.
-   * @param matchedDN
-   *          The matched DN, which may be empty if none was provided.
-   * @param diagnosticMessage
-   *          The diagnostic message, which may be empty if none was provided.
-   * @return The decoded extended operation error result.
+   * @param exception
+   *          The decoding exception to be adapted.
+   * @return An extended operation error result representing the decoding
+   *         exception.
    * @throws NullPointerException
-   *           If {@code resultCode}, {@code matchedDN}, or {@code
-   *           diagnosticMessage} were {@code null}.
+   *           If {@code exception} was {@code null}.
    */
-  S adaptExtendedErrorResult(ResultCode resultCode, String matchedDN,
-      String diagnosticMessage) throws NullPointerException;
+  S adaptDecodeException(DecodeException exception) throws NullPointerException;
+
+
+
+  /**
+   * Adapts the provided extended result handler into a result handler which is
+   * compatible with this extended result decoder. Extended results handled by
+   * the returned handler will be automatically converted and passed to the
+   * provided result handler. Decoding errors encountered while decoding the
+   * extended result will be converted into protocol errors.
+   *
+   * @param <R>
+   *          The type of result handler to be adapted.
+   * @param request
+   *          The extended request whose result handler is to be adapted.
+   * @param resultHandler
+   *          The extended result handler which is to be adapted.
+   * @param options
+   *          The set of decode options which should be used when decoding the
+   *          extended operation result.
+   * @return A result handler which is compatible with this extended result
+   *         decoder.
+   */
+  <R extends ExtendedResult> ResultHandler<S> adaptExtendedResultHandler(
+      final ExtendedRequest<R> request,
+      final ResultHandler<? super R> resultHandler, DecodeOptions options);
 
 
 
@@ -85,5 +108,27 @@ public interface ExtendedResultDecoder<S extends ExtendedResult>
    */
   S decodeExtendedResult(ExtendedResult result, DecodeOptions options)
       throws DecodeException;
+
+
+
+  /**
+   * Creates a new extended error result using the provided result code, matched
+   * DN, and diagnostic message. This method is called when a generic failure
+   * occurs, such as a connection failure, and the error result needs to be
+   * converted to a {@code Result} of type {@code S}.
+   *
+   * @param resultCode
+   *          The result code.
+   * @param matchedDN
+   *          The matched DN, which may be empty if none was provided.
+   * @param diagnosticMessage
+   *          The diagnostic message, which may be empty if none was provided.
+   * @return The decoded extended operation error result.
+   * @throws NullPointerException
+   *           If {@code resultCode}, {@code matchedDN}, or
+   *           {@code diagnosticMessage} were {@code null}.
+   */
+  S newExtendedErrorResult(ResultCode resultCode, String matchedDN,
+      String diagnosticMessage) throws NullPointerException;
 
 }

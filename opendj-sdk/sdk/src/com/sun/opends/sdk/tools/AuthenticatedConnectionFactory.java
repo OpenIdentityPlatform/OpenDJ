@@ -50,13 +50,13 @@ import com.sun.opends.sdk.util.Validator;
  * operations with the exception of Bind requests. Attempts to perform a Bind
  * will result in an {@code UnsupportedOperationException}.
  * <p>
- * In addition, the returned connections support retrieval of the {@code
- * BindResult} returned from the initial Bind request, or last rebind.
+ * In addition, the returned connections support retrieval of the
+ * {@code BindResult} returned from the initial Bind request, or last rebind.
  * <p>
  * Support for connection re-authentication is provided through the
  * {@link #setRebindAllowed} method which, if set to {@code true}, causes
- * subsequent connections created using the factory to support the {@code
- * rebind} method.
+ * subsequent connections created using the factory to support the
+ * {@code rebind} method.
  * <p>
  * If the Bind request fails for some reason (e.g. invalid credentials), then
  * the connection attempt will fail and an {@code ErrorResultException} will be
@@ -388,8 +388,8 @@ final class AuthenticatedConnectionFactory extends AbstractConnectionFactory
      * @throws UnsupportedOperationException
      *           If this connection does not support rebind operations.
      * @throws IllegalStateException
-     *           If this connection has already been closed, i.e. if {@code
-     *           isClosed() == true}.
+     *           If this connection has already been closed, i.e. if
+     *           {@code isClosed() == true}.
      */
     public FutureResult<BindResult> rebind(
         final ResultHandler<? super BindResult> handler)
@@ -481,6 +481,20 @@ final class AuthenticatedConnectionFactory extends AbstractConnectionFactory
       return connection.searchSingleEntry(request, resultHandler);
     }
 
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public String toString()
+    {
+      StringBuilder builder = new StringBuilder();
+      builder.append("AuthenticatedConnection(");
+      builder.append(connection);
+      builder.append(')');
+      return builder.toString();
+    }
+
   }
 
 
@@ -559,8 +573,8 @@ final class AuthenticatedConnectionFactory extends AbstractConnectionFactory
      * @throws UnsupportedOperationException
      *           If this connection does not support rebind operations.
      * @throws IllegalStateException
-     *           If this connection has already been closed, i.e. if {@code
-     *           isClosed() == true}.
+     *           If this connection has already been closed, i.e. if
+     *           {@code isClosed() == true}.
      */
     public BindResult rebind() throws ErrorResultException,
         InterruptedException, UnsupportedOperationException,
@@ -728,6 +742,20 @@ final class AuthenticatedConnectionFactory extends AbstractConnectionFactory
   {
     this.allowRebinds = allowRebinds;
     return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String toString()
+  {
+    final StringBuilder builder = new StringBuilder();
+    builder.append("AuthenticatedConnectionFactory(");
+    builder.append(String.valueOf(parentFactory));
+    builder.append(')');
+    return builder.toString();
   }
 
 }

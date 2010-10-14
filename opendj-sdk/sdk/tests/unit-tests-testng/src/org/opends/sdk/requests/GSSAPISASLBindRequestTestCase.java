@@ -36,7 +36,6 @@ import org.testng.annotations.Test;
 import java.util.Arrays;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
 
 /**
  * Tests GSSAPI SASL Bind requests.
@@ -81,20 +80,19 @@ public class GSSAPISASLBindRequestTestCase extends BindRequestTestCase
   @Test(dataProvider = "GSSAPISASLBindRequests")
   public void testQOP(GSSAPISASLBindRequest request) throws Exception
   {
-    GSSAPISASLBindRequest.QOPOption [] options =
-        new GSSAPISASLBindRequest.QOPOption[]{
-            GSSAPISASLBindRequest.QOPOption.AUTH,
-            GSSAPISASLBindRequest.QOPOption.AUTH_INT,
-            GSSAPISASLBindRequest.QOPOption.AUTH_CONF};
-    request.setQOP(options);
-    assertTrue(Arrays.deepEquals(options, request.getQOP()));
+    String[] options = new String[] {
+        GSSAPISASLBindRequest.QOP_AUTH,
+        GSSAPISASLBindRequest.QOP_AUTH_INT,
+        GSSAPISASLBindRequest.QOP_AUTH_CONF };
+    request.addQOP(options);
+    assertEquals(request.getQOPs(), Arrays.asList(options));
   }
 
   @Test(dataProvider = "GSSAPISASLBindRequests")
   public void testServerAuth(GSSAPISASLBindRequest request) throws Exception
   {
     request.setServerAuth(true);
-    assertEquals(request.getServerAuth(), true);
+    assertEquals(request.isServerAuth(), true);
   }
 
   @Test(dataProvider = "GSSAPISASLBindRequests")

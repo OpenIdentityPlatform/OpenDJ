@@ -40,19 +40,18 @@ import org.opends.sdk.responses.Responses;
  * Bind result future implementation.
  */
 final class LDAPBindFutureResultImpl extends
-    AbstractLDAPFutureResultImpl<BindResult> implements
-    FutureResult<BindResult>
+    AbstractLDAPFutureResultImpl<BindResult>
 {
   private final BindClient bindClient;
 
 
 
-  LDAPBindFutureResultImpl(final int messageID, final BindClient bindClient,
+  LDAPBindFutureResultImpl(final int requestID, final BindClient bindClient,
       final ResultHandler<? super BindResult> resultHandler,
       final IntermediateResponseHandler intermediateResponseHandler,
       final AsynchronousConnection connection)
   {
-    super(messageID, resultHandler, intermediateResponseHandler, connection);
+    super(requestID, resultHandler, intermediateResponseHandler, connection);
     this.bindClient = bindClient;
   }
 

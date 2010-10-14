@@ -47,8 +47,8 @@ import org.opends.sdk.controls.ControlDecoder;
 import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.*;
 
-import com.sun.grizzly.TransportFactory;
-import com.sun.grizzly.nio.transport.TCPNIOTransport;
+import org.glassfish.grizzly.TransportFactory;
+import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import com.sun.opends.sdk.controls.AccountUsabilityRequestControl;
 import com.sun.opends.sdk.controls.AccountUsabilityResponseControl;
 import com.sun.opends.sdk.ldap.GrizzlyLDAPListenerOptions;
@@ -138,7 +138,8 @@ public class LDAPServer implements
 
 
 
-  private class LDAPServerConnection implements ServerConnection<Integer>
+  private class LDAPServerConnection implements
+      ServerConnection<Integer>
   {
 
     private final LDAPClientContext clientContext;
@@ -164,7 +165,8 @@ public class LDAPServer implements
         final AbandonRequest request) throws UnsupportedOperationException
     {
       // Check if we have any concurrent operation with this message id.
-      final AbandonableRequest req = requestsInProgress.get(context);
+      final AbandonableRequest req = requestsInProgress.get(request
+          .getRequestID());
       if (req == null)
       {
         // Nothing to do here.
@@ -186,8 +188,8 @@ public class LDAPServer implements
      * @param intermediateResponseHandler
      * @throws UnsupportedOperationException
      */
-    public void handleAdd(final Integer context, final AddRequest request,
-        final ResultHandler<? super Result> handler,
+    public void handleAdd(final Integer context,
+        final AddRequest request, final ResultHandler<? super Result> handler,
         final IntermediateResponseHandler intermediateResponseHandler)
         throws UnsupportedOperationException
     {
@@ -399,11 +401,17 @@ public class LDAPServer implements
 
 
     /**
-     * @param context
-     * @param request
+     * {@inheritDoc}
      */
     public void handleConnectionClosed(final Integer context,
         final UnbindRequest request)
+    {
+      close();
+    }
+
+
+
+    private void close()
     {
       if (saslServer != null)
       {
@@ -421,11 +429,22 @@ public class LDAPServer implements
 
 
     /**
-     * @param error
+     * {@inheritDoc}
      */
-    public void handleConnectionException(final Throwable error)
+    public void handleConnectionDisconnected(ResultCode resultCode,
+        String message)
     {
+      close();
+    }
 
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void handleConnectionError(final Throwable error)
+    {
+      close();
     }
 
 
@@ -549,7 +568,7 @@ public class LDAPServer implements
     {
       if (request.getOID().equals(StartTLSExtendedRequest.OID))
       {
-        final R result = request.getResultDecoder().adaptExtendedErrorResult(
+        final R result = request.getResultDecoder().newExtendedErrorResult(
             ResultCode.SUCCESS, "", "");
         resultHandler.handleResult(result);
         clientContext.startTLS(sslContext, null, sslContext.getSocketFactory()
@@ -599,14 +618,11 @@ public class LDAPServer implements
      * @param context
      * @param request
      * @param resultHandler
-     * @param searchResulthandler
      * @param intermediateResponseHandler
      * @throws UnsupportedOperationException
      */
     public void handleSearch(final Integer context,
-        final SearchRequest request,
-        final ResultHandler<? super Result> resultHandler,
-        final SearchResultHandler searchResulthandler,
+        final SearchRequest request, final SearchResultHandler resultHandler,
         final IntermediateResponseHandler intermediateResponseHandler)
         throws UnsupportedOperationException
     {
@@ -648,7 +664,7 @@ public class LDAPServer implements
               false, 10, false, 0));
         }
       }
-      searchResulthandler.handleEntry(e);
+      resultHandler.handleEntry(e);
       result = Responses.newResult(ResultCode.SUCCESS);
       resultHandler.handleResult(result);
       requestsInProgress.remove(context);
@@ -707,7 +723,7 @@ public class LDAPServer implements
    * @param context
    * @return
    */
-  public ServerConnection<Integer> accept(final LDAPClientContext context)
+  public ServerConnection<Integer> handleAccept(final LDAPClientContext context)
   {
     return new LDAPServerConnection(context);
   }
@@ -759,14 +775,7 @@ public class LDAPServer implements
     {
       return;
     }
-    try
-    {
-      listener.close();
-    }
-    catch (final IOException e)
-    {
-      e.printStackTrace();
-    }
+    listener.close();
     try
     {
       transport.stop();

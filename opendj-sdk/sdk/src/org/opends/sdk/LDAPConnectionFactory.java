@@ -29,6 +29,7 @@ package org.opends.sdk;
 
 
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
@@ -131,8 +132,31 @@ public final class LDAPConnectionFactory implements ConnectionFactory
 
 
   /**
+   * Returns the {@code InetAddress} that this LDAP listener is listening on.
+   *
+   * @return The {@code InetAddress} that this LDAP listener is listening on, or
+   *         {@code null} if it is unknown.
+   */
+  public InetAddress getAddress()
+  {
+    final SocketAddress socketAddress = getSocketAddress();
+    if (socketAddress instanceof InetSocketAddress)
+    {
+      final InetSocketAddress inetSocketAddress = (InetSocketAddress) socketAddress;
+      return inetSocketAddress.getAddress();
+    }
+    else
+    {
+      return null;
+    }
+  }
+
+
+
+  /**
    * {@inheritDoc}
    */
+  @Override
   public FutureResult<AsynchronousConnection> getAsynchronousConnection(
       final ResultHandler<? super AsynchronousConnection> handler)
   {
@@ -144,9 +168,77 @@ public final class LDAPConnectionFactory implements ConnectionFactory
   /**
    * {@inheritDoc}
    */
+  @Override
   public Connection getConnection() throws ErrorResultException,
       InterruptedException
   {
     return impl.getConnection();
+  }
+
+
+
+  /**
+   * Returns the host name that this LDAP listener is listening on.
+   *
+   * @return The host name that this LDAP listener is listening on, or
+   *         {@code null} if it is unknown.
+   */
+  public String getHostname()
+  {
+    final SocketAddress socketAddress = getSocketAddress();
+    if (socketAddress instanceof InetSocketAddress)
+    {
+      final InetSocketAddress inetSocketAddress = (InetSocketAddress) socketAddress;
+      return inetSocketAddress.getHostName();
+    }
+    else
+    {
+      return null;
+    }
+  }
+
+
+
+  /**
+   * Returns the port that this LDAP listener is listening on.
+   *
+   * @return The port that this LDAP listener is listening on, or {@code -1} if
+   *         it is unknown.
+   */
+  public int getPort()
+  {
+    final SocketAddress socketAddress = getSocketAddress();
+    if (socketAddress instanceof InetSocketAddress)
+    {
+      final InetSocketAddress inetSocketAddress = (InetSocketAddress) socketAddress;
+      return inetSocketAddress.getPort();
+    }
+    else
+    {
+      return -1;
+    }
+  }
+
+
+
+  /**
+   * Returns the address that this LDAP listener is listening on.
+   *
+   * @return The address that this LDAP listener is listening on.
+   */
+  public SocketAddress getSocketAddress()
+  {
+    return impl.getSocketAddress();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString()
+  {
+    return impl.toString();
   }
 }

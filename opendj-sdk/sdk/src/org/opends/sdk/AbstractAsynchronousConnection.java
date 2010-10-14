@@ -44,8 +44,8 @@ import org.opends.sdk.schema.Schema;
 
 
 /**
- * This class provides a skeletal implementation of the {@code
- * AsynchronousConnection} interface, to minimize the effort required to
+ * This class provides a skeletal implementation of the
+ * {@code AsynchronousConnection} interface, to minimize the effort required to
  * implement this interface.
  */
 public abstract class AbstractAsynchronousConnection implements
@@ -394,9 +394,8 @@ public abstract class AbstractAsynchronousConnection implements
    * {@inheritDoc}
    */
   public FutureResult<Result> search(final SearchRequest request,
-      final SearchResultHandler handler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
+      final SearchResultHandler handler) throws UnsupportedOperationException,
+      IllegalStateException, NullPointerException
   {
     return search(request, handler, null);
   }
@@ -417,4 +416,15 @@ public abstract class AbstractAsynchronousConnection implements
     innerFuture.setResultFuture(future);
     return innerFuture;
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Sub-classes should provide an implementation which returns an appropriate
+   * description of the connection which may be used for debugging purposes.
+   */
+  public abstract String toString();
+
 }

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.ldap;
@@ -40,20 +40,19 @@ import org.opends.sdk.responses.Responses;
  * Compare result future implementation.
  */
 final class LDAPCompareFutureResultImpl extends
-    AbstractLDAPFutureResultImpl<CompareResult> implements
-    FutureResult<CompareResult>
+    AbstractLDAPFutureResultImpl<CompareResult>
 {
   private final CompareRequest request;
 
 
 
-  LDAPCompareFutureResultImpl(final int messageID,
+  LDAPCompareFutureResultImpl(final int requestID,
       final CompareRequest request,
       final ResultHandler<? super CompareResult> resultHandler,
       final IntermediateResponseHandler intermediateResponseHandler,
       final AsynchronousConnection connection)
   {
-    super(messageID, resultHandler, intermediateResponseHandler, connection);
+    super(requestID, resultHandler, intermediateResponseHandler, connection);
     this.request = request;
   }
 

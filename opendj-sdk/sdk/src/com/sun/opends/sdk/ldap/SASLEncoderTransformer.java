@@ -32,10 +32,10 @@ package com.sun.opends.sdk.ldap;
 import org.opends.sdk.ConnectionSecurityLayer;
 import org.opends.sdk.ErrorResultException;
 
-import com.sun.grizzly.*;
-import com.sun.grizzly.attributes.AttributeStorage;
-import com.sun.grizzly.memory.MemoryManager;
-import com.sun.grizzly.memory.MemoryUtils;
+import org.glassfish.grizzly.*;
+import org.glassfish.grizzly.attributes.AttributeStorage;
+import org.glassfish.grizzly.memory.Buffers;
+import org.glassfish.grizzly.memory.MemoryManager;
 
 
 
@@ -96,7 +96,7 @@ final class SASLEncoderTransformer extends AbstractTransformer<Buffer, Buffer>
 
     try
     {
-      final Buffer output = MemoryUtils.wrap(memoryManager, bindContext.wrap(
+      final Buffer output = Buffers.wrap(memoryManager, bindContext.wrap(
           buffer, 0, len));
       return TransformationResult.createCompletedResult(output, input);
     }

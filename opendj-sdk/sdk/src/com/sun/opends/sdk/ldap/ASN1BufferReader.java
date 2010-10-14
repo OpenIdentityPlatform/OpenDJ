@@ -45,9 +45,9 @@ import org.opends.sdk.LocalizableMessage;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.AbstractASN1Reader;
 
-import com.sun.grizzly.Buffer;
-import com.sun.grizzly.memory.ByteBuffersBuffer;
-import com.sun.grizzly.memory.CompositeBuffer;
+import org.glassfish.grizzly.Buffer;
+import org.glassfish.grizzly.memory.ByteBuffersBuffer;
+import org.glassfish.grizzly.memory.CompositeBuffer;
 import com.sun.opends.sdk.util.StaticUtils;
 
 

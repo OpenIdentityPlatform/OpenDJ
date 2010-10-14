@@ -39,9 +39,21 @@ import org.opends.sdk.responses.Result;
 
 /**
  * A handler interface for processing requests from clients.
+ * <p>
+ * Implementations should always return results via the provided
+ * {@code RequestHandler} when processing requests unless otherwise indicated by
+ * the component passing requests to the {@code ServerConnection}. For example,
+ * an {@link LDAPListener} does not require {@code ServerConnection}
+ * implementations to return results, which may be useful when implementing
+ * abandon operation functionality.
+ * <p>
+ * Note that {@code ServerConnection}s may be stacked, and that a lower
+ * {@code ServerConnection} implementation, such as a logger, may require upper
+ * {@code ServerConnection} implementations to always return results.
  *
  * @param <C>
  *          The type of request context.
+ * @see ServerConnectionFactory
  */
 public interface ServerConnection<C>
 {
@@ -137,7 +149,8 @@ public interface ServerConnection<C>
    * request.
    *
    * @param requestContext
-   *          The request context.
+   *          The request context which should be ignored if there was no
+   *          associated unbind request.
    * @param request
    *          The unbind request, which may be {@code null} if one was not sent
    *          before the connection was closed.
@@ -147,12 +160,28 @@ public interface ServerConnection<C>
 
 
   /**
+   * Invoked when the server disconnects the client connection, possibly using a
+   * disconnect notification.
+   *
+   * @param resultCode
+   *          The result code which was included with the disconnect
+   *          notification, or {@code null} if no disconnect notification was
+   *          sent.
+   * @param message
+   *          The diagnostic message, which may be empty or {@code null}
+   *          indicating that none was provided.
+   */
+  void handleConnectionDisconnected(ResultCode resultCode, String message);
+
+
+
+  /**
    * Invoked when an error occurs on the connection and it is no longer usable.
    *
    * @param error
    *          The exception describing the problem that occurred.
    */
-  void handleConnectionException(Throwable error);
+  void handleConnectionError(Throwable error);
 
 
 
@@ -258,11 +287,8 @@ public interface ServerConnection<C>
    * @param request
    *          The search request.
    * @param resultHandler
-   *          The handler which should be used to send back the result to the
-   *          client.
-   * @param searchResulthandler
-   *          The handler which should be used to send back the search result
-   *          entries and references to the client.
+   *          The handler which should be used to send back the search results
+   *          to the client.
    * @param intermediateResponseHandler
    *          The handler which should be used to send back any intermediate
    *          responses to the client.
@@ -270,8 +296,7 @@ public interface ServerConnection<C>
    *           If this server connection does not handle search requests.
    */
   void handleSearch(C requestContext, SearchRequest request,
-      ResultHandler<? super Result> resultHandler,
-      SearchResultHandler searchResulthandler,
+      SearchResultHandler resultHandler,
       IntermediateResponseHandler intermediateResponseHandler)
       throws UnsupportedOperationException;
 }

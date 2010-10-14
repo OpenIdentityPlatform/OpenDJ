@@ -42,13 +42,13 @@ import org.opends.sdk.responses.ExtendedResult;
 import org.opends.sdk.responses.Responses;
 import org.opends.sdk.responses.Result;
 
-import com.sun.grizzly.CompletionHandler;
-import com.sun.grizzly.Connection;
-import com.sun.grizzly.EmptyCompletionHandler;
-import com.sun.grizzly.filterchain.DefaultFilterChain;
-import com.sun.grizzly.filterchain.FilterChain;
-import com.sun.grizzly.filterchain.TransportFilter;
-import com.sun.grizzly.nio.transport.TCPNIOTransport;
+import org.glassfish.grizzly.CompletionHandler;
+import org.glassfish.grizzly.Connection;
+import org.glassfish.grizzly.EmptyCompletionHandler;
+import org.glassfish.grizzly.filterchain.DefaultFilterChain;
+import org.glassfish.grizzly.filterchain.FilterChain;
+import org.glassfish.grizzly.filterchain.TransportFilter;
+import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import com.sun.opends.sdk.util.CompletedFutureResult;
 import com.sun.opends.sdk.util.FutureResultTransformer;
 import com.sun.opends.sdk.util.RecursiveFutureResult;
@@ -87,7 +87,10 @@ public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
           // Ensure that the connection is closed.
           try
           {
-            connection.close();
+            if (connection != null)
+            {
+              connection.close();
+            }
           }
           catch (final Exception e)
           {
@@ -148,10 +151,10 @@ public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
                     @Override
                     public void failed(final Throwable throwable)
                     {
-                      final Result errorResult = Responses.newResult(
-                          ResultCode.CLIENT_SIDE_CONNECT_ERROR).setCause(
-                          throwable).setDiagnosticMessage(
-                          throwable.getMessage());
+                      final Result errorResult = Responses
+                          .newResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR)
+                          .setCause(throwable)
+                          .setDiagnosticMessage(throwable.getMessage());
                       handler.handleErrorResult(ErrorResultException
                           .wrap(errorResult));
                     }
@@ -160,9 +163,9 @@ public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
             }
             catch (final IOException ioe)
             {
-              final Result errorResult = Responses.newResult(
-                  ResultCode.CLIENT_SIDE_CONNECT_ERROR).setCause(ioe)
-                  .setDiagnosticMessage(ioe.getMessage());
+              final Result errorResult = Responses
+                  .newResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR)
+                  .setCause(ioe).setDiagnosticMessage(ioe.getMessage());
               throw ErrorResultException.wrap(errorResult);
             }
           }
@@ -259,8 +262,8 @@ public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
 
     this.socketAddress = address;
     this.options = new LDAPOptions(options);
-    this.clientFilter = new LDAPClientFilter(new LDAPReader(this.options
-        .getDecodeOptions()), 0);
+    this.clientFilter = new LDAPClientFilter(new LDAPReader(
+        this.options.getDecodeOptions()), 0);
     this.defaultFilterChain = new DefaultFilterChain();
     this.defaultFilterChain.add(new TransportFilter());
     this.defaultFilterChain.add(clientFilter);
@@ -292,6 +295,32 @@ public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
 
 
 
+  /**
+   * Returns the address of the Directory Server.
+   *
+   * @return The address of the Directory Server.
+   */
+  public SocketAddress getSocketAddress()
+  {
+    return socketAddress;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String toString()
+  {
+    final StringBuilder builder = new StringBuilder();
+    builder.append("LDAPConnectionFactory(");
+    builder.append(getSocketAddress().toString());
+    builder.append(')');
+    return builder.toString();
+  }
+
+
+
   private LDAPConnection adaptConnection(final Connection<?> connection)
   {
     // Test shows that its much faster with non block writes but risk
@@ -314,9 +343,9 @@ public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
       t = t.getCause();
     }
 
-    final Result result = Responses.newResult(
-        ResultCode.CLIENT_SIDE_CONNECT_ERROR).setCause(t).setDiagnosticMessage(
-        t.getMessage());
+    final Result result = Responses
+        .newResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR).setCause(t)
+        .setDiagnosticMessage(t.getMessage());
     return ErrorResultException.wrap(result);
   }
 }

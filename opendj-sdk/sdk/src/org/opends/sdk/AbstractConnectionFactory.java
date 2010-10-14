@@ -80,4 +80,11 @@ public abstract class AbstractConnectionFactory implements ConnectionFactory
   {
     return getAsynchronousConnection(null).get().getSynchronousConnection();
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public abstract String toString();
 }

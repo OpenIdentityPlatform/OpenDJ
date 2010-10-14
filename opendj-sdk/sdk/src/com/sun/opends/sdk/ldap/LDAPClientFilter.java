@@ -43,14 +43,14 @@ import org.opends.sdk.ResultCode;
 import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.*;
 
-import com.sun.grizzly.Buffer;
-import com.sun.grizzly.Connection;
-import com.sun.grizzly.EmptyCompletionHandler;
-import com.sun.grizzly.Grizzly;
-import com.sun.grizzly.attributes.Attribute;
-import com.sun.grizzly.filterchain.BaseFilter;
-import com.sun.grizzly.filterchain.FilterChainContext;
-import com.sun.grizzly.filterchain.NextAction;
+import org.glassfish.grizzly.Buffer;
+import org.glassfish.grizzly.Connection;
+import org.glassfish.grizzly.EmptyCompletionHandler;
+import org.glassfish.grizzly.Grizzly;
+import org.glassfish.grizzly.attributes.Attribute;
+import org.glassfish.grizzly.filterchain.BaseFilter;
+import org.glassfish.grizzly.filterchain.FilterChainContext;
+import org.glassfish.grizzly.filterchain.NextAction;
 
 
 

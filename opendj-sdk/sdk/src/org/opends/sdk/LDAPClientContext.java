@@ -38,36 +38,20 @@ import org.opends.sdk.responses.ExtendedResult;
 
 
 /**
- * An LDAP client which has connected to a {@link ServerConnectionFactory}. The
+ * An LDAP client which has connected to a {@link ServerConnectionFactory}. An
  * LDAP client context can be used to query information about the client's
  * connection such as their network address, as well as managing the state of
  * the connection.
  */
 public interface LDAPClientContext
 {
-  /**
-   * Registers the provided connection event listener so that it will be
-   * notified when the underlying connection is closed by the client, receives
-   * an unsolicited notification, or experiences a fatal error.
-   * <p>
-   * This method provides a event notification mechanism which can be used by
-   * asynchronous request handler implementations to detect connection
-   * termination.
-   *
-   * @param listener
-   *          The listener which wants to be notified when events occur on the
-   *          underlying connection.
-   * @throws NullPointerException
-   *           If the {@code listener} was {@code null}.
-   * @see #isClosed
-   */
-  void addConnectionEventListener(ConnectionEventListener listener)
-      throws NullPointerException;
-
-
 
   /**
    * Disconnects the client without sending a disconnect notification.
+   * <p>
+   * <b>Server connections:</b> invoking this method causes
+   * {@link ServerConnection#handleConnectionDisconnected
+   * handleConnectionDisconnected} to be called before this method returns.
    */
   void disconnect();
 
@@ -76,6 +60,10 @@ public interface LDAPClientContext
   /**
    * Disconnects the client and sends a disconnect notification, if possible,
    * containing the provided result code and diagnostic message.
+   * <p>
+   * <b>Server connections:</b> invoking this method causes
+   * {@link ServerConnection#handleConnectionDisconnected
+   * handleConnectionDisconnected} to be called before this method returns.
    *
    * @param resultCode
    *          The result code which should be included with the disconnect
@@ -118,35 +106,23 @@ public interface LDAPClientContext
 
 
   /**
-   * Returns {@code true} if the underlying connection is closed by the client,
-   * receives an unsolicited notification, or experiences a fatal error.
+   * Returns {@code true} if the underlying connection has been closed as a
+   * result of a client disconnect, a fatal connection error, or a server-side
+   * {@link #disconnect}.
    * <p>
    * This method provides a polling mechanism which can be used by synchronous
    * request handler implementations to detect connection termination.
+   * <p>
+   * <b>Server connections:</b> this method will always return {@code true} when
+   * called from within {@link ServerConnection#handleConnectionClosed
+   * handleConnectionClosed},
+   * {@link ServerConnection#handleConnectionDisconnected
+   * handleConnectionDisconnected}, or
+   * {@link ServerConnection#handleConnectionError handleConnectionError}.
    *
-   * @return {@code true} if the underlying connection is closed by the client,
-   *         receives an unsolicited notification, or experiences a fatal error,
-   *         otherwise {@code false}.
-   * @see #addConnectionEventListener
+   * @return {@code true} if the underlying connection has been closed.
    */
   boolean isClosed();
-
-
-
-  /**
-   * Removes the provided connection event listener from this client context so
-   * that it will no longer be notified when the underlying connection is closed
-   * by the application, receives an unsolicited notification, or experiences a
-   * fatal error.
-   *
-   * @param listener
-   *          The listener which no longer wants to be notified when events
-   *          occur on the underlying connection.
-   * @throws NullPointerException
-   *           If the {@code listener} was {@code null}.
-   */
-  void removeConnectionEventListener(ConnectionEventListener listener)
-      throws NullPointerException;
 
 
 

@@ -44,12 +44,12 @@ import org.opends.sdk.*;
 import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.*;
 
-import com.sun.grizzly.CompletionHandler;
-import com.sun.grizzly.filterchain.DefaultFilterChain;
-import com.sun.grizzly.filterchain.Filter;
-import com.sun.grizzly.filterchain.FilterChain;
-import com.sun.grizzly.ssl.SSLEngineConfigurator;
-import com.sun.grizzly.ssl.SSLFilter;
+import org.glassfish.grizzly.CompletionHandler;
+import org.glassfish.grizzly.filterchain.DefaultFilterChain;
+import org.glassfish.grizzly.filterchain.Filter;
+import org.glassfish.grizzly.filterchain.FilterChain;
+import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
+import org.glassfish.grizzly.ssl.SSLFilter;
 import com.sun.opends.sdk.util.CompletedFutureResult;
 import com.sun.opends.sdk.util.StaticUtils;
 import com.sun.opends.sdk.util.Validator;
@@ -64,7 +64,7 @@ import com.sun.opends.sdk.util.Validator;
 final class LDAPConnection extends AbstractAsynchronousConnection implements
     AsynchronousConnection
 {
-  private final com.sun.grizzly.Connection<?> connection;
+  private final org.glassfish.grizzly.Connection<?> connection;
 
   private Result connectionInvalidReason;
 
@@ -79,9 +79,8 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
 
   private boolean bindOrStartTLSInProgress = false;
 
-  private final ConcurrentHashMap<Integer, AbstractLDAPFutureResultImpl<?>>
-    pendingRequests =
-      new ConcurrentHashMap<Integer, AbstractLDAPFutureResultImpl<?>>();
+  private final ConcurrentHashMap<Integer, AbstractLDAPFutureResultImpl<?>> pendingRequests =
+    new ConcurrentHashMap<Integer, AbstractLDAPFutureResultImpl<?>>();
 
   private final Object stateLock = new Object();
 
@@ -99,7 +98,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
    * @param options
    *          The LDAP client options.
    */
-  LDAPConnection(final com.sun.grizzly.Connection<?> connection,
+  LDAPConnection(final org.glassfish.grizzly.Connection<?> connection,
       final LDAPOptions options)
   {
     this.connection = connection;
@@ -120,20 +119,20 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
     {
       if (connectionInvalidReason != null)
       {
-        return new CompletedFutureResult<Void>(ErrorResultException
-            .wrap(connectionInvalidReason), messageID);
+        return new CompletedFutureResult<Void>(
+            ErrorResultException.wrap(connectionInvalidReason), messageID);
       }
       if (bindOrStartTLSInProgress)
       {
         final Result errorResult = Responses.newResult(
             ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
             "Bind or Start TLS operation in progress");
-        return new CompletedFutureResult<Void>(ErrorResultException
-            .wrap(errorResult), messageID);
+        return new CompletedFutureResult<Void>(
+            ErrorResultException.wrap(errorResult), messageID);
       }
 
       // First remove the future associated with the request to be abandoned.
-      pendingRequest = pendingRequests.remove(request.getMessageID());
+      pendingRequest = pendingRequests.remove(request.getRequestID());
     }
 
     if (pendingRequest == null)
@@ -169,8 +168,8 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
       final Result errorResult = Responses.newResult(
           ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
       connectionErrorOccurred(errorResult);
-      return new CompletedFutureResult<Void>(ErrorResultException
-          .wrap(errorResult), messageID);
+      return new CompletedFutureResult<Void>(
+          ErrorResultException.wrap(errorResult), messageID);
     }
   }
 
@@ -258,18 +257,20 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
     BindClient context;
     try
     {
-      context = request.createBindClient(
-          connection.getPeerAddress() instanceof InetSocketAddress ?
-              ((InetSocketAddress)connection.getPeerAddress()).getHostName() :
-              connection.getPeerAddress().toString());
+      context = request
+          .createBindClient(connection.getPeerAddress() instanceof InetSocketAddress ?
+              ((InetSocketAddress) connection
+              .getPeerAddress()).getHostName() : connection.getPeerAddress()
+              .toString());
     }
     catch (final Exception e)
     {
       // FIXME: I18N need to have a better error message.
       // FIXME: Is this the best result code?
-      final Result errorResult = Responses.newResult(
-          ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
-          "An error occurred while creating a bind context").setCause(e);
+      final Result errorResult = Responses
+          .newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR)
+          .setDiagnosticMessage(
+              "An error occurred while creating a bind context").setCause(e);
       final ErrorResultException error = ErrorResultException.wrap(errorResult);
       if (resultHandler != null)
       {
@@ -349,9 +350,13 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
     // FIXME: I18N need to internationalize this message.
     Validator.ensureNotNull(request);
 
-    close(request, false, Responses.newResult(
-        ResultCode.CLIENT_SIDE_USER_CANCELLED).setDiagnosticMessage(
-        "Connection closed by client" + (reason != null ? ": " + reason : "")));
+    close(
+        request,
+        false,
+        Responses.newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED)
+            .setDiagnosticMessage(
+                "Connection closed by client"
+                    + (reason != null ? ": " + reason : "")));
   }
 
 
@@ -494,7 +499,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
       if (bindOrStartTLSInProgress)
       {
         future.setResultOrError(request.getResultDecoder()
-            .adaptExtendedErrorResult(ResultCode.OPERATIONS_ERROR, "",
+            .newExtendedErrorResult(ResultCode.OPERATIONS_ERROR, "",
                 "Bind or Start TLS operation in progress"));
         return future;
       }
@@ -503,14 +508,14 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
         if (!pendingRequests.isEmpty())
         {
           future.setResultOrError(request.getResultDecoder()
-              .adaptExtendedErrorResult(ResultCode.OPERATIONS_ERROR, "",
+              .newExtendedErrorResult(ResultCode.OPERATIONS_ERROR, "",
                   "There are pending operations on this connection"));
           return future;
         }
         if (isTLSEnabled())
         {
           future.setResultOrError(request.getResultDecoder()
-              .adaptExtendedErrorResult(ResultCode.OPERATIONS_ERROR, "",
+              .newExtendedErrorResult(ResultCode.OPERATIONS_ERROR, "",
                   "This connection is already TLS enabled"));
         }
         bindOrStartTLSInProgress = true;
@@ -754,13 +759,29 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
 
 
 
+  /**
+   * {@inheritDoc}
+   */
+  public String toString()
+  {
+    StringBuilder builder = new StringBuilder();
+    builder.append("LDAPConnection(");
+    builder.append(connection.getLocalAddress());
+    builder.append(',');
+    builder.append(connection.getPeerAddress());
+    builder.append(')');
+    return builder.toString();
+  }
+
+
+
   int addPendingRequest(final AbstractLDAPFutureResultImpl<?> request)
       throws ErrorResultException
   {
     final int newMsgID = nextMsgID.getAndIncrement();
-    synchronized(stateLock)
+    synchronized (stateLock)
     {
-      if(connectionInvalidReason != null)
+      if (connectionInvalidReason != null)
       {
         throw ErrorResultException.wrap(connectionInvalidReason);
       }
@@ -779,9 +800,9 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
     {
       for (int requestID : pendingRequests.keySet())
       {
-        final AbstractLDAPFutureResultImpl<?> future =
-            pendingRequests.get(requestID);
-        if(future != null)
+        final AbstractLDAPFutureResultImpl<?> future = pendingRequests
+            .get(requestID);
+        if (future != null)
         {
           final long diff = (future.getTimestamp() + timeout) - currentTime;
           if (diff <= 0 && pendingRequests.remove(requestID) != null)
@@ -814,9 +835,15 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
 
     synchronized (stateLock)
     {
-      if (isClosed || connectionInvalidReason != null)
+      if (isClosed) {
+        // Already closed.
+        return;
+      }
+
+      if (connectionInvalidReason != null)
       {
         // Already closed.
+        isClosed = true;
         return;
       }
 
@@ -832,20 +859,15 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
       }
 
       // Mark the connection as invalid.
-      connectionInvalidReason =
-          reason.getResultCode() == ResultCode.CLIENT_SIDE_USER_CANCELLED ?
-              reason : Responses.newResult(
-              ResultCode.CLIENT_SIDE_USER_CANCELLED).setCause(
-              ErrorResultException.wrap(reason)).setDiagnosticMessage(
-              "Connection closed: " + reason.getDiagnosticMessage());
+      connectionInvalidReason = reason;
     }
 
     // First abort all outstanding requests.
     for (int requestID : pendingRequests.keySet())
     {
-      final AbstractLDAPFutureResultImpl<?> future =
-          pendingRequests.remove(requestID);
-      if(future != null)
+      final AbstractLDAPFutureResultImpl<?> future = pendingRequests
+          .remove(requestID);
+      if (future != null)
       {
         future.adaptErrorResult(reason);
       }
@@ -939,8 +961,8 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
   {
     if (customFilterChain == null)
     {
-      customFilterChain = new DefaultFilterChain((FilterChain) connection
-          .getProcessor());
+      customFilterChain = new DefaultFilterChain(
+          (FilterChain) connection.getProcessor());
       connection.setProcessor(customFilterChain);
     }
 

@@ -35,7 +35,6 @@ import org.testng.annotations.Test;
 
 import java.util.Arrays;
 
-import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertEquals;
 
 
@@ -76,37 +75,29 @@ public class DigestMD5SASLBindRequestTestCase extends BindRequestTestCase
   @Test(dataProvider = "DigestMD5SASLBindRequests")
   public void testQOP(DigestMD5SASLBindRequest request) throws Exception
   {
-    DigestMD5SASLBindRequest.QOPOption [] options =
-        new DigestMD5SASLBindRequest.QOPOption[]{
-            DigestMD5SASLBindRequest.QOPOption.AUTH,
-            DigestMD5SASLBindRequest.QOPOption.AUTH_INT,
-            DigestMD5SASLBindRequest.QOPOption.AUTH_CONF};
-    request.setQOP(options);
-
-    DigestMD5SASLBindRequest.QOPOption [] results = request.getQOP();
-    for(int i = 0; i < options.length; i++)
-    {
-      assertEquals(options[i], results[i]);
-    }
+    String[] options = new String[] {
+        DigestMD5SASLBindRequest.QOP_AUTH,
+        DigestMD5SASLBindRequest.QOP_AUTH_INT,
+        DigestMD5SASLBindRequest.QOP_AUTH_CONF };
+    request.addQOP(options);
+    assertEquals(request.getQOPs(), Arrays.asList(options));
   }
 
   @Test(dataProvider = "DigestMD5SASLBindRequests" )
   public void testStrength(DigestMD5SASLBindRequest request) throws Exception
   {
-    DigestMD5SASLBindRequest.CipherOption[] options =
-        new DigestMD5SASLBindRequest.CipherOption[]{
-            DigestMD5SASLBindRequest.CipherOption.RC4_40,
-            DigestMD5SASLBindRequest.CipherOption.TRIPLE_DES_RC4,
-            DigestMD5SASLBindRequest.CipherOption.DES_RC4_56};
-    request.setCipher(options);
-    assertTrue(Arrays.deepEquals(options, request.getCipher()));
+    request.setCipher(DigestMD5SASLBindRequest.CIPHER_3DES);
+    assertEquals(request.getCipher(), DigestMD5SASLBindRequest.CIPHER_3DES);
+
+    request.setCipher(DigestMD5SASLBindRequest.CIPHER_MEDIUM);
+    assertEquals(request.getCipher(), DigestMD5SASLBindRequest.CIPHER_MEDIUM);
   }
 
   @Test(dataProvider = "DigestMD5SASLBindRequests")
   public void testServerAuth(DigestMD5SASLBindRequest request) throws Exception
   {
     request.setServerAuth(true);
-    assertEquals(request.getServerAuth(), true);
+    assertEquals(request.isServerAuth(), true);
   }
 
   @Test(dataProvider = "DigestMD5SASLBindRequests")
