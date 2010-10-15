@@ -602,16 +602,16 @@ public class Aci
     }
 
     /**
-     * Compares this DN with the provided DN based on a natural order.
+     * Compares this Aci with the provided Aci based on a natural order.
      * This order will be first hierarchical (ancestors will come before
      * descendants) and then alphabetical by attribute name(s) and
      * value(s).
      *
-     * @param  dn  The DN against which to compare this DN.
+     * @param  aci  The Aci against which to compare this Aci.
      *
-     * @return  A negative integer if this DN should come before the
-     *          provided DN, a positive integer if this DN should come
-     *          after the provided DN, or zero if there is no difference
+     * @return  A negative integer if this Aci should come before the
+     *          provided Aci, a positive integer if this Aci should come
+     *          after the provided Aci, or zero if there is no difference
      *          with regard to ordering.
      */
     public int compareTo(Aci aci)
