@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2010 ForgeRock AS
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -39,7 +40,9 @@ import java.util.HashSet;
 /**
  * The Aci class represents ACI strings.
  */
-public class Aci  {
+public class Aci
+  implements Comparable<Aci>
+{
 
     /*
      * The body of the ACI is the version, name and permission-bind rule
@@ -597,4 +600,22 @@ public class Aci  {
           lastWasPeriod = false;
       }
     }
-  }
+
+    /**
+     * Compares this DN with the provided DN based on a natural order.
+     * This order will be first hierarchical (ancestors will come before
+     * descendants) and then alphabetical by attribute name(s) and
+     * value(s).
+     *
+     * @param  dn  The DN against which to compare this DN.
+     *
+     * @return  A negative integer if this DN should come before the
+     *          provided DN, a positive integer if this DN should come
+     *          after the provided DN, or zero if there is no difference
+     *          with regard to ordering.
+     */
+    public int compareTo(Aci aci)
+    {
+      return this.aciString.compareTo(aci.toString());
+    }
+ }
