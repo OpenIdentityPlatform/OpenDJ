@@ -22,13 +22,14 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
 
 
 
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
@@ -53,12 +54,12 @@ public class LDAPOptions
   /**
    * The list of cipher suite
    */
-  private String[] enabledCipherSuites = null;
+  private List<String> enabledCipherSuites = new LinkedList<String>();
 
   /**
    * the list of protocols
    */
-  private String[] enabledProtocols = null;
+  private List<String> enabledProtocols = new LinkedList<String>();
 
 
 
@@ -90,8 +91,8 @@ public class LDAPOptions
     this.timeoutInMillis = options.timeoutInMillis;
     this.useStartTLS = options.useStartTLS;
     this.decodeOptions = new DecodeOptions(options.decodeOptions);
-    this.enabledCipherSuites = options.enabledCipherSuites;
-    this.enabledProtocols = options.enabledProtocols;
+    this.enabledCipherSuites.addAll(options.getEnabledCipherSuites());
+    this.enabledProtocols.addAll(options.getEnabledProtocols());
   }
 
 
@@ -237,7 +238,7 @@ public class LDAPOptions
   }
 
   /**
-   * Set the protocol versions enabled for secure connections with the
+   * Adds the protocol versions enabled for secure connections with the
    * Directory Server.
    *
    * The protocols must be supported by the SSLContext specified in
@@ -245,18 +246,20 @@ public class LDAPOptions
    * this method, only the protocols listed in the protocols parameter are
    * enabled for use.
    *
-   * @param protocols Names of all the protocols to enable or {@code null} to
-   *                  use the default protocols.
+   * @param protocols Names of all the protocols to enable.
    * @return A reference to this LDAP connection options.
    */
-  public final LDAPOptions setEnabledProtocols(String[] protocols)
+  public final LDAPOptions addEnabledProtocol(String... protocols)
   {
-    this.enabledProtocols = protocols;
+    for (final String protocol : protocols)
+    {
+      this.enabledProtocols.add(Validator.ensureNotNull(protocol));
+    }
     return this;
   }
 
   /**
-   * Set the cipher suites enabled for secure connections with the
+   * Adds the cipher suites enabled for secure connections with the
    * Directory Server.
    *
    * The suites must be supported by the SSLContext specified in
@@ -264,13 +267,15 @@ public class LDAPOptions
    * this method, only the suites listed in the protocols parameter are
    * enabled for use.
    *
-   * @param suites Names of all the suites to enable or {@code null} to
-   *                  use the default cipher suites.
+   * @param suites Names of all the suites to enable.
    * @return A reference to this LDAP connection options.
    */
-  public final LDAPOptions setEnabledCipherSuites(String[] suites)
+  public final LDAPOptions addEnabledCipherSuite(String... suites)
   {
-    this.enabledCipherSuites = suites;
+    for (final String suite : suites)
+    {
+      this.enabledCipherSuites.add(Validator.ensureNotNull(suite));
+    }
     return this;
   }
 
@@ -278,10 +283,10 @@ public class LDAPOptions
    * Returns the names of the protocol versions which are currently enabled
    * for secure connections with the Directory Server.
    *
-   * @return an array of protocols or {@code null} if the default protocols
+   * @return an array of protocols or empty set if the default protocols
    * are to be used.
    */
-  public final String[] getEnabledProtocols()
+  public final List<String> getEnabledProtocols()
   {
     return this.enabledProtocols;
   }
@@ -290,10 +295,10 @@ public class LDAPOptions
    * Returns the names of the protocol versions which are currently enabled
    * for secure connections with the Directory Server.
    *
-   * @return an array of protocols or {@code null} if the default protocols
+   * @return an array of protocols or empty set if the default protocols
    * are to be used.
    */
-  public final  String[] getEnabledCipherSuites()
+  public final List<String> getEnabledCipherSuites()
   {
     return this.enabledCipherSuites;
   }

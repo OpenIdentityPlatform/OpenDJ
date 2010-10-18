@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.tools;
@@ -56,8 +56,7 @@ import org.opends.sdk.requests.*;
 /**
  * A connection factory designed for use with command line tools.
  */
-final class ArgumentParserConnectionFactory extends AbstractConnectionFactory
-    implements ConnectionFactory
+final class ConnectionFactoryProvider
 {
   /**
    * End Of Line.
@@ -68,7 +67,7 @@ final class ArgumentParserConnectionFactory extends AbstractConnectionFactory
    * The Logger.
    */
   static final Logger LOG = Logger
-      .getLogger(ArgumentParserConnectionFactory.class.getName());
+      .getLogger(ConnectionFactoryProvider.class.getName());
 
   /**
    * The 'hostName' global argument.
@@ -167,13 +166,15 @@ final class ArgumentParserConnectionFactory extends AbstractConnectionFactory
 
   private ConnectionFactory connFactory;
 
+  private ConnectionFactory authenticatedConnFactory;
+
   private BindRequest bindRequest = null;
 
   private final ConsoleApplication app;
 
 
 
-  public ArgumentParserConnectionFactory(final ArgumentParser argumentParser,
+  public ConnectionFactoryProvider(final ArgumentParser argumentParser,
       final ConsoleApplication app) throws ArgumentException
   {
     this(argumentParser, app, "cn=Directory Manager", 389, false);
@@ -181,7 +182,7 @@ final class ArgumentParserConnectionFactory extends AbstractConnectionFactory
 
 
 
-  public ArgumentParserConnectionFactory(final ArgumentParser argumentParser,
+  public ConnectionFactoryProvider(final ArgumentParser argumentParser,
       final ConsoleApplication app, final String defaultBindDN,
       final int defaultPort, final boolean alwaysSSL) throws ArgumentException
   {
@@ -326,165 +327,158 @@ final class ArgumentParserConnectionFactory extends AbstractConnectionFactory
   }
 
 
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public FutureResult<AsynchronousConnection> getAsynchronousConnection(
-      final ResultHandler<? super AsynchronousConnection> handler)
+  public ConnectionFactory getConnectionFactory() throws ArgumentException
   {
-    return connFactory.getAsynchronousConnection(handler);
-  }
-
-
-
-  public void validate() throws ArgumentException
-  {
-    port = portArg.getIntValue();
-
-    // Couldn't have at the same time bindPassword and bindPasswordFile
-    if (bindPasswordArg.isPresent() && bindPasswordFileArg.isPresent())
+    if(connFactory == null)
     {
-      final LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-          bindPasswordArg.getLongIdentifier(), bindPasswordFileArg
-              .getLongIdentifier());
-      throw new ArgumentException(message);
-    }
+      port = portArg.getIntValue();
 
-    // Couldn't have at the same time trustAll and
-    // trustStore related arg
-    if (trustAllArg.isPresent() && trustStorePathArg.isPresent())
-    {
-      final LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-          trustAllArg.getLongIdentifier(), trustStorePathArg
-              .getLongIdentifier());
-      throw new ArgumentException(message);
-    }
-    if (trustAllArg.isPresent() && trustStorePasswordArg.isPresent())
-    {
-      final LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-          trustAllArg.getLongIdentifier(), trustStorePasswordArg
-              .getLongIdentifier());
-      throw new ArgumentException(message);
-    }
-    if (trustAllArg.isPresent() && trustStorePasswordFileArg.isPresent())
-    {
-      final LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-          trustAllArg.getLongIdentifier(), trustStorePasswordFileArg
-              .getLongIdentifier());
-      throw new ArgumentException(message);
-    }
-
-    // Couldn't have at the same time trustStorePasswordArg and
-    // trustStorePasswordFileArg
-    if (trustStorePasswordArg.isPresent()
-        && trustStorePasswordFileArg.isPresent())
-    {
-      final LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-          trustStorePasswordArg.getLongIdentifier(), trustStorePasswordFileArg
-              .getLongIdentifier());
-      throw new ArgumentException(message);
-    }
-
-    if (trustStorePathArg.isPresent())
-    {
-      // Check that the path exists and is readable
-      final String value = trustStorePathArg.getValue();
-      if (!canRead(trustStorePathArg.getValue()))
+      // Couldn't have at the same time bindPassword and bindPasswordFile
+      if (bindPasswordArg.isPresent() && bindPasswordFileArg.isPresent())
       {
-        final LocalizableMessage message = ERR_CANNOT_READ_TRUSTSTORE
-            .get(value);
+        final LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
+            bindPasswordArg.getLongIdentifier(), bindPasswordFileArg
+                .getLongIdentifier());
         throw new ArgumentException(message);
       }
-    }
 
-    if (keyStorePathArg.isPresent())
-    {
-      // Check that the path exists and is readable
-      final String value = keyStorePathArg.getValue();
-      if (!canRead(trustStorePathArg.getValue()))
+      // Couldn't have at the same time trustAll and
+      // trustStore related arg
+      if (trustAllArg.isPresent() && trustStorePathArg.isPresent())
       {
-        final LocalizableMessage message = ERR_CANNOT_READ_KEYSTORE.get(value);
+        final LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
+            trustAllArg.getLongIdentifier(), trustStorePathArg
+                .getLongIdentifier());
         throw new ArgumentException(message);
       }
-    }
-
-    // Couldn't have at the same time startTLSArg and
-    // useSSLArg
-    if (useStartTLSArg.isPresent() && useSSLArg.isPresent())
-    {
-      final LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-          useStartTLSArg.getLongIdentifier(), useSSLArg.getLongIdentifier());
-      throw new ArgumentException(message);
-    }
-
-    try
-    {
-      if (useSSLArg.isPresent() || useStartTLSArg.isPresent())
+      if (trustAllArg.isPresent() && trustStorePasswordArg.isPresent())
       {
-        String clientAlias;
-        if (certNicknameArg.isPresent())
+        final LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
+            trustAllArg.getLongIdentifier(), trustStorePasswordArg
+                .getLongIdentifier());
+        throw new ArgumentException(message);
+      }
+      if (trustAllArg.isPresent() && trustStorePasswordFileArg.isPresent())
+      {
+        final LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
+            trustAllArg.getLongIdentifier(), trustStorePasswordFileArg
+                .getLongIdentifier());
+        throw new ArgumentException(message);
+      }
+
+      // Couldn't have at the same time trustStorePasswordArg and
+      // trustStorePasswordFileArg
+      if (trustStorePasswordArg.isPresent()
+          && trustStorePasswordFileArg.isPresent())
+      {
+        final LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
+            trustStorePasswordArg.getLongIdentifier(), trustStorePasswordFileArg
+                .getLongIdentifier());
+        throw new ArgumentException(message);
+      }
+
+      if (trustStorePathArg.isPresent())
+      {
+        // Check that the path exists and is readable
+        final String value = trustStorePathArg.getValue();
+        if (!canRead(trustStorePathArg.getValue()))
         {
-          clientAlias = certNicknameArg.getValue();
+          final LocalizableMessage message = ERR_CANNOT_READ_TRUSTSTORE
+              .get(value);
+          throw new ArgumentException(message);
         }
-        else
+      }
+
+      if (keyStorePathArg.isPresent())
+      {
+        // Check that the path exists and is readable
+        final String value = keyStorePathArg.getValue();
+        if (!canRead(trustStorePathArg.getValue()))
         {
-          clientAlias = null;
+          final LocalizableMessage message =
+              ERR_CANNOT_READ_KEYSTORE.get(value);
+          throw new ArgumentException(message);
         }
+      }
 
-        if (sslContext == null)
+      // Couldn't have at the same time startTLSArg and
+      // useSSLArg
+      if (useStartTLSArg.isPresent() && useSSLArg.isPresent())
+      {
+        final LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
+            useStartTLSArg.getLongIdentifier(), useSSLArg.getLongIdentifier());
+        throw new ArgumentException(message);
+      }
+
+      try
+      {
+        if (useSSLArg.isPresent() || useStartTLSArg.isPresent())
         {
-          final TrustManager trustManager = getTrustManager();
-
-          X509KeyManager keyManager = null;
-          final X509KeyManager akm = getKeyManager(keyStorePathArg.getValue());
-
-          if (akm != null && clientAlias != null)
+          String clientAlias;
+          if (certNicknameArg.isPresent())
           {
-            keyManager = KeyManagers.useSingleCertificate(clientAlias, akm);
+            clientAlias = certNicknameArg.getValue();
+          }
+          else
+          {
+            clientAlias = null;
           }
 
-          sslContext = new SSLContextBuilder().setTrustManager(trustManager)
-              .setKeyManager(keyManager).getSSLContext();
+          if (sslContext == null)
+          {
+            final TrustManager trustManager = getTrustManager();
+
+            X509KeyManager keyManager = null;
+            final X509KeyManager akm =
+                getKeyManager(keyStorePathArg.getValue());
+
+            if (akm != null && clientAlias != null)
+            {
+              keyManager = KeyManagers.useSingleCertificate(clientAlias, akm);
+            }
+
+            sslContext = new SSLContextBuilder().setTrustManager(trustManager)
+                .setKeyManager(keyManager).getSSLContext();
+          }
         }
       }
-    }
-    catch (final Exception e)
-    {
-      throw new ArgumentException(ERR_LDAP_CONN_CANNOT_INITIALIZE_SSL.get(e
-          .toString()), e);
-    }
+      catch (final Exception e)
+      {
+        throw new ArgumentException(ERR_LDAP_CONN_CANNOT_INITIALIZE_SSL.get(e
+            .toString()), e);
+      }
 
-    if (sslContext != null)
-    {
-      final LDAPOptions options = new LDAPOptions().setSSLContext(sslContext)
-          .setUseStartTLS(useStartTLSArg.isPresent());
-      connFactory = new LDAPConnectionFactory(hostNameArg.getValue(), port,
-          options);
+      if (sslContext != null)
+      {
+        final LDAPOptions options = new LDAPOptions().setSSLContext(sslContext)
+            .setUseStartTLS(useStartTLSArg.isPresent());
+        connFactory = new LDAPConnectionFactory(hostNameArg.getValue(), port,
+            options);
+      }
+      else
+      {
+        connFactory = new LDAPConnectionFactory(hostNameArg.getValue(), port);
+      }
     }
-    else
-    {
-      connFactory = new LDAPConnectionFactory(hostNameArg.getValue(), port);
-    }
-
-    try
-    {
-      bindRequest = getBindRequest();
-    }
-    catch (final CLIException e)
-    {
-      throw new ArgumentException(LocalizableMessage
-          .raw("Error reading input: " + e.toString()));
-    }
-    if (bindRequest != null)
-    {
-      connFactory = new AuthenticatedConnectionFactory(connFactory, bindRequest)
-          .setRebindAllowed(true);
-    }
+    return connFactory;
   }
 
-
+  public ConnectionFactory getAuthenticatedConnectionFactory()
+      throws ArgumentException
+  {
+    if(authenticatedConnFactory == null)
+    {
+      authenticatedConnFactory = getConnectionFactory();
+      BindRequest bindRequest = getBindRequest();
+      if(bindRequest != null)
+      {
+        authenticatedConnFactory =
+            Connections.newAuthenticatedConnectionFactory(
+                authenticatedConnFactory, bindRequest);
+      }
+    }
+    return authenticatedConnFactory;
+  }
 
   /**
    * Returns <CODE>true</CODE> if we can read on the provided path and
@@ -505,8 +499,7 @@ final class ArgumentParserConnectionFactory extends AbstractConnectionFactory
 
 
 
-  private String getAuthID(final String mech) throws CLIException,
-      ArgumentException
+  private String getAuthID(final String mech) throws ArgumentException
   {
     String value = null;
     for (final String s : saslOptionArg.getValues())
@@ -523,9 +516,14 @@ final class ArgumentParserConnectionFactory extends AbstractConnectionFactory
     }
     if (value == null && app.isInteractive())
     {
-      value = app.readInput(LocalizableMessage.raw("Authentication ID:"),
-          bindNameArg.getDefaultValue() == null ? null : "dn: "
-              + bindNameArg.getDefaultValue());
+      try {
+        value = app.readInput(LocalizableMessage.raw("Authentication ID:"),
+            bindNameArg.getDefaultValue() == null ? null : "dn: "
+                + bindNameArg.getDefaultValue());
+      } catch (CLIException e) {
+        throw new ArgumentException(
+            LocalizableMessage.raw("Unable to read authentication ID"), e);
+      }
     }
     if (value == null)
     {
@@ -538,7 +536,7 @@ final class ArgumentParserConnectionFactory extends AbstractConnectionFactory
 
 
 
-  private String getAuthzID() throws CLIException, ArgumentException
+  private String getAuthzID() throws ArgumentException
   {
     String value = null;
     for (final String s : saslOptionArg.getValues())
@@ -554,7 +552,7 @@ final class ArgumentParserConnectionFactory extends AbstractConnectionFactory
 
 
 
-  private String getBindName() throws CLIException
+  private String getBindName() throws ArgumentException
   {
     String value = "";
     if (bindNameArg.isPresent())
@@ -563,8 +561,13 @@ final class ArgumentParserConnectionFactory extends AbstractConnectionFactory
     }
     else if (app.isInteractive())
     {
-      value = app.readInput(LocalizableMessage.raw("Bind name:"), bindNameArg
-          .getDefaultValue() == null ? value : bindNameArg.getDefaultValue());
+      try {
+        value = app.readInput(LocalizableMessage.raw("Bind name:"), bindNameArg
+            .getDefaultValue() == null ? value : bindNameArg.getDefaultValue());
+      } catch (CLIException e) {
+        throw new ArgumentException(
+            LocalizableMessage.raw("Unable to read bind name"), e);
+      }
     }
 
     return value;
@@ -572,74 +575,79 @@ final class ArgumentParserConnectionFactory extends AbstractConnectionFactory
 
 
 
-  private BindRequest getBindRequest() throws CLIException, ArgumentException
+  public BindRequest getBindRequest() throws ArgumentException
   {
-    String mech = null;
-    for (final String s : saslOptionArg.getValues())
+    if(bindRequest == null)
     {
-      if (s.startsWith(SASL_PROPERTY_MECH))
+      String mech = null;
+      for (final String s : saslOptionArg.getValues())
       {
-        mech = parseSASLOptionValue(s);
-        break;
+        if (s.startsWith(SASL_PROPERTY_MECH))
+        {
+          mech = parseSASLOptionValue(s);
+          break;
+        }
       }
-    }
 
-    if (mech == null)
-    {
-      if (bindNameArg.isPresent() || bindPasswordFileArg.isPresent()
-          || bindPasswordArg.isPresent())
+      if (mech == null)
       {
-        return Requests.newSimpleBindRequest(getBindName(), getPassword());
+        if (bindNameArg.isPresent() || bindPasswordFileArg.isPresent()
+            || bindPasswordArg.isPresent())
+        {
+          bindRequest =
+              Requests.newSimpleBindRequest(getBindName(), getPassword());
+        }
       }
-      return null;
-    }
-
-    if (mech.equals(DigestMD5SASLBindRequest.SASL_MECHANISM_NAME))
-    {
-      return Requests.newDigestMD5SASLBindRequest(
-          getAuthID(DigestMD5SASLBindRequest.SASL_MECHANISM_NAME),
-          ByteString.valueOf(getPassword())).setAuthorizationID(getAuthzID())
-          .setRealm(getRealm());
-    }
-    if (mech.equals(CRAMMD5SASLBindRequest.SASL_MECHANISM_NAME))
-    {
-      return Requests.newCRAMMD5SASLBindRequest(
-          getAuthID(CRAMMD5SASLBindRequest.SASL_MECHANISM_NAME), ByteString
-              .valueOf(getPassword()));
-    }
-    if (mech.equals(GSSAPISASLBindRequest.SASL_MECHANISM_NAME))
-    {
-      return Requests.newGSSAPISASLBindRequest(
-          getAuthID(GSSAPISASLBindRequest.SASL_MECHANISM_NAME),
-          ByteString.valueOf(getPassword())).setKDCAddress(getKDC()).setRealm(
-          getRealm()).setAuthorizationID(getAuthzID());
-    }
-    if (mech.equals(ExternalSASLBindRequest.SASL_MECHANISM_NAME))
-    {
-      if (sslContext == null)
+      else if (mech.equals(DigestMD5SASLBindRequest.SASL_MECHANISM_NAME))
       {
-        final LocalizableMessage message = ERR_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS
-            .get();
-        throw new ArgumentException(message);
+        bindRequest = Requests.newDigestMD5SASLBindRequest(
+            getAuthID(DigestMD5SASLBindRequest.SASL_MECHANISM_NAME),
+            ByteString.valueOf(getPassword())).setAuthorizationID(getAuthzID())
+            .setRealm(getRealm());
       }
-      if (!keyStorePathArg.isPresent() && getKeyStore() == null)
+      else if (mech.equals(CRAMMD5SASLBindRequest.SASL_MECHANISM_NAME))
       {
-        final LocalizableMessage message = ERR_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE
-            .get();
-        throw new ArgumentException(message);
+        bindRequest = Requests.newCRAMMD5SASLBindRequest(
+            getAuthID(CRAMMD5SASLBindRequest.SASL_MECHANISM_NAME), ByteString
+                .valueOf(getPassword()));
       }
-      return Requests.newExternalSASLBindRequest().setAuthorizationID(
-          getAuthzID());
+      else if (mech.equals(GSSAPISASLBindRequest.SASL_MECHANISM_NAME))
+      {
+        bindRequest = Requests.newGSSAPISASLBindRequest(
+            getAuthID(GSSAPISASLBindRequest.SASL_MECHANISM_NAME),
+            ByteString.valueOf(getPassword())).setKDCAddress(getKDC()).setRealm(
+            getRealm()).setAuthorizationID(getAuthzID());
+      }
+      else if (mech.equals(ExternalSASLBindRequest.SASL_MECHANISM_NAME))
+      {
+        if (sslContext == null)
+        {
+          final LocalizableMessage message =
+              ERR_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS.get();
+          throw new ArgumentException(message);
+        }
+        if (!keyStorePathArg.isPresent() && getKeyStore() == null)
+        {
+          final LocalizableMessage message =
+              ERR_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE.get();
+          throw new ArgumentException(message);
+        }
+        bindRequest = Requests.newExternalSASLBindRequest().setAuthorizationID(
+            getAuthzID());
+      }
+      else if (mech.equals(PlainSASLBindRequest.SASL_MECHANISM_NAME))
+      {
+        bindRequest = Requests.newPlainSASLBindRequest(
+            getAuthID(PlainSASLBindRequest.SASL_MECHANISM_NAME),
+            ByteString.valueOf(getPassword())).setAuthorizationID(getAuthzID());
+      }
+      else
+      {
+        throw new ArgumentException(ERR_LDAPAUTH_UNSUPPORTED_SASL_MECHANISM
+            .get(mech));
+      }
     }
-    if (mech.equals(PlainSASLBindRequest.SASL_MECHANISM_NAME))
-    {
-      return Requests.newPlainSASLBindRequest(
-          getAuthID(PlainSASLBindRequest.SASL_MECHANISM_NAME),
-          ByteString.valueOf(getPassword())).setAuthorizationID(getAuthzID());
-    }
-
-    throw new ArgumentException(ERR_LDAPAUTH_UNSUPPORTED_SASL_MECHANISM
-        .get(mech));
+    return bindRequest;
   }
 
 
@@ -654,7 +662,7 @@ final class ArgumentParserConnectionFactory extends AbstractConnectionFactory
 
 
 
-  private String getKDC() throws ArgumentException, CLIException
+  private String getKDC() throws ArgumentException
   {
     String value = null;
     for (final String s : saslOptionArg.getValues())
@@ -760,7 +768,7 @@ final class ArgumentParserConnectionFactory extends AbstractConnectionFactory
    * @return The password stored into the specified file on by the command line
    *         argument, or null it if not specified.
    */
-  private String getPassword() throws CLIException
+  private String getPassword() throws ArgumentException
   {
     String value = "";
     if (bindPasswordArg.isPresent())
@@ -773,7 +781,15 @@ final class ArgumentParserConnectionFactory extends AbstractConnectionFactory
     }
     if (value.length() == 0 && app.isInteractive())
     {
-      value = app.readLineOfInput(LocalizableMessage.raw("Bind Password:"));
+      try
+      {
+        value = app.readLineOfInput(LocalizableMessage.raw("Bind Password:"));
+      }
+      catch(CLIException e)
+      {
+        throw new ArgumentException(
+            LocalizableMessage.raw("Unable to read password"), e);
+      }
     }
 
     return value;
@@ -781,7 +797,7 @@ final class ArgumentParserConnectionFactory extends AbstractConnectionFactory
 
 
 
-  private String getRealm() throws ArgumentException, CLIException
+  private String getRealm() throws ArgumentException
   {
     String value = null;
     for (final String s : saslOptionArg.getValues())

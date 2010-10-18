@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -61,6 +61,22 @@ abstract class AbstractRequestImpl<R extends Request> implements Request
     // No implementation required.
   }
 
+
+
+  /**
+   * Creates a new abstract request that is an exact copy of the provided
+   * request.
+   *
+   * @param request
+   *          The request to be copied.
+   * @throws NullPointerException
+   *           If {@code request} was {@code null} .
+   */
+  AbstractRequestImpl(Request request) throws NullPointerException
+  {
+    Validator.ensureNotNull(request);
+    controls.addAll(request.getControls());
+  }
 
 
   /**

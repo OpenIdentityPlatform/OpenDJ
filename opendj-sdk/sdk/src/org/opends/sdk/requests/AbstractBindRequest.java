@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -46,6 +46,22 @@ abstract class AbstractBindRequest<R extends BindRequest> extends
   protected AbstractBindRequest()
   {
     // Nothing to do.
+  }
+
+
+
+  /**
+   * Creates a new abstract bind request that is an exact copy of the provided
+   * request.
+   *
+   * @param bindRequest
+   *          The bind request to be copied.
+   * @throws NullPointerException
+   *           If {@code bindRequest} was {@code null} .
+   */
+  protected AbstractBindRequest(BindRequest bindRequest)
+  {
+    super(bindRequest);
   }
 
 

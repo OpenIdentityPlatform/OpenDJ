@@ -25,10 +25,19 @@
  *      Copyright 2010 Sun Microsystems, Inc.
  */
 
+package org.opends.sdk.requests;
+
+import org.opends.sdk.responses.WhoAmIExtendedResult;
+
 /**
- * Examples which use the OpenDS LDAP SDK.
+ * Unmodifiable Who Am I extended request implementation.
  */
-package org.opends.sdk.examples;
-
-
-
+final class UnmodifiableWhoAmIExtendedRequestImpl
+    extends AbstractUnmodifiableExtendedRequest
+    <WhoAmIExtendedRequest, WhoAmIExtendedResult>
+    implements WhoAmIExtendedRequest
+{
+  UnmodifiableWhoAmIExtendedRequestImpl(WhoAmIExtendedRequest impl) {
+    super(impl);
+  }
+}

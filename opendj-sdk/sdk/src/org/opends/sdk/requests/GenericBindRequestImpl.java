@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -79,6 +79,28 @@ final class GenericBindRequestImpl extends
     this.authenticationType = authenticationType;
     this.authenticationValue = authenticationValue;
     this.bindClient = bindClient; // Always return same bind client.
+  }
+
+
+
+  /**
+   * Creates a new generic bind request that is an exact copy of the
+   * provided request.
+   *
+   * @param genericBindRequest
+   *          The generic bind request to be copied.
+   * @throws NullPointerException
+   *           If {@code genericBindRequest} was {@code null} .
+   */
+  GenericBindRequestImpl(
+      final GenericBindRequest genericBindRequest)
+      throws NullPointerException
+  {
+    super(genericBindRequest);
+    this.name = genericBindRequest.getName();
+    this.authenticationType = genericBindRequest.getAuthenticationType();
+    this.authenticationValue = genericBindRequest.getAuthenticationValue();
+    this.bindClient = null; // Create a new bind client each time.
   }
 
 

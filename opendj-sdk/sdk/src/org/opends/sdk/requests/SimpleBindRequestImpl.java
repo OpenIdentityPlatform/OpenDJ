@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -69,6 +69,25 @@ final class SimpleBindRequestImpl extends
   {
     this.name = name;
     this.password = password;
+  }
+
+
+
+  /**
+   * Creates a new simple bind request that is an exact copy of the
+   * provided request.
+   *
+   * @param simpleBindRequest
+   *          The simple bind request to be copied.
+   * @throws NullPointerException
+   *           If {@code simpleBindRequest} was {@code null} .
+   */
+  SimpleBindRequestImpl(final SimpleBindRequest simpleBindRequest)
+      throws NullPointerException
+  {
+    super(simpleBindRequest);
+    this.name = simpleBindRequest.getName();
+    this.password = simpleBindRequest.getPassword();
   }
 
 

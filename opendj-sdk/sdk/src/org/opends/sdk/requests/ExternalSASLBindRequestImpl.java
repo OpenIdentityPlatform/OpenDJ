@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -130,6 +130,25 @@ final class ExternalSASLBindRequestImpl extends
   ExternalSASLBindRequestImpl()
   {
     // Nothing to do.
+  }
+
+
+
+  /**
+   * Creates a new external SASL bind request that is an exact copy of the
+   * provided request.
+   *
+   * @param externalSASLBindRequest
+   *          The external SASL bind request to be copied.
+   * @throws NullPointerException
+   *           If {@code externalSASLBindRequest} was {@code null} .
+   */
+  ExternalSASLBindRequestImpl(
+      final ExternalSASLBindRequest externalSASLBindRequest)
+      throws NullPointerException
+  {
+    super(externalSASLBindRequest);
+    this.authorizationID = externalSASLBindRequest.getAuthorizationID();
   }
 
 

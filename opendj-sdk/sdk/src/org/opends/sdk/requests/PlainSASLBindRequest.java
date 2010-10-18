@@ -158,6 +158,9 @@ public interface PlainSASLBindRequest extends SASLBindRequest
    * @param authenticationID
    *          The authentication ID of the user.
    * @return This bind request.
+   * @throws UnsupportedOperationException
+   *           If this bind request does not permit the authentication ID to be
+   *           set.
    * @throws LocalizedIllegalArgumentException
    *           If {@code authenticationID} was non-empty and did not contain a
    *           valid authorization ID type.
@@ -165,7 +168,8 @@ public interface PlainSASLBindRequest extends SASLBindRequest
    *           If {@code authenticationID} was {@code null}.
    */
   PlainSASLBindRequest setAuthenticationID(String authenticationID)
-      throws LocalizedIllegalArgumentException, NullPointerException;
+      throws UnsupportedOperationException, LocalizedIllegalArgumentException,
+      NullPointerException;
 
 
 
@@ -179,12 +183,15 @@ public interface PlainSASLBindRequest extends SASLBindRequest
    * @param authorizationID
    *          The authorization ID of the user, which may be {@code null}.
    * @return This bind request.
+   * @throws UnsupportedOperationException
+   *           If this bind request does not permit the authorization ID to be
+   *           set.
    * @throws LocalizedIllegalArgumentException
    *           If {@code authorizationID} was non-empty and did not contain a
    *           valid authorization ID type.
    */
   PlainSASLBindRequest setAuthorizationID(String authorizationID)
-      throws LocalizedIllegalArgumentException;
+      throws UnsupportedOperationException, LocalizedIllegalArgumentException;
 
 
 

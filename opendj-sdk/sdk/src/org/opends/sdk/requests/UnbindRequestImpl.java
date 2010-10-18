@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -42,6 +42,23 @@ final class UnbindRequestImpl extends AbstractRequestImpl<UnbindRequest>
   UnbindRequestImpl()
   {
     // Do nothing.
+  }
+
+
+
+  /**
+   * Creates a new unbind request that is an exact copy of the provided
+   * request.
+   *
+   * @param unbindRequest
+   *          The unbind request to be copied.
+   * @throws NullPointerException
+   *           If {@code unbindRequest} was {@code null} .
+   */
+  UnbindRequestImpl(final UnbindRequest unbindRequest)
+      throws NullPointerException
+  {
+    super(unbindRequest);
   }
 
 

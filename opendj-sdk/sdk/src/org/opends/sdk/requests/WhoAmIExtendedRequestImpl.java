@@ -131,6 +131,24 @@ final class WhoAmIExtendedRequestImpl extends
 
 
   /**
+   * Creates a new Who Am I extended request that is an exact copy of the
+   * provided request.
+   *
+   * @param whoAmIExtendedRequest
+   *          The who Am I extended request to be copied.
+   * @throws NullPointerException
+   *           If {@code whoAmIExtendedRequest} was {@code null} .
+   */
+  WhoAmIExtendedRequestImpl(
+      final WhoAmIExtendedRequest whoAmIExtendedRequest)
+      throws NullPointerException
+  {
+    super(whoAmIExtendedRequest);
+  }
+
+
+
+  /**
    * {@inheritDoc}
    */
   @Override

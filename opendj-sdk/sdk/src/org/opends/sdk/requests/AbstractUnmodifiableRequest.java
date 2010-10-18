@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -45,11 +45,11 @@ import org.opends.sdk.controls.ControlDecoder;
  * @param <R>
  *          The type of request.
  */
-abstract class AbstractUnmodifiableRequestImpl<R extends Request> implements
+abstract class AbstractUnmodifiableRequest<R extends Request> implements
     Request
 {
 
-  private final R impl;
+  protected final R impl;
 
 
 
@@ -59,7 +59,7 @@ abstract class AbstractUnmodifiableRequestImpl<R extends Request> implements
    * @param impl
    *          The underlying request implementation to be made unmodifiable.
    */
-  AbstractUnmodifiableRequestImpl(final R impl)
+  AbstractUnmodifiableRequest(final R impl)
   {
     this.impl = impl;
   }

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -162,6 +162,26 @@ final class CRAMMD5SASLBindRequestImpl extends
     Validator.ensureNotNull(authenticationID, password);
     this.authenticationID = authenticationID;
     this.password = password;
+  }
+
+
+
+  /**
+   * Creates a new CRAM MD5 SASL bind request that is an exact copy of the
+   * provided request.
+   *
+   * @param cramMD5SASLBindRequest
+   *          The CRAM MD5 SASL bind request to be copied.
+   * @throws NullPointerException
+   *           If {@code cramMD5SASLBindRequest} was {@code null} .
+   */
+  CRAMMD5SASLBindRequestImpl(
+      final CRAMMD5SASLBindRequest cramMD5SASLBindRequest)
+      throws NullPointerException
+  {
+    super(cramMD5SASLBindRequest);
+    this.authenticationID = cramMD5SASLBindRequest.getAuthenticationID();
+    this.password = cramMD5SASLBindRequest.getPassword();
   }
 
 

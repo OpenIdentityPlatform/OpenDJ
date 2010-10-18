@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -400,6 +400,41 @@ final class GSSAPISASLBindRequestImpl extends
     Validator.ensureNotNull(authenticationID, password);
     this.authenticationID = authenticationID;
     this.password = password;
+  }
+
+
+
+  /**
+   * Creates a new GSSAPI SASL bind request that is an exact copy of the
+   * provided request.
+   *
+   * @param gssapiSASLBindRequest
+   *          The GSSAPI SASL bind request to be copied.
+   * @throws NullPointerException
+   *           If {@code gssAPISASLBindRequest} was {@code null}.
+   */
+  GSSAPISASLBindRequestImpl(
+      final GSSAPISASLBindRequest gssapiSASLBindRequest)
+      throws NullPointerException
+  {
+    super(gssapiSASLBindRequest);
+    this.subject = gssapiSASLBindRequest.getSubject();
+
+    this.authenticationID = gssapiSASLBindRequest.getAuthenticationID();
+    this.password = gssapiSASLBindRequest.getPassword();
+    this.realm = gssapiSASLBindRequest.getRealm();
+
+    this.kdcAddress = gssapiSASLBindRequest.getKDCAddress();
+
+    this.authorizationID = gssapiSASLBindRequest.getAuthorizationID();
+
+    this.additionalAuthParams.putAll(
+        gssapiSASLBindRequest.getAdditionalAuthParams());
+    this.qopValues.addAll(gssapiSASLBindRequest.getQOPs());
+
+    this.serverAuth = gssapiSASLBindRequest.isServerAuth();
+    this.maxReceiveBufferSize = gssapiSASLBindRequest.getMaxReceiveBufferSize();
+    this.maxSendBufferSize = gssapiSASLBindRequest.getMaxSendBufferSize();
   }
 
 

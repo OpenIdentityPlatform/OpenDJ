@@ -133,6 +133,24 @@ final class CancelExtendedRequestImpl extends
 
 
   /**
+   * Creates a new cancel extended request that is an exact copy of the provided
+   * request.
+   *
+   * @param cancelExtendedRequest
+   *          The cancel extended request to be copied.
+   * @throws NullPointerException
+   *           If {@code cancelExtendedRequest} was {@code null} .
+   */
+  CancelExtendedRequestImpl(final CancelExtendedRequest cancelExtendedRequest)
+      throws NullPointerException
+  {
+    super(cancelExtendedRequest);
+    this.requestID = cancelExtendedRequest.getRequestID();
+  }
+
+
+
+  /**
    * {@inheritDoc}
    */
   public int getRequestID()

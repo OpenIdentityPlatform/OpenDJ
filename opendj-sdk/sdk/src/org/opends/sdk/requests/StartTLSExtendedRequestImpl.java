@@ -37,6 +37,7 @@ import org.opends.sdk.responses.*;
 
 import com.sun.opends.sdk.util.Validator;
 
+import java.util.*;
 
 
 /**
@@ -55,7 +56,8 @@ final class StartTLSExtendedRequestImpl extends
         throws DecodeException
     {
       // TODO: Check the OID and that the value is not present.
-      final StartTLSExtendedRequest newRequest = new StartTLSExtendedRequestImpl();
+      final StartTLSExtendedRequest newRequest =
+          new StartTLSExtendedRequestImpl();
       for (final Control control : request.getControls())
       {
         newRequest.addControl(control);
@@ -95,15 +97,16 @@ final class StartTLSExtendedRequestImpl extends
   /**
    * The list of cipher suite
    */
-  private String[] enabledCipherSuites = null;
+  private List<String> enabledCipherSuites = new LinkedList<String>();
 
   /**
    * the list of protocols
    */
-  private String[] enabledProtocols = null;
+  private List<String> enabledProtocols = new LinkedList<String>();
 
   // No need to expose this.
-  private static final ExtendedResultDecoder<ExtendedResult> RESULT_DECODER = new ResultDecoder();
+  private static final ExtendedResultDecoder<ExtendedResult> RESULT_DECODER =
+      new ResultDecoder();
 
 
 
@@ -111,6 +114,28 @@ final class StartTLSExtendedRequestImpl extends
   {
     Validator.ensureNotNull(sslContext);
     this.sslContext = sslContext;
+  }
+
+
+
+  /**
+   * Creates a new startTLS extended request that is an exact copy of the
+   * provided request.
+   *
+   * @param startTLSExtendedRequest
+   *          The startTLS extended request to be copied.
+   * @throws NullPointerException
+   *           If {@code startTLSExtendedRequest} was {@code null} .
+   */
+  StartTLSExtendedRequestImpl(
+      final StartTLSExtendedRequest startTLSExtendedRequest)
+      throws NullPointerException
+  {
+    super(startTLSExtendedRequest);
+    this.sslContext = startTLSExtendedRequest.getSSLContext();
+    this.enabledCipherSuites.addAll(
+        startTLSExtendedRequest.getEnabledCipherSuites());
+    this.enabledProtocols.addAll(startTLSExtendedRequest.getEnabledProtocols());
   }
 
 
@@ -158,9 +183,12 @@ final class StartTLSExtendedRequestImpl extends
   /**
    * {@inheritDoc}}
    */
-  public StartTLSExtendedRequest setEnabledProtocols(String[] protocols)
+  public StartTLSExtendedRequest addEnabledProtocol(String... protocols)
   {
-    this.enabledProtocols = protocols;
+    for (final String protocol : protocols)
+    {
+      this.enabledProtocols.add(Validator.ensureNotNull(protocol));
+    }
     return this;
   }
 
@@ -169,9 +197,12 @@ final class StartTLSExtendedRequestImpl extends
   /**
    * {@inheritDoc}}
    */
-  public StartTLSExtendedRequest setEnabledCipherSuites(String[] suites)
+  public StartTLSExtendedRequest addEnabledCipherSuite(String... suites)
   {
-    this.enabledCipherSuites = suites;
+    for (final String suite : suites)
+    {
+      this.enabledCipherSuites.add(Validator.ensureNotNull(suite));
+    }
     return this;
   }
 
@@ -180,7 +211,7 @@ final class StartTLSExtendedRequestImpl extends
   /**
    * {@inheritDoc}}
    */
-  public String[] getEnabledProtocols()
+  public List<String> getEnabledProtocols()
   {
     return this.enabledProtocols;
   }
@@ -190,7 +221,7 @@ final class StartTLSExtendedRequestImpl extends
   /**
    * {@inheritDoc}}
    */
-  public String[] getEnabledCipherSuites()
+  public List<String> getEnabledCipherSuites()
   {
     return this.enabledCipherSuites;
   }

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.ldap;
@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.SSLContext;
@@ -77,7 +78,8 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
 
   private final AtomicInteger nextMsgID = new AtomicInteger(1);
 
-  private boolean bindOrStartTLSInProgress = false;
+  private final AtomicBoolean bindOrStartTLSInProgress =
+      new AtomicBoolean(false);
 
   private final ConcurrentHashMap<Integer, AbstractLDAPFutureResultImpl<?>> pendingRequests =
     new ConcurrentHashMap<Integer, AbstractLDAPFutureResultImpl<?>>();
@@ -122,7 +124,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
         return new CompletedFutureResult<Void>(
             ErrorResultException.wrap(connectionInvalidReason), messageID);
       }
-      if (bindOrStartTLSInProgress)
+      if (bindOrStartTLSInProgress.get())
       {
         final Result errorResult = Responses.newResult(
             ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
@@ -193,7 +195,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
         future.adaptErrorResult(connectionInvalidReason);
         return future;
       }
-      if (bindOrStartTLSInProgress)
+      if (bindOrStartTLSInProgress.get())
       {
         future.setResultOrError(Responses
             .newResult(ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
@@ -289,7 +291,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
         future.adaptErrorResult(connectionInvalidReason);
         return future;
       }
-      if (bindOrStartTLSInProgress)
+      if (!bindOrStartTLSInProgress.compareAndSet(false, true))
       {
         future.setResultOrError(Responses.newBindResult(
             ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
@@ -305,7 +307,6 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
       }
 
       pendingRequests.put(messageID, future);
-      bindOrStartTLSInProgress = true;
     }
 
     try
@@ -379,7 +380,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
         future.adaptErrorResult(connectionInvalidReason);
         return future;
       }
-      if (bindOrStartTLSInProgress)
+      if (bindOrStartTLSInProgress.get())
       {
         future.setResultOrError(Responses.newCompareResult(
             ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
@@ -437,7 +438,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
         future.adaptErrorResult(connectionInvalidReason);
         return future;
       }
-      if (bindOrStartTLSInProgress)
+      if (bindOrStartTLSInProgress.get())
       {
         future.setResultOrError(Responses
             .newResult(ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
@@ -496,7 +497,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
         future.adaptErrorResult(connectionInvalidReason);
         return future;
       }
-      if (bindOrStartTLSInProgress)
+      if (!bindOrStartTLSInProgress.compareAndSet(false, true))
       {
         future.setResultOrError(request.getResultDecoder()
             .newExtendedErrorResult(ResultCode.OPERATIONS_ERROR, "",
@@ -518,7 +519,6 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
               .newExtendedErrorResult(ResultCode.OPERATIONS_ERROR, "",
                   "This connection is already TLS enabled"));
         }
-        bindOrStartTLSInProgress = true;
       }
       pendingRequests.put(messageID, future);
     }
@@ -591,7 +591,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
         future.adaptErrorResult(connectionInvalidReason);
         return future;
       }
-      if (bindOrStartTLSInProgress)
+      if (bindOrStartTLSInProgress.get())
       {
         future.setResultOrError(Responses
             .newResult(ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
@@ -649,7 +649,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
         future.adaptErrorResult(connectionInvalidReason);
         return future;
       }
-      if (bindOrStartTLSInProgress)
+      if (bindOrStartTLSInProgress.get())
       {
         future.setResultOrError(Responses
             .newResult(ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
@@ -719,7 +719,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
         future.adaptErrorResult(connectionInvalidReason);
         return future;
       }
-      if (bindOrStartTLSInProgress)
+      if (bindOrStartTLSInProgress.get())
       {
         future.setResultOrError(Responses
             .newResult(ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
@@ -996,13 +996,13 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
 
   void setBindOrStartTLSInProgress(final boolean state)
   {
-    bindOrStartTLSInProgress = state;
+    bindOrStartTLSInProgress.set(state);
   }
 
 
 
   synchronized void startTLS(final SSLContext sslContext,
-      final String[] protocols, final String[] cipherSuites,
+      final List<String> protocols, final List<String> cipherSuites,
       final CompletionHandler<SSLEngine> completionHandler) throws IOException
   {
     if (isTLSEnabled())
@@ -1015,8 +1015,10 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
 
     sslEngineConfigurator = new SSLEngineConfigurator(sslContext, true, false,
         false);
-    sslEngineConfigurator.setEnabledProtocols(protocols);
-    sslEngineConfigurator.setEnabledCipherSuites(cipherSuites);
+    sslEngineConfigurator.setEnabledProtocols(protocols.isEmpty() ?
+        null : protocols.toArray(new String[protocols.size()]));
+    sslEngineConfigurator.setEnabledCipherSuites(cipherSuites.isEmpty() ?
+        null : cipherSuites.toArray(new String[cipherSuites.size()]));
     sslFilter = new SSLFilter(null, sslEngineConfigurator);
     installFilter(sslFilter);
     sslFilter.handshake(connection, completionHandler);

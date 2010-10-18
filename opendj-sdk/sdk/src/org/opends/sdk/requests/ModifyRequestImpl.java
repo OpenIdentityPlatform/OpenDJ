@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -62,6 +62,25 @@ final class ModifyRequestImpl extends AbstractRequestImpl<ModifyRequest>
   ModifyRequestImpl(final DN name) throws NullPointerException
   {
     this.name = name;
+  }
+
+
+
+  /**
+   * Creates a new modify request that is an exact copy of the provided
+   * request.
+   *
+   * @param modifyRequest
+   *          The modify request to be copied.
+   * @throws NullPointerException
+   *           If {@code modifyRequest} was {@code null} .
+   */
+  ModifyRequestImpl(final ModifyRequest modifyRequest)
+      throws NullPointerException
+  {
+    super(modifyRequest);
+    this.name = modifyRequest.getName();
+    this.changes.addAll(modifyRequest.getModifications());
   }
 
 

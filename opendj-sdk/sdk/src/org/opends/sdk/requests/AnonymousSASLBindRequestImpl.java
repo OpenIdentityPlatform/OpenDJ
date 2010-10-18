@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -63,6 +63,24 @@ final class AnonymousSASLBindRequestImpl extends
   {
     Validator.ensureNotNull(traceString);
     this.traceString = traceString;
+  }
+
+
+
+  /**
+   * Creates a new anonymous SASL bind request that is an exact copy of the
+   * provided request.
+   *
+   * @param anonymousSASLBindRequest
+   *          The anonymous SASL bind request to be copied.
+   * @throws NullPointerException
+   *           If {@code anonymousSASLBindRequest} was {@code null} .
+   */
+  AnonymousSASLBindRequestImpl(
+      final AnonymousSASLBindRequest anonymousSASLBindRequest)
+  {
+    super(anonymousSASLBindRequest);
+    this.traceString = anonymousSASLBindRequest.getTraceString();
   }
 
 

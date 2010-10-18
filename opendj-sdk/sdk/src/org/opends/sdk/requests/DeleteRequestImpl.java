@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -58,6 +58,24 @@ final class DeleteRequestImpl extends AbstractRequestImpl<DeleteRequest>
   DeleteRequestImpl(final DN name) throws NullPointerException
   {
     this.name = name;
+  }
+
+
+
+  /**
+   * Creates a new delete request that is an exact copy of the provided
+   * request.
+   *
+   * @param deleteRequest
+   *          The add request to be copied.
+   * @throws NullPointerException
+   *           If {@code addRequest} was {@code null} .
+   */
+  DeleteRequestImpl(final DeleteRequest deleteRequest)
+      throws NullPointerException
+  {
+    super(deleteRequest);
+    this.name = deleteRequest.getName();
   }
 
 

@@ -201,8 +201,12 @@ public interface PasswordModifyExtendedRequest extends
    *          The desired password for the user, or {@code null} if a new
    *          password should be generated.
    * @return This password modify request.
+   * @throws UnsupportedOperationException
+   *           If this password modify extended request does not permit the new
+   *           password to be set.
    */
-  PasswordModifyExtendedRequest setNewPassword(ByteString newPassword);
+  PasswordModifyExtendedRequest setNewPassword(ByteString newPassword)
+      throws UnsupportedOperationException;
 
 
 
@@ -214,8 +218,12 @@ public interface PasswordModifyExtendedRequest extends
    *          The desired password for the user, or {@code null} if a new
    *          password should be generated.
    * @return This password modify request.
+   * @throws UnsupportedOperationException
+   *           If this password modify extended request does not permit the new
+   *           password to be set.
    */
-  PasswordModifyExtendedRequest setNewPassword(String newPassword);
+  PasswordModifyExtendedRequest setNewPassword(String newPassword)
+      throws UnsupportedOperationException;
 
 
 
@@ -226,8 +234,12 @@ public interface PasswordModifyExtendedRequest extends
    *          The current password for the user, or {@code null} if the password
    *          is not known.
    * @return This password modify request.
+   * @throws UnsupportedOperationException
+   *           If this password modify extended request does not permit the old
+   *           password to be set.
    */
-  PasswordModifyExtendedRequest setOldPassword(ByteString oldPassword);
+  PasswordModifyExtendedRequest setOldPassword(ByteString oldPassword)
+      throws UnsupportedOperationException;
 
 
 
@@ -239,8 +251,12 @@ public interface PasswordModifyExtendedRequest extends
    *          The current password for the user, or {@code null} if the password
    *          is not known.
    * @return This password modify request.
+   * @throws UnsupportedOperationException
+   *           If this password modify extended request does not permit the old
+   *           password to be set.
    */
-  PasswordModifyExtendedRequest setOldPassword(String oldPassword);
+  PasswordModifyExtendedRequest setOldPassword(String oldPassword)
+      throws UnsupportedOperationException;
 
 
 
@@ -253,8 +269,12 @@ public interface PasswordModifyExtendedRequest extends
    *          {@code null} if the request should be applied to the user
    *          currently associated with the session.
    * @return This password modify request.
+   * @throws UnsupportedOperationException
+   *           If this password modify extended request does not permit the user
+   *           identity to be set.
    */
-  PasswordModifyExtendedRequest setUserIdentity(ByteString userIdentity);
+  PasswordModifyExtendedRequest setUserIdentity(ByteString userIdentity)
+      throws UnsupportedOperationException;
 
 
 
@@ -268,7 +288,11 @@ public interface PasswordModifyExtendedRequest extends
    *          {@code null} if the request should be applied to the user
    *          currently associated with the session.
    * @return This password modify request.
+   * @throws UnsupportedOperationException
+   *           If this password modify extended request does not permit the user
+   *           identity to be set.
    */
-  PasswordModifyExtendedRequest setUserIdentity(String userIdentity);
+  PasswordModifyExtendedRequest setUserIdentity(String userIdentity)
+      throws UnsupportedOperationException;
 
 }

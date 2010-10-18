@@ -150,7 +150,10 @@ public interface CRAMMD5SASLBindRequest extends SASLBindRequest
    *
    * @param authenticationID
    *          The authentication ID of the user.
-   * @return This bind request.
+   * @return This bind request
+   * @throws UnsupportedOperationException
+   *           If this bind request does not permit the authentication ID to be
+   *           set..
    * @throws LocalizedIllegalArgumentException
    *           If {@code authenticationID} was non-empty and did not contain a
    *           valid authorization ID type.
@@ -158,7 +161,8 @@ public interface CRAMMD5SASLBindRequest extends SASLBindRequest
    *           If {@code authenticationID} was {@code null}.
    */
   CRAMMD5SASLBindRequest setAuthenticationID(String authenticationID)
-      throws LocalizedIllegalArgumentException, NullPointerException;
+      throws UnsupportedOperationException, LocalizedIllegalArgumentException,
+      NullPointerException;
 
 
 

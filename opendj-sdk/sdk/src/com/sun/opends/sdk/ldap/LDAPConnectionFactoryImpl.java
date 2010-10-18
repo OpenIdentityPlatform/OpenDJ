@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.ldap;
@@ -126,8 +126,12 @@ public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
           {
             final StartTLSExtendedRequest startTLS = Requests
                 .newStartTLSExtendedRequest(options.getSSLContext());
-            startTLS.setEnabledCipherSuites(options.getEnabledCipherSuites());
-            startTLS.setEnabledProtocols(options.getEnabledProtocols());
+            startTLS.addEnabledCipherSuite(
+                options.getEnabledCipherSuites().toArray(
+                    new String[options.getEnabledCipherSuites().size()]));
+            startTLS.addEnabledProtocol(
+                options.getEnabledProtocols().toArray(
+                    new String[options.getEnabledProtocols().size()]));
             return connection.extendedRequest(startTLS, handler);
           }
 

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -74,6 +74,26 @@ final class CompareRequestImpl extends AbstractRequestImpl<CompareRequest>
     this.name = name;
     this.attributeDescription = attributeDescription;
     this.assertionValue = assertionValue;
+  }
+
+
+
+  /**
+   * Creates a new compare request that is an exact copy of the provided
+   * request.
+   *
+   * @param compareRequest
+   *          The compare request to be copied.
+   * @throws NullPointerException
+   *           If {@code compareRequest} was {@code null} .
+   */
+  CompareRequestImpl(final CompareRequest compareRequest)
+      throws NullPointerException
+  {
+    super(compareRequest);
+    this.name = compareRequest.getName();
+    this.attributeDescription = compareRequest.getAttributeDescription();
+    this.assertionValue = compareRequest.getAssertionValue();
   }
 
 

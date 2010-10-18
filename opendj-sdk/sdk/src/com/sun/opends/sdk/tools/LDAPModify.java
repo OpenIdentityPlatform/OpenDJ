@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.tools;
@@ -473,7 +473,8 @@ public final class LDAPModify extends ConsoleApplication
         .get();
     final ArgumentParser argParser = new ArgumentParser(LDAPModify.class
         .getName(), toolDescription, false);
-    ArgumentParserConnectionFactory connectionFactory;
+    ConnectionFactoryProvider connectionFactoryProvider;
+    ConnectionFactory connectionFactory;
 
     BooleanArgument continueOnError;
     // TODO: Remove this due to new LDIF reader api?
@@ -493,7 +494,8 @@ public final class LDAPModify extends ConsoleApplication
 
     try
     {
-      connectionFactory = new ArgumentParserConnectionFactory(argParser, this);
+      connectionFactoryProvider =
+          new ConnectionFactoryProvider(argParser, this);
       propertiesFileArgument = new StringArgument("propertiesFilePath", null,
           OPTION_LONG_PROP_FILE_PATH, false, false, true,
           INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
@@ -597,7 +599,8 @@ public final class LDAPModify extends ConsoleApplication
     try
     {
       argParser.parseArguments(args);
-      connectionFactory.validate();
+      connectionFactory =
+          connectionFactoryProvider.getAuthenticatedConnectionFactory();
     }
     catch (final ArgumentException ae)
     {

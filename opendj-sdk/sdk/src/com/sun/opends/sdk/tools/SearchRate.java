@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.tools;
@@ -85,8 +85,6 @@ public final class SearchRate extends ConsoleApplication
 
     private final class SearchStatsThread extends StatsThread
     {
-      private long totalEntryCount;
-
       private final String[] extraColumn;
 
 
@@ -103,7 +101,6 @@ public final class SearchRate extends ConsoleApplication
       String[] getAdditionalColumns()
       {
         final int entryCount = entryRecentCount.getAndSet(0);
-        totalEntryCount += entryCount;
         if (successCount > 0)
         {
           extraColumn[0] = String.format("%.1f", (double) entryCount
@@ -119,8 +116,7 @@ public final class SearchRate extends ConsoleApplication
 
 
 
-    private final class SearchWorkerThread extends
-        WorkerThread<SearchStatsHandler>
+    private final class SearchWorkerThread extends WorkerThread
     {
       private SearchRequest sr;
 
@@ -137,17 +133,9 @@ public final class SearchRate extends ConsoleApplication
 
 
       @Override
-      public SearchStatsHandler getHandler(final long startTime)
-      {
-        return new SearchStatsHandler(startTime);
-      }
-
-
-
-      @Override
       public FutureResult<?> performOperation(
           final AsynchronousConnection connection,
-          final SearchStatsHandler handler, final DataSource[] dataSources)
+          final DataSource[] dataSources, final long startTime)
       {
         if (sr == null)
         {
@@ -169,7 +157,7 @@ public final class SearchRate extends ConsoleApplication
           sr.setFilter(String.format(filter, data));
           sr.setName(String.format(baseDN, data));
         }
-        return connection.search(sr, handler);
+        return connection.search(sr, new SearchStatsHandler(startTime));
       }
     }
 
@@ -190,7 +178,7 @@ public final class SearchRate extends ConsoleApplication
     private SearchPerformanceRunner(final ArgumentParser argParser,
         final ConsoleApplication app) throws ArgumentException
     {
-      super(argParser, app);
+      super(argParser, app, false, false, false);
     }
 
 
@@ -204,7 +192,7 @@ public final class SearchRate extends ConsoleApplication
 
 
     @Override
-    WorkerThread<?> newWorkerThread(final AsynchronousConnection connection,
+    WorkerThread newWorkerThread(final AsynchronousConnection connection,
         final ConnectionFactory connectionFactory)
     {
       return new SearchWorkerThread(connection, connectionFactory);
@@ -380,7 +368,8 @@ public final class SearchRate extends ConsoleApplication
         .getName(), toolDescription, false, true, 1, 0,
         "[filter format string] [attributes ...]");
 
-    ArgumentParserConnectionFactory connectionFactory;
+    ConnectionFactoryProvider connectionFactoryProvider;
+    ConnectionFactory connectionFactory;
     SearchPerformanceRunner runner;
 
     StringArgument baseDN;
@@ -396,7 +385,8 @@ public final class SearchRate extends ConsoleApplication
       {
         System.setProperty("org.opends.sdk.ldap.transport.linger", "0");
       }
-      connectionFactory = new ArgumentParserConnectionFactory(argParser, this);
+      connectionFactoryProvider =
+          new ConnectionFactoryProvider(argParser, this);
       runner = new SearchPerformanceRunner(argParser, this);
 
       propertiesFileArgument = new StringArgument("propertiesFilePath", null,
@@ -457,7 +447,8 @@ public final class SearchRate extends ConsoleApplication
     try
     {
       argParser.parseArguments(args);
-      connectionFactory.validate();
+      connectionFactory =
+          connectionFactoryProvider.getAuthenticatedConnectionFactory();
       runner.validate();
     }
     catch (final ArgumentException ae)

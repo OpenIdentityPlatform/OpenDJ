@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -49,7 +49,8 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest>
 
   private DN name;
 
-  private DereferenceAliasesPolicy dereferenceAliasesPolicy = DereferenceAliasesPolicy.NEVER;
+  private DereferenceAliasesPolicy dereferenceAliasesPolicy =
+      DereferenceAliasesPolicy.NEVER;
 
   private Filter filter;
 
@@ -75,8 +76,6 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest>
    * @param filter
    *          The filter that defines the conditions that must be fulfilled in
    *          order for an entry to be returned.
-   * @param attributeDescriptions
-   *          The names of the attributes to be included with each entry.
    * @throws NullPointerException
    *           If the {@code name}, {@code scope}, or {@code filter} were
    *           {@code null}.
@@ -87,6 +86,31 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest>
     this.name = name;
     this.scope = scope;
     this.filter = filter;
+  }
+
+
+
+  /**
+   * Creates a new search request that is an exact copy of the provided
+   * request.
+   *
+   * @param searchRequest
+   *          The search request to be copied.
+   * @throws NullPointerException
+   *           If {@code searchRequest} was {@code null} .
+   */
+  SearchRequestImpl(final SearchRequest searchRequest)
+      throws NullPointerException
+  {
+    super(searchRequest);
+    this.attributes.addAll(searchRequest.getAttributes());
+    this.name = searchRequest.getName();
+    this.dereferenceAliasesPolicy = searchRequest.getDereferenceAliasesPolicy();
+    this.filter = searchRequest.getFilter();
+    this.scope = searchRequest.getScope();
+    this.sizeLimit = searchRequest.getSizeLimit();
+    this.timeLimit = searchRequest.getTimeLimit();
+    this.typesOnly = searchRequest.isTypesOnly();
   }
 
 

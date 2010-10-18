@@ -150,11 +150,14 @@ public interface ExternalSASLBindRequest extends SASLBindRequest
    *          The desired authorization ID of the user, which may be {@code
    *          null}.
    * @return This bind request.
+   * @throws UnsupportedOperationException
+   *           If this external SASL request does not permit the authorization
+   *           ID to be set.
    * @throws LocalizedIllegalArgumentException
    *           If {@code authorizationID} was non-empty and did not contain a
    *           valid authorization ID type.
    */
   ExternalSASLBindRequest setAuthorizationID(String authorizationID)
-      throws LocalizedIllegalArgumentException;
+      throws UnsupportedOperationException, LocalizedIllegalArgumentException;
 
 }
