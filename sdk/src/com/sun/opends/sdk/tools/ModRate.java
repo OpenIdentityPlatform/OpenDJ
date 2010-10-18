@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.tools;
@@ -51,8 +51,7 @@ public final class ModRate extends ConsoleApplication
 {
   private static final class ModifyPerformanceRunner extends PerformanceRunner
   {
-    private final class ModifyWorkerThread extends
-        WorkerThread<ResultHandler<Result>>
+    private final class ModifyWorkerThread extends WorkerThread
     {
       private ModifyRequest mr;
       private Object[] data;
@@ -68,24 +67,17 @@ public final class ModRate extends ConsoleApplication
 
 
       @Override
-      public ResultHandler<Result> getHandler(final long startTime)
-      {
-        return new UpdateStatsResultHandler<Result>(startTime);
-      }
-
-
-
-      @Override
       public FutureResult<?> performOperation(
           final AsynchronousConnection connection,
-          final ResultHandler<Result> handler, final DataSource[] dataSources)
+          final DataSource[] dataSources, long startTime)
       {
         if (dataSources != null)
         {
           data = DataSource.generateData(dataSources, data);
         }
         mr = newModifyRequest(data);
-        return connection.modify(mr, handler);
+        return connection.modify(mr,
+            new UpdateStatsResultHandler<Result>(startTime));
       }
 
 
@@ -136,7 +128,7 @@ public final class ModRate extends ConsoleApplication
     private ModifyPerformanceRunner(final ArgumentParser argParser,
         final ConsoleApplication app) throws ArgumentException
     {
-      super(argParser, app);
+      super(argParser, app, false, false, false);
     }
 
 
@@ -150,7 +142,7 @@ public final class ModRate extends ConsoleApplication
 
 
     @Override
-    WorkerThread<?> newWorkerThread(final AsynchronousConnection connection,
+    WorkerThread newWorkerThread(final AsynchronousConnection connection,
         final ConnectionFactory connectionFactory)
     {
       return new ModifyWorkerThread(connection, connectionFactory);
@@ -323,7 +315,8 @@ public final class ModRate extends ConsoleApplication
     final ArgumentParser argParser = new ArgumentParser(
         ModRate.class.getName(), toolDescription, false, true, 1, 0,
         "[(attribute:value format string) ...]");
-    ArgumentParserConnectionFactory connectionFactory;
+    ConnectionFactoryProvider connectionFactoryProvider;
+    ConnectionFactory connectionFactory;
     ModifyPerformanceRunner runner;
 
     BooleanArgument showUsage;
@@ -337,7 +330,8 @@ public final class ModRate extends ConsoleApplication
       {
         System.setProperty("org.opends.sdk.ldap.transport.linger", "0");
       }
-      connectionFactory = new ArgumentParserConnectionFactory(argParser, this);
+      connectionFactoryProvider =
+          new ConnectionFactoryProvider(argParser, this);
       runner = new ModifyPerformanceRunner(argParser, this);
       propertiesFileArgument = new StringArgument("propertiesFilePath", null,
           OPTION_LONG_PROP_FILE_PATH, false, false, true,
@@ -380,7 +374,8 @@ public final class ModRate extends ConsoleApplication
     try
     {
       argParser.parseArguments(args);
-      connectionFactory.validate();
+      connectionFactory =
+          connectionFactoryProvider.getAuthenticatedConnectionFactory();
       runner.validate();
     }
     catch (final ArgumentException ae)

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -141,6 +141,26 @@ final class GenericExtendedRequestImpl extends
   {
     this.requestName = requestName;
     this.requestValue = requestValue;
+  }
+
+
+
+  /**
+   * Creates a new generic extended request that is an exact copy of the
+   * provided request.
+   *
+   * @param genericExtendedRequest
+   *          The generic extended request to be copied.
+   * @throws NullPointerException
+   *           If {@code extendedRequest} was {@code null} .
+   */
+  protected GenericExtendedRequestImpl(
+      GenericExtendedRequest genericExtendedRequest)
+      throws NullPointerException
+  {
+    super(genericExtendedRequest);
+    this.requestName = genericExtendedRequest.getOID();
+    this.requestValue = genericExtendedRequest.getValue();
   }
 
 

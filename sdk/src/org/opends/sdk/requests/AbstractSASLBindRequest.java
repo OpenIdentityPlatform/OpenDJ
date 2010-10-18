@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -43,6 +43,21 @@ import static com.sun.opends.sdk.ldap.LDAPConstants.TYPE_AUTHENTICATION_SASL;
 abstract class AbstractSASLBindRequest<R extends SASLBindRequest> extends
     AbstractBindRequest<R> implements SASLBindRequest
 {
+
+  AbstractSASLBindRequest()
+  {
+
+  }
+
+
+
+  AbstractSASLBindRequest(SASLBindRequest saslBindRequest)
+  {
+    super(saslBindRequest);
+  }
+
+
+
   public final byte getAuthenticationType()
   {
     return TYPE_AUTHENTICATION_SASL;

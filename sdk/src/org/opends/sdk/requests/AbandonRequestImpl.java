@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -49,6 +49,23 @@ final class AbandonRequestImpl extends AbstractRequestImpl<AbandonRequest>
   AbandonRequestImpl(final int requestID)
   {
     this.requestID = requestID;
+  }
+
+
+
+  /**
+   * Creates a new abandon request that is an exact copy of the provided
+   * request.
+   *
+   * @param abandonRequest
+   *          The abandon request to be copied.
+   * @throws NullPointerException
+   *           If {@code abandonRequest} was {@code null} .
+   */
+  AbandonRequestImpl(final AbandonRequest abandonRequest)
+  {
+    super(abandonRequest);
+    this.requestID = abandonRequest.getRequestID();
   }
 
 

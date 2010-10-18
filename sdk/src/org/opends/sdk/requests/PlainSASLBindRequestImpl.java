@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -149,6 +149,27 @@ final class PlainSASLBindRequestImpl extends
     Validator.ensureNotNull(authenticationID, password);
     this.authenticationID = authenticationID;
     this.password = password;
+  }
+
+
+
+  /**
+   * Creates a new plain SASL bind request that is an exact copy of the
+   * provided request.
+   *
+   * @param plainSASLBindRequest
+   *          The plain SASL bind request to be copied.
+   * @throws NullPointerException
+   *           If {@code plainSASLBindRequest} was {@code null} .
+   */
+  PlainSASLBindRequestImpl(
+      final PlainSASLBindRequest plainSASLBindRequest)
+      throws NullPointerException
+  {
+    super(plainSASLBindRequest);
+    this.authenticationID = plainSASLBindRequest.getAuthenticationID();
+    this.authorizationID = plainSASLBindRequest.getAuthorizationID();
+    this.password = plainSASLBindRequest.getPassword();
   }
 
 

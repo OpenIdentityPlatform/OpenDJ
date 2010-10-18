@@ -506,8 +506,12 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
    * @param subject
    *          The Kerberos subject of the user to be authenticated.
    * @return This bind request.
+   * @throws UnsupportedOperationException
+   *           If this bind request does not permit the Kerberos subject to be
+   *           set.
    * @throws NullPointerException
    *           If {@code subject} was {@code null}.
    */
-  GSSAPISASLBindRequest setSubject(Subject subject) throws NullPointerException;
+  GSSAPISASLBindRequest setSubject(Subject subject)
+      throws UnsupportedOperationException, NullPointerException;
 }

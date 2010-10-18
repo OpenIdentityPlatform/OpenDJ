@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -312,6 +312,38 @@ final class DigestMD5SASLBindRequestImpl extends
     Validator.ensureNotNull(authenticationID, password);
     this.authenticationID = authenticationID;
     this.password = password;
+  }
+
+
+
+  /**
+   * Creates a new digest MD5 SASL bind request that is an exact copy of the
+   * provided request.
+   *
+   * @param digestMD5SASLBindRequest
+   *          The digest MD5 SASL bind request to be copied.
+   * @throws NullPointerException
+   *           If {@code digestMD5SASLBindRequest} was {@code null} .
+   */
+  DigestMD5SASLBindRequestImpl(
+      final DigestMD5SASLBindRequest digestMD5SASLBindRequest)
+      throws NullPointerException
+  {
+    super(digestMD5SASLBindRequest);
+    this.additionalAuthParams.putAll(
+        digestMD5SASLBindRequest.getAdditionalAuthParams());
+    this.qopValues.addAll(digestMD5SASLBindRequest.getQOPs());
+    this.cipher = digestMD5SASLBindRequest.getCipher();
+
+    this.serverAuth = digestMD5SASLBindRequest.isServerAuth();
+    this.maxReceiveBufferSize =
+        digestMD5SASLBindRequest.getMaxReceiveBufferSize();
+    this.maxSendBufferSize = digestMD5SASLBindRequest.getMaxSendBufferSize();
+
+    this.authenticationID = digestMD5SASLBindRequest.getAuthenticationID();
+    this.authorizationID = digestMD5SASLBindRequest.getAuthorizationID();
+    this.password = digestMD5SASLBindRequest.getPassword();
+    this.realm = digestMD5SASLBindRequest.getRealm();
   }
 
 

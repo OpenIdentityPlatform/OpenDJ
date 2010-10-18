@@ -40,7 +40,6 @@ import java.util.concurrent.TimeUnit;
 import org.opends.sdk.requests.DigestMD5SASLBindRequest;
 import org.opends.sdk.requests.Requests;
 import org.opends.sdk.requests.SearchRequest;
-import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.testng.annotations.DataProvider;
@@ -142,7 +141,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase
     LDAPOptions options = new LDAPOptions()
         .setSSLContext(sslContext)
         .setUseStartTLS(true)
-        .setEnabledCipherSuites(
+        .addEnabledCipherSuite(
             new String[] { "SSL_DH_anon_EXPORT_WITH_DES40_CBC_SHA",
                 "SSL_DH_anon_EXPORT_WITH_RC4_40_MD5",
                 "SSL_DH_anon_WITH_3DES_EDE_CBC_SHA",

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -57,6 +57,23 @@ public abstract class AbstractExtendedRequest<R extends ExtendedRequest<S>,
   protected AbstractExtendedRequest()
   {
     // Nothing to do.
+  }
+
+
+
+  /**
+   * Creates a new extended request that is an exact copy of the provided
+   * request.
+   *
+   * @param extendedRequest
+   *          The extended request to be copied.
+   * @throws NullPointerException
+   *           If {@code extendedRequest} was {@code null} .
+   */
+  protected AbstractExtendedRequest(ExtendedRequest extendedRequest)
+      throws NullPointerException
+  {
+    super(extendedRequest);
   }
 
 

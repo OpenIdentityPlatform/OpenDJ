@@ -33,6 +33,7 @@ import java.util.List;
 
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.DecodeOptions;
+import org.opends.sdk.ErrorResultException;
 import org.opends.sdk.controls.Control;
 import org.opends.sdk.controls.ControlDecoder;
 
@@ -78,7 +79,7 @@ public interface AnonymousSASLBindRequest extends SASLBindRequest
   /**
    * {@inheritDoc}
    */
-  BindClient createBindClient(String serverName);
+  BindClient createBindClient(String serverName) throws ErrorResultException;
 
 
 
@@ -143,9 +144,12 @@ public interface AnonymousSASLBindRequest extends SASLBindRequest
    *          The trace information, which has no semantic value, and can be
    *          used by administrators in order to identify the user.
    * @return This bind request.
+   * @throws UnsupportedOperationException
+   *           If this anonymous SASL request does not permit the trace
+   *           information to be set.
    * @throws NullPointerException
    *           If {@code traceString} was {@code null}.
    */
   AnonymousSASLBindRequest setTraceString(String traceString)
-      throws NullPointerException;
+      throws UnsupportedOperationException, NullPointerException;
 }

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.tools;
@@ -277,7 +277,8 @@ public final class LDAPCompare extends ConsoleApplication
     final ArgumentParser argParser = new ArgumentParser(LDAPCompare.class
         .getName(), toolDescription, false, true, 1, 0,
         "attribute:value [DN ...]");
-    ArgumentParserConnectionFactory connectionFactory;
+    ConnectionFactoryProvider connectionFactoryProvider;
+    ConnectionFactory connectionFactory;
 
     BooleanArgument continueOnError;
     BooleanArgument noop;
@@ -293,7 +294,8 @@ public final class LDAPCompare extends ConsoleApplication
 
     try
     {
-      connectionFactory = new ArgumentParserConnectionFactory(argParser, this);
+      connectionFactoryProvider =
+          new ConnectionFactoryProvider(argParser, this);
       propertiesFileArgument = new StringArgument("propertiesFilePath", null,
           OPTION_LONG_PROP_FILE_PATH, false, false, true,
           INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
@@ -379,7 +381,8 @@ public final class LDAPCompare extends ConsoleApplication
     try
     {
       argParser.parseArguments(args);
-      connectionFactory.validate();
+      connectionFactory =
+          connectionFactoryProvider.getAuthenticatedConnectionFactory();
     }
     catch (final ArgumentException ae)
     {

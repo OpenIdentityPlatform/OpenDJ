@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -61,6 +61,23 @@ final class AddRequestImpl extends AbstractRequestImpl<AddRequest> implements
   AddRequestImpl(final Entry entry) throws NullPointerException
   {
     this.entry = entry;
+  }
+
+
+
+  /**
+   * Creates a new add request that is an exact copy of the provided
+   * request.
+   *
+   * @param addRequest
+   *          The add request to be copied.
+   * @throws NullPointerException
+   *           If {@code addRequest} was {@code null} .
+   */
+  AddRequestImpl(final AddRequest addRequest) throws NullPointerException
+  {
+    super(addRequest);
+    this.entry = new LinkedHashMapEntry(addRequest);
   }
 
 

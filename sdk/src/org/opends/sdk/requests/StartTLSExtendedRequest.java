@@ -117,7 +117,7 @@ public interface StartTLSExtendedRequest extends
 
 
   /**
-   * Set the protocol versions enabled for secure connections with the
+   * Adds the protocol versions enabled for secure connections with the
    * Directory Server.
    *
    * The protocols must be supported by the SSLContext specified in
@@ -125,16 +125,18 @@ public interface StartTLSExtendedRequest extends
    * this method, only the protocols listed in the protocols parameter are
    * enabled for use.
    *
-   * @param protocols Names of all the protocols to enable or {@code null} to
-   *                  use the default protocols.
+   * @param protocols Names of all the protocols to enable.
    * @return A reference to this LDAP connection options.
+   * @throws UnsupportedOperationException
+   *           If this start TLS extended request does not permit the enabled
+   *           protocols to be set.
    */
-  StartTLSExtendedRequest setEnabledProtocols(String[] protocols);
-
+  StartTLSExtendedRequest addEnabledProtocol(String... protocols)
+      throws UnsupportedOperationException;
 
 
   /**
-   * Set the cipher suites enabled for secure connections with the
+   * Adds the cipher suites enabled for secure connections with the
    * Directory Server.
    *
    * The suites must be supported by the SSLContext specified in
@@ -142,11 +144,14 @@ public interface StartTLSExtendedRequest extends
    * this method, only the suites listed in the protocols parameter are
    * enabled for use.
    *
-   * @param suites Names of all the suites to enable or {@code null} to
-   *                  use the default cipher suites.
+   * @param suites Names of all the suites to enable.
    * @return A reference to this LDAP connection options.
+   * @throws UnsupportedOperationException
+   *           If this start TLS extended request does not permit the enabled
+   *           cipher suites to be set.
    */
-  StartTLSExtendedRequest setEnabledCipherSuites(String[] suites);
+  StartTLSExtendedRequest addEnabledCipherSuite(String... suites)
+      throws UnsupportedOperationException;
 
 
 
@@ -154,10 +159,10 @@ public interface StartTLSExtendedRequest extends
    * Returns the names of the protocol versions which are currently enabled
    * for secure connections with the Directory Server.
    *
-   * @return an array of protocols or {@code null} if the default protocols
+   * @return an array of protocols or empty set if the default protocols
    * are to be used.
    */
-  String[] getEnabledProtocols();
+  List<String> getEnabledProtocols();
 
 
 
@@ -165,10 +170,10 @@ public interface StartTLSExtendedRequest extends
    * Returns the names of the protocol versions which are currently enabled
    * for secure connections with the Directory Server.
    *
-   * @return an array of protocols or {@code null} if the default protocols
+   * @return an array of protocols or empty set if the default protocols
    * are to be used.
    */
-  String[] getEnabledCipherSuites();
+  List<String> getEnabledCipherSuites();
 
 
 

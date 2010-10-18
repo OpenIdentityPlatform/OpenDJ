@@ -210,6 +210,27 @@ final class PasswordModifyExtendedRequestImpl
 
 
   /**
+   * Creates a new password modify extended request that is an exact copy of the
+   * provided request.
+   *
+   * @param passwordModifyExtendedRequest
+   *          The password modify extended request to be copied.
+   * @throws NullPointerException
+   *           If {@code passwordModifyExtendedRequest} was {@code null} .
+   */
+  PasswordModifyExtendedRequestImpl(
+      final PasswordModifyExtendedRequest passwordModifyExtendedRequest)
+      throws NullPointerException
+  {
+    super(passwordModifyExtendedRequest);
+    this.userIdentity = passwordModifyExtendedRequest.getUserIdentity();
+    this.oldPassword = passwordModifyExtendedRequest.getOldPassword();
+    this.newPassword = passwordModifyExtendedRequest.getNewPassword();
+  }
+
+
+
+  /**
    * {@inheritDoc}
    */
   public ByteString getNewPassword()

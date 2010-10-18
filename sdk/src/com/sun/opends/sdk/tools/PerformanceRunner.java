@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.tools;
@@ -386,11 +386,8 @@ abstract class PerformanceRunner implements ConnectionEventListener
 
   /**
    * Worker thread base implementation.
-   *
-   * @param <R>
-   *          Type of result handler.
    */
-  abstract class WorkerThread<R extends ResultHandler<?>> extends Thread
+  abstract class WorkerThread extends Thread
   {
     private int count;
 
@@ -410,12 +407,9 @@ abstract class PerformanceRunner implements ConnectionEventListener
 
 
 
-    public abstract R getHandler(long startTime);
-
-
-
     public abstract FutureResult<?> performOperation(
-        AsynchronousConnection connection, R handler, DataSource[] dataSources);
+        AsynchronousConnection connection, DataSource[] dataSources,
+        long startTime);
 
 
 
@@ -424,7 +418,6 @@ abstract class PerformanceRunner implements ConnectionEventListener
     {
       FutureResult<?> future;
       AsynchronousConnection connection;
-      R handler;
 
       final double targetTimeInMS =
         (1.0 / (targetThroughput /
@@ -433,9 +426,6 @@ abstract class PerformanceRunner implements ConnectionEventListener
       long start;
       while (!stopRequested && !(maxIterations > 0 && count >= maxIterations))
       {
-        start = System.nanoTime();
-        handler = getHandler(start);
-
         if (this.connection == null)
         {
           try
@@ -489,7 +479,9 @@ abstract class PerformanceRunner implements ConnectionEventListener
             }
           }
         }
-        future = performOperation(connection, handler, dataSources.get());
+
+        start = System.nanoTime();
+        future = performOperation(connection, dataSources.get(), start);
         operationRecentCount.getAndIncrement();
         count++;
         if (!isAsync)
@@ -732,9 +724,9 @@ abstract class PerformanceRunner implements ConnectionEventListener
 
   private final AtomicInteger operationRecentCount = new AtomicInteger();
 
-  private final AtomicInteger successRecentCount = new AtomicInteger();
+  protected final AtomicInteger successRecentCount = new AtomicInteger();
 
-  private final AtomicInteger failedRecentCount = new AtomicInteger();
+  protected final AtomicInteger failedRecentCount = new AtomicInteger();
 
   private final AtomicLong waitRecentTime = new AtomicLong();
 
@@ -804,7 +796,10 @@ abstract class PerformanceRunner implements ConnectionEventListener
 
 
 
-  PerformanceRunner(final ArgumentParser argParser, final ConsoleApplication app)
+  PerformanceRunner(final ArgumentParser argParser,
+                    final ConsoleApplication app,
+                    boolean neverRebind, boolean neverAsynchronous,
+                    boolean alwaysSingleThreaded)
       throws ArgumentException
   {
     this.app = app;
@@ -813,20 +808,27 @@ abstract class PerformanceRunner implements ConnectionEventListener
         true, 1, false, 0, LocalizableMessage
             .raw("Number of worker threads per connection"));
     numThreadsArgument.setPropertyName("numThreads");
-    argParser.addArgument(numThreadsArgument);
+    if(!alwaysSingleThreaded)
+    {
+      argParser.addArgument(numThreadsArgument);
+    }
+    else
+    {
+      numThreadsArgument.addValue("1");
+    }
 
     numConnectionsArgument = new IntegerArgument("numConnections", 'c',
         "numConnections", false, false, true, LocalizableMessage
             .raw("{numConnections}"), 1, null, true, 1, false, 0,
         LocalizableMessage.raw("Number of connections"));
-    numThreadsArgument.setPropertyName("numConnections");
+    numConnectionsArgument.setPropertyName("numConnections");
     argParser.addArgument(numConnectionsArgument);
 
     maxIterationsArgument = new IntegerArgument("maxIterations", 'm',
         "maxIterations", false, false, true, LocalizableMessage
             .raw("{maxIterations}"), 0, null, LocalizableMessage
             .raw("Max iterations, 0 for unlimited"));
-    numThreadsArgument.setPropertyName("maxIterations");
+    maxIterationsArgument.setPropertyName("maxIterations");
     argParser.addArgument(maxIterationsArgument);
 
     statsIntervalArgument = new IntegerArgument("statInterval", 'i',
@@ -834,7 +836,7 @@ abstract class PerformanceRunner implements ConnectionEventListener
             .raw("{statInterval}"), 5, null, true, 1, false, 0,
         LocalizableMessage
             .raw("Display results each specified number of seconds"));
-    numThreadsArgument.setPropertyName("statInterval");
+    statsIntervalArgument.setPropertyName("statInterval");
     argParser.addArgument(statsIntervalArgument);
 
     targetThroughputArgument = new IntegerArgument("targetThroughput", 'M',
@@ -859,14 +861,24 @@ abstract class PerformanceRunner implements ConnectionEventListener
 
     noRebindArgument = new BooleanArgument("noRebind", 'F', "noRebind",
         LocalizableMessage.raw("Keep connections open and don't rebind"));
-    keepConnectionsOpen.setPropertyName("noRebind");
-    argParser.addArgument(noRebindArgument);
+    noRebindArgument.setPropertyName("noRebind");
+    if(!neverRebind)
+    {
+      argParser.addArgument(noRebindArgument);
+    }
+    else
+    {
+      noRebindArgument.addValue(String.valueOf(true));
+    }
 
     asyncArgument = new BooleanArgument("asynchronous", 'A', "asynchronous",
         LocalizableMessage.raw("Use asynchronous mode and don't " +
             "wait for results before sending the next request"));
-    keepConnectionsOpen.setPropertyName("asynchronous");
-    argParser.addArgument(asyncArgument);
+    asyncArgument.setPropertyName("asynchronous");
+    if(!neverAsynchronous)
+    {
+      argParser.addArgument(asyncArgument);
+    }
 
     arguments = new StringArgument("argument", 'g', "argument", false, true,
         true, LocalizableMessage.raw("{generator function or static string}"),
@@ -962,7 +974,7 @@ abstract class PerformanceRunner implements ConnectionEventListener
 
 
 
-  abstract WorkerThread<?> newWorkerThread(AsynchronousConnection connection,
+  abstract WorkerThread newWorkerThread(AsynchronousConnection connection,
       ConnectionFactory connectionFactory);
 
 
