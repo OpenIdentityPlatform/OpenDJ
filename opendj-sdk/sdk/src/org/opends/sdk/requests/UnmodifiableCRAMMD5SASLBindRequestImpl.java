@@ -33,7 +33,7 @@ import org.opends.sdk.LocalizedIllegalArgumentException;
 /**
  * Unmodifiable CRAM-MD5 SASL bind request implementation.
  */
-public class UnmodifiableCRAMMD5SASLBindRequestImpl extends
+final class UnmodifiableCRAMMD5SASLBindRequestImpl extends
     AbstractUnmodifiableSASLBindRequest<CRAMMD5SASLBindRequest> implements
     CRAMMD5SASLBindRequest
 {
