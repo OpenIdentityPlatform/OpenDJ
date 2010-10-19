@@ -32,12 +32,16 @@ package org.opends.sdk;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 
 import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.*;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import com.sun.opends.sdk.util.StaticUtils;
 
 
 
@@ -55,16 +59,18 @@ public class LDAPListenerTestCase extends SdkTestCase
 
 
 
-    public void handleUnsolicitedNotification(ExtendedResult notification)
+    @Override
+    public void handleConnectionClosed()
     {
-      errorMessage = "Unexpected call to handleUnsolicitedNotification";
+      errorMessage = "Unexpected call to handleConnectionClosed";
       closeLatch.countDown();
     }
 
 
 
-    public void handleConnectionError(boolean isDisconnectNotification,
-        ErrorResultException error)
+    @Override
+    public void handleConnectionError(final boolean isDisconnectNotification,
+        final ErrorResultException error)
     {
       errorMessage = "Unexpected call to handleConnectionError";
       closeLatch.countDown();
@@ -72,9 +78,10 @@ public class LDAPListenerTestCase extends SdkTestCase
 
 
 
-    public void handleConnectionClosed()
+    @Override
+    public void handleUnsolicitedNotification(final ExtendedResult notification)
     {
-      errorMessage = "Unexpected call to handleConnectionClosed";
+      errorMessage = "Unexpected call to handleUnsolicitedNotification";
       closeLatch.countDown();
     }
   }
@@ -85,7 +92,7 @@ public class LDAPListenerTestCase extends SdkTestCase
       ServerConnection<Integer>
   {
     volatile LDAPClientContext context = null;
-    volatile boolean isConnected = false;
+    final CountDownLatch isConnected = new CountDownLatch(1);
     final CountDownLatch isClosed = new CountDownLatch(1);
 
 
@@ -294,8 +301,235 @@ public class LDAPListenerTestCase extends SdkTestCase
         final LDAPClientContext clientContext) throws ErrorResultException
     {
       serverConnection.context = clientContext;
-      serverConnection.isConnected = true;
+      serverConnection.isConnected.countDown();
       return serverConnection;
+    }
+  }
+
+
+
+  /**
+   * Disables logging before the tests.
+   */
+  @BeforeClass()
+  public void disableLogging()
+  {
+    StaticUtils.DEBUG_LOG.setLevel(Level.SEVERE);
+  }
+
+
+
+  /**
+   * Re-enable logging after the tests.
+   */
+  @AfterClass()
+  public void enableLogging()
+  {
+    StaticUtils.DEBUG_LOG.setLevel(Level.INFO);
+  }
+
+
+
+  /**
+   * Tests connection event listener.
+   *
+   * @throws Exception
+   *           If an unexpected error occurred.
+   */
+  @Test
+  public void testConnectionEventListenerClose() throws Exception
+  {
+    final MockServerConnection onlineServerConnection = new MockServerConnection();
+    final MockServerConnectionFactory onlineServerConnectionFactory = new MockServerConnectionFactory(
+        onlineServerConnection);
+    final LDAPListener onlineServerListener = new LDAPListener("localhost",
+        TestCaseUtils.findFreePort(), onlineServerConnectionFactory);
+
+    final Connection connection;
+    try
+    {
+      // Connect and bind.
+      connection = new LDAPConnectionFactory(
+          onlineServerListener.getSocketAddress()).getConnection();
+
+      final MockConnectionEventListener listener = new MockConnectionEventListener()
+      {
+
+        @Override
+        public void handleConnectionClosed()
+        {
+          closeLatch.countDown();
+        }
+      };
+
+      connection.addConnectionEventListener(listener);
+      Assert.assertEquals(listener.closeLatch.getCount(), 1);
+      connection.close();
+      listener.closeLatch.await();
+      Assert.assertNull(listener.errorMessage);
+    }
+    finally
+    {
+      onlineServerListener.close();
+    }
+  }
+
+
+
+  /**
+   * Tests connection event listener.
+   *
+   * @throws Exception
+   *           If an unexpected error occurred.
+   */
+  @Test
+  public void testConnectionEventListenerDisconnect() throws Exception
+  {
+    final MockServerConnection onlineServerConnection = new MockServerConnection();
+    final MockServerConnectionFactory onlineServerConnectionFactory = new MockServerConnectionFactory(
+        onlineServerConnection);
+    final LDAPListener onlineServerListener = new LDAPListener("localhost",
+        TestCaseUtils.findFreePort(), onlineServerConnectionFactory);
+
+    final Connection connection;
+    try
+    {
+      // Connect and bind.
+      connection = new LDAPConnectionFactory(
+          onlineServerListener.getSocketAddress()).getConnection();
+
+      final MockConnectionEventListener listener = new MockConnectionEventListener()
+      {
+
+        @Override
+        public void handleConnectionError(
+            final boolean isDisconnectNotification,
+            final ErrorResultException error)
+        {
+          if (isDisconnectNotification)
+          {
+            errorMessage = "Unexpected disconnect notification";
+          }
+          closeLatch.countDown();
+        }
+      };
+
+      connection.addConnectionEventListener(listener);
+      Assert.assertEquals(listener.closeLatch.getCount(), 1);
+      Assert.assertTrue(onlineServerConnection.isConnected
+          .await(10, TimeUnit.SECONDS));
+      onlineServerConnection.context.disconnect();
+      listener.closeLatch.await();
+      Assert.assertNull(listener.errorMessage);
+      connection.close();
+    }
+    finally
+    {
+      onlineServerListener.close();
+    }
+  }
+
+
+
+  /**
+   * Tests connection event listener.
+   *
+   * @throws Exception
+   *           If an unexpected error occurred.
+   */
+  @Test
+  public void testConnectionEventListenerDisconnectNotification()
+      throws Exception
+  {
+    final MockServerConnection onlineServerConnection = new MockServerConnection();
+    final MockServerConnectionFactory onlineServerConnectionFactory = new MockServerConnectionFactory(
+        onlineServerConnection);
+    final LDAPListener onlineServerListener = new LDAPListener("localhost",
+        TestCaseUtils.findFreePort(), onlineServerConnectionFactory);
+
+    final Connection connection;
+    try
+    {
+      // Connect and bind.
+      connection = new LDAPConnectionFactory(
+          onlineServerListener.getSocketAddress()).getConnection();
+
+      final MockConnectionEventListener listener = new MockConnectionEventListener()
+      {
+
+        @Override
+        public void handleConnectionError(
+            final boolean isDisconnectNotification,
+            final ErrorResultException error)
+        {
+          if (!isDisconnectNotification
+              || !error.getResult().getResultCode().equals(ResultCode.BUSY)
+              || !error.getResult().getDiagnosticMessage().equals("test"))
+          {
+            errorMessage = "Missing disconnect notification: " + error;
+          }
+          closeLatch.countDown();
+        }
+      };
+
+      connection.addConnectionEventListener(listener);
+      Assert.assertEquals(listener.closeLatch.getCount(), 1);
+      Assert.assertTrue(onlineServerConnection.isConnected
+          .await(10, TimeUnit.SECONDS));
+      onlineServerConnection.context.disconnect(ResultCode.BUSY, "test");
+      listener.closeLatch.await();
+      Assert.assertNull(listener.errorMessage);
+      connection.close();
+    }
+    finally
+    {
+      onlineServerListener.close();
+    }
+  }
+
+
+
+  /**
+   * Tests connection event listener.
+   *
+   * @throws Exception
+   *           If an unexpected error occurred.
+   */
+  @Test
+  public void testConnectionEventListenerUnbind() throws Exception
+  {
+    final MockServerConnection onlineServerConnection = new MockServerConnection();
+    final MockServerConnectionFactory onlineServerConnectionFactory = new MockServerConnectionFactory(
+        onlineServerConnection);
+    final LDAPListener onlineServerListener = new LDAPListener("localhost",
+        TestCaseUtils.findFreePort(), onlineServerConnectionFactory);
+
+    final Connection connection;
+    try
+    {
+      // Connect and bind.
+      connection = new LDAPConnectionFactory(
+          onlineServerListener.getSocketAddress()).getConnection();
+
+      final MockConnectionEventListener listener = new MockConnectionEventListener()
+      {
+
+        @Override
+        public void handleConnectionClosed()
+        {
+          closeLatch.countDown();
+        }
+      };
+
+      connection.addConnectionEventListener(listener);
+      Assert.assertEquals(listener.closeLatch.getCount(), 1);
+      connection.close(Requests.newUnbindRequest(), "called from unit test");
+      listener.closeLatch.await();
+      Assert.assertNull(listener.errorMessage);
+    }
+    finally
+    {
+      onlineServerListener.close();
     }
   }
 
@@ -318,10 +552,15 @@ public class LDAPListenerTestCase extends SdkTestCase
     try
     {
       // Connect and close.
-      new LDAPConnectionFactory(listener.getSocketAddress()).getConnection()
-          .close();
+      final Connection connection = new LDAPConnectionFactory(
+          listener.getSocketAddress()).getConnection();
 
-      Assert.assertTrue(serverConnection.isConnected);
+      Assert.assertTrue(serverConnection.isConnected
+          .await(10, TimeUnit.SECONDS));
+      Assert.assertEquals(serverConnection.isClosed.getCount(), 1);
+
+      connection.close();
+
       Assert.assertTrue(serverConnection.isClosed.await(10, TimeUnit.SECONDS));
     }
     finally
@@ -401,14 +640,18 @@ public class LDAPListenerTestCase extends SdkTestCase
       try
       {
         // Connect and close.
-        new LDAPConnectionFactory(proxyListener.getSocketAddress())
-            .getConnection().close();
+        final Connection connection = new LDAPConnectionFactory(
+            proxyListener.getSocketAddress()).getConnection();
+
+        Assert.assertTrue(proxyServerConnection.isConnected.await(10,
+            TimeUnit.SECONDS));
+        Assert.assertTrue(onlineServerConnection.isConnected.await(10,
+            TimeUnit.SECONDS));
 
         // Wait for connect/close to complete.
-        proxyServerConnection.isClosed.await();
+        connection.close();
 
-        Assert.assertTrue(proxyServerConnection.isConnected);
-        Assert.assertTrue(onlineServerConnection.isConnected);
+        proxyServerConnection.isClosed.await();
       }
       finally
       {
@@ -506,6 +749,11 @@ public class LDAPListenerTestCase extends SdkTestCase
         try
         {
           connection.bind("cn=test", "password");
+
+          Assert.assertTrue(proxyServerConnection.isConnected.await(10,
+              TimeUnit.SECONDS));
+          Assert.assertTrue(onlineServerConnection.isConnected.await(10,
+              TimeUnit.SECONDS));
         }
         finally
         {
@@ -514,9 +762,6 @@ public class LDAPListenerTestCase extends SdkTestCase
 
         // Wait for connect/close to complete.
         proxyServerConnection.isClosed.await();
-
-        Assert.assertTrue(proxyServerConnection.isConnected);
-        Assert.assertTrue(onlineServerConnection.isConnected);
       }
       finally
       {
@@ -602,14 +847,18 @@ public class LDAPListenerTestCase extends SdkTestCase
       try
       {
         // Connect and close.
-        new LDAPConnectionFactory(proxyListener.getSocketAddress())
-            .getConnection().close();
+        final Connection connection = new LDAPConnectionFactory(
+            proxyListener.getSocketAddress()).getConnection();
+
+        Assert.assertTrue(proxyServerConnection.isConnected.await(10,
+            TimeUnit.SECONDS));
+        Assert.assertTrue(onlineServerConnection.isConnected.await(10,
+            TimeUnit.SECONDS));
+
+        connection.close();
 
         // Wait for connect/close to complete.
         proxyServerConnection.isClosed.await();
-
-        Assert.assertTrue(proxyServerConnection.isConnected);
-        Assert.assertTrue(onlineServerConnection.isConnected);
       }
       finally
       {
@@ -713,6 +962,11 @@ public class LDAPListenerTestCase extends SdkTestCase
         try
         {
           connection.bind("cn=test", "password");
+
+          Assert.assertTrue(proxyServerConnection.isConnected.await(10,
+              TimeUnit.SECONDS));
+          Assert.assertTrue(onlineServerConnection.isConnected.await(10,
+              TimeUnit.SECONDS));
         }
         finally
         {
@@ -721,9 +975,6 @@ public class LDAPListenerTestCase extends SdkTestCase
 
         // Wait for connect/close to complete.
         proxyServerConnection.isClosed.await();
-
-        Assert.assertTrue(proxyServerConnection.isConnected);
-        Assert.assertTrue(onlineServerConnection.isConnected);
       }
       finally
       {
@@ -763,7 +1014,7 @@ public class LDAPListenerTestCase extends SdkTestCase
       {
         connection.bind("cn=test", "password");
       }
-      catch (ErrorResultException e)
+      catch (final ErrorResultException e)
       {
         connection.close();
         throw e;
@@ -785,7 +1036,7 @@ public class LDAPListenerTestCase extends SdkTestCase
       Assert
           .fail("Connection attempt to closed listener succeeded unexpectedly");
     }
-    catch (ConnectionException e)
+    catch (final ConnectionException e)
     {
       // Expected.
     }
@@ -795,7 +1046,7 @@ public class LDAPListenerTestCase extends SdkTestCase
       connection.bind("cn=test", "password");
       Assert.fail("Bind attempt on closed connection succeeded unexpectedly");
     }
-    catch (ErrorResultException e)
+    catch (final ErrorResultException e)
     {
       // Expected.
       Assert.assertFalse(connection.isValid());
@@ -806,201 +1057,6 @@ public class LDAPListenerTestCase extends SdkTestCase
       connection.close();
       Assert.assertFalse(connection.isValid());
       Assert.assertTrue(connection.isClosed());
-    }
-  }
-
-
-
-  /**
-   * Tests connection event listener.
-   *
-   * @throws Exception
-   *           If an unexpected error occurred.
-   */
-  @Test
-  public void testConnectionEventListenerClose() throws Exception
-  {
-    final MockServerConnection onlineServerConnection = new MockServerConnection();
-    final MockServerConnectionFactory onlineServerConnectionFactory = new MockServerConnectionFactory(
-        onlineServerConnection);
-    final LDAPListener onlineServerListener = new LDAPListener("localhost",
-        TestCaseUtils.findFreePort(), onlineServerConnectionFactory);
-
-    final Connection connection;
-    try
-    {
-      // Connect and bind.
-      connection = new LDAPConnectionFactory(
-          onlineServerListener.getSocketAddress()).getConnection();
-
-      MockConnectionEventListener listener = new MockConnectionEventListener()
-      {
-
-        public void handleConnectionClosed()
-        {
-          closeLatch.countDown();
-        }
-      };
-
-      connection.addConnectionEventListener(listener);
-      Assert.assertEquals(listener.closeLatch.getCount(), 1);
-      connection.close();
-      listener.closeLatch.await();
-      Assert.assertNull(listener.errorMessage);
-    }
-    finally
-    {
-      onlineServerListener.close();
-    }
-  }
-
-
-
-  /**
-   * Tests connection event listener.
-   *
-   * @throws Exception
-   *           If an unexpected error occurred.
-   */
-  @Test
-  public void testConnectionEventListenerUnbind() throws Exception
-  {
-    final MockServerConnection onlineServerConnection = new MockServerConnection();
-    final MockServerConnectionFactory onlineServerConnectionFactory = new MockServerConnectionFactory(
-        onlineServerConnection);
-    final LDAPListener onlineServerListener = new LDAPListener("localhost",
-        TestCaseUtils.findFreePort(), onlineServerConnectionFactory);
-
-    final Connection connection;
-    try
-    {
-      // Connect and bind.
-      connection = new LDAPConnectionFactory(
-          onlineServerListener.getSocketAddress()).getConnection();
-
-      MockConnectionEventListener listener = new MockConnectionEventListener()
-      {
-
-        public void handleConnectionClosed()
-        {
-          closeLatch.countDown();
-        }
-      };
-
-      connection.addConnectionEventListener(listener);
-      Assert.assertEquals(listener.closeLatch.getCount(), 1);
-      connection.close(Requests.newUnbindRequest(), "called from unit test");
-      listener.closeLatch.await();
-      Assert.assertNull(listener.errorMessage);
-    }
-    finally
-    {
-      onlineServerListener.close();
-    }
-  }
-
-
-
-  /**
-   * Tests connection event listener.
-   *
-   * @throws Exception
-   *           If an unexpected error occurred.
-   */
-  @Test
-  public void testConnectionEventListenerDisconnect() throws Exception
-  {
-    final MockServerConnection onlineServerConnection = new MockServerConnection();
-    final MockServerConnectionFactory onlineServerConnectionFactory = new MockServerConnectionFactory(
-        onlineServerConnection);
-    final LDAPListener onlineServerListener = new LDAPListener("localhost",
-        TestCaseUtils.findFreePort(), onlineServerConnectionFactory);
-
-    final Connection connection;
-    try
-    {
-      // Connect and bind.
-      connection = new LDAPConnectionFactory(
-          onlineServerListener.getSocketAddress()).getConnection();
-
-      MockConnectionEventListener listener = new MockConnectionEventListener()
-      {
-
-        public void handleConnectionError(boolean isDisconnectNotification,
-            ErrorResultException error)
-        {
-          if (isDisconnectNotification)
-          {
-            errorMessage = "Unexpected disconnect notification";
-          }
-          closeLatch.countDown();
-        }
-      };
-
-      connection.addConnectionEventListener(listener);
-      Assert.assertEquals(listener.closeLatch.getCount(), 1);
-      onlineServerConnection.context.disconnect();
-      listener.closeLatch.await();
-      Assert.assertNull(listener.errorMessage);
-      connection.close();
-    }
-    finally
-    {
-      onlineServerListener.close();
-    }
-  }
-
-
-
-  /**
-   * Tests connection event listener.
-   *
-   * @throws Exception
-   *           If an unexpected error occurred.
-   */
-  @Test
-  public void testConnectionEventListenerDisconnectNotification()
-      throws Exception
-  {
-    final MockServerConnection onlineServerConnection = new MockServerConnection();
-    final MockServerConnectionFactory onlineServerConnectionFactory = new MockServerConnectionFactory(
-        onlineServerConnection);
-    final LDAPListener onlineServerListener = new LDAPListener("localhost",
-        TestCaseUtils.findFreePort(), onlineServerConnectionFactory);
-
-    final Connection connection;
-    try
-    {
-      // Connect and bind.
-      connection = new LDAPConnectionFactory(
-          onlineServerListener.getSocketAddress()).getConnection();
-
-      MockConnectionEventListener listener = new MockConnectionEventListener()
-      {
-
-        public void handleConnectionError(boolean isDisconnectNotification,
-            ErrorResultException error)
-        {
-          if (!isDisconnectNotification
-              || !error.getResult().getResultCode().equals(ResultCode.BUSY)
-              || !error.getResult().getDiagnosticMessage().equals("test"))
-          {
-            errorMessage = "Missing disconnect notification: " + error;
-          }
-          closeLatch.countDown();
-        }
-      };
-
-      connection.addConnectionEventListener(listener);
-      Assert.assertEquals(listener.closeLatch.getCount(), 1);
-      onlineServerConnection.context.disconnect(ResultCode.BUSY, "test");
-      listener.closeLatch.await();
-      Assert.assertNull(listener.errorMessage);
-      connection.close();
-    }
-    finally
-    {
-      onlineServerListener.close();
     }
   }
 }

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
@@ -55,8 +55,7 @@ public abstract class OpenDSTestCase
   //
   // This could be a problem if a subclass references a @DataProvider in
   // a super-class that provides static parameters, i.e. the parameters
-  // are
-  // not regenerated for each invocation of the DataProvider.
+  // are not regenerated for each invocation of the DataProvider.
   //
 
   /**

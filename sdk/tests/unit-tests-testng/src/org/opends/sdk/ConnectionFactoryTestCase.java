@@ -36,13 +36,17 @@ import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 import org.opends.sdk.requests.DigestMD5SASLBindRequest;
 import org.opends.sdk.requests.Requests;
 import org.opends.sdk.requests.SearchRequest;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.testng.annotations.DataProvider;
+
+import com.sun.opends.sdk.util.StaticUtils;
 
 import javax.net.ssl.SSLContext;
 
@@ -101,8 +105,30 @@ public class ConnectionFactoryTestCase extends SdkTestCase
 
 
 
+  /**
+   * Disables logging before the tests.
+   */
+  @BeforeClass()
+  public void disableLogging()
+  {
+    StaticUtils.DEBUG_LOG.setLevel(Level.SEVERE);
+  }
+
+
+
+  /**
+   * Re-enable logging after the tests.
+   */
+  @AfterClass()
+  public void enableLogging()
+  {
+    StaticUtils.DEBUG_LOG.setLevel(Level.INFO);
+  }
+
+
+
   @DataProvider(name = "connectionFactories")
-  public Object[][] getConnectyionFactories() throws Exception
+  public Object[][] getConnectionFactories() throws Exception
   {
     Object[][] factories = new Object[21][1];
 

@@ -173,10 +173,10 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm
       if (!isOperational.get()
           && (pendingConnectFuture == null || pendingConnectFuture.isDone()))
       {
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST))
+        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINE))
         {
-          StaticUtils.DEBUG_LOG.finest(String
-              .format("Attempting connect on factory " + this));
+          StaticUtils.DEBUG_LOG.fine(String
+              .format("Attempting reconnect to offline factory " + this));
         }
         pendingConnectFuture = factory.getAsynchronousConnection(this);
       }
@@ -189,22 +189,28 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm
       if (isOperational.getAndSet(false))
       {
         // Transition from online to offline.
+        if (StaticUtils.DEBUG_LOG.isLoggable(Level.WARNING))
+        {
+          StaticUtils.DEBUG_LOG.warning(String.format("Connection factory "
+              + factory + " is no longer operational: " + error.getMessage()));
+        }
+
         synchronized (stateLock)
         {
           offlineFactoriesCount++;
           if (offlineFactoriesCount == 1)
           {
             // Enable monitoring.
+            if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINE))
+            {
+              StaticUtils.DEBUG_LOG.fine(String
+                  .format("Starting monitoring thread"));
+            }
+
             monitoringFuture = scheduler.scheduleWithFixedDelay(
                 new MonitorRunnable(), 0, monitoringInterval,
                 monitoringIntervalTimeUnit);
           }
-        }
-
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINE))
-        {
-          StaticUtils.DEBUG_LOG.fine(String.format("Connection factory "
-              + factory + " is no longer operational: " + error.getMessage()));
         }
       }
     }
@@ -216,20 +222,26 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm
       if (!isOperational.getAndSet(true))
       {
         // Transition from offline to online.
+        if (StaticUtils.DEBUG_LOG.isLoggable(Level.INFO))
+        {
+          StaticUtils.DEBUG_LOG.info(String.format("Connection factory "
+              + factory + " is now operational"));
+        }
+
         synchronized (stateLock)
         {
           offlineFactoriesCount--;
           if (offlineFactoriesCount == 0)
           {
+            if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINE))
+            {
+              StaticUtils.DEBUG_LOG.fine(String
+                  .format("Stopping monitoring thread"));
+            }
+
             monitoringFuture.cancel(false);
             monitoringFuture = null;
           }
-        }
-
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINE))
-        {
-          StaticUtils.DEBUG_LOG.fine(String.format("Connection factory "
-              + factory + " is now operational"));
         }
       }
     }
@@ -278,14 +290,14 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm
 
   /**
    * Creates a new abstract load balancing algorithm which will monitor offline
-   * connection factories every 10 seconds using the default scheduler.
+   * connection factories every second using the default scheduler.
    *
    * @param factories
    *          The connection factories.
    */
   AbstractLoadBalancingAlgorithm(final Collection<ConnectionFactory> factories)
   {
-    this(factories, 10, TimeUnit.SECONDS, StaticUtils.getDefaultScheduler());
+    this(factories, 1, TimeUnit.SECONDS, StaticUtils.getDefaultScheduler());
   }
 
 

@@ -70,7 +70,7 @@ public final class FailoverLoadBalancingAlgorithm extends
 
   /**
    * Creates a new fail-over load balancing algorithm which will monitor offline
-   * connection factories every 10 seconds using the default scheduler.
+   * connection factories every 1 second using the default scheduler.
    *
    * @param factories
    *          The ordered collection of connection factories.
