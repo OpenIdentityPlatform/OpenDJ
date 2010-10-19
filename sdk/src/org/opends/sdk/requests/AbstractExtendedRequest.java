@@ -70,7 +70,7 @@ public abstract class AbstractExtendedRequest<R extends ExtendedRequest<S>,
    * @throws NullPointerException
    *           If {@code extendedRequest} was {@code null} .
    */
-  protected AbstractExtendedRequest(ExtendedRequest extendedRequest)
+  protected AbstractExtendedRequest(ExtendedRequest<S> extendedRequest)
       throws NullPointerException
   {
     super(extendedRequest);
