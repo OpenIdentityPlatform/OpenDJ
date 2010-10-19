@@ -69,7 +69,7 @@ public final class RoundRobinLoadBalancingAlgorithm extends
 
   /**
    * Creates a new round robin load balancing algorithm which will monitor
-   * offline connection factories every 10 seconds using the default scheduler.
+   * offline connection factories every 1 second using the default scheduler.
    *
    * @param factories
    *          The ordered collection of connection factories.
