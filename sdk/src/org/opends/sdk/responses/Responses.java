@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.responses;
@@ -41,8 +41,6 @@ import com.sun.opends.sdk.util.Validator;
  * TODO: search reference from LDAP URL.
  * <p>
  * TODO: referral from LDAP URL.
- * <p>
- * TODO: unmodifiable requests?
  * <p>
  * TODO: synchronized requests?
  * <p>
@@ -290,11 +288,349 @@ public final class Responses
    * @throws NullPointerException
    *           If {@code resultCode} was {@code null} .
    */
-  public static final WhoAmIExtendedResult newWhoAmIExtendedResult(
+  public static WhoAmIExtendedResult newWhoAmIExtendedResult(
       final ResultCode resultCode) throws NullPointerException
   {
     Validator.ensureNotNull(resultCode);
     return new WhoAmIExtendedResultImpl(ResultCode.SUCCESS);
+  }
+
+
+
+  /**
+   * Creates an unmodifiable bind result using the provided response.
+   *
+   * @param bindResult
+   *          The bind result to be copied.
+   * @return The unmodifiable bind result.
+   * @throws NullPointerException
+   *           If {@code bindResult} was {@code null}.
+   */
+  public static BindResult unmodifiableBindResult(final BindResult bindResult)
+      throws NullPointerException
+  {
+    return new UnmodifiableBindResultImpl(bindResult);
+  }
+
+
+
+  /**
+   * Creates an unmodifiable compare result using the provided response.
+   *
+   * @param compareResult
+   *          The compare result to be copied.
+   * @return The unmodifiable compare result.
+   * @throws NullPointerException
+   *           If {@code compareResult} was {@code null}.
+   */
+  public static CompareResult unmodifiableCompareResult(
+      final CompareResult compareResult)
+      throws NullPointerException
+  {
+    return new UnmodifiableCompareResultImpl(compareResult);
+  }
+
+
+
+  /**
+   * Creates an unmodifiable generic extended result using the provided
+   * response.
+   *
+   * @param genericExtendedResult
+   *          The generic extended result to be copied.
+   * @return The unmodifiable generic extended result.
+   * @throws NullPointerException
+   *           If {@code genericExtendedResult} was {@code null}.
+   */
+  public static GenericExtendedResult unmodifiableGenericExtendedResult(
+      final GenericExtendedResult genericExtendedResult)
+      throws NullPointerException
+  {
+    return new UnmodifiableGenericExtendedResultImpl(genericExtendedResult);
+  }
+
+
+
+  /**
+   * Creates an unmodifiable generic intermediate response using the provided
+   * response.
+   *
+   * @param genericIntermediateResponse
+   *          The generic intermediate response to be copied.
+   * @return The unmodifiable generic intermediate response.
+   * @throws NullPointerException
+   *           If {@code genericIntermediateResponse} was {@code null}.
+   */
+  public static GenericIntermediateResponse
+  unmodifiableGenericIntermediateResponse(
+      final GenericIntermediateResponse genericIntermediateResponse)
+      throws NullPointerException
+  {
+    return new UnmodifiableGenericIntermediateResponseImpl(
+        genericIntermediateResponse);
+  }
+
+
+
+  /**
+   * Creates an unmodifiable password modify extended result using the provided
+   * response.
+   *
+   * @param passwordModifyExtendedResult
+   *          The password modify extended result to be copied.
+   * @return The unmodifiable password modify extended result.
+   * @throws NullPointerException
+   *           If {@code passwordModifyExtendedResult} was {@code null}.
+   */
+  public static PasswordModifyExtendedResult
+  unmodifiablePasswordModifyExtendedResult(
+      final PasswordModifyExtendedResult passwordModifyExtendedResult)
+      throws NullPointerException
+  {
+    return new UnmodifiablePasswordModifyExtendedResultImpl(
+        passwordModifyExtendedResult);
+  }
+
+
+
+  /**
+   * Creates an unmodifiable result using the provided response.
+   *
+   * @param result
+   *          The result to be copied.
+   * @return The unmodifiable result.
+   * @throws NullPointerException
+   *           If {@code result} was {@code null}.
+   */
+  public static Result unmodifiableResult(final Result result)
+      throws NullPointerException
+  {
+    return new UnmodifiableResultImpl(result);
+  }
+
+
+
+  /**
+   * Creates an unmodifiable search result entry using the provided response.
+   *
+   * @param searchResultEntry
+   *          The search result entry to be copied.
+   * @return The unmodifiable search result entry.
+   * @throws NullPointerException
+   *           If {@code searchResultEntry} was {@code null}.
+   */
+  public static SearchResultEntry unmodifiableSearchResultEntry(
+      final SearchResultEntry searchResultEntry)
+      throws NullPointerException
+  {
+    return new UnmodifiableSearchResultEntryImpl(searchResultEntry);
+  }
+
+
+
+  /**
+   * Creates an unmodifiable search result reference using the provided
+   * response.
+   *
+   * @param searchResultReference
+   *          The search result reference to be copied.
+   * @return The unmodifiable search result reference.
+   * @throws NullPointerException
+   *           If {@code searchResultReference} was {@code null}.
+   */
+  public static SearchResultReference unmodifiableSearchResultReference(
+      final SearchResultReference searchResultReference)
+      throws NullPointerException
+  {
+    return new UnmodifiableSearchResultReferenceImpl(searchResultReference);
+  }
+
+
+
+  /**
+   * Creates an unmodifiable who am I extended result using the provided
+   * response.
+   *
+   * @param whoAmIExtendedResult
+   *          The who am I result to be copied.
+   * @return The unmodifiable who am I extended result.
+   * @throws NullPointerException
+   *           If {@code whoAmIExtendedResult} was {@code null} .
+   */
+  public static WhoAmIExtendedResult unmodifiableWhoAmIExtendedResult(
+      final WhoAmIExtendedResult whoAmIExtendedResult)
+      throws NullPointerException
+  {
+    return new UnmodifiableWhoAmIExtendedResultImpl(whoAmIExtendedResult);
+  }
+
+
+
+  /**
+   * Creates a new bind result that is an exact copy of the provided
+   * result.
+   *
+   * @param bindResult
+   *          The bind result to be copied.
+   * @return The new bind result.
+   * @throws NullPointerException
+   *           If {@code bindResult} was {@code null}.
+   */
+  public static BindResult copyOfBindResult(final BindResult bindResult)
+      throws NullPointerException
+  {
+    return new BindResultImpl(bindResult);
+  }
+
+
+  /**
+   * Creates a new compare result that is an exact copy of the provided
+   * result.
+   *
+   * @param compareResult
+   *          The compare result to be copied.
+   * @return The new compare result.
+   * @throws NullPointerException
+   *           If {@code compareResult} was {@code null}.
+   */
+  public static CompareResult copyOfCompareResult(
+      final CompareResult compareResult)
+      throws NullPointerException
+  {
+    return new CompareResultImpl(compareResult);
+  }
+
+
+
+  /**
+   * Creates a new generic extended result that is an exact copy of the provided
+   * result.
+   *
+   * @param genericExtendedResult
+   *          The generic extended result to be copied.
+   * @return The new generic extended result.
+   * @throws NullPointerException
+   *           If {@code genericExtendedResult} was {@code null}.
+   */
+  public static GenericExtendedResult copyOfGenericExtendedResult(
+      final GenericExtendedResult genericExtendedResult)
+      throws NullPointerException
+  {
+    return new GenericExtendedResultImpl(genericExtendedResult);
+  }
+
+
+
+  /**
+   * Creates a new generic intermediate response that is an exact copy of the
+   * provided response.
+   *
+   * @param genericIntermediateResponse
+   *          The generic intermediate response to be copied.
+   * @return The new generic intermediate response.
+   * @throws NullPointerException
+   *           If {@code genericIntermediateResponse} was {@code null}.
+   */
+  public static GenericIntermediateResponse copyOfGenericIntermediateResponse(
+      final GenericIntermediateResponse genericIntermediateResponse)
+      throws NullPointerException
+  {
+    return new GenericIntermediateResponseImpl(
+        genericIntermediateResponse);
+  }
+
+
+
+  /**
+   * Creates a new password modify extended result that is an exact copy of the
+   * provided result.
+   *
+   * @param passwordModifyExtendedResult
+   *          The password modify extended result to be copied.
+   * @return The new password modify extended result.
+   * @throws NullPointerException
+   *           If {@code passwordModifyExtendedResult} was {@code null}.
+   */
+  public static PasswordModifyExtendedResult copyOfPasswordModifyExtendedResult(
+      final PasswordModifyExtendedResult passwordModifyExtendedResult)
+      throws NullPointerException
+  {
+    return new PasswordModifyExtendedResultImpl(
+        passwordModifyExtendedResult);
+  }
+
+
+
+  /**
+   * Creates a new result that is an exact copy of the provided result.
+   *
+   * @param result
+   *          The result to be copied.
+   * @return The new result.
+   * @throws NullPointerException
+   *           If {@code result} was {@code null}.
+   */
+  public static Result copyOfResult(final Result result)
+      throws NullPointerException
+  {
+    return new ResultImpl(result);
+  }
+
+
+
+  /**
+   * Creates a new search result entry that is an exact copy of the provided
+   * result.
+   *
+   * @param searchResultEntry
+   *          The search result entry to be copied.
+   * @return The new search result entry.
+   * @throws NullPointerException
+   *           If {@code searchResultEntry} was {@code null}.
+   */
+  public static SearchResultEntry copyOfSearchResultEntry(
+      final SearchResultEntry searchResultEntry)
+      throws NullPointerException
+  {
+    return new SearchResultEntryImpl(searchResultEntry);
+  }
+
+
+
+  /**
+   * Creates a new search result reference that is an exact copy of the provided
+   * result.
+   *
+   * @param searchResultReference
+   *          The search result reference to be copied.
+   * @return The new search result reference.
+   * @throws NullPointerException
+   *           If {@code searchResultReference} was {@code null}.
+   */
+  public static SearchResultReference copyOfSearchResultReference(
+      final SearchResultReference searchResultReference)
+      throws NullPointerException
+  {
+    return new SearchResultReferenceImpl(searchResultReference);
+  }
+
+
+
+  /**
+   * Creates a new who am I extended result that is an exact copy of the
+   * provided result.
+   *
+   * @param whoAmIExtendedResult
+   *          The who am I result to be copied.
+   * @return The new who am I extended result.
+   * @throws NullPointerException
+   *           If {@code whoAmIExtendedResult} was {@code null} .
+   */
+  public static WhoAmIExtendedResult copyOfWhoAmIExtendedResult(
+      final WhoAmIExtendedResult whoAmIExtendedResult)
+      throws NullPointerException
+  {
+    return new WhoAmIExtendedResultImpl(whoAmIExtendedResult);
   }
 
 

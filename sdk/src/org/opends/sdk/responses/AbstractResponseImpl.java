@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.responses;
@@ -38,7 +38,6 @@ import org.opends.sdk.controls.Control;
 import org.opends.sdk.controls.ControlDecoder;
 
 import com.sun.opends.sdk.util.Validator;
-
 
 
 /**
@@ -59,6 +58,23 @@ abstract class AbstractResponseImpl<S extends Response> implements Response
   AbstractResponseImpl()
   {
     // No implementation required.
+  }
+
+
+
+  /**
+   * Creates a new abstract response that is an exact copy of the provided
+   * response.
+   *
+   * @param response
+   *          The response to be copied.
+   * @throws NullPointerException
+   *           If {@code response} was {@code null} .
+   */
+  AbstractResponseImpl(Response response) throws NullPointerException
+  {
+    Validator.ensureNotNull(response);
+    controls.addAll(response.getControls());
   }
 
 

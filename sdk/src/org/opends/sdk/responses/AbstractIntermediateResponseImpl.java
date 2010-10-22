@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.responses;
@@ -30,35 +30,46 @@ package org.opends.sdk.responses;
 
 
 import org.opends.sdk.ByteString;
-import org.opends.sdk.ResultCode;
 
 import com.sun.opends.sdk.util.StaticUtils;
 
 
 
 /**
- * An abstract Extended result which can be used as the basis for implementing
- * new Extended operations.
+ * An abstract Intermediate response which can be used as the basis for
+ * implementing new Intermediate responses.
  *
  * @param <S>
- *          The type of Extended result.
+ *          The type of Intermediate response.
  */
-public abstract class AbstractExtendedResult<S extends ExtendedResult> extends
-    AbstractResultImpl<S> implements ExtendedResult
+public abstract class AbstractIntermediateResponseImpl<S extends IntermediateResponse>
+    extends AbstractResponseImpl<S> implements IntermediateResponse
 {
 
   /**
-   * Creates a new extended result using the provided result code.
-   *
-   * @param resultCode
-   *          The result code.
-   * @throws NullPointerException
-   *           If {@code resultCode} was {@code null}.
+   * Creates a new intermediate response.
    */
-  protected AbstractExtendedResult(final ResultCode resultCode)
+  protected AbstractIntermediateResponseImpl()
+  {
+    // Nothing to do.
+  }
+
+
+
+  /**
+   * Creates a new intermediate response that is an exact copy of the provided
+   * response.
+   *
+   * @param intermediateResponse
+   *          The intermediate response to be copied.
+   * @throws NullPointerException
+   *           If {@code intermediateResponse} was {@code null} .
+   */
+  protected AbstractIntermediateResponseImpl(
+      IntermediateResponse intermediateResponse)
       throws NullPointerException
   {
-    super(resultCode);
+    super(intermediateResponse);
   }
 
 
@@ -91,15 +102,7 @@ public abstract class AbstractExtendedResult<S extends ExtendedResult> extends
   public String toString()
   {
     final StringBuilder builder = new StringBuilder();
-    builder.append("ExtendedResult(resultCode=");
-    builder.append(getResultCode());
-    builder.append(", matchedDN=");
-    builder.append(getMatchedDN());
-    builder.append(", diagnosticMessage=");
-    builder.append(getDiagnosticMessage());
-    builder.append(", referrals=");
-    builder.append(getReferralURIs());
-    builder.append(", responseName=");
+    builder.append("IntermediateResponse(responseName=");
     builder.append(getOID() == null ? "" : getOID());
     if (hasValue())
     {

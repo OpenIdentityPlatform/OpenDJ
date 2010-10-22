@@ -200,8 +200,12 @@ public interface PasswordModifyExtendedResult extends ExtendedResult
    *          The generated password, or {@code null} if there is no generated
    *          password associated with this result.
    * @return This password modify result.
+   * @throws UnsupportedOperationException
+   *           If this password modify extended result does not permit the
+   *           generated password to be set.
    */
-  PasswordModifyExtendedResult setGeneratedPassword(ByteString password);
+  PasswordModifyExtendedResult setGeneratedPassword(ByteString password)
+      throws UnsupportedOperationException;
 
 
 
@@ -213,8 +217,12 @@ public interface PasswordModifyExtendedResult extends ExtendedResult
    *          The generated password, or {@code null} if there is no generated
    *          password associated with this result.
    * @return This password modify result.
+   * @throws UnsupportedOperationException
+   *           If this password modify extended result does not permit the
+   *           generated password to be set.
    */
-  PasswordModifyExtendedResult setGeneratedPassword(String password);
+  PasswordModifyExtendedResult setGeneratedPassword(String password)
+      throws UnsupportedOperationException;
 
 
 

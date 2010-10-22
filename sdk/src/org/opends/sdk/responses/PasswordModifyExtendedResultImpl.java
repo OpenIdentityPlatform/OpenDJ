@@ -43,7 +43,7 @@ import org.opends.sdk.asn1.ASN1Writer;
  * Password modify extended result implementation.
  */
 final class PasswordModifyExtendedResultImpl extends
-    AbstractExtendedResult<PasswordModifyExtendedResult> implements
+    AbstractExtendedResultImpl<PasswordModifyExtendedResult> implements
     PasswordModifyExtendedResult
 {
   private ByteString password;
@@ -52,7 +52,8 @@ final class PasswordModifyExtendedResultImpl extends
    * The ASN.1 element type that will be used to encode the genPasswd component
    * in a password modify extended response.
    */
-  private static final byte TYPE_PASSWORD_MODIFY_GENERATED_PASSWORD = (byte) 0x80;
+  private static final byte TYPE_PASSWORD_MODIFY_GENERATED_PASSWORD =
+      (byte) 0x80;
 
 
 
@@ -60,6 +61,25 @@ final class PasswordModifyExtendedResultImpl extends
   PasswordModifyExtendedResultImpl(final ResultCode resultCode)
   {
     super(resultCode);
+  }
+
+
+
+  /**
+   * Creates a new password modify extended result that is an exact copy of the
+   * provided result.
+   *
+   * @param passwordModifyExtendedResult
+   *          The password modify extended result to be copied.
+   * @throws NullPointerException
+   *           If {@code passwordModifyExtendedResult} was {@code null} .
+   */
+  PasswordModifyExtendedResultImpl(
+      final PasswordModifyExtendedResult passwordModifyExtendedResult)
+      throws NullPointerException
+  {
+    super(passwordModifyExtendedResult);
+    this.password = passwordModifyExtendedResult.getGeneratedPassword();
   }
 
 
@@ -142,7 +162,7 @@ final class PasswordModifyExtendedResultImpl extends
    * {@inheritDoc}
    */
   public PasswordModifyExtendedResult setGeneratedPassword(
-      final ByteString password)
+      final ByteString password) throws UnsupportedOperationException
   {
     this.password = password;
     return this;
@@ -153,7 +173,8 @@ final class PasswordModifyExtendedResultImpl extends
   /**
    * {@inheritDoc}
    */
-  public PasswordModifyExtendedResult setGeneratedPassword(final String password)
+  public PasswordModifyExtendedResult setGeneratedPassword(
+      final String password) throws UnsupportedOperationException
   {
     this.password = (password != null) ? ByteString.valueOf(password) : null;
     return this;

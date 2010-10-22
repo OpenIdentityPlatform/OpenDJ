@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.responses;
@@ -58,9 +58,27 @@ final class SearchResultEntryImpl extends
    * @throws NullPointerException
    *           If {@code entry} was {@code null} .
    */
-  public SearchResultEntryImpl(final Entry entry) throws NullPointerException
+  SearchResultEntryImpl(final Entry entry) throws NullPointerException
   {
     this.entry = entry;
+  }
+
+
+
+  /**
+   * Creates a new search result entry that is an exact copy of the provided
+   * result.
+   *
+   * @param searchResultEntry
+   *          The search result entry to be copied.
+   * @throws NullPointerException
+   *           If {@code searchResultEntry} was {@code null} .
+   */
+  SearchResultEntryImpl(final SearchResultEntry searchResultEntry)
+      throws NullPointerException
+  {
+    super(searchResultEntry);
+    this.entry = new LinkedHashMapEntry(searchResultEntry);
   }
 
 

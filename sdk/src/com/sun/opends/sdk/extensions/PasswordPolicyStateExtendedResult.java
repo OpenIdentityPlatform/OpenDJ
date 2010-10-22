@@ -35,7 +35,7 @@ import java.util.List;
 import org.opends.sdk.ByteString;
 import org.opends.sdk.DN;
 import org.opends.sdk.ResultCode;
-import org.opends.sdk.responses.AbstractExtendedResult;
+import org.opends.sdk.responses.AbstractExtendedResultImpl;
 
 
 
@@ -43,7 +43,7 @@ import org.opends.sdk.responses.AbstractExtendedResult;
  * The password policy state extended result.
  */
 public final class PasswordPolicyStateExtendedResult extends
-    AbstractExtendedResult<PasswordPolicyStateExtendedResult> implements
+    AbstractExtendedResultImpl<PasswordPolicyStateExtendedResult> implements
     PasswordPolicyStateOperationContainer
 {
   private final String targetUser;

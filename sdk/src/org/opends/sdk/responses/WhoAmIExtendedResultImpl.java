@@ -42,7 +42,7 @@ import org.opends.sdk.ResultCode;
  * Who Am I extended result implementation.
  */
 final class WhoAmIExtendedResultImpl extends
-    AbstractExtendedResult<WhoAmIExtendedResult> implements
+    AbstractExtendedResultImpl<WhoAmIExtendedResult> implements
     WhoAmIExtendedResult
 {
 
@@ -55,6 +55,24 @@ final class WhoAmIExtendedResultImpl extends
   WhoAmIExtendedResultImpl(final ResultCode resultCode)
   {
     super(resultCode);
+  }
+
+
+
+  /**
+   * Creates a new who am I extended result that is an exact copy of the
+   * provided result.
+   *
+   * @param whoAmIExtendedResult
+   *          The who am I extended result to be copied.
+   * @throws NullPointerException
+   *           If {@code whoAmIExtendedResult} was {@code null} .
+   */
+  WhoAmIExtendedResultImpl(final WhoAmIExtendedResult whoAmIExtendedResult)
+      throws NullPointerException
+  {
+    super(whoAmIExtendedResult);
+    this.authorizationID = whoAmIExtendedResult.getAuthorizationID();
   }
 
 

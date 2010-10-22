@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.responses;
@@ -72,6 +72,27 @@ abstract class AbstractResultImpl<S extends Result> extends
   AbstractResultImpl(final ResultCode resultCode) throws NullPointerException
   {
     this.resultCode = resultCode;
+  }
+
+
+
+  /**
+   * Creates a new modifiable result that is an exact copy of the provided
+   * result.
+   *
+   * @param result
+   *          The result to be copied.
+   * @throws NullPointerException
+   *           If {@code result} was {@code null}.
+   */
+  AbstractResultImpl(Result result) throws NullPointerException
+  {
+    super(result);
+    this.cause = result.getCause();
+    this.diagnosticMessage = result.getDiagnosticMessage();
+    this.matchedDN = result.getMatchedDN();
+    this.referralURIs.addAll(result.getReferralURIs());
+    this.resultCode = result.getResultCode();
   }
 
 
