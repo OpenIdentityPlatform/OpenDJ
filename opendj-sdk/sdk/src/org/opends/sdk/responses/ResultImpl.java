@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.responses;
@@ -50,6 +50,21 @@ final class ResultImpl extends AbstractResultImpl<Result> implements Result
   ResultImpl(final ResultCode resultCode) throws NullPointerException
   {
     super(resultCode);
+  }
+
+
+
+  /**
+   * Creates a new result that is an exact copy of the provided result.
+   *
+   * @param result
+   *          The result to be copied.
+   * @throws NullPointerException
+   *           If {@code result} was {@code null} .
+   */
+  ResultImpl(final Result result) throws NullPointerException
+  {
+    super(result);
   }
 
 

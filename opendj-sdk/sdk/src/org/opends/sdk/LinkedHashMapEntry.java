@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
@@ -109,7 +109,7 @@ public final class LinkedHashMapEntry extends AbstractMapEntry
     this(entry.getName());
     for (final Attribute attribute : entry.getAllAttributes())
     {
-      addAttribute(attribute);
+      addAttribute(new LinkedAttribute(attribute));
     }
   }
 

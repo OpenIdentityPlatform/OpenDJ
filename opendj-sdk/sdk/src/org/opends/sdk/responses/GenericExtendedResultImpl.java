@@ -40,7 +40,7 @@ import com.sun.opends.sdk.util.StaticUtils;
  * Generic extended result implementation.
  */
 final class GenericExtendedResultImpl extends
-    AbstractResultImpl<GenericExtendedResult> implements ExtendedResult,
+    AbstractExtendedResultImpl<GenericExtendedResult> implements ExtendedResult,
     GenericExtendedResult
 {
 
@@ -62,6 +62,25 @@ final class GenericExtendedResultImpl extends
       throws NullPointerException
   {
     super(resultCode);
+  }
+
+
+
+  /**
+   * Creates a new generic extended result that is an exact copy of the provided
+   * result.
+   *
+   * @param genericExtendedResult
+   *          The generic extended result to be copied.
+   * @throws NullPointerException
+   *           If {@code genericExtendedResult} was {@code null} .
+   */
+  GenericExtendedResultImpl(final GenericExtendedResult genericExtendedResult)
+      throws NullPointerException
+  {
+    super(genericExtendedResult);
+    this.responseName = genericExtendedResult.getOID();
+    this.responseValue = genericExtendedResult.getValue();
   }
 
 
@@ -146,13 +165,5 @@ final class GenericExtendedResultImpl extends
     builder.append(getControls());
     builder.append(")");
     return builder.toString();
-  }
-
-
-
-  @Override
-  GenericExtendedResult getThis()
-  {
-    return this;
   }
 }

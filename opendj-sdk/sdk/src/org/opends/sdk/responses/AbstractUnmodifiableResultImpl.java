@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.responses;
@@ -46,10 +46,6 @@ abstract class AbstractUnmodifiableResultImpl<S extends Result> extends
     AbstractUnmodifiableResponseImpl<S> implements Result
 {
 
-  private final S impl;
-
-
-
   /**
    * Creates a new unmodifiable result implementation.
    *
@@ -59,7 +55,6 @@ abstract class AbstractUnmodifiableResultImpl<S extends Result> extends
   AbstractUnmodifiableResultImpl(final S impl)
   {
     super(impl);
-    this.impl = impl;
   }
 
 

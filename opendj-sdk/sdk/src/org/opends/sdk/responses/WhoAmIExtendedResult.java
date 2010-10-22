@@ -181,9 +181,12 @@ public interface WhoAmIExtendedResult extends ExtendedResult
    * @throws LocalizedIllegalArgumentException
    *           If {@code authorizationID} was non-empty and did not contain a
    *           valid authorization ID type.
+   * @throws UnsupportedOperationException
+   *           If this who am I extended result does not permit the
+   *           authorization ID to be set.
    */
   WhoAmIExtendedResult setAuthorizationID(String authorizationID)
-      throws LocalizedIllegalArgumentException;
+      throws LocalizedIllegalArgumentException, UnsupportedOperationException;
 
 
 

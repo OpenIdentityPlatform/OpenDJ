@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.responses;
@@ -61,6 +61,24 @@ final class SearchResultReferenceImpl extends
   SearchResultReferenceImpl(final String uri) throws NullPointerException
   {
     addURI(uri);
+  }
+
+
+
+  /**
+   * Creates a new search result reference that is an exact copy of the provided
+   * result.
+   *
+   * @param searchResultReference
+   *          The search result reference to be copied.
+   * @throws NullPointerException
+   *           If {@code searchResultReference} was {@code null} .
+   */
+  SearchResultReferenceImpl(final SearchResultReference searchResultReference)
+      throws NullPointerException
+  {
+    super(searchResultReference);
+    this.uris.addAll(searchResultReference.getURIs());
   }
 
 

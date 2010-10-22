@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.responses;
@@ -32,6 +32,7 @@ package org.opends.sdk.responses;
 import java.util.Collections;
 import java.util.List;
 
+import com.sun.opends.sdk.util.Validator;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.DecodeOptions;
 import org.opends.sdk.controls.Control;
@@ -49,7 +50,7 @@ abstract class AbstractUnmodifiableResponseImpl<S extends Response> implements
     Response
 {
 
-  private final S impl;
+  protected final S impl;
 
 
 
@@ -61,6 +62,7 @@ abstract class AbstractUnmodifiableResponseImpl<S extends Response> implements
    */
   AbstractUnmodifiableResponseImpl(final S impl)
   {
+    Validator.ensureNotNull(impl);
     this.impl = impl;
   }
 

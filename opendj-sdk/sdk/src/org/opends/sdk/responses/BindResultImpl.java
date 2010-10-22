@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.responses;
@@ -55,6 +55,24 @@ final class BindResultImpl extends AbstractResultImpl<BindResult> implements
   BindResultImpl(final ResultCode resultCode) throws NullPointerException
   {
     super(resultCode);
+  }
+
+
+
+  /**
+   * Creates a new bind result that is an exact copy of the provided
+   * result.
+   *
+   * @param bindResult
+   *          The bind result to be copied.
+   * @throws NullPointerException
+   *           If {@code bindResult} was {@code null} .
+   */
+  BindResultImpl(final BindResult bindResult)
+      throws NullPointerException
+  {
+    super(bindResult);
+    this.credentials = bindResult.getServerSASLCredentials();
   }
 
 

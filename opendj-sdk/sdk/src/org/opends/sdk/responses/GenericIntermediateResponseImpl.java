@@ -39,7 +39,7 @@ import com.sun.opends.sdk.util.StaticUtils;
  * Generic intermediate response implementation.
  */
 final class GenericIntermediateResponseImpl extends
-    AbstractIntermediateResponse<GenericIntermediateResponse> implements
+    AbstractIntermediateResponseImpl<GenericIntermediateResponse> implements
     GenericIntermediateResponse
 {
 
@@ -67,6 +67,26 @@ final class GenericIntermediateResponseImpl extends
   {
     this.responseName = responseName;
     this.responseValue = responseValue;
+  }
+
+
+
+  /**
+   * Creates a new generic intermediate response that is an exact copy of the
+   * provided result.
+   *
+   * @param genericIntermediateResponse
+   *          The generic intermediate response to be copied.
+   * @throws NullPointerException
+   *           If {@code genericExtendedResult} was {@code null} .
+   */
+  GenericIntermediateResponseImpl(
+      final GenericIntermediateResponse genericIntermediateResponse)
+      throws NullPointerException
+  {
+    super(genericIntermediateResponse);
+    this.responseName = genericIntermediateResponse.getOID();
+    this.responseValue = genericIntermediateResponse.getValue();
   }
 
 

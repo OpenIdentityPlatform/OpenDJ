@@ -56,6 +56,23 @@ final class CompareResultImpl extends AbstractResultImpl<CompareResult>
 
 
   /**
+   * Creates a new compare result that is an exact copy of the provided
+   * result.
+   *
+   * @param compareResult
+   *          The compare result to be copied.
+   * @throws NullPointerException
+   *           If {@code compareResult} was {@code null} .
+   */
+  CompareResultImpl(final CompareResult compareResult)
+      throws NullPointerException
+  {
+    super(compareResult);
+  }
+
+
+
+  /**
    * {@inheritDoc}
    */
   public boolean matched()

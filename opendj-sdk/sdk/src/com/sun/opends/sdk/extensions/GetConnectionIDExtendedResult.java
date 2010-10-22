@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.extensions;
@@ -36,10 +36,9 @@ import org.opends.sdk.ByteStringBuilder;
 import org.opends.sdk.ResultCode;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Writer;
-import org.opends.sdk.responses.AbstractExtendedResult;
+import org.opends.sdk.responses.AbstractExtendedResultImpl;
 
 import com.sun.opends.sdk.util.Validator;
-
 
 
 /**
@@ -48,7 +47,7 @@ import com.sun.opends.sdk.util.Validator;
  * @see GetConnectionIDExtendedRequest
  */
 public final class GetConnectionIDExtendedResult extends
-    AbstractExtendedResult<GetConnectionIDExtendedResult>
+    AbstractExtendedResultImpl<GetConnectionIDExtendedResult>
 {
   /**
    * Creates a new get connection ID extended result.
