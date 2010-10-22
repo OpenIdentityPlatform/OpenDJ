@@ -29,10 +29,13 @@ package org.opends.sdk;
 
 
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
+
+import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 
 import com.sun.opends.sdk.util.Validator;
 
@@ -41,7 +44,7 @@ import com.sun.opends.sdk.util.Validator;
 /**
  * Common options for LDAP client connections.
  */
-public class LDAPOptions
+public final class LDAPOptions
 {
   private SSLContext sslContext;
 
@@ -61,6 +64,8 @@ public class LDAPOptions
    */
   private List<String> enabledProtocols = new LinkedList<String>();
 
+  private TCPNIOTransport transport;
+
 
 
   /**
@@ -69,11 +74,11 @@ public class LDAPOptions
    */
   public LDAPOptions()
   {
-    super();
     this.sslContext = null;
     this.timeoutInMillis = 0;
     this.useStartTLS = false;
     this.decodeOptions = new DecodeOptions();
+    this.transport = null;
   }
 
 
@@ -93,6 +98,7 @@ public class LDAPOptions
     this.decodeOptions = new DecodeOptions(options.decodeOptions);
     this.enabledCipherSuites.addAll(options.getEnabledCipherSuites());
     this.enabledProtocols.addAll(options.getEnabledProtocols());
+    this.transport = options.transport;
   }
 
 
@@ -125,6 +131,23 @@ public class LDAPOptions
   public final SSLContext getSSLContext()
   {
     return sslContext;
+  }
+
+
+
+  /**
+   * Returns the Grizzly TCP transport which will be used when initiating
+   * connections with the Directory Server. By default this method will return
+   * {@code null} indicating that the default transport factory should be used
+   * to obtain a TCP transport.
+   *
+   * @return The Grizzly TCP transport which will be used when initiating
+   *         connections with the Directory Server, or {@code null} if the
+   *         default transport factory should be used to obtain a TCP transport.
+   */
+  public final TCPNIOTransport getTCPNIOTransport()
+  {
+    return transport;
   }
 
 
@@ -180,6 +203,27 @@ public class LDAPOptions
   public final LDAPOptions setSSLContext(final SSLContext sslContext)
   {
     this.sslContext = sslContext;
+    return this;
+  }
+
+
+
+  /**
+   * Sets the Grizzly TCP transport which will be used when initiating
+   * connections with the Directory Server. By default this method will return
+   * {@code null} indicating that the default transport factory will be used to
+   * obtain a TCP transport.
+   *
+   * @param transport
+   *          The Grizzly TCP transport which will be used when initiating
+   *          connections with the Directory Server, or {@code null} if the
+   *          default transport factory should be used to obtain a TCP
+   *          transport.
+   * @return A reference to this LDAP connection options.
+   */
+  public final LDAPOptions setTCPNIOTransport(final TCPNIOTransport transport)
+  {
+    this.transport = transport;
     return this;
   }
 

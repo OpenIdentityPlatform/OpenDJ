@@ -84,13 +84,11 @@ final class ArgumentParser
   private final ArrayList<String> trailingArguments;
 
   // Indicates whether this parser will allow additional unnamed
-  // arguments at
-  // the end of the list.
+  // arguments at the end of the list.
   private final boolean allowsTrailingArguments;
 
   // Indicates whether long arguments should be treated in a
-  // case-sensitive
-  // manner.
+  // case-sensitive manner.
   private final boolean longArgumentsCaseSensitive;
 
   // Indicates whether the usage or version information has been
@@ -127,18 +125,15 @@ final class ArgumentParser
   private OutputStream usageOutputStream;
 
   // The fully-qualified name of the Java class that should be invoked
-  // to launch
-  // the program with which this argument parser is associated.
+  // to launch the program with which this argument parser is associated.
   private final String mainClassName;
 
   // A human-readable description for the tool, which will be included
-  // when
-  // displaying usage information.
+  // when displaying usage information.
   private final LocalizableMessage toolDescription;
 
   // The display name that will be used for the trailing arguments in
-  // the usage
-  // information.
+  // the usage information.
   private final String trailingArgsDisplayName;
 
   // The raw set of command-line arguments that were provided.
@@ -855,6 +850,7 @@ final class ArgumentParser
       }
     }
     buffer.append(EOL);
+    buffer.append(EOL);
     buffer.append(INFO_SUBCMDPARSER_WHERE_OPTIONS_INCLUDE.get());
     buffer.append(EOL);
     buffer.append(EOL);
@@ -1021,17 +1017,14 @@ final class ArgumentParser
       if (arg.equals("--"))
       {
         // This is a special indicator that we have reached the end of
-        // the named
-        // arguments and that everything that follows after this should
-        // be
-        // considered trailing arguments.
+        // the named arguments and that everything that follows after this
+        // should be considered trailing arguments.
         inTrailingArgs = true;
       }
       else if (arg.startsWith("--"))
       {
         // This indicates that we are using the long name to reference
-        // the
-        // argument. It may be in any of the following forms:
+        // the argument. It may be in any of the following forms:
         // --name
         // --name value
         // --name=value
@@ -1088,8 +1081,7 @@ final class ArgumentParser
           else if (argName.equals(OPTION_LONG_PRODUCT_VERSION))
           {
             // "--version" will always be interpreted as requesting
-            // version
-            // information.
+            // version information.
             usageOrVersionDisplayed = true;
             versionPresent = true;
             try
@@ -1116,8 +1108,7 @@ final class ArgumentParser
           a.setPresent(true);
 
           // If this is the usage argument, then immediately stop and
-          // print
-          // usage information.
+          // print usage information.
           if ((usageArgument != null)
               && usageArgument.getName().equals(a.getName()))
           {
@@ -1134,8 +1125,7 @@ final class ArgumentParser
         }
 
         // See if the argument takes a value. If so, then make sure one
-        // was
-        // provided. If not, then make sure none was provided.
+        // was provided. If not, then make sure none was provided.
         if (a.needsValue())
         {
           if (argValue == null)
@@ -1182,8 +1172,7 @@ final class ArgumentParser
       else if (arg.startsWith("-"))
       {
         // This indicates that we are using the 1-character name to
-        // reference
-        // the argument. It may be in any of the following forms:
+        // reference the argument. It may be in any of the following forms:
         // -n
         // -nvalue
         // -n value
@@ -1228,8 +1217,7 @@ final class ArgumentParser
           {
             // "-V" will always be interpreted as requesting
             // version information except if it's already defined (e.g
-            // in
-            // ldap tools).
+            // in ldap tools).
             usageOrVersionDisplayed = true;
             versionPresent = true;
             try
@@ -1255,8 +1243,7 @@ final class ArgumentParser
           a.setPresent(true);
 
           // If this is the usage argument, then immediately stop and
-          // print
-          // usage information.
+          // print usage information.
           if ((usageArgument != null)
               && usageArgument.getName().equals(a.getName()))
           {
@@ -1273,8 +1260,7 @@ final class ArgumentParser
         }
 
         // See if the argument takes a value. If so, then make sure one
-        // was
-        // provided. If not, then make sure none was provided.
+        // was provided. If not, then make sure none was provided.
         if (a.needsValue())
         {
           if (argValue == null)
@@ -1313,15 +1299,11 @@ final class ArgumentParser
         {
           if (argValue != null)
           {
-            // If we've gotten here, then it means that we're in a
-            // scenario like
+            // If we've gotten here, then it means that we're in a scenario like
             // "-abc" where "a" is a valid argument that doesn't take a
-            // value.
-            // However, this could still be valid if all remaining
-            // characters in
-            // the value are also valid argument characters that don't
-            // take
-            // values.
+            // value. However, this could still be valid if all remaining
+            // characters in the value are also valid argument characters that
+            // don't take values.
             final int valueLength = argValue.length();
             for (int j = 0; j < valueLength; j++)
             {
@@ -1337,8 +1319,7 @@ final class ArgumentParser
               else if (b.needsValue())
               {
                 // This means we're in a scenario like "-abc" where b is
-                // a
-                // valid argument that takes a value. We don't support
+                // a valid argument that takes a value. We don't support
                 // that.
                 final LocalizableMessage message = ERR_ARGPARSER_CANT_MIX_ARGS_WITH_VALUES
                     .get(String.valueOf(argCharacter), argValue, String
@@ -1350,8 +1331,7 @@ final class ArgumentParser
                 b.setPresent(true);
 
                 // If this is the usage argument, then immediately stop
-                // and
-                // print usage information.
+                // and print usage information.
                 if ((usageArgument != null)
                     && usageArgument.getName().equals(b.getName()))
                 {
@@ -1373,16 +1353,14 @@ final class ArgumentParser
       else if (allowsTrailingArguments)
       {
         // It doesn't start with a dash, so it must be a trailing
-        // argument if
-        // that is acceptable.
+        // argument if that is acceptable.
         inTrailingArgs = true;
         trailingArguments.add(arg);
       }
       else
       {
         // It doesn't start with a dash and we don't allow trailing
-        // arguments,
-        // so this is illegal.
+        // arguments, so this is illegal.
         final LocalizableMessage message = ERR_ARGPARSER_DISALLOWED_TRAILING_ARGUMENT
             .get(arg);
         throw new ArgumentException(message);
@@ -1390,8 +1368,7 @@ final class ArgumentParser
     }
 
     // If we allow trailing arguments and there is a minimum number,
-    // then make
-    // sure at least that many were provided.
+    // then make sure at least that many were provided.
     if (allowsTrailingArguments && (minTrailingArguments > 0))
     {
       if (trailingArguments.size() < minTrailingArguments)
@@ -1410,10 +1387,8 @@ final class ArgumentParser
     }
 
     // Iterate through all of the arguments. For any that were not
-    // provided on
-    // the command line, see if there is an alternate default that can
-    // be used.
-    // For cases where there is not, see that argument is required.
+    // provided on the command line, see if there is an alternate default that
+    // can be used. For cases where there is not, see that argument is required.
     for (final Argument a : argumentList)
     {
       if (!a.isPresent())
@@ -1453,8 +1428,7 @@ final class ArgumentParser
         }
 
         // If there is still no value and the argument is required, then
-        // that's
-        // a problem.
+        // that's a problem.
         if ((!a.hasValue()) && a.isRequired())
         {
           final LocalizableMessage message = ERR_ARGPARSER_NO_VALUE_FOR_REQUIRED_ARG

@@ -29,33 +29,27 @@ package org.opends.sdk;
 
 
 
-import org.opends.sdk.requests.*;
-import org.opends.sdk.responses.BindResult;
-import org.opends.sdk.responses.CompareResult;
-import org.opends.sdk.responses.ExtendedResult;
-import org.opends.sdk.responses.Result;
+import org.opends.sdk.requests.AbandonRequest;
+import org.opends.sdk.requests.UnbindRequest;
 
 
 
 /**
- * A handler interface for processing requests from clients.
+ * A handler interface for interacting with client connections. A
+ * {@code ServerConnection} is associated with a client connection when the
+ * {@link ServerConnectionFactory#handleAccept(Object) handleAccept} method is
+ * invoked against a {@code ServerConnectionFactory}.
  * <p>
- * Implementations should always return results via the provided
- * {@code RequestHandler} when processing requests unless otherwise indicated by
- * the component passing requests to the {@code ServerConnection}. For example,
- * an {@link LDAPListener} does not require {@code ServerConnection}
- * implementations to return results, which may be useful when implementing
- * abandon operation functionality.
- * <p>
- * Note that {@code ServerConnection}s may be stacked, and that a lower
- * {@code ServerConnection} implementation, such as a logger, may require upper
- * {@code ServerConnection} implementations to always return results.
+ * Implementations are responsible for handling connection life-cycle as well as
+ * request life-cycle. In particular, a {@code ServerConnection} is responsible
+ * for processing abandon and unbind requests, as well as extended operations
+ * such as {@code StartTLS} and {@code Cancel} operations.
  *
  * @param <C>
  *          The type of request context.
  * @see ServerConnectionFactory
  */
-public interface ServerConnection<C>
+public interface ServerConnection<C> extends RequestHandler<C>
 {
 
   /**
@@ -69,77 +63,6 @@ public interface ServerConnection<C>
    *           If this server connection does not handle abandon requests.
    */
   void handleAbandon(C requestContext, AbandonRequest request)
-      throws UnsupportedOperationException;
-
-
-
-  /**
-   * Invoked when an add request is received from a client.
-   *
-   * @param requestContext
-   *          The request context.
-   * @param request
-   *          The add request.
-   * @param resultHandler
-   *          The handler which should be used to send back the result to the
-   *          client.
-   * @param intermediateResponseHandler
-   *          The handler which should be used to send back any intermediate
-   *          responses to the client.
-   * @throws UnsupportedOperationException
-   *           If this server connection does not handle add requests.
-   */
-  void handleAdd(C requestContext, AddRequest request,
-      ResultHandler<? super Result> resultHandler,
-      IntermediateResponseHandler intermediateResponseHandler)
-      throws UnsupportedOperationException;
-
-
-
-  /**
-   * Invoked when a bind request is received from a client.
-   *
-   * @param requestContext
-   *          The request context.
-   * @param version
-   *          The protocol version included with the bind request.
-   * @param request
-   *          The bind request.
-   * @param resultHandler
-   *          The handler which should be used to send back the result to the
-   *          client.
-   * @param intermediateResponseHandler
-   *          The handler which should be used to send back any intermediate
-   *          responses to the client.
-   * @throws UnsupportedOperationException
-   *           If this server connection does not handle bind requests.
-   */
-  void handleBind(C requestContext, int version, BindRequest request,
-      ResultHandler<? super BindResult> resultHandler,
-      IntermediateResponseHandler intermediateResponseHandler)
-      throws UnsupportedOperationException;
-
-
-
-  /**
-   * Invoked when a compare request is received from a client.
-   *
-   * @param requestContext
-   *          The request context.
-   * @param request
-   *          The compare request.
-   * @param resultHandler
-   *          The handler which should be used to send back the result to the
-   *          client.
-   * @param intermediateResponseHandler
-   *          The handler which should be used to send back any intermediate
-   *          responses to the client.
-   * @throws UnsupportedOperationException
-   *           If this server connection does not handle compare requests.
-   */
-  void handleCompare(C requestContext, CompareRequest request,
-      ResultHandler<? super CompareResult> resultHandler,
-      IntermediateResponseHandler intermediateResponseHandler)
       throws UnsupportedOperationException;
 
 
@@ -183,120 +106,4 @@ public interface ServerConnection<C>
    */
   void handleConnectionError(Throwable error);
 
-
-
-  /**
-   * Invoked when a delete request is received from a client.
-   *
-   * @param requestContext
-   *          The request context.
-   * @param request
-   *          The delete request.
-   * @param resultHandler
-   *          The handler which should be used to send back the result to the
-   *          client.
-   * @param intermediateResponseHandler
-   *          The handler which should be used to send back any intermediate
-   *          responses to the client.
-   * @throws UnsupportedOperationException
-   *           If this server connection does not handle delete requests.
-   */
-  void handleDelete(C requestContext, DeleteRequest request,
-      ResultHandler<? super Result> resultHandler,
-      IntermediateResponseHandler intermediateResponseHandler)
-      throws UnsupportedOperationException;
-
-
-
-  /**
-   * Invoked when an extended request is received from a client.
-   *
-   * @param <R>
-   *          The type of result returned by the extended request.
-   * @param requestContext
-   *          The request context.
-   * @param request
-   *          The extended request.
-   * @param resultHandler
-   *          The handler which should be used to send back the result to the
-   *          client.
-   * @param intermediateResponseHandler
-   *          The handler which should be used to send back any intermediate
-   *          responses to the client.
-   * @throws UnsupportedOperationException
-   *           If this server connection does not handle extended requests.
-   */
-  <R extends ExtendedResult> void handleExtendedRequest(C requestContext,
-      ExtendedRequest<R> request, ResultHandler<? super R> resultHandler,
-      IntermediateResponseHandler intermediateResponseHandler)
-      throws UnsupportedOperationException;
-
-
-
-  /**
-   * Invoked when a modify request is received from a client.
-   *
-   * @param requestContext
-   *          The request context.
-   * @param request
-   *          The modify request.
-   * @param resultHandler
-   *          The handler which should be used to send back the result to the
-   *          client.
-   * @param intermediateResponseHandler
-   *          The handler which should be used to send back any intermediate
-   *          responses to the client.
-   * @throws UnsupportedOperationException
-   *           If this server connection does not handle modify requests.
-   */
-  void handleModify(C requestContext, ModifyRequest request,
-      ResultHandler<? super Result> resultHandler,
-      IntermediateResponseHandler intermediateResponseHandler)
-      throws UnsupportedOperationException;
-
-
-
-  /**
-   * Invoked when a modify DN request is received from a client.
-   *
-   * @param requestContext
-   *          The request context.
-   * @param request
-   *          The modify DN request.
-   * @param resultHandler
-   *          The handler which should be used to send back the result to the
-   *          client.
-   * @param intermediateResponseHandler
-   *          The handler which should be used to send back any intermediate
-   *          responses to the client.
-   * @throws UnsupportedOperationException
-   *           If this server connection does not handle modify DN requests.
-   */
-  void handleModifyDN(C requestContext, ModifyDNRequest request,
-      ResultHandler<? super Result> resultHandler,
-      IntermediateResponseHandler intermediateResponseHandler)
-      throws UnsupportedOperationException;
-
-
-
-  /**
-   * Invoked when a search request is received from a client.
-   *
-   * @param requestContext
-   *          The request context.
-   * @param request
-   *          The search request.
-   * @param resultHandler
-   *          The handler which should be used to send back the search results
-   *          to the client.
-   * @param intermediateResponseHandler
-   *          The handler which should be used to send back any intermediate
-   *          responses to the client.
-   * @throws UnsupportedOperationException
-   *           If this server connection does not handle search requests.
-   */
-  void handleSearch(C requestContext, SearchRequest request,
-      SearchResultHandler resultHandler,
-      IntermediateResponseHandler intermediateResponseHandler)
-      throws UnsupportedOperationException;
 }

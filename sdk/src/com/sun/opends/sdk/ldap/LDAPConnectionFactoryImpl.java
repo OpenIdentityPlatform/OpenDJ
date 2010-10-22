@@ -253,17 +253,15 @@ public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
   public LDAPConnectionFactoryImpl(final SocketAddress address,
       final LDAPOptions options)
   {
-    TCPNIOTransport tmpTransport = null;
-    if (options instanceof GrizzlyLDAPOptions)
+    if (options.getTCPNIOTransport() == null)
     {
-      tmpTransport = ((GrizzlyLDAPOptions) options).getTCPNIOTransport();
+      this.transport = GlobalTransportFactory.getInstance()
+          .createTCPTransport();
     }
-    if (tmpTransport == null)
+    else
     {
-      tmpTransport = GlobalTransportFactory.getInstance().createTCPTransport();
+      this.transport = options.getTCPNIOTransport();
     }
-    this.transport = tmpTransport;
-
     this.socketAddress = address;
     this.options = new LDAPOptions(options);
     this.clientFilter = new LDAPClientFilter(new LDAPReader(
