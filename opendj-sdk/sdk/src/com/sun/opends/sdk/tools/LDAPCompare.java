@@ -381,6 +381,14 @@ public final class LDAPCompare extends ConsoleApplication
     try
     {
       argParser.parseArguments(args);
+
+      // If we should just display usage or version information,
+      // then print it and exit.
+      if (argParser.usageOrVersionDisplayed())
+      {
+        return 0;
+      }
+
       connectionFactory =
           connectionFactoryProvider.getAuthenticatedConnectionFactory();
     }
@@ -389,15 +397,7 @@ public final class LDAPCompare extends ConsoleApplication
       final LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae
           .getMessage());
       println(message);
-      println(argParser.getUsageMessage());
       return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-    }
-
-    // If we should just display usage or version information,
-    // then print it and exit.
-    if (argParser.usageOrVersionDisplayed())
-    {
-      return 0;
     }
 
     try

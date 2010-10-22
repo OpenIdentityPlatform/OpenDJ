@@ -51,7 +51,6 @@ import org.glassfish.grizzly.TransportFactory;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import com.sun.opends.sdk.controls.AccountUsabilityRequestControl;
 import com.sun.opends.sdk.controls.AccountUsabilityResponseControl;
-import com.sun.opends.sdk.ldap.GrizzlyLDAPListenerOptions;
 
 
 
@@ -758,7 +757,7 @@ public class LDAPServer implements
 
     transport.setSelectorRunnersCount(2);
     listener = new LDAPListener(port, getInstance(),
-        new GrizzlyLDAPListenerOptions().setTCPNIOTransport(transport)
+        new LDAPListenerOptions().setTCPNIOTransport(transport)
             .setBacklog(4096));
     transport.start();
     isRunning = true;

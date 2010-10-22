@@ -65,10 +65,11 @@ public final class AuthRate extends ConsoleApplication
 
 
 
-      private BindStatsThread()
+      private BindStatsThread(boolean extraFieldRequired)
       {
-        super(new String[] { "bind time %" });
-        extraColumn = new String[1];
+        super(extraFieldRequired ? new String[] { "bind time %" }
+            : new String[0]);
+        extraColumn = new String[extraFieldRequired ? 1 : 0];
       }
 
 
@@ -77,9 +78,12 @@ public final class AuthRate extends ConsoleApplication
       String[] getAdditionalColumns()
       {
         invalidCredRecentCount.set(0);
-        final long searchWaitTime = searchWaitRecentTime.getAndSet(0);
-        extraColumn[0] = String.format("%.1f",
-            ((float)(waitTime - searchWaitTime) / waitTime) * 100.0);
+        if (extraColumn.length != 0)
+        {
+          final long searchWaitTime = searchWaitRecentTime.getAndSet(0);
+          extraColumn[0] = String.format("%.1f",
+              ((float) (waitTime - searchWaitTime) / waitTime) * 100.0);
+        }
         return extraColumn;
       }
     }
@@ -183,7 +187,7 @@ public final class AuthRate extends ConsoleApplication
         else
         {
           return performBind(connection, data,
-              new UpdateStatsResultHandler<BindResult>(startTime));
+              new BindUpdateStatsResultHandler(startTime));
         }
       }
 
@@ -383,11 +387,7 @@ public final class AuthRate extends ConsoleApplication
     @Override
     StatsThread newStatsThread()
     {
-      if(filter != null && baseDN != null)
-      {
-        return new BindStatsThread();
-      }
-      return new StatsThread(new String[0]);
+      return new BindStatsThread(filter != null && baseDN != null);
     }
 
 
@@ -400,7 +400,7 @@ public final class AuthRate extends ConsoleApplication
     }
   }
   /**
-   * The main method for SearchRate tool.
+   * The main method for AuthRate tool.
    *
    * @param args
    *          The command-line arguments provided to this program.
@@ -408,7 +408,7 @@ public final class AuthRate extends ConsoleApplication
 
   public static void main(final String[] args)
   {
-    final int retCode = mainSearchRate(args, System.in, System.out, System.err);
+    final int retCode = mainAuthRate(args, System.in, System.out, System.err);
     System.exit(filterExitCode(retCode));
   }
 
@@ -416,23 +416,23 @@ public final class AuthRate extends ConsoleApplication
 
   /**
    * Parses the provided command-line arguments and uses that information to run
-   * the ldapsearch tool.
+   * the tool.
    *
    * @param args
    *          The command-line arguments provided to this program.
    * @return The error code.
    */
 
-  static int mainSearchRate(final String[] args)
+  static int mainAuthRate(final String[] args)
   {
-    return mainSearchRate(args, System.in, System.out, System.err);
+    return mainAuthRate(args, System.in, System.out, System.err);
   }
 
 
 
   /**
    * Parses the provided command-line arguments and uses that information to run
-   * the ldapsearch tool.
+   * the tool.
    *
    * @param args
    *          The command-line arguments provided to this program.
@@ -448,7 +448,7 @@ public final class AuthRate extends ConsoleApplication
    * @return The error code.
    */
 
-  static int mainSearchRate(final String[] args, final InputStream inStream,
+  static int mainAuthRate(final String[] args, final InputStream inStream,
       final OutputStream outStream, final OutputStream errStream)
 
   {
@@ -654,6 +654,14 @@ public final class AuthRate extends ConsoleApplication
     try
     {
       argParser.parseArguments(args);
+
+      // If we should just display usage or version information,
+      // then print it and exit.
+      if (argParser.usageOrVersionDisplayed())
+      {
+        return 0;
+      }
+
       connectionFactory =
           connectionFactoryProvider.getConnectionFactory();
       runner.validate();
@@ -670,15 +678,7 @@ public final class AuthRate extends ConsoleApplication
       final LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae
           .getMessage());
       println(message);
-      println(argParser.getUsageMessage());
       return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
-    }
-
-    // If we should just display usage or version information,
-    // then print it and exit.
-    if (argParser.usageOrVersionDisplayed())
-    {
-      return 0;
     }
 
     final List<String> attributes = new LinkedList<String>();
@@ -687,9 +687,10 @@ public final class AuthRate extends ConsoleApplication
     if (filterAndAttributeStrings.size() > 0)
     {
       // the list of trailing arguments should be structured as follow:
-      // the first trailing argument is
-      // considered the filter, the other as attributes.
+      // the first trailing argument is considered the filter, the other as
+      // attributes.
       runner.filter = filterAndAttributeStrings.remove(0);
+
       // The rest are attributes
       for (final String s : filterAndAttributeStrings)
       {

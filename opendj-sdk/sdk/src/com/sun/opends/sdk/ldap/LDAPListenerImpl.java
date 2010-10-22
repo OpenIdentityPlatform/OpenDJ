@@ -83,17 +83,15 @@ public final class LDAPListenerImpl implements Closeable
       final ServerConnectionFactory<LDAPClientContext, Integer> factory,
       final LDAPListenerOptions options) throws IOException
   {
-    TCPNIOTransport tmpTransport = null;
-    if (options instanceof GrizzlyLDAPListenerOptions)
+    if (options.getTCPNIOTransport() == null)
     {
-      tmpTransport = ((GrizzlyLDAPListenerOptions) options)
-          .getTCPNIOTransport();
+      this.transport = GlobalTransportFactory.getInstance()
+          .createTCPTransport();
     }
-    if (tmpTransport == null)
+    else
     {
-      tmpTransport = GlobalTransportFactory.getInstance().createTCPTransport();
+      this.transport = options.getTCPNIOTransport();
     }
-    this.transport = tmpTransport;
     this.connectionFactory = factory;
     this.defaultFilterChain = new DefaultFilterChain();
     this.defaultFilterChain.add(new TransportFilter());
