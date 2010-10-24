@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
@@ -394,7 +394,7 @@ public final class AttributeDescription implements
 
     public Iterator<String> iterator()
     {
-      return Iterators.singleton(option);
+      return Iterators.singletonIterator(option);
     }
 
 
@@ -489,7 +489,7 @@ public final class AttributeDescription implements
 
     public Iterator<String> iterator()
     {
-      return Iterators.empty();
+      return Iterators.emptyIterator();
     }
 
 

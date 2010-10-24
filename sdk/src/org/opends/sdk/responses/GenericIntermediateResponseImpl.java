@@ -39,7 +39,7 @@ import com.sun.opends.sdk.util.StaticUtils;
  * Generic intermediate response implementation.
  */
 final class GenericIntermediateResponseImpl extends
-    AbstractIntermediateResponseImpl<GenericIntermediateResponse> implements
+    AbstractIntermediateResponse<GenericIntermediateResponse> implements
     GenericIntermediateResponse
 {
 

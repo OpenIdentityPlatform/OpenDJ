@@ -40,7 +40,7 @@ import com.sun.opends.sdk.util.StaticUtils;
  * Generic extended result implementation.
  */
 final class GenericExtendedResultImpl extends
-    AbstractExtendedResultImpl<GenericExtendedResult> implements ExtendedResult,
+    AbstractExtendedResult<GenericExtendedResult> implements ExtendedResult,
     GenericExtendedResult
 {
 

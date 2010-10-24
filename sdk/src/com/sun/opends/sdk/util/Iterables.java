@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.util;
@@ -73,7 +73,7 @@ public final class Iterables
      */
     public Iterator<M> iterator()
     {
-      return Iterators.empty();
+      return Iterators.emptyIterator();
     }
 
   }
@@ -105,7 +105,7 @@ public final class Iterables
      */
     public Iterator<M> iterator()
     {
-      return Iterators.filter(iterable.iterator(), predicate, parameter);
+      return Iterators.filteredIterator(iterable.iterator(), predicate, parameter);
     }
 
   }
@@ -132,7 +132,7 @@ public final class Iterables
      */
     public Iterator<M> iterator()
     {
-      return Iterators.singleton(value);
+      return Iterators.singletonIterator(value);
     }
 
   }
@@ -165,7 +165,7 @@ public final class Iterables
      */
     public Iterator<N> iterator()
     {
-      return Iterators.transform(iterable.iterator(), function, parameter);
+      return Iterators.transformedIterator(iterable.iterator(), function, parameter);
     }
 
   }
@@ -192,7 +192,7 @@ public final class Iterables
      */
     public Iterator<M> iterator()
     {
-      return Iterators.unmodifiable(iterable.iterator());
+      return Iterators.unmodifiableIterator(iterable.iterator());
     }
 
   }
@@ -205,8 +205,8 @@ public final class Iterables
 
   /**
    * Returns an iterable containing the elements of {@code a}. The returned
-   * iterable's iterator does not support element removal via the {@code
-   * remove()} method.
+   * iterable's iterator does not support element removal via the
+   * {@code remove()} method.
    *
    * @param <M>
    *          The type of elements contained in {@code a}.
@@ -229,7 +229,7 @@ public final class Iterables
    * @return An immutable empty iterable.
    */
   @SuppressWarnings("unchecked")
-  public static <M> Iterable<M> empty()
+  public static <M> Iterable<M> emptyIterable()
   {
     return (Iterable<M>) EMPTY_ITERABLE;
   }
@@ -245,9 +245,9 @@ public final class Iterables
    * @param <M>
    *          The type of elements contained in {@code iterable}.
    * @param <P>
-   *          The type of the additional parameter to the predicate's {@code
-   *          matches} method. Use {@link java.lang.Void} for predicates that do
-   *          not need an additional parameter.
+   *          The type of the additional parameter to the predicate's
+   *          {@code matches} method. Use {@link java.lang.Void} for predicates
+   *          that do not need an additional parameter.
    * @param iterable
    *          The iterable to be filtered.
    * @param predicate
@@ -257,7 +257,7 @@ public final class Iterables
    * @return A filtered view of {@code iterable} containing only those elements
    *         which match {@code predicate}.
    */
-  public static <M, P> Iterable<M> filter(final Iterable<M> iterable,
+  public static <M, P> Iterable<M> filteredIterable(final Iterable<M> iterable,
       final Predicate<? super M, P> predicate, final P p)
   {
     return new FilteredIterable<M, P>(iterable, predicate, p);
@@ -280,7 +280,7 @@ public final class Iterables
    * @return A filtered view of {@code iterable} containing only those elements
    *         which match {@code predicate}.
    */
-  public static <M> Iterable<M> filter(final Iterable<M> iterable,
+  public static <M> Iterable<M> filteredIterable(final Iterable<M> iterable,
       final Predicate<? super M, Void> predicate)
   {
     return new FilteredIterable<M, Void>(iterable, predicate, null);
@@ -299,7 +299,7 @@ public final class Iterables
    *          The single element.
    * @return An iterable containing the single element {@code value}.
    */
-  public static <M> Iterable<M> singleton(final M value)
+  public static <M> Iterable<M> singletonIterable(final M value)
   {
     return new SingletonIterable<M>(value);
   }
@@ -317,9 +317,9 @@ public final class Iterables
    * @param <N>
    *          The type of elements contained in the returned iterable.
    * @param <P>
-   *          The type of the additional parameter to the function's {@code
-   *          apply} method. Use {@link java.lang.Void} for functions that do
-   *          not need an additional parameter.
+   *          The type of the additional parameter to the function's
+   *          {@code apply} method. Use {@link java.lang.Void} for functions
+   *          that do not need an additional parameter.
    * @param iterable
    *          The iterable to be transformed.
    * @param function
@@ -329,7 +329,8 @@ public final class Iterables
    * @return A view of {@code iterable} whose values have been mapped to
    *         elements of type {@code N} using {@code function}.
    */
-  public static <M, N, P> Iterable<N> transform(final Iterable<M> iterable,
+  public static <M, N, P> Iterable<N> transformedIterable(
+      final Iterable<M> iterable,
       final Function<? super M, ? extends N, P> function, final P p)
   {
     return new TransformedIterable<M, N, P>(iterable, function, p);
@@ -354,7 +355,8 @@ public final class Iterables
    * @return A view of {@code iterable} whose values have been mapped to
    *         elements of type {@code N} using {@code function}.
    */
-  public static <M, N> Iterable<N> transform(final Iterable<M> iterable,
+  public static <M, N> Iterable<N> transformedIterable(
+      final Iterable<M> iterable,
       final Function<? super M, ? extends N, Void> function)
   {
     return new TransformedIterable<M, N, Void>(iterable, function, null);
@@ -365,8 +367,8 @@ public final class Iterables
   /**
    * Returns a read-only view of {@code iterable} whose iterator does not
    * support element removal via the {@code remove()}. Attempts to use the
-   * {@code remove()} method will result in a {@code
-   * UnsupportedOperationException}.
+   * {@code remove()} method will result in a
+   * {@code UnsupportedOperationException}.
    *
    * @param <M>
    *          The type of elements contained in {@code iterable}.
@@ -375,7 +377,7 @@ public final class Iterables
    * @return A read-only view of {@code iterable} whose iterator does not
    *         support element removal via the {@code remove()}.
    */
-  public static <M> Iterable<M> unmodifiable(final Iterable<M> iterable)
+  public static <M> Iterable<M> unmodifiableIterable(final Iterable<M> iterable)
   {
     return new UnmodifiableIterable<M>(iterable);
   }

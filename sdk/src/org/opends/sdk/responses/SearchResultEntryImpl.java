@@ -78,7 +78,7 @@ final class SearchResultEntryImpl extends
       throws NullPointerException
   {
     super(searchResultEntry);
-    this.entry = new LinkedHashMapEntry(searchResultEntry);
+    this.entry = LinkedHashMapEntry.deepCopyOfEntry(searchResultEntry);
   }
 
 

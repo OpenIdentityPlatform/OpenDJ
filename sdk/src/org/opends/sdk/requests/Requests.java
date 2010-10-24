@@ -29,7 +29,7 @@ package org.opends.sdk.requests;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.WARN_READ_LDIF_RECORD_CHANGE_RECORD_WRONG_TYPE;
+import static com.sun.opends.sdk.messages.Messages.*;
 
 import javax.net.ssl.SSLContext;
 import javax.security.auth.Subject;
@@ -45,14 +45,24 @@ import com.sun.opends.sdk.util.Validator;
 /**
  * This class contains various methods for creating and manipulating requests.
  * <p>
- * TODO: search request from LDAP URL.
+ * All copy constructors of the form {@code copyOfXXXRequest} perform deep
+ * copies of their request parameter. More specifically, any controls,
+ * modifications, and attributes contained within the response will be
+ * duplicated.
  * <p>
- * TODO: update request from persistent search result.
- * <p>
- * TODO: synchronized requests?
+ * Similarly, all unmodifiable views of request returned by methods of the form
+ * {@code unmodifiableXXXRequest} return deep unmodifiable views of their
+ * request parameter. More specifically, any controls, modifications, and
+ * attributes contained within the returned request will be unmodifiable.
  */
 public final class Requests
 {
+
+  // TODO: search request from LDAP URL.
+
+  // TODO: update request from persistent search result.
+
+  // TODO: synchronized requests?
 
   /**
    * Creates a new abandon request using the provided message ID.
@@ -232,8 +242,8 @@ public final class Requests
    *          The assertion value to be compared.
    * @return The new compare request.
    * @throws NullPointerException
-   *           If {@code name}, {@code attributeDescription}, or {@code
-   *           assertionValue} was {@code null}.
+   *           If {@code name}, {@code attributeDescription}, or
+   *           {@code assertionValue} was {@code null}.
    */
   public static CompareRequest newCompareRequest(final DN name,
       final AttributeDescription attributeDescription,
@@ -263,16 +273,17 @@ public final class Requests
    *           If {@code name} or {@code attributeDescription} could not be
    *           decoded using the default schema.
    * @throws NullPointerException
-   *           If {@code name}, {@code attributeDescription}, or {@code
-   *           assertionValue} was {@code null}.
+   *           If {@code name}, {@code attributeDescription}, or
+   *           {@code assertionValue} was {@code null}.
    */
   public static CompareRequest newCompareRequest(final String name,
       final String attributeDescription, final Object assertionValue)
       throws LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(name, attributeDescription, assertionValue);
-    return new CompareRequestImpl(DN.valueOf(name), AttributeDescription
-        .valueOf(attributeDescription), ByteString.valueOf(assertionValue));
+    return new CompareRequestImpl(DN.valueOf(name),
+        AttributeDescription.valueOf(attributeDescription),
+        ByteString.valueOf(assertionValue));
   }
 
 
@@ -874,20 +885,23 @@ public final class Requests
 
 
 
-
   /**
    * Creates an unmodifiable abandon request of the provided request.
    *
-   * @param abandonRequest
+   * @param request
    *          The abandon request to be copied.
    * @return The new abandon request.
    * @throws NullPointerException
-   *           If {@code abandonRequest} was {@code null}
+   *           If {@code request} was {@code null}
    */
   public static AbandonRequest unmodifiableAbandonRequest(
-      final AbandonRequest abandonRequest) throws NullPointerException
+      final AbandonRequest request) throws NullPointerException
   {
-    return new UnmodifiableAbandonRequestImpl(abandonRequest);
+    if (request instanceof UnmodifiableAbandonRequestImpl)
+    {
+      return request;
+    }
+    return new UnmodifiableAbandonRequestImpl(request);
   }
 
 
@@ -895,35 +909,42 @@ public final class Requests
   /**
    * Creates an unmodifiable add request of the provided request.
    *
-   * @param addRequest
+   * @param request
    *          The add request to be copied.
    * @return The new add request.
    * @throws NullPointerException
-   *           If {@code addRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
-  public static AddRequest unmodifiableAddRequest(final AddRequest addRequest)
+  public static AddRequest unmodifiableAddRequest(final AddRequest request)
       throws NullPointerException
   {
-    return new UnmodifiableAddRequestImpl(addRequest);
+    if (request instanceof UnmodifiableAddRequestImpl)
+    {
+      return request;
+    }
+    return new UnmodifiableAddRequestImpl(request);
   }
 
 
 
   /**
-   * Creates an unmodifiable anonymous SASL bind request of the provided request.
+   * Creates an unmodifiable anonymous SASL bind request of the provided
+   * request.
    *
-   * @param anonymousSASLBindRequest
+   * @param request
    *          The anonymous SASL bind request to be copied.
    * @return The new anonymous SASL bind request.
    * @throws NullPointerException
-   *           If {@code anonymousSASLBindRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
   public static AnonymousSASLBindRequest unmodifiableAnonymousSASLBindRequest(
-      final AnonymousSASLBindRequest anonymousSASLBindRequest)
-      throws NullPointerException
+      final AnonymousSASLBindRequest request) throws NullPointerException
   {
-    return new UnmodifiableAnonymousSASLBindRequestImpl(
-        anonymousSASLBindRequest);
+    if (request instanceof UnmodifiableAnonymousSASLBindRequestImpl)
+    {
+      return request;
+    }
+    return new UnmodifiableAnonymousSASLBindRequestImpl(request);
   }
 
 
@@ -931,17 +952,20 @@ public final class Requests
   /**
    * Creates an unmodifiable cancel extended request of the provided request.
    *
-   * @param cancelExtendedRequest
+   * @param request
    *          The cancel extended request to be copied.
    * @return The new cancel extended request.
    * @throws NullPointerException
-   *           If {@code cancelExtendedRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
   public static CancelExtendedRequest unmodifiableCancelExtendedRequest(
-      final CancelExtendedRequest cancelExtendedRequest)
-      throws NullPointerException
+      final CancelExtendedRequest request) throws NullPointerException
   {
-    return new UnmodifiableCancelExtendedRequestImpl(cancelExtendedRequest);
+    if (request instanceof UnmodifiableCancelExtendedRequestImpl)
+    {
+      return request;
+    }
+    return new UnmodifiableCancelExtendedRequestImpl(request);
   }
 
 
@@ -949,17 +973,20 @@ public final class Requests
   /**
    * Creates an unmodifiable compare request of the provided request.
    *
-   * @param compareRequest
+   * @param request
    *          The compare request to be copied.
    * @return The new compare request.
    * @throws NullPointerException
-   *           If {@code compareRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
   public static CompareRequest unmodifiableCompareRequest(
-      final CompareRequest compareRequest)
-      throws NullPointerException
+      final CompareRequest request) throws NullPointerException
   {
-    return new UnmodifiableCompareRequestImpl(compareRequest);
+    if (request instanceof UnmodifiableCompareRequestImpl)
+    {
+      return request;
+    }
+    return new UnmodifiableCompareRequestImpl(request);
   }
 
 
@@ -967,17 +994,20 @@ public final class Requests
   /**
    * Creates an unmodifiable CRAM MD5 SASL bind request of the provided request.
    *
-   * @param cramMD5SASLBindRequest
+   * @param request
    *          The CRAM MD5 SASL bind request to be copied.
    * @return The new CRAM-MD5 SASL bind request.
    * @throws NullPointerException
-   *           If {@code authenticationID} or {@code password} was {@code null}.
+   *           If {@code request} was {@code null}.
    */
   public static CRAMMD5SASLBindRequest unmodifiableCRAMMD5SASLBindRequest(
-      final CRAMMD5SASLBindRequest cramMD5SASLBindRequest)
-      throws NullPointerException
+      final CRAMMD5SASLBindRequest request) throws NullPointerException
   {
-    return new UnmodifiableCRAMMD5SASLBindRequestImpl(cramMD5SASLBindRequest);
+    if (request instanceof UnmodifiableCRAMMD5SASLBindRequestImpl)
+    {
+      return request;
+    }
+    return new UnmodifiableCRAMMD5SASLBindRequestImpl(request);
   }
 
 
@@ -985,17 +1015,20 @@ public final class Requests
   /**
    * Creates an unmodifiable delete request of the provided request.
    *
-   * @param deleteRequest
+   * @param request
    *          The add request to be copied.
    * @return The new delete request.
    * @throws NullPointerException
-   *           If {@code name} was {@code null}.
+   *           If {@code request} was {@code null}.
    */
   public static DeleteRequest unmodifiableDeleteRequest(
-      final DeleteRequest deleteRequest)
-      throws NullPointerException
+      final DeleteRequest request) throws NullPointerException
   {
-    return new UnmodifiableDeleteRequestImpl(deleteRequest);
+    if (request instanceof UnmodifiableDeleteRequestImpl)
+    {
+      return request;
+    }
+    return new UnmodifiableDeleteRequestImpl(request);
   }
 
 
@@ -1004,18 +1037,20 @@ public final class Requests
    * Creates an unmodifiable digest MD5 SASL bind request of the provided
    * request.
    *
-   * @param digestMD5SASLBindRequest
+   * @param request
    *          The digest MD5 SASL bind request to be copied.
    * @return The new DIGEST-MD5 SASL bind request.
    * @throws NullPointerException
-   *           If {@code authenticationID} or {@code password} was {@code null}.
+   *           If {@code request} was {@code null}.
    */
   public static DigestMD5SASLBindRequest unmodifiableDigestMD5SASLBindRequest(
-      final DigestMD5SASLBindRequest digestMD5SASLBindRequest)
-      throws NullPointerException
+      final DigestMD5SASLBindRequest request) throws NullPointerException
   {
-    return new UnmodifiableDigestMD5SASLBindRequestImpl(
-        digestMD5SASLBindRequest);
+    if (request instanceof UnmodifiableDigestMD5SASLBindRequestImpl)
+    {
+      return request;
+    }
+    return new UnmodifiableDigestMD5SASLBindRequestImpl(request);
   }
 
 
@@ -1023,17 +1058,20 @@ public final class Requests
   /**
    * Creates an unmodifiable external SASL bind request of the provided request.
    *
-   * @param externalSASLBindRequest
+   * @param request
    *          The external SASL bind request to be copied.
    * @return The new External SASL bind request.
    * @throws NullPointerException
-   *           If {@code externalSASLBindRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
   public static ExternalSASLBindRequest unmodifiableExternalSASLBindRequest(
-      final ExternalSASLBindRequest externalSASLBindRequest)
-      throws NullPointerException
+      final ExternalSASLBindRequest request) throws NullPointerException
   {
-    return new UnmodifiableExternalSASLBindRequestImpl(externalSASLBindRequest);
+    if (request instanceof UnmodifiableExternalSASLBindRequestImpl)
+    {
+      return request;
+    }
+    return new UnmodifiableExternalSASLBindRequestImpl(request);
   }
 
 
@@ -1041,17 +1079,20 @@ public final class Requests
   /**
    * Creates an unmodifiable generic bind request of the provided request.
    *
-   * @param genericBindRequest
+   * @param request
    *          The generic bind request to be copied.
    * @return The new generic bind request.
    * @throws NullPointerException
-   *           If {@code genericBindRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
   public static GenericBindRequest unmodifiableGenericBindRequest(
-      final GenericBindRequest genericBindRequest)
-      throws NullPointerException
+      final GenericBindRequest request) throws NullPointerException
   {
-    return new UnmodifiableGenericBindRequestImpl(genericBindRequest);
+    if (request instanceof UnmodifiableGenericBindRequestImpl)
+    {
+      return request;
+    }
+    return new UnmodifiableGenericBindRequestImpl(request);
   }
 
 
@@ -1059,17 +1100,20 @@ public final class Requests
   /**
    * Creates an unmodifiable generic extended request of the provided request.
    *
-   * @param genericExtendedRequest
+   * @param request
    *          The generic extended request to be copied.
    * @return The new generic extended request.
    * @throws NullPointerException
-   *           If {@code extendedRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
   public static GenericExtendedRequest unmodifiableGenericExtendedRequest(
-      GenericExtendedRequest genericExtendedRequest)
-      throws NullPointerException
+      GenericExtendedRequest request) throws NullPointerException
   {
-    return new UnmodifiableGenericExtendedRequestImpl(genericExtendedRequest);
+    if (request instanceof UnmodifiableGenericExtendedRequestImpl)
+    {
+      return request;
+    }
+    return new UnmodifiableGenericExtendedRequestImpl(request);
   }
 
 
@@ -1077,17 +1121,20 @@ public final class Requests
   /**
    * Creates an unmodifiable GSSAPI SASL bind request of the provided request.
    *
-   * @param gssapiSASLBindRequest
+   * @param request
    *          The GSSAPI SASL bind request to be copied.
    * @return The new GSSAPI SASL bind request.
    * @throws NullPointerException
-   *           If {@code gssAPISASLBindRequest} was {@code null}.
+   *           If {@code request} was {@code null}.
    */
   public static GSSAPISASLBindRequest unmodifiableGSSAPISASLBindRequest(
-      final GSSAPISASLBindRequest gssapiSASLBindRequest)
-      throws NullPointerException
+      final GSSAPISASLBindRequest request) throws NullPointerException
   {
-    return new UnmodifiableGSSAPISASLBindRequestImpl(gssapiSASLBindRequest);
+    if (request instanceof UnmodifiableGSSAPISASLBindRequestImpl)
+    {
+      return request;
+    }
+    return new UnmodifiableGSSAPISASLBindRequestImpl(request);
   }
 
 
@@ -1095,34 +1142,41 @@ public final class Requests
   /**
    * Creates an unmodifiable modify DN request of the provided request.
    *
-   * @param modifyDNRequest
+   * @param request
    *          The modify DN request to be copied.
    * @return The new modify DN request.
    * @throws NullPointerException
-   *           If {@code modifyDNRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
   public static ModifyDNRequest unmodifiableModifyDNRequest(
-      final ModifyDNRequest modifyDNRequest)
-      throws NullPointerException
+      final ModifyDNRequest request) throws NullPointerException
   {
-    return new UnmodifiableModifyDNRequestImpl(modifyDNRequest);
+    if (request instanceof UnmodifiableModifyDNRequestImpl)
+    {
+      return request;
+    }
+    return new UnmodifiableModifyDNRequestImpl(request);
   }
+
 
 
   /**
    * Creates an unmodifiable modify request of the provided request.
    *
-   * @param modifyRequest
+   * @param request
    *          The modify request to be copied.
    * @return The new modify request.
    * @throws NullPointerException
-   *           If {@code modifyRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
   public static ModifyRequest unmodifiableModifyRequest(
-      final ModifyRequest modifyRequest)
-      throws NullPointerException
+      final ModifyRequest request) throws NullPointerException
   {
-    return new UnmodifiableModifyRequestImpl(modifyRequest);
+    if (request instanceof UnmodifiableModifyRequestImpl)
+    {
+      return request;
+    }
+    return new UnmodifiableModifyRequestImpl(request);
   }
 
 
@@ -1131,19 +1185,20 @@ public final class Requests
    * Creates an unmodifiable password modify extended request of the provided
    * request.
    *
-   * @param passwordModifyExtendedRequest
+   * @param request
    *          The password modify extended request to be copied.
    * @return The new password modify extended request.
    * @throws NullPointerException
-   *           If {@code passwordModifyExtendedRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
-  public static PasswordModifyExtendedRequest
-      unmodifiablePasswordModifyExtendedRequest(
-        final PasswordModifyExtendedRequest passwordModifyExtendedRequest)
-      throws NullPointerException
+  public static PasswordModifyExtendedRequest unmodifiablePasswordModifyExtendedRequest(
+      final PasswordModifyExtendedRequest request) throws NullPointerException
   {
-    return new UnmodifiablePasswordModifyExtendedRequestImpl(
-        passwordModifyExtendedRequest);
+    if (request instanceof UnmodifiablePasswordModifyExtendedRequestImpl)
+    {
+      return request;
+    }
+    return new UnmodifiablePasswordModifyExtendedRequestImpl(request);
   }
 
 
@@ -1151,17 +1206,20 @@ public final class Requests
   /**
    * Creates an unmodifiable plain SASL bind request of the provided request.
    *
-   * @param plainSASLBindRequest
+   * @param request
    *          The plain SASL bind request to be copied.
    * @return The new Plain SASL bind request.
    * @throws NullPointerException
-   *           If {@code plainSASLBindRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
   public static PlainSASLBindRequest unmodifiablePlainSASLBindRequest(
-      final PlainSASLBindRequest plainSASLBindRequest)
-      throws NullPointerException
+      final PlainSASLBindRequest request) throws NullPointerException
   {
-    return new UnmodifiablePlainSASLBindRequestImpl(plainSASLBindRequest);
+    if (request instanceof UnmodifiablePlainSASLBindRequestImpl)
+    {
+      return request;
+    }
+    return new UnmodifiablePlainSASLBindRequestImpl(request);
   }
 
 
@@ -1169,17 +1227,20 @@ public final class Requests
   /**
    * Creates an unmodifiable search request of the provided request.
    *
-   * @param searchRequest
+   * @param request
    *          The search request to be copied.
    * @return The new search request.
    * @throws NullPointerException
-   *           If {@code searchRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
   public static SearchRequest unmodifiableSearchRequest(
-      final SearchRequest searchRequest)
-      throws NullPointerException
+      final SearchRequest request) throws NullPointerException
   {
-    return new UnmodifiableSearchRequestImpl(searchRequest);
+    if (request instanceof UnmodifiableSearchRequestImpl)
+    {
+      return request;
+    }
+    return new UnmodifiableSearchRequestImpl(request);
   }
 
 
@@ -1187,17 +1248,20 @@ public final class Requests
   /**
    * Creates an unmodifiable simple bind request of the provided request.
    *
-   * @param simpleBindRequest
+   * @param request
    *          The simple bind request to be copied.
    * @return The new simple bind request.
    * @throws NullPointerException
-   *           If {@code simpleBindRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
   public static SimpleBindRequest unmodifiableSimpleBindRequest(
-      final SimpleBindRequest simpleBindRequest)
-      throws NullPointerException
+      final SimpleBindRequest request) throws NullPointerException
   {
-    return new UnmodifiableSimpleBindRequestImpl(simpleBindRequest);
+    if (request instanceof UnmodifiableSimpleBindRequestImpl)
+    {
+      return request;
+    }
+    return new UnmodifiableSimpleBindRequestImpl(request);
   }
 
 
@@ -1205,17 +1269,20 @@ public final class Requests
   /**
    * Creates an unmodifiable startTLS extended request of the provided request.
    *
-   * @param startTLSExtendedRequest
+   * @param request
    *          The startTLS extended request to be copied.
    * @return The new start TLS extended request.
    * @throws NullPointerException
-   *           If {@code startTLSExtendedRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
   public static StartTLSExtendedRequest unmodifiableStartTLSExtendedRequest(
-      final StartTLSExtendedRequest startTLSExtendedRequest)
-      throws NullPointerException
+      final StartTLSExtendedRequest request) throws NullPointerException
   {
-    return new UnmodifiableStartTLSExtendedRequestImpl(startTLSExtendedRequest);
+    if (request instanceof UnmodifiableStartTLSExtendedRequestImpl)
+    {
+      return request;
+    }
+    return new UnmodifiableStartTLSExtendedRequestImpl(request);
   }
 
 
@@ -1223,17 +1290,20 @@ public final class Requests
   /**
    * Creates an unmodifiable unbind request of the provided request.
    *
-   * @param unbindRequest
+   * @param request
    *          The unbind request to be copied.
    * @return The new unbind request.
    * @throws NullPointerException
-   *           If {@code unbindRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
   public static UnbindRequest unmodifiableUnbindRequest(
-      final UnbindRequest unbindRequest)
-      throws NullPointerException
+      final UnbindRequest request) throws NullPointerException
   {
-    return new UnmodifiableUnbindRequestImpl(unbindRequest);
+    if (request instanceof UnmodifiableUnbindRequestImpl)
+    {
+      return request;
+    }
+    return new UnmodifiableUnbindRequestImpl(request);
   }
 
 
@@ -1242,19 +1312,21 @@ public final class Requests
    * Creates an unmodifiable new Who Am I extended request of the provided
    * request.
    *
-   * @param whoAmIExtendedRequest
+   * @param request
    *          The who Am I extended request to be copied.
    * @return The new Who Am I extended request.
    * @throws NullPointerException
-   *           If {@code whoAmIExtendedRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
   public static WhoAmIExtendedRequest unmodifiableWhoAmIExtendedRequest(
-      final WhoAmIExtendedRequest whoAmIExtendedRequest)
-      throws NullPointerException
+      final WhoAmIExtendedRequest request) throws NullPointerException
   {
-    return new UnmodifiableWhoAmIExtendedRequestImpl(whoAmIExtendedRequest);
+    if (request instanceof UnmodifiableWhoAmIExtendedRequestImpl)
+    {
+      return request;
+    }
+    return new UnmodifiableWhoAmIExtendedRequestImpl(request);
   }
-
 
 
 
@@ -1262,34 +1334,33 @@ public final class Requests
    * Creates a new abandon request that is an exact copy of the provided
    * request.
    *
-   * @param abandonRequest
+   * @param request
    *          The abandon request to be copied.
    * @return The new abandon request.
    * @throws NullPointerException
-   *           If {@code abandonRequest} was {@code null}
+   *           If {@code request} was {@code null}
    */
-  public static AbandonRequest copyOfAbandonRequest(
-      final AbandonRequest abandonRequest) throws NullPointerException
+  public static AbandonRequest copyOfAbandonRequest(final AbandonRequest request)
+      throws NullPointerException
   {
-    return new AbandonRequestImpl(abandonRequest);
+    return new AbandonRequestImpl(request);
   }
 
 
 
   /**
-   * Creates a new add request that is an exact copy of the provided
-   * request.
+   * Creates a new add request that is an exact copy of the provided request.
    *
-   * @param addRequest
+   * @param request
    *          The add request to be copied.
    * @return The new add request.
    * @throws NullPointerException
-   *           If {@code addRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
-  public static AddRequest copyOfAddRequest(final AddRequest addRequest)
+  public static AddRequest copyOfAddRequest(final AddRequest request)
       throws NullPointerException
   {
-    return new AddRequestImpl(addRequest);
+    return new AddRequestImpl(request);
   }
 
 
@@ -1298,17 +1369,16 @@ public final class Requests
    * Creates a new anonymous SASL bind request that is an exact copy of the
    * provided request.
    *
-   * @param anonymousSASLBindRequest
+   * @param request
    *          The anonymous SASL bind request to be copied.
    * @return The new anonymous SASL bind request.
    * @throws NullPointerException
-   *           If {@code anonymousSASLBindRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
   public static AnonymousSASLBindRequest copyOfAnonymousSASLBindRequest(
-      final AnonymousSASLBindRequest anonymousSASLBindRequest)
-      throws NullPointerException
+      final AnonymousSASLBindRequest request) throws NullPointerException
   {
-    return new AnonymousSASLBindRequestImpl(anonymousSASLBindRequest);
+    return new AnonymousSASLBindRequestImpl(request);
   }
 
 
@@ -1317,17 +1387,16 @@ public final class Requests
    * Creates a new cancel extended request that is an exact copy of the provided
    * request.
    *
-   * @param cancelExtendedRequest
+   * @param request
    *          The cancel extended request to be copied.
    * @return The new cancel extended request.
    * @throws NullPointerException
-   *           If {@code cancelExtendedRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
   public static CancelExtendedRequest copyOfCancelExtendedRequest(
-      final CancelExtendedRequest cancelExtendedRequest)
-      throws NullPointerException
+      final CancelExtendedRequest request) throws NullPointerException
   {
-    return new CancelExtendedRequestImpl(cancelExtendedRequest);
+    return new CancelExtendedRequestImpl(request);
   }
 
 
@@ -1336,17 +1405,16 @@ public final class Requests
    * Creates a new compare request that is an exact copy of the provided
    * request.
    *
-   * @param compareRequest
+   * @param request
    *          The compare request to be copied.
    * @return The new compare request.
    * @throws NullPointerException
-   *           If {@code compareRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
-  public static CompareRequest copyOfCompareRequest(
-      final CompareRequest compareRequest)
+  public static CompareRequest copyOfCompareRequest(final CompareRequest request)
       throws NullPointerException
   {
-    return new CompareRequestImpl(compareRequest);
+    return new CompareRequestImpl(request);
   }
 
 
@@ -1355,36 +1423,33 @@ public final class Requests
    * Creates a new CRAM MD5 SASL bind request that is an exact copy of the
    * provided request.
    *
-   * @param cramMD5SASLBindRequest
+   * @param request
    *          The CRAM MD5 SASL bind request to be copied.
    * @return The new CRAM-MD5 SASL bind request.
    * @throws NullPointerException
-   *           If {@code authenticationID} or {@code password} was {@code null}.
+   *           If {@code request} was {@code null}.
    */
   public static CRAMMD5SASLBindRequest copyOfCRAMMD5SASLBindRequest(
-      final CRAMMD5SASLBindRequest cramMD5SASLBindRequest)
-      throws NullPointerException
+      final CRAMMD5SASLBindRequest request) throws NullPointerException
   {
-    return new CRAMMD5SASLBindRequestImpl(cramMD5SASLBindRequest);
+    return new CRAMMD5SASLBindRequestImpl(request);
   }
 
 
 
   /**
-   * Creates a new delete request that is an exact copy of the provided
-   * request.
+   * Creates a new delete request that is an exact copy of the provided request.
    *
-   * @param deleteRequest
+   * @param request
    *          The add request to be copied.
    * @return The new delete request.
    * @throws NullPointerException
-   *           If {@code name} was {@code null}.
+   *           If {@code request} was {@code null}.
    */
-  public static DeleteRequest copyOfDeleteRequest(
-      final DeleteRequest deleteRequest)
+  public static DeleteRequest copyOfDeleteRequest(final DeleteRequest request)
       throws NullPointerException
   {
-    return new DeleteRequestImpl(deleteRequest);
+    return new DeleteRequestImpl(request);
   }
 
 
@@ -1393,17 +1458,16 @@ public final class Requests
    * Creates a new digest MD5 SASL bind request that is an exact copy of the
    * provided request.
    *
-   * @param digestMD5SASLBindRequest
+   * @param request
    *          The digest MD5 SASL bind request to be copied.
    * @return The new DIGEST-MD5 SASL bind request.
    * @throws NullPointerException
-   *           If {@code authenticationID} or {@code password} was {@code null}.
+   *           If {@code request} was {@code null}.
    */
   public static DigestMD5SASLBindRequest copyOfDigestMD5SASLBindRequest(
-      final DigestMD5SASLBindRequest digestMD5SASLBindRequest)
-      throws NullPointerException
+      final DigestMD5SASLBindRequest request) throws NullPointerException
   {
-    return new DigestMD5SASLBindRequestImpl(digestMD5SASLBindRequest);
+    return new DigestMD5SASLBindRequestImpl(request);
   }
 
 
@@ -1412,36 +1476,34 @@ public final class Requests
    * Creates a new external SASL bind request that is an exact copy of the
    * provided request.
    *
-   * @param externalSASLBindRequest
+   * @param request
    *          The external SASL bind request to be copied.
    * @return The new External SASL bind request.
    * @throws NullPointerException
-   *           If {@code externalSASLBindRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
   public static ExternalSASLBindRequest copyOfExternalSASLBindRequest(
-      final ExternalSASLBindRequest externalSASLBindRequest)
-      throws NullPointerException
+      final ExternalSASLBindRequest request) throws NullPointerException
   {
-    return new ExternalSASLBindRequestImpl(externalSASLBindRequest);
+    return new ExternalSASLBindRequestImpl(request);
   }
 
 
 
   /**
-   * Creates a new generic bind request that is an exact copy of the
-   * provided request.
+   * Creates a new generic bind request that is an exact copy of the provided
+   * request.
    *
-   * @param genericBindRequest
+   * @param request
    *          The generic bind request to be copied.
    * @return The new generic bind request.
    * @throws NullPointerException
-   *           If {@code genericBindRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
   public static GenericBindRequest copyOfGenericBindRequest(
-      final GenericBindRequest genericBindRequest)
-      throws NullPointerException
+      final GenericBindRequest request) throws NullPointerException
   {
-    return new GenericBindRequestImpl(genericBindRequest);
+    return new GenericBindRequestImpl(request);
   }
 
 
@@ -1450,17 +1512,16 @@ public final class Requests
    * Creates a new generic extended request that is an exact copy of the
    * provided request.
    *
-   * @param genericExtendedRequest
+   * @param request
    *          The generic extended request to be copied.
    * @return The new generic extended request.
    * @throws NullPointerException
-   *           If {@code extendedRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
   public static GenericExtendedRequest copyOfGenericExtendedRequest(
-      GenericExtendedRequest genericExtendedRequest)
-      throws NullPointerException
+      GenericExtendedRequest request) throws NullPointerException
   {
-    return new GenericExtendedRequestImpl(genericExtendedRequest);
+    return new GenericExtendedRequestImpl(request);
   }
 
 
@@ -1469,17 +1530,16 @@ public final class Requests
    * Creates a new GSSAPI SASL bind request that is an exact copy of the
    * provided request.
    *
-   * @param gssapiSASLBindRequest
+   * @param request
    *          The GSSAPI SASL bind request to be copied.
    * @return The new GSSAPI SASL bind request.
    * @throws NullPointerException
-   *           If {@code gssAPISASLBindRequest} was {@code null}.
+   *           If {@code request} was {@code null}.
    */
   public static GSSAPISASLBindRequest copyOfGSSAPISASLBindRequest(
-      final GSSAPISASLBindRequest gssapiSASLBindRequest)
-      throws NullPointerException
+      final GSSAPISASLBindRequest request) throws NullPointerException
   {
-    return new GSSAPISASLBindRequestImpl(gssapiSASLBindRequest);
+    return new GSSAPISASLBindRequestImpl(request);
   }
 
 
@@ -1488,35 +1548,33 @@ public final class Requests
    * Creates a new modify DN request that is an exact copy of the provided
    * request.
    *
-   * @param modifyDNRequest
+   * @param request
    *          The modify DN request to be copied.
    * @return The new modify DN request.
    * @throws NullPointerException
-   *           If {@code modifyDNRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
   public static ModifyDNRequest copyOfModifyDNRequest(
-      final ModifyDNRequest modifyDNRequest)
-      throws NullPointerException
+      final ModifyDNRequest request) throws NullPointerException
   {
-    return new ModifyDNRequestImpl(modifyDNRequest);
+    return new ModifyDNRequestImpl(request);
   }
 
 
+
   /**
-   * Creates a new modify request that is an exact copy of the provided
-   * request.
+   * Creates a new modify request that is an exact copy of the provided request.
    *
-   * @param modifyRequest
+   * @param request
    *          The modify request to be copied.
    * @return The new modify request.
    * @throws NullPointerException
-   *           If {@code modifyRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
-  public static ModifyRequest copyOfModifyRequest(
-      final ModifyRequest modifyRequest)
+  public static ModifyRequest copyOfModifyRequest(final ModifyRequest request)
       throws NullPointerException
   {
-    return new ModifyRequestImpl(modifyRequest);
+    return new ModifyRequestImpl(request);
   }
 
 
@@ -1525,75 +1583,69 @@ public final class Requests
    * Creates a new password modify extended request that is an exact copy of the
    * provided request.
    *
-   * @param passwordModifyExtendedRequest
+   * @param request
    *          The password modify extended request to be copied.
    * @return The new password modify extended request.
    * @throws NullPointerException
-   *           If {@code passwordModifyExtendedRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
-  public static PasswordModifyExtendedRequest
-      copyOfPasswordModifyExtendedRequest(
-        final PasswordModifyExtendedRequest passwordModifyExtendedRequest)
-      throws NullPointerException
+  public static PasswordModifyExtendedRequest copyOfPasswordModifyExtendedRequest(
+      final PasswordModifyExtendedRequest request) throws NullPointerException
   {
-    return new PasswordModifyExtendedRequestImpl(passwordModifyExtendedRequest);
+    return new PasswordModifyExtendedRequestImpl(request);
   }
 
 
 
   /**
-   * Creates a new plain SASL bind request that is an exact copy of the
-   * provided request.
+   * Creates a new plain SASL bind request that is an exact copy of the provided
+   * request.
    *
-   * @param plainSASLBindRequest
+   * @param request
    *          The plain SASL bind request to be copied.
    * @return The new Plain SASL bind request.
    * @throws NullPointerException
-   *           If {@code plainSASLBindRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
   public static PlainSASLBindRequest copyOfPlainSASLBindRequest(
-      final PlainSASLBindRequest plainSASLBindRequest)
-      throws NullPointerException
+      final PlainSASLBindRequest request) throws NullPointerException
   {
-    return new PlainSASLBindRequestImpl(plainSASLBindRequest);
+    return new PlainSASLBindRequestImpl(request);
   }
 
 
 
   /**
-   * Creates a new search request that is an exact copy of the provided
-   * request.
+   * Creates a new search request that is an exact copy of the provided request.
    *
-   * @param searchRequest
+   * @param request
    *          The search request to be copied.
    * @return The new search request.
    * @throws NullPointerException
-   *           If {@code searchRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
-  public static SearchRequest copyOfSearchRequest(
-      final SearchRequest searchRequest)
+  public static SearchRequest copyOfSearchRequest(final SearchRequest request)
       throws NullPointerException
   {
-    return new SearchRequestImpl(searchRequest);
+    return new SearchRequestImpl(request);
   }
 
 
 
   /**
-   * Creates a new simple bind request that is an exact copy of the
-   * provided request.
+   * Creates a new simple bind request that is an exact copy of the provided
+   * request.
    *
-   * @param simpleBindRequest
+   * @param request
    *          The simple bind request to be copied.
    * @return The new simple bind request.
    * @throws NullPointerException
-   *           If {@code simpleBindRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
   public static SimpleBindRequest copyOfSimpleBindRequest(
-      final SimpleBindRequest simpleBindRequest)
-      throws NullPointerException
+      final SimpleBindRequest request) throws NullPointerException
   {
-    return new SimpleBindRequestImpl(simpleBindRequest);
+    return new SimpleBindRequestImpl(request);
   }
 
 
@@ -1602,36 +1654,33 @@ public final class Requests
    * Creates a new startTLS extended request that is an exact copy of the
    * provided request.
    *
-   * @param startTLSExtendedRequest
+   * @param request
    *          The startTLS extended request to be copied.
    * @return The new start TLS extended request.
    * @throws NullPointerException
-   *           If {@code startTLSExtendedRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
   public static StartTLSExtendedRequest copyOfStartTLSExtendedRequest(
-      final StartTLSExtendedRequest startTLSExtendedRequest)
-      throws NullPointerException
+      final StartTLSExtendedRequest request) throws NullPointerException
   {
-    return new StartTLSExtendedRequestImpl(startTLSExtendedRequest);
+    return new StartTLSExtendedRequestImpl(request);
   }
 
 
 
   /**
-   * Creates a new unbind request that is an exact copy of the provided
-   * request.
+   * Creates a new unbind request that is an exact copy of the provided request.
    *
-   * @param unbindRequest
+   * @param request
    *          The unbind request to be copied.
    * @return The new unbind request.
    * @throws NullPointerException
-   *           If {@code unbindRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
-  public static UnbindRequest copyOfUnbindRequest(
-      final UnbindRequest unbindRequest)
+  public static UnbindRequest copyOfUnbindRequest(final UnbindRequest request)
       throws NullPointerException
   {
-    return new UnbindRequestImpl(unbindRequest);
+    return new UnbindRequestImpl(request);
   }
 
 
@@ -1640,17 +1689,16 @@ public final class Requests
    * Creates a new Who Am I extended request that is an exact copy of the
    * provided request.
    *
-   * @param whoAmIExtendedRequest
+   * @param request
    *          The who Am I extended request to be copied.
    * @return The new Who Am I extended request.
    * @throws NullPointerException
-   *           If {@code whoAmIExtendedRequest} was {@code null} .
+   *           If {@code request} was {@code null} .
    */
   public static WhoAmIExtendedRequest copyOfWhoAmIExtendedRequest(
-      final WhoAmIExtendedRequest whoAmIExtendedRequest)
-      throws NullPointerException
+      final WhoAmIExtendedRequest request) throws NullPointerException
   {
-    return new WhoAmIExtendedRequestImpl(whoAmIExtendedRequest);
+    return new WhoAmIExtendedRequestImpl(request);
   }
 
 

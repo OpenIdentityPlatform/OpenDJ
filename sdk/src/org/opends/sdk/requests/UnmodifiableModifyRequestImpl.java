@@ -27,11 +27,12 @@
 
 package org.opends.sdk.requests;
 
-import org.opends.sdk.DN;
-import org.opends.sdk.LocalizedIllegalArgumentException;
-import org.opends.sdk.Modification;
-import org.opends.sdk.ModificationType;
+import org.opends.sdk.*;
 import org.opends.sdk.ldif.ChangeRecordVisitor;
+
+import com.sun.opends.sdk.util.Collections2;
+import com.sun.opends.sdk.util.Function;
+import com.sun.opends.sdk.util.Functions;
 
 import java.util.Collections;
 import java.util.List;
@@ -64,8 +65,27 @@ final class UnmodifiableModifyRequestImpl
     throw new UnsupportedOperationException();
   }
 
-  public List<Modification> getModifications() {
-    return Collections.unmodifiableList(impl.getModifications());
+  public List<Modification> getModifications()
+  {
+    // We need to make all attributes unmodifiable as well.
+    Function<Modification, Modification, Void> function =
+      new Function<Modification, Modification, Void>()
+    {
+
+      public Modification apply(Modification value, Void p)
+      {
+        ModificationType type = value.getModificationType();
+        Attribute attribute = Attributes.unmodifiableAttribute(value
+            .getAttribute());
+        return new Modification(type, attribute);
+      }
+
+    };
+
+    List<Modification> unmodifiableModifications = Collections2.transformedList(
+        impl.getModifications(), function,
+        Functions.<Modification> identityFunction());
+    return Collections.unmodifiableList(unmodifiableModifications);
   }
 
   public DN getName() {

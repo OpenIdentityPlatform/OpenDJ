@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.util;
@@ -384,7 +384,7 @@ public final class Iterators
    * @return An immutable empty iterator.
    */
   @SuppressWarnings("unchecked")
-  public static <M> Iterator<M> empty()
+  public static <M> Iterator<M> emptyIterator()
   {
     return (Iterator<M>) EMPTY_ITERATOR;
   }
@@ -400,9 +400,9 @@ public final class Iterators
    * @param <M>
    *          The type of elements contained in {@code iterator}.
    * @param <P>
-   *          The type of the additional parameter to the predicate's {@code
-   *          matches} method. Use {@link java.lang.Void} for predicates that do
-   *          not need an additional parameter.
+   *          The type of the additional parameter to the predicate's
+   *          {@code matches} method. Use {@link java.lang.Void} for predicates
+   *          that do not need an additional parameter.
    * @param iterator
    *          The iterator to be filtered.
    * @param predicate
@@ -412,7 +412,7 @@ public final class Iterators
    * @return A filtered view of {@code iterator} containing only those elements
    *         which match {@code predicate}.
    */
-  public static <M, P> Iterator<M> filter(final Iterator<M> iterator,
+  public static <M, P> Iterator<M> filteredIterator(final Iterator<M> iterator,
       final Predicate<? super M, P> predicate, final P p)
   {
     return new FilteredIterator<M, P>(iterator, predicate, p);
@@ -435,7 +435,7 @@ public final class Iterators
    * @return A filtered view of {@code iterator} containing only those elements
    *         which match {@code predicate}.
    */
-  public static <M> Iterator<M> filter(final Iterator<M> iterator,
+  public static <M> Iterator<M> filteredIterator(final Iterator<M> iterator,
       final Predicate<? super M, Void> predicate)
   {
     return new FilteredIterator<M, Void>(iterator, predicate, null);
@@ -454,7 +454,7 @@ public final class Iterators
    *          The single element to be returned by the iterator.
    * @return An iterator containing the single element {@code value}.
    */
-  public static <M> Iterator<M> singleton(final M value)
+  public static <M> Iterator<M> singletonIterator(final M value)
   {
     return new SingletonIterator<M>(value);
   }
@@ -472,9 +472,9 @@ public final class Iterators
    * @param <N>
    *          The type of elements contained in the returned iterator.
    * @param <P>
-   *          The type of the additional parameter to the function's {@code
-   *          apply} method. Use {@link java.lang.Void} for functions that do
-   *          not need an additional parameter.
+   *          The type of the additional parameter to the function's
+   *          {@code apply} method. Use {@link java.lang.Void} for functions
+   *          that do not need an additional parameter.
    * @param iterator
    *          The iterator to be transformed.
    * @param function
@@ -484,7 +484,8 @@ public final class Iterators
    * @return A view of {@code iterator} whose values have been mapped to
    *         elements of type {@code N} using {@code function}.
    */
-  public static <M, N, P> Iterator<N> transform(final Iterator<M> iterator,
+  public static <M, N, P> Iterator<N> transformedIterator(
+      final Iterator<M> iterator,
       final Function<? super M, ? extends N, P> function, final P p)
   {
     return new TransformedIterator<M, N, P>(iterator, function, p);
@@ -509,7 +510,8 @@ public final class Iterators
    * @return A view of {@code iterator} whose values have been mapped to
    *         elements of type {@code N} using {@code function}.
    */
-  public static <M, N> Iterator<N> transform(final Iterator<M> iterator,
+  public static <M, N> Iterator<N> transformedIterator(
+      final Iterator<M> iterator,
       final Function<? super M, ? extends N, Void> function)
   {
     return new TransformedIterator<M, N, Void>(iterator, function, null);
@@ -529,7 +531,7 @@ public final class Iterators
    * @return A read-only view of {@code iterator} which does not support element
    *         removal via the {@code remove()}.
    */
-  public static <M> Iterator<M> unmodifiable(final Iterator<M> iterator)
+  public static <M> Iterator<M> unmodifiableIterator(final Iterator<M> iterator)
   {
     return new UnmodifiableIterator<M>(iterator);
   }

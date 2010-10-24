@@ -36,6 +36,7 @@ import org.opends.sdk.DecodeException;
 import org.opends.sdk.DecodeOptions;
 import org.opends.sdk.controls.Control;
 import org.opends.sdk.controls.ControlDecoder;
+import org.opends.sdk.controls.GenericControl;
 
 import com.sun.opends.sdk.util.Validator;
 
@@ -74,7 +75,11 @@ abstract class AbstractResponseImpl<S extends Response> implements Response
   AbstractResponseImpl(Response response) throws NullPointerException
   {
     Validator.ensureNotNull(response);
-    controls.addAll(response.getControls());
+    for (Control control : response.getControls())
+    {
+      // Create defensive copy.
+      controls.add(GenericControl.newControl(control));
+    }
   }
 
 

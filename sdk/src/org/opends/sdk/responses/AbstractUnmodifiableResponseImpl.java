@@ -32,11 +32,16 @@ package org.opends.sdk.responses;
 import java.util.Collections;
 import java.util.List;
 
-import com.sun.opends.sdk.util.Validator;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.DecodeOptions;
 import org.opends.sdk.controls.Control;
 import org.opends.sdk.controls.ControlDecoder;
+import org.opends.sdk.controls.GenericControl;
+
+import com.sun.opends.sdk.util.Collections2;
+import com.sun.opends.sdk.util.Function;
+import com.sun.opends.sdk.util.Functions;
+import com.sun.opends.sdk.util.Validator;
 
 
 
@@ -71,6 +76,7 @@ abstract class AbstractUnmodifiableResponseImpl<S extends Response> implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public final S addControl(final Control control)
       throws UnsupportedOperationException, NullPointerException
   {
@@ -82,12 +88,49 @@ abstract class AbstractUnmodifiableResponseImpl<S extends Response> implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public final <C extends Control> C getControl(
       final ControlDecoder<C> decoder, final DecodeOptions options)
       throws NullPointerException, DecodeException
   {
-    // FIXME: ensure that controls are immutable.
-    return impl.getControl(decoder, options);
+    Validator.ensureNotNull(decoder, options);
+
+    final List<Control> controls = impl.getControls();
+
+    // Avoid creating an iterator if possible.
+    if (controls.isEmpty())
+    {
+      return null;
+    }
+
+    for (final Control control : controls)
+    {
+      if (control.getOID().equals(decoder.getOID()))
+      {
+        // Got a match. Return a defensive copy only if necessary.
+        final C decodedControl = decoder.decodeControl(control, options);
+
+        if (decodedControl != control)
+        {
+          // This was not the original control so return it immediately.
+          return decodedControl;
+        }
+        else if (decodedControl instanceof GenericControl)
+        {
+          // Generic controls are immutable, so return it immediately.
+          return decodedControl;
+        }
+        else
+        {
+          // Re-decode to get defensive copy.
+          final GenericControl genericControl = GenericControl
+              .newControl(control);
+          return decoder.decodeControl(genericControl, options);
+        }
+      }
+    }
+
+    return null;
   }
 
 
@@ -95,10 +138,26 @@ abstract class AbstractUnmodifiableResponseImpl<S extends Response> implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public final List<Control> getControls()
   {
-    // FIXME: ensure that controls are immutable.
-    return Collections.unmodifiableList(impl.getControls());
+    // We need to make all controls unmodifiable as well, which implies making
+    // defensive copies where necessary.
+    final Function<Control, Control, Void> function = new Function<Control, Control, Void>()
+    {
+
+      @Override
+      public Control apply(final Control value, final Void p)
+      {
+        // Return defensive copy.
+        return GenericControl.newControl(value);
+      }
+
+    };
+
+    final List<Control> unmodifiableControls = Collections2.transformedList(
+        impl.getControls(), function, Functions.<Control> identityFunction());
+    return Collections.unmodifiableList(unmodifiableControls);
   }
 
 

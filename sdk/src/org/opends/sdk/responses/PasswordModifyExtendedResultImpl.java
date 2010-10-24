@@ -43,7 +43,7 @@ import org.opends.sdk.asn1.ASN1Writer;
  * Password modify extended result implementation.
  */
 final class PasswordModifyExtendedResultImpl extends
-    AbstractExtendedResultImpl<PasswordModifyExtendedResult> implements
+    AbstractExtendedResult<PasswordModifyExtendedResult> implements
     PasswordModifyExtendedResult
 {
   private ByteString password;

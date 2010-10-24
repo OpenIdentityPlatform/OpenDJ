@@ -36,6 +36,7 @@ import org.opends.sdk.DecodeException;
 import org.opends.sdk.DecodeOptions;
 import org.opends.sdk.controls.Control;
 import org.opends.sdk.controls.ControlDecoder;
+import org.opends.sdk.controls.GenericControl;
 
 import com.sun.opends.sdk.util.Validator;
 
@@ -75,8 +76,13 @@ abstract class AbstractRequestImpl<R extends Request> implements Request
   AbstractRequestImpl(Request request) throws NullPointerException
   {
     Validator.ensureNotNull(request);
-    controls.addAll(request.getControls());
+    for (Control control : request.getControls())
+    {
+      // Create defensive copy.
+      controls.add(GenericControl.newControl(control));
+    }
   }
+
 
 
   /**

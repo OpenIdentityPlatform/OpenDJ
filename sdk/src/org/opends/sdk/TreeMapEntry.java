@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
@@ -70,6 +70,33 @@ public final class TreeMapEntry extends AbstractMapEntry
 
 
   /**
+   * Creates an entry having the same distinguished name, attributes, and object
+   * classes of the provided entry. This constructor performs a deep copy of
+   * {@code entry} and will copy each attribute as a {@link LinkedAttribute}.
+   * <p>
+   * A shallow copy constructor is provided by {@link #TreeMapEntry(Entry)}.
+   *
+   * @param entry
+   *          The entry to be copied.
+   * @return A deep copy of {@code entry}.
+   * @throws NullPointerException
+   *           If {@code entry} was {@code null}.
+   * @see #TreeMapEntry(Entry)
+   */
+  public static TreeMapEntry deepCopyOfEntry(final Entry entry)
+      throws NullPointerException
+  {
+    TreeMapEntry copy = new TreeMapEntry(entry.getName());
+    for (final Attribute attribute : entry.getAllAttributes())
+    {
+      copy.addAttribute(new LinkedAttribute(attribute));
+    }
+    return copy;
+  }
+
+
+
+  /**
    * Creates an entry with an empty (root) distinguished name and no attributes.
    */
   public TreeMapEntry()
@@ -98,12 +125,16 @@ public final class TreeMapEntry extends AbstractMapEntry
 
   /**
    * Creates an entry having the same distinguished name, attributes, and object
-   * classes of the provided entry.
+   * classes of the provided entry. This constructor performs a shallow copy of
+   * {@code entry} and will not copy the attributes contained in {@code entry}.
+   * <p>
+   * A deep copy constructor is provided by {@link #deepCopyOfEntry(Entry)}
    *
    * @param entry
    *          The entry to be copied.
    * @throws NullPointerException
    *           If {@code entry} was {@code null}.
+   * @see #deepCopyOfEntry(Entry)
    */
   public TreeMapEntry(final Entry entry) throws NullPointerException
   {

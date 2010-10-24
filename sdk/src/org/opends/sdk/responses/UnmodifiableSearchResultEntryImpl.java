@@ -93,14 +93,14 @@ class UnmodifiableSearchResultEntryImpl  extends
   }
 
   public Iterable<Attribute> getAllAttributes() {
-    return Iterables.unmodifiable(Iterables.transform(impl
+    return Iterables.unmodifiableIterable(Iterables.transformedIterable(impl
         .getAllAttributes(), UNMODIFIABLE_ATTRIBUTE_FUNCTION));
   }
 
   public Iterable<Attribute> getAllAttributes(
       AttributeDescription attributeDescription)
       throws NullPointerException {
-    return Iterables.unmodifiable(Iterables.transform(impl
+    return Iterables.unmodifiableIterable(Iterables.transformedIterable(impl
         .getAllAttributes(attributeDescription),
         UNMODIFIABLE_ATTRIBUTE_FUNCTION));
   }
@@ -109,7 +109,7 @@ class UnmodifiableSearchResultEntryImpl  extends
       String attributeDescription)
       throws LocalizedIllegalArgumentException,
       NullPointerException {
-    return Iterables.unmodifiable(Iterables.transform(impl
+    return Iterables.unmodifiableIterable(Iterables.transformedIterable(impl
         .getAllAttributes(attributeDescription),
         UNMODIFIABLE_ATTRIBUTE_FUNCTION));
   }
