@@ -42,7 +42,7 @@ import org.opends.sdk.ResultCode;
  * Who Am I extended result implementation.
  */
 final class WhoAmIExtendedResultImpl extends
-    AbstractExtendedResultImpl<WhoAmIExtendedResult> implements
+    AbstractExtendedResult<WhoAmIExtendedResult> implements
     WhoAmIExtendedResult
 {
 

@@ -481,7 +481,7 @@ public final class RootDSE
     final Attribute attr = entry.getAttribute(attributeDescription);
     if (attr != null)
     {
-      return Collections.unmodifiableCollection(Collections2.transform(attr,
+      return Collections.unmodifiableCollection(Collections2.transformedCollection(attr,
           function, Functions.objectToByteString()));
     }
     else

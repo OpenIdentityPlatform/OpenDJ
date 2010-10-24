@@ -30,46 +30,52 @@ package org.opends.sdk.responses;
 
 
 import org.opends.sdk.ByteString;
+import org.opends.sdk.ResultCode;
 
 import com.sun.opends.sdk.util.StaticUtils;
 
 
 
 /**
- * An abstract Intermediate response which can be used as the basis for
- * implementing new Intermediate responses.
+ * An abstract Extended result which can be used as the basis for implementing
+ * new Extended operations.
  *
  * @param <S>
- *          The type of Intermediate response.
+ *          The type of Extended result.
  */
-public abstract class AbstractIntermediateResponseImpl<S extends IntermediateResponse>
-    extends AbstractResponseImpl<S> implements IntermediateResponse
+public abstract class AbstractExtendedResult<S extends ExtendedResult>
+    extends AbstractResultImpl<S> implements ExtendedResult
 {
 
   /**
-   * Creates a new intermediate response.
+   * Creates a new extended result using the provided result code.
+   *
+   * @param resultCode
+   *          The result code.
+   * @throws NullPointerException
+   *           If {@code resultCode} was {@code null}.
    */
-  protected AbstractIntermediateResponseImpl()
+  protected AbstractExtendedResult(final ResultCode resultCode)
+      throws NullPointerException
   {
-    // Nothing to do.
+    super(resultCode);
   }
 
 
 
   /**
-   * Creates a new intermediate response that is an exact copy of the provided
-   * response.
+   * Creates a new extended result that is an exact copy of the provided
+   * result.
    *
-   * @param intermediateResponse
-   *          The intermediate response to be copied.
+   * @param extendedResult
+   *          The extended result to be copied.
    * @throws NullPointerException
-   *           If {@code intermediateResponse} was {@code null} .
+   *           If {@code extendedResult} was {@code null} .
    */
-  protected AbstractIntermediateResponseImpl(
-      IntermediateResponse intermediateResponse)
+  protected AbstractExtendedResult(ExtendedResult extendedResult)
       throws NullPointerException
   {
-    super(intermediateResponse);
+    super(extendedResult);
   }
 
 
@@ -102,7 +108,15 @@ public abstract class AbstractIntermediateResponseImpl<S extends IntermediateRes
   public String toString()
   {
     final StringBuilder builder = new StringBuilder();
-    builder.append("IntermediateResponse(responseName=");
+    builder.append("ExtendedResult(resultCode=");
+    builder.append(getResultCode());
+    builder.append(", matchedDN=");
+    builder.append(getMatchedDN());
+    builder.append(", diagnosticMessage=");
+    builder.append(getDiagnosticMessage());
+    builder.append(", referrals=");
+    builder.append(getReferralURIs());
+    builder.append(", responseName=");
     builder.append(getOID() == null ? "" : getOID());
     if (hasValue())
     {

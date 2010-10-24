@@ -80,7 +80,15 @@ final class ModifyRequestImpl extends AbstractRequestImpl<ModifyRequest>
   {
     super(modifyRequest);
     this.name = modifyRequest.getName();
-    this.changes.addAll(modifyRequest.getModifications());
+
+    // Deep copy.
+    for (Modification modification : modifyRequest.getModifications())
+    {
+      ModificationType type = modification.getModificationType();
+      Attribute attribute = new LinkedAttribute(modification.getAttribute());
+      Modification copy = new Modification(type, attribute);
+      this.changes.add(copy);
+    }
   }
 
 

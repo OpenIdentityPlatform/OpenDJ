@@ -107,7 +107,7 @@ public final class Attributes
     @Override
     public Iterator<ByteString> iterator()
     {
-      return Iterators.empty();
+      return Iterators.emptyIterator();
     }
 
 
@@ -464,7 +464,7 @@ public final class Attributes
 
     public Iterator<ByteString> iterator()
     {
-      return Iterators.unmodifiable(attribute.iterator());
+      return Iterators.unmodifiableIterator(attribute.iterator());
     }
 
 

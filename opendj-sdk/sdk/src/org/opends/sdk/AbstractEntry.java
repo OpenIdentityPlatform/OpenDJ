@@ -266,7 +266,7 @@ public abstract class AbstractEntry implements Entry
   {
     Validator.ensureNotNull(attributeDescription);
 
-    return Iterables.filter(getAllAttributes(), FIND_ATTRIBUTES_PREDICATE,
+    return Iterables.filteredIterable(getAllAttributes(), FIND_ATTRIBUTES_PREDICATE,
         attributeDescription);
   }
 

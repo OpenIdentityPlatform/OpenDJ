@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package com.sun.opends.sdk.util;
@@ -174,6 +174,17 @@ public final class Functions
     }
   };
 
+  private static final Function<Object, Object, Void> IDENTITY =
+    new Function<Object, Object, Void>()
+  {
+
+    public Object apply(Object value, Void p)
+    {
+      return value;
+    }
+
+  };
+
 
 
   /**
@@ -199,6 +210,23 @@ public final class Functions
       final Function<M, N, P> function, final P p)
   {
     return new FixedFunction<M, N, P>(function, p);
+  }
+
+
+
+  /**
+   * Returns a function which always returns the value that it was provided
+   * with.
+   *
+   * @param <M>
+   *          The type of values transformed by this function.
+   * @return A function which always returns the value that it was provided
+   *         with.
+   */
+  @SuppressWarnings("unchecked")
+  public static <M> Function<M, M, Void> identityFunction()
+  {
+    return (Function<M, M, Void>) IDENTITY;
   }
 
 

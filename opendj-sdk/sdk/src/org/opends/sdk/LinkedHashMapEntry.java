@@ -38,10 +38,10 @@ import com.sun.opends.sdk.util.Validator;
 
 
 /**
- * An implementation of the {@code Entry} interface which uses a {@code
- * LinkedHashMap} for storing attributes. Attributes are returned in the same
- * order that they were added to the entry. All operations are supported by this
- * implementation.
+ * An implementation of the {@code Entry} interface which uses a
+ * {@code LinkedHashMap} for storing attributes. Attributes are returned in the
+ * same order that they were added to the entry. All operations are supported by
+ * this implementation.
  * <p>
  * A {@code LinkedHashMapEntry} stores references to attributes which have been
  * added using the {@link #addAttribute} methods. Attributes sharing the same
@@ -65,6 +65,34 @@ public final class LinkedHashMapEntry extends AbstractMapEntry
       return new LinkedHashMapEntry(name);
     }
   };
+
+
+
+  /**
+   * Creates an entry having the same distinguished name, attributes, and object
+   * classes of the provided entry. This constructor performs a deep copy of
+   * {@code entry} and will copy each attribute as a {@link LinkedAttribute}.
+   * <p>
+   * A shallow copy constructor is provided by
+   * {@link #LinkedHashMapEntry(Entry)}.
+   *
+   * @param entry
+   *          The entry to be copied.
+   * @return A deep copy of {@code entry}.
+   * @throws NullPointerException
+   *           If {@code entry} was {@code null}.
+   * @see #LinkedHashMapEntry(Entry)
+   */
+  public static LinkedHashMapEntry deepCopyOfEntry(final Entry entry)
+      throws NullPointerException
+  {
+    LinkedHashMapEntry copy = new LinkedHashMapEntry(entry.getName());
+    for (final Attribute attribute : entry.getAllAttributes())
+    {
+      copy.addAttribute(new LinkedAttribute(attribute));
+    }
+    return copy;
+  }
 
 
 
@@ -97,19 +125,23 @@ public final class LinkedHashMapEntry extends AbstractMapEntry
 
   /**
    * Creates an entry having the same distinguished name, attributes, and object
-   * classes of the provided entry.
+   * classes of the provided entry. This constructor performs a shallow copy of
+   * {@code entry} and will not copy the attributes contained in {@code entry}.
+   * <p>
+   * A deep copy constructor is provided by {@link #deepCopyOfEntry(Entry)}
    *
    * @param entry
    *          The entry to be copied.
    * @throws NullPointerException
    *           If {@code entry} was {@code null}.
+   * @see #deepCopyOfEntry(Entry)
    */
   public LinkedHashMapEntry(final Entry entry) throws NullPointerException
   {
     this(entry.getName());
     for (final Attribute attribute : entry.getAllAttributes())
     {
-      addAttribute(new LinkedAttribute(attribute));
+      addAttribute(attribute);
     }
   }
 

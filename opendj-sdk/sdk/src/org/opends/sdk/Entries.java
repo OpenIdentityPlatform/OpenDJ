@@ -141,7 +141,7 @@ public final class Entries
     @Override
     public Iterable<Attribute> getAllAttributes()
     {
-      return Iterables.unmodifiable(Iterables.transform(
+      return Iterables.unmodifiableIterable(Iterables.transformedIterable(
           entry.getAllAttributes(), UNMODIFIABLE_ATTRIBUTE_FUNCTION));
     }
 
@@ -151,7 +151,7 @@ public final class Entries
     public Iterable<Attribute> getAllAttributes(
         final AttributeDescription attributeDescription)
     {
-      return Iterables.unmodifiable(Iterables.transform(
+      return Iterables.unmodifiableIterable(Iterables.transformedIterable(
           entry.getAllAttributes(attributeDescription),
           UNMODIFIABLE_ATTRIBUTE_FUNCTION));
     }
@@ -166,7 +166,7 @@ public final class Entries
         final String attributeDescription)
         throws LocalizedIllegalArgumentException, NullPointerException
     {
-      return Iterables.unmodifiable(Iterables.transform(
+      return Iterables.unmodifiableIterable(Iterables.transformedIterable(
           entry.getAllAttributes(attributeDescription),
           UNMODIFIABLE_ATTRIBUTE_FUNCTION));
     }

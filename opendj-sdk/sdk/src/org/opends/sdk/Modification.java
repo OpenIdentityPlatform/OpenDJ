@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
@@ -35,8 +35,6 @@ import com.sun.opends.sdk.util.Validator;
 
 /**
  * A modification to be performed on an entry during a Modify operation.
- * <p>
- * TODO: other constructors.
  */
 public final class Modification
 {

@@ -77,7 +77,7 @@ final class AddRequestImpl extends AbstractRequestImpl<AddRequest> implements
   AddRequestImpl(final AddRequest addRequest) throws NullPointerException
   {
     super(addRequest);
-    this.entry = new LinkedHashMapEntry(addRequest);
+    this.entry = LinkedHashMapEntry.deepCopyOfEntry(addRequest);
   }
 
 
