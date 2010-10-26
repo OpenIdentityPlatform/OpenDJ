@@ -238,13 +238,13 @@ final class GSSAPISASLBindRequestImpl extends
                   {
                     setNextSASLCredentials((ByteString) null);
                   }
+                  return saslClient;
                 }
                 catch (final SaslException e)
                 {
                   throw ErrorResultException.wrap(Responses.newResult(
                       ResultCode.CLIENT_SIDE_LOCAL_ERROR).setCause(e));
                 }
-                return saslClient;
               }
             });
       }
