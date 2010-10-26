@@ -1534,6 +1534,7 @@ objectClass: ds-cfg-crypt-password-storage-scheme
 cn: CRYPT
 ds-cfg-java-class: org.opends.server.extensions.CryptPasswordStorageScheme
 ds-cfg-enabled: true
+ds-cfg-crypt-password-storage-encryption-algorithm: unix
 
 dn: cn=MD5,cn=Password Storage Schemes,cn=config
 objectClass: top
