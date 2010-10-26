@@ -856,7 +856,7 @@ public class ECLServerHandler extends ServerHandler
       // Now do the final checking
       if (!startStatesFromProvidedCookie.isEmpty())
       {
-        // After reading all the knows domains from the provided cookie, there
+        // After reading all the known domains from the provided cookie, there
         // is one (or several) domain that are not currently configured.
         // This domain has probably been removed or replication disabled on it.
         // The request is rejected and full resync is required.
