@@ -23,20 +23,27 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2010 ForgeRock AS
+ *
  */
+
 package org.opends.server.extensions;
 
 
-
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Random;
 
 import org.opends.messages.Message;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
 import org.opends.server.admin.std.server.CryptPasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.opends.server.util.Crypt;
+import org.opends.server.util.BSDMD5Crypt;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
@@ -54,12 +61,18 @@ import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
  */
 public class CryptPasswordStorageScheme
        extends PasswordStorageScheme<CryptPasswordStorageSchemeCfg>
+       implements ConfigurationChangeListener<CryptPasswordStorageSchemeCfg>
 {
   /**
    * The fully-qualified name of this class for debugging purposes.
    */
   private static final String CLASS_NAME =
        "org.opends.server.extensions.CryptPasswordStorageScheme";
+
+  /*
+   * The current configuration for the CryptPasswordStorageScheme
+   */
+  private CryptPasswordStorageSchemeCfg currentConfig;
 
   /**
    * An array of values that can be used to create salt characters
@@ -72,7 +85,7 @@ public class CryptPasswordStorageScheme
   private final Random randomSaltIndex = new Random();
   private final Object saltLock = new Object();
   private final Crypt crypt = new Crypt();
-
+  private final BSDMD5Crypt bsdmd5crypt = new BSDMD5Crypt();
 
 
   /**
@@ -93,7 +106,10 @@ public class CryptPasswordStorageScheme
   public void initializePasswordStorageScheme(
                    CryptPasswordStorageSchemeCfg configuration)
          throws ConfigException, InitializationException {
-    // Nothing to configure
+
+    configuration.addCryptChangeListener(this);
+
+    currentConfig = configuration;
   }
 
   /**
@@ -107,10 +123,10 @@ public class CryptPasswordStorageScheme
 
 
   /**
-   * {@inheritDoc}
+   * Encrypt plaintext password with the Unix Crypt algorithm.
    */
-  @Override()
-  public ByteString encodePassword(ByteSequence plaintext)
+
+  private ByteString unixCryptEncodePassword(ByteSequence plaintext)
          throws DirectoryException
   {
 
@@ -133,7 +149,6 @@ public class CryptPasswordStorageScheme
     return ByteString.wrap(digestBytes);
   }
 
-
   /**
    * Return a random 2-byte salt.
    *
@@ -150,6 +165,44 @@ public class CryptPasswordStorageScheme
 
       return salt;
     }
+  }
+
+  private ByteString md5CryptEncodePassword(ByteSequence plaintext)
+         throws DirectoryException
+  {
+    String output;
+    try
+    {
+      output = bsdmd5crypt.crypt(plaintext.toString());
+    }
+    catch (Exception e)
+    {
+      Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+          CLASS_NAME, stackTraceToSingleLineString(e));
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                   message, e);
+    }
+    return ByteString.valueOf(output);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public ByteString encodePassword(ByteSequence plaintext)
+         throws DirectoryException
+  {
+    ByteString bytes = null;
+    switch (currentConfig.getCryptPasswordStorageEncryptionAlgorithm())
+    {
+      case UNIX:
+        bytes = unixCryptEncodePassword(plaintext);
+        break;
+      case MD5:
+        bytes = md5CryptEncodePassword(plaintext);
+        break;
+    }
+    return bytes;
   }
 
 
@@ -171,13 +224,10 @@ public class CryptPasswordStorageScheme
     return ByteString.valueOf(buffer.toString());
   }
 
-
-
   /**
-   * {@inheritDoc}
+   * Matches passwords encrypted with the Unix Crypt algorithm.
    */
-  @Override()
-  public boolean passwordMatches(ByteSequence plaintextPassword,
+  private boolean unixCryptPasswordMatches(ByteSequence plaintextPassword,
                                  ByteSequence storedPassword)
   {
     // TODO: Can we avoid this copy?
@@ -201,7 +251,39 @@ public class CryptPasswordStorageScheme
     return userPWDigestBytes.equals(storedPassword);
   }
 
+  private boolean md5CryptPasswordMatches(ByteSequence plaintextPassword,
+                                 ByteSequence storedPassword)
+  {
+    String storedString = storedPassword.toString();
+    try
+    {
+      String userString   = bsdmd5crypt.crypt(plaintextPassword.toString(),
+        storedString);
+      return userString.equals(storedString);
+    }
+    catch (Exception e)
+    {
+      return false;
+    }
+  }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public boolean passwordMatches(ByteSequence plaintextPassword,
+                                 ByteSequence storedPassword)
+  {
+    String storedString = storedPassword.toString();
+    if (storedString.startsWith(BSDMD5Crypt.getMagicString()))
+    {
+      return md5CryptPasswordMatches(plaintextPassword, storedPassword);
+    }
+    else
+    {
+      return unixCryptPasswordMatches(plaintextPassword, storedPassword);
+    }
+  }
 
   /**
    * {@inheritDoc}
@@ -276,7 +358,7 @@ public class CryptPasswordStorageScheme
          throws DirectoryException
   {
     Message message =
-        ERR_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD.get(getStorageSchemeName());
+      ERR_PWSCHEME_DOES_NOT_SUPPORT_AUTH_PASSWORD.get(getStorageSchemeName());
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
@@ -303,5 +385,47 @@ public class CryptPasswordStorageScheme
 
     return false;
   }
+  /**
+   * {@inheritDoc}
+   */
+  @Override()
+  public boolean isConfigurationAcceptable(
+          PasswordStorageSchemeCfg configuration,
+          List<Message> unacceptableReasons)
+  {
+    CryptPasswordStorageSchemeCfg config =
+            (CryptPasswordStorageSchemeCfg) configuration;
+    return isConfigurationChangeAcceptable(config, unacceptableReasons);
 }
 
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isConfigurationChangeAcceptable(
+                      CryptPasswordStorageSchemeCfg configuration,
+                      List<Message> unacceptableReasons)
+  {
+    // If we've gotten this far, then we'll accept the change.
+    return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ConfigChangeResult applyConfigurationChange(
+                      CryptPasswordStorageSchemeCfg configuration)
+  {
+    ResultCode        resultCode          = ResultCode.SUCCESS;
+    boolean           adminActionRequired = false;
+    ArrayList<Message> messages            = new ArrayList<Message>();
+
+
+    currentConfig = configuration;
+
+    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+  }
+}
