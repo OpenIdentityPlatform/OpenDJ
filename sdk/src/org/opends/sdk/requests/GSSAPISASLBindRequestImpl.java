@@ -138,27 +138,23 @@ final class GSSAPISASLBindRequestImpl extends
       @Override
       public Boolean run() throws ErrorResultException
       {
-        if (lastResult.getResultCode() == ResultCode.SASL_BIND_IN_PROGRESS
-            && lastResult.getServerSASLCredentials() != null)
+        try
         {
-          try
-          {
-            setNextSASLCredentials(saslClient.evaluateChallenge(lastResult
-                .getServerSASLCredentials().toByteArray()));
-            return false;
-          }
-          catch (final SaslException e)
-          {
-            // FIXME: I18N need to have a better error message.
-            // FIXME: Is this the best result code?
-            throw ErrorResultException.wrap(Responses
-                .newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR)
-                .setDiagnosticMessage(
-                    "An error occurred during multi-stage authentication")
-                .setCause(e));
-          }
+          setNextSASLCredentials(saslClient.evaluateChallenge(lastResult
+              .getServerSASLCredentials() == null ? new byte[0] : lastResult
+              .getServerSASLCredentials().toByteArray()));
+          return saslClient.isComplete();
         }
-        return true;
+        catch (final SaslException e)
+        {
+          // FIXME: I18N need to have a better error message.
+          // FIXME: Is this the best result code?
+          throw ErrorResultException.wrap(Responses
+              .newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR)
+              .setDiagnosticMessage(
+                  "An error occurred during multi-stage authentication")
+              .setCause(e));
+        }
       }
     };
 
