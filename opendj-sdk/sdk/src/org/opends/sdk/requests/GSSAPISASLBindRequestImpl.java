@@ -96,7 +96,6 @@ final class GSSAPISASLBindRequestImpl extends
       state.put("java.security.krb5.kdc", kdc);
 
       final Map<String, Object> options = new HashMap<String, Object>();
-      options.put("debug", "true");
       options.put("tryFirstPass", "true");
       options.put("useTicketCache", "true");
       options.put("doNotPrompt", "true");
