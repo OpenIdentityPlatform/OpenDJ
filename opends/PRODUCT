@@ -33,7 +33,7 @@ ADMINISTRATION_GUIDE_URL=https://wikis.forgerock.org/confluence/display/opendj/H
 # for the first official release with a new major, minor, and point version
 # number but may include additional text like "BETA1" or "HOTFIX2" for updates
 # that do not warrant incrementing the version number.
-VERSION_QUALIFIER=BETA1
+VERSION_QUALIFIER=
 
 # A comma-delimited list of bug IDs for fixes included in this build.  This
 # should be set in any non-official build given to a customer to address a
