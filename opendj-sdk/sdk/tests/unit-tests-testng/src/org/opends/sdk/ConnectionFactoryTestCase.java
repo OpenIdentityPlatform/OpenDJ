@@ -149,7 +149,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase
     // AuthenticatedConnectionFactory
     factories[2][0] = new AuthenticatedConnectionFactory(
         new LDAPConnectionFactory("localhost", TestCaseUtils.getLdapPort()),
-        Requests.newSimpleBindRequest("", ""));
+        Requests.newSimpleBindRequest("", new char[0]));
 
     // AuthenticatedConnectionFactory with multi-stage SASL
     factories[3][0] = new AuthenticatedConnectionFactory(

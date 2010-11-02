@@ -748,7 +748,7 @@ public class LDAPListenerTestCase extends SdkTestCase
             proxyListener.getSocketAddress()).getConnection();
         try
         {
-          connection.bind("cn=test", "password");
+          connection.bind("cn=test", "password".toCharArray());
 
           Assert.assertTrue(proxyServerConnection.isConnected.await(10,
               TimeUnit.SECONDS));
@@ -961,7 +961,7 @@ public class LDAPListenerTestCase extends SdkTestCase
             proxyListener.getSocketAddress()).getConnection();
         try
         {
-          connection.bind("cn=test", "password");
+          connection.bind("cn=test", "password".toCharArray());
 
           Assert.assertTrue(proxyServerConnection.isConnected.await(10,
               TimeUnit.SECONDS));
@@ -1012,7 +1012,7 @@ public class LDAPListenerTestCase extends SdkTestCase
           onlineServerListener.getSocketAddress()).getConnection();
       try
       {
-        connection.bind("cn=test", "password");
+        connection.bind("cn=test", "password".toCharArray());
       }
       catch (final ErrorResultException e)
       {
@@ -1043,7 +1043,7 @@ public class LDAPListenerTestCase extends SdkTestCase
 
     try
     {
-      connection.bind("cn=test", "password");
+      connection.bind("cn=test", "password".toCharArray());
       Assert.fail("Bind attempt on closed connection succeeded unexpectedly");
     }
     catch (final ErrorResultException e)

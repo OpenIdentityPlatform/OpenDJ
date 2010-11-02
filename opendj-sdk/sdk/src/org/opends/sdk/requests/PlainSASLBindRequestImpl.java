@@ -242,7 +242,7 @@ final class PlainSASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public PlainSASLBindRequest setPassword(final String password)
+  public PlainSASLBindRequest setPassword(final char[] password)
       throws NullPointerException
   {
     Validator.ensureNotNull(password);

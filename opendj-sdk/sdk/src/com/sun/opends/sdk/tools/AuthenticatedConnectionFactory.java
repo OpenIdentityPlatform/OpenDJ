@@ -249,7 +249,7 @@ final class AuthenticatedConnectionFactory extends AbstractConnectionFactory
      * method will always throw {@code UnsupportedOperationException}.
      */
     @Override
-    public BindResult bind(final String name, final String password)
+    public BindResult bind(final String name, final char[] password)
         throws UnsupportedOperationException
     {
       throw new UnsupportedOperationException();

@@ -224,6 +224,6 @@ public interface PlainSASLBindRequest extends SASLBindRequest
    * @throws NullPointerException
    *           If {@code password} was {@code null}.
    */
-  PlainSASLBindRequest setPassword(String password)
+  PlainSASLBindRequest setPassword(char[] password)
       throws UnsupportedOperationException, NullPointerException;
 }

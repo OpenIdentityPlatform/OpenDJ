@@ -120,7 +120,7 @@ public final class Main
     try
     {
       connection = factory.getConnection();
-      connection.bind(userName, password);
+      connection.bind(userName, password.toCharArray());
 
       // Read the entries and output them as LDIF.
       final ConnectionEntryReader reader = connection.search(baseDN, scope,

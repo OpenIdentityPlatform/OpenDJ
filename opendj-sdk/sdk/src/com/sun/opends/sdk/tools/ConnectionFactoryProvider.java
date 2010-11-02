@@ -594,8 +594,8 @@ final class ConnectionFactoryProvider
         if (bindNameArg.isPresent() || bindPasswordFileArg.isPresent()
             || bindPasswordArg.isPresent())
         {
-          bindRequest =
-              Requests.newSimpleBindRequest(getBindName(), getPassword());
+          bindRequest = Requests.newSimpleBindRequest(getBindName(),
+              getPassword().toCharArray());
         }
       }
       else if (mech.equals(DigestMD5SASLBindRequest.SASL_MECHANISM_NAME))
@@ -836,13 +836,14 @@ final class ConnectionFactoryProvider
     {
       tm = TrustManagers.checkValidityDates(TrustManagers.checkHostName(
           hostNameArg.getValue(), TrustManagers.checkUsingTrustStore(
-              trustStorePathArg.getValue(), getTrustStorePIN(), null)));
+              trustStorePathArg.getValue(), getTrustStorePIN().toCharArray(),
+              null)));
     }
     else if (getTrustStore() != null)
     {
       tm = TrustManagers.checkValidityDates(TrustManagers.checkHostName(
           hostNameArg.getValue(), TrustManagers.checkUsingTrustStore(
-              getTrustStore(), getTrustStorePIN(), null)));
+              getTrustStore(), getTrustStorePIN().toCharArray(), null)));
     }
 
     if (app != null && !app.isQuiet())

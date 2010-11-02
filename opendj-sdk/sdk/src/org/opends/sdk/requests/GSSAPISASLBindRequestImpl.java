@@ -699,7 +699,7 @@ final class GSSAPISASLBindRequestImpl extends
    * {@inheritDoc}
    */
   @Override
-  public GSSAPISASLBindRequest setPassword(final String password)
+  public GSSAPISASLBindRequest setPassword(final char[] password)
       throws NullPointerException
   {
     Validator.ensureNotNull(password);

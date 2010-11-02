@@ -116,7 +116,7 @@ public final class Main
       Main.connection = connection;
 
       final BindRequest request = Requests.newSimpleBindRequest(userName,
-          password);
+          password.toCharArray());
       connection.bind(request, new BindResultHandlerImpl());
     }
 

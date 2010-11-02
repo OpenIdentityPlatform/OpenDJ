@@ -97,16 +97,6 @@ final class PasswordModifyExtendedResultImpl extends
   /**
    * {@inheritDoc}
    */
-  public String getGeneratedPasswordAsString()
-  {
-    return password != null ? password.toString() : null;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public String getOID()
   {
@@ -174,7 +164,7 @@ final class PasswordModifyExtendedResultImpl extends
    * {@inheritDoc}
    */
   public PasswordModifyExtendedResult setGeneratedPassword(
-      final String password) throws UnsupportedOperationException
+      final char[] password) throws UnsupportedOperationException
   {
     this.password = (password != null) ? ByteString.valueOf(password) : null;
     return this;

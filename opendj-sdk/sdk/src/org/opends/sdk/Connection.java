@@ -249,7 +249,7 @@ public interface Connection extends Closeable
    * @throws NullPointerException
    *           If {@code name} or {@code password} was {@code null}.
    */
-  BindResult bind(String name, String password) throws ErrorResultException,
+  BindResult bind(String name, char[] password) throws ErrorResultException,
       InterruptedException, LocalizedIllegalArgumentException,
       UnsupportedOperationException, IllegalStateException,
       NullPointerException;

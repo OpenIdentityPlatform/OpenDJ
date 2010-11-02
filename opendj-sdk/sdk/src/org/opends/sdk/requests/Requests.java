@@ -835,7 +835,7 @@ public final class Requests
    *           If {@code name} or {@code password} was {@code null}.
    */
   public static SimpleBindRequest newSimpleBindRequest(final String name,
-      final String password) throws NullPointerException
+      final char[] password) throws NullPointerException
   {
     Validator.ensureNotNull(name, password);
     return new SimpleBindRequestImpl(name, ByteString.valueOf(password));

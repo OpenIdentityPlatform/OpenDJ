@@ -150,7 +150,7 @@ final class UnmodifiableGSSAPISASLBindRequestImpl extends
   }
 
   @Override
-  public GSSAPISASLBindRequest setPassword(String password)
+  public GSSAPISASLBindRequest setPassword(char[] password)
       throws UnsupportedOperationException, NullPointerException {
     throw new UnsupportedOperationException();
   }

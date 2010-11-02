@@ -146,7 +146,7 @@ final class UnmodifiableDigestMD5SASLBindRequestImpl extends
   }
 
   @Override
-  public DigestMD5SASLBindRequest setPassword(String password)
+  public DigestMD5SASLBindRequest setPassword(char[] password)
       throws UnsupportedOperationException, NullPointerException {
     throw new UnsupportedOperationException();
   }

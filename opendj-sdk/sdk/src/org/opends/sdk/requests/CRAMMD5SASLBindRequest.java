@@ -195,7 +195,7 @@ public interface CRAMMD5SASLBindRequest extends SASLBindRequest
    * @throws NullPointerException
    *           If {@code password} was {@code null}.
    */
-  CRAMMD5SASLBindRequest setPassword(String password)
+  CRAMMD5SASLBindRequest setPassword(char[] password)
       throws UnsupportedOperationException, NullPointerException;
 
 }

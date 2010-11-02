@@ -212,7 +212,7 @@ public final class AuthRate extends ConsoleApplication
           if(successRecentCount.get() * ((float)invalidCredPercent/100) >
               invalidCredRecentCount.get())
           {
-            sbr.setPassword("invalid-password");
+            sbr.setPassword("invalid-password".toCharArray());
           }
           else
           {
@@ -244,7 +244,7 @@ public final class AuthRate extends ConsoleApplication
           if(successRecentCount.get() * ((float)invalidCredPercent/100) >
               invalidCredRecentCount.get())
           {
-            sbr.setPassword("invalid-password");
+            sbr.setPassword("invalid-password".toCharArray());
           }
           else
           {
@@ -268,7 +268,7 @@ public final class AuthRate extends ConsoleApplication
           if(successRecentCount.get() * ((float)invalidCredPercent/100) >
               invalidCredRecentCount.get())
           {
-            sbr.setPassword("invalid-password");
+            sbr.setPassword("invalid-password".toCharArray());
           }
           else
           {
@@ -300,7 +300,7 @@ public final class AuthRate extends ConsoleApplication
           if(successRecentCount.get() * ((float)invalidCredPercent/100) >
               invalidCredRecentCount.get())
           {
-            sbr.setPassword("invalid-password");
+            sbr.setPassword("invalid-password".toCharArray());
           }
           else
           {
@@ -346,7 +346,7 @@ public final class AuthRate extends ConsoleApplication
           if(successRecentCount.get() * ((float)invalidCredPercent/100) >
               invalidCredRecentCount.get())
           {
-            sbr.setPassword("invalid-password");
+            sbr.setPassword("invalid-password".toCharArray());
           }
           else
           {

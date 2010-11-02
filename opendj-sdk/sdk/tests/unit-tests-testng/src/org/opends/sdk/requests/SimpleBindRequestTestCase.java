@@ -42,7 +42,7 @@ public class SimpleBindRequestTestCase extends BindRequestTestCase
   public Object[][] getSimpleBindRequests() throws Exception
   {
     final SimpleBindRequest[] requests = { Requests.newSimpleBindRequest(),// anonymous;
-        Requests.newSimpleBindRequest("username", "password") };
+        Requests.newSimpleBindRequest("username", "password".toCharArray()) };
     final Object[][] objArray = new Object[requests.length][1];
     for (int i = 0; i < requests.length; i++)
     {

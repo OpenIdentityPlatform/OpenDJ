@@ -109,19 +109,6 @@ public interface PasswordModifyExtendedResult extends ExtendedResult
 
 
   /**
-   * Returns the newly generated password decoded as a UTF-8 string, but only if
-   * the password modify request succeeded and a generated password was
-   * requested.
-   *
-   * @return The newly generated password decoded as a UTF-8 string, or {@code
-   *         null} if the password modify request failed or a generated password
-   *         was not requested.
-   */
-  String getGeneratedPasswordAsString();
-
-
-
-  /**
    * {@inheritDoc}
    */
   String getMatchedDN();
@@ -221,7 +208,7 @@ public interface PasswordModifyExtendedResult extends ExtendedResult
    *           If this password modify extended result does not permit the
    *           generated password to be set.
    */
-  PasswordModifyExtendedResult setGeneratedPassword(String password)
+  PasswordModifyExtendedResult setGeneratedPassword(char[] password)
       throws UnsupportedOperationException;
 
 
