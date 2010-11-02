@@ -267,14 +267,12 @@ public final class KeyManagers
    *           If {@code file} was {@code null}.
    */
   public static X509KeyManager useKeyStoreFile(final String file,
-      final String password, final String format)
+      final char[] password, final String format)
       throws GeneralSecurityException, IOException, NullPointerException
   {
     Validator.ensureNotNull(file);
 
     final File keyStoreFile = new File(file);
-    final char[] keyStorePassword = password != null ? password.toCharArray()
-        : null;
     final String keyStoreFormat = format != null ? format : KeyStore
         .getDefaultType();
 
@@ -284,7 +282,7 @@ public final class KeyManagers
     try
     {
       fos = new FileInputStream(keyStoreFile);
-      keyStore.load(fos, keyStorePassword);
+      keyStore.load(fos, password);
     }
     finally
     {
@@ -303,7 +301,7 @@ public final class KeyManagers
 
     final KeyManagerFactory kmf = KeyManagerFactory
         .getInstance(KeyManagerFactory.getDefaultAlgorithm());
-    kmf.init(keyStore, keyStorePassword);
+    kmf.init(keyStore, password);
 
     X509KeyManager x509km = null;
     for (final KeyManager km : kmf.getKeyManagers())
@@ -340,16 +338,14 @@ public final class KeyManagers
    * @throws IOException
    *           If the PKCS#11 token could not be found or could not be read.
    */
-  public static X509KeyManager usePKCS11Token(final String password)
+  public static X509KeyManager usePKCS11Token(final char[] password)
       throws GeneralSecurityException, IOException
   {
-    final char[] keyStorePassword = password != null ? password.toCharArray()
-        : null;
     final KeyStore keyStore = KeyStore.getInstance("PKCS11");
-    keyStore.load(null, keyStorePassword);
+    keyStore.load(null, password);
     final KeyManagerFactory kmf = KeyManagerFactory
         .getInstance(KeyManagerFactory.getDefaultAlgorithm());
-    kmf.init(keyStore, keyStorePassword);
+    kmf.init(keyStore, password);
 
     X509KeyManager x509km = null;
     for (final KeyManager km : kmf.getKeyManagers())

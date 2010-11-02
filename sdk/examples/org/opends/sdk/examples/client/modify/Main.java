@@ -108,7 +108,7 @@ public final class Main
     try
     {
       connection = factory.getConnection();
-      connection.bind(userName, password);
+      connection.bind(userName, password.toCharArray());
 
       // Write the changes.
       final ConnectionChangeRecordWriter writer = new ConnectionChangeRecordWriter(

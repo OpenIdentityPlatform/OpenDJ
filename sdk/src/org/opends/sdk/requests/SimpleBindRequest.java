@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk.requests;
@@ -114,18 +114,6 @@ public interface SimpleBindRequest extends BindRequest
 
 
   /**
-   * Returns the password of the Directory object that the client wishes to bind
-   * as decoded as a UTF-8 string. The password may be empty (but never {@code
-   * null}) when used for of anonymous or unauthenticated binds.
-   *
-   * @return The password of the Directory object that the client wishes to bind
-   *         as decoded as a UTF-8 string.
-   */
-  String getPasswordAsString();
-
-
-
-  /**
    * Sets the name of the Directory object that the client wishes to bind as.
    * The name may be empty (but never {@code null} when used for of anonymous
    * binds, or when using SASL authentication. The server shall not dereference
@@ -174,7 +162,8 @@ public interface SimpleBindRequest extends BindRequest
    * Sets the password of the Directory object that the client wishes to bind
    * as. The password will be converted to a UTF-8 octet string. The password
    * may be empty (but never {@code null}) when used for of anonymous or
-   * unauthenticated binds.
+   * unauthenticated binds. Subsequent modifications to the {@code password}
+   * array will not alter this bind request.
    *
    * @param password
    *          The password of the Directory object that the client wishes to
@@ -186,7 +175,7 @@ public interface SimpleBindRequest extends BindRequest
    * @throws NullPointerException
    *           If {@code password} was {@code null}.
    */
-  SimpleBindRequest setPassword(String password)
+  SimpleBindRequest setPassword(char[] password)
       throws UnsupportedOperationException, NullPointerException;
 
 }

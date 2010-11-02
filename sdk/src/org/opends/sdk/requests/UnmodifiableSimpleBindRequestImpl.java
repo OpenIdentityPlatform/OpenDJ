@@ -44,10 +44,6 @@ final class UnmodifiableSimpleBindRequestImpl
     return impl.getPassword();
   }
 
-  public String getPasswordAsString() {
-    return impl.getPasswordAsString();
-  }
-
   public SimpleBindRequest setName(String name)
       throws UnsupportedOperationException, NullPointerException {
     throw new UnsupportedOperationException();
@@ -58,7 +54,7 @@ final class UnmodifiableSimpleBindRequestImpl
     throw new UnsupportedOperationException();
   }
 
-  public SimpleBindRequest setPassword(String password)
+  public SimpleBindRequest setPassword(char[] password)
       throws UnsupportedOperationException, NullPointerException {
     throw new UnsupportedOperationException();
   }

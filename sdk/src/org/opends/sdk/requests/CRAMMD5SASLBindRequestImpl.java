@@ -256,7 +256,7 @@ final class CRAMMD5SASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public CRAMMD5SASLBindRequest setPassword(final String password)
+  public CRAMMD5SASLBindRequest setPassword(final char[] password)
       throws NullPointerException
   {
     Validator.ensureNotNull(password);

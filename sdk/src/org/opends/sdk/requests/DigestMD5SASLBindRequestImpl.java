@@ -596,7 +596,7 @@ final class DigestMD5SASLBindRequestImpl extends
    * {@inheritDoc}
    */
   @Override
-  public DigestMD5SASLBindRequest setPassword(final String password)
+  public DigestMD5SASLBindRequest setPassword(final char[] password)
       throws NullPointerException
   {
     Validator.ensureNotNull(password);

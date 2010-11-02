@@ -76,7 +76,7 @@ final class UnmodifiablePlainSASLBindRequestImpl extends
   }
 
   @Override
-  public PlainSASLBindRequest setPassword(String password)
+  public PlainSASLBindRequest setPassword(char[] password)
       throws UnsupportedOperationException, NullPointerException {
     throw new UnsupportedOperationException();
   }

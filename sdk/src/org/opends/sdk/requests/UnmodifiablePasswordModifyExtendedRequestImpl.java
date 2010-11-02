@@ -47,16 +47,8 @@ final class UnmodifiablePasswordModifyExtendedRequestImpl
     return impl.getNewPassword();
   }
 
-  public String getNewPasswordAsString() {
-    return impl.getNewPasswordAsString();
-  }
-
   public ByteString getOldPassword() {
     return impl.getOldPassword();
-  }
-
-  public String getOldPasswordAsString() {
-    return impl.getOldPasswordAsString();
   }
 
   public ByteString getUserIdentity() {
@@ -72,7 +64,7 @@ final class UnmodifiablePasswordModifyExtendedRequestImpl
     throw new UnsupportedOperationException();
   }
 
-  public PasswordModifyExtendedRequest setNewPassword(String newPassword) {
+  public PasswordModifyExtendedRequest setNewPassword(char[] newPassword) {
     throw new UnsupportedOperationException();
   }
 
@@ -81,7 +73,7 @@ final class UnmodifiablePasswordModifyExtendedRequestImpl
     throw new UnsupportedOperationException();
   }
 
-  public PasswordModifyExtendedRequest setOldPassword(String oldPassword) {
+  public PasswordModifyExtendedRequest setOldPassword(char[] oldPassword) {
     throw new UnsupportedOperationException();
   }
 

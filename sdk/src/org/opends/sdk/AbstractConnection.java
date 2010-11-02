@@ -147,7 +147,7 @@ public abstract class AbstractConnection implements Connection
   /**
    * {@inheritDoc}
    */
-  public BindResult bind(final String name, final String password)
+  public BindResult bind(final String name, final char[] password)
       throws ErrorResultException, InterruptedException,
       LocalizedIllegalArgumentException, UnsupportedOperationException,
       IllegalStateException, NullPointerException

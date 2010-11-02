@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2009-2010 Sun Microsystems, Inc.
  */
 package org.opends.sdk;
 
@@ -30,6 +30,9 @@ package org.opends.sdk;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
 import java.util.logging.Level;
 
 import com.sun.opends.sdk.util.StaticUtils;
@@ -139,6 +142,26 @@ public final class ByteString implements ByteSequence
   public static ByteString valueOf(final String s)
   {
     return wrap(StaticUtils.getBytes(s));
+  }
+
+
+
+  /**
+   * Returns a byte string containing the UTF-8 encoded bytes of the provided
+   * char array.
+   *
+   * @param chars
+   *          The char array to use.
+   * @return A byte string containing the UTF-8 encoded bytes of the provided
+   *         char array.
+   */
+  public static ByteString valueOf(final char[] chars)
+  {
+    Charset utf8 = Charset.forName("UTF-8");
+    ByteBuffer buffer = utf8.encode(CharBuffer.wrap(chars));
+    byte[] bytes = new byte[buffer.remaining()];
+    buffer.get(bytes);
+    return wrap(bytes);
   }
 
 
@@ -608,6 +631,23 @@ public final class ByteString implements ByteSequence
   public ByteString toByteString()
   {
     return this;
+  }
+
+
+
+  /**
+   * Returns the UTF-8 decoded char array representation of this byte sequence.
+   *
+   * @return The UTF-8 decoded char array representation of this byte sequence.
+   */
+  public char[] toCharArray()
+  {
+    Charset utf8 = Charset.forName("UTF-8");
+    CharBuffer charBuffer = utf8
+        .decode(ByteBuffer.wrap(buffer, offset, length));
+    char[] chars = new char[charBuffer.remaining()];
+    charBuffer.get(chars);
+    return chars;
   }
 
 

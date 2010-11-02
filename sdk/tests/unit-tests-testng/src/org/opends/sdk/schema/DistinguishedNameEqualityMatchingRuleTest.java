@@ -27,13 +27,15 @@
 
 package org.opends.sdk.schema;
 
+import java.text.Normalizer;
+import java.text.Normalizer.Form;
+
 import org.testng.annotations.Test;
 import org.testng.annotations.DataProvider;
 import static org.testng.Assert.assertEquals;
 import org.opends.sdk.ConditionResult;
 import org.opends.sdk.ByteString;
 import static org.opends.sdk.schema.SchemaConstants.EMR_DN_OID;
-import com.sun.opends.sdk.util.Platform;
 
 /**
  * Test the DistinguishedNameEqualityMatchingRule
@@ -204,9 +206,8 @@ public class DistinguishedNameEqualityMatchingRuleTest extends MatchingRuleTest
 
     final ByteString normalizedValue1 = rule.normalizeAttributeValue(ByteString
         .valueOf(value1));
-    StringBuilder buffer = new StringBuilder(value2);
-    Platform.normalize(buffer);
-    final ByteString expectedValue = ByteString.valueOf(buffer);
+    final ByteString expectedValue = ByteString.valueOf(Normalizer.normalize(
+        value2, Form.NFKD));
     assertEquals(normalizedValue1, expectedValue);
   }
 }

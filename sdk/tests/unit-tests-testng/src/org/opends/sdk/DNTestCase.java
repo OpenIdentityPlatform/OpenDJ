@@ -37,8 +37,6 @@ import static org.testng.Assert.fail;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import com.sun.opends.sdk.util.Platform;
-
 
 
 /**

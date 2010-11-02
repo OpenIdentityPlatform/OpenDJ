@@ -508,7 +508,7 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest
    * @throws NullPointerException
    *           If {@code password} was {@code null}.
    */
-  DigestMD5SASLBindRequest setPassword(String password)
+  DigestMD5SASLBindRequest setPassword(char[] password)
       throws UnsupportedOperationException, NullPointerException;
 
 

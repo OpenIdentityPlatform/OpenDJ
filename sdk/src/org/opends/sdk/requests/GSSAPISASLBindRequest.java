@@ -457,7 +457,7 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
    * @throws NullPointerException
    *           If {@code password} was {@code null}.
    */
-  GSSAPISASLBindRequest setPassword(String password)
+  GSSAPISASLBindRequest setPassword(char[] password)
       throws UnsupportedOperationException, NullPointerException;
 
 

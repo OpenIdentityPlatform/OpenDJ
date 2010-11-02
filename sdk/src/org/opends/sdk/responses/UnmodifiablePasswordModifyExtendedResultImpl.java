@@ -47,11 +47,6 @@ class UnmodifiablePasswordModifyExtendedResultImpl extends
   }
 
   @Override
-  public String getGeneratedPasswordAsString() {
-    return impl.getGeneratedPasswordAsString();
-  }
-
-  @Override
   public PasswordModifyExtendedResult setGeneratedPassword(ByteString password)
       throws UnsupportedOperationException
   {
@@ -59,7 +54,7 @@ class UnmodifiablePasswordModifyExtendedResultImpl extends
   }
 
   @Override
-  public PasswordModifyExtendedResult setGeneratedPassword(String password)
+  public PasswordModifyExtendedResult setGeneratedPassword(char[] password)
       throws UnsupportedOperationException {
     throw new UnsupportedOperationException();
   }

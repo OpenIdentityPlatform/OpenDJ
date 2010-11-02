@@ -243,16 +243,6 @@ final class PasswordModifyExtendedRequestImpl
   /**
    * {@inheritDoc}
    */
-  public String getNewPasswordAsString()
-  {
-    return newPassword != null ? newPassword.toString() : null;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public String getOID()
   {
@@ -267,16 +257,6 @@ final class PasswordModifyExtendedRequestImpl
   public ByteString getOldPassword()
   {
     return oldPassword;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public String getOldPasswordAsString()
-  {
-    return oldPassword != null ? oldPassword.toString() : null;
   }
 
 
@@ -375,7 +355,7 @@ final class PasswordModifyExtendedRequestImpl
   /**
    * {@inheritDoc}
    */
-  public PasswordModifyExtendedRequest setNewPassword(final String newPassword)
+  public PasswordModifyExtendedRequest setNewPassword(final char[] newPassword)
   {
     this.newPassword = (newPassword != null) ? ByteString.valueOf(newPassword)
         : null;
@@ -399,7 +379,7 @@ final class PasswordModifyExtendedRequestImpl
   /**
    * {@inheritDoc}
    */
-  public PasswordModifyExtendedRequest setOldPassword(final String oldPassword)
+  public PasswordModifyExtendedRequest setOldPassword(final char[] oldPassword)
   {
     this.oldPassword = (oldPassword != null) ? ByteString.valueOf(oldPassword)
         : null;

@@ -64,7 +64,7 @@ final class UnmodifiableCRAMMD5SASLBindRequestImpl extends
   }
 
   @Override
-  public CRAMMD5SASLBindRequest setPassword(String password)
+  public CRAMMD5SASLBindRequest setPassword(char[] password)
       throws UnsupportedOperationException, NullPointerException {
     throw new UnsupportedOperationException();
   }

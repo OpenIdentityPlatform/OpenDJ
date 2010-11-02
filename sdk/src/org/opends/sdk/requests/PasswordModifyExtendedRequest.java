@@ -107,17 +107,6 @@ public interface PasswordModifyExtendedRequest extends
 
 
   /**
-   * Returns the desired password for the user decoded as a UTF-8 string, or
-   * {@code null} if a new password should be generated.
-   *
-   * @return The desired password for the user decoded as a UTF-8 string, or
-   *         {@code null} if a new password should be generated.
-   */
-  String getNewPasswordAsString();
-
-
-
-  /**
    * {@inheritDoc}
    */
   String getOID();
@@ -131,17 +120,6 @@ public interface PasswordModifyExtendedRequest extends
    *         is not known.
    */
   ByteString getOldPassword();
-
-
-
-  /**
-   * Returns the current password for the user, if known, decoded as a UTF-8
-   * string.
-   *
-   * @return The current password for the user decoded as a UTF-8 string, or
-   *         {@code null} if the password is not known.
-   */
-  String getOldPasswordAsString();
 
 
 
@@ -222,7 +200,7 @@ public interface PasswordModifyExtendedRequest extends
    *           If this password modify extended request does not permit the new
    *           password to be set.
    */
-  PasswordModifyExtendedRequest setNewPassword(String newPassword)
+  PasswordModifyExtendedRequest setNewPassword(char[] newPassword)
       throws UnsupportedOperationException;
 
 
@@ -255,7 +233,7 @@ public interface PasswordModifyExtendedRequest extends
    *           If this password modify extended request does not permit the old
    *           password to be set.
    */
-  PasswordModifyExtendedRequest setOldPassword(String oldPassword)
+  PasswordModifyExtendedRequest setOldPassword(char[] oldPassword)
       throws UnsupportedOperationException;
 
 

@@ -442,14 +442,12 @@ public final class TrustManagers
    *           If {@code file} was {@code null}.
    */
   public static X509TrustManager checkUsingTrustStore(final String file,
-      final String password, final String format)
+      final char[] password, final String format)
       throws GeneralSecurityException, IOException, NullPointerException
   {
     Validator.ensureNotNull(file);
 
     final File trustStoreFile = new File(file);
-    final char[] trustStorePassword = password != null ? password.toCharArray()
-        : null;
     final String trustStoreFormat = format != null ? format : KeyStore
         .getDefaultType();
 
@@ -459,7 +457,7 @@ public final class TrustManagers
     try
     {
       fos = new FileInputStream(trustStoreFile);
-      keyStore.load(fos, trustStorePassword);
+      keyStore.load(fos, password);
     }
     finally
     {

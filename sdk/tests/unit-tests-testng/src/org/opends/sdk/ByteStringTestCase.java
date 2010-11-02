@@ -29,6 +29,8 @@ package org.opends.sdk;
 
 
 
+import java.util.Arrays;
+
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -102,7 +104,7 @@ public class ByteStringTestCase extends ByteSequenceTestCase
 
 
 
-  @DataProvider(name = "byteStringIntegerProvier")
+  @DataProvider(name = "byteStringIntegerProvider")
   public Object[][] byteStringIntegerProvider()
   {
     return new Object[][] { { ByteString.valueOf(0), 0 },
@@ -113,13 +115,21 @@ public class ByteStringTestCase extends ByteSequenceTestCase
 
 
 
-  @DataProvider(name = "byteStringLongProvier")
+  @DataProvider(name = "byteStringLongProvider")
   public Object[][] byteStringLongProvider()
   {
     return new Object[][] { { ByteString.valueOf(0L), 0L },
         { ByteString.valueOf(1L), 1L },
         { ByteString.valueOf(Long.MAX_VALUE), Long.MAX_VALUE },
         { ByteString.valueOf(Long.MIN_VALUE), Long.MIN_VALUE } };
+  }
+
+
+
+  @DataProvider(name = "byteStringCharArrayProvider")
+  public Object[][] byteStringCharArrayProvider()
+  {
+    return new Object[][] { { "" }, { "1" }, { "1234567890" } };
   }
 
 
@@ -145,6 +155,24 @@ public class ByteStringTestCase extends ByteSequenceTestCase
   public void testToLong(final ByteString bs, final long l)
   {
     Assert.assertEquals(bs.toLong(), l);
+  }
+
+
+
+  @Test(dataProvider = "byteStringCharArrayProvider")
+  public void testToCharArray(final String s)
+  {
+    ByteString bs = ByteString.valueOf(s);
+    Assert.assertTrue(Arrays.equals(bs.toCharArray(), s.toCharArray()));
+  }
+
+
+
+  @Test(dataProvider = "byteStringCharArrayProvider")
+  public void testValueOfCharArray(final String s)
+  {
+    ByteString bs = ByteString.valueOf(s.toCharArray());
+    Assert.assertEquals(bs.toString(), s);
   }
 
 

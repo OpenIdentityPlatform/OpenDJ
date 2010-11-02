@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2009 Parametric Technology Corporation (PTC)
  */
 
@@ -40,8 +40,6 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509KeyManager;
-
-import com.sun.opends.sdk.util.Platform;
 
 
 
@@ -88,13 +86,17 @@ final class ApplicationKeyManager implements X509KeyManager
 
     // Handle IBM specific cases if the user did not specify a algorithm
     // and/or provider.
-    if (userSpecifiedAlgo == null && Platform.isVendor("IBM"))
+    final String vendor = System.getProperty("java.vendor");
+    if (vendor.startsWith("IBM"))
     {
-      userSpecifiedAlgo = "IbmX509";
-    }
-    if (userSpecifiedProvider == null && Platform.isVendor("IBM"))
-    {
-      userSpecifiedProvider = "IBMJSSE2";
+      if (userSpecifiedAlgo == null)
+      {
+        userSpecifiedAlgo = "IbmX509";
+      }
+      if (userSpecifiedProvider == null)
+      {
+        userSpecifiedProvider = "IBMJSSE2";
+      }
     }
 
     // Have some fallbacks to choose the provider and algorith of the

@@ -131,16 +131,6 @@ final class SimpleBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public String getPasswordAsString()
-  {
-    return password.toString();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public SimpleBindRequest setName(final String name)
       throws UnsupportedOperationException, NullPointerException
   {
@@ -167,7 +157,7 @@ final class SimpleBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public SimpleBindRequest setPassword(final String password)
+  public SimpleBindRequest setPassword(final char[] password)
       throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(password);
@@ -188,7 +178,7 @@ final class SimpleBindRequestImpl extends
     builder.append(getName());
     builder.append(", authentication=simple");
     builder.append(", password=");
-    builder.append(getPasswordAsString());
+    builder.append(getPassword());
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");

@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
  */
 package com.sun.opends.sdk.util;
 
@@ -30,6 +30,8 @@ package com.sun.opends.sdk.util;
 
 import static com.sun.opends.sdk.util.Validator.ensureNotNull;
 
+import java.text.Normalizer;
+import java.text.Normalizer.Form;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -492,7 +494,9 @@ public final class StringPrepProfile
         // Map the attribute value.
         map(buffer, sequence.subSequence(i, length), trim, foldCase);
         // Normalize the attribute value.
-        normalize(buffer);
+        String normalizedForm = Normalizer.normalize(buffer, Form.NFKD);
+        buffer.setLength(0);
+        buffer.append(normalizedForm);
         break;
       }
       int buffLen = buffer.length();
@@ -571,14 +575,6 @@ public final class StringPrepProfile
       final boolean trim, final boolean foldCase)
   {
     MappingTable.map(buffer, value, trim, foldCase);
-  }
-
-
-
-  // Normalizes the input string with NFKC Form.
-  private static void normalize(final StringBuilder buffer)
-  {
-    Platform.normalize(buffer);
   }
 
 
