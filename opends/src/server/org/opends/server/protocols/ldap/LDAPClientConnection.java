@@ -1863,7 +1863,7 @@ public class LDAPClientConnection extends ClientConnection implements
       {
         BindResponseProtocolOp responseOp =
             new BindResponseProtocolOp(
-                LDAPResultCode.INAPPROPRIATE_AUTHENTICATION,
+                LDAPResultCode.PROTOCOL_ERROR,
                 ERR_LDAPV2_CLIENTS_NOT_ALLOWED.get());
         sendLDAPMessage(new LDAPMessage(message.getMessageID(),
             responseOp));
