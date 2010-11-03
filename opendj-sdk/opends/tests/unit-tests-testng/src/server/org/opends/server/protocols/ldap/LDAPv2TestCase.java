@@ -98,7 +98,7 @@ public class LDAPv2TestCase
       message = r.readMessage();
       BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
       assertEquals(bindResponse.getResultCode(),
-                   LDAPResultCode.INAPPROPRIATE_AUTHENTICATION);
+                   LDAPResultCode.PROTOCOL_ERROR);
     }
     finally
     {
