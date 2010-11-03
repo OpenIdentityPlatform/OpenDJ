@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2010 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -1436,6 +1437,12 @@ public class DirectoryServer
       // Initialize the group manager.
       initializeGroupManager();
 
+      // Now we can initialize both subentry manager and group manager
+      // for this backend.
+      subentryManager.performBackendInitializationProcessing(
+              configHandler);
+      groupManager.performBackendInitializationProcessing(configHandler);
+
       // Initialize the access control handler.
       AccessControlConfigManager.getInstance().initializeAccessControl();
 
@@ -2687,7 +2694,9 @@ public class DirectoryServer
 
     // The configuration backend has already been registered by this point
     // so we need to handle it explicitly.
-    groupManager.performBackendInitializationProcessing(configHandler);
+    // Because subentryManager may depend on the groupManager, let's
+    // delay this.
+    // groupManager.performBackendInitializationProcessing(configHandler);
   }
 
 
@@ -2908,10 +2917,13 @@ public class DirectoryServer
     try
     {
       subentryManager = new SubentryManager();
+
       // The configuration backend should already be registered
       // at this point so we need to handle it explicitly here.
-      subentryManager.performBackendInitializationProcessing(
-              configHandler);
+      // However, subentryManager may have dependencies on the
+      // groupManager. So lets delay the backend initialization until then.
+      // subentryManager.performBackendInitializationProcessing(
+      //        configHandler);
     }
     catch (DirectoryException de)
     {
