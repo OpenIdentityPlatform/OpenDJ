@@ -56,7 +56,7 @@ abstract class PerformanceRunner implements ConnectionEventListener
    */
   class StatsThread extends Thread
   {
-    private final MultiColumnPrinter printer;
+    private final String[] additionalColumns;
 
     private final List<GarbageCollectorMXBean> beans;
 
@@ -97,6 +97,9 @@ abstract class PerformanceRunner implements ConnectionEventListener
     public StatsThread(final String[] additionalColumns)
     {
       super("Stats Thread");
+
+      this.additionalColumns = additionalColumns;
+
       final TreeSet<Double> pSet = new TreeSet<Double>();
       if (!percentilesArgument.isPresent())
       {
@@ -112,51 +115,9 @@ abstract class PerformanceRunner implements ConnectionEventListener
         }
       }
       this.percentiles = pSet.descendingSet();
-      numColumns = 5 + this.percentiles.size() + additionalColumns.length
+      this.numColumns = 5 + this.percentiles.size() + additionalColumns.length
           + (isAsync ? 1 : 0);
-      printer = new MultiColumnPrinter(numColumns, 2, "-",
-          MultiColumnPrinter.RIGHT, app);
-      printer.setTitleAlign(MultiColumnPrinter.RIGHT);
-
-      String[] title = new String[numColumns];
-      Arrays.fill(title, "");
-      title[0] = "Throughput";
-      title[2] = "Response Time";
-      int[] span = new int[numColumns];
-      span[0] = 2;
-      span[1] = 0;
-      span[2] = 2 + this.percentiles.size();
-      Arrays.fill(span, 3, 4 + this.percentiles.size(), 0);
-      Arrays.fill(span, 4 + this.percentiles.size(), span.length, 1);
-      printer.addTitle(title, span);
-      title = new String[numColumns];
-      Arrays.fill(title, "");
-      title[0] = "(ops/second)";
-      title[2] = "(milliseconds)";
-      printer.addTitle(title, span);
-      title = new String[numColumns];
-      title[0] = "recent";
-      title[1] = "average";
-      title[2] = "recent";
-      title[3] = "average";
-      int i = 4;
-      for (final Double percentile : this.percentiles)
-      {
-        title[i++] = Double.toString(100.0 - percentile) + "%";
-      }
-      title[i++] = "err/sec";
-      if (isAsync)
-      {
-        title[i++] = "req/res";
-      }
-      for (final String column : additionalColumns)
-      {
-        title[i++] = column;
-      }
-      span = new int[numColumns];
-      Arrays.fill(span, 1);
-      printer.addTitle(title, span);
-      beans = ManagementFactory.getGarbageCollectorMXBeans();
+      this.beans = ManagementFactory.getGarbageCollectorMXBeans();
     }
 
 
@@ -164,7 +125,86 @@ abstract class PerformanceRunner implements ConnectionEventListener
     @Override
     public void run()
     {
-      printer.printTitle();
+      final MultiColumnPrinter printer;
+
+      if (!app.isScriptFriendly())
+      {
+        printer = new MultiColumnPrinter(numColumns, 2, "-",
+            MultiColumnPrinter.RIGHT, app);
+        printer.setTitleAlign(MultiColumnPrinter.RIGHT);
+
+        String[] title = new String[numColumns];
+        Arrays.fill(title, "");
+        title[0] = "Throughput";
+        title[2] = "Response Time";
+        int[] span = new int[numColumns];
+        span[0] = 2;
+        span[1] = 0;
+        span[2] = 2 + this.percentiles.size();
+        Arrays.fill(span, 3, 4 + this.percentiles.size(), 0);
+        Arrays.fill(span, 4 + this.percentiles.size(), span.length, 1);
+        printer.addTitle(title, span);
+        title = new String[numColumns];
+        Arrays.fill(title, "");
+        title[0] = "(ops/second)";
+        title[2] = "(milliseconds)";
+        printer.addTitle(title, span);
+        title = new String[numColumns];
+        title[0] = "recent";
+        title[1] = "average";
+        title[2] = "recent";
+        title[3] = "average";
+        int i = 4;
+        for (final Double percentile : this.percentiles)
+        {
+          title[i++] = Double.toString(100.0 - percentile) + "%";
+        }
+        title[i++] = "err/sec";
+        if (isAsync)
+        {
+          title[i++] = "req/res";
+        }
+        for (final String column : additionalColumns)
+        {
+          title[i++] = column;
+        }
+        span = new int[numColumns];
+        Arrays.fill(span, 1);
+        printer.addTitle(title, span);
+        printer.printTitle();
+      }
+      else
+      {
+        app.getOutputStream().print("Time (seconds)");
+        app.getOutputStream().print(",");
+        app.getOutputStream().print("Recent throughput (ops/second)");
+        app.getOutputStream().print(",");
+        app.getOutputStream().print("Average throughput (ops/second)");
+        app.getOutputStream().print(",");
+        app.getOutputStream().print("Recent response time (milliseconds)");
+        app.getOutputStream().print(",");
+        app.getOutputStream().print("Average response time (milliseconds)");
+        for (final Double percentile : this.percentiles)
+        {
+          app.getOutputStream().print(",");
+          app.getOutputStream().print(Double.toString(100.0 - percentile));
+          app.getOutputStream().print("% response time (milliseconds)");
+        }
+        app.getOutputStream().print(",");
+        app.getOutputStream().print("Errors/second");
+        if (isAsync)
+        {
+          app.getOutputStream().print(",");
+          app.getOutputStream().print("Requests/response");
+        }
+        for (final String column : additionalColumns)
+        {
+          app.getOutputStream().print(",");
+          app.getOutputStream().print(column);
+        }
+        app.getOutputStream().println();
+        printer = null;
+      }
 
       final String[] strings = new String[numColumns];
 
@@ -246,8 +286,7 @@ abstract class PerformanceRunner implements ConnectionEventListener
         }
 
         // Our window buffer is now full. Replace smallest with anything
-        // larger
-        // and re-heapify
+        // larger and re-heapify
         for (int i = appendLength; i < etimes.size(); i++)
         {
           if (etimes.get(i) > array.get(0))
@@ -314,7 +353,22 @@ abstract class PerformanceRunner implements ConnectionEventListener
         {
           strings[i++] = column;
         }
-        printer.printRow(strings);
+
+        if (printer != null)
+        {
+          printer.printRow(strings);
+        }
+        else
+        {
+          // Script-friendly.
+          app.getOutputStream().print(averageDuration);
+          for (String s : strings)
+          {
+            app.getOutputStream().print(",");
+            app.getOutputStream().print(s);
+          }
+          app.getOutputStream().println();
+        }
       }
     }
 

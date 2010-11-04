@@ -211,6 +211,8 @@ public final class ModRate extends ConsoleApplication
 
   private BooleanArgument verbose;
 
+  private BooleanArgument scriptFriendly;
+
 
 
   private ModRate(final InputStream in, final OutputStream out,
@@ -288,7 +290,7 @@ public final class ModRate extends ConsoleApplication
   @Override
   public boolean isScriptFriendly()
   {
-    return false;
+    return scriptFriendly.isPresent();
   }
 
 
@@ -361,6 +363,11 @@ public final class ModRate extends ConsoleApplication
           OPTION_LONG_HELP, INFO_DESCRIPTION_SHOWUSAGE.get());
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage, getOutputStream());
+
+      scriptFriendly = new BooleanArgument("scriptFriendly", 'S',
+          "scriptFriendly", INFO_DESCRIPTION_SCRIPT_FRIENDLY.get());
+      scriptFriendly.setPropertyName("scriptFriendly");
+      argParser.addArgument(scriptFriendly);
     }
     catch (final ArgumentException ae)
     {
