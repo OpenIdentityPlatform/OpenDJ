@@ -873,7 +873,52 @@ final class ArgumentParser
         }
       }
 
-      for (final Argument a : argGroup.getArguments())
+      final SortedSet<Argument> args = new TreeSet<Argument>(
+          new Comparator<Argument>()
+          {
+
+            /**
+             * {@inheritDoc}
+             */
+            public int compare(final Argument o1, final Argument o2)
+            {
+              final String s1;
+              final String s2;
+
+              if (o1.getShortIdentifier() != null)
+              {
+                s1 = o1.getShortIdentifier().toString();
+              }
+              else
+              {
+                s1 = o1.getLongIdentifier();
+              }
+
+              if (o2.getShortIdentifier() != null)
+              {
+                s2 = o2.getShortIdentifier().toString();
+              }
+              else
+              {
+                s2 = o2.getLongIdentifier();
+              }
+
+              final int res = s1.compareToIgnoreCase(s2);
+              if (res != 0)
+              {
+                return res;
+              }
+              else
+              {
+                // Lowercase options first then uppercase.
+                return -s1.compareTo(s2);
+              }
+            }
+
+          });
+      args.addAll(argGroup.getArguments());
+
+      for (final Argument a : args)
       {
         // If this argument is hidden, then skip it.
         if (a.isHidden())
