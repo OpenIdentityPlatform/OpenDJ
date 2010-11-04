@@ -261,6 +261,8 @@ public final class SearchRate extends ConsoleApplication
 
   private BooleanArgument verbose;
 
+  private BooleanArgument scriptFriendly;
+
   private final AtomicInteger entryRecentCount = new AtomicInteger();
 
 
@@ -340,7 +342,7 @@ public final class SearchRate extends ConsoleApplication
   @Override
   public boolean isScriptFriendly()
   {
-    return false;
+    return scriptFriendly.isPresent();
   }
 
 
@@ -434,6 +436,11 @@ public final class SearchRate extends ConsoleApplication
           INFO_DESCRIPTION_VERBOSE.get());
       verbose.setPropertyName("verbose");
       argParser.addArgument(verbose);
+
+      scriptFriendly = new BooleanArgument("scriptFriendly", 'S',
+          "scriptFriendly", INFO_DESCRIPTION_SCRIPT_FRIENDLY.get());
+      scriptFriendly.setPropertyName("scriptFriendly");
+      argParser.addArgument(scriptFriendly);
     }
     catch (final ArgumentException ae)
     {

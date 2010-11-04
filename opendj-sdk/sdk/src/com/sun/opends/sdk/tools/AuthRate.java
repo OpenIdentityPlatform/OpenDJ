@@ -42,10 +42,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.sun.opends.sdk.messages.Messages.*;
-import static com.sun.opends.sdk.messages.Messages.ERR_ERROR_PARSING_ARGS;
 import static com.sun.opends.sdk.tools.ToolConstants.*;
-import static com.sun.opends.sdk.tools.ToolConstants.OPTION_LONG_BASEDN;
-import static com.sun.opends.sdk.tools.ToolConstants.OPTION_SHORT_BASEDN;
 import static com.sun.opends.sdk.tools.Utils.filterExitCode;
 
 /**
@@ -459,6 +456,8 @@ public final class AuthRate extends ConsoleApplication
 
   private BooleanArgument verbose;
 
+  private BooleanArgument scriptFriendly;
+
 
 
 
@@ -537,7 +536,7 @@ public final class AuthRate extends ConsoleApplication
   @Override
   public boolean isScriptFriendly()
   {
-    return false;
+    return scriptFriendly.isPresent();
   }
 
 
@@ -641,6 +640,11 @@ public final class AuthRate extends ConsoleApplication
           INFO_DESCRIPTION_VERBOSE.get());
       verbose.setPropertyName("verbose");
       argParser.addArgument(verbose);
+
+      scriptFriendly = new BooleanArgument("scriptFriendly", 'S',
+          "scriptFriendly", INFO_DESCRIPTION_SCRIPT_FRIENDLY.get());
+      scriptFriendly.setPropertyName("scriptFriendly");
+      argParser.addArgument(scriptFriendly);
     }
     catch (final ArgumentException ae)
     {
