@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2010 ForgeRock AS.
  */
 
 
@@ -73,8 +74,12 @@ public final class TimeBasedMatchingRuleTest
 
   private DN user5;
 
+  private DN user6;
+  private DN user7;
+  private DN user8;
 
- private final static String TIME_ATTR = "test-time-attribute";
+ private final static String TIME_ATTR = "test-time";
+ private final static String DATE_ATTR = "test-date";
 
 
   /**
@@ -96,6 +101,9 @@ public final class TimeBasedMatchingRuleTest
     user3 = DN.decode("cn=user3,dc=example,dc=com");
     user4 = DN.decode("cn=user4,dc=example,dc=com");
     user5 = DN.decode("cn=user5,dc=example,dc=com");
+    user6 = DN.decode("cn=user6,dc=example,dc=com");
+    user7 = DN.decode("cn=user7,dc=example,dc=com");
+    user8 = DN.decode("cn=user!,dc=example,dc=com");
 
     /**
     Extend the schema and add an attribute which is baseed on
@@ -106,11 +114,14 @@ public final class TimeBasedMatchingRuleTest
     "dn: cn=schema",
     "changetype: modify",
     "add: attributeTypes",
-    "attributeTypes: ( test-time-oid NAME 'test-time-attribute' DESC 'Test time attribute'  EQUALITY   " +
+    "attributeTypes: ( test-time-oid NAME 'test-time' DESC 'Test time attribute'  EQUALITY   " +
+    "generalizedTimeMatch ORDERING  generalizedTimeOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 SINGLE-VALUE )",
+    "attributeTypes: ( test-date-oid NAME 'test-date' DESC 'Test date attribute'  EQUALITY   " +
     "generalizedTimeMatch ORDERING  generalizedTimeOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 SINGLE-VALUE )",
     "-",
     "add: objectclasses",
-    "objectclasses: ( oc-oid NAME 'testOC' SUP top AUXILIARY MUST test-time-attribute)"
+    "objectclasses: ( testoc-oid NAME 'testOC' SUP top AUXILIARY MUST test-time)",
+    "objectclasses: ( testoc2-oid NAME 'testOC2' SUP top AUXILIARY MUST test-date)"
     );
     assertTrue(resultCode == 0);
   }
@@ -278,8 +289,11 @@ public final class TimeBasedMatchingRuleTest
 
 
    /**
-   * Test to search using the partial date and time matching rule for an assertion value.
-   */
+    * Test to search using the partial date and time matching rule
+    * for an assertion value.
+    * Dates for this test are hardcoded to avoid test failures depending
+    * on when the tests are launched.
+    */
   @Test()
   public void testPartialDateNTimeMatchingRuleUsingSearch() throws Exception
   {
@@ -288,13 +302,7 @@ public final class TimeBasedMatchingRuleTest
       populateEntries();
       InternalClientConnection conn =
            InternalClientConnection.getRootConnection();
-      //Get the current time.
-      GregorianCalendar cal =
-              new GregorianCalendar(TimeZone.getTimeZone("UTC"));
-      cal.setLenient(false);
-      int month = cal.get(Calendar.MONTH)+1; //month starts from 0 in the Calendar.
-      String assertion = cal.get(Calendar.DATE)+"D"+month+"M";
-
+      String assertion = "01D11M";
       InternalSearchOperation searchOperation =
            new InternalSearchOperation(
                 conn,
@@ -307,13 +315,13 @@ public final class TimeBasedMatchingRuleTest
                 Integer.MAX_VALUE,
                 Integer.MAX_VALUE,
                 false,
-                LDAPFilter.decode(TIME_ATTR+":"+EXT_PARTIAL_DATE_TIME_OID+":="+assertion),
+                LDAPFilter.decode(DATE_ATTR+":"+EXT_PARTIAL_DATE_TIME_OID+":="+assertion),
                 null,null);
 
       searchOperation.run();
       assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
       List<SearchResultEntry> entries = searchOperation.getSearchEntries();
-      assertTrue(entries.size()==3 && dnFoundInEntryList(entries,user1,user3,user5));
+      assertTrue(entries.size()==1 && dnFoundInEntryList(entries,user6));
     }
     finally
     {
@@ -537,35 +545,56 @@ public final class TimeBasedMatchingRuleTest
       "objectclass: testoc",
       "cn: user1",
       "sn: user1",
-      "test-time-attribute: "+ format(currentTime-4000*1000), //more than 1 hour old.
+      TIME_ATTR + ": "+ format(currentTime-4000*1000), //more than 1 hour old.
       "",
       "dn: cn=user2,dc=example,dc=com",
       "objectclass: person",
       "objectclass: testoc",
       "cn: user2",
       "sn: user2",
-      "test-time-attribute: " + format(currentTime-25*3600*1000), //more than  a day old.
+      TIME_ATTR + ": " + format(currentTime-25*3600*1000), //more than  a day old.
       "",
       "dn: cn=user3,dc=example,dc=com",
       "objectclass: person",
       "objectclass: testoc",
       "cn: user3",
       "sn: user3",
-      "test-time-attribute: " + format(currentTime+4000*1000),  //more than 1 hour in advance.
+      TIME_ATTR + ": " + format(currentTime+4000*1000),  //more than 1 hour in advance.
       "",
       "dn: cn=user4,dc=example,dc=com",
       "objectclass: person",
       "objectclass: testoc",
       "cn: user4",
       "sn: user4",
-      "test-time-attribute: " + format(currentTime+25*3600*1000),  // more than 1 day in advance
+      TIME_ATTR + ": " + format(currentTime+25*3600*1000),  // more than 1 day in advance
       "",
       "dn: cn=user5,dc=example,dc=com",
       "objectclass: person",
       "objectclass: testoc",
       "cn: user5",
       "sn: user5",
-      "test-time-attribute: " + format(currentTime) // now.
+      TIME_ATTR + ": " + format(currentTime), // now.
+      "",
+      "dn: cn=user6,dc=example,dc=com",
+      "objectclass: person",
+      "objectclass: testoc2",
+      "cn: user6",
+      "sn: user6",
+      DATE_ATTR + ": 19651101000000Z", // Nov 1st 1965
+      "",
+      "dn: cn=user7,dc=example,dc=com",
+      "objectclass: person",
+      "objectclass: testoc2",
+      "cn: user7",
+      "sn: user7",
+      DATE_ATTR + ": 20101104000000Z", // Nov 4th 2010
+      "",
+      "dn: cn=user8,dc=example,dc=com",
+      "objectclass: person",
+      "objectclass: testoc2",
+      "cn: user8",
+      "sn: user8",
+      DATE_ATTR + ": 20000101000000Z" // Jan 1st 2000
     );
   }
   }
