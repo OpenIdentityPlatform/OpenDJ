@@ -179,10 +179,10 @@ attributeTypes: ( 1.3.18.0.2.4.1108 NAME 'printer-aliases'
   SUBSTR caseIgnoreSubstringsMatch SYNTAX  1.3.6.1.4.1.1466.115.121.1.15{127}
   X-ORIGIN 'RFC 3712' )
 objectClasses: ( 1.3.18.0.2.6.254 NAME 'slpServicePrinter'
-  DESC 'Service Location Protocol (SLP) information.' AUXILIARY SUP slpService
+  DESC 'Service Location Protocol (SLP) information.' SUP slpService AUXILIARY
   X-ORIGIN 'RFC 3712' )
 objectClasses: ( 1.3.18.0.2.6.258 NAME 'printerAbstract'
-  DESC 'Printer related information.' ABSTRACT SUP top
+  DESC 'Printer related information.' SUP top ABSTRACT
   MAY ( printer-name $ printer-natural-language-configured $
   printer-location $ printer-info $ printer-more-info $
   printer-make-and-model $ printer-multiple-document-jobs-supported $
@@ -200,16 +200,16 @@ objectClasses: ( 1.3.18.0.2.6.258 NAME 'printerAbstract'
   printer-stacking-order-supported $ printer-output-features-supported )
   X-ORIGIN 'RFC 3712' )
 objectClasses: ( 1.3.18.0.2.6.255 NAME 'printerService'
-  DESC 'Printer information.' STRUCTURAL SUP printerAbstract
+  DESC 'Printer information.' SUP printerAbstract STRUCTURAL
   MAY ( printer-uri $ printer-xri-supported ) X-ORIGIN 'RFC 3712' )
 objectClasses: ( 1.3.18.0.2.6.257 NAME 'printerServiceAuxClass'
-  DESC 'Printer information.' AUXILIARY SUP printerAbstract
+  DESC 'Printer information.' SUP printerAbstract AUXILIARY
   MAY ( printer-uri $ printer-xri-supported ) X-ORIGIN 'RFC 3712' )
 objectClasses: ( 1.3.18.0.2.6.256 NAME 'printerIPP'
-  DESC 'Internet Printing Protocol (IPP) information.' AUXILIARY SUP top
+  DESC 'Internet Printing Protocol (IPP) information.' SUP top AUXILIARY
   MAY ( printer-ipp-versions-supported $
   printer-multiple-document-jobs-supported ) X-ORIGIN 'RFC 3712' )
 objectClasses: ( 1.3.18.0.2.6.253 NAME 'printerLPR' DESC 'LPR information.'
-  AUXILIARY SUP top MUST ( printer-name ) MAY ( printer-aliases )
+  SUP top AUXILIARY MUST ( printer-name ) MAY ( printer-aliases )
   X-ORIGIN 'RFC 3712' )
 
