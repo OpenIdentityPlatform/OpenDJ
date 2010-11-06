@@ -38,6 +38,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -85,22 +86,25 @@ public final class AuthRate extends ConsoleApplication
       }
     }
 
-    private final class BindUpdateStatsResultHandler
-        extends UpdateStatsResultHandler<BindResult>
+
+
+    private final class BindUpdateStatsResultHandler extends
+        UpdateStatsResultHandler<BindResult>
     {
-      private BindUpdateStatsResultHandler(long eTime) {
-        super(eTime);
+      private BindUpdateStatsResultHandler(long startTime)
+      {
+        super(startTime);
       }
 
+
+
       @Override
-      public void handleErrorResult(ErrorResultException error) {
-        if(error.getResult().getResultCode() != ResultCode.INVALID_CREDENTIALS)
+      public void handleErrorResult(ErrorResultException error)
+      {
+        super.handleErrorResult(error);
+
+        if (error.getResult().getResultCode() == ResultCode.INVALID_CREDENTIALS)
         {
-          super.handleErrorResult(error);
-        }
-        else
-        {
-          failedRecentCount.getAndIncrement();
           invalidCredRecentCount.getAndIncrement();
         }
       }
@@ -110,9 +114,18 @@ public final class AuthRate extends ConsoleApplication
     {
       private SearchRequest sr;
       private BindRequest br;
-
       private Object[] data;
+      private final char[] invalidPassword = "invalid-password".toCharArray();
 
+      private final ThreadLocal<Random> rng = new ThreadLocal<Random>()
+      {
+
+        protected Random initialValue()
+        {
+          return new Random();
+        }
+
+      };
 
 
       private BindWorkerThread(final AsynchronousConnection connection,
@@ -188,162 +201,172 @@ public final class AuthRate extends ConsoleApplication
         }
       }
 
+
+
       private FutureResult<BindResult> performBind(
-          final AsynchronousConnection connection,
-          final Object[] data,
+          final AsynchronousConnection connection, final Object[] data,
           final ResultHandler<? super BindResult> handler)
       {
-        if(bindRequest instanceof SimpleBindRequest)
+        final boolean useInvalidPassword;
+
+        // Avoid rng if possible.
+        switch (invalidCredPercent)
         {
-          SimpleBindRequest o = (SimpleBindRequest)bindRequest;
-          if(br == null)
+        case 0:
+          useInvalidPassword = false;
+          break;
+        case 100:
+          useInvalidPassword = true;
+          break;
+        default:
+          final Random r = rng.get();
+          final int p = r.nextInt(100);
+          useInvalidPassword = (p < invalidCredPercent);
+          break;
+        }
+
+        if (bindRequest instanceof SimpleBindRequest)
+        {
+          SimpleBindRequest o = (SimpleBindRequest) bindRequest;
+          if (br == null)
           {
             br = Requests.copyOfSimpleBindRequest(o);
           }
 
-          SimpleBindRequest sbr = (SimpleBindRequest)br;
+          SimpleBindRequest sbr = (SimpleBindRequest) br;
           if (data != null && o.getName() != null)
           {
             sbr.setName(String.format(o.getName(), data));
           }
-          if(successRecentCount.get() * ((float)invalidCredPercent/100) >
-              invalidCredRecentCount.get())
+          if (useInvalidPassword)
           {
-            sbr.setPassword("invalid-password".toCharArray());
+            sbr.setPassword(invalidPassword);
           }
           else
           {
             sbr.setPassword(o.getPassword());
           }
         }
-        else if(bindRequest instanceof DigestMD5SASLBindRequest)
+        else if (bindRequest instanceof DigestMD5SASLBindRequest)
         {
-          DigestMD5SASLBindRequest o = (DigestMD5SASLBindRequest)bindRequest;
-          if(br == null)
+          DigestMD5SASLBindRequest o = (DigestMD5SASLBindRequest) bindRequest;
+          if (br == null)
           {
             br = Requests.copyOfDigestMD5SASLBindRequest(o);
           }
 
-          DigestMD5SASLBindRequest sbr = (DigestMD5SASLBindRequest)br;
+          DigestMD5SASLBindRequest sbr = (DigestMD5SASLBindRequest) br;
           if (data != null)
           {
-            if(o.getAuthenticationID() != null)
+            if (o.getAuthenticationID() != null)
             {
-              sbr.setAuthenticationID(
-                  String.format(o.getAuthenticationID(), data));
+              sbr.setAuthenticationID(String.format(o.getAuthenticationID(),
+                  data));
             }
-            if(o.getAuthorizationID() != null)
+            if (o.getAuthorizationID() != null)
             {
-              sbr.setAuthorizationID(
-                  String.format(o.getAuthorizationID(), data));
+              sbr.setAuthorizationID(String.format(o.getAuthorizationID(), data));
             }
           }
-          if(successRecentCount.get() * ((float)invalidCredPercent/100) >
-              invalidCredRecentCount.get())
+          if (useInvalidPassword)
           {
-            sbr.setPassword("invalid-password".toCharArray());
+            sbr.setPassword(invalidPassword);
           }
           else
           {
             sbr.setPassword(o.getPassword());
           }
         }
-        else if(bindRequest instanceof CRAMMD5SASLBindRequest)
+        else if (bindRequest instanceof CRAMMD5SASLBindRequest)
         {
-          CRAMMD5SASLBindRequest o = (CRAMMD5SASLBindRequest)bindRequest;
-          if(br == null)
+          CRAMMD5SASLBindRequest o = (CRAMMD5SASLBindRequest) bindRequest;
+          if (br == null)
           {
             br = Requests.copyOfCRAMMD5SASLBindRequest(o);
           }
 
-          CRAMMD5SASLBindRequest sbr = (CRAMMD5SASLBindRequest)br;
+          CRAMMD5SASLBindRequest sbr = (CRAMMD5SASLBindRequest) br;
           if (data != null && o.getAuthenticationID() != null)
           {
-            sbr.setAuthenticationID(
-                String.format(o.getAuthenticationID(), data));
+            sbr.setAuthenticationID(String.format(o.getAuthenticationID(), data));
           }
-          if(successRecentCount.get() * ((float)invalidCredPercent/100) >
-              invalidCredRecentCount.get())
+          if (useInvalidPassword)
           {
-            sbr.setPassword("invalid-password".toCharArray());
+            sbr.setPassword(invalidPassword);
           }
           else
           {
             sbr.setPassword(o.getPassword());
           }
         }
-        else if(bindRequest instanceof GSSAPISASLBindRequest)
+        else if (bindRequest instanceof GSSAPISASLBindRequest)
         {
-          GSSAPISASLBindRequest o = (GSSAPISASLBindRequest)bindRequest;
-          if(br == null)
+          GSSAPISASLBindRequest o = (GSSAPISASLBindRequest) bindRequest;
+          if (br == null)
           {
             br = Requests.copyOfGSSAPISASLBindRequest(o);
           }
 
-          GSSAPISASLBindRequest sbr = (GSSAPISASLBindRequest)br;
+          GSSAPISASLBindRequest sbr = (GSSAPISASLBindRequest) br;
           if (data != null)
           {
-            if(o.getAuthenticationID() != null)
+            if (o.getAuthenticationID() != null)
             {
-              sbr.setAuthenticationID(
-                  String.format(o.getAuthenticationID(), data));
+              sbr.setAuthenticationID(String.format(o.getAuthenticationID(),
+                  data));
             }
-            if(o.getAuthorizationID() != null)
+            if (o.getAuthorizationID() != null)
             {
-              sbr.setAuthorizationID(
-                  String.format(o.getAuthorizationID(), data));
+              sbr.setAuthorizationID(String.format(o.getAuthorizationID(), data));
             }
           }
-          if(successRecentCount.get() * ((float)invalidCredPercent/100) >
-              invalidCredRecentCount.get())
+          if (useInvalidPassword)
           {
-            sbr.setPassword("invalid-password".toCharArray());
+            sbr.setPassword(invalidPassword);
           }
           else
           {
             sbr.setPassword(o.getPassword());
           }
         }
-        else if(bindRequest instanceof ExternalSASLBindRequest)
+        else if (bindRequest instanceof ExternalSASLBindRequest)
         {
-          ExternalSASLBindRequest o = (ExternalSASLBindRequest)bindRequest;
-          if(br == null)
+          ExternalSASLBindRequest o = (ExternalSASLBindRequest) bindRequest;
+          if (br == null)
           {
             br = Requests.copyOfExternalSASLBindRequest(o);
           }
 
-          ExternalSASLBindRequest sbr = (ExternalSASLBindRequest)br;
+          ExternalSASLBindRequest sbr = (ExternalSASLBindRequest) br;
           if (data != null && o.getAuthorizationID() != null)
           {
             sbr.setAuthorizationID(String.format(o.getAuthorizationID(), data));
           }
         }
-        else if(bindRequest instanceof PlainSASLBindRequest)
+        else if (bindRequest instanceof PlainSASLBindRequest)
         {
-          PlainSASLBindRequest o = (PlainSASLBindRequest)bindRequest;
-          if(br == null)
+          PlainSASLBindRequest o = (PlainSASLBindRequest) bindRequest;
+          if (br == null)
           {
             br = Requests.copyOfPlainSASLBindRequest(o);
           }
 
-          PlainSASLBindRequest sbr = (PlainSASLBindRequest)br;
+          PlainSASLBindRequest sbr = (PlainSASLBindRequest) br;
           if (data != null)
           {
-            if(o.getAuthenticationID() != null)
+            if (o.getAuthenticationID() != null)
             {
-              sbr.setAuthenticationID(
-                  String.format(o.getAuthenticationID(), data));
+              sbr.setAuthenticationID(String.format(o.getAuthenticationID(),
+                  data));
             }
-            if(o.getAuthorizationID() != null)
+            if (o.getAuthorizationID() != null)
             {
-              sbr.setAuthorizationID(
-                  String.format(o.getAuthorizationID(), data));
+              sbr.setAuthorizationID(String.format(o.getAuthorizationID(), data));
             }
           }
-          if(successRecentCount.get() * ((float)invalidCredPercent/100) >
-              invalidCredRecentCount.get())
+          if (useInvalidPassword)
           {
-            sbr.setPassword("invalid-password".toCharArray());
+            sbr.setPassword(invalidPassword);
           }
           else
           {
