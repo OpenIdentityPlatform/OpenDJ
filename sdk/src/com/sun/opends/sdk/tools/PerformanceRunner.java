@@ -78,7 +78,7 @@ abstract class PerformanceRunner implements ConnectionEventListener
 
     protected int successCount;
 
-    protected int searchCount;
+    protected int operationCount;
 
     protected int failedCount;
 
@@ -236,36 +236,45 @@ abstract class PerformanceRunner implements ConnectionEventListener
           gcDuration += bean.getCollectionTime();
         }
 
+        operationCount = operationRecentCount.getAndSet(0);
         successCount = successRecentCount.getAndSet(0);
-        searchCount = operationRecentCount.getAndSet(0);
         failedCount = failedRecentCount.getAndSet(0);
         waitTime = waitRecentTime.getAndSet(0);
+
+        final int resultCount = successCount + failedCount;
+
+        totalOperationCount += operationCount;
         totalSuccessCount += successCount;
-        totalOperationCount += searchCount;
         totalFailedCount += failedCount;
         totalWaitTime += waitTime;
+
+        final long totalResultCount = totalSuccessCount + totalFailedCount;
+
         recentDuration = statTime - lastStatTime;
         averageDuration = statTime - startTime;
         recentDuration -= gcDuration - lastGCDuration;
         averageDuration -= gcDuration;
         recentDuration /= 1000.0;
         averageDuration /= 1000.0;
-        strings[0] = String.format("%.1f", successCount / recentDuration);
-        strings[1] = String.format("%.1f", totalSuccessCount / averageDuration);
-        if (successCount > 0)
+
+        strings[0] = String.format("%.1f", resultCount / recentDuration);
+        strings[1] = String.format("%.1f", totalResultCount / averageDuration);
+
+        if (resultCount > 0)
         {
           strings[2] = String.format("%.3f",
               (waitTime - (gcDuration - lastGCDuration))
-                  / (double) successCount / 1000000.0);
+                  / (double) resultCount / 1000000.0);
         }
         else
         {
           strings[2] = "-";
         }
-        if (totalSuccessCount > 0)
+
+        if (totalResultCount > 0)
         {
           strings[3] = String.format("%.3f", (totalWaitTime - gcDuration)
-              / (double) totalSuccessCount / 1000000.0);
+              / (double) totalResultCount / 1000000.0);
         }
         else
         {
@@ -323,7 +332,7 @@ abstract class PerformanceRunner implements ConnectionEventListener
           else
           {
             index = array.size()
-                - (int) Math.floor((percent / 100.0) * totalSuccessCount) - 1;
+                - (int) Math.floor((percent / 100.0) * totalResultCount) - 1;
             if (index < 0)
             {
               strings[i++] = String.format("*%.3f", array.get(0) / 1000000.0);
@@ -335,14 +344,13 @@ abstract class PerformanceRunner implements ConnectionEventListener
             }
           }
         }
-        strings[i++] = String
-            .format("%.1f", totalFailedCount / averageDuration);
+        strings[i++] = String.format("%.1f", failedCount / recentDuration);
         if (isAsync)
         {
-          if (successCount > 0)
+          if (resultCount > 0)
           {
-            strings[i++] = String.format("%.1f", (double) searchCount
-                / successCount);
+            strings[i++] = String.format("%.1f", (double) operationCount
+                / resultCount);
           }
           else
           {
@@ -390,20 +398,13 @@ abstract class PerformanceRunner implements ConnectionEventListener
    */
   class UpdateStatsResultHandler<S extends Result> implements ResultHandler<S>
   {
-    private long eTime;
+    private final long startTime;
 
 
 
-    UpdateStatsResultHandler(final long eTime)
+    UpdateStatsResultHandler(final long startTime)
     {
-      this.eTime = eTime;
-    }
-
-
-
-    public long getETime()
-    {
-      return eTime;
+      this.startTime = startTime;
     }
 
 
@@ -411,7 +412,12 @@ abstract class PerformanceRunner implements ConnectionEventListener
     public void handleErrorResult(final ErrorResultException error)
     {
       failedRecentCount.getAndIncrement();
-      app.println(LocalizableMessage.raw(error.getResult().toString()));
+      updateStats();
+
+      if (app.isVerbose())
+      {
+        app.println(LocalizableMessage.raw(error.getResult().toString()));
+      }
     }
 
 
@@ -419,7 +425,14 @@ abstract class PerformanceRunner implements ConnectionEventListener
     public void handleResult(final S result)
     {
       successRecentCount.getAndIncrement();
-      eTime = System.nanoTime() - eTime;
+      updateStats();
+    }
+
+
+
+    private void updateStats()
+    {
+      final long eTime = System.nanoTime() - startTime;
       waitRecentTime.getAndAdd(eTime);
       synchronized (this)
       {

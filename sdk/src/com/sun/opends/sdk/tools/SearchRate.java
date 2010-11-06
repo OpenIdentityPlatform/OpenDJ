@@ -60,9 +60,9 @@ public final class SearchRate extends ConsoleApplication
     private final class SearchStatsHandler extends
         UpdateStatsResultHandler<Result> implements SearchResultHandler
     {
-      private SearchStatsHandler(final long eTime)
+      private SearchStatsHandler(final long startTime)
       {
-        super(eTime);
+        super(startTime);
       }
 
 
