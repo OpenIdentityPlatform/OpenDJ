@@ -844,9 +844,14 @@ final class LDAPServerFilter extends BaseFilter
         final int messageID, final AbandonRequest request)
         throws UnexpectedRequestException
     {
-      final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR.get(
-          ctx.getConnection()).getServerConnection();
-      conn.handleAbandon(messageID, request);
+      final ClientContextImpl clientContext = LDAP_CONNECTION_ATTR.get(ctx
+          .getConnection());
+      if (clientContext != null)
+      {
+        final ServerConnection<Integer> conn = clientContext
+            .getServerConnection();
+        conn.handleAbandon(messageID, request);
+      }
     }
 
 
@@ -855,10 +860,16 @@ final class LDAPServerFilter extends BaseFilter
     public void addRequest(final FilterChainContext ctx, final int messageID,
         final AddRequest request) throws UnexpectedRequestException
     {
-      final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR.get(
-          ctx.getConnection()).getServerConnection();
-      final AddHandler handler = new AddHandler(messageID, ctx.getConnection());
-      conn.handleAdd(messageID, request, handler, handler);
+      final ClientContextImpl clientContext = LDAP_CONNECTION_ATTR.get(ctx
+          .getConnection());
+      if (clientContext != null)
+      {
+        final ServerConnection<Integer> conn = clientContext
+            .getServerConnection();
+        final AddHandler handler = new AddHandler(messageID,
+            ctx.getConnection());
+        conn.handleAdd(messageID, request, handler, handler);
+      }
     }
 
 
@@ -868,11 +879,16 @@ final class LDAPServerFilter extends BaseFilter
         final int version, final GenericBindRequest bindContext)
         throws UnexpectedRequestException
     {
-      final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR.get(
-          ctx.getConnection()).getServerConnection();
-      final BindHandler handler = new BindHandler(messageID,
-          ctx.getConnection());
-      conn.handleBind(messageID, version, bindContext, handler, handler);
+      final ClientContextImpl clientContext = LDAP_CONNECTION_ATTR.get(ctx
+          .getConnection());
+      if (clientContext != null)
+      {
+        final ServerConnection<Integer> conn = clientContext
+            .getServerConnection();
+        final BindHandler handler = new BindHandler(messageID,
+            ctx.getConnection());
+        conn.handleBind(messageID, version, bindContext, handler, handler);
+      }
     }
 
 
@@ -882,11 +898,16 @@ final class LDAPServerFilter extends BaseFilter
         final int messageID, final CompareRequest request)
         throws UnexpectedRequestException
     {
-      final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR.get(
-          ctx.getConnection()).getServerConnection();
-      final CompareHandler handler = new CompareHandler(messageID,
-          ctx.getConnection());
-      conn.handleCompare(messageID, request, handler, handler);
+      final ClientContextImpl clientContext = LDAP_CONNECTION_ATTR.get(ctx
+          .getConnection());
+      if (clientContext != null)
+      {
+        final ServerConnection<Integer> conn = clientContext
+            .getServerConnection();
+        final CompareHandler handler = new CompareHandler(messageID,
+            ctx.getConnection());
+        conn.handleCompare(messageID, request, handler, handler);
+      }
     }
 
 
@@ -896,11 +917,16 @@ final class LDAPServerFilter extends BaseFilter
         final int messageID, final DeleteRequest request)
         throws UnexpectedRequestException
     {
-      final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR.get(
-          ctx.getConnection()).getServerConnection();
-      final DeleteHandler handler = new DeleteHandler(messageID,
-          ctx.getConnection());
-      conn.handleDelete(messageID, request, handler, handler);
+      final ClientContextImpl clientContext = LDAP_CONNECTION_ATTR.get(ctx
+          .getConnection());
+      if (clientContext != null)
+      {
+        final ServerConnection<Integer> conn = clientContext
+            .getServerConnection();
+        final DeleteHandler handler = new DeleteHandler(messageID,
+            ctx.getConnection());
+        conn.handleDelete(messageID, request, handler, handler);
+      }
     }
 
 
@@ -910,12 +936,16 @@ final class LDAPServerFilter extends BaseFilter
         final FilterChainContext ctx, final int messageID,
         final ExtendedRequest<R> request) throws UnexpectedRequestException
     {
-      final ExtendedHandler<R> handler = new ExtendedHandler<R>(messageID,
-          ctx.getConnection());
-
-      final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR.get(
-          ctx.getConnection()).getServerConnection();
-      conn.handleExtendedRequest(messageID, request, handler, handler);
+      final ClientContextImpl clientContext = LDAP_CONNECTION_ATTR.get(ctx
+          .getConnection());
+      if (clientContext != null)
+      {
+        final ServerConnection<Integer> conn = clientContext
+            .getServerConnection();
+        final ExtendedHandler<R> handler = new ExtendedHandler<R>(messageID,
+            ctx.getConnection());
+        conn.handleExtendedRequest(messageID, request, handler, handler);
+      }
     }
 
 
@@ -925,11 +955,16 @@ final class LDAPServerFilter extends BaseFilter
         final int messageID, final ModifyDNRequest request)
         throws UnexpectedRequestException
     {
-      final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR.get(
-          ctx.getConnection()).getServerConnection();
-      final ModifyDNHandler handler = new ModifyDNHandler(messageID,
-          ctx.getConnection());
-      conn.handleModifyDN(messageID, request, handler, handler);
+      final ClientContextImpl clientContext = LDAP_CONNECTION_ATTR.get(ctx
+          .getConnection());
+      if (clientContext != null)
+      {
+        final ServerConnection<Integer> conn = clientContext
+            .getServerConnection();
+        final ModifyDNHandler handler = new ModifyDNHandler(messageID,
+            ctx.getConnection());
+        conn.handleModifyDN(messageID, request, handler, handler);
+      }
     }
 
 
@@ -939,11 +974,16 @@ final class LDAPServerFilter extends BaseFilter
         final int messageID, final ModifyRequest request)
         throws UnexpectedRequestException
     {
-      final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR.get(
-          ctx.getConnection()).getServerConnection();
-      final ModifyHandler handler = new ModifyHandler(messageID,
-          ctx.getConnection());
-      conn.handleModify(messageID, request, handler, handler);
+      final ClientContextImpl clientContext = LDAP_CONNECTION_ATTR.get(ctx
+          .getConnection());
+      if (clientContext != null)
+      {
+        final ServerConnection<Integer> conn = clientContext
+            .getServerConnection();
+        final ModifyHandler handler = new ModifyHandler(messageID,
+            ctx.getConnection());
+        conn.handleModify(messageID, request, handler, handler);
+      }
     }
 
 
@@ -953,11 +993,16 @@ final class LDAPServerFilter extends BaseFilter
         final int messageID, final SearchRequest request)
         throws UnexpectedRequestException
     {
-      final ServerConnection<Integer> conn = LDAP_CONNECTION_ATTR.get(
-          ctx.getConnection()).getServerConnection();
-      final SearchHandler handler = new SearchHandler(messageID,
-          ctx.getConnection());
-      conn.handleSearch(messageID, request, handler, handler);
+      final ClientContextImpl clientContext = LDAP_CONNECTION_ATTR.get(ctx
+          .getConnection());
+      if (clientContext != null)
+      {
+        final ServerConnection<Integer> conn = clientContext
+            .getServerConnection();
+        final SearchHandler handler = new SearchHandler(messageID,
+            ctx.getConnection());
+        conn.handleSearch(messageID, request, handler, handler);
+      }
     }
 
 
