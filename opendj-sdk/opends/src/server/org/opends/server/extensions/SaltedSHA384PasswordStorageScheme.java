@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2010 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -83,6 +84,8 @@ public class SaltedSHA384PasswordStorageScheme
   private static final int NUM_SALT_BYTES = 8;
 
 
+  // The size of the digest in bytes.
+  private static final int SHA384_LENGTH = 384 / 8;
 
   // The message digest that will actually be used to generate the 384-bit SHA-2
   // hashes.
@@ -270,18 +273,21 @@ public class SaltedSHA384PasswordStorageScheme
   public boolean passwordMatches(ByteSequence plaintextPassword,
                                  ByteSequence storedPassword)
   {
-    // Base64-decode the stored value and take the last 8 bytes as the salt.
-    byte[] saltBytes = new byte[NUM_SALT_BYTES];
-    byte[] digestBytes;
+    // Base64-decode the stored value and take the first 384 bits
+    // (SHA384_LENGTH) as the digest.
+    byte[] saltBytes;
+    byte[] digestBytes = new byte[SHA384_LENGTH];
+    int saltLength = 0;
+
     try
     {
       byte[] decodedBytes = Base64.decode(storedPassword.toString());
 
-      int digestLength = decodedBytes.length - NUM_SALT_BYTES;
-      digestBytes = new byte[digestLength];
-      System.arraycopy(decodedBytes, 0, digestBytes, 0, digestLength);
-      System.arraycopy(decodedBytes, digestLength, saltBytes, 0,
-                       NUM_SALT_BYTES);
+      saltLength = decodedBytes.length - SHA384_LENGTH;
+      saltBytes = new byte[saltLength];
+      System.arraycopy(decodedBytes, 0, digestBytes, 0, SHA384_LENGTH);
+      System.arraycopy(decodedBytes, SHA384_LENGTH, saltBytes, 0,
+                       saltLength);
     }
     catch (Exception e)
     {
@@ -299,10 +305,10 @@ public class SaltedSHA384PasswordStorageScheme
 
     // Use the salt to generate a digest based on the provided plain-text value.
     int plainBytesLength = plaintextPassword.length();
-    byte[] plainPlusSalt = new byte[plainBytesLength + NUM_SALT_BYTES];
+    byte[] plainPlusSalt = new byte[plainBytesLength + saltLength];
     plaintextPassword.copyTo(plainPlusSalt);
     System.arraycopy(saltBytes, 0,plainPlusSalt, plainBytesLength,
-                     NUM_SALT_BYTES);
+                     saltLength);
 
     byte[] userDigestBytes;
 
