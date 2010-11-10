@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2010 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -301,7 +302,7 @@ public abstract class PasswordStorageSchemeTestCase
    * @param allowPreencoded whether or not to allow pre-encoded passwords
    * @return the previous value for the allow preencoded passwords
    */
-  private boolean setAllowPreencodedPasswords(boolean allowPreencoded)
+  protected boolean setAllowPreencodedPasswords(boolean allowPreencoded)
           throws Exception
   {
     // This code was borrowed from
