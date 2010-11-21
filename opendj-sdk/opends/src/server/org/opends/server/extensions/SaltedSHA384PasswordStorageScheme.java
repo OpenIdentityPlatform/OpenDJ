@@ -284,6 +284,14 @@ public class SaltedSHA384PasswordStorageScheme
       byte[] decodedBytes = Base64.decode(storedPassword.toString());
 
       saltLength = decodedBytes.length - SHA384_LENGTH;
+      if (saltLength <= 0)
+      {
+        Message message =
+          ERR_PWSCHEME_INVALID_BASE64_DECODED_STORED_PASSWORD.get(
+          storedPassword.toString());
+        ErrorLogger.logError(message);
+        return false;
+      }
       saltBytes = new byte[saltLength];
       System.arraycopy(decodedBytes, 0, digestBytes, 0, SHA384_LENGTH);
       System.arraycopy(decodedBytes, SHA384_LENGTH, saltBytes, 0,

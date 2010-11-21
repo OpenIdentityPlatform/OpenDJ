@@ -99,7 +99,7 @@ public class SaltedSHA256PasswordStorageSchemeTestCase
     {
       new Object[] { "secret", "{SSHA256}xIar81hLva6DoMGVtk5WWfJTnBvkyAsYkj0phSdBBDW2DC1dXI79cw==" }
     };
-}
+  }
 
   @Test(dataProvider = "testSSHA256Passwords")
   public void testAuthSSHA256Passwords(
