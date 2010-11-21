@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2010 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -278,6 +279,14 @@ public class SaltedSHA1PasswordStorageScheme
       byte[] decodedBytes = Base64.decode(storedPassword.toString());
 
       saltLength = decodedBytes.length - SHA1_LENGTH;
+      if (saltLength <= 0)
+      {
+        Message message =
+          ERR_PWSCHEME_INVALID_BASE64_DECODED_STORED_PASSWORD.get(
+          storedPassword.toString());
+        ErrorLogger.logError(message);
+        return false;
+      }
       saltBytes = new byte[saltLength];
       System.arraycopy(decodedBytes, 0, digestBytes, 0, SHA1_LENGTH);
       System.arraycopy(decodedBytes, SHA1_LENGTH, saltBytes, 0,

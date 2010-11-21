@@ -23,16 +23,23 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2010 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
 
+import static org.testng.Assert.*;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+import org.opends.server.TestCaseUtils;
 
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.
             SaltedSHA384PasswordStorageSchemeCfgDefn;
 import org.opends.server.admin.std.server.SaltedSHA384PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
+import org.opends.server.types.Entry;
 
 
 
@@ -74,5 +81,67 @@ public class SaltedSHA384PasswordStorageSchemeTestCase
     scheme.initializePasswordStorageScheme(configuration);
     return scheme;
   }
+
+  /**
+   * Retrieves a set of passwords (plain and SSHA384 encrypted) that may
+   * be used to test the compatibility of SSHA384 passwords.
+   * The encrypted versions have been provided by external tools or
+   * users
+   *
+   * @return  A set of couple (cleartext, encrypted) passwords that
+   *          may be used to test the SSHA384 password storage scheme
+   */
+
+  @DataProvider(name = "testSSHA384Passwords")
+  public Object[][] getTestSSHA384Passwords()
+         throws Exception
+  {
+    return new Object[][]
+    {
+      // Note that this test password has been generated with OpenDJ
+      // Ideally, they should come from other projects, programs
+      new Object[] { "secret", "{SSHA384}+Cw4SXSlJ9q++MCoOan5nWEcLEAMeRo4Y+1gmcZ8JinT9fz/5QG+npm8pQv2J2skOHy+FioGcig=" }
+    };
+}
+
+  @Test(dataProvider = "testSSHA384Passwords")
+  public void testAuthSSHA384Passwords(
+          String plaintextPassword,
+          String encodedPassword) throws Exception
+  {
+    // Start/clear-out the memory backend
+    TestCaseUtils.initializeTestBackend(true);
+
+    boolean allowPreencodedDefault = setAllowPreencodedPasswords(true);
+
+    try {
+
+      Entry userEntry = TestCaseUtils.makeEntry(
+       "dn: uid=testSSHA384.user,o=test",
+       "objectClass: top",
+       "objectClass: person",
+       "objectClass: organizationalPerson",
+       "objectClass: inetOrgPerson",
+       "uid: testSSHA384.user",
+       "givenName: TestSSHA384",
+       "sn: User",
+       "cn: TestSSHA384 User",
+       "userPassword: " + encodedPassword);
+
+
+      // Add the entry
+      TestCaseUtils.addEntry(userEntry);
+
+      assertTrue(TestCaseUtils.canBind("uid=testSSHA384.user,o=test",
+                  plaintextPassword),
+               "Failed to bind when pre-encoded password = \"" +
+               encodedPassword + "\" and " +
+               "plaintext password = \"" +
+               plaintextPassword + "\"" );
+    } finally {
+      setAllowPreencodedPasswords(allowPreencodedDefault);
+    }
+  }
+
 }
 
