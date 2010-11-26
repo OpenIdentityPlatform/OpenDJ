@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2010 ForgeRock AS.
  */
 package org.opends.server.replication.server;
 
@@ -36,6 +37,8 @@ import com.sleepycat.je.DatabaseEntry;
  */
 public class ReplicationDraftCNKey extends DatabaseEntry
 {
+  private static final long serialVersionUID = 1L;
+
   /**
    * Creates a new ReplicationKey from the given draft ChangeNumber.
    * @param draftCN The draft change number to use.

@@ -21,6 +21,7 @@
 # CDDL HEADER END
 #
 #      Copyright 2006-2010 Sun Microsystems, Inc.
+#      Portions Copyright 2010 ForgeRock AS.
 #
 #
 # This file contains the primary Directory Server configuration.  It must not
@@ -195,6 +196,9 @@ ds-cfg-db-run-cleaner: true
 ds-cfg-db-cleaner-min-utilization: 50
 ds-cfg-db-evictor-lru-only: true
 ds-cfg-db-evictor-nodes-per-scan: 10
+ds-cfg-db-evictor-core-threads: 1
+ds-cfg-db-evictor-max-threads: 10
+ds-cfg-db-evictor-keep-alive: 600 seconds
 ds-cfg-db-log-file-max: 10 megabytes
 ds-cfg-db-logging-file-handler-on: true
 ds-cfg-db-logging-level: CONFIG
