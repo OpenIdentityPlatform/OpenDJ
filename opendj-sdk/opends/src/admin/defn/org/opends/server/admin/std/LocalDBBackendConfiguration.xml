@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2010 Sun Microsystems, Inc.
+  !      Portions Copyright 2010 ForgeRock AS.
   ! -->
 <adm:managed-object name="local-db-backend"
   plural-name="local-db-backends" package="org.opends.server.admin.std"
@@ -558,6 +559,82 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-db-evictor-nodes-per-scan</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="db-evictor-core-threads" advanced="true">
+    <adm:synopsis>
+      Specifies the core number of threads in the eviction thread pool.
+    </adm:synopsis>
+    <adm:description>
+      Specifies the core number of threads in the eviction thread pool.
+      These threads help keep memory usage within cache bounds,
+      offloading work from application threads. db-evictor-core-threads,
+      db-evictor-max-threads and db-evictor-keep-alive are used to configure
+      the core, max and keepalive attributes for the eviction thread pool.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>1</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="0" upper-limit="2147483647" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-db-evictor-core-threads</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="db-evictor-max-threads" advanced="true">
+    <adm:synopsis>
+      Specifies the maximum number of threads in the eviction thread pool.
+    </adm:synopsis>
+    <adm:description>
+      Specifies the maximum number of threads in the eviction thread pool.
+      These threads help keep memory usage within cache bounds,
+      offloading work from application threads. db-evictor-core-threads,
+      db-evictor-max-threads and db-evictor-keep-alive are used to configure
+      the core, max and keepalive attributes for the eviction thread pool.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>10</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="1" upper-limit="2147483647" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-db-evictor-max-threads</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="db-evictor-keep-alive" advanced="true">
+    <adm:synopsis>
+      The duration that excess threads in the eviction thread pool will
+      stay idle. After this period, idle threads will terminate.
+    </adm:synopsis>
+    <adm:description>
+      The duration that excess threads in the eviction thread pool will
+      stay idle. After this period, idle threads will terminate.
+      db-evictor-core-threads, db-evictor-max-threads and
+      db-evictor-keep-alive are used to configure the core, max and
+      keepalive attributes for the eviction thread pool.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>600s</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration base-unit="s" lower-limit="1" upper-limit="86400" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-db-evictor-keep-alive</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

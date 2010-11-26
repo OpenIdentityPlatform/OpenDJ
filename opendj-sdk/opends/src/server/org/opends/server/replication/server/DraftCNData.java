@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2010 ForgeRock AS.
  */
 package org.opends.server.replication.server;
 
@@ -39,6 +40,8 @@ import com.sleepycat.je.DatabaseEntry;
 public class DraftCNData extends DatabaseEntry
 {
   private static final String FIELD_SEPARATOR = "!";
+
+  private static final long serialVersionUID = 1L;
 
   String value;
   String serviceID;

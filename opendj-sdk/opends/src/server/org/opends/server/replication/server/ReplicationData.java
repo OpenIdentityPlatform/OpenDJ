@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2010 ForgeRock AS.
  */
 package org.opends.server.replication.server;
 
@@ -40,6 +41,8 @@ import org.opends.server.replication.protocol.UpdateMsg;
  */
 public class ReplicationData extends DatabaseEntry
 {
+  private static final long serialVersionUID = 1L;
+
   /**
    * Creates a new ReplicationData object from an UpdateMsg.
    *

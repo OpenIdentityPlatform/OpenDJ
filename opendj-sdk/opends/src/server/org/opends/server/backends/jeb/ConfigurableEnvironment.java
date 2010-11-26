@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2010 ForgeRock AS.
  */
 package org.opends.server.backends.jeb;
 
@@ -135,6 +136,25 @@ public class ConfigurableEnvironment
   public static final String ATTR_EVICTOR_NODES_PER_SCAN =
        ConfigConstants.NAME_PREFIX_CFG + "db-evictor-nodes-per-scan";
 
+  /**
+   * The name of the attribute which configures the minimum number of threads
+   * of the database cache evictor pool.
+   */
+  public static final String ATTR_EVICTOR_CORE_THREADS =
+       ConfigConstants.NAME_PREFIX_CFG + "db-evictor-core-threads";
+  /**
+   * The name of the attribute which configures the maximum number of threads
+   * of the database cache evictor pool.
+   */
+  public static final String ATTR_EVICTOR_MAX_THREADS =
+       ConfigConstants.NAME_PREFIX_CFG + "db-evictor-max-threads";
+
+  /**
+   * The name of the attribute which configures the time excess threads
+   * of the database cache evictor pool are kept alive.
+   */
+  public static final String ATTR_EVICTOR_KEEP_ALIVE =
+       ConfigConstants.NAME_PREFIX_CFG + "db-evictor-keep-alive";
 
   /**
    * The name of the attribute which configures whether the logging file
@@ -375,6 +395,9 @@ public class ConfigurableEnvironment
       registerProp("je.env.runCleaner", ATTR_DATABASE_RUN_CLEANER);
       registerProp("je.evictor.lruOnly", ATTR_EVICTOR_LRU_ONLY);
       registerProp("je.evictor.nodesPerScan", ATTR_EVICTOR_NODES_PER_SCAN);
+      registerProp("je.evictor.coreThreads", ATTR_EVICTOR_CORE_THREADS);
+      registerProp("je.evictor.maxThreads", ATTR_EVICTOR_MAX_THREADS);
+      registerProp("je.evictor.keepAlive", ATTR_EVICTOR_KEEP_ALIVE);
       registerProp("je.log.fileMax", ATTR_DATABASE_LOG_FILE_MAX);
       registerProp("je.checkpointer.bytesInterval",
                    ATTR_CHECKPOINTER_BYTES_INTERVAL);
