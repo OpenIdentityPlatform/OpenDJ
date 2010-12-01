@@ -1668,6 +1668,11 @@ public class ADSContext
       privilegeAtt = addRootPrivileges();
     }
     attrs.put(privilegeAtt);
+
+    // Add the RootDNs Password policy so the password do not expire.
+    attrs.put("ds-pwp-password-policy-dn",
+        "cn=Root Password Policy,cn=Password Policies,cn=config");
+
     return attrs;
   }
 
