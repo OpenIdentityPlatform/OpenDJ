@@ -67,8 +67,7 @@ public class ASN1BufferWriterTestCase extends ASN1WriterTestCase
   protected ASN1Reader getReader(final byte[] encodedBytes)
       throws DecodeException, IOException
   {
-    final ByteBufferWrapper buffer = new ByteBufferWrapper(
-        ASN1BufferReaderTestCase.memoryManager, ByteBuffer.wrap(encodedBytes));
+    final ByteBufferWrapper buffer = new ByteBufferWrapper(ByteBuffer.wrap(encodedBytes));
     final ASN1BufferReader reader = new ASN1BufferReader(0);
     reader.appendBytesRead(buffer);
     return reader;

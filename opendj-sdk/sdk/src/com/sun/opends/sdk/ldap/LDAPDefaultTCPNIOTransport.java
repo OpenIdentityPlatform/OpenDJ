@@ -29,12 +29,7 @@ package com.sun.opends.sdk.ldap;
 
 
 
-import static org.testng.Assert.assertTrue;
-
-import java.net.Socket;
-import java.util.Random;
-
-import org.testng.annotations.Test;
+import java.io.IOException;
 
 import org.glassfish.grizzly.TransportFactory;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
@@ -42,27 +37,44 @@ import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 
 
 /**
- * Tests Global Transport Factory class.
+ * The default TCPNIOTransport which all LDAPConnectionFactories and
+ * LDAPListeners will use unless otherwise specified in their options.
  */
-public class GlobalTransportFactoryTestCase extends LDAPTestCase
+final class LDAPDefaultTCPNIOTransport
 {
-  @Test()
-  public void testGlobalTransport() throws Exception
+  private static final TCPNIOTransport DEFAULT_TRANSPORT = TransportFactory
+      .getInstance().createTCPTransport();
+
+  static
   {
-    // Create a transport.
-    final TransportFactory instance = GlobalTransportFactory.getInstance();
-    final TCPNIOTransport transport = instance.createTCPTransport();
-    final Random r = new Random();
-    int port = r.nextInt(10000);
-    if (port < 1000)
+    try
     {
-      port += 1000;
+      DEFAULT_TRANSPORT.start();
     }
-    transport.bind(port);
-    // Establish a socket connection to see if the transport factory works.
-    final Socket socket = new Socket("localhost", port);
-    // Successfully connected if there is no exception.
-    assertTrue(socket.isConnected());
-    // Don't stop the transport because it is shared with the ldap server.
+    catch (final IOException e)
+    {
+      throw new RuntimeException(e);
+    }
   }
+
+
+
+  /**
+   * Returns the default TCPNIOTransport which all LDAPConnectionFactories and
+   * LDAPListeners will use unless otherwise specified in their options.
+   *
+   * @return The default TCPNIOTransport.
+   */
+  public static TCPNIOTransport getInstance()
+  {
+    return DEFAULT_TRANSPORT;
+  }
+
+
+
+  private LDAPDefaultTCPNIOTransport()
+  {
+    // Prevent instantiation.
+  }
+
 }

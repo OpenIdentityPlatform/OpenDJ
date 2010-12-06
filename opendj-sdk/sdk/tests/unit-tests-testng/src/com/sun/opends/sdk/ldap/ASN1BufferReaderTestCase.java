@@ -36,7 +36,6 @@ import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1ReaderTestCase;
 
 import org.glassfish.grizzly.memory.ByteBufferWrapper;
-import org.glassfish.grizzly.memory.DefaultMemoryManager;
 
 
 
@@ -45,16 +44,11 @@ import org.glassfish.grizzly.memory.DefaultMemoryManager;
  */
 public class ASN1BufferReaderTestCase extends ASN1ReaderTestCase
 {
-  public final static DefaultMemoryManager memoryManager = new DefaultMemoryManager();
-
-
-
   @Override
   protected ASN1Reader getReader(final byte[] b, final int maxElementSize)
       throws IOException
   {
-    final ByteBufferWrapper buffer = new ByteBufferWrapper(memoryManager,
-        ByteBuffer.wrap(b));
+    final ByteBufferWrapper buffer = new ByteBufferWrapper(ByteBuffer.wrap(b));
     final ASN1BufferReader reader = new ASN1BufferReader(maxElementSize);
     reader.appendBytesRead(buffer);
     return reader;

@@ -155,15 +155,6 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements ASN1Writer,
         visible = newByteBuffer.put(visible);
       }
     }
-
-
-
-    @Override
-    public ByteBufferWrapper flip()
-    {
-      usable = false;
-      return super.flip();
-    }
   }
 
 
@@ -697,6 +688,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements ASN1Writer,
 
   Buffer getBuffer()
   {
+    outBuffer.usable = false;
     return outBuffer.flip();
   }
 

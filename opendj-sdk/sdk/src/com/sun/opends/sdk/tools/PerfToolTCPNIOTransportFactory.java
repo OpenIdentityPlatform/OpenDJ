@@ -25,117 +25,58 @@
  *      Copyright 2010 Sun Microsystems, Inc.
  */
 
-package com.sun.opends.sdk.ldap;
+package com.sun.opends.sdk.tools;
 
 
 
-import java.io.IOException;
-
-import org.glassfish.grizzly.TransportFactory;
+import org.glassfish.grizzly.Grizzly;
+import org.glassfish.grizzly.memory.HeapMemoryManager;
+import org.glassfish.grizzly.nio.DefaultNIOTransportFactory;
+import org.glassfish.grizzly.nio.DefaultSelectionKeyHandler;
+import org.glassfish.grizzly.nio.DefaultSelectorHandler;
+import org.glassfish.grizzly.nio.tmpselectors.TemporarySelectorPool;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.UDPNIOTransport;
+import org.glassfish.grizzly.threadpool.AbstractThreadPool;
+import org.glassfish.grizzly.threadpool.GrizzlyExecutorService;
 import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
-
-import com.sun.opends.sdk.util.StaticUtils;
 
 
 
 /**
- * A static Grizzly transport that can be used by default globally in the SDK.
+ * The TCPNIOTransportFactory which performance tools will use.
  */
-public final class GlobalTransportFactory extends TransportFactory
+final class PerfToolTCPNIOTransportFactory extends DefaultNIOTransportFactory
 {
-  private static boolean isInitialized = false;
-
-
-
-  /**
-   * Returns the global Grizzly transport factory.
-   *
-   * @return The global Grizzly transport factory.
-   */
-  public static synchronized TransportFactory getInstance()
-  {
-    if (!isInitialized)
-    {
-      TransportFactory.setInstance(new GlobalTransportFactory());
-      isInitialized = true;
-    }
-    return TransportFactory.getInstance();
-  }
-
-
-
   private int selectors;
 
-  private int linger = -1;
+  private int linger = 0;
 
   private boolean tcpNoDelay = true;
 
   private boolean reuseAddress = true;
 
-  private TCPNIOTransport globalTCPNIOTransport = null;
-
-
-
-  private GlobalTransportFactory()
-  {
-    // Prevent instantiation.
-  }
+  private TCPNIOTransport singletonTransport = null;
 
 
 
   /**
-   * Close the {@link org.glassfish.grizzly.TransportFactory} and release all
-   * resources.
-   */
-  @Override
-  public synchronized void close()
-  {
-    if (globalTCPNIOTransport != null)
-    {
-      try
-      {
-        globalTCPNIOTransport.stop();
-      }
-      catch (final IOException e)
-      {
-        StaticUtils.DEBUG_LOG
-            .warning("Error shutting down Grizzly TCP NIO transport: " + e);
-      }
-    }
-    super.close();
-  }
-
-
-
-  /**
-   * Create instance of TCP {@link org.glassfish.grizzly.Transport}.
-   *
-   * @return instance of TCP {@link org.glassfish.grizzly.Transport}.
+   * {@inheritDoc}
    */
   @Override
   public synchronized TCPNIOTransport createTCPTransport()
   {
-    if (globalTCPNIOTransport == null)
+    if (singletonTransport == null)
     {
-      globalTCPNIOTransport = setupTransport(new TCPNIOTransport());
-      globalTCPNIOTransport.setSelectorRunnersCount(selectors);
-      globalTCPNIOTransport.setLinger(linger);
-      globalTCPNIOTransport.setTcpNoDelay(tcpNoDelay);
-      globalTCPNIOTransport.setReuseAddress(reuseAddress);
+      singletonTransport = super.createTCPTransport();
 
-      try
-      {
-        globalTCPNIOTransport.start();
-      }
-      catch (final IOException e)
-      {
-        throw new RuntimeException(
-            "Unable to create default connection factory provider", e);
-      }
+      singletonTransport.setSelectorRunnersCount(selectors);
+      singletonTransport.setLinger(linger);
+      singletonTransport.setTcpNoDelay(tcpNoDelay);
+      singletonTransport.setReuseAddress(reuseAddress);
     }
-    return globalTCPNIOTransport;
+
+    return singletonTransport;
   }
 
 
@@ -156,6 +97,9 @@ public final class GlobalTransportFactory extends TransportFactory
 
 
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void initialize()
   {
@@ -175,10 +119,6 @@ public final class GlobalTransportFactory extends TransportFactory
     {
       selectors = Integer.parseInt(selectorsStr);
     }
-
-    ThreadPoolConfig.DEFAULT.setCorePoolSize(threads);
-    ThreadPoolConfig.DEFAULT.setMaxPoolSize(threads);
-    ThreadPoolConfig.DEFAULT.setPoolName("OpenDS SDK Worker(Grizzly)");
 
     final String lingerStr = System
         .getProperty("org.opends.sdk.ldap.transport.linger");
@@ -201,7 +141,30 @@ public final class GlobalTransportFactory extends TransportFactory
       reuseAddress = Integer.parseInt(reuseAddressStr) != 0;
     }
 
-    super.initialize();
+    // Copied from TransportFactory.
+    defaultAttributeBuilder = Grizzly.DEFAULT_ATTRIBUTE_BUILDER;
+    defaultMemoryManager = new HeapMemoryManager();
+    defaultWorkerThreadPool = GrizzlyExecutorService
+        .createInstance(ThreadPoolConfig.defaultConfig()
+            .setMemoryManager(defaultMemoryManager).setCorePoolSize(threads)
+            .setMaxPoolSize(threads).setPoolName("OpenDS SDK Worker(Grizzly)"));
+
+    // Copied from NIOTransportFactory.
+    defaultSelectorHandler = new DefaultSelectorHandler();
+    defaultSelectionKeyHandler = new DefaultSelectionKeyHandler();
+
+    /*
+     * By default TemporarySelector pool size should be equal to the number of
+     * processing threads
+     */
+    int selectorPoolSize = TemporarySelectorPool.DEFAULT_SELECTORS_COUNT;
+    if (defaultWorkerThreadPool instanceof AbstractThreadPool)
+    {
+      selectorPoolSize = Math.min(
+          ((AbstractThreadPool) defaultWorkerThreadPool).getConfig()
+              .getMaxPoolSize(), selectorPoolSize);
+    }
+    defaultTemporarySelectorPool = new TemporarySelectorPool(selectorPoolSize);
   }
 
 }
