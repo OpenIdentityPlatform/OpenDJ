@@ -1,0 +1,51 @@
+This folder contains source code for the OpenIDM password synchronization
+extension to OpenDJ. This extensions implements a password capture feature
+leveraging the Account Status Notification Handler interface, and OpenIDM
+specific transport to communicate the password changes to OpenIDM for
+synchronization with other systems.
+
+In order to build and use this extension, perform the following
+steps (presumably you are already at step 3):
+
+  1. In the top-level source folder for OpenDJ, first build and
+     package OpenDJ:
+
+     ./build.sh
+
+  2. Next go into the openidm-pwsync-plugin folder:
+
+     cd experimental/openidm-pwsync-plugin
+
+  3. Retrieve the jars required to build this extension:
+
+     // TBD
+
+  4. And build the plugin (this requires Ant version 7 or higher in your path):
+
+     ant install
+
+  6. This will copy the following files into the parent OpenDJ
+     default installation (build/package/OpenDJ-X.Y.Z):
+
+     INSTANCE_ROOT/lib/extensions/openidm-pwsync-plugin.jar
+     INSTANCE_ROOT/config/openidm-pwsync-plugin-config.ldif
+     INSTANCE_ROOT/config/schema/90-openidm-pwsync-plugin.ldif
+
+  7. Add the plugin's config to the server configuration. The
+     following instruction assumes usage of the Unix 'cat'
+     command, but obviously ldapadd (ldapmodify -a) can be used:
+
+     cd INSTANCE_ROOT/config
+     cat openidm-pwsync-plugin-config.ldif >> config.ldif
+
+  8. Start the server and look for the
+     "openidm-account-status-notification-handler" notice in the start up log:
+
+     cd INSTANCE_ROOT
+     ./bin/start-ds
+
+[03/Dec/2010:19:42:17 +0100] category=EXTENSIONS severity=INFORMATION
+ msgID=1049147 msg=Loaded extension from file 
+'/Volumes/Space/Tests/ODJidm/lib/extensions/
+openidm-account-status-notification-handler.jar'
+(build <unknown>, revision <unknown>)
