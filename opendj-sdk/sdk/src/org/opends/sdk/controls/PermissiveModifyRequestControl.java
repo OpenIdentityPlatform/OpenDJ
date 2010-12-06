@@ -31,10 +31,7 @@ package org.opends.sdk.controls;
 import static com.sun.opends.sdk.messages.Messages.ERR_PERMISSIVE_MODIFY_CONTROL_BAD_OID;
 import static com.sun.opends.sdk.messages.Messages.ERR_PERMISSIVE_MODIFY_INVALID_CONTROL_VALUE;
 
-import org.opends.sdk.ByteString;
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.DecodeOptions;
-import org.opends.sdk.LocalizableMessage;
+import org.opends.sdk.*;
 
 import com.sun.opends.sdk.util.Validator;
 
@@ -43,6 +40,21 @@ import com.sun.opends.sdk.util.Validator;
 /**
  * The Microsoft defined permissive modify request control. The OID for this
  * control is 1.2.840.113556.1.4.1413, and it does not have a value.
+ * <p>
+ * This control can only be used with LDAP modify requests. It changes the
+ * behavior of the modify operation as follows:
+ * <ul>
+ * <li>Attempts to add an attribute value which already exists will be ignored
+ * and will not cause an {@link ResultCode#ATTRIBUTE_OR_VALUE_EXISTS
+ * AttributeValueExists} error result to be returned.
+ * <li>Attempts to delete an attribute value which does not exist will be
+ * ignored and will not cause an {@link ResultCode#NO_SUCH_ATTRIBUTE
+ * NoSuchAttribute} error result to be returned.
+ * </ul>
+ * In other words, a modify request {@code add} modification <i>ensures</i> that
+ * the attribute contains the specified attribute value, and a {@code delete}
+ * modification <i>ensures</i> that the attribute does not contain the specified
+ * attribute value.
  */
 public final class PermissiveModifyRequestControl implements Control
 {
