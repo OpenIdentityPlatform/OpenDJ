@@ -255,8 +255,7 @@ public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
   {
     if (options.getTCPNIOTransport() == null)
     {
-      this.transport = GlobalTransportFactory.getInstance()
-          .createTCPTransport();
+      this.transport = LDAPDefaultTCPNIOTransport.getInstance();
     }
     else
     {

@@ -40,6 +40,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.glassfish.grizzly.TransportFactory;
 import org.opends.sdk.*;
 import org.opends.sdk.requests.Requests;
 import org.opends.sdk.requests.SearchRequest;
@@ -383,10 +384,7 @@ public final class SearchRate extends ConsoleApplication
 
     try
     {
-      if(System.getProperty("org.opends.sdk.ldap.transport.linger") == null)
-      {
-        System.setProperty("org.opends.sdk.ldap.transport.linger", "0");
-      }
+      TransportFactory.setInstance(new PerfToolTCPNIOTransportFactory());
       connectionFactoryProvider =
           new ConnectionFactoryProvider(argParser, this);
       runner = new SearchPerformanceRunner(argParser, this);

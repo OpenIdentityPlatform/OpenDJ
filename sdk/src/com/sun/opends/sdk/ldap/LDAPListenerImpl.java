@@ -85,8 +85,7 @@ public final class LDAPListenerImpl implements Closeable
   {
     if (options.getTCPNIOTransport() == null)
     {
-      this.transport = GlobalTransportFactory.getInstance()
-          .createTCPTransport();
+      this.transport = LDAPDefaultTCPNIOTransport.getInstance();
     }
     else
     {

@@ -36,6 +36,7 @@ import static com.sun.opends.sdk.tools.Utils.filterExitCode;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.glassfish.grizzly.TransportFactory;
 import org.opends.sdk.*;
 import org.opends.sdk.requests.ModifyRequest;
 import org.opends.sdk.requests.Requests;
@@ -328,10 +329,7 @@ public final class ModRate extends ConsoleApplication
 
     try
     {
-      if(System.getProperty("org.opends.sdk.ldap.transport.linger") == null)
-      {
-        System.setProperty("org.opends.sdk.ldap.transport.linger", "0");
-      }
+      TransportFactory.setInstance(new PerfToolTCPNIOTransportFactory());
       connectionFactoryProvider =
           new ConnectionFactoryProvider(argParser, this);
       runner = new ModifyPerformanceRunner(argParser, this);

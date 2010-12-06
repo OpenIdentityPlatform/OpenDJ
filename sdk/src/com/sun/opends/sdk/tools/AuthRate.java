@@ -28,6 +28,8 @@
 package com.sun.opends.sdk.tools;
 
 import com.sun.opends.sdk.util.RecursiveFutureResult;
+
+import org.glassfish.grizzly.TransportFactory;
 import org.opends.sdk.*;
 import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.BindResult;
@@ -601,12 +603,9 @@ public final class AuthRate extends ConsoleApplication
 
     try
     {
-      if(System.getProperty("org.opends.sdk.ldap.transport.linger") == null)
-      {
-        System.setProperty("org.opends.sdk.ldap.transport.linger", "0");
-      }
+      TransportFactory.setInstance(new PerfToolTCPNIOTransportFactory());
       connectionFactoryProvider =
-          new ConnectionFactoryProvider(argParser, this);
+        new ConnectionFactoryProvider(argParser, this);
       runner = new BindPerformanceRunner(argParser, this);
 
       propertiesFileArgument = new StringArgument("propertiesFilePath", null,

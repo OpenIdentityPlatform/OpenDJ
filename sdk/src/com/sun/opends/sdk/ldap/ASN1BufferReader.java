@@ -46,7 +46,7 @@ import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.AbstractASN1Reader;
 
 import org.glassfish.grizzly.Buffer;
-import org.glassfish.grizzly.memory.ByteBuffersBuffer;
+import org.glassfish.grizzly.memory.BuffersBuffer;
 import org.glassfish.grizzly.memory.CompositeBuffer;
 import com.sun.opends.sdk.util.StaticUtils;
 
@@ -232,7 +232,7 @@ final class ASN1BufferReader extends AbstractASN1Reader implements ASN1Reader
     this.readLimiter = new RootSequenceLimiter();
     this.stringBuffer = new byte[MAX_STRING_BUFFER_SIZE];
     this.maxElementSize = maxElementSize;
-    this.buffer = ByteBuffersBuffer.create();
+    this.buffer = BuffersBuffer.create();
   }
 
 
