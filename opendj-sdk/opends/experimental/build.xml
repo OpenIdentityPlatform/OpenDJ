@@ -23,6 +23,7 @@
  !
  !
  !      Copyright 2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2010 ForgeRock AS.
  ! -->
 
 <project name="extension" basedir="." default="package">
@@ -34,8 +35,23 @@
     <!-- OpenDS base directory -->
   <dirname property="extension.basedir" file="${ant.file.extension}" />
   <property name="base.dir" location="${extension.basedir}/.." />
+  
+  <property file="${base.dir}/PRODUCT" />
+
+  <!-- Construct the version number string -->
+  <taskdef name="getversionnumber"
+           classname="org.opends.build.tools.CreateVersionString">
+    <classpath>
+      <fileset dir="${base.dir}/build/build-tools">
+        <include name="*.jar" />
+      </fileset>
+    </classpath>
+  </taskdef>
+
+  <getversionnumber property="VERSION_NUMBER_STRING" />
+
   <property name="opends.install.dir"
-              location="${base.dir}/build/package/OpenDS-2.3.0" />
+    location="${base.dir}/build/package/${SHORT_NAME}-${VERSION_NUMBER_STRING}" />
 
     <!-- Source paths relative to extension -->
   <property name="src.dir" location="src" />
@@ -132,14 +148,14 @@
             depends="init,compileadmin,generate-messages"
             description="Compile the Directory Server extension source files.">
     <mkdir dir="${classes.dir}" />
-    <javac srcdir="${src.dir}:${src.gen.dir}"
+    <javac srcdir="${src.gen.dir}:${src.dir}"
                destdir="${classes.dir}"
                optimize="true"
                excludes="**/package-info.java"
                debug="on"
                debuglevel="lines,source"
-               source="1.5"
-               target="1.5"
+               source="1.6"
+               target="1.6"
                deprecation="true"
                fork="true"
                memoryInitialSize="${MEM}"
@@ -155,7 +171,7 @@
             description="Generate JavaDoc documentation.">
     <mkdir dir="${javadoc.dir}" />
     <javadoc destdir="${javadoc.dir}"
-                 source="1.5"
+                 source="1.6"
                  additionalparam="-quiet"
                  linksource="yes"
                  windowtitle="${extension.description} API Documentation"

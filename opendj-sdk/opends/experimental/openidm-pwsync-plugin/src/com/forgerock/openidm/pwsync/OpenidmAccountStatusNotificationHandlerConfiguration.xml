@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adm:managed-object name="openidm-account-status-notification-handler"
+  plural-name="openidm-account-status-notification-handlers"
+  extends="account-status-notification-handler"
+  package="com.forgerock.openidm.pwsync"
+  parent-package="org.opends.server.admin.std"
+  xmlns:adm="http://www.opends.org/admin"
+  xmlns:ldap="http://www.opends.org/admin-ldap">
+  <adm:synopsis>
+    The
+    <adm:user-friendly-name />
+    is an account status notification handler that post a message to OpenIDM 
+    whenever an account status notification is generated for password
+    reset or changes.
+  </adm:synopsis>
+  <adm:profile name="ldap">
+    <ldap:object-class>
+      <ldap:name>
+        ds-cfg-openidm-account-status-notification-handler
+      </ldap:name>
+      <ldap:superior>
+        ds-cfg-account-status-notification-handler
+      </ldap:superior>
+    </ldap:object-class>
+  </adm:profile>
+  <adm:property-override name="java-class" advanced="true">
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>com.forgerock.openidm.pwsync.OpenidmAccountStatusNotificationHandler</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+  </adm:property-override>
+  <adm:property name="asynchronous"
+    mandatory="true">
+    <adm:synopsis>
+      Indicates whether the notification should be send asynchronously to
+      OpenIDM.
+    </adm:synopsis>
+    <adm:description>
+      When notifications are synchronous, the messages will be recorded and
+      replay in case of failure.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>true</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>
+          ds-cfg-asynchronous
+        </ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="log-file" mandatory="true">
+    <adm:synopsis>
+      Specifies the log file location where the changed passwords are
+      written when the plug-in cannot contact OpenIDM.
+    </adm:synopsis>
+    <adm:description>
+      The default location is the logs directory of the server
+      instance, using the file name "pwsync".
+      Passwords in this file will be encrypted.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>logs/pwsync</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string>
+        <adm:pattern>
+          <adm:regex>.*</adm:regex>
+          <adm:usage>FILE</adm:usage>
+          <adm:synopsis>
+            A path to an existing file that is readable by the server.
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-log-file</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="attribute-type" multi-valued="true">
+    <adm:synopsis>
+      Specifies the attribute types that this plug-in will send along with
+      the password change.
+    </adm:synopsis>
+    <adm:description>
+      Zero or more attribute type can be specified.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          If no attribute types are specified, only the DN and the new
+          password of the user will be synchronized to OpenIDM.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:attribute-type />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-attribute-type</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+</adm:managed-object>
