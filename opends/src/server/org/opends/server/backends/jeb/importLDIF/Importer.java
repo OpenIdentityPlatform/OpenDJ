@@ -148,6 +148,9 @@ public final class Importer implements DiskSpaceMonitorHandler
   // Size in bytes of temporary env.
   private long tmpEnvCacheSize;
 
+  // Available memory at the start of the import.
+  private long availableMemory;
+
   // Size in bytes of DB cache.
   private long dbCacheSize;
 
@@ -414,7 +417,8 @@ public final class Importer implements DiskSpaceMonitorHandler
     // Calculate amount of usable memory. This will need to take into account
     // various fudge factors, including the number of IO buffers used by the
     // scratch writers (1 per index).
-    final long availableMemory = calculateAvailableMemory();
+    calculateAvailableMemory();
+
     final long usableMemory = availableMemory
         - (indexCount * READER_WRITER_BUFFER_SIZE);
 
@@ -532,7 +536,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     }
 
     Message message = NOTE_JEB_IMPORT_LDIF_TOT_MEM_BUF.get(
-        phaseOneBufferMemory, phaseOneBufferCount);
+        availableMemory, phaseOneBufferCount);
     logError(message);
     if (tmpEnvCacheSize > 0)
     {
@@ -548,13 +552,13 @@ public final class Importer implements DiskSpaceMonitorHandler
 
 
   /**
-   * Returns the amount of available memory which can be used by this import,
+   * Calculates the amount of available memory which can be used by this import,
    * taking into account whether or not the import is running offline or online
    * as a task.
    */
-  private long calculateAvailableMemory()
+  private void calculateAvailableMemory()
   {
-    final long availableMemory;
+    final long totalAvailableMemory;
     if (DirectoryServer.isRunning())
     {
       // Online import/rebuild.
@@ -577,18 +581,18 @@ public final class Importer implements DiskSpaceMonitorHandler
       }
 
       // Round up to minimum of 16MB (e.g. unit tests only use 2% cache).
-      availableMemory = Math.max(Math.min(usableMemory, configuredMemory),
+      totalAvailableMemory = Math.max(Math.min(usableMemory, configuredMemory),
           16 * MB);
     }
     else
     {
       // Offline import/rebuild.
-      availableMemory = Platform.getUsableMemoryForCaching();
+      totalAvailableMemory = Platform.getUsableMemoryForCaching();
     }
 
     // Now take into account various fudge factors.
     int importMemPct = 90;
-    if (availableMemory <= SMALL_HEAP_SIZE)
+    if (totalAvailableMemory <= SMALL_HEAP_SIZE)
     {
       // Be pessimistic when memory is low.
       importMemPct -= 25;
@@ -599,7 +603,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       importMemPct -= 15;
     }
 
-    return (availableMemory * importMemPct / 100);
+    availableMemory = (totalAvailableMemory * importMemPct / 100);
   }
 
 
@@ -1144,9 +1148,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     }
 
     // Calculate memory / buffer counts.
-    final long availableMemory = calculateAvailableMemory();
     final long usableMemory = availableMemory - dbCacheSize;
-
     int readAheadSize;
     int buffers;
     while (true)
