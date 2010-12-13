@@ -3006,6 +3006,57 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   }
 
   /**
+   * A lexicographic byte array comparator that compares in
+   * reverse byte order. This is used for the dn2id database of version 2.2.
+   * If we want to find all the entries in a subtree dc=com we know that
+   * all subordinate entries must have ,dc=com as a common suffix. In reversing
+   * the order of comparison we turn the subtree base into a common prefix
+   * and are able to iterate through the keys having that prefix.
+   * Keep in there to preserve ability to upgrade
+   */
+  static public class KeyReverseComparator implements Comparator<byte[]>
+  {
+    /**
+     * Compares its two arguments for order.  Returns a negative integer,
+     * zero, or a positive integer as the first argument is less than, equal
+     * to, or greater than the second.
+     *
+     * @param a the first object to be compared.
+     * @param b the second object to be compared.
+     * @return a negative integer, zero, or a positive integer as the
+     *         first argument is less than, equal to, or greater than the
+     *         second.
+     */
+    public int compare(byte[] a, byte[] b)
+    {
+      for (int ai = a.length - 1, bi = b.length - 1;
+      ai >= 0 && bi >= 0; ai--, bi--)
+      {
+        if (a[ai] > b[bi])
+        {
+          return 1;
+        }
+        else if (a[ai] < b[bi])
+        {
+          return -1;
+        }
+      }
+      if (a.length == b.length)
+      {
+        return 0;
+      }
+      if (a.length > b.length)
+      {
+        return 1;
+      }
+      else
+      {
+        return -1;
+      }
+    }
+  }
+ 
+  /**
    * Insert a new entry into the attribute indexes.
    *
    * @param txn The database transaction to be used for the updates.
