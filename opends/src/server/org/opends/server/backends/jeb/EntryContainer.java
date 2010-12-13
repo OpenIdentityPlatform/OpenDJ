@@ -3055,7 +3055,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       }
     }
   }
- 
+
   /**
    * Insert a new entry into the attribute indexes.
    *
