@@ -3846,7 +3846,7 @@ public class DirectoryServer
                                     Collections.singleton(name), oid, null,
                                     Collections.singleton(getTopObjectClass()),
                                     null, null,
-                                    ObjectClassType.STRUCTURAL, false, null);
+                                    ObjectClassType.ABSTRACT, false, null);
     }
 
     return objectClass;
