@@ -26,7 +26,7 @@ have downloaded and unzipped.
 
 If you run QuickSetup remotely, it automatically downloads and unzips the latest weekly build, 
 and handles server configuration. To launch QuickSetup via Java Web Start, point your 
-browser to http://www.forgerock.org/downloads/opendj/2.4.0beta1/install/QuickSetup.jnlp.
+browser to http://www.forgerock.org/downloads/opendj/2.4.0/install/QuickSetup.jnlp.
 
 To run QuickSetup locally:
 
@@ -36,7 +36,7 @@ To run QuickSetup locally:
      directly from the Finder.
   3. Answer the questions in the installation wizard.
 
-To Install OpenDS in Command-Line Mode
+To Install OpenDJ in Command-Line Mode
 --------------------------------------
   1. From the top level of your installation directory, type the following command:
      (Unix, Linux) setup --cli (Windows) setup.bat --cli
