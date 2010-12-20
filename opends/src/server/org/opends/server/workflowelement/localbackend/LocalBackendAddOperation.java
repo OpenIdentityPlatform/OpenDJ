@@ -1107,7 +1107,8 @@ addProcessing:
       return;
     }
 
-    if ((!passwordPolicy.allowMultiplePasswordValues())
+    if ((!isInternalOperation())
+        && (!passwordPolicy.allowMultiplePasswordValues())
         && (passwordAttr.size() > 1))
     {
       // FIXME -- What if they're pre-encoded and might all be the
@@ -1132,7 +1133,8 @@ addProcessing:
       {
         if (AuthPasswordSyntax.isEncoded(value))
         {
-          if (passwordPolicy.allowPreEncodedPasswords())
+          if (isInternalOperation() ||
+              passwordPolicy.allowPreEncodedPasswords())
           {
             builder.add(v);
             continue;
@@ -1153,7 +1155,8 @@ addProcessing:
       {
         if (UserPasswordSyntax.isEncoded(value))
         {
-          if (passwordPolicy.allowPreEncodedPasswords())
+          if (isInternalOperation() ||
+              passwordPolicy.allowPreEncodedPasswords())
           {
             builder.add(v);
             continue;
