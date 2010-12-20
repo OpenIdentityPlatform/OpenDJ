@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2010 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -2055,7 +2056,7 @@ public final class ServerConstants
   /**
    * The value that will be used for the vendorName attribute in the root DSE.
    */
-  public static final String SERVER_VENDOR_NAME = "Sun Microsystems, Inc.";
+  public static final String SERVER_VENDOR_NAME = "ForgeRock AS.";
 
 
 
