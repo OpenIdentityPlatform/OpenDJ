@@ -78,7 +78,7 @@ public class StartECLSessionMsg extends ReplicationMsg
 
   /**
    * This specifies that the request on the ECL is a PERSISTENT search
-   * with changesOnly = false.
+   * with changesOnly = true.
    */
   public final static short PERSISTENT_CHANGES_ONLY = 2;
 

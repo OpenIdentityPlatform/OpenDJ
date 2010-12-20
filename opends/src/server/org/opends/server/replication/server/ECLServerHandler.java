@@ -745,6 +745,7 @@ public class ECLServerHandler extends ServerHandler
             StartECLSessionMsg.PERSISTENT_CHANGES_ONLY)
           {
             newDomainCtxt.startState = rsd.getEligibleState(eligibleCN, true);
+            startStatesFromProvidedCookie.remove(rsd.getBaseDn());
           }
           else
           {
