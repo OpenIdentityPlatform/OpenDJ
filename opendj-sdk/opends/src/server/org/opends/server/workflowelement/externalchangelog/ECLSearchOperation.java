@@ -545,12 +545,12 @@ public class ECLSearchOperation
 
           // If we're only interested in changes, then we don't actually want
           // to process the search now.
-          if (!psearchControl.getChangesOnly())
-            startECLSessionMsg.setPersistent(
-                StartECLSessionMsg.PERSISTENT);
-          else
+          if (psearchControl.getChangesOnly())
             startECLSessionMsg.setPersistent(
                 StartECLSessionMsg.PERSISTENT_CHANGES_ONLY);
+          else
+            startECLSessionMsg.setPersistent(
+                StartECLSessionMsg.PERSISTENT);
         }
         else if (oid.equals(OID_LDAP_SUBENTRIES))
         {
