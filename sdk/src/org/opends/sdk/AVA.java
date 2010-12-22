@@ -32,6 +32,8 @@ package org.opends.sdk;
 import static com.sun.opends.sdk.messages.Messages.*;
 import static com.sun.opends.sdk.util.StaticUtils.*;
 
+import java.util.Comparator;
+
 import org.opends.sdk.schema.*;
 
 import com.sun.opends.sdk.util.StaticUtils;
@@ -105,8 +107,8 @@ public final class AVA implements Comparable<AVA>
     }
     catch (final UnknownSchemaElementException e)
     {
-      final LocalizableMessage message = ERR_RDN_TYPE_NOT_FOUND.get(ava, e
-          .getMessageObject());
+      final LocalizableMessage message = ERR_RDN_TYPE_NOT_FOUND.get(ava,
+          e.getMessageObject());
       throw new LocalizedIllegalArgumentException(message);
     }
   }
@@ -138,8 +140,8 @@ public final class AVA implements Comparable<AVA>
     char c;
     if ((c = reader.read()) != '=')
     {
-      final LocalizableMessage message = ERR_ATTR_SYNTAX_DN_NO_EQUAL.get(reader
-          .getString(), attribute.getNameOrOID(), c);
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_DN_NO_EQUAL.get(
+          reader.getString(), attribute.getNameOrOID(), c);
       throw new LocalizedIllegalArgumentException(message);
     }
 
@@ -665,6 +667,12 @@ public final class AVA implements Comparable<AVA>
 
   private final ByteString attributeValue;
 
+  // Cached normalized value using equality matching rule.
+  private ByteString equalityNormalizedAttributeValue = null;
+
+  // Cached normalized value using ordering matching rule.
+  private ByteString orderingNormalizedAttributeValue = null;
+
 
 
   /**
@@ -676,8 +684,8 @@ public final class AVA implements Comparable<AVA>
    * @param attributeValue
    *          The attribute value.
    * @throws NullPointerException
-   *           If {@code attributeType} or {@code attributeValue} was {@code
-   *           null}.
+   *           If {@code attributeType} or {@code attributeValue} was
+   *           {@code null}.
    */
   public AVA(final AttributeType attributeType, final ByteString attributeValue)
       throws NullPointerException
@@ -704,8 +712,8 @@ public final class AVA implements Comparable<AVA>
    * @throws UnknownSchemaElementException
    *           If {@code attributeType} was not found in the default schema.
    * @throws NullPointerException
-   *           If {@code attributeType} or {@code attributeValue} was {@code
-   *           null}.
+   *           If {@code attributeType} or {@code attributeValue} was
+   *           {@code null}.
    */
   public AVA(final String attributeType, final Object attributeValue)
       throws UnknownSchemaElementException, NullPointerException
@@ -722,55 +730,27 @@ public final class AVA implements Comparable<AVA>
   /**
    * {@inheritDoc}
    */
+  @Override
   public int compareTo(final AVA ava)
   {
-    int result = attributeType.compareTo(ava.attributeType);
+    final int result = attributeType.compareTo(ava.attributeType);
     if (result != 0)
     {
       return result > 0 ? 1 : -1;
     }
-    final ByteString normalizedValue = getNormalizeValue();
+
+    final ByteString normalizedValue = getOrderingNormalizedValue();
+    final ByteString otherNormalizedValue = ava.getOrderingNormalizedValue();
     final MatchingRule rule = attributeType.getOrderingMatchingRule();
-    try
+    if (rule != null)
     {
-      if (rule != null)
-      {
-        // Check equality assertion first.
-        final Assertion lteAssertion = rule
-            .getLessOrEqualAssertion(ava.attributeValue);
-        final ConditionResult lteResult = lteAssertion.matches(normalizedValue);
-        final Assertion gteAssertion = rule
-            .getGreaterOrEqualAssertion(ava.attributeValue);
-        final ConditionResult gteResult = gteAssertion.matches(normalizedValue);
-
-        if (lteResult.equals(gteResult))
-        {
-          // it is equal to the assertion value.
-          return 0;
-        }
-        else if (lteResult == ConditionResult.TRUE)
-        {
-          return -1;
-        }
-        else
-        {
-          return 1;
-        }
-      }
+      final Comparator<ByteSequence> comparator = rule.comparator();
+      return comparator.compare(normalizedValue, otherNormalizedValue);
     }
-    catch (final DecodeException de)
+    else
     {
-      // use the bytestring comparison as default.
+      return normalizedValue.compareTo(otherNormalizedValue);
     }
-
-    if (result == 0)
-    {
-      final ByteString nv1 = normalizedValue;
-      final ByteString nv2 = ava.getNormalizeValue();
-      result = nv1.compareTo(nv2);
-    }
-
-    return result;
   }
 
 
@@ -787,7 +767,26 @@ public final class AVA implements Comparable<AVA>
     }
     else if (obj instanceof AVA)
     {
-      return compareTo((AVA) obj) == 0;
+      final AVA ava = (AVA) obj;
+
+      if (!attributeType.equals(ava.attributeType))
+      {
+        return false;
+      }
+
+      final ByteString normalizedValue = getEqualityNormalizedValue();
+      final ByteString otherNormalizedValue = ava.getEqualityNormalizedValue();
+      final MatchingRule rule = attributeType.getEqualityMatchingRule();
+      if (rule != null)
+      {
+        final Comparator<ByteSequence> comparator = rule.comparator();
+        return comparator.compare(normalizedValue, otherNormalizedValue) != 0 ? false
+            : true;
+      }
+      else
+      {
+        return normalizedValue.equals(otherNormalizedValue);
+      }
     }
     else
     {
@@ -827,7 +826,8 @@ public final class AVA implements Comparable<AVA>
   @Override
   public int hashCode()
   {
-    return attributeType.hashCode() * 31 + getNormalizeValue().hashCode();
+    return attributeType.hashCode() * 31
+        + getEqualityNormalizedValue().hashCode();
   }
 
 
@@ -840,25 +840,6 @@ public final class AVA implements Comparable<AVA>
   {
     final StringBuilder builder = new StringBuilder();
     return toString(builder).toString();
-  }
-
-
-
-  private ByteString getNormalizeValue()
-  {
-    final MatchingRule matchingRule = attributeType.getEqualityMatchingRule();
-    if (matchingRule != null)
-    {
-      try
-      {
-        return matchingRule.normalizeAttributeValue(attributeValue);
-      }
-      catch (final DecodeException de)
-      {
-        // Ignore - we'll drop back to the user provided value.
-      }
-    }
-    return attributeValue;
   }
 
 
@@ -924,5 +905,73 @@ public final class AVA implements Comparable<AVA>
       }
     }
     return builder;
+  }
+
+
+
+  private ByteString getEqualityNormalizedValue()
+  {
+    final ByteString normalizedValue = equalityNormalizedAttributeValue;
+
+    if (normalizedValue != null)
+    {
+      return normalizedValue;
+    }
+
+    final MatchingRule matchingRule = attributeType.getEqualityMatchingRule();
+    if (matchingRule != null)
+    {
+      try
+      {
+        equalityNormalizedAttributeValue = matchingRule
+            .normalizeAttributeValue(attributeValue);
+      }
+      catch (final DecodeException de)
+      {
+        // Unable to normalize, so default to byte-wise comparison.
+        equalityNormalizedAttributeValue = attributeValue;
+      }
+    }
+    else
+    {
+      // No matching rule, so default to byte-wise comparison.
+      equalityNormalizedAttributeValue = attributeValue;
+    }
+
+    return equalityNormalizedAttributeValue;
+  }
+
+
+
+  private ByteString getOrderingNormalizedValue()
+  {
+    final ByteString normalizedValue = orderingNormalizedAttributeValue;
+
+    if (normalizedValue != null)
+    {
+      return normalizedValue;
+    }
+
+    final MatchingRule matchingRule = attributeType.getEqualityMatchingRule();
+    if (matchingRule != null)
+    {
+      try
+      {
+        orderingNormalizedAttributeValue = matchingRule
+            .normalizeAttributeValue(attributeValue);
+      }
+      catch (final DecodeException de)
+      {
+        // Unable to normalize, so default to equality matching.
+        orderingNormalizedAttributeValue = getEqualityNormalizedValue();
+      }
+    }
+    else
+    {
+      // No matching rule, so default to equality matching.
+      orderingNormalizedAttributeValue = getEqualityNormalizedValue();
+    }
+
+    return orderingNormalizedAttributeValue;
   }
 }

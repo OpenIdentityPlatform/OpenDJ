@@ -315,7 +315,8 @@ final class LDAPServerFilter extends BaseFilter
     @Override
     public void startSASL(final ConnectionSecurityLayer bindContext)
     {
-      installFilter(connection, new SASLFilter(bindContext));
+      installFilter(connection, new SASLFilter(bindContext, connection
+          .getTransport().getMemoryManager()));
     }
 
 
@@ -1095,7 +1096,8 @@ final class LDAPServerFilter extends BaseFilter
         .get(ctx.getConnection());
     if (asn1Reader == null)
     {
-      asn1Reader = new ASN1BufferReader(maxASN1ElementSize);
+      asn1Reader = new ASN1BufferReader(maxASN1ElementSize, ctx.getConnection()
+          .getTransport().getMemoryManager());
       LDAP_ASN1_READER_ATTR.set(ctx.getConnection(), asn1Reader);
     }
     asn1Reader.appendBytesRead(buffer);

@@ -52,7 +52,7 @@ public final class ModRate extends ConsoleApplication
 {
   private static final class ModifyPerformanceRunner extends PerformanceRunner
   {
-    private final class ModifyWorkerThread extends WorkerThread
+    private final class ModifyWorkerThread extends ConnectionWorker
     {
       private ModifyRequest mr;
       private Object[] data;
@@ -70,15 +70,15 @@ public final class ModRate extends ConsoleApplication
       @Override
       public FutureResult<?> performOperation(
           final AsynchronousConnection connection,
-          final DataSource[] dataSources, long startTime)
+          final DataSource[] dataSources, final long startTime)
       {
         if (dataSources != null)
         {
           data = DataSource.generateData(dataSources, data);
         }
         mr = newModifyRequest(data);
-        return connection.modify(mr,
-            new UpdateStatsResultHandler<Result>(startTime));
+        return connection.modify(mr, new UpdateStatsResultHandler<Result>(
+            startTime, connection, this));
       }
 
 
@@ -109,9 +109,9 @@ public final class ModRate extends ConsoleApplication
           colonPos = formattedString.indexOf(':');
           if (colonPos > 0)
           {
-            mr.addModification(ModificationType.REPLACE, formattedString
-                .substring(0, colonPos), formattedString
-                .substring(colonPos + 1));
+            mr.addModification(ModificationType.REPLACE,
+                formattedString.substring(0, colonPos),
+                formattedString.substring(colonPos + 1));
           }
         }
         return mr;
@@ -135,18 +135,19 @@ public final class ModRate extends ConsoleApplication
 
 
     @Override
-    StatsThread newStatsThread()
+    ConnectionWorker newConnectionWorker(
+        final AsynchronousConnection connection,
+        final ConnectionFactory connectionFactory)
     {
-      return new StatsThread(new String[0]);
+      return new ModifyWorkerThread(connection, connectionFactory);
     }
 
 
 
     @Override
-    WorkerThread newWorkerThread(final AsynchronousConnection connection,
-        final ConnectionFactory connectionFactory)
+    StatsThread newStatsThread()
     {
-      return new ModifyWorkerThread(connection, connectionFactory);
+      return new StatsThread(new String[0]);
     }
   }
 
@@ -313,8 +314,8 @@ public final class ModRate extends ConsoleApplication
   {
     // Create the command-line argument parser for use with this
     // program.
-    final LocalizableMessage toolDescription =
-        INFO_MODRATE_TOOL_DESCRIPTION.get();
+    final LocalizableMessage toolDescription = INFO_MODRATE_TOOL_DESCRIPTION
+        .get();
     final ArgumentParser argParser = new ArgumentParser(
         ModRate.class.getName(), toolDescription, false, true, 1, 0,
         "[(attribute:value format string) ...]");
@@ -330,8 +331,7 @@ public final class ModRate extends ConsoleApplication
     try
     {
       TransportFactory.setInstance(new PerfToolTCPNIOTransportFactory());
-      connectionFactoryProvider =
-          new ConnectionFactoryProvider(argParser, this);
+      connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
       runner = new ModifyPerformanceRunner(argParser, this);
       propertiesFileArgument = new StringArgument("propertiesFilePath", null,
           OPTION_LONG_PROP_FILE_PATH, false, false, true,
@@ -347,8 +347,9 @@ public final class ModRate extends ConsoleApplication
       argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
       baseDN = new StringArgument("targetDN", OPTION_SHORT_BASEDN,
-          OPTION_LONG_TARGETDN, true, false, true, INFO_TARGETDN_PLACEHOLDER.get(),
-          null, null, INFO_MODRATE_TOOL_DESCRIPTION_TARGETDN.get());
+          OPTION_LONG_TARGETDN, true, false, true,
+          INFO_TARGETDN_PLACEHOLDER.get(), null, null,
+          INFO_MODRATE_TOOL_DESCRIPTION_TARGETDN.get());
       baseDN.setPropertyName(OPTION_LONG_BASEDN);
       argParser.addArgument(baseDN);
 
@@ -387,8 +388,8 @@ public final class ModRate extends ConsoleApplication
         return 0;
       }
 
-      connectionFactory =
-          connectionFactoryProvider.getAuthenticatedConnectionFactory();
+      connectionFactory = connectionFactoryProvider
+          .getAuthenticatedConnectionFactory();
       runner.validate();
     }
     catch (final ArgumentException ae)
