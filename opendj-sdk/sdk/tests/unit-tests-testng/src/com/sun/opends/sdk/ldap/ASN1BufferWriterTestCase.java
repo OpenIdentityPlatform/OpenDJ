@@ -38,6 +38,7 @@ import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.asn1.ASN1WriterTestCase;
 
 import org.glassfish.grizzly.Buffer;
+import org.glassfish.grizzly.TransportFactory;
 import org.glassfish.grizzly.memory.ByteBufferWrapper;
 
 
@@ -68,7 +69,8 @@ public class ASN1BufferWriterTestCase extends ASN1WriterTestCase
       throws DecodeException, IOException
   {
     final ByteBufferWrapper buffer = new ByteBufferWrapper(ByteBuffer.wrap(encodedBytes));
-    final ASN1BufferReader reader = new ASN1BufferReader(0);
+    final ASN1BufferReader reader = new ASN1BufferReader(0, TransportFactory
+        .getInstance().getDefaultMemoryManager());
     reader.appendBytesRead(buffer);
     return reader;
   }

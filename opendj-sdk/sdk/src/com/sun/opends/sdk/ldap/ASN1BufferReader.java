@@ -48,6 +48,8 @@ import org.opends.sdk.asn1.AbstractASN1Reader;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.memory.BuffersBuffer;
 import org.glassfish.grizzly.memory.CompositeBuffer;
+import org.glassfish.grizzly.memory.MemoryManager;
+
 import com.sun.opends.sdk.util.StaticUtils;
 
 
@@ -226,13 +228,16 @@ final class ASN1BufferReader extends AbstractASN1Reader implements ASN1Reader
    * @param maxElementSize
    *          The maximum BER element size, or <code>0</code> to indicate that
    *          there is no limit.
+   * @param memoryManager
+   *          The memory manager to use for buffering.
    */
-  ASN1BufferReader(final int maxElementSize)
+  ASN1BufferReader(final int maxElementSize,
+      final MemoryManager<?> memoryManager)
   {
     this.readLimiter = new RootSequenceLimiter();
     this.stringBuffer = new byte[MAX_STRING_BUFFER_SIZE];
     this.maxElementSize = maxElementSize;
-    this.buffer = BuffersBuffer.create();
+    this.buffer = BuffersBuffer.create(memoryManager);
   }
 
 

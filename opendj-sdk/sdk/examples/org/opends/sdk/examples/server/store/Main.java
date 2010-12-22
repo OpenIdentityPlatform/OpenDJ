@@ -39,10 +39,13 @@ import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.glassfish.grizzly.TransportFactory;
 import org.opends.sdk.*;
 import org.opends.sdk.ldif.LDIFEntryReader;
 import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.*;
+
+import com.sun.opends.sdk.tools.PerfToolTCPNIOTransportFactory;
 
 
 
@@ -487,6 +490,9 @@ public final class Main
       System.err.println("Usage: listenAddress listenPort ldifFile");
       System.exit(1);
     }
+
+    // Use the same transport factory as the tools.
+    TransportFactory.setInstance(new PerfToolTCPNIOTransportFactory());
 
     // Parse command line arguments.
     final String localAddress = args[0];

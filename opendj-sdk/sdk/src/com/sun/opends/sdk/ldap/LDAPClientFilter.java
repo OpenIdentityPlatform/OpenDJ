@@ -171,7 +171,8 @@ final class LDAPClientFilter extends BaseFilter
               {
                 // The connection needs to be secured by the SASL
                 // mechanism.
-                ldapConnection.installFilter(new SASLFilter(l));
+                ldapConnection.installFilter(new SASLFilter(l, ctx
+                    .getConnection().getTransport().getMemoryManager()));
               }
             }
 
@@ -601,7 +602,8 @@ final class LDAPClientFilter extends BaseFilter
         .get(ctx.getConnection());
     if (asn1Reader == null)
     {
-      asn1Reader = new ASN1BufferReader(maxASN1ElementSize);
+      asn1Reader = new ASN1BufferReader(maxASN1ElementSize, ctx.getConnection()
+          .getTransport().getMemoryManager());
       LDAP_ASN1_READER_ATTR.set(ctx.getConnection(), asn1Reader);
     }
     asn1Reader.appendBytesRead(buffer);

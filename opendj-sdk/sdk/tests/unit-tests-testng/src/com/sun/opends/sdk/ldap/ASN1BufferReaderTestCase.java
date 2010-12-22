@@ -35,6 +35,7 @@ import java.nio.ByteBuffer;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1ReaderTestCase;
 
+import org.glassfish.grizzly.TransportFactory;
 import org.glassfish.grizzly.memory.ByteBufferWrapper;
 
 
@@ -49,7 +50,8 @@ public class ASN1BufferReaderTestCase extends ASN1ReaderTestCase
       throws IOException
   {
     final ByteBufferWrapper buffer = new ByteBufferWrapper(ByteBuffer.wrap(b));
-    final ASN1BufferReader reader = new ASN1BufferReader(maxElementSize);
+    final ASN1BufferReader reader = new ASN1BufferReader(maxElementSize,
+        TransportFactory.getInstance().getDefaultMemoryManager());
     reader.appendBytesRead(buffer);
     return reader;
   }

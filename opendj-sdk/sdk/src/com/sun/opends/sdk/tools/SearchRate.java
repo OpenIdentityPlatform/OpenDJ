@@ -61,13 +61,15 @@ public final class SearchRate extends ConsoleApplication
     private final class SearchStatsHandler extends
         UpdateStatsResultHandler<Result> implements SearchResultHandler
     {
-      private SearchStatsHandler(final long startTime)
+      private SearchStatsHandler(final long startTime,
+          final AsynchronousConnection connection, final ConnectionWorker worker)
       {
-        super(startTime);
+        super(startTime, connection, worker);
       }
 
 
 
+      @Override
       public boolean handleEntry(final SearchResultEntry entry)
       {
         entryRecentCount.getAndIncrement();
@@ -76,6 +78,7 @@ public final class SearchRate extends ConsoleApplication
 
 
 
+      @Override
       public boolean handleReference(final SearchResultReference reference)
       {
         return true;
@@ -117,7 +120,7 @@ public final class SearchRate extends ConsoleApplication
 
 
 
-    private final class SearchWorkerThread extends WorkerThread
+    private final class SearchWorkerThread extends ConnectionWorker
     {
       private SearchRequest sr;
 
@@ -158,7 +161,8 @@ public final class SearchRate extends ConsoleApplication
           sr.setFilter(String.format(filter, data));
           sr.setName(String.format(baseDN, data));
         }
-        return connection.search(sr, new SearchStatsHandler(startTime));
+        return connection.search(sr, new SearchStatsHandler(startTime,
+            connection, this));
       }
     }
 
@@ -185,18 +189,19 @@ public final class SearchRate extends ConsoleApplication
 
 
     @Override
-    StatsThread newStatsThread()
+    ConnectionWorker newConnectionWorker(
+        final AsynchronousConnection connection,
+        final ConnectionFactory connectionFactory)
     {
-      return new SearchStatsThread();
+      return new SearchWorkerThread(connection, connectionFactory);
     }
 
 
 
     @Override
-    WorkerThread newWorkerThread(final AsynchronousConnection connection,
-        final ConnectionFactory connectionFactory)
+    StatsThread newStatsThread()
     {
-      return new SearchWorkerThread(connection, connectionFactory);
+      return new SearchStatsThread();
     }
   }
 
@@ -365,10 +370,10 @@ public final class SearchRate extends ConsoleApplication
   {
     // Create the command-line argument parser for use with this
     // program.
-    final LocalizableMessage toolDescription =
-        INFO_SEARCHRATE_TOOL_DESCRIPTION.get();
-    final ArgumentParser argParser = new ArgumentParser(SearchRate.class
-        .getName(), toolDescription, false, true, 1, 0,
+    final LocalizableMessage toolDescription = INFO_SEARCHRATE_TOOL_DESCRIPTION
+        .get();
+    final ArgumentParser argParser = new ArgumentParser(
+        SearchRate.class.getName(), toolDescription, false, true, 1, 0,
         "[filter format string] [attributes ...]");
 
     ConnectionFactoryProvider connectionFactoryProvider;
@@ -385,8 +390,7 @@ public final class SearchRate extends ConsoleApplication
     try
     {
       TransportFactory.setInstance(new PerfToolTCPNIOTransportFactory());
-      connectionFactoryProvider =
-          new ConnectionFactoryProvider(argParser, this);
+      connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
       runner = new SearchPerformanceRunner(argParser, this);
 
       propertiesFileArgument = new StringArgument("propertiesFilePath", null,
@@ -415,17 +419,17 @@ public final class SearchRate extends ConsoleApplication
 
       searchScope = new MultiChoiceArgument<SearchScope>("searchScope", 's',
           "searchScope", false, true, INFO_SEARCH_SCOPE_PLACEHOLDER.get(),
-          SearchScope.values(), false, INFO_SEARCH_DESCRIPTION_SEARCH_SCOPE
-              .get());
+          SearchScope.values(), false,
+          INFO_SEARCH_DESCRIPTION_SEARCH_SCOPE.get());
       searchScope.setPropertyName("searchScope");
       searchScope.setDefaultValue(SearchScope.WHOLE_SUBTREE);
       argParser.addArgument(searchScope);
 
       dereferencePolicy = new MultiChoiceArgument<DereferenceAliasesPolicy>(
           "derefpolicy", 'a', "dereferencePolicy", false, true,
-          INFO_DEREFERENCE_POLICE_PLACEHOLDER.get(), DereferenceAliasesPolicy
-              .values(), false, INFO_SEARCH_DESCRIPTION_DEREFERENCE_POLICY
-              .get());
+          INFO_DEREFERENCE_POLICE_PLACEHOLDER.get(),
+          DereferenceAliasesPolicy.values(), false,
+          INFO_SEARCH_DESCRIPTION_DEREFERENCE_POLICY.get());
       dereferencePolicy.setPropertyName("dereferencePolicy");
       dereferencePolicy.setDefaultValue(DereferenceAliasesPolicy.NEVER);
       argParser.addArgument(dereferencePolicy);
@@ -460,8 +464,8 @@ public final class SearchRate extends ConsoleApplication
         return 0;
       }
 
-      connectionFactory =
-          connectionFactoryProvider.getAuthenticatedConnectionFactory();
+      connectionFactory = connectionFactoryProvider
+          .getAuthenticatedConnectionFactory();
       runner.validate();
     }
     catch (final ArgumentException ae)

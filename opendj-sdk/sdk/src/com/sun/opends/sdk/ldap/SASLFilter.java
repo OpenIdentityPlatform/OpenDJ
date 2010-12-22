@@ -33,6 +33,7 @@ import org.opends.sdk.ConnectionSecurityLayer;
 
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.filterchain.AbstractCodecFilter;
+import org.glassfish.grizzly.memory.MemoryManager;
 
 
 
@@ -41,9 +42,10 @@ import org.glassfish.grizzly.filterchain.AbstractCodecFilter;
  */
 final class SASLFilter extends AbstractCodecFilter<Buffer, Buffer>
 {
-  public SASLFilter(final ConnectionSecurityLayer bindContext)
+  public SASLFilter(final ConnectionSecurityLayer bindContext,
+      final MemoryManager<?> memoryManager)
   {
-    super(new SASLDecoderTransformer(bindContext), new SASLEncoderTransformer(
-        bindContext));
+    super(new SASLDecoderTransformer(bindContext, memoryManager),
+        new SASLEncoderTransformer(bindContext, memoryManager));
   }
 }

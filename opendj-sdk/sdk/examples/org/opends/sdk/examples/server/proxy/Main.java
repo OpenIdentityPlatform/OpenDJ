@@ -35,10 +35,13 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.glassfish.grizzly.TransportFactory;
 import org.opends.sdk.*;
 import org.opends.sdk.controls.ProxiedAuthV2RequestControl;
 import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.*;
+
+import com.sun.opends.sdk.tools.PerfToolTCPNIOTransportFactory;
 
 
 
@@ -601,6 +604,9 @@ public final class Main
           + "remoteAddress1 remotePort1 remoteAddress2 remotePort2");
       System.exit(1);
     }
+
+    // Use the same transport factory as the tools.
+    TransportFactory.setInstance(new PerfToolTCPNIOTransportFactory());
 
     // Parse command line arguments.
     final String localAddress = args[0];

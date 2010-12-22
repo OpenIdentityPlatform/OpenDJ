@@ -49,20 +49,12 @@ final class SASLEncoderTransformer extends AbstractTransformer<Buffer, Buffer>
   private final byte[] buffer = new byte[BUFFER_SIZE];
   private final ConnectionSecurityLayer bindContext;
 
-  private final MemoryManager<Buffer> memoryManager;
-
-
-
-  @SuppressWarnings("unchecked")
-  public SASLEncoderTransformer(final ConnectionSecurityLayer bindContext)
-  {
-    this(bindContext, TransportFactory.getInstance().getDefaultMemoryManager());
-  }
+  private final MemoryManager<?> memoryManager;
 
 
 
   public SASLEncoderTransformer(final ConnectionSecurityLayer bindContext,
-      final MemoryManager<Buffer> memoryManager)
+      final MemoryManager<?> memoryManager)
   {
     this.bindContext = bindContext;
     this.memoryManager = memoryManager;

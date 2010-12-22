@@ -46,7 +46,8 @@ import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 /**
  * The TCPNIOTransportFactory which performance tools will use.
  */
-final class PerfToolTCPNIOTransportFactory extends DefaultNIOTransportFactory
+public final class PerfToolTCPNIOTransportFactory extends
+    DefaultNIOTransportFactory
 {
   private int selectors;
 
@@ -115,7 +116,7 @@ final class PerfToolTCPNIOTransportFactory extends DefaultNIOTransportFactory
     }
     final String selectorsStr = System
         .getProperty("org.opends.sdk.ldap.transport.selectors");
-    if (threadsStr != null)
+    if (selectorsStr != null)
     {
       selectors = Integer.parseInt(selectorsStr);
     }
