@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2010 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -48,6 +49,7 @@ import org.opends.server.util.args.StringArgument;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.DynamicConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -222,9 +224,26 @@ public class CreateRCScript
 
 
     String suString = "";
+    String EscQuote1 = "\"";
+    String EscQuote2 = "";
+    
     if (userName.isPresent())
     {
-      suString = "/bin/su " + userName.getValue() + " ";
+      String suCmd = "/bin/su";
+      File f = new File(suCmd);
+      if (! f.exists())
+      {
+        suCmd = "/usr/bin/su";
+        File f2 = new File(suCmd);
+        if (! f2.exists())
+        {
+          // Default to /bin/su anyway
+          suCmd = "/bin/su";
+        }
+      }
+      suString = suCmd + " " + userName.getValue() + " -c ";
+      EscQuote1 = "";
+      EscQuote2 = "\"";
     }
 
 
@@ -242,12 +261,16 @@ public class CreateRCScript
         w.println("# " + headerLine);
       }
 
+      w.println("# chkconfig: 345 95 5");
+      w.println("# description: Control the " + SHORT_NAME + " Directory Server");
       w.println();
       w.println();
 
-      w.println("# Set the path to the OpenDS instance to manage");
+      w.println("# Set the path to the " + SHORT_NAME + " instance to manage");
       w.println("INSTALL_ROOT=\"" + serverRoot.getAbsolutePath() + "\"");
       w.println("export INSTALL_ROOT");
+      w.println();
+      w.println("cd ${INSTALL_ROOT}");
       w.println();
 
       if (javaHomeDir != null)
@@ -269,16 +292,18 @@ public class CreateRCScript
       w.println("# Determine what action should be performed on the server");
       w.println("case \"${1}\" in");
       w.println("start)");
-      w.println("  " + suString + "\"${INSTALL_ROOT}/bin/start-ds\" --quiet");
+      w.println("  " + suString + "\"${INSTALL_ROOT}/bin/start-ds"+
+          EscQuote1 + " --quiet" + EscQuote2);
       w.println("  exit ${?}");
       w.println("  ;;");
       w.println("stop)");
-      w.println("  " + suString + "\"${INSTALL_ROOT}/bin/stop-ds\" --quiet");
+      w.println("  " + suString + "\"${INSTALL_ROOT}/bin/stop-ds"+
+          EscQuote1 + " --quiet" + EscQuote2);
       w.println("  exit ${?}");
       w.println("  ;;");
       w.println("restart)");
-      w.println("  " + suString + "\"${INSTALL_ROOT}/bin/stop-ds\" " +
-                "--restart --quiet");
+      w.println("  " + suString + "\"${INSTALL_ROOT}/bin/stop-ds"+
+          EscQuote1 + " --restart --quiet" + EscQuote2);
       w.println("  exit ${?}");
       w.println("  ;;");
       w.println("*)");
