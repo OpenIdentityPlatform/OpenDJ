@@ -24,6 +24,7 @@
 #
 #
 #      Copyright 2008-2010 Sun Microsystems, Inc.
+#      Portions Copyright 2010 ForgeRock AS
 
 #
 # Display an error message
@@ -290,11 +291,9 @@ then
       case `echo ${location}` in
            /*)
               INSTANCE_ROOT=${location}
-              break
               ;;
            *)
               INSTANCE_ROOT=${INSTALL_ROOT}/${location}
-              break
               ;;
       esac
     else
