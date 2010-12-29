@@ -226,7 +226,7 @@ public class CreateRCScript
     String suString = "";
     String EscQuote1 = "\"";
     String EscQuote2 = "";
-    
+
     if (userName.isPresent())
     {
       String suCmd = "/bin/su";
@@ -262,7 +262,8 @@ public class CreateRCScript
       }
 
       w.println("# chkconfig: 345 95 5");
-      w.println("# description: Control the " + SHORT_NAME + " Directory Server");
+      w.println("# description: Control the " +
+          SHORT_NAME + " Directory Server");
       w.println();
       w.println();
 
