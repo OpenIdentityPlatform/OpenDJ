@@ -23,6 +23,7 @@
  !
  !
  !      Copyright 2006-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS
  ! -->
 
 <project name="Directory Server" basedir="." default="package">
@@ -2477,10 +2478,10 @@
     <exec dir="${snmp.mib.dir}" executable="java">
       <arg line="-classpath ${opendmktk.path}
         com.sun.jdmk.tools.MibGen -X:use-display-hint
-        -d ${snmp.gen.dir}/org/opends/server/snmp -mc -desc
-        -tp org.opends.server.snmp ${snmp.mib.dir}/rfc2605.txt
-        ${snmp.mib.dir}/mib_core.txt
-        ${snmp.mib.dir}/rfc2021.txt ${snmp.mib.dir}/rfc2788.txt"/>
+        -d &quot;${snmp.gen.dir}/org/opends/server/snmp&quot; -mc -desc
+        -tp org.opends.server.snmp &quot;${snmp.mib.dir}/rfc2605.txt&quot;
+        &quot;${snmp.mib.dir}/mib_core.txt&quot;
+        &quot;${snmp.mib.dir}/rfc2021.txt&quot; &quot;${snmp.mib.dir}/rfc2788.txt&quot;"/>
     </exec>
   </target>
 
