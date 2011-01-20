@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.service;
 
@@ -234,7 +235,7 @@ public class ReplicationBroker
     this.groupId = groupId;
     this.generationID = generationId;
     this.heartbeatInterval = heartbeatInterval;
-    this.maxRcvWindow = window;
+    this.rcvWindow = window;
     this.maxRcvWindow = window;
     this.halfRcvWindow = window / 2;
     this.changeTimeHeartbeatSendInterval = changeTimeHeartbeatInterval;
@@ -2655,12 +2656,17 @@ public class ReplicationBroker
               {
                 // The best replication server is no more the one we are
                 // currently using. Disconnect properly then reconnect.
+                int bestServerId = -1;
+                if (bestServerInfo != null)
+                {
+                  bestServerId = bestServerInfo.getServerId();
+                }
                 Message message =
                   NOTE_NEW_BEST_REPLICATION_SERVER.get(baseDn.toString(),
                   Integer.toString(serverId),
                   Integer.toString(rsServerId),
                   rsServerUrl,
-                  Integer.toString(bestServerInfo.getServerId()));
+                  Integer.toString(bestServerId));
                 logError(message);
                 reStart(true);
               }
