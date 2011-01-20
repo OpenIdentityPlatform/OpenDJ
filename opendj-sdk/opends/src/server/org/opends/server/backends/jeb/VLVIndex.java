@@ -23,14 +23,13 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
 
 import com.sleepycat.je.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.loggers.ErrorLogger.*;
 import org.opends.server.types.*;
 import org.opends.server.admin.std.server.LocalDBVLVIndexCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -63,7 +62,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * This class represents a VLV index. Each database record is a sorted list
  * of entry IDs followed by sets of attribute values used to sort the entries.
  * The entire set of entry IDs are broken up into sorted subsets to decrease
- * the number of database retrivals needed for a range lookup. The records are
+ * the number of database retrievals needed for a range lookup. The records are
  * keyed by the last entry's first sort attribute value. The list of entries
  * in a particular database record maintains the property where the first sort
  * attribute value is bigger then the previous key but smaller or equal
@@ -246,6 +245,7 @@ public class VLVIndex extends DatabaseContainer
   /**
    * {@inheritDoc}
    */
+  @Override
   public void open() throws DatabaseException
   {
     super.open();
@@ -278,6 +278,7 @@ public class VLVIndex extends DatabaseContainer
    * @throws DatabaseException if a JE database error occurs while
    * closing the index.
    */
+  @Override
   public void close() throws DatabaseException
   {
     super.close();
@@ -906,8 +907,8 @@ public class VLVIndex extends DatabaseContainer
   {
     // Handle cases where nothing is changed early to avoid
     // DB access.
-    if((addedValues == null || addedValues.size() == 0) &&
-        (deletedValues == null || deletedValues.size() == 0))
+    if((addedValues == null || addedValues.isEmpty()) &&
+        (deletedValues == null || deletedValues.isEmpty()))
     {
       return;
     }
@@ -1870,9 +1871,11 @@ public class VLVIndex extends DatabaseContainer
             resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
           }
         }
-        // BUG: attrType may be NULL
-        sortKeys[i] = new SortKey(attrType, ascending[i]);
-        orderingRules[i] = attrType.getOrderingMatchingRule();
+        else
+        {
+          sortKeys[i] = new SortKey(attrType, ascending[i]);
+          orderingRules[i] = attrType.getOrderingMatchingRule();
+        }
       }
 
       this.sortOrder = new SortOrder(sortKeys);

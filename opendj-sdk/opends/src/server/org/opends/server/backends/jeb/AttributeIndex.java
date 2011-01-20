@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -257,7 +258,7 @@ public class AttributeIndex
     {
       Set<String> extensibleRules =
               indexConfig.getIndexExtensibleMatchingRule();
-      if(extensibleRules == null || extensibleRules.size() == 0)
+      if(extensibleRules == null || extensibleRules.isEmpty())
       {
         Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
             String.valueOf(attrType), "extensible");
@@ -1816,7 +1817,7 @@ public class AttributeIndex
     {
       Set<String> newRules =
               cfg.getIndexExtensibleMatchingRule();
-      if (newRules == null || newRules.size() == 0)
+      if (newRules == null || newRules.isEmpty())
       {
         Message message = ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
                 String.valueOf(attrType), "extensible");
@@ -2952,7 +2953,7 @@ public class AttributeIndex
     {
       Set<ExtensibleMatchingRule> rules = id2RulesMap.get(indexID);
       rules.remove(rule);
-      if(rules.size() == 0)
+      if(rules.isEmpty())
       {
         id2RulesMap.remove(indexID);
       }
@@ -2991,7 +2992,10 @@ public class AttributeIndex
     private void deleteRule(String indexID)
     {
       Set<ExtensibleMatchingRule> rules  = id2RulesMap.get(indexID);
-      rule2FactoryMap.remove(rules);
+      for (ExtensibleMatchingRule rule : rules)
+      {
+        rule2FactoryMap.remove(rule);
+      }
       rules.clear();
       id2RulesMap.remove(indexID);
     }

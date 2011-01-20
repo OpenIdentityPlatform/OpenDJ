@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -240,19 +241,16 @@ public class EntryIDSetSorter
             }
             else if (beforeCount > 0)
             {
-              if (beforeCount > 0)
+              idList.add(id);
+              includedBeforeCount++;
+              if (includedBeforeCount > beforeCount)
               {
-                idList.add(id);
-                includedBeforeCount++;
-                if (includedBeforeCount > beforeCount)
-                {
-                  idList.removeFirst();
-                  includedBeforeCount--;
-                }
-                else
-                {
-                  listSize++;
-                }
+                idList.removeFirst();
+                includedBeforeCount--;
+              }
+              else
+              {
+                listSize++;
               }
             }
           }
