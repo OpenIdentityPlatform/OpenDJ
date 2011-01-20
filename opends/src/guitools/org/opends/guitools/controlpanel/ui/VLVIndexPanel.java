@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -231,6 +232,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.NO_BUTTON;
@@ -811,7 +813,8 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
         getObfuscatedCommandLineArguments(getDSConfigCommandLineArguments());
       for (String arg : args)
       {
-        sb.append(" "+CommandBuilder.escapeValue(arg));
+        sb.append(" ");
+        sb.append(CommandBuilder.escapeValue(arg));
       }
 
       ManagementContext mCtx = LDAPManagementContext.createFromContext(
@@ -833,7 +836,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       {
         index.setScope(scope);
       }
-      if (!indexToModify.getScope().equals(sortOrder))
+      if (!indexToModify.getSortOrder().equals(sortOrder))
       {
         index.setSortOrder(sortOrderStringValue);
       }
@@ -895,6 +898,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     public void postOperation()
     {
       if ((lastException == null) && (state == State.FINISHED_SUCCESSFULLY))
@@ -938,7 +942,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
         args.add("filter:"+filterValue);
       }
 
-      if (!indexToModify.getScope().equals(sortOrder))
+      if (!indexToModify.getSortOrder().equals(sortOrder))
       {
         args.add("--set");
         args.add("sort-order:"+sortOrderStringValue);

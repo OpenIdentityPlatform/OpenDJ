@@ -24,6 +24,7 @@
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2009 Parametric Technology Corporation (PTC)
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.admin.ads.util;
@@ -506,7 +507,7 @@ public class ApplicationTrustManager implements X509TrustManager
     boolean hostMatch = h1.length == h2.length;
     for (int i=0; i<h1.length && hostMatch; i++)
     {
-      if (!h1[i].equals("*") && !h2.equals("*"))
+      if (!h1[i].equals("*") && !h2[i].equals("*"))
       {
         hostMatch = h1[i].equalsIgnoreCase(h2[i]);
       }

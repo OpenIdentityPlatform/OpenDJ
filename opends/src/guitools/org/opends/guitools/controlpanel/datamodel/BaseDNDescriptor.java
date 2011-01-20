@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -144,7 +145,7 @@ public class BaseDNDescriptor implements Comparable<BaseDNDescriptor>
     }
     if (returnValue == 0)
     {
-      getBackend().getBackendID().compareTo(
+      returnValue = getBackend().getBackendID().compareTo(
           desc.getBackend().getBackendID());
     }
     if (returnValue == 0)

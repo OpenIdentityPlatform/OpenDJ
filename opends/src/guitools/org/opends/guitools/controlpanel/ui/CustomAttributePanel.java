@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -331,7 +332,7 @@ public class CustomAttributePanel extends SchemaElementPanel
     Component[][] comps = {{parent, aliases, origin, file},
         {usage, singleValued, nonModifiable, collective, obsolete},
         {approximate, equality, ordering, substring}};
-    JLabel[][] labels = {{lSuperior, lAliases, lOrigin, lFile},
+    JLabel[][] someLabels = {{lSuperior, lAliases, lOrigin, lFile},
         {lUsage, lType, null, null, null},
         {lApproximate, lEquality, lOrdering, lSubstring}};
     JLabel[][] inlineHelps = {{null,
@@ -367,7 +368,7 @@ public class CustomAttributePanel extends SchemaElementPanel
       gbc1.fill = GridBagConstraints.HORIZONTAL;
       gbc1.gridy = 0;
 
-      add(labels[i], comps[i], inlineHelps[i], p, gbc1);
+      add(someLabels[i], comps[i], inlineHelps[i], p, gbc1);
       final BasicExpander expander = expanders[i];
       ChangeListener changeListener = new ChangeListener()
       {
@@ -444,6 +445,7 @@ public class CustomAttributePanel extends SchemaElementPanel
         /**
          * {@inheritDoc}
          */
+        @Override
         public void mouseClicked(MouseEvent ev)
         {
           if (ev.getClickCount() == 1)
@@ -459,6 +461,7 @@ public class CustomAttributePanel extends SchemaElementPanel
         /**
          * {@inheritDoc}
          */
+        @Override
         public void keyTyped(KeyEvent ev)
         {
           if ((ev.getKeyChar() == KeyEvent.VK_SPACE) ||
@@ -529,6 +532,7 @@ public class CustomAttributePanel extends SchemaElementPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean mustCheckUnsavedChanges()
   {
     return saveChanges.isEnabled();
@@ -537,6 +541,7 @@ public class CustomAttributePanel extends SchemaElementPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public UnsavedChangesDialog.Result checkUnsavedChanges()
   {
     UnsavedChangesDialog.Result result;
@@ -565,6 +570,7 @@ public class CustomAttributePanel extends SchemaElementPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean requiresScroll()
   {
     return false;
@@ -603,10 +609,10 @@ public class CustomAttributePanel extends SchemaElementPanel
     {
       parent.setSelectedItem(superior);
     }
-    Set<String> aliases = getAliases(attr);
+    Set<String> someAliases = getAliases(attr);
     lastAliases.clear();
-    lastAliases.addAll(aliases);
-    this.aliases.setText(Utilities.getStringFromCollection(aliases, ", "));
+    lastAliases.addAll(someAliases);
+    this.aliases.setText(Utilities.getStringFromCollection(someAliases, ", "));
 
     String sOrigin = Utilities.getOrigin(attr);
     if (sOrigin == null)
@@ -916,7 +922,7 @@ public class CustomAttributePanel extends SchemaElementPanel
     {
       errors.add(ERR_CTRL_PANEL_SCHEMA_NOT_FOUND_DETAILS.get());
     }
-    if (errors.size() == 0)
+    if (errors.isEmpty())
     {
       MessageBuilder mb = new MessageBuilder();
 
@@ -1013,12 +1019,12 @@ public class CustomAttributePanel extends SchemaElementPanel
       }
     }
 
-    Collection<String> aliases = getAliases();
+    Collection<String> someAliases = getAliases();
     Collection<String> oldAliases = getAliases(attribute);
 
-    if (!aliases.equals(oldAliases))
+    if (!someAliases.equals(oldAliases))
     {
-      for (String alias : aliases)
+      for (String alias : someAliases)
       {
         if (alias.trim().length() == 0)
         {
@@ -1090,7 +1096,7 @@ public class CustomAttributePanel extends SchemaElementPanel
       }
     }
 
-    if (errors.size() == 0)
+    if (errors.isEmpty())
     {
       ProgressDialog dlg = new ProgressDialog(
           Utilities.createFrame(),
@@ -1108,7 +1114,7 @@ public class CustomAttributePanel extends SchemaElementPanel
       {
         task.canLaunch(newTask, errors);
       }
-      if (errors.size() == 0)
+      if (errors.isEmpty())
       {
         launchOperation(newTask,
             INFO_CTRL_PANEL_MODIFYING_ATTRIBUTE_SUMMARY.get(attrName),

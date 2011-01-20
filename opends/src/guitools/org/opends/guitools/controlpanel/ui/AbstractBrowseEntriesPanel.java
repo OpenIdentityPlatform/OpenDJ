@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -214,6 +215,7 @@ implements BackendPopulatedListener
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean requiresBorder()
   {
     return false;
@@ -222,6 +224,7 @@ implements BackendPopulatedListener
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean requiresScroll()
   {
     return false;
@@ -230,6 +233,7 @@ implements BackendPopulatedListener
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean callConfigurationChangedInBackground()
   {
     return true;
@@ -238,6 +242,7 @@ implements BackendPopulatedListener
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setInfo(ControlPanelInfo info)
   {
     if (controller == null)
@@ -252,6 +257,7 @@ implements BackendPopulatedListener
   /**
    * {@inheritDoc}
    */
+  @Override
   public final GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.NO_BUTTON;
@@ -269,6 +275,7 @@ implements BackendPopulatedListener
   /**
    * {@inheritDoc}
    */
+  @Override
   public void toBeDisplayed(boolean visible)
   {
     super.toBeDisplayed(visible);
@@ -286,6 +293,7 @@ implements BackendPopulatedListener
   /**
    * {@inheritDoc}
    */
+  @Override
   protected void setEnabledOK(boolean enable)
   {
     okButton.setEnabled(enable);
@@ -294,6 +302,7 @@ implements BackendPopulatedListener
   /**
    * {@inheritDoc}
    */
+  @Override
   protected void setEnabledCancel(boolean enable)
   {
     cancelButton.setEnabled(enable);
@@ -502,6 +511,7 @@ implements BackendPopulatedListener
         INFO_CTRL_PANEL_SUBSTRING_SEARCH_INLINE_HELP.get().toString());
     filter.addKeyListener(new KeyAdapter()
     {
+      @Override
       public void keyReleased(KeyEvent e)
       {
         if ((e.getKeyCode() == KeyEvent.VK_ENTER) && applyButton.isEnabled())
@@ -659,6 +669,7 @@ implements BackendPopulatedListener
   /**
    * {@inheritDoc}
    */
+  @Override
   public void cancelClicked()
   {
     setPrimaryValid(lBaseDN);
@@ -710,7 +721,7 @@ implements BackendPopulatedListener
           le.getMessageObject().toString()));
       setPrimaryInvalid(lFilter);
     }
-    if (errors.size() == 0)
+    if (errors.isEmpty())
     {
       lLimit.setVisible(false);
       lNumberOfEntries.setVisible(true);
@@ -1209,12 +1220,12 @@ implements BackendPopulatedListener
       {
         String backendID = backend.getBackendID();
         backendIDs.add(backendID);
-        SortedSet<String> baseDNs = new TreeSet<String>();
+        SortedSet<String> someBaseDNs = new TreeSet<String>();
         for (BaseDNDescriptor baseDN : backend.getBaseDns())
         {
           try
           {
-            baseDNs.add(Utilities.unescapeUtf8(baseDN.getDn().toString()));
+            someBaseDNs.add(Utilities.unescapeUtf8(baseDN.getDn().toString()));
           }
           catch (Throwable t)
           {
@@ -1226,10 +1237,10 @@ implements BackendPopulatedListener
                 Utilities.unescapeUtf8(baseDN.getDn().toString()), baseDN);
           }
         }
-        hmBaseDNs.put(backendID, baseDNs);
+        hmBaseDNs.put(backendID, someBaseDNs);
         if (backendID.equalsIgnoreCase("userRoot"))
         {
-          for (String baseDN : baseDNs)
+          for (String baseDN : someBaseDNs)
           {
             baseDNWithEntries = hmBaseDNWithEntries.get(baseDN);
             if (baseDNWithEntries != null)
@@ -1251,8 +1262,8 @@ implements BackendPopulatedListener
     {
       baseDNNewElements.add(new CategorizedComboBoxElement(backendID,
           CategorizedComboBoxElement.Type.CATEGORY));
-      SortedSet<String> baseDNs = hmBaseDNs.get(backendID);
-      for (String baseDN : baseDNs)
+      SortedSet<String> someBaseDNs = hmBaseDNs.get(backendID);
+      for (String baseDN : someBaseDNs)
       {
         baseDNNewElements.add(new CategorizedComboBoxElement(baseDN,
             CategorizedComboBoxElement.Type.REGULAR));
@@ -1562,14 +1573,12 @@ implements BackendPopulatedListener
       {
         dn = ALL_BASE_DNS;
       }
-      else if (OTHER_BASE_DN.equals(dn))
-      {
-        dn = null;
-      }
-    }
-    else
-    {
-      dn = null;
+      // The following is never true. OTHER_BASE_DN is a Message
+      // Comment out buggy code
+      // else if (OTHER_BASE_DN.equals(dn))
+      // {
+      //   dn = null;
+      // }
     }
     return dn;
   }
@@ -1779,6 +1788,7 @@ implements BackendPopulatedListener
     /**
      * {@inheritDoc}
      */
+    @Override
     public Component getListCellRendererComponent(JList list, Object value,
         int index, boolean isSelected, boolean cellHasFocus)
     {
@@ -1894,6 +1904,7 @@ implements BackendPopulatedListener
     /**
      * Executes the updater.
      */
+    @Override
     public void run()
     {
       while (true)
