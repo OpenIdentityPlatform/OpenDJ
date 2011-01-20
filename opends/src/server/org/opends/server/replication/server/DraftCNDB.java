@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.server;
 import static org.opends.messages.ReplicationMessages.*;
@@ -273,17 +274,9 @@ public class DraftCNDB
     try
     {
       dbCloseLock.readLock().lock();
-      cursor = db.openCursor(null, null);
-    }
-    catch (DatabaseException e1)
-    {
-      dbCloseLock.readLock().unlock();
-      return 0;
-    }
-    try
-    {
       try
       {
+        cursor = db.openCursor(null, null);
         DatabaseEntry key = new DatabaseEntry();
         DatabaseEntry entry = new DatabaseEntry();
         OperationStatus status = cursor.getFirst(key, entry, LockMode.DEFAULT);
@@ -297,7 +290,8 @@ public class DraftCNDB
           str = new String(key.getData(), "UTF-8");
         } catch (UnsupportedEncodingException e)
         {
-          // never happens
+          // never happens, return anyway
+          return 0;
         }
         int sn = new Integer(str);
         return sn;
@@ -373,7 +367,8 @@ public class DraftCNDB
           str = new String(key.getData(), "UTF-8");
         } catch (UnsupportedEncodingException e)
         {
-          // never happens
+          // never happens, returns anyway
+          return 0;
         }
         int sn = new Integer(str);
         return sn;
