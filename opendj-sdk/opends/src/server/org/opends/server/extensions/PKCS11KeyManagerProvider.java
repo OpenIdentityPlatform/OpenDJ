@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.extensions;
 import org.opends.messages.Message;
@@ -379,7 +380,16 @@ public class PKCS11KeyManagerProvider
     }
     else if (configuration.getKeyStorePin() != null)
     {
-      configuration.getKeyStorePin().toCharArray();
+      String pinStr = configuration.getKeyStorePin();
+      if (pinStr == null)
+      {
+        // We should have a pin from the configuration, but no.
+        unacceptableReasons.add(
+            ERR_PKCS11_KEYMANAGER_CANNOT_DETERMINE_PIN_FROM_ATTR.get(
+              String.valueOf(cfgEntryDN),
+              "null"));
+        configAcceptable = false;
+      }
     }
     else
     {
