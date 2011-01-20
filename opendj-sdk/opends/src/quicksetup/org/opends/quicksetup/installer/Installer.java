@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.quicksetup.installer;
 
@@ -3513,7 +3514,7 @@ public abstract class Installer extends GuiApplication {
       String sPort = qs.getFieldStringValue(FieldName.REMOTE_SERVER_PORT);
       checkRemoteHostPortDnAndPwd(host, sPort, dn, pwd, qs, errorMsgs);
 
-      if (errorMsgs.size() == 0)
+      if (errorMsgs.isEmpty())
       {
         port = Integer.parseInt(sPort);
         // Try to connect
@@ -3556,7 +3557,7 @@ public abstract class Installer extends GuiApplication {
           type);
     }
 
-    if (errorMsgs.size() == 0)
+    if (errorMsgs.isEmpty())
     {
       AuthenticationData auth = new AuthenticationData();
       auth.setHostName(host);
@@ -4008,7 +4009,7 @@ public abstract class Installer extends GuiApplication {
       SuffixesToReplicateOptions.Type.REPLICATE_WITH_EXISTING_SUFFIXES)
     {
       Set<?> s = (Set<?>)qs.getFieldValue(FieldName.SUFFIXES_TO_REPLICATE);
-      if (s.size() == 0)
+      if (s.isEmpty())
       {
         errorMsgs.add(INFO_NO_SUFFIXES_CHOSEN_TO_REPLICATE.get());
         qs.displayFieldInvalid(FieldName.SUFFIXES_TO_REPLICATE, true);
@@ -4354,9 +4355,13 @@ public abstract class Installer extends GuiApplication {
     lastLoadedCache.setPreferredConnections(cnx);
     lastLoadedCache.reloadTopology();
     Set<SuffixDescriptor> suffixes = lastLoadedCache.getSuffixes();
-
+    Set<SuffixDescriptor> moreSuffixes = null;
+    if (suf != null)
+    {
+      moreSuffixes = suf.getSuffixes();
+    }
     getUserData().setSuffixesToReplicateOptions(
-        new SuffixesToReplicateOptions(type, suffixes, suf.getSuffixes()));
+        new SuffixesToReplicateOptions(type, suffixes, moreSuffixes));
 
     /* Analyze if we had any exception while loading servers.  For the moment
      * only throw the exception found if the user did not provide the
@@ -4402,8 +4407,12 @@ public abstract class Installer extends GuiApplication {
     {
       suffixes.add(replica.getSuffix());
     }
+    Set<SuffixDescriptor> moreSuffixes = null;
+    if (suf != null){
+      moreSuffixes = suf.getSuffixes();
+    }
     getUserData().setSuffixesToReplicateOptions(
-        new SuffixesToReplicateOptions(type, suffixes, suf.getSuffixes()));
+        new SuffixesToReplicateOptions(type, suffixes, moreSuffixes));
   }
 
   /**

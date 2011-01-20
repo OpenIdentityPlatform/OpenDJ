@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -152,6 +153,7 @@ public class LoginPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public void toBeDisplayed(boolean visible)
   {
     super.toBeDisplayed(visible);
@@ -184,7 +186,7 @@ public class LoginPanel extends StatusGenericPanel
       errors.add(INFO_NOT_A_DIRECTORY_MANAGER_DN.get());
     }
 
-    if ("".equals(pwd.getPassword().length == 0))
+    if (pwd.getPassword().length == 0)
     {
       pwdInvalid = true;
       errors.add(INFO_EMPTY_PWD.get());
@@ -412,6 +414,7 @@ public class LoginPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public void cancelClicked()
   {
     setPrimaryValid(dnLabel);
