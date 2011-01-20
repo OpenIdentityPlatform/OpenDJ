@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.extensions;
 import org.opends.messages.Message;
@@ -465,7 +466,15 @@ public class FileBasedKeyManagerProvider
     }
     else if (configuration.getKeyStorePin() != null)
     {
-      configuration.getKeyStorePin().toCharArray();
+      String pinStr = configuration.getKeyStorePin();
+      if (pinStr == null)
+      {
+        unacceptableReasons.add(
+            ERR_FILE_KEYMANAGER_CANNOT_DETERMINE_PIN_FROM_ATTR.get(
+              String.valueOf(cfgEntryDN),
+              "null"));
+        configAcceptable = false;
+      }
     }
     else
     {
