@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.admin.client.cli;
 
@@ -601,8 +602,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
           }
           table.startRow();
           table.appendCell(adminUserProp.getAttributeName());
-          table.appendCell(getPropertyOptionSummary(userAdminProperties
-              .get(adminUserProp)));
+          table.appendCell(getPropertyOptionSummary(adminUserProp));
           table.appendCell(adminUserProp.getAttributeSyntax());
           if (userAdminProperties.get(adminUserProp).getDefaultValue() != null)
           {
@@ -823,12 +823,12 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
   }
 
   //Compute the options field.
-  private String getPropertyOptionSummary(Argument arg)
+  private String getPropertyOptionSummary(AdministratorProperty adminUserProp)
   {
+    Argument arg = userAdminProperties.get(adminUserProp);
     StringBuilder b = new StringBuilder();
 
-    if (readonlyadminUserProperties.contains(
-        ADSContext.getServerPropFromName(arg.getName())))
+    if (readonlyadminUserProperties.contains(adminUserProp))
     {
       b.append("r-"); //$NON-NLS-1$
     }

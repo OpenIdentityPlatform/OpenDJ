@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -875,7 +876,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
       InstantiableRelationDefinition<? super C, ? super S> ir =
         (InstantiableRelationDefinition<? super C, ? super S>) r;
       if (elements.size() == 0) {
-        return parent().child(ir, nd, null);
+        return parent().child(ir, nd, "null");
       } else {
         return parent().child(ir, nd,
             elements.get(elements.size() - 1).getName());
