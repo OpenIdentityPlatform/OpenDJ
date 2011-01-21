@@ -23,11 +23,13 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 
 package org.opends.server.schema;
 
+import org.opends.server.util.StaticUtils;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -407,7 +409,7 @@ public final class TimeBasedMatchingRuleFactory
       */
     public int compare(byte[] arg0, byte[] arg1)
     {
-      return compare(arg0, arg1);
+      return StaticUtils.compare(arg0, arg1);
     }
 
 
