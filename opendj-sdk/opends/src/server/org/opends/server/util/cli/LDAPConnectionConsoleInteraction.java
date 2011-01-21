@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.util.cli;
@@ -1150,7 +1151,14 @@ public class LDAPConnectionConsoleInteraction {
       copySecureArgsList.keyStorePathArg.addValue(keystorePath);
       commandBuilder.addArgument(copySecureArgsList.keyStorePathArg);
     }
-
+    else
+    {
+      // KeystorePath is null. Either it's unspecified or there's a pb
+      // We should throw an exception here, anyway since code below will
+      // anyway
+      throw ArgumentExceptionFactory
+          .incompatiblePropertyModification("null keystorePath");
+    }
 
     // Then the keystore password.
     keystorePassword = secureArgsList.keyStorePasswordArg.getValue();

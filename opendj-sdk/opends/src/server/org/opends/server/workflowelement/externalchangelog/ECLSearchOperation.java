@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010 ForgeRock AS
+ *      Portions Copyright 2010-2011 ForgeRock AS
  */
 package org.opends.server.workflowelement.externalchangelog;
 
@@ -608,55 +608,51 @@ public class ECLSearchOperation
     // Start a specific ECL session
     eclSession = replicationServer.createECLSession(startECLSessionMsg);
 
-    if (true)
-    {
-      // Loop on result entries
-      int INITIAL=0;
-      int PSEARCH=1;
-      int phase=INITIAL;
-      boolean returnedRoot = false;
-      while (true)
-      {
-        // Check for a request to cancel this operation.
-        checkIfCanceled(false);
+    // Loop on result entries
+    int phase = 0; // 0 is initial phase, 1 is psearch
+    boolean returnedRoot = false;
 
-        ECLUpdateMsg update = eclSession.getNextUpdate();
-        if (update!=null)
+    while (true)
+    {
+      // Check for a request to cancel this operation.
+      checkIfCanceled(false);
+
+      ECLUpdateMsg update = eclSession.getNextUpdate();
+      if (update!=null)
+      {
+        if (!returnedRoot)
         {
-          if (!returnedRoot)
+          returnRootEntryIfRequired(true);
+          returnedRoot = true;
+        }
+        if (phase == 0)
+        {
+          if (!buildAndReturnEntry(update))
           {
-            returnRootEntryIfRequired(true);
-            returnedRoot = true;
-          }
-          if (phase==INITIAL)
-          {
-            if (!buildAndReturnEntry(update))
-            {
-              // Abandon, Size limit reached
-              eclSession.close();
-              break;
-            }
+            // Abandon, Size limit reached
+            eclSession.close();
+            break;
           }
         }
-        else
+      }
+      else
+      {
+        if (!returnedRoot)
         {
-          if (!returnedRoot)
+          returnRootEntryIfRequired(false);
+          returnedRoot = true;
+        }
+        if (phase == 0)
+        {
+          if (this.persistentSearch == null)
           {
-            returnRootEntryIfRequired(false);
-            returnedRoot = true;
+            eclSession.close();
+            break;
           }
-          if (phase==INITIAL)
+          else
           {
-            if (this.persistentSearch == null)
-            {
-              eclSession.close();
-              break;
-            }
-            else
-            {
-              phase=PSEARCH;
-              break;
-            }
+            phase = 1;
+            break;
           }
         }
       }
@@ -1535,6 +1531,7 @@ public class ECLSearchOperation
   /**
    * {@inheritDoc}
    */
+  @Override
   public CancelResult cancel(CancelRequest cancelRequest)
   {
     if (debugEnabled())
@@ -1553,6 +1550,7 @@ public class ECLSearchOperation
   /**
    * {@inheritDoc}
    */
+  @Override
   public void abort(CancelRequest cancelRequest)
   {
     if (debugEnabled())
@@ -1580,7 +1578,7 @@ public class ECLSearchOperation
   {
     //  the conversion from one unique identifier to an other is
     //  a question of formating : the last "-" is placed
-    StringBuffer buffer = new StringBuffer(entryUid);
+    StringBuilder buffer = new StringBuilder(entryUid);
     //  Delete a "-" at 13 to get something like
     buffer.deleteCharAt(13);
 
