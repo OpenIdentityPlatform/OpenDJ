@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.util.args;
 import org.opends.messages.Message;
@@ -577,7 +578,7 @@ public class ArgumentParser
 
   /**
    * Adds the provided argument to the set of arguments handled by this parser
-   * and puts the arguement in the general group.
+   * and puts the argument in the general group.
    *
    * @param  argument  The argument to be added.
    *
@@ -613,9 +614,9 @@ public class ArgumentParser
       throw new ArgumentException(message);
     }
 
-    if (versionArgument != null)
+    if ((versionArgument != null) && (shortID != null))
     {
-      if (shortID == versionArgument.getShortIdentifier())
+      if (shortID.equals(versionArgument.getShortIdentifier()))
       {
         // Update the version argument to not display its short identifier.
         try {
@@ -1401,7 +1402,8 @@ public class ArgumentParser
     {
       if (trailingArgsDisplayName == null)
       {
-        buffer.append(" "+INFO_ARGPARSER_USAGE_TRAILINGARGS.get());
+        buffer.append(" ");
+        buffer.append(INFO_ARGPARSER_USAGE_TRAILINGARGS.get());
       }
       else
       {
