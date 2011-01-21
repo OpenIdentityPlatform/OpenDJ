@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.tools.dsconfig;
 
@@ -800,7 +801,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
     // Get the tag mapping, creating it if necessary.
     for (Tag tag : d.getAllTags()) {
-      subTypes = tagMap.get(baseName);
+      subTypes = tagMap.get(tag);
       if (subTypes == null) {
         subTypes = new TreeMap<String, AbstractManagedObjectDefinition<?, ?>>();
         tagMap.put(tag, subTypes);
