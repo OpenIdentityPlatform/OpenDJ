@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.tools.dsconfig;
 
@@ -1257,7 +1258,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
         catch (Throwable t)
         {
           // Bug
-          new RuntimeException("Unexpected exception: "+t, t);
+          throw new RuntimeException("Unexpected exception: "+t, t);
         }
         return MenuResult.success(children.get(children.firstKey()));
       } else {
