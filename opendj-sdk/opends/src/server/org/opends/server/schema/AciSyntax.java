@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -63,17 +64,8 @@ public class AciSyntax
    */
   private static final DebugTracer TRACER = getTracer();
 
-
-
-
-  // The default approximate matching rule for this syntax.
-  private ApproximateMatchingRule defaultApproximateMatchingRule;
-
   // The default equality matching rule for this syntax.
   private EqualityMatchingRule defaultEqualityMatchingRule;
-
-  // The default ordering matching rule for this syntax.
-  private OrderingMatchingRule defaultOrderingMatchingRule;
 
   // The default substring matching rule for this syntax.
   private SubstringMatchingRule defaultSubstringMatchingRule;
@@ -99,9 +91,6 @@ public class AciSyntax
   public void initializeSyntax(AttributeSyntaxCfg configuration)
          throws ConfigException
   {
-    // We don't need an approximate matching rule.
-    defaultApproximateMatchingRule = null;
-
     defaultEqualityMatchingRule =
          DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_IA5_OID);
     if (defaultEqualityMatchingRule == null)
@@ -109,9 +98,6 @@ public class AciSyntax
       logError(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
           EMR_CASE_IGNORE_IA5_OID, SYNTAX_ACI_NAME));
     }
-
-    // We don't need an ordering matching rule.
-    defaultOrderingMatchingRule = null;
 
     defaultSubstringMatchingRule =
          DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_IA5_OID);
@@ -185,7 +171,8 @@ public class AciSyntax
    */
   public OrderingMatchingRule getOrderingMatchingRule()
   {
-    return defaultOrderingMatchingRule;
+    // We don't have an orderingMatchingRule
+    return null;
   }
 
 
@@ -215,7 +202,8 @@ public class AciSyntax
    */
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
-    return defaultApproximateMatchingRule;
+    // we don't have an approximateMatchingRule
+    return null;
   }
 
 
