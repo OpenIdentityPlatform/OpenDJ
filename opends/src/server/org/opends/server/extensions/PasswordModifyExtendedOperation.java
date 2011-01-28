@@ -23,12 +23,12 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.extensions;
+
+
 import org.opends.messages.Message;
-
-
-
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -63,6 +63,7 @@ import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.ErrorLogger;
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.messages.CoreMessages.*;
 
 import org.opends.messages.MessageBuilder;
 import static org.opends.server.util.ServerConstants.*;
@@ -1131,6 +1132,41 @@ public class PasswordModifyExtendedOperation
                new PasswordPolicyResponseControl(pwPolicyWarningType,
                                                  pwPolicyWarningValue,
                                                  pwPolicyErrorType));
+        }
+
+        // Handle Account Status Notifications that may be needed.
+        // They are not handled by the backend for internal operations.
+        List<AttributeValue> currentPasswords = null;
+        if (oldPassword != null)
+        {
+          currentPasswords = new ArrayList<AttributeValue>(1);
+          currentPasswords.add(AttributeValues
+                              .create(oldPassword, oldPassword));
+        }
+        List<AttributeValue> newPasswords = null;
+        if (newPassword != null)
+        {
+          newPasswords = new ArrayList<AttributeValue>(1);
+          newPasswords.add(AttributeValues
+                           .create(newPassword, newPassword));
+        }
+        if (selfChange)
+        {
+          Message message = INFO_MODIFY_PASSWORD_CHANGED.get();
+          pwPolicyState.generateAccountStatusNotification(
+            AccountStatusNotificationType.PASSWORD_CHANGED,
+            userEntry, message,
+            AccountStatusNotification.createProperties(pwPolicyState, false,
+                  -1, currentPasswords, newPasswords));
+        }
+        else
+        {
+          Message message = INFO_MODIFY_PASSWORD_RESET.get();
+          pwPolicyState.generateAccountStatusNotification(
+            AccountStatusNotificationType.PASSWORD_RESET,
+            userEntry, message,
+            AccountStatusNotification.createProperties(pwPolicyState, false,
+                  -1, currentPasswords, newPasswords));
         }
       }
     }
