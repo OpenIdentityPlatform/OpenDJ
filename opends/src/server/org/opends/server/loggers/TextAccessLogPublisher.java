@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -779,7 +780,7 @@ public class TextAccessLogPublisher extends
     buffer.append(" dn=\"");
     buffer.append(compareOperation.getRawEntryDN().toString());
     buffer.append("\" attr=");
-    buffer.append(compareOperation.getAttributeType());
+    buffer.append(compareOperation.getAttributeType().getNameOrOID());
     if (compareOperation.isSynchronizationOperation())
       buffer.append(" type=synchronization");
 
