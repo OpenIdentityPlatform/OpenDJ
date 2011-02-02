@@ -23,12 +23,12 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 
 
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
@@ -46,7 +46,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.AttributeType;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.Control;
 import org.opends.server.types.DebugLogLevel;
@@ -57,7 +56,6 @@ import org.opends.server.types.LockManager;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SynchronizationProviderResult;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
 import org.opends.server.types.operation.PostResponseDeleteOperation;
@@ -410,7 +408,8 @@ deleteProcessing:
           }
 
 
-          processPreReadControl();
+          LocalBackendWorkflowElement.addPreReadResponse(this,
+              preReadRequest, entry);
 
 
           if (! noOp)
@@ -660,62 +659,6 @@ deleteProcessing:
   }
 
 
-
-  /**
-   * Performs any processing needed for the LDAP pre-read control.
-   */
-  protected void processPreReadControl()
-  {
-    if (preReadRequest != null)
-    {
-      Entry entryCopy = entry.duplicate(true);
-
-      if (! preReadRequest.allowsAttribute(
-                 DirectoryServer.getObjectClassAttributeType()))
-      {
-        entryCopy.removeAttribute(
-             DirectoryServer.getObjectClassAttributeType());
-      }
-
-      if (! preReadRequest.returnAllUserAttributes())
-      {
-        Iterator<AttributeType> iterator =
-             entryCopy.getUserAttributes().keySet().iterator();
-        while (iterator.hasNext())
-        {
-          AttributeType attrType = iterator.next();
-          if (! preReadRequest.allowsAttribute(attrType))
-          {
-            iterator.remove();
-          }
-        }
-      }
-
-      if (! preReadRequest.returnAllOperationalAttributes())
-      {
-        Iterator<AttributeType> iterator =
-             entryCopy.getOperationalAttributes().keySet().iterator();
-        while (iterator.hasNext())
-        {
-          AttributeType attrType = iterator.next();
-          if (! preReadRequest.allowsAttribute(attrType))
-          {
-            iterator.remove();
-          }
-        }
-      }
-
-      // Check access controls on the entry and strip out
-      // any not allowed attributes.
-      SearchResultEntry searchEntry =
-        AccessControlConfigManager.getInstance().
-        getAccessControlHandler().filterEntry(this, entryCopy);
-      LDAPPreReadResponseControl responseControl =
-           new LDAPPreReadResponseControl(preReadRequest.isCritical(),
-                                          searchEntry);
-      addResponseControl(responseControl);
-    }
-  }
 
   /**
    * Handle conflict resolution.

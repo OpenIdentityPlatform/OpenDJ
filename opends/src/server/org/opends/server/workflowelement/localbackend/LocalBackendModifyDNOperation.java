@@ -23,12 +23,12 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 
 
 
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -42,9 +42,7 @@ import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.controls.LDAPPostReadRequestControl;
-import org.opends.server.controls.LDAPPostReadResponseControl;
 import org.opends.server.controls.LDAPPreReadRequestControl;
-import org.opends.server.controls.LDAPPreReadResponseControl;
 import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.AccessControlConfigManager;
@@ -71,7 +69,6 @@ import org.opends.server.types.Privilege;
 import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SynchronizationProviderResult;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
 import org.opends.server.types.operation.PostResponseModifyDNOperation;
@@ -631,7 +628,10 @@ modifyDNProcessing:
 
           // Attach the pre-read and/or post-read controls to the response if
           // appropriate.
-          processReadEntryControls();
+          LocalBackendWorkflowElement.addPreReadResponse(this,
+              preReadRequest, currentEntry);
+          LocalBackendWorkflowElement.addPostReadResponse(this,
+              postReadRequest, newEntry);
 
 
           if (! noOp)
@@ -1075,114 +1075,6 @@ modifyDNProcessing:
   }
 
 
-
-  /**
-   * Performs any necessary processing to create the pre-read and/or post-read
-   * response controls and attach them to the response.
-   */
-  protected void processReadEntryControls()
-  {
-    if (preReadRequest != null)
-    {
-      Entry entry = currentEntry.duplicate(true);
-
-      if (! preReadRequest.allowsAttribute(
-                 DirectoryServer.getObjectClassAttributeType()))
-      {
-        entry.removeAttribute(
-             DirectoryServer.getObjectClassAttributeType());
-      }
-
-      if (! preReadRequest.returnAllUserAttributes())
-      {
-        Iterator<AttributeType> iterator =
-             entry.getUserAttributes().keySet().iterator();
-        while (iterator.hasNext())
-        {
-          AttributeType attrType = iterator.next();
-          if (! preReadRequest.allowsAttribute(attrType))
-          {
-            iterator.remove();
-          }
-        }
-      }
-
-      if (! preReadRequest.returnAllOperationalAttributes())
-      {
-        Iterator<AttributeType> iterator =
-             entry.getOperationalAttributes().keySet().iterator();
-        while (iterator.hasNext())
-        {
-          AttributeType attrType = iterator.next();
-          if (! preReadRequest.allowsAttribute(attrType))
-          {
-            iterator.remove();
-          }
-        }
-      }
-
-      // Check access controls on the entry and strip out
-      // any not allowed attributes.
-      SearchResultEntry searchEntry =
-        AccessControlConfigManager.getInstance().
-        getAccessControlHandler().filterEntry(this, entry);
-      LDAPPreReadResponseControl responseControl =
-           new LDAPPreReadResponseControl(preReadRequest.isCritical(),
-                                          searchEntry);
-
-      addResponseControl(responseControl);
-    }
-
-    if (postReadRequest != null)
-    {
-      Entry entry = newEntry.duplicate(true);
-
-      if (! postReadRequest.allowsAttribute(
-                 DirectoryServer.getObjectClassAttributeType()))
-      {
-        entry.removeAttribute(
-             DirectoryServer.getObjectClassAttributeType());
-      }
-
-      if (! postReadRequest.returnAllUserAttributes())
-      {
-        Iterator<AttributeType> iterator =
-             entry.getUserAttributes().keySet().iterator();
-        while (iterator.hasNext())
-        {
-          AttributeType attrType = iterator.next();
-          if (! postReadRequest.allowsAttribute(attrType))
-          {
-            iterator.remove();
-          }
-        }
-      }
-
-      if (! postReadRequest.returnAllOperationalAttributes())
-      {
-        Iterator<AttributeType> iterator =
-             entry.getOperationalAttributes().keySet().iterator();
-        while (iterator.hasNext())
-        {
-          AttributeType attrType = iterator.next();
-          if (! postReadRequest.allowsAttribute(attrType))
-          {
-            iterator.remove();
-          }
-        }
-      }
-
-      // Check access controls on the entry and strip out
-      // any not allowed attributes.
-      SearchResultEntry searchEntry =
-        AccessControlConfigManager.getInstance().
-        getAccessControlHandler().filterEntry(this, entry);
-      LDAPPostReadResponseControl responseControl =
-           new LDAPPostReadResponseControl(searchEntry);
-
-      addResponseControl(responseControl);
-    }
-  }
 
   /**
    * Handle conflict resolution.

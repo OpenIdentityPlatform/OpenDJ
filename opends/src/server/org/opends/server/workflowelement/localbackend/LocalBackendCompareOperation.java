@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -52,7 +53,6 @@ import org.opends.server.types.operation.PreOperationCompareOperation;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 
 

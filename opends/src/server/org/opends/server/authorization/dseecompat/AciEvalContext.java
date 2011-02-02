@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -303,29 +304,12 @@ public interface AciEvalContext
     public String rightToString();
 
     /**
-   * Return the name of the ACI that last matched a targattrfilters rule. Used
-   * in geteffectiverights control evaluation.
-   *
-   * @return The name of the ACI that last matched a targattrfilters rule.
-   */
+     * Return the name of the ACI that last matched a targattrfilters rule. Used
+     * in geteffectiverights control evaluation.
+     *
+     * @return The name of the ACI that last matched a targattrfilters rule.
+     */
     public String getTargAttrFiltersAciName();
-
-  /**
-   * The full entry with all of the attributes was saved
-   * in the operation's attachment mechanism when the container was created
-   * during the SearchOperation read evaluation. Some operations need the full
-   * entry and not the filtered entry to perform their evaluations, because they
-   * might depend attribute types and values filtered out.
-   *
-   * This method is used to replace the current resource entry with that saved
-   * entry and back.
-   *
-   * @param val Specifies if the saved entry should be used or not. {@code true}
-   * if it should be used, {@code false} if the original resource entry should
-   * be used.
-   *
-   */
-    public void useFullResourceEntry(boolean val);
 
 
     /**

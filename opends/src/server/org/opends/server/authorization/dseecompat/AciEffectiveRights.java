@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -186,123 +187,148 @@ public class AciEffectiveRights {
    * @param e The entry to add the rights attributes to.
    * @param skipCheck  True if ACI evaluation was skipped because bypass-acl
    *                   privilege was found.
-   * @return  A SearchResultEntry with geteffectiverights information possibly
-   *          added to it.
    */
-  public static SearchResultEntry
-  addRightsToEntry(AciHandler handler, LinkedHashSet<String> searchAttributes,
-            AciLDAPOperationContainer container,SearchResultEntry e,
-            boolean skipCheck) {
-    List<AttributeType> nonRightsAttrs = new LinkedList<AttributeType>();
-    int attrMask=ACI_NULL;
-    if(aclRights == null)
-      aclRights =
-               DirectoryServer.getAttributeType(aclRightsAttrStr.toLowerCase());
-    if(aclRightsInfo == null)
-      aclRightsInfo =
-           DirectoryServer.getAttributeType(aclRightsInfoAttrStr.toLowerCase());
-    if(dnAttributeType == null)
+  public static void addRightsToEntry(AciHandler handler,
+      LinkedHashSet<String> searchAttributes,
+      AciLDAPOperationContainer container, final Entry e,
+      boolean skipCheck)
+  {
+    if (aclRights == null)
+    {
+      aclRights = DirectoryServer.getAttributeType(aclRightsAttrStr
+          .toLowerCase());
+    }
+
+    if (aclRightsInfo == null)
+    {
+      aclRightsInfo = DirectoryServer.getAttributeType(aclRightsInfoAttrStr
+          .toLowerCase());
+    }
+
+    if (dnAttributeType == null)
+    {
       dnAttributeType = DirectoryServer.getAttributeType(dnAttrStr);
-    //Check if the attributes aclRights and aclRightsInfo were requested and
-    //add attributes less those two attributes to a new list of attribute types.
-    for(String a : searchAttributes) {
-      if(a.equalsIgnoreCase(aclRightsAttrStr))
+    }
+
+    // Check if the attributes aclRights and aclRightsInfo were requested and
+    // add attributes less those two attributes to a new list of attribute
+    // types.
+    List<AttributeType> nonRightsAttrs = new LinkedList<AttributeType>();
+    int attrMask = ACI_NULL;
+    for (String a : searchAttributes)
+    {
+      if (a.equalsIgnoreCase(aclRightsAttrStr))
+      {
         attrMask |= ACL_RIGHTS;
-      else if(a.equalsIgnoreCase(aclRightsInfoAttrStr))
+      }
+      else if (a.equalsIgnoreCase(aclRightsInfoAttrStr))
+      {
         attrMask |= ACL_RIGHTS_INFO;
-      else {
-          //Check for shorthands for user attributes "*" or operational "+".
-          if(a.equals("*")) {
-              //Add objectclass.
-              AttributeType ocType =
-                      DirectoryServer.getObjectClassAttributeType();
-              nonRightsAttrs.add(ocType);
-              nonRightsAttrs.addAll(e.getUserAttributes().keySet());
-          } else if (a.equals("+"))
-              nonRightsAttrs.addAll(e.getOperationalAttributes().keySet());
-          else {
-              AttributeType attrType;
-              if((attrType =
-                  DirectoryServer.getAttributeType(a.toLowerCase())) == null)
-                  attrType =
-                      DirectoryServer.getDefaultAttributeType(a.toLowerCase());
-              nonRightsAttrs.add(attrType);
-          }
+      }
+      else
+      {
+        // Check for shorthands for user attributes "*" or operational "+".
+        if (a.equals("*"))
+        {
+          // Add objectclass.
+          AttributeType ocType = DirectoryServer.getObjectClassAttributeType();
+          nonRightsAttrs.add(ocType);
+          nonRightsAttrs.addAll(e.getUserAttributes().keySet());
+        }
+        else if (a.equals("+"))
+        {
+          nonRightsAttrs.addAll(e.getOperationalAttributes().keySet());
+        }
+        else
+        {
+          AttributeType attrType = DirectoryServer.getAttributeType(a
+              .toLowerCase());
+          if (attrType == null)
+            attrType = DirectoryServer.getDefaultAttributeType(a.toLowerCase());
+          nonRightsAttrs.add(attrType);
+        }
       }
     }
-      //If the special geteffectiverights attributes were not found or
-    //the user does not have both bypass-acl privs and is not allowed to
-    //perform rights evalation -- return the entry unchanged.
-    if(attrMask == ACI_NULL ||
-      (!skipCheck && !rightsAccessAllowed(container,handler,attrMask)))
-       return e;
-    //From here on out, geteffectiverights evaluation is being performed and the
-    //container will be manipulated. First set the flag that geteffectiverights
-    //evaluation's underway and to use the authZid for authorizationDN (they
-    //might be the same).
+
+    // If the special geteffectiverights attributes were not found or
+    // the user does not have both bypass-acl privs and is not allowed to
+    // perform rights evalation -- return the entry unchanged.
+    if (attrMask == ACI_NULL
+        || (!skipCheck && !rightsAccessAllowed(container, handler, attrMask)))
+    {
+      return;
+    }
+
+    // From here on out, geteffectiverights evaluation is being performed and
+    // the container will be manipulated. First set the flag that
+    // geteffectiverights evaluation's underway and to use the authZid for
+    // authorizationDN (they might be the same).
     container.setGetEffectiveRightsEval();
     container.useAuthzid(true);
-    //If no attributes were requested return only entryLevel rights, else
-    //return attributeLevel rights and entryLevel rights. Always try and
-    //return the specific attribute rights if they exist.
-    if(nonRightsAttrs.isEmpty()) {
-      e=addAttributeLevelRights(container,handler,attrMask,e,
-              container.getSpecificAttributes(), skipCheck, true);
-      e=addEntryLevelRights(container,handler,attrMask,e, skipCheck);
-    } else {
-      e=addAttributeLevelRights(container,handler,attrMask,e,
-              nonRightsAttrs, skipCheck, false);
-      e=addAttributeLevelRights(container,handler,attrMask,e,
-              container.getSpecificAttributes(), skipCheck, true);
-      e=addEntryLevelRights(container,handler,attrMask,e,skipCheck);
+
+    // If no attributes were requested return only entryLevel rights, else
+    // return attributeLevel rights and entryLevel rights. Always try and
+    // return the specific attribute rights if they exist.
+    if (nonRightsAttrs.isEmpty())
+    {
+      addAttributeLevelRights(container, handler, attrMask, e,
+          container.getSpecificAttributes(), skipCheck, true);
+      addEntryLevelRights(container, handler, attrMask, e, skipCheck);
     }
-    return e;
+    else
+    {
+      addAttributeLevelRights(container, handler, attrMask, e, nonRightsAttrs,
+          skipCheck, false);
+      addAttributeLevelRights(container, handler, attrMask, e,
+          container.getSpecificAttributes(), skipCheck, true);
+      addEntryLevelRights(container, handler, attrMask, e, skipCheck);
+    }
   }
+
 
 
   /**
    * Perform the attributeLevel rights evaluation on a list of specified
    * attribute types. Each attribute has an access check done for the following
    * rights: search, read, compare, add, delete, proxy, selfwrite_add,
-   * selfwrite_delete and write.
+   * selfwrite_delete and write. The special rights, selfwrite_add and
+   * selfwrite_delete, use the authZid as the attribute value to evaluate
+   * against the attribute type being evaluated. The selfwrite_add performs the
+   * access check using the ACI_WRITE_ADD right and selfwrite_delete uses
+   * ACI_WRITE_ADD right. The write right is made complicated by the
+   * targattrfilters keyword, which might depend on an unknown value of an
+   * attribute type. For this case a dummy attribute value is used to try and
+   * determine if a "?" needs to be placed in the rights string. The special
+   * flag ACI_SKIP_PROXY_CHECK is always set, so that proxy evaluation is
+   * bypassed in the Aci Handler's accessAllowed method.
    *
-   * The special rights, selfwrite_add and selfwrite_delete, use the authZid as
-   * the attribute value to evaluate against the attribute type being
-   * evaluated. The selfwrite_add performs the access check using the
-   * ACI_WRITE_ADD right and selfwrite_delete uses ACI_WRITE_ADD right.
-   *
-   * The write right is made complicated by the targattrfilters keyword, which
-   * might depend on an unknown value of an attribute type. For this case a
-   * dummy attribute value is used to try and determine if a "?" needs to be
-   * placed in the rights string.
-   *
-   * The special flag ACI_SKIP_PROXY_CHECK is always set, so that proxy
-   * evaluation is bypassed in the Aci Handler's accessAllowed method.
-   *
-   * @param container The LDAP operation container to use in the evaluations.
-   * @param handler  The Aci Handler to use in the access evaluations.
-   * @param mask  Mask specifing what rights attribute processing to perform
-   *              (aclRights or aclRightsInfo or both).
-   * @param retEntry  The entry to return.
-   * @param attrList The list of attribute types to iterate over.
-   * @param skipCheck True if ACI evaluation was skipped because bypass-acl
-   *                  privilege was found.
-   * @param  specificAttr True if this evaluation is result of specific
-   *                      attributes sent in the request.
-   * @return  A SearchResultEntry with geteffectiverights attribute level
-   *          information added to it.
+   * @param container
+   *          The LDAP operation container to use in the evaluations.
+   * @param handler
+   *          The Aci Handler to use in the access evaluations.
+   * @param mask
+   *          Mask specifing what rights attribute processing to perform
+   *          (aclRights or aclRightsInfo or both).
+   * @param retEntry
+   *          The entry to return.
+   * @param attrList
+   *          The list of attribute types to iterate over.
+   * @param skipCheck
+   *          True if ACI evaluation was skipped because bypass-acl privilege
+   *          was found.
+   * @param specificAttr
+   *          True if this evaluation is result of specific attributes sent in
+   *          the request.
    */
-  private static
-  SearchResultEntry addAttributeLevelRights(AciLDAPOperationContainer container,
-                                        AciHandler handler, int mask,
-                                        SearchResultEntry retEntry,
-                                        List<AttributeType> attrList,
-                                        boolean skipCheck,
-                                        boolean specificAttr) {
+  private static void addAttributeLevelRights(
+      AciLDAPOperationContainer container, AciHandler handler, int mask,
+      final Entry retEntry, List<AttributeType> attrList,
+      boolean skipCheck, boolean specificAttr)
+  {
 
-    //The attribute list might be null.
-    if(attrList == null)
-      return retEntry;
+    // The attribute list might be null.
+    if (attrList == null) return;
+
     for(AttributeType a : attrList) {
       StringBuilder evalInfo=new StringBuilder();
       container.setCurrentAttributeType(a);
@@ -371,33 +397,34 @@ public class AciEffectiveRights {
     }
     container.setCurrentAttributeValue(null);
     container.setCurrentAttributeType(null);
-    return retEntry;
   }
+
+
 
   /**
    * Perform the attributeLevel write rights evaluation. The issue here is that
    * an ACI could contain a targattrfilters keyword that matches the attribute
-   * being evaluated.
+   * being evaluated. There is no way of knowing if the filter part of the
+   * targattrfilter would be successful or not. So if the ACI that allowed
+   * access, has an targattrfilter keyword, a "?" is used as the result of the
+   * write (depends on attribute value). If the allow ACI doesn't contain a
+   * targattrfilters keyword than a "1" is added. If the ACI denies then a "0"
+   * is added. If the skipCheck flag is true, then a 1 is used for the write
+   * access, since the client DN has bypass privs.
    *
-   * There is no way of knowing if the filter part of the targattrfilter would
-   * be successful or not. So if the ACI that allowed access, has an
-   * targattrfilter keyword, a "?" is used as the result of the write (depends
-   * on attribute value).
-   *
-   * If the allow ACI doesn't contain a targattrfilters keyword than a
-   * "1" is added. If the ACI denies then a "0" is added. If the skipCheck flag
-   * is true, then a 1 is used for the write access, since the client DN has
-   * bypass privs.
-   *
-   * @param container The LDAP operation container to use in the evaluations.
-   * @param handler The Aci Handler to use in the access evaluations.
-   * @param skipCheck True if ACI evaluation was skipped because bypass-acl
-   *                  privilege was found.
+   * @param container
+   *          The LDAP operation container to use in the evaluations.
+   * @param handler
+   *          The Aci Handler to use in the access evaluations.
+   * @param skipCheck
+   *          True if ACI evaluation was skipped because bypass-acl privilege
+   *          was found.
    * @return A string representing the rights information.
    */
-  private static
-  String attributeLevelWriteRights(AciLDAPOperationContainer container,
-                                   AciHandler handler,  boolean skipCheck){
+  private static String attributeLevelWriteRights(
+      AciLDAPOperationContainer container, AciHandler handler,
+      boolean skipCheck)
+  {
     boolean addRet=false, delRet=false;
     StringBuilder resString=new  StringBuilder();
     //If the user has bypass-acl privs and the authzid is equal to the
@@ -443,27 +470,31 @@ public class AciEffectiveRights {
     return resString.toString();
   }
 
+
+
   /**
    * Perform entryLevel rights evaluation. The rights string is added to the
    * entry if the aclRights attribute was seen in the search's requested
    * attribute set.
    *
-   * @param container The LDAP operation container to use in the evaluations.
-   * @param handler The Aci Handler to use in the access evaluations.
-   * @param mask Mask specifing what rights attribute processing to perform
-   *              (aclRights or aclRightsInfo or both).
-   * @param retEntry The entry to return.
-   * @param skipCheck True if ACI evaluation was skipped because bypass-acl
-   *                  privilege was found.
-   * @return A SearchResultEntry with geteffectiverights entryLevel rights
-   *          information added to it.
+   * @param container
+   *          The LDAP operation container to use in the evaluations.
+   * @param handler
+   *          The Aci Handler to use in the access evaluations.
+   * @param mask
+   *          Mask specifing what rights attribute processing to perform
+   *          (aclRights or aclRightsInfo or both).
+   * @param retEntry
+   *          The entry to return.
+   * @param skipCheck
+   *          True if ACI evaluation was skipped because bypass-acl privilege
+   *          was found.
    */
 
-  private static SearchResultEntry
-  addEntryLevelRights(AciLDAPOperationContainer container,
-                                           AciHandler handler,
-                                           int mask, SearchResultEntry retEntry,
-                                           boolean skipCheck) {
+  private static void addEntryLevelRights(AciLDAPOperationContainer container,
+      AciHandler handler, int mask, final Entry retEntry,
+      boolean skipCheck)
+  {
     //Perform access evaluations for rights: add, delete, read, write, proxy.
     StringBuilder evalInfo=new StringBuilder();
     container.setCurrentAttributeType(null);
@@ -479,13 +510,11 @@ public class AciEffectiveRights {
     container.setCurrentAttributeType(null);
     //The read right needs the entry with the full set of attributes. This was
     //saved in the Aci Handlers maysend method.
-    container.useFullResourceEntry(true);
     container.setRights(ACI_READ | ACI_SKIP_PROXY_CHECK);
     evalInfo.append(rightsString(container, handler, skipCheck, "read"));
     addEntryLevelRightsInfo(container, mask, retEntry, "read");
     evalInfo.append(',');
     //Switch back to the entry from the Aci Handler's filterentry method.
-    container.useFullResourceEntry(false);
     container.setCurrentAttributeType(null);
     container.setRights(ACI_WRITE| ACI_SKIP_PROXY_CHECK);
     evalInfo.append(rightsString(container, handler, skipCheck, "write"));
@@ -502,7 +531,6 @@ public class AciEffectiveRights {
           .toString());
       retEntry.addAttribute(attr,null);
     }
-    return retEntry;
   }
 
   /**
@@ -593,7 +621,7 @@ public class AciEffectiveRights {
    */
   private static
   void addAttrLevelRightsInfo(AciLDAPOperationContainer container, int mask,
-                     AttributeType aType, SearchResultEntry retEntry,
+                     AttributeType aType, Entry retEntry,
                      String rightStr) {
 
     //Check if the aclRightsInfo attribute was requested.
@@ -625,7 +653,7 @@ public class AciEffectiveRights {
    */
   private static
    void addEntryLevelRightsInfo(AciLDAPOperationContainer container, int mask,
-                       SearchResultEntry retEntry,
+                       Entry retEntry,
                       String rightStr) {
 
      //Check if the aclRightsInfo attribute was requested.

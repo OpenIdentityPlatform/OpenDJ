@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -47,13 +48,6 @@ import org.opends.server.workflowelement.localbackend.*;
 class DefaultAccessControlHandler
       extends AccessControlHandler<AccessControlHandlerCfg>
 {
-  /**
-   * The single handler instance.
-   */
-  private static DefaultAccessControlHandler instance = null;
-
-
-
   /**
    * Create a new default access control handler.
    */
@@ -204,22 +198,21 @@ class DefaultAccessControlHandler
    * {@inheritDoc}
    */
   @Override
-  public boolean maySend(SearchOperation searchOperation,
-                         SearchResultEntry searchEntry)
+  public boolean maySend(Operation operation, SearchResultEntry unfilteredEntry)
   {
     return true;
   }
 
 
+
   /**
    * {@inheritDoc}
    */
   @Override
-  public SearchResultEntry filterEntry(SearchOperation searchOperation,
-                                       SearchResultEntry searchEntry)
+  public void filterEntry(Operation operation,
+      SearchResultEntry unfilteredEntry, SearchResultEntry filteredEntry)
   {
-    // No implementation required.
-    return searchEntry;
+    return;
   }
 
 
@@ -228,19 +221,7 @@ class DefaultAccessControlHandler
    * {@inheritDoc}
    */
   @Override
-  public SearchResultEntry filterEntry(Operation operation, Entry entry)
-  {
-    // No implementation required.
-    return new SearchResultEntry(entry);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean maySend(DN dn, SearchOperation searchOperation,
+  public boolean maySend(DN dn, Operation operation,
                          SearchResultReference searchReference)
   {
     return true;
