@@ -23,6 +23,8 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
+ *
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -306,6 +308,10 @@ public class AciTests extends AciTestCase {
 
   private static final String ALLOW_ALL_TO_COMPARE =
              buildAciValue("name", "allow compare", "targetattr", "*", "target", "ldap:///cn=*," + OU_LEAF_DN, "allow(compare)", BIND_RULE_USERDN_ALL);
+
+  private static final String DENY_READ_CN_SN_IF_PERSON = buildAciValue("name",
+      "deny read cn sn if person", "targetfilter", "objectClass=person",
+      "targetattr", "cn || sn", "deny(read)", BIND_RULE_USERDN_ALL);
 
   //The ACIs for the proxy tests.
 
@@ -1107,10 +1113,14 @@ public class AciTests extends AciTestCase {
                                         GLOBAL_DSE_ACI, GLOBAL_USER_OP_ATTRS_ACI,
                                         GLOBAL_CONTROL_ACI, GLOBAL_EXT_OP_ACI);
 
- //ACI used to test LDAP compare.
- private static final
- String COMPARE_ACI =  makeAddAciLdif(OU_LEAF_DN,
-                                       ALLOW_ALL_TO_COMPARE);
+  // ACI used to test LDAP compare.
+  private static final String COMPARE_ACI =  makeAddAciLdif(OU_LEAF_DN, ALLOW_ALL_TO_COMPARE);
+
+  // ACI used to test LDAP search with attributes.
+  private static final String SEARCH_ATTRIBUTES_ALLOW_ACI = makeAddAciLdif(
+      OU_LEAF_DN, ALLOW_ALL_TO_ALL);
+  private static final String SEARCH_ATTRIBUTES_DENY_ACI = makeAddAciLdif(
+      OU_LEAF_DN, DENY_READ_CN_SN_IF_PERSON);
 
   //ACI used to test selfwrite
   private static final
@@ -1586,32 +1596,43 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
     private final String _expectedResultsLdif;
     private final String _initialDitLdif;
     private final String _aciLdif;
+    private final String[] _attributes;
 
-    public SingleSearchParams(String bindDn, String bindPw, String proxyDN,
-                              String searchBaseDn, String searchFilter,
-                              String searchScope, String expectedResultsLdif,
-                              String initialDitLdif, String aciLdif) {
-      _bindDn = bindDn;
-      _bindPw = bindPw;
-      _proxyDN=proxyDN;
-      _searchBaseDn = searchBaseDn;
-      _searchFilter = searchFilter;
-      _searchScope = searchScope;
-      _expectedResultsLdif = expectedResultsLdif;
-      _initialDitLdif = initialDitLdif;
-      _aciLdif = aciLdif;
+    public static SingleSearchParams proxiedSearch(String bindDn,
+        String bindPw, String proxyDN, String searchBaseDn,
+        String searchFilter, String searchScope, String expectedResultsLdif,
+        String initialDitLdif, String aciLdif, String... attributes)
+    {
+      return new SingleSearchParams(bindDn, bindPw, proxyDN, searchBaseDn,
+          searchFilter, searchScope, expectedResultsLdif, initialDitLdif,
+          aciLdif, attributes);
     }
 
-    public SingleSearchParams(String bindDn, String bindPw, String searchBaseDn, String searchFilter, String searchScope, String expectedResultsLdif, String initialDitLdif, String aciLdif) {
+    public static SingleSearchParams nonProxiedSearch(String bindDn,
+        String bindPw, String searchBaseDn, String searchFilter,
+        String searchScope, String expectedResultsLdif, String initialDitLdif,
+        String aciLdif, String... attributes)
+    {
+      return new SingleSearchParams(bindDn, bindPw, null, searchBaseDn,
+          searchFilter, searchScope, expectedResultsLdif, initialDitLdif,
+          aciLdif, attributes);
+    }
+
+    private SingleSearchParams(String bindDn, String bindPw,
+        String proxyDN, String searchBaseDn, String searchFilter, String searchScope,
+        String expectedResultsLdif, String initialDitLdif, String aciLdif,
+        String... attributes)
+    {
       _bindDn = bindDn;
       _bindPw = bindPw;
-      _proxyDN = null;
+      _proxyDN = proxyDN;
       _searchBaseDn = searchBaseDn;
       _searchFilter = searchFilter;
       _searchScope = searchScope;
       _expectedResultsLdif = expectedResultsLdif;
       _initialDitLdif = initialDitLdif;
       _aciLdif = aciLdif;
+      _attributes = attributes;
     }
 
     public SingleSearchParams(SingleSearchParams that, String initialDitLdif, String aciLdif) {
@@ -1624,40 +1645,56 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
       _expectedResultsLdif = that._expectedResultsLdif;
       _initialDitLdif = initialDitLdif;
       _aciLdif = aciLdif;
+      _attributes = new String[0];
     }
 
     public SingleSearchParams clone(String initialDitLdif, String aciLdif) {
       return new SingleSearchParams(this, initialDitLdif, aciLdif);
     }
 
-    public String[] getLdapSearchArgs() {
-      if (_bindDn.equals(ANNONYMOUS_DN)) {
-        return new String[]{
-          "-h", "127.0.0.1",
-          "-p", getServerLdapPort(),
-          "-b", _searchBaseDn,
-          "-s", _searchScope,
-          _searchFilter};
-      } else if(_proxyDN != null) {
-        return new String[]{
-          "-h", "127.0.0.1",
-          "-p", getServerLdapPort(),
-          "-D", _bindDn,
-          "-w", _bindPw,
-          "-b", _searchBaseDn,
-          "-s", _searchScope,
-          "-Y", "dn:" + _proxyDN,
-          _searchFilter};
-      } else {
-        return new String[]{
-          "-h", "127.0.0.1",
-          "-p", getServerLdapPort(),
-          "-D", _bindDn,
-          "-w", _bindPw,
-          "-b", _searchBaseDn,
-          "-s", _searchScope,
-          _searchFilter};
+    public String[] getLdapSearchArgs()
+    {
+      final List<String> args = new ArrayList<String>();
+
+      if (_bindDn.equals(ANNONYMOUS_DN))
+      {
+        args.addAll(Arrays.asList(
+            "-h", "127.0.0.1",
+            "-p", getServerLdapPort(),
+            "-b", _searchBaseDn,
+            "-s", _searchScope,
+            _searchFilter));
       }
+      else if (_proxyDN != null)
+      {
+        args.addAll(Arrays.asList(
+            "-h", "127.0.0.1",
+            "-p", getServerLdapPort(),
+            "-D", _bindDn,
+            "-w", _bindPw,
+            "-b", _searchBaseDn,
+            "-s", _searchScope,
+            "-Y", "dn:" + _proxyDN,
+            _searchFilter));
+      }
+      else
+      {
+        args.addAll(Arrays.asList(
+            "-h", "127.0.0.1",
+            "-p", getServerLdapPort(),
+            "-D", _bindDn,
+            "-w", _bindPw,
+            "-b", _searchBaseDn,
+            "-s", _searchScope,
+            _searchFilter));
+      }
+
+      for (String attribute : _attributes)
+      {
+        args.add(attribute);
+      }
+
+      return args.toArray(new String[args.size()]);
     }
 
     // This is primarily used for debug output on a failure.
@@ -1702,7 +1739,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
 
     private void addSingleSearch(String bindDn, String searchBaseDn, String searchFilter, String searchScope, String expectedResultsLdif) {
       for (String equivalentAci: _equivalentAciLdifs) {
-        _searchTests.add(new SingleSearchParams(bindDn, DN_TO_PW.get(bindDn), searchBaseDn, searchFilter, searchScope, expectedResultsLdif, _initialDitLdif, equivalentAci));
+        _searchTests.add(SingleSearchParams.nonProxiedSearch(bindDn, DN_TO_PW.get(bindDn), searchBaseDn, searchFilter, searchScope, expectedResultsLdif, _initialDitLdif, equivalentAci));
       }
     }
 
@@ -1774,7 +1811,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
  @Test()
   public void testCompare() throws Throwable {
       SingleSearchParams adminParam =
-              new SingleSearchParams(ADMIN_DN, ADMIN_PW, LEVEL_3_USER_DN,
+        SingleSearchParams.nonProxiedSearch(ADMIN_DN, ADMIN_PW, LEVEL_3_USER_DN,
                       OBJECTCLASS_STAR, SCOPE_BASE,
                       null, null, null);
       try {
@@ -1808,11 +1845,11 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
    */
   @Test
   public void testProxyModDN() throws Throwable {
-    SingleSearchParams userParamOrig = new SingleSearchParams(LEVEL_1_USER_DN,
+    SingleSearchParams userParamOrig = SingleSearchParams.proxiedSearch(LEVEL_1_USER_DN,
                                       "pa$$word",PROXY_USER_DN, SALES_USER_1,
                                       OBJECTCLASS_STAR, SCOPE_BASE,
                                       null, null, null);
-    SingleSearchParams userParamNew = new SingleSearchParams(LEVEL_1_USER_DN,
+    SingleSearchParams userParamNew = SingleSearchParams.proxiedSearch(LEVEL_1_USER_DN,
                                      "pa$$word",PROXY_USER_DN, SALES_USER_NEW_1,
                                       OBJECTCLASS_STAR, SCOPE_BASE,
                                       null, null, null);
@@ -1850,11 +1887,11 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
    */
   @Test()
   public void testModDN() throws Throwable {
-    SingleSearchParams userParamOrig = new SingleSearchParams(LEVEL_1_USER_DN,
+    SingleSearchParams userParamOrig = SingleSearchParams.nonProxiedSearch(LEVEL_1_USER_DN,
                                       "pa$$word", SALES_USER_1,
                                       OBJECTCLASS_STAR, SCOPE_BASE,
                                       null, null, null);
-    SingleSearchParams userParamNew = new SingleSearchParams(LEVEL_1_USER_DN,
+    SingleSearchParams userParamNew = SingleSearchParams.nonProxiedSearch(LEVEL_1_USER_DN,
                                       "pa$$word", SALES_USER_NEW_1,
                                       OBJECTCLASS_STAR, SCOPE_BASE,
                                       null, null, null);
@@ -1923,7 +1960,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
   @Test()
    public void testDNSWildCard()  throws Throwable {
         SingleSearchParams userParam =
-            new SingleSearchParams(LEVEL_1_USER_DN,
+          SingleSearchParams.nonProxiedSearch(LEVEL_1_USER_DN,
                                    "pa$$word", LEVEL_3_USER_DN,
                                    OBJECTCLASS_STAR, SCOPE_BASE,
                                    null, null, null);
@@ -1947,12 +1984,12 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
  public void testGroupAcis()  throws Throwable {
      //group2   fail
      SingleSearchParams adminParam =
-             new SingleSearchParams(ADMIN_DN, ADMIN_PW, LEVEL_3_USER_DN,
+       SingleSearchParams.nonProxiedSearch(ADMIN_DN, ADMIN_PW, LEVEL_3_USER_DN,
                                     OBJECTCLASS_STAR, SCOPE_BASE,
                                     null, null, null);
      //group1  pass
      SingleSearchParams userParam =
-              new SingleSearchParams(LEVEL_1_USER_DN,
+       SingleSearchParams.nonProxiedSearch(LEVEL_1_USER_DN,
                                      "pa$$word", LEVEL_3_USER_DN,
                                      OBJECTCLASS_STAR, SCOPE_BASE,
                                      null, null, null);
@@ -1977,11 +2014,11 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
     @Test()
  public void testGlobalAcis()  throws Throwable {
      SingleSearchParams monitorParam =
-             new SingleSearchParams(ADMIN_DN, ADMIN_PW, MONITOR_DN,
+       SingleSearchParams.nonProxiedSearch(ADMIN_DN, ADMIN_PW, MONITOR_DN,
                                     OBJECTCLASS_STAR, SCOPE_BASE,
                                     null, null, null);
       SingleSearchParams baseParam =
-              new SingleSearchParams(LEVEL_1_USER_DN,
+        SingleSearchParams.nonProxiedSearch(LEVEL_1_USER_DN,
                                      "pa$$word", OU_BASE_DN,
                                      OBJECTCLASS_STAR, SCOPE_BASE,
                                      null, null, null);
@@ -2035,6 +2072,58 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
     }
   }
 
+
+
+  /**
+   * Test search with target filter and target attributes do not conflict with
+   * requested attributes in search request. See OpenDS issue 4583.
+   *
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(enabled=false)
+  public void testSearchTargetFilterAndAttributes() throws Exception
+  {
+    addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
+    modEntries(SEARCH_ATTRIBUTES_ALLOW_ACI, DIR_MGR_DN, DIR_MGR_PW);
+
+    // Now issue the search and see if we get what we expect.
+    SingleSearchParams params = SingleSearchParams.nonProxiedSearch(ADMIN_DN, ADMIN_PW,
+        LEVEL_3_USER_DN, OBJECTCLASS_STAR, SCOPE_BASE, null, null, null, "cn", "sn", "givenName");
+
+    // First check cn, sn, and givenName are all readable without the ACI.
+    String expectedLdif = TestCaseUtils.makeLdif(
+        "dn: " + LEVEL_3_USER_DN,
+        "cn: level3 user",
+        "sn: user",
+        "givenName: level3");
+    String actualResults = ldapSearch(params.getLdapSearchArgs());
+    String diffFromExpected = diffLdif(actualResults, expectedLdif);
+
+    // Ignoring whitespace the diff should be empty.
+    Assert.assertTrue(diffFromExpected.replaceAll("\\s", "").length() == 0,
+        "Got: \n" + actualResults + "\nBut expected:\n" + expectedLdif);
+
+
+    // Add the ACI: this will prevent the cn and sn attributes from being read
+    // for entries having the person objectClass. We need to ensure that this
+    // ACI is applied even though the target filter attribute (objectClass) is
+    // not being returned in the results.
+    modEntries(SEARCH_ATTRIBUTES_DENY_ACI, DIR_MGR_DN, DIR_MGR_PW);
+
+    expectedLdif = TestCaseUtils.makeLdif(
+        "dn: " + LEVEL_3_USER_DN,
+        "givenName: level3");
+    actualResults = ldapSearch(params.getLdapSearchArgs());
+    diffFromExpected = diffLdif(actualResults, expectedLdif);
+
+    // Ignoring whitespace the diff should be empty.
+    Assert.assertTrue(diffFromExpected.replaceAll("\\s", "").length() == 0,
+        "Got: \n" + actualResults + "\nBut expected:\n" + expectedLdif);
+  }
+
+
+
   /**
    * Test online handler re-initialization using global and selfwrite
    * right test cases.
@@ -2059,11 +2148,11 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
     // Test global ACI. Two ACIs are used, one protecting
     // "cn=monitor" and the other the test DIT.
     SingleSearchParams monitorParam =
-            new SingleSearchParams(ADMIN_DN, ADMIN_PW, MONITOR_DN,
+      SingleSearchParams.nonProxiedSearch(ADMIN_DN, ADMIN_PW, MONITOR_DN,
             OBJECTCLASS_STAR, SCOPE_BASE,
             null, null, null);
     SingleSearchParams baseParam =
-            new SingleSearchParams(LEVEL_1_USER_DN,
+      SingleSearchParams.nonProxiedSearch(LEVEL_1_USER_DN,
             "pa$$word", OU_BASE_DN,
             OBJECTCLASS_STAR, SCOPE_BASE,
             null, null, null);
