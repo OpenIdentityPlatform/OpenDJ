@@ -23,12 +23,14 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 
 
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -41,15 +43,11 @@ import org.opends.server.admin.std.server.LocalBackendWorkflowElementCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.BindOperation;
-import org.opends.server.core.CompareOperation;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.PersistentSearch;
-import org.opends.server.core.SearchOperation;
+import org.opends.server.controls.LDAPPostReadRequestControl;
+import org.opends.server.controls.LDAPPostReadResponseControl;
+import org.opends.server.controls.LDAPPreReadRequestControl;
+import org.opends.server.controls.LDAPPreReadResponseControl;
+import org.opends.server.core.*;
 import org.opends.server.types.*;
 import org.opends.server.workflowelement.LeafWorkflowElement;
 
@@ -321,6 +319,160 @@ public class LocalBackendWorkflowElement extends
         deregisterLocalBackend(localBackend.getWorkflowElementID());
       }
     }
+  }
+
+
+
+  /**
+   * Adds the post-read response control to the response if requested.
+   *
+   * @param operation
+   *          The update operation.
+   * @param postReadRequest
+   *          The request control, if present.
+   * @param entry
+   *          The post-update entry.
+   */
+  static void addPostReadResponse(final Operation operation,
+      final LDAPPostReadRequestControl postReadRequest, final Entry entry)
+  {
+    if (postReadRequest == null)
+    {
+      return;
+    }
+
+    // Even though the associated update succeeded, we should still check
+    // whether or not we should return the entry.
+    final SearchResultEntry unfilteredEntry =
+      new SearchResultEntry(entry, null);
+    if (AccessControlConfigManager.getInstance().getAccessControlHandler()
+        .maySend(operation, unfilteredEntry) == false)
+    {
+      return;
+    }
+
+    final SearchResultEntry filteredEntry = new SearchResultEntry(
+        entry.duplicate(true), null);
+
+    if (!postReadRequest.allowsAttribute(DirectoryServer
+        .getObjectClassAttributeType()))
+    {
+      filteredEntry.removeAttribute(DirectoryServer
+          .getObjectClassAttributeType());
+    }
+
+    if (!postReadRequest.returnAllUserAttributes())
+    {
+      Iterator<AttributeType> iterator = filteredEntry.getUserAttributes()
+          .keySet().iterator();
+      while (iterator.hasNext())
+      {
+        final AttributeType attrType = iterator.next();
+        if (!postReadRequest.allowsAttribute(attrType))
+        {
+          iterator.remove();
+        }
+      }
+    }
+
+    if (!postReadRequest.returnAllOperationalAttributes())
+    {
+      final Iterator<AttributeType> iterator = filteredEntry
+          .getOperationalAttributes().keySet().iterator();
+      while (iterator.hasNext())
+      {
+        AttributeType attrType = iterator.next();
+        if (!postReadRequest.allowsAttribute(attrType))
+        {
+          iterator.remove();
+        }
+      }
+    }
+
+    // Strip out any attributes which access control denies access to.
+    AccessControlConfigManager.getInstance().getAccessControlHandler()
+        .filterEntry(operation, unfilteredEntry, filteredEntry);
+
+    final LDAPPostReadResponseControl responseControl =
+      new LDAPPostReadResponseControl(filteredEntry);
+    operation.addResponseControl(responseControl);
+  }
+
+
+
+  /**
+   * Adds the pre-read response control to the response if requested.
+   *
+   * @param operation
+   *          The update operation.
+   * @param preReadRequest
+   *          The request control, if present.
+   * @param entry
+   *          The pre-update entry.
+   */
+  static void addPreReadResponse(final Operation operation,
+      final LDAPPreReadRequestControl preReadRequest, final Entry entry)
+  {
+    if (preReadRequest == null)
+    {
+      return;
+    }
+
+    // Even though the associated update succeeded, we should still check
+    // whether or not we should return the entry.
+    final SearchResultEntry unfilteredEntry =
+      new SearchResultEntry(entry, null);
+    if (AccessControlConfigManager.getInstance().getAccessControlHandler()
+        .maySend(operation, unfilteredEntry) == false)
+    {
+      return;
+    }
+
+    final SearchResultEntry filteredEntry = new SearchResultEntry(
+        entry.duplicate(true), null);
+
+    if (!preReadRequest.allowsAttribute(DirectoryServer
+        .getObjectClassAttributeType()))
+    {
+      filteredEntry.removeAttribute(DirectoryServer
+          .getObjectClassAttributeType());
+    }
+
+    if (!preReadRequest.returnAllUserAttributes())
+    {
+      Iterator<AttributeType> iterator = filteredEntry.getUserAttributes()
+          .keySet().iterator();
+      while (iterator.hasNext())
+      {
+        final AttributeType attrType = iterator.next();
+        if (!preReadRequest.allowsAttribute(attrType))
+        {
+          iterator.remove();
+        }
+      }
+    }
+
+    if (!preReadRequest.returnAllOperationalAttributes())
+    {
+      final Iterator<AttributeType> iterator = filteredEntry
+          .getOperationalAttributes().keySet().iterator();
+      while (iterator.hasNext())
+      {
+        AttributeType attrType = iterator.next();
+        if (!preReadRequest.allowsAttribute(attrType))
+        {
+          iterator.remove();
+        }
+      }
+    }
+
+    // Strip out any attributes which access control denies access to.
+    AccessControlConfigManager.getInstance().getAccessControlHandler()
+        .filterEntry(operation, unfilteredEntry, filteredEntry);
+
+    final LDAPPreReadResponseControl responseControl =
+      new LDAPPreReadResponseControl(filteredEntry);
+    operation.addResponseControl(responseControl);
   }
 
 

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -55,7 +56,6 @@ import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.controls.LDAPPostReadRequestControl;
-import org.opends.server.controls.LDAPPostReadResponseControl;
 import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
 import org.opends.server.controls.ProxiedAuthV1Control;
@@ -263,7 +263,7 @@ addProcessing:
 
         // Invoke any conflict resolution processing that might be needed by the
         // synchronization provider.
-        for (SynchronizationProvider provider :
+        for (SynchronizationProvider<?> provider :
              DirectoryServer.getSynchronizationProviders())
         {
           try
@@ -643,7 +643,7 @@ addProcessing:
           }
           else
           {
-            for (SynchronizationProvider provider :
+            for (SynchronizationProvider<?> provider :
                  DirectoryServer.getSynchronizationProviders())
             {
               try
@@ -676,11 +676,8 @@ addProcessing:
             backend.addEntry(entry, this);
           }
 
-          if (postReadRequest != null)
-          {
-            addPostReadResponse();
-          }
-
+          LocalBackendWorkflowElement.addPostReadResponse(this,
+              postReadRequest, entry);
 
           if (! noOp)
           {
@@ -700,7 +697,7 @@ addProcessing:
       }
       finally
       {
-        for (SynchronizationProvider provider :
+        for (SynchronizationProvider<?> provider :
           DirectoryServer.getSynchronizationProviders())
         {
           try
@@ -1204,7 +1201,7 @@ addProcessing:
       // Encode the password.
       if (passwordPolicy.usesAuthPasswordSyntax())
       {
-        for (PasswordStorageScheme s : defaultStorageSchemes)
+        for (PasswordStorageScheme<?> s : defaultStorageSchemes)
         {
           ByteString encodedValue = s.encodeAuthPassword(value);
           builder.add(AttributeValues.create(
@@ -1213,7 +1210,7 @@ addProcessing:
       }
       else
       {
-        for (PasswordStorageScheme s : defaultStorageSchemes)
+        for (PasswordStorageScheme<?> s : defaultStorageSchemes)
         {
           ByteString encodedValue = s.encodePasswordWithScheme(value);
           builder.add(AttributeValues.create(
@@ -1608,59 +1605,6 @@ addProcessing:
         }
       }
     }
-  }
-
-
-
-  /**
-   * Adds the post-read response control to the response.
-   */
-  protected void addPostReadResponse()
-  {
-    Entry addedEntry = entry.duplicate(true);
-
-    if (! postReadRequest.allowsAttribute(
-               DirectoryServer.getObjectClassAttributeType()))
-    {
-      addedEntry.removeAttribute(DirectoryServer.getObjectClassAttributeType());
-    }
-
-    if (! postReadRequest.returnAllUserAttributes())
-    {
-      Iterator<AttributeType> iterator =
-           addedEntry.getUserAttributes().keySet().iterator();
-      while (iterator.hasNext())
-      {
-        AttributeType attrType = iterator.next();
-        if (! postReadRequest.allowsAttribute(attrType))
-        {
-          iterator.remove();
-        }
-      }
-    }
-
-    if (! postReadRequest.returnAllOperationalAttributes())
-    {
-      Iterator<AttributeType> iterator =
-           addedEntry.getOperationalAttributes().keySet().iterator();
-      while (iterator.hasNext())
-      {
-        AttributeType attrType = iterator.next();
-        if (! postReadRequest.allowsAttribute(attrType))
-        {
-          iterator.remove();
-        }
-      }
-    }
-
-    // Check access controls on the entry and strip out
-    // any not allowed attributes.
-    SearchResultEntry searchEntry =
-      AccessControlConfigManager.getInstance().
-      getAccessControlHandler().filterEntry(this, addedEntry);
-    LDAPPostReadResponseControl responseControl =
-      new LDAPPostReadResponseControl(searchEntry);
-    addResponseControl(responseControl);
   }
 }
 

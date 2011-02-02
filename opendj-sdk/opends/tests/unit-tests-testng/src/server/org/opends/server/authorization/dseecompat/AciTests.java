@@ -2081,7 +2081,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled=false)
+  @Test
   public void testSearchTargetFilterAndAttributes() throws Exception
   {
     addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);

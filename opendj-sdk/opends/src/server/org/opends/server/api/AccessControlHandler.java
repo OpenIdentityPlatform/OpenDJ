@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -347,36 +348,18 @@ public abstract class AccessControlHandler
    * the client. Implementations <b>must not under any
    * circumstances</b> modify the search entry in any way.
    *
-   * @param searchOperation
-   *          The search operation with which the provided entry is
-   *          associated.
-   * @param searchEntry
-   *          The search result entry for which to make the
-   *          determination.
+   * @param operation
+   *          The operation currently being processed (this will
+   *          usually be a search, but may be other types of operation
+   *          when pre/post read controls are used).
+   * @param unfilteredEntry
+   *          The result entry before any attribute filtering.
    * @return {@code true} if the access control configuration allows
    *         the entry to be returned to the client, or {@code false}
    *         if not.
    */
-  public abstract boolean maySend(SearchOperation searchOperation,
-      SearchResultEntry searchEntry);
-
-
-
-  /**
-   * Filter the contents of the provided entry such that it no longer
-   * contains any attributes or values that the client is not
-   * permitted to access.
-   *
-   * @param searchOperation
-   *          The search operation with which the provided entry is
-   *          associated.
-   * @param searchEntry
-   *          The search result entry to be filtered.
-   * @return Returns the entry with filtered attributes and values
-   *         removed.
-   */
-  public abstract SearchResultEntry filterEntry(
-      SearchOperation searchOperation, SearchResultEntry searchEntry);
+  public abstract boolean maySend(Operation operation,
+      SearchResultEntry unfilteredEntry);
 
 
 
@@ -386,15 +369,18 @@ public abstract class AccessControlHandler
    * permitted to access.
    *
    * @param operation
-   *          The operation with which the provided entry is
-   *          associated.
-   * @param entry
-   *          The entry to be filtered.
-   * @return Returns the entry with filtered attributes and values
-   *         removed.
+   *          The operation currently being processed (this will
+   *          usually be a search, but may be other types of operation
+   *          when pre/post read controls are used).
+   * @param unfilteredEntry
+   *          The result entry before any attribute filtering.
+   * @param filteredEntry
+   *          The partially filtered result entry being returned to
+   *          the client.
    */
-  public abstract SearchResultEntry filterEntry(
-      Operation operation, Entry entry);
+  public abstract void filterEntry(Operation operation,
+      SearchResultEntry unfilteredEntry,
+      SearchResultEntry filteredEntry);
 
 
 
@@ -404,8 +390,8 @@ public abstract class AccessControlHandler
    *
    * @param dn
    *          A DN that can be used in the access determination.
-   * @param searchOperation
-   *          The search operation with which the provided reference
+   * @param operation
+   *          The operation with which the provided reference
    *          is associated.
    * @param searchReference
    *          The search result reference for which to make the
@@ -414,9 +400,8 @@ public abstract class AccessControlHandler
    *         the reference to be returned to the client, or {@code
    *         false} if not.
    */
-  public abstract boolean maySend(DN dn,
-                               SearchOperation searchOperation,
-                               SearchResultReference searchReference);
+  public abstract boolean maySend(DN dn, Operation operation,
+      SearchResultReference searchReference);
 
 
 

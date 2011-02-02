@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -691,12 +692,13 @@ public class SearchOperationBasis
     }
 
     // Check to see if the entry can be read by the client.
+    SearchResultEntry unfilteredSearchEntry = new SearchResultEntry(entry,
+        controls);
     if (evaluateAci)
     {
-      SearchResultEntry tmpSearchEntry = new SearchResultEntry(entry,
-        controls);
-      if (AccessControlConfigManager.getInstance()
-          .getAccessControlHandler().maySend(this, tmpSearchEntry) == false) {
+      if (AccessControlConfigManager.getInstance().getAccessControlHandler()
+          .maySend(this, unfilteredSearchEntry) == false)
+      {
         return true;
       }
     }
@@ -705,7 +707,7 @@ public class SearchOperationBasis
     // of requested attributes.
 
     // NOTE: that this copy will include the objectClass attribute.
-    Entry entryToReturn =
+    Entry filteredEntry =
         entry.filterEntry(getAttributes(), typesOnly,
             isVirtualAttributesOnly(), isRealAttributesOnly());
 
@@ -721,7 +723,7 @@ public class SearchOperationBasis
       // dealt with later.
       AttributeType attrType = DirectoryServer.getObjectClassAttributeType();
       Iterator<String> ocIterator =
-           entryToReturn.getObjectClasses().values().iterator();
+           filteredEntry.getObjectClasses().values().iterator();
       while (ocIterator.hasNext())
       {
         String ocName = ocIterator.next();
@@ -735,7 +737,7 @@ public class SearchOperationBasis
 
 
       // Next, the set of user attributes (incl. objectClass attribute).
-      for (Map.Entry<AttributeType, List<Attribute>> e : entryToReturn
+      for (Map.Entry<AttributeType, List<Attribute>> e : filteredEntry
           .getUserAttributes().entrySet())
       {
         AttributeType t = e.getKey();
@@ -762,7 +764,7 @@ public class SearchOperationBasis
 
 
       // Then the set of operational attributes.
-      for (Map.Entry<AttributeType, List<Attribute>> e : entryToReturn
+      for (Map.Entry<AttributeType, List<Attribute>> e : filteredEntry
           .getOperationalAttributes().entrySet())
       {
         AttributeType t = e.getKey();
@@ -790,8 +792,8 @@ public class SearchOperationBasis
 
 
     // Convert the provided entry to a search result entry.
-    SearchResultEntry searchEntry = new SearchResultEntry(entryToReturn,
-                                                          controls);
+    SearchResultEntry filteredSearchEntry = new SearchResultEntry(
+        filteredEntry, controls);
 
     // Strip out any attributes that the client does not have access to.
 
@@ -799,24 +801,24 @@ public class SearchOperationBasis
     // values that the client is not permitted to see.
     if (evaluateAci)
     {
-      searchEntry = AccessControlConfigManager.getInstance()
-        .getAccessControlHandler().filterEntry(this, searchEntry);
+      AccessControlConfigManager.getInstance().getAccessControlHandler()
+          .filterEntry(this, unfilteredSearchEntry, filteredSearchEntry);
     }
 
     // Invoke any search entry plugins that may be registered with the server.
     PluginResult.IntermediateResponse pluginResult =
          DirectoryServer.getPluginConfigManager().
-              invokeSearchResultEntryPlugins(this, searchEntry);
+              invokeSearchResultEntryPlugins(this, filteredSearchEntry);
 
     // Send the entry to the client.
     if (pluginResult.sendResponse())
     {
       // Log the entry sent to the client.
-      logSearchResultEntry(this, searchEntry);
+      logSearchResultEntry(this, filteredSearchEntry);
 
       try
       {
-        sendSearchEntry(searchEntry);
+        sendSearchEntry(filteredSearchEntry);
 
         incrementEntriesSent();
       }

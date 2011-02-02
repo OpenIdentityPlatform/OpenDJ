@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -103,13 +104,6 @@ implements AciTargetMatchContext, AciEvalContext {
     private Entry resourceEntry;
 
     /*
-     * Saves the resource entry. Used in geteffectiverights evaluation to
-     * restore the current resource entry state after a read right was
-     * evaluated.
-     */
-    private final Entry saveResourceEntry;
-
-    /*
      * The client connection information.
      */
     private final ClientConnection clientConnection;
@@ -185,12 +179,6 @@ implements AciTargetMatchContext, AciEvalContext {
      * any attributes requested in the search.
      */
     private List<AttributeType> specificAttrs=null;
-
-    /*
-     * The entry with all of its attributes available. Used in
-     * geteffectiverights read entry level evaluation.
-     */
-    private Entry fullEntry=null;
 
     /*
      * Table of ACIs that have targattrfilter keywords that matched. Used
@@ -278,26 +266,29 @@ implements AciTargetMatchContext, AciEvalContext {
       if(origAuthorizationEntry != null)
          this.proxiedAuthorization=true;
       this.authorizationEntry=operation.getAuthorizationEntry();
+
       //The ACI_READ right at constructor time can only be the result of the
       //AciHandler.filterEntry method. This method processes the
       //geteffectiverights control, so it needs to check for it.  There are
       //two other checks done, because the resource entry passed to that method
       //is filtered (it may not contain enough attribute information
       //to evaluate correctly). See the the comments below.
-      if(operation instanceof SearchOperation && (rights == ACI_READ)) {
+      if (rights == ACI_READ) {
         //Checks if a geteffectiverights control was sent and
         //sets up the structures needed.
         GetEffectiveRightsRequestControl getEffectiveRightsControl =
               (GetEffectiveRightsRequestControl)
                       operation.getAttachment(OID_GET_EFFECTIVE_RIGHTS);
-        if(getEffectiveRightsControl != null) {
-          hasGetEffectiveRightsControl=true;
-          if(getEffectiveRightsControl.getAuthzDN() == null)
-            this.authzid=getClientDN();
-          else
-            this.authzid=getEffectiveRightsControl.getAuthzDN();
-          this.specificAttrs=getEffectiveRightsControl.getAttributes();
+        if (getEffectiveRightsControl != null
+            && operation instanceof SearchOperation)
+        {
+          hasGetEffectiveRightsControl = true;
+          if (getEffectiveRightsControl.getAuthzDN() == null)
+            this.authzid = getClientDN();
+          else this.authzid = getEffectiveRightsControl.getAuthzDN();
+          this.specificAttrs = getEffectiveRightsControl.getAttributes();
         }
+
         //If an ACI evaluated because of an Targetattr="*", then the
         //AciHandler.maySend method signaled this via adding this attachment
         //string.
@@ -311,16 +302,11 @@ implements AciTargetMatchContext, AciEvalContext {
         String allOpAttrs=(String)operation.getAttachment(ALL_OP_ATTRS_MATCHED);
         if(allOpAttrs != null)
           evalAllAttributes |= ACI_OP_ATTR_PLUS_MATCHED;
+      }
 
-        //The AciHandler.maySend method also adds the full attribute version of
-        //the resource entry in this attachment.
-        fullEntry=(Entry)operation.getAttachment(ALL_ATTRS_RESOURCE_ENTRY);
-      } else
-        fullEntry=this.resourceEntry;
       //Reference the current authorization entry, so it can be put back
       //if an access proxy check was performed.
       this.saveAuthorizationEntry=this.authorizationEntry;
-      this.saveResourceEntry=this.resourceEntry;
       this.rightsMask = rights;
     }
 
@@ -341,7 +327,6 @@ implements AciTargetMatchContext, AciEvalContext {
         this.authInfo = authInfo;
         this.authorizationEntry = authInfo.getAuthorizationEntry();
         this.saveAuthorizationEntry=this.authorizationEntry;
-        this.saveResourceEntry=this.resourceEntry;
         this.rightsMask = rights;
     }
   /**
@@ -417,28 +402,6 @@ implements AciTargetMatchContext, AciEvalContext {
    */
     public List<AttributeType> getSpecificAttributes() {
        return this.specificAttrs;
-    }
-
-  /**
-   * During the geteffectiverights entrylevel read evaluation, an entry with all
-   * of the attributes used in the AciHandler's maysend method evaluation is
-   * needed to perform the evaluation over again. This entry was saved
-   * in the operation's attachment mechanism when the container was created
-   * during the SearchOperation read evaluation.
-   *
-   * This method is used to replace the current resource entry with that saved
-   * entry to perform the entrylevel read evaluation described above and to
-   * switch back to the current resource entry when needed.
-   *
-   * @param val Specifies if the saved entry should be used or not. True if it
-   * should be used, false if the original resource entry should be used.
-   *
-   */
-    public void useFullResourceEntry(boolean val) {
-      if(val)
-        resourceEntry=fullEntry;
-      else
-        resourceEntry=saveResourceEntry;
     }
 
    /**

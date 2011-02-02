@@ -23,11 +23,11 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.authorization.dseecompat;
 
-import java.util.List;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.*;
@@ -39,17 +39,6 @@ import org.opends.server.workflowelement.localbackend.*;
  */
 public class AciLDAPOperationContainer extends AciContainer  {
 
-    /*
-     * The entry to be returned if this is a LDAP search.
-     */
-    private SearchResultEntry searchEntry;
-
-    /*
-     * The list of modifications if this operation is a LDAP
-     * modify.
-     */
-    private List<Modification>  modifications;
-
     /**
      * Constructor interface for all currently supported LDAP operations.
      * @param operation The compare operation to evaluate.
@@ -60,7 +49,6 @@ public class AciLDAPOperationContainer extends AciContainer  {
       int rights, Entry entry)
     {
       super(operation, rights, entry);
-      this.searchEntry = new SearchResultEntry(entry);
     }
 
 
@@ -149,7 +137,6 @@ public class AciLDAPOperationContainer extends AciContainer  {
         int rights)
     {
         super(operation, rights, operation.getCurrentEntry());
-        this.modifications=operation.getModifications();
     }
 
     /**
@@ -162,34 +149,5 @@ public class AciLDAPOperationContainer extends AciContainer  {
                                      int rights,
                                      Entry entry) {
         super(operation, rights,  entry);
-    }
-
-    /**
-     * Constructor interface for the LDAP search operation.
-     * @param operation The search operation.
-     * @param rights The rights of a search operation.
-     * @param entry The entry to be evaluated for this search.
-     */
-    public AciLDAPOperationContainer(SearchOperation operation,
-        int rights,
-        SearchResultEntry entry)
-    {
-        super(operation, rights,  entry);
-        this.searchEntry = entry;
-    }
-
-    /**
-     * Retrieve the search result entry of the search operation.
-     * @return The search result entry.
-     */
-    public SearchResultEntry getSearchResultEntry() {
-        return this.searchEntry;
-    }
-
-    /** Retrieve the list of modifications if this is a LDAP modify.
-     * @return The list of LDAP modifications to made on the resource entry.
-     */
-    public  List<Modification>  getModifications() {
-        return modifications;
     }
 }

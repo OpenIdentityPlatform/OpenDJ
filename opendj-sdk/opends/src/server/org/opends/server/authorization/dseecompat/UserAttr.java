@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -174,29 +175,26 @@ public class UserAttr implements KeywordBindRule {
      * @return  An enumeration containing the result of the evaluation.
      */
     public EnumEvalResult evaluate(AciEvalContext evalCtx) {
-        EnumEvalResult matched;
-       //The working resource entry might be filtered and not have an
-       //attribute type that is needed to perform these evaluations. The
-       //evalCtx has a copy of the non-filtered entry, switch to it for these
-       //evaluations.
-       evalCtx.useFullResourceEntry(true);
-        switch(userAttrType) {
-        case ROLEDN:
-        case GROUPDN:
-        case USERDN: {
-            matched=evalDNKeywords(evalCtx);
-            break;
-        }
-        case URL: {
-            matched=evalURL(evalCtx);
-            break;
-        }
-        default:
-            matched=evalVAL(evalCtx);
-        }
-        //Switch back to the working resource entry.
-        evalCtx.useFullResourceEntry(false);
-        return matched;
+      EnumEvalResult matched;
+      //The working resource entry might be filtered and not have an
+      //attribute type that is needed to perform these evaluations. The
+      //evalCtx has a copy of the non-filtered entry, switch to it for these
+      //evaluations.
+      switch(userAttrType) {
+      case ROLEDN:
+      case GROUPDN:
+      case USERDN: {
+        matched=evalDNKeywords(evalCtx);
+        break;
+      }
+      case URL: {
+        matched=evalURL(evalCtx);
+        break;
+      }
+      default:
+        matched=evalVAL(evalCtx);
+      }
+      return matched;
     }
 
     /** Evaluate a VALUE userattr type. Look in client entry for an

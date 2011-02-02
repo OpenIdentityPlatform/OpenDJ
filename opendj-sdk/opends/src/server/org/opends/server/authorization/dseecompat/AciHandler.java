@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -93,15 +94,6 @@ import org.opends.server.workflowelement.localbackend.*;
 public final class AciHandler extends
     AccessControlHandler<DseeCompatAccessControlHandlerCfg>
 {
-  /**
-   * String used to save a resource entry containing all the attributes
-   * in the SearchOperation attachment list. This is only used during
-   * geteffectiverights read right processing when all of an entry'ss
-   * attributes need to examined.
-   */
-  public static final String ALL_ATTRS_RESOURCE_ENTRY =
-      "allAttrsResourceEntry";
-
   /**
    * String used to indicate that the evaluating ACI had a all
    * operational attributes targetattr match (targetattr="+").
@@ -234,46 +226,29 @@ public final class AciHandler extends
    * {@inheritDoc}
    */
   @Override
-  public SearchResultEntry filterEntry(SearchOperation operation,
-      SearchResultEntry entry)
+  public void filterEntry(Operation operation,
+      SearchResultEntry unfilteredEntry, SearchResultEntry filteredEntry)
   {
     AciLDAPOperationContainer operationContainer =
-        new AciLDAPOperationContainer(operation, (ACI_READ), entry);
+      new AciLDAPOperationContainer(operation, (ACI_READ), unfilteredEntry);
+
     // Proxy access check has already been done for this entry in the
     // maySend method, set the seen flag to true to bypass any proxy
     // check.
     operationContainer.setSeenEntry(true);
-    SearchResultEntry returnEntry;
+
     boolean skipCheck = skipAccessCheck(operation);
     if (!skipCheck)
     {
-      returnEntry = accessAllowedAttrs(operationContainer);
+      filterEntry(operationContainer, filteredEntry);
     }
-    else
-    {
-      returnEntry = entry;
-    }
+
     if (operationContainer.hasGetEffectiveRightsControl())
     {
-      returnEntry =
-          AciEffectiveRights.addRightsToEntry(this, operation
-              .getAttributes(), operationContainer, returnEntry,
-              skipCheck);
+      AciEffectiveRights.addRightsToEntry(this,
+          ((SearchOperation) operation).getAttributes(), operationContainer,
+          filteredEntry, skipCheck);
     }
-    return returnEntry;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public SearchResultEntry filterEntry(Operation operation, Entry entry)
-  {
-    AciLDAPOperationContainer operationContainer =
-        new AciLDAPOperationContainer(operation, (ACI_READ), entry);
-    return accessAllowedAttrs(operationContainer);
   }
 
 
@@ -595,7 +570,7 @@ public final class AciHandler extends
    * {@inheritDoc}
    */
   @Override
-  public boolean maySend(DN dn, SearchOperation operation,
+  public boolean maySend(DN dn, Operation operation,
       SearchResultReference reference)
   {
     boolean ret;
@@ -625,57 +600,55 @@ public final class AciHandler extends
 
 
   /**
-   * Checks access on a search operation.
-   *
-   * @param operation
-   *          The search operation class containing information to check
-   *          the access on.
-   * @param entry
-   *          The entry to evaluate access.
-   * @return True if access is allowed.
+   * {@inheritDoc}
    */
   @Override
-  public boolean maySend(SearchOperation operation,
-      SearchResultEntry entry)
+  public boolean maySend(Operation operation, SearchResultEntry entry)
   {
+    if (skipAccessCheck(operation))
+    {
+      return true;
+    }
+
     AciLDAPOperationContainer operationContainer =
-        new AciLDAPOperationContainer(operation, (ACI_SEARCH), entry);
-    boolean ret;
-    if (!(ret = skipAccessCheck(operation)))
+      new AciLDAPOperationContainer(operation, (ACI_SEARCH), entry);
+
+    // Pre/post read controls are associated with other types of operation.
+    if (operation instanceof SearchOperation)
     {
       try
       {
-        ret = testFilter(operationContainer, operation.getFilter());
+        if (!testFilter(operationContainer,
+            ((SearchOperation) operation).getFilter()))
+        {
+          return false;
+        }
       }
       catch (DirectoryException ex)
       {
-        ret = false;
-      }
-      if (ret)
-      {
-        operationContainer.clearEvalAttributes(ACI_NULL);
-        operationContainer.setRights(ACI_READ);
-        ret = accessAllowedEntry(operationContainer);
-        if (ret)
-        {
-          if (!operationContainer.hasEvalUserAttributes())
-          {
-            operation.setAttachment(ALL_USER_ATTRS_MATCHED,
-                ALL_USER_ATTRS_MATCHED);
-          }
-          if (!operationContainer.hasEvalOpAttributes())
-          {
-            operation.setAttachment(ALL_OP_ATTRS_MATCHED,
-                ALL_OP_ATTRS_MATCHED);
-          }
-        }
+        return false;
       }
     }
-    // Save a copy of the full resource entry for possible
-    // userattr bind rule or geteffectiveright's evaluations in the
-    // filterEnty method.
-    operation.setAttachment(ALL_ATTRS_RESOURCE_ENTRY, entry);
-    return ret;
+
+    operationContainer.clearEvalAttributes(ACI_NULL);
+    operationContainer.setRights(ACI_READ);
+
+    if (!accessAllowedEntry(operationContainer))
+    {
+      return false;
+    }
+
+    if (!operationContainer.hasEvalUserAttributes())
+    {
+      operation.setAttachment(ALL_USER_ATTRS_MATCHED, ALL_USER_ATTRS_MATCHED);
+    }
+
+    if (!operationContainer.hasEvalOpAttributes())
+    {
+      operation.setAttachment(ALL_OP_ATTRS_MATCHED, ALL_OP_ATTRS_MATCHED);
+    }
+
+    return true;
   }
 
 
@@ -855,23 +828,21 @@ public final class AciHandler extends
 
 
   /**
-   * Performs an access check against all of the attributes of an entry.
-   * The attributes that fail access are removed from the entry. This
-   * method performs the processing needed for the filterEntry method
-   * processing.
+   * Performs an access check against all of the attributes of an entry. The
+   * attributes that fail access are removed from the entry. This method
+   * performs the processing needed for the filterEntry method processing.
    *
    * @param container
-   *          The search or compare container which has all of the
-   *          information needed to filter the attributes for this
-   *          entry.
-   * @return The entry to send back to the client, minus any attribute
-   *         types that failed access check.
+   *          The search or compare container which has all of the information
+   *          needed to filter the attributes for this entry.
+   * @param filteredEntry
+   *          The partially filtered search result entry being returned to the
+   *          client.
    */
-  private SearchResultEntry accessAllowedAttrs(
-      AciLDAPOperationContainer container)
+  private void filterEntry(AciLDAPOperationContainer container,
+      Entry filteredEntry)
   {
-    Entry e = container.getResourceEntry();
-    List<AttributeType> typeList = getAllAttrs(e);
+    List<AttributeType> typeList = getAllAttrs(filteredEntry);
     for (AttributeType attrType : typeList)
     {
       if (container.hasAllUserAttributes() && !attrType.isOperational())
@@ -885,10 +856,9 @@ public final class AciHandler extends
       container.setCurrentAttributeType(attrType);
       if (!accessAllowed(container))
       {
-        e.removeAttribute(attrType);
+        filteredEntry.removeAttribute(attrType);
       }
     }
-    return container.getSearchResultEntry();
   }
 
 
@@ -914,7 +884,8 @@ public final class AciHandler extends
   {
     Entry resourceEntry = container.getResourceEntry();
     DN dn = resourceEntry.getDN();
-    List<Modification> modifications = container.getModifications();
+    List<Modification> modifications =  operation.getModifications();
+
     for (Modification m : modifications)
     {
       Attribute modAttr = m.getAttribute();
