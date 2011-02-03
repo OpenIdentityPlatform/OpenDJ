@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.replication.plugin;
@@ -2474,15 +2475,8 @@ public class LDAPReplicationDomain extends ReplicationDomain
        return;
      }
 
-    LDAPFilter filter = null;
-    try
-    {
-      filter = LDAPFilter.decode(
-          DS_SYNC_CONFLICT + "=" + freedDN.toNormalizedString());
-    } catch (LDAPException e)
-    {
-      // Not possible. We know the filter just above is correct.
-    }
+    LDAPFilter filter = LDAPFilter.createEqualityFilter(DS_SYNC_CONFLICT,
+        ByteString.valueOf(freedDN.toString()));
 
      LinkedHashSet<String> attrs = new LinkedHashSet<String>(1);
      attrs.add(EntryHistorical.HISTORICALATTRIBUTENAME);

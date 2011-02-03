@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -190,7 +191,13 @@ public class TestLDAPFilter extends LdapTestCase
 
         { "(|(givenName=\\5cJo\\2a\\28\\29*\\5cn\\2a\\28\\29)(cn:2.4.6.8.19:=\\5cJohn\\2a \\28Doe\\29)" +
             "(&(objectClass=\\5ctest\\2a\\28Value\\29)(sn~=\\5ctest\\2a\\28Value\\29)))",
-            LDAPFilter.createORFilter(list2) }
+            LDAPFilter.createORFilter(list2) },
+
+        // OpenDJ issue 23.
+        {
+            "(ds-sync-conflict=uid=\\5c+3904211775265,ou=SharedAddressBook,cn=1038372,dc=cab)",
+            LDAPFilter.createEqualityFilter("ds-sync-conflict",
+                    ByteString.valueOf("uid=\\+3904211775265,ou=SharedAddressBook,cn=1038372,dc=cab")) }
 
     };
   }
