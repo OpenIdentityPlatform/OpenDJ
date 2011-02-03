@@ -23,12 +23,17 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.schema;
 
 
 
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -238,18 +243,38 @@ public class LDAPSyntaxDescriptionSyntax
 
 
   /**
-   *  Parse the OID and Description fields from the ldap syntaxes.
+   * Decodes the contents of the provided byte sequence as an ldap syntax
+   * definition according to the rules of this syntax.  Note that the provided
+   * byte sequence value does not need to be normalized (and in fact, it should
+   * not be in order to allow the desired capitalization to be preserved).
+   *
+   * @param  value                 The byte sequence containing the value
+   *                               to decode (it does not need to be
+   *                               normalized).
+   * @param  schema                The schema to use to resolve references to
+   *                               other schema elements.
+   * @param  allowUnknownElements  Indicates whether to allow values that are
+   *                               not defined in the server schema. This
+   *                               should only be true when called by
+   *                               {@code valueIsAcceptable}.
+   *                               Not used for LDAP Syntaxes
+   *
+   * @return  The decoded ldapsyntax definition.
+   *
+   * @throws  DirectoryException  If the provided value cannot be decoded as an
+   *                              ldapsyntax definition.
    */
-  private static int parseOIDAndDescription(String valueStr,
-          StringBuilder descriptionBuffer, StringBuilder oidBuffer)
-          throws DirectoryException
+  public static LDAPSyntaxDescription decodeLDAPSyntax(ByteSequence value,
+          Schema schema,
+          boolean allowUnknownElements) throws DirectoryException
   {
+    // Get string representations of the provided value using the provided form.
+    String valueStr = value.toString();
+
     // We'll do this a character at a time.  First, skip over any leading
     // whitespace.
     int pos    = 0;
     int length = valueStr.length();
-    String lowerStr = toLowerCase(valueStr);
-
     while ((pos < length) && (valueStr.charAt(pos) == ' '))
     {
       pos++;
@@ -260,7 +285,7 @@ public class LDAPSyntaxDescriptionSyntax
       // This means that the value was empty or contained only whitespace.  That
       // is illegal.
 
-      Message message = ERR_ATTR_SYNTAX_ATTRSYNTAX_EMPTY_VALUE.get();
+      Message message = ERR_ATTR_SYNTAX_LDAPSYNTAX_EMPTY_VALUE.get();
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
               message);
     }
@@ -273,7 +298,7 @@ public class LDAPSyntaxDescriptionSyntax
     {
 
       Message message =
-              ERR_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_OPEN_PARENTHESIS.get(
+              ERR_ATTR_SYNTAX_LDAPSYNTAX_EXPECTED_OPEN_PARENTHESIS.get(
                       valueStr, (pos-1), String.valueOf(c));
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
               message);
@@ -290,7 +315,7 @@ public class LDAPSyntaxDescriptionSyntax
     {
       // This means that the end of the value was reached before we could find
       // the OID.  Ths is illegal.
-      Message message = ERR_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE.get(
+      Message message = ERR_ATTR_SYNTAX_LDAPSYNTAX_TRUNCATED_VALUE.get(
               valueStr);
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
               message);
@@ -310,7 +335,7 @@ public class LDAPSyntaxDescriptionSyntax
           if (lastWasPeriod)
           {
             Message message =
-              ERR_ATTR_SYNTAX_ATTRTYPE_DOUBLE_PERIOD_IN_NUMERIC_OID.
+              ERR_ATTR_SYNTAX_LDAPSYNTAX_DOUBLE_PERIOD_IN_NUMERIC_OID.
                   get(valueStr, (pos-1));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                          message);
@@ -324,7 +349,7 @@ public class LDAPSyntaxDescriptionSyntax
         {
           // This must have been an illegal character.
           Message message =
-            ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID.
+              ERR_ATTR_SYNTAX_LDAPSYNTAX_ILLEGAL_CHAR_IN_NUMERIC_OID.
                 get(valueStr, String.valueOf(c), (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -353,7 +378,7 @@ public class LDAPSyntaxDescriptionSyntax
         {
           // This must have been an illegal character.
           Message message =
-                  ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_STRING_OID.
+                  ERR_ATTR_SYNTAX_LDAPSYNTAX_ILLEGAL_CHAR_IN_STRING_OID.
               get(valueStr, String.valueOf(c), (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
@@ -363,16 +388,17 @@ public class LDAPSyntaxDescriptionSyntax
 
     // If we're at the end of the value, then it isn't a valid attribute type
     // description.  Otherwise, parse out the OID.
+    String oid;
     if (pos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE.get(
+      Message message = ERR_ATTR_SYNTAX_LDAPSYNTAX_TRUNCATED_VALUE.get(
               valueStr);
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
               message);
     }
     else
     {
-      oidBuffer.append(lowerStr.substring(oidStartPos, pos));
+      oid = toLowerCase(valueStr.substring(oidStartPos, pos));
     }
 
 
@@ -386,248 +412,180 @@ public class LDAPSyntaxDescriptionSyntax
     {
       // This means that the end of the value was reached before we could find
       // the OID.  Ths is illegal.
-      Message message = ERR_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE.get(
+      Message message = ERR_ATTR_SYNTAX_LDAPSYNTAX_TRUNCATED_VALUE.get(
               valueStr);
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
               message);
     }
 
+    // At this point, we should have a pretty specific syntax that describes
+    // what may come next, but some of the components are optional and it would
+    // be pretty easy to put something in the wrong order, so we will be very
+    // flexible about what we can accept.  Just look at the next token, figure
+    // out what it is and how to treat what comes after it, then repeat until
+    // we get to the end of the value.  But before we start, set default values
+    // for everything else we might need to know.
+    String description = null;
+    LDAPSyntaxDescriptionSyntax syntax = null;
+    HashMap<String,List<String>> extraProperties =
+         new LinkedHashMap<String,List<String>>();
+    boolean hasXSyntaxToken = false;
 
-    // If the next character is a closing parenthesis, then we must be at the
-    // end of the value.
-    if (c == ')')
-    {
-      if (pos < length)
-      {
-        Message message =
-                ERR_ATTR_SYNTAX_ATTRSYNTAX_UNEXPECTED_CLOSE_PARENTHESIS.get(
-                        valueStr, (pos-1));
-        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                message);
-      }
-
-    }
-
-    // The next token must be "DESC" followed by a quoted string.
-    String tokenName;
-    try
+    while (true)
     {
       StringBuilder tokenNameBuffer = new StringBuilder();
-      pos = readTokenName(lowerStr, tokenNameBuffer, pos);
-      tokenName = tokenNameBuffer.toString();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
+      pos = readTokenName(valueStr, tokenNameBuffer, pos);
+      String tokenName = tokenNameBuffer.toString();
+      String lowerTokenName = toLowerCase(tokenName);
+      if (tokenName.equals(")"))
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-              ERR_ATTR_SYNTAX_ATTRSYNTAX_CANNOT_READ_DESC_TOKEN.get(
-                      valueStr, pos, getExceptionMessage(e));
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-              message);
-    }
-
-    if (! tokenName.equals("desc"))
-    {
-      Message message = ERR_ATTR_SYNTAX_ATTRSYNTAX_TOKEN_NOT_DESC.get(
-              valueStr, tokenName);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-              message);
-    }
-
-
-    // The next component must be the quoted description.
-    try
-    {
-      pos = readQuotedString(valueStr, descriptionBuffer, pos);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message =
-              ERR_ATTR_SYNTAX_ATTRSYNTAX_CANNOT_READ_DESC_VALUE.get(
-                      valueStr, pos, getExceptionMessage(e));
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-              message);
-    }
-
-    return pos;
-
-  }
-
-
-
-  /**
-   * Decodes the contents of the provided byte sequence as an ldap syntax
-   * definition according to the rules of this syntax.  Note that the provided
-   * byte sequence value does not need to be normalized (and in fact, it should
-   * not be in order to allow the desired capitalization to be preserved).
-   *
-   * @param  value                 The byte sequence containing the value
-   *                               to decode (it does not need to be
-   *                               normalized).
-   * @param  schema                The schema to use to resolve references to
-   *                               other schema elements.
-   * @param  allowUnknownElements  Indicates whether to allow values that
-   *                               reference a superior class or required or
-   *                               optional attribute types which are not
-   *                               defined in the server schema.  This should
-   *                               only be true when called by
-   *                               {@code valueIsAcceptable}.
-   *
-   * @return  The decoded ldapsyntax definition.
-   *
-   * @throws  DirectoryException  If the provided value cannot be decoded as an
-   *                              ldapsyntax definition.
-   */
-  public static LDAPSyntaxDescription decodeLDAPSyntax(ByteSequence value,
-          Schema schema,
-          boolean allowUnknownElements) throws DirectoryException
-  {
-     // Get string representations of the provided value using the provided form
-    // and with all lowercase characters.
-    String valueStr = value.toString();
-    String lowerStr = toLowerCase(valueStr);
-    int length = valueStr.length();
-
-    StringBuilder descriptionBuffer = new StringBuilder();
-    StringBuilder oidBuffer = new StringBuilder();
-
-    //Retrieve the OID and Description part of the defition.
-    int pos = parseOIDAndDescription(valueStr, descriptionBuffer,oidBuffer);
-
-    String oid = oidBuffer.toString();
-    String description = descriptionBuffer.toString();
-    StringBuilder extBuffer = new StringBuilder();
-    LDAPSyntaxDescriptionSyntax syntax = null;
-    char c = '\u0000';
-    pos = readTokenName(valueStr, extBuffer, pos);
-    String lowerTokenName = toLowerCase(extBuffer.toString());
-
-    if(lowerTokenName.equals("x-subst"))
-    {
-      StringBuilder woidBuffer = new StringBuilder();
-      pos = readQuotedString(lowerStr, woidBuffer, pos);
-      String syntaxOID = woidBuffer.toString();
-      AttributeSyntax subSyntax = schema.getSyntax(syntaxOID);
-      if(subSyntax == null)
-      {
-        Message message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SYNTAX.get(
-            String.valueOf(oid), syntaxOID);
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                     message);
-      }
-      syntax = new SubstitutionSyntax(subSyntax,valueStr,description,oid);
-    }
-    else if(lowerTokenName.equals("x-pattern"))
-    {
-      StringBuilder regexBuffer = new StringBuilder();
-      pos = readQuotedString(valueStr, regexBuffer, pos);
-      String regex = regexBuffer.toString().trim();
-      if(regex.length() == 0)
-      {
-        Message message = WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_NO_PATTERN.get(
-               valueStr);
-        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                message);
-      }
-
-      try
-      {
-        Pattern pattern = Pattern.compile(regex);
-        syntax = new RegexSyntax(pattern,valueStr,description,oid);
-      }
-      catch(Exception e)
-      {
-        Message message = WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_PATTERN.get
-                (valueStr,regex);
-        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                message);
-      }
-    }
-    else if(lowerTokenName.equals("x-enum"))
-    {
-      // The next character must be the opening parenthesis
-      if ((c = valueStr.charAt(pos++)) != '(')
-      {
-
-        Message message =
-                ERR_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_OPEN_PARENTHESIS.get(
-                        valueStr, pos, String.valueOf(c));
-         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                message);
-      }
-      LinkedList<ByteSequence> entries = new LinkedList<ByteSequence>();
-      while(true)
-      {
-        if ((c=valueStr.charAt(pos)) == ')')
-        {
-          pos++;
-          break;
-        }
-        StringBuilder buffer = new StringBuilder();
-        pos = readQuotedString(valueStr, buffer, pos);
-        ByteString entry = ByteString.valueOf(buffer.toString());
-        if(entries.contains(entry))
+        // We must be at the end of the value.  If not, then that's a problem.
+        if (pos < length)
         {
           Message message =
-                WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_DUPLICATE_VALUE.get(
-                        valueStr, entry.toString(),pos);
+            ERR_ATTR_SYNTAX_LDAPSYNTAX_UNEXPECTED_CLOSE_PARENTHESIS.
+                get(valueStr, (pos-1));
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                message);
+                                       message);
         }
-        entries.add(entry);
+
+        break;
       }
-      syntax = new EnumSyntax(entries, valueStr,description, oid);
-    }
-    else
-    {
-      Message message = WARN_ATTR_SYNTAX_LDAPSYNTAX_UNKNOWN_EXT.get(
-              valueStr,lowerTokenName,pos);
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-              message);
-    }
-
-    while ((pos < length) && ((c = valueStr.charAt(pos)) == ' '))
-    {
-      pos++;
-    }
-
-    // The next character must be the closing parenthesis and there should not
-    // be anything after it (except maybe some spaces).
-    if (pos >= length || (c = valueStr.charAt(pos++)) != ')')
-    {
-
-      Message message =
-              ERR_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_CLOSE_PARENTHESIS.get(
-                      valueStr, pos, String.valueOf(c));
-       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-              message);
-    }
-
-    while (pos < length)
-    {
-      c = valueStr.charAt(pos++);
-      if (c != ' ')
+      else if (lowerTokenName.equals("desc"))
       {
+        // This specifies the description for the attribute type.  It is an
+        // arbitrary string of characters enclosed in single quotes.
+        StringBuilder descriptionBuffer = new StringBuilder();
+        pos = readQuotedString(valueStr, descriptionBuffer, pos);
+        description = descriptionBuffer.toString();
+      }
+      else if (lowerTokenName.equals("x-subst"))
+      {
+        if (hasXSyntaxToken)
+        {
+          // We've already seen syntax extension. More than 1 is not allowed
+          Message message =
+              ERR_ATTR_SYNTAX_LDAPSYNTAX_TOO_MANY_EXTENSIONS.get(valueStr);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                       message);
+        }
+        hasXSyntaxToken = true;
+        StringBuilder woidBuffer = new StringBuilder();
+        pos = readQuotedString(valueStr, woidBuffer, pos);
+        String syntaxOID = toLowerCase(woidBuffer.toString());
+        AttributeSyntax subSyntax = schema.getSyntax(syntaxOID);
+        if (subSyntax == null)
+        {
+          Message message = ERR_ATTR_SYNTAX_LDAPSYNTAX_UNKNOWN_SYNTAX.get(
+              String.valueOf(oid), syntaxOID);
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                       message);
+        }
+        syntax = new SubstitutionSyntax(subSyntax,valueStr,description,oid);
+      }
 
-        Message message =
-                ERR_ATTR_SYNTAX_ATTRSYNTAX_ILLEGAL_CHAR_AFTER_CLOSE.get(
-                        valueStr, String.valueOf(c), pos);
-         throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+      else if(lowerTokenName.equals("x-pattern"))
+      {
+        if (hasXSyntaxToken)
+        {
+          // We've already seen syntax extension. More than 1 is not allowed
+          Message message =
+              ERR_ATTR_SYNTAX_LDAPSYNTAX_TOO_MANY_EXTENSIONS.get(valueStr);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                       message);
+        }
+        hasXSyntaxToken = true;
+        StringBuilder regexBuffer = new StringBuilder();
+        pos = readQuotedString(valueStr, regexBuffer, pos);
+        String regex = regexBuffer.toString().trim();
+        if(regex.length() == 0)
+        {
+          Message message = WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_NO_PATTERN.get(
+               valueStr);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                       message);
+        }
+
+        try
+        {
+          Pattern pattern = Pattern.compile(regex);
+          syntax = new RegexSyntax(pattern,valueStr,description,oid);
+        }
+        catch(Exception e)
+        {
+          Message message =
+              WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_PATTERN.get
+                  (valueStr,regex);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                       message);
+        }
+      }
+      else if(lowerTokenName.equals("x-enum"))
+      {
+        if (hasXSyntaxToken)
+        {
+          // We've already seen syntax extension. More than 1 is not allowed
+          Message message =
+              ERR_ATTR_SYNTAX_LDAPSYNTAX_TOO_MANY_EXTENSIONS.get(valueStr);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                       message);
+        }
+        hasXSyntaxToken = true;
+        LinkedList<String> values = new LinkedList<String>();
+        pos = readExtraParameterValues(valueStr, values, pos);
+
+        if (values.isEmpty())
+        {
+          Message message =
+              ERR_ATTR_SYNTAX_LDAPSYNTAX_ENUM_NO_VALUES.get(valueStr);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                       message);
+        }
+        // Parse all enum values, check for uniqueness
+        LinkedList<ByteSequence> entries = new LinkedList<ByteSequence>();
+        for (String v : values)
+        {
+          ByteString entry = ByteString.valueOf(v);
+          if (entries.contains(entry))
+          {
+            Message message =
+                  WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_DUPLICATE_VALUE.get(
+                          valueStr, entry.toString(),pos);
+            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                  message);
+          }
+          entries.add(entry);
+        }
+        syntax = new EnumSyntax(entries, valueStr,description, oid);
+      }
+      else if (tokenName.matches("X\\-[_\\p{Alpha}-]+"))
+      {
+        // This must be a non-standard property and it must be followed by
+        // either a single value in single quotes or an open parenthesis
+        // followed by one or more values in single quotes separated by spaces
+        // followed by a close parenthesis.
+        List<String> valueList = new ArrayList<String>();
+        pos = readExtraParameterValues(valueStr, valueList, pos);
+        extraProperties.put(tokenName, valueList);
+      }
+      else
+      {
+        // Unknown Token
+        Message message = ERR_ATTR_SYNTAX_LDAPSYNTAX_UNKNOWN_EXT.get(
+            valueStr, tokenName, pos);
+        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
               message);
       }
     }
-
+    if (syntax == null)
+    {
+      // Create a plain Syntax. That seems to be required by export/import
+      // Schema backend.
+      syntax = new LDAPSyntaxDescriptionSyntax();
+    }
     //Since we reached here it means everything is OK.
-    return new LDAPSyntaxDescription(valueStr,syntax,description,null);
+    return new LDAPSyntaxDescription(valueStr,syntax,
+                                     description,extraProperties);
   }
 
 
@@ -648,71 +606,24 @@ public class LDAPSyntaxDescriptionSyntax
   public boolean valueIsAcceptable(ByteSequence value,
                                    MessageBuilder invalidReason)
   {
-     // Get string representations of the provided value using the provided form
-    // and with all lowercase characters.
-    String valueStr = value.toString();
-    StringBuilder descriptionBuffer = new StringBuilder();
-    StringBuilder oidBuffer = new StringBuilder();
-
-    int length = valueStr.length();
-    int pos = 0;
-     try
+    // We'll use the decodeAttributeType method to determine if the value is
+    // acceptable.
+    try
     {
-      pos = parseOIDAndDescription(valueStr, descriptionBuffer,oidBuffer);
+      decodeLDAPSyntax(value, DirectoryServer.getSchema(), true);
+      return true;
     }
-    catch(DirectoryException de)
+    catch (DirectoryException de)
     {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
+      }
+
       invalidReason.append(de.getMessageObject());
       return false;
     }
-
-    char c = valueStr.charAt(pos);
-    //Check if we have a RFC 4512 style extension.
-    if (c  != ')')
-    {
-        try {
-            pos=parseExtension(valueStr, pos);
-        } catch (Exception e) {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-            invalidReason.append(
-                    ERR_ATTR_SYNTAX_ATTRSYNTAX_INVALID_EXTENSION.get(
-                            getExceptionMessage(e)));
-            return false;
-        }
-    }
-
-    // The next character must be the closing parenthesis and there should not
-    // be anything after it (except maybe some spaces).
-    if ((c = valueStr.charAt(pos++)) != ')')
-    {
-
-      invalidReason.append(
-              ERR_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_CLOSE_PARENTHESIS.get(
-                      valueStr, pos, String.valueOf(c)));
-      return false;
-    }
-
-    while (pos < length)
-    {
-      c = valueStr.charAt(pos++);
-      if (c != ' ')
-      {
-
-        invalidReason.append(
-                ERR_ATTR_SYNTAX_ATTRSYNTAX_ILLEGAL_CHAR_AFTER_CLOSE.get(
-                        valueStr, String.valueOf(c), pos));
-        return false;
-      }
-    }
-
-
-    // If we've gotten here, then the value is OK.
-    return true;
   }
-
 
 
   /**
@@ -746,7 +657,7 @@ public class LDAPSyntaxDescriptionSyntax
     if (startPos >= length)
     {
       Message message =
-          ERR_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE.get(valueStr);
+          ERR_ATTR_SYNTAX_LDAPSYNTAX_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -805,7 +716,7 @@ public class LDAPSyntaxDescriptionSyntax
     if (startPos >= length)
     {
       Message message =
-          ERR_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE.get(valueStr);
+          ERR_ATTR_SYNTAX_LDAPSYNTAX_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -814,7 +725,7 @@ public class LDAPSyntaxDescriptionSyntax
     // The next character must be a single quote.
     if (c != '\'')
     {
-      Message message = WARN_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_QUOTE_AT_POS.get(
+      Message message = ERR_ATTR_SYNTAX_LDAPSYNTAX_EXPECTED_QUOTE_AT_POS.get(
           valueStr, startPos, String.valueOf(c));
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
@@ -842,7 +753,7 @@ public class LDAPSyntaxDescriptionSyntax
     if (startPos >= length)
     {
       Message message =
-          ERR_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE.get(valueStr);
+          ERR_ATTR_SYNTAX_LDAPSYNTAX_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -852,98 +763,163 @@ public class LDAPSyntaxDescriptionSyntax
     return startPos;
   }
 
-  /** Parses a RFC 4512 extensions (see 4.1.5 and 4.1 of the RFC) definition.
+
+  /**
+   * Reads the value for an "extra" parameter.  It will handle a single unquoted
+   * word (which is technically illegal, but we'll allow it), a single quoted
+   * string, or an open parenthesis followed by a space-delimited set of quoted
+   * strings or unquoted words followed by a close parenthesis.
    *
-   * From 4.1.5 of the spec:
+   * @param  valueStr   The string containing the information to be read.
+   * @param  valueList  The list of "extra" parameter values read so far.
+   * @param  startPos   The position in the value string at which to start
+   *                    reading.
    *
-   *  LDAP syntax definitions are written according to the ABNF:
+   * @return  The "extra" parameter value that was read.
    *
-   *  SyntaxDescription = LPAREN WSP
-   *      numericoid                 ; object identifier
-   *      [ SP "DESC" SP qdstring ]  ; description
-   *      extensions WSP RPAREN      ; extensions
-   *
-   * @param valueStr The user-provided representation of the extensions
-   *                      definition.
-   *
-   * @param startPos The position in the provided string at which to start
-   *                      reading the quoted string.
-   *
-   * @return The position of the first character that is not part of the quoted
-   *          string or one of the trailing spaces after it.
-   *
-   * @throws DirectoryException If the extensions definition could not be
-   *                            parsed.
+   * @throws  DirectoryException  If a problem occurs while attempting to read
+   *                              the value.
    */
-private static int parseExtension(String valueStr, int startPos)
-  throws DirectoryException {
+  private static int readExtraParameterValues(String valueStr,
+                          List<String> valueList, int startPos)
+          throws DirectoryException
+  {
+    // Skip over any leading spaces.
+    int length = valueStr.length();
+    char c = '\u0000';
+    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    {
+      startPos++;
+    }
 
-      int pos=startPos, len=valueStr.length();
-      char c;
-      while(true)
+    if (startPos >= length)
+    {
+      Message message =
+          ERR_ATTR_SYNTAX_LDAPSYNTAX_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+    }
+
+
+    // Look at the next character.  If it is a quote, then parse until the next
+    // quote and end.  If it is an open parenthesis, then parse individual
+    // values until the close parenthesis and end.  Otherwise, parse until the
+    // next space and end.
+    if (c == '\'')
+    {
+      // Parse until the closing quote.
+      StringBuilder valueBuffer = new StringBuilder();
+      startPos++;
+      while ((startPos < length) && ((c = valueStr.charAt(startPos)) != '\''))
       {
-          StringBuilder tokenNameBuffer = new StringBuilder();
-          pos = readTokenName(valueStr, tokenNameBuffer, pos);
-          String tokenName = tokenNameBuffer.toString();
-          if((tokenName.length() <= 2) || (!tokenName.startsWith("X-")))
-          {
-              Message message =
-                ERR_ATTR_SYNTAX_ATTRSYNTAX_EXTENSION_INVALID_CHARACTER.get(
-                        valueStr, pos);
-              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                      message);
-          }
-          String xstring = tokenName.substring(2);
-          //Only allow a-z,A-Z,-,_ characters after X-
-          if(xstring.split("^[A-Za-z_-]+").length > 0)
-          {
-              Message message =
-                ERR_ATTR_SYNTAX_ATTRSYNTAX_EXTENSION_INVALID_CHARACTER.get(
-                        valueStr, pos);
-              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                      message);
-          }
-          if((c=valueStr.charAt(pos)) == '\'')
-          {
-              StringBuilder qdString = new StringBuilder();
-              pos = readQuotedString(valueStr, qdString, pos);
-
-          } else if(c == '(')
-          {
-              pos++;
-              StringBuilder qdString = new StringBuilder();
-              while ((c=valueStr.charAt(pos)) != ')')
-                  pos = readQuotedString(valueStr, qdString, pos);
-              pos++;
-          } else
-          {
-              Message message =
-                ERR_ATTR_SYNTAX_ATTRSYNTAX_EXTENSION_INVALID_CHARACTER.get(
-                        valueStr, pos);
-              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                      message);
-          }
-          if (pos >= len)
-          {
-            Message message =
-                ERR_ATTR_SYNTAX_ATTRSYNTAX_TRUNCATED_VALUE.get(valueStr);
-            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message);
-          }
-          //Clean up any space after this.
-          while ((pos < valueStr.length()) &&
-                  ((c = valueStr.charAt(pos)) == ' '))
-          {
-            pos++;
-          }
-
-          if(valueStr.charAt(pos) == ')')
-              break;
+        valueBuffer.append(c);
+        startPos++;
       }
-      return pos;
+      startPos++;
+      valueList.add(valueBuffer.toString());
+    }
+    else if (c == '(')
+    {
+      startPos++;
+      // We're expecting a list of values. Quoted, space separated.
+      while (true)
+      {
+        // Skip over any leading spaces;
+        while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+        {
+          startPos++;
+        }
+
+        if (startPos >= length)
+        {
+          Message message =
+              ERR_ATTR_SYNTAX_LDAPSYNTAX_TRUNCATED_VALUE.get(valueStr);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                       message);
+        }
+
+        if (c == ')')
+        {
+          // This is the end of the list.
+          startPos++;
+          break;
+        }
+        else if (c == '(')
+        {
+          // This is an illegal character.
+          Message message =
+              ERR_ATTR_SYNTAX_LDAPSYNTAX_EXTENSION_INVALID_CHARACTER.get(
+                      valueStr, startPos);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                       message);
+        }
+        else if (c == '\'')
+        {
+          // We have a quoted string
+          StringBuilder valueBuffer = new StringBuilder();
+          startPos++;
+          while ((startPos < length) &&
+              ((c = valueStr.charAt(startPos)) != '\''))
+          {
+            valueBuffer.append(c);
+            startPos++;
+          }
+
+          valueList.add(valueBuffer.toString());
+          startPos++;
+        }
+        else
+        {
+          //Consider unquoted string
+          StringBuilder valueBuffer = new StringBuilder();
+          while ((startPos < length) &&
+              ((c = valueStr.charAt(startPos)) != ' '))
+          {
+            valueBuffer.append(c);
+            startPos++;
+          }
+
+          valueList.add(valueBuffer.toString());
+        }
+
+        if (startPos >= length)
+        {
+          Message message =
+              ERR_ATTR_SYNTAX_LDAPSYNTAX_TRUNCATED_VALUE.get(valueStr);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                       message);
+        }
+      }
+    }
+    else
+    {
+      // Parse until the next space.
+      StringBuilder valueBuffer = new StringBuilder();
+      while ((startPos < length) && ((c = valueStr.charAt(startPos)) != ' '))
+      {
+        valueBuffer.append(c);
+        startPos++;
+      }
+
+      valueList.add(valueBuffer.toString());
+    }
+
+    // Skip over any trailing spaces.
+    while ((startPos < length) && (valueStr.charAt(startPos) == ' '))
+    {
+      startPos++;
+    }
+
+    if (startPos >= length)
+    {
+      Message message =
+          ERR_ATTR_SYNTAX_LDAPSYNTAX_TRUNCATED_VALUE.get(valueStr);
+      throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+    }
+
+    return startPos;
   }
-
-
 
   /**
    * {@inheritDoc}

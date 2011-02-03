@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -113,6 +114,15 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
                     "X-name ('this' 'is' 'a' 'test') X-name-a 'this' X-name-b ('this'))",
                     true},
               {"( 2.5.4.3 DESC 'full syntax description' " +
+                    "X-name ('this' 'is' 'a' 'test') X-name-a 'this' X-name-b ( 'this' ))",
+                    true},
+              {"( 2.5.4.3 DESC 'full syntax description' " +
+                    "X-name ('this' 'is' 'a' 'test') X-name-a 'this' X-name-b ('this' 'that'))",
+                    true},
+              {"( 2.5.4.3 DESC 'full syntax description' " +
+                    "X-name ('this' 'is' 'a' 'test') X-name-a 'this' X-name-b ('this' 'that') )",
+                    true},
+              {"( 2.5.4.3 DESC 'full syntax description' " +
                     "X-a-_eN_- ('this' 'is' 'a' 'test'))",
                     true},
               {"( 2.5.4.3 DESC 'full syntax description' " +
@@ -126,6 +136,18 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
                     true},
               {"( 2.5.4.3 DESC 'full syntax description' )", true},
               {"   (    2.5.4.3    DESC  ' syntax description'    )", true},
+              {"( 2.5.4.3 DESC 'Test syntax' X-SCHEMA-FILE '00-core.ldif' )", true},
+              {"( 2.5.4.3 DESC 'Test X-SUBST Extensions' X-SUBST '1.3.6.1.4.1.1466.115.121.1.15' )", true},
+              {"( 2.5.4.3 DESC 'Test X-SUBST Extensions' X-SUBST '1.3.6.1.4.1.1466.115.121.1.15' X-SCHEMA-FILE '00-core.ldif' )", true},
+              {"( 2.5.4.3 DESC 'Test X-SUBST Extensions' X-SCHEMA-FILE '00-core.ldif' X-SUBST '1.3.6.1.4.1.1466.115.121.1.15' )", true},
+              {"( 2.5.4.3 DESC 'Test X-PATTERN Extensions' X-PATTERN '[0-9]+' )", true},
+              {"( 2.5.4.3 DESC 'Test X-PATTERN Extensions' X-PATTERN '[0-9]+' X-SCHEMA-FILE '00-core.ldif' )", true},
+              {"( 2.5.4.3 DESC 'Test X-ENUM Extensions' X-ENUM ( 'black' 'white' ) )", true},
+              {"( 2.5.4.3 DESC 'Test X-ENUM Extensions' X-ENUM ( 'white' 'white' ) )", false},
+              {"( 2.5.4.3 DESC 'Test X-ENUM Extensions' X-ENUM ( ) )", false},
+              {"( 2.5.4.3 DESC 'Test X-ENUM Extensions' X-ENUM )", false},
+              {"( 2.5.4.3 DESC 'Test X-ENUM Extensions' X-ENUM ( 'black' 'white' ) X-SCHEMA-FILE '00-core.ldif' )", true},
+              {"( 2.5.4.3 DESC 'Test Too many Extensions' X-PATTERN '[0-9]+' X-SUBST '1.3.6.1.4.1.1466.115.121.1.15' )", false},
               {"( 2.5.4.3 DESC syntax description )", false},
               {"($%^*&!@ DESC 'syntax description' )", false},
               {"(temp-oid DESC 'syntax description' )", true},

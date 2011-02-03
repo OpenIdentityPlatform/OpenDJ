@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.schema;
 import org.opends.messages.Message;
@@ -1334,21 +1335,21 @@ public class DITContentRuleSyntax
    *                              the value.
    */
   private static int readExtraParameterValues(String valueStr,
-                                              List<String> valueList,
-                                              int startPos)
+                          List<String> valueList, int startPos)
           throws DirectoryException
   {
     // Skip over any leading spaces.
     int length = valueStr.length();
-    char c = valueStr.charAt(startPos++);
-    while ((startPos < length) && (c == ' '))
+    char c = '\u0000';
+    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
     {
-      c = valueStr.charAt(startPos++);
+      startPos++;
     }
 
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(valueStr);
+      Message message =
+          ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
@@ -1362,16 +1363,19 @@ public class DITContentRuleSyntax
     {
       // Parse until the closing quote.
       StringBuilder valueBuffer = new StringBuilder();
-      while ((startPos < length) && ((c = valueStr.charAt(startPos++)) != '\''))
+      startPos++;
+      while ((startPos < length) && ((c = valueStr.charAt(startPos)) != '\''))
       {
         valueBuffer.append(c);
+        startPos++;
       }
-
+      startPos++;
       valueList.add(valueBuffer.toString());
     }
     else if (c == '(')
     {
       startPos++;
+      // We're expecting a list of values. Quoted, space separated.
       while (true)
       {
         // Skip over any leading spaces;
@@ -1382,11 +1386,11 @@ public class DITContentRuleSyntax
 
         if (startPos >= length)
         {
-          Message message = ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(valueStr);
+          Message message =
+              ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(valueStr);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         }
-
 
         if (c == ')')
         {
@@ -1403,10 +1407,41 @@ public class DITContentRuleSyntax
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         }
+        else if (c == '\'')
+        {
+          // We have a quoted string
+          StringBuilder valueBuffer = new StringBuilder();
+          startPos++;
+          while ((startPos < length) &&
+              ((c = valueStr.charAt(startPos)) != '\''))
+          {
+            valueBuffer.append(c);
+            startPos++;
+          }
+
+          valueList.add(valueBuffer.toString());
+          startPos++;
+        }
         else
         {
-          // We'll recursively call this method to deal with this.
-          startPos = readExtraParameterValues(valueStr, valueList, startPos);
+          //Consider unquoted string
+          StringBuilder valueBuffer = new StringBuilder();
+          while ((startPos < length) &&
+              ((c = valueStr.charAt(startPos)) != ' '))
+          {
+            valueBuffer.append(c);
+            startPos++;
+          }
+
+          valueList.add(valueBuffer.toString());
+        }
+
+        if (startPos >= length)
+        {
+          Message message =
+              ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(valueStr);
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                                       message);
         }
       }
     }
@@ -1414,15 +1449,14 @@ public class DITContentRuleSyntax
     {
       // Parse until the next space.
       StringBuilder valueBuffer = new StringBuilder();
-      while ((startPos < length) && ((c = valueStr.charAt(startPos++)) != ' '))
+      while ((startPos < length) && ((c = valueStr.charAt(startPos)) != ' '))
       {
         valueBuffer.append(c);
+        startPos++;
       }
 
       valueList.add(valueBuffer.toString());
     }
-
-
 
     // Skip over any trailing spaces.
     while ((startPos < length) && (valueStr.charAt(startPos) == ' '))
@@ -1432,11 +1466,11 @@ public class DITContentRuleSyntax
 
     if (startPos >= length)
     {
-      Message message = ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(valueStr);
+      Message message =
+          ERR_ATTR_SYNTAX_DCR_TRUNCATED_VALUE.get(valueStr);
       throw new DirectoryException(
               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
-
 
     return startPos;
   }
