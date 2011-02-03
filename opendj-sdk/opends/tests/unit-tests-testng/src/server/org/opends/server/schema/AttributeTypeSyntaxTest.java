@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -83,6 +84,19 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
           true},
         {"(1.2.8.5 NAME 'testtype' DESC 'full type')",
               true},
+        {"(1.2.8.5 NAME 'testType' DESC 'full type' EQUALITY caseIgnoreMatch " +
+          " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15)",
+              true},
+        {"(1.2.8.5 NAME 'testType' DESC 'full type' EQUALITY caseIgnoreMatch " +
+          " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'test' )",
+              true},
+        {"(1.2.8.5 NAME 'testType' DESC 'full type' EQUALITY caseIgnoreMatch " +
+          " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'test')",
+              true},
+        {"(1.2.8.5 NAME 'testType' DESC 'full type' EQUALITY caseIgnoreMatch " +
+          " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'test' " +
+          " X-SCHEMA-FILE '33-test.ldif' )",
+              true},
         {"(1.2.8.5 USAGE directoryOperation )",
               true},
         {"(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE SUP cn " +
@@ -109,6 +123,11 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
           " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE" +
           " NO-USER-MODIFICATION USAGE userApplications )",
           false}, // NO-USER-MODIFICATION can't have non-operational usage
+        {"(1.2.8.5 NAME 'testType' DESC 'full type' EQUALITY caseIgnoreMatch " +
+          " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'test' " +
+          " X-SCHEMA-FILE '33-test.ldif' X-NAME )",
+          false}, // X-NAME is invalid extension (no value)
+
     };
   }
 
