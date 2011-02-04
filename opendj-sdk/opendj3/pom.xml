@@ -1,0 +1,19 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.opendj</groupId>
+  <artifactId>opendj-project</artifactId>
+  <version>3.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>opendj-project</name>
+  <description>
+  OpenDJ is a new LDAPv3 compliant directory service, developed
+  for the Java platform, providing a high performance, highly available
+  and secure store for the identities managed by enterprises.
+  </description>
+  <url>http://www.opendj.org/</url>
+  <organization>
+    <name>ForgeRock</name>
+    <url>http://www.forgerock.com/</url>
+  </organization>
+</project>
