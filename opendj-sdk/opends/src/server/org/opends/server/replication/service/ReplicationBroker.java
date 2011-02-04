@@ -51,6 +51,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -97,11 +98,11 @@ public class ReplicationBroker
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
-  private boolean shutdown = false;
-  private Collection<String> servers;
-  private boolean connected = false;
-  private String replicationServer = "Not connected";
-  private ProtocolSession session = null;
+  private volatile boolean shutdown = false;
+  private volatile Collection<String> servers;
+  private volatile boolean connected = false;
+  private volatile String replicationServer = "Not connected";
+  private volatile ProtocolSession session = null;
   private final ServerState state;
   private final String baseDn;
   private final int serverId;
@@ -156,7 +157,7 @@ public class ReplicationBroker
    * and to know that it is necessary to print a new message when the broker
    * finally succeed to connect.
    */
-  private boolean connectionError = false;
+  private volatile boolean connectionError = false;
   private final Object connectPhaseLock = new Object();
   /**
    * The thread that publishes messages to the RS containing the current
@@ -173,18 +174,20 @@ public class ReplicationBroker
    */
   // Info for other DSs.
   // Warning: does not contain info for us (for our server id)
-  private List<DSInfo> dsList = new ArrayList<DSInfo>();
-  private long generationID;
-  private int updateDoneCount = 0;
-  private boolean connectRequiresRecovery = false;
+  private volatile List<DSInfo> dsList = new ArrayList<DSInfo>();
+  private volatile long generationID;
+  private volatile int updateDoneCount = 0;
+  private volatile boolean connectRequiresRecovery = false;
+
   /**
    * The map of replication server info initialized at connection time and
    * regularly updated. This is used to decide to which best suitable
-   * replication server one wants to connect.
-   * Key: replication server id
-   * Value: replication server info for the matching replication server id
+   * replication server one wants to connect. Key: replication server id Value:
+   * replication server info for the matching replication server id
    */
-  private Map<Integer, ReplicationServerInfo> replicationServerInfos = null;
+  private volatile Map<Integer, ReplicationServerInfo> replicationServerInfos
+    = null;
+
   /**
    * This integer defines when the best replication server checking algorithm
    * should be engaged.
@@ -769,7 +772,7 @@ public class ReplicationBroker
   {
 
     Map<Integer, ReplicationServerInfo> rsInfos =
-      new HashMap<Integer, ReplicationServerInfo>();
+      new ConcurrentHashMap<Integer, ReplicationServerInfo>();
 
     for (String server : servers)
     {
@@ -2535,8 +2538,6 @@ public class ReplicationBroker
    * called in a single thread or protected by a locking mechanism
    * before being called.
    *
-   * @throws SocketTimeoutException if the timeout set by setSoTimeout
-   *         has expired
    * @param reconnectToTheBestRS Whether broker will automatically switch
    *                             to the best suitable RS.
    * @param reconnectOnFailure   Whether broker will automatically reconnect

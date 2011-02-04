@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -38,7 +39,7 @@ public class ReplicationServerListenThread extends DirectoryThread
   /**
    * The Replication Server that created this thread.
    */
-  private ReplicationServer server;
+  private final ReplicationServer server;
 
   /**
    * Creates a new instance of this directory thread with the

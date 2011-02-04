@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.service;
 
@@ -124,8 +125,8 @@ import org.opends.server.types.ResultCode;
  *   must use the {@link #publish(UpdateMsg)} method.
  * <p>
  *   If the Full Initialization process is needed then implementation
- *   for {@link #importBackend(InputStream)} and
- *   {@link #exportBackend(OutputStream)} must be
+ *   for {@code importBackend(InputStream)} and
+ *   {@code exportBackend(OutputStream)} must be
  *   provided.
  * <p>
  *   Full Initialization of a replica can be triggered by LDAP clients
@@ -1063,18 +1064,26 @@ public abstract class ReplicationDomain
     private final int serverToInitialize;
     private final int initWindow;
 
+
+
     /**
      * Constructor for the ExportThread.
      *
-     * @param serverToInitialize serverId of server that will receive entries
+     * @param serverToInitialize
+     *          serverId of server that will receive entries
+     * @param initWindow
+     *          The value of the initialization window for flow control between
+     *          the importer and the exporter.
      */
     public ExportThread(int serverToInitialize, int initWindow)
     {
-      super("Export thread from serverId=" + serverID
-          + " to serverId=" + serverToInitialize);
+      super("Export thread from serverId=" + serverID + " to serverId="
+          + serverToInitialize);
       this.serverToInitialize = serverToInitialize;
       this.initWindow = initWindow;
     }
+
+
 
     /**
      * Run method for this class.
@@ -1342,11 +1351,8 @@ public abstract class ReplicationDomain
    * @return The source as a integer value
    * @throws DirectoryException if the string is not valid
    */
-  public int decodeTarget(String targetString)
-  throws DirectoryException
+  public int decodeTarget(String targetString) throws DirectoryException
   {
-    int  target = 0;
-    Throwable cause;
     if (targetString.equalsIgnoreCase("all"))
     {
       return RoutableMsg.ALL_SERVERS;
@@ -1355,34 +1361,26 @@ public abstract class ReplicationDomain
     // So should be a serverID
     try
     {
-      target = Integer.decode(targetString);
+      int target = Integer.decode(targetString);
       if (target >= 0)
       {
         // FIXME Could we check now that it is a know server in the domain ?
       }
       return target;
     }
-    catch(Exception e)
+    catch (Exception e)
     {
-      cause = e;
+      ResultCode resultCode = ResultCode.OTHER;
+      Message message = ERR_INVALID_EXPORT_TARGET.get();
+      throw new DirectoryException(resultCode, message, e);
     }
-    ResultCode resultCode = ResultCode.OTHER;
-    Message message = ERR_INVALID_EXPORT_TARGET.get();
-
-    if (cause != null)
-      throw new DirectoryException(
-          resultCode, message, cause);
-    else
-      throw new DirectoryException(
-          resultCode, message);
-
   }
 
   /**
    * Initializes a remote server from this server.
    * <p>
-   * The {@link #exportBackend(OutputStream)} will therefore be called
-   * on this server, and the {@link #importBackend(InputStream)}
+   * The {@code exportBackend(OutputStream)} will therefore be called
+   * on this server, and the {@code importBackend(InputStream)}
    * will be called on the remote server.
    * <p>
    * The InputStream and OutpuStream given as a parameter to those
@@ -2138,8 +2136,8 @@ public abstract class ReplicationDomain
    * When this method is called, a request for initialization will
    * be sent to the source server asking for initialization.
    * <p>
-   * The {@link #exportBackend(OutputStream)} will therefore be called
-   * on the source server, and the {@link #importBackend(InputStream)}
+   * The {@code exportBackend(OutputStream)} will therefore be called
+   * on the source server, and the {@code importBackend(InputStream)}
    * will be called on his server.
    * <p>
    * The InputStream and OutpuStream given as a parameter to those
@@ -2161,8 +2159,8 @@ public abstract class ReplicationDomain
   /**
    * Initializes a remote server from this server.
    * <p>
-   * The {@link #exportBackend(OutputStream)} will therefore be called
-   * on this server, and the {@link #importBackend(InputStream)}
+   * The {@code exportBackend(OutputStream)} will therefore be called
+   * on this server, and the {@code importBackend(InputStream)}
    * will be called on the remote server.
    * <p>
    * The InputStream and OutpuStream given as a parameter to those

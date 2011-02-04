@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -52,22 +53,23 @@ import org.opends.server.replication.protocol.MonitorMsg;
 public class MonitoringPublisher extends DirectoryThread
 {
 
-  private boolean shutdown = false;
+  private volatile boolean shutdown = false;
+
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
 
   // The domain we send monitoring for
-  private ReplicationServerDomain replicationServerDomain;
+  private final ReplicationServerDomain replicationServerDomain;
 
   // Sleep time (in ms) before sending new monitoring messages.
-  private long period = 3000;
+  private volatile long period;
 
   // Is the thread terminated ?
-  private boolean done = false;
+  private volatile boolean done = false;
 
-  private final Object sleeper = new Object();
+  private final Object shutdownLock = new Object();
 
   /**
    * Create a monitoring publisher.
@@ -104,9 +106,12 @@ public class MonitoringPublisher extends DirectoryThread
       {
         try
         {
-          synchronized (sleeper)
+          synchronized (shutdownLock)
           {
-            sleeper.wait(period);
+            if (!shutdown)
+            {
+              shutdownLock.wait(period);
+            }
           }
         } catch (InterruptedException ex)
         {
@@ -157,16 +162,17 @@ public class MonitoringPublisher extends DirectoryThread
    */
   public void shutdown()
   {
-    if (debugEnabled())
+    synchronized (shutdownLock)
     {
-      TRACER.debugInfo("Shutting down monitoring publisher for dn " +
-        replicationServerDomain.getBaseDn().toString() + " in RS " +
-        replicationServerDomain.getReplicationServer().getServerId());
-    }
-    shutdown = true;
-    synchronized (sleeper)
-    {
-      sleeper.notify();
+      shutdown = true;
+      shutdownLock.notifyAll();
+
+      if (debugEnabled())
+      {
+        TRACER.debugInfo("Shutting down monitoring publisher for dn " +
+          replicationServerDomain.getBaseDn().toString() + " in RS " +
+          replicationServerDomain.getReplicationServer().getServerId());
+      }
     }
   }
 

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.service;
 import org.opends.messages.Message;
@@ -48,9 +49,9 @@ public class ListenerThread extends DirectoryThread
    */
   private static final DebugTracer TRACER = getTracer();
 
-  private ReplicationDomain repDomain;
-  private boolean shutdown = false;
-  private boolean done = false;
+  private final ReplicationDomain repDomain;
+  private volatile boolean shutdown = false;
+  private volatile boolean done = false;
 
 
   /**
@@ -95,11 +96,17 @@ public class ListenerThread extends DirectoryThread
         while ((!shutdown) && ((updateMsg = repDomain.receive()) != null))
         {
           if (repDomain.processUpdate(updateMsg) == true)
+          {
             repDomain.processUpdateDoneSynchronous(updateMsg);
+          }
         }
+
         if (updateMsg == null)
+        {
           shutdown = true;
-      } catch (Exception e)
+        }
+      }
+      catch (Exception e)
       {
         /*
          * catch all exceptions happening in repDomain.receive so that the
@@ -119,6 +126,8 @@ public class ListenerThread extends DirectoryThread
     }
   }
 
+
+
   /**
    * Wait for the completion of this thread.
    */
@@ -134,12 +143,13 @@ public class ListenerThread extends DirectoryThread
         n++;
         if (n >= FACTOR)
         {
-          TRACER.debugInfo("Interrupting listener thread for dn " +
-            repDomain.getServiceID() + " in DS " + repDomain.getServerId());
+          TRACER.debugInfo("Interrupting listener thread for dn "
+              + repDomain.getServiceID() + " in DS " + repDomain.getServerId());
           this.interrupt();
         }
       }
-    } catch (InterruptedException e)
+    }
+    catch (InterruptedException e)
     {
       // exit the loop if this thread is interrupted.
     }

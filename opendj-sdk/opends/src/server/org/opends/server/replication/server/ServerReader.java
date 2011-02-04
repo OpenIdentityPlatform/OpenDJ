@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -58,8 +59,8 @@ public class ServerReader extends DirectoryThread
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
-  private ProtocolSession session;
-  private ServerHandler handler;
+  private final ProtocolSession session;
+  private final ServerHandler handler;
 
   /**
    * Constructor for the LDAP server reader part of the replicationServer.
