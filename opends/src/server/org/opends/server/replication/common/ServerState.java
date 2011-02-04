@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
@@ -48,8 +49,8 @@ import org.opends.server.types.ByteString;
  */
 public class ServerState implements Iterable<Integer>
 {
-  private HashMap<Integer, ChangeNumber> list;
-  private boolean saved = true;
+  private final HashMap<Integer, ChangeNumber> list;
+  private volatile boolean saved = true;
 
   /**
    * Creates a new empty ServerState.

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.replication.protocol;
@@ -54,25 +55,25 @@ public class HeartbeatMonitor extends DirectoryThread
   /**
    * The session on which heartbeats are to be monitored.
    */
-  private ProtocolSession session;
+  private final ProtocolSession session;
 
 
   /**
    * The time in milliseconds between heartbeats from the replication
    * server.  Zero means heartbeats are off.
    */
-  private long heartbeatInterval;
+  private final long heartbeatInterval;
 
 
   /**
    * Set this to stop the thread.
    */
-  private boolean shutdown = false;
+  private volatile boolean shutdown = false;
 
   /**
    * Send StopMsg before session closure or not.
    */
-  private boolean sendStopBeforeClose = false;
+  private final boolean sendStopBeforeClose;
 
 
   /**
@@ -131,7 +132,8 @@ public class HeartbeatMonitor extends DirectoryThread
               try
               {
                 session.publish(new StopMsg());
-              } catch(IOException ioe)
+              }
+              catch (IOException ioe)
               {
                 // Anyway, going to close session, so nothing to do
               }

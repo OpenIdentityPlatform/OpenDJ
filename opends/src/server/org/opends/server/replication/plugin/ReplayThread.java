@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
@@ -54,9 +55,9 @@ public class ReplayThread extends DirectoryThread
    */
   private static final DebugTracer TRACER = getTracer();
 
-  private BlockingQueue<UpdateToReplay> updateToReplayQueue = null;
-  private boolean shutdown = false;
-  private boolean done = false;
+  private final BlockingQueue<UpdateToReplay> updateToReplayQueue;
+  private volatile boolean shutdown = false;
+  private volatile boolean done = false;
   private static int count = 0;
 
   /**

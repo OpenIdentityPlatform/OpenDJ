@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -47,21 +48,22 @@ import org.opends.server.replication.common.StatusMachineEvent;
 public class StatusAnalyzer extends DirectoryThread
 {
 
-  private boolean finished = false;
+  private volatile boolean shutdown = false;
+
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
 
-  private ReplicationServerDomain replicationServerDomain;
-  private int degradedStatusThreshold = -1;
+  private final ReplicationServerDomain replicationServerDomain;
+  private volatile int degradedStatusThreshold = -1;
 
   // Sleep time for the thread, in ms.
-  private int STATUS_ANALYZER_SLEEP_TIME = 5000;
+  private static final int STATUS_ANALYZER_SLEEP_TIME = 5000;
 
-  private boolean done = false;
+  private volatile boolean done = false;
 
-  private Object sleeper = new Object();
+  private final Object shutdownLock = new Object();
 
   /**
    * Create a StatusAnalyzer.
@@ -95,13 +97,16 @@ public class StatusAnalyzer extends DirectoryThread
     }
 
     boolean interrupted = false;
-    while (!finished && !interrupted)
+    while (!shutdown && !interrupted)
     {
       try
       {
-        synchronized (sleeper)
+        synchronized (shutdownLock)
         {
-          sleeper.wait(STATUS_ANALYZER_SLEEP_TIME);
+          if (!shutdown)
+          {
+            shutdownLock.wait(STATUS_ANALYZER_SLEEP_TIME);
+          }
         }
       } catch (InterruptedException ex)
       {
@@ -192,16 +197,17 @@ public class StatusAnalyzer extends DirectoryThread
    */
   public void shutdown()
   {
-    if (debugEnabled())
+    synchronized (shutdownLock)
     {
-      TRACER.debugInfo("Shutting down status analyzer for dn " +
-        replicationServerDomain.getBaseDn().toString() + " in RS " +
-        replicationServerDomain.getReplicationServer().getServerId());
-    }
-    finished = true;
-    synchronized (sleeper)
-    {
-      sleeper.notify();
+      shutdown = true;
+      shutdownLock.notifyAll();
+
+      if (debugEnabled())
+      {
+        TRACER.debugInfo("Shutting down status analyzer for dn "
+            + replicationServerDomain.getBaseDn().toString() + " in RS "
+            + replicationServerDomain.getReplicationServer().getServerId());
+      }
     }
   }
 

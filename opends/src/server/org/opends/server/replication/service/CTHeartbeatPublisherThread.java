@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.replication.service;
@@ -51,26 +52,21 @@ public class CTHeartbeatPublisherThread extends DirectoryThread
   private static final DebugTracer TRACER = getTracer();
 
   /**
-   * For test purposes only to simulate loss of heartbeats.
-   */
-  static private boolean heartbeatsDisabled = false;
-
-  /**
    * The session on which heartbeats are to be sent.
    */
-  private ProtocolSession session;
+  private final ProtocolSession session;
 
   /**
    * The time in milliseconds between heartbeats.
    */
-  private long heartbeatInterval;
-  private int serverId;
+  private final long heartbeatInterval;
+  private final int serverId;
 
   /**
    * Set this to stop the thread.
    */
-  private Boolean shutdown = false;
-  private final Object shutdown_lock = new Object();
+  private volatile boolean shutdown = false;
+  private final Object shutdownLock = new Object();
 
   /**
    * Create a heartbeat thread.
@@ -112,10 +108,7 @@ public class CTHeartbeatPublisherThread extends DirectoryThread
 
         if (now > session.getLastPublishTime() + heartbeatInterval)
         {
-          if (!heartbeatsDisabled)
-          {
-            session.publish(ctHeartbeatMsg);
-          }
+          session.publish(ctHeartbeatMsg);
         }
 
         try
@@ -127,11 +120,11 @@ public class CTHeartbeatPublisherThread extends DirectoryThread
             sleepTime = heartbeatInterval;
           }
 
-          synchronized (shutdown_lock)
+          synchronized (shutdownLock)
           {
             if (!shutdown)
             {
-              shutdown_lock.wait(sleepTime);
+              shutdownLock.wait(sleepTime);
             }
           }
         }
@@ -166,20 +159,10 @@ public class CTHeartbeatPublisherThread extends DirectoryThread
    */
   public void shutdown()
   {
-    synchronized (shutdown_lock)
+    synchronized (shutdownLock)
     {
       shutdown = true;
-      shutdown_lock.notifyAll();
+      shutdownLock.notifyAll();
     }
-  }
-
-
-  /**
-   * For testing purposes only to simulate loss of heartbeats.
-   * @param heartbeatsDisabled Set true to prevent heartbeats from being sent.
-   */
-  public static void setHeartbeatsDisabled(boolean heartbeatsDisabled)
-  {
-    CTHeartbeatPublisherThread.heartbeatsDisabled = heartbeatsDisabled;
   }
 }

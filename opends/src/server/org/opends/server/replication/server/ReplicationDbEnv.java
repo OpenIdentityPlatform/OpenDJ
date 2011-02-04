@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.server;
 import org.opends.messages.*;
@@ -255,13 +256,10 @@ public class ReplicationDbEnv
 
         status = cursor.getNext(key, data, LockMode.DEFAULT);
       }
-      cursor.close();
-
     }
-    catch (DatabaseException dbe)
+    finally
     {
       cursor.close();
-      throw dbe;
     }
   }
 

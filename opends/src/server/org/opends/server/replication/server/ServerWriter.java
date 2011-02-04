@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.server;
 import org.opends.messages.Message;
@@ -57,10 +58,10 @@ public class ServerWriter extends DirectoryThread
    */
   private static final DebugTracer TRACER = getTracer();
 
-  private ProtocolSession session;
-  private ServerHandler handler;
-  private ReplicationServerDomain replicationServerDomain;
-  private short protocolVersion = -1;
+  private final ProtocolSession session;
+  private final ServerHandler handler;
+  private final ReplicationServerDomain replicationServerDomain;
+  private final short protocolVersion;
 
   /**
    * Create a ServerWriter.

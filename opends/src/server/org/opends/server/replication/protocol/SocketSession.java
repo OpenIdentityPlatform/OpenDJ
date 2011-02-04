@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -59,7 +60,7 @@ public class SocketSession implements ProtocolSession
   /**
    * The time the last message published to this session.
    */
-  private long lastPublishTime = 0;
+  private volatile long lastPublishTime = 0;
 
 
   /**

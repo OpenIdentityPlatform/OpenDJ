@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.replication.protocol;
@@ -50,25 +51,25 @@ public class HeartbeatThread extends DirectoryThread
   /**
    * For test purposes only to simulate loss of heartbeats.
    */
-  static private boolean heartbeatsDisabled = false;
+  private static volatile boolean heartbeatsDisabled = false;
 
   /**
    * The session on which heartbeats are to be sent.
    */
-  private ProtocolSession session;
+  private final ProtocolSession session;
 
 
   /**
    * The time in milliseconds between heartbeats.
    */
-  private long heartbeatInterval;
+  private final long heartbeatInterval;
 
 
   /**
    * Set this to stop the thread.
    */
-  private Boolean shutdown = false;
-  private final Object shutdown_lock = new Object();
+  private volatile boolean shutdown = false;
+  private final Object shutdownLock = new Object();
 
 
   /**
@@ -136,11 +137,11 @@ public class HeartbeatThread extends DirectoryThread
             TRACER.debugVerbose("Heartbeat thread sleeping for %d", sleepTime);
           }
 
-          synchronized (shutdown_lock)
+          synchronized (shutdownLock)
           {
             if (!shutdown)
             {
-              shutdown_lock.wait(sleepTime);
+              shutdownLock.wait(sleepTime);
             }
           }
         }
@@ -174,10 +175,10 @@ public class HeartbeatThread extends DirectoryThread
    */
   public void shutdown()
   {
-    synchronized (shutdown_lock)
+    synchronized (shutdownLock)
     {
       shutdown = true;
-      shutdown_lock.notifyAll();
+      shutdownLock.notifyAll();
       if (debugEnabled())
       {
         TRACER.debugInfo("Going to notify Heartbeat thread.");

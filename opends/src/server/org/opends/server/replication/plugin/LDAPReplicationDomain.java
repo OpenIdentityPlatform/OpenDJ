@@ -191,8 +191,8 @@ public class LDAPReplicationDomain extends ReplicationDomain
    */
   private class ScanSearchListener implements InternalSearchListener
   {
-    private ChangeNumber startingChangeNumber = null;
-    private ChangeNumber endChangeNumber = null;
+    private final ChangeNumber startingChangeNumber;
+    private final ChangeNumber endChangeNumber;
 
     public ScanSearchListener(
         ChangeNumber startingChangeNumber,
@@ -262,8 +262,8 @@ public class LDAPReplicationDomain extends ReplicationDomain
   private final PersistentServerState state;
   private int numReplayedPostOpCalled = 0;
 
-  private long generationId = -1;
-  private boolean generationIdSavedStatus = false;
+  private volatile long generationId = -1;
+  private volatile boolean generationIdSavedStatus = false;
 
   private final ChangeNumberGenerator generator;
 
@@ -289,15 +289,15 @@ public class LDAPReplicationDomain extends ReplicationDomain
 
   private final DN baseDn;
 
-  private boolean shutdown = false;
+  private volatile boolean shutdown = false;
 
   private final InternalClientConnection conn =
       InternalClientConnection.getRootConnection();
 
   private boolean solveConflictFlag = true;
 
-  private boolean disabled = false;
-  private boolean stateSavingDisabled = false;
+  private volatile boolean disabled = false;
+  private volatile boolean stateSavingDisabled = false;
 
   // This list is used to temporary store operations that needs
   // to be replayed at session establishment time.
@@ -311,7 +311,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
    * Possible values are accept-updates or deny-updates, but other values
    * may be added in the future.
    */
-  private IsolationPolicy isolationpolicy;
+  private IsolationPolicy isolationPolicy;
 
   /**
    * The DN of the configuration entry of this domain.
@@ -323,7 +323,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
    * A boolean indicating if the thread used to save the persistentServerState
    * is terminated.
    */
-  private boolean done = true;
+  private volatile boolean done = true;
 
   private ServerStateFlush flushThread;
 
@@ -374,7 +374,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
    * fractional configuration (i.e with compliant fractional configuration in
    * domain root entry).
    */
-  private boolean force_bad_data_set = false;
+  private boolean forceBadDataSet = false;
 
   /**
    * This flag is used by the fractional replication ldif import plugin to
@@ -447,21 +447,24 @@ public class LDAPReplicationDomain extends ReplicationDomain
     {
       done = false;
 
-      while (shutdown  == false)
+      while (shutdown == false)
       {
         try
         {
           synchronized (this)
           {
             this.wait(1000);
-            if (!disabled && !stateSavingDisabled )
+            if (!disabled && !stateSavingDisabled)
             {
               // save the ServerState
               state.save();
             }
           }
-        } catch (InterruptedException e)
-        { }
+        }
+        catch (InterruptedException e)
+        {
+          // Thread interrupted: check for shutdown.
+        }
       }
       state.save();
 
@@ -475,7 +478,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
    */
   private class RSUpdater extends DirectoryThread
   {
-    private ChangeNumber startChangeNumber;
+    private final ChangeNumber startChangeNumber;
     protected RSUpdater(ChangeNumber replServerMaxChangeNumber)
     {
       super("Replication Server Updater for server id " +
@@ -571,7 +574,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
     this.baseDn = configuration.getBaseDN();
     int window  = configuration.getWindowSize();
     heartbeatInterval = configuration.getHeartbeatInterval();
-    this.isolationpolicy = configuration.getIsolationPolicy();
+    this.isolationPolicy = configuration.getIsolationPolicy();
     this.configDn = configuration.dn();
     this.logChangeNumber = configuration.isLogChangenumber();
     this.updateToReplayQueue = updateToReplayQueue;
@@ -2030,12 +2033,12 @@ public class LDAPReplicationDomain extends ReplicationDomain
    */
   private boolean brokerIsConnected(PreOperationOperation op)
   {
-    if (isolationpolicy.equals(IsolationPolicy.ACCEPT_ALL_UPDATES))
+    if (isolationPolicy.equals(IsolationPolicy.ACCEPT_ALL_UPDATES))
     {
       // this policy imply that we always accept updates.
       return true;
     }
-    if (isolationpolicy.equals(IsolationPolicy.REJECT_ALL_UPDATES))
+    if (isolationPolicy.equals(IsolationPolicy.REJECT_ALL_UPDATES))
     {
       // this isolation policy specifies that the updates are denied
       // when the broker had problems during the connection phase
@@ -4429,7 +4432,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   public ConfigChangeResult applyConfigurationChange(
          ReplicationDomainCfg configuration)
   {
-    isolationpolicy = configuration.getIsolationPolicy();
+    isolationPolicy = configuration.getIsolationPolicy();
     logChangeNumber = configuration.isLogChangenumber();
     histPurgeDelayInMilliSec =
       configuration.getConflictsHistoricalPurgeDelay()*60*1000;
@@ -4657,7 +4660,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   {
     // Check domain fractional configuration consistency with local
     // configuration variables
-    force_bad_data_set = !isBackendFractionalConfigConsistent();
+    forceBadDataSet = !isBackendFractionalConfigConsistent();
 
     super.sessionInitiated(
         initStatus, replicationServerState,generationID, session);
@@ -4687,7 +4690,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
 
     // Now for bad data set status if needed
-    if (force_bad_data_set)
+    if (forceBadDataSet)
     {
       // Go into bad data set status
       setNewStatus(StatusMachineEvent.TO_BAD_GEN_ID_STATUS_EVENT);
@@ -4950,7 +4953,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   {
     // Ignore message if fractional configuration is inconcsistent and
     // we have been passed into bad data set status
-    if (force_bad_data_set)
+    if (forceBadDataSet)
     {
       return false;
     }
