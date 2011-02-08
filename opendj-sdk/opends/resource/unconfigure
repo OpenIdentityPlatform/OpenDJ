@@ -24,6 +24,7 @@
 #
 #
 #      Copyright 2008-2009 Sun Microsystems, Inc.
+#      Portions Copyright 2011 ForgeRock AS
 
 
 # Capture the current working directory so that we can change to it later.
@@ -98,11 +99,11 @@ fi
 
 echo "Disabling SMF service ..."
 # Now update SMF manifest, delete it and remove the file from  /var/svc/manifest
-echo select network/ldap/server >  /tmp/opends-unconfigure.$$
-echo delete opends >> /tmp/opends-unconfigure.$$
-/usr/sbin/svccfg -f /tmp/opends-unconfigure.$$
-rm /tmp/opends-unconfigure.$$
-rm /var/svc/manifest/network/ldap/opends-manifest.xml
+echo select network/ldap/server >  /tmp/opendj-unconfigure.$$
+echo delete opendj >> /tmp/opendj-unconfigure.$$
+/usr/sbin/svccfg -f /tmp/opendj-unconfigure.$$
+rm /tmp/opendj-unconfigure.$$
+rm /var/svc/manifest/network/ldap/opendj-manifest.xml
 
 echo "Resetting instance location ..."
 # Launch the unconfigure process.

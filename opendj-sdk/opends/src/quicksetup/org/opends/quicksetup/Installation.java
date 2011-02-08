@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.quicksetup;
@@ -50,10 +51,10 @@ import org.opends.server.util.SetupUtils;
 public class Installation {
 
   /**
-   * Relative path to OpenDS jar files.
+   * Relative path to OpenDJ jar files.
    */
   public static final String[] OPEN_DS_JAR_RELATIVE_PATHS =
-          {"lib/quicksetup.jar", "lib/OpenDS.jar", "lib/je.jar"};
+          {"lib/quicksetup.jar", "lib/OpenDJ.jar", "lib/je.jar"};
 
   /**
    * The relative path where all the Windows binaries (batch files) are.
@@ -156,7 +157,7 @@ public class Installation {
   /**
    * The path to the default instance.
    */
-  public static final String DEFAULT_INSTANCE_PATH = "/var/opends";
+  public static final String DEFAULT_INSTANCE_PATH = "/var/opendj";
 
   /**
    * The relative path to the instance.loc file.
@@ -167,7 +168,7 @@ public class Installation {
   /**
    * The path to the instance.loc file.
    */
-  public static final String INSTANCE_LOCATION_PATH = "/etc/opends/" +
+  public static final String INSTANCE_LOCATION_PATH = "/etc/opendj/" +
     INSTANCE_LOCATION_PATH_RELATIVE;
 
   /**

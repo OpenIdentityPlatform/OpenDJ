@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.quicksetup.installer;
@@ -1129,6 +1130,8 @@ public class InstallerHelper {
   /**
    * Writes the set-java-home file that is used by the scripts to set the
    * java home and the java arguments.
+   * Since the set-java-home file is created and may be changed,
+   * it's created under the instancePath.
    * @param installPath the install path of the server.
    * @param javaHome the java home to be used.
    * @param arguments a Map containing as key the name of the script and as
@@ -1169,7 +1172,8 @@ public class InstallerHelper {
     writer.close();
 
     String destinationFile;
-    String libDir = Utils.getPath(installPath,
+    String libDir = Utils.getPath(Utils
+        .getInstancePathFromInstallPath(installPath),
         Installation.LIBRARIES_PATH_RELATIVE);
     if (Utils.isWindows())
     {

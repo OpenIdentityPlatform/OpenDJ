@@ -24,6 +24,7 @@
 #
 #
 #      Copyright 2006-2009 Sun Microsystems, Inc.
+#      Portions Copyright 2011 ForgeRock AS
 
 
 # This script may be used to request that the Directory Server shut down.
@@ -59,11 +60,11 @@ ORIGINAL_JAVA_BIN=${OPENDS_JAVA_BIN}
 SCRIPT_NAME="stop-ds"
 export SCRIPT_NAME
 
-# check for presence of lib/_svc-opends.sh file
+# check for presence of lib/_svc-opendj.sh file
 # If present, we should be on Solaris/OpenSolaris and use SMF to start
-# OpenDS. 
-# Check --exec. If not present, start OpenDS from SMF
-if test -f "${INSTALL_ROOT}/lib/_svc-opends.sh"
+# OpenDJ. 
+# Check --exec. If not present, start OpenDJ from SMF
+if test -f "${INSTALL_ROOT}/lib/_svc-opendj.sh"
 then
     if [ "$1" = "--exec" ]
     then
@@ -74,15 +75,15 @@ then
     then
         if [ "$1" = "-R" -o "$1" = "--restart" ]
         then
-            /usr/sbin/svcadm disable -t svc:/network/ldap/server:opends
+            /usr/sbin/svcadm disable -t svc:/network/ldap/server:opendj
             RETURN_CODE=$?
             if test ${RETURN_CODE} -ne 0
             then
                 exit ${RETURN_CODE}
             fi
-            exec /usr/sbin/svcadm enable -t svc:/network/ldap/server:opends
+            exec /usr/sbin/svcadm enable -t svc:/network/ldap/server:opendj
         else
-            exec /usr/sbin/svcadm disable -t svc:/network/ldap/server:opends
+            exec /usr/sbin/svcadm disable -t svc:/network/ldap/server:opendj
         fi
     fi
 fi

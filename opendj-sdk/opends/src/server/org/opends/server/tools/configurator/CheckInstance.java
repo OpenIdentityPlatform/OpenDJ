@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.tools.configurator;
 
@@ -62,7 +63,7 @@ public class CheckInstance {
           CheckInstance.class.getName());
 
   /** Prefix for log files. */
-  static public final String LOG_FILE_PREFIX = "opends-checkinstance-";
+  static public final String LOG_FILE_PREFIX = "opendj-checkinstance-";
 
   private static String installRootFromSystem;
   private static String instanceRootFromSystem;
