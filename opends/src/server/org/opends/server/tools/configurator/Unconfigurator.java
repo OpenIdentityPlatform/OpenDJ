@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.tools.configurator;
 
@@ -56,7 +57,7 @@ public class Unconfigurator extends Launcher {
     Unconfigurator.class.getName());
 
   /** Prefix for log files. */
-  static public final String LOG_FILE_PREFIX = "opends-unconfigure-";
+  static public final String LOG_FILE_PREFIX = "opendj-unconfigure-";
 
   private String installRootFromSystem;
 

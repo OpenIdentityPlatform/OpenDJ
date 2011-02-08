@@ -24,6 +24,7 @@
 #
 #
 #      Copyright 2006-2008 Sun Microsystems, Inc.
+#      Portions Copyright 2011 ForgeRock AS
 
 
 # Capture the current working directory so that we can change to it later.
@@ -70,7 +71,7 @@ else
   if test ${RETURN_CODE} -eq 0
   then
     # Retrieve INSTANCE_ROOT
-    INSTANCE_ROOT=`cat /etc/opends/instance.loc`
+    INSTANCE_ROOT=`cat /etc/opendj/instance.loc`
     # Now update SMF manifest, cp it to the right place and import it
     OWNER=`ls -ld ${INSTANCE_ROOT}`
     CURRENT_IFS=${IFS}
@@ -81,13 +82,13 @@ else
     IFS=${CURRENT_IFS}
     if test "${USERNAME}" = "ldap" -a "$GROUPNAME" = "ldap"
     then
-        cp ${INSTALL_ROOT}/resources/opends-manifest.xml /var/svc/manifest/network/ldap/
+        cp ${INSTALL_ROOT}/resources/opendj-manifest.xml /var/svc/manifest/network/ldap/
     else
-        cat ${INSTALL_ROOT}/resources/opends-manifest.xml | sed -e "s/user='ldap/user='${USERNAME}/;s/group='ldap/group='${GROUPNAME}/" > /tmp/opends-manifest.$$
-        cp /tmp/opends-manifest.$$ /var/svc/manifest/network/ldap/opends-manifest.xml
-        rm /tmp/opends-manifest.$$
+        cat ${INSTALL_ROOT}/resources/opendj-manifest.xml | sed -e "s/user='ldap/user='${USERNAME}/;s/group='ldap/group='${GROUPNAME}/" > /tmp/opendj-manifest.$$
+        cp /tmp/opendj-manifest.$$ /var/svc/manifest/network/ldap/opendj-manifest.xml
+        rm /tmp/opendj-manifest.$$
     fi
-    /usr/sbin/svccfg import /var/svc/manifest/network/ldap/opends-manifest.xml
+    /usr/sbin/svccfg import /var/svc/manifest/network/ldap/opendj-manifest.xml
   fi
   exit ${RETURN_CODE}
 fi

@@ -24,7 +24,7 @@
 #
 #
 #      Copyright 2008-2010 Sun Microsystems, Inc.
-#      Portions Copyright 2010 ForgeRock AS
+#      Portions Copyright 2010-2011 ForgeRock AS
 
 #
 # Display an error message
@@ -261,7 +261,7 @@ if test "${INSTANCE_ROOT}" = ""
 then
   if [ -f "${INSTALL_ROOT}/configure" ]
   then
-    if [ -f /etc/opends/instance.loc ]
+    if [ -f /etc/opendj/instance.loc ]
     then
       if [ "${SCRIPT_NAME}" = "configure" ]
       then
@@ -272,7 +272,7 @@ then
           exit 0
 	fi
       fi
-      read INSTANCE_ROOT <  /etc/opends/instance.loc
+      read INSTANCE_ROOT <  /etc/opendj/instance.loc
     else
       if [ "${SCRIPT_NAME}" != "configure" ]
       then
