@@ -29,7 +29,7 @@ package org.opends.sdk.controls;
 
 
 
-import org.opends.sdk.OpenDSTestCase;
+import org.opendj.buildtools.testng.OpenDJTestCase;
 import org.opends.sdk.TestCaseUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -43,7 +43,7 @@ import org.testng.annotations.Test;
  */
 
 @Test(groups = { "precommit", "controls", "sdk" }, sequential = true)
-public abstract class ControlsTestCase extends OpenDSTestCase
+public abstract class ControlsTestCase extends OpenDJTestCase
 {
   /**
    * Set up the environment for performing the tests in this suite.

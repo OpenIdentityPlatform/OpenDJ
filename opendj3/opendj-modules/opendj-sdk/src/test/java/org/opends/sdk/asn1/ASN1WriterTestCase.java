@@ -35,10 +35,10 @@ import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 
+import org.opendj.buildtools.testng.OpenDJTestCase;
 import org.opends.sdk.ByteString;
 import org.opends.sdk.ByteStringBuilder;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.OpenDSTestCase;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -50,7 +50,7 @@ import com.sun.opends.sdk.util.StaticUtils;
  * An abstract base class for all ASN1Writer test cases.
  */
 @Test(groups = { "precommit", "asn1", "sdk" }, sequential = true)
-public abstract class ASN1WriterTestCase extends OpenDSTestCase
+public abstract class ASN1WriterTestCase extends OpenDJTestCase
 {
 
   // Create an array with all of the valid single-byte types. We don't

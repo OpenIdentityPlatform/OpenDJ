@@ -29,7 +29,7 @@ package org.opends.sdk.requests;
 
 
 
-import org.opends.sdk.OpenDSTestCase;
+import org.opendj.buildtools.testng.OpenDJTestCase;
 import org.testng.annotations.Test;
 
 
@@ -41,6 +41,6 @@ import org.testng.annotations.Test;
  */
 
 @Test(groups = { "precommit", "requests", "sdk" }, sequential = true)
-public abstract class RequestsTestCase extends OpenDSTestCase
+public abstract class RequestsTestCase extends OpenDJTestCase
 {
 }

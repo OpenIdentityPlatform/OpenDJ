@@ -23,12 +23,11 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
-package org.opends.sdk;
+package org.opendj.buildtools.testng;
 
 
-
-import static com.sun.opends.sdk.util.StaticUtils.EOL;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -50,12 +49,16 @@ import org.testng.xml.XmlSuite;
  * This class is our replacement for the test results that TestNG generates. It
  * prints out test to the console as they happen.
  */
-public class TestListener extends TestListenerAdapter implements IReporter
+public class OpenDJTestListener extends TestListenerAdapter implements IReporter
 {
 
   /**
-   *
+   * The end-of-line character for this platform.
    */
+  private static final String EOL = System.getProperty("line.separator");
+
+
+
   private static class TestClassResults
   {
     private final IClass _cls;
@@ -417,7 +420,7 @@ public class TestListener extends TestListenerAdapter implements IReporter
 
 
 
-  public TestListener() throws Exception
+  public OpenDJTestListener() throws Exception
   {
     initializeProgressVars();
   }
@@ -586,20 +589,20 @@ public class TestListener extends TestListenerAdapter implements IReporter
     final Object[] testInstances = result.getMethod().getInstances();
     for (final Object testInstance : testInstances)
     {
-      if (testInstance instanceof OpenDSTestCase)
+      if (testInstance instanceof OpenDJTestCase)
       {
-        final OpenDSTestCase openDSTestCase = (OpenDSTestCase) testInstance;
+        final OpenDJTestCase openDJTestCase = (OpenDJTestCase) testInstance;
         final Object[] parameters = result.getParameters();
         if (result.getStatus() == ITestResult.SUCCESS)
         {
-          openDSTestCase.addParamsFromSuccessfulTests(parameters);
+          openDJTestCase.addParamsFromSuccessfulTests(parameters);
           // This can eat up a bunch of memory for tests that are
           // expected to throw
           result.setThrowable(null);
         }
         else
         {
-          openDSTestCase.addParamsFromFailedTest(parameters);
+          openDJTestCase.addParamsFromFailedTest(parameters);
 
           // When the test finishes later on, we might not have
           // everything
@@ -753,7 +756,7 @@ public class TestListener extends TestListenerAdapter implements IReporter
     }
     _checkedForTypeAndAnnotations.add(testClass);
 
-    if (!OpenDSTestCase.class.isAssignableFrom(testClass))
+    if (!OpenDJTestCase.class.isAssignableFrom(testClass))
     {
       final String errorMessage = "The test class " + testClass.getName()
           + " must inherit (directly or indirectly) "

@@ -28,7 +28,7 @@ package org.opends.sdk.schema;
 
 
 
-import org.opends.sdk.OpenDSTestCase;
+import org.opendj.buildtools.testng.OpenDJTestCase;
 import org.testng.annotations.Test;
 
 
@@ -37,6 +37,6 @@ import org.testng.annotations.Test;
  * An abstract class that all schema unit test should extend.
  */
 @Test(groups = { "precommit", "schema", "sdk" }, sequential = true)
-public abstract class SchemaTestCase extends OpenDSTestCase
+public abstract class SchemaTestCase extends OpenDJTestCase
 {
 }

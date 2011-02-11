@@ -29,7 +29,7 @@ package com.sun.opends.sdk.util;
 
 
 
-import org.opends.sdk.OpenDSTestCase;
+import org.opendj.buildtools.testng.OpenDJTestCase;
 import org.testng.annotations.Test;
 
 
@@ -39,6 +39,6 @@ import org.testng.annotations.Test;
  * classes found directly under the package org.opends.sdk.util.
  */
 @Test(groups = { "precommit", "util", "sdk" }, sequential = true)
-public abstract class UtilTestCase extends OpenDSTestCase
+public abstract class UtilTestCase extends OpenDJTestCase
 {
 }

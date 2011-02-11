@@ -28,7 +28,7 @@ package org.opends.sdk.ldif;
 
 
 
-import org.opends.sdk.OpenDSTestCase;
+import org.opendj.buildtools.testng.OpenDJTestCase;
 import org.testng.annotations.Test;
 
 
@@ -39,6 +39,6 @@ import org.testng.annotations.Test;
  */
 
 @Test(groups = { "precommit", "types", "sdk" }, sequential = true)
-public abstract class LDIFTestCase extends OpenDSTestCase
+public abstract class LDIFTestCase extends OpenDJTestCase
 {
 }
