@@ -7,48 +7,27 @@
  * with the License.
  *
  * You can obtain a copy of the license at
- * trunk/opends/resource/legal-notices/OpenDS.LICENSE
- * or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+ * trunk/opends/resource/legal-notices/CDDLv1_0.txt
+ * or http://forgerock.org/license/CDDLv1.0.html.
  * See the License for the specific language governing permissions
  * and limitations under the License.
  *
  * When distributing Covered Code, include this CDDL HEADER in each
  * file and include the License file at
- * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+ * trunk/opends/resource/legal-notices/CDDLv1_0.txt.  If applicable,
  * add the following below this CDDL HEADER, with the fields enclosed
  * by brackets "[]" replaced with your own identifying information:
  *      Portions Copyright [yyyy] [name of copyright owner]
  *
  * CDDL HEADER END
  *
- *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2011 ForgeRock AS
  */
-package org.opends.sdk;
-
-
-
-import org.testng.TestNG;
-
-
 
 /**
- * This class wraps TestNG so that we can force the process to exit if there is
- * an uncaught exception (e.g. OutOfMemoryError).
+ * TestNG unit testing infrastructure necessary for the OpenDJ project.
  */
-public class SuiteRunner
-{
-  public static void main(final String[] args)
-  {
-    try
-    {
-      TestNG.main(args);
-    }
-    catch (final Throwable e)
-    {
-      System.err.println("TestNG.main threw an expected exception:");
-      e.printStackTrace(System.err);
-      System.exit(TestNG.HAS_FAILURE);
-    }
-  }
-}
+package org.opendj.buildtools.testng;
+
+
+

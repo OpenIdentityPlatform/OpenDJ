@@ -29,7 +29,7 @@ package com.sun.opends.sdk.ldap;
 
 
 
-import org.opends.sdk.OpenDSTestCase;
+import org.opendj.buildtools.testng.OpenDJTestCase;
 import org.testng.annotations.Test;
 
 
@@ -40,6 +40,6 @@ import org.testng.annotations.Test;
  */
 
 @Test(groups = { "precommit", "ldap", "sdk" }, sequential = true)
-public abstract class LDAPTestCase extends OpenDSTestCase
+public abstract class LDAPTestCase extends OpenDJTestCase
 {
 }

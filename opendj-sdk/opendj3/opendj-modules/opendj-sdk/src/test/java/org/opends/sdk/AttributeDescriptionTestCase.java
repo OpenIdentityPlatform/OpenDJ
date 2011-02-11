@@ -31,6 +31,7 @@ package org.opends.sdk;
 
 import java.util.Iterator;
 
+import org.opendj.buildtools.testng.OpenDJTestCase;
 import org.opends.sdk.schema.Schema;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
@@ -41,7 +42,7 @@ import org.testng.annotations.Test;
 /**
  * Test {@code AttributeDescription}.
  */
-public final class AttributeDescriptionTestCase extends OpenDSTestCase
+public final class AttributeDescriptionTestCase extends OpenDJTestCase
 {
   @DataProvider(name = "dataForCompareCoreSchema")
   public Object[][] dataForCompareCoreSchema()

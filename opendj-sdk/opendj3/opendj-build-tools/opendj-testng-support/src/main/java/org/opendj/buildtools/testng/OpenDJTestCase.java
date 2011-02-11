@@ -23,9 +23,10 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
-package org.opends.sdk;
+package org.opendj.buildtools.testng;
 
 
 
@@ -47,7 +48,7 @@ import org.testng.annotations.Test;
  * them include the class name.
  */
 @Test(sequential = true)
-public abstract class OpenDSTestCase
+public abstract class OpenDJTestCase
 {
 
   //
@@ -119,8 +120,8 @@ public abstract class OpenDSTestCase
     Class<?> cls = this.getClass();
     // Iterate through all of the fields in all subclasses of
     // DirectoryServerTestCase, but not DirectoryServerTestCase itself.
-    while (OpenDSTestCase.class.isAssignableFrom(cls)
-        && !OpenDSTestCase.class.equals(cls))
+    while (OpenDJTestCase.class.isAssignableFrom(cls)
+        && !OpenDJTestCase.class.equals(cls))
     {
       final Field fields[] = cls.getDeclaredFields();
       for (final Field field : fields)
