@@ -23,6 +23,8 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
+ *
  */
 package org.opends.server.backends.jeb;
 
@@ -659,17 +661,27 @@ public class IndexFilter
   private EntryIDSet evaluateExtensibleFilter(SearchFilter extensibleFilter)
   {
     EntryIDSet candidates;
-    AttributeIndex attributeIndex =
-         entryContainer.getAttributeIndex(extensibleFilter.getAttributeType());
-    if (attributeIndex == null)
+
+    if (extensibleFilter.getDNAttributes())
     {
+      // This will always be unindexed since the filter potentially matches
+      // entries containing the specified attribute type as well as any entry
+      // containing the attribute in its DN as part of a superior RDN.
       candidates = IndexQuery.createNullIndexQuery().evaluate(null);
     }
     else
     {
-      candidates =
-          attributeIndex.evaluateExtensibleFilter(extensibleFilter, buffer,
-              monitor);
+      AttributeIndex attributeIndex = entryContainer
+          .getAttributeIndex(extensibleFilter.getAttributeType());
+      if (attributeIndex == null)
+      {
+        candidates = IndexQuery.createNullIndexQuery().evaluate(null);
+      }
+      else
+      {
+        candidates = attributeIndex.evaluateExtensibleFilter(extensibleFilter,
+            buffer, monitor);
+      }
     }
     return candidates;
   }
