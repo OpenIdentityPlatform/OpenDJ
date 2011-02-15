@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.server;
 import static org.opends.messages.ReplicationMessages.*;
@@ -1965,7 +1966,6 @@ public class ReplicationServer
 
     int firstDraftCN;
     int lastDraftCN;
-    boolean DraftCNdbIsEmpty;
     Long newestDate = 0L;
     DraftCNDbHandler draftCNDbH = this.getDraftCNDbHandler();
 
@@ -1976,14 +1976,11 @@ public class ReplicationServer
     String domainForLastSeqnum = null;
     if (firstDraftCN < 1)
     {
-      DraftCNdbIsEmpty=true;
       firstDraftCN = 0;
       lastDraftCN = 0;
     }
     else
     {
-      DraftCNdbIsEmpty=false;
-
       // Get the last DraftCN from the DraftCNdb
       lastDraftCN = draftCNDbH.getLastKey();
 
