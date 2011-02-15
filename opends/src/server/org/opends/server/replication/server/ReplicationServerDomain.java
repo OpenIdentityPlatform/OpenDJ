@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -3427,7 +3428,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   public long getEligibleCount(ServerState startState, ChangeNumber endCN)
   {
-    long sidRes = 0;
     long res = 0;
 
     // Parses the dbState of the domain , server by server
@@ -3440,7 +3440,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       ChangeNumber startCN = null;
       if (startState.getMaxChangeNumber(sid) != null)
         startCN = startState.getMaxChangeNumber(sid);
-      sidRes += getCount(sid, startCN, endCN);
+      long sidRes = getCount(sid, startCN, endCN);
 
       // The startPoint is excluded when counting the ECL eligible changes
       if ((startCN!=null)&&(sidRes>0))
@@ -3461,7 +3461,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   public long getEligibleCount(ChangeNumber startCN, ChangeNumber endCN)
   {
-    long sidRes = 0;
     long res = 0;
 
     // Parses the dbState of the domain , server by server
@@ -3473,8 +3472,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       int sid = serverIDIterator.next();
       ChangeNumber lStartCN =
         new ChangeNumber(startCN.getTime(), startCN.getSeqnum(), sid);
-      sidRes += getCount(sid, lStartCN, endCN);
-      res+=sidRes;
+      res+=getCount(sid, lStartCN, endCN);
     }
     return res;
   }
