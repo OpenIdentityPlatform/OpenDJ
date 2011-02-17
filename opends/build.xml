@@ -2566,7 +2566,7 @@
     <echo message="${pdir}/lib/extensions/snmp-mib2605.jar"/>
   </target>
 
-  <target name="testsnmpinit" if="isopendmkpresent">
+  <target name="testsnmpinit" if="isopendmkpresent" depends="init">
     <!-- Compile the SNMP test cases -->
     <mkdir dir="${unittest.classes.dir}" />
     <javac srcdir="${unittest.testng.src.dir}" destdir="${unittest.classes.dir}"
