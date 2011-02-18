@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.opends.sdk;
@@ -110,54 +111,54 @@ public class FilterTestCase extends SdkTestCase
     list2.add(and);
 
     return new Object[][] {
-        { "(objectClass=\\5ctest\\2a\\28Value\\29)", equal },
+        { "(objectClass=\\5Ctest\\2A\\28Value\\29)", equal },
 
         { "(objectClass=)", equal2 },
 
-        { "(sn~=\\5ctest\\2a\\28Value\\29)", approx },
+        { "(sn~=\\5Ctest\\2A\\28Value\\29)", approx },
 
-        { "(employeeNumber>=\\5ctest\\2a\\28Value\\29)", greater },
+        { "(employeeNumber>=\\5Ctest\\2A\\28Value\\29)", greater },
 
-        { "(dob<=\\5ctest\\2a\\28Value\\29)", less },
+        { "(dob<=\\5Ctest\\2A\\28Value\\29)", less },
 
         { "(login=*)", presense },
 
-        { "(givenName=\\5cJo\\2a\\28\\29*\\5cn\\2a\\28\\29)", substring1 },
+        { "(givenName=\\5CJo\\2A\\28\\29*\\5Cn\\2A\\28\\29)", substring1 },
 
         {
-            "(givenName=\\5cJo\\2a\\28\\29*\\5cwid\\2a\\28get\\29*\\2a*\\5cn\\2a\\28\\29)",
+            "(givenName=\\5CJo\\2A\\28\\29*\\5Cwid\\2A\\28get\\29*\\2A*\\5Cn\\2A\\28\\29)",
             substring2 },
 
-        { "(givenName=*\\5cn\\2a\\28\\29)", substring3 },
+        { "(givenName=*\\5Cn\\2A\\28\\29)", substring3 },
 
-        { "(givenName=\\5cJo\\2a\\28\\29*)", substring4 },
+        { "(givenName=\\5CJo\\2A\\28\\29*)", substring4 },
 
-        { "(givenName=*\\5cwid\\2a\\28get\\29*\\2a*)", substring5 },
+        { "(givenName=*\\5Cwid\\2A\\28get\\29*\\2A*)", substring5 },
 
-        { "(cn:2.4.6.8.19:=\\5cJohn\\2a \\28Doe\\29)", extensible1 },
+        { "(cn:2.4.6.8.19:=\\5CJohn\\2A \\28Doe\\29)", extensible1 },
 
-        { "(cn:dn:2.4.6.8.19:=\\5cJohn\\2a \\28Doe\\29)", extensible2 },
+        { "(cn:dn:2.4.6.8.19:=\\5CJohn\\2A \\28Doe\\29)", extensible2 },
 
-        { "(:dn:2.4.6.8.19:=\\5cJohn\\2a \\28Doe\\29)", extensible3 },
+        { "(:dn:2.4.6.8.19:=\\5CJohn\\2A \\28Doe\\29)", extensible3 },
 
-        { "(cn:dn:=\\5cJohn\\2a \\28Doe\\29)", extensible4 },
+        { "(cn:dn:=\\5CJohn\\2A \\28Doe\\29)", extensible4 },
 
-        { "(:2.4.6.8.19:=\\5cJohn\\2a \\28Doe\\29)", extensible5 },
+        { "(:2.4.6.8.19:=\\5CJohn\\2A \\28Doe\\29)", extensible5 },
 
         {
-            "(&(objectClass=\\5ctest\\2a\\28Value\\29)(sn~=\\5ctest\\2a\\28Value\\29))",
+            "(&(objectClass=\\5Ctest\\2A\\28Value\\29)(sn~=\\5Ctest\\2A\\28Value\\29))",
             Filter.newAndFilter(list1) },
 
         {
-            "(|(objectClass=\\5ctest\\2a\\28Value\\29)(sn~=\\5ctest\\2a\\28Value\\29))",
+            "(|(objectClass=\\5Ctest\\2A\\28Value\\29)(sn~=\\5Ctest\\2A\\28Value\\29))",
             Filter.newOrFilter(list1) },
 
-        { "(!(objectClass=\\5ctest\\2a\\28Value\\29))",
+        { "(!(objectClass=\\5Ctest\\2A\\28Value\\29))",
             Filter.newNotFilter(equal) },
 
         {
-            "(|(givenName=\\5cJo\\2a\\28\\29*\\5cn\\2a\\28\\29)(cn:2.4.6.8.19:=\\5cJohn\\2a \\28Doe\\29)"
-                + "(&(objectClass=\\5ctest\\2a\\28Value\\29)(sn~=\\5ctest\\2a\\28Value\\29)))",
+            "(|(givenName=\\5CJo\\2A\\28\\29*\\5Cn\\2A\\28\\29)(cn:2.4.6.8.19:=\\5CJohn\\2A \\28Doe\\29)"
+                + "(&(objectClass=\\5Ctest\\2A\\28Value\\29)(sn~=\\5Ctest\\2A\\28Value\\29)))",
             Filter.newOrFilter(list2) }
 
     };
@@ -178,6 +179,22 @@ public class FilterTestCase extends SdkTestCase
   {
     final Filter decoded = Filter.valueOf(filterStr);
     assertEquals(decoded.toString(), filter.toString());
+  }
+
+
+
+  /**
+   * Decodes the specified filter strings.
+   *
+   * @param filterStr
+   * @param filter
+   * @throws Exception
+   */
+  @Test(dataProvider = "filterstrings")
+  public void testToString(final String filterStr, final Filter filter)
+      throws Exception
+  {
+    assertEquals(filterStr, filter.toString());
   }
 
 

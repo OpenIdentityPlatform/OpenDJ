@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Copyright 2009-2011 Sun Microsystems, Inc.
  */
 
 package org.opends.sdk;
@@ -497,7 +497,7 @@ public final class Filter
     public StringBuilder visitNotFilter(final StringBuilder builder,
         final Filter subFilter)
     {
-      builder.append("(|");
+      builder.append("(!");
       subFilter.accept(this, builder);
       builder.append(')');
       return builder;
