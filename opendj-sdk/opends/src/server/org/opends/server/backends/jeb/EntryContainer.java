@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -1304,8 +1305,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       // The cookie contains the DN of the next entry to be returned.
       try
       {
-        DN lastDN = DN.decode(pageRequest.getCookie());
-        begin = StaticUtils.getBytes(lastDN.toNormalizedString());
+        begin = pageRequest.getCookie().toByteArray();
       }
       catch (Exception e)
       {
