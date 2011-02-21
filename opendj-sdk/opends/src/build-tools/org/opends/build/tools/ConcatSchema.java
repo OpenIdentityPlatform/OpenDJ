@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.build.tools;
 
@@ -113,6 +114,7 @@ public class ConcatSchema
     LinkedList<String> ditContentRules   = new LinkedList<String>();
     LinkedList<String> ditStructureRules = new LinkedList<String>();
     LinkedList<String> matchingRuleUses  = new LinkedList<String>();
+    LinkedList<String> ldapSyntaxes      = new LinkedList<String>();
 
 
     // Open each of the files in order and read the elements that they contain,
@@ -207,6 +209,10 @@ public class ConcatSchema
         {
           matchingRuleUses.add(line);
         }
+        else if (lowerLine.startsWith("ldapsyntaxes:"))
+        {
+          ldapSyntaxes.add(line);
+        }
       }
     }
 
@@ -223,6 +229,12 @@ public class ConcatSchema
       writer.newLine();
       writer.write("objectClass: subschema");
       writer.newLine();
+
+      for (String line : ldapSyntaxes)
+      {
+        writer.write(line);
+        writer.newLine();
+      }
 
       for (String line : attributeTypes)
       {
