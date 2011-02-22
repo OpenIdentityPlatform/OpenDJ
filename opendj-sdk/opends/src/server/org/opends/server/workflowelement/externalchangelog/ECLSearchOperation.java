@@ -87,27 +87,7 @@ import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.protocol.StartECLSessionMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplicationServer;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.CancelRequest;
-import org.opends.server.types.CancelResult;
-import org.opends.server.types.CanceledOperationException;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.FilterType;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.Privilege;
-import org.opends.server.types.RawAttribute;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationSearchOperation;
 import org.opends.server.types.operation.PreOperationSearchOperation;
 import org.opends.server.types.operation.SearchEntrySearchOperation;
@@ -137,11 +117,60 @@ public class ECLSearchOperation
    */
   private StartECLSessionMsg startECLSessionMsg;
 
+  //The set of supported controls for this WE
+  private static final HashSet<String> CHANGELOG_SUPPORTED_CONTROLS;
+  static
+  {
+    CHANGELOG_SUPPORTED_CONTROLS = new HashSet<String>(0);
+    CHANGELOG_SUPPORTED_CONTROLS
+        .add(ServerConstants.OID_SERVER_SIDE_SORT_REQUEST_CONTROL);
+    CHANGELOG_SUPPORTED_CONTROLS.add(ServerConstants.OID_VLV_REQUEST_CONTROL);
+  }
+
+
+  // The set of objectclasses that will be used in ECL root entry.
+  private static final HashMap<ObjectClass, String>
+    CHANGELOG_ROOT_OBJECT_CLASSES;
+  static
+  {
+    CHANGELOG_ROOT_OBJECT_CLASSES = new LinkedHashMap<ObjectClass, String>(2);
+
+    ObjectClass topOC = DirectoryServer.getObjectClass(OC_TOP, true);
+    CHANGELOG_ROOT_OBJECT_CLASSES.put(topOC, OC_TOP);
+
+    ObjectClass containerOC = DirectoryServer.getObjectClass("container", true);
+    CHANGELOG_ROOT_OBJECT_CLASSES.put(containerOC, "container");
+  }
+
   // The set of objectclasses that will be used in ECL entries.
-  private static HashMap<ObjectClass,String> eclObjectClasses;
+  private static final HashMap<ObjectClass, String>
+    CHANGELOG_ENTRY_OBJECT_CLASSES;
+  static
+  {
+    CHANGELOG_ENTRY_OBJECT_CLASSES = new LinkedHashMap<ObjectClass, String>(2);
+
+    ObjectClass topOC = DirectoryServer.getObjectClass(OC_TOP, true);
+    CHANGELOG_ENTRY_OBJECT_CLASSES.put(topOC, OC_TOP);
+
+    ObjectClass eclEntryOC = DirectoryServer.getObjectClass(OC_CHANGELOG_ENTRY,
+        true);
+    CHANGELOG_ENTRY_OBJECT_CLASSES.put(eclEntryOC, OC_CHANGELOG_ENTRY);
+  }
 
   // The associated DN.
-  private DN rootBaseDN;
+  private static final DN CHANGELOG_ROOT_DN;
+  static
+  {
+    try
+    {
+      CHANGELOG_ROOT_DN = DN
+          .decode(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
+    }
+    catch (Exception e)
+    {
+      throw new RuntimeException(e);
+    }
+  }
 
   /**
    * The replication server in which the search on ECL is to be performed.
@@ -170,9 +199,6 @@ public class ECLSearchOperation
 
   private ExternalChangeLogSession eclSession;
 
-  // The set of supported controls for this WE
-  private HashSet<String> supportedControls;
-
   /**
    * Creates a new operation that may be used to search for entries in a local
    * backend of the Directory Server.
@@ -182,27 +208,6 @@ public class ECLSearchOperation
   ECLSearchOperation(SearchOperation search)
   {
     super(search);
-
-    try
-    {
-      rootBaseDN = DN.decode(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
-    }
-    catch (Exception e){}
-
-    // Construct the set of objectclasses to include in the base monitor entry.
-    eclObjectClasses = new LinkedHashMap<ObjectClass,String>(2);
-    ObjectClass topOC = DirectoryServer.getObjectClass(OC_TOP, true);
-    eclObjectClasses.put(topOC, OC_TOP);
-    ObjectClass eclEntryOC = DirectoryServer.getObjectClass(OC_CHANGELOG_ENTRY,
-        true);
-    eclObjectClasses.put(eclEntryOC, OC_CHANGELOG_ENTRY);
-
-
-    // Define an empty sets for the supported controls and features.
-    // FIXME:ECL Decide if ServerSideControl and VLV are supported
-    supportedControls = new HashSet<String>(0);
-    supportedControls.add(ServerConstants.OID_SERVER_SIDE_SORT_REQUEST_CONTROL);
-    supportedControls.add(ServerConstants.OID_VLV_REQUEST_CONTROL);
 
     ECLWorkflowElement.attachLocalOperation(search, this);
   }
@@ -251,21 +256,21 @@ public class ECLSearchOperation
         excludedDomains.add(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
       startECLSessionMsg.setExcludedDNs(excludedDomains);
 
-      // Test existence of the RS - normally should always be here
-      if (replicationServer == null)
-      {
-        setResultCode(ResultCode.OPERATIONS_ERROR);
-        appendErrorMessage(ERR_SEARCH_BASE_DOESNT_EXIST.get(
-            String.valueOf(baseDN)));
-        break searchProcessing;
-      }
-
       // Process the search base and filter to convert them from their raw forms
       // as provided by the client to the forms required for the rest of the
       // search processing.
       baseDN = getBaseDN();
       filter = getFilter();
       if ((baseDN == null) || (filter == null)){
+        break searchProcessing;
+      }
+
+      // Test existence of the RS - normally should always be here
+      if (replicationServer == null)
+      {
+        setResultCode(ResultCode.OPERATIONS_ERROR);
+        appendErrorMessage(ERR_SEARCH_BASE_DOESNT_EXIST.get(
+            String.valueOf(baseDN)));
         break searchProcessing;
       }
 
@@ -282,10 +287,10 @@ public class ECLSearchOperation
         break searchProcessing;
       }
 
-      // Process filter - extract draft change number (seqnum) conditions
+      // Process search parameters to optimize session query.
       try
       {
-        evaluateFilter(startECLSessionMsg, this.getFilter());
+        evaluateSearchParameters(startECLSessionMsg, baseDN, filter);
       }
       catch (DirectoryException de)
       {
@@ -437,6 +442,7 @@ public class ECLSearchOperation
             Entry entry;
             try
             {
+              // FIXME: this is broken (recursive)?
               entry = DirectoryServer.getEntry(baseDN);
             }
             catch (DirectoryException de)
@@ -608,10 +614,10 @@ public class ECLSearchOperation
       ECLUpdateMsg update = eclSession.getNextUpdate();
 
       // Return root entry if requested.
-      if (!getScope().equals(SearchScope.SINGLE_LEVEL))
+      if (CHANGELOG_ROOT_DN.matchesBaseAndScope(baseDN, getScope()))
       {
-        Entry entry = createRootEntry(update != null);
-        if (matchFilter(entry))
+        final Entry entry = createRootEntry(update != null);
+        if (filter.matchesEntry(entry))
         {
           if (!returnEntry(entry, null))
           {
@@ -622,22 +628,28 @@ public class ECLSearchOperation
         }
       }
 
-      if (!getScope().equals(SearchScope.BASE_OBJECT))
+      if (baseDN.equals(CHANGELOG_ROOT_DN) && getScope().equals(
+          SearchScope.BASE_OBJECT))
       {
-        while (update != null)
+        // Only the change log root entry was requested. There is no need to
+        // process other entries.
+        return;
+      }
+
+      // Process change log entries.
+      while (update != null)
+      {
+        // Check for a request to cancel this operation.
+        checkIfCanceled(false);
+
+        if (!buildAndReturnEntry(update))
         {
-          // Check for a request to cancel this operation.
-          checkIfCanceled(false);
-
-          if (!buildAndReturnEntry(update))
-          {
-            // Abandon, Size limit reached.
-            abortECLSession = true;
-            return;
-          }
-
-          update = eclSession.getNextUpdate();
+          // Abandon, Size limit reached.
+          abortECLSession = true;
+          return;
         }
+
+        update = eclSession.getNextUpdate();
       }
     }
     catch (CanceledOperationException e)
@@ -661,8 +673,7 @@ public class ECLSearchOperation
 
   private boolean supportsControl(String oid)
   {
-    return ((supportedControls != null) &&
-        supportedControls.contains(oid));
+    return CHANGELOG_SUPPORTED_CONTROLS.contains(oid);
   }
 
   /**
@@ -675,37 +686,42 @@ public class ECLSearchOperation
    * @throws DirectoryException When an errors occurs.
    */
   private boolean buildAndReturnEntry(ECLUpdateMsg eclmsg)
-  throws DirectoryException
+      throws DirectoryException
   {
-    Entry entry = null;
-
-    // build and filter
-    entry = createEntryFromMsg(eclmsg);
-    if (matchFilter(entry))
+    final Entry entry = createEntryFromMsg(eclmsg);
+    if (matchScopeAndFilter(entry))
     {
-      List<Control> controls = new ArrayList<Control>(0);
-
-      EntryChangelogNotificationControl clrc
-      = new EntryChangelogNotificationControl(
-          true,eclmsg.getCookie().toString());
+      List<Control> controls = new ArrayList<Control>(1);
+      EntryChangelogNotificationControl clrc =
+        new EntryChangelogNotificationControl(
+            true, eclmsg.getCookie().toString());
       controls.add(clrc);
       return returnEntry(entry, controls);
     }
     return true;
   }
 
+
+
   /**
    * Test if the provided entry matches the filter, base and scope.
-   * @param  entry The provided entry
+   *
+   * @param entry
+   *          The provided entry
    * @return whether the entry matches.
-   * @throws DirectoryException When a problem occurs.
+   * @throws DirectoryException
+   *           When a problem occurs.
    */
-  private boolean matchFilter(Entry entry)
-  throws DirectoryException
+  private boolean matchScopeAndFilter(Entry entry) throws DirectoryException
   {
-    boolean baseScopeMatch = entry.matchesBaseAndScope(getBaseDN(), getScope());
-    boolean filterMatch = getFilter().matchesEntry(entry);
-    return (baseScopeMatch && filterMatch);
+    if (entry.matchesBaseAndScope(getBaseDN(), getScope()))
+    {
+      return getFilter().matchesEntry(entry);
+    }
+    else
+    {
+      return false;
+    }
   }
 
   /**
@@ -720,7 +736,7 @@ public class ECLSearchOperation
   {
     Entry clEntry = null;
 
-    // Get the meat fro the ecl msg
+    // Get the meat from the ecl msg
     UpdateMsg msg = eclmsg.getUpdateMsg();
 
     if (msg instanceof AddMsg)
@@ -857,18 +873,6 @@ public class ECLSearchOperation
    */
   private Entry createRootEntry(boolean hasSubordinates)
   {
-    HashMap<ObjectClass,String> oclasses =
-      new LinkedHashMap<ObjectClass,String>(3);
-
-    // Objectclass
-    HashMap<ObjectClass,String> rootObjectClasses =
-      new LinkedHashMap<ObjectClass,String>(2);
-    ObjectClass topOC = DirectoryServer.getObjectClass(OC_TOP, true);
-    rootObjectClasses.put(topOC, OC_TOP);
-    ObjectClass containerOC = DirectoryServer.getObjectClass("container", true);
-    rootObjectClasses.put(containerOC, "container");
-    oclasses.putAll(rootObjectClasses);
-
     // Attributes.
     HashMap<AttributeType,List<Attribute>> userAttrs =
       new LinkedHashMap<AttributeType,List<Attribute>>();
@@ -897,31 +901,28 @@ public class ECLSearchOperation
     // TODO:numSubordinates
 
     // hasSubordinates
-    if (hasSubordinates)
-    {
-      aType = DirectoryServer.getAttributeType("hassubordinates");
-      if (aType == null)
-        aType = DirectoryServer.getDefaultAttributeType("hasSubordinates");
-      a = Attributes.create("hasSubordinates", "true");
-      attrList = Collections.singletonList(a);
-      if (aType.isOperational())
-        operationalAttrs.put(aType, attrList);
-      else
-        userAttrs.put(aType, attrList);
-    }
+    aType = DirectoryServer.getAttributeType("hassubordinates");
+    if (aType == null)
+      aType = DirectoryServer.getDefaultAttributeType("hasSubordinates");
+    a = Attributes.create("hasSubordinates", Boolean.toString(hasSubordinates));
+    attrList = Collections.singletonList(a);
+    if (aType.isOperational())
+      operationalAttrs.put(aType, attrList);
+    else userAttrs.put(aType, attrList);
 
     // entryDN
     aType = DirectoryServer.getAttributeType("entrydn");
     if (aType == null)
       aType = DirectoryServer.getDefaultAttributeType("entryDN");
-    a = Attributes.create("entryDN", rootBaseDN.toNormalizedString());
+    a = Attributes.create("entryDN", CHANGELOG_ROOT_DN.toNormalizedString());
     attrList = Collections.singletonList(a);
     if (aType.isOperational())
       operationalAttrs.put(aType, attrList);
     else
       userAttrs.put(aType, attrList);
 
-    Entry e = new Entry(this.rootBaseDN, oclasses, userAttrs, operationalAttrs);
+    Entry e = new Entry(CHANGELOG_ROOT_DN, CHANGELOG_ROOT_OBJECT_CLASSES,
+        userAttrs, operationalAttrs);
     return e;
   }
 
@@ -965,25 +966,17 @@ public class ECLSearchOperation
     if (draftChangenumber == 0)
     {
       // Draft uncompat mode
-      dnString = "replicationcsn="+ changeNumber +"," + serviceID
-      + "," + ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT;
+      dnString = "replicationCSN=" + changeNumber + "," + serviceID + ","
+          + ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT;
     }
     else
     {
       // Draft compat mode
-      dnString = "changenumber="+ draftChangenumber + "," +
-      ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT;
+      dnString = "changeNumber=" + draftChangenumber + ","
+          + ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT;
     }
 
     // Objectclass
-    HashMap<ObjectClass,String> oClasses =
-      new LinkedHashMap<ObjectClass,String>(3);
-    oClasses.putAll(eclObjectClasses);
-
-    ObjectClass extensibleObjectOC =
-      DirectoryServer.getObjectClass(OC_EXTENSIBLE_OBJECT_LC, true);
-    oClasses.put(extensibleObjectOC, OC_EXTENSIBLE_OBJECT);
-
     HashMap<AttributeType,List<Attribute>> uAttrs =
       new LinkedHashMap<AttributeType,List<Attribute>>();
 
@@ -995,8 +988,9 @@ public class ECLSearchOperation
     // subSchemaSubentry
     aType = DirectoryServer.getAttributeType(ATTR_SUBSCHEMA_SUBENTRY_LC);
     if (aType == null)
-    aType = DirectoryServer.getDefaultAttributeType(ATTR_SUBSCHEMA_SUBENTRY_LC);
-    Attribute a = Attributes.create(ATTR_SUBSCHEMA_SUBENTRY_LC,
+      aType = DirectoryServer
+          .getDefaultAttributeType(ATTR_SUBSCHEMA_SUBENTRY_LC);
+    Attribute a = Attributes.create(aType,
         ConfigConstants.DN_DEFAULT_SCHEMA_ROOT);
     List<Attribute> attrList = Collections.singletonList(a);
     if (aType.isOperational())
@@ -1008,7 +1002,7 @@ public class ECLSearchOperation
     aType = DirectoryServer.getAttributeType("numsubordinates");
     if (aType == null)
       aType = DirectoryServer.getDefaultAttributeType("numSubordinates");
-    a = Attributes.create("numSubordinates", "0");
+    a = Attributes.create(aType, "0");
     attrList = Collections.singletonList(a);
     if (aType.isOperational())
       operationalAttrs.put(aType, attrList);
@@ -1019,7 +1013,7 @@ public class ECLSearchOperation
     aType = DirectoryServer.getAttributeType("hassubordinates");
     if (aType == null)
       aType = DirectoryServer.getDefaultAttributeType("hasSubordinates");
-    a = Attributes.create("hasSubordinates", "false");
+    a = Attributes.create(aType, "false");
     attrList = Collections.singletonList(a);
     if (aType.isOperational())
       operationalAttrs.put(aType, attrList);
@@ -1030,7 +1024,7 @@ public class ECLSearchOperation
     aType = DirectoryServer.getAttributeType("entrydn");
     if (aType == null)
       aType = DirectoryServer.getDefaultAttributeType("entryDN");
-    a = Attributes.create("entryDN", dnString);
+    a = Attributes.create(aType, dnString);
     attrList = Collections.singletonList(a);
     if (aType.isOperational())
       operationalAttrs.put(aType, attrList);
@@ -1041,8 +1035,8 @@ public class ECLSearchOperation
 
     // ECL Changelog draft change number
     if((aType = DirectoryServer.getAttributeType("changenumber")) == null)
-      aType = DirectoryServer.getDefaultAttributeType("changenumber");
-    a = Attributes.create("changenumber", String.valueOf(draftChangenumber));
+      aType = DirectoryServer.getDefaultAttributeType("changeNumber");
+    a = Attributes.create(aType, String.valueOf(draftChangenumber));
     attrList = new ArrayList<Attribute>(1);
     attrList.add(a);
     if(aType.isOperational())
@@ -1052,7 +1046,7 @@ public class ECLSearchOperation
 
     //
     if((aType = DirectoryServer.getAttributeType("changetime")) == null)
-      aType = DirectoryServer.getDefaultAttributeType("changetime");
+      aType = DirectoryServer.getDefaultAttributeType("changeTime");
     SimpleDateFormat dateFormat;
     dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
     dateFormat.setTimeZone(TimeZone.getTimeZone("UTC")); // ??
@@ -1075,7 +1069,7 @@ public class ECLSearchOperation
 
     //
     if((aType = DirectoryServer.getAttributeType("changetype")) == null)
-      aType = DirectoryServer.getDefaultAttributeType("changetype");
+      aType = DirectoryServer.getDefaultAttributeType("changeType");
     a = Attributes.create(aType, changetype);
     attrList = new ArrayList<Attribute>(1);
     attrList.add(a);
@@ -1086,7 +1080,7 @@ public class ECLSearchOperation
 
     //
     if((aType = DirectoryServer.getAttributeType("targetdn")) == null)
-      aType = DirectoryServer.getDefaultAttributeType("targetdn");
+      aType = DirectoryServer.getDefaultAttributeType("targetDN");
     a = Attributes.create(aType, targetDN.toNormalizedString());
     attrList = new ArrayList<Attribute>(1);
     attrList.add(a);
@@ -1098,7 +1092,7 @@ public class ECLSearchOperation
     // NON REQUESTED attributes
 
     if((aType = DirectoryServer.getAttributeType("replicationcsn")) == null)
-      aType = DirectoryServer.getDefaultAttributeType("replicationcsn");
+      aType = DirectoryServer.getDefaultAttributeType("replicationCSN");
     a = Attributes.create(aType, changeNumber.toString());
     attrList = new ArrayList<Attribute>(1);
     attrList.add(a);
@@ -1109,7 +1103,7 @@ public class ECLSearchOperation
 
     //
     if((aType = DirectoryServer.getAttributeType("replicaidentifier")) == null)
-      aType = DirectoryServer.getDefaultAttributeType("replicaidentifier");
+      aType = DirectoryServer.getDefaultAttributeType("replicaIdentifier");
     a = Attributes.create(aType, Integer.toString(changeNumber.getServerId()));
     attrList = new ArrayList<Attribute>(1);
     attrList.add(a);
@@ -1146,7 +1140,7 @@ public class ECLSearchOperation
               clearLDIFchanges.substring(start_val_cr+2, end_val_cr);
 
             if((aType =
-              DirectoryServer.getAttributeType("changeInitiatorsName")) == null)
+              DirectoryServer.getAttributeType("changeinitiatorsname")) == null)
               aType =
                 DirectoryServer.getDefaultAttributeType("changeInitiatorsName");
             a = Attributes.create(aType, creatorsName);
@@ -1196,7 +1190,7 @@ public class ECLSearchOperation
               clearLDIFchanges.substring(start_val_cr, end_val_cr);
 
             if((aType =
-              DirectoryServer.getAttributeType("changeInitiatorsName")) == null)
+              DirectoryServer.getAttributeType("changeinitiatorsname")) == null)
               aType =
                 DirectoryServer.getDefaultAttributeType("changeInitiatorsName");
             a = Attributes.create(aType, modifiersName);
@@ -1221,7 +1215,7 @@ public class ECLSearchOperation
 
     if (changetype.equals("delete") && (delInitiatorsName!=null))
     {
-      if((aType = DirectoryServer.getAttributeType("changeInitiatorsName"))
+      if((aType = DirectoryServer.getAttributeType("changeinitiatorsname"))
           == null)
         aType = DirectoryServer.getDefaultAttributeType("changeInitiatorsName");
       a = Attributes.create(aType, delInitiatorsName);
@@ -1236,7 +1230,7 @@ public class ECLSearchOperation
     if (targetUUID != null)
     {
       if((aType = DirectoryServer.getAttributeType("targetentryuuid")) == null)
-        aType = DirectoryServer.getDefaultAttributeType("targetentryuuid");
+        aType = DirectoryServer.getDefaultAttributeType("targetEntryUUID");
       a = Attributes.create(aType, targetUUID);
       attrList = new ArrayList<Attribute>(1);
       attrList.add(a);
@@ -1249,7 +1243,7 @@ public class ECLSearchOperation
       {
         // compat mode
         if((aType = DirectoryServer.getAttributeType("targetuniqueid")) == null)
-          aType = DirectoryServer.getDefaultAttributeType("targetuniqueid");
+          aType = DirectoryServer.getDefaultAttributeType("targetUniqueID");
         String dseeValue = null;
         try
         {
@@ -1283,7 +1277,7 @@ public class ECLSearchOperation
     }
 
     if((aType = DirectoryServer.getAttributeType("changelogcookie")) == null)
-      aType = DirectoryServer.getDefaultAttributeType("changelogcookie");
+      aType = DirectoryServer.getDefaultAttributeType("changeLogCookie");
     a = Attributes.create(aType, cookie);
     attrList = new ArrayList<Attribute>(1);
     attrList.add(a);
@@ -1319,7 +1313,7 @@ public class ECLSearchOperation
     // at the end build the CL entry to be returned
     Entry cle = new Entry(
         DN.decode(dnString),
-        eclObjectClasses,
+        CHANGELOG_ENTRY_OBJECT_CLASSES,
         uAttrs,
         operationalAttrs);
 
@@ -1592,20 +1586,65 @@ public class ECLSearchOperation
    * on attributes that can be optimized in the ECL.
    * When found, populate the provided StartECLSessionMsg.
    * @param startCLmsg the startCLMsg to be populated.
+   * @param baseDN the provided search baseDN.
    * @param sf the provided search filter.
    * @throws DirectoryException when an exception occurs.
    */
-  public static void evaluateFilter(StartECLSessionMsg startCLmsg,
-      SearchFilter sf)
-  throws DirectoryException
+  public static void evaluateSearchParameters(StartECLSessionMsg startCLmsg,
+      DN baseDN, SearchFilter sf) throws DirectoryException
   {
-    StartECLSessionMsg msg = evaluateFilter2(sf);
+    // Select whether to use the DN or the filter.
+    switch (baseDN.getNumComponents())
+    {
+    case 1:
+      // cn=changelog - use user provided search filter.
+      break;
+    case 2:
+      // changeNumber=xxx,cn=changelog - draft ECL - use faked up equality
+      // filter.
+
+      // The DN could also be a new ECL <service-id>,cn=changelog so be sure it
+      // is draft ECL.
+      RDN rdn = baseDN.getRDN();
+
+      AttributeType at = DirectoryServer.getAttributeType("changenumber");
+      if (at == null)
+      {
+        at = DirectoryServer.getDefaultAttributeType("changeNumber");
+      }
+
+      AttributeValue av = rdn.getAttributeValue(at);
+      if (av != null)
+      {
+        sf = SearchFilter.createEqualityFilter(at, av);
+      }
+      break;
+    default:
+      // replicationCSN=xxx,<service-id>,cn=changelog - new ECL - use faked up
+      // equality filter.
+      rdn = baseDN.getRDN();
+
+      at = DirectoryServer.getAttributeType("replicationcsn");
+      if (at == null)
+      {
+        at = DirectoryServer.getDefaultAttributeType("replicationCSN");
+      }
+
+      av = rdn.getAttributeValue(at);
+      if (av != null)
+      {
+        sf = SearchFilter.createEqualityFilter(at, av);
+      }
+      break;
+    }
+
+    StartECLSessionMsg msg = evaluateSearchParameters2(sf);
     startCLmsg.setFirstDraftChangeNumber(msg.getFirstDraftChangeNumber());
     startCLmsg.setLastDraftChangeNumber(msg.getLastDraftChangeNumber());
     startCLmsg.setChangeNumber(msg.getChangeNumber());
   }
 
-  private static StartECLSessionMsg evaluateFilter2(SearchFilter sf)
+  private static StartECLSessionMsg evaluateSearchParameters2(SearchFilter sf)
   throws DirectoryException
   {
     StartECLSessionMsg startCLmsg = new StartECLSessionMsg();
@@ -1665,8 +1704,8 @@ public class ECLSearchOperation
       // Here is the only binary operation we know how to optimize
       Collection<SearchFilter> comps = sf.getFilterComponents();
       SearchFilter sfs[] = comps.toArray(new SearchFilter[0]);
-      StartECLSessionMsg m1 = evaluateFilter2(sfs[0]);
-      StartECLSessionMsg m2 = evaluateFilter2(sfs[1]);
+      StartECLSessionMsg m1 = evaluateSearchParameters2(sfs[0]);
+      StartECLSessionMsg m2 = evaluateSearchParameters2(sfs[1]);
 
       int l1 = m1.getLastDraftChangeNumber();
       int l2 = m2.getLastDraftChangeNumber();

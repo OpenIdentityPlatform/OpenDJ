@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication;
 
@@ -58,10 +59,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import static org.opends.server.loggers.ErrorLogger.logError;
-import org.opends.messages.Category;
-import org.opends.messages.Message;
-import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ConnectionHandler;
@@ -179,7 +176,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   List<Control> NO_CONTROL = null;
 
   private int brokerSessionTimeout = 5000;
-  
+
   private int maxWindow = 100;
   /**
    * Set up the environment for performing the tests in this Class.
@@ -223,12 +220,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   @Test(enabled=true)
   public void ECLReplicationServerTest()
   {
-    // No RSDomain created yet => RS only case => ECL is not a supported 
+    // No RSDomain created yet => RS only case => ECL is not a supported
     ECLIsNotASupportedSuffix();
 
     // Following test does not create RSDomain (only broker) but want to test
     // ECL .. so let's enable ECl manually
-    // Now that we tested that ECl is not available 
+    // Now that we tested that ECl is not available
     try
     {
       ECLWorkflowElement wfe = (ECLWorkflowElement)
@@ -243,7 +240,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           +  stackTraceToSingleLineString(de));
     }
 
-    // Test all types of ops.  
+    // Test all types of ops.
     ECLAllOps(); // Do not clean the db for the next test
 
     // First and last should be ok whenever a request has been done or not
@@ -676,10 +673,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       DN baseDn2 = DN.decode(TEST_ROOT_DN_STRING2);
       SortedSet<String> replServers = new TreeSet<String>();
       replServers.add("localhost:"+replicationServerPort);
-      
+
       DomainFakeCfg domainConf =
         new DomainFakeCfg(baseDn2,  1602, replServers);
-      ExternalChangelogDomainFakeCfg eclCfg = 
+      ExternalChangelogDomainFakeCfg eclCfg =
         new ExternalChangelogDomainFakeCfg(true, null);
       domainConf.setExternalChangelogDomain(eclCfg);
       LDAPReplicationDomain domain2 =
@@ -739,7 +736,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         }
       }
 
-      eclCfg = 
+      eclCfg =
         new ExternalChangelogDomainFakeCfg(false, null);
       domainConf.setExternalChangelogDomain(eclCfg);
       domain2.applyConfigurationChange(domainConf);
@@ -1127,15 +1124,15 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       attributes,
       controls,
       null);
-      
+
       waitOpResult(searchOp, ResultCode.UNWILLING_TO_PERFORM);
       assertEquals(searchOp.getSearchEntries().size(), 0);
       assertTrue(searchOp.getErrorMessage().toString().equals(
           ERR_INVALID_COOKIE_SYNTAX.get().toString()),
           searchOp.getErrorMessage().toString());
-      
+
       // Test unknown domain in provided cookie
-      // This case seems to be very hard to obtain in the real life 
+      // This case seems to be very hard to obtain in the real life
       // (how to remove a domain from a RS topology ?)
       // let's do a very quick test here.
       String newCookie = lastCookie + "o=test6:";
@@ -1157,7 +1154,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       attributes,
       controls,
       null);
-      
+
       waitOpResult(searchOp, ResultCode.UNWILLING_TO_PERFORM);
       assertEquals(searchOp.getSearchEntries().size(), 0);
       assertTrue(searchOp.getErrorMessage().toString().startsWith(
@@ -1184,7 +1181,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       attributes,
       controls,
       null);
-      
+
       waitOpResult(searchOp, ResultCode.UNWILLING_TO_PERFORM);
       assertEquals(searchOp.getSearchEntries().size(), 0);
       String expectedError = ERR_RESYNC_REQUIRED_MISSING_DOMAIN_IN_PROVIDED_COOKIE
@@ -1254,7 +1251,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // Sleep longer than this delay - the changelog will be trimmed
       Thread.sleep(1000);
-      
+
       // ---
       // 2. Now set up a very short purge delay on the replication changelogs
       // so that this test can play with a trimmed changelog.
@@ -1336,9 +1333,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // Assert ECL is empty since replication changelog has been trimmed
       assertEquals(searchOp.getSearchEntries().size(), 0);
-      
+
       // ---
-      // 5. Assert that a request with an "old" cookie - one that refers to 
+      // 5. Assert that a request with an "old" cookie - one that refers to
       //    changes that have been removed by the replication changelog trimming
       //    returns the appropriate error.
 
@@ -1381,7 +1378,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // And reset changelog purge delay for the other tests.
       d1.setPurgeDelay(15 * 1000);
       d2.setPurgeDelay(15 * 1000);
-      
+
     }
     catch(Exception e)
     {
@@ -3262,7 +3259,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             NO_CONTROL,
             null);
       waitOpResult(searchOp, ResultCode.SUCCESS);
-      assertEquals(searchOp.getSearchEntries().size(), 
+      assertEquals(searchOp.getSearchEntries().size(),
           lastDraftChangeNumber-firstDraftChangeNumber+1);
       if (searchOp.getSearchEntries() != null)
       {
@@ -3394,29 +3391,31 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     {
       StartECLSessionMsg startCLmsg = new StartECLSessionMsg();
 
+      DN baseDN = DN.decode("cn=changelog");
+
       //
-      ECLSearchOperation.evaluateFilter(startCLmsg,
-          SearchFilter.createFilterFromString("(objectclass=*)"));
+      ECLSearchOperation.evaluateSearchParameters(startCLmsg,
+          baseDN, SearchFilter.createFilterFromString("(objectclass=*)"));
       assertEquals(startCLmsg.getFirstDraftChangeNumber(),-1);
       assertEquals(startCLmsg.getLastDraftChangeNumber(),-1);
 
       //
-      ECLSearchOperation.evaluateFilter(startCLmsg,
-          SearchFilter.createFilterFromString("(changenumber>=2)"));
+      ECLSearchOperation.evaluateSearchParameters(startCLmsg,
+          baseDN, SearchFilter.createFilterFromString("(changenumber>=2)"));
       assertEquals(startCLmsg.getFirstDraftChangeNumber(),2);
       assertEquals(startCLmsg.getLastDraftChangeNumber(),-1);
 
       //
-      ECLSearchOperation.evaluateFilter(startCLmsg,
-          SearchFilter.createFilterFromString("(&(changenumber>=2)(changenumber<=5))"));
+      ECLSearchOperation.evaluateSearchParameters(startCLmsg,
+          baseDN, SearchFilter.createFilterFromString("(&(changenumber>=2)(changenumber<=5))"));
       assertEquals(startCLmsg.getFirstDraftChangeNumber(),2);
       assertEquals(startCLmsg.getLastDraftChangeNumber(),5);
 
       //
       try
       {
-        ECLSearchOperation.evaluateFilter(startCLmsg,
-            SearchFilter.createFilterFromString("(&(changenumber>=2)(changenumber<+5))"));
+        ECLSearchOperation.evaluateSearchParameters(startCLmsg,
+            baseDN, SearchFilter.createFilterFromString("(&(changenumber>=2)(changenumber<+5))"));
         assertTrue((startCLmsg.getFirstDraftChangeNumber()==1));
       }
       catch(DirectoryException de)
@@ -3425,38 +3424,51 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       }
 
       //
-      ECLSearchOperation.evaluateFilter(startCLmsg,
-          SearchFilter.createFilterFromString("(&(dc=x)(&(changenumber>=2)(changenumber<=5)))"));
+      ECLSearchOperation.evaluateSearchParameters(startCLmsg,
+          baseDN, SearchFilter.createFilterFromString("(&(dc=x)(&(changenumber>=2)(changenumber<=5)))"));
       assertEquals(startCLmsg.getFirstDraftChangeNumber(),2);
       assertEquals(startCLmsg.getLastDraftChangeNumber(),5);
 
-      ECLSearchOperation.evaluateFilter(startCLmsg,
-          SearchFilter.createFilterFromString("(&(&(changenumber>=3)(changenumber<=4))(&(|(dc=y)(dc=x))(&(changenumber>=2)(changenumber<=5))))"));
+      ECLSearchOperation.evaluateSearchParameters(startCLmsg,
+          baseDN, SearchFilter.createFilterFromString("(&(&(changenumber>=3)(changenumber<=4))(&(|(dc=y)(dc=x))(&(changenumber>=2)(changenumber<=5))))"));
       assertEquals(startCLmsg.getFirstDraftChangeNumber(),3);
       assertEquals(startCLmsg.getLastDraftChangeNumber(),4);
 
       //
-      ECLSearchOperation.evaluateFilter(startCLmsg,
-          SearchFilter.createFilterFromString("(|(objectclass=*)(&(changenumber>=2)(changenumber<=5)))"));
+      ECLSearchOperation.evaluateSearchParameters(startCLmsg,
+          baseDN, SearchFilter.createFilterFromString("(|(objectclass=*)(&(changenumber>=2)(changenumber<=5)))"));
       assertEquals(startCLmsg.getFirstDraftChangeNumber(),-1);
       assertEquals(startCLmsg.getLastDraftChangeNumber(),-1);
 
       //
-      ECLSearchOperation.evaluateFilter(startCLmsg,
-          SearchFilter.createFilterFromString("(changenumber=8)"));
+      ECLSearchOperation.evaluateSearchParameters(startCLmsg,
+          baseDN, SearchFilter.createFilterFromString("(changenumber=8)"));
       assertEquals(startCLmsg.getFirstDraftChangeNumber(),8);
       assertEquals(startCLmsg.getLastDraftChangeNumber(),8);
 
       //
       ChangeNumberGenerator gen = new ChangeNumberGenerator( 1, 0);
       ChangeNumber changeNumber1 = gen.newChangeNumber();
-      ECLSearchOperation.evaluateFilter(startCLmsg,
-          SearchFilter.createFilterFromString("(replicationcsn="+changeNumber1+")"));
+      ECLSearchOperation.evaluateSearchParameters(startCLmsg,
+          baseDN, SearchFilter.createFilterFromString("(replicationcsn="+changeNumber1+")"));
       assertEquals(startCLmsg.getFirstDraftChangeNumber(),-1);
       assertEquals(startCLmsg.getLastDraftChangeNumber(),-1);
       assertEquals(startCLmsg.getChangeNumber(), changeNumber1);
 
+      // Use change number as base object.
+      baseDN = DN.decode("changeNumber=8,cn=changelog");
 
+      //
+      ECLSearchOperation.evaluateSearchParameters(startCLmsg,
+          baseDN, SearchFilter.createFilterFromString("(objectclass=*)"));
+      assertEquals(startCLmsg.getFirstDraftChangeNumber(),8);
+      assertEquals(startCLmsg.getLastDraftChangeNumber(),8);
+
+      // The base DN should take preference.
+      ECLSearchOperation.evaluateSearchParameters(startCLmsg,
+          baseDN, SearchFilter.createFilterFromString("(changenumber>=2)"));
+      assertEquals(startCLmsg.getFirstDraftChangeNumber(),8);
+      assertEquals(startCLmsg.getLastDraftChangeNumber(),8);
     }
     catch(Exception e)
     {
@@ -3563,7 +3575,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
                 null);
             assertEquals(getAttributeValue(resultEntry, "lastExternalChangelogCookie"),
                 null);
-            
+
           }
         }
       }
@@ -3673,7 +3685,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       ServerState ss = new ServerState();
       ss.update(cn1);
-      
+
       // From state/cn1(exclusive) to cn1 (inclusive) : 0 change
       count = rsdtest.getEligibleCount(ss, cn1);
       assertEquals(count, 0);
@@ -3708,7 +3720,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       boolean perfs=false;
       if (perfs)
       {
-      
+
       // number of msgs used by the test
       int maxMsg = 999999;
 
@@ -3722,7 +3734,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         delMsg =
           new DeleteMsg("uid="+tn+i+"," + TEST_ROOT_DN_STRING, cnx,
               user1entryUUID);
-        server01.publish(delMsg);  
+        server01.publish(delMsg);
       }
       sleep(1000);
       debugInfo(tn, "Perfs test in compat - search lastChangeNumber");
@@ -3742,7 +3754,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       assertEquals(limitss[1], maxMsg);
       long t2 = TimeThread.getTime();
       debugInfo(tn, "Perfs - " + maxMsg + " counted in (ms):" + (t2 - t1));
-      
+
       try
       {
         // search on 'cn=changelog'
@@ -3866,7 +3878,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       SortedSet<AttributeType> eclInclude = new TreeSet<AttributeType>();
       eclInclude.add(DirectoryServer.getAttributeType("sn"));
       eclInclude.add(DirectoryServer.getAttributeType("roomnumber"));
-      ExternalChangelogDomainFakeCfg eclCfg = 
+      ExternalChangelogDomainFakeCfg eclCfg =
         new ExternalChangelogDomainFakeCfg(true, eclInclude);
       domainConf.setExternalChangelogDomain(eclCfg);
       // Set a Changetime heartbeat interval low enough (less than default
@@ -3885,7 +3897,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // on o=test3,sid=1703 include attrs set to : 'objectclass'
       eclInclude = new TreeSet<AttributeType>();
       eclInclude.add(DirectoryServer.getAttributeType("objectclass"));
-      eclCfg = 
+      eclCfg =
         new ExternalChangelogDomainFakeCfg(true, eclInclude);
       domainConf.setExternalChangelogDomain(eclCfg);
       // Set a Changetime heartbeat interval low enough (less than default
@@ -3900,7 +3912,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         new DomainFakeCfg(baseDn2, 1704, replServers);
       eclInclude = new TreeSet<AttributeType>();
       eclInclude.add(DirectoryServer.getAttributeType("cn"));
-      eclCfg = 
+      eclCfg =
         new ExternalChangelogDomainFakeCfg(true, eclInclude);
       domainConf.setExternalChangelogDomain(eclCfg);
       // Set a Changetime heartbeat interval low enough (less than default
@@ -3957,7 +3969,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       modOpBasis.run();
       waitOpResult(modOpBasis, ResultCode.SUCCESS);
 
-      // mod 'telephonenumber' of robert (o=test3) 
+      // mod 'telephonenumber' of robert (o=test3)
       builder = new AttributeBuilder("telephonenumber");
       builder.add("555555");
       mod =
@@ -4086,14 +4098,14 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
         if (domain3 != null)
           MultimasterReplication.deleteDomain(baseDn3);
-        removeTestBackend2(backend3);    
+        removeTestBackend2(backend3);
 
       }
       catch(Exception e) {}
     }
     debugInfo(tn, "Ending test with success");
   }
-  
+
   private void waitOpResult(AbstractOperation operation,
       ResultCode expectedResult)
   {
@@ -4104,8 +4116,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       sleep(50);
       ii++;
       if (ii>10)
-        assertEquals(operation.getResultCode(), expectedResult, 
-            operation.getErrorMessage().toString());                
+        assertEquals(operation.getResultCode(), expectedResult,
+            operation.getErrorMessage().toString());
     }
   }
 }
