@@ -374,6 +374,16 @@ public class ReplicationDbEnv
       try
       {
         stateDb.close();
+      } catch (DatabaseException e)
+      {
+        MessageBuilder mb = new MessageBuilder();
+        mb.append(ERR_ERROR_CLOSING_CHANGELOG_ENV.get());
+        mb.append(stackTraceToSingleLineString(e));
+        logError(mb.toMessage());
+      }
+
+      try
+      {
         dbEnvironment.close();
       } catch (DatabaseException e)
       {
