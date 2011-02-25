@@ -23,11 +23,13 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.plugins;
 
 
 
+import java.util.LinkedList;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.LinkedHashMap;
@@ -220,6 +222,8 @@ public class UniqueAttributePlugin
       return PluginResult.PreOperation.continueOperationProcessing();
     }
 
+    LinkedList<AttributeValue> recordedValues =
+        new LinkedList<AttributeValue>();
     for (AttributeType t : config.getType())
     {
       List<Attribute> attrList = entry.getAttribute(t);
@@ -238,16 +242,24 @@ public class UniqueAttributePlugin
               if((conflictDN=
                       uniqueAttrValue2Dn.putIfAbsent(v, entry.getDN()))==null)
               {
+                recordedValues.add(v);
                 conflictDN = getConflictingEntryDN(baseDNs, entry.getDN(),
                                                    config, v);
               }
               if (conflictDN != null)
               {
+                // Before returning, we need to remove all values added
+                // in the uniqueAttrValue2Dn map, because PostOperation
+                // plugin does not get called.
+                for (AttributeValue v2 : recordedValues)
+                {
+                   uniqueAttrValue2Dn.remove(v2);
+                }
                 Message msg = ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(
-                    t.getNameOrOID(), v.getValue().toString(),
-                    conflictDN.toString());
+                      t.getNameOrOID(), v.getValue().toString(),
+                      conflictDN.toString());
                 return PluginResult.PreOperation.stopProcessing(
-                    ResultCode.CONSTRAINT_VIOLATION, msg);
+                      ResultCode.CONSTRAINT_VIOLATION, msg);
               }
             }
             catch (DirectoryException de)
@@ -260,6 +272,12 @@ public class UniqueAttributePlugin
               Message m = ERR_PLUGIN_UNIQUEATTR_INTERNAL_ERROR.get(
                                de.getResultCode().toString(),
                                de.getMessageObject());
+
+             // Try some cleanup before returning, to avoid memory leaks
+             for (AttributeValue v2 : recordedValues)
+             {
+               uniqueAttrValue2Dn.remove(v2);
+             }
 
               return PluginResult.PreOperation.stopProcessing(
                     DirectoryServer.getServerErrorResultCode(), m);
@@ -291,6 +309,8 @@ public class UniqueAttributePlugin
       return PluginResult.PreOperation.continueOperationProcessing();
     }
 
+    LinkedList<AttributeValue> recordedValues =
+        new LinkedList<AttributeValue>();
     for (Modification m : modifyOperation.getModifications())
     {
       Attribute a = m.getAttribute();
@@ -316,12 +336,20 @@ public class UniqueAttributePlugin
               if((conflictDN=
                       uniqueAttrValue2Dn.putIfAbsent(v, entryDN))==null)
               {
-               conflictDN = getConflictingEntryDN(baseDNs, entryDN, config,
+                recordedValues.add(v);
+                conflictDN = getConflictingEntryDN(baseDNs, entryDN, config,
                                                    v);
               }
               if (conflictDN != null)
               {
-                Message msg = ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(
+                // Before returning, we need to remove all values added
+                // in the uniqueAttrValue2Dn map, because PostOperation
+                // plugin does not get called.
+                for (AttributeValue v2 : recordedValues)
+                {
+                   uniqueAttrValue2Dn.remove(v2);
+                }
+                 Message msg = ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(
                     t.getNameOrOID(), v.getValue().toString(),
                     conflictDN.toString());
                 return PluginResult.PreOperation.stopProcessing(
@@ -371,11 +399,19 @@ public class UniqueAttributePlugin
                   if((conflictDN=
                       uniqueAttrValue2Dn.putIfAbsent(v, entryDN))==null)
                   {
+                    recordedValues.add(v);
                     conflictDN = getConflictingEntryDN(baseDNs, entryDN,
                                                         config, v);
                   }
                   if (conflictDN != null)
                   {
+                    // Before returning, we need to remove all values added
+                    // in the uniqueAttrValue2Dn map, because PostOperation
+                    // plugin does not get called.
+                    for (AttributeValue v2 : recordedValues)
+                    {
+                      uniqueAttrValue2Dn.remove(v2);
+                    }
                     Message msg = ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(
                         t.getNameOrOID(), v.getValue().toString(),
                         conflictDN.toString());
@@ -393,6 +429,12 @@ public class UniqueAttributePlugin
                   Message message = ERR_PLUGIN_UNIQUEATTR_INTERNAL_ERROR.get(
                                          de.getResultCode().toString(),
                                          de.getMessageObject());
+
+                  // Try some cleanup before returning, to avoid memory leaks
+                  for (AttributeValue v2 : recordedValues)
+                  {
+                    uniqueAttrValue2Dn.remove(v2);
+                  }
 
                   return PluginResult.PreOperation.stopProcessing(
                       DirectoryServer.getServerErrorResultCode(), message);
@@ -431,6 +473,8 @@ public class UniqueAttributePlugin
       return PluginResult.PreOperation.continueOperationProcessing();
     }
 
+    LinkedList<AttributeValue> recordedValues =
+        new LinkedList<AttributeValue>();
     RDN newRDN = modifyDNOperation.getNewRDN();
     for (int i=0; i < newRDN.getNumValues(); i++)
     {
@@ -451,11 +495,19 @@ public class UniqueAttributePlugin
         if((conflictDN=uniqueAttrValue2Dn.putIfAbsent(
                               v, modifyDNOperation.getEntryDN()))==null)
         {
+          recordedValues.add(v);
           conflictDN = getConflictingEntryDN(baseDNs,
             modifyDNOperation.getEntryDN(), config, v);
         }
         if (conflictDN != null)
         {
+          // Before returning, we need to remove all values added
+          // in the uniqueAttrValue2Dn map, because PostOperation
+          // plugin does not get called.
+          for (AttributeValue v2 : recordedValues)
+          {
+            uniqueAttrValue2Dn.remove(v2);
+          }
           Message msg = ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(
               t.getNameOrOID(), v.getValue().toString(),
               conflictDN.toString());
@@ -473,6 +525,12 @@ public class UniqueAttributePlugin
         Message m = ERR_PLUGIN_UNIQUEATTR_INTERNAL_ERROR.get(
                          de.getResultCode().toString(),
                          de.getMessageObject());
+
+        // Try some cleanup before returning, to avoid memory leaks
+        for (AttributeValue v2 : recordedValues)
+        {
+          uniqueAttrValue2Dn.remove(v2);
+        }
 
         return PluginResult.PreOperation.stopProcessing(
             DirectoryServer.getServerErrorResultCode(), m);

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -970,7 +971,12 @@ public class GroupManager extends InternalDirectoryServerPlugin
   public PostOperation doPostOperation(
           PostOperationAddOperation addOperation)
   {
-    doPostAdd(addOperation, addOperation.getEntryToAdd());
+    // Only do something if the operation is successful, meaning there
+    // has been a change.
+    if (addOperation.getResultCode() == ResultCode.SUCCESS)
+    {
+      doPostAdd(addOperation, addOperation.getEntryToAdd());
+    }
 
     // If we've gotten here, then everything is acceptable.
     return PluginResult.PostOperation.continueOperationProcessing();
@@ -983,7 +989,12 @@ public class GroupManager extends InternalDirectoryServerPlugin
   public PostOperation doPostOperation(
           PostOperationDeleteOperation deleteOperation)
   {
-    doPostDelete(deleteOperation, deleteOperation.getEntryToDelete());
+    // Only do something if the operation is successful, meaning there
+    // has been a change.
+    if (deleteOperation.getResultCode() == ResultCode.SUCCESS)
+    {
+      doPostDelete(deleteOperation, deleteOperation.getEntryToDelete());
+    }
 
     // If we've gotten here, then everything is acceptable.
     return PluginResult.PostOperation.continueOperationProcessing();
@@ -996,9 +1007,14 @@ public class GroupManager extends InternalDirectoryServerPlugin
   public PostOperation doPostOperation(
           PostOperationModifyOperation modifyOperation)
   {
-    doPostModify(modifyOperation,
+    // Only do something if the operation is successful, meaning there
+    // has been a change.
+    if (modifyOperation.getResultCode() == ResultCode.SUCCESS)
+    {
+      doPostModify(modifyOperation,
             modifyOperation.getCurrentEntry(),
             modifyOperation.getModifiedEntry());
+    }
 
     // If we've gotten here, then everything is acceptable.
     return PluginResult.PostOperation.continueOperationProcessing();
@@ -1011,9 +1027,14 @@ public class GroupManager extends InternalDirectoryServerPlugin
   public PostOperation doPostOperation(
           PostOperationModifyDNOperation modifyDNOperation)
   {
-    doPostModifyDN(modifyDNOperation,
+    // Only do something if the operation is successful, meaning there
+    // has been a change.
+    if (modifyDNOperation.getResultCode() == ResultCode.SUCCESS)
+    {
+      doPostModifyDN(modifyDNOperation,
             modifyDNOperation.getOriginalEntry(),
             modifyDNOperation.getUpdatedEntry());
+    }
 
     // If we've gotten here, then everything is acceptable.
     return PluginResult.PostOperation.continueOperationProcessing();

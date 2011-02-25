@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -166,7 +167,12 @@ public class AciListenerManager implements
     public PostOperation doPostOperation(
         PostOperationAddOperation addOperation)
     {
-      doPostAdd(addOperation.getEntryToAdd());
+      // Only do something if the operation is successful, meaning there
+      // has been a change.
+      if (addOperation.getResultCode() == ResultCode.SUCCESS)
+      {
+        doPostAdd(addOperation.getEntryToAdd());
+      }
 
       // If we've gotten here, then everything is acceptable.
       return PluginResult.PostOperation.continueOperationProcessing();
@@ -180,7 +186,12 @@ public class AciListenerManager implements
     public PostOperation doPostOperation(
         PostOperationDeleteOperation deleteOperation)
     {
-      doPostDelete(deleteOperation.getEntryToDelete());
+      // Only do something if the operation is successful, meaning there
+      // has been a change.
+      if (deleteOperation.getResultCode() == ResultCode.SUCCESS)
+      {
+        doPostDelete(deleteOperation.getEntryToDelete());
+      }
 
       // If we've gotten here, then everything is acceptable.
       return PluginResult.PostOperation.continueOperationProcessing();
@@ -194,8 +205,13 @@ public class AciListenerManager implements
     public PostOperation doPostOperation(
         PostOperationModifyDNOperation modifyDNOperation)
     {
-      doPostModifyDN(modifyDNOperation.getOriginalEntry().getDN(),
+      // Only do something if the operation is successful, meaning there
+      // has been a change.
+      if (modifyDNOperation.getResultCode() == ResultCode.SUCCESS)
+      {
+        doPostModifyDN(modifyDNOperation.getOriginalEntry().getDN(),
           modifyDNOperation.getUpdatedEntry().getDN());
+      }
 
       // If we've gotten here, then everything is acceptable.
       return PluginResult.PostOperation.continueOperationProcessing();
@@ -209,8 +225,13 @@ public class AciListenerManager implements
     public PostOperation doPostOperation(
         PostOperationModifyOperation modifyOperation)
     {
-      doPostModify(modifyOperation.getModifications(), modifyOperation
+      // Only do something if the operation is successful, meaning there
+      // has been a change.
+      if (modifyOperation.getResultCode() == ResultCode.SUCCESS)
+      {
+        doPostModify(modifyOperation.getModifications(), modifyOperation
           .getCurrentEntry(), modifyOperation.getModifiedEntry());
+      }
 
       // If we've gotten here, then everything is acceptable.
       return PluginResult.PostOperation.continueOperationProcessing();

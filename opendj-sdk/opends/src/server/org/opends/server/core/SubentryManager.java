@@ -1166,7 +1166,12 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   public PostOperation doPostOperation(
           PostOperationAddOperation addOperation)
   {
-    doPostAdd(addOperation.getEntryToAdd());
+    // Only do something if the operation is successful, meaning there
+    // has been a change.
+    if (addOperation.getResultCode() == ResultCode.SUCCESS)
+    {
+      doPostAdd(addOperation.getEntryToAdd());
+    }
 
     // If we've gotten here, then everything is acceptable.
     return PluginResult.PostOperation.continueOperationProcessing();
@@ -1179,7 +1184,12 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   public PostOperation doPostOperation(
           PostOperationDeleteOperation deleteOperation)
   {
-    doPostDelete(deleteOperation.getEntryToDelete());
+    // Only do something if the operation is successful, meaning there
+    // has been a change.
+    if (deleteOperation.getResultCode() == ResultCode.SUCCESS)
+    {
+      doPostDelete(deleteOperation.getEntryToDelete());
+    }
 
     // If we've gotten here, then everything is acceptable.
     return PluginResult.PostOperation.continueOperationProcessing();
@@ -1192,8 +1202,13 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   public PostOperation doPostOperation(
           PostOperationModifyOperation modifyOperation)
   {
-    doPostModify(modifyOperation.getCurrentEntry(),
+    // Only do something if the operation is successful, meaning there
+    // has been a change.
+    if (modifyOperation.getResultCode() == ResultCode.SUCCESS)
+    {
+      doPostModify(modifyOperation.getCurrentEntry(),
             modifyOperation.getModifiedEntry());
+    }
 
     // If we've gotten here, then everything is acceptable.
     return PluginResult.PostOperation.continueOperationProcessing();
@@ -1206,8 +1221,13 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   public PostOperation doPostOperation(
           PostOperationModifyDNOperation modifyDNOperation)
   {
-    doPostModifyDN(modifyDNOperation.getOriginalEntry(),
+    // Only do something if the operation is successful, meaning there
+    // has been a change.
+    if (modifyDNOperation.getResultCode() == ResultCode.SUCCESS)
+    {
+      doPostModifyDN(modifyDNOperation.getOriginalEntry(),
             modifyDNOperation.getUpdatedEntry());
+    }
 
     // If we've gotten here, then everything is acceptable.
     return PluginResult.PostOperation.continueOperationProcessing();

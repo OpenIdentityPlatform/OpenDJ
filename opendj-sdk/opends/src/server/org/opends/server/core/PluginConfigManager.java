@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -3442,7 +3443,10 @@ public class PluginConfigManager
     PluginResult.PostOperation result = null;
     PluginResult.PostOperation finalResult = null;
 
-    for (DirectoryServerPlugin p : postOperationAddPlugins)
+    ArrayList<DirectoryServerPlugin> skippedPlugins =
+        skippedPreOperationPlugins.remove(addOperation);
+
+      for (DirectoryServerPlugin p : postOperationAddPlugins)
     {
       if (addOperation.isInternalOperation() &&
           (! p.invokeForInternalOperations()))
@@ -3450,8 +3454,6 @@ public class PluginConfigManager
         continue;
       }
 
-      ArrayList<DirectoryServerPlugin> skippedPlugins =
-          skippedPreOperationPlugins.remove(addOperation);
       if(skippedPlugins != null && skippedPlugins.contains(p))
       {
         continue;
@@ -3527,6 +3529,9 @@ public class PluginConfigManager
     PluginResult.PostOperation result = null;
     PluginResult.PostOperation finalResult = null;
 
+    ArrayList<DirectoryServerPlugin> skippedPlugins =
+        skippedPreOperationPlugins.remove(bindOperation);
+
     for (DirectoryServerPlugin p : postOperationBindPlugins)
     {
       if (bindOperation.isInternalOperation() &&
@@ -3535,8 +3540,6 @@ public class PluginConfigManager
         continue;
       }
 
-      ArrayList<DirectoryServerPlugin> skippedPlugins =
-          skippedPreOperationPlugins.remove(bindOperation);
       if(skippedPlugins != null && skippedPlugins.contains(p))
       {
         continue;
@@ -3613,7 +3616,10 @@ public class PluginConfigManager
     PluginResult.PostOperation result = null;
     PluginResult.PostOperation finalResult = null;
 
-    for (DirectoryServerPlugin p : postOperationComparePlugins)
+    ArrayList<DirectoryServerPlugin> skippedPlugins =
+        skippedPreOperationPlugins.remove(compareOperation);
+
+      for (DirectoryServerPlugin p : postOperationComparePlugins)
     {
       if (compareOperation.isInternalOperation() &&
           (! p.invokeForInternalOperations()))
@@ -3621,8 +3627,6 @@ public class PluginConfigManager
         continue;
       }
 
-      ArrayList<DirectoryServerPlugin> skippedPlugins =
-          skippedPreOperationPlugins.remove(compareOperation);
       if(skippedPlugins != null && skippedPlugins.contains(p))
       {
         continue;
@@ -3700,6 +3704,9 @@ public class PluginConfigManager
     PluginResult.PostOperation result = null;
     PluginResult.PostOperation finalResult = null;
 
+    ArrayList<DirectoryServerPlugin> skippedPlugins =
+        skippedPreOperationPlugins.remove(deleteOperation);
+
     for (DirectoryServerPlugin p : postOperationDeletePlugins)
     {
       if (deleteOperation.isInternalOperation() &&
@@ -3708,8 +3715,6 @@ public class PluginConfigManager
         continue;
       }
 
-      ArrayList<DirectoryServerPlugin> skippedPlugins =
-          skippedPreOperationPlugins.remove(deleteOperation);
       if(skippedPlugins != null && skippedPlugins.contains(p))
       {
         continue;
@@ -3787,6 +3792,9 @@ public class PluginConfigManager
     PluginResult.PostOperation result = null;
     PluginResult.PostOperation finalResult = null;
 
+    ArrayList<DirectoryServerPlugin> skippedPlugins =
+        skippedPreOperationPlugins.remove(extendedOperation);
+
     for (DirectoryServerPlugin p : postOperationExtendedPlugins)
     {
       if (extendedOperation.isInternalOperation() &&
@@ -3795,8 +3803,6 @@ public class PluginConfigManager
         continue;
       }
 
-      ArrayList<DirectoryServerPlugin> skippedPlugins =
-          skippedPreOperationPlugins.remove(extendedOperation);
       if(skippedPlugins != null && skippedPlugins.contains(p))
       {
         continue;
@@ -3874,6 +3880,9 @@ public class PluginConfigManager
     PluginResult.PostOperation result = null;
     PluginResult.PostOperation finalResult = null;
 
+    ArrayList<DirectoryServerPlugin> skippedPlugins =
+        skippedPreOperationPlugins.remove(modifyOperation);
+
     for (DirectoryServerPlugin p : postOperationModifyPlugins)
     {
       if (modifyOperation.isInternalOperation() &&
@@ -3882,8 +3891,6 @@ public class PluginConfigManager
         continue;
       }
 
-      ArrayList<DirectoryServerPlugin> skippedPlugins =
-          skippedPreOperationPlugins.remove(modifyOperation);
       if(skippedPlugins != null && skippedPlugins.contains(p))
       {
         continue;
@@ -3960,6 +3967,9 @@ public class PluginConfigManager
     PluginResult.PostOperation result = null;
     PluginResult.PostOperation finalResult = null;
 
+    ArrayList<DirectoryServerPlugin> skippedPlugins =
+        skippedPreOperationPlugins.remove(modifyDNOperation);
+
     for (DirectoryServerPlugin p : postOperationModifyDNPlugins)
     {
       if (modifyDNOperation.isInternalOperation() &&
@@ -3968,8 +3978,6 @@ public class PluginConfigManager
         continue;
       }
 
-      ArrayList<DirectoryServerPlugin> skippedPlugins =
-          skippedPreOperationPlugins.remove(modifyDNOperation);
       if(skippedPlugins != null && skippedPlugins.contains(p))
       {
         continue;
@@ -4047,6 +4055,9 @@ public class PluginConfigManager
     PluginResult.PostOperation result = null;
     PluginResult.PostOperation finalResult = null;
 
+    ArrayList<DirectoryServerPlugin> skippedPlugins =
+        skippedPreOperationPlugins.remove(searchOperation);
+
     for (DirectoryServerPlugin p : postOperationSearchPlugins)
     {
       if (searchOperation.isInternalOperation() &&
@@ -4055,8 +4066,6 @@ public class PluginConfigManager
         continue;
       }
 
-      ArrayList<DirectoryServerPlugin> skippedPlugins =
-          skippedPreOperationPlugins.remove(searchOperation);
       if(skippedPlugins != null && skippedPlugins.contains(p))
       {
         continue;
@@ -4134,6 +4143,9 @@ public class PluginConfigManager
     PluginResult.PostOperation result = null;
     PluginResult.PostOperation finalResult = null;
 
+    ArrayList<DirectoryServerPlugin> skippedPlugins =
+        skippedPreOperationPlugins.remove(unbindOperation);
+
     for (DirectoryServerPlugin p : postOperationUnbindPlugins)
     {
       if (unbindOperation.isInternalOperation() &&
@@ -4142,8 +4154,6 @@ public class PluginConfigManager
         continue;
       }
 
-      ArrayList<DirectoryServerPlugin> skippedPlugins =
-          skippedPreOperationPlugins.remove(unbindOperation);
       if(skippedPlugins != null && skippedPlugins.contains(p))
       {
         continue;
