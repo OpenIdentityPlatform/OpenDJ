@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.plugins;
 
@@ -76,8 +77,8 @@ public final class ChangeNumberControlPlugin
     /**
      * Constructs a new change number control.
      *
-     * @param  isCritical   Indicates whether support for this control should be
-     *                      considered a critical part of the server processing.
+     * @param  isCritical Indicates whether support for this control should be
+     *                    considered a critical part of the server processing.
      * @param cn          The change number.
      */
     public ChangeNumberControl(boolean isCritical, ChangeNumber cn)
@@ -109,7 +110,7 @@ public final class ChangeNumberControlPlugin
   }
 
   /**
-   * Creates a new instance of this Directory Server plugin.  Every plugin must
+   * Creates a new instance of this Directory Server plugin. Every plugin must
    * implement a default constructor (it is the only one that will be used to
    * create plugins defined in the configuration), and every plugin constructor
    * must call <CODE>super()</CODE> as its first element.
@@ -303,7 +304,7 @@ public final class ChangeNumberControlPlugin
 
   /**
    * Retrieves the Change number from the synchronization context
-   * and sets teh control respsonse in the operation.
+   * and sets the control response in the operation.
    *
    * @param operation the operation
    */
