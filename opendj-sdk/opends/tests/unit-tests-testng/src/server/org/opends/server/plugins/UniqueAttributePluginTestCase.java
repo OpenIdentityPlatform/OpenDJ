@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 
@@ -390,7 +391,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
   }
 
   /**
-   *  Test various modifcation scenerios using a configuration with no base
+   *  Test various modification scenarios using a configuration with no base
    * DNs defined. Use default of public naming contexts for base DNs.
    *
    * @throws Exception If an unexpected result occurs.
