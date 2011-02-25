@@ -23,23 +23,19 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.types;
 
 import org.opends.messages.Message;
-import org.opends.server.core.RelativeSubtreeSpecification;
-import org.opends.server.api.SubtreeSpecification;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.LinkedHashSet;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.RFC3672SubtreeSpecification;
 
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.SchemaMessages.*;
 
 /**
@@ -47,11 +43,6 @@ import static org.opends.messages.SchemaMessages.*;
  * collective attribute subentries objects.
  */
 public class SubEntry {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
-
   /**
    * Defines the set of permissable values for the conflict behavior.
    * Specifies the behavior that the server is to exhibit for entries
@@ -216,25 +207,10 @@ public class SubEntry {
       {
         for (AttributeValue value : attr)
         {
-          // Try parsing the value with every subtree spec known.
           specString = value.toString();
           try
           {
-            this.subTreeSpec = RFC3672SubtreeSpecification.valueOf(
-                    entry.getDN().getParent(), specString);
-            isValidSpec = true;
-          }
-          catch (DirectoryException de)
-          {
-            isValidSpec = false;
-          }
-          if (this.subTreeSpec != null)
-          {
-            break;
-          }
-          try
-          {
-            this.subTreeSpec = RelativeSubtreeSpecification.valueOf(
+            this.subTreeSpec = SubtreeSpecification.valueOf(
                     entry.getDN().getParent(), specString);
             isValidSpec = true;
           }
@@ -270,7 +246,7 @@ public class SubEntry {
     {
       // There is none for some reason eg this could be
       // old Draft based ldapSubEntry so create a dummy.
-      this.subTreeSpec = new RFC3672SubtreeSpecification(
+      this.subTreeSpec = new SubtreeSpecification(
                 DN.NULL_DN, null, -1, -1,
                 null, null, null);
     }

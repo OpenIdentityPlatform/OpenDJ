@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -35,15 +36,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.util.StaticUtils;
 import org.opends.messages.MessageBuilder;
-import org.opends.server.api.SubtreeSpecificationSet;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.RFC3672SubtreeSpecification;
-import org.opends.server.schema.AttributeTypeSyntax;
-import org.opends.server.schema.BooleanSyntax;
-import org.opends.server.schema.IntegerSyntax;
-import org.opends.server.schema.RFC3672SubtreeSpecificationSyntax;
+import org.opends.server.schema.*;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
 
@@ -264,7 +259,7 @@ public final class TestEntry extends TypesTestCase {
    *           If the test failed unexpectedly.
    */
   @Test
-  public void testGetAttributeValuesRFC3672SubtreeSpecification()
+  public void testGetAttributeValuesSubtreeSpecification()
       throws Exception {
     // Define a dummy attribute type, in case there is not one already
     // in the core schema.
@@ -286,12 +281,12 @@ public final class TestEntry extends TypesTestCase {
 
     SubtreeSpecificationSet expected = new SubtreeSpecificationSet();
     for (String value : values) {
-      expected.add(RFC3672SubtreeSpecification.valueOf(rootDN, value));
+      expected.add(SubtreeSpecification.valueOf(rootDN, value));
     }
 
     Entry entry = createTestEntry(type, values);
     SubtreeSpecificationSet result = new SubtreeSpecificationSet();
-    entry.getAttributeValues(type, RFC3672SubtreeSpecificationSyntax
+    entry.getAttributeValues(type, SubtreeSpecificationSyntax
         .createAttributeValueDecoder(rootDN), result);
 
     assertEquals(expected, result);

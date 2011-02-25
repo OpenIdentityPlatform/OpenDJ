@@ -28,7 +28,6 @@
 
 package org.opends.server.core;
 
-import org.opends.server.api.SubtreeSpecification;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -175,7 +174,7 @@ public class SubentryManagerTestCase extends CoreTestCase
         "objectClass: subentry",
         "objectClass: collectiveAttributeSubentry",
         "objectClass: extensibleObject",
-        "subtreeSpecification: {relativebase \"\", specificationFilter \"(isMemberOf=cn=collective users,ou=people,o=test)\"}",
+        "subtreeSpecification: {base \"\", specificationFilter \"(isMemberOf=cn=collective users,ou=people,o=test)\"}",
         "cn: description collective attribute",
         "description;collective: inherited description",
         "",
@@ -615,7 +614,7 @@ public class SubentryManagerTestCase extends CoreTestCase
       if (subentry.getDN().equals(ldapSubentry.getDN()))
       {
         SubtreeSpecification spec = subentry.getSubTreeSpecification();
-        assertTrue(spec instanceof RFC3672SubtreeSpecification);
+        assertNull(spec.getRefinements());
       }
     }
 
@@ -627,7 +626,7 @@ public class SubentryManagerTestCase extends CoreTestCase
          "dn: cn=Relative Subentry," + SUFFIX,
          "objectClass: top",
          "objectclass: subentry",
-         "subtreeSpecification: {relativeBase \"ou=Test SubEntry Manager\"}",
+         "subtreeSpecification: {base \"ou=Test SubEntry Manager\", specificationFilter \"(objectClass=*)\"}",
          "cn: Subentry");
     AddOperation addOperation =
          connection.processAdd(relativeSubentry.getDN(),
@@ -644,7 +643,7 @@ public class SubentryManagerTestCase extends CoreTestCase
       if (subentry.getDN().equals(relativeSubentry.getDN()))
       {
         SubtreeSpecification spec = subentry.getSubTreeSpecification();
-        assertTrue(spec instanceof RelativeSubtreeSpecification);
+        assertTrue(spec.getRefinements() instanceof SubtreeSpecification.FilterRefinement);
       }
     }
 

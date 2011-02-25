@@ -23,27 +23,29 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
-package org.opends.server.core;
+package org.opends.server.types;
 
 import static org.testng.AssertJUnit.assertEquals;
 
-import org.opends.server.api.SubtreeSpecification;
+import org.opends.server.core.SubtreeSpecificationTestCase;
 import org.opends.server.types.DN;
+import org.opends.server.types.SubtreeSpecification;
 import org.testng.annotations.Test;
 
 /**
  * This class defines a set of tests for the
- * {@link org.opends.server.core.RFC3672SubtreeSpecification} class.
+ * {@link org.opends.server.types.SubtreeSpecification} class.
  */
-public final class TestRFC3672SubtreeSpecification extends
+public final class TestSubtreeSpecification extends
     SubtreeSpecificationTestCase {
 
   // Cached root DN.
   private DN rootDN = DN.nullDN();
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#valueOf(DN, String)}
+   * Tests the {@link SubtreeSpecification#valueOf(DN, String)}
    * method.
    *
    * @throws Exception
@@ -55,13 +57,13 @@ public final class TestRFC3672SubtreeSpecification extends
     String input = "{}";
     String output = "{ }";
 
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         input);
     assertEquals(output, ss.toString());
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#valueOf(DN, String)}
+   * Tests the {@link SubtreeSpecification#valueOf(DN, String)}
    * method.
    *
    * @throws Exception
@@ -73,13 +75,13 @@ public final class TestRFC3672SubtreeSpecification extends
     String input = "  {    }    ";
     String output = "{ }";
 
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         input);
     assertEquals(output, ss.toString());
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#valueOf(DN, String)}
+   * Tests the {@link SubtreeSpecification#valueOf(DN, String)}
    * method.
    *
    * @throws Exception
@@ -91,13 +93,13 @@ public final class TestRFC3672SubtreeSpecification extends
     String input = "{ base \"dc=sun, dc=com\" }";
     String output = "{ base \"dc=sun,dc=com\" }";
 
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         input);
     assertEquals(output, ss.toString());
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#valueOf(DN, String)}
+   * Tests the {@link SubtreeSpecification#valueOf(DN, String)}
    * method.
    *
    * @throws Exception
@@ -109,13 +111,13 @@ public final class TestRFC3672SubtreeSpecification extends
     String input = "{base \"dc=sun, dc=com\"}";
     String output = "{ base \"dc=sun,dc=com\" }";
 
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         input);
     assertEquals(output, ss.toString());
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#valueOf(DN, String)}
+   * Tests the {@link SubtreeSpecification#valueOf(DN, String)}
    * method.
    *
    * @throws Exception
@@ -129,13 +131,13 @@ public final class TestRFC3672SubtreeSpecification extends
     String output = "{ base \"dc=sun,dc=com\", "
         + "specificationFilter item:ds-config-rootDN }";
 
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         input);
     assertEquals(output, ss.toString());
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#valueOf(DN, String)}
+   * Tests the {@link SubtreeSpecification#valueOf(DN, String)}
    * method.
    *
    * @throws Exception
@@ -152,13 +154,13 @@ public final class TestRFC3672SubtreeSpecification extends
         + "chopAfter:\"o=xyz\" }, maximum 10, specificationFilter "
         + "not:not:item:foo }";
 
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         input);
     assertEquals(output, ss.toString());
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#valueOf(DN, String)}
+   * Tests the {@link SubtreeSpecification#valueOf(DN, String)}
    * method.
    *
    * @throws Exception
@@ -174,13 +176,13 @@ public final class TestRFC3672SubtreeSpecification extends
         + "chopAfter:\"o=xyz\" }, "
         + "maximum 10, specificationFilter not:not:item:foo }";
 
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         input);
     assertEquals(output, ss.toString());
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#valueOf(DN, String)}
+   * Tests the {@link SubtreeSpecification#valueOf(DN, String)}
    * method.
    *
    * @throws Exception
@@ -192,13 +194,13 @@ public final class TestRFC3672SubtreeSpecification extends
     String input = "{ specificationFilter and:{item:top, item:person} }";
     String output = "{ specificationFilter and:{item:top, item:person} }";
 
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         input);
     assertEquals(output, ss.toString());
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#valueOf(DN, String)}
+   * Tests the {@link SubtreeSpecification#valueOf(DN, String)}
    * method.
    *
    * @throws Exception
@@ -210,13 +212,13 @@ public final class TestRFC3672SubtreeSpecification extends
     String input = "{ specificationFilter or:{item:top, item:person} }";
     String output = "{ specificationFilter or:{item:top, item:person} }";
 
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         input);
     assertEquals(output, ss.toString());
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#valueOf(DN, String)}
+   * Tests the {@link SubtreeSpecification#valueOf(DN, String)}
    * method.
    *
    * @throws Exception
@@ -230,13 +232,33 @@ public final class TestRFC3672SubtreeSpecification extends
     String output = "{ specificationFilter "
         + "or:{item:top, item:foo, and:{item:one, item:two}} }";
 
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         input);
     assertEquals(output, ss.toString());
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#isWithinScope(Entry)}
+   * Tests the {@link SubtreeSpecification#valueOf(DN, String)}
+   * method.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test
+  public void testValueOf11() throws Exception {
+
+    String input = "{ base \"dc=sun, dc=com\", "
+        + "specificationFilter \"(objectClass=*)\" }";
+    String output = "{ base \"dc=sun,dc=com\", "
+        + "specificationFilter \"(objectClass=*)\" }";
+
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
+        input);
+    assertEquals(output, ss.toString());
+  }
+
+  /**
+   * Tests the {@link SubtreeSpecification#isWithinScope(Entry)}
    * method.
    *
    * @throws Exception
@@ -247,7 +269,7 @@ public final class TestRFC3672SubtreeSpecification extends
     DN dn = DN.decode("dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\" }";
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         value);
 
     assertEquals(true, ss
@@ -255,7 +277,7 @@ public final class TestRFC3672SubtreeSpecification extends
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#isWithinScope(Entry)}
+   * Tests the {@link SubtreeSpecification#isWithinScope(Entry)}
    * method.
    *
    * @throws Exception
@@ -266,7 +288,7 @@ public final class TestRFC3672SubtreeSpecification extends
     DN dn = DN.decode("dc=com");
 
     String value = "{ base \"dc=sun, dc=com\" }";
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         value);
 
     assertEquals(false, ss
@@ -274,7 +296,7 @@ public final class TestRFC3672SubtreeSpecification extends
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#isWithinScope(Entry)}
+   * Tests the {@link SubtreeSpecification#isWithinScope(Entry)}
    * method.
    *
    * @throws Exception
@@ -285,7 +307,7 @@ public final class TestRFC3672SubtreeSpecification extends
     DN dn = DN.decode("dc=foo, dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\" }";
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         value);
 
     assertEquals(true, ss
@@ -293,7 +315,7 @@ public final class TestRFC3672SubtreeSpecification extends
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#isWithinScope(Entry)}
+   * Tests the {@link SubtreeSpecification#isWithinScope(Entry)}
    * method.
    *
    * @throws Exception
@@ -304,7 +326,7 @@ public final class TestRFC3672SubtreeSpecification extends
     DN dn = DN.decode("dc=foo, dc=bar, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\" }";
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         value);
 
     assertEquals(false, ss
@@ -312,7 +334,7 @@ public final class TestRFC3672SubtreeSpecification extends
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#isWithinScope(Entry)}
+   * Tests the {@link SubtreeSpecification#isWithinScope(Entry)}
    * method.
    *
    * @throws Exception
@@ -323,7 +345,7 @@ public final class TestRFC3672SubtreeSpecification extends
     DN dn = DN.decode("dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\", minimum 1 }";
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         value);
 
     assertEquals(false, ss
@@ -331,7 +353,7 @@ public final class TestRFC3672SubtreeSpecification extends
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#isWithinScope(Entry)}
+   * Tests the {@link SubtreeSpecification#isWithinScope(Entry)}
    * method.
    *
    * @throws Exception
@@ -342,7 +364,7 @@ public final class TestRFC3672SubtreeSpecification extends
     DN dn = DN.decode("dc=abc, dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\", minimum 1 }";
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         value);
 
     assertEquals(true, ss
@@ -350,7 +372,7 @@ public final class TestRFC3672SubtreeSpecification extends
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#isWithinScope(Entry)}
+   * Tests the {@link SubtreeSpecification#isWithinScope(Entry)}
    * method.
    *
    * @throws Exception
@@ -361,7 +383,7 @@ public final class TestRFC3672SubtreeSpecification extends
     DN dn = DN.decode("dc=xyz, dc=abc, dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\", minimum 1 }";
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         value);
 
     assertEquals(true, ss
@@ -369,7 +391,7 @@ public final class TestRFC3672SubtreeSpecification extends
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#isWithinScope(Entry)}
+   * Tests the {@link SubtreeSpecification#isWithinScope(Entry)}
    * method.
    *
    * @throws Exception
@@ -380,7 +402,7 @@ public final class TestRFC3672SubtreeSpecification extends
     DN dn = DN.decode("dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\", maximum 0 }";
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         value);
 
     assertEquals(true, ss
@@ -388,7 +410,7 @@ public final class TestRFC3672SubtreeSpecification extends
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#isWithinScope(Entry)}
+   * Tests the {@link SubtreeSpecification#isWithinScope(Entry)}
    * method.
    *
    * @throws Exception
@@ -399,7 +421,7 @@ public final class TestRFC3672SubtreeSpecification extends
     DN dn = DN.decode("dc=foo, dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\", maximum 0 }";
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         value);
 
     assertEquals(false, ss
@@ -407,7 +429,7 @@ public final class TestRFC3672SubtreeSpecification extends
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#isWithinScope(Entry)}
+   * Tests the {@link SubtreeSpecification#isWithinScope(Entry)}
    * method.
    *
    * @throws Exception
@@ -418,7 +440,7 @@ public final class TestRFC3672SubtreeSpecification extends
     DN dn = DN.decode("dc=bar, dc=foo, dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\", maximum 1 }";
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         value);
 
     assertEquals(false, ss
@@ -426,7 +448,7 @@ public final class TestRFC3672SubtreeSpecification extends
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#isWithinScope(Entry)}
+   * Tests the {@link SubtreeSpecification#isWithinScope(Entry)}
    * method.
    *
    * @throws Exception
@@ -437,7 +459,7 @@ public final class TestRFC3672SubtreeSpecification extends
     DN dn = DN.decode("dc=bar, dc=foo, dc=sun, dc=com");
 
     String value = "{ base \"dc=sun, dc=com\", maximum 2 }";
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         value);
 
     assertEquals(true, ss
@@ -445,7 +467,7 @@ public final class TestRFC3672SubtreeSpecification extends
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#isWithinScope(Entry)}
+   * Tests the {@link SubtreeSpecification#isWithinScope(Entry)}
    * method.
    *
    * @throws Exception
@@ -457,7 +479,7 @@ public final class TestRFC3672SubtreeSpecification extends
 
     String value = "{ base \"dc=sun, dc=com\", "
         + "specificExclusions { chopAfter:\"\" } }";
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         value);
 
     assertEquals(true, ss
@@ -465,7 +487,7 @@ public final class TestRFC3672SubtreeSpecification extends
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#isWithinScope(Entry)}
+   * Tests the {@link SubtreeSpecification#isWithinScope(Entry)}
    * method.
    *
    * @throws Exception
@@ -477,7 +499,7 @@ public final class TestRFC3672SubtreeSpecification extends
 
     String value = "{ base \"dc=sun, dc=com\", "
         + "specificExclusions { chopAfter:\"\" } }";
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         value);
 
     assertEquals(false, ss
@@ -485,7 +507,7 @@ public final class TestRFC3672SubtreeSpecification extends
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#isWithinScope(Entry)}
+   * Tests the {@link SubtreeSpecification#isWithinScope(Entry)}
    * method.
    *
    * @throws Exception
@@ -497,7 +519,7 @@ public final class TestRFC3672SubtreeSpecification extends
 
     String value = "{ base \"dc=sun, dc=com\", "
         + "specificExclusions { chopAfter:\"dc=foo\" } }";
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         value);
 
     assertEquals(true, ss
@@ -505,7 +527,7 @@ public final class TestRFC3672SubtreeSpecification extends
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#isWithinScope(Entry)}
+   * Tests the {@link SubtreeSpecification#isWithinScope(Entry)}
    * method.
    *
    * @throws Exception
@@ -517,7 +539,7 @@ public final class TestRFC3672SubtreeSpecification extends
 
     String value = "{ base \"dc=sun, dc=com\", "
         + "specificExclusions { chopAfter:\"dc=foo\" } }";
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         value);
 
     assertEquals(false, ss
@@ -525,7 +547,7 @@ public final class TestRFC3672SubtreeSpecification extends
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#isWithinScope(Entry)}
+   * Tests the {@link SubtreeSpecification#isWithinScope(Entry)}
    * method.
    *
    * @throws Exception
@@ -537,7 +559,7 @@ public final class TestRFC3672SubtreeSpecification extends
 
     String value = "{ base \"dc=sun, dc=com\", "
         + "specificExclusions { chopBefore:\"dc=foo\" } }";
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         value);
 
     assertEquals(false, ss
@@ -545,7 +567,7 @@ public final class TestRFC3672SubtreeSpecification extends
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#isWithinScope(Entry)}
+   * Tests the {@link SubtreeSpecification#isWithinScope(Entry)}
    * method.
    *
    * @throws Exception
@@ -557,7 +579,7 @@ public final class TestRFC3672SubtreeSpecification extends
 
     String value = "{ base \"dc=sun, dc=com\", "
         + "specificExclusions { chopBefore:\"dc=foo\" } }";
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         value);
 
     assertEquals(false, ss
@@ -565,7 +587,7 @@ public final class TestRFC3672SubtreeSpecification extends
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#isWithinScope(Entry)}
+   * Tests the {@link SubtreeSpecification#isWithinScope(Entry)}
    * method.
    *
    * @throws Exception
@@ -577,7 +599,7 @@ public final class TestRFC3672SubtreeSpecification extends
 
     String value = "{ base \"dc=sun, dc=com\", "
         + "specificExclusions { chopBefore:\"dc=foo\" } }";
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         value);
 
     assertEquals(true, ss
@@ -585,7 +607,7 @@ public final class TestRFC3672SubtreeSpecification extends
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#isWithinScope(Entry)}
+   * Tests the {@link SubtreeSpecification#isWithinScope(Entry)}
    * method.
    *
    * @throws Exception
@@ -597,7 +619,7 @@ public final class TestRFC3672SubtreeSpecification extends
 
     String value = "{ base \"dc=sun, dc=com\", "
         + "specificationFilter item:person }";
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         value);
 
     assertEquals(true, ss
@@ -605,7 +627,7 @@ public final class TestRFC3672SubtreeSpecification extends
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#isWithinScope(Entry)}
+   * Tests the {@link SubtreeSpecification#isWithinScope(Entry)}
    * method.
    *
    * @throws Exception
@@ -617,7 +639,7 @@ public final class TestRFC3672SubtreeSpecification extends
 
     String value = "{ base \"dc=sun, dc=com\", "
         + "specificationFilter item:organization }";
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         value);
 
     assertEquals(false, ss
@@ -625,7 +647,7 @@ public final class TestRFC3672SubtreeSpecification extends
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#isWithinScope(Entry)}
+   * Tests the {@link SubtreeSpecification#isWithinScope(Entry)}
    * method.
    *
    * @throws Exception
@@ -637,7 +659,7 @@ public final class TestRFC3672SubtreeSpecification extends
 
     String value = "{ base \"dc=sun, dc=com\", "
         + "specificationFilter not:item:person }";
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         value);
 
     assertEquals(false, ss
@@ -645,7 +667,7 @@ public final class TestRFC3672SubtreeSpecification extends
   }
 
   /**
-   * Tests the {@link RFC3672SubtreeSpecification#isWithinScope(Entry)}
+   * Tests the {@link SubtreeSpecification#isWithinScope(Entry)}
    * method.
    *
    * @throws Exception
@@ -657,10 +679,50 @@ public final class TestRFC3672SubtreeSpecification extends
 
     String value = "{ base \"dc=sun, dc=com\", "
         + "specificationFilter not:item:organization }";
-    SubtreeSpecification ss = RFC3672SubtreeSpecification.valueOf(rootDN,
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
         value);
 
     assertEquals(true, ss
+        .isWithinScope(createEntry(dn, getObjectClasses())));
+  }
+
+  /**
+   * Tests the {@code SubtreeSpecification#isWithinScope(Entry)}
+   * method.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test
+  public void testMatches23() throws Exception {
+    DN dn = DN.decode("dc=abc, dc=sun, dc=com");
+
+    String value = "{ base \"dc=sun, dc=com\", "
+        + "specificationFilter \"(objectClass=person)\" }";
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
+        value);
+
+    assertEquals(true, ss
+        .isWithinScope(createEntry(dn, getObjectClasses())));
+  }
+
+  /**
+   * Tests the {@code SubtreeSpecification#isWithinScope(Entry)}
+   * method.
+   *
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test
+  public void testMatches24() throws Exception {
+    DN dn = DN.decode("dc=abc, dc=sun, dc=com");
+
+    String value = "{ base \"dc=sun, dc=com\", "
+        + "specificationFilter \"(objectClass=organization)\" }";
+    SubtreeSpecification ss = SubtreeSpecification.valueOf(rootDN,
+        value);
+
+    assertEquals(false, ss
         .isWithinScope(createEntry(dn, getObjectClasses())));
   }
 }

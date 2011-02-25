@@ -23,8 +23,9 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
-package org.opends.server.api;
+package org.opends.server.types;
 
 
 
@@ -33,13 +34,12 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 
-import org.opends.server.types.Entry;
 
 
 
 /**
  * This class implements the {@code Set} interface for
- * {@link org.opends.server.api.SubtreeSpecification}s.
+ * {@link org.opends.server.types.SubtreeSpecification}s.
  * <p>
  * It is backed by a {@code HashSet} but provides additional
  * functionality, {@link #isWithinScope(Entry)}, for determining
