@@ -22,6 +22,7 @@
 #
 #
 #      Copyright 2006-2010 Sun Microsystems, Inc.
+#      Portions Copyright 2011 ForgeRock AS
 #
 #
 # This file contains a core set of attribute type and objectlass definitions
@@ -32,6 +33,9 @@ dn: cn=schema
 objectClass: top
 objectClass: ldapSubentry
 objectClass: subschema
+ldapSyntaxes: ( 1.3.6.1.4.1.26027.1.3.6 DESC 'Collective Conflict Behavior'
+  X-ENUM ( 'real-overrides-virtual' 'virtual-overrides-real'
+  'merge-real-and-virtual' ) )
 attributeTypes: ( 2.5.4.41 NAME 'name' EQUALITY caseIgnoreMatch
   SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{32768}
   X-ORIGIN 'RFC 4519' )
@@ -393,9 +397,6 @@ attributeTypes: ( 2.5.18.12 NAME 'collectiveAttributeSubentries'
 attributeTypes: ( 2.5.18.7 NAME 'collectiveExclusions'
   EQUALITY objectIdentifierMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.38
   USAGE directoryOperation X-ORIGIN 'RFC 3671' )
-ldapSyntaxes: ( 1.3.6.1.4.1.26027.1.3.6 DESC 'Collective Conflict Behavior'
-  X-ENUM ( 'real-overrides-virtual' 'virtual-overrides-real'
-  'merge-real-and-virtual' ) )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.606
   NAME 'collectiveConflictBehavior' SYNTAX 1.3.6.1.4.1.26027.1.3.6
   SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )
