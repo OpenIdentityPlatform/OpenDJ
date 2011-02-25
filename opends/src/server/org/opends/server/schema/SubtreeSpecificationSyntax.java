@@ -23,11 +23,12 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.schema;
 
-import org.opends.messages.Message;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+
 import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.messages.SchemaMessages.*;
@@ -41,11 +42,8 @@ import org.opends.server.api.AttributeValueDecoder;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
-import org.opends.server.api.SubtreeSpecification;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.RFC3672SubtreeSpecification;
-import org.opends.server.core.RelativeSubtreeSpecification;
 import org.opends.server.types.*;
 
 
@@ -107,30 +105,8 @@ public final class SubtreeSpecificationSyntax
      */
     public SubtreeSpecification decode(AttributeValue value)
         throws DirectoryException {
-
-      // Try parsing the value with every subtree spec known.
-      SubtreeSpecification subTreeSpec = null;
-      String specString = value.toString();
-      try {
-        subTreeSpec = RFC3672SubtreeSpecification.valueOf(
-                rootDN, specString);
-        return subTreeSpec;
-      } catch (DirectoryException de) {}
-      try {
-        subTreeSpec = RelativeSubtreeSpecification.valueOf(
-                rootDN, specString);
-        return subTreeSpec;
-      } catch (DirectoryException de) {}
-
-      if (subTreeSpec == null) {
-        Message message =
-          ERR_ATTR_SYNTAX_SUBTREE_SPECIFICATION_INVALID.get(
-            specString);
-        throw new DirectoryException(
-                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
-      }
-
-      return subTreeSpec;
+      return SubtreeSpecification.valueOf(rootDN, value
+          .getValue().toString());
     }
   }
 
@@ -275,28 +251,19 @@ public final class SubtreeSpecificationSyntax
                                    MessageBuilder invalidReason) {
 
     // Use the subtree specification code to make this determination.
-    // Try parsing the value with every subtree spec known.
-    SubtreeSpecification subTreeSpec = null;
-    String specString = value.toString();
     try {
-      subTreeSpec = RFC3672SubtreeSpecification.valueOf(
-              DN.nullDN(), specString);
-      return true;
-    } catch (DirectoryException de) {}
-    try {
-      subTreeSpec = RelativeSubtreeSpecification.valueOf(
-              DN.nullDN(), specString);
-      return true;
-    } catch (DirectoryException de) {}
+      SubtreeSpecification.valueOf(DN.nullDN(), value.toString());
 
-    if (subTreeSpec == null) {
-      Message message =
-        ERR_ATTR_SYNTAX_SUBTREE_SPECIFICATION_INVALID.get(
-          specString);
-      invalidReason.append(message);
+      return true;
+    } catch (DirectoryException e) {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      invalidReason.append(e.getMessageObject());
+      return false;
     }
-
-    return false;
   }
 
  /**

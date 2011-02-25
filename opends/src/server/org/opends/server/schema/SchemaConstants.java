@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -1664,30 +1665,6 @@ public class SchemaConstants
    */
   public static final String SYNTAX_SUBTREE_SPECIFICATION_NAME =
     "SubtreeSpecification";
-
-
-
-  /**
-   * The OID for the RFC3672 subtree specification attribute syntax.
-   */
-  public static final String SYNTAX_RFC3672_SUBTREE_SPECIFICATION_OID =
-    SYNTAX_SUBTREE_SPECIFICATION_OID;
-
-
-
-  /**
-   * The description for the RFC3672 subtree specification attribute syntax.
-   */
-  public static final String SYNTAX_RFC3672_SUBTREE_SPECIFICATION_DESCRIPTION =
-    "RFC3672 Subtree Specification";
-
-
-
-  /**
-   * The name for the RFC3672 subtree specification attribute syntax.
-   */
-  public static final String SYNTAX_RFC3672_SUBTREE_SPECIFICATION_NAME =
-    SYNTAX_SUBTREE_SPECIFICATION_NAME;
 
 
 
