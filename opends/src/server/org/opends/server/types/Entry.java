@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.types;
 import org.opends.messages.Message;
@@ -3915,9 +3916,6 @@ public class Entry
    */
   public void processVirtualAttributes()
   {
-    // Collective attributes.
-    processCollectiveAttributes();
-
     // Virtual attributes.
     for (VirtualAttributeRule rule :
          DirectoryServer.getVirtualAttributes(this))
@@ -4022,6 +4020,9 @@ public class Entry
         }
       }
     }
+
+    // Collective attributes.
+    processCollectiveAttributes();
   }
 
 

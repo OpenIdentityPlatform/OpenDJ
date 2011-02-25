@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.core;
@@ -40,18 +41,7 @@ import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.tools.LDAPDelete;
 import org.opends.server.tools.LDAPModify;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValues;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.RawModification;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchScope;
-import org.opends.server.types.SubEntry;
+import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -157,6 +147,97 @@ public class SubentryManagerTestCase extends CoreTestCase
     assertTrue(entry.hasAttribute(attrType));
     assertTrue(entry.hasValue(attrType, null,
             AttributeValues.create(attrType, "fr")));
+  }
+
+
+
+  /**
+   * Tests that collective attributes can be applied to entries which match
+   * subtree specification using virtual attributes.
+   *
+   * @throws Exception
+   *           If an unexpected problem occurs.
+   */
+  @Test()
+  public void testCollectiveAttributesWorkWithVirtualAttributes()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    TestCaseUtils.addEntries(
+        "dn: ou=people,o=test",
+        "objectClass: top",
+        "objectClass: organizationalUnit",
+        "ou: people",
+        "",
+        "dn: cn=description collective attribute,ou=people,o=test",
+        "objectClass: top",
+        "objectClass: subentry",
+        "objectClass: collectiveAttributeSubentry",
+        "objectClass: extensibleObject",
+        "subtreeSpecification: {relativebase \"\", specificationFilter \"(isMemberOf=cn=collective users,ou=people,o=test)\"}",
+        "cn: description collective attribute",
+        "description;collective: inherited description",
+        "",
+        "dn: cn=collective users,ou=people,o=test",
+        "objectClass: top",
+        "objectClass: groupOfNames",
+        "cn: ca users",
+        "member: uid=collective user,ou=people,o=test",
+        "",
+        "dn: uid=collective user,ou=people,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: collective user",
+        "givenName: collective",
+        "sn: user",
+        "cn: collective user",
+        "userPassword: password",
+        "",
+        "dn: uid=normal user,ou=people,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: normal user",
+        "givenName: normal",
+        "sn: user",
+        "cn: normal user",
+        "userPassword: password"
+    );
+
+    try
+    {
+      // Normal user will not inherit the collective description attribute.
+      Entry e = DirectoryServer.getEntry(DN
+          .decode("uid=normal user,ou=people,o=test"));
+      assertNotNull(e);
+
+      List<Attribute> description = e.getAttribute("description");
+      assertNull(description);
+
+      // Collective user will inherit the collective description attribute.
+      e = DirectoryServer.getEntry(DN
+          .decode("uid=collective user,ou=people,o=test"));
+      assertNotNull(e);
+
+      description = e.getAttribute("description");
+      assertNotNull(description);
+      assertEquals(description.size(), 1);
+      Attribute attribute = description.get(0);
+      assertEquals(attribute.size(), 1);
+      assertFalse(attribute.hasOptions());
+      assertTrue(attribute.contains(AttributeValues.create(
+          attribute.getAttributeType(), "inherited description")));
+    }
+    finally
+    {
+      // Clear sub-entry and groups from test backend.
+      TestCaseUtils.deleteEntry(DN.decode("cn=description collective attribute,ou=people,o=test"));
+      TestCaseUtils.deleteEntry(DN.decode("cn=collective users,ou=people,o=test"));
+    }
   }
 
   @Test
