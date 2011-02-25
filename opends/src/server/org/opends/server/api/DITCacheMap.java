@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.api;
@@ -33,7 +34,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import org.opends.server.types.DN;
@@ -84,7 +84,7 @@ import org.opends.server.types.DN;
  *
  * @param <T> arbitrary object type.
  */
-public class DITCacheMap<T> extends AbstractMap<DN,T>
+public final class DITCacheMap<T> extends AbstractMap<DN,T>
 {
   /**
    * Node class for object storage and
@@ -106,6 +106,22 @@ public class DITCacheMap<T> extends AbstractMap<DN,T>
     Node<T> next;
     // Previous sibling.
     Node<T> previous;
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public String toString()
+    {
+      if (element == null)
+      {
+        return "glue";
+      }
+      else
+      {
+        return "node(" + String.valueOf(element) + ")";
+      }
+    }
   }
 
   // Map size reflecting only nodes
@@ -214,68 +230,67 @@ public class DITCacheMap<T> extends AbstractMap<DN,T>
   @Override
   public T put(DN key, T value)
   {
-    T returnValue = null;
-
-    Node<T> existingNode = ditCacheMap.get(key);
+    final Node<T> existingNode = ditCacheMap.get(key);
     if (existingNode != null)
     {
-      returnValue = existingNode.element;
+      final T returnValue = existingNode.element;
       existingNode.element = value;
+      return returnValue;
     }
-    else
+
+    Node<T> node = new Node<T>();
+    node.dn = key;
+    node.element = value;
+    node.parent = null;
+    node.child = null;
+    node.next = null;
+    node.previous = null;
+
+    ditCacheMap.put(key, node);
+    size++;
+
+    // Update parent hierarchy.
+    for (DN parentDN = key.getParent();
+         parentDN != null;
+         parentDN = parentDN.getParent())
     {
-      Node<T> node = new Node<T>();
-      node.dn = key;
-      node.element = value;
-      node.parent = null;
-      node.child = null;
-      node.next = null;
-      node.previous = null;
+      final Node<T> parentNode = ditCacheMap.get(parentDN);
 
-      ditCacheMap.put(key, node);
-      size++;
-
-      for (DN parentDN = key.getParent();
-        parentDN != null;
-        parentDN = parentDN.getParent())
+      if (parentNode == null)
       {
-        Node<T> parentNode = ditCacheMap.get(parentDN);
-        if (parentNode != null)
+        // Add glue node.
+        final Node<T> newParentNode = new Node<T>();
+        newParentNode.dn = parentDN;
+        newParentNode.element = null;
+        newParentNode.parent = null;
+        newParentNode.child = node;
+        newParentNode.next = null;
+        newParentNode.previous = null;
+        ditCacheMap.put(parentDN, newParentNode);
+        node.parent = newParentNode;
+        node = newParentNode;
+      }
+      else
+      {
+        if (parentNode.child != null)
         {
-          if (parentNode.child != null)
+          Node<T> lastNode = parentNode.child;
+          while (lastNode.next != null)
           {
-            Node<T> lastNode = parentNode.child;
-            while (lastNode.next != null)
-            {
-              lastNode = lastNode.next;
-            }
-            node.previous = lastNode;
-            lastNode.next = node;
+            lastNode = lastNode.next;
           }
-          else
-          {
-            parentNode.child = node;
-          }
-          node.parent = parentNode;
-          break;
+          node.previous = lastNode;
+          lastNode.next = node;
         }
         else
         {
-          parentNode = new Node<T>();
-          parentNode.dn = parentDN;
-          parentNode.element = null;
-          parentNode.parent = null;
           parentNode.child = node;
-          parentNode.next = null;
-          parentNode.previous = null;
-          ditCacheMap.put(parentDN, parentNode);
-          node.parent = parentNode;
-          node = parentNode;
         }
+        node.parent = parentNode;
+        break;
       }
     }
-
-    return returnValue;
+    return null;
   }
 
   /**
@@ -284,65 +299,100 @@ public class DITCacheMap<T> extends AbstractMap<DN,T>
   @Override
   public T remove(Object key)
   {
-    T returnValue = null;
-
-    Node<T> existingNode = ditCacheMap.get((DN)key);
-    if ((existingNode != null) &&
-        (existingNode.element != null))
+    final DN dn = (DN) key;
+    final Node<T> node = ditCacheMap.get(dn);
+    if (node == null)
     {
-      returnValue = existingNode.element;
+      return null;
+    }
 
-      try
-      {
-        if (existingNode.child == null)
-        {
-          ditCacheMap.remove((DN)key);
-        }
-        else
-        {
-          existingNode.element = null;
-          return returnValue;
-        }
-      }
-      finally
-      {
-        size--;
-      }
+    final T returnValue = node.element;
+    if (returnValue == null)
+    {
+      return null;
+    }
 
-      for (DN parentDN = existingNode.dn.getParent();
-        parentDN != null;
-        parentDN = parentDN.getParent())
-      {
-        Node<T> parentNode = ditCacheMap.get(parentDN);
-        if (parentNode.child == existingNode)
-        {
-          parentNode.child = existingNode.next;
-        }
-        else
-        {
-          if (existingNode.next != null)
-          {
-            existingNode.next.previous = existingNode.previous;
-          }
-          if (existingNode.previous != null)
-          {
-            existingNode.previous.next = existingNode.next;
-          }
-        }
-        if ((parentNode.child == null) &&
-            (parentNode.element == null))
-        {
-          existingNode = ditCacheMap.remove(parentDN);
-        }
-        else
-        {
-          break;
-        }
-      }
+    // Remove element from DIT.
+    size--;
+    node.element = null;
+
+    if (node.child == null)
+    {
+      // This node is now glue, so remove it completely and fix up
+      // any other nodes which reference it.
+      ditCacheMap.remove(dn);
+      fixNodeReferences(node);
     }
 
     return returnValue;
   }
+
+
+
+  /**
+   * Remove references to a node after it has been removed.
+   * @param node The node which has just been removed.
+   */
+  private void fixNodeReferences(Node<T> node)
+  {
+    while (true)
+    {
+      // Fix siblings.
+      final Node<T> nextNode = node.next;
+      final Node<T> previousNode = node.previous;
+
+      if (nextNode != null)
+      {
+        nextNode.previous = previousNode;
+      }
+
+      if (previousNode != null)
+      {
+        previousNode.next = nextNode;
+      }
+
+      // Fix parent, if it exists.
+      final Node<T> parentNode = node.parent;
+      if (parentNode == null)
+      {
+        // Reached the top of the DIT, so no parents to fix.
+        break;
+      }
+
+      if (parentNode.child != node)
+      {
+        // The parent references another sibling and does not need
+        // fixing.
+        break;
+      }
+
+      if (nextNode != null)
+      {
+        // Update child pointer and return.
+        parentNode.child = nextNode;
+        break;
+      }
+
+      if (parentNode.element != null)
+      {
+        // Parent node is still needed as it contains data.
+        break;
+      }
+
+      // The parent node is glue so remove it.
+      ditCacheMap.remove(parentNode.dn);
+
+      // Smash pointers.
+      node.parent = null;
+      node.previous = null;
+      node.next = null;
+
+      // Continue up tree.
+      node = parentNode;
+    }
+  }
+
+
 
   /**
    * Removes a set of stored objects subordinate to subtree DN.
@@ -354,50 +404,66 @@ public class DITCacheMap<T> extends AbstractMap<DN,T>
    */
   public boolean removeSubtree(DN key, Collection<? super T> values)
   {
-    Node<T> rootNode = ditCacheMap.get(key);
-
-    if (rootNode != null)
+    final Node<T> node = ditCacheMap.remove(key);
+    if (node != null)
     {
-      if (rootNode.element != null)
-      {
-        remove(key);
-        if (values != null)
-        {
-          values.add(rootNode.element);
-        }
-      }
+      // Fix up sibling and parent references.
+      fixNodeReferences(node);
 
-      Node<T> node = rootNode.child;
-
-      while (node != null)
-      {
-        if (node.element != null)
-        {
-          remove(node.dn);
-          if (values != null)
-          {
-            values.add(node.element);
-          }
-        }
-        if (node.child != null)
-        {
-          node = node.child;
-        }
-        else
-        {
-          while ((node.next == null) &&
-                 (node.parent != rootNode))
-          {
-            node = node.parent;
-          }
-          node = node.next;
-        }
-      }
+      // Collect all elements and update the size.
+      adjustSizeAndCollectElements(node, values);
       return true;
     }
-
-    return false;
+    else
+    {
+      return false;
+    }
   }
+
+
+
+  /**
+   * Iterate through detached subtree counting and collecting any
+   * elements.
+   *
+   * @param node
+   *          The node to be collected.
+   * @param values
+   *          Collection in which to put elemenets.
+   */
+  private void adjustSizeAndCollectElements(final Node<T> node,
+      Collection<? super T> values)
+  {
+    if (node.element != null)
+    {
+      if (values != null)
+      {
+        values.add(node.element);
+      }
+      node.element = null;
+      size--;
+    }
+
+    // Repeat for each child.
+    Node<T> child = node.child;
+    while (child != null)
+    {
+      final Node<T> next = child.next;
+      adjustSizeAndCollectElements(child, values);
+      child = next;
+    }
+
+    // Smash pointers.
+    node.parent = null;
+    node.child = null;
+    node.previous = null;
+    node.next = null;
+
+    // Remove node from map.
+    ditCacheMap.remove(node.dn);
+  }
+
+
 
   /**
    * {@inheritDoc}
@@ -623,14 +689,6 @@ public class DITCacheMap<T> extends AbstractMap<DN,T>
     private DN key;
 
     /**
-     * Default constructor.
-     */
-    public DITSubtreeSet()
-    {
-      this.key = null;
-    }
-
-    /**
      * Keyed constructor.
      * @param key to construct
      *        this set from.
@@ -796,5 +854,19 @@ public class DITCacheMap<T> extends AbstractMap<DN,T>
 
       return size;
     }
+  }
+
+
+
+
+  /**
+   * Returns the size of the internal map. Used for testing purposes
+   * only.
+   *
+   * @return The size of the internal map.
+   */
+  int getMapSize()
+  {
+    return ditCacheMap.size();
   }
 }
