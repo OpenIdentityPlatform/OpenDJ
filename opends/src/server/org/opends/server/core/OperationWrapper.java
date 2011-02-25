@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -478,6 +479,42 @@ public class OperationWrapper implements Operation
   {
     operation.setSynchronizationOperation(isSynchronizationOperation);
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public final int hashCode()
+  {
+    return getClientConnection().hashCode() * (int) getOperationID();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public final boolean equals(Object obj)
+  {
+    if (this == obj)
+    {
+      return true;
+    }
+
+    if (obj instanceof Operation)
+    {
+      Operation other = (Operation) obj;
+      if (other.getClientConnection().equals(getClientConnection()))
+      {
+        return other.getOperationID() == getOperationID();
+      }
+    }
+
+    return false;
+  }
+
+
 
   /**
    * {@inheritDoc}

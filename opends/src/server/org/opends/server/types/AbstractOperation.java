@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.types;
 import org.opends.messages.Message;
@@ -1197,6 +1198,40 @@ public abstract class AbstractOperation
       postResponseCallbacks = new LinkedList<Runnable>();
     }
     postResponseCallbacks.add(callback);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public final int hashCode()
+  {
+    return clientConnection.hashCode() * (int) operationID;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public final boolean equals(Object obj)
+  {
+    if (this == obj)
+    {
+      return true;
+    }
+
+    if (obj instanceof Operation)
+    {
+      Operation other = (Operation) obj;
+      if (other.getClientConnection().equals(clientConnection))
+      {
+        return other.getOperationID() == operationID;
+      }
+    }
+
+    return false;
   }
 
 

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -74,14 +75,6 @@ public abstract class ModifyOperationWrapper extends OperationWrapper
   /**
    * {@inheritDoc}
    */
-  public boolean equals(Object obj)
-  {
-    return modify.equals(obj);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
   public DN getEntryDN()
   {
     return modify.getEntryDN();
@@ -109,14 +102,6 @@ public abstract class ModifyOperationWrapper extends OperationWrapper
   public List<RawModification> getRawModifications()
   {
     return modify.getRawModifications();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public int hashCode()
-  {
-    return modify.hashCode();
   }
 
   /**
