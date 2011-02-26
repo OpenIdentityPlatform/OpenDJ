@@ -5089,17 +5089,12 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       }
       ((DeleteMsg)msg).setEclIncludes(newattrs);
 
-      // For delete only, add the modifiersName since they are required in the
-      // ECL entry but are not part of other parts of the message
-      AttributeType atype = DirectoryServer.getAttributeType("modifiersname");
-      List<Attribute> attrs = entry.getAttribute(atype);
-      if (attrs != null)
+      // For delete only, add the Authorized DN since it's required in the
+      // ECL entry but is not part of rest of the message.
+      DN deleterDN = delOp.getAuthorizationDN();
+      if (deleterDN != null)
       {
-        for (Attribute a : attrs)
-        {
-          ((DeleteMsg)msg).setInitiatorsName(a.iterator().next().toString());
-          break;
-        }
+        ((DeleteMsg)msg).setInitiatorsName(deleterDN.toString());
       }
 
     }
