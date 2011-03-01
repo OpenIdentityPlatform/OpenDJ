@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.server;
 import static org.opends.messages.ReplicationMessages.*;
@@ -384,20 +385,21 @@ public class DraftCNDbHandler implements Runnable
             }
             else
             {
-              // let's get the eligible part of the domain
-              ServerState startSS = domain.getStartState();
-              ServerState endSS= domain.getEligibleState(crossDomainEligibleCN,
-                  true);
+              ServerState startState = domain.getStartState();
+              // We don't use the endState but it's updating CN as reading
+              ServerState endState= domain.getEligibleState(crossDomainEligibleCN,
+                  false);
 
-              ChangeNumber fcn = startSS.getMaxChangeNumber(cn.getServerId());
-              ChangeNumber lcn = endSS.getMaxChangeNumber(cn.getServerId());
+              ChangeNumber fcn = startState.getMaxChangeNumber(cn.getServerId());
 
-              // if the draftCNDb change record, is out of the eligible part
-              //  of the domain, then it can be removed.
-              if (cn.older(fcn)||cn.newer(lcn))
+              if (cn.older(fcn))
               {
                 size++;
                 cursor.delete();
+              }
+              else
+              {
+                finished = true;
               }
             }
           }

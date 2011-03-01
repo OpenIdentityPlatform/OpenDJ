@@ -128,7 +128,7 @@ public class ReplicationIterator
         try
         {
           cursor = db.openReadCursor(lastNonNullCurrentCN);
-          currentChange = cursor.next(); // can return null
+          currentChange = cursor.next();
           if (currentChange != null)
           {
             lastNonNullCurrentCN = currentChange.getChangeNumber();
