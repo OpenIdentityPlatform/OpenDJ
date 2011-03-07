@@ -21,6 +21,7 @@
 # CDDL HEADER END
 #
 #      Copyright 2006-2009 Sun Microsystems, Inc.
+#      Portions Copyright 2011 ForgeRock AS
 #
 
 dn: dc=com
@@ -40,6 +41,11 @@ dn: ou=People,o=extensible object tests,dc=example,dc=com
 ou: People
 objectclass: top
 objectclass: organizationalunit
+
+dn: o=schema structure tests,dc=example,dc=com
+o: extensible object tests
+objectclass: top
+objectclass: organization
 
 dn: o=rfc tests,dc=example,dc=com
 o: extensible object tests
