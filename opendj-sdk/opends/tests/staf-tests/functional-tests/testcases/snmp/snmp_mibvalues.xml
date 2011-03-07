@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS
  ! -->
 <stax>
 
@@ -202,12 +203,12 @@
                   dsVersion='unknown'
                   dsBuild='unknown'
 
-                dsServer = '%s %s - %s' \
-                           % (PRODUCTNAME, dsVersion.rstrip(), dsBuild)
+                dsServer = '%s - %s' \
+                           % (dsVersion.rstrip(), dsBuild)
 
                 dsServerType = DEFAULT_VALUES['dsServerType.1']
               </script>
-
+              
               <if expr="dsServerType == dsServer">
                 <sequence>
                   <script>
