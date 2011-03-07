@@ -25,6 +25,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
  ! CDDL HEADER END
  !
  !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS
  ! -->
 
 <xsl:output method="html"/>
@@ -33,9 +34,9 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
   <xsl:element name="html">
   
-    <xsl:variable name="opends-url" select="'https://opends.dev.java.net/'"/>
+    <xsl:variable name="opends-url" select="'http://www.forgerock.com/'"/>
     <xsl:variable name="opends-images" select="concat($opends-url,'public/images/')"/>
-    <xsl:variable name="opends-logo" select="concat($opends-images,'opends_logo_sm.png')"/>
+    <xsl:variable name="opends-logo" select="concat($opends-images,'opendj_logo.png')"/>
 
     <link rel="stylesheet" type="text/css" href="/branding/css/print.css" media="print"/>
 
@@ -68,7 +69,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
             <xsl:attribute name="class">
               <xsl:value-of select="'collectionheader'"/>
             </xsl:attribute>
-            <xsl:value-of select="'Test Specifications for OpenDS'"/>
+            <xsl:value-of select="'Test Specifications for OpenDJ'"/>
           </xsl:element>
         </xsl:element>
         <xsl:element name="td">
@@ -84,7 +85,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                 <xsl:value-of select="$opends-logo"/>
               </xsl:attribute>
               <xsl:attribute name="alt">
-                <xsl:value-of select="'OpenDS Logo'"/>
+                <xsl:value-of select="'OpenDJ Logo'"/>
               </xsl:attribute>
               <xsl:attribute name="align">
                 <xsl:value-of select="'middle'"/>

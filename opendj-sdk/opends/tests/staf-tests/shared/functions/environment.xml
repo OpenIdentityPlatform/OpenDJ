@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS
  ! -->
 <stax>
   
@@ -527,8 +528,8 @@
       </call>
       <call function="'copyFile'">
         {
-        'srcfile'    : '%s/opends_logo_sm.png' % TESTS_RESOURCE_DIR,
-        'destfile'   : '%s/opends_logo_sm.png' % logs.reports
+        'srcfile'    : '%s/opendj_logo.png' % TESTS_RESOURCE_DIR,
+        'destfile'   : '%s/opendj_logo.png' % logs.reports
         }
       </call>
 
