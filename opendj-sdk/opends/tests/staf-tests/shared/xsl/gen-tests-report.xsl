@@ -25,6 +25,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
  ! CDDL HEADER END
  !
  !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS
  ! -->
 
 <xsl:output method="html" version="4.0" encoding="iso-8859-1" indent="yes"/>
@@ -482,9 +483,9 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
               <xsl:value-of select="' '"/>
               <xsl:element name="a">
                 <xsl:attribute name="href">
-                  <xsl:value-of select="concat('https://opends.dev.java.net/issues/show_bug.cgi?id=',@id)"/>
+                  <xsl:value-of select="concat('http://java.net/jira/browse/OPENDS-',@id)"/>
                 </xsl:attribute>
-                <xsl:value-of select="@id"/>
+                <xsl:value-of select="concat('OPENDS-',@id)"/>
               </xsl:element>
             </xsl:for-each>
           </xsl:element>
