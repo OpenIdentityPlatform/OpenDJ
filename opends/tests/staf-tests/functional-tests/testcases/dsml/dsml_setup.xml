@@ -53,13 +53,13 @@
                 }
               </call>
 
-              <!--- In IPS mode, get OpenDS.jar from remote machine-->
+              <!--- In IPS mode, get OpenDJ.jar from remote machine-->
               <if expr="IPS_PKG == True">
                 <call function="'copyFile'">
                   {
                   'location'   : STAF_REMOTE_HOSTNAME,
-                  'srcfile'    : '%s/%s/lib/OpenDS.jar' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME),
-                  'destfile'   : '%s/dsml/STAF-INF/jars/OpenDS.jar' % local.temp,
+                  'srcfile'    : '%s/%s/lib/OpenDJ.jar' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME),
+                  'destfile'   : '%s/dsml/STAF-INF/jars/OpenDJ.jar' % local.temp,
                   'remotehost' : STAXServiceMachine
                   }
                 </call>
@@ -69,7 +69,7 @@
                       {
                       'location' : STAXServiceMachine,
                       'zipfile'  : '%s/%s' % (ZIPPATH, ZIPNAME),
-                      'file'     : '%s/lib/OpenDS.jar' % OPENDSNAME,
+                      'file'     : '%s/lib/OpenDJ.jar' % OPENDSNAME,
                       'unzipdir' : '%s/dsml' % local.temp
                       }
                     </call>
@@ -91,8 +91,8 @@
                     <call function="'copyFile'">
                       {
                       'location'   : STAXServiceMachine,
-                      'srcfile'    : '%s/dsml/%s/lib/OpenDS.jar' % (local.temp,OPENDSNAME),
-                      'destfile'   : '%s/dsml/STAF-INF/jars/OpenDS.jar' % local.temp,
+                      'srcfile'    : '%s/dsml/%s/lib/OpenDJ.jar' % (local.temp,OPENDSNAME),
+                      'destfile'   : '%s/dsml/STAF-INF/jars/OpenDJ.jar' % local.temp,
                       'remotehost' : STAXServiceMachine
                       }
                     </call>
@@ -137,7 +137,7 @@
                 else:
                   separator=':'
 
-                opendsjar='%s/dsml/STAF-INF/jars/OpenDS.jar' % local.temp
+                opendsjar='%s/dsml/STAF-INF/jars/OpenDJ.jar' % local.temp
                 emmajar='%s/dsml/STAF-INF/jars/emma.jar' % local.temp
                 dsmlclasses='%s/dsml/STAF-INF/classes' % local.temp
               </script>

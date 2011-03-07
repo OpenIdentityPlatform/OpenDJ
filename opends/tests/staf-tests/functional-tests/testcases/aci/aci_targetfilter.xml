@@ -388,7 +388,7 @@
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
                       'testString'         : 'cn:' ,
-                      'expectedResult'     : '0' }
+                      'expectedResult'     : '1' }
                 </call>
                 
                 <call function="'searchStringForSubstring'">
