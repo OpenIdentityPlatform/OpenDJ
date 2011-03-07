@@ -1,0 +1,480 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ ! 
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/CDDLv1_0.txt
+ ! or http://forgerock.org/license/CDDLv1.0.html.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ ! 
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/CDDLv1_0.txt.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2011 ForgeRock AS
+ ! -->
+<stax>
+
+  <!-- Definition of Test Cases -->             
+
+  <!--- Test Case : Schema: Modify Add Core Auxiliary Object -->          
+  <!--- Test Case information
+  #@TestMarker          Schema
+  #@TestName            Schema: Modify Add Core Auxiliary Object
+  #@TestID              Modify Add Core Auxiliary Object
+  #@TestPurpose         Add a core auxiliary schema object to an existing entry
+  #@TestPreamble
+  #@TestSteps           Modify schema object LDAP protocol by Adding Auxiliary schema object
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->                           
+  <function name="schema_structure_001" scope="local">
+    <testcase name="getTestCaseName('Modify Add Core Auxiliary Object')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <!-- Add the new account object  -->       
+            <script>
+              ldapObject=[]
+              ldapObject.append('objectclass:top')
+              ldapObject.append('objectclass:domain')
+              ldapObject.append('dc:accounts')
+           </script>
+
+            <call function="'addAnEntry'">
+              { 'dsInstanceHost' : server.host,
+                'dsInstancePort' : server.port,
+                'dsInstanceDn'   : server.dn,
+                'dsInstancePswd' : server.password,
+                'DNToAdd'        : 'dc=accounts,%s' % __baseDN,
+                'listAttributes' : ldapObject
+              }
+            </call>
+
+            <script>
+              ldapObject=[]
+              ldapObject.append('objectclass:account')
+              ldapObject.append('uid:fsmart')
+              ldapObject.append('description:New account holder')
+           </script>
+
+            <call function="'addAnEntry'">
+              { 'dsInstanceHost' : server.host,
+                'dsInstancePort' : server.port,
+                'dsInstanceDn'   : server.dn,
+                'dsInstancePswd' : server.password,
+                'DNToAdd'        : 'uid=fsmart,dc=accounts,%s' % __baseDN,
+                'listAttributes' : ldapObject
+              }
+            </call>
+            
+            <!-- Read back the new account object  -->
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : server.host ,
+                'dsInstancePort'   : server.port ,
+                'dsInstanceDn'     : server.dn ,
+                'dsInstancePswd'   : server.password ,
+                'dsBaseDN'         : 'dc=accounts,%s' % __baseDN ,
+                'dsFilter'         : 'objectclass=*'
+              }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script>
+
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'objectClass: account',
+                'searchType'     : 'substring'
+              }
+            </call>
+
+            <!-- Modify by adding an auxiliary schema object -->
+            <script>
+              ldapObject=[]
+              ldapObject.append('objectclass:simpleSecurityObject')
+              ldapObject.append('userpassword:secret12')
+           </script>
+
+            <call function="'modifyAnAttribute'">
+                { 'dsInstanceHost'         : server.host ,
+                  'dsInstancePort'         : server.port ,
+                  'dsInstanceDn'           : server.dn ,
+                  'dsInstancePswd'         : server.password ,
+                  'DNToModify'             : 'uid=fsmart,dc=accounts,%s' % __baseDN ,
+                  'listAttributes'         : ldapObject ,
+                  'changetype'             : 'add' }
+            </call>
+
+            <!-- Read back the changed object -->
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : server.host ,
+                'dsInstancePort'   : server.port ,
+                'dsInstanceDn'     : server.dn ,
+                'dsInstancePswd'   : server.password ,
+                'dsBaseDN'         : 'uid=fsmart,dc=accounts,%s' % __baseDN ,
+                'dsFilter'         : 'objectclass=*'
+              }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script>
+
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'objectClass: simpleSecurityObject',
+                'searchType'     : 'substring'
+              }
+            </call>
+
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'userPassword',
+                'searchType'     : 'substring'
+              }
+            </call>
+
+            <!-- Delete accounts objects -->
+            <call function="'ldapDeleteWithScript'">
+              { 'dsDeleteSubtree' : 'TRUE'                          ,
+                'dsInstanceHost'  : server.host                     ,
+                'dsInstancePort'  : server.port                     ,
+                'dsInstanceDn'    : server.dn                       ,
+                'dsInstancePswd'  : server.password                 ,
+                'dsDn'            : ['dc=accounts,%s' % __baseDN] ,
+                'expectedRC'      : 'noCheck'
+              }
+            </call>
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case : Schema: Modify Delete Core Auxiliary Object -->          
+  <!--- Test Case information
+  #@TestMarker          Schema
+  #@TestName            Schema: Modify Delete Core Auxiliary Object
+  #@TestID              Modify Delete Core Auxiliary Object
+  #@TestPurpose         Delete a core auxiliary schema object to an existing entry
+  #@TestPreamble
+  #@TestSteps           Modify schema object LDAP protocol by deleting Auxiliary schema object
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="schema_structure_002" scope="local">
+    <testcase name="getTestCaseName('Modify Delete Core Auxiliary Object')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <!-- Read back the new account object  -->
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : server.host ,
+                'dsInstancePort'   : server.port ,
+                'dsInstanceDn'     : server.dn ,
+                'dsInstancePswd'   : server.password ,
+                'dsBaseDN'         : 'dc=accounts,%s' % __baseDN ,
+                'dsFilter'         : 'objectclass=*',
+                'expectedRC'      : 'noCheck'
+              }
+            </call>
+
+            <if expr="RC == 32">
+
+              <sequence>
+                <!-- Add the new account object  -->       
+                <script>
+                  ldapObject=[]
+                  ldapObject.append('objectclass:top')
+                  ldapObject.append('objectclass:domain')
+                  ldapObject.append('dc:accounts')
+                </script>
+    
+                <call function="'addAnEntry'">
+                  { 'dsInstanceHost' : server.host,
+                    'dsInstancePort' : server.port,
+                    'dsInstanceDn'   : server.dn,
+                    'dsInstancePswd' : server.password,
+                    'DNToAdd'        : 'dc=accounts,%s' % __baseDN,
+                    'listAttributes' : ldapObject
+                  }
+                </call>
+
+              </sequence>
+              
+            </if>
+
+            <!-- Read back the new account object  -->
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : server.host ,
+                'dsInstancePort'   : server.port ,
+                'dsInstanceDn'     : server.dn ,
+                'dsInstancePswd'   : server.password ,
+                'dsBaseDN'         : 'uid=fsmart,dc=accounts,%s' % __baseDN ,
+                'dsFilter'         : 'objectclass=*',
+                'expectedRC'      : 'noCheck'
+              }
+            </call>
+
+            <if expr="RC == 32">
+
+              <sequence>              
+
+                <script>
+                  ldapObject=[]
+                  ldapObject.append('objectclass:account')
+                  ldapObject.append('objectclass:simpleSecurityObject')
+                  ldapObject.append('uid:fsmart')
+                  ldapObject.append('description:Another new account holder')
+                  ldapObject.append('userpassword:secret12')
+                </script>
+
+                <call function="'addAnEntry'">
+                  { 'dsInstanceHost' : server.host,
+                    'dsInstancePort' : server.port,
+                    'dsInstanceDn'   : server.dn,
+                    'dsInstancePswd' : server.password,
+                    'DNToAdd'        : 'uid=fsmart,dc=accounts,%s' % __baseDN,
+                    'listAttributes' : ldapObject
+                  }
+                </call>
+              </sequence>
+            </if>
+            
+            <!-- Read back the new account object  -->
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : server.host ,
+                'dsInstancePort'   : server.port ,
+                'dsInstanceDn'     : server.dn ,
+                'dsInstancePswd'   : server.password ,
+                'dsBaseDN'         : 'dc=accounts,%s' % __baseDN ,
+                'dsFilter'         : 'objectclass=*'
+              }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script>
+
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'objectClass: account',
+                'searchType'     : 'substring'
+              }
+            </call>
+
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'objectClass: simpleSecurityObject',
+                'searchType'     : 'substring'
+              }
+            </call>
+
+            <!-- Modify by adding an auxiliary schema object -->
+            <script>
+              ldapObject=[]
+              ldapObject.append('objectclass:simpleSecurityObject')
+              ldapObject.append('userpassword:secret12')
+           </script>
+
+            <call function="'modifyAnAttribute'">
+                { 'dsInstanceHost'         : server.host ,
+                  'dsInstancePort'         : server.port ,
+                  'dsInstanceDn'           : server.dn ,
+                  'dsInstancePswd'         : server.password ,
+                  'DNToModify'             : 'uid=fsmart,dc=accounts,%s' % __baseDN ,
+                  'listAttributes'         : ldapObject ,
+                  'changetype'             : 'delete' }
+            </call>
+
+            <!-- Read back the changed object -->
+            <call function="'ldapSearchWithScript'">
+              { 'dsInstanceHost'   : server.host ,
+                'dsInstancePort'   : server.port ,
+                'dsInstanceDn'     : server.dn ,
+                'dsInstancePswd'   : server.password ,
+                'dsBaseDN'         : 'uid=fsmart,dc=accounts,%s' % __baseDN ,
+                'dsFilter'         : 'objectclass=*'
+              }
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script>
+
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'objectClass: simpleSecurityObject',
+                'searchType'     : 'substring' ,
+                'expectedRC'     : 1
+              }
+            </call>
+
+            <call function="'searchString'">
+              { 'returnString'   : returnString ,
+                'expectedString' : 'userPassword',
+                'searchType'     : 'substring',
+                'expectedRC'     : 1
+              }
+            </call>
+
+            <!-- Delete accounts objects -->
+            <call function="'ldapDeleteWithScript'">
+              { 'dsDeleteSubtree' : 'TRUE'                          ,
+                'dsInstanceHost'  : server.host                     ,
+                'dsInstancePort'  : server.port                     ,
+                'dsInstanceDn'    : server.dn                       ,
+                'dsInstancePswd'  : server.password                 ,
+                'dsDn'            : ['dc=accounts,%s' % __baseDN] ,
+                'expectedRC'      : 'noCheck'
+              }
+            </call>
+               
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case : Schema: Add Structural Schema Entries -->          
+  <!--- Test Case information
+  #@TestMarker          Schema
+  #@TestName            Schema: Add Structural Schema Entries
+  #@TestID              Test
+  #@TestPurpose         Add Structural schema entries
+  #@TestPreamble
+  #@TestSteps           Add over LDAP protocol Structural schema entries
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->                           
+  <function name="schema_structure_003" scope="local">
+    <testcase name="getTestCaseName('Structural Object Superclass Chain')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <!-- Define a custom object user account-->
+            <script>
+              schema=[]
+              schema.append('attributeTypes: ( accountnameattr-oid NAME \'account-name\' )')
+              schema.append('attributeTypes: ( accountnumattr-oid NAME \'account-num\' )')
+              schema.append('attributeTypes: ( accounttypeattr-oid NAME \'account-type\' )')
+              schema.append('objectClasses: ( accountoc-oid NAME \'bankaccount\' SUP Person STRUCTURAL MUST account-name MAY account-number account-type)')
+            </script>
+
+            <!-- Add a custom object user account-->
+            <call function="'modifyAnAttribute'">
+              { 'dsInstanceHost' : server.host      ,
+                'dsInstancePort' : server.port      ,
+                'dsInstanceDn'   : server.dn        ,
+                'dsInstancePswd' : server.password  ,
+                'DNToModify'     : 'cn=schema'      ,
+                'listAttributes' : schema           ,
+                'changetype'     : 'add'
+              }
+            </call>
+
+            <!-- Add the new account object  -->       
+            <script>
+              ldapObject=[]
+              ldapObject.append('objectclass:top')
+              ldapObject.append('objectclass:domain')
+              ldapObject.append('dc:accounts')
+           </script>
+
+            <call function="'addAnEntry'">
+              { 'dsInstanceHost' : server.host,
+                'dsInstancePort' : server.port,
+                'dsInstanceDn'   : server.dn,
+                'dsInstancePswd' : server.password,
+                'DNToAdd'        : 'dc=accounts,dc=example,dc=com',
+                'listAttributes' : ldapObject
+              }
+            </call>
+
+            <script>
+              ldapObject=[]
+              ldapObject.append('objectclass:bankaccount')
+              ldapObject.append('account-name: Mr Finbar Soap')
+              ldapObject.append('cn: Finbar Soap')
+              ldapObject.append('sn: Soap')
+           </script>
+
+            <call function="'addAnEntry'">
+              { 'dsInstanceHost' : server.host,
+                'dsInstancePort' : server.port,
+                'dsInstanceDn'   : server.dn,
+                'dsInstancePswd' : server.password,
+                'DNToAdd'        : 'cn=dc=accounts,dc=example,dc=com',
+                'listAttributes' : ldapObject
+              }
+            </call>
+            
+            <!-- Read back the new account object  -->            
+
+            <!-- Add a new auxillary schema object -->
+
+            <!-- Read back the changed object -->
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch> 
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+   
+</stax>

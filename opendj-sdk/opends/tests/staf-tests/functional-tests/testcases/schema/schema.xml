@@ -53,6 +53,7 @@
               suiteList.append('rfc')
               suiteList.append('dynamic')
               suiteList.append('solaris')
+              suiteList.append('structure')
             </script>
     
             <!-- Run the test suites -->
