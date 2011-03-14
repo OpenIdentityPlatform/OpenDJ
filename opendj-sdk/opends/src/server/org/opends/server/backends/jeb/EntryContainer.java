@@ -1991,7 +1991,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
           EntryID entryID = new EntryID(data);
 
           // Invoke any subordinate delete plugins on the entry.
-          if (!deleteOperation.isSynchronizationOperation())
+          if ((deleteOperation != null) &&
+              !deleteOperation.isSynchronizationOperation())
           {
             Entry subordinateEntry = id2entry.get(
                     txn, entryID, LockMode.DEFAULT);
