@@ -435,8 +435,9 @@ public class LDAPReplicationDomain extends ReplicationDomain
   {
     protected ServerStateFlush()
     {
-      super("Replication State Saver for server id " +
-            serverId + " and domain " + baseDn.toString());
+      super("Replica DS(" + serverId
+          + ") state checkpointer for domain \"" + baseDn.toString()
+          + "\"");
     }
 
     /**
@@ -479,10 +480,14 @@ public class LDAPReplicationDomain extends ReplicationDomain
   private class RSUpdater extends DirectoryThread
   {
     private final ChangeNumber startChangeNumber;
+
+
+
     protected RSUpdater(ChangeNumber replServerMaxChangeNumber)
     {
-      super("Replication Server Updater for server id " +
-            serverId + " and domain " + baseDn.toString());
+      super("Replica DS(" + serverId
+          + ") missing change publisher for domain \""
+          + baseDn.toString() + "\"");
       this.startChangeNumber = replServerMaxChangeNumber;
     }
 

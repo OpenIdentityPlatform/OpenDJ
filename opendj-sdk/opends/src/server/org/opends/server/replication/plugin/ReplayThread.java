@@ -67,7 +67,7 @@ public class ReplayThread extends DirectoryThread
    */
   public ReplayThread(BlockingQueue<UpdateToReplay> updateToReplayQueue)
   {
-     super("Replication Replay thread " + count++);
+     super("Replica replay thread " + count++);
      this.updateToReplayQueue = updateToReplayQueue;
   }
 

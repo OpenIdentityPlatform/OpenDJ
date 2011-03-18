@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -668,15 +669,19 @@ public class DataServerHandler extends ServerHandler
   @Override
   public String toString()
   {
-    String localString;
     if (serverId != 0)
     {
-      localString = "Directory Server ";
-      localString += serverId + " " + serverURL + " " + getServiceId();
-    } else
-      localString = "Unknown server";
-
-    return localString;
+      StringBuilder builder = new StringBuilder("Replica DS(");
+      builder.append(serverId);
+      builder.append(") for domain \"");
+      builder.append(replicationServerDomain.getBaseDn());
+      builder.append("\"");
+      return builder.toString();
+    }
+    else
+    {
+      return "Unknown server";
+    }
   }
 
   /**
