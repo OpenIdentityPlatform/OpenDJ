@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="unique-attribute-plugin"
   plural-name="unique-attribute-plugins"
@@ -62,6 +63,9 @@
         <adm:value>preoperationadd</adm:value>
         <adm:value>preoperationmodify</adm:value>
         <adm:value>preoperationmodifydn</adm:value>
+        <adm:value>postoperationadd</adm:value>
+        <adm:value>postoperationmodify</adm:value>
+        <adm:value>postoperationmodifydn</adm:value>
         <adm:value>postsynchronizationadd</adm:value>
         <adm:value>postsynchronizationmodify</adm:value>
         <adm:value>postsynchronizationmodifydn</adm:value>
