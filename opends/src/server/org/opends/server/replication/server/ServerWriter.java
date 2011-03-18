@@ -63,24 +63,25 @@ public class ServerWriter extends DirectoryThread
   private final ReplicationServerDomain replicationServerDomain;
   private final short protocolVersion;
 
+
+
   /**
-   * Create a ServerWriter.
-   * Then ServerWriter then waits on the ServerHandler for new updates
-   * and forward them to the server
+   * Create a ServerWriter. Then ServerWriter then waits on the ServerHandler
+   * for new updates and forward them to the server
    *
-   * @param session the ProtocolSession that will be used to send updates.
-   * @param serverId the Identifier of the server.
-   * @param handler handler for which the ServerWriter is created.
-   * @param replicationServerDomain The ReplicationServerDomain of this
-   *        ServerWriter.
+   * @param session
+   *          the ProtocolSession that will be used to send updates.
+   * @param handler
+   *          handler for which the ServerWriter is created.
+   * @param replicationServerDomain
+   *          The ReplicationServerDomain of this ServerWriter.
    */
-  public ServerWriter(ProtocolSession session, int serverId,
-                      ServerHandler handler,
-                      ReplicationServerDomain replicationServerDomain)
+  public ServerWriter(ProtocolSession session, ServerHandler handler,
+      ReplicationServerDomain replicationServerDomain)
   {
-    super("Replication Writer Thread for handler of " +
-        handler.toString() +
-        " in " + replicationServerDomain);
+    super("Replication server RS(" + handler.getReplicationServerId()
+        + ") writing to " + handler.toString() + " at "
+        + session.getReadableRemoteAddress());
 
     this.session = session;
     this.handler = handler;

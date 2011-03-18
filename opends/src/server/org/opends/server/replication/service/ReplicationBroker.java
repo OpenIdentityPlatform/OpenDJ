@@ -2247,12 +2247,16 @@ public class ReplicationBroker
     // Start a heartbeat monitor thread.
     if (heartbeatInterval > 0)
     {
-      heartbeatMonitor =
-        new HeartbeatMonitor("Replication Heartbeat Monitor on RS " +
-        getReplicationServer() + " " + rsServerId + " for " + baseDn +
-        " in DS " + serverId,
-        session, heartbeatInterval, (protocolVersion >=
-        ProtocolVersion.REPLICATION_PROTOCOL_V4));
+      String threadName = "Replica DS("
+          + this.getServerId() + ") heartbeat monitor for domain \""
+          + this.baseDn + "\" from RS(" + this.getRsServerId()
+          + ") at " + session.getReadableRemoteAddress();
+
+      heartbeatMonitor = new HeartbeatMonitor(
+          threadName,
+          session,
+          heartbeatInterval,
+          (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V4));
       heartbeatMonitor.start();
     }
   }
@@ -3142,11 +3146,15 @@ public class ReplicationBroker
     // Start a CN heartbeat thread.
     if (changeTimeHeartbeatSendInterval > 0)
     {
-      ctHeartbeatPublisherThread =
-        new CTHeartbeatPublisherThread(
-        "Replication CN Heartbeat sender for " +
-        baseDn + " with " + getReplicationServer(),
-        session, changeTimeHeartbeatSendInterval, serverId);
+      String threadName = "Replica DS("
+          + this.getServerId()
+          + ") change time heartbeat publisher for domain \""
+          + this.baseDn + "\" to RS(" + this.getRsServerId()
+          + ") at " + session.getReadableRemoteAddress();
+
+      ctHeartbeatPublisherThread = new CTHeartbeatPublisherThread(
+          threadName, session, changeTimeHeartbeatSendInterval,
+          serverId);
       ctHeartbeatPublisherThread.start();
     } else
     {

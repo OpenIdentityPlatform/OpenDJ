@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.server;
 import static org.opends.messages.ReplicationMessages.*;
@@ -79,7 +80,7 @@ public class ECLServerWriter extends ServerWriter
   public ECLServerWriter(ProtocolSession session, ECLServerHandler handler,
       ReplicationServerDomain replicationServerDomain)
   {
-    super(session, -1, handler, replicationServerDomain);
+    super(session, handler, replicationServerDomain);
 
     setName("Replication ECL Writer Thread for operation " +
         handler.getOperationId());

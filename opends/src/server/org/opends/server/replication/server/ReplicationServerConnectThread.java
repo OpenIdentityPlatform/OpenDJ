@@ -45,15 +45,13 @@ public class ReplicationServerConnectThread extends DirectoryThread
    * Creates a new instance of this directory thread with the
    * specified name.
    *
-   * @param  threadName  The human-readable name to use for this
-   *                     thread for debugging purposes.
    * @param  server      The ReplicationServer that will be called to
    *                     handle the connections.
    */
-  public ReplicationServerConnectThread(
-      String threadName, ReplicationServer server)
+  public ReplicationServerConnectThread(ReplicationServer server)
   {
-    super(threadName);
+    super("Replication server RS(" + server.getServerId()
+        + ") connector thread");
     this.server = server;
   }
 

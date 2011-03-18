@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.replication.protocol;
@@ -53,12 +54,6 @@ import java.io.IOException;
  */
 public class ReplSessionSecurity
 {
-  /**
-   * Whether the replication server should listen on a secure port.
-   * Set false for test purposes only.
-   */
-  private static boolean useSSL = true;
-
   /**
    * Whether replication sessions use SSL encryption.
    */
@@ -155,7 +150,7 @@ public class ReplSessionSecurity
   private boolean isSecurePort(String serverURL)
   {
     // Always true unless changed for test purposes.
-    return useSSL;
+    return true;
   }
 
   /**
@@ -236,56 +231,50 @@ public class ReplSessionSecurity
   public ProtocolSession createServerSession(Socket socket, int soTimeout)
     throws ConfigException, IOException
   {
-    if (useSSL)
+    try
     {
-      try
-      {
-        // Create a new SSL context every time to make sure we pick up the
-        // latest contents of the trust store.
-        CryptoManager cryptoManager = DirectoryConfig.getCryptoManager();
-        SSLContext sslContext = cryptoManager.getSslContext(sslCertNickname);
-        SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+      // Create a new SSL context every time to make sure we pick up the
+      // latest contents of the trust store.
+      CryptoManager cryptoManager = DirectoryConfig.getCryptoManager();
+      SSLContext sslContext = cryptoManager.getSslContext(sslCertNickname);
+      SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
-        SSLSocket secureSocket = (SSLSocket)
-          sslSocketFactory.createSocket(socket,
+      SSLSocket secureSocket = (SSLSocket)
+      sslSocketFactory.createSocket(socket,
           socket.getInetAddress().getHostName(),
           socket.getPort(), false);
-        secureSocket.setUseClientMode(false);
-        secureSocket.setNeedClientAuth(true);
-        secureSocket.setSoTimeout(soTimeout);
+      secureSocket.setUseClientMode(false);
+      secureSocket.setNeedClientAuth(true);
+      secureSocket.setSoTimeout(soTimeout);
 
-        if (sslProtocols != null)
-        {
-          secureSocket.setEnabledProtocols(sslProtocols);
-        }
-
-        if (sslCipherSuites != null)
-        {
-          secureSocket.setEnabledCipherSuites(sslCipherSuites);
-        }
-
-        // Force TLS negotiation now.
-        secureSocket.startHandshake();
-
-//      SSLSession sslSession = secureSocket.getSession();
-//      System.out.println("Peer      = " + sslSession.getPeerHost() + ":" +
-//           sslSession.getPeerPort());
-//      System.out.println("Principal = " + sslSession.getPeerPrincipal());
-
-        return new TLSSocketSession(socket, secureSocket);
-      } catch (SSLException e)
+      if (sslProtocols != null)
       {
-        // This is probably a connection attempt from an unexpected client
-        // log that to warn the administrator.
-        InetAddress remHost = socket.getInetAddress();
-        Message message = NOTE_SSL_SERVER_CON_ATTEMPT_ERROR.get(remHost.
-          getHostName(), remHost.getHostAddress(), e.getLocalizedMessage());
-        logError(message);
-        return null;
+        secureSocket.setEnabledProtocols(sslProtocols);
       }
-    } else
+
+      if (sslCipherSuites != null)
+      {
+        secureSocket.setEnabledCipherSuites(sslCipherSuites);
+      }
+
+      // Force TLS negotiation now.
+      secureSocket.startHandshake();
+
+      // SSLSession sslSession = secureSocket.getSession();
+      // System.out.println("Peer      = " + sslSession.getPeerHost() + ":" +
+      //   sslSession.getPeerPort());
+      // System.out.println("Principal = " + sslSession.getPeerPrincipal());
+
+      return new TLSSocketSession(socket, secureSocket);
+    } catch (SSLException e)
     {
-      return new SocketSession(socket);
+      // This is probably a connection attempt from an unexpected client
+      // log that to warn the administrator.
+      InetAddress remHost = socket.getInetAddress();
+      Message message = NOTE_SSL_SERVER_CON_ATTEMPT_ERROR.get(remHost.
+          getHostName(), remHost.getHostAddress(), e.getLocalizedMessage());
+      logError(message);
+      return null;
     }
   }
 

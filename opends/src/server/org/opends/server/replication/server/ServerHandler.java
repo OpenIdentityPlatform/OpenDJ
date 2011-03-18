@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -375,8 +376,8 @@ public abstract class ServerHandler extends MessageHandler
       // sendWindow MUST be created before starting the writer
       sendWindow = new Semaphore(sendWindowSize);
 
-      writer = new ServerWriter(session, serverId,
-          this, replicationServerDomain);
+      writer = new ServerWriter(session, this,
+          replicationServerDomain);
       reader = new ServerReader(session, this);
 
       reader.start();
@@ -385,11 +386,12 @@ public abstract class ServerHandler extends MessageHandler
       // Create a thread to send heartbeat messages.
       if (heartbeatInterval > 0)
       {
-        heartbeatThread = new HeartbeatThread(
-            "Replication Heartbeat to " + this +
-            " in RS " + replicationServerDomain.getReplicationServer().
-            getMonitorInstanceName(),
-            session, heartbeatInterval / 3);
+        String threadName = "Replication server RS("
+            + this.getReplicationServerId()
+            + ") heartbeat publisher to " + this.toString() + " at "
+            + session.getReadableRemoteAddress();
+        heartbeatThread = new HeartbeatThread(threadName, session,
+            heartbeatInterval / 3);
         heartbeatThread.start();
       }
     }

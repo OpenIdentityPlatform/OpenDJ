@@ -62,17 +62,21 @@ public class ServerReader extends DirectoryThread
   private final ProtocolSession session;
   private final ServerHandler handler;
 
+
+
   /**
    * Constructor for the LDAP server reader part of the replicationServer.
    *
-   * @param session The ProtocolSession from which to read the data.
-   * @param handler The server handler for this server reader.
+   * @param session
+   *          The ProtocolSession from which to read the data.
+   * @param handler
+   *          The server handler for this server reader.
    */
-  public ServerReader(ProtocolSession session,
-      ServerHandler handler)
+  public ServerReader(ProtocolSession session, ServerHandler handler)
   {
-    super("Replication Reader Thread for RS handler " +
-        handler.getMonitorInstanceName());
+    super("Replication server RS(" + handler.getReplicationServerId()
+        + ") reading from " + handler.toString() + " at "
+        + session.getReadableRemoteAddress());
     this.session = session;
     this.handler = handler;
   }

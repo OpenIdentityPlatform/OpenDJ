@@ -202,8 +202,9 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   {
     this.baseDn = baseDn;
     this.replicationServer = replicationServer;
-    this.assuredTimeoutTimer = new Timer("Replication Assured Timer for " +
-      baseDn + " in RS " + replicationServer.getServerId(), true);
+    this.assuredTimeoutTimer = new Timer("Replication server RS("
+        + replicationServer.getServerId()
+        + ") assured timer for domain \"" + baseDn + "\"", true);
 
     DirectoryServer.registerMonitorProvider(this);
   }

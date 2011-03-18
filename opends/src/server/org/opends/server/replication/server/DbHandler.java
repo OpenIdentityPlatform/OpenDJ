@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.server;
 import org.opends.messages.MessageBuilder;
@@ -152,9 +153,10 @@ public class DbHandler implements Runnable
     db = new ReplicationDB(id, baseDn, replicationServer, dbenv);
     firstChange = db.readFirstChange();
     lastChange = db.readLastChange();
-    thread = new DirectoryThread(this,
-      "Replication Server db for DS " + id + " and " + baseDn + " in RS " +
-      replicationServer.getServerId());
+    thread = new DirectoryThread(this, "Replication server RS("
+        + replicationServer.getServerId()
+        + ") changelog checkpointer for Replica DS(" + id
+        + ") for domain \"" + baseDn + "\"");
     thread.start();
 
     DirectoryServer.deregisterMonitorProvider(

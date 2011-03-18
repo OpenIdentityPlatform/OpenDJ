@@ -80,9 +80,10 @@ public class MonitoringPublisher extends DirectoryThread
   public MonitoringPublisher(ReplicationServerDomain replicationServerDomain,
     long period)
   {
-    super("Monitoring publisher for " +
-      replicationServerDomain.getBaseDn() + " in RS " +
-      replicationServerDomain.getReplicationServer().getServerId());
+    super("Replication server RS("
+        + replicationServerDomain.getReplicationServer()
+            .getServerId() + ") monitor publisher for domain \""
+        + replicationServerDomain.getBaseDn() + "\"");
 
     this.replicationServerDomain = replicationServerDomain;
     this.period = period;

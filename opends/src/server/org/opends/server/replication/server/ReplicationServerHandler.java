@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -815,14 +816,19 @@ public class ReplicationServerHandler extends ServerHandler
   @Override
   public String toString()
   {
-    String localString;
     if (serverId != 0)
     {
-      localString = "Replication Server ";
-      localString += serverId + " " + serverURL + " " + getServiceId();
-    } else
-      localString = "Unknown server";
-    return localString;
+      StringBuilder builder = new StringBuilder("Replication server RS(");
+      builder.append(serverId);
+      builder.append(") for domain \"");
+      builder.append(replicationServerDomain.getBaseDn());
+      builder.append("\"");
+      return builder.toString();
+    }
+    else
+    {
+      return "Unknown server";
+    }
   }
   /**
    * Gets the status of the connected DS.

@@ -135,7 +135,7 @@ public class ReplicationServer
           new ConcurrentHashMap<String, ReplicationServerDomain>();
 
   private String localURL = "null";
-  private boolean shutdown = false;
+  private volatile boolean shutdown = false;
   private ReplicationDbEnv dbEnv;
   private int rcvWindow;
   private int queueSize;
@@ -336,11 +336,10 @@ public class ReplicationServer
       // Read incoming messages and create LDAP or ReplicationServer listener
       // and Publisher.
 
-      ProtocolSession session;
-      Socket newSocket = null;
-
       try
       {
+        ProtocolSession session;
+        Socket newSocket = null;
         try
         {
           newSocket = listenSocket.accept();
@@ -586,18 +585,14 @@ public class ReplicationServer
       if (debugEnabled())
         TRACER.debugInfo("RS " +getMonitorInstanceName()+
             " creates connect thread");
-      connectThread =
-        new ReplicationServerConnectThread("Replication Server Connect " +
-        serverId , this);
+      connectThread = new ReplicationServerConnectThread(this);
       connectThread.start();
 
       if (debugEnabled())
         TRACER.debugInfo("RS " +getMonitorInstanceName()+
             " creates listen thread");
 
-      listenThread =
-        new ReplicationServerListenThread("Replication Server Listener " +
-        serverId , this);
+      listenThread = new ReplicationServerListenThread(this);
       listenThread.start();
 
       // Creates the ECL workflow elem so that DS (LDAPReplicationDomain)
@@ -1027,9 +1022,7 @@ public class ReplicationServer
         listenSocket = new ServerSocket();
         listenSocket.bind(new InetSocketAddress(replicationPort));
 
-        listenThread =
-          new ReplicationServerListenThread(
-              "Replication Server Listener", this);
+        listenThread = new ReplicationServerListenThread(this);
         listenThread.start();
       }
       catch (IOException e)

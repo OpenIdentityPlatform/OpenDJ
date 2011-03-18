@@ -31,7 +31,7 @@ import org.opends.server.api.DirectoryThread;
 
 /**
  * This Class is used to create a thread that is responsible for listening
- * on the Replication Server thread and accept new incomng connections
+ * on the Replication Server thread and accept new incoming connections
  * from other replication servers or from LDAP servers.
  */
 public class ReplicationServerListenThread extends DirectoryThread
@@ -45,15 +45,14 @@ public class ReplicationServerListenThread extends DirectoryThread
    * Creates a new instance of this directory thread with the
    * specified name.
    *
-   * @param  threadName  The human-readable name to use for this
-   *                     thread for debugging purposes.
    * @param  server      The ReplicationServer that will be called to
    *                     handle the connections.
    */
-  public ReplicationServerListenThread(
-      String threadName, ReplicationServer server)
+  public ReplicationServerListenThread(ReplicationServer server)
   {
-    super(threadName);
+    super("Replication server RS(" + server.getServerId()
+        + ") connection listener on port "
+        + server.getReplicationPort());
     this.server = server;
   }
 
