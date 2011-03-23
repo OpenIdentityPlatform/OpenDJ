@@ -28,77 +28,104 @@
 
 package org.opends.server.replication.protocol;
 
-import static org.opends.server.loggers.ErrorLogger.logError;
+
+
 import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.loggers.ErrorLogger.logError;
 
-import org.opends.messages.Message;
-import org.opends.server.types.DirectoryConfig;
-import org.opends.server.types.CryptoManager;
-import org.opends.server.config.ConfigException;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.util.SortedSet;
 
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
-import java.util.SortedSet;
-import java.net.Socket;
-import java.net.InetAddress;
-import java.io.IOException;
+
+import org.opends.messages.Message;
+import org.opends.server.config.ConfigException;
+import org.opends.server.types.CryptoManager;
+import org.opends.server.types.DirectoryConfig;
+
+
 
 /**
  * This class represents the security configuration for replication protocol
  * sessions. It contains all the configuration required to use SSL, and it
  * determines whether encryption should be enabled for a session to a given
  * replication server.
- *
  */
-public class ReplSessionSecurity
+public final class ReplSessionSecurity
 {
   /**
    * Whether replication sessions use SSL encryption.
    */
-  private boolean sslEncryption;
+  private final boolean sslEncryption;
 
   /**
    * The name of the local certificate to use, or null if none is specified.
    */
-  private String sslCertNickname;
+  private final String sslCertNickname;
 
   /**
    * The set of enabled SSL protocols, or null for the default set.
    */
-  private String sslProtocols[];
+  private final String sslProtocols[];
 
   /**
    * The set of enabled SSL cipher suites, or null for the default set.
    */
-  private String sslCipherSuites[];
+  private final String sslCipherSuites[];
 
   /**
-   * The default soTimeout value to be used at handshake phases.
-   * (DS<->RS and RS<->RS)
+   * The default soTimeout value to be used at handshake phases. (DS<->RS and
+   * RS<->RS)
    */
   public static final int HANDSHAKE_TIMEOUT = 4000;
+
+
+
+  /**
+   * Create a ReplSessionSecurity instance from a provided multimaster domain
+   * configuration.
+   *
+   * @throws ConfigException
+   *           If the supplied configuration was not valid.
+   */
+  public ReplSessionSecurity() throws ConfigException
+  {
+    // Currently use global settings from the crypto manager.
+    this(DirectoryConfig.getCryptoManager().getSslCertNickname(),
+        DirectoryConfig.getCryptoManager().getSslProtocols(),
+        DirectoryConfig.getCryptoManager().getSslCipherSuites(),
+        DirectoryConfig.getCryptoManager().isSslEncryption());
+  }
+
+
 
   /**
    * Create a ReplSessionSecurity instance from the supplied configuration
    * values.
    *
-   * @param sslCertNickname The name of the local certificate to use, or null
-   *                        if none is specified.
-   * @param sslProtocols    The protocols that should be enabled, or null if
-   *                        the default protocols should be used.
-   * @param sslCipherSuites The cipher suites that should be enabled, or null
-   *                        if the default cipher suites should be used.
-   * @param sslEncryption   Whether replication sessions use SSL encryption.
-   *
-   * @throws ConfigException    If the supplied configuration was not valid.
+   * @param sslCertNickname
+   *          The name of the local certificate to use, or null if none is
+   *          specified.
+   * @param sslProtocols
+   *          The protocols that should be enabled, or null if the default
+   *          protocols should be used.
+   * @param sslCipherSuites
+   *          The cipher suites that should be enabled, or null if the default
+   *          cipher suites should be used.
+   * @param sslEncryption
+   *          Whether replication sessions use SSL encryption.
+   * @throws ConfigException
+   *           If the supplied configuration was not valid.
    */
-  public ReplSessionSecurity(String sslCertNickname,
-    SortedSet<String> sslProtocols,
-    SortedSet<String> sslCipherSuites,
-    boolean sslEncryption)
-    throws ConfigException
+  public ReplSessionSecurity(final String sslCertNickname,
+      final SortedSet<String> sslProtocols,
+      final SortedSet<String> sslCipherSuites,
+      final boolean sslEncryption) throws ConfigException
   {
     if (sslProtocols == null || sslProtocols.size() == 0)
     {
@@ -124,76 +151,46 @@ public class ReplSessionSecurity
     this.sslCertNickname = sslCertNickname;
   }
 
-  /**
-   * Create a ReplSessionSecurity instance from a provided multimaster domain
-   * configuration.
-   *
-   * @throws ConfigException If the supplied configuration was not valid.
-   */
-  public ReplSessionSecurity()
-    throws ConfigException
-  {
-    // Currently use global settings from the crypto manager.
-    this(DirectoryConfig.getCryptoManager().getSslCertNickname(),
-      DirectoryConfig.getCryptoManager().getSslProtocols(),
-      DirectoryConfig.getCryptoManager().getSslCipherSuites(),
-      DirectoryConfig.getCryptoManager().isSslEncryption());
-  }
 
-  /**
-   * Determine whether a given replication server is listening on a secure
-   * port.
-   * @param serverURL The replication server URL.
-   * @return true if the given replication server is listening on a secure
-   *         port, or false if it is listening on a non-secure port.
-   */
-  private boolean isSecurePort(String serverURL)
-  {
-    // Always true unless changed for test purposes.
-    return true;
-  }
-
-  /**
-   * Determine whether sessions to a given replication server should be
-   * encrypted.
-   * @param serverURL The replication server URL.
-   * @return true if sessions to the given replication server should be
-   *         encrypted, or false if they should not be encrypted.
-   */
-  public boolean isSslEncryption(String serverURL)
-  {
-    // Currently use global settings from the crypto manager.
-    return sslEncryption;
-  }
 
   /**
    * Create a new protocol session in the client role on the provided socket.
-   * @param serverURL The remote replication server to which the socket is
-   *                  connected.
-   * @param socket The connected socket.
-   * @param soTimeout The socket timeout option to use for the protocol session.
+   *
+   * @param serverURL
+   *          The remote replication server to which the socket is connected.
+   * @param socket
+   *          The connected socket.
+   * @param soTimeout
+   *          The socket timeout option to use for the protocol session.
    * @return The new protocol session.
-   * @throws ConfigException If the protocol session could not be established
-   *                         due to a configuration problem.
-   * @throws IOException     If the protocol session could not be established
-   *                         for some other reason.
+   * @throws ConfigException
+   *           If the protocol session could not be established due to a
+   *           configuration problem.
+   * @throws IOException
+   *           If the protocol session could not be established for some other
+   *           reason.
    */
-  public ProtocolSession createClientSession(String serverURL, Socket socket,
-    int soTimeout)
-    throws ConfigException, IOException
+  public ProtocolSession createClientSession(final String serverURL,
+      final Socket socket, final int soTimeout)
+      throws ConfigException, IOException
   {
-    boolean useSSL = isSecurePort(serverURL);
-    if (useSSL)
+    boolean hasCompleted = false;
+    SSLSocket secureSocket = null;
+
+    try
     {
       // Create a new SSL context every time to make sure we pick up the
       // latest contents of the trust store.
-      CryptoManager cryptoManager = DirectoryConfig.getCryptoManager();
-      SSLContext sslContext = cryptoManager.getSslContext(sslCertNickname);
-      SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+      final CryptoManager cryptoManager = DirectoryConfig
+          .getCryptoManager();
+      final SSLContext sslContext = cryptoManager
+          .getSslContext(sslCertNickname);
+      final SSLSocketFactory sslSocketFactory = sslContext
+          .getSocketFactory();
 
-      SSLSocket secureSocket = (SSLSocket) sslSocketFactory.createSocket(socket,
-        socket.getInetAddress().getHostName(),
-        socket.getPort(), false);
+      secureSocket = (SSLSocket) sslSocketFactory.createSocket(
+          socket, socket.getInetAddress().getHostName(),
+          socket.getPort(), false);
       secureSocket.setUseClientMode(true);
       secureSocket.setSoTimeout(soTimeout);
 
@@ -209,39 +206,73 @@ public class ReplSessionSecurity
 
       // Force TLS negotiation now.
       secureSocket.startHandshake();
-
+      hasCompleted = true;
       return new TLSSocketSession(socket, secureSocket);
     }
-    else
+    finally
     {
-      return new SocketSession(socket);
+      if (!hasCompleted)
+      {
+        try
+        {
+          socket.close();
+        }
+        catch (final Exception ignored)
+        {
+          // Ignore.
+        }
+
+        if (secureSocket != null)
+        {
+          try
+          {
+            secureSocket.close();
+          }
+          catch (final Exception ignored)
+          {
+            // Ignore.
+          }
+        }
+      }
     }
   }
 
+
+
   /**
    * Create a new protocol session in the server role on the provided socket.
-   * @param socket The connected socket.
+   *
+   * @param socket
+   *          The connected socket.
+   * @param soTimeout
+   *          The socket timeout option to use for the protocol session.
    * @return The new protocol session.
-   * @param soTimeout The socket timeout option to use for the protocol session.
-   * @throws ConfigException If the protocol session could not be established
-   *                         due to a configuration problem.
-   * @throws IOException     If the protocol session could not be established
-   *                         for some other reason.
+   * @throws ConfigException
+   *           If the protocol session could not be established due to a
+   *           configuration problem.
+   * @throws IOException
+   *           If the protocol session could not be established for some other
+   *           reason.
    */
-  public ProtocolSession createServerSession(Socket socket, int soTimeout)
-    throws ConfigException, IOException
+  public ProtocolSession createServerSession(final Socket socket,
+      final int soTimeout) throws ConfigException, IOException
   {
+    boolean hasCompleted = false;
+    SSLSocket secureSocket = null;
+
     try
     {
       // Create a new SSL context every time to make sure we pick up the
       // latest contents of the trust store.
-      CryptoManager cryptoManager = DirectoryConfig.getCryptoManager();
-      SSLContext sslContext = cryptoManager.getSslContext(sslCertNickname);
-      SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+      final CryptoManager cryptoManager = DirectoryConfig
+          .getCryptoManager();
+      final SSLContext sslContext = cryptoManager
+          .getSslContext(sslCertNickname);
+      final SSLSocketFactory sslSocketFactory = sslContext
+          .getSocketFactory();
 
-      SSLSocket secureSocket = (SSLSocket)
-      sslSocketFactory.createSocket(socket,
-          socket.getInetAddress().getHostName(),
+      secureSocket = (SSLSocket) sslSocketFactory.createSocket(
+          socket, socket.getInetAddress().getHostName(),
           socket.getPort(), false);
       secureSocket.setUseClientMode(false);
       secureSocket.setNeedClientAuth(true);
@@ -259,23 +290,63 @@ public class ReplSessionSecurity
 
       // Force TLS negotiation now.
       secureSocket.startHandshake();
-
-      // SSLSession sslSession = secureSocket.getSession();
-      // System.out.println("Peer      = " + sslSession.getPeerHost() + ":" +
-      //   sslSession.getPeerPort());
-      // System.out.println("Principal = " + sslSession.getPeerPrincipal());
-
+      hasCompleted = true;
       return new TLSSocketSession(socket, secureSocket);
-    } catch (SSLException e)
+    }
+    catch (final SSLException e)
     {
       // This is probably a connection attempt from an unexpected client
       // log that to warn the administrator.
-      InetAddress remHost = socket.getInetAddress();
-      Message message = NOTE_SSL_SERVER_CON_ATTEMPT_ERROR.get(remHost.
-          getHostName(), remHost.getHostAddress(), e.getLocalizedMessage());
+      final InetAddress remHost = socket.getInetAddress();
+      final Message message = NOTE_SSL_SERVER_CON_ATTEMPT_ERROR.get(
+          remHost.getHostName(), remHost.getHostAddress(),
+          e.getLocalizedMessage());
       logError(message);
       return null;
     }
+    finally
+    {
+      if (!hasCompleted)
+      {
+        try
+        {
+          socket.close();
+        }
+        catch (final Exception ignored)
+        {
+          // Ignore.
+        }
+
+        if (secureSocket != null)
+        {
+          try
+          {
+            secureSocket.close();
+          }
+          catch (final Exception ignored)
+          {
+            // Ignore.
+          }
+        }
+      }
+    }
+  }
+
+
+
+  /**
+   * Determine whether sessions to a given replication server should be
+   * encrypted.
+   *
+   * @param serverURL
+   *          The replication server URL.
+   * @return true if sessions to the given replication server should be
+   *         encrypted, or false if they should not be encrypted.
+   */
+  public boolean isSslEncryption(final String serverURL)
+  {
+    // Currently use global settings from the crypto manager.
+    return sslEncryption;
   }
 
 }

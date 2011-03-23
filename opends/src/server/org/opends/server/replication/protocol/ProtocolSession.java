@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -44,10 +45,8 @@ public interface ProtocolSession
   /**
    * This method is called when the session with the remote must be closed.
    * This object won't be used anymore after this method is called.
-   *
-   * @throws IOException If an error happen during the close process.
    */
-  public abstract void close() throws IOException;
+  public abstract void close();
 
   /**
    * This method is called when a ReplicationMsg must be sent to

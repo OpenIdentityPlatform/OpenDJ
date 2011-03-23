@@ -23,10 +23,10 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
@@ -1123,15 +1123,9 @@ public class AssuredReplicationServerTest
       /*
        * Shutdown any current client handling code
        */
-      try
+      if (session != null)
       {
-        if (session != null)
-        {
-          session.close();
-        }
-      } catch (IOException e)
-      {
-        // ignore.
+        session.close();
       }
 
       try

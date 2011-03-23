@@ -129,12 +129,16 @@ public class DraftCNDB
         }
         catch (LockConflictException e)
         {
-          if (txn != null)
-            txn.abort();
-          txn = null;
+          // Try again.
         }
         finally
         {
+          if (txn != null)
+          {
+            // No effect if txn has committed.
+            txn.abort();
+            txn = null;
+          }
           dbCloseLock.readLock().unlock();
         }
       }
@@ -145,10 +149,6 @@ public class DraftCNDB
         MessageBuilder mb = new MessageBuilder();
         mb.append(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR.get());
         logError(mb.toMessage());
-        if (txn != null)
-        {
-          txn.abort();
-        }
         replicationServer.shutdown();
       }
     }
@@ -158,16 +158,6 @@ public class DraftCNDB
       mb.append(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR.get());
       mb.append(stackTraceToSingleLineString(e));
       logError(mb.toMessage());
-      if (txn != null)
-      {
-        try
-        {
-          txn.abort();
-        } catch (DatabaseException e1)
-        {
-          // can't do much more. The ReplicationServer is shuting down.
-        }
-      }
       replicationServer.shutdown();
     }
     catch (UnsupportedEncodingException e)
@@ -176,17 +166,6 @@ public class DraftCNDB
       mb.append(ERR_CHANGELOG_UNSUPPORTED_UTF8_ENCODING.get());
       mb.append(stackTraceToSingleLineString(e));
       logError(mb.toMessage());
-      replicationServer.shutdown();
-      if (txn != null)
-      {
-        try
-        {
-          txn.abort();
-        } catch (DatabaseException e1)
-        {
-          // can't do much more. The ReplicationServer is shuting down.
-        }
-      }
       replicationServer.shutdown();
     }
   }

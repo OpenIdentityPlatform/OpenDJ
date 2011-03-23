@@ -386,9 +386,10 @@ public class DraftCNDbHandler implements Runnable
             else
             {
               ServerState startState = domain.getStartState();
-              // We don't use the endState but it's updating CN as reading
-              ServerState endState =
-                  domain.getEligibleState(crossDomainEligibleCN, false);
+
+              // We don't use the returned endState but it's updating CN as
+              // reading
+              domain.getEligibleState(crossDomainEligibleCN, false);
 
               ChangeNumber fcn = startState.getMaxChangeNumber(
                   cn.getServerId());

@@ -341,32 +341,15 @@ public class ServerReader extends DirectoryThread
     finally
     {
       /*
-       * The thread only exits the loop above if some error condition
-       * happen.
+       * The thread only exits the loop above if some error condition happen.
        * Attempt to close the socket and stop the server handler.
        */
-      try
+      if (debugEnabled())
       {
-        if (handler.getProtocolVersion() >=
-          ProtocolVersion.REPLICATION_PROTOCOL_V4)
-        {
-          // V4 protocol introduces a StopMsg to properly end
-          // communications
-          try
-          {
-            session.publish(new StopMsg());
-          } catch (IOException ioe)
-          {
-            // Anyway, going to close session, so nothing to do
-          }
-        }
-        if (debugEnabled())
-          TRACER.debugInfo("In " + this.getName() + " closing the session");
-        session.close();
-      } catch (IOException e)
-      {
-      // ignore
+        TRACER.debugInfo("In " + this.getName()
+            + " closing the session");
       }
+      session.close();
       handler.doStop();
       if (debugEnabled())
       {

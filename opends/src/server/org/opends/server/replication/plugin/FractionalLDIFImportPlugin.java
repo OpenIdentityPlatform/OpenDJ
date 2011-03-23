@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -91,8 +92,8 @@ public final class FractionalLDIFImportPlugin
 
     /**
      * Constructor.
-     * @param fractionalConfig
-     * @param domain
+     * @param fractionalConfig The fractional configuration.
+     * @param domain The replication domain.
      */
     public ImportFractionalContext(FractionalConfig fractionalConfig,
       LDAPReplicationDomain domain)

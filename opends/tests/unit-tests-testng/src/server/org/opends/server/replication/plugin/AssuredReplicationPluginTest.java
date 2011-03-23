@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -440,15 +441,9 @@ public class AssuredReplicationPluginTest
       /*
        * Shutdown any current client handling code
        */
-      try
+      if (session != null)
       {
-        if (session != null)
-        {
-          session.close();
-        }
-      } catch (IOException e)
-      {
-        // ignore.
+        session.close();
       }
 
       try
@@ -567,13 +562,7 @@ public class AssuredReplicationPluginTest
       // Handle DS connexion
       if (!performHandshake())
       {
-        try
-        {
-          session.close();
-        } catch (IOException e)
-        {
-          // nothing to do
-        }
+        session.close();
         return;
       }
       // If we come here, assured parameters sent by DS are as expected and
@@ -731,7 +720,7 @@ public class AssuredReplicationPluginTest
      */
     private void checkUpdateAssuredParameters(UpdateMsg updateMsg)
     {
-      assertEquals(updateMsg.isAssured(), isAssured, 
+      assertEquals(updateMsg.isAssured(), isAssured,
           "msg=" + ((updateMsg instanceof AddMsg)?
               ((AddMsg)updateMsg).getDn():updateMsg.getChangeNumber()));
       if (isAssured)
@@ -1052,7 +1041,7 @@ public class AssuredReplicationPluginTest
         String entry = "dn: ou=assured-sr-timeout-entry" + rsGroupId + "," + NOT_ASSURED_DN + "\n" +
         "objectClass: top\n" +
         "objectClass: organizationalUnit\n";
-        addEntry(TestCaseUtils.entryFromLdifString(entry));        
+        addEntry(TestCaseUtils.entryFromLdifString(entry));
       }
       long endTime = System.currentTimeMillis();
 
@@ -1919,8 +1908,8 @@ public class AssuredReplicationPluginTest
       sleep(50);
       ii++;
       if (ii>10)
-        assertEquals(operation.getResultCode(), expectedResult, 
-            operation.getErrorMessage().toString());                
+        assertEquals(operation.getResultCode(), expectedResult,
+            operation.getErrorMessage().toString());
     }
   }
 }

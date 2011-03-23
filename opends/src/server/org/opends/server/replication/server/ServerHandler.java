@@ -63,7 +63,6 @@ import org.opends.server.replication.protocol.RoutableMsg;
 import org.opends.server.replication.protocol.StartECLSessionMsg;
 import org.opends.server.replication.protocol.StartMsg;
 import org.opends.server.replication.protocol.StartSessionMsg;
-import org.opends.server.replication.protocol.StopMsg;
 import org.opends.server.replication.protocol.TopologyMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.protocol.WindowMsg;
@@ -107,17 +106,14 @@ public abstract class ServerHandler extends MessageHandler
           providedMsg.toString());
       logError(providedMsg);
     }
-    try
+
+    if (providedSession != null)
     {
-      if (providedSession != null)
-        // This method is only called when aborting a failing handshake and
-        // not StopMsg should be sent in such situation. StopMsg are only
-        // expected when full handshake has been performed, or at end of
-        // handshake phase 1, when DS was just gathering available RS info
-        providedSession.close();
-    } catch (IOException e)
-    {
-      // ignore
+      // This method is only called when aborting a failing handshake and
+      // not StopMsg should be sent in such situation. StopMsg are only
+      // expected when full handshake has been performed, or at end of
+      // handshake phase 1, when DS was just gathering available RS info
+      providedSession.close();
     }
   }
 
@@ -286,9 +282,10 @@ public abstract class ServerHandler extends MessageHandler
     // We did not recognize the message, close session as what
     // can happen after is undetermined and we do not want the server to
     // be disturbed
-    if (session!=null)
+    ProtocolSession localSession = session;
+    if (localSession != null)
     {
-      closeSession(session, reason, this);
+      closeSession(localSession, reason, this);
     }
 
     if ((replicationServerDomain != null) &&
@@ -1101,26 +1098,7 @@ public abstract class ServerHandler extends MessageHandler
 
     if (session != null)
     {
-      if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
-      {
-        // V4 protocol introduces a StopMsg to properly end
-        // communications
-        try
-        {
-          session.publish(new StopMsg());
-        } catch (IOException ioe)
-        {
-          // Anyway, going to close session, so nothing to do
-        }
-      }
-      // Close session to end ServerReader or ServerWriter
-      try
-      {
-        session.close();
-      } catch (IOException e)
-      {
-        // ignore.
-      }
+      session.close();
     }
 
     /*

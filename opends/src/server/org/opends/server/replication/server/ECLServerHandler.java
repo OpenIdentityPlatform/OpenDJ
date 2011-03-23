@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010 ForgeRock AS
+ *      Portions Copyright 2010-2011 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -169,6 +169,7 @@ public class ECLServerHandler extends ServerHandler
     }
     /**
      * Provide a string representation of this object for debug purpose..
+     * @param buffer Append to this buffer.
      */
     public void toString(StringBuilder buffer)
     {
@@ -1550,9 +1551,10 @@ public class ECLServerHandler extends ServerHandler
       // INIT_PHASE is done AND search is persistent => goto PERSISTENT_PHASE
       searchPhase = PERSISTENT_PHASE;
 
-      if (writer ==null)
+      final ProtocolSession localSession = session;
+      if (writer ==null && localSession != null)
       {
-        writer = new ECLServerWriter(session,this,replicationServerDomain);
+        writer = new ECLServerWriter(localSession,this,replicationServerDomain);
         writer.start();  // start suspended
       }
 

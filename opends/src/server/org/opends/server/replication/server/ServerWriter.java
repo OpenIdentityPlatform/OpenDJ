@@ -33,8 +33,6 @@ import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import static org.opends.messages.ReplicationMessages.*;
-
-import java.io.IOException;
 import java.net.SocketException;
 import java.util.NoSuchElementException;
 
@@ -42,8 +40,6 @@ import org.opends.server.api.DirectoryThread;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.ProtocolSession;
-import org.opends.server.replication.protocol.ProtocolVersion;
-import org.opends.server.replication.protocol.StopMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 
 
@@ -229,25 +225,7 @@ public class ServerWriter extends DirectoryThread
       logError(errMessage);
     }
     finally {
-      if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
-      {
-        // V4 protocol introduces a StopMsg to properly end
-        // communications
-        try
-        {
-          session.publish(new StopMsg());
-        } catch (IOException ioe)
-        {
-          // Anyway, going to close session, so nothing to do
-        }
-      }
-      try
-      {
-        session.close();
-      } catch (IOException e)
-      {
-       // Can't do much more : ignore
-      }
+      session.close();
       replicationServerDomain.stopServer(handler, false);
       if (debugEnabled())
       {

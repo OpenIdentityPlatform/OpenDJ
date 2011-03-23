@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.server;
 import static org.opends.messages.BackendMessages.*;
@@ -36,12 +37,10 @@ import static org.opends.server.util.StaticUtils.*;
 
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1479,19 +1478,7 @@ public class ReplicationBackend
       return writer;
     }
 
-    /**
-     * Close the writer and get a string reader for the LDIF content.
-     *
-     * @return Returns the string contents of the writer.
-     * @throws Exception
-     *           If an error occurred closing the writer.
-     */
-    public BufferedReader getLDIFBufferedReader() throws Exception {
-      writer.close();
-      String ldif = stream.toString("UTF-8");
-      StringReader reader = new StringReader(ldif);
-      return new BufferedReader(reader);
-    }
+
 
     /**
      * Close the writer and get an LDIF reader for the LDIF content.
