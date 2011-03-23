@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.extensions;
 import org.opends.messages.Message;
@@ -276,9 +277,13 @@ public class TraditionalWorkerThread
     {
       try
       {
-        CancelRequest cancelRequest =
-          new CancelRequest(true, INFO_CANCELED_BY_SHUTDOWN.get());
-        operation.cancel(cancelRequest);
+        final AbstractOperation localOperation = operation;
+        if (localOperation != null)
+        {
+          CancelRequest cancelRequest = new CancelRequest(true,
+              INFO_CANCELED_BY_SHUTDOWN.get());
+          localOperation.cancel(cancelRequest);
+        }
       }
       catch (Exception e)
       {
