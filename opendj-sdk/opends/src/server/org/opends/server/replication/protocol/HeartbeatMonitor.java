@@ -35,8 +35,6 @@ import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import org.opends.server.loggers.debug.DebugTracer;
 
-import java.io.IOException;
-
 import org.opends.server.api.DirectoryThread;
 
 /**
@@ -71,27 +69,18 @@ public class HeartbeatMonitor extends DirectoryThread
   private volatile boolean shutdown = false;
 
   /**
-   * Send StopMsg before session closure or not.
-   */
-  private final boolean sendStopBeforeClose;
-
-
-  /**
    * Create a heartbeat monitor thread.
    * @param threadName The name of the heartbeat thread.
    * @param session The session on which heartbeats are to be monitored.
    * @param heartbeatInterval The expected interval between heartbeats received
    * (in milliseconds).
-   * @param sendStopBeforeClose Should we send a StopMsg before closing the
-   *        session ?
    */
   public HeartbeatMonitor(String threadName, ProtocolSession session,
-                          long heartbeatInterval, boolean sendStopBeforeClose)
+                          long heartbeatInterval)
   {
     super(threadName);
     this.session = session;
     this.heartbeatInterval = heartbeatInterval;
-    this.sendStopBeforeClose = sendStopBeforeClose;
   }
 
   /**
@@ -126,18 +115,6 @@ public class HeartbeatMonitor extends DirectoryThread
           {
             // Heartbeat is well overdue so the server is assumed to be dead.
             logError(NOTE_HEARTBEAT_FAILURE.get(currentThread().getName()));
-            if (sendStopBeforeClose)
-            {
-              // V4 protocol introduces a StopMsg to properly end communications
-              try
-              {
-                session.publish(new StopMsg());
-              }
-              catch (IOException ioe)
-              {
-                // Anyway, going to close session, so nothing to do
-              }
-            }
             session.close();
             break;
           }
@@ -159,10 +136,6 @@ public class HeartbeatMonitor extends DirectoryThread
           // That's OK.
         }
       }
-    }
-    catch (IOException e)
-    {
-      // Hope that's OK.
     }
     finally
     {

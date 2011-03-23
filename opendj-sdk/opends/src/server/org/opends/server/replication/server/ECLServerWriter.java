@@ -186,13 +186,7 @@ public class ECLServerWriter extends ServerWriter
     {
       if (session!=null)
       {
-        try
-        {
-          session.close();
-        } catch (IOException e)
-        {
-          // Can't do much more : ignore
-        }
+        session.close();
       }
       if (replicationServerDomain!=null)
         replicationServerDomain.stopServer(handler, false);

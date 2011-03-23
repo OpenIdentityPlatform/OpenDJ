@@ -85,6 +85,7 @@ import org.opends.server.replication.protocol.TopologyMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.protocol.WindowMsg;
 import org.opends.server.replication.protocol.WindowProbeMsg;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.replication.server.ReplicationServer;
 
@@ -673,6 +674,7 @@ public class ReplicationBroker
       this.weight = rsInfo.getWeight();
       this.connectedDSs = connectedDSs;
       this.connectedDSNumber = connectedDSs.size();
+      this.serverState = new ServerState();
     }
 
     /**
@@ -1006,15 +1008,10 @@ public class ReplicationBroker
             {
               if (connected == false)
               {
-                if (session != null)
+                ProtocolSession localSession = session;
+                if (localSession != null)
                 {
-                  try
-                  {
-                    session.close();
-                  } catch (IOException e)
-                  {
-                    // The session was already closed, just ignore.
-                  }
+                  localSession.close();
                   session = null;
                 }
               }
@@ -1287,30 +1284,11 @@ public class ReplicationBroker
     {
       if (localSession != null)
       {
-        if (debugEnabled())
+        if (debugEnabled()) {
           debugInfo("In RB, closing session after phase 1");
+        }
 
-        if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
-        {
-          // V4 protocol introduces a StopMsg to properly end communications
-          if (!error)
-          {
-            try
-            {
-              localSession.publish(new StopMsg());
-            } catch (IOException ioe)
-            {
-              // Anyway, going to close session, so nothing to do
-            }
-          }
-        }
-        try
-        {
-          localSession.close();
-        } catch (IOException e)
-        {
-          // The session was already closed, just ignore.
-        }
+        localSession.close();
         localSession = null;
       }
       if (error)
@@ -1459,27 +1437,10 @@ public class ReplicationBroker
     {
       if (localSession != null)
       {
-        if (debugEnabled())
+        if (debugEnabled()) {
           debugInfo("In RB, closing session after phase 1");
-
-        // V4 protocol introduces a StopMsg to properly end communications
-        if (!error)
-        {
-          try
-          {
-            localSession.publish(new StopMsg());
-          } catch (IOException ioe)
-          {
-            // Anyway, going to close session, so nothing to do
-          }
         }
-        try
-        {
-          localSession.close();
-        } catch (IOException e)
-        {
-          // The session was already closed, just ignore.
-        }
+        localSession.close();
         localSession = null;
       }
       if (error)
@@ -1545,13 +1506,7 @@ public class ReplicationBroker
 
       if (session != null)
       {
-        try
-        {
-          session.close();
-        } catch (IOException ex)
-        {
-          // The session was already closed, just ignore.
-        }
+        session.close();
         session = null;
       }
       // Be sure to return null.
@@ -1625,13 +1580,7 @@ public class ReplicationBroker
 
       if (session != null)
       {
-        try
-        {
-          session.close();
-        } catch (IOException ex)
-        {
-          // The session was already closed, just ignore.
-        }
+        session.close();
         session = null;
       }
       // Be sure to return null.
@@ -2255,8 +2204,7 @@ public class ReplicationBroker
       heartbeatMonitor = new HeartbeatMonitor(
           threadName,
           session,
-          heartbeatInterval,
-          (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V4));
+          heartbeatInterval);
       heartbeatMonitor.start();
     }
   }
@@ -2293,24 +2241,7 @@ public class ReplicationBroker
 
     if (failingSession != null)
     {
-      if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
-      {
-        // V4 protocol introduces a StopMsg to properly end communications
-        try
-        {
-          failingSession.publish(new StopMsg());
-        } catch (IOException ioe)
-        {
-          // Anyway, going to close session, so nothing to do
-        }
-      }
-      try
-      {
-        failingSession.close();
-      } catch (IOException e1)
-      {
-        // ignore
-      }
+      failingSession.close();
       numLostConnections++;
     }
 
@@ -2689,6 +2620,11 @@ public class ReplicationBroker
         throw e;
       } catch (Exception e)
       {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
         if (shutdown == false)
         {
           if ((session == null) || (!session.closeInitiated()))
@@ -2790,18 +2726,9 @@ public class ReplicationBroker
     rsGroupId = (byte) -1;
     rsServerId = -1;
     rsServerUrl = null;
-
-    try
+    if (session != null)
     {
-      if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
-      {
-        // V4 protocol introduces a StopMsg to properly end communications
-          session.publish(new StopMsg());
-      }
       session.close();
-    } catch (Exception e)
-    {
-      // Anyway, going to close session, so nothing to do
     }
   }
 
