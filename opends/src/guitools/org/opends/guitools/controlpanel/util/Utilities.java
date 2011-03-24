@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -2067,7 +2068,8 @@ public class Utilities
 
   private final static String[] configurationSchemaOrigins =
   {
-      "OpenDS Directory Server", "Sun Directory Server"
+      "OpenDJ Directory Server", "OpenDS Directory Server",
+      "Sun Directory Server", "Microsoft Active Directory"
   };
 
   private final static String[] standardSchemaOrigins =
