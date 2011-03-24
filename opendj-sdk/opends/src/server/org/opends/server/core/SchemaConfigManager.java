@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -1522,7 +1523,7 @@ public class SchemaConfigManager
    *                    false if the attribute is not part of the schema
    *                    definition.
    */
-  private static boolean isSchemaAttribute(Attribute attribute)
+  public static boolean isSchemaAttribute(Attribute attribute)
   {
     String attributeOid = attribute.getAttributeType().getOID();
     if (attributeOid.equals("2.5.21.1") ||

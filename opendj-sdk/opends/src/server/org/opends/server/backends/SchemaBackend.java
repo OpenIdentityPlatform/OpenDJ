@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.backends;
 
@@ -1528,7 +1529,7 @@ public class SchemaBackend
           break;
 
 
-        default:
+        case REPLACE:
           if ((!m.isInternal()) &&
               (!modifyOperation.isSynchronizationOperation()))
           {
@@ -1539,9 +1540,27 @@ public class SchemaBackend
           }
           else
           {
-            newSchema.addExtraAttribute(at.getNameOrOID(), a);
-            modifiedSchemaFiles.add(FILE_USER_SCHEMA_ELEMENTS);
+            // If this is not a Schema attribute, we put it
+            // in the extraAttribute map. This in fact acts as a replace.
+            if (SchemaConfigManager.isSchemaAttribute(a))
+            {
+              Message message = ERR_SCHEMA_INVALID_REPLACE_MODIFICATION.get(
+                                  a.getNameWithOptions());
+              ErrorLogger.logError(message);
+            }
+            else
+            {
+              newSchema.addExtraAttribute(at.getNameOrOID(), a);
+              modifiedSchemaFiles.add(FILE_USER_SCHEMA_ELEMENTS);
+            }
           }
+          break;
+
+        default:
+          Message message = ERR_SCHEMA_INVALID_MODIFICATION_TYPE.get(
+                String.valueOf(m.getModificationType()));
+          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                                       message);
       }
     }
 
