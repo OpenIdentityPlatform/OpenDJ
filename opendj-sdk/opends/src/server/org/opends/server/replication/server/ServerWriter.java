@@ -75,9 +75,14 @@ public class ServerWriter extends DirectoryThread
   public ServerWriter(ProtocolSession session, ServerHandler handler,
       ReplicationServerDomain replicationServerDomain)
   {
-    super("Replication server RS(" + handler.getReplicationServerId()
-        + ") writing to " + handler.toString() + " at "
-        + session.getReadableRemoteAddress());
+    // Session may be null for ECLServerWriter.
+    super("Replication server RS("
+        + handler.getReplicationServerId()
+        + ") writing to "
+        + handler.toString()
+        + " at "
+        + ((session != null) ? session.getReadableRemoteAddress()
+            : "unknown"));
 
     this.session = session;
     this.handler = handler;

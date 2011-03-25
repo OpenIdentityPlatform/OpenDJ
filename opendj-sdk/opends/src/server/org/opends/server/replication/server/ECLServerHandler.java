@@ -1551,10 +1551,9 @@ public class ECLServerHandler extends ServerHandler
       // INIT_PHASE is done AND search is persistent => goto PERSISTENT_PHASE
       searchPhase = PERSISTENT_PHASE;
 
-      final ProtocolSession localSession = session;
-      if (writer ==null && localSession != null)
+      if (writer ==null)
       {
-        writer = new ECLServerWriter(localSession,this,replicationServerDomain);
+        writer = new ECLServerWriter(session,this,replicationServerDomain);
         writer.start();  // start suspended
       }
 
