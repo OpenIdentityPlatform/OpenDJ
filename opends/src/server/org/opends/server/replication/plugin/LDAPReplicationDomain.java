@@ -2835,7 +2835,23 @@ public class LDAPReplicationDomain extends ReplicationDomain
    */
   public void updateError(ChangeNumber changeNumber)
   {
-    remotePendingChanges.commit(changeNumber);
+    try
+    {
+      remotePendingChanges.commit(changeNumber);
+    }
+    catch (NoSuchElementException e)
+    {
+      // A failure occurred after the change had been removed from the pending
+      // changes table.
+      if (debugEnabled())
+      {
+        TRACER
+            .debugInfo(
+                "LDAPReplicationDomain.updateError: Unable to find remote "
+                    + "pending change for change number %s",
+                changeNumber);
+      }
+    }
   }
 
   /**
