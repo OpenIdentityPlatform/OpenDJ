@@ -49,3 +49,17 @@ steps (presumably you are already at step 3):
 '/Volumes/Space/Tests/ODJidm/lib/extensions/
 openidm-account-status-notification-handler.jar'
 (build <unknown>, revision <unknown>)
+
+  9. The plugin must be referenced in the Password Policy enforced for the
+     users for which the password changes must be captured. This is most
+     likely the "Default Password Policy"
+
+     $ dsconfig set-password-policy-prop \
+      --policy-name "Default Password Policy" \
+      --set "account-status-notification-handler:OpenIDM Notification Handler" \
+      --hostname localhost \
+      --port 4444 \
+      --bindDN cn=Directory\ Manager \
+      --bindPassword <your_password> \
+      -n -X
+
