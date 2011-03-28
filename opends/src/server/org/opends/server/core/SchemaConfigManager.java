@@ -1535,6 +1535,7 @@ public class SchemaConfigManager
         attributeOid.equals("2.5.21.8") ||
         attributeOid.equals("2.5.4.3")  ||
         attributeOid.equals("1.3.6.1.4.1.1466.101.120.16") ||
+        attributeOid.equals("cn-oid") ||
         attributeOid.equals("attributetypes-oid")      ||
         attributeOid.equals("objectclasses-oid")       ||
         attributeOid.equals("matchingrules-oid")       ||
