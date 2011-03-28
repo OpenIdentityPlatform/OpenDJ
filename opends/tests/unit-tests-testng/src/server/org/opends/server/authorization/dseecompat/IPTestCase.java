@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 
@@ -154,7 +155,7 @@ public class IPTestCase extends AciTestCase {
 
     //Invalid IPv6 expressions.
     @DataProvider(name = "invalid6Rules")
-    public Object[][] inValid5Data() {
+    public Object[][] inValid6Data() {
         return new Object[][] {
                 {"2001:feca:ba23:cd1f:dcb1:1010:9234:4088///124"},
                 {"2001:feca:ba23:cd1f:dcb1:1010:9234:4088?124"},
