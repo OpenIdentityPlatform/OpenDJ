@@ -23,12 +23,12 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -240,59 +240,48 @@ replServerHandler.getDomain().getReplicationServer().getMonitorInstanceName() +
         replServerHandler.getMonitorInstanceName()));
 
     // Retrieves the topology counters
-    MonitorData md;
-    try
+    MonitorData md = rsDomain.getDomainMonitorData();
+
+    ServerState remoteState = md.getLDAPServerState(serverId);
+    if (remoteState == null)
     {
-      md = rsDomain.computeMonitorData(true);
-
-      ServerState remoteState = md.getLDAPServerState(serverId);
-      if (remoteState == null)
-      {
-        remoteState = new ServerState();
-      }
-
-      /* get the Server State */
-      AttributeBuilder builder = new AttributeBuilder("server-state");
-      for (String str : remoteState.toStringSet())
-      {
-        builder.add(str);
-      }
-      if (builder.size() == 0)
-      {
-        builder.add("unknown");
-      }
-      attributes.add(builder.toAttribute());
-
-      // Oldest missing update
-      Long approxFirstMissingDate=md.getApproxFirstMissingDate(serverId);
-      if ((approxFirstMissingDate != null) && (approxFirstMissingDate>0))
-      {
-        Date date = new Date(approxFirstMissingDate);
-        attributes.add(Attributes.create(
-            "approx-older-change-not-synchronized", date.toString()));
-        attributes.add(Attributes.create(
-            "approx-older-change-not-synchronized-millis", String
-                .valueOf(approxFirstMissingDate)));
-      }
-
-      // Missing changes
-      long missingChanges = md.getMissingChanges(serverId);
-      attributes.add(Attributes.create("missing-changes",
-          String.valueOf(missingChanges)));
-
-      // Replication delay
-      long delay = md.getApproxDelay(serverId);
-      attributes.add(Attributes.create("approximate-delay",
-          String.valueOf(delay)));
-
+      remoteState = new ServerState();
     }
-    catch(Exception e)
+
+    /* get the Server State */
+    AttributeBuilder builder = new AttributeBuilder("server-state");
+    for (String str : remoteState.toStringSet())
     {
-      // TODO: improve the log
-      // We failed retrieving the remote monitor data.
-      attributes.add(Attributes.create("error",
-        stackTraceToSingleLineString(e)));
+      builder.add(str);
     }
+    if (builder.size() == 0)
+    {
+      builder.add("unknown");
+    }
+    attributes.add(builder.toAttribute());
+
+    // Oldest missing update
+    Long approxFirstMissingDate=md.getApproxFirstMissingDate(serverId);
+    if ((approxFirstMissingDate != null) && (approxFirstMissingDate>0))
+    {
+      Date date = new Date(approxFirstMissingDate);
+      attributes.add(Attributes.create(
+          "approx-older-change-not-synchronized", date.toString()));
+      attributes.add(Attributes.create(
+          "approx-older-change-not-synchronized-millis", String
+          .valueOf(approxFirstMissingDate)));
+    }
+
+    // Missing changes
+    long missingChanges = md.getMissingChanges(serverId);
+    attributes.add(Attributes.create("missing-changes",
+        String.valueOf(missingChanges)));
+
+    // Replication delay
+    long delay = md.getApproxDelay(serverId);
+    attributes.add(Attributes.create("approximate-delay",
+        String.valueOf(delay)));
+
     return attributes;
   }
 }

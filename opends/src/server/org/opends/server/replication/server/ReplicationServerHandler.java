@@ -30,7 +30,6 @@ package org.opends.server.replication.server;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -779,35 +778,25 @@ public class ReplicationServerHandler extends ServerHandler
     attributes.add(Attributes.create("Replication-Server",
         serverURL));
 
-    try
+    MonitorData md = replicationServerDomain.getDomainMonitorData();
+
+    // Missing changes
+    long missingChanges = md.getMissingChangesRS(serverId);
+    attributes.add(Attributes.create("missing-changes",
+        String.valueOf(missingChanges)));
+
+    /* get the Server State */
+    AttributeBuilder builder = new AttributeBuilder("server-state");
+    ServerState state = md.getRSStates(serverId);
+    if (state != null)
     {
-      MonitorData md;
-      md = replicationServerDomain.computeMonitorData(true);
-
-      // Missing changes
-      long missingChanges = md.getMissingChangesRS(serverId);
-      attributes.add(Attributes.create("missing-changes", String
-          .valueOf(missingChanges)));
-
-      /* get the Server State */
-      AttributeBuilder builder = new AttributeBuilder("server-state");
-      ServerState state = md.getRSStates(serverId);
-      if (state != null)
+      for (String str : state.toStringSet())
       {
-        for (String str : state.toStringSet())
-        {
-          builder.add(str);
-        }
-        attributes.add(builder.toAttribute());
+        builder.add(str);
       }
+      attributes.add(builder.toAttribute());
     }
-    catch (Exception e)
-    {
-      Message message =
-        ERR_ERROR_RETRIEVING_MONITOR_DATA.get(stackTraceToSingleLineString(e));
-      // We failed retrieving the monitor data.
-      attributes.add(Attributes.create("error", message.toString()));
-    }
+
     return attributes;
   }
   /**
