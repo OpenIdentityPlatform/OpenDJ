@@ -28,14 +28,8 @@
 package org.opends.server.replication.server;
 
 import java.io.IOException;
-import java.util.NoSuchElementException;
-import org.opends.messages.Category;
-import org.opends.messages.Message;
-import org.opends.messages.Severity;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -97,66 +91,69 @@ public class MonitoringPublisher extends DirectoryThread
   {
     if (debugEnabled())
     {
-      TRACER.debugInfo("Monitoring publisher starting for dn " +
-        replicationServerDomain.getBaseDn().toString());
+      TRACER.debugInfo("Monitoring publisher starting for dn "
+          + replicationServerDomain.getBaseDn().toString());
     }
 
-    while (!shutdown)
+    try
     {
-      try
+      while (!shutdown)
       {
-        try
+        synchronized (shutdownLock)
         {
-          synchronized (shutdownLock)
+          if (!shutdown)
           {
-            if (!shutdown)
-            {
-              shutdownLock.wait(period);
-            }
+            shutdownLock.wait(period);
           }
-        } catch (InterruptedException ex)
-        {
-          TRACER.debugInfo("Monitoring publisher for dn " +
-              replicationServerDomain.getBaseDn().toString() + " in RS " +
-              replicationServerDomain.getReplicationServer().getServerId() +
-              " has been interrupted while sleeping.");
         }
 
         // Send global topology information to peer DSs
-        MonitorMsg monitorMsg =
-          replicationServerDomain.createGlobalTopologyMonitorMsg(0, 0, true);
-        int localServerId =
-            replicationServerDomain.getReplicationServer().getServerId();
-        if (monitorMsg != null)
+        MonitorData monitorData = replicationServerDomain
+            .computeDomainMonitorData();
+
+        MonitorMsg monitorMsg = replicationServerDomain
+            .createGlobalTopologyMonitorMsg(0, 0, monitorData);
+
+        int localServerId = replicationServerDomain
+            .getReplicationServer().getServerId();
+        for (ServerHandler serverHandler : replicationServerDomain
+            .getConnectedDSs().values())
         {
-          for (ServerHandler serverHandler :
-            replicationServerDomain.getConnectedDSs().values())
+          // Set the right sender and destination ids
+          monitorMsg.setSenderID(localServerId);
+          monitorMsg.setDestination(serverHandler.getServerId());
+          try
           {
-            // Set the right sender and destination ids
-            monitorMsg.setSenderID(localServerId);
-            monitorMsg.setDestination(serverHandler.getServerId());
-            try
-            {
-              serverHandler.send(monitorMsg);
-            } catch (IOException e)
-            {
-              // Server is disconnecting ? Forget it
-            }
+            serverHandler.send(monitorMsg);
+          }
+          catch (IOException e)
+          {
+            // Server is disconnecting ? Forget it
           }
         }
-      } catch (NoSuchElementException e)
-      {
-        logError(Message.raw(Category.SYNC, Severity.SEVERE_ERROR,
-            stackTraceToSingleLineString(e)));
       }
+    }
+    catch (InterruptedException e)
+    {
+      TRACER.debugInfo("Monitoring publisher for dn "
+          + replicationServerDomain.getBaseDn().toString()
+          + " in RS "
+          + replicationServerDomain.getReplicationServer()
+              .getServerId()
+          + " has been interrupted while sleeping.");
+
     }
 
     done = true;
-    TRACER.debugInfo("Monitoring publisher for dn " +
-      replicationServerDomain.getBaseDn().toString() + " is terminated." +
-      " This is in RS " +
-      replicationServerDomain.getReplicationServer().getServerId());
+    TRACER.debugInfo("Monitoring publisher for dn "
+        + replicationServerDomain.getBaseDn().toString()
+        + " is terminated."
+        + " This is in RS "
+        + replicationServerDomain.getReplicationServer()
+            .getServerId());
   }
+
+
 
   /**
    * Stops the thread.

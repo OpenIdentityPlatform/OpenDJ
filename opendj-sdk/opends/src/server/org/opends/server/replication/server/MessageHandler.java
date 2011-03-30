@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -234,18 +235,6 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
       result = olderUpdateCN.getTime();
     }
     return result;
-  }
-
-  /**
-   * Returns the Replication Server Domain to which belongs this handler.
-   *
-   * @param createIfNotExist    Creates the domain if it does not exist.
-   *
-   * @return The replication server domain.
-   */
-  public ReplicationServerDomain getDomain(boolean createIfNotExist)
-  {
-    return getDomain(createIfNotExist, false);
   }
 
   /**

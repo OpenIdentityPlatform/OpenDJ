@@ -31,7 +31,6 @@ import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.replication.common.StatusMachine.*;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -301,52 +300,42 @@ public class DataServerHandler extends ServerHandler
         this.replicationServerDomain.getReplicationServer()
         .getMonitorInstanceName()));
 
-    try
+    MonitorData md = replicationServerDomain.getDomainMonitorData();
+
+    // Oldest missing update
+    Long approxFirstMissingDate = md.getApproxFirstMissingDate(serverId);
+    if ((approxFirstMissingDate != null) && (approxFirstMissingDate > 0))
     {
-      MonitorData md = replicationServerDomain.computeMonitorData(true);
-
-      // Oldest missing update
-      Long approxFirstMissingDate = md.getApproxFirstMissingDate(serverId);
-      if ((approxFirstMissingDate != null) && (approxFirstMissingDate > 0))
-      {
-        Date date = new Date(approxFirstMissingDate);
-        attributes.add(Attributes.create(
-            "approx-older-change-not-synchronized", date.toString()));
-        attributes.add(Attributes.create(
-            "approx-older-change-not-synchronized-millis", String
-            .valueOf(approxFirstMissingDate)));
-      }
-
-      // Missing changes
-      long missingChanges = md.getMissingChanges(serverId);
-      attributes.add(Attributes.create("missing-changes", String
-          .valueOf(missingChanges)));
-
-      // Replication delay
-      long delay = md.getApproxDelay(serverId);
-      attributes.add(Attributes.create("approximate-delay", String
-          .valueOf(delay)));
-
-      /* get the Server State */
-      AttributeBuilder builder = new AttributeBuilder("server-state");
-      ServerState state = md.getLDAPServerState(serverId);
-      if (state != null)
-      {
-        for (String str : state.toStringSet())
-        {
-          builder.add(str);
-        }
-        attributes.add(builder.toAttribute());
-      }
-
+      Date date = new Date(approxFirstMissingDate);
+      attributes.add(Attributes.create(
+          "approx-older-change-not-synchronized", date.toString()));
+      attributes.add(Attributes.create(
+          "approx-older-change-not-synchronized-millis", String
+          .valueOf(approxFirstMissingDate)));
     }
-    catch (Exception e)
+
+    // Missing changes
+    long missingChanges = md.getMissingChanges(serverId);
+    attributes.add(Attributes.create("missing-changes", String
+        .valueOf(missingChanges)));
+
+    // Replication delay
+    long delay = md.getApproxDelay(serverId);
+    attributes.add(Attributes.create("approximate-delay", String
+        .valueOf(delay)));
+
+    /* get the Server State */
+    AttributeBuilder builder = new AttributeBuilder("server-state");
+    ServerState state = md.getLDAPServerState(serverId);
+    if (state != null)
     {
-      Message message =
-        ERR_ERROR_RETRIEVING_MONITOR_DATA.get(stackTraceToSingleLineString(e));
-      // We failed retrieving the monitor data.
-      attributes.add(Attributes.create("error", message.toString()));
+      for (String str : state.toStringSet())
+      {
+        builder.add(str);
+      }
+      attributes.add(builder.toAttribute());
     }
+
     return attributes;
   }
 
@@ -494,8 +483,7 @@ public class DataServerHandler extends ServerHandler
        * to old connection. This must be done before taking the domain lock so
        * that the reader thread has a chance to stop the handler.
        */
-      replicationServerDomain.
-      waitDisconnection(inServerStartMsg.getServerId());
+      replicationServerDomain.waitDisconnection(inServerStartMsg.getServerId());
 
       // lock with no timeout
       lockDomain(false);
