@@ -431,7 +431,6 @@ public class ReplicationServerHandler extends ServerHandler
         Integer.toString(inReplServerStartMsg.getServerId()),
         Integer.toString(replicationServerDomain.getReplicationServer().
         getServerId()));
-      logError(errMessage);
       abortStart(errMessage);
     }
     catch(DirectoryException de)

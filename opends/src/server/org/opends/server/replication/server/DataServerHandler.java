@@ -533,7 +533,6 @@ public class DataServerHandler extends ServerHandler
           Integer.toString(inServerStartMsg.getServerId()),
           Integer.toString(replicationServerDomain.getReplicationServer().
           getServerId()));
-        logError(errMessage);
         throw new DirectoryException(ResultCode.OTHER, errMessage);
       }
       catch (NotSupportedOldVersionPDUException e)

@@ -405,6 +405,11 @@ public final class TLSSocketSession implements ProtocolSession
       setSessionError(e);
       throw e;
     }
+    catch (final RuntimeException e)
+    {
+      setSessionError(e);
+      throw e;
+    }
   }
 
 
@@ -438,14 +443,18 @@ public final class TLSSocketSession implements ProtocolSession
   public void stopEncryption()
   {
     // The secure socket has been configured not to auto close the underlying
-    // plain socket.
-    try
+    // plain socket. We should close it here and properly tear down the SSL
+    // session, but this is not compatible with the existing protocol.
+    if (false)
     {
-      secureSocket.close();
-    }
-    catch (IOException ignored)
-    {
-      // Ignore.
+      try
+      {
+        secureSocket.close();
+      }
+      catch (IOException ignored)
+      {
+        // Ignore.
+      }
     }
 
     input = plainInput;
