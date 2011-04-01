@@ -43,11 +43,7 @@ import org.opends.server.replication.common.DSInfo;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
-import org.opends.server.replication.protocol.ProtocolSession;
-import org.opends.server.replication.protocol.ProtocolVersion;
-import org.opends.server.replication.protocol.ReplServerStartMsg;
-import org.opends.server.replication.protocol.ReplicationMsg;
-import org.opends.server.replication.protocol.TopologyMsg;
+import org.opends.server.replication.protocol.*;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Attributes;
@@ -195,9 +191,19 @@ public class ReplicationServerHandler extends ServerHandler
       // Reject bad responses
       if (!(msg instanceof ReplServerStartMsg))
       {
-        Message message = ERR_REPLICATION_PROTOCOL_MESSAGE_TYPE.get(
-            msg.getClass().getCanonicalName(),
-            "ReplServerStartMsg");
+        Message message;
+        if (msg instanceof StopMsg)
+        {
+          // Remote replication server is probably shutting down.
+          message = ERR_RS_DISCONNECTED_DURING_HANDSHAKE.get(
+              String.valueOf(getReplicationServerId()),
+              session.getReadableRemoteAddress());
+        }
+        else
+        {
+          message = ERR_REPLICATION_PROTOCOL_MESSAGE_TYPE.get(msg
+              .getClass().getCanonicalName(), "ReplServerStartMsg");
+        }
         abortStart(message);
         return;
       }
@@ -495,9 +501,20 @@ public class ReplicationServerHandler extends ServerHandler
 
     if (!(msg instanceof TopologyMsg))
     {
-      Message message = ERR_REPLICATION_PROTOCOL_MESSAGE_TYPE.get(
-          msg.getClass().getCanonicalName(),
-          "TopologyMsg");
+      Message message;
+      if (msg instanceof StopMsg)
+      {
+        // Remote replication server is probably shutting down.
+        message = ERR_RS_DISCONNECTED_DURING_HANDSHAKE.get(
+            String.valueOf(getReplicationServerId()),
+            session.getReadableRemoteAddress());
+      }
+      else
+      {
+        message = ERR_REPLICATION_PROTOCOL_MESSAGE_TYPE.get(
+            msg.getClass().getCanonicalName(),
+            "TopologyMsg");
+      }
       abortStart(message);
     }
 

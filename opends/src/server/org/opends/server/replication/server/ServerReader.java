@@ -40,7 +40,6 @@ import org.opends.server.api.DirectoryThread;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.*;
-import org.opends.server.types.DebugLogLevel;
 
 /**
  * This class implement the part of the replicationServer that is reading
@@ -222,19 +221,8 @@ public class ServerReader extends DirectoryThread
           } else if (msg instanceof TopologyMsg)
           {
             TopologyMsg topoMsg = (TopologyMsg) msg;
-            try
-            {
-              ReplicationServerHandler rsh = (ReplicationServerHandler)handler;
-              rsh.receiveTopoInfoFromRS(topoMsg);
-            }
-            catch(Exception e)
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              errMessage =
-                ERR_REPLICATION_PROTOCOL_MESSAGE_TYPE.get(
-                    "TopologyMsg", "other");
-              logError(errMessage);
-            }
+            ReplicationServerHandler rsh = (ReplicationServerHandler)handler;
+            rsh.receiveTopoInfoFromRS(topoMsg);
           } else if (msg instanceof ChangeStatusMsg)
           {
             ChangeStatusMsg csMsg = (ChangeStatusMsg) msg;
