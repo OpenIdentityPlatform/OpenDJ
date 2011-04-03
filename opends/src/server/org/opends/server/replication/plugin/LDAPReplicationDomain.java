@@ -1979,7 +1979,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
       if (findEntryDN(uuid) != null)
       {
         return new SynchronizationProviderResult.StopProcessing(
-            ResultCode.CANCELED, null);
+            ResultCode.NO_OPERATION, null);
       }
 
       /* The parent entry may have been renamed here since the change was done
@@ -2154,7 +2154,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
       if (hist.AddedOrRenamedAfter(ctx.getChangeNumber()))
       {
         return new SynchronizationProviderResult.StopProcessing(
-            ResultCode.SUCCESS, null);
+            ResultCode.NO_OPERATION, null);
       }
     }
     else
@@ -2211,7 +2211,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
           // Every modifications filtered in this operation: the operation
           // becomes a no-op
           return new SynchronizationProviderResult.StopProcessing(
-            ResultCode.SUCCESS, null);
+            ResultCode.NO_OPERATION, null);
         }
       }
       else
@@ -2702,31 +2702,47 @@ public class LDAPReplicationDomain extends ReplicationDomain
 
           if (result != ResultCode.SUCCESS)
           {
-            if (op instanceof ModifyOperation)
+            if (result == ResultCode.NO_OPERATION)
+            {
+              // Pre-operation conflict resolution detected that the operation
+              // was a no-op. For example, an add which has already been
+              // replayed, or a modify DN operation on an entry which has been
+              // renamed by a more recent modify DN.
+              done = true;
+            }
+            else if (op instanceof ModifyOperation)
             {
               ModifyOperation newOp = (ModifyOperation) op;
-              dependency = remotePendingChanges.checkDependencies(newOp);
+              dependency = remotePendingChanges
+                  .checkDependencies(newOp);
               ModifyMsg modifyMsg = (ModifyMsg) msg;
               done = solveNamingConflict(newOp, modifyMsg);
-            } else if (op instanceof DeleteOperation)
+            }
+            else if (op instanceof DeleteOperation)
             {
               DeleteOperation newOp = (DeleteOperation) op;
-              dependency = remotePendingChanges.checkDependencies(newOp);
+              dependency = remotePendingChanges
+                  .checkDependencies(newOp);
               done = solveNamingConflict(newOp, msg);
-            } else if (op instanceof AddOperation)
+            }
+            else if (op instanceof AddOperation)
             {
               AddOperation newOp = (AddOperation) op;
               AddMsg addMsg = (AddMsg) msg;
-              dependency = remotePendingChanges.checkDependencies(newOp);
+              dependency = remotePendingChanges
+                  .checkDependencies(newOp);
               done = solveNamingConflict(newOp, addMsg);
-            } else if (op instanceof ModifyDNOperationBasis)
+            }
+            else if (op instanceof ModifyDNOperationBasis)
             {
               ModifyDNOperationBasis newOp = (ModifyDNOperationBasis) op;
-                  done = solveNamingConflict(newOp, msg);
-            } else
-            {
-              done = true;  // unknown type of operation ?!
+              done = solveNamingConflict(newOp, msg);
             }
+            else
+            {
+              done = true; // unknown type of operation ?!
+            }
+
             if (done)
             {
               // the update became a dummy update and the result
