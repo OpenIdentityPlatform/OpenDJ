@@ -1452,33 +1452,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
-   * Creates and returns an iterator.
-   * When the iterator is not used anymore, the caller MUST call the
-   * ReplicationIterator.releaseCursor() method to free the resources
-   * and locks used by the ReplicationIterator.
-   *
-   * @param serverId Identifier of the server for which the iterator is created.
-   * @param changeNumber Starting point for the iterator.
-   * @return the created ReplicationIterator. Null when no DB is available
-   * for the provided server Id.
-   */
-  public ReplicationIterator getIterator(int serverId,
-    ChangeNumber changeNumber)
-  {
-    DbHandler handler = sourceDbHandlers.get(serverId);
-    if (handler == null)
-      return null;
-    try
-    {
-      ReplicationIterator it = handler.generateIterator(changeNumber);
-      return it;
-    } catch (Exception e)
-    {
-      return null;
-    }
-  }
-
-  /**
    * Returns the change count for that ReplicationServerDomain.
    *
    * @return the change count.

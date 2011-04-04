@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -31,13 +32,7 @@ import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -165,6 +160,61 @@ public final class StaticUtils
         return s.getBytes();
       }
     }
+  }
+
+
+
+  /**
+   * Returns the provided byte array decoded as a UTF-8 string without throwing
+   * an UnsupportedEncodingException. This method is equivalent to:
+   *
+   * <pre>
+   * try
+   * {
+   *   return new String(bytes, &quot;UTF-8&quot;);
+   * }
+   * catch (UnsupportedEncodingException e)
+   * {
+   *   // Should never happen: UTF-8 is always supported.
+   *   throw new RuntimeException(e);
+   * }
+   * </pre>
+   *
+   * @param bytes
+   *          The byte array to be decoded as a UTF-8 string.
+   * @return The decoded string.
+   */
+  public static String decodeUTF8(final byte[] bytes)
+  {
+    Validator.ensureNotNull(bytes);
+
+    if (bytes.length == 0)
+    {
+      return "".intern();
+    }
+
+    final StringBuilder builder = new StringBuilder(bytes.length);
+    final int sz = bytes.length;
+
+    for (int i = 0; i < sz; i++)
+    {
+      final byte b = bytes[i];
+      if ((b & 0x7f) != b)
+      {
+        try
+        {
+          builder.append(new String(bytes, i, (sz - i), "UTF-8"));
+        }
+        catch (UnsupportedEncodingException e)
+        {
+          // Should never happen: UTF-8 is always supported.
+          throw new RuntimeException(e);
+        }
+        break;
+      }
+      builder.append((char) b);
+    }
+    return builder.toString();
   }
 
 

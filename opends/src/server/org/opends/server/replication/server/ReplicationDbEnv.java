@@ -32,6 +32,8 @@ import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.DebugLogLevel;
+
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
@@ -131,9 +133,9 @@ public class ReplicationDbEnv
    */
   private void start() throws DatabaseException, ReplicationDBException
   {
-    Cursor cursor = stateDb.openCursor(null, null);
     DatabaseEntry key = new DatabaseEntry();
     DatabaseEntry data = new DatabaseEntry();
+    Cursor cursor = stateDb.openCursor(null, null);
 
     try
     {
@@ -259,7 +261,14 @@ public class ReplicationDbEnv
     }
     finally
     {
-      cursor.close();
+      try
+      {
+        cursor.close();
+      }
+      catch (Exception ignored)
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, ignored);
+      }
     }
   }
 

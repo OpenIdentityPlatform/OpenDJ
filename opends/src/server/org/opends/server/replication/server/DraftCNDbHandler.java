@@ -417,16 +417,16 @@ public class DraftCNDbHandler implements Runnable
           // could not handle the Deadlock after DEADLOCK_RETRIES tries.
           // shutdown the ReplicationServer.
           shutdown = true;
-          throw (e);
+          throw e;
         }
       }
-      catch (DatabaseException e)
+      catch (Exception e)
       {
         // mark shutdown for this db so that we don't try again to
         // stop it from cursor.close() or methods called by cursor.close()
         shutdown = true;
         cursor.abort();
-        throw (e);
+        throw e;
       }
     }
   }
