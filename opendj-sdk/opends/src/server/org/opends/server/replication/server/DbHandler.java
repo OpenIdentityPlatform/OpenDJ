@@ -478,8 +478,7 @@ public class DbHandler implements Runnable
         /* the trim is done by group in order to save some CPU and IO bandwidth
          * start the transaction then do a bunch of remove then commit
          */
-        ReplServerDBCursor cursor;
-        cursor = db.openDeleteCursor();
+        ReplServerDBCursor cursor = db.openDeleteCursor();
 
         try
         {
@@ -517,7 +516,7 @@ public class DbHandler implements Runnable
             throw (e);
           }
         }
-        catch (DatabaseException e)
+        catch (Exception e)
         {
           // mark shutdown for this db so that we don't try again to
           // stop it from cursor.close() or methods called by cursor.close()

@@ -29,6 +29,7 @@ package org.opends.server.replication.server;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.util.StaticUtils.decodeUTF8;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.io.UnsupportedEncodingException;
@@ -264,14 +265,7 @@ public class DraftCNDB
           /* database is empty */
           return 0;
         }
-        try
-        {
-          str = new String(key.getData(), "UTF-8");
-        } catch (UnsupportedEncodingException e)
-        {
-          // never happens, return anyway
-          return 0;
-        }
+        str = decodeUTF8(key.getData());
         int sn = new Integer(str);
         return sn;
       }
@@ -341,14 +335,7 @@ public class DraftCNDB
           /* database is empty */
           return 0;
         }
-        try
-        {
-          str = new String(key.getData(), "UTF-8");
-        } catch (UnsupportedEncodingException e)
-        {
-          // never happens, returns anyway
-          return 0;
-        }
+        str = decodeUTF8(key.getData());
         int sn = new Integer(str);
         return sn;
       }
@@ -387,47 +374,57 @@ public class DraftCNDB
    */
   public class DraftCNDBCursor
   {
-    private Cursor cursor = null;
+    private final Cursor cursor;
 
     // The transaction that will protect the actions done with the cursor
     // Will be let null for a read cursor
     // Will be set non null for a write cursor
-    private Transaction txn = null;
-    DatabaseEntry key = new DatabaseEntry();
-    DatabaseEntry entry = new DatabaseEntry();
+    private final Transaction txn;
+    private final DatabaseEntry key;
+    private final DatabaseEntry entry;
+
+    private boolean isClosed = false;
+
+
 
     /**
      * Creates a cursor that can be used for browsing the db.
      *
-     * @param startingDraftCN the draftCN from which the cursor must
-     *                        start.
-     * @throws Exception      when the startingDraftCN does not exist.
+     * @param startingDraftCN
+     *          the draftCN from which the cursor must start.
+     * @throws Exception
+     *           when the startingDraftCN does not exist.
      */
     private DraftCNDBCursor(int startingDraftCN) throws Exception
     {
+      // For consistency with other constructor, we'll use a local here,
+      // even though it's always null.
+      final Transaction localTxn = null;
+      Cursor localCursor = null;
+
+      this.key = new ReplicationDraftCNKey(startingDraftCN);
+      this.entry = new DatabaseEntry();
+
+      // Take the lock. From now on, whatever error that happen in the life
+      // of this cursor should end by unlocking that lock. We must also
+      // unlock it when throwing an exception.
+      dbCloseLock.readLock().lock();
+
       try
       {
-        // Take the lock. From now on, whatever error that happen in the life
-        // of this cursor should end by unlocking that lock. We must also
-        // unlock it when throwing an exception.
-        dbCloseLock.readLock().lock();
-
-        cursor = db.openCursor(txn, null);
+        localCursor = db.openCursor(localTxn, null);
         if (startingDraftCN >= 0)
         {
-          key = new ReplicationDraftCNKey(startingDraftCN);
-          entry = new DatabaseEntry();
-
-          if (cursor.getSearchKey(key, entry, LockMode.DEFAULT) !=
-            OperationStatus.SUCCESS)
+          if (localCursor.getSearchKey(
+              key, entry, LockMode.DEFAULT) != OperationStatus.SUCCESS)
           {
             // We could not move the cursor to the expected startingChangeNumber
-            if (cursor.getSearchKeyRange(key, entry, LockMode.DEFAULT) !=
-              OperationStatus.SUCCESS)
+            if (localCursor.getSearchKeyRange(key, entry,
+                LockMode.DEFAULT) != OperationStatus.SUCCESS)
             {
               // We could not even move the cursor closed to it => failure
-              throw new Exception("ChangeLog Draft Change Number " +
-                  startingDraftCN + " is not available");
+              throw new Exception("ChangeLog Draft Change Number "
+                  + startingDraftCN + " is not available");
             }
             else
             {
@@ -435,57 +432,76 @@ public class DraftCNDB
               // Let's create a cursor from that point.
               DatabaseEntry key = new DatabaseEntry();
               DatabaseEntry data = new DatabaseEntry();
-              if (cursor.getPrev(key, data, LockMode.DEFAULT) !=
-                OperationStatus.SUCCESS)
+              if (localCursor.getPrev(
+                  key, data, LockMode.DEFAULT) != OperationStatus.SUCCESS)
               {
-                closeLockedCursor(cursor);
-                dbCloseLock.readLock().lock();
-                cursor = db.openCursor(txn, null);
+                localCursor.close();
+                localCursor = db.openCursor(localTxn, null);
               }
             }
           }
-          else
-          {
-            // success : key has the right value
-          }
         }
+
+        this.txn = localTxn;
+        this.cursor = localCursor;
       }
       catch (Exception e)
       {
         // Unlocking is required before throwing any exception
-        closeLockedCursor(cursor);
-        throw (e);
+        closeLockedCursor(localCursor);
+        throw e;
       }
     }
 
-    private DraftCNDBCursor() throws DatabaseException
+
+
+    private DraftCNDBCursor() throws Exception
     {
+      Transaction localTxn = null;
+      Cursor localCursor = null;
+
+      this.key = new DatabaseEntry();
+      this.entry = new DatabaseEntry();
+
+      // We'll go on only if no close or no clear is running
+      dbCloseLock.readLock().lock();
       try
       {
-        // We'll go on only if no close or no clear is running
-        dbCloseLock.readLock().lock();
-
         // Create the transaction that will protect whatever done with this
         // write cursor.
-        txn = dbenv.beginTransaction();
+        localTxn = dbenv.beginTransaction();
+        localCursor = db.openCursor(localTxn, null);
 
-        cursor = db.openCursor(txn, null);
+        this.txn = localTxn;
+        this.cursor = localCursor;
       }
-      catch(DatabaseException e)
+      catch (Exception e)
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-        if (txn != null)
+        try
+        {
+          closeLockedCursor(localCursor);
+        }
+        catch (DatabaseException ignored)
+        {
+          // Ignore.
+          TRACER.debugCaught(DebugLogLevel.ERROR, ignored);
+        }
+
+        if (localTxn != null)
         {
           try
           {
-            txn.abort();
+            localTxn.abort();
           }
-          catch (DatabaseException dbe)
-          {}
+          catch (DatabaseException ignored)
+          {
+            // Ignore.
+            TRACER.debugCaught(DebugLogLevel.ERROR, ignored);
+          }
         }
-        closeLockedCursor(cursor);
-        throw (e);
+        throw e;
       }
     }
 
@@ -494,32 +510,49 @@ public class DraftCNDB
      */
     public void close()
     {
+      synchronized (this)
+      {
+        if (isClosed)
+        {
+          return;
+        }
+        isClosed = true;
+      }
+
+      boolean closeHasFailed = false;
+
       try
       {
         closeLockedCursor(cursor);
-        cursor = null;
       }
-      catch (DatabaseException e)
+      catch (Exception e)
       {
         MessageBuilder mb = new MessageBuilder();
         mb.append(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR.get());
         mb.append(stackTraceToSingleLineString(e));
         logError(mb.toMessage());
-        replicationServer.shutdown();
+        closeHasFailed = true;
       }
+
       if (txn != null)
       {
         try
         {
           txn.commit();
-        } catch (DatabaseException e)
+        }
+        catch (Exception e)
         {
           MessageBuilder mb = new MessageBuilder();
           mb.append(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR.get());
           mb.append(stackTraceToSingleLineString(e));
           logError(mb.toMessage());
-          replicationServer.shutdown();
+          closeHasFailed = true;
         }
+      }
+
+      if (closeHasFailed)
+      {
+        replicationServer.shutdown();
       }
     }
 
@@ -532,49 +565,63 @@ public class DraftCNDB
      */
     public void abort()
     {
-      if (cursor == null)
-        return;
+      synchronized (this)
+      {
+        if (isClosed)
+        {
+          return;
+        }
+        isClosed = true;
+      }
+
+      boolean closeHasFailed = false;
+
       try
       {
         closeLockedCursor(cursor);
-        cursor = null;
       }
-      catch (LockConflictException e1)
+      catch (LockConflictException e)
       {
         // The DB documentation states that a DeadlockException
         // on the close method of a cursor that is aborting should
         // be ignored.
       }
-      catch (DatabaseException e)
+      catch (Exception e)
       {
         MessageBuilder mb = new MessageBuilder();
         mb.append(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR.get());
         mb.append(stackTraceToSingleLineString(e));
         logError(mb.toMessage());
-        replicationServer.shutdown();
+        closeHasFailed = true;
       }
+
       if (txn != null)
       {
         try
         {
           txn.abort();
-        } catch (DatabaseException e)
+        }
+        catch (Exception e)
         {
           MessageBuilder mb = new MessageBuilder();
           mb.append(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR.get());
           mb.append(stackTraceToSingleLineString(e));
           logError(mb.toMessage());
-          replicationServer.shutdown();
+          closeHasFailed = true;
         }
+      }
+
+      if (closeHasFailed)
+      {
+        replicationServer.shutdown();
       }
     }
 
     /**
      * Getter for the value field of the current cursor.
      * @return The current value field.
-     * @throws DatabaseException When an error happens.
      */
-    public String currentValue() throws DatabaseException
+    public String currentValue()
     {
       try
       {
@@ -598,9 +645,8 @@ public class DraftCNDB
     /**
      * Getter for the serviceID field of the current cursor.
      * @return The current serviceID.
-     * @throws DatabaseException When an error happens.
      */
-    public String currentServiceID() throws DatabaseException
+    public String currentServiceID()
     {
       try
       {
@@ -616,7 +662,7 @@ public class DraftCNDB
       }
       catch(Exception e)
       {
-
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       return null;
     }
@@ -624,9 +670,8 @@ public class DraftCNDB
     /**
      * Returns the replication changeNumber associated with the current key.
      * @return the replication changeNumber
-     * @throws DatabaseException when a problem occurs.
      */
-    public ChangeNumber currentChangeNumber() throws DatabaseException
+    public ChangeNumber currentChangeNumber()
     {
       try
       {
@@ -671,6 +716,16 @@ public class DraftCNDB
     public void delete() throws DatabaseException
     {
       cursor.delete();
+    }
+
+    /**
+     * Returns the current key associated with this cursor.
+     *
+     * @return The current key associated with this cursor.
+     */
+    public DatabaseEntry getKey()
+    {
+      return key;
     }
   }
 

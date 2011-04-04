@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -124,7 +125,7 @@ public class DraftCNDbIterator
    */
   public int getDraftCN()
   {
-    ReplicationDraftCNKey sk = (ReplicationDraftCNKey)this.draftCNDbCursor.key;
+    ReplicationDraftCNKey sk = (ReplicationDraftCNKey) draftCNDbCursor.getKey();
     int currentSeqnum = sk.getDraftCN();
     return currentSeqnum;
   }

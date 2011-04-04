@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -135,6 +136,21 @@ public final class TestStaticUtils extends UtilTestCase {
     }
 
     return data;
+  }
+
+  /**
+   * Tests the {@link StaticUtils#decodeUTF8(byte[])} method.
+   *
+   * @param inputString
+   *          The input string.
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test(dataProvider = "getBytesTestData")
+  public void testDecodeUTF8(String inputString) throws Exception
+  {
+    final byte[] bytes = inputString.getBytes("UTF-8");
+    Assert.assertEquals(StaticUtils.decodeUTF8(bytes), inputString);
   }
 
   /**
@@ -1174,7 +1190,7 @@ public final class TestStaticUtils extends UtilTestCase {
    *           If the test failed unexpectedly.
    */
   @Test(dataProvider = "listsAreEqualTestData")
-  public void testListsAreEqual(List list1, List list2, boolean result)
+  public void testListsAreEqual(List<?> list1, List<?> list2, boolean result)
       throws Exception {
     Assert.assertEquals(StaticUtils.listsAreEqual(list1, list2), result);
   }

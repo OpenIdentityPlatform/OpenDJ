@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -126,26 +127,31 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       assertEquals(handler.getLastKey(), sn3);
 
       DraftCNDBCursor dbc = handler.getReadCursor(firstkey);
-      assertEquals(dbc.currentChangeNumber(), changeNumber1);
-      assertEquals(dbc.currentServiceID(), serviceID1);
-      assertEquals(dbc.currentValue(), value1);
-      assertTrue(dbc.toString().length() != 0);
+      try
+      {
+        assertEquals(dbc.currentChangeNumber(), changeNumber1);
+        assertEquals(dbc.currentServiceID(), serviceID1);
+        assertEquals(dbc.currentValue(), value1);
+        assertTrue(dbc.toString().length() != 0);
 
-      assertTrue(dbc.next());
+        assertTrue(dbc.next());
 
-      assertEquals(dbc.currentChangeNumber(), changeNumber2);
-      assertEquals(dbc.currentServiceID(), serviceID2);
-      assertEquals(dbc.currentValue(), value2);
+        assertEquals(dbc.currentChangeNumber(), changeNumber2);
+        assertEquals(dbc.currentServiceID(), serviceID2);
+        assertEquals(dbc.currentValue(), value2);
 
-      assertTrue(dbc.next());
+        assertTrue(dbc.next());
 
-      assertEquals(dbc.currentChangeNumber(), changeNumber3);
-      assertEquals(dbc.currentServiceID(), serviceID3);
-      assertEquals(dbc.currentValue(), value3);
+        assertEquals(dbc.currentChangeNumber(), changeNumber3);
+        assertEquals(dbc.currentServiceID(), serviceID3);
+        assertEquals(dbc.currentValue(), value3);
 
-      assertFalse(dbc.next());
-
-      handler.releaseReadCursor(dbc);
+        assertFalse(dbc.next());
+      }
+      finally
+      {
+        handler.releaseReadCursor(dbc);
+      }
 
       handler.setPurgeDelay(100);
 
@@ -258,25 +264,43 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       assertEquals(handler.getValue(sn3),value3);
 
       DraftCNDbIterator it = handler.generateIterator(sn1);
-      assertEquals(it.getDraftCN(),sn1);
-      assertTrue(it.next());
-      assertEquals(it.getDraftCN(),sn2);
-      assertTrue(it.next());
-      assertEquals(it.getDraftCN(),sn3);
-      assertFalse(it.next());
-      it.releaseCursor();
+      try
+      {
+        assertEquals(it.getDraftCN(), sn1);
+        assertTrue(it.next());
+        assertEquals(it.getDraftCN(), sn2);
+        assertTrue(it.next());
+        assertEquals(it.getDraftCN(), sn3);
+        assertFalse(it.next());
+      }
+      finally
+      {
+        it.releaseCursor();
+      }
 
       it = handler.generateIterator(sn2);
-      assertEquals(it.getDraftCN(),sn2);
-      assertTrue(it.next());
-      assertEquals(it.getDraftCN(),sn3);
-      assertFalse(it.next());
-      it.releaseCursor();
+      try
+      {
+        assertEquals(it.getDraftCN(), sn2);
+        assertTrue(it.next());
+        assertEquals(it.getDraftCN(), sn3);
+        assertFalse(it.next());
+      }
+      finally
+      {
+        it.releaseCursor();
+      }
 
       it = handler.generateIterator(sn3);
-      assertEquals(it.getDraftCN(),sn3);
-      assertFalse(it.next());
-      it.releaseCursor();
+      try
+      {
+        assertEquals(it.getDraftCN(), sn3);
+        assertFalse(it.next());
+      }
+      finally
+      {
+        it.releaseCursor();
+      }
 
       // Clear ...
       handler.clear();
