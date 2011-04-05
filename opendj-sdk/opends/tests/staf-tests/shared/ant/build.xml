@@ -67,7 +67,7 @@
     <taskdef resource="net/sf/antcontrib/antlib.xml">
       <classpath>
         <fileset dir="${project.home}/ext/ant/lib">
-          <include name="**/*.jar"/>
+          <include name="*/*.jar"/>
         </fileset>
       </classpath>
     </taskdef>
