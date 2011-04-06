@@ -45,9 +45,13 @@ echo using the following variables:
 echo   ANT_HOME=%ANT_HOME%
 echo   JAVA_HOME=%JAVA_HOME%
 if not "%*" == "" echo   your parameters=%*
-echo Now running ant ...
+
 set OPENDS_LIB=%FT_HOME%\..\..\lib
-set ANT_LIB="%OPENDS_LIB%\mail.jar;%OPENDS_LIB%\activation.jar"
-"%ANT_HOME%\bin\ant" -lib "%ANT_LIB%" -f shared\ant\build.xml %*
+echo   OPENDS_LIB=%OPENDS_LIB%
+set ANT_LIBS=-lib "%OPENDS_LIB%\activation.jar" -lib "%OPENDS_LIB%\activation.jar"
+echo   ANT_LIBS=%ANT_LIBS%
+
+echo Now running ant ...
+"%ANT_HOME%\bin\ant" %ANT_LIBS% -f shared\ant\build.xml %*
 
 :end
