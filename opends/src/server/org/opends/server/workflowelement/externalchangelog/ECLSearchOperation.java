@@ -31,70 +31,38 @@ package org.opends.server.workflowelement.externalchangelog;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.util.LDIFWriter.appendLDIFSeparatorAndValue;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
-import static org.opends.server.util.StaticUtils.needsBase64Encoding;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
+import java.util.*;
 
 import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
-import org.opends.server.controls.EntryChangelogNotificationControl;
-import org.opends.server.controls.ExternalChangelogRequestControl;
-import org.opends.server.controls.LDAPAssertionRequestControl;
-import org.opends.server.controls.MatchedValuesControl;
-import org.opends.server.controls.PersistentSearchControl;
-import org.opends.server.controls.ProxiedAuthV1Control;
-import org.opends.server.controls.ProxiedAuthV2Control;
-import org.opends.server.controls.SubentriesControl;
-import org.opends.server.core.AccessControlConfigManager;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.PersistentSearch;
-import org.opends.server.core.PluginConfigManager;
-import org.opends.server.core.SearchOperation;
-import org.opends.server.core.SearchOperationWrapper;
+import org.opends.server.config.ConfigConstants;
+import org.opends.server.controls.*;
+import org.opends.server.core.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ExternalChangeLogSession;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.plugin.MultimasterReplication;
-import org.opends.server.replication.protocol.AddMsg;
-import org.opends.server.replication.protocol.DeleteMsg;
-import org.opends.server.replication.protocol.ECLUpdateMsg;
-import org.opends.server.replication.protocol.ModifyDNMsg;
-import org.opends.server.replication.protocol.ModifyMsg;
-import org.opends.server.replication.protocol.StartECLSessionMsg;
-import org.opends.server.replication.protocol.UpdateMsg;
+import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationSearchOperation;
 import org.opends.server.types.operation.PreOperationSearchOperation;
 import org.opends.server.types.operation.SearchEntrySearchOperation;
 import org.opends.server.types.operation.SearchReferenceSearchOperation;
-import org.opends.server.util.Base64;
 import org.opends.server.util.ServerConstants;
-import org.opends.server.config.ConfigConstants;
 
 
 
@@ -156,6 +124,22 @@ public class ECLSearchOperation
         true);
     CHANGELOG_ENTRY_OBJECT_CLASSES.put(eclEntryOC, OC_CHANGELOG_ENTRY);
   }
+
+
+  // The attribute type for the "creatorsName" attribute.
+  private static final AttributeType CREATORS_NAME_TYPE;
+
+  // The attribute type for the "modifiersName" attribute.
+  private static final AttributeType MODIFIERS_NAME_TYPE;
+
+  static
+  {
+    CREATORS_NAME_TYPE = DirectoryConfig.getAttributeType(
+        OP_ATTR_CREATORS_NAME_LC, true);
+    MODIFIERS_NAME_TYPE = DirectoryConfig.getAttributeType(
+        OP_ATTR_MODIFIERS_NAME_LC, true);
+  }
+
 
   // The associated DN.
   private static final DN CHANGELOG_ROOT_DN;
@@ -724,15 +708,19 @@ public class ECLSearchOperation
     }
   }
 
+
+
   /**
    * Create an ECL entry from a provided ECL msg.
    *
-   * @param  eclmsg the provided ECL msg.
-   * @return        the created ECL entry.
-   * @throws DirectoryException When an error occurs.
+   * @param eclmsg
+   *          the provided ECL msg.
+   * @return the created ECL entry.
+   * @throws DirectoryException
+   *           When an error occurs.
    */
   public static Entry createEntryFromMsg(ECLUpdateMsg eclmsg)
-  throws DirectoryException
+      throws DirectoryException
   {
     Entry clEntry = null;
 
@@ -741,128 +729,164 @@ public class ECLSearchOperation
 
     if (msg instanceof AddMsg)
     {
-      AddMsg addMsg = (AddMsg)msg;
+      AddMsg addMsg = (AddMsg) msg;
 
-      // Map the addMsg to an LDIF string for the 'changes' attribute
-      String LDIFchanges = addMsgToLDIFString(addMsg);
+      // Map addMsg to an LDIF string for the 'changes' attribute, and pull
+      // out change initiators name if available which is contained in the
+      // creatorsName attribute.
+      String changeInitiatorsName = null;
+      String ldifChanges = null;
+
+      try
+      {
+        StringBuilder builder = new StringBuilder(256);
+        for (Attribute a : addMsg.getAttributes())
+        {
+          if (a.getAttributeType().equals(CREATORS_NAME_TYPE)
+              && !a.isEmpty())
+          {
+            // This attribute is not multi-valued.
+            changeInitiatorsName = a.iterator().next().toString();
+          }
+
+          String attrName = a.getNameWithOptions();
+          for (AttributeValue v : a)
+          {
+            builder.append(attrName);
+            appendLDIFSeparatorAndValue(builder, v.getValue());
+            builder.append('\n');
+          }
+        }
+        ldifChanges = builder.toString();
+      }
+      catch (Exception e)
+      {
+        // Unable to decode the message - log an error.
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+
+        logError(Message.raw(
+            Category.SYNC,
+            Severity.MILD_ERROR,
+            "An exception was encountered while try to encode a "
+                + "replication add message for entry \""
+                + addMsg.getDn()
+                + "\" into an External Change Log entry: "
+                + e.getMessage()));
+      }
 
       ArrayList<RawAttribute> eclAttributes = addMsg.getEclIncludes();
 
-      clEntry = createChangelogEntry(
-          eclmsg.getServiceId(),
-          eclmsg.getCookie().toString(),
-          DN.decode(addMsg.getDn()),
-          addMsg.getChangeNumber(),
-          LDIFchanges, // entry as created (in LDIF format)
-          addMsg.getUniqueId(),
-          null, // real time current entry
+      clEntry = createChangelogEntry(eclmsg.getServiceId(), eclmsg
+          .getCookie().toString(), DN.decode(addMsg.getDn()),
+          addMsg.getChangeNumber(), ldifChanges, // entry as created (in LDIF
+                                                 // format)
+          addMsg.getUniqueId(), null, // real time current entry
           eclAttributes, // entry attributes
-          eclmsg.getDraftChangeNumber(),
-      "add", null);
+          eclmsg.getDraftChangeNumber(), "add", changeInitiatorsName);
 
-    } else
-      if (msg instanceof ModifyMsg)
+    }
+    else if (msg instanceof ModifyCommonMsg)
+    {
+      ModifyCommonMsg modifyMsg = (ModifyCommonMsg) msg;
+
+      // Map the modifyMsg to an LDIF string for the 'changes' attribute, and
+      // pull out change initiators name if available which is contained in the
+      // modifiersName attribute.
+      String changeInitiatorsName = null;
+      String ldifChanges = null;
+
+      try
       {
-        ModifyMsg modMsg = (ModifyMsg)msg;
-        InternalClientConnection conn =
-          InternalClientConnection.getRootConnection();
-        try
+        StringBuilder builder = new StringBuilder(128);
+        for (Modification m : modifyMsg.getMods())
         {
-          // Map the modMsg modifications to an LDIF string
-          // for the 'changes' attribute of the CL entry
-          ModifyOperation modifyOperation =
-            (ModifyOperation)modMsg.createOperation(conn);
-          String LDIFchanges = modToLDIF(modifyOperation.getModifications());
+          Attribute a = m.getAttribute();
 
-          ArrayList<RawAttribute> eclAttributes = modMsg.getEclIncludes();
-
-          clEntry = createChangelogEntry(
-              eclmsg.getServiceId(),
-              eclmsg.getCookie().toString(),
-              DN.decode(modMsg.getDn()),
-              modMsg.getChangeNumber(),
-              LDIFchanges,
-              modMsg.getUniqueId(),
-              null, // real time current entry
-              eclAttributes, // entry attributes
-              eclmsg.getDraftChangeNumber(),
-              "modify",null);
-
-        }
-        catch(Exception e)
-        {
-          // Exceptions raised by createOperation for example
-          throw new DirectoryException(ResultCode.OTHER,
-              Message.raw(Category.SYNC, Severity.NOTICE,
-                  " Server fails to create entry: "),e);
-        }
-      }
-      else if (msg instanceof ModifyDNMsg)
-      {
-        try
-        {
-          InternalClientConnection conn =
-            InternalClientConnection.getRootConnection();
-          ModifyDNMsg modDNMsg = (ModifyDNMsg)msg;
-
-          ArrayList<RawAttribute> eclAttributes = modDNMsg.getEclIncludes();
-          ModifyDNOperation modifyDNOperation =
-            (ModifyDNOperation)modDNMsg.createOperation(conn);
-          String LDIFchanges = modToLDIF(modifyDNOperation.getModifications());
-
-          clEntry = createChangelogEntry(
-              eclmsg.getServiceId(),
-              eclmsg.getCookie().toString(),
-              DN.decode(modDNMsg.getDn()),
-              modDNMsg.getChangeNumber(),
-              LDIFchanges,
-              modDNMsg.getUniqueId(),
-              null, // real time current entry
-              eclAttributes, // entry attributes
-              eclmsg.getDraftChangeNumber(),
-          "modrdn", null);
-
-          Attribute a = Attributes.create("newrdn", modDNMsg.getNewRDN());
-          clEntry.addAttribute(a, null);
-
-          if (modDNMsg.getNewSuperior()!=null)
+          if (m.getModificationType() == ModificationType.REPLACE
+              && a.getAttributeType().equals(MODIFIERS_NAME_TYPE)
+              && !a.isEmpty())
           {
-            Attribute b = Attributes.create("newsuperior",
-                modDNMsg.getNewSuperior());
-            clEntry.addAttribute(b, null);
+            // This attribute is not multi-valued.
+            changeInitiatorsName = a.iterator().next().toString();
           }
 
-          Attribute c = Attributes.create("deleteoldrdn",
-              String.valueOf(modDNMsg.deleteOldRdn()));
-          clEntry.addAttribute(c, null);
-        }
-        catch(Exception e)
-        {
-          // Exceptions raised by createOperation for example
-          throw new DirectoryException(ResultCode.OTHER,
-              Message.raw(Category.SYNC, Severity.NOTICE,
-                  " Server fails to create entry: "),e);
-        }
+          String attrName = a.getNameWithOptions();
+          builder.append(m.getModificationType().getLDIFName());
+          builder.append(": ");
+          builder.append(attrName);
+          builder.append('\n');
 
+          for (AttributeValue v : a)
+          {
+            builder.append(attrName);
+            appendLDIFSeparatorAndValue(builder, v.getValue());
+            builder.append('\n');
+          }
+          builder.append("-\n");
+        }
+        ldifChanges = builder.toString();
       }
-      else if (msg instanceof DeleteMsg)
+      catch (Exception e)
       {
-        DeleteMsg delMsg = (DeleteMsg)msg;
+        // Unable to decode the message - log an error.
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
 
-        ArrayList<RawAttribute> eclAttributes = delMsg.getEclIncludes();
-
-        clEntry = createChangelogEntry(
-            eclmsg.getServiceId(),
-            eclmsg.getCookie().toString(),
-            DN.decode(delMsg.getDn()),
-            delMsg.getChangeNumber(),
-            null, // no changes
-            delMsg.getUniqueId(),
-            null,
-            eclAttributes, // entry attributes
-            eclmsg.getDraftChangeNumber(),
-           "delete", delMsg.getInitiatorsName());
+        logError(Message.raw(
+            Category.SYNC,
+            Severity.MILD_ERROR,
+            "An exception was encountered while try to encode a "
+                + "replication modify message for entry \""
+                + modifyMsg.getDn()
+                + "\" into an External Change Log entry: "
+                + e.getMessage()));
       }
+
+      String changeType = (modifyMsg instanceof ModifyDNMsg) ? "modrdn"
+          : "modify";
+
+      clEntry = createChangelogEntry(eclmsg.getServiceId(), eclmsg
+          .getCookie().toString(), DN.decode(modifyMsg.getDn()),
+          modifyMsg.getChangeNumber(), ldifChanges,
+          modifyMsg.getUniqueId(),
+          null, // real time current entry
+          modifyMsg.getEclIncludes(), // entry attributes
+          eclmsg.getDraftChangeNumber(), changeType,
+          changeInitiatorsName);
+
+      if (modifyMsg instanceof ModifyDNMsg)
+      {
+        ModifyDNMsg modDNMsg = (ModifyDNMsg) modifyMsg;
+
+        Attribute a = Attributes.create("newrdn",
+            modDNMsg.getNewRDN());
+        clEntry.addAttribute(a, null);
+
+        if (modDNMsg.getNewSuperior() != null)
+        {
+          Attribute b = Attributes.create("newsuperior",
+              modDNMsg.getNewSuperior());
+          clEntry.addAttribute(b, null);
+        }
+
+        Attribute c = Attributes.create("deleteoldrdn",
+            String.valueOf(modDNMsg.deleteOldRdn()));
+        clEntry.addAttribute(c, null);
+      }
+    }
+    else if (msg instanceof DeleteMsg)
+    {
+      DeleteMsg delMsg = (DeleteMsg) msg;
+
+      clEntry = createChangelogEntry(eclmsg.getServiceId(), eclmsg
+          .getCookie().toString(), DN.decode(delMsg.getDn()),
+          delMsg.getChangeNumber(),
+          null, // no changes
+          delMsg.getUniqueId(), null,
+          delMsg.getEclIncludes(), // entry attributes
+          eclmsg.getDraftChangeNumber(), "delete",
+          delMsg.getInitiatorsName());
+    }
+
     return clEntry;
   }
 
@@ -940,7 +964,7 @@ public class ECLSearchOperation
    * @param histEntryAttributes TODO:ECL Adress hist entry attributes
    * @param draftChangenumber The provided draft change number (integer)
    * @param changetype      The provided change type (add, ...)
-   * @param delInitiatorsName The provided del initiatiors name
+   * @param changeInitiatorsName The provided initiatiors name
    * @return                The created ECL entry.
    * @throws DirectoryException
    *         When any error occurs.
@@ -956,13 +980,12 @@ public class ECLSearchOperation
       List<RawAttribute> histEntryAttributes,
       int draftChangenumber,
       String changetype,
-      String delInitiatorsName)
+      String changeInitiatorsName)
   throws DirectoryException
   {
     AttributeType aType;
 
     String dnString = "";
-    String pattern;
     if (draftChangenumber == 0)
     {
       // Draft uncompat mode
@@ -1059,14 +1082,6 @@ public class ECLSearchOperation
     else
       uAttrs.put(aType, attrList);
 
-    /* Change time in a friendly format
-    Date date = new Date(changeNumber.getTime());
-    a = Attributes.create("clearChangeTime", date.toString());
-    attrList = new ArrayList<Attribute>(1);
-    attrList.add(a);
-    uAttrs.put(a.getAttributeType(), attrList);
-     */
-
     //
     if((aType = DirectoryServer.getAttributeType("changetype")) == null)
       aType = DirectoryServer.getDefaultAttributeType("changeType");
@@ -1114,117 +1129,45 @@ public class ECLSearchOperation
 
     if (clearLDIFchanges != null)
     {
-      if (changetype.equals("add"))
+      if ((aType = DirectoryServer.getAttributeType("changes")) == null)
       {
-        if((aType = DirectoryServer.getAttributeType("changes")) == null)
-          aType = DirectoryServer.getDefaultAttributeType("changes");
-
-        a = Attributes.create(aType, clearLDIFchanges + "\n");
-        // force base64
-        attrList = new ArrayList<Attribute>(1);
-        attrList.add(a);
-        if(aType.isOperational())
-          operationalAttrs.put(aType, attrList);
-        else
-          uAttrs.put(aType, attrList);
-
-        pattern = "creatorsName: ";
-        try
-        {
-          int att_cr = clearLDIFchanges.indexOf(pattern);
-          if (att_cr>0)
-          {
-            int start_val_cr = clearLDIFchanges.indexOf(':', att_cr);
-            int end_val_cr = clearLDIFchanges.indexOf(EOL, att_cr);
-            String creatorsName =
-              clearLDIFchanges.substring(start_val_cr+2, end_val_cr);
-
-            if((aType =
-              DirectoryServer.getAttributeType("changeinitiatorsname")) == null)
-              aType =
-                DirectoryServer.getDefaultAttributeType("changeInitiatorsName");
-            a = Attributes.create(aType, creatorsName);
-            attrList = new ArrayList<Attribute>(1);
-            attrList.add(a);
-            if(aType.isOperational())
-              operationalAttrs.put(aType, attrList);
-            else
-              uAttrs.put(aType, attrList);
-          }
-        }
-        catch(Exception e)
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          logError(Message.raw(Category.SYNC, Severity.MILD_ERROR,
-              "Error in External Change Log when looking for pattern \""
-              + pattern + "\" in string \""+
-              clearLDIFchanges + "\" for change " + dnString));
-        }
+        aType = DirectoryServer.getDefaultAttributeType("changes");
       }
-      else if (changetype.equals("modify")||changetype.equals("modrdn"))
+
+      a = Attributes.create(aType, clearLDIFchanges); // force base64
+      attrList = new ArrayList<Attribute>(1);
+      attrList.add(a);
+
+      if (aType.isOperational())
       {
-        if (changetype.equals("modify"))
-        {
-          if((aType = DirectoryServer.getAttributeType("changes")) == null)
-            aType = DirectoryServer.getDefaultAttributeType("changes");
-
-          a = Attributes.create(aType, clearLDIFchanges + "\n");
-          // force base64
-          attrList = new ArrayList<Attribute>(1);
-          attrList.add(a);
-          if(aType.isOperational())
-            operationalAttrs.put(aType, attrList);
-          else
-            uAttrs.put(aType, attrList);
-        }
-
-        pattern = "modifiersName: ";
-        try
-        {
-          int att_cr = clearLDIFchanges.indexOf(pattern);
-          if (att_cr>0)
-          {
-            int start_val_cr = att_cr + pattern.length();
-            int end_val_cr = clearLDIFchanges.indexOf(EOL, att_cr);
-            String modifiersName =
-              clearLDIFchanges.substring(start_val_cr, end_val_cr);
-
-            if((aType =
-              DirectoryServer.getAttributeType("changeinitiatorsname")) == null)
-              aType =
-                DirectoryServer.getDefaultAttributeType("changeInitiatorsName");
-            a = Attributes.create(aType, modifiersName);
-            attrList = new ArrayList<Attribute>(1);
-            attrList.add(a);
-            if(aType.isOperational())
-              operationalAttrs.put(aType, attrList);
-            else
-              uAttrs.put(aType, attrList);
-          }
-        }
-        catch(Exception e)
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          logError(Message.raw(Category.SYNC, Severity.MILD_ERROR,
-              "Error in External Change Log when looking for pattern \""
-              + pattern + "\" in string \""+
-              clearLDIFchanges + "\" for change " + dnString));
-        }
+        operationalAttrs.put(aType, attrList);
+      }
+      else
+      {
+        uAttrs.put(aType, attrList);
       }
     }
 
-    if (changetype.equals("delete") && (delInitiatorsName!=null))
+    if (changeInitiatorsName != null)
     {
-      if((aType = DirectoryServer.getAttributeType("changeinitiatorsname"))
-          == null)
-        aType = DirectoryServer.getDefaultAttributeType("changeInitiatorsName");
-      a = Attributes.create(aType, delInitiatorsName);
+      if ((aType = DirectoryServer
+          .getAttributeType("changeinitiatorsname")) == null)
+      {
+        aType = DirectoryServer
+            .getDefaultAttributeType("changeInitiatorsName");
+      }
+      a = Attributes.create(aType, changeInitiatorsName);
       attrList = new ArrayList<Attribute>(1);
       attrList.add(a);
-      if(aType.isOperational())
+
+      if (aType.isOperational())
+      {
         operationalAttrs.put(aType, attrList);
+      }
       else
+      {
         uAttrs.put(aType, attrList);
+      }
     }
 
     if (targetUUID != null)
@@ -1320,203 +1263,7 @@ public class ECLSearchOperation
     return cle;
   }
 
-  /**
-   * Dump a replication AddMsg to an LDIF string that will be the 'changes'
-   * attributes of the ECL entry.
-   * @param addMsg The provided replication add msg.
-   * @return The LDIF string.
-   */
-  private static String addMsgToLDIFString(AddMsg addMsg)
-  {
-    StringBuilder modTypeLine = new StringBuilder();
-    // LinkedList<StringBuilder> ldifLines =
-    //  new LinkedList<StringBuilder>();
 
-    try
-    {
-      AddOperation addOperation = (AddOperation)addMsg.createOperation(
-          InternalClientConnection.getRootConnection());
-
-      Map<AttributeType,List<Attribute>> attributes =
-        new HashMap<AttributeType,List<Attribute>>();
-
-      for (RawAttribute a : addOperation.getRawAttributes())
-      {
-        Attribute attr = a.toAttribute();
-        AttributeType attrType = attr.getAttributeType();
-        List<Attribute> attrs = attributes.get(attrType);
-        if (attrs == null)
-        {
-          attrs = new ArrayList<Attribute>(1);
-          attrs.add(attr);
-          attributes.put(attrType, attrs);
-        }
-        else
-        {
-          attrs.add(attr);
-        }
-      }
-      for (List<Attribute> attrList : attributes.values())
-      {
-        for (Attribute a : attrList)
-        {
-          StringBuilder attrName = new StringBuilder(a.getName());
-          for (String o : a.getOptions())
-          {
-            attrName.append(";");
-            attrName.append(o);
-          }
-          for (AttributeValue av : a)
-          {
-            String stringValue = av.toString();
-
-            modTypeLine.append(attrName);
-            if (needsBase64Encoding(stringValue))
-            {
-              modTypeLine.append(":: ");
-              modTypeLine.append(Base64.encode(av.getValue()));
-            }
-            else
-            {
-              modTypeLine.append(": ");
-              modTypeLine.append(stringValue);
-            }
-            modTypeLine.append("\n");
-          }
-        }
-      }
-      return modTypeLine.toString();
-    }
-    catch(Exception e)
-    {
-      TRACER.debugCaught(DebugLogLevel.ERROR, e);
-    }
-    return null;
-  }
-
-  /**
-   * Dump a replication delMsg to an LDIF string that will be the 'changes'
-   * attributes of the ECL entry.
-   * @param addMsg The provided replication del msg.
-   * @return The LDIF string.
-  private static String delMsgToLDIFString(ArrayList<RawAttribute> rattributes)
-  {
-    StringBuilder delTypeLine = new StringBuilder();
-    try
-    {
-
-      Map<AttributeType,List<Attribute>> attributes =
-        new HashMap<AttributeType,List<Attribute>>();
-
-      for (RawAttribute a : rattributes)
-      {
-        Attribute attr = a.toAttribute();
-        AttributeType attrType = attr.getAttributeType();
-        List<Attribute> attrs = attributes.get(attrType);
-        if (attrs == null)
-        {
-          attrs = new ArrayList<Attribute>(1);
-          attrs.add(attr);
-          attributes.put(attrType, attrs);
-        }
-        else
-        {
-          attrs.add(attr);
-        }
-      }
-
-      for (List<Attribute> attrList : attributes.values())
-      {
-        for (Attribute a : attrList)
-        {
-          StringBuilder attrName = new StringBuilder(a.getName());
-          for (String o : a.getOptions())
-          {
-            attrName.append(";");
-            attrName.append(o);
-          }
-          for (AttributeValue av : a)
-          {
-            // ??
-            String stringValue = av.toString();
-            delTypeLine.append(attrName);
-            if (needsBase64Encoding(stringValue))
-            {
-              delTypeLine.append(":: ");
-              delTypeLine.append(Base64.encode(av.getValue()));
-            }
-            else
-            {
-              delTypeLine.append(": ");
-              delTypeLine.append(stringValue);
-            }
-            delTypeLine.append("\n");
-          }
-        }
-      }
-      return delTypeLine.toString();
-    }
-    catch(Exception e)
-    {
-      TRACER.debugCaught(DebugLogLevel.ERROR, e);
-    }
-    return null;
-  }
-   */
-
-  /**
-   * Dumps a list of modifications into an LDIF string.
-   * @param mods The provided list of modifications.
-   * @return The LDIF string.
-   */
-  private static String modToLDIF(List<Modification> mods)
-  {
-    if (mods==null)
-    {
-      // test case only
-      return null;
-    }
-    StringBuilder modTypeLine = new StringBuilder();
-    Iterator<Modification> iterator = mods.iterator();
-    while (iterator.hasNext())
-    {
-      Modification m = iterator.next();
-      Attribute a = m.getAttribute();
-      String attrName = a.getNameWithOptions();
-      modTypeLine.append(m.getModificationType().getLDIFName());
-      modTypeLine.append(": ");
-      modTypeLine.append(attrName);
-      modTypeLine.append("\n");
-
-      Iterator<AttributeValue> iteratorValues = a.iterator();
-      while (iteratorValues.hasNext())
-      {
-        AttributeValue av = iteratorValues.next();
-
-        String stringValue = av.toString();
-
-        modTypeLine.append(attrName);
-        if (needsBase64Encoding(stringValue))
-        {
-          modTypeLine.append(":: ");
-          modTypeLine.append(Base64.encode(av.getValue()));
-        }
-        else
-        {
-          modTypeLine.append(": ");
-          modTypeLine.append(stringValue);
-        }
-        modTypeLine.append("\n");
-      }
-
-      modTypeLine.append("-");
-      if (iterator.hasNext())
-      {
-        modTypeLine.append("\n");
-      }
-    }
-    return modTypeLine.toString();
-  }
 
   /**
    * {@inheritDoc}
