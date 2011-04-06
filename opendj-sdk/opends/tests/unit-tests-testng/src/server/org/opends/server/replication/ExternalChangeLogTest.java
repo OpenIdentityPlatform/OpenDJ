@@ -1591,9 +1591,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             assertTrue(resultEntry.getDN().toNormalizedString().equalsIgnoreCase(
                 "replicationcsn=" + cn2 + "," + TEST_ROOT_DN_STRING + ",cn=changelog"));
             String expectedValue1 = "objectClass: domain\nobjectClass: top\n" +
-            "entryUUID: 11111111-1111-1111-1111-111111111111\n\n";
+            "entryUUID: 11111111-1111-1111-1111-111111111111\n";
             String expectedValue2 = "entryUUID: 11111111-1111-1111-1111-111111111111\n" +
-            "objectClass: domain\nobjectClass: top\n\n";
+            "objectClass: domain\nobjectClass: top\n";
             checkPossibleValues(resultEntry,"changes",expectedValue1, expectedValue2);
             checkValue(resultEntry,"replicationcsn",cn2.toString());
             checkValue(resultEntry,"replicaidentifier","1201");
@@ -3006,9 +3006,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             assertTrue(resultEntry.getDN().toNormalizedString().equalsIgnoreCase(
                 "changenumber="+String.valueOf(firstDraftChangeNumber+1)+",cn=changelog"));
             String expectedValue1 = "objectClass: domain\nobjectClass: top\n" +
-            "entryUUID: "+user1entryUUID+"\n\n";
+            "entryUUID: "+user1entryUUID+"\n";
             String expectedValue2 = "entryUUID: "+user1entryUUID+"\n" +
-            "objectClass: domain\nobjectClass: top\n\n";
+            "objectClass: domain\nobjectClass: top\n";
             checkPossibleValues(resultEntry,"changes",expectedValue1, expectedValue2);
             checkValue(resultEntry,"replicationcsn",gblCN.toString());
             checkValue(resultEntry,"replicaidentifier","1201");
@@ -3099,9 +3099,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             assertTrue(resultEntry.getDN().toNormalizedString().equalsIgnoreCase(
                 "changenumber="+String.valueOf(firstDraftChangeNumber+1)+",cn=changelog"));
             String expectedValue1 = "objectClass: domain\nobjectClass: top\n" +
-            "entryUUID: "+user1entryUUID+"\n\n";
+            "entryUUID: "+user1entryUUID+"\n";
             String expectedValue2 = "entryUUID: "+user1entryUUID+"\n" +
-            "objectClass: domain\nobjectClass: top\n\n";
+            "objectClass: domain\nobjectClass: top\n";
             checkPossibleValues(resultEntry,"changes",expectedValue1, expectedValue2);
             checkValue(resultEntry,"replicationcsn",gblCN.toString());
             checkValue(resultEntry,"replicaidentifier","1201");
