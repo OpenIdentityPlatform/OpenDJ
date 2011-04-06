@@ -48,7 +48,7 @@ if not "%*" == "" echo   your parameters=%*
 
 set OPENDS_LIB=%FT_HOME%\..\..\lib
 echo   OPENDS_LIB=%OPENDS_LIB%
-set ANT_LIBS=-lib "%OPENDS_LIB%\activation.jar" -lib "%OPENDS_LIB%\activation.jar"
+set ANT_LIBS=-lib "%OPENDS_LIB%\mail.jar" -lib "%OPENDS_LIB%\activation.jar"
 echo   ANT_LIBS=%ANT_LIBS%
 
 echo Now running ant ...
