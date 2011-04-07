@@ -22,7 +22,7 @@
 #
 #
 #      Copyright 2006-2010 Sun Microsystems, Inc.
-#      Portions Copyright 2010 ForgeRock AS.
+#      Portions Copyright 2010-2011 ForgeRock AS.
 #
 #
 # This file contains the attribute type and objectclass definitions for use
@@ -3461,6 +3461,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.90
          ds-cfg-enabled $
          ds-cfg-attribute-type )
   MAY ( ds-cfg-base-dn $
+        ds-cfg-scope $
         ds-cfg-group-dn $
         ds-cfg-filter $
         ds-cfg-conflict-behavior )

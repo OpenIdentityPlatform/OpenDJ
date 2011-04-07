@@ -23,11 +23,11 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -57,6 +57,15 @@ public class ChangelogBaseDNVirtualAttributeProvider
        extends VirtualAttributeProvider<UserDefinedVirtualAttributeCfg>
        implements ConfigurationChangeListener<UserDefinedVirtualAttributeCfg>
 {
+
+  /*
+   * The base DN of the changelog is a constant.
+   * TODO: This shouldn't be a virtual attribute, but directly
+   * registered in the RootDSE.
+   */
+  private final Set<AttributeValue> values;
+
+
   /**
    * Creates a new instance of this member virtual attribute provider.
    */
@@ -64,8 +73,11 @@ public class ChangelogBaseDNVirtualAttributeProvider
   {
     super();
 
-    // All initialization should be performed in the
-    // initializeVirtualAttributeProvider method.
+    AttributeValue value =
+    AttributeValues.create(
+        ByteString.valueOf(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT),
+        ByteString.valueOf(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT));
+    values=Collections.singleton(value);
   }
 
 
@@ -111,12 +123,6 @@ public class ChangelogBaseDNVirtualAttributeProvider
   @Override()
   public Set<AttributeValue> getValues(Entry entry,VirtualAttributeRule rule)
   {
-    Set<AttributeValue> values = new HashSet<AttributeValue>();
-    AttributeValue value =
-      AttributeValues.create(
-          ByteString.valueOf(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT),
-          ByteString.valueOf(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT));
-    values=Collections.singleton(value);
     return values;
   }
 

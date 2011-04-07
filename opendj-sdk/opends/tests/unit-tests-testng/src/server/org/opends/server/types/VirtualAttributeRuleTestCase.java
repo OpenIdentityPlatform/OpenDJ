@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -134,6 +135,7 @@ public class VirtualAttributeRuleTestCase
       {
         new VirtualAttributeRule(entryDNType, provider,
                                  Collections.<DN>emptySet(),
+                                 SearchScope.WHOLE_SUBTREE,
                                  Collections.<DN>emptySet(),
                                  Collections.<SearchFilter>emptySet(),
                                  ConflictBehavior.VIRTUAL_OVERRIDES_REAL),
@@ -143,6 +145,7 @@ public class VirtualAttributeRuleTestCase
       new Object[]
       {
         new VirtualAttributeRule(entryDNType, provider, dnSet1,
+                                 SearchScope.WHOLE_SUBTREE,
                                  Collections.<DN>emptySet(),
                                  Collections.<SearchFilter>emptySet(),
                                  ConflictBehavior.VIRTUAL_OVERRIDES_REAL),
@@ -152,6 +155,7 @@ public class VirtualAttributeRuleTestCase
       new Object[]
       {
         new VirtualAttributeRule(entryDNType, provider, dnSet2,
+                                 SearchScope.WHOLE_SUBTREE,
                                  Collections.<DN>emptySet(),
                                  Collections.<SearchFilter>emptySet(),
                                  ConflictBehavior.VIRTUAL_OVERRIDES_REAL),
@@ -161,6 +165,7 @@ public class VirtualAttributeRuleTestCase
       new Object[]
       {
         new VirtualAttributeRule(entryDNType, provider, dnSet3,
+                                 SearchScope.WHOLE_SUBTREE,
                                  Collections.<DN>emptySet(),
                                  Collections.<SearchFilter>emptySet(),
                                  ConflictBehavior.VIRTUAL_OVERRIDES_REAL),
@@ -170,7 +175,8 @@ public class VirtualAttributeRuleTestCase
       new Object[]
       {
         new VirtualAttributeRule(entryDNType, provider,
-                                 Collections.<DN>emptySet(), groupSet1,
+                                 Collections.<DN>emptySet(),
+                                 SearchScope.WHOLE_SUBTREE, groupSet1,
                                  Collections.<SearchFilter>emptySet(),
                                  ConflictBehavior.VIRTUAL_OVERRIDES_REAL),
         true
@@ -179,7 +185,8 @@ public class VirtualAttributeRuleTestCase
       new Object[]
       {
         new VirtualAttributeRule(entryDNType, provider,
-                                 Collections.<DN>emptySet(), groupSet2,
+                                 Collections.<DN>emptySet(),
+                                 SearchScope.WHOLE_SUBTREE, groupSet2,
                                  Collections.<SearchFilter>emptySet(),
                                  ConflictBehavior.VIRTUAL_OVERRIDES_REAL),
         false
@@ -188,7 +195,8 @@ public class VirtualAttributeRuleTestCase
       new Object[]
       {
         new VirtualAttributeRule(entryDNType, provider,
-                                 Collections.<DN>emptySet(), groupSet3,
+                                 Collections.<DN>emptySet(),
+                                 SearchScope.WHOLE_SUBTREE, groupSet3,
                                  Collections.<SearchFilter>emptySet(),
                                  ConflictBehavior.VIRTUAL_OVERRIDES_REAL),
         true
@@ -198,6 +206,7 @@ public class VirtualAttributeRuleTestCase
       {
         new VirtualAttributeRule(entryDNType, provider,
                                  Collections.<DN>emptySet(),
+                                 SearchScope.WHOLE_SUBTREE,
                                  Collections.<DN>emptySet(), filterSet1,
                                  ConflictBehavior.VIRTUAL_OVERRIDES_REAL),
         true
@@ -207,6 +216,7 @@ public class VirtualAttributeRuleTestCase
       {
         new VirtualAttributeRule(entryDNType, provider,
                                  Collections.<DN>emptySet(),
+                                 SearchScope.WHOLE_SUBTREE,
                                  Collections.<DN>emptySet(), filterSet2,
                                  ConflictBehavior.VIRTUAL_OVERRIDES_REAL),
         true
@@ -216,6 +226,7 @@ public class VirtualAttributeRuleTestCase
       {
         new VirtualAttributeRule(entryDNType, provider,
                                  Collections.<DN>emptySet(),
+                                 SearchScope.WHOLE_SUBTREE,
                                  Collections.<DN>emptySet(), filterSet3,
                                  ConflictBehavior.VIRTUAL_OVERRIDES_REAL),
         false
@@ -225,6 +236,7 @@ public class VirtualAttributeRuleTestCase
       {
         new VirtualAttributeRule(entryDNType, provider,
                                  Collections.<DN>emptySet(),
+                                 SearchScope.WHOLE_SUBTREE,
                                  Collections.<DN>emptySet(), filterSet4,
                                  ConflictBehavior.VIRTUAL_OVERRIDES_REAL),
         true

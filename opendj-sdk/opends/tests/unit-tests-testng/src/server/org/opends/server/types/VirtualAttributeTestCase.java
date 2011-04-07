@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -77,6 +78,7 @@ public class VirtualAttributeTestCase
 
     virtualAttributeRule = new VirtualAttributeRule(entryDNType, provider,
                                     Collections.<DN>emptySet(),
+                                    SearchScope.WHOLE_SUBTREE,
                                     Collections.<DN>emptySet(),
                                     Collections.<SearchFilter>emptySet(),
                                     ConflictBehavior.VIRTUAL_OVERRIDES_REAL);

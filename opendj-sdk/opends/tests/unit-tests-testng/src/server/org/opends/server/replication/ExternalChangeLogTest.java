@@ -243,10 +243,15 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     // Test all types of ops.
     ECLAllOps(); // Do not clean the db for the next test
 
+    // Test that ECL Operational, virtual attributes are not visible
+    // outside rootDSE. Next test will test access in RootDSE.
+    // This one checks in data.
+    ECLOperationalAttributesFailTest();
+
     // First and last should be ok whenever a request has been done or not
     // in compat mode.
     ECLCompatTestLimits(1,4,true);replicationServer.clearDb();
-
+    
     // Test with a mix of domains, a mix of DSes
     ECLTwoDomains(); replicationServer.clearDb();
 
@@ -284,6 +289,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     // Test all types of ops.
     ECLAllOps(); // Do not clean the db for the next test
+
+    // Test that ECL Operational, virtual attributes are not visible
+    // outside rootDSE. Next test will test access in RootDSE.
+    // This one checks in data.
+    ECLOperationalAttributesFailTest();
 
     // First and last should be ok whenever a request has been done or not
     // in compat mode.
@@ -3509,6 +3519,61 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           +  stackTraceToSingleLineString(e));
     }
     debugInfo(tn, "Ending test with success");
+  }
+  
+  private void ECLOperationalAttributesFailTest()
+  {
+    String tn = "ECLOperationalAttributesFailTest";
+    // The goal is to verify that the Changelog attributes are not
+    // available in other entries. We u
+    debugInfo(tn, "Starting test \n\n");
+    try
+    {
+      LinkedHashSet<String> attributes = new LinkedHashSet<String>();
+      
+      attributes.add("firstchangenumber");
+      attributes.add("lastchangenumber");
+      attributes.add("changelog");
+      attributes.add("lastExternalChangelogCookie");
+
+      debugInfo(tn, " Search: "+ TEST_ROOT_DN_STRING);
+      InternalSearchOperation searchOp =
+        connection.processSearch(
+            ByteString.valueOf(TEST_ROOT_DN_STRING),
+            SearchScope.BASE_OBJECT,
+            DereferencePolicy.NEVER_DEREF_ALIASES,
+            0, // Size limit
+            0, // Time limit
+            false, // Types only
+            LDAPFilter.decode("(objectclass=*)"),
+            attributes,
+            NO_CONTROL,
+            null);
+      waitOpResult(searchOp, ResultCode.SUCCESS);
+      assertEquals(searchOp.getSearchEntries().size(), 1);
+      
+      LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
+      assertEquals(entries.size(), 1);
+      for (SearchResultEntry resultEntry : entries)
+      {
+          debugInfo(tn, "Result entry returned:" + resultEntry.toLDIFString());
+          assertEquals(getAttributeValue(resultEntry, "firstchangenumber"),
+                null);
+          assertEquals(getAttributeValue(resultEntry, "lastchangenumber"),
+                null);
+          assertEquals(getAttributeValue(resultEntry, "changelog"),
+                null);
+          assertEquals(getAttributeValue(resultEntry, "lastExternalChangelogCookie"),
+                null);
+      }
+  
+      debugInfo(tn, "Ending test with success");
+    }
+    catch(Exception e)
+    {
+      fail("Ending "+tn+" test with exception:\n"
+          +  stackTraceToSingleLineString(e));
+    }
   }
 
   private void ECLCompatTestLimits(int expectedFirst, int expectedLast,

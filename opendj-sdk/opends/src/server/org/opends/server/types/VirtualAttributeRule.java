@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -71,6 +72,10 @@ public final class VirtualAttributeRule
   // virtual attribute.
   private final Set<DN> baseDNs;
 
+  // The scope of entries eligible to have this virtual attribute,
+  // under the base DNs.
+  private final SearchScope scope;
+
   // The set of DNs for groups whose members are eligible to have this
   // virtual attribute.
   private final Set<DN> groupDNs;
@@ -101,6 +106,9 @@ public final class VirtualAttributeRule
    * @param  baseDNs           The set of base DNs for branches that
    *                           are eligible to have this virtual
    *                           attribute.
+   * @param  scope             The scope of entries, related to the
+   *                           base DNs, that are eligible to have
+   *                           this virtual attribute.
    * @param  groupDNs          The set of DNs for groups whose members
    *                           are eligible to have this virtual
    *                           attribute.
@@ -115,7 +123,7 @@ public final class VirtualAttributeRule
   public VirtualAttributeRule(AttributeType attributeType,
               VirtualAttributeProvider<? extends VirtualAttributeCfg>
                    provider,
-              Set<DN> baseDNs, Set<DN> groupDNs,
+              Set<DN> baseDNs, SearchScope scope, Set<DN> groupDNs,
               Set<SearchFilter> filters,
               VirtualAttributeCfgDefn.ConflictBehavior
                    conflictBehavior)
@@ -126,6 +134,7 @@ public final class VirtualAttributeRule
     this.attributeType    = attributeType;
     this.provider         = provider;
     this.baseDNs          = baseDNs;
+    this.scope            = scope;
     this.groupDNs         = groupDNs;
     this.filters          = filters;
     this.conflictBehavior = conflictBehavior;
@@ -173,6 +182,19 @@ public final class VirtualAttributeRule
   public Set<DN> getBaseDNs()
   {
     return baseDNs;
+  }
+
+
+  /**
+   * Retrieves the scope of entries in the base DNs that are eligible
+   * to have this virtual attribute.
+   *
+   * @return  The scope of entries that are eligible to
+   *          have this virtual attribute.
+   */
+  public SearchScope getScope()
+  {
+    return scope;
   }
 
 
@@ -254,7 +276,7 @@ public final class VirtualAttributeRule
       boolean found = false;
       for (DN dn : baseDNs)
       {
-        if (entryDN.isDescendantOf(dn))
+        if (entryDN.matchesBaseAndScope(dn , scope))
         {
           found = true;
           break;
@@ -378,8 +400,9 @@ public final class VirtualAttributeRule
 
       buffer.append("\"");
     }
-
-    buffer.append("}, groupDNs={");
+    buffer.append("}, scope=");
+    buffer.append(scope.toString());
+    buffer.append(", groupDNs={");
     if (! groupDNs.isEmpty())
     {
       buffer.append("\"");
