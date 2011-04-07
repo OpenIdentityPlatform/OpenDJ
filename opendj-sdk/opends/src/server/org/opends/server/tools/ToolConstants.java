@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -329,6 +330,16 @@ public class ToolConstants
    * The value for the long option trustAll .
    */
   public static final String OPTION_LONG_TRUSTALL = "trustAll";
+
+  /**
+   * The value for the short option trustAll .
+   */
+  public static final char OPTION_SHORT_REMOTE = 'r';
+
+  /**
+   * The value for the long option trustAll .
+   */
+  public static final String OPTION_LONG_REMOTE = "remote";
 
   /**
    * The value for the short option certNickname .
