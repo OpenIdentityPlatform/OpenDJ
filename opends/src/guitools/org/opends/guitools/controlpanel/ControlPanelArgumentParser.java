@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel;
@@ -79,6 +80,11 @@ public class ControlPanelArgumentParser extends ArgumentParser
    * The 'trustAllArg' global argument.
    */
   private BooleanArgument trustAllArg = null;
+
+  /**
+   * The 'remoteArg' global argument.
+   */
+  private BooleanArgument remoteArg = null;
 
   /**
    * Argument to specify the connect timeout.
@@ -163,6 +169,11 @@ public class ControlPanelArgumentParser extends ArgumentParser
         OPTION_LONG_TRUSTALL, INFO_DESCRIPTION_TRUSTALL.get());
     trustAllArg.setPropertyName(OPTION_LONG_TRUSTALL);
     addArgument(trustAllArg);
+
+    remoteArg = new BooleanArgument("remote", OPTION_SHORT_REMOTE,
+        OPTION_LONG_REMOTE, INFO_DESCRIPTION_REMOTE.get());
+    remoteArg.setPropertyName(OPTION_LONG_REMOTE);
+    addArgument(remoteArg);
 
     int defaultTimeout = ConnectionUtils.getDefaultLDAPTimeout();
     connectTimeoutArg = new IntegerArgument(OPTION_LONG_CONNECT_TIMEOUT,
@@ -305,6 +316,15 @@ public class ControlPanelArgumentParser extends ArgumentParser
     {
       throw new IllegalStateException("Argument parser is not parsed: "+ae, ae);
     }
+  }
+
+  /**
+   * Returns whether the user specified to connect to a remote server.
+   * @return whether the user specified to connect to a remote server.
+   */
+  public boolean isRemote()
+  {
+    return remoteArg.isPresent();
   }
 
 }

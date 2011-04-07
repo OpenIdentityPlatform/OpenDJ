@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel;
@@ -140,6 +141,11 @@ public class ControlPanel
     localOrRemote.pack();
     Utilities.centerOnScreen(localOrRemote);
 
+    if (argParser.isRemote())
+    {
+      updateLocalOrRemotePanel(localOrRemote);
+    }
+
     if (argParser.getBindPassword() != null)
     {
       updateLocalOrRemotePanel(localOrRemote);
@@ -217,6 +223,10 @@ public class ControlPanel
       getLocalOrRemotePanel(localOrRemote.getContentPane());
     if (panel != null)
     {
+      if (argParser.isRemote())
+      {
+        panel.setRemote(true);
+      }
       if (argParser.getExplicitHostName() != null)
       {
         panel.setHostName(argParser.getExplicitHostName());
