@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2008-2011 Sun Microsystems, Inc.
  *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
@@ -1634,9 +1634,12 @@ modifyProcessing:
     }
     else
     {
-      throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
+      if (! permissiveModify)
+      {
+        throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
                      ERR_MODIFY_DELETE_NO_SUCH_ATTR.get(
                           String.valueOf(entryDN), attr.getName()));
+      }
     }
   }
 
