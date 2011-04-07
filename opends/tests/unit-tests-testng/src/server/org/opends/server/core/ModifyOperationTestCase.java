@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Copyright 2006-2011 Sun Microsystems, Inc.
  */
 package org.opends.server.core;
 
@@ -4761,7 +4761,7 @@ responseLoop:
                          entry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-    LDAPAttribute attr = new LDAPAttribute("displayName");
+    LDAPAttribute attr = new LDAPAttribute("description");
     ArrayList<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
