@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
@@ -30,7 +31,6 @@ import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -48,7 +48,6 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AttributeValues;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
@@ -120,19 +119,26 @@ public class LastChangeNumberVirtualAttributeProvider
 
 
   /**
+   *  {@inheritDoc}
+   */
+  @Override
+  public boolean hasValue(Entry entry, VirtualAttributeRule rule)
+  {
+    // There's only a value for the rootDSE, i.e. the Null DN.
+    return entry.getDN().isNullDN();
+  }
+
+
+
+  /**
    * {@inheritDoc}
    */
   @Override()
   public Set<AttributeValue> getValues(Entry entry,VirtualAttributeRule rule)
   {
-    Set<AttributeValue> values = new HashSet<AttributeValue>();
     String last = "0";
     try
     {
-      if (!entry.getDN().equals(DN.decode("")))
-      {
-        return values;
-      }
       ECLWorkflowElement eclwe = (ECLWorkflowElement)
       DirectoryServer.getWorkflowElement("EXTERNAL CHANGE LOG");
       if (eclwe!=null)
@@ -154,13 +160,17 @@ public class LastChangeNumberVirtualAttributeProvider
     }
     catch(Exception e)
     {
+      // We got an error computing the first change number.
+      // Rather than returning 0 which is no change, return -1 to
+      // indicate the error.
+      last = "-1";
       TRACER.debugCaught(DebugLogLevel.ERROR, e);
     }
     AttributeValue value =
       AttributeValues.create(
           ByteString.valueOf(last),
           ByteString.valueOf(last));
-    values=Collections.singleton(value);
+    Set<AttributeValue> values =Collections.singleton(value);
     return values;
   }
 

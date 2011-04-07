@@ -91,6 +91,7 @@ import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 
 import com.sleepycat.je.DatabaseException;
+import org.opends.server.types.SearchScope;
 
 /**
  * ReplicationServer Listener.
@@ -690,7 +691,8 @@ public final class ReplicationServer
       baseDNs.add(DN.decode(""));
       VirtualAttributeRule rule =
         new VirtualAttributeRule(attributeType, provider,
-            baseDNs, groupDNs, filters, conflictBehavior);
+              baseDNs, SearchScope.BASE_OBJECT,
+              groupDNs, filters, conflictBehavior);
 
       DirectoryServer.registerVirtualAttribute(rule);
     }

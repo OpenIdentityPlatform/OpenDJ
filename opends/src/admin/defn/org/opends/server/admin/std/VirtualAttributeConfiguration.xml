@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="virtual-attribute"
   plural-name="virtual-attributes" package="org.opends.server.admin.std"
@@ -123,6 +124,47 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-base-dn</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="scope">
+    <adm:synopsis>
+      Specifies the LDAP scope associated with base DNs for entries that are
+      eligible to use this virtual attribute.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>whole-subtree</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="base-object">
+          <adm:synopsis>Search the base object only.</adm:synopsis>
+        </adm:value>
+        <adm:value name="single-level">
+          <adm:synopsis>
+            Search the immediate children of the base object but do not 
+            include any of their descendants or the base object itself.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="subordinate-subtree">
+          <adm:synopsis>
+            Search the entire subtree below the base object but do not
+            include the base object itself.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="whole-subtree">
+          <adm:synopsis>
+            Search the base object and the entire subtree below the base
+            object.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-scope</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

@@ -23,8 +23,10 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.core;
+import org.opends.server.types.SearchScope;
 import org.opends.messages.Message;
 
 
@@ -188,8 +190,10 @@ public class VirtualAttributeConfigManager
 
           VirtualAttributeRule rule =
                new VirtualAttributeRule(cfg.getAttributeType(), provider,
-                                        cfg.getBaseDN(), cfg.getGroupDN(),
-                                        filters, cfg.getConflictBehavior());
+                     cfg.getBaseDN(),
+                     SearchScope.valueOf(cfg.getScope().name()),
+                     cfg.getGroupDN(),
+                     filters, cfg.getConflictBehavior());
           rules.put(cfg.dn(), rule);
           DirectoryServer.registerVirtualAttribute(rule);
         }
@@ -324,10 +328,11 @@ public class VirtualAttributeConfigManager
     {
       VirtualAttributeRule rule =
            new VirtualAttributeRule(configuration.getAttributeType(), provider,
-                                    configuration.getBaseDN(),
-                                    configuration.getGroupDN(),
-                                    filters,
-                                    configuration.getConflictBehavior());
+                 configuration.getBaseDN(),
+                 SearchScope.valueOf(configuration.getScope().name()),
+                 configuration.getGroupDN(),
+                 filters,
+                 configuration.getConflictBehavior());
 
       rules.put(configuration.dn(), rule);
       DirectoryServer.registerVirtualAttribute(rule);
@@ -506,10 +511,11 @@ public class VirtualAttributeConfigManager
     {
       VirtualAttributeRule rule =
            new VirtualAttributeRule(configuration.getAttributeType(), provider,
-                                    configuration.getBaseDN(),
-                                    configuration.getGroupDN(),
-                                    filters,
-                                    configuration.getConflictBehavior());
+                 configuration.getBaseDN(),
+                 SearchScope.valueOf(configuration.getScope().name()),
+                 configuration.getGroupDN(),
+                 filters,
+                 configuration.getConflictBehavior());
 
       rules.put(configuration.dn(), rule);
       if (existingRule == null)

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.replication.common;
@@ -104,10 +105,8 @@ public class LastCookieVirtualProvider
   @Override()
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
-    // Indicates whether this virtual attribute provider will generate
-    // at least one value for the provided entry.
-    // True is the DN is the one of the root DSE : "".
-    return entry.getDN().toNormalizedString().equalsIgnoreCase("");
+    // There's only a value for the rootDSE, i.e. the Null DN.
+    return entry.getDN().isNullDN();
 
   }
 

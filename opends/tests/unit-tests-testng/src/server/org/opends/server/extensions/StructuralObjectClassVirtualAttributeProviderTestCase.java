@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -576,7 +577,8 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
 
     VirtualAttributeRule rule =
          new VirtualAttributeRule(structuralObjectClassType, provider,
-                  Collections.<DN>emptySet(), Collections.<DN>emptySet(),
+                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
+                  Collections.<DN>emptySet(),
                   Collections.<SearchFilter>emptySet(),
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
@@ -612,7 +614,8 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
 
     VirtualAttributeRule rule =
          new VirtualAttributeRule(structuralObjectClassType, provider,
-                  Collections.<DN>emptySet(), Collections.<DN>emptySet(),
+                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
+                  Collections.<DN>emptySet(),
                   Collections.<SearchFilter>emptySet(),
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
@@ -644,7 +647,8 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
 
     VirtualAttributeRule rule =
          new VirtualAttributeRule(structuralObjectClassType, provider,
-                  Collections.<DN>emptySet(), Collections.<DN>emptySet(),
+                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
+                  Collections.<DN>emptySet(),
                   Collections.<SearchFilter>emptySet(),
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
@@ -678,7 +682,8 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
 
     VirtualAttributeRule rule =
          new VirtualAttributeRule(structuralObjectClassType, provider,
-                  Collections.<DN>emptySet(), Collections.<DN>emptySet(),
+                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
+                  Collections.<DN>emptySet(),
                   Collections.<SearchFilter>emptySet(),
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
@@ -711,7 +716,8 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
 
     VirtualAttributeRule rule =
          new VirtualAttributeRule(structuralObjectClassType, provider,
-                  Collections.<DN>emptySet(), Collections.<DN>emptySet(),
+                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
+                  Collections.<DN>emptySet(),
                   Collections.<SearchFilter>emptySet(),
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
@@ -744,7 +750,8 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
 
     VirtualAttributeRule rule =
          new VirtualAttributeRule(structuralObjectClassType, provider,
-                  Collections.<DN>emptySet(), Collections.<DN>emptySet(),
+                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
+                  Collections.<DN>emptySet(),
                   Collections.<SearchFilter>emptySet(),
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
@@ -779,7 +786,8 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
 
     VirtualAttributeRule rule =
          new VirtualAttributeRule(structuralObjectClassType, provider,
-                  Collections.<DN>emptySet(), Collections.<DN>emptySet(),
+                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
+                  Collections.<DN>emptySet(),
                   Collections.<SearchFilter>emptySet(),
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
@@ -814,7 +822,8 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
 
     VirtualAttributeRule rule =
          new VirtualAttributeRule(structuralObjectClassType, provider,
-                  Collections.<DN>emptySet(), Collections.<DN>emptySet(),
+                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
+                  Collections.<DN>emptySet(),
                   Collections.<SearchFilter>emptySet(),
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
@@ -852,7 +861,8 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
 
     VirtualAttributeRule rule =
          new VirtualAttributeRule(structuralObjectClassType, provider,
-                  Collections.<DN>emptySet(), Collections.<DN>emptySet(),
+                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
+                  Collections.<DN>emptySet(),
                   Collections.<SearchFilter>emptySet(),
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
