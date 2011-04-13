@@ -36,51 +36,32 @@
   <sequence>
     
       <!--- Import all the shared xml libraries -->
-      <import machine="STAF_LOCAL_HOSTNAME"
-        file="'%s/baselib.xml' % (TESTS_FUNCTIONS_DIR)" />
-              
-      <import machine="STAF_LOCAL_HOSTNAME"
-        file="'%s/utils.xml' % (TESTS_FUNCTIONS_DIR)" />
 
-      <import machine="STAF_LOCAL_HOSTNAME"
-        file="'%s/stafcmd.xml' % (TESTS_FUNCTIONS_DIR)" />
-
-      <import machine="STAF_LOCAL_HOSTNAME"
-        file="'%s/staxcmd.xml' % (TESTS_FUNCTIONS_DIR)" />
-
-      <import machine="STAF_LOCAL_HOSTNAME"
-        file="'%s/dsadm.xml' % (TESTS_FUNCTIONS_DIR)" />
-
-      <import machine="STAF_LOCAL_HOSTNAME"
-        file="'%s/dsconfig.xml' % (TESTS_FUNCTIONS_DIR)" />
-
-      <import machine="STAF_LOCAL_HOSTNAME"
-        file="'%s/ldap.xml' % (TESTS_FUNCTIONS_DIR)" />
-
-      <import machine="STAF_LOCAL_HOSTNAME"
-        file="'%s/security.xml' % (TESTS_FUNCTIONS_DIR)" />
-    
-      <import machine="STAF_LOCAL_HOSTNAME"
-        file="'%s/topology.xml' % (TESTS_FUNCTIONS_DIR)" />
-        
-      <import machine="STAF_LOCAL_HOSTNAME"
-        file="'%s/signals.xml' % (TESTS_FUNCTIONS_DIR)" />
-
-      <import machine="STAF_LOCAL_HOSTNAME"
-        file="'%s/tools.xml' % (TESTS_FUNCTIONS_DIR)" />
-        
-      <import machine="STAF_LOCAL_HOSTNAME"
-        file="'%s/webcontainer.xml' % (TESTS_FUNCTIONS_DIR)" />
-
-      <import machine="STAF_LOCAL_HOSTNAME"
-        file="'%s/snmp.xml' % (TESTS_FUNCTIONS_DIR)" />
+      <script>
+        sharedLibs=[]
+        sharedLibs.append('baselib.xml')
+        sharedLibs.append('ldap.xml')
+        sharedLibs.append('utils.xml')
+        sharedLibs.append('stafcmd.xml')
+        sharedLibs.append('staxcmd.xml')
+        sharedLibs.append('dsadm.xml')
+        sharedLibs.append('dsconfig.xml')
+        sharedLibs.append('security.xml')
+        sharedLibs.append('topology.xml')
+        sharedLibs.append('signals.xml')
+        sharedLibs.append('tools.xml')
+        sharedLibs.append('webcontainer.xml')
+        sharedLibs.append('snmp.xml')
+      </script>
+      
+      <iterate var="sharedLib" in="sharedLibs">
+        <import machine="STAF_LOCAL_HOSTNAME"
+          file="'%s/%s' % (TESTS_FUNCTIONS_DIR,sharedLib)" />
+      </iterate>
         
   </sequence>  
       
   </function>
-
-  
-  
   
   <function name="importPythonLibraries">
     <function-prolog>
