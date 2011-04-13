@@ -141,7 +141,6 @@ public class ECLServerWriter extends ServerWriter
    */
   public void run()
   {
-    Message errMessage = null;
     try
     {
       while (true)
@@ -170,16 +169,36 @@ public class ECLServerWriter extends ServerWriter
     catch (SocketException e)
     {
       // Just ignore the exception and let the thread die as well
-      errMessage = ERR_SERVER_BADLY_DISCONNECTED.get(handler.toString(),
-          "for operation " + handler.getOperationId());
-      logError(errMessage);
+      if (session != null) // This will always be the case if a socket exception
+                           // has occurred.
+      {
+        Message errMessage;
+        if (handler.isDataServer())
+        {
+          errMessage = ERR_DS_BADLY_DISCONNECTED.get(
+              handler.getReplicationServerId(),
+              handler.getServerId(),
+              session.getReadableRemoteAddress(),
+              handler.getServiceId());
+        }
+        else
+        {
+          errMessage = ERR_RS_BADLY_DISCONNECTED.get(
+              handler.getReplicationServerId(),
+              handler.getServerId(),
+              session.getReadableRemoteAddress(),
+              handler.getServiceId());
+        }
+        logError(errMessage);
+      }
     }
     catch (Exception e)
     {
       // An unexpected error happened.
       // Log an error and close the connection.
-      errMessage = ERR_WRITER_UNEXPECTED_EXCEPTION.get(handler.toString() +
-          " " +  stackTraceToSingleLineString(e));
+      Message errMessage = ERR_WRITER_UNEXPECTED_EXCEPTION
+          .get(handler.toString() + " "
+              + stackTraceToSingleLineString(e));
       logError(errMessage);
     }
     finally

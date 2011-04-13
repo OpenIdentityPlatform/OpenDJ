@@ -102,7 +102,7 @@ import org.opends.server.types.ResultCode;
  *   should read the list of replication servers from the configuration,
  *   instantiate a {@link ServerState} then start the publish service
  *   by calling
- *   {@link #startPublishService(Collection, int, long)}.
+ *   {@link #startPublishService(Collection, int, long, long)}.
  *   At this point it can start calling the {@link #publish(UpdateMsg)}
  *   method if needed.
  * <p>
@@ -1432,11 +1432,6 @@ public abstract class ReplicationDomain
     acquireIEContext(false);
     contextAcquired = true;
 
-    Message msg = NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_START.get(
-        Integer.toString(serverID), Long.toString(countEntries()), serviceID,
-        Integer.toString(serverToInitialize));
-    logError(msg);
-
     // We manage the list of servers to initialize in order :
     // - to test at the end that all expected servers have reconnected
     //   after their import and with the right genId
@@ -1444,6 +1439,10 @@ public abstract class ReplicationDomain
 
     if (serverToInitialize == RoutableMsg.ALL_SERVERS)
     {
+      Message msg = NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_START_ALL.get(
+          countEntries(), serviceID, serverID);
+      logError(msg);
+
       for (DSInfo dsi : getReplicasList())
         ieContext.startList.add(dsi.getDsId());
 
@@ -1456,6 +1455,10 @@ public abstract class ReplicationDomain
     }
     else
     {
+      Message msg = NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_START.get(
+          countEntries(), serviceID, serverID, serverToInitialize);
+      logError(msg);
+
       ieContext.startList.add(serverToInitialize);
 
       // We manage the list of servers with which a flow control can be enabled
@@ -1602,12 +1605,21 @@ public abstract class ReplicationDomain
     if (contextAcquired)
       releaseIEContext();
 
-    msg = NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_END.get(
-        Integer.toString(serverID),
-        serviceID,
-        Integer.toString(serverToInitialize),
-      (exportRootException!=null?exportRootException.getLocalizedMessage():""));
-    logError(msg);
+    String cause = exportRootException != null ? exportRootException
+        .getLocalizedMessage() : "";
+    if (serverToInitialize == RoutableMsg.ALL_SERVERS)
+    {
+      Message msg = NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_END_ALL
+          .get(serviceID, serverID, cause);
+      logError(msg);
+    }
+    else
+    {
+      Message msg = NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_END.get(
+          serviceID, serverID, serverToInitialize, cause);
+      logError(msg);
+    }
+
 
     if (exportRootException != null)
     {
@@ -2292,9 +2304,7 @@ public abstract class ReplicationDomain
     {
       // Log starting
       Message msg = NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_START.get(
-          Integer.toString(serverID),
-          serviceID,
-          Long.toString(initTargetMsgReceived.getSenderID()));
+          serviceID, initTargetMsgReceived.getSenderID(), serverID);
       logError(msg);
 
       // Go into full update status
@@ -2427,13 +2437,10 @@ public abstract class ReplicationDomain
       }
       finally
       {
-
         Message msg = NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_END.get(
-            Integer.toString(serverID),
-            serviceID,
-            Long.toString(initTargetMsgReceived.getSenderID()),
-            (ieContext.getException()!=null?
-                ieContext.getException().getLocalizedMessage():""));
+            serviceID, initTargetMsgReceived.getSenderID(), serverID,
+            (ieContext.getException() != null ? ieContext
+                .getException().getLocalizedMessage() : ""));
         logError(msg);
         releaseIEContext();
       } // finally
@@ -3052,60 +3059,13 @@ public abstract class ReplicationDomain
   }
 
   /**
-   * Start the publish mechanism of the Replication Service.
-   * After this method has been called, the publish service can be used
-   * by calling the {@link #publish(UpdateMsg)} method.
-   *
-   * @param replicationServers   The replication servers that should be used.
-   * @param window               The window size of this replication domain.
-   * @param heartbeatInterval    The heartbeatInterval that should be used
-   *                             to check the availability of the replication
-   *                             servers.
-   * @throws ConfigException     If the DirectoryServer configuration was
-   *                             incorrect.
-   */
-  public void startPublishService(
-      Collection<String> replicationServers, int window,
-      long heartbeatInterval)
-  throws ConfigException
-  {
-    synchronized (sessionLock)
-    {
-      if (broker == null)
-      {
-        /*
-         * create the broker object used to publish and receive changes
-         */
-        broker = new ReplicationBroker(
-            this, state, serviceID,
-            serverID, window,
-            getGenerationID(),
-            heartbeatInterval,
-            new ReplSessionSecurity(),
-            getGroupId(),
-            0); // change time heartbeat is disabled
-
-        broker.start(replicationServers);
-
-        /*
-         * Create a replication monitor object responsible for publishing
-         * monitoring information below cn=monitor.
-         */
-        monitor = new ReplicationMonitor(this);
-
-        DirectoryServer.registerMonitorProvider(monitor);
-      }
-    }
-  }
-
-  /**
    * Starts the receiver side of the Replication Service.
    * <p>
    * After this method has been called, the Replication Service will start
    * calling the {@link #processUpdate(UpdateMsg)}.
    * <p>
    * This method must be called once and must be called after the
-   * {@link #startPublishService(Collection, int, long)}.
+   * {@link #startPublishService(Collection, int, long, long)}.
    *
    */
   public void startListenService()
@@ -3155,7 +3115,7 @@ public abstract class ReplicationDomain
    * <p>
    * The Replication Service will restart from the point indicated by the
    * {@link ServerState} that was given as a parameter to the
-   * {@link #startPublishService(Collection, int, long)}
+   * {@link #startPublishService(Collection, int, long, long)}
    * at startup time.
    * If some data have changed in the repository during the period of time when
    * the Replication Service was disabled, this {@link ServerState} should

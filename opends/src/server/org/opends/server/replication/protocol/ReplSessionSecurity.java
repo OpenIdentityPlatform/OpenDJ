@@ -34,7 +34,6 @@ import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.util.SortedSet;
 
@@ -156,8 +155,6 @@ public final class ReplSessionSecurity
   /**
    * Create a new protocol session in the client role on the provided socket.
    *
-   * @param serverURL
-   *          The remote replication server to which the socket is connected.
    * @param socket
    *          The connected socket.
    * @param soTimeout
@@ -170,9 +167,8 @@ public final class ReplSessionSecurity
    *           If the protocol session could not be established for some other
    *           reason.
    */
-  public ProtocolSession createClientSession(final String serverURL,
-      final Socket socket, final int soTimeout)
-      throws ConfigException, IOException
+  public ProtocolSession createClientSession(final Socket socket,
+      final int soTimeout) throws ConfigException, IOException
   {
     boolean hasCompleted = false;
     SSLSocket secureSocket = null;
@@ -297,9 +293,9 @@ public final class ReplSessionSecurity
     {
       // This is probably a connection attempt from an unexpected client
       // log that to warn the administrator.
-      final InetAddress remHost = socket.getInetAddress();
-      final Message message = NOTE_SSL_SERVER_CON_ATTEMPT_ERROR.get(
-          remHost.getHostName(), remHost.getHostAddress(),
+      final Message message = INFO_SSL_SERVER_CON_ATTEMPT_ERROR.get(
+          socket.getRemoteSocketAddress().toString(),
+          socket.getLocalSocketAddress().toString(),
           e.getLocalizedMessage());
       logError(message);
       return null;

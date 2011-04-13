@@ -33,6 +33,7 @@ import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import static org.opends.messages.ReplicationMessages.*;
+
 import java.net.SocketException;
 import java.util.NoSuchElementException;
 
@@ -137,21 +138,19 @@ public class ServerWriter extends DirectoryThread
             long referenceGenerationId =
               replicationServerDomain.getGenerationId();
             if (dsStatus == ServerStatus.BAD_GEN_ID_STATUS)
-              logError(ERR_IGNORING_UPDATE_TO_DS_BADGENID.get(
-                Integer.toString(replicationServerDomain.getReplicationServer().
-                getServerId()),
-                replicationServerDomain.getBaseDn(),
-                update.getChangeNumber().toString(),
-                Integer.toString(handler.getServerId()),
-                Long.toString(handler.getGenerationId()),
-                Long.toString(referenceGenerationId)));
+              logError(WARN_IGNORING_UPDATE_TO_DS_BADGENID.get(
+                  handler.getReplicationServerId(),
+                  update.getChangeNumber().toString(),
+                  handler.getServiceId(), handler.getServerId(),
+                  session.getReadableRemoteAddress(),
+                  handler.getGenerationId(),
+                  referenceGenerationId));
             if (dsStatus == ServerStatus.FULL_UPDATE_STATUS)
-              logError(ERR_IGNORING_UPDATE_TO_DS_FULLUP.get(
-                Integer.toString(replicationServerDomain.getReplicationServer().
-                getServerId()),
-                replicationServerDomain.getBaseDn(),
-                update.getChangeNumber().toString(),
-                Integer.toString(handler.getServerId())));
+              logError(WARN_IGNORING_UPDATE_TO_DS_FULLUP.get(
+                  handler.getReplicationServerId(),
+                  update.getChangeNumber().toString(),
+                  handler.getServiceId(), handler.getServerId(),
+                  session.getReadableRemoteAddress()));
             continue;
           }
         } else
@@ -165,14 +164,15 @@ public class ServerWriter extends DirectoryThread
           if ((referenceGenerationId != handler.getGenerationId()) ||
             (referenceGenerationId == -1) || (handler.getGenerationId() == -1))
           {
-            logError(ERR_IGNORING_UPDATE_TO_RS.get(
-              Integer.toString(replicationServerDomain.getReplicationServer().
-              getServerId()),
-              replicationServerDomain.getBaseDn(),
-              update.getChangeNumber().toString(),
-              Integer.toString(handler.getServerId()),
-              Long.toString(handler.getGenerationId()),
-              Long.toString(referenceGenerationId)));
+            logError(
+                WARN_IGNORING_UPDATE_TO_RS.get(
+                    handler.getReplicationServerId(),
+                    update.getChangeNumber().toString(),
+                    handler.getServiceId(),
+                    handler.getServerId(),
+                    session.getReadableRemoteAddress(),
+                    handler.getGenerationId(),
+                    referenceGenerationId));
             continue;
           }
         }
@@ -203,9 +203,19 @@ public class ServerWriter extends DirectoryThread
        * The remote host has disconnected and this particular Tree is going to
        * be removed, just ignore the exception and let the thread die as well
        */
-      errMessage = ERR_SERVER_BADLY_DISCONNECTED.get(handler.toString(),
-        Integer.toString(replicationServerDomain.
-        getReplicationServer().getServerId()));
+      if (handler.isDataServer())
+      {
+        errMessage = ERR_DS_BADLY_DISCONNECTED.get(
+            handler.getReplicationServerId(), handler.getServerId(),
+            session.getReadableRemoteAddress(), handler.getServiceId());
+      }
+      else
+      {
+        errMessage = ERR_RS_BADLY_DISCONNECTED.get(
+            handler.getReplicationServerId(), handler.getServerId(),
+            session.getReadableRemoteAddress(), handler.getServiceId());
+      }
+
       logError(errMessage);
     }
     catch (SocketException e)
@@ -214,9 +224,18 @@ public class ServerWriter extends DirectoryThread
        * The remote host has disconnected and this particular Tree is going to
        * be removed, just ignore the exception and let the thread die as well
        */
-      errMessage = ERR_SERVER_BADLY_DISCONNECTED.get(handler.toString(),
-        Integer.toString(replicationServerDomain.
-        getReplicationServer().getServerId()));
+      if (handler.isDataServer())
+      {
+        errMessage = ERR_DS_BADLY_DISCONNECTED.get(
+            handler.getReplicationServerId(), handler.getServerId(),
+            session.getReadableRemoteAddress(), handler.getServiceId());
+      }
+      else
+      {
+        errMessage = ERR_RS_BADLY_DISCONNECTED.get(
+            handler.getReplicationServerId(), handler.getServerId(),
+            session.getReadableRemoteAddress(), handler.getServiceId());
+      }
       logError(errMessage);
     }
     catch (Exception e)

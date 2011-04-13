@@ -26,7 +26,7 @@
  *      Portions Copyright 2011 ForgeRock AS
  */
 
-package org.opends.server.replication.protocol;
+package org.opends.server.replication.service;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
@@ -34,6 +34,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.replication.protocol.ProtocolSession;
 
 import org.opends.server.api.DirectoryThread;
 
@@ -41,7 +42,7 @@ import org.opends.server.api.DirectoryThread;
  * This class implements a thread to monitor heartbeat messages from the
  * replication server.  Each broker runs one of these threads.
  */
-public class HeartbeatMonitor extends DirectoryThread
+final class HeartbeatMonitor extends DirectoryThread
 {
   /**
    * The tracer object for the debug logger.
@@ -62,23 +63,44 @@ public class HeartbeatMonitor extends DirectoryThread
    */
   private final long heartbeatInterval;
 
+  // Info required for logging.
+  private final int serverID;
+  private final int replicationServerID;
+  private final String baseDN;
+
 
   /**
    * Set this to stop the thread.
    */
   private volatile boolean shutdown = false;
 
+
+
   /**
    * Create a heartbeat monitor thread.
-   * @param threadName The name of the heartbeat thread.
-   * @param session The session on which heartbeats are to be monitored.
-   * @param heartbeatInterval The expected interval between heartbeats received
-   * (in milliseconds).
+   *
+   * @param serverID
+   *          The local directory server ID.
+   * @param replicationServerID
+   *          The remote replication server ID.
+   * @param baseDN
+   *          The name of the domain being replicated.
+   * @param session
+   *          The session on which heartbeats are to be monitored.
+   * @param heartbeatInterval
+   *          The expected interval between heartbeats received (in
+   *          milliseconds).
    */
-  public HeartbeatMonitor(String threadName, ProtocolSession session,
-                          long heartbeatInterval)
+  HeartbeatMonitor(int serverID, int replicationServerID,
+      String baseDN, ProtocolSession session, long heartbeatInterval)
   {
-    super(threadName);
+    super("Replica DS("
+      + serverID + ") heartbeat monitor for domain \""
+      + baseDN + "\" from RS(" + replicationServerID
+      + ") at " + session.getReadableRemoteAddress());
+    this.serverID = serverID;
+    this.replicationServerID = replicationServerID;
+    this.baseDN = baseDN;
     this.session = session;
     this.heartbeatInterval = heartbeatInterval;
   }
@@ -114,7 +136,9 @@ public class HeartbeatMonitor extends DirectoryThread
           if (gotOneFailure == true)
           {
             // Heartbeat is well overdue so the server is assumed to be dead.
-            logError(NOTE_HEARTBEAT_FAILURE.get(currentThread().getName()));
+            logError(WARN_HEARTBEAT_FAILURE.get(serverID,
+                replicationServerID,
+                session.getReadableRemoteAddress(), baseDN));
             session.close();
             break;
           }

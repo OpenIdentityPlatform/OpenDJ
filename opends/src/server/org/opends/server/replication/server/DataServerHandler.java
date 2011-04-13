@@ -560,6 +560,12 @@ public class DataServerHandler extends ServerHandler
 
       registerIntoDomain();
 
+      Message message = INFO_REPLICATION_SERVER_CONNECTION_FROM_DS
+          .get(getReplicationServerId(), getServerId(),
+              replicationServerDomain.getBaseDn(),
+              session.getReadableRemoteAddress());
+      logError(message);
+
       super.finalizeStart();
 
     }
@@ -736,11 +742,10 @@ public class DataServerHandler extends ServerHandler
     {
       if (generationId != localGenerationId)
       {
-        Message message = NOTE_BAD_GENERATION_ID_FROM_DS.get(
-            getServiceId(),
-            Integer.toString(serverId),
-            Long.toString(generationId),
-            Long.toString(localGenerationId));
+        Message message = WARN_BAD_GENERATION_ID_FROM_DS.get(
+            serverId, session.getReadableRemoteAddress(),
+            generationId, getServiceId(),
+            getReplicationServerId(), localGenerationId);
         logError(message);
       }
     }
@@ -751,11 +756,10 @@ public class DataServerHandler extends ServerHandler
       {
         // If the LDAP server has already sent changes
         // it is not expected to connect to an empty RS
-        Message message = NOTE_BAD_GENERATION_ID_FROM_DS.get(
-            getServiceId(),
-            Integer.toString(serverId),
-            Long.toString(generationId),
-            Long.toString(localGenerationId));
+        Message message = WARN_BAD_GENERATION_ID_FROM_DS.get(
+            serverId, session.getReadableRemoteAddress(),
+            generationId, getServiceId(),
+            getReplicationServerId(), localGenerationId);
         logError(message);
       }
       else

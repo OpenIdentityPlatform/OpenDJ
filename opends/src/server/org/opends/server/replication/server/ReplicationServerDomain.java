@@ -143,7 +143,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   // monitor data.
   //
   // Guarded by pendingMonitorLock.
-  private Set<Integer> monitorDataLateServers = new HashSet<Integer>();
+  private final Set<Integer> monitorDataLateServers = new HashSet<Integer>();
 
   // This lock serializes updates to the pending monitor data.
   private final Object pendingMonitorDataLock = new Object();
@@ -2199,8 +2199,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       buildAndSendTopoInfoToDSs(null);
       buildAndSendTopoInfoToRSs();
 
-      Message message = NOTE_RESET_GENERATION_ID.get(baseDn.toString(),
-          Long.toString(newGenId));
+      Message message = NOTE_RESET_GENERATION_ID.get(baseDn, newGenId);
       logError(message);
 
     }
@@ -2257,9 +2256,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       buildAndSendTopoInfoToRSs();
 
       Message message = NOTE_DIRECTORY_SERVER_CHANGED_STATUS.get(
-          Integer.toString(senderHandler.getServerId()),
-          baseDn.toString(),
-          newStatus.toString());
+          senderHandler.getServerId(), baseDn, newStatus.toString());
       logError(message);
 
     }
@@ -2486,11 +2483,11 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
       if (generationId > 0 && (generationId != handler.getGenerationId()))
       {
-        Message message = NOTE_BAD_GENERATION_ID_FROM_RS.get(
-            baseDn,
-            Integer.toString(handler.getServerId()),
-            Long.toString(handler.getGenerationId()),
-            Long.toString(generationId));
+        Message message = WARN_BAD_GENERATION_ID_FROM_RS.get(handler
+            .getServerId(), handler.session
+            .getReadableRemoteAddress(), handler.getGenerationId(),
+            baseDn, getReplicationServer().getServerId(),
+            generationId);
         logError(message);
 
         ErrorMsg errorMsg = new ErrorMsg(
@@ -2621,7 +2618,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
               // error log with repeated messages.
               if (!monitorDataLateServers.contains(serverId))
               {
-                logError(ERR_MISSING_REMOTE_MONITOR_DATA.get(baseDn,
+                logError(WARN_MISSING_REMOTE_MONITOR_DATA.get(baseDn,
                     serverId));
               }
             }
