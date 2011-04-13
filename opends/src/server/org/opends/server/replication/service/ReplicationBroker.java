@@ -2601,15 +2601,21 @@ public class ReplicationBroker
               {
                 // The best replication server is no more the one we are
                 // currently using. Disconnect properly then reconnect.
-                int bestServerId = -1;
-                if (bestServerInfo != null)
+                Message message;
+                if (bestServerInfo == null)
                 {
-                  bestServerId = bestServerInfo.getServerId();
+                  message = NOTE_LOAD_BALANCE_REPLICATION_SERVER.get(
+                      serverId, replicationServerID,
+                      failingSession.getReadableRemoteAddress(),
+                      baseDn);
                 }
-                Message message = NOTE_NEW_BEST_REPLICATION_SERVER
-                    .get(serverId, replicationServerID,
-                        failingSession.getReadableRemoteAddress(),
-                        bestServerId, baseDn);
+                else
+                {
+                  message = NOTE_NEW_BEST_REPLICATION_SERVER.get(
+                      serverId, replicationServerID,
+                      failingSession.getReadableRemoteAddress(),
+                      bestServerInfo.getServerId(), baseDn);
+                }
                 logError(message);
                 reStart(true);
               }
