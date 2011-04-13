@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -1000,7 +1001,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     socket.connect(ServerAddr, 500);
     ReplSessionSecurity replSessionSecurity = getReplSessionSecurity();
     ProtocolSession session =
-         replSessionSecurity.createClientSession(serverURL, socket,
+         replSessionSecurity.createClientSession(socket,
          ReplSessionSecurity.HANDSHAKE_TIMEOUT);
 
     boolean sslEncryption =
@@ -1050,7 +1051,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       socket.setReceiveBufferSize(1000000);
       socket.setTcpNoDelay(true);
       socket.connect(ServerAddr, 500);
-      session = replSessionSecurity.createClientSession(serverURL, socket, 4000);
+      session = replSessionSecurity.createClientSession(socket, 4000);
 
       // send a ServerStartMsg containing the ServerState that was just
       // received.
@@ -1189,7 +1190,7 @@ public class ReplicationServerTest extends ReplicationTestCase
         {
           this.exc = e;
           this.errDetails =
-            "BrokerReader " + broker.getServerId() 
+            "BrokerReader " + broker.getServerId()
             + " did not received the expected message number : act="
             + numMsgRcv + " exp=" + numMsgExpected;
         }

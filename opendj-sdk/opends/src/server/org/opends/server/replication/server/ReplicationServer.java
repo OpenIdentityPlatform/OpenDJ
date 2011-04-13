@@ -312,6 +312,12 @@ public final class ReplicationServer
 
   void runListen()
   {
+    Message listenMsg = NOTE_REPLICATION_SERVER_LISTENING.get(
+        getServerId(),
+        listenSocket.getInetAddress().getHostAddress(),
+        listenSocket.getLocalPort());
+    logError(listenMsg);
+
     while ((shutdown == false) && (stopListen  == false))
     {
       // Wait on the replicationServer port.
@@ -517,7 +523,7 @@ public final class ReplicationServer
       socket.connect(ServerAddr, 500);
 
       ReplicationServerHandler handler = new ReplicationServerHandler(
-          replSessionSecurity.createClientSession(remoteServerURL,
+          replSessionSecurity.createClientSession(
               socket,
               ReplSessionSecurity.HANDSHAKE_TIMEOUT),
               queueSize,

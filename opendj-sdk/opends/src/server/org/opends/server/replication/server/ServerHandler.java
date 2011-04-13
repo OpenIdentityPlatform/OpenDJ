@@ -912,10 +912,11 @@ public abstract class ServerHandler extends MessageHandler
         if (!noTimeout)
         {
           // Timeout
-          Message message = NOTE_TIMEOUT_WHEN_CROSS_CONNECTION.get(
+          Message message = WARN_TIMEOUT_WHEN_CROSS_CONNECTION.get(
               getServiceId(),
-              Integer.toString(serverId),
-              Integer.toString(replicationServerId));
+              serverId,
+              session.getReadableRemoteAddress(),
+              replicationServerId);
           throw new DirectoryException(ResultCode.OTHER, message);
         }
       }

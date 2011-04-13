@@ -63,6 +63,8 @@ public final class TLSSocketSession implements ProtocolSession
   private final InputStream plainInput;
   private final OutputStream plainOutput;
   private final byte[] rcvLengthBuf = new byte[8];
+  private final String readableRemoteAddress;
+  private final String remoteAddress;
 
   /**
    * The time the last message published to this session.
@@ -120,6 +122,10 @@ public final class TLSSocketSession implements ProtocolSession
     this.plainOutput = plainSocket.getOutputStream();
     this.input = secureSocket.getInputStream();
     this.output = secureSocket.getOutputStream();
+    this.readableRemoteAddress = plainSocket.getRemoteSocketAddress()
+        .toString();
+    this.remoteAddress = plainSocket.getInetAddress()
+        .getHostAddress();
   }
 
 
@@ -256,7 +262,7 @@ public final class TLSSocketSession implements ProtocolSession
   @Override
   public String getReadableRemoteAddress()
   {
-    return plainSocket.getRemoteSocketAddress().toString();
+    return readableRemoteAddress;
   }
 
 
@@ -267,7 +273,7 @@ public final class TLSSocketSession implements ProtocolSession
   @Override
   public String getRemoteAddress()
   {
-    return plainSocket.getInetAddress().getHostAddress();
+    return remoteAddress;
   }
 
 

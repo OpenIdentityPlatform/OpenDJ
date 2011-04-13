@@ -252,6 +252,13 @@ public class ReplicationServerHandler extends ServerHandler
         // (this will also warn our connected DSs of the new received info)
         replicationServerDomain.receiveTopoInfoFromRS(inTopoMsg, this, false);
       }
+
+      Message message = INFO_REPLICATION_SERVER_CONNECTION_TO_RS
+          .get(getReplicationServerId(), getServerId(),
+              replicationServerDomain.getBaseDn(),
+              session.getReadableRemoteAddress());
+      logError(message);
+
       super.finalizeStart();
 
     }
@@ -360,11 +367,11 @@ public class ReplicationServerHandler extends ServerHandler
                   // if the present RS has received changes regarding its
                   //     gen ID and so won't change without a reset
                   // then  we are just degrading the peer.
-                  Message message = NOTE_BAD_GENERATION_ID_FROM_RS.get(
-                    getServiceId(),
-                    Integer.toString(serverId),
-                    Long.toString(generationId),
-                    Long.toString(localGenerationId));
+                  Message message = WARN_BAD_GENERATION_ID_FROM_RS
+                      .get(serverId,
+                          session.getReadableRemoteAddress(),
+                          generationId, getServiceId(),
+                          getReplicationServerId(), localGenerationId);
                   logError(message);
                 } else
                 {
@@ -387,11 +394,11 @@ public class ReplicationServerHandler extends ServerHandler
                   //         we have a nul state ?
                   // replicationServerDomain.
                   // setGenerationId(generationId, false);
-                  Message message = NOTE_BAD_GENERATION_ID_FROM_RS.get(
-                    getServiceId(),
-                    Integer.toString(serverId),
-                    Long.toString(generationId),
-                    Long.toString(localGenerationId));
+                  Message message = WARN_BAD_GENERATION_ID_FROM_RS
+                      .get(serverId,
+                          session.getReadableRemoteAddress(),
+                          generationId, getServiceId(),
+                          getReplicationServerId(), localGenerationId);
                   logError(message);
                 }
               }
@@ -428,6 +435,12 @@ public class ReplicationServerHandler extends ServerHandler
       // (this will also warn our connected DSs of the new received info)
       if (inTopoMsg!=null)
         replicationServerDomain.receiveTopoInfoFromRS(inTopoMsg, this, false);
+
+      Message message = INFO_REPLICATION_SERVER_CONNECTION_FROM_RS
+          .get(getReplicationServerId(), getServerId(),
+              replicationServerDomain.getBaseDn(),
+              session.getReadableRemoteAddress());
+      logError(message);
 
       super.finalizeStart();
 
@@ -563,11 +576,10 @@ public class ReplicationServerHandler extends ServerHandler
               // if the present RS has received changes regarding its
               //     gen ID and so won't change without a reset
               // then  we are just degrading the peer.
-              Message message = NOTE_BAD_GENERATION_ID_FROM_RS.get(
-                  getServiceId(),
-                  Integer.toString(serverId),
-                  Long.toString(generationId),
-                  Long.toString(localGenerationId));
+              Message message = WARN_BAD_GENERATION_ID_FROM_RS.get(
+                  serverId, session.getReadableRemoteAddress(),
+                  generationId, getServiceId(),
+                  getReplicationServerId(), localGenerationId);
               logError(message);
             }
             else
@@ -591,11 +603,10 @@ public class ReplicationServerHandler extends ServerHandler
               //         we have a nul state ?
               // replicationServerDomain.
               // setGenerationId(generationId, false);
-              Message message = NOTE_BAD_GENERATION_ID_FROM_RS.get(
-                  getServiceId(),
-                  Integer.toString(serverId),
-                  Long.toString(generationId),
-                  Long.toString(localGenerationId));
+              Message message = WARN_BAD_GENERATION_ID_FROM_RS.get(
+                  serverId, session.getReadableRemoteAddress(),
+                  generationId, getServiceId(),
+                  getReplicationServerId(), localGenerationId);
               logError(message);
             }
           }

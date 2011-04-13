@@ -60,6 +60,7 @@ public class ServerReader extends DirectoryThread
   private static final DebugTracer TRACER = getTracer();
   private final ProtocolSession session;
   private final ServerHandler handler;
+  private final String remoteAddress;
 
 
 
@@ -78,6 +79,7 @@ public class ServerReader extends DirectoryThread
         + session.getReadableRemoteAddress());
     this.session = session;
     this.handler = handler;
+    this.remoteAddress = session.getReadableRemoteAddress();
   }
 
   /**
@@ -136,19 +138,19 @@ public class ServerReader extends DirectoryThread
               {
                 long referenceGenerationId = handler.getReferenceGenId();
                 if (dsStatus == ServerStatus.BAD_GEN_ID_STATUS)
-                  logError(ERR_IGNORING_UPDATE_FROM_DS_BADGENID.get(
-                    Integer.toString(handler.getReplicationServerId()),
-                    handler.getServiceId(),
-                    ((UpdateMsg) msg).getChangeNumber().toString(),
-                    Integer.toString(handler.getServerId()),
-                    Long.toString(referenceGenerationId),
-                    Long.toString(handler.getGenerationId())));
+                  logError(WARN_IGNORING_UPDATE_FROM_DS_BADGENID.get(
+                      handler.getReplicationServerId(),
+                      ((UpdateMsg) msg).getChangeNumber().toString(),
+                      handler.getServiceId(), handler.getServerId(),
+                      session.getReadableRemoteAddress(),
+                      handler.getGenerationId(),
+                      referenceGenerationId));
                 if (dsStatus == ServerStatus.FULL_UPDATE_STATUS)
-                  logError(ERR_IGNORING_UPDATE_FROM_DS_FULLUP.get(
-                    Integer.toString(handler.getReplicationServerId()),
-                    handler.getServiceId(),
-                    ((UpdateMsg) msg).getChangeNumber().toString(),
-                    Integer.toString(handler.getServerId())));
+                  logError(WARN_IGNORING_UPDATE_FROM_DS_FULLUP.get(
+                      handler.getReplicationServerId(),
+                      ((UpdateMsg) msg).getChangeNumber().toString(),
+                      handler.getServiceId(), handler.getServerId(),
+                      session.getReadableRemoteAddress()));
                 filtered = true;
               }
             } else
@@ -162,14 +164,14 @@ public class ServerReader extends DirectoryThread
                 (referenceGenerationId != handler.getGenerationId()))
               {
                 logError(
-                    ERR_IGNORING_UPDATE_FROM_RS.get(
-                        Integer.toString(
-                            handler.getReplicationServerId()),
-                        handler.getServiceId(),
+                    WARN_IGNORING_UPDATE_FROM_RS.get(
+                        handler.getReplicationServerId(),
                         ((UpdateMsg) msg).getChangeNumber().toString(),
-                        Integer.toString(handler.getServerId()),
-                        Long.toString(referenceGenerationId),
-                        Long.toString(handler.getGenerationId())));
+                        handler.getServiceId(),
+                        handler.getServerId(),
+                        session.getReadableRemoteAddress(),
+                        handler.getGenerationId(),
+                        referenceGenerationId));
                 filtered = true;
               }
             }
@@ -297,8 +299,18 @@ public class ServerReader extends DirectoryThread
             "In " + this.getName() + " " + stackTraceToSingleLineString(e));
       if (!handler.shuttingDown())
       {
-        errMessage = ERR_SERVER_BADLY_DISCONNECTED.get(handler.toString(),
-            Integer.toString(handler.getReplicationServerId()));
+        if (handler.isDataServer())
+        {
+          errMessage = ERR_DS_BADLY_DISCONNECTED.get(
+              handler.getReplicationServerId(), handler.getServerId(),
+              remoteAddress, handler.getServiceId());
+        }
+        else
+        {
+          errMessage = ERR_RS_BADLY_DISCONNECTED.get(
+              handler.getReplicationServerId(), handler.getServerId(),
+              remoteAddress, handler.getServiceId());
+        }
         logError(errMessage);
       }
     }

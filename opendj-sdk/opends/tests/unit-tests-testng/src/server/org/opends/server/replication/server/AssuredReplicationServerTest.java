@@ -948,7 +948,7 @@ public class AssuredReplicationServerTest
         fakePort++;
         String fakeUrl = "localhost:" + fakePort;
         ReplSessionSecurity replSessionSecurity = new ReplSessionSecurity();
-        session = replSessionSecurity.createClientSession(fakeUrl, socket,
+        session = replSessionSecurity.createClientSession(socket,
           ReplSessionSecurity.HANDSHAKE_TIMEOUT);
 
         // Send our repl server start msg
