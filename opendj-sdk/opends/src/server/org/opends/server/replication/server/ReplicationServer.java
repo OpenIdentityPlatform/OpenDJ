@@ -514,28 +514,38 @@ public final class ReplicationServer
       TRACER.debugInfo("RS " + this.getMonitorInstanceName() +
                " connects to " + remoteServerURL);
 
+    Socket socket = new Socket();
+    ProtocolSession session = null;
     try
     {
       InetSocketAddress ServerAddr = new InetSocketAddress(
-                     InetAddress.getByName(hostname), Integer.parseInt(port));
-      Socket socket = new Socket();
+          InetAddress.getByName(hostname), Integer.parseInt(port));
       socket.setTcpNoDelay(true);
       socket.connect(ServerAddr, 500);
 
+      session = replSessionSecurity.createClientSession(socket,
+          ReplSessionSecurity.HANDSHAKE_TIMEOUT);
+
       ReplicationServerHandler handler = new ReplicationServerHandler(
-          replSessionSecurity.createClientSession(
-              socket,
-              ReplSessionSecurity.HANDSHAKE_TIMEOUT),
-              queueSize,
-              this.serverURL,
-              serverId,
-              this,
-              rcvWindow);
+          session, queueSize, this.serverURL, serverId, this,
+          rcvWindow);
       handler.connect(baseDn, sslEncryption);
     }
     catch (Exception e)
     {
-      // ignore
+      if (session != null)
+      {
+        session.close();
+      }
+
+      try
+      {
+        socket.close();
+      }
+      catch (IOException ignored)
+      {
+        // Ignore.
+      }
     }
 
   }
