@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS
  ! -->
 <stax>
 
@@ -942,16 +943,12 @@
             <message>
                'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal sasl, delete global search ACI'
             </message>
-
-            <script>
-                    global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
-            </script>
                
             <call function="'modifyGlobalAci'">
                   { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                     'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                    'aciValue'               : global_aci ,
+                    'aciValue'               : GLOBAL_ACI_SEARCH ,
                     'opType'                 : 'remove' }
             </call>
             
@@ -1096,7 +1093,7 @@
               { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                 'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                'aciValue'               : global_aci ,
+                'aciValue'               : GLOBAL_ACI_SEARCH ,
                 'opType'                 : 'add'
               }
             </call>
@@ -1184,16 +1181,12 @@
             <message>
               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equal simple, delete global search ACI'
             </message>
-
-            <script>
-              global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
-            </script>
                 
             <call function="'modifyGlobalAci'">
               { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                 'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                'aciValue'               : global_aci ,
+                'aciValue'               : GLOBAL_ACI_SEARCH ,
                 'opType'                 : 'remove'
               }
             </call>
@@ -1340,7 +1333,7 @@
               { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                 'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                'aciValue'               : global_aci ,
+                'aciValue'               : GLOBAL_ACI_SEARCH ,
                 'opType'                 : 'add'
               }
             </call>
@@ -1428,16 +1421,12 @@
             <message>
               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod  not equals simple, delete global search ACI'
             </message>
-
-            <script>
-              global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
-            </script>
                 
             <call function="'modifyGlobalAci'">
               { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                 'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                'aciValue'               : global_aci ,
+                'aciValue'               : GLOBAL_ACI_SEARCH ,
                 'opType'                 : 'remove'
               }
             </call>
@@ -1584,7 +1573,7 @@
               { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                 'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                'aciValue'               : global_aci ,
+                'aciValue'               : GLOBAL_ACI_SEARCH ,
                 'opType'                 : 'add'
               }
             </call>
@@ -1672,16 +1661,12 @@
             <message>
               'Security: SASL DIGEST-MD5: User (dn:) Binding With ACI with authmethod equals none, delete global search ACI'
             </message>
-
-            <script>
-              global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
-            </script>
                 
             <call function="'modifyGlobalAci'">
               { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                 'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                'aciValue'               : global_aci ,
+                'aciValue'               : GLOBAL_ACI_SEARCH  ,
                 'opType'                 : 'remove'
               }
             </call>
@@ -1830,7 +1815,7 @@
               { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
                 'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
-                'aciValue'               : global_aci ,
+                'aciValue'               : GLOBAL_ACI_SEARCH ,
                 'opType'                 : 'add'
               }
             </call>
@@ -3370,16 +3355,12 @@
             <message>
               'Delete global search ACI'
             </message>
-
-            <script>
-              global_aci="(targetattr!=\"userPassword||authPassword\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
-            </script>
                 
             <call function="'modifyGlobalAci'">
               { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
                 'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
                 'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
-                'aciValue'       : global_aci ,
+                'aciValue'       : GLOBAL_ACI_SEARCH ,
                 'opType'         : 'remove'
               }
             </call>
