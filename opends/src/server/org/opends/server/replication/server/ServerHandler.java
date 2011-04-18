@@ -832,13 +832,20 @@ public abstract class ServerHandler extends MessageHandler
     return (!this.isDataServer());
   }
 
+
+
   /**
    * Lock the domain potentially with a timeout.
-   * @param timedout The provided timeout.
-   * @throws DirectoryException When an exception occurs.
+   *
+   * @param timedout
+   *          The provided timeout.
+   * @throws DirectoryException
+   *           When an exception occurs.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting for the lock.
    */
   protected void lockDomain(boolean timedout)
-  throws DirectoryException
+    throws DirectoryException, InterruptedException
   {
     // The handshake phase must be done by blocking any access to structures
     // keeping info on connected servers, so that one can safely check for
@@ -859,73 +866,64 @@ public abstract class ServerHandler extends MessageHandler
 
     // If domain already exists, lock it until handshake is finished otherwise
     // it will be created and locked later in the method
-    try
+    if (!timedout)
     {
-      if (!timedout)
-      {
-        // !timedout
-        if (!replicationServerDomain.hasLock())
-          replicationServerDomain.lock();
-      }
-      else
-      {
-        // timedout
-        /**
-         * Take the lock on the domain.
-         * WARNING: Here we try to acquire the lock with a timeout. This
-         * is for preventing a deadlock that may happen if there are cross
-         * connection attempts (for same domain) from this replication
-         * server and from a peer one:
-         * Here is the scenario:
-         * - RS1 connect thread takes the domain lock and starts
-         * connection to RS2
-         * - at the same time RS2 connect thread takes his domain lock and
-         * start connection to RS2
-         * - RS2 listen thread starts processing received
-         * ReplServerStartMsg from RS1 and wants to acquire the lock on
-         * the domain (here) but cannot as RS2 connect thread already has
-         * it
-         * - RS1 listen thread starts processing received
-         * ReplServerStartMsg from RS2 and wants to acquire the lock on
-         * the domain (here) but cannot as RS1 connect thread already has
-         * it
-         * => Deadlock: 4 threads are locked.
-         * So to prevent that in such situation, the listen threads here
-         * will both timeout trying to acquire the lock. The random time
-         * for the timeout should allow on connection attempt to be
-         * aborted whereas the other one should have time to finish in the
-         * same time.
-         * Warning: the minimum time (3s) should be big enough to allow
-         * normal situation connections to terminate. The added random
-         * time should represent a big enough range so that the chance to
-         * have one listen thread timing out a lot before the peer one is
-         * great. When the first listen thread times out, the remote
-         * connect thread should release the lock and allow the peer
-         * listen thread to take the lock it was waiting for and process
-         * the connection attempt.
-         */
-        Random random = new Random();
-        int randomTime = random.nextInt(6); // Random from 0 to 5
-        // Wait at least 3 seconds + (0 to 5 seconds)
-        long timeout = (long) (3000 + ( randomTime * 1000 ) );
-        boolean noTimeout = replicationServerDomain.tryLock(timeout);
-        if (!noTimeout)
-        {
-          // Timeout
-          Message message = WARN_TIMEOUT_WHEN_CROSS_CONNECTION.get(
-              getServiceId(),
-              serverId,
-              session.getReadableRemoteAddress(),
-              replicationServerId);
-          throw new DirectoryException(ResultCode.OTHER, message);
-        }
-      }
+      // !timedout
+      if (!replicationServerDomain.hasLock())
+        replicationServerDomain.lock();
     }
-    catch (InterruptedException e)
+    else
     {
-      // Thread interrupted
-      Message message = ERR_EXCEPTION_LOCKING_RS_DOMAIN.get(e.getMessage());
-      logError(message);
+      // timedout
+      /**
+       * Take the lock on the domain.
+       * WARNING: Here we try to acquire the lock with a timeout. This
+       * is for preventing a deadlock that may happen if there are cross
+       * connection attempts (for same domain) from this replication
+       * server and from a peer one:
+       * Here is the scenario:
+       * - RS1 connect thread takes the domain lock and starts
+       * connection to RS2
+       * - at the same time RS2 connect thread takes his domain lock and
+       * start connection to RS2
+       * - RS2 listen thread starts processing received
+       * ReplServerStartMsg from RS1 and wants to acquire the lock on
+       * the domain (here) but cannot as RS2 connect thread already has
+       * it
+       * - RS1 listen thread starts processing received
+       * ReplServerStartMsg from RS2 and wants to acquire the lock on
+       * the domain (here) but cannot as RS1 connect thread already has
+       * it
+       * => Deadlock: 4 threads are locked.
+       * So to prevent that in such situation, the listen threads here
+       * will both timeout trying to acquire the lock. The random time
+       * for the timeout should allow on connection attempt to be
+       * aborted whereas the other one should have time to finish in the
+       * same time.
+       * Warning: the minimum time (3s) should be big enough to allow
+       * normal situation connections to terminate. The added random
+       * time should represent a big enough range so that the chance to
+       * have one listen thread timing out a lot before the peer one is
+       * great. When the first listen thread times out, the remote
+       * connect thread should release the lock and allow the peer
+       * listen thread to take the lock it was waiting for and process
+       * the connection attempt.
+       */
+      Random random = new Random();
+      int randomTime = random.nextInt(6); // Random from 0 to 5
+      // Wait at least 3 seconds + (0 to 5 seconds)
+      long timeout = (long) (3000 + ( randomTime * 1000 ) );
+      boolean noTimeout = replicationServerDomain.tryLock(timeout);
+      if (!noTimeout)
+      {
+        // Timeout
+        Message message = WARN_TIMEOUT_WHEN_CROSS_CONNECTION.get(
+            getServiceId(),
+            serverId,
+            session.getReadableRemoteAddress(),
+            replicationServerId);
+        throw new DirectoryException(ResultCode.OTHER, message);
+      }
     }
   }
 

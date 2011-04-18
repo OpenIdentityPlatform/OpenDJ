@@ -155,7 +155,7 @@ public class StatusAnalyzer extends DirectoryThread
                 StatusMachineEvent.TO_DEGRADED_STATUS_EVENT);
               if (interrupted)
               {
-                // Finih job and let thread die
+                // Finish job and let thread die
                 TRACER.debugInfo("Status analyzer for dn " +
                   replicationServerDomain.getBaseDn().toString() +
                   " has been interrupted and will die. This is in RS " +
@@ -173,7 +173,7 @@ public class StatusAnalyzer extends DirectoryThread
                 StatusMachineEvent.TO_NORMAL_STATUS_EVENT);
               if (interrupted)
               {
-                // Finih job and let thread die
+                // Finish job and let thread die
                 TRACER.debugInfo("Status analyzer for dn " +
                   replicationServerDomain.getBaseDn().toString() +
                   " has been interrupted and will die. This is in RS " +

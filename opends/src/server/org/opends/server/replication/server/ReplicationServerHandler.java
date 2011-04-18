@@ -178,7 +178,6 @@ public class ReplicationServerHandler extends ServerHandler
 
     try
     {
-      //
       lockDomain(false); // no timeout
 
       // Send start
@@ -260,15 +259,11 @@ public class ReplicationServerHandler extends ServerHandler
       logError(message);
 
       super.finalizeStart();
-
     }
     catch(IOException ioe)
     {
       // FIXME receive
     }
-    // catch(DirectoryException de)
-    //{ already logged
-    //
     catch(Exception e)
     {
       // FIXME more detailed exceptions
@@ -528,7 +523,7 @@ public class ReplicationServerHandler extends ServerHandler
             msg.getClass().getCanonicalName(),
             "TopologyMsg");
       }
-      abortStart(message);
+      throw new DirectoryException(ResultCode.OTHER, message);
     }
 
     // Remote RS sent his topo msg
