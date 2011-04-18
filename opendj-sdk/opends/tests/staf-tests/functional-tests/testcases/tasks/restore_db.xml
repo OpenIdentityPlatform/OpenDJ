@@ -163,7 +163,7 @@
                   </script>
 
                   <call function="'searchString'">
-                    { 'expectedString' : '%s.*  Restore  Completed successfully' \
+                    { 'expectedString' : '%s.*   Restore   Completed successfully' \
                                          % currentDate,
                       'returnString'	 : returnString ,
                       'expectedRC'     : 'noCheck' }
