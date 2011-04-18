@@ -486,13 +486,13 @@ public class ECLServerHandler extends ServerHandler
       StartECLSessionMsg inStartECLSessionMsg =
         waitAndProcessStartSessionECLFromRemoteServer();
       if (inStartECLSessionMsg == null)
-        {
-          // client wants to properly close the connection (client sent a
-          // StopMsg)
-          logStopReceived();
-          abortStart(null);
-          return;
-        }
+      {
+        // client wants to properly close the connection (client sent a
+        // StopMsg)
+        logStopReceived();
+        abortStart(null);
+        return;
+      }
 
       logStartECLSessionHandshake(inStartECLSessionMsg);
 
@@ -539,17 +539,20 @@ public class ECLServerHandler extends ServerHandler
       // client wants to stop handshake (was just for handshake phase one for RS
       // choice). Return null to make the session be terminated.
       return null;
-    } else if (!(msg instanceof StartECLSessionMsg))
-    {
-      Message message = Message.raw(
-          "Protocol error: StartECLSessionMsg required." + msg + " received.");
-      abortStart(message);
     }
-
-    // Process StartSessionMsg sent by remote DS
-    StartECLSessionMsg startECLSessionMsg = (StartECLSessionMsg) msg;
-
-    return startECLSessionMsg;
+    else if (!(msg instanceof StartECLSessionMsg))
+    {
+      Message message = Message
+          .raw("Protocol error: StartECLSessionMsg required." + msg
+              + " received.");
+      abortStart(message);
+      return null;
+    }
+    else
+    {
+      // Process StartSessionMsg sent by remote DS
+      return (StartECLSessionMsg) msg;
+    }
   }
 
   /**

@@ -706,6 +706,7 @@ public class DataServerHandler extends ServerHandler
       Message message = Message.raw(
           "Protocol error: StartSessionMsg required." + msg + " received.");
       abortStart(message);
+      return null;
     }
 
     // Process StartSessionMsg sent by remote DS
