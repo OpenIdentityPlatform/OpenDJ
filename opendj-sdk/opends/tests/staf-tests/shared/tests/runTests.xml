@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2006-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 Forgerock AS
  ! -->
 <stax>
   <defaultcall function="main" />
@@ -50,7 +51,7 @@
         my_info['os label']=TEST_OS_STRING
         my_info['server package']='%s/%s' % (ZIPPATH,ZIPNAME)
         # The jdmkrt.jar can be included in the OpenDS archive
-        if not PRODUCTNAME.startswith('OpenDS'):
+        if not PRODUCTNAME.startswith('OpenDJ'):
           my_info['snmp jarfile']='addons%s' % SNMP_OPENDMK_JARFILE
         else:
           my_info['snmp jarfile']=SNMP_OPENDMK_JARFILE

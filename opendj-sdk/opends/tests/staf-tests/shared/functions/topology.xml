@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS
  ! -->
 <stax>
   <function name="createTopology">
@@ -452,8 +453,15 @@
             'attribute' : 'TYPE'
             }
           </call>
+
+          <if expr="RC == 48">
+            <message>
+              'OpenDMK jar %s not found.' % SNMP_OPENDMK_JARFILE
+            </message>            
+          </if>
+
           <!-- 'SNMP_OPENDMK_JARFILE' exists so we can continue with SNMP -->
-          <if expr="RC != 48 or not PRODUCTNAME.startswith('OpenDS')">
+          <if expr="RC != 48 or not PRODUCTNAME.startswith('OpenDJ')">
             <sequence>          
               <!---   Check if snmp java files are already compiled -->
               <call function="'listFolderByExtension'" >
@@ -492,7 +500,7 @@
 
                   <!-- The jdmkrt.jar can be included in the OpenDS archive -->
                   <script>
-                    if not PRODUCTNAME.startswith('OpenDS'):
+                    if not PRODUCTNAME.startswith('OpenDJ'):
                       SNMP_OPENDMK_JARFILE='%s/%s/addons/jdmkrt.jar' % (local.temp,OPENDSNAME)
                   </script>
 

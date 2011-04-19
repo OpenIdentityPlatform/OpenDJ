@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS
  ! -->
 <stax>
   
@@ -139,7 +140,7 @@
           </call>
 
           <call function="'runSTAFCommand'">
-            { 'name'      :  'Extract OpenDS ZIP file',
+            { 'name'      :  'Extract OpenDJ ZIP file',
               'location'  :  STAF_REMOTE_HOSTNAME,
               'service'   :  'ZIP',
               'request'   :  'UNZIP',
@@ -151,7 +152,7 @@
           <call function="'checktestRC'">
             { 'returncode' : RC,
               'expected'   : 0,
-              'result'     : 'FAIL to unzip OpenDS ZIP file',
+              'result'     : 'FAIL to unzip OpenDJ ZIP file',
             }
           </call>
 
@@ -274,12 +275,12 @@
                               import LDAP entries and manage rejected and 
                               skipped entries
         #@TestPreamble        
-        #@TestStep            Unzip OpenDS distribution
-                              Setup OpenDS with a LDIF file to import, and
+        #@TestStep            Unzip OpenDJ distribution
+                              Setup OpenDJ with a LDIF file to import, and
                               files for rejected and skipped entries
                               Check skipped and rejected entries
-                              Stop OpenDS
-                              Uninstall OpenDS
+                              Stop OpenDJ
+                              Uninstall OpenDJ
         #@TestPostamble       
         #@TestResult          PASS if all steps ran without errors
       -->
@@ -499,7 +500,7 @@
           </call>
 
           <script>
-            if PRODUCTNAME.startswith('OpenDS'):
+            if PRODUCTNAME.startswith('OpenDJ'):
               if is_windows_platform(STAF_REMOTE_HOSTNAME):
                 expectedNb = 2
               else:
