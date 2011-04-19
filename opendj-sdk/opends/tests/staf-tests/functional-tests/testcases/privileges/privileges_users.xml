@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 Forgerock AS
  ! -->
 <stax>
 
@@ -2590,6 +2591,21 @@
                       'newAttributeValue'      : write_aci ,
                       'changetype'             : 'add' }
                   </call>
+
+                  <message>
+                     'Privileges: Users: update-schema, preamble, Admin add subentry-write privilege'
+                  </message>
+
+                  <call function="'modifyAnAttribute'">
+                    { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                      'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                      'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                      'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                      'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                      'attributeName'          : 'ds-privilege-name' ,
+                      'newAttributeValue'      : 'subentry-write' ,
+                      'changetype'             : 'add' }
+                  </call>
                   
                   <message>
                      'Privileges: Users: update-schema, check default privilege, user adding new schema object'
@@ -2727,7 +2743,7 @@
                   </call>
                   
                   <message>
-                     'Privileges: Users: update-schema, Admin deleting privilege'
+                     'Privileges: Users: update-schema, Admin deleting update-schema privilege'
                   </message>
    
                   <call function="'modifyAnAttribute'">
@@ -2738,6 +2754,21 @@
                       'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                       'attributeName'          : 'ds-privilege-name' ,
                       'newAttributeValue'      : 'update-schema' ,
+                      'changetype'             : 'delete' }
+                  </call>
+
+                  <message>
+                     'Privileges: Users: update-schema, Admin deleting subentry-write privilege'
+                  </message>
+   
+                  <call function="'modifyAnAttribute'">
+                    { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST ,
+                      'dsInstancePort'         : DIRECTORY_INSTANCE_PORT ,
+                      'dsInstanceDn'           : DIRECTORY_INSTANCE_DN ,
+                      'dsInstancePswd'         : DIRECTORY_INSTANCE_PSWD ,
+                      'DNToModify'             : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
+                      'attributeName'          : 'ds-privilege-name' ,
+                      'newAttributeValue'      : 'subentry-write' ,
                       'changetype'             : 'delete' }
                   </call>
                        
@@ -3001,7 +3032,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
                     'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules',
-                    'taskID'           : STAXCurrentTestcase,
+                    'taskID'           : '%s-OK' % STAXCurrentTestcase,
                   }
                   </call>
       
@@ -3052,7 +3083,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
                     'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules',
-                    'taskID'           : STAXCurrentTestcase,
+                    'taskID'           : '%s-nopriv' % STAXCurrentTestcase,
                     'expectedRC'       : 50
                   }
                   </call>
@@ -3081,7 +3112,7 @@
                     'dsInstancePort'   : DIRECTORY_INSTANCE_PORT,
                     'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules',
-                    'taskID'           : STAXCurrentTestcase,
+                    'taskID'           : '%s-noaci' % STAXCurrentTestcase,
                     'expectedRC'       : 50
                   }
                   </call>
