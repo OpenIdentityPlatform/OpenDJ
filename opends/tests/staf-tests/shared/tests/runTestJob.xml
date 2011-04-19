@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2006-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 AS
  ! -->
 
 <stax>
@@ -184,7 +185,7 @@
         ServerPackage='%s/%s' % (ZIPPATH,ZIPNAME)
 
         # The jdmkrt.jar can be included in the OpenDS archive
-        if not PRODUCTNAME.startswith('OpenDS'):
+        if not PRODUCTNAME.startswith('OpenDJ'):
           ServerSNMPJarFile='addons/jdmkrt.jar'
         else:
           ServerSNMPJarFile='%s' % SNMP_OPENDMK_JARFILE
@@ -250,7 +251,7 @@
       <!-- Build the DSML Gateway Dictionary -->
       <script>
         # The war file can be included in the OpenDS archive
-        if not PRODUCTNAME.startswith('OpenDS'):
+        if not PRODUCTNAME.startswith('OpenDJ'):
           DSMLName='DSML.war'
           DSMLPackage='addons/DSML.war'
         else:

@@ -75,8 +75,8 @@
                       }
                     </call>
 
-                    <!-- The war file can be included in the OpenDS archive -->
-                    <if expr="not PRODUCTNAME.startswith('OpenDS')">
+                    <!-- The war file can be included in the OpenDJ archive -->
+                    <if expr="not PRODUCTNAME.startswith('OpenDJ')">
                       <sequence>
                         <call function="'unZipFile'">
                           {
@@ -101,9 +101,9 @@
                 </else>
               </if>
 
-              <!-- The war file can be included in the OpenDS archive -->
+              <!-- The war file can be included in the OpenDJ archive -->
               <script>
-                if not PRODUCTNAME.startswith('OpenDS'):
+                if not PRODUCTNAME.startswith('OpenDJ'):
                   DSML_WARPATH = '%s/dsml/%s/addons/DSML.war' % (local.temp,OPENDSNAME)
               </script>
               <call function="'unZipFile'">
@@ -442,9 +442,9 @@
                 'setup: deploy DSML gateway webapp as described in config.py'
               </message>
 
-              <!-- The war file can be included in the OpenDS archive -->
+              <!-- The war file can be included in the OpenDJ archive -->
               <script>
-                if not PRODUCTNAME.startswith('OpenDS'):
+                if not PRODUCTNAME.startswith('OpenDJ'):
                   DSML_WARPATH = '%s/dsml/%s/addons/DSML.war' % (local.temp,OPENDSNAME)
               </script>
               
@@ -521,9 +521,9 @@
                 }
               </call>
 
-              <!-- The war file can be included in the OpenDS archive -->
+              <!-- The war file can be included in the OpenDJ archive -->
               <script>
-                if not PRODUCTNAME.startswith('OpenDS'):
+                if not PRODUCTNAME.startswith('OpenDJ'):
                   DSML_WARPATH = '%s/dsml/%s/addons/DSML.war' % (local.temp,OPENDSNAME)
               </script>
               <call function="'runSTAFCommand'">
