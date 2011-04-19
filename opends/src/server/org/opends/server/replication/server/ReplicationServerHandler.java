@@ -217,6 +217,15 @@ public class ReplicationServerHandler extends ServerHandler
         return;
       }
 
+      // Since we are going to send the topology message before having received
+      // one, we need to set the generation ID as soon as possible if it is
+      // currently uninitialized. See OpenDJ-121.
+      if (localGenerationId < 0 && generationId > 0)
+      {
+        oldGenerationId = replicationServerDomain.changeGenerationId(
+            generationId, false);
+      }
+
       // Log
       logStartHandshakeSNDandRCV(outReplServerStartMsg,(ReplServerStartMsg)msg);
 

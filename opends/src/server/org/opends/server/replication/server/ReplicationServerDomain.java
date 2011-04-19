@@ -121,7 +121,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   private ReplicationServer replicationServer;
 
   // GenerationId management
-  private long generationId = -1;
+  private volatile long generationId = -1;
   private boolean generationIdSavedStatus = false;
 
   // The tracer object for the debug logger.
