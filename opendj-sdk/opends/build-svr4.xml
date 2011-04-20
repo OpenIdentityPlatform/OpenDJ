@@ -23,6 +23,7 @@
  !
  !
  !      Copyright 2006-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS
  ! -->
 
 <project name="SVR4 Packaging" basedir="." default="package-svr4">
@@ -132,12 +133,12 @@ EMAIL=
         <echo file="${svr4.meta.dir}/prototype" append="true">i pkginfo
 i copyright</echo>
 	<replaceregexp file="${svr4.meta.dir}/prototype"
-                         match="${user.name}"
-                         replace="root"
+                         match=" ${user.name} "
+                         replace=" root "
                          byline="true"/>
 	<replaceregexp file="${svr4.meta.dir}/prototype"
-                         match="${user.group}"
-                         replace="sys"
+                         match=" ${user.group}"
+                         replace=" sys"
                          byline="true"/>
 
   </target>
