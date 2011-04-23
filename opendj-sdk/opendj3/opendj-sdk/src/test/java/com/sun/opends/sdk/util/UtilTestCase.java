@@ -38,7 +38,7 @@ import org.testng.annotations.Test;
  * An abstract class that all util unit tests should extend. Util represents the
  * classes found directly under the package org.opends.sdk.util.
  */
-@Test(groups = { "precommit", "util", "sdk" }, sequential = true)
+@Test(groups = { "precommit", "util", "sdk" })
 public abstract class UtilTestCase extends OpenDJTestCase
 {
 }

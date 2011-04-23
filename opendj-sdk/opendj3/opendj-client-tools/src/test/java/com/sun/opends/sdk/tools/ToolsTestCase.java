@@ -39,7 +39,7 @@ import org.testng.annotations.Test;
  * the classes found directly under the package com.sun.opends.sdk.tools.
  */
 
-@Test(groups = { "precommit", "tools", "sdk" }, sequential = true)
+@Test(groups = { "precommit", "tools", "sdk" })
 public abstract class ToolsTestCase extends OpenDJTestCase
 {
 }

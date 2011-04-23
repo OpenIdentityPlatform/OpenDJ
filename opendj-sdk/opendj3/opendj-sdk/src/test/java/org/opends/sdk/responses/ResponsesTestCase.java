@@ -40,7 +40,7 @@ import org.testng.annotations.Test;
  * org.opends.sdk.responses.
  */
 
-@Test(groups = { "precommit", "responses", "sdk" }, sequential = true)
+@Test(groups = { "precommit", "responses", "sdk" })
 public abstract class ResponsesTestCase extends OpenDJTestCase
 {
 }

@@ -40,7 +40,7 @@ import org.testng.annotations.Test;
  * org.opends.sdk.requests.
  */
 
-@Test(groups = { "precommit", "requests", "sdk" }, sequential = true)
+@Test(groups = { "precommit", "requests", "sdk" })
 public abstract class RequestsTestCase extends OpenDJTestCase
 {
 }

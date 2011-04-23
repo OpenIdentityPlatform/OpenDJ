@@ -38,7 +38,7 @@ import org.testng.annotations.Test;
  * classes found directly under the package org.opends.sdk.ldif.
  */
 
-@Test(groups = { "precommit", "types", "sdk" }, sequential = true)
+@Test(groups = { "precommit", "types", "sdk" })
 public abstract class LDIFTestCase extends OpenDJTestCase
 {
 }

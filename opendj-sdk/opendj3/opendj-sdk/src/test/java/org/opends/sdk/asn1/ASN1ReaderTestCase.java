@@ -46,7 +46,7 @@ import org.testng.annotations.Test;
 /**
  * An abstract base class for all ASN1Reader test cases.
  */
-@Test(groups = { "precommit", "asn1", "sdk" }, sequential = true)
+@Test(groups = { "precommit", "asn1", "sdk" })
 public abstract class ASN1ReaderTestCase extends OpenDJTestCase
 {
 

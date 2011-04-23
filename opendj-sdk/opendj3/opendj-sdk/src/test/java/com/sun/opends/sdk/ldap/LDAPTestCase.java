@@ -39,7 +39,7 @@ import org.testng.annotations.Test;
  * classes found directly under the package com.sun.opends.sdk.ldap.
  */
 
-@Test(groups = { "precommit", "ldap", "sdk" }, sequential = true)
+@Test(groups = { "precommit", "ldap", "sdk" })
 public abstract class LDAPTestCase extends OpenDJTestCase
 {
 }

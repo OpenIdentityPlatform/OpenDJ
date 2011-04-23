@@ -34,7 +34,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
 import org.testng.Assert;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 
@@ -44,20 +43,6 @@ import org.testng.annotations.Test;
  */
 public abstract class ByteSequenceTestCase extends SdkTestCase
 {
-  /**
-   * ByteSequence data provider that gets the ByteSequence implementation from
-   * the abstract method.
-   *
-   * @return The array of ByteStrings and the bytes it should contain.
-   */
-  @DataProvider(name = "byteSequenceProvider")
-  public Object[][] concreteByteSequenceProvider() throws Exception
-  {
-    return byteSequenceProvider();
-  }
-
-
-
   @Test(dataProvider = "byteSequenceProvider")
   public void testByteAt(final ByteSequence bs, final byte[] ba)
   {
@@ -239,9 +224,5 @@ public abstract class ByteSequenceTestCase extends SdkTestCase
 
     Assert.assertTrue(bs.toString().equals(str));
   }
-
-
-
-  protected abstract Object[][] byteSequenceProvider() throws Exception;
 
 }

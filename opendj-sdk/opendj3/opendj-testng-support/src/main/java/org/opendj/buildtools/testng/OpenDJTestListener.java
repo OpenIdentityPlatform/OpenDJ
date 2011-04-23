@@ -719,7 +719,8 @@ public class OpenDJTestListener extends TestListenerAdapter implements IReporter
   private void enforceMethodHasAnnotation(final ITestResult tr)
   {
     // Only warn once per method.
-    final Method testMethod = tr.getMethod().getMethod();
+    final Method testMethod = tr.getMethod().getConstructorOrMethod()
+        .getMethod();
     if (_checkedForAnnotation.contains(testMethod))
     {
       return;
@@ -772,23 +773,7 @@ public class OpenDJTestListener extends TestListenerAdapter implements IReporter
       final String errorMessage = "The test class "
           + testClass.getName()
           + " does not have a @Test annotation.  "
-          + "All test classes must have a @Test annotation, and this annotation must have "
-          + "sequential=true set to ensure that tests for a single class are run together.";
-      System.err.println("\n\nERROR: " + errorMessage + "\n\n");
-      throw new RuntimeException(errorMessage);
-    }
-
-    final Test testAnnotation = classWithTestAnnotation
-        .getAnnotation(Test.class);
-    if (!testAnnotation.sequential())
-    {
-      // Give an error message that is as specific as possible.
-      final String errorMessage = "The @Test annotation for class "
-          + testClass.getName()
-          + (classWithTestAnnotation.equals(testClass) ? " "
-              : (", which is declared by class "
-                  + classWithTestAnnotation.getName() + ", "))
-          + "must include sequential=true to ensure that tests for a single class are run together.";
+          + "All test classes must have a @Test annotation";
       System.err.println("\n\nERROR: " + errorMessage + "\n\n");
       throw new RuntimeException(errorMessage);
     }
@@ -1418,15 +1403,6 @@ public class OpenDJTestListener extends TestListenerAdapter implements IReporter
     if (doProgressThreadChanges)
     {
       System.err.print(threadStacksToString());
-    }
-
-    if (_classesWithTestsRunInterleaved.size() > 0)
-    {
-      System.err
-          .println("WARNING:  Some of the test methods for multiple classes "
-              + "were run out of order (i.e. interleaved with other classes).  Either "
-              + "a class doesn't have the sequential=true annotation, which should "
-              + "have been reported already or there has been a regression with TestNG.");
     }
   }
 }

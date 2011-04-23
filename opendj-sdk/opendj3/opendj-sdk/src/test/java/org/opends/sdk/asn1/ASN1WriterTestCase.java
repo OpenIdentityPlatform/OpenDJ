@@ -49,7 +49,7 @@ import com.sun.opends.sdk.util.StaticUtils;
 /**
  * An abstract base class for all ASN1Writer test cases.
  */
-@Test(groups = { "precommit", "asn1", "sdk" }, sequential = true)
+@Test(groups = { "precommit", "asn1", "sdk" })
 public abstract class ASN1WriterTestCase extends OpenDJTestCase
 {
 
