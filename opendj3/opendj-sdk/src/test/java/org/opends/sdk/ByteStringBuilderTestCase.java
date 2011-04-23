@@ -56,7 +56,6 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase
    *
    * @return The array of ByteStrings and the bytes it should contain.
    */
-  @Override
   @DataProvider(name = "byteSequenceProvider")
   public Object[][] byteSequenceProvider() throws Exception
   {

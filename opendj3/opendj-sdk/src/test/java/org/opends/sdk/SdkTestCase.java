@@ -38,7 +38,7 @@ import org.testng.annotations.Test;
  * the classes found directly under the package org.opends.sdk.
  */
 
-@Test(groups = { "precommit", "types", "sdk" }, sequential = true)
+@Test(groups = { "precommit", "types", "sdk" })
 public abstract class SdkTestCase extends OpenDJTestCase
 {
 }

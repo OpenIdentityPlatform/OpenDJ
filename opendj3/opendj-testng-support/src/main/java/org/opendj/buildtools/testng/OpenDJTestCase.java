@@ -47,7 +47,7 @@ import org.testng.annotations.Test;
  * This class adds the ability to print error messages and automatically have
  * them include the class name.
  */
-@Test(sequential = true)
+@Test
 public abstract class OpenDJTestCase
 {
 

@@ -42,7 +42,7 @@ import org.testng.annotations.Test;
  * org.opends.sdk.controls.
  */
 
-@Test(groups = { "precommit", "controls", "sdk" }, sequential = true)
+@Test(groups = { "precommit", "controls", "sdk" })
 public abstract class ControlsTestCase extends OpenDJTestCase
 {
   /**
