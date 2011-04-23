@@ -28,13 +28,20 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.forgerock</groupId>
+    <artifactId>forgerock-parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+  </parent>
   <groupId>org.opendj</groupId>
   <artifactId>opendj-project</artifactId>
   <version>3.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>OpenDJ Project</name>
   <description>
-  OpenDJ is a new LDAPv3 compliant directory service, developed for the Java platform, providing a high performance, highly available and secure store for the identities managed by enterprises.
+    OpenDJ is a new LDAPv3 compliant directory service, developed for the Java
+    platform, providing a high performance, highly available and secure store
+    for the identities managed by enterprises.
   </description>
   <url>http://www.opendj.org/</url>
   <issueManagement>
@@ -53,28 +60,17 @@
       <post>opendj-dev@forgerock.org</post>
     </mailingList>
   </mailingLists>
-  <licenses>
-    <license>
-      <name>CDDL</name>
-      <url>http://www.opensource.org/licenses/cddl1.php</url>
-    </license>
-  </licenses>
   <scm>
     <url>https://svn.forgerock.org/opendj/trunk/opendj3/</url>
     <connection>scm:svn:https://svn.forgerock.org/opendj/trunk/opendj3/</connection>
     <developerConnection>scm:svn:https://svn.forgerock.org/opendj/trunk/opendj3/</developerConnection>
     <tag>HEAD</tag>
   </scm>
-  <organization>
-    <name>ForgeRock</name>
-    <url>http://www.forgerock.com/</url>
-  </organization>
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
   <modules>
-    <module>opendj-build-tools</module>
-    <module>opendj-modules</module>
+    <module>opendj-testng-support</module>
+    <module>opendj-maven-plugin</module>
+    <module>opendj-sdk</module>
+    <module>opendj-client-tools</module>
   </modules>
   <build>
     <plugins>
@@ -95,13 +91,32 @@
       <name>Java.net Maven 2 Repository for GlassFish</name>
       <url>http://download.java.net/maven/glassfish/</url>
     </repository>
+    <repository>
+      <id>ForgeRock</id>
+      <name>ForgeRock Repository</name>
+      <url>http://repo.forgerock.org</url>
+    </repository>
   </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>ForgeRock-Plugin</id>
+      <name>ForgeRock Plugin Repository</name>
+      <url>http://repo.forgerock.org</url>
+    </pluginRepository>
+  </pluginRepositories>
   <dependencyManagement>
     <dependencies>
       <dependency>
+        <groupId>org.easytesting</groupId>
+        <artifactId>fest-assert</artifactId>
+        <version>1.4</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
         <groupId>org.testng</groupId>
         <artifactId>testng</artifactId>
-        <version>5.14.2</version>
+        <version>6.0.1</version>
+        <scope>test</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
