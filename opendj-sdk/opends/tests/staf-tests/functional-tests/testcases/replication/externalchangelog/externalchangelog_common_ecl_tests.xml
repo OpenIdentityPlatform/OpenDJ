@@ -6374,13 +6374,6 @@
                    indexvar="indx">
             <sequence>                    
               <script>
-                if ecl_mode != 'opends':
-                  # Issue CR 6929320: ECL draft: after disabling ECL in suffix
-                  # search returns err 53 (cookie contains unknown repl domain)
-                  myKnownIssue = '6929320'
-                else:
-                  myKnownIssue = None
-                
                 if globalSplitServers:
                   replServer = _topologyReplServerList[indx]
                 else:
@@ -6854,19 +6847,7 @@
                   <message>
                     'Index to use for the next ECL search:  %s' % nextIndex
                   </message>
-                      
-                  <!-- As a side effect of the issue arised in the previous
-                   !   testcase (CR 6929320), we might end up with several old
-                   !   ECL entries returned 
-                  -->
-                  <script>
-                    if ecl_mode != 'opends':
-                      # Issue CR 6929320: ECL draft: after disabling ECL in suffix
-                      # search returns err 53 (cookie contains unknown repl domain)
-                      myKnownIssue = '6929320'
-                    else:
-                      myKnownIssue = None
-                  </script>
+
                   <if expr="addedEntry and eclEntry">
                     <call function="'checkChangelogEntry'">
                       { 'location'        : masterHost,
@@ -7852,10 +7833,7 @@
                         'Index to use for the next ECL search:  %s' % \
                         nextIndex
                       </message>
-                       
-                      <!-- We may come across issue CR 6929416:
-                       !   ECL: updates done on server don't publish include-attrs
-                       !   configured on peer server -->   
+
                       <if expr="addedEntry and eclEntry">
                         <call function="'checkChangelogEntry'">
                           { 'location'        : masterHost,
@@ -7867,8 +7845,7 @@
                             'changeTime'      : myChangeTime,
                             'targetEntryUUID' : myTargetEntryUUID,
                             'changes'         : myChanges,
-                            'includeAttrs'    : myIncAttrs,
-                            'knownIssue'      : '6929416'
+                            'includeAttrs'    : myIncAttrs
                           }
                         </call>
                         <else>
@@ -8166,10 +8143,7 @@
                         'Index to use for the next ECL search:  %s' % \
                         nextIndex
                       </message>
-                          
-                      <!-- We may come across issue CR 6932197:
-                       !   ECL: old ecl-include attributes still published in 
-                       !   change entries until server restart -->
+
                       <if expr="addedEntry and eclEntry">
                         <call function="'checkChangelogEntry'">
                           { 'location'        : masterHost,
@@ -8182,8 +8156,7 @@
                             'targetEntryUUID' : myTargetEntryUUID,
                             'changes'         : myChanges,
                             'includeAttrs'    : myIncAttrs,
-                            'expectMissingIncAttrs' : myMissingIncAttrs,
-                            'knownIssue'      : '6932197'
+                            'expectMissingIncAttrs' : myMissingIncAttrs
                           }
                         </call>
                         <else>
@@ -9112,10 +9085,7 @@
                           <message>
                             'Index to use for the next ECL search:  %s' % nextIndex
                           </message>
-        
-                          <!-- We may come across issue CR 6929416:
-                           !   ECL: updates done on server don't publish
-                           !   include-attrs configured on peer server -->
+
                           <if expr="addedEntry and eclEntry">
                             <call function="'checkChangelogEntry'">
                               { 'location'        : masterHost,
@@ -9127,8 +9097,7 @@
                                 'changeTime'      : myChangeTime,
                                 'targetEntryUUID' : myTargetEntryUUID,
                                 'changes'         : myChanges,
-                                'includeAttrs'    : myIncAttrs,
-                                'knownIssue'      : '6929416'
+                                'includeAttrs'    : myIncAttrs
                               }
                             </call>
                             <else>
@@ -9479,12 +9448,6 @@
                     'Index to use for the next ECL search:  %s' % nextIndex
                   </message>
                       
-                  <!-- We may come across issues:
-                   !   CR 6929429: ECL: include-attributes not published unless
-                   !   directly concerned by modify operation
-                   !   CR 6939312: ECL: after entry ADDs, include attributes not
-                   !   published for MODIFY operations
-                  -->
                   <if expr="modEntry and eclEntry">
                     <call function="'checkChangelogEntry'">
                       { 'location'        : masterHost,
@@ -9496,8 +9459,7 @@
                         'changeTime'      : myChangeTime,
                         'targetEntryUUID' : myTargetEntryUUID,
                         'changes'         : myChanges,
-                        'includeAttrs'    : myIncAttrs,
-                        'knownIssue'      : ['6929429', '6939312']
+                        'includeAttrs'    : myIncAttrs
                       }
                     </call>
                     <else>
@@ -9790,11 +9752,7 @@
                   <message>
                     'Index to use for the next ECL search:  %s' % nextIndex
                   </message>
-                  
-                  <!-- We may come across issue:
-                   !   CR 6939312: ECL: after entry ADDs, include attributes not
-                   !   published for MODIFY operations
-                  -->
+
                   <if expr="modEntry and eclEntry">
                     <call function="'checkChangelogEntry'">
                       { 'location'        : masterHost,
@@ -9806,8 +9764,7 @@
                         'changeTime'      : myChangeTime,
                         'targetEntryUUID' : myTargetEntryUUID,
                         'changes'         : myChanges,
-                        'includeAttrs'    : myIncAttrs,
-                        'knownIssue'      : '6939312'
+                        'includeAttrs'    : myIncAttrs
                       }
                     </call>
                     <else>
@@ -10144,11 +10101,7 @@
                   <message>
                     'Index to use for the next ECL search:  %s' % nextIndex
                   </message>
-                  
-                  <!-- We may come across issue:
-                   !   CR 6939312: ECL: after entry ADDs, include attributes not
-                   !   published for MODIFY operations
-                  -->
+
                   <if expr="modEntry and eclEntry">
                     <call function="'checkChangelogEntry'">
                       { 'location'        : masterHost,
@@ -10161,8 +10114,7 @@
                         'targetEntryUUID' : myTargetEntryUUID,
                         'changes'         : myChanges,
                         'includeAttrs'    : myIncAttrs,
-                        'expectMissingIncAttrs' : myMissingIncAttrs,
-                        'knownIssue'      : '6939312'
+                        'expectMissingIncAttrs' : myMissingIncAttrs
                       }
                     </call>
                     <else>
@@ -10464,13 +10416,7 @@
                   <message>
                     'Index to use for the next ECL search:  %s' % nextIndex
                   </message>
-                  
-                  <!-- We may come across issue:
-                   !   CR 6929429: ECL: include-attributes not published unless
-                   !   directly concerned by modify operation
-                   !   CR 6939312: ECL: after entry ADDs, include attributes not
-                   !   published for MODIFY operations
-                  -->
+
                   <if expr="modEntry and eclEntry">
                     <call function="'checkChangelogEntry'">
                       { 'location'        : masterHost,
@@ -10482,8 +10428,7 @@
                         'changeTime'      : myChangeTime,
                         'targetEntryUUID' : myTargetEntryUUID,
                         'changes'         : myChanges,
-                        'includeAttrs'    : myIncAttrs,
-                        'knownIssue'      : ['6929429', '6939312']
+                        'includeAttrs'    : myIncAttrs
                       }
                     </call>
                     <else>
@@ -10784,11 +10729,7 @@
                   <message>
                     'Index to use for the next ECL search:  %s' % nextIndex
                   </message>
-                  
-                  <!-- We may come across issue:
-                   !   CR 6939312: ECL: after entry ADDs, include attributes not
-                   !   published for MODIFY operations
-                  -->
+
                   <if expr="modEntry and eclEntry">
                     <call function="'checkChangelogEntry'">
                       { 'location'        : masterHost,
@@ -10800,8 +10741,7 @@
                         'changeTime'      : myChangeTime,
                         'targetEntryUUID' : myTargetEntryUUID,
                         'changes'         : myChanges,
-                        'includeAttrs'    : myIncAttrs,
-                        'knownIssue'      : '6939312'
+                        'includeAttrs'    : myIncAttrs
                       }
                     </call>
                     <else>
@@ -11105,12 +11045,6 @@
                     'Index to use for the next ECL search:  %s' % nextIndex
                   </message>
                   
-                  <!-- We may come across issues:
-                   !   CR 6929429: ECL: include-attributes not published unless
-                   !   directly concerned by modify operation
-                   !   CR 6939312: ECL: after entry ADDs, include attributes not
-                   !   published for MODIFY operations
-                  -->
                   <if expr="modEntry and eclEntry">
                     <call function="'checkChangelogEntry'">
                       { 'location'        : masterHost,
@@ -11123,8 +11057,7 @@
                         'targetEntryUUID' : myTargetEntryUUID,
                         'changes'         : myChanges,
                         'includeAttrs'    : myIncAttrs,
-                        'expectMissingIncAttrs' : myMissingIncAttrs,
-                        'knownIssue'      : ['6929429', '6939312']
+                        'expectMissingIncAttrs' : myMissingIncAttrs
                       }
                     </call>
                     <else>
@@ -11427,11 +11360,7 @@
                   <message>
                     'Index to use for the next ECL search:  %s' % nextIndex
                   </message>
-                  
-                  <!-- We may come across issue:
-                   !   CR 6939312: ECL: after entry ADDs, include attributes not
-                   !   published for MODIFY operations
-                  -->
+
                   <if expr="modEntry and eclEntry">
                     <call function="'checkChangelogEntry'">
                       { 'location'        : masterHost,
@@ -11444,8 +11373,7 @@
                         'targetEntryUUID' : myTargetEntryUUID,
                         'changes'         : myChanges,
                         'includeAttrs'    : myIncAttrs,
-                        'expectMissingIncAttrs' : myMissingIncAttrs,
-                        'knownIssue'      : '6939312'
+                        'expectMissingIncAttrs' : myMissingIncAttrs
                       }
                     </call>
                     <else>
@@ -11741,12 +11669,6 @@
                     'Index to use for the next ECL search:  %s' % nextIndex
                   </message>
                       
-                  <!-- We may come across issues:
-                   !   CR 6929429: ECL: include-attributes not published unless
-                   !   directly concerned by modify operation
-                   !   CR 6939312: ECL: after entry ADDs, include attributes not
-                   !   published for MODIFY operations
-                  -->
                   <if expr="modEntry and eclEntry">
                     <call function="'checkChangelogEntry'">
                       { 'location'        : masterHost,
@@ -11760,8 +11682,7 @@
                         'newRDN'          : myNewRDN,
                         'deleteOldRDN'    : myDeleteOldRDN,
                         'includeAttrs'    : myIncAttrs,
-                        'expectMissingIncAttrs' : myMissingIncAttrs,
-                        'knownIssue'      : ['6929429', '6939312']
+                        'expectMissingIncAttrs' : myMissingIncAttrs
                       }
                     </call>
                     <else>
@@ -12090,11 +12011,7 @@
                   <message>
                     'Index to use for the next ECL search:  %s' % nextIndex
                   </message>
-                      
-                  <!-- We may come across issue:
-                   !   CR 6939312: ECL: after entry ADDs, include attributes not
-                   !   published for MODIFY operations
-                  -->
+
                   <if expr="modEntry and eclEntry">
                     <call function="'checkChangelogEntry'">
                       { 'location'        : masterHost,
@@ -12108,8 +12025,7 @@
                         'newRDN'          : myNewRDN,
                         'deleteOldRDN'    : myDeleteOldRDN,
                         'includeAttrs'    : myIncAttrs,
-                        'expectMissingIncAttrs' : myMissingIncAttrs,
-                        'knownIssue'      : '6939312'
+                        'expectMissingIncAttrs' : myMissingIncAttrs
                       }
                     </call>
                     <else>
@@ -12410,11 +12326,7 @@
                   <message>
                     'Index to use for the next ECL search:  %s' % nextIndex
                   </message>
-                      
-                  <!-- We may come across issue:
-                   !   CR 6939312: ECL: after entry ADDs, include attributes not
-                   !   published for MODIFY operations
-                  -->
+
                   <if expr="modEntry and eclEntry">
                     <call function="'checkChangelogEntry'">
                       { 'location'        : masterHost,
@@ -12429,8 +12341,7 @@
                         'newSuperior'     : myNewSuperior,
                         'deleteOldRDN'    : myDeleteOldRDN,
                         'includeAttrs'    : myIncAttrs,
-                        'expectMissingIncAttrs' : myMissingIncAttrs,
-                        'knownIssue'      : '6939312'
+                        'expectMissingIncAttrs' : myMissingIncAttrs
                       }
                     </call>
                     <else>
@@ -12691,9 +12602,6 @@
                     'Index to use for the next ECL search:  %s' % nextIndex
                   </message>
                       
-                  <!-- We may come across issue CR 6929429:
-                   !   ECL: include-attributes not published unless directly
-                   !   concerned by modify operation -->
                   <if expr="delEntry and eclEntry">
                     <call function="'checkChangelogEntry'">
                       { 'location'        : masterHost,
@@ -12704,8 +12612,7 @@
                         'changeType'      : myChangeType,
                         'targetEntryUUID' : myTargetEntryUUID,
                         'includeAttrs'    : myIncAttrs,
-                        'expectMissingIncAttrs' : myMissingIncAttrs,
-                        'knownIssue'      : '6929429'
+                        'expectMissingIncAttrs' : myMissingIncAttrs
                       }
                     </call>
                     <else>
