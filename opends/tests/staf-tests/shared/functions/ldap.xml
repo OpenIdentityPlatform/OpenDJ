@@ -3043,6 +3043,7 @@
 
       <iterate var="anAttributeToAdd" in="listAttributes">
       <script>
+        anAttributeToAdd=anAttributeToAdd.replace('"','QUOT')
         STAFCmdParamsList.append('-v "%s"' % anAttributeToAdd)
       </script>
       </iterate>
@@ -3580,7 +3581,7 @@
         if attributes:
           STAFCmdParamsList.append('%s' % attributes)
         else:
-          STAFCmdParamsList.append('@changeLogEntry')  
+          STAFCmdParamsList.append('"*" @changeLogEntry')  
  
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
