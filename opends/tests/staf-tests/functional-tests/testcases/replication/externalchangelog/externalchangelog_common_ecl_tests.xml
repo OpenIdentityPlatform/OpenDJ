@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2009-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS.
  ! -->
 <stax>
     
@@ -98,8 +99,8 @@
           <call function="'ImportLdifWithScript'">
             { 'location'   : masterHost,
               'dsPath'     : masterPath,
-              'dsBackEnd'  : DIRECTORY_INSTANCE_BE,          
-              'dsLdifFile' : '%s/replication/Example.ldif' \
+              'backEnd'    : DIRECTORY_INSTANCE_BE,          
+              'ldifFile'   : '%s/replication/Example.ldif' \
                              % masterDataDir
             }
           </call>
@@ -177,7 +178,7 @@
             self.listAttr.append('%s:%s' % (attrType, attrValue))
       </script>
 
-                    
+
       <!--- Test Case information
       #@TestMarker          Replication External Changelog Tests
       #@TestName            Replication: External Changelog: Add_1
@@ -4575,7 +4576,6 @@
         </sequence>
       </testcase>
 
-
       <!--- Test Case information
       #@TestMarker          Replication External Changelog Tests
       #@TestName            Replication: External Changelog: Two suffixes (both
@@ -4688,13 +4688,6 @@
                    indexvar="indx">
             <sequence>
               <script>
-                if ecl_mode == 'opends':
-                  # Issue 4502: ECL: error 53 when searching with cookie older
-                  # than updates on several server
-                  myKnownIssue = '4502'
-                else:
-                  myKnownIssue = None
-                
                 if globalSplitServers:
                   replServer = _topologyReplServerList[indx]
                 else:
@@ -4947,10 +4940,6 @@
                        indexvar="indx">
                 <sequence>
                   <script>
-                    # Issue 4502: ECL: error 53 when searching with cookie older
-                    # than updates on several server
-                    myKnownIssue = '4502'
-                    
                     if globalSplitServers:
                       replServer = _topologyReplServerList[indx]
                     else:
@@ -5008,18 +4997,21 @@
                         } 
                       </call>
                       <script>
+                        def getnewcookiefromerror(string):
+                        
+                          import re
+                        
+                          pattern = re.compile(': &lt;(.*:);&gt;')
+                          match = re.search(pattern,string)
+                        
+                          return match.group(1)
+
                         searchStringRC = STAXResult[0]
                         newCookie      = None
                         
                         if searchStringRC == 0:
-                          # Retrieve the suggested cookie value
-                          totem      = 'Possible cookie:'
-                          lenTotem   = len(totem) + 2
-                          indexTotem = searchResult.index(totem)
-                          newCookie  = searchResult[indexTotem + lenTotem:]
-                          indexEnd   = newCookie.index('>')
-                          newCookie  = newCookie[:indexEnd]
-                          nextIndex  = newCookie
+                          newCookie = getnewcookiefromerror(searchResult)
+                          nextIndex = newCookie
                       </script>
                       <message>
                         'This is the new changelogcookie to use: %s' % newCookie
@@ -5123,13 +5115,6 @@
                    indexvar="indx">
             <sequence>
               <script>
-                if ecl_mode == 'opends':
-                  # Issue 4502: ECL: error 53 when searching with cookie older
-                  # than updates on several server
-                  myKnownIssue = '4502'
-                else:
-                  myKnownIssue = None
-                    
                 if globalSplitServers:
                   replServer = _topologyReplServerList[indx]
                 else:
@@ -5461,13 +5446,6 @@
                    indexvar="indx">
             <sequence>
               <script>
-                if ecl_mode == 'opends':
-                  # Issue 4502: ECL: error 53 when searching with cookie older
-                  # than updates on several server
-                  myKnownIssue = '4502'
-                else:
-                  myKnownIssue = None
-                
                 if globalSplitServers:
                   replServer = _topologyReplServerList[indx]
                 else:
@@ -5675,14 +5653,7 @@
                    in="_topologyServerList" 
                    indexvar="indx">
             <sequence>
-              <script>
-                if ecl_mode == 'opends':
-                  # Issue 4502: ECL: error 53 when searching with cookie older
-                  # than updates on several server
-                  myKnownIssue = '4502'
-                else:
-                  myKnownIssue = None
-                
+              <script>                
                 if globalSplitServers:
                   replServer = _topologyReplServerList[indx]
                 else:
