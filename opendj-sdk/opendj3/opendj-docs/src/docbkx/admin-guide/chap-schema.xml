@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! src/main/resources/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-schema'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Managing Schema</title>
+
+ <para>Schema definitions describe the data, and especially the object classes
+ and attribute types that can be stored in the directory. By default OpenDJ
+ conforms strictly to LDAPv3 standards pertaining to schema definitions and
+ attribute syntax checking, ensuring that data stored is valid and properly
+ formed. Unless your data use only standard schema present in OpenDJ when
+ you install, then you must add additional schema definitions to account
+ the data your applications stored.</para>
+ 
+ <para>Out of the box, OpenDJ comes with many standard schema definitions.
+ In addition you can update and extend schema definitions while OpenDJ
+ is online. As a result you can add new applications requiring additional
+ data without stopping your directory service.</para>
+ 
+ <para>This chapter demonstrates how to change and to extend OpenDJ schema.
+ This chapter also identifies the standard schema definitions available when
+ you install OpenDJ.</para>
+ 
+ <section>
+  <title>About Directory Schema</title>
+  
+  <para>TODO</para>
+ </section>
+
+ <section>
+  <title>Updating Directory Schema</title>
+  
+  <para>TODO</para>
+ </section>
+
+ <section>
+  <title>Standard Schema Included With OpenDJ</title>
+  
+  <para>TODO</para>
+ </section>
+
+</chapter>
+

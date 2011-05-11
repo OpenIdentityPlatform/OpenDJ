@@ -1,0 +1,153 @@
+/*
+ * CCPL HEADER START
+ *
+ * This work is licensed under the Creative Commons
+ * Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+ * To view a copy of this license, visit
+ * http://creativecommons.org/licenses/by-nc-nd/3.0/
+ * or send a letter to Creative Commons, 444 Castro Street,
+ * Suite 900, Mountain View, California, 94041, USA.
+ * 
+ * You can also obtain a copy of the license at
+ * src/main/resources/legal-notices/CC-BY-NC-ND.txt.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * If applicable, add the following below this CCPL HEADER, with the fields
+ * enclosed by brackets "[]" replaced with your own identifying information:
+ *     Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CCPL HEADER END
+ *
+ *     Copyright 2011 ForgeRock AS
+ *    
+*/
+
+/*
+ * ForgeRock core documentation styles to be used with HTML
+ * generated from DocBook 5 XML source.
+ */
+ 
+/*
+ * Basic content and text styles
+ */
+body
+{
+    font-family: dejavu, helvetica, verdana, arial, sans-serif;
+    /* TODO: is this the right way to restrict width? */
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* START advice from http://diveintoaccessibility.org/day_26_using_relative_font_sizes.html */
+
+p {
+  font-size: 12px;
+}
+
+/*/*/a{}
+body p {
+  font-size: x-small;
+  voice-family: "\"}\"";
+  voice-family: inherit;
+  font-size: small;
+}
+html>body p {
+  font-size: small;
+}
+/* */
+
+/* END advice from http://diveintoaccessibility.org/day_26_using_relative_font_sizes.html */
+
+a
+{
+    text-decoration: none; /* Do not underline links. */
+}
+
+h1
+{
+    color: #f58220; /* ForgeRock orange */
+}
+
+h2,h3,h4,h5,h6
+{
+    color: #626d75; /* ForgeRock gray */
+}
+
+/*
+ * TODO: In a procedure, number li.step elements as
+ *  Step 1. <content>
+ *  Step 2. <content>
+ *  Step 3. <content>
+
+li.step:before
+{
+	content: "Step ";
+}
+*/
+
+.term
+{
+    font-weight: normal;
+}
+
+ul
+{
+    list-style-image: url("../images/bulletpoint.png");
+}
+
+/*
+ * Page navigation for chunked HTML
+ */
+div.navfooter,div.navheader,div.nukefooter
+{
+    background-color: #efefef; /* TODO: better background color. */
+}
+
+/* Do not repeat the title at the top of the page. */
+.navheader th
+{
+    color: #efefef; /* Same color as background. */
+    font-size: 0px; /* Take up as little space as possible. */
+}
+
+.navheader td,.navfooter td,.nukefooter td
+{
+    font-size: x-small;
+    font-style: italic;
+}
+
+/*
+ * Block elements
+ */
+pre.programlisting,pre.screen
+{
+    font-family: monospace;
+    white-space: pre;
+    background-color: #efefef; /* TODO: better background color. */
+    border: thin dashed;
+    padding: 10px;
+}
+
+div.abstract,div.important,div.caution,div.note,div.tip,div.warning,div.example,div.toc
+{
+    background-color: #efefef; /* TODO: better background color. */
+    padding: 10px;
+}
+
+.important,.caution,.note,.tip,.warning
+{
+    font-style: italic;
+}
+
+.abstract,.example,.toc
+{
+    margin: 10px;       
+}
+
+img
+{
+    max-width: 640px;
+    height: auto;
+}

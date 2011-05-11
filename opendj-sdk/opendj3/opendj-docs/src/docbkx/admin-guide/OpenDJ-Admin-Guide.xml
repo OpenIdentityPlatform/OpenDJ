@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! src/main/resources/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011 ForgeRock AS
+  !    
+-->
+<book xml:id='admin-guide'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <info>
+  <title>OpenDJ <?eval ${project.version}?> Administration Guide</title>
+  <copyright>
+   <year>2011</year>
+   <holder>ForgeRock AS</holder>
+  </copyright>
+  <authorgroup>
+   <author>
+    <personname><firstname>Mark</firstname><surname>Craig</surname></personname>
+   </author>
+  </authorgroup>
+  <xinclude:include href='../legal.xml' />
+  <pubdate><?eval ${maven.build.timestamp}?></pubdate>
+ </info>
+
+ <toc />
+ 
+ <xinclude:include href="preface.xml" />
+
+ <xinclude:include href='chap-admin-tools.xml' />
+ <xinclude:include href='chap-server-process.xml' />
+ <xinclude:include href='chap-import-export.xml' />
+ <xinclude:include href='chap-listeners.xml' />
+ <xinclude:include href='chap-privileges-acis.xml' />
+ <xinclude:include href='chap-ldap-operations.xml' />
+ <xinclude:include href='chap-indexing.xml' />
+ <xinclude:include href='chap-replication.xml' />
+ <xinclude:include href='chap-backup-restore.xml' />
+ <xinclude:include href='chap-pwd-policy.xml' />
+ <xinclude:include href='chap-account-lockout.xml' />
+ <xinclude:include href='chap-resource-limits.xml' />
+ <xinclude:include href='chap-groups.xml' />
+ <xinclude:include href='chap-attribute-uniqueness.xml' />
+ <xinclude:include href='chap-schema.xml' />
+ <xinclude:include href='chap-referrals.xml' />
+ <xinclude:include href='chap-virtual-attrs-collective-attrs.xml' />
+ <xinclude:include href='chap-pta.xml' />
+ <xinclude:include href='chap-load-balancing.xml' />
+ <xinclude:include href='chap-failover.xml' />
+ <xinclude:include href='chap-chaining.xml' />
+ <xinclude:include href='chap-monitoring.xml' />
+ <xinclude:include href='chap-tuning.xml' />
+ <xinclude:include href='chap-mv-servers.xml' />
+ <xinclude:include href='chap-troubleshooting.xml' />
+ 
+ <reference>
+  <title>Tools Reference</title>
+   <xinclude:include href='man-backup.xml' />
+   <xinclude:include href='man-base64.xml' />
+   <xinclude:include href='man-control-panel.xml' />
+   <xinclude:include href='man-create-rc-script.xml' />
+   <xinclude:include href='man-dbtest.xml' />
+   <xinclude:include href='man-dsconfig.xml' />
+   <xinclude:include href='man-dsframework.xml' />
+   <xinclude:include href='man-dsjavaproperties.xml' />
+   <xinclude:include href='man-dsreplication.xml' />
+   <xinclude:include href='man-encode-password.xml' />
+   <xinclude:include href='man-export-ldif.xml' />
+   <xinclude:include href='man-import-ldif.xml' />
+   <xinclude:include href='man-install.xml' />
+   <xinclude:include href='man-ldapcompare.xml' />
+   <xinclude:include href='man-ldapdelete.xml' />
+   <xinclude:include href='man-ldapmodify.xml' />
+   <xinclude:include href='man-ldappasswordmodify.xml' />
+   <xinclude:include href='man-ldapsearch.xml' />
+   <xinclude:include href='man-ldif-diff.xml' />
+   <xinclude:include href='man-ldifmodify.xml' />
+   <xinclude:include href='man-ldifsearch.xml' />
+   <xinclude:include href='man-list-backends.xml' />
+   <xinclude:include href='man-make-ldif.xml' />
+   <xinclude:include href='man-manage-account.xml' />
+   <xinclude:include href='man-manage-tasks.xml' />
+   <xinclude:include href='man-rebuild-index.xml' />
+   <xinclude:include href='man-restore.xml' />
+   <xinclude:include href='man-setup.xml' />
+   <xinclude:include href='man-start-ds.xml' />
+   <xinclude:include href='man-status.xml' />
+   <xinclude:include href='man-stop-ds.xml' />
+   <xinclude:include href='man-upgrade.xml' />
+   <xinclude:include href='man-verify-index.xml' />
+ </reference>
+ 
+ <xinclude:include href='appendix-file-layout.xml' />
+ <xinclude:include href='appendix-ports-used.xml' />
+ <xinclude:include href='appendix-standards.xml' />
+ <xinclude:include href='appendix-controls.xml' />
+ <xinclude:include href='appendix-extended-ops.xml' />
+ <xinclude:include href='appendix-l10n.xml' />
+
+ <index />
+
+</book>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! src/main/resources/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011 ForgeRock AS
+  !    
+-->
+<legalnotice xml:id='legalnotice'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'><?dbhtml
+ filename='legalnotice.html'?>
+
+ <mediaobject>
+  <imageobject>
+   <imagedata fileref="http://i.creativecommons.org/l/by-nc-nd/3.0/88x31.png"
+   format="PNG" align="center" />
+  </imageobject>
+  <caption><para>This work is licensed under the <link
+  xlink:href="http://creativecommons.org/licenses/by-nc-nd/3.0/"
+  >Creative Commons Attribution-NonCommercial-NoDerivs 3.0 Unported
+  License</link>.</para></caption>
+ </mediaobject>
+ 
+ <para>To view a copy of this license, visit
+ <link>http://creativecommons.org/licenses/by-nc-nd/3.0/</link> or send a
+ letter to Creative Commons, 444 Castro Street, Suite 900, Mountain View,
+ California, 94041, USA.</para>
+  
+ <para>Trademarks are the property of their respective owners.</para>
+
+ <para>UNLESS OTHERWISE MUTUALLY AGREED BY THE PARTIES IN WRITING, LICENSOR
+ OFFERS THE WORK AS-IS AND MAKES NO REPRESENTATIONS OR WARRANTIES OF ANY KIND
+ CONCERNING THE WORK, EXPRESS, IMPLIED, STATUTORY OR OTHERWISE,
+ INCLUDING, WITHOUT LIMITATION, WARRANTIES OF TITLE, MERCHANTIBILITY, FITNESS
+ FOR A PARTICULAR PURPOSE, NONINFRINGEMENT, OR THE ABSENCE OF LATENT OR OTHER
+ DEFECTS, ACCURACY, OR THE PRESENCE OF ABSENCE OF ERRORS, WHETHER OR NOT
+ DISCOVERABLE. SOME JURISDICTIONS DO NOT ALLOW THE EXCLUSION OF IMPLIED
+ WARRANTIES, SO SUCH EXCLUSION MAY NOT APPLY TO YOU.</para>
+ 
+ <para>EXCEPT TO THE EXTENT REQUIRED BY APPLICABLE LAW, IN NO EVENT WILL
+ LICENSOR BE LIABLE TO YOU ON ANY LEGAL THEORY FOR ANY SPECIAL, INCIDENTAL,
+ CONSEQUENTIAL, PUNITIVE OR EXEMPLARY DAMAGES ARISING OUT OF THIS LICENSE OR
+ THE USE OF THE WORK, EVEN IF LICENSOR HAS BEEN ADVISED OF THE POSSIBILITY OF
+ SUCH DAMAGES.</para>
+</legalnotice>
