@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! src/main/resources/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011 ForgeRock AS
+  !    
+-->
+<book xml:id='release-notes'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <info>
+  <title>OpenDJ <?eval ${project.version}?> Release Notes</title>
+  <copyright>
+   <year>2011</year>
+   <holder>ForgeRock AS</holder>
+  </copyright>
+  <authorgroup>
+   <author>
+    <personname><firstname>Mark</firstname><surname>Craig</surname></personname>
+   </author>
+  </authorgroup>
+  <xinclude:include href='../legal.xml' />
+  <pubdate><?eval ${maven.build.timestamp}?></pubdate>
+ </info>
+
+ <toc />
+ 
+ <preface>
+  <title>About OpenDJ</title>
+  
+  <para>OpenDJ is an LDAPv3 compliant directory service, developed for
+  the Java platform, providing a high performance, highly available,
+  and secure store for the identities managed by your organization. Its
+  easy installation process, combined with the power of the Java
+  platform makes OpenDJ the simplest, fastest directory to deploy and
+  manage.</para>
+   
+  <para>You can download OpenDJ software from the OpenDJ download page.
+  OpenDJ is free to download, evaluate, and use. You can even check out
+  and modify the source code to build your own version if you prefer.</para>
+   
+  <para>These release notes are written for everyone working with the
+  OpenDJ <?eval ${project.version}?> release. Read these notes before you
+  install or upgrade OpenDJ software. These notes cover hardware and software
+  prerequisites for installing and upgrading OpenDJ software. These
+  notes list key features added and changed in this release. They also
+  cover compatibility with previous releases and alert you to potential
+  changes coming up that could affect your scripts and applications.
+  Finally, these notes list both issues fixed since the previous
+  release and known issues open at the time of release.</para>
+   
+  <para>See the <citetitle>Installation Guide</citetitle> for more after you
+  read these release notes. The installation guide covers installation and
+  upgrade for OpenDJ directory server and OpenDJ DSML gateway.</para>
+ </preface>
+
+ <xinclude:include href='chap-whats-new.xml' />
+ <xinclude:include href='chap-compatibility.xml' />
+ <xinclude:include href='chap-issues.xml' />
+ <xinclude:include href='chap-testing.xml' />
+ <xinclude:include href='chap-feedback.xml' />
+ <xinclude:include href='chap-support.xml' />
+
+ <index />
+
+</book>

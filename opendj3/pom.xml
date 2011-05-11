@@ -71,6 +71,7 @@
     <module>opendj-maven-plugin</module>
     <module>opendj-sdk</module>
     <module>opendj-client-tools</module>
+    <module>opendj-docs</module>
   </modules>
   <build>
     <plugins>

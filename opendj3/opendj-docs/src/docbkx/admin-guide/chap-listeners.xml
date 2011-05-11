@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! src/main/resources/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-listeners'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Configuring Servers For Client Application Access</title>
+
+ <para>This chapter shows you how to configure OpenDJ directory server to
+ listen for directory client requests.</para>
+ 
+ <section>
+  <title>LDAP Client Access</title>
+  
+  <para>You configure LDAP client access by using the command-line tool
+  <command>dsconfig</command>. By default you configure OpenDJ to listen for
+  LDAP when you install.</para>
+ </section>
+ 
+ <section>
+  <title>LDAP Client Access With Transport Layer Security</title>
+  
+  <para>StartTLS (Transport Layer Security) negotiations start on the LDAP
+  port. You can opt to configure StartTLS during installation, or later using
+  the <command>dsconfig</command> command.</para>
+ </section>
+
+  <section>
+  <title>LDAP Client Access Over SSL</title>
+  
+  <para>You configure LDAPS (LDAP/SSL) client access by using the command-line
+  tool <command>dsconfig</command>. You can opt to configure LDAPS access
+  when you install.</para>
+ </section>
+ 
+  <section>
+  <title>DSML Client Access</title>
+  
+  <para>You configure DSML client access by editing the
+  <filename>WEB-INF/web.xml</filename> after you deploy the web
+  application.</para>
+ </section>
+ 
+  <section>
+  <title>JMX Client Access</title>
+  
+  <para>You configure JMX client access by using the command-line tool
+  <command>dsconfig</command>.</para>
+ </section>
+
+</chapter>
+

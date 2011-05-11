@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! src/main/resources/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011 ForgeRock AS
+  !    
+-->
+<book xml:id='dev-guide'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <info>
+  <title>OpenDJ <?eval ${project.version}?> SDK Developer's Guide</title>
+  <copyright>
+   <year>2011</year>
+   <holder>ForgeRock AS</holder>
+  </copyright>
+  <authorgroup>
+   <author>
+    <personname><firstname>Mark</firstname><surname>Craig</surname></personname>
+   </author>
+  </authorgroup>
+  <xinclude:include href='../legal.xml' />
+  <pubdate><?eval ${maven.build.timestamp}?></pubdate>
+ </info>
+
+ <toc />
+ 
+ <xinclude:include href="preface.xml" />
+ 
+ <xinclude:include href='chap-understanding-ldap.xml' />
+ <xinclude:include href='chap-best-practices.xml' />
+ <xinclude:include href='chap-get-sdk.xml' />
+ <xinclude:include href='chap-using-the-sdk.xml' />
+ <xinclude:include href='chap-reading.xml' />
+ <xinclude:include href='chap-getting-directory-info.xml' />
+ <xinclude:include href='chap-authenticating.xml' />
+ <xinclude:include href='chap-writing.xml' />
+ <xinclude:include href='chap-ldif.xml' />
+ <xinclude:include href='chap-controls.xml' />
+ <xinclude:include href='chap-extended-ops.xml' />
+ <xinclude:include href='chap-multithreading.xml' />
+ <xinclude:include href='chap-i18n.xml' />
+ <xinclude:include href='chap-simple-proxy.xml' />
+ 
+ <reference>
+  <title>Tools Reference</title>
+  <xinclude:include href='man-authrate.xml' />
+  <xinclude:include href='man-ldapcompare.xml' />
+  <xinclude:include href='man-ldapmodify.xml' />
+  <xinclude:include href='man-ldappasswordmodify.xml' />
+  <xinclude:include href='man-ldapsearch.xml' />
+  <xinclude:include href='man-modrate.xml' />
+  <xinclude:include href='man-searchrate.xml' />
+ </reference>
+
+ <index />
+
+</book>

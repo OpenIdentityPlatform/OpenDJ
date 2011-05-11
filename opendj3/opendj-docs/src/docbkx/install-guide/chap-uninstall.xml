@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! src/main/resources/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-uninstall'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Removing OpenDJ Servers</title>
+
+ <para>Remove OpenDJ directory server software with the
+ <command>uninstall</command> command.</para>
+ 
+ <procedure>
+  <title>To Uninstall OpenDJ From the Graphical Uninstaller</title>
+  <step>
+   <para>(UNIX) Run
+   <command>OpenDJ-<?eval ${project.version}?>\uninstall</command>.</para>
+   <para>(Windows) Double-click
+   <filename>OpenDJ-<?eval ${project.version}?>\uninstall.bat</filename>.</para>
+   <para>(Mac OS X) Double-click
+   <filename>OpenDJ-<?eval ${project.version}?>\Uninstall.app</filename>.</para>
+
+   <mediaobject>
+    <imageobject>
+     <imagedata fileref="images/uninstall-start.png" format="PNG" />
+    </imageobject>
+    <caption>
+     <para>Select what to remove in the initial screen.</para>
+    </caption>
+   </mediaobject>      
+  </step>
+
+  <step>
+   <para>When the process is finished, you might still have some files
+   to remove manually.</para>
+   
+   <mediaobject>
+    <imageobject>
+     <imagedata fileref="images/uninstall-finished.png" format="PNG" />
+    </imageobject>
+   </mediaobject>      
+  </step>
+ </procedure>
+
+ <procedure>
+  <title>To Uninstall OpenDJ On the Command Line</title>
+  
+  <step>
+   <para>Login as the user who installed and runs the server.</para>
+  </step>
+  
+  <step>
+   <para>Run the <command>OpenDJ-<?eval ${project.version}?>/uninstall
+   --cli</command> command.</para>
+   
+   <para>This command starts the removal program in interactive mode on the
+   command line, prompting you for each option. Alternatively, use additional
+   <command>uninstall</command> options to specify choices for the options.
+   See <command>uninstall --help</command> for more information.</para>
+   
+   <screen width='80'>$ cd /path/to/OpenDJ-<?eval ${project.version}?>
+$ ./uninstall --cli
+Do you want to remove all components of the server or select the components to
+remove?
+
+    1)  Remove all components
+    2)  Select the components to be removed
+
+    q)  quit
+
+Enter choice [1]: 
+
+The server is currently running and must be stopped before uninstallation can
+continue.
+Stop the Server and permanently delete the files? (yes / no) [yes]: 
+
+Stopping Directory Server ..... Done.
+Deleting Files under the Installation Path ..... Done.
+
+The Uninstall Completed Successfully.
+To complete the uninstallation, you must delete manually the following files
+and directories:
+/path/to/OpenDJ-<?eval ${project.version}?>/lib
+See /var/....log for a detailed log of this operation.</screen>
+  </step>
+
+  <step>
+   <para>If the command output tells you to delete files manually, then remove
+   those remaining files to complete the process.</para>
+ 
+   <screen width='80'>$ rm -rf /path/to/OpenDJ-<?eval ${project.version}?></screen>
+  </step>
+ </procedure>
+</chapter>
+

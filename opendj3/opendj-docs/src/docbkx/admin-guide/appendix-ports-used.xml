@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! src/main/resources/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011 ForgeRock AS
+  !    
+-->
+<appendix xml:id='appendix-ports-used'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Ports Used</title>
+
+ <para>OpenDJ server software uses the following TCP/IP ports by default.</para>
+
+ <!-- Protocol, port number, description (what for), on by default? -->
+ <variablelist>
+  <varlistentry>
+   <term>LDAP: 389 (1389)</term>
+   <listitem>
+    <para>OpenDJ directory server listens for LDAP requests from client
+    applications on port 389 by default. OpenDJ directory server uses port
+    1389 by default for non-root users. LDAP is enabled by default.</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term>LDAPS: 636 (1636)</term>
+   <listitem>
+    <para>OpenDJ directory server listens for LDAPS requests from client
+    applications on port 636 by default. OpenDJ directory server uses port
+    1636 by default for non-root users. LDAPS is not enabled by default.</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term>Administrative connections: 4444</term>
+   <listitem>
+    <para>OpenDJ directory server listens for administrative traffic on port
+    4444 by default. The administration connector is enabled by default.</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term>SNMP: 161</term>
+   <listitem>
+    <para>OpenDJ directory server listens for SNMP traffic on port 161 by
+    default. SNMP is not enabled by default.</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term>JMX: 1689</term>
+   <listitem>
+    <para>OpenDJ directory server listens for Java Management eXtension
+    traffic on port 1689 by default. JMX is not enabled by default.</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term>Replication: 8989</term>
+   <listitem>
+    <para>OpenDJ directory server listens for replication traffic
+    on port 8989 by default. Replication is not enabled by default.</para>
+   </listitem>
+  </varlistentry>
+ </variablelist>
+
+</appendix>
+

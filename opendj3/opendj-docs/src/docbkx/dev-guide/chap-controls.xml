@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! src/main/resources/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-controls'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Working With Controls</title>
+
+ <para>This chapter demonstrates how to use LDAP controls.</para>
+
+ <section>
+  <title>About LDAP Controls</title>
+  <para>Controls provide a mechanism whereby the semantics and arguments of
+  existing LDAP operations may be extended. One or more controls may be
+  attached to a single LDAP message. A control only affects the semantics of
+  the message it is attached to. Controls sent by clients are termed
+  <emphasis>request controls</emphasis>, and those sent by servers are termed
+  <emphasis>response controls</emphasis>.</para>
+ </section>
+ 
+ <section>
+  <title>Determining Supported Controls</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section>
+  <title>Assertion Request Control</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section>
+  <title>Authorization Identity Controls</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section>
+  <title>Entry Change Notification Response Controls</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section>
+  <title>Get Effective Rights Request Control</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section>
+  <title>Manage DSAIT Request Control</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section>
+  <title>Matched Values Request Control</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section>
+  <title>Password Expired Response Control</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section>
+  <title>Password Expiring Response Control</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section>
+  <title>Password Policy Controls</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section>
+  <title>Permissive Modify Request Control</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section>
+  <title>Persistent Search Request Control</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section>
+  <title>Post-Read Controls</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section>
+  <title>Pre-Read Controls</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section>
+  <title>Proxied Authorization Request Controls</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section>
+  <title>Server-Side Sort Controls</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section>
+  <title>Simple Paged Results Control</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section>
+  <title>Sub-entries Request Control</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section>
+  <title>Subtree Delete Request Control</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section>
+  <title>Virtual List View Controls</title>
+  <para>TODO</para>
+ </section>
+ 
+ <section>
+  <title>Custom Controls</title>
+  <para>TODO</para>
+ </section>
+</chapter>

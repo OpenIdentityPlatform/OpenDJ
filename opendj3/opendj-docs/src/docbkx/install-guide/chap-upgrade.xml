@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! src/main/resources/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-upgrade'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Upgrading to OpenDJ <?eval ${project.version}?></title>
+
+ <para>You can upgrade from an earlier version of OpenDJ either directly
+ from within the Java WebStart installer, or on the command-line using the
+ <command>upgrade</command> command.</para>
+  
+ <note>
+  <para>Upgrade from OpenDS 2.2 or OpenDJ 2.4 has been tested most thoroughly
+  on Solaris, Mac OS X, and Linux. On Windows systems, export directory data
+  to LDIF, start with a fresh installation of the OpenDJ software, and then
+  import your data from LDIF.</para>
+ </note>
+  
+ <section>
+  <title>Before You Upgrade</title>
+  
+  <para>You must perform the upgrade procedure as the user who own the OpenDJ
+  server. Make sure you have the credentials to run commands as the user who
+  owns the server.</para>
+      
+  <para>Do a full backup of your current OpenDJ installation.</para>
+  
+  <para>When running a server version earlier than OpenDJ 2.4.1 fix the upgrade
+  schema by following the appropriate steps depending on your platform.</para>
+  
+  <para>(UNIX) Download and apply <link
+  xlink:href='https://wikis.forgerock.org/confluence/download/attachments/11632664/opendj_patch4upgrade.sh?version=1&amp;modificationDate=1299182493000'
+  >opendj_patch4upgrade.sh</link> to your current server, by
+  running the shell script from the directory where the server is installed.</para>
+  
+  <screen width="80">$ cd /path/to/OpenDJ
+$ sh /downloads/opendj_patch4upgrade.sh
+/path/to/OpenDJ has been patched, you can proceed with the upgrade program now</screen>
+
+  <para>The <filename>opendj_patch4upgrade.sh</filename> script fixes a schema
+  issuethat prevents smooth upgrades from earlier server versions. You can
+  apply the script while the server is running.</para>
+  
+  <para>(Windows) Follow these steps.</para>
+  <orderedlist>
+   <listitem>
+    <para>With the <command>edit</command> command line tool, open and then save
+    <filename>OpenDJ-old-version\config\upgrade\schema.ldif.<replaceable>####</replaceable></filename>
+    where <replaceable>####</replaceable> represents four digits, such as 6677
+    for 2.4.0.</para>
+    <para>This step changes the line endings from UNIX to Windows format.</para>
+   </listitem>
+   <listitem>
+    <para>Open the same file in Notepad.</para>
+   </listitem>
+   <listitem>
+    <para>Add the following <literal>ldapSyntaxes</literal> definition verbatim,
+    before the last blank line at the end of the file, leaving a blank line at
+    the end of the file, and taking care not to add additional spaces at the end
+    of the lines you add. <emphasis>If the result is not valid LDIF, your fix
+    will fail.</emphasis></para>
+    <literallayout>ldapSyntaxes: ( 1.3.6.1.4.1.26027.1.3.6 DESC '
+ Collective Conflict Behavior' X-ENUM ( 'real-overrides-virtual' '
+ virtual-overrides-real' 'merge-real-and-virtual' ) X-SCHEMA-FILE '
+ 00-core.ldif' )</literallayout>
+    <para>This fixes a schema issue that prevents upgrades from earlier
+    server versions. You can make the change while the server is running.</para>
+   </listitem>
+  </orderedlist>
+ </section>
+
+ <section>
+  <title>Upgrading OpenDJ Servers</title>
+  
+  <para>You can upgrade from the graphical installer, or from the command
+  line.</para>
+   
+  <procedure>
+   <title>To Upgrade From the Graphical Installer</title>
+   <step>
+    <para>Login to a session where you can use a GUI as the user who owns the
+    current OpenDJ server.</para>
+   </step>
+   
+   <step performance='optional'>
+    <para><link xlink:href='http://www.forgerock.com/downloads-opendj.html'
+     >Download OpenDJ</link>, and unzip the downloaded file.</para>
+   </step>
+   
+   <step>
+    <para>Start the installer.</para>
+    <itemizedlist>
+     <listitem>
+      <para>(WebStart) <link>http://www.forgerock.org/downloads/opendj/<?eval
+      ${project.version}?>/install/QuickSetup.jnlp</link></para>
+     </listitem>
+     <listitem>
+      <para>(UNIX) Run <command>OpenDJ-<?eval
+      ${project.version}?>/setup</command>.</para>
+     </listitem>
+     <listitem>
+      <para>(Windows) Double-click <filename>OpenDJ-<?eval
+      ${project.version}?>\setup.bat</filename></para>
+     </listitem>
+    </itemizedlist>
+   </step>
+   
+   <step>
+    <para>In the OpenDJ QuickSetup Welcome screen, select Upgrade Existing
+    Server Instance, and make sure Server to Upgrade points to the current
+    OpenDJ server before clicking Next.</para>
+   </step>
+   
+   <step>
+    <para>Follow the instructions in the QuickSetup wizard to complete the
+    upgrade.</para>
+   </step>
+  
+   <step>
+    <para>If you upgraded from OpenDS 2.2, open the OpenDJ control panel,
+    select Indexes &gt; Rebuild Indexes..., and use the Rebuild Indexes dialog
+    box to rebuild the <literal>dn2id</literal> index.</para>
+   </step>
+  </procedure>
+
+  <procedure>
+   <title>To Upgrade On the Command Line</title>
+   
+   <step>
+    <para>Login as the user who owns the current OpenDJ server.</para>
+   </step>
+   
+   <step>
+    <para>Download the OpenDJ .zip file.</para>
+    <screen width='80'>$ cd /tmp
+$ wget http://www.forgerock.org/downloads/opendj/<?eval ${project.version}?>/OpenDJ-<?eval ${project.version}?>.zip</screen>
+   </step>
+   <step>
+    <para>Change to the directory at the root of the server instance.</para>
+    <screen width='80'>$ cd /path/to/OpenDJ</screen>
+   </step>
+   <step>
+    <para>Pass the .zip file name to the <command>upgrade</command> command.</para>
+    <screen width='80'>$ ./upgrade -f /tmp/OpenDJ-<?eval ${project.version}?>.zip
+See /var/....log for a detailed log of this operation.
+
+Initializing Upgrade ..... Done.
+Calculating Schema Customizations ..... Done.
+Calculating Configuration Customizations ..... Done.
+Backing Up Files ..... Done.
+Upgrading Components ..... Done.
+Preparing Customizations ..... Done.
+Applying Schema Customizations ..... Done.
+Applying Configuration Customizations ..... Done.
+Verifying Upgrade ..... Done.
+Stopping Directory Server ..... Done.
+Cleaning Up ..... Done.
+Recording Upgrade History ..... Done.
+See /path/to/OpenDJ/history/log for a detailed installation history.
+QuickUpgrade Completed Successfully.  The OpenDJ installation at
+/path/to/OpenDJ has now been upgraded to version OpenDJ <?eval ${project.version}?> (Build ID:
+<replaceable>buildId</replaceable>).
+
+See /var/....log for a detailed log of this operation.</screen>
+   </step>
+   <step>
+    <para>If you upgraded from OpenDS 2.2, use the
+    <command>rebuild-index</command> command to rebuild the
+    <literal>dn2id</literal> index for your suffixes.</para>
+    
+    <screen width='80'>$ ./bin/rebuild-index -i dn2id -b "dc=example,dc=com"
+...Rebuild complete. Processed 160 entries in 0 seconds (average rate 401.0/sec)</screen>
+   </step>
+  </procedure>
+
+  <procedure>
+   <title>To Upgrade Replicated Servers</title>
+   <step>
+    <para>Upgrade each server sequentially, as described above.</para>
+   </step>
+  </procedure>
+  
+  <procedure>
+   <title>To Upgrade OpenDJ DSML Gateway</title>
+   <step>
+    <para>Replace the gateweay web application with the newer version,
+    as for a fresh installation.</para>
+   </step>
+  </procedure>
+ </section>
+
+</chapter>
+

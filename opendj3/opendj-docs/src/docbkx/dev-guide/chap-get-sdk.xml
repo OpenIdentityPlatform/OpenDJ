@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! src/main/resources/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-get-sdk'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Getting OpenDJ SDK</title>
+
+ <para>This chapter introduces OpenDJ SDK, demonstrating how to get the
+ software and to build a first basic directory client application.</para>
+ 
+ <!-- TODO: Mavenized SDK, where to find the Javadoc. -->
+
+ <section>
+  <title>About OpenDJ SDK</title>
+  
+  <para>OpenDJ SDK provides a set of modern, developer-friendly Java APIs
+  as part of the OpenDJ product suite. The product suite includes the client
+  SDK alongside command-line tools and sample code, a 100% pure Java directory
+  server, and more. You can use OpenDJ SDK to create client applications for
+  use with any server that complies with the <citetitle>Lightweight Directory
+  Access Protocol (LDAP): Technical Specification Road Map</citetitle>,
+  <link xlink:href='http://tools.ietf.org/html/rfc4510'>RFC 4510</link>.</para>
+  
+  <para>OpenDJ SDK brings you easy-to-use connection management, connection
+  pooling, load balancing, and all the standard LDAP operations to read and
+  write directory entries. OpenDJ SDK also lets you build applications with
+  capabilities defined in additional draft and experimental RFCs that are
+  supported by modern LDAP servers.</para>
+ </section>
+
+ <section>
+  <title>Preparing an LDAP Server</title>
+
+  <para>Install an LDAP server such as OpenDJ directory server that you can
+  use to test the applications you develop. Also, load sample data into your
+  server. The sample data used in this guide are available in LDIF form at
+  <link xlink:href='http://mcraig.org/ldif/Example.ldif'
+  >http://mcraig.org/ldif/Example.ldif</link>.</para>
+ </section>
+
+ <section>
+  <title>Getting the SDK</title>
+
+  <para>You can either install a build or build your own from source.</para>  
+
+  <task xml:id='install-stable-sdk'>
+   <title>To Install the Latest Stable OpenDJ SDK</title>
+   
+   <taskprerequisites>
+    <para>Before you either download a build of OpenDJ SDK, or get the source
+    code to build your own SDK, make sure you have a Java Development Kit
+    installed. OpenDJ SDK relies on Java 6 or later. You can check for Java 6
+    by running the following command.</para>
+
+    <screen width="80">$ java -version
+java version "1.6.0_24"
+Java(TM) SE Runtime Environment (build 1.6.0_24-b07-334-9M3326)
+Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
+   </taskprerequisites>
+ 
+   <procedure>
+    <step>
+     <para>Download the <link
+     xlink:href='http://builds.forgerock.org/job/OpenDJ3%20-%20trunk%20-%20postcommit/lastStableBuild/org.opendj$opendj-client-tools/artifact/org.opendj/opendj-client-tools/3.0-SNAPSHOT/opendj-client-tools-3.0-SNAPSHOT.zip'
+     >latest stable OpenDJ SDK and tools bundle</link>.</para>
+    </step>
+    <step>
+     <para>Download the <link
+     xlink:href='http://builds.forgerock.org/job/OpenDJ3%20-%20trunk%20-%20postcommit/lastStableBuild/org.opendj$opendj-sdk/artifact/org.opendj/opendj-sdk/3.0-SNAPSHOT/opendj-sdk-3.0-SNAPSHOT-javadoc.jar'
+     >latest stable version of the OpenDJ SDK documentation</link>
+     (javadoc).</para>
+    </step>
+    <step>
+     <para>Unzip the bundle, <filename>opendj-client-tools-<?eval
+     ${project.version} ?>.zip</filename>, where you want to install the
+     SDK.</para>
+     <screen width="80">$ unzip opendj-client-tools-<?eval ${project.version} ?>.zip</screen>
+    </step>
+    <step>
+     <para>Unpack the OpenDJ SDK documentation, <filename>opendj-sdk-<?eval
+     ${project.version} ?>-javadoc.jar</filename>, under the SDK install
+     directory.</para>
+     <screen width="80">$ mkdir opendj-client-tools-<?eval ${project.version} ?>/javadoc
+ $ cd opendj-client-tools-<?eval ${project.version} ?>/javadoc
+ $ jar -xf /path/to/opendj-sdk-<?eval ${project.version} ?>-javadoc.jar</screen>
+     </step>
+     <step>
+      <para>Add the tools to your PATH.</para>
+      <screen width="80">(UNIX)
+ $ export PATH=/path/to/opendj-client-tools-<?eval ${project.version} ?>/bin:$PATH</screen>
+         <screen width="80">(Windows)
+ C:\>set PATH=\\path\to\opendj-client-tools-<?eval ${project.version} ?>\bat:%PATH%</screen>
+     </step>
+     <step>
+      <para> Add the OpenDJ SDK for the APIs and Grizzly framework for the
+      transport to your CLASSPATH, typically found under
+      <filename>opendj-client-tools-<?eval ${project.version}
+      ?>/lib/</filename>.</para>
+      <screen width="80">(UNIX)
+ $ export CLASSPATH=/path/to/lib/grizzly-framework-2.0.0-RC3.jar:$CLASSPATH
+ $ export CLASSPATH=/path/to/lib/opendj-sdk-<?eval ${project.version} ?>.jar:$CLASSPATH
+      </screen>
+      <screen width="80">(Windows)
+ C:\>set CLASSPATH=\\path\to\lib\grizzly-framework-2.0.0-RC3.jar:%CLASSPATH%
+ C:\>set CLASSPATH=\\path\to\lib\opendj-sdk-<?eval ${project.version} ?>.jar:%CLASSPATH%</screen>
+     </step>
+   </procedure>
+  </task>
+
+  <task>
+   <title>To Build Your Own SDK From Source</title>
+   
+   <taskprerequisites>
+    <para>Before you either download a build of OpenDJ SDK, or get the source
+    code to build your own SDK, make sure you have a Java Development Kit
+    installed. OpenDJ SDK relies on Java 6 or later. You can check for Java 6
+    by running the following command.</para>
+
+    <screen width="80">$ java -version
+java version "1.6.0_24"
+Java(TM) SE Runtime Environment (build 1.6.0_24-b07-334-9M3326)
+Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
+
+    <para>Also make sure you have Subversion (<command>svn</command>) and
+    Maven (<command>mvn</command>) installed.</para>
+   </taskprerequisites>
+
+   <procedure xml:id='proc-roll-your-own-sdk'>
+    <title>To build your own SDK from source</title>
+    <step>
+     <para>Check out the source code.</para>
+     <screen width="80">$ svn co https://svn.forgerock.org/opendj/trunk/opendj3
+Error validating server certificate for 'https://svn.forgerock.org:443':
+ - The certificate is not issued by a trusted authority. Use the
+   fingerprint to validate the certificate manually!
+Certificate information:
+ - Hostname: svn.forgerock.org
+ - Valid: from Wed, 23 Feb 2011 00:30:37 GMT until Thu, 23 Feb 2012 21:00:01 GMT
+ - Issuer: Secure Digital Certificate Signing, StartCom Ltd., IL
+ - Fingerprint: 73:96:5c:68:2c:f3:57:0e:e9:ee:6d:74:08:1b:34:16:53:b8:bd:39
+(R)eject, accept (t)emporarily or accept (p)ermanently? p
+...
+A    opendj3/pom.xml
+A    opendj3/README
+Checked out revision 6777.</screen>
+      </step>
+      <step>
+        <para>
+          Build the modules and install them in the local repository.
+          </para>
+        <screen width="80">$ cd opendj3/
+$ mvn install
+[INFO] Scanning for projects...
+[INFO] Reactor build order:
+[INFO]   OpenDJ Project
+[INFO]   OpenDJ Build Tools
+[INFO]   OpenDJ Maven Plugin
+[INFO]   OpenDJ TestNG Support
+[INFO]   OpenDJ Modules
+[INFO]   OpenDJ SDK
+[INFO]   OpenDJ Client Tools
+...
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESSFUL
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 15 minutes 11 seconds
+[INFO] Finished at: Wed Mar 16 16:07:54 CET 2011
+[INFO] Final Memory: 54M/136M
+[INFO] ------------------------------------------------------------------------</screen>
+    </step>
+    <step>
+     <para>Unzip the tools and libraries included in the file,
+     <filename>opendj3/opendj-modules/opendj-client-tools/target/opendj-client-tools-<?eval
+     ${project.version} ?>.zip</filename>.</para>
+    </step>
+    <step>
+     <para>Add the <filename>opendj-client-tools-<?eval ${project.version}
+        ?>/bin</filename> (UNIX) or <filename>opendj-client-tools-<?eval
+     ${project.version} ?>\bat</filename> (Windows) directory to your
+     PATH.</para>
+    </step>
+    <step>
+     <para>Set your CLASSPATH to include the OpenDJ SDK library,
+     <filename>opendj-sdk-<?eval ${project.version} ?>.jar</filename>, and the Grizzly
+     framework, <filename>grizzly-framework-2.0.0-RC3.jar</filename>,
+     under <filename>opendj-client-tools-<?eval ${project.version} ?>/lib/</filename>.</para>
+    </step>
+    <step>
+     <para>Find the OpenDJ SDK documentation under <link
+     xlink:href='file:///path/to/opendj3/opendj-modules/opendj-sdk/target/apidocs/index.html'
+     >file:///path/to/opendj3/opendj-modules/opendj-sdk/target/apidocs/index.html</link>.</para>
+    </step>
+   </procedure>
+  </task>
+
+  <para>After you install OpenDJ SDK and configure your environment as
+  described, if you have a directory server running import sample data,
+  and test your configuration with a sample client application.</para>
+
+  <programlisting width="80">// Test.java:
+//  Kick the SDK tires, reading Babs Jensen's entry and displaying LDIF.
+//  If your LDAP server is not listening on localhost:1389, or if your
+//  data are different change the appropriate lines below.
+
+import org.opends.sdk.*;
+import org.opends.sdk.ldif.*;
+import org.opends.sdk.responses.*;
+
+class Test
+{
+  public static void main(String [] args)
+  {
+        
+    // Create an LDIF writer which will write the search results to stdout.
+        
+    final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+    Connection connection = null;
+        
+    try
+    {
+      // Connect and bind to the server.
+      // CHANGE THIS IF SERVER IS NOT AT localhost:1389.
+      final LDAPConnectionFactory factory =
+        new LDAPConnectionFactory("localhost", 1389);
+            
+      connection = factory.getConnection();
+      // CHANGE THIS IF ANONYMOUS SEARCHES ARE NOT ALLOWED.
+      //connection.bind(userName, password);
+            
+      // Read the entries and output them as LDIF.
+      // CHANGE THIS IF NO uid=bjensen,ou=people,dc=example,dc=com EXISTS.
+      final ConnectionEntryReader reader =
+      connection.search(
+        "dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(uid=bjensen)", "*");
+      while (reader.hasNext())
+      {
+        if (!reader.isReference())
+        {
+          // Got an entry.
+          final SearchResultEntry entry = reader.readEntry();
+          writer.writeComment(
+            "Search result entry: " + entry.getName().toString());
+          writer.writeEntry(entry);
+        }
+        else
+        {
+          // Got a continuation reference.
+          final SearchResultReference ref = reader.readReference();
+          writer.writeComment(
+            "Search result reference: " + ref.getURIs().toString());
+        }
+      }
+        writer.flush();
+    }
+    catch (final Exception e)
+    {
+      // Handle exceptions...
+      System.err.println(e.getMessage());
+    }
+    finally
+    {
+      if (connection != null)
+      {
+        connection.close();
+      }
+    }
+  }
+}</programlisting>
+
+  <para>If all goes well, <filename>Test.java</filename> compiles without
+  errors. The test program displays Babs Jensen's entry in LDIF.</para>
+
+  <screen width="80">$ javac Test.java
+$ java Test
+# Search result entry: uid=bjensen,ou=People,dc=example,dc=com
+dn: uid=bjensen,ou=People,dc=example,dc=com
+givenName: Barbara
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: top
+uid: bjensen
+cn: Barbara Jensen
+cn: Babs Jensen
+sn: Jensen
+telephoneNumber: +1 408 555 1862
+roomNumber: 0209
+ou: Product Development
+ou: People
+l: Cupertino
+mail: bjensen@example.com
+facsimileTelephoneNumber: +1 408 555 1992</screen>
+ </section>
+
+</chapter>
+

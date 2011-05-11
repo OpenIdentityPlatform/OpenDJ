@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! src/main/resources/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-issues'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>OpenDJ Fixes, Limitations, and Known Issues</title>
+
+ <para>OpenDJ issues are tracked at <link
+ xlink:href='https://bugster.forgerock.org/jira/browse/OPENDJ'
+ >https://bugster.forgerock.org/jira/browse/OPENDJ</link>. This chapter
+ covers the status of key issues at release <?eval ${project.version}?>.</para>
+
+ <section>
+  <title>Fixes Since Last Release</title>
+
+  <para>The following issues were fixed since release 2.4.2.</para>
+
+  <itemizedlist>
+   <listitem>
+    <para>TODO</para>
+   </listitem>
+  </itemizedlist>
+ </section>
+
+ <section>
+  <title>Limitations</title>
+
+  <para>Release <?eval ${project.version}?> has the following limitations.</para>
+
+  <itemizedlist>
+   <listitem>
+    <para>OpenDJ directory server provides full LDAP v3 support, except for
+    alias dereferencing, and limited support for LDAPv2.</para>
+   </listitem>
+   <listitem>
+    <!-- TODO: explain the mechanism of how lockout works. -->
+    <para>Account lockout works on a per-server basis only.</para>
+   </listitem>
+   <listitem>
+    <para>OpenDJ is not fully integrated with Microsoft Windows, yet OpenDJ
+    directory server can be run as a service, and thus displayed in the
+    Windows Services Control Panel.</para>
+   </listitem>
+   <listitem>
+    <para>OpenDJ replication is designed to permit an unlimited number
+    of replication servers in your topology. Project testing has, however,
+    focused only on topologies of up to eight replication servers.</para>
+   </listitem>
+   <listitem>
+    <para>On T2000 systems, hardware SSL crypto acceleration is slower than
+    software. To work around this issue take the following actions.</para>
+   <orderedlist>
+    <listitem>
+     <para>Add more request handlers to LDAP (for TLS) and LDAPS (for SSL)
+     connection handlers.</para>
+    </listitem>
+    <listitem>
+     <para>Disable hardware acceleration for server's JVM by removing the
+     SunPKCS11 security provider from jre/lib/security/java.security.</para>
+    </listitem>
+   </orderedlist>
+   </listitem>
+  </itemizedlist>
+ </section>
+
+ <section>
+  <title>Known Issues</title>
+
+  <para>The following known issues remained open at the time release
+  <?eval ${project.version}?> became available.</para>
+
+  <itemizedlist>
+   <listitem>
+    <para>TODO</para>
+   </listitem>
+  </itemizedlist>
+  
+  <para>Furthermore when deploying for production, make sure that you follow
+  the installation instructions on allowing OpenDJ to use at least 64K (65536)
+  file descriptors, tuning the JVM appropriately, and increasing database
+  cache size from the default of 10%.</para>
+
+  <para>For the latest status, query the OpenDJ bug database online at
+  <link xlink:href='https://bugster.forgerock.org/jira/browse/OPENDJ'
+  >https://bugster.forgerock.org/jira/browse/OPENDJ</link>.</para>
+ </section>
+  
+</chapter>
