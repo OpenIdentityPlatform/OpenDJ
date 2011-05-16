@@ -31,20 +31,11 @@
  <name>OpenDJ Core User Documentation</name>
  <packaging>pom</packaging>
  <description>DocBook XML source for OpenDJ core user documentation. Java API and configuration reference documentation is generated from OpenDJ source code.</description>
- <repositories>
-  <repository>
-   <id>forgerock-snapshots-repository</id>
-   <name>ForgeRock Snapshot Repository</name>
-   <url>http://maven.forgerock.org/repo/snapshots</url>
-   <releases>
-    <enabled>false</enabled>
-   </releases>
-  </repository>
- </repositories>
  <properties>
   <docbkx-src>${basedir}/src/docbkx</docbkx-src>
   <dbstyle-dir>${basedir}/src/docbkx-stylesheets</dbstyle-dir>
   <docbkx-out>${basedir}/target/docbkx</docbkx-out>
+  <site-out>${project.parent.basedir}/target/site</site-out>
  </properties>
  <build>
   <plugins>
@@ -146,20 +137,61 @@
     <executions>
      <execution>
       <id>fix-legalnotice</id>
-      <phase>post-site</phase>
+      <phase>site</phase>
       <goals>
        <goal>run</goal>
       </goals>
       <configuration>
+       <detail>true</detail>
        <target>
         <!-- TODO: Figure out how to say foreach in ant. -->
-        <!-- How do I say pwd in ant or in Maven? -->
         <copy file='${env.PWD}/legalnotice.html' todir='${basedir}/target/docbkx/html/admin-guide' />
         <copy file='${env.PWD}/legalnotice.html' todir='${basedir}/target/docbkx/html/dev-guide' />
         <copy file='${env.PWD}/legalnotice.html' todir='${basedir}/target/docbkx/html/install-guide' />
-        <move file='${env.PWD}/legalnotice.html' todir='${basedir}/target/docbkx/html/release-notes' />
+        <move file='${env.PWD}/legalnotice.html' todir='${basedir}/target/docbkx/html/release-notes' />       
        </target>
       </configuration>
+     </execution>
+    </executions>
+   </plugin>
+   <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-resources-plugin</artifactId>
+    <executions>
+     <execution>
+      <phase>site</phase>
+      <goals>
+       <goal>copy-resources</goal>
+      </goals>
+      <configuration>
+       <outputDirectory>${site-out}/doc</outputDirectory>
+       <resources>
+        <resource>
+         <directory>${docbkx-out}/epub/admin-guide</directory>
+         <directory>${docbkx-out}/epub/dev-guide</directory>
+         <directory>${docbkx-out}/epub/install-guide</directory>
+         <directory>${docbkx-out}/epub/release-notes</directory>
+         <includes>
+          <include>**/*.epub</include>
+         </includes>
+        </resource>
+        <resource>
+         <directory>${docbkx-out}/html/</directory>
+        </resource>
+        <resource>
+         <directory>${docbkx-out}/pdf</directory>
+         <includes>
+          <include>**/*.pdf</include>
+         </includes>
+        </resource>
+        <resource>
+         <directory>${docbkx-out}/rtf</directory>
+         <includes>
+          <include>**/*.rtf</include>
+         </includes>
+        </resource>
+       </resources>
+      </configuration>      
      </execution>
     </executions>
    </plugin>

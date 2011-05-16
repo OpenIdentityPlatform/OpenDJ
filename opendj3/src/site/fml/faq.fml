@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! src/main/resources/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011 ForgeRock AS
+  !    
+-->
+<faqs
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns="http://maven.apache.org/FML/1.0"
+ xsi:schemaLocation="http://maven.apache.org/FML/1.0 http://maven.apache.org/xsd/fml-1.0.xsd"
+ id="OpenDJ FAQ">
+ <part id="General">
+  <faq id="what">
+   <question>What is OpenDJ?</question>
+   <answer>
+    <p>
+     OpenDJ comprises of an open source directory server, client tools, and
+     an LDAP SDK. All modules are 100% Java based and require Java 1.6.
+    </p>
+    <p>
+     OpenDJ is a downstream build of the OpenDS project, with a different
+     name to avoid trademark issues.
+    </p>
+   </answer>
+  </faq>
+  <faq id="why">
+   <question>Why would I want to use OpenDJ? What is it good for?</question>
+   <answer>
+    <p>
+      OpenDJ is a new LDAPv3 compliant directory service, developed for the
+      Java platform, providing a high performance, highly available and secure
+      store for the identities managed by your enterprise. Its easy
+      installation takes OpenDJ the simplest and fastest directory server
+      to deploy and manage.
+    </p>
+   </answer>
+  </faq>
+  <faq id="prerequisites">
+   <question>What are the prerequisites for installing and using OpenDJ?
+   What hardware and software do I need?</question>
+   <answer>
+    <p>
+      At minimum, you need Java 6. If you have Java WebStart configured, you
+      can install OpenDJ server starting with a single click in your web
+      browser. For hardware, you can do an evaluation install on a netbook
+      by default using 256 MB free RAM and less than 100 MB free disk space.
+      How much hardware you need for deployment depends on your requirements.
+    </p>
+   </answer>
+  </faq>
+  <faq id="free">
+   <question>Is OpenDJ free?</question>
+   <answer>
+    <p>
+      You can freely download, evaluate, deploy, even build your own version
+      of OpenDJ software. The license is <a
+      href="http://www.opensource.org/licenses/cddl1">CDDL</a>.
+    </p>
+   </answer>
+  </faq>
+  <faq id="which">
+   <question>Which version of OpenDJ should I use?</question>
+   <answer>
+    <p>
+      Download the latest stable version from the
+      <a href="http://www.forgerock.com/downloads-opendj.html">download
+      page</a>. You can also get the latest nightly build there. If you want
+      to roll your own, check out the <a
+      href="https://wikis.forgerock.org/confluence/display/OPENDJ/Guide+to+OpenDJ+Subversion"
+      >Guide to OpenDJ Subversion</a>.
+    </p>
+   </answer>
+  </faq>
+  <faq id="more">
+   <question>How can I find out more about OpenDJ?</question>
+   <answer>
+    <p>
+      Sign up for the <a
+      href="https://lists.forgerock.org/mailman/listinfo/opendj">OpenDJ
+      mailing list</a>. <a
+      href="https://idp.forgerock.org/openam/UI/Login?service=register">Join
+      the project</a>.
+      Visit the <a href="https://wikis.forgerock.org/confluence/display/OPENDJ/"
+      >OpenDJ Wiki documentation</a>. Chat on irc.freenode.net #opendj.
+    </p>
+   </answer>
+  </faq>
+  <faq id="roadmap">
+   <question>What's the OpenDJ roadmap? Is OpenDJ actively developed?</question>
+   <answer>
+    <p>
+      OpenDJ is actively developed, see <a
+      href="https://bugster.forgerock.org/jira/browse/OPENDJ">the bug database
+      activity</a>. Also see the <a
+      href="https://wikis.forgerock.org/confluence/display/OPENDJ/OpenDJ+Roadmap"
+      >OpenDJ Roadmap</a>.
+    </p>
+   </answer>
+  </faq>
+  <faq id="develop">
+   <question>I want to contribute a patch (a feature, a test, a plug-in)
+   to OpenDJ. How do I get involved?</question>
+   <answer>
+    <p>
+      Come discuss your work on the <a
+      href="https://lists.forgerock.org/mailman/listinfo/opendj-dev">dev mailing
+      list</a>. <a
+      href="https://idp.forgerock.org/openam/UI/Login?service=register">Join
+      the project</a>, too.
+    </p>
+   </answer>
+  </faq>
+  <faq id="test">
+   <question>I want to help test OpenDJ. How do I get started?</question>
+   <answer>
+    <p>
+      Start with the <a
+      href="https://wikis.forgerock.org/confluence/display/OPENDJ/OpenDJ+QA+Documentation"
+      >QA documentation</a>. <a
+      href="https://idp.forgerock.org/openam/UI/Login?service=register">Join
+      the project</a>. Come discuss your work on the <a
+      href="https://lists.forgerock.org/mailman/listinfo/opendj-dev">dev mailing
+      list</a>. 
+    </p>
+   </answer>
+  </faq>
+ </part>
+</faqs>
