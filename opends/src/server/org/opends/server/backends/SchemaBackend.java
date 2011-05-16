@@ -4435,9 +4435,8 @@ public class SchemaBackend
    * Import an entry in a new schema by :
    *   - duplicating the schema
    *   - iterating over each element of the newSchemaEntry and comparing
-   *     with the xisting schema
+   *     with the existing schema
    *   - if the new schema element do not exist : add it
-   *   - if the new schema.
    *
    *   FIXME : attributeTypes and objectClasses are the only elements
    *   currently taken into account.

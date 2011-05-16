@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.backends;
 
@@ -230,6 +231,8 @@ public class TrustStoreBackend
           String pinStr = configuration.getTrustStorePin();
           if (pinStr == null)
           {
+            // This should be an Error. Otherwise, programs fails.
+            // Is there a Unit Test?
             trustStorePIN = null;
           }
           else
@@ -1364,14 +1367,14 @@ public class TrustStoreBackend
          throws DirectoryException
   {
     KeyStore keyStore;
+    FileInputStream inputStream = null;
     try
     {
       keyStore = KeyStore.getInstance(trustStoreType);
 
-      FileInputStream inputStream =
+      inputStream =
            new FileInputStream(getFileForPath(trustStoreFile));
       keyStore.load(inputStream, trustStorePIN);
-      inputStream.close();
     }
     catch (Exception e)
     {
@@ -1384,6 +1387,17 @@ public class TrustStoreBackend
           trustStoreFile, getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
+    }
+    finally
+    {
+      if (inputStream != null)
+      {
+        try
+        {
+          inputStream.close();
+        }
+        catch (Exception e){}
+      }
     }
 
 
@@ -1424,14 +1438,14 @@ public class TrustStoreBackend
          throws DirectoryException
   {
     KeyStore trustStore;
+    FileInputStream inputStream = null;
     try
     {
       trustStore = KeyStore.getInstance(trustStoreType);
 
-      FileInputStream inputStream =
+      inputStream =
            new FileInputStream(getFileForPath(trustStoreFile));
       trustStore.load(inputStream, trustStorePIN);
-      inputStream.close();
     }
     catch (Exception e)
     {
@@ -1444,6 +1458,17 @@ public class TrustStoreBackend
           trustStoreFile, getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
+    }
+    finally
+    {
+      if (inputStream != null)
+      {
+        try
+        {
+          inputStream.close();
+        }
+        catch (Exception e){}
+      }
     }
 
 
@@ -1492,14 +1517,14 @@ public class TrustStoreBackend
          throws DirectoryException
   {
     KeyStore trustStore;
+    FileInputStream inputStream = null;
     try
     {
       trustStore = KeyStore.getInstance(trustStoreType);
 
-      FileInputStream inputStream =
+      inputStream =
            new FileInputStream(getFileForPath(trustStoreFile));
       trustStore.load(inputStream, trustStorePIN);
-      inputStream.close();
     }
     catch (Exception e)
     {
@@ -1513,7 +1538,17 @@ public class TrustStoreBackend
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
     }
-
+    finally
+    {
+      if (inputStream != null)
+      {
+        try
+        {
+          inputStream.close();
+        }
+        catch (Exception e){}
+      }
+    }
 
     try
     {

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.backends;
 
@@ -637,19 +638,21 @@ public class LDIFBackend
         else
         {
           DN matchedDN = null;
-          // BUG: parentDN can be null when entering the loop
-          while (true)
+          if (parentDN != null)
           {
-            parentDN = parentDN.getParentDNInSuffix();
-            if (parentDN == null)
+            while (true)
             {
-              break;
-            }
+              parentDN = parentDN.getParentDNInSuffix();
+              if (parentDN == null)
+              {
+                break;
+              }
 
-            if (entryMap.containsKey(parentDN))
-            {
-              matchedDN = parentDN;
-              break;
+              if (entryMap.containsKey(parentDN))
+              {
+                matchedDN = parentDN;
+                break;
+              }
             }
           }
 
