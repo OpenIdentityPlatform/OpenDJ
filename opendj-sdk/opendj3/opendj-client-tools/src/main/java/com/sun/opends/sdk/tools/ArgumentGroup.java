@@ -34,7 +34,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.sdk.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 

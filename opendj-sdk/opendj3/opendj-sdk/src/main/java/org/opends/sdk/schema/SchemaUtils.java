@@ -28,14 +28,14 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
 import static com.sun.opends.sdk.util.StaticUtils.isAlpha;
 import static com.sun.opends.sdk.util.StaticUtils.isDigit;
+import static org.opends.sdk.CoreMessages.*;
 
 import java.util.*;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.LocalizableMessage;
 
 import com.sun.opends.sdk.util.SubstringReader;
 

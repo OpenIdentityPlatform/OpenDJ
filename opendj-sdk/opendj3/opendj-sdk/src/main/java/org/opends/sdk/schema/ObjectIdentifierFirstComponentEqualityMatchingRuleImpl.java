@@ -28,10 +28,14 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_EMPTY_VALUE;
-import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS;
+import static org.opends.sdk.CoreMessages.ERR_ATTR_SYNTAX_EMPTY_VALUE;
+import static org.opends.sdk.CoreMessages.ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS;
 
-import org.opends.sdk.*;
+import org.forgerock.i18n.LocalizableMessage;
+import org.opends.sdk.Assertion;
+import org.opends.sdk.ByteSequence;
+import org.opends.sdk.ByteString;
+import org.opends.sdk.DecodeException;
 
 import com.sun.opends.sdk.util.SubstringReader;
 

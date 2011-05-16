@@ -29,11 +29,11 @@ package org.opends.sdk.requests;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.ERR_LDAPAUTH_GSSAPI_LOCAL_AUTHENTICATION_FAILED;
-import static com.sun.opends.sdk.messages.Messages.ERR_SASL_CONTEXT_CREATE_ERROR;
-import static com.sun.opends.sdk.messages.Messages.ERR_SASL_PROTOCOL_ERROR;
 import static com.sun.opends.sdk.util.StaticUtils.getExceptionMessage;
 import static com.sun.opends.sdk.util.StaticUtils.joinCollection;
+import static org.opends.sdk.CoreMessages.ERR_LDAPAUTH_GSSAPI_LOCAL_AUTHENTICATION_FAILED;
+import static org.opends.sdk.CoreMessages.ERR_SASL_CONTEXT_CREATE_ERROR;
+import static org.opends.sdk.CoreMessages.ERR_SASL_PROTOCOL_ERROR;
 
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
@@ -45,7 +45,11 @@ import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslClient;
 import javax.security.sasl.SaslException;
 
-import org.opends.sdk.*;
+import org.forgerock.i18n.LocalizableMessage;
+import org.opends.sdk.ByteString;
+import org.opends.sdk.ConnectionSecurityLayer;
+import org.opends.sdk.ErrorResultException;
+import org.opends.sdk.ResultCode;
 import org.opends.sdk.responses.BindResult;
 import org.opends.sdk.responses.Responses;
 

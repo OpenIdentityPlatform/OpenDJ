@@ -27,11 +27,13 @@
 
 package org.opends.sdk.responses;
 
-import com.sun.opends.sdk.util.Function;
-import com.sun.opends.sdk.util.Iterables;
+import java.util.Collection;
+
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.*;
 
-import java.util.Collection;
+import com.sun.opends.sdk.util.Function;
+import com.sun.opends.sdk.util.Iterables;
 
 /**
  * Unmodifiable Search result entry implementation.

@@ -29,11 +29,13 @@ package org.opends.sdk;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
+import static org.opends.sdk.CoreMessages.*;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import org.forgerock.i18n.LocalizableMessage;
 
 
 

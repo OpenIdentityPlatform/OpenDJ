@@ -29,7 +29,7 @@ package org.opends.sdk.asn1;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
+import static org.opends.sdk.CoreMessages.*;
 import static org.opends.sdk.asn1.ASN1Constants.ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES;
 import static org.opends.sdk.asn1.ASN1Constants.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;
 import static org.opends.sdk.asn1.ASN1Constants.ELEMENT_READ_STATE_NEED_TYPE;
@@ -40,10 +40,10 @@ import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.logging.Level;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.sdk.ByteString;
 import org.opends.sdk.ByteStringBuilder;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.LocalizableMessage;
 
 import com.sun.opends.sdk.util.SizeLimitInputStream;
 import com.sun.opends.sdk.util.StaticUtils;

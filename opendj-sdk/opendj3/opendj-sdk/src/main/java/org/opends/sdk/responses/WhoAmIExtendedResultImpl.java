@@ -29,11 +29,11 @@ package org.opends.sdk.responses;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.ERR_WHOAMI_INVALID_AUTHZID_TYPE;
+import static org.opends.sdk.CoreMessages.ERR_WHOAMI_INVALID_AUTHZID_TYPE;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.ByteString;
-import org.opends.sdk.LocalizableMessage;
-import org.opends.sdk.LocalizedIllegalArgumentException;
 import org.opends.sdk.ResultCode;
 
 

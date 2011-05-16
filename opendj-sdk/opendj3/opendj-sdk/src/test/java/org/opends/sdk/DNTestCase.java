@@ -34,6 +34,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 

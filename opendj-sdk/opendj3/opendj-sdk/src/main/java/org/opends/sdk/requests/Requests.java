@@ -29,11 +29,13 @@ package org.opends.sdk.requests;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
+import static org.opends.sdk.CoreMessages.WARN_READ_LDIF_RECORD_CHANGE_RECORD_WRONG_TYPE;
 
 import javax.net.ssl.SSLContext;
 import javax.security.auth.Subject;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.*;
 import org.opends.sdk.ldif.ChangeRecord;
 import org.opends.sdk.ldif.LDIFChangeRecordReader;

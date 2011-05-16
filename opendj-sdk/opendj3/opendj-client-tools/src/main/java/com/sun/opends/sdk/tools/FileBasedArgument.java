@@ -28,7 +28,7 @@ package com.sun.opends.sdk.tools;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
+import static org.opends.sdk.CoreMessages.*;
 import static com.sun.opends.sdk.util.StaticUtils.getExceptionMessage;
 
 import java.io.BufferedReader;
@@ -36,8 +36,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.LinkedHashMap;
 
-import org.opends.sdk.LocalizableMessage;
-import org.opends.sdk.LocalizableMessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 
 

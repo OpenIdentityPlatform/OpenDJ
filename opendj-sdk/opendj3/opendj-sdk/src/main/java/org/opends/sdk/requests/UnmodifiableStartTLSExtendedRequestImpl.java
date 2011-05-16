@@ -27,11 +27,12 @@
 
 package org.opends.sdk.requests;
 
-import org.opends.sdk.responses.ExtendedResult;
-
-import javax.net.ssl.SSLContext;
 import java.util.Collections;
 import java.util.List;
+
+import javax.net.ssl.SSLContext;
+
+import org.opends.sdk.responses.ExtendedResult;
 
 /**
  * Unmodifiable start TLS extended request implementation.

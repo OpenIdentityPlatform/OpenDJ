@@ -29,15 +29,19 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_MR_UNKNOWN_SYNTAX;
-import static com.sun.opends.sdk.messages.Messages.WARN_MATCHING_RULE_NOT_IMPLEMENTED;
+import static org.opends.sdk.CoreMessages.ERR_ATTR_SYNTAX_MR_UNKNOWN_SYNTAX;
+import static org.opends.sdk.CoreMessages.WARN_MATCHING_RULE_NOT_IMPLEMENTED;
 
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.opends.sdk.*;
+import org.forgerock.i18n.LocalizableMessage;
+import org.opends.sdk.Assertion;
+import org.opends.sdk.ByteSequence;
+import org.opends.sdk.ByteString;
+import org.opends.sdk.DecodeException;
 
 import com.sun.opends.sdk.util.Validator;
 

@@ -29,14 +29,14 @@ package org.opends.sdk;
 
 
 
+import java.util.concurrent.BlockingQueue;
+
 import org.opends.sdk.ldif.ConnectionEntryReader;
 import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.*;
 import org.opends.sdk.schema.Schema;
 
 import com.sun.opends.sdk.util.Validator;
-
-import java.util.concurrent.BlockingQueue;
 
 
 

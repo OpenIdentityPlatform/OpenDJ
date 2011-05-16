@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.opends.sdk.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessage;
 
 import com.sun.opends.sdk.util.Validator;
 

@@ -29,7 +29,7 @@ package org.opends.sdk.responses;
 
 
 
-import org.opendj.buildtools.testng.OpenDJTestCase;
+import org.opendj.maven.testng.OpenDJTestCase;
 import org.testng.annotations.Test;
 
 

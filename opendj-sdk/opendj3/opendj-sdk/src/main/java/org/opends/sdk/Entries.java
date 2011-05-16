@@ -32,6 +32,7 @@ package org.opends.sdk;
 import java.util.Collection;
 import java.util.Iterator;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.requests.ModifyRequest;
 import org.opends.sdk.requests.Requests;
 

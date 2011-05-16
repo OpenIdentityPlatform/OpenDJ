@@ -28,8 +28,8 @@ package com.sun.opends.sdk.tools;
 
 
 
-import org.opends.sdk.LocalizableMessage;
-import org.opends.sdk.LocalizableMessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 
 

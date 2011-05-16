@@ -28,11 +28,12 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
+import static org.opends.sdk.CoreMessages.*;
 
 import java.util.LinkedList;
 import java.util.List;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.sdk.*;
 
 import com.sun.opends.sdk.util.SubstringReader;

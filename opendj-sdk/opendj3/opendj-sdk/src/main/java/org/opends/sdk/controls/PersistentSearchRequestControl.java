@@ -28,16 +28,20 @@ package org.opends.sdk.controls;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.ERR_PSEARCH_BAD_CHANGE_TYPES;
-import static com.sun.opends.sdk.messages.Messages.ERR_PSEARCH_CANNOT_DECODE_VALUE;
-import static com.sun.opends.sdk.messages.Messages.ERR_PSEARCH_CONTROL_BAD_OID;
-import static com.sun.opends.sdk.messages.Messages.ERR_PSEARCH_NO_CONTROL_VALUE;
 import static com.sun.opends.sdk.util.StaticUtils.getExceptionMessage;
+import static org.opends.sdk.CoreMessages.ERR_PSEARCH_BAD_CHANGE_TYPES;
+import static org.opends.sdk.CoreMessages.ERR_PSEARCH_CANNOT_DECODE_VALUE;
+import static org.opends.sdk.CoreMessages.ERR_PSEARCH_CONTROL_BAD_OID;
+import static org.opends.sdk.CoreMessages.ERR_PSEARCH_NO_CONTROL_VALUE;
 
 import java.io.IOException;
 import java.util.*;
 
-import org.opends.sdk.*;
+import org.forgerock.i18n.LocalizableMessage;
+import org.opends.sdk.ByteString;
+import org.opends.sdk.ByteStringBuilder;
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.DecodeOptions;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;

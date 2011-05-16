@@ -29,12 +29,12 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN;
+import static org.opends.sdk.CoreMessages.WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN;
 import static org.opends.sdk.schema.SchemaConstants.EMR_BOOLEAN_OID;
 import static org.opends.sdk.schema.SchemaConstants.SYNTAX_BOOLEAN_NAME;
 
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.sdk.ByteSequence;
-import org.opends.sdk.LocalizableMessageBuilder;
 
 
 

@@ -31,7 +31,8 @@ package org.opends.sdk;
 
 import java.util.Iterator;
 
-import org.opendj.buildtools.testng.OpenDJTestCase;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.opendj.maven.testng.OpenDJTestCase;
 import org.opends.sdk.schema.Schema;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;

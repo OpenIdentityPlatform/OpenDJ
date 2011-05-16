@@ -36,6 +36,7 @@ import static org.testng.Assert.fail;
 
 import java.util.Iterator;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.schema.AttributeType;
 import org.opends.sdk.schema.Schema;
 import org.testng.annotations.BeforeClass;

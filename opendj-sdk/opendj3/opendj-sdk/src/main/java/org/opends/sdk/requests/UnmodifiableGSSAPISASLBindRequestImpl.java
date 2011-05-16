@@ -27,13 +27,14 @@
 
 package org.opends.sdk.requests;
 
-import org.opends.sdk.ByteString;
-import org.opends.sdk.LocalizedIllegalArgumentException;
-
-import javax.security.auth.Subject;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import javax.security.auth.Subject;
+
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.opends.sdk.ByteString;
 
 /**
  * Unmodifiable GSSAPI SASL bind request implementation.

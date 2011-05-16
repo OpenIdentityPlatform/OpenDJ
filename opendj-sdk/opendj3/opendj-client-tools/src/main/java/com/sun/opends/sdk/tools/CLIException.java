@@ -28,10 +28,10 @@ package com.sun.opends.sdk.tools;
 
 
 
-import org.opends.sdk.LocalizableException;
-import org.opends.sdk.LocalizableMessage;
+import org.forgerock.i18n.LocalizableException;
+import org.forgerock.i18n.LocalizableMessage;
 
-import com.sun.opends.sdk.messages.Messages;
+import static org.opends.sdk.CoreMessages.*;
 
 
 
@@ -54,7 +54,7 @@ final class CLIException extends Exception implements LocalizableException
    */
   static CLIException adaptInputException(final Throwable cause)
   {
-    return new CLIException(Messages.ERR_CONSOLE_INPUT_ERROR.get(cause
+    return new CLIException(ERR_CONSOLE_INPUT_ERROR.get(cause
         .getMessage()), cause);
   }
 

@@ -27,15 +27,16 @@
 
 package org.opends.sdk.requests;
 
+import java.util.Collections;
+import java.util.List;
+
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.*;
 import org.opends.sdk.ldif.ChangeRecordVisitor;
 
 import com.sun.opends.sdk.util.Collections2;
 import com.sun.opends.sdk.util.Function;
 import com.sun.opends.sdk.util.Functions;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Unmodifiable modify request implementation.

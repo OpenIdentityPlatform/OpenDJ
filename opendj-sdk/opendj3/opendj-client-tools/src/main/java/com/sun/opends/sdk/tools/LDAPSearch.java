@@ -29,13 +29,15 @@ package com.sun.opends.sdk.tools;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
+import static org.opends.sdk.CoreMessages.*;
 import static com.sun.opends.sdk.tools.ToolConstants.*;
 import static com.sun.opends.sdk.tools.Utils.filterExitCode;
 
 import java.io.*;
 import java.util.*;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.*;
 import org.opends.sdk.controls.*;
 import org.opends.sdk.ldif.EntryWriter;

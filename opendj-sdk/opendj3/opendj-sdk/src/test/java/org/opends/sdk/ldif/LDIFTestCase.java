@@ -28,7 +28,7 @@ package org.opends.sdk.ldif;
 
 
 
-import org.opendj.buildtools.testng.OpenDJTestCase;
+import org.opendj.maven.testng.OpenDJTestCase;
 import org.testng.annotations.Test;
 
 

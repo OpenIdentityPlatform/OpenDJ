@@ -28,13 +28,13 @@ package com.sun.opends.sdk.controls;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.ERR_ACCTUSABLEREQ_CONTROL_BAD_OID;
-import static com.sun.opends.sdk.messages.Messages.ERR_ACCTUSABLEREQ_CONTROL_HAS_VALUE;
+import static org.opends.sdk.CoreMessages.ERR_ACCTUSABLEREQ_CONTROL_BAD_OID;
+import static org.opends.sdk.CoreMessages.ERR_ACCTUSABLEREQ_CONTROL_HAS_VALUE;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.sdk.ByteString;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.DecodeOptions;
-import org.opends.sdk.LocalizableMessage;
 import org.opends.sdk.controls.Control;
 import org.opends.sdk.controls.ControlDecoder;
 

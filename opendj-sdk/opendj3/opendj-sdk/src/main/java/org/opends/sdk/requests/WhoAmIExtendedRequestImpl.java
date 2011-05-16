@@ -29,7 +29,11 @@ package org.opends.sdk.requests;
 
 
 
-import org.opends.sdk.*;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.opends.sdk.ByteString;
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.DecodeOptions;
+import org.opends.sdk.ResultCode;
 import org.opends.sdk.controls.Control;
 import org.opends.sdk.responses.*;
 

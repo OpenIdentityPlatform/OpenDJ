@@ -31,8 +31,8 @@ package org.opends.sdk.schema;
 
 import static org.opends.sdk.schema.SchemaConstants.*;
 
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.sdk.ByteSequence;
-import org.opends.sdk.LocalizableMessageBuilder;
 
 
 

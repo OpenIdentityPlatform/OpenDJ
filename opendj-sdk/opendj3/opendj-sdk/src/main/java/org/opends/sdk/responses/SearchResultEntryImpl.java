@@ -31,6 +31,7 @@ package org.opends.sdk.responses;
 
 import java.util.Collection;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.*;
 
 

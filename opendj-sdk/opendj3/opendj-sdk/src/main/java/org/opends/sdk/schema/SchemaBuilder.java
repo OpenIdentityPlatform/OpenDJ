@@ -29,7 +29,7 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
+import static org.opends.sdk.CoreMessages.*;
 import static org.opends.sdk.schema.SchemaConstants.EXTENSIBLE_OBJECT_OBJECTCLASS_OID;
 import static org.opends.sdk.schema.SchemaConstants.OMR_GENERIC_ENUM_NAME;
 import static org.opends.sdk.schema.SchemaConstants.SCHEMA_PROPERTY_APPROX_RULE;
@@ -42,7 +42,12 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
-import org.opends.sdk.*;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.opends.sdk.Attribute;
+import org.opends.sdk.ByteString;
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.Entry;
 
 import com.sun.opends.sdk.util.StaticUtils;
 import com.sun.opends.sdk.util.SubstringReader;

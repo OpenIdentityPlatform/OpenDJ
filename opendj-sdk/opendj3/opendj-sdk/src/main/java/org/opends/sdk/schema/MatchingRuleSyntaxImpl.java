@@ -29,17 +29,17 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_ILLEGAL_TOKEN;
-import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_MR_EMPTY_VALUE;
-import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_MR_EXPECTED_OPEN_PARENTHESIS;
-import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_MR_NO_SYNTAX;
+import static org.opends.sdk.CoreMessages.ERR_ATTR_SYNTAX_ILLEGAL_TOKEN;
+import static org.opends.sdk.CoreMessages.ERR_ATTR_SYNTAX_MR_EMPTY_VALUE;
+import static org.opends.sdk.CoreMessages.ERR_ATTR_SYNTAX_MR_EXPECTED_OPEN_PARENTHESIS;
+import static org.opends.sdk.CoreMessages.ERR_ATTR_SYNTAX_MR_NO_SYNTAX;
 import static org.opends.sdk.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
 import static org.opends.sdk.schema.SchemaConstants.SYNTAX_MATCHING_RULE_NAME;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.LocalizableMessage;
-import org.opends.sdk.LocalizableMessageBuilder;
 
 import com.sun.opends.sdk.util.StaticUtils;
 import com.sun.opends.sdk.util.SubstringReader;

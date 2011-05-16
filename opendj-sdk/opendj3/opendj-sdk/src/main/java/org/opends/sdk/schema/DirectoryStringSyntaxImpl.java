@@ -29,12 +29,11 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.
-  ERR_ATTR_SYNTAX_DIRECTORYSTRING_INVALID_ZEROLENGTH_VALUE;
+import static org.opends.sdk.CoreMessages.ERR_ATTR_SYNTAX_DIRECTORYSTRING_INVALID_ZEROLENGTH_VALUE;
 import static org.opends.sdk.schema.SchemaConstants.*;
 
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.sdk.ByteSequence;
-import org.opends.sdk.LocalizableMessageBuilder;
 
 
 

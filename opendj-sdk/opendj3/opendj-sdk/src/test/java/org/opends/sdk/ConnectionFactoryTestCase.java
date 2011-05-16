@@ -38,17 +38,17 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
+import javax.net.ssl.SSLContext;
+
 import org.opends.sdk.requests.DigestMD5SASLBindRequest;
 import org.opends.sdk.requests.Requests;
 import org.opends.sdk.requests.SearchRequest;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 import com.sun.opends.sdk.util.StaticUtils;
-
-import javax.net.ssl.SSLContext;
 
 
 

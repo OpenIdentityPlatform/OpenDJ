@@ -29,11 +29,11 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
+import static org.opends.sdk.CoreMessages.*;
 
 import java.util.*;
 
-import org.opends.sdk.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessage;
 
 import com.sun.opends.sdk.util.Validator;
 

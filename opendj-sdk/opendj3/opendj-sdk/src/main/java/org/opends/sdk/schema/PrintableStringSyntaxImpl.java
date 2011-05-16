@@ -29,14 +29,12 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.
-  WARN_ATTR_SYNTAX_PRINTABLE_STRING_EMPTY_VALUE;
-import static com.sun.opends.sdk.messages.Messages.
-  WARN_ATTR_SYNTAX_PRINTABLE_STRING_ILLEGAL_CHARACTER;
+import static org.opends.sdk.CoreMessages.WARN_ATTR_SYNTAX_PRINTABLE_STRING_EMPTY_VALUE;
+import static org.opends.sdk.CoreMessages.WARN_ATTR_SYNTAX_PRINTABLE_STRING_ILLEGAL_CHARACTER;
 import static org.opends.sdk.schema.SchemaConstants.*;
 
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.sdk.ByteSequence;
-import org.opends.sdk.LocalizableMessageBuilder;
 
 
 

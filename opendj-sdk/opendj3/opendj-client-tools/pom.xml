@@ -47,6 +47,12 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
+      <groupId>org.forgerock.commons</groupId>
+      <artifactId>i18n-core</artifactId>
+      <version>1.0</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
       <groupId>org.opendj</groupId>
       <artifactId>opendj-sdk</artifactId>
       <version>${project.version}</version>
@@ -54,7 +60,7 @@
     </dependency>
     <dependency>
       <groupId>org.opendj</groupId>
-      <artifactId>opendj-testng-support</artifactId>
+      <artifactId>opendj-maven-testng</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>

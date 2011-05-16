@@ -40,6 +40,8 @@ import javax.net.ssl.SSLContext;
 import javax.security.auth.callback.*;
 import javax.security.sasl.*;
 
+import org.glassfish.grizzly.TransportFactory;
+import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.controls.Control;
@@ -47,8 +49,6 @@ import org.opends.sdk.controls.ControlDecoder;
 import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.*;
 
-import org.glassfish.grizzly.TransportFactory;
-import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import com.sun.opends.sdk.controls.AccountUsabilityRequestControl;
 import com.sun.opends.sdk.controls.AccountUsabilityResponseControl;
 

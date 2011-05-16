@@ -29,12 +29,13 @@ package org.opends.sdk.requests;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE;
-import static com.sun.opends.sdk.messages.Messages.ERR_EXTOP_CANCEL_NO_REQUEST_VALUE;
 import static com.sun.opends.sdk.util.StaticUtils.getExceptionMessage;
+import static org.opends.sdk.CoreMessages.ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE;
+import static org.opends.sdk.CoreMessages.ERR_EXTOP_CANCEL_NO_REQUEST_VALUE;
 
 import java.io.IOException;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.sdk.*;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;

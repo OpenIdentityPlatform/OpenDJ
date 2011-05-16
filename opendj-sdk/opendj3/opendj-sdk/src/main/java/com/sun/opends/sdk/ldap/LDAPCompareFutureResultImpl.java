@@ -29,7 +29,10 @@ package com.sun.opends.sdk.ldap;
 
 
 
-import org.opends.sdk.*;
+import org.opends.sdk.AsynchronousConnection;
+import org.opends.sdk.IntermediateResponseHandler;
+import org.opends.sdk.ResultCode;
+import org.opends.sdk.ResultHandler;
 import org.opends.sdk.requests.CompareRequest;
 import org.opends.sdk.responses.CompareResult;
 import org.opends.sdk.responses.Responses;

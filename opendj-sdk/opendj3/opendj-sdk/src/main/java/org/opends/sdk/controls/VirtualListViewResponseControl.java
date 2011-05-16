@@ -28,13 +28,14 @@ package org.opends.sdk.controls;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.ERR_VLVRES_CONTROL_BAD_OID;
-import static com.sun.opends.sdk.messages.Messages.INFO_VLVRES_CONTROL_CANNOT_DECODE_VALUE;
-import static com.sun.opends.sdk.messages.Messages.INFO_VLVRES_CONTROL_NO_VALUE;
 import static com.sun.opends.sdk.util.StaticUtils.getExceptionMessage;
+import static org.opends.sdk.CoreMessages.ERR_VLVRES_CONTROL_BAD_OID;
+import static org.opends.sdk.CoreMessages.INFO_VLVRES_CONTROL_CANNOT_DECODE_VALUE;
+import static org.opends.sdk.CoreMessages.INFO_VLVRES_CONTROL_NO_VALUE;
 
 import java.io.IOException;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.sdk.*;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;

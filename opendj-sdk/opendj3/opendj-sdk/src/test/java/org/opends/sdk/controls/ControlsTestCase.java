@@ -29,7 +29,7 @@ package org.opends.sdk.controls;
 
 
 
-import org.opendj.buildtools.testng.OpenDJTestCase;
+import org.opendj.maven.testng.OpenDJTestCase;
 import org.opends.sdk.TestCaseUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;

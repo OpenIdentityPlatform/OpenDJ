@@ -33,8 +33,8 @@ import static org.opends.sdk.schema.SchemaConstants.EMR_CASE_IGNORE_OID;
 import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
 import static org.opends.sdk.schema.SchemaConstants.SYNTAX_POSTAL_ADDRESS_NAME;
 
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.sdk.ByteSequence;
-import org.opends.sdk.LocalizableMessageBuilder;
 
 
 

@@ -29,15 +29,15 @@ package org.opends.sdk.asn1;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.ERR_ASN1_UNEXPECTED_TAG;
+import static org.opends.sdk.CoreMessages.ERR_ASN1_UNEXPECTED_TAG;
 import static org.opends.sdk.asn1.ASN1Constants.*;
 
 import java.io.IOException;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.sdk.ByteString;
 import org.opends.sdk.ByteStringBuilder;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.LocalizableMessage;
 
 
 

@@ -31,6 +31,9 @@ package org.opends.sdk;
 
 import java.io.IOException;
 
+import org.forgerock.i18n.LocalizableException;
+import org.forgerock.i18n.LocalizableMessage;
+
 
 
 /**

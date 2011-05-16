@@ -29,13 +29,15 @@ package org.opends.sdk;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
 import static com.sun.opends.sdk.util.StaticUtils.byteToHex;
 import static com.sun.opends.sdk.util.StaticUtils.getBytes;
 import static com.sun.opends.sdk.util.StaticUtils.toLowerCase;
+import static org.opends.sdk.CoreMessages.*;
 
 import java.util.*;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.schema.Schema;
 
 import com.sun.opends.sdk.util.StaticUtils;

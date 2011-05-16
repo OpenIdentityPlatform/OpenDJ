@@ -29,13 +29,15 @@ package org.opends.sdk;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.ERR_RDN_TYPE_NOT_FOUND;
+import static org.opends.sdk.CoreMessages.ERR_RDN_TYPE_NOT_FOUND;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.schema.AttributeType;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.UnknownSchemaElementException;
