@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010 ForgeRock AS
+ *      Portions Copyright 2010-2011 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -3193,13 +3193,14 @@ public final class ServerConstants
     "with the License.",
     "",
     "You can obtain a copy of the license at",
-    "https://OpenDS.dev.java.net/OpenDS.LICENSE.",
+    "trunk/opends/resource/legal-notices/CDDLv1_0.txt",
+    "or http://forgerock.org/license/CDDLv1.0.html.",
     "See the License for the specific language governing permissions",
     "and limitations under the License.",
     "",
     "When distributing Covered Code, include this CDDL HEADER in each",
     "file and include the License file at",
-    "trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,",
+    "trunk/opends/resource/legal-notices/CDDLv1_0.txt.  If applicable,",
     "add the following below this CDDL HEADER, with the fields enclosed",
     "by brackets \"[]\" replaced with your own identifying information:",
     "     Portions Copyright [yyyy] [name of copyright owner]",
