@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
@@ -118,8 +119,11 @@ public class ChangeNumberGenerator
   {
     if (number==null)
     {
-      lastTime = TimeThread.getTime();
-      seqnum = 0;
+      synchronized(this)
+      {
+        lastTime = TimeThread.getTime();
+        seqnum = 0;
+      }
       return;
     }
 

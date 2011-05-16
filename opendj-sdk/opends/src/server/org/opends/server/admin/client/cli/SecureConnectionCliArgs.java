@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.admin.client.cli;
@@ -814,10 +815,11 @@ public final class SecureConnectionCliArgs
       else
         if (trustStorePathArg.isPresent())
         {
+          FileInputStream fos = null;
+
           try
           {
-            FileInputStream fos =
-              new FileInputStream(trustStorePathArg.getValue());
+            fos = new FileInputStream(trustStorePathArg.getValue());
             String trustStorePasswordStringValue = null;
             char[] trustStorePasswordValue = null;
             if (trustStorePasswordArg.isPresent())
@@ -845,7 +847,6 @@ public final class SecureConnectionCliArgs
 
             truststore = KeyStore.getInstance(KeyStore.getDefaultType());
             truststore.load(fos, trustStorePasswordValue);
-            fos.close();
           }
           catch (KeyStoreException e)
           {
@@ -875,6 +876,17 @@ public final class SecureConnectionCliArgs
             // are in a best effort mode.
             LOG.log(Level.WARNING, "Error with the truststore", e);
           }
+          finally
+          {
+            if (fos != null)
+            {
+              try
+              {
+                fos.close();
+              }
+              catch (Exception e) {}
+            }
+          }
         }
       trustManager = new ApplicationTrustManager(truststore);
     }
@@ -893,9 +905,10 @@ public final class SecureConnectionCliArgs
     char[] keyStorePasswordValue = null;
     if (keyStorePathArg.isPresent())
     {
+      FileInputStream fos = null;
       try
       {
-        FileInputStream fos = new FileInputStream(keyStorePathArg.getValue());
+        fos = new FileInputStream(keyStorePathArg.getValue());
         if (keyStorePasswordArg.isPresent())
         {
           keyStorePasswordStringValue = keyStorePasswordArg.getValue();
@@ -911,7 +924,6 @@ public final class SecureConnectionCliArgs
 
         keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
         keyStore.load(fos,keyStorePasswordValue);
-        fos.close();
       }
       catch (KeyStoreException e)
       {
@@ -948,6 +960,17 @@ public final class SecureConnectionCliArgs
         // in a best effort mode.
         LOG.log(Level.WARNING, "Error with the keystore", e);
       }
+      finally
+      {
+        if (fos != null)
+        {
+          try {
+            fos.close();
+          }
+          catch (Exception e) {}
+        }
+      }
+
       char[] password = null;
       if (keyStorePasswordStringValue != null)
       {
