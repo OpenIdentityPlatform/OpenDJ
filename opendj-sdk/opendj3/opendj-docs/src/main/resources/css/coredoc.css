@@ -33,17 +33,19 @@
  */
 body
 {
-    font-family: dejavu, helvetica, verdana, arial, sans-serif;
+    font-family: DejaVu, Verdana, Helvetica, Arial, sans-serif;
     /* TODO: is this the right way to restrict width? */
     max-width: 800px;
     margin-left: auto;
     margin-right: auto;
+    color: #333;
 }
 
 /* START advice from http://diveintoaccessibility.org/day_26_using_relative_font_sizes.html */
 
 p {
   font-size: 12px;
+  line-height: 1.3em;
 }
 
 /*/*/a{}
@@ -63,33 +65,67 @@ html>body p {
 a
 {
     text-decoration: none; /* Do not underline links. */
+    font-size: 12px;
+}
+
+a:link {
+    color:#47a;
+}
+
+a:visited {
+    color:#68a;
+}
+
+a:active, a:hover {
+    color:#990000;
+}
+
+code,.command>strong,div.literallayout,.filename
+{
+ font-family: monospace;
+ font-weight: normal; 
+}
+
+code,.command,.copyright,div.index,div.literallayout>p,.filename,h3.author,.term,.step
+{
+ font-size: 12px;
+    font-weight: normal;
 }
 
 h1
 {
-    color: #f58220; /* ForgeRock orange */
+    color: #626D75; /* ForgeRock gray */
+    font-size: 24px;
 }
 
 h2,h3,h4,h5,h6
 {
-    color: #626d75; /* ForgeRock gray */
+    color: #333;
 }
 
-/*
- * TODO: In a procedure, number li.step elements as
- *  Step 1. <content>
- *  Step 2. <content>
- *  Step 3. <content>
-
-li.step:before
+h2
 {
-	content: "Step ";
+ font-size: 17px;
 }
-*/
 
-.term
+h3
 {
-    font-weight: normal;
+ font-size: 15px;
+}
+
+h3.author:before
+{
+ content: "Written by: ";
+}
+
+h4
+{
+ font-size: 14px;
+}
+
+h5
+{
+ font-size: 13px;
 }
 
 ul
@@ -102,13 +138,13 @@ ul
  */
 div.navfooter,div.navheader,div.nukefooter
 {
-    background-color: #efefef; /* TODO: better background color. */
+    background-color: #fafafa;
 }
 
 /* Do not repeat the title at the top of the page. */
 .navheader th
 {
-    color: #efefef; /* Same color as background. */
+    color: #fafafa; /* Same color as background. */
     font-size: 0px; /* Take up as little space as possible. */
 }
 
@@ -125,15 +161,20 @@ pre.programlisting,pre.screen
 {
     font-family: monospace;
     white-space: pre;
-    background-color: #efefef; /* TODO: better background color. */
-    border: thin dashed;
-    padding: 10px;
+    background-color: #fafafa;
+    border: thin dashed #ccc;
+    padding: 6px;
 }
 
 div.abstract,div.important,div.caution,div.note,div.tip,div.warning,div.example,div.toc
 {
-    background-color: #efefef; /* TODO: better background color. */
-    padding: 10px;
+    border: thin dotted #ccc;
+    padding: 6px;
+}
+
+div.chapter,div.preface
+{
+ border-bottom: thin solid #ccc; 
 }
 
 .important,.caution,.note,.tip,.warning
@@ -143,11 +184,22 @@ div.abstract,div.important,div.caution,div.note,div.tip,div.warning,div.example,
 
 .abstract,.example,.toc
 {
-    margin: 10px;       
+    margin: 6px;       
 }
 
 img
 {
     max-width: 640px;
     height: auto;
+    max-height: 480px;
 }
+
+/*
+ * Man pages
+ */
+.refnamediv>h2,.refsect1>h2,.refsynopsisdiv>h2
+{
+    font-size: 13px;
+}
+
+/* TODO: Man page div content should be indented more than the title. */

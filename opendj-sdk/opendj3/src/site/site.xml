@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! src/main/resources/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011 ForgeRock AS
+  !    
+-->
+<project name="${project.name}"
+ xmlns="http://maven.apache.org/DECORATION/1.0.1"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://maven.apache.org/DECORATION/1.0.1 http://maven.apache.org/xsd/decoration-1.0.1.xsd">
+
+ <skin>
+  <groupId>org.forgerock.commons</groupId>
+  <artifactId>forgerock-community-skin</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+ </skin>
+ <publishDate position="right" format="yyyy.MM.dd" />
+ <version position="right" />
+
+ <!-- TODO: Add Google Analytics -->
+
+ <body>
+ 
+  <breadcrumbs>
+   <item name="Developer Community" href="http://www.forgerock.org" />
+   <item name="OpenDJ" href="http://opendj.forgerock.org" />
+  </breadcrumbs>
+ 
+  <menu name="OpenDJ">
+   <item name="Welcome" href="index.html" />
+   <item name="News" href="news.html" />
+   <item name="Join" href="https://idp.forgerock.org/openam/UI/Login?service=register" />
+   <item name="Downloads" href="http://www.forgerock.com/downloads-opendj.html" />
+   <item name="FAQ" href="faq.html" />
+   <item name="Mailing List" href="https://lists.forgerock.org/mailman/listinfo/opendj" />
+   <item name="Support" href="http://www.forgerock.com/subscriptions.html" />
+   <item name="Partners" href="http://www.forgerock.com/partners.html" />
+   <item name="Wiki" href="http://wikis.forgerock.org/opendj/" />
+  </menu>
+  
+  <menu name="Core Documentation">
+   <item name="Release Notes" href="index.html" collapse="true">
+    <item name="EPUB Format" href="./doc/OpenDJ-Release-Notes.epub"/>
+    <item name="HTML Format" href="./doc/release-notes/OpenDJ-Release-Notes.html"/>
+    <item name="PDF Format" href="./doc/OpenDJ-Release-Notes.pdf" />
+    <item name="RTF Format" href="./doc/OpenDJ-Release-Notes.rtf" />
+   </item>
+   <item name="Installation Guide" href="index.html" collapse="true">
+    <item name="EPUB Format" href="./doc/OpenDJ-Install-Guide.epub"/>
+    <item name="HTML Format" href="./doc/install-guide/OpenDJ-Install-Guide.html" />
+    <item name="PDF Format" href="./doc/OpenDJ-Install-Guide.pdf" />
+    <item name="RTF Format" href="./doc/OpenDJ-Install-Guide.rtf" />
+   </item>
+   <item name="Administration Guide" href="index.html" collapse="true">
+    <item name="EPUB Format" href="./doc/OpenDJ-Admin-Guide.epub" />
+    <item name="HTML Format" href="./doc/admin-guide/OpenDJ-Admin-Guide.html" />
+    <item name="PDF Format" href="./doc/OpenDJ-Admin-Guide.pdf" />
+    <item name="RTF Format" href="./doc/OpenDJ-Admin-Guide.rtf" />
+   </item>
+   <item name="Developer Guide" href="index.html" collapse="true">
+    <item name="EPUB Format" href="./doc/OpenDJ-Dev-Guide.epub" />
+    <item name="HTML Format" href="./doc/dev-guide/OpenDJ-Dev-Guide.html" />
+    <item name="PDF Format" href="./doc/OpenDJ-Dev-Guide.pdf" />
+    <item name="RTF Format" href="./doc/OpenDJ-Dev-Guide.rtf" />
+   </item>
+   <item name="Config Reference" href="index.html" alt="TODO" />
+   <item name="Plugin Javadoc" href="index.html" alt="TODO" />
+   <item name="SDK Javadoc" href="index.html" alt="TODO" />
+  </menu>
+
+  <!-- TODO: Add QA pages -->
+  
+  <menu ref="reports" />
+  
+ </body>
+ 
+ <custom>
+  <openproject>
+   <href>http://opendj.org/</href>
+   <src>./images/opendj-tagline-179x65.png</src>
+   <alt>OpenDJ</alt>
+  </openproject>
+ </custom>
+
+</project>
