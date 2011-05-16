@@ -123,11 +123,11 @@
 	<!-- Add configure script -->
 	<copy file="${resource.dir}/configure"
         tofile="${svr4.layout.pkg.dir}/configure" />
-	<chmod file="${svr4.layout.pkg.dir}/configure" perm="744" />
+	<chmod file="${svr4.layout.pkg.dir}/configure" perm="755" />
         <!-- Add unconfigure script -->
         <copy file="${resource.dir}/unconfigure"
           tofile="${svr4.layout.pkg.dir}/unconfigure" />
-        <chmod file="${svr4.layout.pkg.dir}/unconfigure" perm="744" />
+        <chmod file="${svr4.layout.pkg.dir}/unconfigure" perm="755" />
         <!-- Add man pages -->
         <copy todir="${svr4.layout.pkg.dir}/man">
           <fileset dir="${resource.dir}/man"/>

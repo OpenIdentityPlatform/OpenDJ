@@ -41,6 +41,14 @@ export INSTALL_ROOT
 SCRIPT_NAME=configure
 export SCRIPT_NAME
 
+# Check if running as root. This is required to be able to copy files and
+# enable SMF
+if [[ `id -u` -ne 0 ]]
+then
+  echo "This script must be run as root" 1>&2
+  exit 1
+fi
+
 cd "${WORKING_DIR}"
 
 # Set environment variables
