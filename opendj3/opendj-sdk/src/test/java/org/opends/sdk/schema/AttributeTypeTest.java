@@ -32,8 +32,8 @@ import static org.opends.sdk.schema.SchemaConstants.*;
 
 import java.util.*;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.LocalizedIllegalArgumentException;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;

@@ -29,8 +29,8 @@ package org.opends.sdk.ldif;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
 import static com.sun.opends.sdk.util.StaticUtils.toLowerCase;
+import static org.opends.sdk.CoreMessages.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -41,6 +41,9 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.*;
 
 import com.sun.opends.sdk.util.Base64;

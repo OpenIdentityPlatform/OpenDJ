@@ -27,12 +27,12 @@
 
 package org.opends.sdk.requests;
 
-import org.opends.sdk.ByteString;
-import org.opends.sdk.LocalizedIllegalArgumentException;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.opends.sdk.ByteString;
 
 /**
  * Unmodifiable digest-MD5 SASL bind request implementation.

@@ -30,15 +30,16 @@ package com.sun.opends.sdk.ldap;
 
 
 import static com.sun.opends.sdk.ldap.LDAPConstants.*;
-import static com.sun.opends.sdk.messages.Messages.ERR_LDAP_MODIFICATION_DECODE_INVALID_MOD_TYPE;
-import static com.sun.opends.sdk.messages.Messages.ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_DEREF;
-import static com.sun.opends.sdk.messages.Messages.ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_SCOPE;
+import static org.opends.sdk.CoreMessages.ERR_LDAP_MODIFICATION_DECODE_INVALID_MOD_TYPE;
+import static org.opends.sdk.CoreMessages.ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_DEREF;
+import static org.opends.sdk.CoreMessages.ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_SCOPE;
 import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_BOOLEAN_TYPE;
 import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE;
 
 import java.io.IOException;
 import java.util.logging.Level;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.*;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.controls.Control;

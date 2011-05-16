@@ -28,13 +28,15 @@ package org.opends.sdk.controls;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.ERR_SORTRES_CONTROL_BAD_OID;
-import static com.sun.opends.sdk.messages.Messages.INFO_SORTRES_CONTROL_CANNOT_DECODE_VALUE;
-import static com.sun.opends.sdk.messages.Messages.INFO_SORTRES_CONTROL_NO_VALUE;
 import static com.sun.opends.sdk.util.StaticUtils.getExceptionMessage;
+import static org.opends.sdk.CoreMessages.ERR_SORTRES_CONTROL_BAD_OID;
+import static org.opends.sdk.CoreMessages.INFO_SORTRES_CONTROL_CANNOT_DECODE_VALUE;
+import static org.opends.sdk.CoreMessages.INFO_SORTRES_CONTROL_NO_VALUE;
 
 import java.io.IOException;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.*;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;

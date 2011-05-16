@@ -29,11 +29,10 @@ package com.sun.opends.sdk.ldap;
 
 
 
-import org.opends.sdk.ConnectionSecurityLayer;
-
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.filterchain.AbstractCodecFilter;
 import org.glassfish.grizzly.memory.MemoryManager;
+import org.opends.sdk.ConnectionSecurityLayer;
 
 
 

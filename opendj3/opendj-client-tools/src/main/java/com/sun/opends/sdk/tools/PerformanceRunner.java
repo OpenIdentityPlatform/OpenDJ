@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.sdk.*;
 import org.opends.sdk.responses.BindResult;
 import org.opends.sdk.responses.ExtendedResult;

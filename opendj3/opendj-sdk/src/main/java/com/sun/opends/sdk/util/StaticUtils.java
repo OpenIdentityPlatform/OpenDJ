@@ -29,8 +29,8 @@ package com.sun.opends.sdk.util;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.ERR_HEX_DECODE_INVALID_CHARACTER;
-import static com.sun.opends.sdk.messages.Messages.ERR_HEX_DECODE_INVALID_LENGTH;
+import static org.opends.sdk.CoreMessages.ERR_HEX_DECODE_INVALID_CHARACTER;
+import static org.opends.sdk.CoreMessages.ERR_HEX_DECODE_INVALID_LENGTH;
 
 import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
@@ -45,7 +45,11 @@ import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
-import org.opends.sdk.*;
+import org.forgerock.i18n.LocalizableException;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.opends.sdk.ByteSequence;
+import org.opends.sdk.ByteStringBuilder;
 
 
 

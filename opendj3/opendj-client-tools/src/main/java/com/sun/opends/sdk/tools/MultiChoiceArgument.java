@@ -28,12 +28,12 @@ package com.sun.opends.sdk.tools;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.ERR_MCARG_VALUE_NOT_ALLOWED;
+import static org.opends.sdk.CoreMessages.ERR_MCARG_VALUE_NOT_ALLOWED;
 
 import java.util.Collection;
 
-import org.opends.sdk.LocalizableMessage;
-import org.opends.sdk.LocalizableMessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 
 

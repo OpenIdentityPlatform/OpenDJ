@@ -31,6 +31,7 @@ package com.sun.opends.sdk.ldap;
 
 import java.io.IOException;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.sdk.ByteString;
 
 
@@ -50,7 +51,7 @@ final class UnsupportedMessageException extends IOException
   public UnsupportedMessageException(final int id, final byte tag,
       final ByteString content)
   {
-    super(org.opends.sdk.LocalizableMessage
+    super(LocalizableMessage
         .raw("Unsupported LDAP message: id=%d, tag=%d, content=%s", id, tag,
             content).toString());
     this.id = id;

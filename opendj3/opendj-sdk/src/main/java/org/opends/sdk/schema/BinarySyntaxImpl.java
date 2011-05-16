@@ -33,8 +33,8 @@ import static org.opends.sdk.schema.SchemaConstants.EMR_OCTET_STRING_OID;
 import static org.opends.sdk.schema.SchemaConstants.OMR_OCTET_STRING_OID;
 import static org.opends.sdk.schema.SchemaConstants.SYNTAX_BINARY_NAME;
 
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.sdk.ByteSequence;
-import org.opends.sdk.LocalizableMessageBuilder;
 
 
 

@@ -31,6 +31,8 @@ package org.opends.sdk;
 
 import java.util.*;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
+
 import com.sun.opends.sdk.util.Validator;
 
 

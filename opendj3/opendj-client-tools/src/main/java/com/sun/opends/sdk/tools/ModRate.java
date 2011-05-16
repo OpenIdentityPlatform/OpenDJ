@@ -29,13 +29,14 @@ package com.sun.opends.sdk.tools;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
+import static org.opends.sdk.CoreMessages.*;
 import static com.sun.opends.sdk.tools.ToolConstants.*;
 import static com.sun.opends.sdk.tools.Utils.filterExitCode;
 
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.glassfish.grizzly.TransportFactory;
 import org.opends.sdk.*;
 import org.opends.sdk.requests.ModifyRequest;

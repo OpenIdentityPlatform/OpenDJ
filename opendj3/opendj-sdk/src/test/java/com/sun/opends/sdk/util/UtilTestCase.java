@@ -29,7 +29,7 @@ package com.sun.opends.sdk.util;
 
 
 
-import org.opendj.buildtools.testng.OpenDJTestCase;
+import org.opendj.maven.testng.OpenDJTestCase;
 import org.testng.annotations.Test;
 
 

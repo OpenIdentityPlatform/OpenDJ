@@ -27,15 +27,16 @@
 
 package org.opends.sdk.schema;
 
+import static org.opends.sdk.schema.SchemaConstants.EMR_DN_OID;
+import static org.testng.Assert.assertEquals;
+
 import java.text.Normalizer;
 import java.text.Normalizer.Form;
 
-import org.testng.annotations.Test;
-import org.testng.annotations.DataProvider;
-import static org.testng.Assert.assertEquals;
-import org.opends.sdk.ConditionResult;
 import org.opends.sdk.ByteString;
-import static org.opends.sdk.schema.SchemaConstants.EMR_DN_OID;
+import org.opends.sdk.ConditionResult;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * Test the DistinguishedNameEqualityMatchingRule

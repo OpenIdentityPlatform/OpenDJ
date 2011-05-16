@@ -32,6 +32,7 @@ package org.opends.sdk.requests;
 import java.util.Collection;
 import java.util.List;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.*;
 import org.opends.sdk.controls.Control;
 import org.opends.sdk.controls.ControlDecoder;

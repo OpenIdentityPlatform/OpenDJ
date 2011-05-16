@@ -27,7 +27,7 @@
 
 package org.opends.sdk.requests;
 
-import org.opends.sdk.LocalizedIllegalArgumentException;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 
 /**
  * Unmodifiable external SASL bind request implementation.

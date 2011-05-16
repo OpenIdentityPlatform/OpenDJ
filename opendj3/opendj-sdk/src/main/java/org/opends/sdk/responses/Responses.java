@@ -29,6 +29,7 @@ package org.opends.sdk.responses;
 
 
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.*;
 
 import com.sun.opends.sdk.util.Validator;

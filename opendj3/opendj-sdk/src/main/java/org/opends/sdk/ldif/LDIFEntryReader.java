@@ -29,7 +29,9 @@ package org.opends.sdk.ldif;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.*;
+import static org.opends.sdk.CoreMessages.WARN_READ_LDIF_RECORD_MULTIPLE_CHANGE_RECORDS_FOUND;
+import static org.opends.sdk.CoreMessages.WARN_READ_LDIF_RECORD_NO_CHANGE_RECORD_FOUND;
+import static org.opends.sdk.CoreMessages.WARN_READ_LDIF_RECORD_UNEXPECTED_IO_ERROR;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,6 +39,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.*;
 import org.opends.sdk.schema.Schema;
 

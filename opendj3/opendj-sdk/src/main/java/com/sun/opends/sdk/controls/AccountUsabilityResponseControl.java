@@ -28,16 +28,20 @@ package com.sun.opends.sdk.controls;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.ERR_ACCTUSABLERES_CONTROL_BAD_OID;
-import static com.sun.opends.sdk.messages.Messages.ERR_ACCTUSABLERES_DECODE_ERROR;
-import static com.sun.opends.sdk.messages.Messages.ERR_ACCTUSABLERES_NO_CONTROL_VALUE;
-import static com.sun.opends.sdk.messages.Messages.ERR_ACCTUSABLERES_UNKNOWN_VALUE_ELEMENT_TYPE;
 import static com.sun.opends.sdk.util.StaticUtils.byteToHex;
 import static com.sun.opends.sdk.util.StaticUtils.getExceptionMessage;
+import static org.opends.sdk.CoreMessages.ERR_ACCTUSABLERES_CONTROL_BAD_OID;
+import static org.opends.sdk.CoreMessages.ERR_ACCTUSABLERES_DECODE_ERROR;
+import static org.opends.sdk.CoreMessages.ERR_ACCTUSABLERES_NO_CONTROL_VALUE;
+import static org.opends.sdk.CoreMessages.ERR_ACCTUSABLERES_UNKNOWN_VALUE_ELEMENT_TYPE;
 
 import java.io.IOException;
 
-import org.opends.sdk.*;
+import org.forgerock.i18n.LocalizableMessage;
+import org.opends.sdk.ByteString;
+import org.opends.sdk.ByteStringBuilder;
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.DecodeOptions;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;

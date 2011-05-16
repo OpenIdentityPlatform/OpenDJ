@@ -27,8 +27,8 @@
 
 package org.opends.sdk.requests;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.ByteString;
-import org.opends.sdk.LocalizedIllegalArgumentException;
 
 /**
  * Unmodifiable CRAM-MD5 SASL bind request implementation.

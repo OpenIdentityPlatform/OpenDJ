@@ -27,7 +27,7 @@
 
 package org.opends.sdk.responses;
 
-import org.opends.sdk.LocalizedIllegalArgumentException;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 
 /**
  * Unmodifiable Who Am I extended result implementation.

@@ -28,10 +28,11 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_EMPTY_VALUE;
-import static com.sun.opends.sdk.messages.Messages.ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS;
-import static com.sun.opends.sdk.messages.Messages.ERR_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT;
+import static org.opends.sdk.CoreMessages.ERR_ATTR_SYNTAX_EMPTY_VALUE;
+import static org.opends.sdk.CoreMessages.ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS;
+import static org.opends.sdk.CoreMessages.ERR_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.sdk.*;
 
 import com.sun.opends.sdk.util.StaticUtils;

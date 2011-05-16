@@ -29,10 +29,10 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_INVALID_VALUE;
 import static com.sun.opends.sdk.util.StringPrepProfile.CASE_FOLD;
 import static com.sun.opends.sdk.util.StringPrepProfile.TRIM;
 import static com.sun.opends.sdk.util.StringPrepProfile.prepareUnicode;
+import static org.opends.sdk.CoreMessages.WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_INVALID_VALUE;
 import static org.opends.sdk.schema.SchemaConstants.AMR_DOUBLE_METAPHONE_OID;
 import static org.opends.sdk.schema.SchemaConstants.EMR_CASE_IGNORE_OID;
 import static org.opends.sdk.schema.SchemaConstants.OMR_OID_GENERIC_ENUM;
@@ -42,10 +42,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.ByteString;
-import org.opends.sdk.LocalizableMessage;
-import org.opends.sdk.LocalizableMessageBuilder;
 
 import com.sun.opends.sdk.util.Validator;
 

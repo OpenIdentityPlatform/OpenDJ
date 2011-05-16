@@ -41,6 +41,12 @@
   <packaging>jar</packaging>
   <dependencies>
     <dependency>
+      <groupId>org.forgerock.commons</groupId>
+      <artifactId>i18n-core</artifactId>
+      <version>1.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>org.glassfish.grizzly</groupId>
       <artifactId>grizzly-framework</artifactId>
       <version>2.0.0-RC3</version>
@@ -48,7 +54,7 @@
     </dependency>
     <dependency>
       <groupId>org.opendj</groupId>
-      <artifactId>opendj-testng-support</artifactId>
+      <artifactId>opendj-maven-testng</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
@@ -56,21 +62,18 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.opendj</groupId>
-        <artifactId>opendj-maven-plugin</artifactId>
-        <version>${project.version}</version>
+        <groupId>org.forgerock.commons</groupId>
+        <artifactId>i18n-maven-plugin</artifactId>
+        <version>1.0</version>
         <executions>
           <execution>
             <phase>generate-sources</phase>
             <goals>
-              <goal>generatemessages</goal>
+              <goal>generate-messages</goal>
             </goals>
             <configuration>
               <messageFiles>
-                <messageFile>
-                  <category>1</category>
-                  <name>com/sun/opends/sdk/messages/messages.properties</name>
-                </messageFile>
+                <messageFile>org/opends/sdk/core.properties</messageFile>
               </messageFiles>
             </configuration>
           </execution>
@@ -86,6 +89,7 @@
         <configuration>
           <windowtitle>OpenDJ SDK Documentation</windowtitle>
           <doctitle>OpenDJ SDK Documentation</doctitle>
+          <detectOfflineLinks>false</detectOfflineLinks>
         </configuration>
       </plugin>
       <plugin>

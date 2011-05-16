@@ -33,10 +33,10 @@ import static org.opends.sdk.schema.SchemaConstants.EMR_DN_OID;
 import static org.opends.sdk.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
 import static org.opends.sdk.schema.SchemaConstants.SYNTAX_DN_NAME;
 
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.DN;
-import org.opends.sdk.LocalizableMessageBuilder;
-import org.opends.sdk.LocalizedIllegalArgumentException;
 
 
 

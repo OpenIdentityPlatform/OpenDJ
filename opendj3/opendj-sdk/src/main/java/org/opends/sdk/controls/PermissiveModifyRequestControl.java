@@ -28,9 +28,10 @@ package org.opends.sdk.controls;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.ERR_PERMISSIVE_MODIFY_CONTROL_BAD_OID;
-import static com.sun.opends.sdk.messages.Messages.ERR_PERMISSIVE_MODIFY_INVALID_CONTROL_VALUE;
+import static org.opends.sdk.CoreMessages.ERR_PERMISSIVE_MODIFY_CONTROL_BAD_OID;
+import static org.opends.sdk.CoreMessages.ERR_PERMISSIVE_MODIFY_INVALID_CONTROL_VALUE;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.sdk.*;
 
 import com.sun.opends.sdk.util.Validator;

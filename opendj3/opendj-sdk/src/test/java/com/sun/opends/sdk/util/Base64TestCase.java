@@ -31,8 +31,8 @@ package com.sun.opends.sdk.util;
 
 import java.util.Arrays;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.ByteString;
-import org.opends.sdk.LocalizedIllegalArgumentException;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;

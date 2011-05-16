@@ -29,12 +29,12 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER;
+import static org.opends.sdk.CoreMessages.WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER;
 import static org.opends.sdk.schema.SchemaConstants.*;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.sdk.ByteSequence;
-import org.opends.sdk.LocalizableMessage;
-import org.opends.sdk.LocalizableMessageBuilder;
 
 
 

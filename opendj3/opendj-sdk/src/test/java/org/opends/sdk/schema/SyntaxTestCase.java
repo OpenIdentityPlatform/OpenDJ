@@ -30,9 +30,9 @@ package org.opends.sdk.schema;
 
 import static org.testng.Assert.fail;
 
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.sdk.ByteString;
 import org.opends.sdk.DecodeException;
-import org.opends.sdk.LocalizableMessageBuilder;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 

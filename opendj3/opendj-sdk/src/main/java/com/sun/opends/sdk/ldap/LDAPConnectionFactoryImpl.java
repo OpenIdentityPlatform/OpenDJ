@@ -35,13 +35,6 @@ import java.util.concurrent.ExecutionException;
 
 import javax.net.ssl.SSLEngine;
 
-import org.opends.sdk.*;
-import org.opends.sdk.requests.Requests;
-import org.opends.sdk.requests.StartTLSExtendedRequest;
-import org.opends.sdk.responses.ExtendedResult;
-import org.opends.sdk.responses.Responses;
-import org.opends.sdk.responses.Result;
-
 import org.glassfish.grizzly.CompletionHandler;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.EmptyCompletionHandler;
@@ -49,6 +42,13 @@ import org.glassfish.grizzly.filterchain.DefaultFilterChain;
 import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.filterchain.TransportFilter;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
+import org.opends.sdk.*;
+import org.opends.sdk.requests.Requests;
+import org.opends.sdk.requests.StartTLSExtendedRequest;
+import org.opends.sdk.responses.ExtendedResult;
+import org.opends.sdk.responses.Responses;
+import org.opends.sdk.responses.Result;
+
 import com.sun.opends.sdk.util.CompletedFutureResult;
 import com.sun.opends.sdk.util.FutureResultTransformer;
 import com.sun.opends.sdk.util.RecursiveFutureResult;

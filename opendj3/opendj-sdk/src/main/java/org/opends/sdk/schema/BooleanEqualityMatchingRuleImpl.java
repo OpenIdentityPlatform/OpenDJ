@@ -28,7 +28,7 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN;
+import static org.opends.sdk.CoreMessages.WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN;
 
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.ByteString;

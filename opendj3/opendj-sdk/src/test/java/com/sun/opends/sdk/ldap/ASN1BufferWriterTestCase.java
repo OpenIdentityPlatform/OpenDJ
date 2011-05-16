@@ -32,14 +32,13 @@ package com.sun.opends.sdk.ldap;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import org.glassfish.grizzly.Buffer;
+import org.glassfish.grizzly.TransportFactory;
+import org.glassfish.grizzly.memory.ByteBufferWrapper;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.asn1.ASN1WriterTestCase;
-
-import org.glassfish.grizzly.Buffer;
-import org.glassfish.grizzly.TransportFactory;
-import org.glassfish.grizzly.memory.ByteBufferWrapper;
 
 
 

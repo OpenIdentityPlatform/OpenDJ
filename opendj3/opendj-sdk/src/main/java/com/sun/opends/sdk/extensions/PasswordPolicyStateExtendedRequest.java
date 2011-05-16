@@ -29,11 +29,11 @@ package com.sun.opends.sdk.extensions;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.ERR_PWPSTATE_EXTOP_DECODE_FAILURE;
-import static com.sun.opends.sdk.messages.Messages.ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE;
-import static com.sun.opends.sdk.messages.Messages.ERR_PWPSTATE_EXTOP_UNKNOWN_OP_TYPE;
 import static com.sun.opends.sdk.util.StaticUtils.formatAsGeneralizedTime;
 import static com.sun.opends.sdk.util.StaticUtils.getExceptionMessage;
+import static org.opends.sdk.CoreMessages.ERR_PWPSTATE_EXTOP_DECODE_FAILURE;
+import static org.opends.sdk.CoreMessages.ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE;
+import static org.opends.sdk.CoreMessages.ERR_PWPSTATE_EXTOP_UNKNOWN_OP_TYPE;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -41,6 +41,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.sdk.*;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;

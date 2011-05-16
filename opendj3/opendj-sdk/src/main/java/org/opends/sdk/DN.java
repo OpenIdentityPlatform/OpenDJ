@@ -29,10 +29,12 @@ package org.opends.sdk;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.ERR_DN_TYPE_NOT_FOUND;
+import static org.opends.sdk.CoreMessages.ERR_DN_TYPE_NOT_FOUND;
 
 import java.util.*;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.UnknownSchemaElementException;
 

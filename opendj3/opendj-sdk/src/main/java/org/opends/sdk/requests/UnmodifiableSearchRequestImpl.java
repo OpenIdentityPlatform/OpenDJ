@@ -27,10 +27,14 @@
 
 package org.opends.sdk.requests;
 
-import org.opends.sdk.*;
-
 import java.util.Collections;
 import java.util.List;
+
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.opends.sdk.DN;
+import org.opends.sdk.DereferenceAliasesPolicy;
+import org.opends.sdk.Filter;
+import org.opends.sdk.SearchScope;
 
 /**
  * Unmodifiable search request implementation.

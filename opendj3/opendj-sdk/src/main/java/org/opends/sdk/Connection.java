@@ -33,6 +33,7 @@ import java.io.Closeable;
 import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.ldif.ConnectionEntryReader;
 import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.*;

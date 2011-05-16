@@ -29,14 +29,15 @@ package org.opends.sdk;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.ERR_NO_SEARCH_RESULT_ENTRIES;
-import static com.sun.opends.sdk.messages.Messages.ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES;
-import static com.sun.opends.sdk.messages.Messages.ERR_UNEXPECTED_SEARCH_RESULT_REFERENCES;
+import static org.opends.sdk.CoreMessages.ERR_NO_SEARCH_RESULT_ENTRIES;
+import static org.opends.sdk.CoreMessages.ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES;
+import static org.opends.sdk.CoreMessages.ERR_UNEXPECTED_SEARCH_RESULT_REFERENCES;
 
 import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.ldif.ConnectionEntryReader;
 import org.opends.sdk.requests.Requests;
 import org.opends.sdk.requests.SearchRequest;

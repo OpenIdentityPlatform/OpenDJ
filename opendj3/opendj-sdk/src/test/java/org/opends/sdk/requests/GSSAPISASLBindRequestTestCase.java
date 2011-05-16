@@ -29,13 +29,13 @@ package org.opends.sdk.requests;
 
 
 
-import org.opends.sdk.ByteString;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import static org.testng.Assert.assertEquals;
 
 import java.util.Arrays;
 
-import static org.testng.Assert.assertEquals;
+import org.opends.sdk.ByteString;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * Tests GSSAPI SASL Bind requests.

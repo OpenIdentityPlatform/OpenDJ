@@ -28,9 +28,9 @@ package com.sun.opends.sdk.tools;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.INFO_ERROR_EMPTY_RESPONSE;
-import static com.sun.opends.sdk.messages.Messages.INFO_MENU_PROMPT_RETURN_TO_CONTINUE;
-import static com.sun.opends.sdk.messages.Messages.INFO_PROMPT_SINGLE_DEFAULT;
+import static org.opends.sdk.CoreMessages.INFO_ERROR_EMPTY_RESPONSE;
+import static org.opends.sdk.CoreMessages.INFO_MENU_PROMPT_RETURN_TO_CONTINUE;
+import static org.opends.sdk.CoreMessages.INFO_PROMPT_SINGLE_DEFAULT;
 import static com.sun.opends.sdk.tools.Utils.MAX_LINE_WIDTH;
 import static com.sun.opends.sdk.tools.Utils.wrapText;
 
@@ -38,7 +38,7 @@ import java.io.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.opends.sdk.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 

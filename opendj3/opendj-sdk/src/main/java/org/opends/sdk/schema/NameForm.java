@@ -29,18 +29,14 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.
-  ERR_ATTR_SYNTAX_NAME_FORM_STRUCTURAL_CLASS_NOT_STRUCTURAL;
-import static com.sun.opends.sdk.messages.Messages.
-  ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR;
-import static com.sun.opends.sdk.messages.Messages.
-  ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR;
-import static com.sun.opends.sdk.messages.Messages.
-  ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_STRUCTURAL_CLASS;
+import static org.opends.sdk.CoreMessages.ERR_ATTR_SYNTAX_NAME_FORM_STRUCTURAL_CLASS_NOT_STRUCTURAL;
+import static org.opends.sdk.CoreMessages.ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR;
+import static org.opends.sdk.CoreMessages.ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR;
+import static org.opends.sdk.CoreMessages.ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_STRUCTURAL_CLASS;
 
 import java.util.*;
 
-import org.opends.sdk.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessage;
 
 import com.sun.opends.sdk.util.Validator;
 

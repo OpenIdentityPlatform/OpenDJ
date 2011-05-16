@@ -29,8 +29,8 @@ package org.opends.sdk.schema;
 
 
 
-import org.opends.sdk.LocalizableException;
-import org.opends.sdk.LocalizableMessage;
+import org.forgerock.i18n.LocalizableException;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 

@@ -29,7 +29,7 @@ package org.opends.sdk.requests;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.INFO_SASL_UNSUPPORTED_CALLBACK;
+import static org.opends.sdk.CoreMessages.INFO_SASL_UNSUPPORTED_CALLBACK;
 
 import java.io.IOException;
 
@@ -122,7 +122,7 @@ class SASLBindClientImpl extends BindClientImpl implements CallbackHandler
       }
       else
       {
-        final org.opends.sdk.LocalizableMessage message = INFO_SASL_UNSUPPORTED_CALLBACK
+        final org.forgerock.i18n.LocalizableMessage message = INFO_SASL_UNSUPPORTED_CALLBACK
             .get(saslMechanism, String.valueOf(callback));
         throw new UnsupportedCallbackException(callback, message.toString());
       }
@@ -134,7 +134,7 @@ class SASLBindClientImpl extends BindClientImpl implements CallbackHandler
   void handle(final AuthorizeCallback callback)
       throws UnsupportedCallbackException
   {
-    final org.opends.sdk.LocalizableMessage message = INFO_SASL_UNSUPPORTED_CALLBACK
+    final org.forgerock.i18n.LocalizableMessage message = INFO_SASL_UNSUPPORTED_CALLBACK
         .get(saslMechanism, String.valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
   }
@@ -144,7 +144,7 @@ class SASLBindClientImpl extends BindClientImpl implements CallbackHandler
   void handle(final ChoiceCallback callback)
       throws UnsupportedCallbackException
   {
-    final org.opends.sdk.LocalizableMessage message = INFO_SASL_UNSUPPORTED_CALLBACK
+    final org.forgerock.i18n.LocalizableMessage message = INFO_SASL_UNSUPPORTED_CALLBACK
         .get(saslMechanism, String.valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
   }
@@ -154,7 +154,7 @@ class SASLBindClientImpl extends BindClientImpl implements CallbackHandler
   void handle(final ConfirmationCallback callback)
       throws UnsupportedCallbackException
   {
-    final org.opends.sdk.LocalizableMessage message = INFO_SASL_UNSUPPORTED_CALLBACK
+    final org.forgerock.i18n.LocalizableMessage message = INFO_SASL_UNSUPPORTED_CALLBACK
         .get(saslMechanism, String.valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
   }
@@ -164,7 +164,7 @@ class SASLBindClientImpl extends BindClientImpl implements CallbackHandler
   void handle(final LanguageCallback callback)
       throws UnsupportedCallbackException
   {
-    final org.opends.sdk.LocalizableMessage message = INFO_SASL_UNSUPPORTED_CALLBACK
+    final org.forgerock.i18n.LocalizableMessage message = INFO_SASL_UNSUPPORTED_CALLBACK
         .get(saslMechanism, String.valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
   }
@@ -173,7 +173,7 @@ class SASLBindClientImpl extends BindClientImpl implements CallbackHandler
 
   void handle(final NameCallback callback) throws UnsupportedCallbackException
   {
-    final org.opends.sdk.LocalizableMessage message = INFO_SASL_UNSUPPORTED_CALLBACK
+    final org.forgerock.i18n.LocalizableMessage message = INFO_SASL_UNSUPPORTED_CALLBACK
         .get(saslMechanism, String.valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
   }
@@ -183,7 +183,7 @@ class SASLBindClientImpl extends BindClientImpl implements CallbackHandler
   void handle(final PasswordCallback callback)
       throws UnsupportedCallbackException
   {
-    final org.opends.sdk.LocalizableMessage message = INFO_SASL_UNSUPPORTED_CALLBACK
+    final org.forgerock.i18n.LocalizableMessage message = INFO_SASL_UNSUPPORTED_CALLBACK
         .get(saslMechanism, String.valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
   }
@@ -192,7 +192,7 @@ class SASLBindClientImpl extends BindClientImpl implements CallbackHandler
 
   void handle(final RealmCallback callback) throws UnsupportedCallbackException
   {
-    final org.opends.sdk.LocalizableMessage message = INFO_SASL_UNSUPPORTED_CALLBACK
+    final org.forgerock.i18n.LocalizableMessage message = INFO_SASL_UNSUPPORTED_CALLBACK
         .get(saslMechanism, String.valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
   }
@@ -202,7 +202,7 @@ class SASLBindClientImpl extends BindClientImpl implements CallbackHandler
   void handle(final RealmChoiceCallback callback)
       throws UnsupportedCallbackException
   {
-    final org.opends.sdk.LocalizableMessage message = INFO_SASL_UNSUPPORTED_CALLBACK
+    final org.forgerock.i18n.LocalizableMessage message = INFO_SASL_UNSUPPORTED_CALLBACK
         .get(saslMechanism, String.valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
   }
@@ -212,7 +212,7 @@ class SASLBindClientImpl extends BindClientImpl implements CallbackHandler
   void handle(final TextInputCallback callback)
       throws UnsupportedCallbackException
   {
-    final org.opends.sdk.LocalizableMessage message = INFO_SASL_UNSUPPORTED_CALLBACK
+    final org.forgerock.i18n.LocalizableMessage message = INFO_SASL_UNSUPPORTED_CALLBACK
         .get(saslMechanism, String.valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
   }
@@ -222,7 +222,7 @@ class SASLBindClientImpl extends BindClientImpl implements CallbackHandler
   void handle(final TextOutputCallback callback)
       throws UnsupportedCallbackException
   {
-    final org.opends.sdk.LocalizableMessage message = INFO_SASL_UNSUPPORTED_CALLBACK
+    final org.forgerock.i18n.LocalizableMessage message = INFO_SASL_UNSUPPORTED_CALLBACK
         .get(saslMechanism, String.valueOf(callback));
     throw new UnsupportedCallbackException(callback, message.toString());
   }

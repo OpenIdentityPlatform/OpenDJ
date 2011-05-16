@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.schema.MatchingRule;
 import org.opends.sdk.schema.MatchingRuleUse;
 import org.opends.sdk.schema.Schema;

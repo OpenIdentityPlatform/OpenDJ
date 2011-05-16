@@ -31,6 +31,7 @@ package org.opends.sdk;
 
 import java.util.TreeMap;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.requests.Requests;
 
 import com.sun.opends.sdk.util.Validator;

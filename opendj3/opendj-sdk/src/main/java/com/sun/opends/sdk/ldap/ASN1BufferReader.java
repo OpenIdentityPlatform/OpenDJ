@@ -33,22 +33,21 @@ import static com.sun.opends.sdk.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_ADDI
 import static com.sun.opends.sdk.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;
 import static com.sun.opends.sdk.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_TYPE;
 import static com.sun.opends.sdk.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_VALUE_BYTES;
-import static com.sun.opends.sdk.messages.Messages.*;
+import static org.opends.sdk.CoreMessages.*;
 
 import java.io.IOException;
 import java.util.logging.Level;
 
-import org.opends.sdk.ByteString;
-import org.opends.sdk.ByteStringBuilder;
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.LocalizableMessage;
-import org.opends.sdk.asn1.ASN1Reader;
-import org.opends.sdk.asn1.AbstractASN1Reader;
-
+import org.forgerock.i18n.LocalizableMessage;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.memory.BuffersBuffer;
 import org.glassfish.grizzly.memory.CompositeBuffer;
 import org.glassfish.grizzly.memory.MemoryManager;
+import org.opends.sdk.ByteString;
+import org.opends.sdk.ByteStringBuilder;
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.asn1.ASN1Reader;
+import org.opends.sdk.asn1.AbstractASN1Reader;
 
 import com.sun.opends.sdk.util.StaticUtils;
 

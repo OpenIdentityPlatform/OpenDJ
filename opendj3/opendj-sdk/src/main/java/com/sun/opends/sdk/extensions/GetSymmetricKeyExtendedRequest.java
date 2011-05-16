@@ -29,11 +29,12 @@ package com.sun.opends.sdk.extensions;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.ERR_GET_SYMMETRIC_KEY_ASN1_DECODE_EXCEPTION;
-import static com.sun.opends.sdk.messages.Messages.ERR_GET_SYMMETRIC_KEY_NO_VALUE;
+import static org.opends.sdk.CoreMessages.ERR_GET_SYMMETRIC_KEY_ASN1_DECODE_EXCEPTION;
+import static org.opends.sdk.CoreMessages.ERR_GET_SYMMETRIC_KEY_NO_VALUE;
 
 import java.io.IOException;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.sdk.*;
 import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;

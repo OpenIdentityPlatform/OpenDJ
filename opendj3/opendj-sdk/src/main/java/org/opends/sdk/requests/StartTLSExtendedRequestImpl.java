@@ -29,15 +29,19 @@ package org.opends.sdk.requests;
 
 
 
+import java.util.LinkedList;
+import java.util.List;
+
 import javax.net.ssl.SSLContext;
 
-import org.opends.sdk.*;
+import org.opends.sdk.ByteString;
+import org.opends.sdk.DecodeException;
+import org.opends.sdk.DecodeOptions;
+import org.opends.sdk.ResultCode;
 import org.opends.sdk.controls.Control;
 import org.opends.sdk.responses.*;
 
 import com.sun.opends.sdk.util.Validator;
-
-import java.util.*;
 
 
 /**

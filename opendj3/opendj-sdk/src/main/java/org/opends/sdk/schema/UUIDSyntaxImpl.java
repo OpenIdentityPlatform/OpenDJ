@@ -29,13 +29,13 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH;
-import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX;
-import static com.sun.opends.sdk.messages.Messages.WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH;
+import static org.opends.sdk.CoreMessages.WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH;
+import static org.opends.sdk.CoreMessages.WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX;
+import static org.opends.sdk.CoreMessages.WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH;
 import static org.opends.sdk.schema.SchemaConstants.SYNTAX_UUID_NAME;
 
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.sdk.ByteSequence;
-import org.opends.sdk.LocalizableMessageBuilder;
 
 
 
