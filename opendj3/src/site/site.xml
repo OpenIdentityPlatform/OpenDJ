@@ -36,8 +36,6 @@
  <publishDate position="right" format="yyyy.MM.dd" />
  <version position="right" />
 
- <!-- TODO: Add Google Analytics -->
-
  <body>
  
   <breadcrumbs>
@@ -88,12 +86,13 @@
   </menu>
 
   <!-- TODO: Add QA pages -->
-  
+  <!-- TODO: Customize reports rather than autogenerate them. -->
   <menu ref="reports" />
   
  </body>
  
  <custom>
+  <googleAnalytics>UA-23412190-2</googleAnalytics>
   <openproject>
    <href>http://opendj.org/</href>
    <src>./images/opendj-tagline-179x65.png</src>
