@@ -29,6 +29,15 @@
  <modelVersion>4.0.0</modelVersion>
  <artifactId>opendj-docs</artifactId>
  <name>OpenDJ Core User Documentation</name>
+ <inceptionYear>2011</inceptionYear>
+ <licenses>
+  <license>
+   <name>CC BY-NC-ND 3.0</name>
+   <url>http://creativecommons.org/licenses/by-nc-nd/3.0/</url>
+   <comments>Creative Commons Attribution-NonCommercial-NoDerivs 3.0 Unported</comments>
+   <distribution>repo</distribution>
+  </license>
+ </licenses>
  <packaging>pom</packaging>
  <description>DocBook XML source for OpenDJ core user documentation. Java API and configuration reference documentation is generated from OpenDJ source code.</description>
  <properties>
