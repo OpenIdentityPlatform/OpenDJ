@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 
 package org.opends.sdk;
@@ -667,7 +668,6 @@ public class DNTestCase extends SdkTestCase
    *           If the test failed unexpectedly.
    */
   @Test(dataProvider = "illegalDNs", expectedExceptions = {
-      StringIndexOutOfBoundsException.class,
       LocalizedIllegalArgumentException.class, NullPointerException.class })
   public void testIllegalStringDNs(final String dn) throws Exception
   {

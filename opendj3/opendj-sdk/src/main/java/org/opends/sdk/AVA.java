@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 
 package org.opends.sdk;
@@ -123,7 +124,17 @@ public final class AVA implements Comparable<AVA>
     // Skip over any spaces at the beginning.
     reader.skipWhitespaces();
 
+    if (reader.remaining() == 0)
+    {
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ATTR_NO_NAME
+          .get(reader.getString());
+      throw new LocalizedIllegalArgumentException(message);
+    }
+
     final AttributeType attribute = readAttributeName(reader, schema);
+
+    // Skip over any spaces if we have.
+    reader.skipWhitespaces();
 
     // Make sure that we're not at the end of the DN string because
     // that would be invalid.
@@ -133,9 +144,6 @@ public final class AVA implements Comparable<AVA>
           .get(reader.getString(), attribute.getNameOrOID());
       throw new LocalizedIllegalArgumentException(message);
     }
-
-    // Skip over any spaces if we have.
-    reader.skipWhitespaces();
 
     // The next character must be an equal sign. If it is not, then
     // that's an error.
@@ -172,7 +180,7 @@ public final class AVA implements Comparable<AVA>
     {
       final LocalizableMessage message = ERR_HEX_DECODE_INVALID_LENGTH
           .get(hexBuffer);
-      DecodeException.error(message);
+      throw DecodeException.error(message);
     }
 
     int pos = 0;
@@ -342,8 +350,9 @@ public final class AVA implements Comparable<AVA>
           {
             final LocalizableMessage msg = ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID
                 .get(reader.getString());
-            DecodeException.error(msg);
+            throw DecodeException.error(msg);
           }
+
           // Check the next byte for hex.
           final char c2 = reader.read();
           if (isHexDigit(c2))
@@ -360,7 +369,7 @@ public final class AVA implements Comparable<AVA>
           {
             final LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID
                 .get(reader.getString());
-            DecodeException.error(message);
+            throw DecodeException.error(message);
           }
         }
         else
@@ -412,9 +421,16 @@ public final class AVA implements Comparable<AVA>
     if (isDigit(c))
     {
       boolean lastWasPeriod = false;
-      while (reader.remaining() > 0 && (c = reader.read()) != '=')
+      while (reader.remaining() > 0)
       {
-        if (c == '.')
+        c = reader.read();
+
+        if (c == '=' || c == ' ')
+        {
+          // This signals the end of the OID.
+          break;
+        }
+        else if (c == '.')
         {
           if (lastWasPeriod)
           {
@@ -448,37 +464,11 @@ public final class AVA implements Comparable<AVA>
       while (reader.remaining() > 0)
       {
         c = reader.read();
-        if (length == 0 && !isAlpha(c))
-        {
-          // This is an illegal character.
-          final LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR
-              .get(reader.getString(), c, reader.pos() - 1);
-          throw new LocalizedIllegalArgumentException(message);
-        }
 
-        if (c == '=')
+        if (c == '=' || c == ' ')
         {
-          // End of the attribute.
+          // This signals the end of the OID.
           break;
-        }
-        else if (c == ' ')
-        {
-          // Got a whitespace.It MUST be the end of the attribute
-          // Make sure that the next non-whitespace character is '='.
-          reader.skipWhitespaces();
-          // Read back the next char.
-          c = reader.read();
-          if (c == '=')
-          {
-            break;
-          }
-          else
-          {
-            // This is an illegal character.
-            final LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR
-                .get(reader.getString(), c, reader.pos() - 1);
-            throw new LocalizedIllegalArgumentException(message);
-          }
         }
         else if (!isAlpha(c) && !isDigit(c) && c != '-')
         {
