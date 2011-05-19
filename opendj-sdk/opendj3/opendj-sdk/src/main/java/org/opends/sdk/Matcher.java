@@ -346,7 +346,7 @@ public final class Matcher
         if (DEBUG_LOG.isLoggable(Level.WARNING))
         {
           DEBUG_LOG.warning("Attribute description " + attributeDescription
-              + " is not recognized: " + e.toString());
+              + " is not recognized: " + e.getMessage());
         }
         return UNDEFINED;
       }
@@ -370,7 +370,7 @@ public final class Matcher
         if (DEBUG_LOG.isLoggable(Level.WARNING))
         {
           DEBUG_LOG.warning("The assertion value " + assertionValue
-              + " is invalid: " + de.toString());
+              + " is invalid: " + de.getMessage());
         }
         return UNDEFINED;
       }
@@ -395,7 +395,7 @@ public final class Matcher
         if (DEBUG_LOG.isLoggable(Level.WARNING))
         {
           DEBUG_LOG.warning("Attribute description " + attributeDescription
-              + " is not recognized: " + e.toString());
+              + " is not recognized: " + e.getMessage());
         }
         return UNDEFINED;
       }
@@ -419,7 +419,7 @@ public final class Matcher
         if (DEBUG_LOG.isLoggable(Level.WARNING))
         {
           DEBUG_LOG.warning("The assertion value " + assertionValue
-              + " is invalid: " + de.toString());
+              + " is invalid: " + de.getMessage());
         }
         return UNDEFINED;
       }
@@ -448,7 +448,7 @@ public final class Matcher
           if (DEBUG_LOG.isLoggable(Level.WARNING))
           {
             DEBUG_LOG.warning("Matching rule " + matchingRule
-                + " is not recognized: " + e.toString());
+                + " is not recognized: " + e.getMessage());
           }
           return UNDEFINED;
         }
@@ -465,7 +465,7 @@ public final class Matcher
           if (DEBUG_LOG.isLoggable(Level.WARNING))
           {
             DEBUG_LOG.warning("Attribute description " + attributeDescription
-                + " is not recognized: " + e.toString());
+                + " is not recognized: " + e.getMessage());
           }
           return UNDEFINED;
         }
@@ -534,7 +534,7 @@ public final class Matcher
         if (DEBUG_LOG.isLoggable(Level.WARNING))
         {
           DEBUG_LOG.warning("The assertion value " + assertionValue
-              + " is invalid: " + de.toString());
+              + " is invalid: " + de.getMessage());
         }
         return UNDEFINED;
       }
@@ -560,7 +560,7 @@ public final class Matcher
         if (DEBUG_LOG.isLoggable(Level.WARNING))
         {
           DEBUG_LOG.warning("Attribute description " + attributeDescription
-              + " is not recognized: " + e.toString());
+              + " is not recognized: " + e.getMessage());
         }
         return UNDEFINED;
       }
@@ -584,7 +584,7 @@ public final class Matcher
         if (DEBUG_LOG.isLoggable(Level.WARNING))
         {
           DEBUG_LOG.warning("The assertion value " + assertionValue
-              + " is invalid: " + de.toString());
+              + " is invalid: " + de.getMessage());
         }
         return UNDEFINED;
       }
@@ -609,7 +609,7 @@ public final class Matcher
         if (DEBUG_LOG.isLoggable(Level.WARNING))
         {
           DEBUG_LOG.warning("Attribute description " + attributeDescription
-              + " is not recognized: " + e.toString());
+              + " is not recognized: " + e.getMessage());
         }
         return UNDEFINED;
       }
@@ -633,7 +633,7 @@ public final class Matcher
         if (DEBUG_LOG.isLoggable(Level.WARNING))
         {
           DEBUG_LOG.warning("The assertion value " + assertionValue
-              + " is invalid: " + de.toString());
+              + " is invalid: " + de.getMessage());
         }
         return UNDEFINED;
       }
@@ -688,7 +688,7 @@ public final class Matcher
         if (DEBUG_LOG.isLoggable(Level.WARNING))
         {
           DEBUG_LOG.warning("Attribute description " + attributeDescription
-              + " is not recognized: " + e.toString());
+              + " is not recognized: " + e.getMessage());
         }
         return UNDEFINED;
       }
@@ -715,7 +715,7 @@ public final class Matcher
         if (DEBUG_LOG.isLoggable(Level.WARNING))
         {
           DEBUG_LOG.warning("Attribute description " + attributeDescription
-              + " is not recognized: " + e.toString());
+              + " is not recognized: " + e.getMessage());
         }
         return UNDEFINED;
       }
@@ -741,7 +741,7 @@ public final class Matcher
         {
           DEBUG_LOG
               .warning("The substring assertion values contain an invalid value: "
-                  + de.toString());
+                  + de.getMessage());
         }
         return UNDEFINED;
       }
@@ -811,7 +811,7 @@ public final class Matcher
       {
         DEBUG_LOG.warning("The attribute value " + v.toString() + " is "
             + "invalid for matching rule " + rule.getNameOrOID()
-            + ". Possible schema error? : " + de.toString());
+            + ". Possible schema error? : " + de.getMessage());
       }
       return ConditionResult.UNDEFINED;
     }
