@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.opends.sdk;
@@ -47,6 +48,20 @@ import org.opends.sdk.schema.Schema;
  */
 public interface SchemaResolver
 {
+  /**
+   * A schema resolver which always returns the current default schema as
+   * returned by {@link Schema#getDefaultSchema()}.
+   */
+  public static final SchemaResolver DEFAULT = new SchemaResolver()
+  {
+
+    public Schema resolveSchema(String dn)
+    {
+      return Schema.getDefaultSchema();
+    }
+  };
+
+
 
   /**
    * Finds the appropriate schema for use with the provided distinguished name.

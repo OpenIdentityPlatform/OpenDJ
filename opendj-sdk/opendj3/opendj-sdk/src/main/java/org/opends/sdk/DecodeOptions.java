@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.opends.sdk;
@@ -92,7 +93,7 @@ public final class DecodeOptions
   {
     this.attributeFactory = LinkedAttribute.FACTORY;
     this.entryFactory = LinkedHashMapEntry.FACTORY;
-    this.schemaResolver = new FixedSchemaResolver(Schema.getDefaultSchema());
+    this.schemaResolver = SchemaResolver.DEFAULT;
   }
 
 
