@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.opends.sdk;
@@ -708,10 +709,13 @@ public class LDAPServer implements
       final String sn = String.format("sn: %d", i);
       final String uid = String.format("uid: user.%d", i);
 
+      // See org.opends.sdk.ConnectionFactoryTestCase.testSchemaUsage().
+      final String mail = String.format("mail: user.%d@example.com", i);
+
       final DN d = DN.valueOf(dn);
       final Entry e = new LinkedHashMapEntry("dn: " + dn,
           "objectclass: person", "objectclass: inetorgperson",
-          "objectclass: top", cn, sn, uid);
+          "objectclass: top", cn, sn, uid, mail);
       entryMap.put(d, Entries.unmodifiableEntry(e));
     }
   }

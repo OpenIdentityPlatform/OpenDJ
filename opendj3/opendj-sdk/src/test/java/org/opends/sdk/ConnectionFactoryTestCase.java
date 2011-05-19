@@ -23,11 +23,13 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.opends.sdk;
 
 
+import static org.fest.assertions.Assertions.assertThat;
 
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
@@ -43,6 +45,9 @@ import javax.net.ssl.SSLContext;
 import org.opends.sdk.requests.DigestMD5SASLBindRequest;
 import org.opends.sdk.requests.Requests;
 import org.opends.sdk.requests.SearchRequest;
+import org.opends.sdk.responses.SearchResultEntry;
+import org.opends.sdk.schema.Schema;
+import org.opends.sdk.schema.SchemaBuilder;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -301,8 +306,66 @@ public class ConnectionFactoryTestCase extends SdkTestCase
   {
     final Connection con = factory.getConnection();
     assertNotNull(con);
-    // quickly check if iit is a valid connection.
+    // quickly check if it is a valid connection.
     assertTrue(con.readRootDSE().getEntry().getName().isRootDN());
     con.close();
+  }
+
+
+
+  /**
+   * Verifies that LDAP connections take into consideration changes to the
+   * default schema post creation. See OPENDJ-159.
+   * <p>
+   * This test is disabled because it cannot be run in parallel with rest of the
+   * test suite, because it modifies the global default schema.
+   *
+   * @throws Exception
+   *           If an unexpected error occurred.
+   */
+  @Test(enabled = false)
+  public void testSchemaUsage() throws Exception
+  {
+    // Create a connection factory: this should always use the default schema,
+    // even if it is updated.
+    final ConnectionFactory factory = new LDAPConnectionFactory(
+        "localhost", TestCaseUtils.getLdapPort());
+    final Schema defaultSchema = Schema.getDefaultSchema();
+
+    final Connection connection = factory.getConnection();
+    try
+    {
+      // Simulate a client which reads the schema from the server and then
+      // sets it as the application default. We then want subsequent
+      // operations to use this schema, not the original default.
+      final SchemaBuilder builder = new SchemaBuilder(
+          Schema.getCoreSchema());
+      builder
+          .addAttributeType(
+              "( 0.9.2342.19200300.100.1.3 NAME 'mail' EQUALITY "
+                  + "caseIgnoreIA5Match SUBSTR caseIgnoreIA5SubstringsMatch "
+                  + "SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} )",
+              false);
+      final Schema testSchema = builder.toSchema().nonStrict();
+      assertThat(testSchema.getWarnings()).isEmpty();
+      Schema.setDefaultSchema(testSchema);
+
+      // Read an entry containing the mail attribute.
+      final SearchResultEntry e = connection
+          .readEntry("uid=user.0,ou=people,o=test");
+
+      assertThat(e.getAttribute("mail")).isNotNull();
+      assertThat(
+          e.getAttribute(AttributeDescription.valueOf("mail",
+              testSchema))).isNotNull();
+    }
+    finally
+    {
+      // Restore original schema.
+      Schema.setDefaultSchema(defaultSchema);
+
+      // Close connection.
+      connection.close();
+    }
   }
 }
