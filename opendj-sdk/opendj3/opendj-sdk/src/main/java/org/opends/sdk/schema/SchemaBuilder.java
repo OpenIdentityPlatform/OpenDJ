@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.opends.sdk.schema;
@@ -120,7 +121,7 @@ public final class SchemaBuilder
 
   /**
    * Creates a new schema builder containing all of the schema elements
-   * contained in the provided a subschema subentry. Any problems encountered
+   * contained in the provided subschema subentry. Any problems encountered
    * while parsing the entry can be retrieved using the returned schema's
    * {@link Schema#getWarnings()} method.
    *
@@ -133,133 +134,7 @@ public final class SchemaBuilder
   {
     initBuilder(entry.getName().toString());
 
-    Attribute attr = entry.getAttribute(Schema.ATTR_LDAP_SYNTAXES);
-    if (attr != null)
-    {
-      for (final ByteString def : attr)
-      {
-        try
-        {
-          addSyntax(def.toString(), true);
-        }
-        catch (final LocalizedIllegalArgumentException e)
-        {
-          addWarning(e.getMessageObject());
-        }
-      }
-    }
-
-    attr = entry.getAttribute(Schema.ATTR_ATTRIBUTE_TYPES);
-    if (attr != null)
-    {
-      for (final ByteString def : attr)
-      {
-        try
-        {
-          addAttributeType(def.toString(), true);
-        }
-        catch (final LocalizedIllegalArgumentException e)
-        {
-          addWarning(e.getMessageObject());
-        }
-      }
-    }
-
-    attr = entry.getAttribute(Schema.ATTR_OBJECT_CLASSES);
-    if (attr != null)
-    {
-      for (final ByteString def : attr)
-      {
-        try
-        {
-          addObjectClass(def.toString(), true);
-        }
-        catch (final LocalizedIllegalArgumentException e)
-        {
-          addWarning(e.getMessageObject());
-        }
-      }
-    }
-
-    attr = entry.getAttribute(Schema.ATTR_MATCHING_RULE_USE);
-    if (attr != null)
-    {
-      for (final ByteString def : attr)
-      {
-        try
-        {
-          addMatchingRuleUse(def.toString(), true);
-        }
-        catch (final LocalizedIllegalArgumentException e)
-        {
-          addWarning(e.getMessageObject());
-        }
-      }
-    }
-
-    attr = entry.getAttribute(Schema.ATTR_MATCHING_RULES);
-    if (attr != null)
-    {
-      for (final ByteString def : attr)
-      {
-        try
-        {
-          addMatchingRule(def.toString(), true);
-        }
-        catch (final LocalizedIllegalArgumentException e)
-        {
-          addWarning(e.getMessageObject());
-        }
-      }
-    }
-
-    attr = entry.getAttribute(Schema.ATTR_DIT_CONTENT_RULES);
-    if (attr != null)
-    {
-      for (final ByteString def : attr)
-      {
-        try
-        {
-          addDITContentRule(def.toString(), true);
-        }
-        catch (final LocalizedIllegalArgumentException e)
-        {
-          addWarning(e.getMessageObject());
-        }
-      }
-    }
-
-    attr = entry.getAttribute(Schema.ATTR_DIT_STRUCTURE_RULES);
-    if (attr != null)
-    {
-      for (final ByteString def : attr)
-      {
-        try
-        {
-          addDITStructureRule(def.toString(), true);
-        }
-        catch (final LocalizedIllegalArgumentException e)
-        {
-          addWarning(e.getMessageObject());
-        }
-      }
-    }
-
-    attr = entry.getAttribute(Schema.ATTR_NAME_FORMS);
-    if (attr != null)
-    {
-      for (final ByteString def : attr)
-      {
-        try
-        {
-          addNameForm(def.toString(), true);
-        }
-        catch (final LocalizedIllegalArgumentException e)
-        {
-          addWarning(e.getMessageObject());
-        }
-      }
-    }
+    addSchema(entry, true);
   }
 
 
@@ -1984,6 +1859,162 @@ public final class SchemaBuilder
 
 
   /**
+   * Adds all of the schema elements contained in the provided subschema
+   * subentry to this schema builder. Any problems encountered while parsing the
+   * entry can be retrieved using the returned schema's
+   * {@link Schema#getWarnings()} method.
+   *
+   * @param entry
+   *          The subschema subentry to be parsed.
+   * @param overwrite
+   *          {@code true} if existing schema elements with the same conflicting
+   *          OIDs should be overwritten.
+   * @return A reference to this schema builder.
+   * @throws ConflictingSchemaElementException
+   *           If {@code overwrite} was {@code false} and conflicting schema
+   *           elements were found.
+   * @throws NullPointerException
+   *           If {@code entry} was {@code null}.
+   */
+  public SchemaBuilder addSchema(final Entry entry, final boolean overwrite)
+      throws ConflictingSchemaElementException, NullPointerException
+  {
+    Validator.ensureNotNull(entry);
+
+    Attribute attr = entry.getAttribute(Schema.ATTR_LDAP_SYNTAXES);
+    if (attr != null)
+    {
+      for (final ByteString def : attr)
+      {
+        try
+        {
+          addSyntax(def.toString(), overwrite);
+        }
+        catch (final LocalizedIllegalArgumentException e)
+        {
+          addWarning(e.getMessageObject());
+        }
+      }
+    }
+
+    attr = entry.getAttribute(Schema.ATTR_ATTRIBUTE_TYPES);
+    if (attr != null)
+    {
+      for (final ByteString def : attr)
+      {
+        try
+        {
+          addAttributeType(def.toString(), overwrite);
+        }
+        catch (final LocalizedIllegalArgumentException e)
+        {
+          addWarning(e.getMessageObject());
+        }
+      }
+    }
+
+    attr = entry.getAttribute(Schema.ATTR_OBJECT_CLASSES);
+    if (attr != null)
+    {
+      for (final ByteString def : attr)
+      {
+        try
+        {
+          addObjectClass(def.toString(), overwrite);
+        }
+        catch (final LocalizedIllegalArgumentException e)
+        {
+          addWarning(e.getMessageObject());
+        }
+      }
+    }
+
+    attr = entry.getAttribute(Schema.ATTR_MATCHING_RULE_USE);
+    if (attr != null)
+    {
+      for (final ByteString def : attr)
+      {
+        try
+        {
+          addMatchingRuleUse(def.toString(), overwrite);
+        }
+        catch (final LocalizedIllegalArgumentException e)
+        {
+          addWarning(e.getMessageObject());
+        }
+      }
+    }
+
+    attr = entry.getAttribute(Schema.ATTR_MATCHING_RULES);
+    if (attr != null)
+    {
+      for (final ByteString def : attr)
+      {
+        try
+        {
+          addMatchingRule(def.toString(), overwrite);
+        }
+        catch (final LocalizedIllegalArgumentException e)
+        {
+          addWarning(e.getMessageObject());
+        }
+      }
+    }
+
+    attr = entry.getAttribute(Schema.ATTR_DIT_CONTENT_RULES);
+    if (attr != null)
+    {
+      for (final ByteString def : attr)
+      {
+        try
+        {
+          addDITContentRule(def.toString(), overwrite);
+        }
+        catch (final LocalizedIllegalArgumentException e)
+        {
+          addWarning(e.getMessageObject());
+        }
+      }
+    }
+
+    attr = entry.getAttribute(Schema.ATTR_DIT_STRUCTURE_RULES);
+    if (attr != null)
+    {
+      for (final ByteString def : attr)
+      {
+        try
+        {
+          addDITStructureRule(def.toString(), overwrite);
+        }
+        catch (final LocalizedIllegalArgumentException e)
+        {
+          addWarning(e.getMessageObject());
+        }
+      }
+    }
+
+    attr = entry.getAttribute(Schema.ATTR_NAME_FORMS);
+    if (attr != null)
+    {
+      for (final ByteString def : attr)
+      {
+        try
+        {
+          addNameForm(def.toString(), overwrite);
+        }
+        catch (final LocalizedIllegalArgumentException e)
+        {
+          addWarning(e.getMessageObject());
+        }
+      }
+    }
+
+    return this;
+  }
+
+
+
+  /**
    * Adds all of the schema elements in the provided schema to this schema
    * builder.
    *
@@ -2432,9 +2463,9 @@ public final class SchemaBuilder
 
 
   /**
-   * Returns a {@code Schema} containing all of the schema elements contained in
-   * this schema builder as well as the same set of schema compatibility
-   * options.
+   * Returns a strict {@code Schema} containing all of the schema elements
+   * contained in this schema builder as well as the same set of schema
+   * compatibility options.
    * <p>
    * When this method returns this schema builder is empty and contains a
    * default set of compatibility options.
