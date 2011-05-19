@@ -33,7 +33,6 @@ import static com.sun.opends.sdk.util.StaticUtils.getBytes;
 import java.util.Iterator;
 import java.util.TreeSet;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.*;
 
