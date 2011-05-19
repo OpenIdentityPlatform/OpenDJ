@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 
 package org.opends.sdk.schema;
@@ -730,18 +731,13 @@ public final class AttributeType extends SchemaElement implements
 
       if (superiorType.isCollective() != isCollective())
       {
-        LocalizableMessage message;
-        if (isCollective())
+        if (!isCollective())
         {
-          message = WARN_ATTR_SYNTAX_ATTRTYPE_COLLECTIVE_FROM_NONCOLLECTIVE
+          LocalizableMessage message =
+            WARN_ATTR_SYNTAX_ATTRTYPE_NONCOLLECTIVE_FROM_COLLECTIVE
               .get(getNameOrOID(), superiorType.getNameOrOID());
+          throw new SchemaException(message);
         }
-        else
-        {
-          message = WARN_ATTR_SYNTAX_ATTRTYPE_NONCOLLECTIVE_FROM_COLLECTIVE
-              .get(getNameOrOID(), superiorType.getNameOrOID());
-        }
-        throw new SchemaException(message);
       }
     }
 
