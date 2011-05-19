@@ -2992,8 +2992,8 @@ public final class SchemaBuilder
       catch (final SchemaException e)
       {
         removeSyntax(syntax);
-        warnings.add(ERR_SYNTAX_VALIDATION_FAIL.get(syntax.toString(), e
-            .toString()));
+        warnings.add(ERR_SYNTAX_VALIDATION_FAIL.get(
+            syntax.toString(), e.getMessageObject()));
       }
     }
 
@@ -3007,7 +3007,8 @@ public final class SchemaBuilder
       catch (final SchemaException e)
       {
         removeMatchingRule(rule);
-        warnings.add(ERR_MR_VALIDATION_FAIL.get(rule.toString(), e.toString()));
+        warnings.add(ERR_MR_VALIDATION_FAIL.get(rule.toString(),
+            e.getMessageObject()));
       }
     }
 
@@ -3022,7 +3023,7 @@ public final class SchemaBuilder
       {
         removeAttributeType(attribute);
         warnings.add(ERR_ATTR_TYPE_VALIDATION_FAIL.get(attribute.toString(), e
-            .toString()));
+            .getMessageObject()));
       }
     }
 
@@ -3036,7 +3037,8 @@ public final class SchemaBuilder
       catch (final SchemaException e)
       {
         removeObjectClass(oc);
-        warnings.add(ERR_OC_VALIDATION_FAIL.get(oc.toString(), e.toString()));
+        warnings.add(ERR_OC_VALIDATION_FAIL.get(oc.toString(),
+            e.getMessageObject()));
       }
     }
 
@@ -3051,7 +3053,8 @@ public final class SchemaBuilder
       catch (final SchemaException e)
       {
         removeMatchingRuleUse(use);
-        warnings.add(ERR_MRU_VALIDATION_FAIL.get(use.toString(), e.toString()));
+        warnings.add(ERR_MRU_VALIDATION_FAIL.get(use.toString(),
+            e.getMessageObject()));
       }
     }
 
@@ -3084,7 +3087,7 @@ public final class SchemaBuilder
       {
         removeNameForm(form);
         warnings.add(ERR_NAMEFORM_VALIDATION_FAIL.get(form.toString(), e
-            .toString()));
+            .getMessageObject()));
       }
     }
 
@@ -3098,8 +3101,8 @@ public final class SchemaBuilder
       catch (final SchemaException e)
       {
         removeDITContentRule(rule);
-        warnings
-            .add(ERR_DCR_VALIDATION_FAIL.get(rule.toString(), e.toString()));
+        warnings.add(ERR_DCR_VALIDATION_FAIL.get(rule.toString(),
+            e.getMessageObject()));
       }
     }
 
@@ -3131,8 +3134,8 @@ public final class SchemaBuilder
       catch (final SchemaException e)
       {
         removeDITStructureRule(rule);
-        warnings
-            .add(ERR_DSR_VALIDATION_FAIL.get(rule.toString(), e.toString()));
+        warnings.add(ERR_DSR_VALIDATION_FAIL.get(rule.toString(),
+            e.getMessageObject()));
       }
     }
   }

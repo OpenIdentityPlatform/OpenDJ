@@ -63,10 +63,6 @@ final class DistinguishedNameEqualityMatchingRuleImpl extends
     {
       throw DecodeException.error(e.getMessageObject());
     }
-    catch (final Exception e)
-    {
-      throw DecodeException.error(LocalizableMessage.raw(e.toString()));
-    }
   }
 
   /**
