@@ -119,5 +119,5 @@
  <xinclude:include href='appendix-l10n.xml' />
 
  <index />
-
+ <?dbhtml-include href="../ga.html"?>
 </book>

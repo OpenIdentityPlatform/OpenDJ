@@ -56,5 +56,5 @@
  <xinclude:include href='chap-uninstall.xml' />
 
  <index />
-
+ <?dbhtml-include href="../ga.html"?>
 </book>
