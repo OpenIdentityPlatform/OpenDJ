@@ -73,8 +73,9 @@
     focused only on topologies of up to eight replication servers.</para>
    </listitem>
    <listitem>
-    <para>On T2000 systems, hardware SSL crypto acceleration is slower than
-    software. To work around this issue take the following actions.</para>
+    <para>On Niagara systems such as T2000, hardware SSL crypto acceleration runs
+    more slowly than software crypto acceleration. To work around this issue take
+    the following actions.</para>
    <orderedlist>
     <listitem>
      <para>Add more request handlers to LDAP (for TLS) and LDAPS (for SSL)
@@ -82,7 +83,8 @@
     </listitem>
     <listitem>
      <para>Disable hardware acceleration for server's JVM by removing the
-     SunPKCS11 security provider from jre/lib/security/java.security.</para>
+     SunPKCS11 security provider from
+     <filename>jre/lib/security/java.security</filename>.</para>
     </listitem>
    </orderedlist>
    </listitem>
