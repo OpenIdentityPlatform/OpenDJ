@@ -98,11 +98,11 @@ public class SubstringReader
 
 
   /**
-   * Attemps to read a character from the current position. The caller must
+   * Attempts to read a character from the current position. The caller must
    * ensure that the source string has the data available from the current
    * position.
    *
-   * @return The characted at the current position.
+   * @return The character at the current position.
    * @Exception StringIndexOutOfBoundsException if there is no more data
    *            available to read.
    */
@@ -118,7 +118,7 @@ public class SubstringReader
 
 
   /**
-   * Attemps to read a substring of the specified length from the current
+   * Attempts to read a substring of the specified length from the current
    * position. The caller must ensure that the requested length is within the
    * bounds i.e. the requested length from the current position should not
    * exceed the length of the source string.
