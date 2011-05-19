@@ -43,7 +43,7 @@
     <dependency>
       <groupId>org.forgerock.commons</groupId>
       <artifactId>i18n-core</artifactId>
-      <version>1.2</version>
+      <version>1.2.0</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -64,7 +64,7 @@
       <plugin>
         <groupId>org.forgerock.commons</groupId>
         <artifactId>i18n-maven-plugin</artifactId>
-        <version>1.2</version>
+        <version>1.2.0</version>
         <executions>
           <execution>
             <phase>generate-sources</phase>
