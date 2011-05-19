@@ -23,6 +23,7 @@
 *
 *
 *      Copyright 2008-2010 Sun Microsystems, Inc.
+*      Portions Copyright 2011 ForgeRock AS
 */
 
 #include "service.h"
@@ -94,7 +95,7 @@ const char** args)
     reportOk = ReportEvent(
     _eventLog,              // event log handle
     eventType,              // info, warning, error
-    WIN_FACILITY_NAME_OPENDS,     // unique category for OPENDS
+    WIN_FACILITY_NAME_OPENDJ,     // unique category for OPENDJ
     eventId,
     NULL,               // no user security identifier
     argCount,             // number of args
@@ -109,7 +110,7 @@ const char** args)
     reportOk = ReportEvent(
     _eventLog,              // event log handle
     eventType,              // info, warning, error
-    WIN_FACILITY_NAME_OPENDS,     // unique category for OPENDS
+    WIN_FACILITY_NAME_OPENDJ,     // unique category for OPENDJ
     eventId,
     NULL,               // no user security identifier
     argCount,             // number of args
@@ -298,7 +299,7 @@ BOOLEAN createRegistryKey(char* serviceName)
     }
   }
 
-  // Set the number of categories: 1 (OPENDS)
+  // Set the number of categories: 1 (OPENDJ)
   if (success)
   {
     long result = RegSetValueEx(
@@ -522,7 +523,7 @@ ServiceReturnCode doStartApplication()
   BOOL createOk;
   BOOL waitOk;
 
-  debug("doStartApplication called");
+  debug("doStartApplication");
 
   if (strlen(relativePath)+strlen(_instanceDir)+1 < COMMAND_SIZE)
   {
@@ -538,11 +539,11 @@ ServiceReturnCode doStartApplication()
       // startup is deleted (file logs\server.starting).
       const DWORD STARTDS_WAIT_DEFAULT_VALUE = 300000;
       DWORD wait = STARTDS_WAIT_DEFAULT_VALUE;
-      char * nWaitForStartDS = getenv("OPENDS_WINDOWS_SERVICE_STARTDS_WAIT");
+      char * nWaitForStartDS = getenv("OPENDJ_WINDOWS_SERVICE_STARTDS_WAIT");
       DWORD startDSExit;
       if (nWaitForStartDS != NULL)
       {
-        debug("doStartApplication: OPENDS_WINDOWS_SERVICE_STARTDS_WAIT env var set to %s",
+        debug("doStartApplication: OPENDJ_WINDOWS_SERVICE_STARTDS_WAIT env var set to %s",
             nWaitForStartDS);
         wait = (int)strtol(nWaitForStartDS, (char **)NULL, 10);
         if (wait <= 0)
@@ -552,7 +553,7 @@ ServiceReturnCode doStartApplication()
       }
       else
       {
-        debug("doStartApplication: OPENDS_WINDOWS_SERVICE_STARTDS_WAIT is not set. Using default %d milliseconds.",
+        debug("doStartApplication: OPENDJ_WINDOWS_SERVICE_STARTDS_WAIT is not set. Using default %d milliseconds.",
             STARTDS_WAIT_DEFAULT_VALUE);
       }
       waitOk = waitForProcess(&procInfo, wait, &startDSExit);
@@ -594,11 +595,11 @@ ServiceReturnCode doStartApplication()
       // Try to see if server is really running
       const DWORD DEFAULT_TRIES = 100;
       int nTries = DEFAULT_TRIES;
-      char * nTriesEnv = getenv("OPENDS_WINDOWS_SERVICE_START_NTRIES");
+      char * nTriesEnv = getenv("OPENDJ_WINDOWS_SERVICE_START_NTRIES");
       BOOL running = FALSE;
       if (nTriesEnv != NULL)
       {
-        debug("OPENDS_WINDOWS_SERVICE_START_NTRIES env var set to %s", nTriesEnv);
+        debug("OPENDJ_WINDOWS_SERVICE_START_NTRIES env var set to %s", nTriesEnv);
         nTries = (int)strtol(nTriesEnv, (char **)NULL, 10);
         if (nTries <= 0)
         {
@@ -607,7 +608,7 @@ ServiceReturnCode doStartApplication()
       }
       else
       {
-        debug("OPENDS_WINDOWS_SERVICE_START_NTRIES is not set.  Using default %d tries.", nTries);
+        debug("OPENDJ_WINDOWS_SERVICE_START_NTRIES is not set.  Using default %d tries.", nTries);
       }	
 
       debug(
@@ -667,6 +668,8 @@ ServiceReturnCode doStopApplication()
   // init out params
   char* relativePath = "\\bat\\stop-ds.bat";
   char command[COMMAND_SIZE];
+
+  debug("doStopApplication");
   if (strlen(relativePath)+strlen(_instanceDir)+1 < COMMAND_SIZE)
   {
     sprintf(command, "\"%s%s\" --windowsNetStop", _instanceDir, relativePath);
@@ -725,7 +728,7 @@ ServiceReturnCode doStopApplication()
 // serviceBinPath  the path to the service binary.
 // instanceDir the instanceDirectory.
 // The string stored in serviceBinPath looks like
-// <SERVER_ROOT>/lib/opends_service.exe start <_instanceDir>
+// <SERVER_ROOT>/lib/opendj_service.exe start <_instanceDir>
 // It is up to the caller of the function to allocate
 // at least COMMAND_SIZE bytes in serviceBinPath.
 // The function returns SERVICE_RETURN_OK if we could create the binary
@@ -748,7 +751,7 @@ ServiceReturnCode createServiceBinPath(char* serviceBinPath)
   {
     // failed to get the path of the executable file
     returnValue = SERVICE_RETURN_ERROR;
-    debug("Could not get the path of the executable file.");
+	debug("Could not get the path of the executable file.");
   }
   else
   {
@@ -978,7 +981,7 @@ void serviceMain(int argc, char* argv[])
 
   // __debugbreak();
 
-  debug("serviceMain called.");
+  debug("serviceMain");
 
   code = createServiceBinPath(cmdToRun);
 
@@ -1055,7 +1058,7 @@ void serviceMain(int argc, char* argv[])
       break;
 
       default:
-      debugError("doApplication() failed");
+      debugError("serviceMain: doStartApplication() failed");
       code = SERVICE_RETURN_ERROR;
       _serviceCurStatus = SERVICE_STOPPED;
       updateServiceStatus (
@@ -1089,7 +1092,7 @@ void serviceMain(int argc, char* argv[])
     BOOL updatedRunningStatus = FALSE;
 	DWORD returnValue;
     int refreshPeriodSeconds = 10;
-    char *refreshPeriodEnv = getenv("OPENDS_WINDOWS_SERVICE_REFRESH_PERIOD");
+    char *refreshPeriodEnv = getenv("OPENDJ_WINDOWS_SERVICE_REFRESH_PERIOD");
     if (refreshPeriodEnv != NULL)
     {
       refreshPeriodSeconds = (int)strtol(refreshPeriodEnv, (char **)NULL, 10);
@@ -1188,7 +1191,7 @@ void serviceMain(int argc, char* argv[])
       _serviceStatusHandle
      );
   }
-   debug("serviceMain() returning.");
+   debug("serviceMain returning.");
 }  // serviceMain
 
 
@@ -1269,7 +1272,7 @@ void serviceHandler(DWORD controlCode)
       {
         WORD argCount = 1;
         const char *argc[] = {_instanceDir};
-        debug("The server could not be stopped.");
+		debug("serviceHandler: The server could not be stopped.");
         // We could not stop the server
         reportLogEvent(
         EVENTLOG_ERROR_TYPE,
@@ -1329,7 +1332,7 @@ void serviceHandler(DWORD controlCode)
 
     break;
   }
-
+  debug("serviceHandler returning.");
 }  // serviceHandler
 
 // ---------------------------------------------------------------
@@ -1371,7 +1374,7 @@ char* binPathName)
 
   if (myService == NULL)
   {
-      debugError("Failed to open the service '%s'.", serviceName);
+	  debugError("getBinaryPathName: Failed to open the service '%s'.", serviceName);
   }
   else
   {
@@ -1399,7 +1402,7 @@ char* binPathName)
         }
         else
         {
-          debug("getBinaryPath: error calling QueryServiceConfig. Code [%d]",
+          debug("getBinaryPathName: error calling QueryServiceConfig. Code [%d]",
               errCode);
           break;
         }
@@ -1413,10 +1416,15 @@ char* binPathName)
         }
         else
         {
-          debug("getBinaryPath: the length of the binary path name is too big. serviceName='%s', binaryPath='%s'",
+          debug("getBinaryPathName: the length of the binary path name is too big. serviceName='%s', binaryPath='%s'",
               serviceName, serviceConfig->lpBinaryPathName);
         }
       }
+    }
+    if (!CloseServiceHandle(myService))
+    {
+	  debug("getBinaryPathName: error closing handle of service. Code [%d]",
+	        GetLastError());
     }
   }
 
@@ -1635,9 +1643,9 @@ ServiceReturnCode serviceNameInUse(char* serviceName)
 } // serviceNameInUse
 
 // ---------------------------------------------------------------
-// Build a service name for OpenDS and make sure
+// Build a service name for OpenDJ and make sure
 // the service name is unique on the system. To achieve this requirement
-// the service name looks like <baseName> for the first OpenDS and
+// the service name looks like <baseName> for the first OpenDJ and
 // <baseName>-n if there are more than one.
 //
 // The functions returns SERVICE_RETURN_OK if we could create a service
@@ -1945,7 +1953,7 @@ ServiceReturnCode removeServiceFromScm(char* serviceName)
 
 
 // ---------------------------------------------------------------
-// Function called to create a service for the OpenDS instance
+// Function called to create a service for the OpenDJ instance
 // where this executable is installed.
 // The first argument that is passed is the displayName of the service
 // and the second the description,
@@ -1973,7 +1981,7 @@ int createService(char* displayName, char* description)
     {
       debug("Service '%s' already exists.", displayName);
       // There is a valid serviceName for the command to run, so
-      // OpenDS is registered as a service.
+      // OpenDJ is registered as a service.
       code = SERVICE_ALREADY_EXISTS;
       createRegistryKey(serviceName);
     }
@@ -2024,7 +2032,7 @@ int createService(char* displayName, char* description)
 } // createService
 
 // ---------------------------------------------------------------
-// Function called to know if the OpenDS instance where this
+// Function called to know if the OpenDJ instance where this
 // executable is installed is running as a service or not.
 // Returns 0 if the instance is running as a service and print the
 // serviceName in the standard output.
@@ -2052,7 +2060,7 @@ int serviceState()
     if (code == SERVICE_RETURN_OK)
     {
       // There is a valid serviceName for the command to run, so
-      // OpenDS is registered as a service.
+      // OpenDJ is registered as a service.
       fprintf(stdout, serviceName);
       returnCode = 0;
       debug("Service '%s' is enabled.", serviceName);
@@ -2086,7 +2094,7 @@ int removeServiceWithServiceName(char *serviceName)
   int returnCode = 0;
   ServiceReturnCode code = serviceNameInUse(serviceName);
 
-  debug("Removing service.");
+  debug("Removing service with name %s.", serviceName);
 
   if (code != SERVICE_IN_USE)
   {
@@ -2119,7 +2127,7 @@ int removeServiceWithServiceName(char *serviceName)
 } // removeServiceWithServiceName
 
 // ---------------------------------------------------------------
-// Function called to remove the service for the OpenDS instance
+// Function called to remove the service for the OpenDJ instance
 // where this executable is installed.
 // Returns 0 if the service was successfully removed.
 // Returns 1 if the service does not exist.
@@ -2134,7 +2142,7 @@ int removeService()
   char serviceName[MAX_SERVICE_NAME];
   ServiceReturnCode code;
 
-  debug("removeService()");
+  debug("removeService");
   code = createServiceBinPath(cmdToRun);
 
   if (code == SERVICE_RETURN_OK)
@@ -2154,7 +2162,7 @@ int removeService()
     returnCode = 2;
   }
 
-  debug("removeService() returning %d.", returnCode);
+  debug("removeService returning %d.", returnCode);
   return returnCode;
 } // removeService
 
@@ -2173,7 +2181,7 @@ int startService()
   char cmdToRun[COMMAND_SIZE];
   ServiceReturnCode code;
 
-  debug("startService()");
+  debug("startService");
   code = createServiceBinPath(cmdToRun);
 
   if (code == SERVICE_RETURN_OK)
@@ -2229,7 +2237,7 @@ ERROR_SERVICE_ALREADY_RUNNING.";
       WIN_EVENT_ID_SERVER_START_FAILED,
       argCount, argc
       );
-      debugError("For instance dir '%s', %s", argc[0], argc[1]);
+	  debugError("startService: For instance dir '%s', %s", argc[0], argc[1]);
     }
     deregisterEventLog();
   }
