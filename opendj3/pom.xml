@@ -66,6 +66,20 @@
     <developerConnection>scm:svn:https://svn.forgerock.org/opendj/trunk/opendj3/</developerConnection>
     <tag>HEAD</tag>
   </scm>
+  <ciManagement>
+    <system>hudson</system>
+    <url>http://builds.forgerock.org/job/OpenDJ3%20-%20trunk%20-%20postcommit/</url>
+    <notifiers>
+      <notifier>
+        <type>mail</type>
+        <sendOnError>true</sendOnError>
+        <sendOnFailure>true</sendOnFailure>
+        <sendOnSuccess>false</sendOnSuccess>
+        <sendOnWarning>false</sendOnWarning>
+        <address>opendj-dev@forgerock.org</address>
+      </notifier>
+    </notifiers>
+  </ciManagement>
   <modules>
     <module>opendj-maven-checkstyle</module>
     <module>opendj-maven-testng</module>
