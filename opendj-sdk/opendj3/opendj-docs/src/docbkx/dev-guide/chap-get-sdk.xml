@@ -87,12 +87,12 @@ Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
    <procedure>
     <step>
      <para>Download the <link
-     xlink:href='http://builds.forgerock.org/job/OpenDJ3%20-%20trunk%20-%20postcommit/lastStableBuild/org.opendj$opendj-client-tools/artifact/org.opendj/opendj-client-tools/3.0-SNAPSHOT/opendj-client-tools-3.0-SNAPSHOT.zip'
+     xlink:href='http://builds.forgerock.org/job/OpenDJ3%20-%20trunk%20-%20postcommit/lastStableBuild/org.opendj$opendj-client-tools/artifact/org.opendj/opendj-client-tools/3.0.0-SNAPSHOT/opendj-client-tools-3.0.0-SNAPSHOT.zip'
      >latest stable OpenDJ SDK and tools bundle</link>.</para>
     </step>
     <step>
      <para>Download the <link
-     xlink:href='http://builds.forgerock.org/job/OpenDJ3%20-%20trunk%20-%20postcommit/lastStableBuild/org.opendj$opendj-sdk/artifact/org.opendj/opendj-sdk/3.0-SNAPSHOT/opendj-sdk-3.0-SNAPSHOT-javadoc.jar'
+     xlink:href='http://builds.forgerock.org/job/OpenDJ3%20-%20trunk%20-%20postcommit/lastStableBuild/org.opendj$opendj-sdk/artifact/org.opendj/opendj-sdk/3.0.0-SNAPSHOT/opendj-sdk-3.0.0-SNAPSHOT-javadoc.jar'
      >latest stable version of the OpenDJ SDK documentation</link>
      (javadoc).</para>
     </step>
