@@ -24,7 +24,9 @@
   !
   !      Copyright 2011 ForgeRock AS
   !    
---><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.forgerock</groupId>
@@ -72,17 +74,17 @@
     <module>opendj-docs</module>
   </modules>
   <build>
-  <pluginManagement>
-    <plugins>
-      <plugin>
-        <inherited>true</inherited>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <source>1.6</source>
-          <target>1.6</target>
-        </configuration>
-      </plugin>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <inherited>true</inherited>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <configuration>
+            <source>1.6</source>
+            <target>1.6</target>
+          </configuration>
+        </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
@@ -169,11 +171,11 @@
           </executions>
         </plugin>
         <plugin>
-         <groupId>org.apache.maven.plugins</groupId>
-         <artifactId>maven-site-plugin</artifactId>
-         <configuration>
-          <locales>en,fr</locales>
-         </configuration>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-site-plugin</artifactId>
+          <configuration>
+            <locales>en,fr</locales>
+          </configuration>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -196,32 +198,36 @@
       </releases>
     </repository>
     <repository>
-      <id>glassfish-maven2-repository.dev.java.net</id>
-      <name>Java.net Maven 2 Repository for GlassFish</name>
-      <url>http://download.java.net/maven/glassfish/</url>
+      <id>glassfish-repository</id>
+      <name>GlassFish Repository</name>
+      <url>http://download.java.net/maven/glassfish</url>
     </repository>
   </repositories>
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>org.easytesting</groupId>
-        <artifactId>fest-assert</artifactId>
-        <version>1.4</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.testng</groupId>
-        <artifactId>testng</artifactId>
-        <version>6.0.1</version>
-        <scope>test</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>org.easytesting</groupId>
+      <artifactId>fest-assert</artifactId>
+      <version>1.4</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>1.8.5</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testng</groupId>
+      <artifactId>testng</artifactId>
+      <version>6.0.1</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
   <distributionManagement>
-   <site>
-    <id>opendj.forgerock.org</id>
-    <name>OpenDJ Community</name>
-    <url>scp://opendj.forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</url>
-   </site>
+    <site>
+      <id>opendj.forgerock.org</id>
+      <name>OpenDJ Community</name>
+      <url>scp://opendj.forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</url>
+    </site>
   </distributionManagement>
 </project>
