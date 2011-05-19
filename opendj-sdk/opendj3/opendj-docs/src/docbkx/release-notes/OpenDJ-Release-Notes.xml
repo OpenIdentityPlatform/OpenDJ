@@ -83,5 +83,5 @@
  <xinclude:include href='chap-support.xml' />
 
  <index />
-
+ <?dbhtml-include href="../ga.html"?>
 </book>

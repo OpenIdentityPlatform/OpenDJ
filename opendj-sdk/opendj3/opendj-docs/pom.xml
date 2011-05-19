@@ -61,6 +61,7 @@
        <goal>generate-html</goal>
        <goal>generate-pdf</goal>
        <goal>generate-rtf</goal>
+       <goal>generate-manpages</goal>       
       </goals>
       <configuration>
        <!-- Comment the draft elements out for final build -->
