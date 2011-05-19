@@ -31,7 +31,7 @@
   <parent>
     <artifactId>opendj-project</artifactId>
     <groupId>org.opendj</groupId>
-    <version>3.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>opendj-sdk</artifactId>
   <name>OpenDJ SDK</name>

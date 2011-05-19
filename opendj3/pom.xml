@@ -33,7 +33,7 @@
   </parent>
   <groupId>org.opendj</groupId>
   <artifactId>opendj-project</artifactId>
-  <version>3.0-SNAPSHOT</version>
+  <version>3.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>OpenDJ Project</name>
   <description>
