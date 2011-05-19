@@ -23,6 +23,7 @@
 #
 #
 #      Copyright 2008 Sun Microsystems, Inc.
+#      Portions Copyright 2011 ForgeRock AS
 
 #
 # This is the Makefile than can be used to generate the executables
@@ -43,7 +44,7 @@
 #
 
 CC=cl
-SERVICE_PROGNAME=opends_service.exe
+SERVICE_PROGNAME=opendj_service.exe
 LAUNCHER_ADMINISTRATOR_PROGNAME=launcher_administrator.exe
 WINLAUNCHER_PROGNAME=winlauncher.exe
 LINKER=link -nologo /machine:x86
@@ -67,7 +68,7 @@ RC_FILE = EventLogMsg.rc
 
 RES_FILE = EventLogMsg.res
 
-SERVICE_MANIFEST_FILE = opends_service.exe.manifest
+SERVICE_MANIFEST_FILE = opendj_service.exe.manifest
 LAUNCHER_ADMINISTRATOR_MANIFEST_FILE = launcher_administrator.exe.manifest
 
 .c.obj:

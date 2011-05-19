@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS 
  */
 
 package org.opends.server.tools;
@@ -54,8 +55,8 @@ import static org.opends.server.tools.ToolConstants.*;
 /**
   * This class is used to configure the Windows service for this instance on
   * this machine.
-  * This tool allows to enable and disable OpenDS to run as a Windows service
-  * and allows to know if OpenDS is running as a Windows service or not.
+  * This tool allows to enable and disable OpenDJ to run as a Windows service
+  * and allows to know if OpenDJ is running as a Windows service or not.
   *
   * Some comments about Vista:
   * In Vista, when we launch the subcommands that require administrator
@@ -168,8 +169,8 @@ public class ConfigureWindowsService
 
   /**
    * Configures the Windows service for this instance on this machine.
-   * This tool allows to enable and disable OpenDS to run as a Windows service
-   * and allows to know if OpenDS is running as a Windows service or not.
+   * This tool allows to enable and disable OpenDJ to run as a Windows service
+   * and allows to know if OpenDJ is running as a Windows service or not.
    *
    * @param  args  The command-line arguments provided to this program.
    */
@@ -182,8 +183,8 @@ public class ConfigureWindowsService
 
   /**
    * Configures the Windows service for this instance on this machine.
-   * This tool allows to enable and disable OpenDS to run as a Windows service
-   * and allows to know if OpenDS is running as a Windows service or not.
+   * This tool allows to enable and disable OpenDJ to run as a Windows service
+   * and allows to know if OpenDJ is running as a Windows service or not.
    *
    * @param  args  The command-line arguments provided to this program.
    * @param outStream the stream used to write the standard output.
@@ -341,9 +342,9 @@ public class ConfigureWindowsService
   }
 
   /**
-   * Returns the service name associated with OpenDS or null if no service name
+   * Returns the service name associated with OpenDJ or null if no service name
    * could be found.
-   * @return the service name associated with OpenDS or null if no service name
+   * @return the service name associated with OpenDJ or null if no service name
    * could be found.
    */
   static String getServiceName()
@@ -391,7 +392,7 @@ public class ConfigureWindowsService
   }
 
   /**
-   * Enables OpenDS to run as a windows service.
+   * Enables OpenDJ to run as a windows service.
    * @param out the stream used to write the standard output.
    * @param err the stream used to write the error output.
    * @return <CODE>SERVICE_ENABLE_SUCCESS</CODE>,
@@ -414,7 +415,7 @@ public class ConfigureWindowsService
   }
 
   /**
-   * Enables OpenDS to run as a windows service.
+   * Enables OpenDJ to run as a windows service.
    * @param out the stream used to write the standard output.
    * @param err the stream used to write the error output.
    * @param serviceName the name of the service as it will appear in the
@@ -532,7 +533,7 @@ public class ConfigureWindowsService
   }
 
   /**
-   * Disables OpenDS to run as a windows service.
+   * Disables OpenDJ to run as a windows service.
    * @param out the stream used to write the standard output.
    * @param err the stream used to write the error output.
    * @return <CODE>SERVICE_DISABLE_SUCCESS</CODE>,
@@ -690,7 +691,7 @@ public class ConfigureWindowsService
   }
 
   /**
-    * Checks if OpenDS is enabled as a windows service and if it is
+    * Checks if OpenDJ is enabled as a windows service and if it is
     * write the serviceName in the output stream (if it is not null).
     * @param out the stream used to write the standard output.
     * @param err the stream used to write the error output.
@@ -832,7 +833,7 @@ public class ConfigureWindowsService
   private static String getBinaryFullPath()
   {
     return SetupUtils.getScriptPath(
-        getServerRoot()+"\\lib\\opends_service.exe");
+        getServerRoot()+"\\lib\\opendj_service.exe");
   }
 
   /**

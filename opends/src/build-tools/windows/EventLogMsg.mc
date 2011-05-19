@@ -23,6 +23,7 @@
 ; *
 ; *
 ; *      Copyright 2008-2010 Sun Microsystems, Inc.
+; *      Portions Copyright 2011 ForgeRock AS
 ; */
 ;/*
 ; * ==========================================================================
@@ -51,7 +52,7 @@ SeverityNames = (
    )
 
 FacilityNames = (
-   OPENDS	= 0xFA0 : WIN_FACILITY_NAME_OPENDS
+   OPENDJ	= 0xFA0 : WIN_FACILITY_NAME_OPENDJ
    )
 
 
@@ -63,48 +64,48 @@ FacilityNames = (
 
 MessageId    = 0x1
 Severity     = Success
-Facility     = OPENDS
+Facility     = OPENDJ
 SymbolicName = WIN_EVENT_ID_SERVER_STARTED
 Language     = English
-OpenDS has started.
-OpenDS is in %1.
+OpenDJ has started.
+OpenDJ is in %1.
 .
 MessageId    = 0x2
 Severity     = Success
-Facility     = OPENDS
+Facility     = OPENDJ
 SymbolicName = WIN_EVENT_ID_SERVER_STOP
 Language     = English
-OpenDS has shutdown.
-OpenDS is in %1.
+OpenDJ has shutdown.
+OpenDJ is in %1.
 .
 MessageId    = 0x3
 Severity     = Error
-Facility     = OPENDS
+Facility     = OPENDJ
 SymbolicName = WIN_EVENT_ID_SERVER_START_FAILED
 Language     = English
-OpenDS failed in startup.
-OpenDS is in %1.
+OpenDJ failed in startup.
+OpenDJ is in %1.
 .
 MessageId    = 0x4
 Severity     = Error
-Facility     = OPENDS
+Facility     = OPENDJ
 SymbolicName = WIN_EVENT_ID_SERVER_STOP_FAILED
 Language     = English
-OpenDS failed in stop.
-OpenDS is in %1.
+OpenDJ failed in stop.
+OpenDJ is in %1.
 .
 MessageId    = 0x5
 Severity     = Informational
-Facility     = OPENDS
+Facility     = OPENDJ
 SymbolicName = WIN_EVENT_ID_DEBUG
 Language     = English
 %1
 .
 MessageId    = 0x6
 Severity     = Error
-Facility     = OPENDS
+Facility     = OPENDJ
 SymbolicName = WIN_EVENT_ID_SERVER_STOPPED_OUTSIDE_SCM
 Language     = English
-OpenDS stopped outside the Service Control Manager.
-OpenDS is in %1.
+OpenDJ stopped outside the Service Control Manager.
+OpenDJ is in %1.
 .
