@@ -38,7 +38,7 @@
   <description>
     This module includes the core OpenDJ Java APIs for implementing LDAP Directory client and server applications.
   </description>
-  <packaging>jar</packaging>
+  <packaging>bundle</packaging>
   <dependencies>
     <dependency>
       <groupId>org.forgerock.commons</groupId>
@@ -78,6 +78,16 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <extensions>true</extensions>
+        <configuration>
+          <instructions>
+            <Export-Package>org.opends.sdk.*</Export-Package>
+          </instructions>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
