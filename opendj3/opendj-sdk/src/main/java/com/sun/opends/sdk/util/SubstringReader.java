@@ -103,10 +103,10 @@ public class SubstringReader
    * position.
    *
    * @return The character at the current position.
-   * @Exception StringIndexOutOfBoundsException if there is no more data
+   * @throws StringIndexOutOfBoundsException If there is no more data
    *            available to read.
    */
-  public char read()
+  public char read() throws StringIndexOutOfBoundsException
   {
     if (pos >= length)
     {
@@ -126,10 +126,10 @@ public class SubstringReader
    * @param length
    *          The number of characters to read.
    * @return The substring.
-   * @Exception StringIndexOutOfBoundsException if the length exceeds the
+   * @throws StringIndexOutOfBoundsException If the length exceeds the
    *            allowed length.
    */
-  public String read(final int length)
+  public String read(final int length) throws StringIndexOutOfBoundsException
   {
     if (length > this.length || pos + length > this.length)
     {
