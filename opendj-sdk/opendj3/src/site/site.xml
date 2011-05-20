@@ -54,6 +54,10 @@
    <item name="Partners" href="http://www.forgerock.com/partners.html" />
    <item name="Wiki" href="http://wikis.forgerock.org/opendj/" />
   </menu>
+
+  <menu name="Modules">
+    <item name="OpenDJ LDAP SDK" href="opendj-sdk" />
+  </menu>
   
   <menu name="Core Documentation">
    <item name="Release Notes" href="index.html" collapse="true">
@@ -85,8 +89,6 @@
    <item name="SDK Javadoc" href="index.html" alt="TODO" />
   </menu>
 
-  <!-- TODO: Add QA pages -->
-  <!-- TODO: Customize reports rather than autogenerate them. -->
   <menu ref="reports" />
   
  </body>

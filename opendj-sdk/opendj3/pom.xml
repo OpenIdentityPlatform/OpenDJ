@@ -67,7 +67,7 @@
     <tag>HEAD</tag>
   </scm>
   <ciManagement>
-    <system>hudson</system>
+    <system>jenkins</system>
     <url>http://builds.forgerock.org/job/OpenDJ3%20-%20trunk%20-%20postcommit/</url>
     <notifiers>
       <notifier>
@@ -80,6 +80,13 @@
       </notifier>
     </notifiers>
   </ciManagement>
+  <distributionManagement>
+    <site>
+      <id>opendj.forgerock.org</id>
+      <name>OpenDJ Community</name>
+      <url>scp://opendj.forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</url>
+    </site>
+  </distributionManagement>
   <modules>
     <module>opendj-maven-checkstyle</module>
     <module>opendj-maven-testng</module>
@@ -194,6 +201,26 @@
       </plugins>
     </pluginManagement>
   </build>
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>2.4</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>index</report>
+              <report>mailing-list</report>
+              <report>issue-tracking</report>
+              <report>license</report>
+              <report>scm</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+    </plugins>
+  </reporting>
   <repositories>
     <repository>
       <id>forgerock-staging-repository</id>
@@ -237,11 +264,4 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-  <distributionManagement>
-    <site>
-      <id>opendj.forgerock.org</id>
-      <name>OpenDJ Community</name>
-      <url>scp://opendj.forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</url>
-    </site>
-  </distributionManagement>
 </project>
