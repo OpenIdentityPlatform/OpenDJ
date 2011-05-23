@@ -75,7 +75,7 @@ final class ArgumentParser
   // information.
   private Argument usageArgument;
 
-  // The argument that will be used to trigger the display of the OpenDS
+  // The argument that will be used to trigger the display of the OpenDJ
   // version.
   private Argument versionArgument;
 
@@ -498,18 +498,10 @@ final class ArgumentParser
     }
     else
     {
-      // Check in "user home"/.opends directory
+      // Check in "user home"/.opendj directory
       final String userDir = System.getProperty("user.home");
       propertiesFilePath = findPropertiesFile(userDir + File.separator
-          + DEFAULT_OPENDS_CONFIG_DIR);
-
-      // TODO
-      /*
-       * if (propertiesFilePath == null) { // check "Opends instance"/config
-       * directory String instanceDir = DirectoryServer.getInstanceRoot();
-       * propertiesFilePath = findPropertiesFile(instanceDir+ File.separator +
-       * "config"); }
-       */
+          + DEFAULT_OPENDJ_CONFIG_DIR);
     }
 
     // We don't have a properties file location
@@ -1711,8 +1703,8 @@ final class ArgumentParser
   private String findPropertiesFile(final String directory)
   {
     // Look for the tools properties file
-    final File f = new File(directory, DEFAULT_OPENDS_PROPERTIES_FILE_NAME
-        + DEFAULT_OPENDS_PROPERTIES_FILE_EXTENSION);
+    final File f = new File(directory, DEFAULT_OPENDJ_PROPERTIES_FILE_NAME
+        + DEFAULT_OPENDJ_PROPERTIES_FILE_EXTENSION);
     if (f.exists() && f.canRead())
     {
       return f.getAbsolutePath();

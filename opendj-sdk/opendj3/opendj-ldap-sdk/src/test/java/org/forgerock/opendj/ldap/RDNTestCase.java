@@ -66,8 +66,8 @@ public final class RDNTestCase extends TypesTestCase
   // org bytestring.
   private static final ByteString ORG = ByteString.valueOf("org");
 
-  // opends bytestring.
-  private static final ByteString OPENDS = ByteString.valueOf("opends");
+  // opendj bytestring.
+  private static final ByteString OPENDJ = ByteString.valueOf("opendj");
 
 
 
@@ -425,7 +425,7 @@ public final class RDNTestCase extends TypesTestCase
   @Test
   public void testGetAttributeName() throws Exception
   {
-    final RDN rdn = RDN.valueOf("dc=opends+cn=org");
+    final RDN rdn = RDN.valueOf("dc=opendj+cn=org");
     assertTrue(rdn.isMultiValued());
     assertEquals(rdn.size(), 2);
     final Iterator<AVA> it = rdn.iterator();

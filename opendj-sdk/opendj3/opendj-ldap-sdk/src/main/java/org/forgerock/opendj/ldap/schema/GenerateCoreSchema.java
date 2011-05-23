@@ -119,7 +119,7 @@ final class GenerateCoreSchema
     System.out.println();
     System.out.println();
     System.out.println("/**");
-    System.out.println(" * The OpenDS SDK core schema contains standard LDAP "
+    System.out.println(" * The OpenDJ SDK core schema contains standard LDAP "
         + "RFC schema elements. These include:");
     System.out.println(" * <ul>");
     System.out

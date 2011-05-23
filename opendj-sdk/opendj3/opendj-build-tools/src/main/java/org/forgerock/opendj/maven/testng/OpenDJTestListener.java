@@ -518,7 +518,7 @@ public class OpenDJTestListener extends TestListenerAdapter implements IReporter
     _bufferedTestFailures.append(failureInfo);
 
     final String pauseStr = System
-        .getProperty("org.opends.test.pauseOnFailure");
+        .getProperty("org.opendj.test.pauseOnFailure");
     if ((pauseStr != null) && pauseStr.equalsIgnoreCase("true"))
     {
       pauseOnFailure();
@@ -916,13 +916,13 @@ public class OpenDJTestListener extends TestListenerAdapter implements IReporter
   {
     final StackTraceElement[] elements = t.getStackTrace();
 
-    int lowestOpenDSFrame;
-    for (lowestOpenDSFrame = elements.length - 1; lowestOpenDSFrame >= 0; lowestOpenDSFrame--)
+    int lowestOpenDJFrame;
+    for (lowestOpenDJFrame = elements.length - 1; lowestOpenDJFrame >= 0; lowestOpenDJFrame--)
     {
-      final StackTraceElement element = elements[lowestOpenDSFrame];
+      final StackTraceElement element = elements[lowestOpenDJFrame];
       final String clsName = element.getClassName();
-      if (clsName.startsWith("org.opends.")
-          && !clsName.equals("org.opends.server.SuiteRunner"))
+      if (clsName.startsWith("org.opendj.")
+          && !clsName.equals("org.opendj.server.SuiteRunner"))
       {
         break;
       }
@@ -930,7 +930,7 @@ public class OpenDJTestListener extends TestListenerAdapter implements IReporter
 
     final StringBuilder buffer = new StringBuilder();
     buffer.append(t).append(EOL);
-    for (int i = 0; i <= lowestOpenDSFrame; i++)
+    for (int i = 0; i <= lowestOpenDJFrame; i++)
     {
       buffer.append("    ").append(elements[i]).append(EOL);
     }

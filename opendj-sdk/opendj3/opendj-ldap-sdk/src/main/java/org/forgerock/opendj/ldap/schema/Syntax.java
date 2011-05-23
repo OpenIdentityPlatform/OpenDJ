@@ -52,7 +52,7 @@ import com.forgerock.opendj.util.Validator;
  * transferred in the LDAP protocol.
  * <p>
  * Syntax implementations must extend the {@link SyntaxImpl} interface so they
- * can be used by OpenDS to validate attribute values.
+ * can be used by OpenDJ to validate attribute values.
  * <p>
  * Where ordered sets of names, or extra properties are provided, the ordering
  * will be preserved when the associated fields are accessed via their getters

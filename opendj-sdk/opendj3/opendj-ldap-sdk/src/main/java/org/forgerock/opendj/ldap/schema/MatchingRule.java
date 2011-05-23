@@ -56,7 +56,7 @@ import com.forgerock.opendj.util.Validator;
  * entry.
  * <p>
  * Matching rule implementations must extend the
- * <code>MatchingRuleImplementation</code> class so they can be used by OpenDS.
+ * <code>MatchingRuleImplementation</code> class so they can be used by OpenDJ.
  * <p>
  * Where ordered sets of names, or extra properties are provided, the ordering
  * will be preserved when the associated fields are accessed via their getters

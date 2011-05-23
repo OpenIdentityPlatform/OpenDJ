@@ -228,9 +228,9 @@ $ mvn install
 //  If your LDAP server is not listening on localhost:1389, or if your
 //  data are different change the appropriate lines below.
 
-import org.opends.sdk.*;
-import org.opends.sdk.ldif.*;
-import org.opends.sdk.responses.*;
+import org.opendj.sdk.*;
+import org.opendj.sdk.ldif.*;
+import org.opendj.sdk.responses.*;
 
 class Test
 {

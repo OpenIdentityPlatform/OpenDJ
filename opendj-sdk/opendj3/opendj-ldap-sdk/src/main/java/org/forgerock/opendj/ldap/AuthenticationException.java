@@ -42,7 +42,7 @@ import org.forgerock.opendj.ldap.responses.Result;
  * the Bind request failed because it referenced an invalid SASL mechanism.
  * <li>{@link ResultCode#CLIENT_SIDE_AUTH_UNKNOWN CLIENT_SIDE_AUTH_UNKNOWN} -
  * the Bind request failed because the user requested an authentication
- * mechanism which is unknown or unsupported by the OpenDS SDK.
+ * mechanism which is unknown or unsupported by the OpenDJ SDK.
  * <li>{@link ResultCode#INAPPROPRIATE_AUTHENTICATION
  * INAPPROPRIATE_AUTHENTICATION} - the Bind request failed because the requested
  * type of authentication was not appropriate for the targeted entry.

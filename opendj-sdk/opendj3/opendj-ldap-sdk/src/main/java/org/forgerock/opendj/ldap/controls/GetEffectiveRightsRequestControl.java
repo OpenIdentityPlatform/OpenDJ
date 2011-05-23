@@ -52,7 +52,7 @@ import com.forgerock.opendj.util.Validator;
  * A partial implementation of the get effective rights request control as
  * defined in draft-ietf-ldapext-acl-model. The main differences are:
  * <ul>
- * <li>The response control is not supported. Instead the OpenDS implementation
+ * <li>The response control is not supported. Instead the OpenDJ implementation
  * creates attributes containing effective rights information with the entry
  * being returned.
  * <li>The attribute type names are dynamically created.

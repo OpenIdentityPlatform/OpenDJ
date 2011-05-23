@@ -123,9 +123,9 @@ final class PromptingTrustManager implements X509TrustManager
       .getLogger(PromptingTrustManager.class.getName());
 
   static private final String DEFAULT_PATH = System.getProperty("user.home")
-      + File.separator + ".opends" + File.separator + "keystore";
+      + File.separator + ".opendj" + File.separator + "keystore";
 
-  static private final char[] DEFAULT_PASSWORD = "OpenDS".toCharArray();
+  static private final char[] DEFAULT_PASSWORD = "OpenDJ".toCharArray();
 
   private final KeyStore inMemoryTrustStore;
 

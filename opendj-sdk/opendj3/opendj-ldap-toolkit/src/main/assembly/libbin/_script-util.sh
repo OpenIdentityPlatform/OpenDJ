@@ -33,35 +33,35 @@ set_java_home_and_args() {
   then
     . "${INSTANCE_ROOT}/lib/set-java-home"
   fi
-  if test -z "${OPENDS_JAVA_BIN}"
+  if test -z "${OPENDJ_JAVA_BIN}"
   then
-    if test -z "${OPENDS_JAVA_HOME}"
+    if test -z "${OPENDJ_JAVA_HOME}"
     then
       if test -z "${JAVA_BIN}"
       then
         if test -z "${JAVA_HOME}"
         then
-          OPENDS_JAVA_BIN=`which java 2> /dev/null`
+          OPENDJ_JAVA_BIN=`which java 2> /dev/null`
           if test ${?} -eq 0
           then
-            export OPENDS_JAVA_BIN
+            export OPENDJ_JAVA_BIN
           else
-            echo "Please set OPENDS_JAVA_HOME to the root of a Java 5 (or later) installation"
+            echo "Please set OPENDJ_JAVA_HOME to the root of a Java 5 (or later) installation"
             echo "or edit the java.properties file and then run the dsjavaproperties script to"
             echo "specify the Java version to be used"
             exit 1
           fi
         else
-          OPENDS_JAVA_BIN="${JAVA_HOME}/bin/java"
-          export OPENDS_JAVA_BIN
+          OPENDJ_JAVA_BIN="${JAVA_HOME}/bin/java"
+          export OPENDJ_JAVA_BIN
         fi
       else
-        OPENDS_JAVA_BIN="${JAVA_BIN}"
-        export OPENDS_JAVA_BIN
+        OPENDJ_JAVA_BIN="${JAVA_BIN}"
+        export OPENDJ_JAVA_BIN
       fi
     else
-      OPENDS_JAVA_BIN="${OPENDS_JAVA_HOME}/bin/java"
-      export OPENDS_JAVA_BIN
+      OPENDJ_JAVA_BIN="${OPENDJ_JAVA_HOME}/bin/java"
+      export OPENDJ_JAVA_BIN
     fi
   fi
 }

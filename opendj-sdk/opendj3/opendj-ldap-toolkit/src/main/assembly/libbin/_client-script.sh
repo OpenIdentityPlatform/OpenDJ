@@ -28,9 +28,9 @@
 
 # This script is used to invoke various client-side processes.  It should not
 # be invoked directly by end users.
-if test -z "${OPENDS_INVOKE_CLASS}"
+if test -z "${OPENDJ_INVOKE_CLASS}"
 then
-  echo "ERROR:  OPENDS_INVOKE_CLASS environment variable is not set."
+  echo "ERROR:  OPENDJ_INVOKE_CLASS environment variable is not set."
   exit 1
 fi
 
@@ -62,4 +62,4 @@ then
 fi
 
 # Launch the appropriate client utility.
-"${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} "${OPENDS_INVOKE_CLASS}" "${@}"
+"${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} ${SCRIPT_NAME_ARG} "${OPENDJ_INVOKE_CLASS}" "${@}"

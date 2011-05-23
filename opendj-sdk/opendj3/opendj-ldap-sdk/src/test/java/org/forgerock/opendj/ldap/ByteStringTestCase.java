@@ -39,8 +39,7 @@ import org.testng.annotations.Test;
 
 
 /**
- * This class defines a set of tests for the org.opends.server.types.ByteString
- * class.
+ * This class defines a set of tests for the ByteString class.
  */
 public class ByteStringTestCase extends ByteSequenceTestCase
 {
