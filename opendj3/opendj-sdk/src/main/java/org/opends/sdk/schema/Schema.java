@@ -44,9 +44,9 @@ import org.opends.sdk.responses.Responses;
 import org.opends.sdk.responses.Result;
 import org.opends.sdk.responses.SearchResultEntry;
 
-import com.sun.opends.sdk.util.FutureResultTransformer;
-import com.sun.opends.sdk.util.RecursiveFutureResult;
-import com.sun.opends.sdk.util.StaticUtils;
+import com.forgerock.opendj.util.FutureResultTransformer;
+import com.forgerock.opendj.util.RecursiveFutureResult;
+import com.forgerock.opendj.util.StaticUtils;
 
 
 

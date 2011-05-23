@@ -32,7 +32,7 @@ package org.opends.sdk;
 import java.util.Collection;
 import java.util.Map;
 
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Validator;
 
 
 

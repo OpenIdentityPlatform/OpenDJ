@@ -28,8 +28,8 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.StaticUtils.isAlpha;
-import static com.sun.opends.sdk.util.StaticUtils.isDigit;
+import static com.forgerock.opendj.util.StaticUtils.isAlpha;
+import static com.forgerock.opendj.util.StaticUtils.isDigit;
 import static org.opends.sdk.CoreMessages.*;
 
 import java.util.*;
@@ -37,7 +37,7 @@ import java.util.*;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.sdk.DecodeException;
 
-import com.sun.opends.sdk.util.SubstringReader;
+import com.forgerock.opendj.util.SubstringReader;
 
 
 

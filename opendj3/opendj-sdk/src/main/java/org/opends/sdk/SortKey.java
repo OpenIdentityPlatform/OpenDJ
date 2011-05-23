@@ -37,7 +37,7 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.schema.MatchingRule;
 import org.opends.sdk.schema.Schema;
 
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Validator;
 
 
 

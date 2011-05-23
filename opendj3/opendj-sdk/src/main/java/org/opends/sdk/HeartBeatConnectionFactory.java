@@ -42,10 +42,10 @@ import org.opends.sdk.responses.Result;
 import org.opends.sdk.responses.SearchResultEntry;
 import org.opends.sdk.responses.SearchResultReference;
 
-import com.sun.opends.sdk.util.AsynchronousConnectionDecorator;
-import com.sun.opends.sdk.util.FutureResultTransformer;
-import com.sun.opends.sdk.util.StaticUtils;
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.AsynchronousConnectionDecorator;
+import com.forgerock.opendj.util.FutureResultTransformer;
+import com.forgerock.opendj.util.StaticUtils;
+import com.forgerock.opendj.util.Validator;
 
 
 

@@ -30,8 +30,8 @@ package org.opends.sdk.schema;
 
 import org.opends.sdk.*;
 
-import com.sun.opends.sdk.util.StaticUtils;
-import com.sun.opends.sdk.util.SubstringReader;
+import com.forgerock.opendj.util.StaticUtils;
+import com.forgerock.opendj.util.SubstringReader;
 
 
 

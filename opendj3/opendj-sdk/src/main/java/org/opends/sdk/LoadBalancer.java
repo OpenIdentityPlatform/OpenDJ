@@ -29,8 +29,8 @@ package org.opends.sdk;
 
 
 
-import com.sun.opends.sdk.util.CompletedFutureResult;
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.CompletedFutureResult;
+import com.forgerock.opendj.util.Validator;
 
 
 

@@ -28,8 +28,8 @@ package org.opends.sdk.controls;
 
 
 
-import static com.sun.opends.sdk.util.StaticUtils.byteToHex;
-import static com.sun.opends.sdk.util.StaticUtils.getExceptionMessage;
+import static com.forgerock.opendj.util.StaticUtils.byteToHex;
+import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
 import static org.opends.sdk.CoreMessages.ERR_VLVREQ_CONTROL_BAD_OID;
 import static org.opends.sdk.CoreMessages.INFO_VLVREQ_CONTROL_CANNOT_DECODE_VALUE;
 import static org.opends.sdk.CoreMessages.INFO_VLVREQ_CONTROL_INVALID_TARGET_TYPE;
@@ -46,7 +46,7 @@ import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Validator;
 
 
 

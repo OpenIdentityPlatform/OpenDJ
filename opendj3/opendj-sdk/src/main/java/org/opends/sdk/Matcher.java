@@ -29,7 +29,7 @@ package org.opends.sdk;
 
 
 
-import static com.sun.opends.sdk.util.StaticUtils.DEBUG_LOG;
+import static com.forgerock.opendj.util.StaticUtils.DEBUG_LOG;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +41,7 @@ import org.opends.sdk.schema.MatchingRuleUse;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.UnknownSchemaElementException;
 
-import com.sun.opends.sdk.util.StaticUtils;
+import com.forgerock.opendj.util.StaticUtils;
 
 
 

@@ -28,7 +28,7 @@ package org.opends.sdk.controls;
 
 
 
-import static com.sun.opends.sdk.util.StaticUtils.getExceptionMessage;
+import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
 import static org.opends.sdk.CoreMessages.ERR_PWEXPIRING_CANNOT_DECODE_SECONDS_UNTIL_EXPIRATION;
 import static org.opends.sdk.CoreMessages.ERR_PWEXPIRING_CONTROL_BAD_OID;
 import static org.opends.sdk.CoreMessages.ERR_PWEXPIRING_NO_CONTROL_VALUE;
@@ -38,8 +38,8 @@ import org.opends.sdk.ByteString;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.DecodeOptions;
 
-import com.sun.opends.sdk.util.StaticUtils;
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.StaticUtils;
+import com.forgerock.opendj.util.Validator;
 
 
 

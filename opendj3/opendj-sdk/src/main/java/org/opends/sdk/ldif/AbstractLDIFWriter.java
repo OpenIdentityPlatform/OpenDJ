@@ -40,8 +40,8 @@ import org.opends.sdk.ByteSequence;
 import org.opends.sdk.ByteString;
 import org.opends.sdk.controls.Control;
 
-import com.sun.opends.sdk.util.Base64;
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Base64;
+import com.forgerock.opendj.util.Validator;
 
 
 

@@ -37,7 +37,7 @@ import org.opends.sdk.requests.SearchRequest;
 import org.opends.sdk.responses.SearchResultEntry;
 import org.opends.sdk.schema.CoreSchema;
 
-import com.sun.opends.sdk.util.*;
+import com.forgerock.opendj.util.*;
 
 
 

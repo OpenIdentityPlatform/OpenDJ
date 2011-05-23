@@ -32,7 +32,7 @@ package org.opends.sdk.requests;
 import org.opends.sdk.ByteString;
 import org.testng.annotations.DataProvider;
 
-import com.sun.opends.sdk.ldap.LDAPConstants;
+import com.forgerock.opendj.ldap.LDAPConstants;
 
 
 

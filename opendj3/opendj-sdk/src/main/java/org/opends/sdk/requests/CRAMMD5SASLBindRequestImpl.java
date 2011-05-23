@@ -42,7 +42,7 @@ import org.opends.sdk.ResultCode;
 import org.opends.sdk.responses.BindResult;
 import org.opends.sdk.responses.Responses;
 
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Validator;
 
 
 

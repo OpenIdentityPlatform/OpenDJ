@@ -36,7 +36,7 @@ import org.testng.annotations.Test;
 
 /**
  * An abstract class that all tools unit tests should extend. A tool represents
- * the classes found directly under the package com.sun.opends.sdk.tools.
+ * the classes found directly under the package com.forgerock.opendj.ldap.tools.
  */
 
 @Test(groups = { "precommit", "tools", "sdk" })

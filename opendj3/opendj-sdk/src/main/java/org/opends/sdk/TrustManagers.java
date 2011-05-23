@@ -49,7 +49,7 @@ import javax.net.ssl.X509TrustManager;
 
 import org.opends.sdk.schema.Schema;
 
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Validator;
 
 
 

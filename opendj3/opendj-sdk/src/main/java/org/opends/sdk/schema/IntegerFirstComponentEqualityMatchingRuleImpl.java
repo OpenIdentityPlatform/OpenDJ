@@ -35,8 +35,8 @@ import static org.opends.sdk.CoreMessages.ERR_EMR_INTFIRSTCOMP_FIRST_COMPONENT_N
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.sdk.*;
 
-import com.sun.opends.sdk.util.StaticUtils;
-import com.sun.opends.sdk.util.SubstringReader;
+import com.forgerock.opendj.util.StaticUtils;
+import com.forgerock.opendj.util.SubstringReader;
 
 
 

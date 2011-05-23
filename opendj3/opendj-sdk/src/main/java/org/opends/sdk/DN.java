@@ -38,8 +38,8 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.UnknownSchemaElementException;
 
-import com.sun.opends.sdk.util.SubstringReader;
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.SubstringReader;
+import com.forgerock.opendj.util.Validator;
 
 
 

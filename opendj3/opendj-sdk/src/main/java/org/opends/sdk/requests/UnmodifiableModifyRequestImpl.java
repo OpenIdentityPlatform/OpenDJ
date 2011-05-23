@@ -34,9 +34,9 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.*;
 import org.opends.sdk.ldif.ChangeRecordVisitor;
 
-import com.sun.opends.sdk.util.Collections2;
-import com.sun.opends.sdk.util.Function;
-import com.sun.opends.sdk.util.Functions;
+import com.forgerock.opendj.util.Collections2;
+import com.forgerock.opendj.util.Function;
+import com.forgerock.opendj.util.Functions;
 
 /**
  * Unmodifiable modify request implementation.

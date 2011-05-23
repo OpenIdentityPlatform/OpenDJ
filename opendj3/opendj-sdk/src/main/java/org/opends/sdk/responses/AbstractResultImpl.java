@@ -34,7 +34,7 @@ import java.util.List;
 
 import org.opends.sdk.ResultCode;
 
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Validator;
 
 
 

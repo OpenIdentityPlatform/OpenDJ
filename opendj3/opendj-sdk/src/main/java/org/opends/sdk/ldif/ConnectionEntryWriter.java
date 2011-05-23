@@ -36,7 +36,7 @@ import org.opends.sdk.Entry;
 import org.opends.sdk.ErrorResultException;
 import org.opends.sdk.ErrorResultIOException;
 
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Validator;
 
 
 

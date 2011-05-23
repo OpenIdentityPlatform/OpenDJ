@@ -27,7 +27,7 @@
 
 
 # This script may be used to measure auth performance.
-OPENDS_INVOKE_CLASS="com.sun.opends.sdk.tools.AuthRate"
+OPENDS_INVOKE_CLASS="com.forgerock.opendj.ldap.tools.AuthRate"
 export OPENDS_INVOKE_CLASS
 
 SCRIPT_NAME="authrate"

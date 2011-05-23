@@ -29,8 +29,8 @@ package org.opends.sdk.requests;
 
 
 
-import static com.sun.opends.sdk.util.StaticUtils.getExceptionMessage;
-import static com.sun.opends.sdk.util.StaticUtils.joinCollection;
+import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
+import static com.forgerock.opendj.util.StaticUtils.joinCollection;
 import static org.opends.sdk.CoreMessages.ERR_SASL_PROTOCOL_ERROR;
 
 import java.util.*;
@@ -51,7 +51,7 @@ import org.opends.sdk.ResultCode;
 import org.opends.sdk.responses.BindResult;
 import org.opends.sdk.responses.Responses;
 
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Validator;
 
 
 

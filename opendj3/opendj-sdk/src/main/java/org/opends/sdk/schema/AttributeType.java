@@ -40,8 +40,8 @@ import java.util.Map;
 
 import org.forgerock.i18n.LocalizableMessage;
 
-import com.sun.opends.sdk.util.StaticUtils;
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.StaticUtils;
+import com.forgerock.opendj.util.Validator;
 
 
 

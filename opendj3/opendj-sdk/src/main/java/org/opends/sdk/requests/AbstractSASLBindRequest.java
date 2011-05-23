@@ -29,7 +29,7 @@ package org.opends.sdk.requests;
 
 
 
-import static com.sun.opends.sdk.ldap.LDAPConstants.TYPE_AUTHENTICATION_SASL;
+import static com.forgerock.opendj.ldap.LDAPConstants.TYPE_AUTHENTICATION_SASL;
 
 
 

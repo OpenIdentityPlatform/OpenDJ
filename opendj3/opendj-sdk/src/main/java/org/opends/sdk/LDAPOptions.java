@@ -37,7 +37,7 @@ import javax.net.ssl.SSLContext;
 
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Validator;
 
 
 

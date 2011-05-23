@@ -32,7 +32,7 @@ package org.opends.sdk.requests;
 import org.opends.sdk.ByteString;
 import org.opends.sdk.ErrorResultException;
 
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Validator;
 
 
 

@@ -27,7 +27,7 @@ rem      Copyright 2010 Sun Microsystems, Inc.
 
 setlocal
 
-set OPENDS_INVOKE_CLASS="com.sun.opends.sdk.tools.AuthRate"
+set OPENDS_INVOKE_CLASS="com.forgerock.opendj.ldap.tools.AuthRate"
 set SCRIPT_NAME=authrate
 for %%i in (%~sf0) do call "%%~dPsi\..\lib\_client-script.bat" %*
 

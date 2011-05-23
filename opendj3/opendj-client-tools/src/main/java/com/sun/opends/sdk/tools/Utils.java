@@ -29,7 +29,7 @@ package com.sun.opends.sdk.tools;
 
 
 import static org.opends.sdk.CoreMessages.*;
-import static com.sun.opends.sdk.util.StaticUtils.EOL;
+import static com.forgerock.opendj.util.StaticUtils.EOL;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,9 +41,9 @@ import org.opends.sdk.*;
 import org.opends.sdk.controls.*;
 import org.opends.sdk.responses.BindResult;
 
-import com.sun.opends.sdk.controls.AccountUsabilityRequestControl;
+import com.forgerock.opendj.ldap.controls.AccountUsabilityRequestControl;
+import com.forgerock.opendj.util.StaticUtils;
 import com.sun.opends.sdk.tools.AuthenticatedConnectionFactory.AuthenticatedConnection;
-import com.sun.opends.sdk.util.StaticUtils;
 
 
 
@@ -55,7 +55,7 @@ final class Utils
   /**
    * The name of a command-line script used to launch a tool.
    */
-  static final String PROPERTY_SCRIPT_NAME = "com.sun.opends.sdk.tools.scriptName";
+  static final String PROPERTY_SCRIPT_NAME = "com.forgerock.opendj.ldap.tools.scriptName";
 
   /**
    * The column at which to wrap long lines of output in the command-line tools.

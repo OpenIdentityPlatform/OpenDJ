@@ -31,7 +31,7 @@ package org.opends.sdk.schema;
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.ByteString;
 
-import com.sun.opends.sdk.util.StaticUtils;
+import com.forgerock.opendj.util.StaticUtils;
 
 
 

@@ -29,7 +29,7 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.StaticUtils.toLowerCase;
+import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
 import static org.opends.sdk.CoreMessages.ERR_ATTR_SYNTAX_DELIVERY_METHOD_INVALID_ELEMENT;
 import static org.opends.sdk.CoreMessages.ERR_ATTR_SYNTAX_DELIVERY_METHOD_NO_ELEMENTS;
 import static org.opends.sdk.schema.SchemaConstants.*;

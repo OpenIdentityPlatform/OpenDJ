@@ -35,8 +35,8 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
-import com.sun.opends.sdk.ldap.LDAPListenerImpl;
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.ldap.LDAPListenerImpl;
+import com.forgerock.opendj.util.Validator;
 
 
 

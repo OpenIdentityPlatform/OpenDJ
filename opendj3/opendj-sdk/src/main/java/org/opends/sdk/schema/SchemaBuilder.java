@@ -50,9 +50,9 @@ import org.opends.sdk.ByteString;
 import org.opends.sdk.DecodeException;
 import org.opends.sdk.Entry;
 
-import com.sun.opends.sdk.util.StaticUtils;
-import com.sun.opends.sdk.util.SubstringReader;
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.StaticUtils;
+import com.forgerock.opendj.util.SubstringReader;
+import com.forgerock.opendj.util.Validator;
 
 
 

@@ -34,7 +34,7 @@ import org.opends.sdk.AttributeDescription;
 import org.opends.sdk.ByteString;
 import org.opends.sdk.DN;
 
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Validator;
 
 
 

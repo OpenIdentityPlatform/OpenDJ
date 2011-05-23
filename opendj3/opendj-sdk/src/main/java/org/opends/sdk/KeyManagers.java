@@ -38,7 +38,7 @@ import java.security.cert.X509Certificate;
 
 import javax.net.ssl.*;
 
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Validator;
 
 
 

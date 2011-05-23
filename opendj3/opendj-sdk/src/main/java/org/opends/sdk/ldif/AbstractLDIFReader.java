@@ -29,7 +29,7 @@ package org.opends.sdk.ldif;
 
 
 
-import static com.sun.opends.sdk.util.StaticUtils.toLowerCase;
+import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
 import static org.opends.sdk.CoreMessages.*;
 
 import java.io.BufferedReader;
@@ -46,8 +46,8 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.*;
 
-import com.sun.opends.sdk.util.Base64;
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Base64;
+import com.forgerock.opendj.util.Validator;
 
 
 

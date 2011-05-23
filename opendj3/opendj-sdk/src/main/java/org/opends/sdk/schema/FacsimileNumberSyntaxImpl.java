@@ -29,7 +29,7 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.StaticUtils.toLowerCase;
+import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
 import static org.opends.sdk.CoreMessages.ERR_ATTR_SYNTAX_FAXNUMBER_EMPTY;
 import static org.opends.sdk.CoreMessages.ERR_ATTR_SYNTAX_FAXNUMBER_END_WITH_DOLLAR;
 import static org.opends.sdk.CoreMessages.ERR_ATTR_SYNTAX_FAXNUMBER_ILLEGAL_PARAMETER;

@@ -33,9 +33,9 @@ import java.util.Collection;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 
-import com.sun.opends.sdk.util.Iterables;
-import com.sun.opends.sdk.util.Predicate;
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Iterables;
+import com.forgerock.opendj.util.Predicate;
+import com.forgerock.opendj.util.Validator;
 
 
 

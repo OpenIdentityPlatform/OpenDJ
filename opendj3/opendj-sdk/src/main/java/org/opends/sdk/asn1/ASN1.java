@@ -37,7 +37,7 @@ import org.opends.sdk.ByteSequenceReader;
 import org.opends.sdk.ByteString;
 import org.opends.sdk.ByteStringBuilder;
 
-import com.sun.opends.sdk.util.ByteSequenceOutputStream;
+import com.forgerock.opendj.util.ByteSequenceOutputStream;
 
 
 

@@ -34,7 +34,7 @@ import java.util.*;
 import org.opends.sdk.schema.AttributeType;
 import org.opends.sdk.schema.MatchingRule;
 
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Validator;
 
 
 
