@@ -25,7 +25,7 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  *      Portions copyright 2011 ForgeRock AS
  */
-package org.opendj.maven.testng;
+package org.forgerock.opendj.maven.testng;
 
 
 

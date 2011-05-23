@@ -48,7 +48,7 @@
     </dependency>
     <dependency>
       <groupId>org.forgerock.opendj</groupId>
-      <artifactId>opendj-maven-testng</artifactId>
+      <artifactId>opendj-build-tools</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>

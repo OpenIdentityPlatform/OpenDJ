@@ -27,7 +27,7 @@
 /**
  * TestNG unit testing infrastructure necessary for the OpenDJ project.
  */
-package org.opendj.maven.testng;
+package org.forgerock.opendj.maven.testng;
 
 
 

@@ -30,7 +30,7 @@ package org.forgerock.opendj.ldap.controls;
 
 
 import org.forgerock.opendj.ldap.TestCaseUtils;
-import org.opendj.maven.testng.OpenDJTestCase;
+import org.forgerock.opendj.maven.testng.OpenDJTestCase;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
