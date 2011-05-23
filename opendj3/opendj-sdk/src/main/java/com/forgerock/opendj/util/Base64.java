@@ -29,14 +29,14 @@ package com.forgerock.opendj.util;
 
 
 import static com.forgerock.opendj.util.Validator.ensureNotNull;
-import static org.opends.sdk.CoreMessages.ERR_BASE64_DECODE_INVALID_CHARACTER;
-import static org.opends.sdk.CoreMessages.ERR_BASE64_DECODE_INVALID_LENGTH;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_BASE64_DECODE_INVALID_CHARACTER;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_BASE64_DECODE_INVALID_LENGTH;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
-import org.opends.sdk.ByteSequence;
-import org.opends.sdk.ByteString;
-import org.opends.sdk.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 
 
 

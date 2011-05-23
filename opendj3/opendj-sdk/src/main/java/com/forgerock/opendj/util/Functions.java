@@ -29,10 +29,10 @@ package com.forgerock.opendj.util;
 
 
 
-import org.opends.sdk.AttributeDescription;
-import org.opends.sdk.ByteString;
-import org.opends.sdk.DN;
-import org.opends.sdk.schema.Schema;
+import org.forgerock.opendj.ldap.AttributeDescription;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.schema.Schema;
 
 
 

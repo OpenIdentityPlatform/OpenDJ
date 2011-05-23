@@ -39,10 +39,10 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.sdk.*;
-import org.opends.sdk.responses.BindResult;
-import org.opends.sdk.responses.ExtendedResult;
-import org.opends.sdk.responses.Result;
+import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.responses.BindResult;
+import org.forgerock.opendj.ldap.responses.ExtendedResult;
+import org.forgerock.opendj.ldap.responses.Result;
 
 import com.forgerock.opendj.util.StaticUtils;
 import com.sun.opends.sdk.tools.AuthenticatedConnectionFactory.AuthenticatedAsynchronousConnection;

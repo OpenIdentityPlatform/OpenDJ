@@ -29,24 +29,24 @@ package com.forgerock.opendj.ldap.extensions;
 
 
 
-import static org.opends.sdk.CoreMessages.ERR_GET_SYMMETRIC_KEY_ASN1_DECODE_EXCEPTION;
-import static org.opends.sdk.CoreMessages.ERR_GET_SYMMETRIC_KEY_NO_VALUE;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_GET_SYMMETRIC_KEY_ASN1_DECODE_EXCEPTION;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_GET_SYMMETRIC_KEY_NO_VALUE;
 
 import java.io.IOException;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.sdk.*;
-import org.opends.sdk.asn1.ASN1;
-import org.opends.sdk.asn1.ASN1Reader;
-import org.opends.sdk.asn1.ASN1Writer;
-import org.opends.sdk.controls.Control;
-import org.opends.sdk.requests.AbstractExtendedRequest;
-import org.opends.sdk.requests.ExtendedRequest;
-import org.opends.sdk.requests.ExtendedRequestDecoder;
-import org.opends.sdk.responses.AbstractExtendedResultDecoder;
-import org.opends.sdk.responses.ExtendedResult;
-import org.opends.sdk.responses.ExtendedResultDecoder;
-import org.opends.sdk.responses.Responses;
+import org.forgerock.opendj.asn1.ASN1;
+import org.forgerock.opendj.asn1.ASN1Reader;
+import org.forgerock.opendj.asn1.ASN1Writer;
+import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.controls.Control;
+import org.forgerock.opendj.ldap.requests.AbstractExtendedRequest;
+import org.forgerock.opendj.ldap.requests.ExtendedRequest;
+import org.forgerock.opendj.ldap.requests.ExtendedRequestDecoder;
+import org.forgerock.opendj.ldap.responses.AbstractExtendedResultDecoder;
+import org.forgerock.opendj.ldap.responses.ExtendedResult;
+import org.forgerock.opendj.ldap.responses.ExtendedResultDecoder;
+import org.forgerock.opendj.ldap.responses.Responses;
 
 import com.forgerock.opendj.util.StaticUtils;
 

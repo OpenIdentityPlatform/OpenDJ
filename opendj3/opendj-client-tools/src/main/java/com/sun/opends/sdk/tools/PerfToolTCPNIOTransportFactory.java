@@ -109,34 +109,34 @@ public final class PerfToolTCPNIOTransportFactory extends
     selectors = Math.max(2, cpus / 8);
 
     final String threadsStr = System
-        .getProperty("org.opends.sdk.ldap.transport.threads");
+        .getProperty("org.forgerock.opendj.ldap.ldap.transport.threads");
     if (threadsStr != null)
     {
       threads = Integer.parseInt(threadsStr);
     }
     final String selectorsStr = System
-        .getProperty("org.opends.sdk.ldap.transport.selectors");
+        .getProperty("org.forgerock.opendj.ldap.ldap.transport.selectors");
     if (selectorsStr != null)
     {
       selectors = Integer.parseInt(selectorsStr);
     }
 
     final String lingerStr = System
-        .getProperty("org.opends.sdk.ldap.transport.linger");
+        .getProperty("org.forgerock.opendj.ldap.ldap.transport.linger");
     if (lingerStr != null)
     {
       linger = Integer.parseInt(lingerStr);
     }
 
     final String tcpNoDelayStr = System
-        .getProperty("org.opends.sdk.ldap.transport.tcpNoDelay");
+        .getProperty("org.forgerock.opendj.ldap.ldap.transport.tcpNoDelay");
     if (tcpNoDelayStr != null)
     {
       tcpNoDelay = Integer.parseInt(tcpNoDelayStr) != 0;
     }
 
     final String reuseAddressStr = System
-        .getProperty("org.opends.sdk.ldap.transport.reuseAddress");
+        .getProperty("org.forgerock.opendj.ldap.ldap.transport.reuseAddress");
     if (reuseAddressStr != null)
     {
       reuseAddress = Integer.parseInt(reuseAddressStr) != 0;

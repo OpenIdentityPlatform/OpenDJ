@@ -33,9 +33,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.opends.sdk.ErrorResultException;
-import org.opends.sdk.FutureResult;
-import org.opends.sdk.ResultHandler;
+import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.FutureResult;
+import org.forgerock.opendj.ldap.ResultHandler;
 
 
 

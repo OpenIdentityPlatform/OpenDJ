@@ -28,15 +28,15 @@ package com.forgerock.opendj.ldap.controls;
 
 
 
-import static org.opends.sdk.CoreMessages.ERR_ACCTUSABLEREQ_CONTROL_BAD_OID;
-import static org.opends.sdk.CoreMessages.ERR_ACCTUSABLEREQ_CONTROL_HAS_VALUE;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_ACCTUSABLEREQ_CONTROL_BAD_OID;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_ACCTUSABLEREQ_CONTROL_HAS_VALUE;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.sdk.ByteString;
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.DecodeOptions;
-import org.opends.sdk.controls.Control;
-import org.opends.sdk.controls.ControlDecoder;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.DecodeOptions;
+import org.forgerock.opendj.ldap.controls.Control;
+import org.forgerock.opendj.ldap.controls.ControlDecoder;
 
 import com.forgerock.opendj.util.Validator;
 

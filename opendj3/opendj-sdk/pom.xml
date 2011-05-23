@@ -73,7 +73,7 @@
             </goals>
             <configuration>
               <messageFiles>
-                <messageFile>org/opends/sdk/core.properties</messageFile>
+                <messageFile>org/forgerock/opendj/ldap/core.properties</messageFile>
               </messageFiles>
             </configuration>
           </execution>
@@ -85,7 +85,7 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Export-Package>org.opends.sdk.*</Export-Package>
+            <Export-Package>org.forgerock.opendj.ldap.*</Export-Package>
           </instructions>
         </configuration>
       </plugin>

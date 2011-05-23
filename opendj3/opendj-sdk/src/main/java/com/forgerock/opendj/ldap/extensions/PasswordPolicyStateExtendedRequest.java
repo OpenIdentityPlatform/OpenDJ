@@ -31,9 +31,9 @@ package com.forgerock.opendj.ldap.extensions;
 
 import static com.forgerock.opendj.util.StaticUtils.formatAsGeneralizedTime;
 import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
-import static org.opends.sdk.CoreMessages.ERR_PWPSTATE_EXTOP_DECODE_FAILURE;
-import static org.opends.sdk.CoreMessages.ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE;
-import static org.opends.sdk.CoreMessages.ERR_PWPSTATE_EXTOP_UNKNOWN_OP_TYPE;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_PWPSTATE_EXTOP_DECODE_FAILURE;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_PWPSTATE_EXTOP_UNKNOWN_OP_TYPE;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -42,17 +42,17 @@ import java.util.Date;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.sdk.*;
-import org.opends.sdk.asn1.ASN1;
-import org.opends.sdk.asn1.ASN1Reader;
-import org.opends.sdk.asn1.ASN1Writer;
-import org.opends.sdk.controls.Control;
-import org.opends.sdk.requests.AbstractExtendedRequest;
-import org.opends.sdk.requests.ExtendedRequest;
-import org.opends.sdk.requests.ExtendedRequestDecoder;
-import org.opends.sdk.responses.AbstractExtendedResultDecoder;
-import org.opends.sdk.responses.ExtendedResult;
-import org.opends.sdk.responses.ExtendedResultDecoder;
+import org.forgerock.opendj.asn1.ASN1;
+import org.forgerock.opendj.asn1.ASN1Reader;
+import org.forgerock.opendj.asn1.ASN1Writer;
+import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.controls.Control;
+import org.forgerock.opendj.ldap.requests.AbstractExtendedRequest;
+import org.forgerock.opendj.ldap.requests.ExtendedRequest;
+import org.forgerock.opendj.ldap.requests.ExtendedRequestDecoder;
+import org.forgerock.opendj.ldap.responses.AbstractExtendedResultDecoder;
+import org.forgerock.opendj.ldap.responses.ExtendedResult;
+import org.forgerock.opendj.ldap.responses.ExtendedResultDecoder;
 
 import com.forgerock.opendj.util.Validator;
 

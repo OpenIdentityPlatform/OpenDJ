@@ -35,14 +35,14 @@ import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 
-import org.opends.sdk.Attribute;
-import org.opends.sdk.ByteString;
-import org.opends.sdk.DN;
-import org.opends.sdk.Modification;
-import org.opends.sdk.asn1.ASN1Writer;
-import org.opends.sdk.controls.Control;
-import org.opends.sdk.requests.*;
-import org.opends.sdk.responses.*;
+import org.forgerock.opendj.asn1.ASN1Writer;
+import org.forgerock.opendj.ldap.Attribute;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Modification;
+import org.forgerock.opendj.ldap.controls.Control;
+import org.forgerock.opendj.ldap.requests.*;
+import org.forgerock.opendj.ldap.responses.*;
 
 import com.forgerock.opendj.util.StaticUtils;
 

@@ -29,7 +29,7 @@ package com.sun.opends.sdk.tools;
 
 
 
-import static org.opends.sdk.CoreMessages.*;
+import static org.forgerock.opendj.ldap.CoreMessages.*;
 import static com.sun.opends.sdk.tools.ToolConstants.*;
 import static com.sun.opends.sdk.tools.Utils.filterExitCode;
 
@@ -38,14 +38,14 @@ import java.util.ArrayList;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
-import org.opends.sdk.*;
-import org.opends.sdk.controls.AssertionRequestControl;
-import org.opends.sdk.controls.Control;
-import org.opends.sdk.controls.ProxiedAuthV2RequestControl;
-import org.opends.sdk.requests.CompareRequest;
-import org.opends.sdk.requests.Requests;
-import org.opends.sdk.responses.Responses;
-import org.opends.sdk.responses.Result;
+import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.controls.AssertionRequestControl;
+import org.forgerock.opendj.ldap.controls.Control;
+import org.forgerock.opendj.ldap.controls.ProxiedAuthV2RequestControl;
+import org.forgerock.opendj.ldap.requests.CompareRequest;
+import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.responses.Responses;
+import org.forgerock.opendj.ldap.responses.Result;
 
 import com.forgerock.opendj.util.Base64;
 

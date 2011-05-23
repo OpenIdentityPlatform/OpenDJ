@@ -29,7 +29,7 @@ package com.sun.opends.sdk.tools;
 
 
 
-import static org.opends.sdk.CoreMessages.*;
+import static org.forgerock.opendj.ldap.CoreMessages.*;
 import static com.sun.opends.sdk.tools.ToolConstants.*;
 import static com.sun.opends.sdk.tools.Utils.filterExitCode;
 
@@ -37,12 +37,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.sdk.*;
-import org.opends.sdk.controls.Control;
-import org.opends.sdk.requests.PasswordModifyExtendedRequest;
-import org.opends.sdk.requests.Requests;
-import org.opends.sdk.responses.PasswordModifyExtendedResult;
-import org.opends.sdk.responses.Responses;
+import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.controls.Control;
+import org.forgerock.opendj.ldap.requests.PasswordModifyExtendedRequest;
+import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.responses.PasswordModifyExtendedResult;
+import org.forgerock.opendj.ldap.responses.Responses;
 
 
 

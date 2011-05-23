@@ -31,12 +31,12 @@ package com.forgerock.opendj.ldap.extensions;
 
 import java.io.IOException;
 
-import org.opends.sdk.ByteString;
-import org.opends.sdk.ByteStringBuilder;
-import org.opends.sdk.ResultCode;
-import org.opends.sdk.asn1.ASN1;
-import org.opends.sdk.asn1.ASN1Writer;
-import org.opends.sdk.responses.AbstractExtendedResult;
+import org.forgerock.opendj.asn1.ASN1;
+import org.forgerock.opendj.asn1.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.responses.AbstractExtendedResult;
 
 import com.forgerock.opendj.util.Validator;
 

@@ -28,7 +28,7 @@ package com.sun.opends.sdk.tools;
 
 
 
-import static org.opends.sdk.CoreMessages.*;
+import static org.forgerock.opendj.ldap.CoreMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.EOL;
 
 import java.io.File;
@@ -37,9 +37,9 @@ import java.io.IOException;
 import java.util.StringTokenizer;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.sdk.*;
-import org.opends.sdk.controls.*;
-import org.opends.sdk.responses.BindResult;
+import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.controls.*;
+import org.forgerock.opendj.ldap.responses.BindResult;
 
 import com.forgerock.opendj.ldap.controls.AccountUsabilityRequestControl;
 import com.forgerock.opendj.util.StaticUtils;
@@ -122,7 +122,7 @@ final class Utils
    *          The argument string containing the encoded control information.
    * @return The control decoded from the provided string, or <CODE>null</CODE>
    *         if an error occurs while parsing the argument value.
-   * @throws org.opends.sdk.DecodeException
+   * @throws org.forgerock.opendj.ldap.DecodeException
    *           If an error occurs.
    */
   static GenericControl getControl(final String argString)

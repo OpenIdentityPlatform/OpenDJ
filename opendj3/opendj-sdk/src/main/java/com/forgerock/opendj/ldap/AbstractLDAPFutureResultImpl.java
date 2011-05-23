@@ -29,10 +29,10 @@ package com.forgerock.opendj.ldap;
 
 
 
-import org.opends.sdk.*;
-import org.opends.sdk.requests.Requests;
-import org.opends.sdk.responses.IntermediateResponse;
-import org.opends.sdk.responses.Result;
+import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.responses.IntermediateResponse;
+import org.forgerock.opendj.ldap.responses.Result;
 
 import com.forgerock.opendj.util.AsynchronousFutureResult;
 

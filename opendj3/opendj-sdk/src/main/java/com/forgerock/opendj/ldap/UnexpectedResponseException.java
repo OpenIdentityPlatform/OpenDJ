@@ -32,7 +32,7 @@ package com.forgerock.opendj.ldap;
 import java.io.IOException;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.sdk.responses.Response;
+import org.forgerock.opendj.ldap.responses.Response;
 
 
 

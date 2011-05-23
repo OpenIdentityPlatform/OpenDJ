@@ -28,23 +28,23 @@ package com.forgerock.opendj.ldap;
 
 
 
-import static org.opends.sdk.CoreMessages.ERR_ASN1_SEQUENCE_WRITE_NOT_STARTED;
-import static org.opends.sdk.asn1.ASN1Constants.BOOLEAN_VALUE_FALSE;
-import static org.opends.sdk.asn1.ASN1Constants.BOOLEAN_VALUE_TRUE;
+import static org.forgerock.opendj.asn1.ASN1Constants.BOOLEAN_VALUE_FALSE;
+import static org.forgerock.opendj.asn1.ASN1Constants.BOOLEAN_VALUE_TRUE;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_ASN1_SEQUENCE_WRITE_NOT_STARTED;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.logging.Level;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.asn1.ASN1Writer;
+import org.forgerock.opendj.asn1.AbstractASN1Writer;
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.Cacheable;
 import org.glassfish.grizzly.ThreadCache;
 import org.glassfish.grizzly.memory.ByteBufferWrapper;
-import org.opends.sdk.ByteSequence;
-import org.opends.sdk.ByteStringBuilder;
-import org.opends.sdk.asn1.ASN1Writer;
-import org.opends.sdk.asn1.AbstractASN1Writer;
 
 import com.forgerock.opendj.util.StaticUtils;
 

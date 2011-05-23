@@ -33,9 +33,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
-import org.opends.sdk.*;
-import org.opends.sdk.responses.Responses;
-import org.opends.sdk.responses.Result;
+import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.responses.Responses;
+import org.forgerock.opendj.ldap.responses.Result;
 
 
 
