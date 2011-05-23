@@ -132,16 +132,9 @@ exit /B 1
 :setEnvironmentVars
 if %SET_ENVIRONMENT_VARS_DONE% == "true" goto prepareCheck
 set PATH=%SystemRoot%;%PATH%
-set SCRIPT_NAME_ARG=-Dcom.sun.opends.sdk.tools.scriptName=%SCRIPT_NAME%
+set SCRIPT_NAME_ARG=-Dcom.forgerock.opendj.ldap.tools.scriptName=%SCRIPT_NAME%
 set SET_ENVIRONMENT_VARS_DONE=true
 goto scriptBegin
-
-:testJava
-"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% org.opends.server.tools.InstallDS -t > NUL 2>&1
-set RESULT_CODE=%errorlevel%
-if %RESULT_CODE% == 13 goto notSupportedJavaHome
-if not %RESULT_CODE% == 0 goto noValidJavaHome
-goto prepareCheck
 
 :noValidJavaHome
 if NOT "%OPENDS_JAVA_ARGS%" == "" goto noValidHomeWithArgs
@@ -203,14 +196,6 @@ goto isVersionOrHelp
 rem Perform check unless it is specified not to do it
 if "%NO_CHECK%" == ""  set NO_CHECK=false
 goto isVersionOrHelp
-
-:check
-if "%NO_CHECK%" == "true" goto end
-if "%CHECK_VERSION%" == "true" set OPT_CHECK_VERSION=--checkVersion
-"%OPENDS_JAVA_BIN%" %SCRIPT_NAME_ARG% -DINSTALL_ROOT="%INSTALL_ROOT%" -DINSTANCE_ROOT="%INSTANCE_ROOT%" org.opends.server.tools.configurator.CheckInstance %OPT_CHECK_VERSION%
-set RESULT_CODE=%errorlevel%
-if "%RESULT_CODE%" == "0" goto end
-exit /B 1
 
 :end
 exit /B 0
