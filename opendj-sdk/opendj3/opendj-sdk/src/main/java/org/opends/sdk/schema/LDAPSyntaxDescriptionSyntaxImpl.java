@@ -41,8 +41,8 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.DecodeException;
 
-import com.sun.opends.sdk.util.StaticUtils;
-import com.sun.opends.sdk.util.SubstringReader;
+import com.forgerock.opendj.util.StaticUtils;
+import com.forgerock.opendj.util.SubstringReader;
 
 
 

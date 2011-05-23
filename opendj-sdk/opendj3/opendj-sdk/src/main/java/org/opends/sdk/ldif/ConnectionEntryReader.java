@@ -39,7 +39,7 @@ import org.opends.sdk.*;
 import org.opends.sdk.requests.SearchRequest;
 import org.opends.sdk.responses.*;
 
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Validator;
 
 
 

@@ -30,8 +30,8 @@ package org.opends.sdk.controls;
 
 import org.opends.sdk.ByteString;
 
-import com.sun.opends.sdk.util.StaticUtils;
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.StaticUtils;
+import com.forgerock.opendj.util.Validator;
 
 
 

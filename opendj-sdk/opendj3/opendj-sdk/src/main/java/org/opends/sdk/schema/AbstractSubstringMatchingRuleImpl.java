@@ -36,7 +36,7 @@ import java.util.List;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.sdk.*;
 
-import com.sun.opends.sdk.util.SubstringReader;
+import com.forgerock.opendj.util.SubstringReader;
 
 
 

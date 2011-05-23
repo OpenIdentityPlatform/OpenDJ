@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 import org.opends.sdk.requests.BindRequest;
 import org.opends.sdk.requests.SearchRequest;
 
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Validator;
 
 
 

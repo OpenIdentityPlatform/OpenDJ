@@ -30,7 +30,7 @@ package org.opends.sdk;
 
 
 
-import static com.sun.opends.sdk.util.StaticUtils.*;
+import static com.forgerock.opendj.util.StaticUtils.*;
 import static org.opends.sdk.CoreMessages.*;
 
 import java.util.Comparator;
@@ -39,9 +39,9 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.schema.*;
 
-import com.sun.opends.sdk.util.StaticUtils;
-import com.sun.opends.sdk.util.SubstringReader;
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.StaticUtils;
+import com.forgerock.opendj.util.SubstringReader;
+import com.forgerock.opendj.util.Validator;
 
 
 

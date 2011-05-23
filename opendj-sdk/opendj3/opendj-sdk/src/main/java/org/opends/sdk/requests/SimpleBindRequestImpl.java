@@ -29,12 +29,12 @@ package org.opends.sdk.requests;
 
 
 
-import static com.sun.opends.sdk.ldap.LDAPConstants.TYPE_AUTHENTICATION_SIMPLE;
+import static com.forgerock.opendj.ldap.LDAPConstants.TYPE_AUTHENTICATION_SIMPLE;
 
 import org.opends.sdk.ByteString;
 import org.opends.sdk.ErrorResultException;
 
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Validator;
 
 
 

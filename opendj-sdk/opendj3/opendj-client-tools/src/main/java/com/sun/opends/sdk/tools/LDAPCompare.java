@@ -47,7 +47,7 @@ import org.opends.sdk.requests.Requests;
 import org.opends.sdk.responses.Responses;
 import org.opends.sdk.responses.Result;
 
-import com.sun.opends.sdk.util.Base64;
+import com.forgerock.opendj.util.Base64;
 
 
 

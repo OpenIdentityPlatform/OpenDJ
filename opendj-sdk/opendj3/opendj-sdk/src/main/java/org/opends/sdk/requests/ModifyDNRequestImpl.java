@@ -34,7 +34,7 @@ import org.opends.sdk.DN;
 import org.opends.sdk.RDN;
 import org.opends.sdk.ldif.ChangeRecordVisitor;
 
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Validator;
 
 
 

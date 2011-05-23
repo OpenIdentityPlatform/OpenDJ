@@ -28,9 +28,9 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.StringPrepProfile.CASE_FOLD;
-import static com.sun.opends.sdk.util.StringPrepProfile.TRIM;
-import static com.sun.opends.sdk.util.StringPrepProfile.prepareUnicode;
+import static com.forgerock.opendj.util.StringPrepProfile.CASE_FOLD;
+import static com.forgerock.opendj.util.StringPrepProfile.TRIM;
+import static com.forgerock.opendj.util.StringPrepProfile.prepareUnicode;
 
 import org.opends.sdk.*;
 

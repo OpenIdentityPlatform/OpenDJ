@@ -41,10 +41,10 @@ import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.*;
 import org.opends.sdk.schema.Schema;
 
-import com.sun.opends.sdk.util.AsynchronousFutureResult;
-import com.sun.opends.sdk.util.CompletedFutureResult;
-import com.sun.opends.sdk.util.StaticUtils;
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.AsynchronousFutureResult;
+import com.forgerock.opendj.util.CompletedFutureResult;
+import com.forgerock.opendj.util.StaticUtils;
+import com.forgerock.opendj.util.Validator;
 
 
 

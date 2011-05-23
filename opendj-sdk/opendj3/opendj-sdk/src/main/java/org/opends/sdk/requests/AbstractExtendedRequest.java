@@ -33,7 +33,7 @@ import org.opends.sdk.ByteString;
 import org.opends.sdk.responses.ExtendedResult;
 import org.opends.sdk.responses.ExtendedResultDecoder;
 
-import com.sun.opends.sdk.util.StaticUtils;
+import com.forgerock.opendj.util.StaticUtils;
 
 
 

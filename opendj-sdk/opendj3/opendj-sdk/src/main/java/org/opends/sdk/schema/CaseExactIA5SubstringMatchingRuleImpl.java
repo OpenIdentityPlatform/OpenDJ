@@ -28,9 +28,9 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.StringPrepProfile.NO_CASE_FOLD;
-import static com.sun.opends.sdk.util.StringPrepProfile.TRIM;
-import static com.sun.opends.sdk.util.StringPrepProfile.prepareUnicode;
+import static com.forgerock.opendj.util.StringPrepProfile.NO_CASE_FOLD;
+import static com.forgerock.opendj.util.StringPrepProfile.TRIM;
+import static com.forgerock.opendj.util.StringPrepProfile.prepareUnicode;
 import static org.opends.sdk.CoreMessages.WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER;
 
 import org.forgerock.i18n.LocalizableMessage;

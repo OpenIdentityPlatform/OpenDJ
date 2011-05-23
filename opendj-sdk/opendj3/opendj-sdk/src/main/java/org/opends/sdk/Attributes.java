@@ -35,8 +35,8 @@ import java.util.NoSuchElementException;
 
 import org.opends.sdk.schema.AttributeType;
 
-import com.sun.opends.sdk.util.Iterators;
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Iterators;
+import com.forgerock.opendj.util.Validator;
 
 
 

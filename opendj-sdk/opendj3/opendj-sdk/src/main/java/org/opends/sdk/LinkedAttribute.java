@@ -33,7 +33,7 @@ import java.util.*;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Validator;
 
 
 

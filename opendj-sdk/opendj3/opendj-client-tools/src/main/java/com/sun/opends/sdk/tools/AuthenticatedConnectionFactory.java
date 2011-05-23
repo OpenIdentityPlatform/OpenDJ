@@ -33,10 +33,10 @@ import org.opends.sdk.*;
 import org.opends.sdk.requests.BindRequest;
 import org.opends.sdk.responses.BindResult;
 
-import com.sun.opends.sdk.util.AsynchronousConnectionDecorator;
-import com.sun.opends.sdk.util.FutureResultTransformer;
-import com.sun.opends.sdk.util.RecursiveFutureResult;
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.AsynchronousConnectionDecorator;
+import com.forgerock.opendj.util.FutureResultTransformer;
+import com.forgerock.opendj.util.RecursiveFutureResult;
+import com.forgerock.opendj.util.Validator;
 
 
 

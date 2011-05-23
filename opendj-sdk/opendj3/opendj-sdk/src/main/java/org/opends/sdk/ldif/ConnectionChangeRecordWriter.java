@@ -40,7 +40,7 @@ import org.opends.sdk.requests.DeleteRequest;
 import org.opends.sdk.requests.ModifyDNRequest;
 import org.opends.sdk.requests.ModifyRequest;
 
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Validator;
 
 
 

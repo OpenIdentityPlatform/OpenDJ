@@ -44,8 +44,8 @@ import org.opends.sdk.responses.BindResult;
 import org.opends.sdk.responses.ExtendedResult;
 import org.opends.sdk.responses.Result;
 
+import com.forgerock.opendj.util.StaticUtils;
 import com.sun.opends.sdk.tools.AuthenticatedConnectionFactory.AuthenticatedAsynchronousConnection;
-import com.sun.opends.sdk.util.StaticUtils;
 
 
 

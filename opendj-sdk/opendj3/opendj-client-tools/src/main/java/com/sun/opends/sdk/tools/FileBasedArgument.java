@@ -29,7 +29,7 @@ package com.sun.opends.sdk.tools;
 
 
 import static org.opends.sdk.CoreMessages.*;
-import static com.sun.opends.sdk.util.StaticUtils.getExceptionMessage;
+import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
 
 import java.io.BufferedReader;
 import java.io.File;

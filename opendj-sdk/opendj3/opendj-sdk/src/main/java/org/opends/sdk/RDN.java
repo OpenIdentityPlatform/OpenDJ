@@ -42,8 +42,8 @@ import org.opends.sdk.schema.AttributeType;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.UnknownSchemaElementException;
 
-import com.sun.opends.sdk.util.Iterators;
-import com.sun.opends.sdk.util.SubstringReader;
+import com.forgerock.opendj.util.Iterators;
+import com.forgerock.opendj.util.SubstringReader;
 
 
 

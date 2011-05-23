@@ -36,9 +36,9 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.requests.ModifyRequest;
 import org.opends.sdk.requests.Requests;
 
-import com.sun.opends.sdk.util.Function;
-import com.sun.opends.sdk.util.Iterables;
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Function;
+import com.forgerock.opendj.util.Iterables;
+import com.forgerock.opendj.util.Validator;
 
 
 

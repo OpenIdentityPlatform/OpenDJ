@@ -49,8 +49,8 @@ import org.opends.sdk.responses.Result;
 import org.opends.sdk.responses.SearchResultEntry;
 import org.opends.sdk.responses.SearchResultReference;
 
-import com.sun.opends.sdk.controls.AccountUsabilityResponseControl;
-import com.sun.opends.sdk.util.StaticUtils;
+import com.forgerock.opendj.ldap.controls.AccountUsabilityResponseControl;
+import com.forgerock.opendj.util.StaticUtils;
 
 
 

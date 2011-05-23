@@ -38,10 +38,10 @@ import org.opends.sdk.controls.Control;
 import org.opends.sdk.controls.ControlDecoder;
 import org.opends.sdk.controls.GenericControl;
 
-import com.sun.opends.sdk.util.Collections2;
-import com.sun.opends.sdk.util.Function;
-import com.sun.opends.sdk.util.Functions;
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Collections2;
+import com.forgerock.opendj.util.Function;
+import com.forgerock.opendj.util.Functions;
+import com.forgerock.opendj.util.Validator;
 
 
 

@@ -41,7 +41,7 @@ import org.opends.sdk.ResultCode;
 import org.opends.sdk.controls.Control;
 import org.opends.sdk.responses.*;
 
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Validator;
 
 
 /**

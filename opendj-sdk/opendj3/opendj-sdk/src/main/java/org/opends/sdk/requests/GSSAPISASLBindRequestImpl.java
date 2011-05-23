@@ -29,8 +29,8 @@ package org.opends.sdk.requests;
 
 
 
-import static com.sun.opends.sdk.util.StaticUtils.getExceptionMessage;
-import static com.sun.opends.sdk.util.StaticUtils.joinCollection;
+import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
+import static com.forgerock.opendj.util.StaticUtils.joinCollection;
 import static org.opends.sdk.CoreMessages.ERR_LDAPAUTH_GSSAPI_LOCAL_AUTHENTICATION_FAILED;
 import static org.opends.sdk.CoreMessages.ERR_SASL_CONTEXT_CREATE_ERROR;
 import static org.opends.sdk.CoreMessages.ERR_SASL_PROTOCOL_ERROR;
@@ -53,8 +53,8 @@ import org.opends.sdk.ResultCode;
 import org.opends.sdk.responses.BindResult;
 import org.opends.sdk.responses.Responses;
 
-import com.sun.opends.sdk.util.StaticUtils;
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.StaticUtils;
+import com.forgerock.opendj.util.Validator;
 import com.sun.security.auth.callback.TextCallbackHandler;
 import com.sun.security.auth.module.Krb5LoginModule;
 

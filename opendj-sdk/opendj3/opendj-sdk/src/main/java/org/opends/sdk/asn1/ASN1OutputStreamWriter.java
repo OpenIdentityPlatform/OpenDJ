@@ -41,8 +41,8 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.sdk.ByteSequence;
 import org.opends.sdk.ByteStringBuilder;
 
-import com.sun.opends.sdk.util.ByteSequenceOutputStream;
-import com.sun.opends.sdk.util.StaticUtils;
+import com.forgerock.opendj.util.ByteSequenceOutputStream;
+import com.forgerock.opendj.util.StaticUtils;
 
 
 

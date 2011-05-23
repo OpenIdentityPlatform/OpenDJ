@@ -33,7 +33,7 @@ import java.io.IOException;
 
 import org.opends.sdk.responses.SearchResultReference;
 
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Validator;
 
 
 

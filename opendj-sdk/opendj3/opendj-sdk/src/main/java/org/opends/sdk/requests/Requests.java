@@ -40,7 +40,7 @@ import org.opends.sdk.*;
 import org.opends.sdk.ldif.ChangeRecord;
 import org.opends.sdk.ldif.LDIFChangeRecordReader;
 
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Validator;
 
 
 

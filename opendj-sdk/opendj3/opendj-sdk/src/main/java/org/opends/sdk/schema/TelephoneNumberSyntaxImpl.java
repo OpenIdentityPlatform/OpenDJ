@@ -29,7 +29,7 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.StaticUtils.isDigit;
+import static com.forgerock.opendj.util.StaticUtils.isDigit;
 import static org.opends.sdk.CoreMessages.ERR_ATTR_SYNTAX_TELEPHONE_EMPTY;
 import static org.opends.sdk.CoreMessages.ERR_ATTR_SYNTAX_TELEPHONE_ILLEGAL_CHAR;
 import static org.opends.sdk.CoreMessages.ERR_ATTR_SYNTAX_TELEPHONE_NO_DIGITS;

@@ -30,7 +30,7 @@ package org.opends.sdk;
 
 
 
-import static com.sun.opends.sdk.ldap.LDAPConstants.TYPE_AUTHENTICATION_SASL;
+import static com.forgerock.opendj.ldap.LDAPConstants.TYPE_AUTHENTICATION_SASL;
 
 import java.io.IOException;
 import java.util.*;
@@ -50,8 +50,8 @@ import org.opends.sdk.controls.ControlDecoder;
 import org.opends.sdk.requests.*;
 import org.opends.sdk.responses.*;
 
-import com.sun.opends.sdk.controls.AccountUsabilityRequestControl;
-import com.sun.opends.sdk.controls.AccountUsabilityResponseControl;
+import com.forgerock.opendj.ldap.controls.AccountUsabilityRequestControl;
+import com.forgerock.opendj.ldap.controls.AccountUsabilityResponseControl;
 
 
 

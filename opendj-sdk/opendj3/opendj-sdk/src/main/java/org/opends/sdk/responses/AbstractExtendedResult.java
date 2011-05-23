@@ -32,7 +32,7 @@ package org.opends.sdk.responses;
 import org.opends.sdk.ByteString;
 import org.opends.sdk.ResultCode;
 
-import com.sun.opends.sdk.util.StaticUtils;
+import com.forgerock.opendj.util.StaticUtils;
 
 
 

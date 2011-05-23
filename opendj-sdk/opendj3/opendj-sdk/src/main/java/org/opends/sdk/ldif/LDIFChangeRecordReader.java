@@ -29,7 +29,7 @@ package org.opends.sdk.ldif;
 
 
 
-import static com.sun.opends.sdk.util.StaticUtils.toLowerCase;
+import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
 import static org.opends.sdk.CoreMessages.*;
 
 import java.io.IOException;
@@ -47,7 +47,7 @@ import org.opends.sdk.requests.ModifyRequest;
 import org.opends.sdk.requests.Requests;
 import org.opends.sdk.schema.Schema;
 
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Validator;
 
 
 

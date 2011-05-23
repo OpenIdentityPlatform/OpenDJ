@@ -43,9 +43,9 @@ import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.responses.Responses;
 import org.opends.sdk.responses.SearchResultEntry;
 
-import com.sun.opends.sdk.ldap.LDAPUtils;
-import com.sun.opends.sdk.util.StaticUtils;
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.ldap.LDAPUtils;
+import com.forgerock.opendj.util.StaticUtils;
+import com.forgerock.opendj.util.Validator;
 
 
 

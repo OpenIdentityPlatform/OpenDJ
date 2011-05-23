@@ -38,7 +38,7 @@ import org.opends.sdk.DereferenceAliasesPolicy;
 import org.opends.sdk.Filter;
 import org.opends.sdk.SearchScope;
 
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Validator;
 
 
 

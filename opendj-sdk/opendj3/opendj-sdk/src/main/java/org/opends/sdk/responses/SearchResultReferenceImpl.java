@@ -32,7 +32,7 @@ package org.opends.sdk.responses;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Validator;
 
 
 

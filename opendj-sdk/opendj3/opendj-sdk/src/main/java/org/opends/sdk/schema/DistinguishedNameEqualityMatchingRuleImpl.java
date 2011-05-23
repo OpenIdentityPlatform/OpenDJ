@@ -28,7 +28,7 @@ package org.opends.sdk.schema;
 
 
 
-import static com.sun.opends.sdk.util.StaticUtils.getBytes;
+import static com.forgerock.opendj.util.StaticUtils.getBytes;
 
 import java.util.Iterator;
 import java.util.TreeSet;
@@ -36,7 +36,7 @@ import java.util.TreeSet;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.opends.sdk.*;
 
-import com.sun.opends.sdk.util.StaticUtils;
+import com.forgerock.opendj.util.StaticUtils;
 
 
 /**

@@ -40,9 +40,9 @@ import java.util.logging.Level;
 
 import org.opends.sdk.responses.Responses;
 
-import com.sun.opends.sdk.util.AsynchronousFutureResult;
-import com.sun.opends.sdk.util.StaticUtils;
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.AsynchronousFutureResult;
+import com.forgerock.opendj.util.StaticUtils;
+import com.forgerock.opendj.util.Validator;
 
 
 

@@ -29,13 +29,13 @@ package com.sun.opends.sdk.tools;
 
 
 import static org.opends.sdk.CoreMessages.*;
+import static com.forgerock.opendj.util.StaticUtils.EOL;
+import static com.forgerock.opendj.util.StaticUtils.getBytes;
+import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
+import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
 import static com.sun.opends.sdk.tools.ToolConstants.*;
 import static com.sun.opends.sdk.tools.Utils.PROPERTY_SCRIPT_NAME;
 import static com.sun.opends.sdk.tools.Utils.wrapText;
-import static com.sun.opends.sdk.util.StaticUtils.EOL;
-import static com.sun.opends.sdk.util.StaticUtils.getBytes;
-import static com.sun.opends.sdk.util.StaticUtils.getExceptionMessage;
-import static com.sun.opends.sdk.util.StaticUtils.toLowerCase;
 
 import java.io.File;
 import java.io.FileInputStream;

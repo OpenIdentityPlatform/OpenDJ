@@ -41,8 +41,8 @@ import org.opends.sdk.asn1.ASN1;
 import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 
-import com.sun.opends.sdk.util.StaticUtils;
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.StaticUtils;
+import com.forgerock.opendj.util.Validator;
 
 
 

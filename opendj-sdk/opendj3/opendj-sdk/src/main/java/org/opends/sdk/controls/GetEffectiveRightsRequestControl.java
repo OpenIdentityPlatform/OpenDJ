@@ -28,7 +28,7 @@ package org.opends.sdk.controls;
 
 
 
-import static com.sun.opends.sdk.util.StaticUtils.getExceptionMessage;
+import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
 import static org.opends.sdk.CoreMessages.*;
 
 import java.io.IOException;
@@ -44,7 +44,7 @@ import org.opends.sdk.schema.AttributeType;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.UnknownSchemaElementException;
 
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.Validator;
 
 
 

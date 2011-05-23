@@ -28,7 +28,7 @@ package org.opends.sdk.controls;
 
 
 
-import static com.sun.opends.sdk.util.StaticUtils.getExceptionMessage;
+import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
 import static org.opends.sdk.CoreMessages.*;
 
 import java.io.IOException;
@@ -41,8 +41,8 @@ import org.opends.sdk.asn1.ASN1Reader;
 import org.opends.sdk.asn1.ASN1Writer;
 import org.opends.sdk.schema.Schema;
 
-import com.sun.opends.sdk.util.StaticUtils;
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.StaticUtils;
+import com.forgerock.opendj.util.Validator;
 
 
 

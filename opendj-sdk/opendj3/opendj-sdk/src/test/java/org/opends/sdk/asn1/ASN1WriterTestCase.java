@@ -42,7 +42,7 @@ import org.opends.sdk.DecodeException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import com.sun.opends.sdk.util.StaticUtils;
+import com.forgerock.opendj.util.StaticUtils;
 
 
 

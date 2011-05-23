@@ -33,7 +33,7 @@ import static org.testng.Assert.assertNotNull;
 
 import org.testng.annotations.Test;
 
-import com.sun.opends.sdk.ldap.LDAPConstants;
+import com.forgerock.opendj.ldap.LDAPConstants;
 
 
 

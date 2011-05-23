@@ -33,7 +33,7 @@ import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import com.sun.opends.sdk.util.SubstringReader;
+import com.forgerock.opendj.util.SubstringReader;
 
 
 

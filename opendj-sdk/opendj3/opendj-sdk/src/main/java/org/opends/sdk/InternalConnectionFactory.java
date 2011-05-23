@@ -29,8 +29,8 @@ package org.opends.sdk;
 
 
 
-import com.sun.opends.sdk.ldap.InternalConnection;
-import com.sun.opends.sdk.util.CompletedFutureResult;
+import com.forgerock.opendj.ldap.InternalConnection;
+import com.forgerock.opendj.util.CompletedFutureResult;
 
 
 

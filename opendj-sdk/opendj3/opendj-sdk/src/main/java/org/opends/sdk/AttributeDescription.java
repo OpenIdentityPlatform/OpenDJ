@@ -29,7 +29,7 @@ package org.opends.sdk;
 
 
 
-import static com.sun.opends.sdk.util.StaticUtils.toLowerCase;
+import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
 import static org.opends.sdk.CoreMessages.*;
 
 import java.util.*;
@@ -40,9 +40,9 @@ import org.opends.sdk.schema.AttributeType;
 import org.opends.sdk.schema.Schema;
 import org.opends.sdk.schema.UnknownSchemaElementException;
 
-import com.sun.opends.sdk.util.ASCIICharProp;
-import com.sun.opends.sdk.util.Iterators;
-import com.sun.opends.sdk.util.Validator;
+import com.forgerock.opendj.util.ASCIICharProp;
+import com.forgerock.opendj.util.Iterators;
+import com.forgerock.opendj.util.Validator;
 
 
 
