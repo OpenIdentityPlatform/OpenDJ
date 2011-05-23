@@ -34,7 +34,7 @@ import java.util.Iterator;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.schema.Schema;
-import org.opendj.maven.testng.OpenDJTestCase;
+import org.forgerock.opendj.maven.testng.OpenDJTestCase;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;

@@ -28,7 +28,7 @@ package org.forgerock.opendj.ldif;
 
 
 
-import org.opendj.maven.testng.OpenDJTestCase;
+import org.forgerock.opendj.maven.testng.OpenDJTestCase;
 import org.testng.annotations.Test;
 
 

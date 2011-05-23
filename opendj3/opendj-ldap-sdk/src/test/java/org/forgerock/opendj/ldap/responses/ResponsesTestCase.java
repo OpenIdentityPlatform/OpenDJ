@@ -29,7 +29,7 @@ package org.forgerock.opendj.ldap.responses;
 
 
 
-import org.opendj.maven.testng.OpenDJTestCase;
+import org.forgerock.opendj.maven.testng.OpenDJTestCase;
 import org.testng.annotations.Test;
 
 

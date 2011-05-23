@@ -40,7 +40,7 @@ import org.forgerock.opendj.asn1.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.opendj.maven.testng.OpenDJTestCase;
+import org.forgerock.opendj.maven.testng.OpenDJTestCase;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
