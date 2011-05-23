@@ -31,7 +31,7 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <artifactId>opendj-project</artifactId>
-    <groupId>org.opendj</groupId>
+    <groupId>org.forgerock.opendj</groupId>
     <version>3.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>opendj-maven-testng</artifactId>
