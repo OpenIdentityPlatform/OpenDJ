@@ -86,7 +86,7 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
-            <Export-Package>org.forgerock.opendj.ldap.*</Export-Package>
+            <Export-Package>org.forgerock.opendj.*</Export-Package>
           </instructions>
         </configuration>
       </plugin>
@@ -101,6 +101,7 @@
           <windowtitle>OpenDJ LDAP SDK Documentation</windowtitle>
           <doctitle>OpenDJ LDAP SDK Documentation</doctitle>
           <detectOfflineLinks>false</detectOfflineLinks>
+          <excludes>org/forgerock/opendj/ldap/CoreMessages.java</excludes>
         </configuration>
       </plugin>
       <plugin>
@@ -141,6 +142,9 @@
           <windowtitle>OpenDJ LDAP SDK Documentation</windowtitle>
           <doctitle>OpenDJ LDAP SDK Documentation</doctitle>
           <detectOfflineLinks>false</detectOfflineLinks>
+          <show>protected</show>
+          <excludePackageNames>com.*</excludePackageNames>
+          <excludes>org/forgerock/opendj/ldap/CoreMessages.java</excludes>
         </configuration>
         <reportSets>
           <reportSet>
