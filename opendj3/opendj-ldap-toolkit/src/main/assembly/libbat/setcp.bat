@@ -7,14 +7,14 @@ rem (the "License").  You may not use this file except in compliance
 rem with the License.
 rem
 rem You can obtain a copy of the license at
-rem trunk/opends/resource/legal-notices/OpenDS.LICENSE
-rem or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+rem trunk/opendj3/legal-notices/CDDLv1_0.txt
+rem or http://forgerock.org/license/CDDLv1.0.html.
 rem See the License for the specific language governing permissions
 rem and limitations under the License.
 rem
 rem When distributing Covered Code, include this CDDL HEADER in each
 rem file and include the License file at
-rem trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
+rem trunk/opendj3/legal-notices/CDDLv1_0.txt.  If applicable,
 rem add the following below this CDDL HEADER, with the fields enclosed
 rem by brackets "[]" replaced with your own identifying information:
 rem      Portions Copyright [yyyy] [name of copyright owner]
