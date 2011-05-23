@@ -36,6 +36,10 @@ import java.util.logging.Level;
 
 import javax.net.ssl.SSLContext;
 
+import org.forgerock.opendj.ldap.DecodeOptions;
+import org.forgerock.opendj.ldap.LDAPClientContext;
+import org.forgerock.opendj.ldap.LDAPListenerOptions;
+import org.forgerock.opendj.ldap.ServerConnectionFactory;
 import org.glassfish.grizzly.filterchain.DefaultFilterChain;
 import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.filterchain.TransportFilter;
@@ -43,10 +47,6 @@ import org.glassfish.grizzly.nio.transport.TCPNIOServerConnection;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.ssl.SSLFilter;
-import org.opends.sdk.DecodeOptions;
-import org.opends.sdk.LDAPClientContext;
-import org.opends.sdk.LDAPListenerOptions;
-import org.opends.sdk.ServerConnectionFactory;
 
 import com.forgerock.opendj.util.StaticUtils;
 

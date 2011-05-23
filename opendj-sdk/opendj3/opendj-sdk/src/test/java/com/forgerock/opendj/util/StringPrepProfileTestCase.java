@@ -31,11 +31,11 @@ package com.forgerock.opendj.util;
 
 import static org.testng.Assert.assertEquals;
 
-import org.opends.sdk.Assertion;
-import org.opends.sdk.ByteString;
-import org.opends.sdk.ConditionResult;
-import org.opends.sdk.schema.MatchingRule;
-import org.opends.sdk.schema.Schema;
+import org.forgerock.opendj.ldap.Assertion;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 

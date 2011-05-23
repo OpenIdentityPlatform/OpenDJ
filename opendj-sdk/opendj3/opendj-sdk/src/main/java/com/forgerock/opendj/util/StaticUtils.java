@@ -29,8 +29,8 @@ package com.forgerock.opendj.util;
 
 
 
-import static org.opends.sdk.CoreMessages.ERR_HEX_DECODE_INVALID_CHARACTER;
-import static org.opends.sdk.CoreMessages.ERR_HEX_DECODE_INVALID_LENGTH;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_HEX_DECODE_INVALID_CHARACTER;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_HEX_DECODE_INVALID_LENGTH;
 
 import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
@@ -48,8 +48,8 @@ import java.util.zip.Inflater;
 import org.forgerock.i18n.LocalizableException;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.opends.sdk.ByteSequence;
-import org.opends.sdk.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 
 
 
@@ -61,7 +61,7 @@ public final class StaticUtils
   /**
    * The debug logger which should be used by the SDK.
    */
-  public static final Logger DEBUG_LOG = Logger.getLogger("org.opends.sdk");
+  public static final Logger DEBUG_LOG = Logger.getLogger("org.forgerock.opendj.ldap");
 
   /**
    * The end-of-line character for this platform.

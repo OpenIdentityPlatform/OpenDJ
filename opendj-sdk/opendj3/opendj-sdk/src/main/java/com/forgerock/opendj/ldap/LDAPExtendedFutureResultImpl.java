@@ -29,10 +29,10 @@ package com.forgerock.opendj.ldap;
 
 
 
-import org.opends.sdk.*;
-import org.opends.sdk.requests.ExtendedRequest;
-import org.opends.sdk.requests.StartTLSExtendedRequest;
-import org.opends.sdk.responses.ExtendedResult;
+import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.requests.ExtendedRequest;
+import org.forgerock.opendj.ldap.requests.StartTLSExtendedRequest;
+import org.forgerock.opendj.ldap.responses.ExtendedResult;
 
 
 

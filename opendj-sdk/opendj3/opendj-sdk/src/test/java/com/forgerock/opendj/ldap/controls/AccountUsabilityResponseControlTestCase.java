@@ -36,11 +36,11 @@ import static org.testng.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opends.sdk.*;
-import org.opends.sdk.controls.ControlsTestCase;
-import org.opends.sdk.requests.Requests;
-import org.opends.sdk.requests.SearchRequest;
-import org.opends.sdk.responses.SearchResultEntry;
+import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.controls.ControlsTestCase;
+import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.testng.annotations.Test;
 
 import com.forgerock.opendj.ldap.controls.AccountUsabilityRequestControl;

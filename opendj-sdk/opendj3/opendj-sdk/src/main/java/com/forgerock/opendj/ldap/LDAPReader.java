@@ -30,23 +30,23 @@ package com.forgerock.opendj.ldap;
 
 
 import static com.forgerock.opendj.ldap.LDAPConstants.*;
-import static org.opends.sdk.CoreMessages.ERR_LDAP_MODIFICATION_DECODE_INVALID_MOD_TYPE;
-import static org.opends.sdk.CoreMessages.ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_DEREF;
-import static org.opends.sdk.CoreMessages.ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_SCOPE;
-import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_BOOLEAN_TYPE;
-import static org.opends.sdk.asn1.ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE;
+import static org.forgerock.opendj.asn1.ASN1Constants.UNIVERSAL_BOOLEAN_TYPE;
+import static org.forgerock.opendj.asn1.ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDAP_MODIFICATION_DECODE_INVALID_MOD_TYPE;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_DEREF;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_SCOPE;
 
 import java.io.IOException;
 import java.util.logging.Level;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
-import org.opends.sdk.*;
-import org.opends.sdk.asn1.ASN1Reader;
-import org.opends.sdk.controls.Control;
-import org.opends.sdk.controls.GenericControl;
-import org.opends.sdk.requests.*;
-import org.opends.sdk.responses.*;
-import org.opends.sdk.schema.Schema;
+import org.forgerock.opendj.asn1.ASN1Reader;
+import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.controls.Control;
+import org.forgerock.opendj.ldap.controls.GenericControl;
+import org.forgerock.opendj.ldap.requests.*;
+import org.forgerock.opendj.ldap.responses.*;
+import org.forgerock.opendj.ldap.schema.Schema;
 
 import com.forgerock.opendj.util.StaticUtils;
 

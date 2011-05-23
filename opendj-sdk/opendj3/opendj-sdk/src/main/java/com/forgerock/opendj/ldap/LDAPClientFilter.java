@@ -36,6 +36,12 @@ import java.io.IOException;
 
 import javax.net.ssl.SSLEngine;
 
+import org.forgerock.opendj.ldap.ConnectionSecurityLayer;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.requests.*;
+import org.forgerock.opendj.ldap.responses.*;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.EmptyCompletionHandler;
@@ -44,12 +50,6 @@ import org.glassfish.grizzly.attributes.Attribute;
 import org.glassfish.grizzly.filterchain.BaseFilter;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.filterchain.NextAction;
-import org.opends.sdk.ConnectionSecurityLayer;
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.ErrorResultException;
-import org.opends.sdk.ResultCode;
-import org.opends.sdk.requests.*;
-import org.opends.sdk.responses.*;
 
 
 

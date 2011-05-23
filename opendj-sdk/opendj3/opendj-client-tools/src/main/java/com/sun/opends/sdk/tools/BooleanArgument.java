@@ -28,7 +28,7 @@ package com.sun.opends.sdk.tools;
 
 
 
-import static org.opends.sdk.CoreMessages.ERR_BOOLEANARG_NO_VALUE_ALLOWED;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_BOOLEANARG_NO_VALUE_ALLOWED;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;

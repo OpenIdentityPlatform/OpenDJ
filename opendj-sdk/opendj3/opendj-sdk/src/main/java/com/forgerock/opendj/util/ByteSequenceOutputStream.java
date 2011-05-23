@@ -31,7 +31,7 @@ package com.forgerock.opendj.util;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.opends.sdk.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 
 
 

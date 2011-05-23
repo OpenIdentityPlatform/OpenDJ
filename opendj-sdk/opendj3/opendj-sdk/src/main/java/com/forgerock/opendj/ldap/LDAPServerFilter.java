@@ -39,6 +39,10 @@ import java.util.Map;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
+import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.controls.Control;
+import org.forgerock.opendj.ldap.requests.*;
+import org.forgerock.opendj.ldap.responses.*;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.Grizzly;
@@ -47,10 +51,6 @@ import org.glassfish.grizzly.filterchain.*;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.ssl.SSLFilter;
 import org.glassfish.grizzly.ssl.SSLUtils;
-import org.opends.sdk.*;
-import org.opends.sdk.controls.Control;
-import org.opends.sdk.requests.*;
-import org.opends.sdk.responses.*;
 
 import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.Validator;

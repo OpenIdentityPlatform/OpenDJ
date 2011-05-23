@@ -29,7 +29,7 @@ package com.sun.opends.sdk.tools;
 
 
 
-import static org.opends.sdk.CoreMessages.*;
+import static org.forgerock.opendj.ldap.CoreMessages.*;
 import static com.sun.opends.sdk.tools.ToolConstants.*;
 import static com.sun.opends.sdk.tools.Utils.filterExitCode;
 
@@ -44,15 +44,15 @@ import java.util.StringTokenizer;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
-import org.opends.sdk.*;
-import org.opends.sdk.controls.*;
-import org.opends.sdk.ldif.*;
-import org.opends.sdk.requests.AddRequest;
-import org.opends.sdk.requests.DeleteRequest;
-import org.opends.sdk.requests.ModifyDNRequest;
-import org.opends.sdk.requests.ModifyRequest;
-import org.opends.sdk.responses.Responses;
-import org.opends.sdk.responses.Result;
+import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.controls.*;
+import org.forgerock.opendj.ldap.requests.AddRequest;
+import org.forgerock.opendj.ldap.requests.DeleteRequest;
+import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
+import org.forgerock.opendj.ldap.responses.Responses;
+import org.forgerock.opendj.ldap.responses.Result;
+import org.forgerock.opendj.ldif.*;
 
 
 

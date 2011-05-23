@@ -35,6 +35,12 @@ import java.util.concurrent.ExecutionException;
 
 import javax.net.ssl.SSLEngine;
 
+import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.requests.StartTLSExtendedRequest;
+import org.forgerock.opendj.ldap.responses.ExtendedResult;
+import org.forgerock.opendj.ldap.responses.Responses;
+import org.forgerock.opendj.ldap.responses.Result;
 import org.glassfish.grizzly.CompletionHandler;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.EmptyCompletionHandler;
@@ -42,12 +48,6 @@ import org.glassfish.grizzly.filterchain.DefaultFilterChain;
 import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.filterchain.TransportFilter;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
-import org.opends.sdk.*;
-import org.opends.sdk.requests.Requests;
-import org.opends.sdk.requests.StartTLSExtendedRequest;
-import org.opends.sdk.responses.ExtendedResult;
-import org.opends.sdk.responses.Responses;
-import org.opends.sdk.responses.Result;
 
 import com.forgerock.opendj.util.CompletedFutureResult;
 import com.forgerock.opendj.util.FutureResultTransformer;

@@ -29,7 +29,7 @@ package com.forgerock.opendj.ldap.extensions;
 
 
 
-import org.opends.sdk.ByteString;
+import org.forgerock.opendj.ldap.ByteString;
 
 
 

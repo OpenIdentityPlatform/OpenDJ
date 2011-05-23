@@ -29,10 +29,10 @@ package com.forgerock.opendj.ldap;
 
 
 
+import org.forgerock.opendj.ldap.ConnectionSecurityLayer;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.filterchain.AbstractCodecFilter;
 import org.glassfish.grizzly.memory.MemoryManager;
-import org.opends.sdk.ConnectionSecurityLayer;
 
 
 

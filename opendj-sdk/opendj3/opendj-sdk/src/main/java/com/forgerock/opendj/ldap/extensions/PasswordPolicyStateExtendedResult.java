@@ -32,10 +32,10 @@ package com.forgerock.opendj.ldap.extensions;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opends.sdk.ByteString;
-import org.opends.sdk.DN;
-import org.opends.sdk.ResultCode;
-import org.opends.sdk.responses.AbstractExtendedResult;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.responses.AbstractExtendedResult;
 
 
 

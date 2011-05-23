@@ -32,13 +32,13 @@ package com.forgerock.opendj.ldap;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import org.forgerock.opendj.asn1.ASN1Reader;
+import org.forgerock.opendj.asn1.ASN1Writer;
+import org.forgerock.opendj.asn1.ASN1WriterTestCase;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.TransportFactory;
 import org.glassfish.grizzly.memory.ByteBufferWrapper;
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.asn1.ASN1Reader;
-import org.opends.sdk.asn1.ASN1Writer;
-import org.opends.sdk.asn1.ASN1WriterTestCase;
 
 import com.forgerock.opendj.ldap.ASN1BufferReader;
 import com.forgerock.opendj.ldap.ASN1BufferWriter;

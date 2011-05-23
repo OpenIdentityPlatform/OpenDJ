@@ -30,23 +30,23 @@ package com.forgerock.opendj.ldap.controls;
 
 import static com.forgerock.opendj.util.StaticUtils.byteToHex;
 import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
-import static org.opends.sdk.CoreMessages.ERR_ACCTUSABLERES_CONTROL_BAD_OID;
-import static org.opends.sdk.CoreMessages.ERR_ACCTUSABLERES_DECODE_ERROR;
-import static org.opends.sdk.CoreMessages.ERR_ACCTUSABLERES_NO_CONTROL_VALUE;
-import static org.opends.sdk.CoreMessages.ERR_ACCTUSABLERES_UNKNOWN_VALUE_ELEMENT_TYPE;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_ACCTUSABLERES_CONTROL_BAD_OID;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_ACCTUSABLERES_DECODE_ERROR;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_ACCTUSABLERES_NO_CONTROL_VALUE;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_ACCTUSABLERES_UNKNOWN_VALUE_ELEMENT_TYPE;
 
 import java.io.IOException;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.sdk.ByteString;
-import org.opends.sdk.ByteStringBuilder;
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.DecodeOptions;
-import org.opends.sdk.asn1.ASN1;
-import org.opends.sdk.asn1.ASN1Reader;
-import org.opends.sdk.asn1.ASN1Writer;
-import org.opends.sdk.controls.Control;
-import org.opends.sdk.controls.ControlDecoder;
+import org.forgerock.opendj.asn1.ASN1;
+import org.forgerock.opendj.asn1.ASN1Reader;
+import org.forgerock.opendj.asn1.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.DecodeOptions;
+import org.forgerock.opendj.ldap.controls.Control;
+import org.forgerock.opendj.ldap.controls.ControlDecoder;
 
 import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.Validator;

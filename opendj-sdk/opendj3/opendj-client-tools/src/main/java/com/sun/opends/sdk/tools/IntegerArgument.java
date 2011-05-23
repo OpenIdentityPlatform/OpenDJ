@@ -28,10 +28,10 @@ package com.sun.opends.sdk.tools;
 
 
 
-import static org.opends.sdk.CoreMessages.ERR_ARG_CANNOT_DECODE_AS_INT;
-import static org.opends.sdk.CoreMessages.ERR_INTARG_LOWER_BOUND_ABOVE_UPPER_BOUND;
-import static org.opends.sdk.CoreMessages.ERR_INTARG_VALUE_ABOVE_UPPER_BOUND;
-import static org.opends.sdk.CoreMessages.ERR_INTARG_VALUE_BELOW_LOWER_BOUND;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_ARG_CANNOT_DECODE_AS_INT;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_INTARG_LOWER_BOUND_ABOVE_UPPER_BOUND;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_INTARG_VALUE_ABOVE_UPPER_BOUND;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_INTARG_VALUE_BELOW_LOWER_BOUND;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;

@@ -31,7 +31,7 @@ package com.sun.opends.sdk.tools;
 import org.forgerock.i18n.LocalizableException;
 import org.forgerock.i18n.LocalizableMessage;
 
-import static org.opends.sdk.CoreMessages.*;
+import static org.forgerock.opendj.ldap.CoreMessages.*;
 
 
 

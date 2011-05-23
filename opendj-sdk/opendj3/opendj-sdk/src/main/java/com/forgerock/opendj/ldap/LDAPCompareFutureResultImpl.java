@@ -29,13 +29,13 @@ package com.forgerock.opendj.ldap;
 
 
 
-import org.opends.sdk.AsynchronousConnection;
-import org.opends.sdk.IntermediateResponseHandler;
-import org.opends.sdk.ResultCode;
-import org.opends.sdk.ResultHandler;
-import org.opends.sdk.requests.CompareRequest;
-import org.opends.sdk.responses.CompareResult;
-import org.opends.sdk.responses.Responses;
+import org.forgerock.opendj.ldap.AsynchronousConnection;
+import org.forgerock.opendj.ldap.IntermediateResponseHandler;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.ResultHandler;
+import org.forgerock.opendj.ldap.requests.CompareRequest;
+import org.forgerock.opendj.ldap.responses.CompareResult;
+import org.forgerock.opendj.ldap.responses.Responses;
 
 
 

@@ -31,10 +31,10 @@ package com.forgerock.opendj.util;
 
 import java.util.Collection;
 
-import org.opends.sdk.*;
-import org.opends.sdk.requests.*;
-import org.opends.sdk.responses.*;
-import org.opends.sdk.schema.Schema;
+import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.requests.*;
+import org.forgerock.opendj.ldap.responses.*;
+import org.forgerock.opendj.ldap.schema.Schema;
 
 
 

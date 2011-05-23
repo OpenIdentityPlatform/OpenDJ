@@ -29,7 +29,7 @@ package com.sun.opends.sdk.tools;
 
 
 
-import static org.opends.sdk.CoreMessages.*;
+import static org.forgerock.opendj.ldap.CoreMessages.*;
 import static com.sun.opends.sdk.tools.ToolConstants.*;
 import static com.sun.opends.sdk.tools.Utils.filterExitCode;
 
@@ -43,11 +43,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.requests.*;
+import org.forgerock.opendj.ldap.responses.BindResult;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.glassfish.grizzly.TransportFactory;
-import org.opends.sdk.*;
-import org.opends.sdk.requests.*;
-import org.opends.sdk.responses.BindResult;
-import org.opends.sdk.responses.SearchResultEntry;
 
 import com.forgerock.opendj.util.RecursiveFutureResult;
 

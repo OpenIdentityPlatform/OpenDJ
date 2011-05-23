@@ -36,10 +36,10 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.sdk.*;
-import org.opends.sdk.asn1.ASN1Reader;
-import org.opends.sdk.asn1.ASN1Writer;
-import org.opends.sdk.responses.SearchResultEntry;
+import org.forgerock.opendj.asn1.ASN1Reader;
+import org.forgerock.opendj.asn1.ASN1Writer;
+import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 
 
 

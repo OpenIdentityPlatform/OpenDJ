@@ -28,7 +28,7 @@ package com.sun.opends.sdk.tools;
 
 
 
-import static org.opends.sdk.CoreMessages.ERR_MCARG_VALUE_NOT_ALLOWED;
+import static org.forgerock.opendj.ldap.CoreMessages.ERR_MCARG_VALUE_NOT_ALLOWED;
 
 import java.util.Collection;
 

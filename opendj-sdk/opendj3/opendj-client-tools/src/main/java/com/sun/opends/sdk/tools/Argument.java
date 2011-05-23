@@ -28,7 +28,7 @@ package com.sun.opends.sdk.tools;
 
 
 
-import static org.opends.sdk.CoreMessages.*;
+import static org.forgerock.opendj.ldap.CoreMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
 
 import java.util.Iterator;

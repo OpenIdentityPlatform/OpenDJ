@@ -29,15 +29,15 @@ package com.forgerock.opendj.ldap;
 
 
 
-import org.opends.sdk.AsynchronousConnection;
-import org.opends.sdk.IntermediateResponseHandler;
-import org.opends.sdk.ResultCode;
-import org.opends.sdk.SearchResultHandler;
-import org.opends.sdk.requests.SearchRequest;
-import org.opends.sdk.responses.Responses;
-import org.opends.sdk.responses.Result;
-import org.opends.sdk.responses.SearchResultEntry;
-import org.opends.sdk.responses.SearchResultReference;
+import org.forgerock.opendj.ldap.AsynchronousConnection;
+import org.forgerock.opendj.ldap.IntermediateResponseHandler;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SearchResultHandler;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.Responses;
+import org.forgerock.opendj.ldap.responses.Result;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.ldap.responses.SearchResultReference;
 
 
 

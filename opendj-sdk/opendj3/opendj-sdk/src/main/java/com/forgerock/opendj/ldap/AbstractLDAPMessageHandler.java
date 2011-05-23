@@ -31,9 +31,9 @@ package com.forgerock.opendj.ldap;
 
 import java.io.IOException;
 
-import org.opends.sdk.ByteString;
-import org.opends.sdk.requests.*;
-import org.opends.sdk.responses.*;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.requests.*;
+import org.forgerock.opendj.ldap.responses.*;
 
 
 

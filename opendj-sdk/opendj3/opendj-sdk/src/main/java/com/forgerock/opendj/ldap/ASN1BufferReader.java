@@ -30,21 +30,21 @@ package com.forgerock.opendj.ldap;
 
 
 import static com.forgerock.opendj.ldap.LDAPConstants.*;
-import static org.opends.sdk.CoreMessages.*;
+import static org.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.io.IOException;
 import java.util.logging.Level;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.asn1.ASN1Reader;
+import org.forgerock.opendj.asn1.AbstractASN1Reader;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.memory.BuffersBuffer;
 import org.glassfish.grizzly.memory.CompositeBuffer;
 import org.glassfish.grizzly.memory.MemoryManager;
-import org.opends.sdk.ByteString;
-import org.opends.sdk.ByteStringBuilder;
-import org.opends.sdk.DecodeException;
-import org.opends.sdk.asn1.ASN1Reader;
-import org.opends.sdk.asn1.AbstractASN1Reader;
 
 import com.forgerock.opendj.util.StaticUtils;
 

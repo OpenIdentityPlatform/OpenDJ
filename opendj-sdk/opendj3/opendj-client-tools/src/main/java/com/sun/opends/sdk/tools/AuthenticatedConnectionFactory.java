@@ -29,9 +29,9 @@ package com.sun.opends.sdk.tools;
 
 
 
-import org.opends.sdk.*;
-import org.opends.sdk.requests.BindRequest;
-import org.opends.sdk.responses.BindResult;
+import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.requests.BindRequest;
+import org.forgerock.opendj.ldap.responses.BindResult;
 
 import com.forgerock.opendj.util.AsynchronousConnectionDecorator;
 import com.forgerock.opendj.util.FutureResultTransformer;

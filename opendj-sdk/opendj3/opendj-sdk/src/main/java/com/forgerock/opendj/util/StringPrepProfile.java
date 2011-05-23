@@ -35,7 +35,7 @@ import java.text.Normalizer.Form;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import org.opends.sdk.ByteSequence;
+import org.forgerock.opendj.ldap.ByteSequence;
 
 
 
@@ -470,7 +470,7 @@ public final class StringPrepProfile
    *          The buffer to which the prepared form of the string should be
    *          appended.
    * @param sequence
-   *          The {@link org.opends.sdk.ByteSequence} that needs preparation.
+   *          The {@link org.forgerock.opendj.ldap.ByteSequence} that needs preparation.
    * @param trim
    *          Indicates whether leading and trailing spaces should be omitted
    *          from the string representation.
