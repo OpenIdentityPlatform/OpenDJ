@@ -30,4 +30,13 @@
     <menu ref="parent" />
     <menu ref="reports" />
   </body>
+  
+  <custom>
+    <googleAnalytics>UA-23412190-2</googleAnalytics>
+    <openproject>
+      <href>http://opendj.org/</href>
+      <src>./images/opendj-tagline-179x65.png</src>
+      <alt>OpenDJ</alt>
+    </openproject>
+  </custom>
 </project>
