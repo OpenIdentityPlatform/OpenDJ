@@ -42,7 +42,7 @@ import org.testng.annotations.Test;
 
 /**
  * This class defines a base test case that should be subclassed by all unit
- * tests used by OpenDS.
+ * tests used by OpenDJ.
  * <p>
  * This class adds the ability to print error messages and automatically have
  * them include the class name.

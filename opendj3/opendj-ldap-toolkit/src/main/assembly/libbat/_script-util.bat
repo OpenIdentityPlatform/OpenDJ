@@ -79,38 +79,38 @@ goto testJava
 if "%SET_JAVA_HOME_AND_ARGS_DONE%" == "true" goto prepareCheck
 if not exist "%INSTANCE_ROOT%\lib\set-java-home.bat" goto checkEnvJavaArgs
 call "%INSTANCE_ROOT%\lib\set-java-home.bat"
-if "%OPENDS_JAVA_BIN%" == "" goto checkEnvJavaArgs
+if "%OPENDJ_JAVA_BIN%" == "" goto checkEnvJavaArgs
 :endJavaHomeAndArgs
 set SET_JAVA_HOME_AND_ARGS_DONE=true
 goto scriptBegin
 
 :checkEnvJavaArgs
-if "%OPENDS_JAVA_BIN%" == "" goto checkOpenDSJavaHome
-if not exist "%OPENDS_JAVA_BIN%" goto checkOpenDSJavaHome
+if "%OPENDJ_JAVA_BIN%" == "" goto checkOpenDJJavaHome
+if not exist "%OPENDJ_JAVA_BIN%" goto checkOpenDJJavaHome
 goto endJavaHomeAndArgs
 
-:checkOpenDSJavaHome
-if "%OPENDS_JAVA_HOME%" == "" goto checkJavaBin
-if not exist "%OPENDS_JAVA_HOME%\bin\java.exe" goto checkJavaBin
-set OPENDS_JAVA_BIN=%OPENDS_JAVA_HOME%\bin\java.exe
+:checkOpenDJJavaHome
+if "%OPENDJ_JAVA_HOME%" == "" goto checkJavaBin
+if not exist "%OPENDJ_JAVA_HOME%\bin\java.exe" goto checkJavaBin
+set OPENDJ_JAVA_BIN=%OPENDJ_JAVA_HOME%\bin\java.exe
 goto endJavaHomeAndArgs
 
 :checkJavaBin
 if "%JAVA_BIN%" == "" goto checkJavaHome
 if not exist "%JAVA_BIN%" goto checkJavaHome
-set OPENDS_JAVA_BIN=%JAVA_BIN%
+set OPENDJ_JAVA_BIN=%JAVA_BIN%
 goto endJavaHomeAndArgs
 
 :checkJavaHome
 if "%JAVA_HOME%" == "" goto checkJavaPath
 if not exist "%JAVA_HOME%\bin\java.exe" goto noJavaFound
-set OPENDS_JAVA_BIN=%JAVA_HOME%\bin\java.exe
+set OPENDJ_JAVA_BIN=%JAVA_HOME%\bin\java.exe
 goto endJavaHomeAndArgs
 
 :checkJavaPath
 java.exe -version > NUL 2>&1
 if not %errorlevel% == 0 goto noJavaFound
-set OPENDS_JAVA_BIN=java.exe
+set OPENDJ_JAVA_BIN=java.exe
 goto endJavaHomeAndArgs
 
 :noJavaFound
@@ -118,7 +118,7 @@ echo ERROR:  Could not find a valid Java binary to be used.
 echo You must specify the path to a valid Java 5.0 or higher version.
 echo The procedure to follow is:
 echo 1. Delete the file %INSTANCE_ROOT%\lib\set-java-home.bat if it exists.
-echo 2. Set the environment variable OPENDS_JAVA_HOME to the root of a valid
+echo 2. Set the environment variable OPENDJ_JAVA_HOME to the root of a valid
 echo Java 5.0 installation.
 echo If you want to have specific Java settings for each command line you must
 echo follow the steps 3 and 4.
@@ -137,14 +137,14 @@ set SET_ENVIRONMENT_VARS_DONE=true
 goto scriptBegin
 
 :noValidJavaHome
-if NOT "%OPENDS_JAVA_ARGS%" == "" goto noValidHomeWithArgs
+if NOT "%OPENDJ_JAVA_ARGS%" == "" goto noValidHomeWithArgs
 echo ERROR:  The detected Java version could not be used.  The detected
 echo Java binary is:
-echo %OPENDS_JAVA_BIN%
+echo %OPENDJ_JAVA_BIN%
 echo You must specify the path to a valid Java 5.0 or higher version.
 echo The procedure to follow is:
 echo 1. Delete the file %INSTANCE_ROOT%\lib\set-java-home.bat if it exists.
-echo 2. Set the environment variable OPENDS_JAVA_HOME to the root of a valid
+echo 2. Set the environment variable OPENDJ_JAVA_HOME to the root of a valid
 echo Java 5.0 installation.
 echo If you want to have specific Java settings for each command line you must
 echo follow the steps 3 and 4.
@@ -158,19 +158,19 @@ exit /B 1
 :notSupportedJavaHome
 rem We get here when the java version is 5 (or up) but not supported.  We run
 rem InstallDS again to see a localized message.
-"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% org.opends.server.tools.InstallDS -t
+"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% org.opendj.server.tools.InstallDS -t
 pause
 exit /B 1
 
 :noValidHomeWithArgs
 echo ERROR:  The detected Java version could not be used with the set of Java
-echo arguments %OPENDS_JAVA_ARGS%.
+echo arguments %OPENDJ_JAVA_ARGS%.
 echo The detected Java binary is:
-echo %OPENDS_JAVA_BIN%
+echo %OPENDJ_JAVA_BIN%
 echo You must specify the path to a valid Java 5.0 or higher version.
 echo The procedure to follow is:
 echo 1. Delete the file %INSTANCE_ROOT%\lib\set-java-home.bat if it exists.
-echo 2. Set the environment variable OPENDS_JAVA_HOME to the root of a valid
+echo 2. Set the environment variable OPENDJ_JAVA_HOME to the root of a valid
 echo Java 5.0 installation.
 echo If you want to have specific Java settings for each command line you must
 echo follow the steps 3 and 4.

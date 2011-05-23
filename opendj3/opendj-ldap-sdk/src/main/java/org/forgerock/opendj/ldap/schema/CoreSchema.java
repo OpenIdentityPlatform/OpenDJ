@@ -30,7 +30,7 @@ package org.forgerock.opendj.ldap.schema;
 
 
 /**
- * The OpenDS SDK core schema contains standard LDAP RFC schema elements. These
+ * The OpenDJ SDK core schema contains standard LDAP RFC schema elements. These
  * include:
  * <ul>
  * <li><a href="http://tools.ietf.org/html/rfc4512">RFC 4512 - Lightweight

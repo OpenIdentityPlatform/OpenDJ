@@ -59,13 +59,13 @@ public class DNTestCase extends SdkTestCase
     return new Object[][] {
         { "", "", "" },
         { "", "dc=org", "dc=org" },
-        { "", "dc=opends,dc=org", "dc=opends,dc=org" },
+        { "", "dc=opendj,dc=org", "dc=opendj,dc=org" },
         { "dc=org", "", "dc=org" },
-        { "dc=org", "dc=opends", "dc=opends,dc=org" },
-        { "dc=org", "dc=foo,dc=opends", "dc=foo,dc=opends,dc=org" },
-        { "dc=opends,dc=org", "", "dc=opends,dc=org" },
-        { "dc=opends,dc=org", "dc=foo", "dc=foo,dc=opends,dc=org" },
-        { "dc=opends,dc=org", "dc=bar,dc=foo", "dc=bar,dc=foo,dc=opends,dc=org" }, };
+        { "dc=org", "dc=opendj", "dc=opendj,dc=org" },
+        { "dc=org", "dc=foo,dc=opendj", "dc=foo,dc=opendj,dc=org" },
+        { "dc=opendj,dc=org", "", "dc=opendj,dc=org" },
+        { "dc=opendj,dc=org", "dc=foo", "dc=foo,dc=opendj,dc=org" },
+        { "dc=opendj,dc=org", "dc=bar,dc=foo", "dc=bar,dc=foo,dc=opendj,dc=org" }, };
   }
 
 
@@ -79,8 +79,8 @@ public class DNTestCase extends SdkTestCase
   public Object[][] createChildRDNTestData()
   {
     return new Object[][] { { "", "dc=org", "dc=org" },
-        { "dc=org", "dc=opends", "dc=opends,dc=org" },
-        { "dc=opends,dc=org", "dc=foo", "dc=foo,dc=opends,dc=org" }, };
+        { "dc=org", "dc=opendj", "dc=opendj,dc=org" },
+        { "dc=opendj,dc=org", "dc=foo", "dc=foo,dc=opendj,dc=org" }, };
   }
 
 
@@ -285,21 +285,21 @@ public class DNTestCase extends SdkTestCase
   public Object[][] createIsChildOfTestData()
   {
     return new Object[][] { { "", "", false }, { "", "dc=org", false },
-        { "", "dc=opends,dc=org", false },
-        { "", "dc=foo,dc=opends,dc=org", false }, { "dc=org", "", true },
-        { "dc=org", "dc=org", false }, { "dc=org", "dc=opends,dc=org", false },
-        { "dc=org", "dc=foo,dc=opends,dc=org", false },
-        { "dc=opends,dc=org", "", false },
-        { "dc=opends,dc=org", "dc=org", true },
-        { "dc=opends,dc=org", "dc=opends,dc=org", false },
-        { "dc=opends,dc=org", "dc=foo,dc=opends,dc=org", false },
-        { "dc=foo,dc=opends,dc=org", "", false },
-        { "dc=foo,dc=opends,dc=org", "dc=org", false },
-        { "dc=foo,dc=opends,dc=org", "dc=opends,dc=org", true },
-        { "dc=foo,dc=opends,dc=org", "dc=foo,dc=opends,dc=org", false },
+        { "", "dc=opendj,dc=org", false },
+        { "", "dc=foo,dc=opendj,dc=org", false }, { "dc=org", "", true },
+        { "dc=org", "dc=org", false }, { "dc=org", "dc=opendj,dc=org", false },
+        { "dc=org", "dc=foo,dc=opendj,dc=org", false },
+        { "dc=opendj,dc=org", "", false },
+        { "dc=opendj,dc=org", "dc=org", true },
+        { "dc=opendj,dc=org", "dc=opendj,dc=org", false },
+        { "dc=opendj,dc=org", "dc=foo,dc=opendj,dc=org", false },
+        { "dc=foo,dc=opendj,dc=org", "", false },
+        { "dc=foo,dc=opendj,dc=org", "dc=org", false },
+        { "dc=foo,dc=opendj,dc=org", "dc=opendj,dc=org", true },
+        { "dc=foo,dc=opendj,dc=org", "dc=foo,dc=opendj,dc=org", false },
         { "dc=org", "dc=com", false },
-        { "dc=opends,dc=org", "dc=foo,dc=org", false },
-        { "dc=opends,dc=org", "dc=opends,dc=com", false }, };
+        { "dc=opendj,dc=org", "dc=foo,dc=org", false },
+        { "dc=opendj,dc=org", "dc=opendj,dc=com", false }, };
   }
 
 
@@ -313,8 +313,8 @@ public class DNTestCase extends SdkTestCase
   public Object[][] createNumComponentsTestData()
   {
     return new Object[][] { { "", 0 }, { "dc=com", 1 },
-        { "dc=opends,dc=com", 2 }, { "dc=world,dc=opends,dc=com", 3 },
-        { "dc=hello,dc=world,dc=opends,dc=com", 4 }, };
+        { "dc=opendj,dc=com", 2 }, { "dc=world,dc=opendj,dc=com", 3 },
+        { "dc=hello,dc=world,dc=opendj,dc=com", 4 }, };
   }
 
 
@@ -330,9 +330,9 @@ public class DNTestCase extends SdkTestCase
     return new Object[][] {
         { "", null, null },
         { "dc=com", "", "dc=com" },
-        { "dc=opends,dc=com", "dc=com", "dc=opends" },
-        { "dc=world,dc=opends,dc=com", "dc=opends,dc=com", "dc=world" },
-        { "dc=hello,dc=world,dc=opends,dc=com", "dc=world,dc=opends,dc=com",
+        { "dc=opendj,dc=com", "dc=com", "dc=opendj" },
+        { "dc=world,dc=opendj,dc=com", "dc=opendj,dc=com", "dc=world" },
+        { "dc=hello,dc=world,dc=opendj,dc=com", "dc=world,dc=opendj,dc=com",
             "dc=hello" }, };
   }
 
@@ -347,12 +347,12 @@ public class DNTestCase extends SdkTestCase
   public Object[][] createRDNTestData()
   {
     return new Object[][] { { "dc=com", 0, "dc=com" },
-        { "dc=opends,dc=com", 0, "dc=opends" },
-        { "dc=opends,dc=com", 1, "dc=com" },
-        { "dc=hello,dc=world,dc=opends,dc=com", 0, "dc=hello" },
-        { "dc=hello,dc=world,dc=opends,dc=com", 1, "dc=world" },
-        { "dc=hello,dc=world,dc=opends,dc=com", 2, "dc=opends" },
-        { "dc=hello,dc=world,dc=opends,dc=com", 3, "dc=com" }, };
+        { "dc=opendj,dc=com", 0, "dc=opendj" },
+        { "dc=opendj,dc=com", 1, "dc=com" },
+        { "dc=hello,dc=world,dc=opendj,dc=com", 0, "dc=hello" },
+        { "dc=hello,dc=world,dc=opendj,dc=com", 1, "dc=world" },
+        { "dc=hello,dc=world,dc=opendj,dc=com", 2, "dc=opendj" },
+        { "dc=hello,dc=world,dc=opendj,dc=com", 3, "dc=com" }, };
   }
 
 
@@ -366,21 +366,21 @@ public class DNTestCase extends SdkTestCase
   public Object[][] createSubordinateTestData()
   {
     return new Object[][] { { "", "", true }, { "", "dc=org", false },
-        { "", "dc=opends,dc=org", false },
-        { "", "dc=foo,dc=opends,dc=org", false }, { "dc=org", "", true },
-        { "dc=org", "dc=org", true }, { "dc=org", "dc=opends,dc=org", false },
-        { "dc=org", "dc=foo,dc=opends,dc=org", false },
-        { "dc=opends,dc=org", "", true },
-        { "dc=opends,dc=org", "dc=org", true },
-        { "dc=opends,dc=org", "dc=opends,dc=org", true },
-        { "dc=opends,dc=org", "dc=foo,dc=opends,dc=org", false },
-        { "dc=foo,dc=opends,dc=org", "", true },
-        { "dc=foo,dc=opends,dc=org", "dc=org", true },
-        { "dc=foo,dc=opends,dc=org", "dc=opends,dc=org", true },
-        { "dc=foo,dc=opends,dc=org", "dc=foo,dc=opends,dc=org", true },
+        { "", "dc=opendj,dc=org", false },
+        { "", "dc=foo,dc=opendj,dc=org", false }, { "dc=org", "", true },
+        { "dc=org", "dc=org", true }, { "dc=org", "dc=opendj,dc=org", false },
+        { "dc=org", "dc=foo,dc=opendj,dc=org", false },
+        { "dc=opendj,dc=org", "", true },
+        { "dc=opendj,dc=org", "dc=org", true },
+        { "dc=opendj,dc=org", "dc=opendj,dc=org", true },
+        { "dc=opendj,dc=org", "dc=foo,dc=opendj,dc=org", false },
+        { "dc=foo,dc=opendj,dc=org", "", true },
+        { "dc=foo,dc=opendj,dc=org", "dc=org", true },
+        { "dc=foo,dc=opendj,dc=org", "dc=opendj,dc=org", true },
+        { "dc=foo,dc=opendj,dc=org", "dc=foo,dc=opendj,dc=org", true },
         { "dc=org", "dc=com", false },
-        { "dc=opends,dc=org", "dc=foo,dc=org", false },
-        { "dc=opends,dc=org", "dc=opends,dc=com", false }, };
+        { "dc=opendj,dc=org", "dc=foo,dc=org", false },
+        { "dc=opendj,dc=org", "dc=opendj,dc=com", false }, };
   }
 
 
@@ -394,21 +394,21 @@ public class DNTestCase extends SdkTestCase
   public Object[][] createSuperiorTestData()
   {
     return new Object[][] { { "", "", true }, { "", "dc=org", true },
-        { "", "dc=opends,dc=org", true },
-        { "", "dc=foo,dc=opends,dc=org", true }, { "dc=org", "", false },
-        { "dc=org", "dc=org", true }, { "dc=org", "dc=opends,dc=org", true },
-        { "dc=org", "dc=foo,dc=opends,dc=org", true },
-        { "dc=opends,dc=org", "", false },
-        { "dc=opends,dc=org", "dc=org", false },
-        { "dc=opends,dc=org", "dc=opends,dc=org", true },
-        { "dc=opends,dc=org", "dc=foo,dc=opends,dc=org", true },
-        { "dc=foo,dc=opends,dc=org", "", false },
-        { "dc=foo,dc=opends,dc=org", "dc=org", false },
-        { "dc=foo,dc=opends,dc=org", "dc=opends,dc=org", false },
-        { "dc=foo,dc=opends,dc=org", "dc=foo,dc=opends,dc=org", true },
+        { "", "dc=opendj,dc=org", true },
+        { "", "dc=foo,dc=opendj,dc=org", true }, { "dc=org", "", false },
+        { "dc=org", "dc=org", true }, { "dc=org", "dc=opendj,dc=org", true },
+        { "dc=org", "dc=foo,dc=opendj,dc=org", true },
+        { "dc=opendj,dc=org", "", false },
+        { "dc=opendj,dc=org", "dc=org", false },
+        { "dc=opendj,dc=org", "dc=opendj,dc=org", true },
+        { "dc=opendj,dc=org", "dc=foo,dc=opendj,dc=org", true },
+        { "dc=foo,dc=opendj,dc=org", "", false },
+        { "dc=foo,dc=opendj,dc=org", "dc=org", false },
+        { "dc=foo,dc=opendj,dc=org", "dc=opendj,dc=org", false },
+        { "dc=foo,dc=opendj,dc=org", "dc=foo,dc=opendj,dc=org", true },
         { "dc=org", "dc=com", false },
-        { "dc=opends,dc=org", "dc=foo,dc=org", false },
-        { "dc=opends,dc=org", "dc=opends,dc=com", false }, };
+        { "dc=opendj,dc=org", "dc=foo,dc=org", false },
+        { "dc=opendj,dc=org", "dc=opendj,dc=com", false }, };
   }
 
 
@@ -474,9 +474,9 @@ public class DNTestCase extends SdkTestCase
   @Test
   public void testChildDNInteraction() throws Exception
   {
-    final DN p = DN.valueOf("dc=opends,dc=org");
+    final DN p = DN.valueOf("dc=opendj,dc=org");
     final DN l = DN.valueOf("dc=foo");
-    final DN e = DN.valueOf("dc=foo,dc=opends,dc=org");
+    final DN e = DN.valueOf("dc=foo,dc=opendj,dc=org");
     final DN c = p.child(l);
 
     assertEquals(c.size(), 3);
@@ -497,13 +497,13 @@ public class DNTestCase extends SdkTestCase
 
     assertEquals(c.rdn(), RDN.valueOf("dc=foo"));
 
-    assertEquals(c.parent(), DN.valueOf("dc=opends,dc=org"));
+    assertEquals(c.parent(), DN.valueOf("dc=opendj,dc=org"));
     assertEquals(c.parent(), e.parent());
 
     assertEquals(c.child(RDN.valueOf("dc=xxx")), DN
-        .valueOf("dc=xxx,dc=foo,dc=opends,dc=org"));
+        .valueOf("dc=xxx,dc=foo,dc=opendj,dc=org"));
     assertEquals(c.child(DN.valueOf("dc=xxx,dc=yyy")), DN
-        .valueOf("dc=xxx,dc=yyy,dc=foo,dc=opends,dc=org"));
+        .valueOf("dc=xxx,dc=yyy,dc=foo,dc=opendj,dc=org"));
   }
 
 
@@ -786,8 +786,8 @@ public class DNTestCase extends SdkTestCase
   @Test
   public void testParentInteraction() throws Exception
   {
-    final DN c = DN.valueOf("dc=foo,dc=bar,dc=opends,dc=org");
-    final DN e = DN.valueOf("dc=bar,dc=opends,dc=org");
+    final DN c = DN.valueOf("dc=foo,dc=bar,dc=opendj,dc=org");
+    final DN e = DN.valueOf("dc=bar,dc=opendj,dc=org");
     final DN p = c.parent();
 
     assertEquals(p.size(), 3);
@@ -810,14 +810,14 @@ public class DNTestCase extends SdkTestCase
 
     assertEquals(p.rdn(), RDN.valueOf("dc=bar"));
 
-    assertEquals(p.parent(), DN.valueOf("dc=opends,dc=org"));
+    assertEquals(p.parent(), DN.valueOf("dc=opendj,dc=org"));
     assertEquals(p.parent(), e.parent());
 
     assertEquals(p.child(RDN.valueOf("dc=foo")), DN
-        .valueOf("dc=foo,dc=bar,dc=opends,dc=org"));
+        .valueOf("dc=foo,dc=bar,dc=opendj,dc=org"));
     assertEquals(p.child(RDN.valueOf("dc=foo")), c);
     assertEquals(p.child(DN.valueOf("dc=xxx,dc=foo")), DN
-        .valueOf("dc=xxx,dc=foo,dc=bar,dc=opends,dc=org"));
+        .valueOf("dc=xxx,dc=foo,dc=bar,dc=opendj,dc=org"));
   }
 
 

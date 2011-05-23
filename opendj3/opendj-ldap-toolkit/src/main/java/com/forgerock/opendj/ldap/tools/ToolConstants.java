@@ -83,19 +83,19 @@ final class ToolConstants
   static final String SASL_PROPERTY_MECH = "mech";
 
   /**
-   * The name of the opends configuration direction in the user home directory.
+   * The name of the opendj configuration direction in the user home directory.
    */
-  static final String DEFAULT_OPENDS_CONFIG_DIR = ".opends";
+  static final String DEFAULT_OPENDJ_CONFIG_DIR = ".opendj";
 
   /**
    * The default properties file name.
    */
-  static final String DEFAULT_OPENDS_PROPERTIES_FILE_NAME = "tools";
+  static final String DEFAULT_OPENDJ_PROPERTIES_FILE_NAME = "tools";
 
   /**
    * The default properties file extension.
    */
-  static final String DEFAULT_OPENDS_PROPERTIES_FILE_EXTENSION = ".properties";
+  static final String DEFAULT_OPENDJ_PROPERTIES_FILE_EXTENSION = ".properties";
 
   /**
    * The value for the short option batchFilePath.

@@ -26,7 +26,7 @@
  */
 
 /**
- * Classes implementing the OpenDS SDK client tools.
+ * Classes implementing the OpenDJ SDK client tools.
  */
 package com.forgerock.opendj.ldap.tools;
 

@@ -27,8 +27,8 @@
 
 
 # This script may be used to perform LDAP search operations.
-OPENDS_INVOKE_CLASS="com.forgerock.opendj.ldap.tools.ModRate"
-export OPENDS_INVOKE_CLASS
+OPENDJ_INVOKE_CLASS="com.forgerock.opendj.ldap.tools.ModRate"
+export OPENDJ_INVOKE_CLASS
 
 SCRIPT_NAME="modrate"
 export SCRIPT_NAME

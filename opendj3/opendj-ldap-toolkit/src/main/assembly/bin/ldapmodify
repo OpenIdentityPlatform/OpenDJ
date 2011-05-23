@@ -28,8 +28,8 @@
 
 # This script may be used to perform LDAP add, delete, modify, and modify DN
 # operations.
-OPENDS_INVOKE_CLASS="com.forgerock.opendj.ldap.tools.LDAPModify"
-export OPENDS_INVOKE_CLASS
+OPENDJ_INVOKE_CLASS="com.forgerock.opendj.ldap.tools.LDAPModify"
+export OPENDJ_INVOKE_CLASS
 
 SCRIPT_NAME="ldapmodify"
 export SCRIPT_NAME

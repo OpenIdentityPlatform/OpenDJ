@@ -34,11 +34,11 @@ set INSTALL_ROOT=%DIR_HOME%
 
 if "%NO_CHECK%" == "" set NO_CHECK=true
 
-if "%OPENDS_INVOKE_CLASS%" == "" goto noInvokeClass
+if "%OPENDJ_INVOKE_CLASS%" == "" goto noInvokeClass
 goto launchCommand
 
 :noInvokeClass
-echo Error:  OPENDS_INVOKE_CLASS environment variable is not set.
+echo Error:  OPENDJ_INVOKE_CLASS environment variable is not set.
 pause
 goto end
 
@@ -47,7 +47,7 @@ set SCRIPT_UTIL_CMD=set-full-environment
 call "%INSTALL_ROOT%\lib\_script-util.bat" $*
 if NOT %errorlevel% == 0 exit /B %errorlevel%
 
-"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% %OPENDS_INVOKE_CLASS% %*
+"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% %SCRIPT_NAME_ARG% %OPENDJ_INVOKE_CLASS% %*
 
 :end
 

@@ -148,7 +148,7 @@ public final class PerfToolTCPNIOTransportFactory extends
     defaultWorkerThreadPool = GrizzlyExecutorService
         .createInstance(ThreadPoolConfig.defaultConfig()
             .setMemoryManager(defaultMemoryManager).setCorePoolSize(threads)
-            .setMaxPoolSize(threads).setPoolName("OpenDS SDK Worker(Grizzly)"));
+            .setMaxPoolSize(threads).setPoolName("OpenDJ SDK Worker(Grizzly)"));
 
     // Copied from NIOTransportFactory.
     defaultSelectorHandler = new DefaultSelectorHandler();

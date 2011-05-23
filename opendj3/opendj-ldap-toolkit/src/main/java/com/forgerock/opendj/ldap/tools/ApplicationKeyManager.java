@@ -80,9 +80,9 @@ final class ApplicationKeyManager implements X509KeyManager
   {
     KeyManagerFactory kmf = null;
     String userSpecifiedAlgo = System
-        .getProperty("org.opends.admin.keymanageralgo");
+        .getProperty("org.opendj.admin.keymanageralgo");
     String userSpecifiedProvider = System
-        .getProperty("org.opends.admin.keymanagerprovider");
+        .getProperty("org.opendj.admin.keymanagerprovider");
 
     // Handle IBM specific cases if the user did not specify a algorithm
     // and/or provider.

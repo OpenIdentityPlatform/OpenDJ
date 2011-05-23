@@ -317,7 +317,7 @@ To see basic server configuration status and configuration you can launch \
    
    <screen width='80'>$ /path/to/OpenDJ-<?eval ${project.version}?>/bin/status
 
->>>> Specify OpenDS LDAP connection parameters
+>>>> Specify OpenDJ LDAP connection parameters
 
 Administrator user bind DN [cn=Directory Manager]: 
 

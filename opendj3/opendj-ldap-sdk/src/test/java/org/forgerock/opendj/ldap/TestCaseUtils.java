@@ -51,7 +51,7 @@ public final class TestCaseUtils
    * property when running the server if you want to use a given port number,
    * otherwise a port is chosen randomly at test startup time.
    */
-  public static final String PROPERTY_LDAP_PORT = "org.opends.server.LdapPort";
+  public static final String PROPERTY_LDAP_PORT = "org.opendj.server.LdapPort";
 
   /**
    * Port number that's used by the server. Need to be used by the test cases to
