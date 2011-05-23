@@ -30,13 +30,14 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <artifactId>opendj-project</artifactId>
-    <groupId>org.opendj</groupId>
+    <groupId>org.forgerock.opendj</groupId>
     <version>3.0.0-SNAPSHOT</version>
   </parent>
-  <artifactId>opendj-sdk</artifactId>
-  <name>OpenDJ SDK</name>
+  <artifactId>opendj-ldap-sdk</artifactId>
+  <name>OpenDJ LDAP SDK</name>
   <description>
-    This module includes the core OpenDJ Java APIs for implementing LDAP Directory client and server applications.
+    This module includes OpenDJ core APIs for implementing LDAP Directory
+    client and server applications.
   </description>
   <packaging>bundle</packaging>
   <dependencies>
@@ -53,7 +54,7 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.opendj</groupId>
+      <groupId>org.forgerock.opendj</groupId>
       <artifactId>opendj-maven-testng</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
@@ -97,8 +98,8 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
         <configuration>
-          <windowtitle>OpenDJ SDK Documentation</windowtitle>
-          <doctitle>OpenDJ SDK Documentation</doctitle>
+          <windowtitle>OpenDJ LDAP SDK Documentation</windowtitle>
+          <doctitle>OpenDJ LDAP SDK Documentation</doctitle>
           <detectOfflineLinks>false</detectOfflineLinks>
         </configuration>
       </plugin>
@@ -137,8 +138,8 @@
         <configuration>
           <author>false</author>
           <quiet>true</quiet>
-          <windowtitle>OpenDJ SDK Documentation</windowtitle>
-          <doctitle>OpenDJ SDK Documentation</doctitle>
+          <windowtitle>OpenDJ LDAP SDK Documentation</windowtitle>
+          <doctitle>OpenDJ LDAP SDK Documentation</doctitle>
           <detectOfflineLinks>false</detectOfflineLinks>
         </configuration>
         <reportSets>

@@ -33,11 +33,11 @@
     <artifactId>forgerock-parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
   </parent>
-  <groupId>org.opendj</groupId>
+  <groupId>org.forgerock.opendj</groupId>
   <artifactId>opendj-project</artifactId>
   <version>3.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <name>OpenDJ Project</name>
+  <name>OpenDJ Directory Services Project</name>
   <description>
     OpenDJ is a new LDAPv3 compliant directory service, developed for the Java
     platform, providing a high performance, highly available and secure store
@@ -90,8 +90,8 @@
   <modules>
     <module>opendj-maven-checkstyle</module>
     <module>opendj-maven-testng</module>
-    <module>opendj-sdk</module>
-    <module>opendj-client-tools</module>
+    <module>opendj-ldap-sdk</module>
+    <module>opendj-ldap-toolkit</module>
   </modules>
   <properties>
     <docbkx-src>${basedir}/src/docbkx</docbkx-src>
@@ -323,7 +323,7 @@
           <artifactId>maven-checkstyle-plugin</artifactId>
           <dependencies>
             <dependency>
-              <groupId>org.opendj</groupId>
+              <groupId>org.forgerock.opendj</groupId>
               <artifactId>opendj-maven-checkstyle</artifactId>
               <version>${project.version}</version>
             </dependency>

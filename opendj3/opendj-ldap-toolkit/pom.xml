@@ -30,24 +30,24 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <artifactId>opendj-project</artifactId>
-    <groupId>org.opendj</groupId>
+    <groupId>org.forgerock.opendj</groupId>
     <version>3.0.0-SNAPSHOT</version>
   </parent>
-  <artifactId>opendj-client-tools</artifactId>
-  <name>OpenDJ Client Tools</name>
+  <artifactId>opendj-ldap-toolkit</artifactId>
+  <name>OpenDJ LDAP Client Tools</name>
   <description>
-    This module includes LDAP command line tools based on the OpenDJ SDK.
+    This module includes LDAP command line tools based on the OpenDJ LDAP SDK.
   </description>
   <packaging>jar</packaging>
   <dependencies>
     <dependency>
-      <groupId>org.opendj</groupId>
-      <artifactId>opendj-sdk</artifactId>
+      <groupId>org.forgerock.opendj</groupId>
+      <artifactId>opendj-ldap-sdk</artifactId>
       <version>${project.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.opendj</groupId>
+      <groupId>org.forgerock.opendj</groupId>
       <artifactId>opendj-maven-testng</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
