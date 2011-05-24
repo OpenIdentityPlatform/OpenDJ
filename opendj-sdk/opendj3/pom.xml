@@ -91,6 +91,7 @@
     <module>opendj-build-tools</module>
     <module>opendj-ldap-sdk</module>
     <module>opendj-ldap-toolkit</module>
+    <module>opendj-ldap-sdk-examples</module>
   </modules>
   <properties>
     <docbkx-src>${basedir}/src/docbkx</docbkx-src>
