@@ -51,13 +51,13 @@ public final class TestCaseUtils
    * property when running the server if you want to use a given port number,
    * otherwise a port is chosen randomly at test startup time.
    */
-  public static final String PROPERTY_LDAP_PORT = "org.opendj.server.LdapPort";
+  public static final String PROPERTY_LDAP_PORT = "org.forgerock.opendj.test.LdapPort";
 
   /**
    * Port number that's used by the server. Need to be used by the test cases to
    * create connections.
    */
-  public static int port;
+  public static final int port;
 
   static
   {
@@ -109,20 +109,19 @@ public final class TestCaseUtils
    */
   public static int findFreePort()
   {
-    int port;
     try
     {
       ServerSocket serverLdapSocket = new ServerSocket();
       serverLdapSocket.setReuseAddress(true);
       serverLdapSocket.bind(new InetSocketAddress("127.0.0.1", 0));
-      port = serverLdapSocket.getLocalPort();
+      final int port = serverLdapSocket.getLocalPort();
       serverLdapSocket.close();
+      return port;
     }
     catch (IOException e)
     {
       throw new RuntimeException(e);
     }
-    return port;
   }
 
 

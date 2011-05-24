@@ -43,13 +43,10 @@ import javax.security.sasl.*;
 
 import org.forgerock.opendj.asn1.ASN1;
 import org.forgerock.opendj.asn1.ASN1Reader;
-import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.ControlDecoder;
 import org.forgerock.opendj.ldap.requests.*;
 import org.forgerock.opendj.ldap.responses.*;
-import org.glassfish.grizzly.TransportFactory;
-import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 
 import com.forgerock.opendj.ldap.controls.AccountUsabilityRequestControl;
 import com.forgerock.opendj.ldap.controls.AccountUsabilityResponseControl;
@@ -677,10 +674,6 @@ public class LDAPServer implements
   // The mapping between entry DNs and the corresponding entries.
   private final ConcurrentHashMap<DN, Entry> entryMap = new ConcurrentHashMap<DN, Entry>();
 
-  // The grizzly transport.
-  private final TCPNIOTransport transport = TransportFactory.getInstance()
-      .createTCPTransport();
-
   // The LDAP listener.
   private LDAPListener listener = null;
 
@@ -689,10 +682,8 @@ public class LDAPServer implements
 
   // The mapping between the message id and the requests the server is currently
   // handling.
-  private final ConcurrentHashMap<Integer, AbandonableRequest> requestsInProgress = new ConcurrentHashMap<Integer, AbandonableRequest>();
-
-  // The Set used for locking dns.
-  private final HashSet<DN> lockedDNs = new HashSet<DN>();
+  private final ConcurrentHashMap<Integer, AbandonableRequest> requestsInProgress =
+    new ConcurrentHashMap<Integer, AbandonableRequest>();
 
   private SSLContext sslContext;
 
@@ -759,12 +750,8 @@ public class LDAPServer implements
       return;
     }
     sslContext = new SSLContextBuilder().getSSLContext();
-
-    transport.setSelectorRunnersCount(2);
     listener = new LDAPListener(port, getInstance(),
-        new LDAPListenerOptions().setTCPNIOTransport(transport)
-            .setBacklog(4096));
-    transport.start();
+        new LDAPListenerOptions().setBacklog(4096));
     isRunning = true;
   }
 
@@ -780,15 +767,6 @@ public class LDAPServer implements
       return;
     }
     listener.close();
-    try
-    {
-      transport.stop();
-    }
-    catch (final IOException e)
-    {
-      e.printStackTrace();
-    }
-    TransportFactory.getInstance().close();
     isRunning = false;
   }
 }

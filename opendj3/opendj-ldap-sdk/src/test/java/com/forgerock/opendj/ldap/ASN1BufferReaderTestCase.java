@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap;
@@ -34,15 +35,13 @@ import java.nio.ByteBuffer;
 
 import org.forgerock.opendj.asn1.ASN1Reader;
 import org.forgerock.opendj.asn1.ASN1ReaderTestCase;
-import org.glassfish.grizzly.TransportFactory;
 import org.glassfish.grizzly.memory.ByteBufferWrapper;
-
-import com.forgerock.opendj.ldap.ASN1BufferReader;
+import org.glassfish.grizzly.memory.MemoryManager;
 
 
 
 /**
- * This class provides testcases for ASN1BufferReader.
+ * This class provides test cases for ASN1BufferReader.
  */
 public class ASN1BufferReaderTestCase extends ASN1ReaderTestCase
 {
@@ -52,7 +51,7 @@ public class ASN1BufferReaderTestCase extends ASN1ReaderTestCase
   {
     final ByteBufferWrapper buffer = new ByteBufferWrapper(ByteBuffer.wrap(b));
     final ASN1BufferReader reader = new ASN1BufferReader(maxElementSize,
-        TransportFactory.getInstance().getDefaultMemoryManager());
+        MemoryManager.DEFAULT_MEMORY_MANAGER);
     reader.appendBytesRead(buffer);
     return reader;
   }

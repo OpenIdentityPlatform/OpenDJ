@@ -514,6 +514,22 @@ final class Utils
 
 
   /**
+   * Sets default system property settings for the xxxrate performance tools.
+   */
+  static void setDefaultPerfToolProperties()
+  {
+    // Use SameThreadStrategy by default.
+    if (System
+        .getProperty("org.forgerock.opendj.transport.useWorkerThreads") == null)
+    {
+      System.setProperty(
+          "org.forgerock.opendj.transport.useWorkerThreads", "false");
+    }
+  }
+
+
+
+  /**
    * Inserts line breaks into the provided buffer to wrap text at no more than
    * the specified column width. Wrapping will only be done at space boundaries
    * and if there are no spaces within the specified width, then wrapping will
