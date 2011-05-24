@@ -86,7 +86,7 @@
    </item>
    <item name="Config Reference" href="index.html" alt="TODO" />
    <item name="Plugin Javadoc" href="index.html" alt="TODO" />
-   <item name="SDK Javadoc" href="./opendj-sdk/apidocs/index.html" />
+   <item name="SDK Javadoc" href="./opendj-ldap-sdk/apidocs/index.html" />
   </menu>
 
   <menu ref="reports" />
