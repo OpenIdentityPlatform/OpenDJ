@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap.tools;
@@ -47,7 +48,6 @@ import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.requests.*;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
-import org.glassfish.grizzly.TransportFactory;
 
 import com.forgerock.opendj.util.RecursiveFutureResult;
 
@@ -617,7 +617,8 @@ public final class AuthRate extends ConsoleApplication
 
     try
     {
-      TransportFactory.setInstance(new PerfToolTCPNIOTransportFactory());
+      Utils.setDefaultPerfToolProperties();
+
       connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
       runner = new BindPerformanceRunner(argParser, this);
 

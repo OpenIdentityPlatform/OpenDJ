@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap;
@@ -255,7 +256,7 @@ public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
   {
     if (options.getTCPNIOTransport() == null)
     {
-      this.transport = LDAPDefaultTCPNIOTransport.getInstance();
+      this.transport = DefaultTCPNIOTransport.getInstance();
     }
     else
     {

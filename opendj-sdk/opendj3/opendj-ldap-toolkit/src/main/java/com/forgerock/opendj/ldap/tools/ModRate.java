@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap.tools;
@@ -41,7 +42,6 @@ import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.responses.Result;
-import org.glassfish.grizzly.TransportFactory;
 
 
 
@@ -331,7 +331,8 @@ public final class ModRate extends ConsoleApplication
 
     try
     {
-      TransportFactory.setInstance(new PerfToolTCPNIOTransportFactory());
+      Utils.setDefaultPerfToolProperties();
+
       connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
       runner = new ModifyPerformanceRunner(argParser, this);
       propertiesFileArgument = new StringArgument("propertiesFilePath", null,

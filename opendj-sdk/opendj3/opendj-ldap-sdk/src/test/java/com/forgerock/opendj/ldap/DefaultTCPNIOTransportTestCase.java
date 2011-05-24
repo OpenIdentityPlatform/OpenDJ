@@ -29,52 +29,41 @@ package com.forgerock.opendj.ldap;
 
 
 
-import java.io.IOException;
+import static org.testng.Assert.assertTrue;
 
-import org.glassfish.grizzly.TransportFactory;
+import java.net.Socket;
+
+import org.forgerock.opendj.ldap.TestCaseUtils;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
+import org.testng.annotations.Test;
+
+import com.forgerock.opendj.ldap.DefaultTCPNIOTransport;
 
 
 
 /**
- * The default TCPNIOTransport which all LDAPConnectionFactories and
- * LDAPListeners will use unless otherwise specified in their options.
+ * Tests DefaultTCPNIOTransport class.
  */
-final class LDAPDefaultTCPNIOTransport
+public class DefaultTCPNIOTransportTestCase extends LDAPTestCase
 {
-  private static final TCPNIOTransport DEFAULT_TRANSPORT = TransportFactory
-      .getInstance().createTCPTransport();
-
-  static
-  {
-    try
-    {
-      DEFAULT_TRANSPORT.start();
-    }
-    catch (final IOException e)
-    {
-      throw new RuntimeException(e);
-    }
-  }
-
-
-
   /**
-   * Returns the default TCPNIOTransport which all LDAPConnectionFactories and
-   * LDAPListeners will use unless otherwise specified in their options.
+   * Tests the default transport.
    *
-   * @return The default TCPNIOTransport.
+   * @throws Exception
+   *           If an unexpected error occurred.
    */
-  public static TCPNIOTransport getInstance()
+  @Test()
+  public void testGetInstance() throws Exception
   {
-    return DEFAULT_TRANSPORT;
+    // Create a transport.
+    final TCPNIOTransport transport = DefaultTCPNIOTransport.getInstance();
+    final int port = TestCaseUtils.findFreePort();
+
+    transport.bind(port);
+    // Establish a socket connection to see if the transport factory works.
+    final Socket socket = new Socket("localhost", port);
+    // Successfully connected if there is no exception.
+    assertTrue(socket.isConnected());
+    // Don't stop the transport because it is shared with the ldap server.
   }
-
-
-
-  private LDAPDefaultTCPNIOTransport()
-  {
-    // Prevent instantiation.
-  }
-
 }

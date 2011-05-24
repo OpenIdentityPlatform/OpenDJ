@@ -42,7 +42,6 @@ import java.util.logging.Level;
 
 import javax.net.ssl.SSLContext;
 
-import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.requests.DigestMD5SASLBindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
@@ -59,7 +58,7 @@ import com.forgerock.opendj.util.StaticUtils;
 
 
 /**
- * Tests the connectionfactory classes.
+ * Tests the {@code ConnectionFactory} classes.
  */
 public class ConnectionFactoryTestCase extends SdkTestCase
 {

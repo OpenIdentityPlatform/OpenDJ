@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap;
@@ -37,11 +38,8 @@ import org.forgerock.opendj.asn1.ASN1Writer;
 import org.forgerock.opendj.asn1.ASN1WriterTestCase;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.glassfish.grizzly.Buffer;
-import org.glassfish.grizzly.TransportFactory;
 import org.glassfish.grizzly.memory.ByteBufferWrapper;
-
-import com.forgerock.opendj.ldap.ASN1BufferReader;
-import com.forgerock.opendj.ldap.ASN1BufferWriter;
+import org.glassfish.grizzly.memory.MemoryManager;
 
 
 
@@ -70,9 +68,10 @@ public class ASN1BufferWriterTestCase extends ASN1WriterTestCase
   protected ASN1Reader getReader(final byte[] encodedBytes)
       throws DecodeException, IOException
   {
-    final ByteBufferWrapper buffer = new ByteBufferWrapper(ByteBuffer.wrap(encodedBytes));
-    final ASN1BufferReader reader = new ASN1BufferReader(0, TransportFactory
-        .getInstance().getDefaultMemoryManager());
+    final ByteBufferWrapper buffer = new ByteBufferWrapper(
+        ByteBuffer.wrap(encodedBytes));
+    final ASN1BufferReader reader = new ASN1BufferReader(0,
+        MemoryManager.DEFAULT_MEMORY_MANAGER);
     reader.appendBytesRead(buffer);
     return reader;
   }
