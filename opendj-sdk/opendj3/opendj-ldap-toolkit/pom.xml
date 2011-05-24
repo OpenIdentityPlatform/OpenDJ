@@ -34,7 +34,7 @@
     <version>3.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>opendj-ldap-toolkit</artifactId>
-  <name>OpenDJ LDAP Client Tools</name>
+  <name>OpenDJ LDAP Toolkit</name>
   <description>
     This module includes LDAP command line tools based on the OpenDJ LDAP SDK.
   </description>
