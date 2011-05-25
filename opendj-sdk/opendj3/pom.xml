@@ -118,7 +118,7 @@
               <goal>generate-manpages</goal>
             </goals>
             <configuration>
-            <sourceDirectory>${basedir}/src/main/docbkx</sourceDirectory>
+              <sourceDirectory>${basedir}/src/main/docbkx</sourceDirectory>
        <!-- Comment the draft elements out for final build -->
               <draftMode>yes</draftMode>
               <draftWatermarkImage>http://docbook.sourceforge.net/release/images/draft.png</draftWatermarkImage>

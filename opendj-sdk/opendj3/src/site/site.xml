@@ -91,7 +91,12 @@
    <item name="SDK Javadoc" href="./opendj-ldap-sdk/apidocs/index.html" />
   </menu>
 
-  <menu ref="reports" />
+  <menu name="Project Information">
+   <item name="Issue Tracking" href="issue-tracking.html" />
+   <item name="Mailing Lists" href="mail-lists.html" />
+   <item name="License" href="license.html" />
+   <item name="Source Repository" href="source-repository.html" />
+  </menu>
   
  </body>
  
