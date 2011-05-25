@@ -42,7 +42,7 @@ import org.forgerock.opendj.ldap.controls.*;
 import org.forgerock.opendj.ldap.responses.BindResult;
 
 import com.forgerock.opendj.ldap.controls.AccountUsabilityRequestControl;
-import com.forgerock.opendj.ldap.tools.AuthenticatedConnectionFactory.AuthenticatedConnection;
+import com.forgerock.opendj.ldap.tools.AuthenticatedConnectionFactory.*;
 import com.forgerock.opendj.util.StaticUtils;
 
 
@@ -524,6 +524,13 @@ final class Utils
     {
       System.setProperty(
           "org.forgerock.opendj.transport.useWorkerThreads", "false");
+    }
+
+    // Configure connections to be terminate immediately after closing (this
+    // prevents port exhaustion in xxxrate tools when connecting/disconnecting).
+    if (System.getProperty("org.forgerock.opendj.transport.linger") == null)
+    {
+      System.setProperty("org.forgerock.opendj.transport.linger", "0");
     }
   }
 
