@@ -56,7 +56,9 @@
   </menu>
 
   <menu name="Modules">
-    <item name="OpenDJ LDAP SDK" href="opendj-sdk" />
+    <item name="OpenDJ LDAP SDK" href="opendj-ldap-sdk" />
+    <item name="OpenDJ LDAP SDK Examples" href="opendj-ldap-sdk-examples" />
+    <item name="OpenDJ LDAP Toolkit" href="opendj-ldap-toolkit" />
   </menu>
   
   <menu name="Core Documentation">
