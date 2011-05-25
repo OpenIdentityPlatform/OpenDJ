@@ -47,10 +47,17 @@
         <item name="PDF Format" href="../doc/OpenDJ-Dev-Guide.pdf" />
         <item name="RTF Format" href="../doc/OpenDJ-Dev-Guide.rtf" />
       </item>
-      <item name="Javadoc" href="./apidocs/index.html" />
+      <item name="Javadoc" href="apidocs/index.html" />
     </menu>
 
-    <menu ref="reports" />
+    <menu name="Project Information">
+      <item name="Continuous Integration" href="integration.html" />
+      <item name="Maven Repository" href="distribution-management.html" />
+      <item name="Issue Tracking" href="issue-tracking.html" />
+      <item name="Mailing Lists" href="mail-lists.html" />
+      <item name="License" href="license.html" />
+      <item name="Source Repository" href="source-repository.html" />
+    </menu>
   </body>
 
   <custom>

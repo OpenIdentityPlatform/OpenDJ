@@ -58,7 +58,7 @@
       <p>
         You can start developing your LDAP applications now by obtaining the
         OpenDJ
-        LDAP SDK in any of the following three ways: 
+        LDAP SDK using any of the following methods: 
     </p>
       <subsection name="Maven">
         <p>
@@ -170,13 +170,7 @@ finally
   }
 }</source>
       <p>
-        You can find more examples demonstrating the use of the OpenDJ LDAP SDK
-        by downloading the examples package
-        <a
-          href="http://maven.forgerock.org/repo/snapshots/org/forgerock/opendj/opendj-ldap-sdk-examples/3.0.0-SNAPSHOT">
-          here
-        </a>
-        .
+        You can find more examples in the <a href="../opendj-ldap-sdk-examples/index.html">OpenDJ LDAP SDK Examples</a> module.
       </p>
     </section>
   </body>

@@ -26,13 +26,64 @@
 <document xmlns="http://maven.apache.org/XDOC/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
   <properties>
-    <title>About OpenDJ</title>
+    <title>About OpenDJ LDAP SDK Examples</title>
     <author email="opendj-dev@forgerock.org">ForgeRock AS</author>
   </properties>
   <body>
     <section name="About OpenDJ LDAP SDK Examples">
-      <p>TBC</p>
+      <p>This module contains 5 example LDAP applications implemented using the
+        OpenDJ LDAP SDK:</p>
+      <ul>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/search/Main.html">LDAP search</a>
+          - illustrates how to perform an LDAP search operation using the
+          synchronous APIs
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/searchasync/Main.html">LDAP asynchronous search</a>
+          - illustrates how to perform an LDAP search operation using the
+          asynchronous APIs
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/modify/Main.html">LDAP modify</a>
+          - illustrates how to perform an LDAP modify operation using the
+          synchronous APIs
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/server/Main.html">LDAP server</a>
+          - illustrates how to implement a very simple LDAP server
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/proxy/Main.html">LDAP proxy</a>
+          - illustrates how to implement a very simple LDAP proxy
+        </li>
+      </ul>
+    </section>
+    <section name="Get the OpenDJ LDAP SDK Examples">
+      <p>
+        You can get the
+        OpenDJ
+        LDAP SDK examples using any of the following
+        methods: 
+    </p>
+      <subsection name="Download">
+        <p>
+          The easiest way to download the OpenDJ LDAP SDK Examples and all of
+          its
+          dependencies is to get the latest version from our
+          <a
+            href="http://maven.forgerock.org/repo/snapshots/org/forgerock/opendj/opendj-ldap-sdk-examples/3.0.0-SNAPSHOT">repository</a>
+          .
+        </p>
+      </subsection>
+      <subsection name="Build">
+        <p>
+          For the DIY enthusiasts you can build it yourself by checking out the
+          latest code using
+          <a href="source-repository.html">Subversion</a>
+          and building it with Maven 3
+        </p>
+      </subsection>
     </section>
   </body>
 </document>
-

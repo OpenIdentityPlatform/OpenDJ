@@ -119,6 +119,18 @@
           </reportSet>
         </reportSets>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jxr-plugin</artifactId>
+        <version>2.2</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>jxr</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
     </plugins>
   </reporting>
 </project>
