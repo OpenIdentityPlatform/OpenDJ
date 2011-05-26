@@ -34,7 +34,7 @@
         href="https://idp.forgerock.org/openam/UI/Login?service=register" />
       <item name="Downloads" href="http://www.forgerock.com/downloads-opendj.html" />
       <item name="FAQ" href="../faq.html" />
-      <item name="Mailing List" href="https://lists.forgerock.org/mailman/listinfo/opendj" />
+      <item name="Mailing Lists" href="../mail-lists.html" />
       <item name="Support" href="http://forgerock.com/subscriptions.html" />
       <item name="Partners" href="http://forgerock.com/partners.html" />
       <item name="Wiki" href="http://wikis.forgerock.org/opendj/" />
