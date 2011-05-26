@@ -28,7 +28,7 @@ package com.forgerock.opendj.ldap.tools;
 
 
 
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_BOOLEANARG_NO_VALUE_ALLOWED;
+import static com.forgerock.opendj.ldap.tools.ToolsMessages.ERR_BOOLEANARG_NO_VALUE_ALLOWED;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;

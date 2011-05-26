@@ -31,7 +31,7 @@ package com.forgerock.opendj.ldap.tools;
 import org.forgerock.i18n.LocalizableException;
 import org.forgerock.i18n.LocalizableMessage;
 
-import static org.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 
 
 

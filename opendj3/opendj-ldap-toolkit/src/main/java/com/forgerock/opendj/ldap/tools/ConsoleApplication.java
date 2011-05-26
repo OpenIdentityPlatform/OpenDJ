@@ -28,9 +28,9 @@ package com.forgerock.opendj.ldap.tools;
 
 
 
-import static org.forgerock.opendj.ldap.CoreMessages.INFO_ERROR_EMPTY_RESPONSE;
-import static org.forgerock.opendj.ldap.CoreMessages.INFO_MENU_PROMPT_RETURN_TO_CONTINUE;
-import static org.forgerock.opendj.ldap.CoreMessages.INFO_PROMPT_SINGLE_DEFAULT;
+import static com.forgerock.opendj.ldap.tools.ToolsMessages.INFO_ERROR_EMPTY_RESPONSE;
+import static com.forgerock.opendj.ldap.tools.ToolsMessages.INFO_MENU_PROMPT_RETURN_TO_CONTINUE;
+import static com.forgerock.opendj.ldap.tools.ToolsMessages.INFO_PROMPT_SINGLE_DEFAULT;
 import static com.forgerock.opendj.ldap.tools.Utils.MAX_LINE_WIDTH;
 import static com.forgerock.opendj.ldap.tools.Utils.wrapText;
 

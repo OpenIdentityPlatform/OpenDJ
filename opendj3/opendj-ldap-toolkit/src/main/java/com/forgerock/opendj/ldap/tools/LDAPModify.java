@@ -29,7 +29,7 @@ package com.forgerock.opendj.ldap.tools;
 
 
 
-import static org.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.ldap.tools.ToolConstants.*;
 import static com.forgerock.opendj.ldap.tools.Utils.filterExitCode;
 
