@@ -28,7 +28,7 @@ package com.forgerock.opendj.ldap.tools;
 
 
 
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_MCARG_VALUE_NOT_ALLOWED;
+import static com.forgerock.opendj.ldap.tools.ToolsMessages.ERR_MCARG_VALUE_NOT_ALLOWED;
 
 import java.util.Collection;
 

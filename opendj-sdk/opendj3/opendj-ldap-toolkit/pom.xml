@@ -56,6 +56,24 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>org.forgerock.commons</groupId>
+        <artifactId>i18n-maven-plugin</artifactId>
+        <version>1.2.0</version>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>generate-messages</goal>
+            </goals>
+            <configuration>
+              <messageFiles>
+                <messageFile>com/forgerock/opendj/ldap/tools/tools.properties</messageFile>
+              </messageFiles>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
       </plugin>

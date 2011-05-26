@@ -29,7 +29,7 @@ package com.forgerock.opendj.ldap.tools;
 
 
 
-import static org.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 
 import java.io.File;
 import java.io.FileInputStream;
