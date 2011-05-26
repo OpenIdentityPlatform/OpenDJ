@@ -60,10 +60,10 @@
     <a href="./doc/OpenDJ-Dev-Guide.rtf">RTF</a></dd>
 
     <dt>Configuration Reference</dt>
-    <dd><a href="TODO">HTML</a></dd>
+    <dd><a href="404.html">HTML</a></dd>
     
     <dt>Server Plugin API Specification</dt>
-    <dd><a href="TODO">HTML</a></dd>
+    <dd><a href="404.html">HTML</a></dd>
     
     <dt>LDAP Client API Specification</dt>
     <dd><a href="./opendj-ldap-sdk/apidocs/index.html">HTML</a></dd>

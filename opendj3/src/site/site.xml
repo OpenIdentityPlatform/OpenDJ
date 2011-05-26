@@ -55,39 +55,40 @@
    <item name="Wiki" href="http://wikis.forgerock.org/opendj/" />
   </menu>
 
-  <menu name="Modules">
-    <item name="OpenDJ LDAP SDK" href="opendj-ldap-sdk" />
-    <item name="OpenDJ LDAP SDK Examples" href="opendj-ldap-sdk-examples" />
-    <item name="OpenDJ LDAP Toolkit" href="opendj-ldap-toolkit" />
+  <menu name="OpenDJ LDAP SDK">
+    <item name="About" href="opendj-ldap-sdk" />
+    <item name="Examples" href="opendj-ldap-sdk-examples" />
+    <item name="Toolkit" href="opendj-ldap-toolkit" />
   </menu>
   
   <menu name="Core Documentation">
-   <item name="Release Notes" href="docs.html" collapse="true">
+   <item name="Overview" href="docs.html" />
+   <item name="Release Notes" href="./doc/release-notes/OpenDJ-Release-Notes.html" collapse="true">
     <item name="EPUB Format" href="./doc/OpenDJ-Release-Notes.epub"/>
     <item name="HTML Format" href="./doc/release-notes/OpenDJ-Release-Notes.html"/>
     <item name="PDF Format" href="./doc/OpenDJ-Release-Notes.pdf" />
     <item name="RTF Format" href="./doc/OpenDJ-Release-Notes.rtf" />
    </item>
-   <item name="Installation Guide" href="docs.html" collapse="true">
+   <item name="Installation Guide" href="./doc/install-guide/OpenDJ-Install-Guide.html" collapse="true">
     <item name="EPUB Format" href="./doc/OpenDJ-Install-Guide.epub"/>
     <item name="HTML Format" href="./doc/install-guide/OpenDJ-Install-Guide.html" />
     <item name="PDF Format" href="./doc/OpenDJ-Install-Guide.pdf" />
     <item name="RTF Format" href="./doc/OpenDJ-Install-Guide.rtf" />
    </item>
-   <item name="Administration Guide" href="docs.html" collapse="true">
+   <item name="Administration Guide" href="./doc/admin-guide/OpenDJ-Admin-Guide.html" collapse="true">
     <item name="EPUB Format" href="./doc/OpenDJ-Admin-Guide.epub" />
     <item name="HTML Format" href="./doc/admin-guide/OpenDJ-Admin-Guide.html" />
     <item name="PDF Format" href="./doc/OpenDJ-Admin-Guide.pdf" />
     <item name="RTF Format" href="./doc/OpenDJ-Admin-Guide.rtf" />
    </item>
-   <item name="Developer Guide" href="docs.html" collapse="true">
+   <item name="Developer Guide" href="./doc/dev-guide/OpenDJ-Dev-Guide.html" collapse="true">
     <item name="EPUB Format" href="./doc/OpenDJ-Dev-Guide.epub" />
     <item name="HTML Format" href="./doc/dev-guide/OpenDJ-Dev-Guide.html" />
     <item name="PDF Format" href="./doc/OpenDJ-Dev-Guide.pdf" />
     <item name="RTF Format" href="./doc/OpenDJ-Dev-Guide.rtf" />
    </item>
-   <item name="Config Reference" href="index.html" alt="TODO" />
-   <item name="Plugin Javadoc" href="index.html" alt="TODO" />
+   <item name="Config Reference" href="404.html" alt="TODO" />
+   <item name="Plugin Javadoc" href="404.html" alt="TODO" />
    <item name="SDK Javadoc" href="./opendj-ldap-sdk/apidocs/index.html" />
   </menu>
 
