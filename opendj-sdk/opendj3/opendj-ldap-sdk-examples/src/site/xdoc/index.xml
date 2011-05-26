@@ -10,7 +10,7 @@
   ! Suite 900, Mountain View, California, 94041, USA.
   !
   ! You can also obtain a copy of the license at
-  ! src/main/resources/legal-notices/CC-BY-NC-ND.txt.
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -81,7 +81,7 @@
           For the DIY enthusiasts you can build it yourself by checking out the
           latest code using
           <a href="source-repository.html">Subversion</a>
-          and building it with Maven 3
+          and building it with Maven 3.
         </p>
       </subsection>
     </section>

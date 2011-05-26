@@ -10,7 +10,7 @@
   ! Suite 900, Mountain View, California, 94041, USA.
   !
   ! You can also obtain a copy of the license at
-  ! src/main/resources/legal-notices/CC-BY-NC-ND.txt.
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -31,7 +31,16 @@
   </properties>
   <body>
     <section name="About OpenDJ LDAP Toolkit">
-      <p>TODO: Description of the various tools</p>
+      <p>The OpenDJ LDAP Toolkit includes the following command-line tools.ß</p>
+      <dl>
+       <dt>authrate</dt><dd>measure bind throughput and response time</dd>
+       <dt>ldapcompare</dt><dd>perform LDAP compare operations</dd>
+       <dt>ldapmodify</dt><dd>perform LDAP modify, add, delete, mod DN operations</dd>
+       <dt>ldappasswordmodify</dt><dd>perform LDAP password modifications</dd>
+       <dt>ldapsearch</dt><dd>perform LDAP search operations</dd>
+       <dt>modrate</dt><dd>measure modification throughput and response time</dd>
+       <dt>searchrate</dt><dd>measure search throughput and response time</dd>
+      </dl>
     </section>
     <section name="Get the OpenDJ LDAP Toolkit">
       <p>
