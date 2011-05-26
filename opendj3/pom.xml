@@ -52,11 +52,15 @@
     <mailingList>
       <name>OpenDJ Users Mailing List</name>
       <archive>http://lists.forgerock.org/pipermail/opendj/</archive>
+      <subscribe>https://lists.forgerock.org/mailman/listinfo/opendj/</subscribe>
+      <unsubscribe>https://lists.forgerock.org/mailman/listinfo/opendj/</unsubscribe>
       <post>opendj@forgerock.org</post>
     </mailingList>
     <mailingList>
       <name>OpenDJ Developers Mailing List</name>
       <archive>http://lists.forgerock.org/pipermail/opendj-dev/</archive>
+      <subscribe>https://lists.forgerock.org/mailman/listinfo/opendj-dev/</subscribe>
+      <unsubscribe>https://lists.forgerock.org/mailman/listinfo/opendj-dev/</unsubscribe>
       <post>opendj-dev@forgerock.org</post>
     </mailingList>
   </mailingLists>
