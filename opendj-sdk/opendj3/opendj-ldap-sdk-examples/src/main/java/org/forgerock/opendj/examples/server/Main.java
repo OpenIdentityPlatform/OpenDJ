@@ -397,9 +397,15 @@ public final class Main
           }
 
           SearchScope scope = request.getScope();
+          Filter filter = request.getFilter();
+          Matcher matcher = filter.matcher();
+
           if (scope.equals(SearchScope.BASE_OBJECT))
           {
-            sendEntry(request, resultHandler, baseEntry);
+            if (matcher.matches(baseEntry).toBoolean())
+            {
+              sendEntry(request, resultHandler, baseEntry);
+            }
           }
           else if (scope.equals(SearchScope.SINGLE_LEVEL))
           {
@@ -412,6 +418,11 @@ public final class Main
               DN childDN = entry.getName();
               if (childDN.isChildOf(dn))
               {
+                if (!matcher.matches(entry).toBoolean())
+                {
+                  continue;
+                }
+
                 if (!sendEntry(request, resultHandler, entry))
                 {
                   // Caller has asked to stop sending results.
@@ -433,6 +444,11 @@ public final class Main
               DN childDN = entry.getName();
               if (childDN.isSubordinateOrEqualTo(dn))
               {
+                if (!matcher.matches(entry).toBoolean())
+                {
+                  continue;
+                }
+
                 if (!sendEntry(request, resultHandler, entry))
                 {
                   // Caller has asked to stop sending results.
