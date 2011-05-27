@@ -2089,18 +2089,18 @@ public final class Filter
 
   /**
    * Indicates whether this {@code Filter} matches the provided {@code Entry}
-   * using the schema associated with the entry.
+   * using the default schema.
    * <p>
    * Calling this method is equivalent to the following:
    *
    * <pre>
-   * boolean b = matcher(entry.getSchema()).matches(entry);
+   * matcher().matches(entry);
    * </pre>
    *
    * @param entry
    *          The entry to be matched.
-   * @return {@code true} if this {@code Filter} matches the provided {@code
-   *         Entry}.
+   * @return The result of matching the provided {@code Entry} against this
+   *         {@code Filter} using the default schema.
    */
   public ConditionResult matches(final Entry entry)
   {

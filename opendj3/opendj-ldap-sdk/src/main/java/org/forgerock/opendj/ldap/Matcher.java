@@ -831,13 +831,13 @@ public final class Matcher
 
 
   /**
-   * Indicates whether this filter {@code Matcher} matches the provided {@code
-   * Entry}.
+   * Indicates whether this filter {@code Matcher} matches the provided
+   * {@code Entry}.
    *
    * @param entry
    *          The entry to be matched.
-   * @return {@code true} if this filter {@code Matcher} matches the provided
-   *         {@code Entry}.
+   * @return The result of matching the provided {@code Entry} against this
+   *         filter {@code Matcher}.
    */
   public ConditionResult matches(final Entry entry)
   {
