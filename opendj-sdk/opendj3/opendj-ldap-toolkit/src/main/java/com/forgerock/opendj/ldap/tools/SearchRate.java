@@ -62,10 +62,9 @@ public final class SearchRate extends ConsoleApplication
     private final class SearchStatsHandler extends
         UpdateStatsResultHandler<Result> implements SearchResultHandler
     {
-      private SearchStatsHandler(final long startTime,
-          final AsynchronousConnection connection, final ConnectionWorker worker)
+      private SearchStatsHandler(final long startTime)
       {
-        super(startTime, connection, worker);
+        super(startTime);
       }
 
 
@@ -121,7 +120,7 @@ public final class SearchRate extends ConsoleApplication
 
 
 
-    private final class SearchWorkerThread extends ConnectionWorker
+    private final class SearchWorkerThread extends WorkerThread
     {
       private SearchRequest sr;
 
@@ -162,8 +161,7 @@ public final class SearchRate extends ConsoleApplication
           sr.setFilter(String.format(filter, data));
           sr.setName(String.format(baseDN, data));
         }
-        return connection.search(sr, new SearchStatsHandler(startTime,
-            connection, this));
+        return connection.search(sr, new SearchStatsHandler(startTime));
       }
     }
 
@@ -190,7 +188,7 @@ public final class SearchRate extends ConsoleApplication
 
 
     @Override
-    ConnectionWorker newConnectionWorker(
+    WorkerThread newWorkerThread(
         final AsynchronousConnection connection,
         final ConnectionFactory connectionFactory)
     {

@@ -53,7 +53,7 @@ public final class ModRate extends ConsoleApplication
 {
   private static final class ModifyPerformanceRunner extends PerformanceRunner
   {
-    private final class ModifyWorkerThread extends ConnectionWorker
+    private final class ModifyWorkerThread extends WorkerThread
     {
       private ModifyRequest mr;
       private Object[] data;
@@ -78,8 +78,8 @@ public final class ModRate extends ConsoleApplication
           data = DataSource.generateData(dataSources, data);
         }
         mr = newModifyRequest(data);
-        return connection.modify(mr, new UpdateStatsResultHandler<Result>(
-            startTime, connection, this));
+        return connection.modify(mr,
+            new UpdateStatsResultHandler<Result>(startTime));
       }
 
 
@@ -136,7 +136,7 @@ public final class ModRate extends ConsoleApplication
 
 
     @Override
-    ConnectionWorker newConnectionWorker(
+    WorkerThread newWorkerThread(
         final AsynchronousConnection connection,
         final ConnectionFactory connectionFactory)
     {

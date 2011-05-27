@@ -95,10 +95,9 @@ public final class AuthRate extends ConsoleApplication
     private final class BindUpdateStatsResultHandler extends
         UpdateStatsResultHandler<BindResult>
     {
-      private BindUpdateStatsResultHandler(final long startTime,
-          final AsynchronousConnection connection, final ConnectionWorker worker)
+      private BindUpdateStatsResultHandler(final long startTime)
       {
-        super(startTime, connection, worker);
+        super(startTime);
       }
 
 
@@ -117,7 +116,7 @@ public final class AuthRate extends ConsoleApplication
 
 
 
-    private final class BindWorkerThread extends ConnectionWorker
+    private final class BindWorkerThread extends WorkerThread
     {
       private SearchRequest sr;
       private BindRequest br;
@@ -183,7 +182,7 @@ public final class AuthRate extends ConsoleApplication
 
           final RecursiveFutureResult<SearchResultEntry, BindResult> future =
             new RecursiveFutureResult<SearchResultEntry, BindResult>(
-              new BindUpdateStatsResultHandler(startTime, connection, this))
+              new BindUpdateStatsResultHandler(startTime))
           {
             @Override
             protected FutureResult<? extends BindResult> chainResult(
@@ -206,7 +205,7 @@ public final class AuthRate extends ConsoleApplication
         else
         {
           return performBind(connection, data,
-              new BindUpdateStatsResultHandler(startTime, connection, this));
+              new BindUpdateStatsResultHandler(startTime));
         }
       }
 
@@ -418,7 +417,7 @@ public final class AuthRate extends ConsoleApplication
 
 
     @Override
-    ConnectionWorker newConnectionWorker(
+    WorkerThread newWorkerThread(
         final AsynchronousConnection connection,
         final ConnectionFactory connectionFactory)
     {
