@@ -32,7 +32,7 @@
   <author email="opendj-dev@forgerock.org">ForgeRock AS</author>
  </properties>
  <body>
-  <section name="About OpenDJ">
+  <section name="About the OpenDJ Project">
    <p>The OpenDJ community actively develops open source directory services,
    including a high performance, highly available, secure directory server,
    built-in data replication, client tools, and an LDAP SDK. OpenDJ offers
