@@ -28,16 +28,14 @@
   xsi:schemaLocation="http://maven.apache.org/DECORATION/1.0.1 http://maven.apache.org/xsd/decoration-1.0.1.xsd">
   <body>
     <menu name="OpenDJ LDAP SDK">
-      <item name="Welcome" href="index.html" />
+      <item name="Welcome" href="../index.html" />
       <item name="News" href="../news.html" />
-      <item name="Join"
-        href="https://idp.forgerock.org/openam/UI/Login?service=register" />
       <item name="Downloads" href="http://www.forgerock.com/downloads-opendj.html" />
       <item name="FAQ" href="../faq.html" />
+      <item name="Wiki" href="http://wikis.forgerock.org/opendj/" />
       <item name="Mailing Lists" href="../mail-lists.html" />
       <item name="Support" href="http://forgerock.com/subscriptions.html" />
       <item name="Partners" href="http://forgerock.com/partners.html" />
-      <item name="Wiki" href="http://wikis.forgerock.org/opendj/" />
     </menu>
 
     <menu name="OpenDJ LDAP SDK">
@@ -46,21 +44,18 @@
       <item name="Toolkit" href="../opendj-ldap-toolkit" />
     </menu>
 
-    <menu name="Documentation">
-      <item name="Developer Guide" href="../doc/dev-guide/OpenDJ-Dev-Guide.html" collapse="true">
-        <item name="EPUB Format" href="../doc/OpenDJ-Dev-Guide.epub" />
-        <item name="HTML Format" href="../doc/dev-guide/OpenDJ-Dev-Guide.html" />
-        <item name="PDF Format" href="../doc/OpenDJ-Dev-Guide.pdf" />
-        <item name="RTF Format" href="../doc/OpenDJ-Dev-Guide.rtf" />
-      </item>
+    <menu name="OpenDJ Documentation">
+      <item name="All Documentation" href="../docs.html"/>
+      <item name="Developer Guide" href="../doc/dev-guide/OpenDJ-Dev-Guide.html"/>
       <item name="Javadoc" href="apidocs/index.html" />
     </menu>
 
-    <menu name="Project Information">
+    <menu name="OpenDJ Development">
+      <item name="Join"
+        href="https://idp.forgerock.org/openam/UI/Login?service=register" />
       <item name="Continuous Integration" href="integration.html" />
       <item name="Maven Repository" href="distribution-management.html" />
       <item name="Issue Tracking" href="issue-tracking.html" />
-      <item name="Mailing Lists" href="mail-lists.html" />
       <item name="License" href="license.html" />
       <item name="Source Repository" href="source-repository.html" />
     </menu>
