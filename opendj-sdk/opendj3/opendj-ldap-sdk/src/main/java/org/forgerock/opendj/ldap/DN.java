@@ -198,20 +198,6 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
     {
       final DN dn1Parent = dn1.parent(dn1Size--);
       final DN dn2Parent = dn2.parent(dn2Size--);
-      if (dn1Parent.isRootDN())
-      {
-        if (dn2Parent.isRootDN())
-        {
-          break;
-        }
-        return -1;
-      }
-
-      if (dn2Parent.isRootDN())
-      {
-        return 1;
-      }
-
       final int result = dn1Parent.rdn.compareTo(dn2Parent.rdn);
       if (result > 0)
       {
