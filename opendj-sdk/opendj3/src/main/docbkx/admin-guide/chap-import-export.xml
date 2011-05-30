@@ -303,6 +303,11 @@ description: This is the description for Aaccf Amar.
 
    <para>The <option>-o <replaceable>ldif-file</replaceable></option> option
    can be used to save the output to a file.</para>
+   
+   <para>As the <command>ldif-diff</command> command reads both files into
+   memory, constructing tree maps to perform the comparison, the command
+   is designed to work with small files and fragments. The command can quickly
+   run out of memory when calculating differences between large files.</para>
   </section>
  </section>
 </chapter>
