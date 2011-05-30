@@ -450,6 +450,12 @@ public class ReplicationDB
            */
           cn = null;
         }
+        else
+        {
+          str = decodeUTF8(key.getData());
+          cn= new ChangeNumber(str);
+          // There can't be 2 counter record next to each other
+        }
       }
     }
     catch (DatabaseException e)
@@ -468,6 +474,110 @@ public class ReplicationDB
 
     return cn;
   }
+
+  /**
+   * Try to find in the DB, the change number right before the one
+   * passed as a parameter.
+   *
+   * @param changeNumber
+   *          The changeNumber from which we start searching.
+   * @return the changeNumber right before the one passed as a parameter.
+   *         Can return null if there is none.
+   */
+  public ChangeNumber getPreviousChangeNumber(ChangeNumber changeNumber)
+  {
+
+    if (changeNumber == null)
+      return null;
+
+    Cursor cursor = null;
+    ChangeNumber cn = null;
+
+    DatabaseEntry key = new ReplicationKey(changeNumber);
+    DatabaseEntry data = new DatabaseEntry();
+
+    Transaction txn = null;
+
+    dbCloseLock.readLock().lock();
+    try
+    {
+      cursor = db.openCursor(txn, null);
+      if (cursor.getSearchKeyRange(key, data, LockMode.DEFAULT) ==
+              OperationStatus.SUCCESS)
+      {
+        // We can move close to the changeNumber.
+        // Let's move to the previous change.
+        if (cursor.getPrev(key, data, LockMode.DEFAULT) ==
+                OperationStatus.SUCCESS)
+        {
+          String str = decodeUTF8(key.getData());
+          cn = new ChangeNumber(str);
+          if (ReplicationDB.isaCounter(cn))
+          {
+            if (cursor.getPrev(key, data,
+                 LockMode.DEFAULT) != OperationStatus.SUCCESS)
+            {
+              // database starts with a counter record.
+              cn = null;
+            }
+            else
+            {
+              str = decodeUTF8(key.getData());
+              cn= new ChangeNumber(str);
+              // There can't be 2 counter record next to each other
+            }
+          }
+        }
+        // else, there was no change previous to our changeNumber.
+      }
+      else
+      {
+        // We could not move the cursor past to the changeNumber
+        // Check if the last change is older than changeNumber
+        if (cursor.getLast(key, data, LockMode.DEFAULT) ==
+                OperationStatus.SUCCESS)
+        {
+          String str = decodeUTF8(key.getData());
+          cn = new ChangeNumber(str);
+          if (ReplicationDB.isaCounter(cn))
+          {
+            if (cursor.getPrev(key, data,
+              LockMode.DEFAULT) != OperationStatus.SUCCESS)
+            {
+              /*
+               * database only contain a counter record, should not be
+               * possible, but Ok, let's just say no change Number
+               */
+              cn = null;
+            }
+            else
+            {
+              str = decodeUTF8(key.getData());
+              cn= new ChangeNumber(str);
+              // There can't be 2 counter record next to each other
+            }
+          }
+        }
+      }
+    }
+    catch (DatabaseException e)
+    {
+      /* database is faulty */
+      MessageBuilder mb = new MessageBuilder();
+      mb.append(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR.get());
+      mb.append(stackTraceToSingleLineString(e));
+      logError(mb.toMessage());
+      // TODO: Verify if shutting down replication is the right thing to do
+      replicationServer.shutdown();
+      cn = null;
+    }
+    finally
+    {
+      closeLockedCursor(cursor);
+    }
+    return cn;
+  }
+
 
   /**
    * {@inheritDoc}

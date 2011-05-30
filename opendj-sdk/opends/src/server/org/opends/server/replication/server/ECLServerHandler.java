@@ -182,8 +182,8 @@ public class ECLServerHandler extends ServerHandler
               + ")" +
               "] [nextNonEligibleMsg="      + nextNonEligibleMsg +
               "] [startState=" + startState +
-              "] [stopState= " + stopState +
-              "] [currentState= " + currentState + "]]");
+              "] [stopState=" + stopState +
+              "] [currentState=" + currentState + "]]");
     }
 
     /**
@@ -749,7 +749,7 @@ public class ECLServerHandler extends ServerHandler
           if (isPersistent ==
             StartECLSessionMsg.PERSISTENT_CHANGES_ONLY)
           {
-            newDomainCtxt.startState = rsd.getEligibleState(eligibleCN, true);
+            newDomainCtxt.startState = rsd.getEligibleState(eligibleCN);
             startStatesFromProvidedCookie.remove(rsd.getBaseDn());
           }
           else
@@ -766,7 +766,12 @@ public class ECLServerHandler extends ServerHandler
               // let's start traversing this domain from the beginning of
               // what we have in the replication changelog
               if (newDomainCtxt.startState == null)
-                newDomainCtxt.startState = new ServerState();
+              {
+                ChangeNumber latestTrimCN =
+                    new ChangeNumber(newDomainCtxt.domainLatestTrimDate, 0,0);
+                newDomainCtxt.startState = rsd.getStartState()
+                        .duplicateOnlyOlderThan(latestTrimCN);
+              }
             }
             else
             {
@@ -807,7 +812,7 @@ public class ECLServerHandler extends ServerHandler
             }
 
             // Set the stop state for the domain from the eligibleCN
-            newDomainCtxt.stopState = rsd.getEligibleState(eligibleCN, true);
+            newDomainCtxt.stopState = rsd.getEligibleState(eligibleCN);
           }
           newDomainCtxt.currentState = new ServerState();
 
@@ -822,9 +827,8 @@ public class ECLServerHandler extends ServerHandler
           rsd.registerHandler(mh);
           newDomainCtxt.mh = mh;
 
-          previousCookie.update(
-              newDomainCtxt.rsd.getBaseDn(),
-              newDomainCtxt.startState);
+          previousCookie.update(newDomainCtxt.rsd.getBaseDn(),
+                                newDomainCtxt.startState);
 
           // store the new context
           tmpSet.add(newDomainCtxt);
@@ -1052,6 +1056,7 @@ public class ECLServerHandler extends ServerHandler
           ResultCode.UNWILLING_TO_PERFORM,
           ERR_INVALID_COOKIE_SYNTAX.get());
     }
+
     excludedServiceIDs = startECLSessionMsg.getExcludedServiceIDs();
     replicationServer.disableEligibility(excludedServiceIDs);
     eligibleCN = replicationServer.getEligibleCN();

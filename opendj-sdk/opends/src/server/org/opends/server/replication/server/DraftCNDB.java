@@ -668,6 +668,34 @@ public class DraftCNDB
     }
 
     /**
+     * Getter for the integer value of the current curson, representing
+     * the current DraftChangeNumber being processed.
+     *
+     * @return the current DraftCN as an integer.
+     */
+    public int currentKey()
+    {
+       try
+      {
+        OperationStatus status =
+          cursor.getCurrent(key, entry, LockMode.DEFAULT);
+
+        if (status != OperationStatus.SUCCESS)
+        {
+          return -1;
+        }
+        String str = decodeUTF8(key.getData());
+        int draftCN = new Integer(str);
+        return draftCN;
+      }
+      catch(Exception e)
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+      return -1;
+    }
+
+    /**
      * Returns the replication changeNumber associated with the current key.
      * @return the replication changeNumber
      */
