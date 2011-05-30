@@ -389,18 +389,22 @@ public class DraftCNDbHandler implements Runnable
 
               // We don't use the returned endState but it's updating CN as
               // reading
-              domain.getEligibleState(crossDomainEligibleCN, false);
+              domain.getEligibleState(crossDomainEligibleCN);
 
               ChangeNumber fcn = startState.getMaxChangeNumber(
                   cn.getServerId());
 
-              if (cn.older(fcn))
+              int currentKey = cursor.currentKey();
+              // Do not delete the lastKey. This should allow us to
+              // preserve last change number over time.
+              if ((currentKey != lastkey) && (cn.older(fcn)))
               {
                 size++;
                 cursor.delete();
               }
               else
               {
+                firstkey = currentKey;
                 finished = true;
               }
             }

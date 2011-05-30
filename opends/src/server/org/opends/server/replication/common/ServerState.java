@@ -518,4 +518,31 @@ public class ServerState implements Iterable<Integer>
   {
     return saved;
   }
+
+  /**
+   * Build a copy of the ServerState with only ChangeNumbers older than
+   * a specific ChangeNumber. This is used when building the initial
+   * Cookie in the External Changelog, to cope with purged changes.
+   * @param cn The ChangeNumber to compare the ServerState with
+   * @return a copy of the ServerState which only contains the ChangeNumbers
+   *         older than cn.
+   */
+  public ServerState duplicateOnlyOlderThan(ChangeNumber cn)
+  {
+    ServerState newState = new ServerState();
+    synchronized (list)
+    {
+      for (Integer key  : list.keySet())
+      {
+        ChangeNumber change = list.get(key);
+        Integer id =  change.getServerId();
+        if (change.older(cn))
+        {
+          newState.list.put(id,change);
+        }
+      }
+    }
+    return newState;
+  }
+
 }

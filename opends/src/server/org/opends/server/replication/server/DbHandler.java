@@ -466,6 +466,13 @@ public class DbHandler implements Runnable
 
     ChangeNumber trimDate = new ChangeNumber(latestTrimDate, 0, 0);
 
+    // Find the last changeNumber before the trimDate, in the Database.
+    ChangeNumber lastBeforeTrimDate = db.getPreviousChangeNumber(trimDate);
+    if (lastBeforeTrimDate != null)
+    {
+      // If we found it, we want to stop trimming when reaching it.
+      trimDate = lastBeforeTrimDate;
+    }
     // In case of deadlock detection by the Database, this thread can
     // by aborted by a DeadlockException. This is a transient error and
     // the transaction should be attempted again.
