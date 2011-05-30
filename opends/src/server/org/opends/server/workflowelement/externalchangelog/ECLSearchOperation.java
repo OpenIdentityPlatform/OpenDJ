@@ -184,6 +184,11 @@ public class ECLSearchOperation
   private ExternalChangeLogSession eclSession;
 
   /**
+   * A flag to know if the ECLControl has been requested.
+   */
+  private Boolean returnECLControl = false;
+
+  /**
    * Creates a new operation that may be used to search for entries in a local
    * backend of the Directory Server.
    *
@@ -406,6 +411,7 @@ public class ECLSearchOperation
           ExternalChangelogRequestControl eclControl =
             getRequestControl(ExternalChangelogRequestControl.DECODER);
           MultiDomainServerState cookie = eclControl.getCookie();
+          returnECLControl = true;
           if (cookie!=null)
           {
             startECLSessionMsg.setECLRequestType(
@@ -675,11 +681,16 @@ public class ECLSearchOperation
     final Entry entry = createEntryFromMsg(eclmsg);
     if (matchScopeAndFilter(entry))
     {
-      List<Control> controls = new ArrayList<Control>(1);
-      EntryChangelogNotificationControl clrc =
-        new EntryChangelogNotificationControl(
-            true, eclmsg.getCookie().toString());
-      controls.add(clrc);
+      List<Control> controls = null;
+      if (returnECLControl)
+      {
+        controls = new ArrayList<Control>(1);
+
+        EntryChangelogNotificationControl clrc =
+            new EntryChangelogNotificationControl(
+                true, eclmsg.getCookie().toString());
+        controls.add(clrc);
+      }
       return returnEntry(entry, controls);
     }
     return true;
