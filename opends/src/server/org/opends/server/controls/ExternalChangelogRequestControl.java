@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.controls;
 import static org.opends.messages.ProtocolMessages.*;
@@ -66,15 +67,13 @@ public class ExternalChangelogRequestControl
         ByteString value)
     throws DirectoryException
     {
+      MultiDomainServerState mdss;
       if (value == null)
       {
-        // FIXME:ECL In the request cookie, empty value is currently rejected.
-        Message message = ERR_PSEARCH_NO_CONTROL_VALUE.get();
-        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
-      }
+        mdss = new MultiDomainServerState();
+      } else {
 
       ASN1Reader reader = ASN1.getReader(value);
-      MultiDomainServerState mdss;
       String mdssValue = null;
       try
       {
@@ -96,6 +95,7 @@ public class ExternalChangelogRequestControl
                 + mdssValue , getExceptionMessage(e).toString());
           throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message, e);
         }
+      }
       }
       return new ExternalChangelogRequestControl(isCritical, mdss);
     }
