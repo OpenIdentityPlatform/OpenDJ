@@ -262,6 +262,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     sleep(500); // Wait for draftCNDb to be purged also
     int ts = ECLCompatWriteReadAllOps(1);
 
+    ECLCompatNoControl(1);
+    
     // Write additional changes and read ECL from a provided draft change number
     ts = ECLCompatWriteReadAllOps(5);replicationServer.clearDb();
 
@@ -351,6 +353,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     // Test request from a provided change number - read 6
     ECLCompatReadFrom(6);
+    
+    // Test request from change number 1, just check that Cookie controls 
+    // are not returned with entries, when not requested.
+    ECLCompatNoControl(1);
 
     // Test request from a provided change number interval - read 5-7
     ECLCompatReadFromTo(5,7);
@@ -2888,7 +2894,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           +  stackTraceToSingleLineString(e));
     }
   }
-
+  
   private int ECLCompatWriteReadAllOps(int firstDraftChangeNumber)
   {
     String tn = "ECLCompatWriteReadAllOps/" + String.valueOf(firstDraftChangeNumber);
@@ -3231,6 +3237,68 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     }
     debugInfo(tn, "Ending test with success");
   }
+
+  // Process similar search as  but only check that there's no control
+  // returned as part of the entry.
+  private void ECLCompatNoControl(int firstDraftChangeNumber)
+  {
+    String tn = "ECLCompatNoControl/" + String.valueOf(firstDraftChangeNumber);
+    debugInfo(tn, "Starting test\n\n");
+
+    try
+    {
+      // Creates broker on o=test
+      ReplicationBroker server01 = openReplicationSession(
+          DN.decode(TEST_ROOT_DN_STRING),  1201,
+          100, replicationServerPort,
+          brokerSessionTimeout, true);
+
+      String user1entryUUID = "11111111-1112-1113-1114-111111111115";
+
+      LinkedHashSet<String> attributes = new LinkedHashSet<String>();
+      attributes.add("+");
+      attributes.add("*");
+
+      String filter = "(changenumber="+firstDraftChangeNumber+")";
+      debugInfo(tn, " Search: " + filter);
+      InternalSearchOperation searchOp =
+        connection.processSearch(
+            ByteString.valueOf("cn=changelog"),
+            SearchScope.WHOLE_SUBTREE,
+            DereferencePolicy.NEVER_DEREF_ALIASES,
+            0, // Size limit
+            0, // Time limit
+            false, // Types only
+            LDAPFilter.decode(filter),
+            attributes,
+            NO_CONTROL,
+            null);
+      waitOpResult(searchOp, ResultCode.SUCCESS);
+
+      LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
+      assertEquals(searchOp.getSearchEntries().size(), 1);
+      if (entries != null)
+      {
+        int i=0;
+        for (SearchResultEntry resultEntry : entries)
+        {
+          i++;
+          // Just verify that no entry contains the ChangeLogCookie control
+          List<Control> controls = resultEntry.getControls();
+          assertTrue(controls.isEmpty());
+        }
+      }
+      server01.stop();
+    }
+    catch(Exception e)
+    {
+      fail("Ending test " + tn + " with exception:\n"
+          +  stackTraceToSingleLineString(e));
+    }
+    debugInfo(tn, "Ending test with success");
+    
+  }
+
 
   /**
    * Read the ECL in compat mode from firstDraftChangeNumber and to
