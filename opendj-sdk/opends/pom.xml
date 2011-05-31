@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CDDL HEADER START
+  !
+  ! The contents of this file are subject to the terms of the
+  ! Common Development and Distribution License, Version 1.0 only
+  ! (the "License").  You may not use this file except in compliance
+  ! with the License.
+  !
+  ! You can obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CDDLv1_0.txt
+  ! or http://forgerock.org/license/CDDLv1.0.html.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! When distributing Covered Code, include this CDDL HEADER in each
+  ! file and include the License file at
+  ! trunk/opendj3/legal-notices/CDDLv1_0.txt.  If applicable,
+  ! add the following below this CDDL HEADER, with the fields enclosed
+  ! by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CDDL HEADER END
+  !
+  !      Copyright 2011 ForgeRock AS
+  !    
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  
+  <!-- This is Maven build file is just a hack in order to leverage
+       Maven's site generation capabilities. It duplicates version information,
+       and the Ant build is not split into phases: we just do it in one single
+       blast during the compile phase -->
+
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.forgerock.opendj</groupId>
+    <artifactId>opendj-project</artifactId>
+    <version>3.0.0-SNAPSHOT</version>
+  </parent>
+  <artifactId>opendj-server</artifactId>
+  <version>2.5.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>OpenDJ Directory Server</name>
+  <description>
+    OpenDJ is a new LDAPv3 compliant directory service, developed for the Java
+    platform, providing a high performance, highly available and secure store
+    for the identities managed by enterprises.
+  </description>
+  <scm>
+    <url>https://svn.forgerock.org/opendj/trunk/opends/</url>
+    <connection>scm:svn:https://svn.forgerock.org/opendj/trunk/opends/</connection>
+    <developerConnection>scm:svn:https://svn.forgerock.org/opendj/trunk/opends/</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
+  <ciManagement>
+    <system>jenkins</system>
+    <url>http://builds.forgerock.org/job/OpenDJ%20-%20trunk%20-%20postcommit</url>
+    <notifiers>
+      <notifier>
+        <type>mail</type>
+        <sendOnError>true</sendOnError>
+        <sendOnFailure>true</sendOnFailure>
+        <sendOnSuccess>false</sendOnSuccess>
+        <sendOnWarning>false</sendOnWarning>
+        <address>opendj-dev@forgerock.org</address>
+      </notifier>
+    </notifiers>
+  </ciManagement>
+  <properties>
+    <ant.home>ext/ant</ant.home>
+  </properties>
+  <build>
+    <directory>build</directory>
+    <plugins>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.6</version>
+        <executions>
+          <execution>
+            <id>clean</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <ant target="clean" />
+              </target>
+            </configuration>
+          </execution>
+          <execution>
+            <id>compile</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <!-- We need to significantly refactor build.xml in order
+                     to split this up any more -->
+                <ant target="precommit" />
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.2</version>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <appendAssemblyId>false</appendAssemblyId>
+              <descriptors>
+                <descriptor>src/main/assembly/descriptor.xml</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
