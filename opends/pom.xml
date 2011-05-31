@@ -70,6 +70,7 @@
   </ciManagement>
   <properties>
     <ant.home>ext/ant</ant.home>
+    <BUILD_NUMBER>0</BUILD_NUMBER>
   </properties>
   <build>
     <directory>build</directory>
@@ -100,7 +101,7 @@
               <target>
                 <!-- We need to significantly refactor build.xml in order
                      to split this up any more -->
-                <ant target="precommit" />
+                <ant target="package" />
               </target>
             </configuration>
           </execution>
