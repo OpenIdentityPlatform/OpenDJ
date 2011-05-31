@@ -72,7 +72,7 @@
   </scm>
   <ciManagement>
     <system>jenkins</system>
-    <url>http://builds.forgerock.org/job/OpenDJ3%20-%20trunk%20-%20postcommit/</url>
+    <url>http://builds.forgerock.org/job/OpenDJ3</url>
     <notifiers>
       <notifier>
         <type>mail</type>
