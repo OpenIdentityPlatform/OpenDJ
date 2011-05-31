@@ -54,8 +54,8 @@
    <item name="Partners" href="http://forgerock.com/partners.html" />
   </menu>
 
-  <menu name="OpenDJ LDAP Server">
-    <item name="About" href="opendj-ldap-server" />
+  <menu name="OpenDJ Directory Server">
+    <item name="About" href="opendj-server" />
   </menu>
 
   <menu name="OpenDJ LDAP SDK">
