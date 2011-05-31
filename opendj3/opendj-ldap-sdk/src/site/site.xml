@@ -27,7 +27,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/DECORATION/1.0.1 http://maven.apache.org/xsd/decoration-1.0.1.xsd">
   <body>
-    <menu name="OpenDJ LDAP SDK">
+    <menu name="OpenDJ">
       <item name="Welcome" href="../index.html" />
       <item name="News" href="../news.html" />
       <item name="Downloads" href="http://www.forgerock.com/downloads-opendj.html" />
@@ -36,6 +36,10 @@
       <item name="Mailing Lists" href="../mail-lists.html" />
       <item name="Support" href="http://forgerock.com/subscriptions.html" />
       <item name="Partners" href="http://forgerock.com/partners.html" />
+    </menu>
+
+    <menu name="OpenDJ LDAP Server">
+      <item name="About" href="../opendj-ldap-server" />
     </menu>
 
     <menu name="OpenDJ LDAP SDK">
