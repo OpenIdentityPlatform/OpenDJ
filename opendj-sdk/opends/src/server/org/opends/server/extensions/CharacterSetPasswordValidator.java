@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.extensions;
 import org.opends.messages.Message;
@@ -41,7 +42,6 @@ import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.api.PasswordValidator;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.*;
-
 import static org.opends.messages.ExtensionMessages.*;
 import org.opends.messages.MessageBuilder;
 import static org.opends.server.util.StaticUtils.*;
@@ -155,18 +155,74 @@ public class CharacterSetPasswordValidator
       }
     }
 
+    int usedOptionalCharacterSets = 0;
+    int optionalCharacterSets = 0;
+    int mandatoryCharacterSets = 0;
     for (String characterSet : characterSets.keySet())
     {
       int minimumCount = characterSets.get(characterSet);
       Integer passwordCount = counts.get(characterSet);
-      if ((passwordCount == null) || (passwordCount < minimumCount))
+      if (minimumCount > 0)
       {
-        invalidReason.append(ERR_CHARSET_VALIDATOR_TOO_FEW_CHARS_FROM_SET.get(
-                characterSet, minimumCount));
-        return false;
+        // Mandatory character set.
+        mandatoryCharacterSets++;
+        if ((passwordCount == null) || (passwordCount < minimumCount))
+        {
+          invalidReason
+              .append(ERR_CHARSET_VALIDATOR_TOO_FEW_CHARS_FROM_SET
+                  .get(characterSet, minimumCount));
+          return false;
+        }
+      }
+      else
+      {
+        // Optional character set.
+        optionalCharacterSets++;
+        if (passwordCount != null)
+        {
+          usedOptionalCharacterSets++;
+        }
       }
     }
 
+    // Check minimum optional character sets are present.
+    if (optionalCharacterSets > 0)
+    {
+      int requiredOptionalCharacterSets;
+      if (currentConfig.getMinCharacterSets() == null)
+      {
+        requiredOptionalCharacterSets = 1;
+      }
+      else
+      {
+        requiredOptionalCharacterSets = currentConfig
+            .getMinCharacterSets() - mandatoryCharacterSets;
+      }
+
+      if (usedOptionalCharacterSets < requiredOptionalCharacterSets)
+      {
+        StringBuilder builder = new StringBuilder();
+        for (String characterSet : characterSets.keySet())
+        {
+          if (characterSets.get(characterSet) == 0)
+          {
+            if (builder.length() > 0)
+            {
+              builder.append(", ");
+            }
+            builder.append('\'');
+            builder.append(characterSet);
+            builder.append('\'');
+          }
+        }
+
+        invalidReason
+            .append(ERR_CHARSET_VALIDATOR_TOO_FEW_OPTIONAL_CHAR_SETS
+                .get(requiredOptionalCharacterSets,
+                    builder.toString()));
+        return false;
+      }
+    }
 
     // If we've gotten here, then the password is acceptable.
     return true;
@@ -194,6 +250,7 @@ public class CharacterSetPasswordValidator
   {
     HashMap<String,Integer> characterSets  = new HashMap<String,Integer>();
     HashSet<Character>      usedCharacters = new HashSet<Character>();
+    int mandatoryCharacterSets = 0;
 
     for (String definition : configuration.getCharacterSet())
     {
@@ -220,7 +277,7 @@ public class CharacterSetPasswordValidator
         throw new ConfigException(message);
       }
 
-      if (minCount <= 0)
+      if (minCount < 0)
       {
         Message message = ERR_CHARSET_VALIDATOR_INVALID_COUNT.get(definition);
         throw new ConfigException(message);
@@ -241,6 +298,34 @@ public class CharacterSetPasswordValidator
       }
 
       characterSets.put(characterSet, minCount);
+
+      if (minCount > 0)
+      {
+        mandatoryCharacterSets++;
+      }
+    }
+
+    // Validate min-character-sets if necessary.
+    int optionalCharacterSets = characterSets.size()
+        - mandatoryCharacterSets;
+    if (optionalCharacterSets > 0
+        && configuration.getMinCharacterSets() != null)
+    {
+      int minCharacterSets = configuration.getMinCharacterSets();
+
+      if (minCharacterSets <= mandatoryCharacterSets)
+      {
+        Message message = ERR_CHARSET_VALIDATOR_MIN_CHAR_SETS_TOO_SMALL
+            .get(minCharacterSets);
+        throw new ConfigException(message);
+      }
+
+      if (minCharacterSets > characterSets.size())
+      {
+        Message message = ERR_CHARSET_VALIDATOR_MIN_CHAR_SETS_TOO_BIG
+            .get(minCharacterSets);
+        throw new ConfigException(message);
+      }
     }
 
     return characterSets;
