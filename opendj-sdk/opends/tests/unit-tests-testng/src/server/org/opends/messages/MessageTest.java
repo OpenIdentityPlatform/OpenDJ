@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.opends.messages;
@@ -50,8 +51,8 @@ public class MessageTest extends MessagesTestCase {
             {"Hello %s", "Hello World", new Object[]{"World"}},
             {"Hel%nlo %s", "Hel" + EOL + "lo World", new Object[]{"World"}},
             {"Hel%%lo %s", "Hel%lo World", new Object[]{"World"}},
-            {"Hel%%lo", "Hel%lo", new Object[]{}},
-            {"Hel%nlo", "Hel" + EOL + "lo", new Object[]{}},
+            {"Hel%%lo", "Hel%%lo", new Object[]{}},
+            {"Hel%nlo", "Hel%nlo", new Object[]{}},
             {"Hel%Dlo", "Hel%Dlo", new Object[]{}},
             {"Hel%Dlo", "Hel%Dlo", new Object[]{ "abc"}},
 

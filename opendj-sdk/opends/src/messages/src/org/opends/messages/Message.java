@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.opends.messages;
@@ -83,11 +84,7 @@ public final class Message implements CharSequence, Formattable,
    *         null if <code>formatString</code> is null
    */
   static public Message raw(CharSequence formatString, Object... args) {
-    Message message = null;
-    if (formatString != null) {
-      message = new MessageDescriptor.Raw(formatString).get(args);
-    }
-    return message;
+    return raw(Category.USER_DEFINED, Severity.INFORMATION, formatString, args);
   }
 
   /**
@@ -116,11 +113,18 @@ public final class Message implements CharSequence, Formattable,
                             CharSequence formatString, Object... args) {
     Message message = null;
     if (formatString != null) {
-      MessageDescriptor.Raw md =
-              new MessageDescriptor.Raw(formatString,
-                      category,
-                      severity);
-      message = md.get(args);
+      if (args == null || args.length == 0)
+      {
+        MessageDescriptor.Raw md = new MessageDescriptor.Raw(
+            "%s", category, severity);
+        message = md.get(formatString);
+      }
+      else
+      {
+        MessageDescriptor.Raw md = new MessageDescriptor.Raw(
+            formatString, category, severity);
+        message = md.get(args);
+      }
     }
     return message;
   }
@@ -135,17 +139,12 @@ public final class Message implements CharSequence, Formattable,
    * will cause this message to render without argument substitution.
    *
    * @param object from which the message will be created
-   * @param arguments for message
+   * @param args for message
    * @return a message object that will render the same in all locales;
    *         null if <code>object</code> is null
    */
-  static public Message fromObject(Object object, Object... arguments) {
-    Message message = null;
-    if (object != null) {
-      CharSequence cs = object.toString();
-      message = raw(cs, arguments);
-    }
-    return message;
+  static public Message fromObject(Object object, Object... args) {
+    return (object != null) ? raw(object.toString(), args) : null;
   }
 
   /**
