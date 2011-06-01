@@ -40,6 +40,560 @@
  
  <para>This chapter covers both access control instructions and privileges,
  demonstrating how to configure both.</para>
+ 
+ <section>
+  <title>About Access Control Instructions</title>
+  
+  <para>OpenDJ directory server access control instructions (ACIs) exist as
+  <literal>aci</literal> attribute values in the directory data. ACIs apply
+  to a scope defined in the instruction, and set permissions that depend on
+  what operation is requested, who requested the operation, and how the client
+  connected to the server. For example, the ACIs on the following
+  entry allow anonymous read access to all attributes except passwords, and
+  allow full read-write access to directory administrators under
+  <literal>dc=example,dc=com</literal>.</para>
+  
+  <programlisting language="ldif">dn: dc=example,dc=com
+objectClass: domain
+objectClass: top
+dc: example
+aci: (target ="ldap:///dc=example,dc=com")(targetattr !=
+ "userPassword")(version 3.0;acl "Anonymous read-search access";
+ allow (read, search, compare)(userdn = "ldap:///anyone");)
+aci: (target="ldap:///dc=example,dc=com") (targetattr =
+ "*")(version 3.0; acl "allow all Admin group"; allow(all) groupdn =
+ "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)
+  </programlisting>
+  
+  <para>ACI attribute values use a specific language described in this section.
+  Although ACI attribute values can become difficult to read in LDIF, the
+  basic syntax is simple.</para>
+  
+  <literallayout><replaceable>target-spec</replaceable>(version 3.0;acl "<replaceable>desc</replaceable>";<replaceable>permissions</replaceable> <replaceable>bind-rules</replaceable>;)</literallayout>
 
+  <para>The following list briefly explains the variables in the syntax above.</para>
+
+  <variablelist>
+   <varlistentry>
+    <term><replaceable>target-spec</replaceable></term>
+    <listitem>
+     <para>Specifies the entries, attributes, controls, and extended operations
+     to which the ACI applies.</para>
+     <para>To include multiple <replaceable>target-spec</replaceable>
+     specifications, enclose each specification in parentheses, ().</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><replaceable>desc</replaceable></term>
+    <listitem>
+     <para>Supplies a human-readable description of what the ACI does.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><replaceable>permissions</replaceable></term>
+    <listitem>
+     <para>Defines which operations to allow, and which to deny.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><replaceable>bind-rules</replaceable></term>
+    <listitem>
+     <para>Identify how the client performed the bind to the server in order
+     for the ACI to apply.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+
+  <para>Separate multiple <replaceable>permissions</replaceable>
+  <replaceable>bind-rules</replaceable> definitions with semicolons, ;.</para>
+  
+  <section>
+   <title>ACI Target Specifications</title>
+   
+   <para>ACI target specifications identify the target type that must match
+   or not match a particular target.</para>
+   
+   <variablelist>
+    <varlistentry>
+     <term><literal>(target = "ldap:///<replaceable>DN</replaceable>")</literal></term>
+     <term><literal>(target != "ldap:///<replaceable>DN</replaceable>")</literal></term>
+     <listitem>
+      <para>Sets the scope to <replaceable>DN</replaceable> and child entries.</para>
+      <para>You can use asterisks, *, to replace attribute types, attribute
+      values, and entire DN components. In other words, the following
+      specification targets both
+      <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> and also
+      <literal>cn=Frank Zappa,ou=Musicians,dc=example,dc=com</literal>.</para>
+      <programlisting language="aci">(target = "ldap:///*=*,*,dc=example,dc=com")</programlisting>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>(targetattr = "<replaceable>attr</replaceable>")</literal></term>
+     <term><literal>(targetattr != "<replaceable>attr</replaceable>")</literal></term>
+     <listitem>
+      <para>Here <replaceable>attr</replaceable> is an attribute type name,
+      such as <literal>userPassword</literal>. Separate multiple attribute type
+      names with ||.</para>
+      <para>This specification affects the entry where the ACI is located, or
+      the entries specified by other targets in the ACI.</para>
+      <para>You can use an asterisk, *, to specify all non-operational
+      attributes, although you will see better performance when explicitly
+      including or excluding attribute types needed.</para>
+      <para>If you do not include this target specification, then by default
+      no attributes are affected by the ACI.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>(targetfilter = "<replaceable>ldap-filter</replaceable>")</literal></term>
+     <term><literal>(targetfilter != "<replaceable>ldap-filter</replaceable>")</literal></term>
+     <listitem>
+      <para>Sets the scope to match the <replaceable>ldap-filter</replaceable>
+      dynamically, as in an LDAP search.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>(targattrfilters = "<replaceable>expression</replaceable>")</literal></term>
+     <term><literal>(targattrfilters != "<replaceable>expression</replaceable>")</literal></term>
+     <listitem>
+      <!-- TODO: Real world use case? -->
+      <para>Use this target specification when managing changes made to
+      particular attributes.</para>
+      <para>Here <replaceable>expression</replaceable> takes one of the
+      following forms. Separate expressions with semicolons, ;.</para>
+      <literallayout>add=<replaceable>attr</replaceable>:<replaceable>filter</replaceable>[&amp;&amp; <replaceable>attr</replaceable>:<replaceable>filter</replaceable> ...]</literallayout>
+      <literallayout>delete=<replaceable>attr</replaceable>:<replaceable>filter</replaceable>[&amp;&amp; <replaceable>attr</replaceable>:<replaceable>filter</replaceable> ...]</literallayout>
+      <para>Here <literal>add</literal> is for operations creating attributes,
+      <literal>delete</literal> for operatins removing them.
+      Replace <replaceable>attr</replaceable> with an attribute type.
+      Replace <replaceable>filter</replaceable> with an LDAP filter that
+      corresponds to the <replaceable>attr</replaceable> attribute type.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>(targetscope = "base|onelevel|subtree|subordinate")</literal></term>
+     <term><literal>(targetscope != "base|onelevel|subtree|subordinate")</literal></term>
+     <listitem>
+      <para>Here <literal>base</literal> refers to the entry where the ACI is
+      defined, <literal>onelevel</literal> to immediate children,
+      <literal>subtree</literal> to the base entry and all children, and
+      <literal>subordinate</literal> to all children only.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>(targetcontrol = "<replaceable>OID</replaceable>")</literal></term>
+     <term><literal>(targetcontrol != "<replaceable>OID</replaceable>")</literal></term>
+     <listitem>
+      <para>Here, <replaceable>OID</replaceable> is the object identifier for
+      the LDAP control to target. Separate multiple OIDs with ||.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>(extop = "<replaceable>OID</replaceable>")</literal></term>
+     <term><literal>(extop != "<replaceable>OID</replaceable>")</literal></term>
+     <listitem>
+      <para>Here <replaceable>OID</replaceable> is the object identifier for
+      the extended operation to target. Separate multiple OIDs with ||.</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+  </section>
+
+  <section>
+   <title>ACI Permissions</title>
+   
+   <para>ACI permission definitions take one of the following forms.</para>
+   
+   <literallayout>allow(<replaceable>op</replaceable>[, <replaceable>op</replaceable> ...])</literallayout>
+   <literallayout>deny(<replaceable>op</replaceable>[, <replaceable>op</replaceable> ...])</literallayout>
+   
+   <tip>
+    <para>Although <literal>deny</literal> is supported, avoid restricting
+    permissions by using <literal>deny</literal>. Instead, explicitly
+    <literal>allow</literal> access only where needed. What looks harmless and
+    simple in your lab examples can grow difficult to maintain in a real-world
+    deployment with nested ACIs.</para>
+   </tip>
+   
+   <para>Here <replaceable>op</replaceable> is one of the following.</para>
+   
+   <variablelist>
+    <varlistentry>
+     <term><literal>add</literal></term>
+     <listitem>
+      <para>Entry creation, as for an LDAP add operation</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>all</literal></term>
+     <listitem>
+      <para>All permissions</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>compare</literal></term>
+     <listitem>
+      <para>Attribute value comparison, as for an LDAP compare operation</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>delete</literal></term>
+     <listitem>
+      <para>Entry deletion, as for an LDAP delete operation</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>export</literal></term>
+     <listitem>
+      <para>Entry export during a modify DN operation</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>import</literal></term>
+     <listitem>
+      <para>Entry import during a modify DN operation</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>proxy</literal></term>
+     <listitem>
+      <para>Access the ACI target using the rights of another user</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>read</literal></term>
+     <listitem>
+      <para>Read entries and attributes</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>search</literal></term>
+     <listitem>
+      <para>Search the ACI targets. Needs to be combine with
+      <literal>read</literal> in order to read the search results.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>selfwrite</literal></term>
+     <listitem>
+      <para>Add or delete own DN from a group</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>write</literal></term>
+     <listitem>
+      <para>Modify attributes on ACI target entries</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+   
+  </section>
+
+  <section>
+   <title>ACI Bind Rules</title>
+   
+   <para>ACI bind rules match characteristics of the client connection to the
+   server. You use bind rules to restrict whether the ACI applies depending on
+   who connected, and when, where, and how they connected.</para>
+
+   <variablelist>
+    <varlistentry>
+     <term><literal>authmethod = "none|simple|ssl|sasl <replaceable>mech</replaceable>"</literal></term>
+     <term><literal>authmethod != "none|simple|ssl|sasl <replaceable>mech</replaceable>"</literal></term>
+     <listitem>
+      <para>Here you use <literal>none</literal> to mean do not check,
+      <literal>simple</literal> for simple authentication, <literal>ssl</literal>
+      for LDAPS, <literal>sasl <replaceable>mech</replaceable></literal> for
+      SASL where <replaceable>mech</replaceable> is DIGEST-MD5, EXTERNAL, or
+      GSSAPI.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>dayofweek = "<replaceable>day</replaceable>[, <replaceable>day</replaceable> ...]"</literal></term>
+     <term><literal>dayofweek != "<replaceable>day</replaceable>[, <replaceable>day</replaceable> ...]"</literal></term>
+     <listitem>
+      <para>Here, <replaceable>day</replaceable> is one of
+      <literal>sun</literal>, <literal>mon</literal>, <literal>tue</literal>,
+      <literal>wed</literal>, <literal>thu</literal>, <literal>fri</literal>,
+      <literal>sat</literal>.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>dns = "<replaceable>hostname</replaceable>"</literal></term>
+     <term><literal>dns != "<replaceable>hostname</replaceable>"</literal></term>
+     <listitem>
+      <para>You can use asterisks, *, to replace name components, such as
+      <literal>dns = "*.myCompany.com"</literal>.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>groupdn = "ldap:///<replaceable>DN</replaceable>[|| ldap:///<replaceable>DN</replaceable> ...]"</literal></term>
+     <term><literal>groupdn != "ldap:///<replaceable>DN</replaceable>[|| ldap:///<replaceable>DN</replaceable> ...]"</literal></term>
+     <listitem>
+      <para>Replace <replaceable>DN</replaceable> with the distinguished name
+      of a group to permit or restrict access for members.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>ip = "<replaceable>addresses</replaceable>"</literal></term>
+     <term><literal>ip != "<replaceable>addresses</replaceable>"</literal></term>
+     <listitem>
+      <para>Here <replaceable>addresses</replaceable> can be specified for
+      IPv4 or IPv6. IPv6 addresses are specified in brackets as
+      <literal>ldap://[<replaceable>address</replaceable>]/<replaceable>subnet-prefix</replaceable></literal>
+      where /<replaceable>subnet-prefix</replaceable> is optional.
+      You can specify individual IPv4 addresses, addresses with asterisks (*) to
+      replace subnets and host numbers, CIDR notation, and forms such as
+      <literal>192.168.0.*+255.255.255.0</literal> to specify subnet masks.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>ssf = "<replaceable>strength</replaceable>"</literal></term>
+     <term><literal>ssf !=! "<replaceable>strength</replaceable>"</literal></term>
+     <term><literal>ssf &gt; "<replaceable>strength</replaceable>"</literal></term>
+     <term><literal>ssf &gt;= "<replaceable>strength</replaceable>"</literal></term>
+     <term><literal>ssf &lt; "<replaceable>strength</replaceable>"</literal></term>
+     <term><literal>ssf &lt;= "<replaceable>strength</replaceable>"</literal></term>
+     <listitem>
+      <para>Here the security strength factor pertains to the cipher key
+      strength for connections using DIGEST-MD5, GSSAPI, SSL, or TLS.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>timeofday = "<replaceable>hhmm</replaceable>"</literal></term>
+     <term><literal>timeofday != "<replaceable>hhmm</replaceable>"</literal></term>
+     <term><literal>timeofday &gt; "<replaceable>hhmm</replaceable>"</literal></term>
+     <term><literal>timeofday &gt;= "<replaceable>hhmm</replaceable>"</literal></term>
+     <term><literal>timeofday &lt; "<replaceable>hhmm</replaceable>"</literal></term>
+     <term><literal>timeofday &lt;= "<replaceable>hhmm</replaceable>"</literal></term>
+     <listitem>
+      <para>Here <replaceable>hhmm</replaceable> is expressed as on a 24-hour
+      clock. For example, 1:15 PM is written <literal>1315</literal>.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>userattr = "<replaceable>attr</replaceable>#<replaceable>value</replaceable>"</literal></term>
+     <term><literal>userattr != "<replaceable>attr</replaceable>#<replaceable>value</replaceable>"</literal></term>
+     <term><literal>userattr = <replaceable>ldap-url</replaceable>#LDAPURL"</literal></term>
+     <term><literal>userattr != <replaceable>ldap-url</replaceable>#LDAPURL"</literal></term>
+     <term><literal>userattr = "[parent[<replaceable>child-level</replaceable>].]<replaceable>attr</replaceable>#GROUPDN|USERDN"</literal></term>
+     <term><literal>userattr != "[parent[<replaceable>child-level</replaceable>].]<replaceable>attr</replaceable>#GROUPDN|USERDN"</literal></term>
+     <listitem>
+      <para>The <literal>userattr</literal> bind rule specifies an attribute
+      that must match on both the bind entry and the target of the ACI.</para>
+      <para>To match when the attribute on the bind DN entry corresponds
+      directly to the attribute on the target entry, replace
+      <replaceable>attr</replaceable> with the attribute type, and
+      <replaceable>value</replaceable> with the attribute value.</para>
+      <para>To match when the target entry is identified by an LDAP URL, and
+      the bind DN is in the subtree of the DN of the LDAP URL, use
+      <replaceable>ldap-url</replaceable>#LDAPURL.</para>
+      <para>To match when the bind DN corresponds to a member of the group
+      identified by the <replaceable>attr</replaceable> value on the target
+      entry, use <replaceable>attr</replaceable>#GROUPDN.</para>
+      <para>To match when the bind DN corresponds to the
+      <replaceable>attr</replaceable> value on the target entry, use
+      <replaceable>attr</replaceable>#USERDN.</para>
+      <para>The optional inheritence specification,
+      <literal>parent[<replaceable>child-level</replaceable>].</literal>, lets
+      you specify how many levels below the target entry inherit the ACI.
+      Here <replaceable>child-level</replaceable> is a number from 0 to 9, with
+      0 indicating the target entry only. Separate multiple
+      <replaceable>child-level</replaceable> digits with commas (,).</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><literal>userdn = "<replaceable>ldap-url++</replaceable>[|| <replaceable>ldap-url++</replaceable> ...]"</literal></term>
+     <term><literal>userdn != "<replaceable>ldap-url++</replaceable>[|| <replaceable>ldap-url++</replaceable> ...]"</literal></term>
+     <listitem>
+      <para>To match the bind DN, replace <replaceable>ldap-url++</replaceable>
+      with either a valid LDAP URL such as
+      <literal>ldap:///uid=bjensen,ou=People,dc=example,dc=com</literal>,
+      <literal>ldap:///dc=example,dc=com??sub?(uid=bjensen)</literal>,
+      or a special LDAP URL-like keyword from the following list.</para>
+      <variablelist>
+       <varlistentry>
+        <term><literal>ldap:///all</literal></term>
+        <listitem>
+         <para>Match authenticated users.</para>
+        </listitem>
+       </varlistentry>
+       <varlistentry>
+        <term><literal>ldap:///anyone</literal></term>
+        <listitem>
+         <para>Match anonymous and authenticated users.</para>
+        </listitem>
+       </varlistentry>
+       <varlistentry>
+        <term><literal>ldap:///parent</literal></term>
+        <listitem>
+         <para>Match when the bind DN is a parent of the ACI target.</para>
+        </listitem>
+       </varlistentry>
+       <varlistentry>
+        <term><literal>ldap:///self</literal></term>
+        <listitem>
+         <para>Match when the bind DN entry corresponds to ACI target.</para>
+        </listitem>
+       </varlistentry>
+      </variablelist>
+     </listitem>
+    </varlistentry>
+   </variablelist>   
+  </section>
+ </section>
+ 
+ <section>
+  <title>About Privileges</title>
+  
+  <para>Privileges provide access control for server administration
+  independently from access control instructions.</para>
+  
+  <para>Directory root users, such as <literal>cn=Directory Manager</literal>,
+  are granted privileges in the following list and marked with an asterisk (*)
+  by default. Other administrator users can be assigned privileges, too.</para>
+  
+  <variablelist>
+   <varlistentry>
+    <term><literal>backend-backup</literal>*</term>
+    <listitem>
+     <para>Request a task to backup data</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>backend-restore</literal>*</term>
+    <listitem>
+     <para>Request a task to restore data from backup</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>bypass-acl</literal>*</term>
+    <listitem>
+     <para>Perform operations without regard to ACIs</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>cancel-request</literal>*</term>
+    <listitem>
+     <para>Cancel any client request</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>config-read</literal>*</term>
+    <listitem>
+     <para>Read the server configuration</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>config-write</literal>*</term>
+    <listitem>
+     <para>Change the server configuration</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>data-sync</literal></term>
+    <listitem>
+     <para>Perform data synchronization</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>disconnect-client</literal>*</term>
+    <listitem>
+     <para>Close any client connection</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>jmx-notify</literal></term>
+    <listitem>
+     <para>Subscribe to JMX notifications</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>jmx-read</literal></term>
+    <listitem>
+     <para>Read JMX attribute values</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>jmx-write</literal></term>
+    <listitem>
+     <para>Write JMX attribute values</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldif-export</literal>*</term>
+    <listitem>
+     <para>Export data to LDIF</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldif-import</literal>*</term>
+    <listitem>
+     <para>Import data from LDIF</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>modify-acl</literal>*</term>
+    <listitem>
+     <para>Change ACIs</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>password-reset</literal>*</term>
+    <listitem>
+     <para>Reset other users' passwords</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>privilege-change</literal>*</term>
+    <listitem>
+     <para>Change the privileges assigned to users</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>proxied-auth</literal></term>
+    <listitem>
+     <para>Use the Proxied Authorization control</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>server-restart</literal>*</term>
+    <listitem>
+     <para>Request a task to restart the server</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>server-shutdown</literal>*</term>
+    <listitem>
+     <para>Request a task to stop the server</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>unindexed-search</literal>*</term>
+    <listitem>
+     <para>Search using a filter with no correponding index</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>update-schema</literal>*</term>
+    <listitem>
+     <para>Change OpenDJ schema definitions</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+  
+  <para>* = default directory root user privileges</para>
+ </section>
+
+ <section>
+  <title>Configuring Access Control</title>
+  
+  <para>TODO</para>
+ </section>
+ 
+ <section>
+  <title>Configuring Privileges</title>
+  
+  <para>TODO</para>
+ </section>
 </chapter>
 
