@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.opends.messages;
@@ -981,33 +982,12 @@ public abstract class MessageDescriptor {
     /**
      * Creates a parameterized instance.
      * @param formatString for created messages
-     */
-    Raw(CharSequence formatString) {
-      this(formatString, Category.USER_DEFINED, Severity.INFORMATION);
-    }
-
-    /**
-     * Creates a parameterized instance.
-     * @param formatString for created messages
      * @param category for created messages
      * @param severity for created messages
      */
     Raw(CharSequence formatString, Category category,
                                 Severity severity) {
       super(null, null, category, severity, null, null);
-      this.formatString = formatString != null ? formatString.toString() : "";
-      this.requiresFormatter = this.formatString.matches(".*%.*");
-    }
-
-    /**
-     * Creates a parameterized instance.  Created messages will
-     * have a category of <code>Category.USER_DEFINED</code>.
-     * @param formatString for created messages
-     * @param mask for created messages
-     * @param severity for created messages
-     */
-    Raw(CharSequence formatString, int mask, Severity severity) {
-      super(null, null, mask, severity, null, null);
       this.formatString = formatString != null ? formatString.toString() : "";
       this.requiresFormatter = this.formatString.matches(".*%.*");
     }
