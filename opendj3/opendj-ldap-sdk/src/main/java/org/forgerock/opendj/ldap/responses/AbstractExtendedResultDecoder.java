@@ -29,6 +29,8 @@ package org.forgerock.opendj.ldap.responses;
 
 
 
+import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+
 import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.requests.ExtendedRequest;
 
@@ -89,8 +91,7 @@ public abstract class AbstractExtendedResultDecoder<S extends ExtendedResult>
             .newExtendedErrorResult(result.getResultCode(),
                 result.getMatchedDN(), result.getDiagnosticMessage());
         adaptedResult.setCause(result.getCause());
-        resultHandler.handleErrorResult(ErrorResultException
-            .wrap(adaptedResult));
+        resultHandler.handleErrorResult(newErrorResult(adaptedResult));
       }
 
 
@@ -108,8 +109,7 @@ public abstract class AbstractExtendedResultDecoder<S extends ExtendedResult>
         {
           final R adaptedResult = request.getResultDecoder()
               .adaptDecodeException(e);
-          resultHandler.handleErrorResult(ErrorResultException
-              .wrap(adaptedResult));
+          resultHandler.handleErrorResult(newErrorResult(adaptedResult));
         }
       }
 

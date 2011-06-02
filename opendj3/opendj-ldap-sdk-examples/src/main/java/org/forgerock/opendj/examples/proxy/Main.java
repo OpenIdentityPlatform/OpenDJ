@@ -62,540 +62,15 @@ import org.forgerock.opendj.ldap.responses.*;
  */
 public final class Main
 {
-  /**
-   * Proxy server connection factory implementation.
-   */
-  private static final class Proxy implements
-      ServerConnectionFactory<LDAPClientContext, Integer>
+  private static final class ProxyBackend implements
+      RequestHandler<RequestContext>
   {
-    private final class ServerConnectionImpl implements
-        ServerConnection<Integer>
-    {
-
-      private abstract class AbstractRequestCompletionHandler<R extends Result,
-                                                              H extends ResultHandler<? super R>>
-          implements ResultHandler<R>
-      {
-        final H resultHandler;
-        final AsynchronousConnection connection;
-
-
-
-        AbstractRequestCompletionHandler(
-            final AsynchronousConnection connection,
-            final H resultHandler)
-        {
-          this.connection = connection;
-          this.resultHandler = resultHandler;
-        }
-
-
-
-        @Override
-        public final void handleErrorResult(
-            final ErrorResultException error)
-        {
-          connection.close();
-          resultHandler.handleErrorResult(error);
-        }
-
-
-
-        @Override
-        public final void handleResult(final R result)
-        {
-          connection.close();
-          resultHandler.handleResult(result);
-        }
-
-      }
-
-
-
-      private abstract class ConnectionCompletionHandler<R extends Result>
-          implements ResultHandler<AsynchronousConnection>
-      {
-        private final ResultHandler<? super R> resultHandler;
-
-
-
-        ConnectionCompletionHandler(
-            final ResultHandler<? super R> resultHandler)
-        {
-          this.resultHandler = resultHandler;
-        }
-
-
-
-        @Override
-        public final void handleErrorResult(
-            final ErrorResultException error)
-        {
-          resultHandler.handleErrorResult(error);
-        }
-
-
-
-        @Override
-        public abstract void handleResult(
-            AsynchronousConnection connection);
-
-      }
-
-
-
-      private final class RequestCompletionHandler<R extends Result>
-          extends
-          AbstractRequestCompletionHandler<R, ResultHandler<? super R>>
-      {
-        RequestCompletionHandler(
-            final AsynchronousConnection connection,
-            final ResultHandler<? super R> resultHandler)
-        {
-          super(connection, resultHandler);
-        }
-      }
-
-
-
-      private final class SearchRequestCompletionHandler
-          extends
-          AbstractRequestCompletionHandler<Result, SearchResultHandler>
-          implements SearchResultHandler
-      {
-
-        SearchRequestCompletionHandler(
-            final AsynchronousConnection connection,
-            final SearchResultHandler resultHandler)
-        {
-          super(connection, resultHandler);
-        }
-
-
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public final boolean handleEntry(final SearchResultEntry entry)
-        {
-          return resultHandler.handleEntry(entry);
-        }
-
-
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public final boolean handleReference(
-            final SearchResultReference reference)
-        {
-          return resultHandler.handleReference(reference);
-        }
-
-      }
-
-
-
-      private volatile ProxiedAuthV2RequestControl proxiedAuthControl = null;
-
-
-
-      private ServerConnectionImpl(
-          final LDAPClientContext clientContext)
-      {
-        // Nothing to do.
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public void handleAbandon(final Integer requestContext,
-          final AbandonRequest request)
-          throws UnsupportedOperationException
-      {
-        // Not implemented.
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public void handleAdd(
-          final Integer requestContext,
-          final AddRequest request,
-          final ResultHandler<? super Result> resultHandler,
-          final IntermediateResponseHandler intermediateResponseHandler)
-          throws UnsupportedOperationException
-      {
-        addProxiedAuthControl(request);
-        final ConnectionCompletionHandler<Result> outerHandler =
-          new ConnectionCompletionHandler<Result>(resultHandler)
-        {
-
-          @Override
-          public void handleResult(
-              final AsynchronousConnection connection)
-          {
-            final RequestCompletionHandler<Result> innerHandler =
-              new RequestCompletionHandler<Result>(connection, resultHandler);
-            connection.add(request, innerHandler,
-                intermediateResponseHandler);
-          }
-
-        };
-
-        factory.getAsynchronousConnection(outerHandler);
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public void handleBind(
-          final Integer requestContext,
-          final int version,
-          final BindRequest request,
-          final ResultHandler<? super BindResult> resultHandler,
-          final IntermediateResponseHandler intermediateResponseHandler)
-          throws UnsupportedOperationException
-      {
-
-        if (request.getAuthenticationType() != ((byte) 0x80))
-        {
-          // TODO: SASL authentication not implemented.
-          resultHandler.handleErrorResult(newErrorResult(
-              ResultCode.PROTOCOL_ERROR,
-              "non-SIMPLE authentication not supported: "
-                  + request.getAuthenticationType()));
-        }
-        else
-        {
-          // Authenticate using a separate bind connection pool, because we
-          // don't want to change the state of the pooled connection.
-          final ConnectionCompletionHandler<BindResult> outerHandler =
-            new ConnectionCompletionHandler<BindResult>(resultHandler)
-          {
-
-            @Override
-            public void handleResult(
-                final AsynchronousConnection connection)
-            {
-              final ResultHandler<BindResult> innerHandler =
-                new ResultHandler<BindResult>()
-              {
-
-                @Override
-                public final void handleErrorResult(
-                    final ErrorResultException error)
-                {
-                  connection.close();
-                  resultHandler.handleErrorResult(error);
-                }
-
-
-
-                @Override
-                public final void handleResult(final BindResult result)
-                {
-                  connection.close();
-                  proxiedAuthControl = ProxiedAuthV2RequestControl
-                      .newControl("dn:" + request.getName());
-                  resultHandler.handleResult(result);
-                }
-              };
-              connection.bind(request, innerHandler,
-                  intermediateResponseHandler);
-            }
-
-          };
-
-          proxiedAuthControl = null;
-          bindFactory.getAsynchronousConnection(outerHandler);
-        }
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public void handleCompare(
-          final Integer requestContext,
-          final CompareRequest request,
-          final ResultHandler<? super CompareResult> resultHandler,
-          final IntermediateResponseHandler intermediateResponseHandler)
-          throws UnsupportedOperationException
-      {
-        addProxiedAuthControl(request);
-        final ConnectionCompletionHandler<CompareResult> outerHandler =
-          new ConnectionCompletionHandler<CompareResult>(resultHandler)
-        {
-
-          @Override
-          public void handleResult(
-              final AsynchronousConnection connection)
-          {
-            final RequestCompletionHandler<CompareResult> innerHandler =
-              new RequestCompletionHandler<CompareResult>(connection, resultHandler);
-            connection.compare(request, innerHandler,
-                intermediateResponseHandler);
-          }
-
-        };
-
-        factory.getAsynchronousConnection(outerHandler);
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public void handleConnectionClosed(
-          final Integer requestContext, final UnbindRequest request)
-      {
-        // Client connection closed.
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public void handleConnectionDisconnected(
-          final ResultCode resultCode, final String message)
-      {
-        // Client disconnected by server.
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public void handleConnectionError(final Throwable error)
-      {
-        // Client connection failed.
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public void handleDelete(
-          final Integer requestContext,
-          final DeleteRequest request,
-          final ResultHandler<? super Result> resultHandler,
-          final IntermediateResponseHandler intermediateResponseHandler)
-          throws UnsupportedOperationException
-      {
-        addProxiedAuthControl(request);
-        final ConnectionCompletionHandler<Result> outerHandler =
-          new ConnectionCompletionHandler<Result>(resultHandler)
-        {
-
-          @Override
-          public void handleResult(
-              final AsynchronousConnection connection)
-          {
-            final RequestCompletionHandler<Result> innerHandler =
-              new RequestCompletionHandler<Result>(connection, resultHandler);
-            connection.delete(request, innerHandler,
-                intermediateResponseHandler);
-          }
-
-        };
-
-        factory.getAsynchronousConnection(outerHandler);
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public <R extends ExtendedResult> void handleExtendedRequest(
-          final Integer requestContext,
-          final ExtendedRequest<R> request,
-          final ResultHandler<? super R> resultHandler,
-          final IntermediateResponseHandler intermediateResponseHandler)
-          throws UnsupportedOperationException
-      {
-        if (request.getOID().equals(CancelExtendedRequest.OID))
-        {
-          // TODO: not implemented.
-          resultHandler.handleErrorResult(newErrorResult(
-              ResultCode.PROTOCOL_ERROR,
-              "Cancel extended request operation not supported"));
-        }
-        else if (request.getOID().equals(StartTLSExtendedRequest.OID))
-        {
-          // TODO: not implemented.
-          resultHandler.handleErrorResult(newErrorResult(
-              ResultCode.PROTOCOL_ERROR,
-              "StartTLS extended request operation not supported"));
-        }
-        else
-        {
-          // Forward all other extended operations.
-          addProxiedAuthControl(request);
-
-          final ConnectionCompletionHandler<R> outerHandler =
-            new ConnectionCompletionHandler<R>(resultHandler)
-          {
-
-            @Override
-            public void handleResult(
-                final AsynchronousConnection connection)
-            {
-              final RequestCompletionHandler<R> innerHandler =
-                new RequestCompletionHandler<R>(connection, resultHandler);
-              connection.extendedRequest(request, innerHandler,
-                  intermediateResponseHandler);
-            }
-
-          };
-
-          factory.getAsynchronousConnection(outerHandler);
-        }
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public void handleModify(
-          final Integer requestContext,
-          final ModifyRequest request,
-          final ResultHandler<? super Result> resultHandler,
-          final IntermediateResponseHandler intermediateResponseHandler)
-          throws UnsupportedOperationException
-      {
-        addProxiedAuthControl(request);
-        final ConnectionCompletionHandler<Result> outerHandler =
-          new ConnectionCompletionHandler<Result>(resultHandler)
-        {
-
-          @Override
-          public void handleResult(
-              final AsynchronousConnection connection)
-          {
-            final RequestCompletionHandler<Result> innerHandler =
-              new RequestCompletionHandler<Result>(connection, resultHandler);
-            connection.modify(request, innerHandler,
-                intermediateResponseHandler);
-          }
-
-        };
-
-        factory.getAsynchronousConnection(outerHandler);
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public void handleModifyDN(
-          final Integer requestContext,
-          final ModifyDNRequest request,
-          final ResultHandler<? super Result> resultHandler,
-          final IntermediateResponseHandler intermediateResponseHandler)
-          throws UnsupportedOperationException
-      {
-        addProxiedAuthControl(request);
-        final ConnectionCompletionHandler<Result> outerHandler =
-          new ConnectionCompletionHandler<Result>(resultHandler)
-        {
-
-          @Override
-          public void handleResult(
-              final AsynchronousConnection connection)
-          {
-            final RequestCompletionHandler<Result> innerHandler =
-              new RequestCompletionHandler<Result>(connection, resultHandler);
-            connection.modifyDN(request, innerHandler,
-                intermediateResponseHandler);
-          }
-
-        };
-
-        factory.getAsynchronousConnection(outerHandler);
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public void handleSearch(
-          final Integer requestContext,
-          final SearchRequest request,
-          final SearchResultHandler resultHandler,
-          final IntermediateResponseHandler intermediateResponseHandler)
-          throws UnsupportedOperationException
-      {
-        addProxiedAuthControl(request);
-        final ConnectionCompletionHandler<Result> outerHandler =
-          new ConnectionCompletionHandler<Result>(resultHandler)
-        {
-
-          @Override
-          public void handleResult(
-              final AsynchronousConnection connection)
-          {
-            final SearchRequestCompletionHandler innerHandler =
-              new SearchRequestCompletionHandler(connection, resultHandler);
-            connection.search(request, innerHandler,
-                intermediateResponseHandler);
-          }
-
-        };
-
-        factory.getAsynchronousConnection(outerHandler);
-      }
-
-
-
-      private void addProxiedAuthControl(final Request request)
-      {
-        final ProxiedAuthV2RequestControl control = proxiedAuthControl;
-        if (control != null)
-        {
-          request.addControl(control);
-        }
-      }
-
-    }
-
-
-
     private final ConnectionFactory factory;
     private final ConnectionFactory bindFactory;
 
 
 
-    private Proxy(final ConnectionFactory factory,
+    private ProxyBackend(final ConnectionFactory factory,
         final ConnectionFactory bindFactory)
     {
       this.factory = factory;
@@ -604,15 +79,452 @@ public final class Main
 
 
 
+    private abstract class AbstractRequestCompletionHandler
+        <R extends Result, H extends ResultHandler<? super R>>
+        implements ResultHandler<R>
+    {
+      final H resultHandler;
+      final AsynchronousConnection connection;
+
+
+
+      AbstractRequestCompletionHandler(
+          final AsynchronousConnection connection,
+          final H resultHandler)
+      {
+        this.connection = connection;
+        this.resultHandler = resultHandler;
+      }
+
+
+
+      @Override
+      public final void handleErrorResult(
+          final ErrorResultException error)
+      {
+        connection.close();
+        resultHandler.handleErrorResult(error);
+      }
+
+
+
+      @Override
+      public final void handleResult(final R result)
+      {
+        connection.close();
+        resultHandler.handleResult(result);
+      }
+
+    }
+
+
+
+    private abstract class ConnectionCompletionHandler<R extends Result>
+        implements ResultHandler<AsynchronousConnection>
+    {
+      private final ResultHandler<? super R> resultHandler;
+
+
+
+      ConnectionCompletionHandler(
+          final ResultHandler<? super R> resultHandler)
+      {
+        this.resultHandler = resultHandler;
+      }
+
+
+
+      @Override
+      public final void handleErrorResult(
+          final ErrorResultException error)
+      {
+        resultHandler.handleErrorResult(error);
+      }
+
+
+
+      @Override
+      public abstract void handleResult(
+          AsynchronousConnection connection);
+
+    }
+
+
+
+    private final class RequestCompletionHandler<R extends Result>
+        extends
+        AbstractRequestCompletionHandler<R, ResultHandler<? super R>>
+    {
+      RequestCompletionHandler(
+          final AsynchronousConnection connection,
+          final ResultHandler<? super R> resultHandler)
+      {
+        super(connection, resultHandler);
+      }
+    }
+
+
+
+    private final class SearchRequestCompletionHandler extends
+        AbstractRequestCompletionHandler<Result, SearchResultHandler>
+        implements SearchResultHandler
+    {
+
+      SearchRequestCompletionHandler(
+          final AsynchronousConnection connection,
+          final SearchResultHandler resultHandler)
+      {
+        super(connection, resultHandler);
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public final boolean handleEntry(final SearchResultEntry entry)
+      {
+        return resultHandler.handleEntry(entry);
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public final boolean handleReference(
+          final SearchResultReference reference)
+      {
+        return resultHandler.handleReference(reference);
+      }
+
+    }
+
+
+
+    private volatile ProxiedAuthV2RequestControl proxiedAuthControl = null;
+
+
+
     /**
      * {@inheritDoc}
      */
     @Override
-    public ServerConnection<Integer> handleAccept(
-        final LDAPClientContext clientContext)
-        throws ErrorResultException
+    public void handleAdd(final RequestContext requestContext,
+        final AddRequest request,
+        final ResultHandler<? super Result> resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException
     {
-      return new ServerConnectionImpl(clientContext);
+      addProxiedAuthControl(request);
+      final ConnectionCompletionHandler<Result> outerHandler =
+        new ConnectionCompletionHandler<Result>(resultHandler)
+      {
+
+        @Override
+        public void handleResult(
+            final AsynchronousConnection connection)
+        {
+          final RequestCompletionHandler<Result> innerHandler =
+            new RequestCompletionHandler<Result>(connection, resultHandler);
+          connection.add(request, innerHandler,
+              intermediateResponseHandler);
+        }
+
+      };
+
+      factory.getAsynchronousConnection(outerHandler);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void handleBind(final RequestContext requestContext,
+        final int version, final BindRequest request,
+        final ResultHandler<? super BindResult> resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException
+    {
+
+      if (request.getAuthenticationType() != ((byte) 0x80))
+      {
+        // TODO: SASL authentication not implemented.
+        resultHandler.handleErrorResult(newErrorResult(
+            ResultCode.PROTOCOL_ERROR,
+            "non-SIMPLE authentication not supported: "
+                + request.getAuthenticationType()));
+      }
+      else
+      {
+        // Authenticate using a separate bind connection pool, because we
+        // don't want to change the state of the pooled connection.
+        final ConnectionCompletionHandler<BindResult> outerHandler =
+          new ConnectionCompletionHandler<BindResult>(resultHandler)
+        {
+
+          @Override
+          public void handleResult(
+              final AsynchronousConnection connection)
+          {
+            final ResultHandler<BindResult> innerHandler = new ResultHandler<BindResult>()
+            {
+
+              @Override
+              public final void handleErrorResult(
+                  final ErrorResultException error)
+              {
+                connection.close();
+                resultHandler.handleErrorResult(error);
+              }
+
+
+
+              @Override
+              public final void handleResult(final BindResult result)
+              {
+                connection.close();
+                proxiedAuthControl = ProxiedAuthV2RequestControl
+                    .newControl("dn:" + request.getName());
+                resultHandler.handleResult(result);
+              }
+            };
+            connection.bind(request, innerHandler,
+                intermediateResponseHandler);
+          }
+
+        };
+
+        proxiedAuthControl = null;
+        bindFactory.getAsynchronousConnection(outerHandler);
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void handleCompare(final RequestContext requestContext,
+        final CompareRequest request,
+        final ResultHandler<? super CompareResult> resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException
+    {
+      addProxiedAuthControl(request);
+      final ConnectionCompletionHandler<CompareResult> outerHandler =
+        new ConnectionCompletionHandler<CompareResult>(resultHandler)
+      {
+
+        @Override
+        public void handleResult(
+            final AsynchronousConnection connection)
+        {
+          final RequestCompletionHandler<CompareResult> innerHandler =
+            new RequestCompletionHandler<CompareResult>(connection, resultHandler);
+          connection.compare(request, innerHandler,
+              intermediateResponseHandler);
+        }
+
+      };
+
+      factory.getAsynchronousConnection(outerHandler);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void handleDelete(final RequestContext requestContext,
+        final DeleteRequest request,
+        final ResultHandler<? super Result> resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException
+    {
+      addProxiedAuthControl(request);
+      final ConnectionCompletionHandler<Result> outerHandler =
+        new ConnectionCompletionHandler<Result>(resultHandler)
+      {
+
+        @Override
+        public void handleResult(
+            final AsynchronousConnection connection)
+        {
+          final RequestCompletionHandler<Result> innerHandler =
+            new RequestCompletionHandler<Result>(connection, resultHandler);
+          connection.delete(request, innerHandler,
+              intermediateResponseHandler);
+        }
+
+      };
+
+      factory.getAsynchronousConnection(outerHandler);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public <R extends ExtendedResult> void handleExtendedRequest(
+        final RequestContext requestContext,
+        final ExtendedRequest<R> request,
+        final ResultHandler<? super R> resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException
+    {
+      if (request.getOID().equals(CancelExtendedRequest.OID))
+      {
+        // TODO: not implemented.
+        resultHandler.handleErrorResult(newErrorResult(
+            ResultCode.PROTOCOL_ERROR,
+            "Cancel extended request operation not supported"));
+      }
+      else if (request.getOID().equals(StartTLSExtendedRequest.OID))
+      {
+        // TODO: not implemented.
+        resultHandler.handleErrorResult(newErrorResult(
+            ResultCode.PROTOCOL_ERROR,
+            "StartTLS extended request operation not supported"));
+      }
+      else
+      {
+        // Forward all other extended operations.
+        addProxiedAuthControl(request);
+
+        final ConnectionCompletionHandler<R> outerHandler =
+          new ConnectionCompletionHandler<R>(resultHandler)
+        {
+
+          @Override
+          public void handleResult(
+              final AsynchronousConnection connection)
+          {
+            final RequestCompletionHandler<R> innerHandler =
+              new RequestCompletionHandler<R>(connection, resultHandler);
+            connection.extendedRequest(request, innerHandler,
+                intermediateResponseHandler);
+          }
+
+        };
+
+        factory.getAsynchronousConnection(outerHandler);
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void handleModify(final RequestContext requestContext,
+        final ModifyRequest request,
+        final ResultHandler<? super Result> resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException
+    {
+      addProxiedAuthControl(request);
+      final ConnectionCompletionHandler<Result> outerHandler =
+        new ConnectionCompletionHandler<Result>(resultHandler)
+      {
+
+        @Override
+        public void handleResult(
+            final AsynchronousConnection connection)
+        {
+          final RequestCompletionHandler<Result> innerHandler =
+            new RequestCompletionHandler<Result>(connection, resultHandler);
+          connection.modify(request, innerHandler,
+              intermediateResponseHandler);
+        }
+
+      };
+
+      factory.getAsynchronousConnection(outerHandler);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void handleModifyDN(final RequestContext requestContext,
+        final ModifyDNRequest request,
+        final ResultHandler<? super Result> resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException
+    {
+      addProxiedAuthControl(request);
+      final ConnectionCompletionHandler<Result> outerHandler =
+        new ConnectionCompletionHandler<Result>(resultHandler)
+      {
+
+        @Override
+        public void handleResult(
+            final AsynchronousConnection connection)
+        {
+          final RequestCompletionHandler<Result> innerHandler =
+            new RequestCompletionHandler<Result>(connection, resultHandler);
+          connection.modifyDN(request, innerHandler,
+              intermediateResponseHandler);
+        }
+
+      };
+
+      factory.getAsynchronousConnection(outerHandler);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void handleSearch(final RequestContext requestContext,
+        final SearchRequest request,
+        final SearchResultHandler resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException
+    {
+      addProxiedAuthControl(request);
+      final ConnectionCompletionHandler<Result> outerHandler =
+        new ConnectionCompletionHandler<Result>(resultHandler)
+      {
+
+        @Override
+        public void handleResult(
+            final AsynchronousConnection connection)
+        {
+          final SearchRequestCompletionHandler innerHandler =
+            new SearchRequestCompletionHandler(connection, resultHandler);
+          connection.search(request, innerHandler,
+              intermediateResponseHandler);
+        }
+
+      };
+
+      factory.getAsynchronousConnection(outerHandler);
+    }
+
+
+
+    private void addProxiedAuthControl(final Request request)
+    {
+      final ProxiedAuthV2RequestControl control = proxiedAuthControl;
+      if (control != null)
+      {
+        request.addControl(control);
+      }
     }
 
   }
@@ -654,14 +566,19 @@ public final class Main
           new LDAPConnectionFactory(remoteAddress, remotePort),
           Integer.MAX_VALUE));
     }
-    final RoundRobinLoadBalancingAlgorithm algorithm =
-      new RoundRobinLoadBalancingAlgorithm(factories);
-    final RoundRobinLoadBalancingAlgorithm bindAlgorithm =
-      new RoundRobinLoadBalancingAlgorithm(bindFactories);
+    final RoundRobinLoadBalancingAlgorithm algorithm = new RoundRobinLoadBalancingAlgorithm(
+        factories);
+    final RoundRobinLoadBalancingAlgorithm bindAlgorithm = new RoundRobinLoadBalancingAlgorithm(
+        bindFactories);
     final ConnectionFactory factory = Connections
         .newLoadBalancer(algorithm);
     final ConnectionFactory bindFactory = Connections
         .newLoadBalancer(bindAlgorithm);
+
+    // Create a server connection adapter.
+    final ProxyBackend backend = new ProxyBackend(factory, bindFactory);
+    final ServerConnectionFactory<LDAPClientContext, Integer> connectionHandler =
+      Connections.newServerConnectionFactory(backend);
 
     // Create listener.
     final LDAPListenerOptions options = new LDAPListenerOptions()
@@ -669,8 +586,8 @@ public final class Main
     LDAPListener listener = null;
     try
     {
-      listener = new LDAPListener(localAddress, localPort, new Proxy(
-          factory, bindFactory), options);
+      listener = new LDAPListener(localAddress, localPort,
+          connectionHandler, options);
       System.out.println("Press any key to stop the server...");
       System.in.read();
     }

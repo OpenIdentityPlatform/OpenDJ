@@ -32,6 +32,7 @@ package com.forgerock.opendj.ldap.tools;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.ldap.tools.ToolConstants.*;
 import static com.forgerock.opendj.ldap.tools.Utils.filterExitCode;
+import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -50,7 +51,6 @@ import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.DeleteRequest;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
-import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldif.*;
 
@@ -87,9 +87,9 @@ public final class LDAPModify extends ConsoleApplication
           {
             // This shouldn't happen because there are no other threads
             // to interrupt this one.
-            r = Responses.newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED)
-                .setCause(e).setDiagnosticMessage(e.getLocalizedMessage());
-            throw ErrorResultException.wrap(r);
+            throw newErrorResult(
+                ResultCode.CLIENT_SIDE_USER_CANCELLED,
+                e.getLocalizedMessage(), e);
           }
           printResult(opType, change.getName().toString(), r);
           return r.getResultCode().intValue();
@@ -127,9 +127,8 @@ public final class LDAPModify extends ConsoleApplication
           {
             // This shouldn't happen because there are no other threads
             // to interrupt this one.
-            r = Responses.newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED)
-                .setCause(e).setDiagnosticMessage(e.getLocalizedMessage());
-            throw ErrorResultException.wrap(r);
+            throw newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED,
+                e.getLocalizedMessage(), e);
           }
           printResult(opType, change.getName().toString(), r);
           return r.getResultCode().intValue();
@@ -167,9 +166,8 @@ public final class LDAPModify extends ConsoleApplication
           {
             // This shouldn't happen because there are no other threads
             // to interrupt this one.
-            r = Responses.newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED)
-                .setCause(e).setDiagnosticMessage(e.getLocalizedMessage());
-            throw ErrorResultException.wrap(r);
+            throw newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED,
+                e.getLocalizedMessage(), e);
           }
           printResult(opType, change.getName().toString(), r);
           return r.getResultCode().intValue();
@@ -207,9 +205,8 @@ public final class LDAPModify extends ConsoleApplication
           {
             // This shouldn't happen because there are no other threads
             // to interrupt this one.
-            r = Responses.newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED)
-                .setCause(e).setDiagnosticMessage(e.getLocalizedMessage());
-            throw ErrorResultException.wrap(r);
+            throw newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED,
+                e.getLocalizedMessage(), e);
           }
           printResult(opType, change.getName().toString(), r);
           return r.getResultCode().intValue();

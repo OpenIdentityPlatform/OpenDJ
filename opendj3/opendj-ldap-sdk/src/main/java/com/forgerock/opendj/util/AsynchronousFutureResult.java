@@ -29,13 +29,13 @@ package com.forgerock.opendj.util;
 
 
 
+import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
 import org.forgerock.opendj.ldap.*;
-import org.forgerock.opendj.ldap.responses.Responses;
-import org.forgerock.opendj.ldap.responses.Result;
 
 
 
@@ -134,9 +134,7 @@ public class AsynchronousFutureResult<M> implements FutureResult<M>,
       ErrorResultException errorResult = handleCancelRequest(mayInterruptIfRunning);
       if (errorResult == null)
       {
-        final Result result = Responses
-            .newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED);
-        errorResult = ErrorResultException.wrap(result);
+        errorResult = newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED);
       }
       this.errorResult = errorResult;
 

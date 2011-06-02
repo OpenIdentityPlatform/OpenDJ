@@ -29,6 +29,8 @@ package org.forgerock.opendj.ldif;
 
 
 
+import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+
 import java.io.InterruptedIOException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.BlockingQueue;
@@ -273,8 +275,7 @@ public final class ConnectionEntryReader implements EntryReader
       return false;
     }
 
-    final ErrorResultException e = ErrorResultException.wrap(result);
-    throw new ErrorResultIOException(e);
+    throw new ErrorResultIOException(newErrorResult(result));
   }
 
 

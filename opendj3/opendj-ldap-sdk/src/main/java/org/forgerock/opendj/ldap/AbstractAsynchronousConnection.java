@@ -32,6 +32,7 @@ package org.forgerock.opendj.ldap;
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_NO_SEARCH_RESULT_ENTRIES;
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES;
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_UNEXPECTED_SEARCH_RESULT_REFERENCES;
+import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
@@ -176,29 +177,26 @@ public abstract class AbstractAsynchronousConnection implements
       if (entryCount == 0)
       {
         // Did not find any entries.
-        final Result result = Responses.newResult(
-            ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED).setDiagnosticMessage(
+        throw newErrorResult(
+            ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED,
             ERR_NO_SEARCH_RESULT_ENTRIES.get().toString());
-        throw ErrorResultException.wrap(result);
       }
       else if (entryCount > 1)
       {
         // Got more entries than expected.
-        final Result result = Responses
-            .newResult(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED)
-            .setDiagnosticMessage(
-                ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES.get(entryCount).toString());
-        throw ErrorResultException.wrap(result);
+        throw newErrorResult(
+            ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED,
+            ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES.get(entryCount)
+                .toString());
       }
       else if (firstReference != null)
       {
         // Got an unexpected search result reference.
-        final Result result = Responses.newResult(
-            ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED)
-            .setDiagnosticMessage(
-                ERR_UNEXPECTED_SEARCH_RESULT_REFERENCES.get(
-                    firstReference.getURIs().iterator().next()).toString());
-        throw ErrorResultException.wrap(result);
+        throw newErrorResult(
+            ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED,
+            ERR_UNEXPECTED_SEARCH_RESULT_REFERENCES.get(
+                firstReference.getURIs().iterator().next())
+                .toString());
       }
       else
       {

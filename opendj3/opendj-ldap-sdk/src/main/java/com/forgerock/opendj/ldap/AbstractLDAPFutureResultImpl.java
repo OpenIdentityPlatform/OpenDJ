@@ -156,7 +156,7 @@ abstract class AbstractLDAPFutureResultImpl<S extends Result> extends
   {
     if (result.getResultCode().isExceptional())
     {
-      handleErrorResult(ErrorResultException.wrap(result));
+      handleErrorResult(ErrorResultException.newErrorResult(result));
     }
     else
     {

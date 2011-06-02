@@ -29,6 +29,8 @@ package com.forgerock.opendj.ldap;
 
 
 
+import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
@@ -122,7 +124,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
       if (connectionInvalidReason != null)
       {
         return new CompletedFutureResult<Void>(
-            ErrorResultException.wrap(connectionInvalidReason), messageID);
+            newErrorResult(connectionInvalidReason), messageID);
       }
       if (bindOrStartTLSInProgress.get())
       {
@@ -130,7 +132,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
             ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
             "Bind or Start TLS operation in progress");
         return new CompletedFutureResult<Void>(
-            ErrorResultException.wrap(errorResult), messageID);
+            newErrorResult(errorResult), messageID);
       }
 
       // First remove the future associated with the request to be abandoned.
@@ -171,7 +173,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
           ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
       connectionErrorOccurred(errorResult);
       return new CompletedFutureResult<Void>(
-          ErrorResultException.wrap(errorResult), messageID);
+          newErrorResult(errorResult), messageID);
     }
   }
 
@@ -273,7 +275,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
           .newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR)
           .setDiagnosticMessage(
               "An error occurred while creating a bind context").setCause(e);
-      final ErrorResultException error = ErrorResultException.wrap(errorResult);
+      final ErrorResultException error = ErrorResultException.newErrorResult(errorResult);
       if (resultHandler != null)
       {
         resultHandler.handleErrorResult(error);
@@ -783,7 +785,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
     {
       if (connectionInvalidReason != null)
       {
-        throw ErrorResultException.wrap(connectionInvalidReason);
+        throw newErrorResult(connectionInvalidReason);
       }
       pendingRequests.put(newMsgID, request);
     }
@@ -920,7 +922,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
       for (final ConnectionEventListener listener : listeners)
       {
         listener.handleConnectionError(isDisconnectNotification,
-            ErrorResultException.wrap(reason));
+            newErrorResult(reason));
       }
     }
   }

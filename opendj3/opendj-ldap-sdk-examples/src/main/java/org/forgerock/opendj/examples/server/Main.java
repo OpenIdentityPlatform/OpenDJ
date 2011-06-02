@@ -64,442 +64,17 @@ import org.forgerock.opendj.ldif.*;
  */
 public final class Main
 {
-  /**
-   * Proxy server connection factory implementation.
-   */
-  private static final class Store implements
-      ServerConnectionFactory<LDAPClientContext, Integer>
+  private static final class MemoryBackend implements
+      RequestHandler<RequestContext>
   {
-    private final class ServerConnectionImpl implements
-        ServerConnection<Integer>
-    {
-
-      private ServerConnectionImpl(
-          final LDAPClientContext clientContext)
-      {
-        // Nothing to do.
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public void handleAbandon(final Integer requestContext,
-          final AbandonRequest request)
-          throws UnsupportedOperationException
-      {
-        // Not implemented.
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public void handleAdd(
-          final Integer requestContext,
-          final AddRequest request,
-          final ResultHandler<? super Result> resultHandler,
-          final IntermediateResponseHandler intermediateResponseHandler)
-          throws UnsupportedOperationException
-      {
-        // TODO: controls.
-        entryLock.writeLock().lock();
-        try
-        {
-          DN dn = request.getName();
-          if (entries.containsKey(dn))
-          {
-            resultHandler
-                .handleErrorResult(ErrorResultException
-                    .newErrorResult(ResultCode.ENTRY_ALREADY_EXISTS,
-                        "The entry " + dn.toString()
-                            + " already exists"));
-          }
-
-          DN parent = dn.parent();
-          if (!entries.containsKey(parent))
-          {
-            resultHandler.handleErrorResult(ErrorResultException
-                .newErrorResult(ResultCode.NO_SUCH_OBJECT,
-                    "The parent entry " + parent.toString()
-                        + " does not exist"));
-          }
-          else
-          {
-            entries.put(dn, request);
-            resultHandler.handleResult(Responses
-                .newResult(ResultCode.SUCCESS));
-          }
-        }
-        finally
-        {
-          entryLock.writeLock().unlock();
-        }
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public void handleBind(
-          final Integer requestContext,
-          final int version,
-          final BindRequest request,
-          final ResultHandler<? super BindResult> resultHandler,
-          final IntermediateResponseHandler intermediateResponseHandler)
-          throws UnsupportedOperationException
-      {
-        if (request.getAuthenticationType() != ((byte) 0x80))
-        {
-          // TODO: SASL authentication not implemented.
-          resultHandler.handleErrorResult(newErrorResult(
-              ResultCode.PROTOCOL_ERROR,
-              "non-SIMPLE authentication not supported: "
-                  + request.getAuthenticationType()));
-        }
-        else
-        {
-          // TODO: always succeed.
-          resultHandler.handleResult(Responses
-              .newBindResult(ResultCode.SUCCESS));
-        }
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public void handleCompare(
-          final Integer requestContext,
-          final CompareRequest request,
-          final ResultHandler<? super CompareResult> resultHandler,
-          final IntermediateResponseHandler intermediateResponseHandler)
-          throws UnsupportedOperationException
-      {
-        // TODO:
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public void handleConnectionClosed(
-          final Integer requestContext, final UnbindRequest request)
-      {
-        // Nothing to do.
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public void handleConnectionDisconnected(
-          final ResultCode resultCode, final String message)
-      {
-        // Nothing to do.
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public void handleConnectionError(final Throwable error)
-      {
-        // Nothing to do.
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public void handleDelete(
-          final Integer requestContext,
-          final DeleteRequest request,
-          final ResultHandler<? super Result> resultHandler,
-          final IntermediateResponseHandler intermediateResponseHandler)
-          throws UnsupportedOperationException
-      {
-        // TODO: controls.
-        entryLock.writeLock().lock();
-        try
-        {
-          // TODO: check for children.
-          DN dn = request.getName();
-          if (!entries.containsKey(dn))
-          {
-            resultHandler
-                .handleErrorResult(ErrorResultException
-                    .newErrorResult(ResultCode.NO_SUCH_OBJECT,
-                        "The entry " + dn.toString()
-                            + " does not exist"));
-          }
-          else
-          {
-            entries.remove(dn);
-            resultHandler.handleResult(Responses
-                .newResult(ResultCode.SUCCESS));
-          }
-        }
-        finally
-        {
-          entryLock.writeLock().unlock();
-        }
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public <R extends ExtendedResult> void handleExtendedRequest(
-          final Integer requestContext,
-          final ExtendedRequest<R> request,
-          final ResultHandler<? super R> resultHandler,
-          final IntermediateResponseHandler intermediateResponseHandler)
-          throws UnsupportedOperationException
-      {
-        // TODO: not implemented.
-        resultHandler.handleErrorResult(newErrorResult(
-            ResultCode.PROTOCOL_ERROR,
-            "Extended request operation not supported"));
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public void handleModify(
-          final Integer requestContext,
-          final ModifyRequest request,
-          final ResultHandler<? super Result> resultHandler,
-          final IntermediateResponseHandler intermediateResponseHandler)
-          throws UnsupportedOperationException
-      {
-        // TODO: controls.
-        // TODO: read lock is not really enough since concurrent updates may
-        // still occur to the same entry.
-        entryLock.readLock().lock();
-        try
-        {
-          DN dn = request.getName();
-          Entry entry = entries.get(dn);
-          if (entry == null)
-          {
-            resultHandler
-                .handleErrorResult(ErrorResultException
-                    .newErrorResult(ResultCode.NO_SUCH_OBJECT,
-                        "The entry " + dn.toString()
-                            + " does not exist"));
-          }
-
-          Entry newEntry = new LinkedHashMapEntry(entry);
-          for (Modification mod : request.getModifications())
-          {
-            ModificationType modType = mod.getModificationType();
-            if (modType.equals(ModificationType.ADD))
-            {
-              // TODO: Reject empty attribute and duplicate values.
-              newEntry.addAttribute(mod.getAttribute(), null);
-            }
-            else if (modType.equals(ModificationType.DELETE))
-            {
-              // TODO: Reject missing values.
-              newEntry.removeAttribute(mod.getAttribute(), null);
-            }
-            else if (modType.equals(ModificationType.REPLACE))
-            {
-              newEntry.replaceAttribute(mod.getAttribute());
-            }
-            else
-            {
-              resultHandler
-                  .handleErrorResult(newErrorResult(
-                      ResultCode.PROTOCOL_ERROR,
-                      "Modify request contains an unsupported modification type"));
-              return;
-            }
-          }
-
-          entries.put(dn, newEntry);
-          resultHandler.handleResult(Responses
-              .newResult(ResultCode.SUCCESS));
-        }
-        finally
-        {
-          entryLock.readLock().unlock();
-        }
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public void handleModifyDN(
-          final Integer requestContext,
-          final ModifyDNRequest request,
-          final ResultHandler<? super Result> resultHandler,
-          final IntermediateResponseHandler intermediateResponseHandler)
-          throws UnsupportedOperationException
-      {
-        // TODO: not implemented.
-        resultHandler.handleErrorResult(newErrorResult(
-            ResultCode.PROTOCOL_ERROR,
-            "ModifyDN request operation not supported"));
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public void handleSearch(
-          final Integer requestContext,
-          final SearchRequest request,
-          final SearchResultHandler resultHandler,
-          final IntermediateResponseHandler intermediateResponseHandler)
-          throws UnsupportedOperationException
-      {
-        // TODO: controls, limits, etc.
-        entryLock.readLock().lock();
-        try
-        {
-          DN dn = request.getName();
-          Entry baseEntry = entries.get(dn);
-          if (baseEntry == null)
-          {
-            resultHandler
-                .handleErrorResult(ErrorResultException
-                    .newErrorResult(ResultCode.NO_SUCH_OBJECT,
-                        "The entry " + dn.toString()
-                            + " does not exist"));
-          }
-
-          SearchScope scope = request.getScope();
-          Filter filter = request.getFilter();
-          Matcher matcher = filter.matcher();
-
-          if (scope.equals(SearchScope.BASE_OBJECT))
-          {
-            if (matcher.matches(baseEntry).toBoolean())
-            {
-              sendEntry(request, resultHandler, baseEntry);
-            }
-          }
-          else if (scope.equals(SearchScope.SINGLE_LEVEL))
-          {
-            sendEntry(request, resultHandler, baseEntry);
-
-            NavigableMap<DN, Entry> subtree = entries.tailMap(dn,
-                false);
-            for (Entry entry : subtree.values())
-            {
-              DN childDN = entry.getName();
-              if (childDN.isChildOf(dn))
-              {
-                if (!matcher.matches(entry).toBoolean())
-                {
-                  continue;
-                }
-
-                if (!sendEntry(request, resultHandler, entry))
-                {
-                  // Caller has asked to stop sending results.
-                  break;
-                }
-              }
-              else if (!childDN.isSubordinateOrEqualTo(dn))
-              {
-                // The remaining entries will be out of scope.
-                break;
-              }
-            }
-          }
-          else if (scope.equals(SearchScope.WHOLE_SUBTREE))
-          {
-            NavigableMap<DN, Entry> subtree = entries.tailMap(dn);
-            for (Entry entry : subtree.values())
-            {
-              DN childDN = entry.getName();
-              if (childDN.isSubordinateOrEqualTo(dn))
-              {
-                if (!matcher.matches(entry).toBoolean())
-                {
-                  continue;
-                }
-
-                if (!sendEntry(request, resultHandler, entry))
-                {
-                  // Caller has asked to stop sending results.
-                  break;
-                }
-              }
-              else
-              {
-                // The remaining entries will be out of scope.
-                break;
-              }
-            }
-          }
-          else
-          {
-            resultHandler
-                .handleErrorResult(newErrorResult(
-                    ResultCode.PROTOCOL_ERROR,
-                    "Search request contains an unsupported search scope"));
-            return;
-          }
-
-          resultHandler.handleResult(Responses
-              .newResult(ResultCode.SUCCESS));
-        }
-        finally
-        {
-          entryLock.readLock().unlock();
-        }
-      }
-
-
-
-      private boolean sendEntry(SearchRequest request,
-          SearchResultHandler resultHandler, Entry entry)
-      {
-        // TODO: check filter, strip attributes.
-        return resultHandler.handleEntry(Responses
-            .newSearchResultEntry(entry));
-      }
-    }
-
-
-
     private final ConcurrentSkipListMap<DN, Entry> entries;
 
     private final ReentrantReadWriteLock entryLock = new ReentrantReadWriteLock();
 
 
 
-    private Store(final ConcurrentSkipListMap<DN, Entry> entries)
+    private MemoryBackend(
+        final ConcurrentSkipListMap<DN, Entry> entries)
     {
       this.entries = entries;
     }
@@ -510,13 +85,354 @@ public final class Main
      * {@inheritDoc}
      */
     @Override
-    public ServerConnection<Integer> handleAccept(
-        final LDAPClientContext clientContext)
-        throws ErrorResultException
+    public void handleAdd(final RequestContext requestContext,
+        final AddRequest request,
+        final ResultHandler<? super Result> resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException
     {
-      return new ServerConnectionImpl(clientContext);
+      // TODO: controls.
+      entryLock.writeLock().lock();
+      try
+      {
+        DN dn = request.getName();
+        if (entries.containsKey(dn))
+        {
+          resultHandler.handleErrorResult(ErrorResultException
+              .newErrorResult(ResultCode.ENTRY_ALREADY_EXISTS,
+                  "The entry " + dn.toString() + " already exists"));
+        }
+
+        DN parent = dn.parent();
+        if (!entries.containsKey(parent))
+        {
+          resultHandler.handleErrorResult(ErrorResultException
+              .newErrorResult(ResultCode.NO_SUCH_OBJECT,
+                  "The parent entry " + parent.toString()
+                      + " does not exist"));
+        }
+        else
+        {
+          entries.put(dn, request);
+          resultHandler.handleResult(Responses
+              .newResult(ResultCode.SUCCESS));
+        }
+      }
+      finally
+      {
+        entryLock.writeLock().unlock();
+      }
     }
 
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void handleBind(final RequestContext requestContext,
+        final int version, final BindRequest request,
+        final ResultHandler<? super BindResult> resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException
+    {
+      if (request.getAuthenticationType() != ((byte) 0x80))
+      {
+        // TODO: SASL authentication not implemented.
+        resultHandler.handleErrorResult(newErrorResult(
+            ResultCode.PROTOCOL_ERROR,
+            "non-SIMPLE authentication not supported: "
+                + request.getAuthenticationType()));
+      }
+      else
+      {
+        // TODO: always succeed.
+        resultHandler.handleResult(Responses
+            .newBindResult(ResultCode.SUCCESS));
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void handleCompare(final RequestContext requestContext,
+        final CompareRequest request,
+        final ResultHandler<? super CompareResult> resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException
+    {
+      // TODO:
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void handleDelete(final RequestContext requestContext,
+        final DeleteRequest request,
+        final ResultHandler<? super Result> resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException
+    {
+      // TODO: controls.
+      entryLock.writeLock().lock();
+      try
+      {
+        // TODO: check for children.
+        DN dn = request.getName();
+        if (!entries.containsKey(dn))
+        {
+          resultHandler.handleErrorResult(ErrorResultException
+              .newErrorResult(ResultCode.NO_SUCH_OBJECT, "The entry "
+                  + dn.toString() + " does not exist"));
+        }
+        else
+        {
+          entries.remove(dn);
+          resultHandler.handleResult(Responses
+              .newResult(ResultCode.SUCCESS));
+        }
+      }
+      finally
+      {
+        entryLock.writeLock().unlock();
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public <R extends ExtendedResult> void handleExtendedRequest(
+        final RequestContext requestContext,
+        final ExtendedRequest<R> request,
+        final ResultHandler<? super R> resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException
+    {
+      // TODO: not implemented.
+      resultHandler.handleErrorResult(newErrorResult(
+          ResultCode.PROTOCOL_ERROR,
+          "Extended request operation not supported"));
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void handleModify(final RequestContext requestContext,
+        final ModifyRequest request,
+        final ResultHandler<? super Result> resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException
+    {
+      // TODO: controls.
+      // TODO: read lock is not really enough since concurrent updates may
+      // still occur to the same entry.
+      entryLock.readLock().lock();
+      try
+      {
+        DN dn = request.getName();
+        Entry entry = entries.get(dn);
+        if (entry == null)
+        {
+          resultHandler.handleErrorResult(ErrorResultException
+              .newErrorResult(ResultCode.NO_SUCH_OBJECT, "The entry "
+                  + dn.toString() + " does not exist"));
+        }
+
+        Entry newEntry = new LinkedHashMapEntry(entry);
+        for (Modification mod : request.getModifications())
+        {
+          ModificationType modType = mod.getModificationType();
+          if (modType.equals(ModificationType.ADD))
+          {
+            // TODO: Reject empty attribute and duplicate values.
+            newEntry.addAttribute(mod.getAttribute(), null);
+          }
+          else if (modType.equals(ModificationType.DELETE))
+          {
+            // TODO: Reject missing values.
+            newEntry.removeAttribute(mod.getAttribute(), null);
+          }
+          else if (modType.equals(ModificationType.REPLACE))
+          {
+            newEntry.replaceAttribute(mod.getAttribute());
+          }
+          else
+          {
+            resultHandler
+                .handleErrorResult(newErrorResult(
+                    ResultCode.PROTOCOL_ERROR,
+                    "Modify request contains an unsupported modification type"));
+            return;
+          }
+        }
+
+        entries.put(dn, newEntry);
+        resultHandler.handleResult(Responses
+            .newResult(ResultCode.SUCCESS));
+      }
+      finally
+      {
+        entryLock.readLock().unlock();
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void handleModifyDN(final RequestContext requestContext,
+        final ModifyDNRequest request,
+        final ResultHandler<? super Result> resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException
+    {
+      // TODO: not implemented.
+      resultHandler.handleErrorResult(newErrorResult(
+          ResultCode.PROTOCOL_ERROR,
+          "ModifyDN request operation not supported"));
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void handleSearch(final RequestContext requestContext,
+        final SearchRequest request,
+        final SearchResultHandler resultHandler,
+        final IntermediateResponseHandler intermediateResponseHandler)
+        throws UnsupportedOperationException
+    {
+      // TODO: controls, limits, etc.
+      entryLock.readLock().lock();
+      try
+      {
+        DN dn = request.getName();
+        Entry baseEntry = entries.get(dn);
+        if (baseEntry == null)
+        {
+          resultHandler.handleErrorResult(ErrorResultException
+              .newErrorResult(ResultCode.NO_SUCH_OBJECT, "The entry "
+                  + dn.toString() + " does not exist"));
+        }
+
+        SearchScope scope = request.getScope();
+        Filter filter = request.getFilter();
+        Matcher matcher = filter.matcher();
+
+        if (scope.equals(SearchScope.BASE_OBJECT))
+        {
+          if (matcher.matches(baseEntry).toBoolean())
+          {
+            sendEntry(request, resultHandler, baseEntry);
+          }
+        }
+        else if (scope.equals(SearchScope.SINGLE_LEVEL))
+        {
+          sendEntry(request, resultHandler, baseEntry);
+
+          NavigableMap<DN, Entry> subtree = entries
+              .tailMap(dn, false);
+          for (Entry entry : subtree.values())
+          {
+            // Check for cancellation.
+            requestContext.checkIfCancelled(false);
+
+            DN childDN = entry.getName();
+            if (childDN.isChildOf(dn))
+            {
+              if (!matcher.matches(entry).toBoolean())
+              {
+                continue;
+              }
+
+              if (!sendEntry(request, resultHandler, entry))
+              {
+                // Caller has asked to stop sending results.
+                break;
+              }
+            }
+            else if (!childDN.isSubordinateOrEqualTo(dn))
+            {
+              // The remaining entries will be out of scope.
+              break;
+            }
+          }
+        }
+        else if (scope.equals(SearchScope.WHOLE_SUBTREE))
+        {
+          NavigableMap<DN, Entry> subtree = entries.tailMap(dn);
+          for (Entry entry : subtree.values())
+          {
+            // Check for cancellation.
+            requestContext.checkIfCancelled(false);
+
+            DN childDN = entry.getName();
+            if (childDN.isSubordinateOrEqualTo(dn))
+            {
+              if (!matcher.matches(entry).toBoolean())
+              {
+                continue;
+              }
+
+              if (!sendEntry(request, resultHandler, entry))
+              {
+                // Caller has asked to stop sending results.
+                break;
+              }
+            }
+            else
+            {
+              // The remaining entries will be out of scope.
+              break;
+            }
+          }
+        }
+        else
+        {
+          resultHandler.handleErrorResult(newErrorResult(
+              ResultCode.PROTOCOL_ERROR,
+              "Search request contains an unsupported search scope"));
+          return;
+        }
+
+        resultHandler.handleResult(Responses
+            .newResult(ResultCode.SUCCESS));
+      }
+      catch (CancelledResultException e)
+      {
+        resultHandler.handleErrorResult(e);
+      }
+      finally
+      {
+        entryLock.readLock().unlock();
+      }
+    }
+
+
+
+    private boolean sendEntry(SearchRequest request,
+        SearchResultHandler resultHandler, Entry entry)
+    {
+      // TODO: check filter, strip attributes.
+      return resultHandler.handleEntry(Responses
+          .newSearchResultEntry(entry));
+    }
   }
 
 
@@ -538,22 +454,70 @@ public final class Main
     // Parse command line arguments.
     final String localAddress = args[0];
     final int localPort = Integer.parseInt(args[1]);
+    final String ldifFileName = args[2];
 
+    // Create the memory backend.
+    final ConcurrentSkipListMap<DN, Entry> entries = readEntriesFromLDIF(ldifFileName);
+    final MemoryBackend backend = new MemoryBackend(entries);
+
+    // Create a server connection adapter.
+    final ServerConnectionFactory<LDAPClientContext, Integer> connectionHandler =
+      Connections.newServerConnectionFactory(backend);
+
+    // Create listener.
+    final LDAPListenerOptions options = new LDAPListenerOptions()
+        .setBacklog(4096);
+    LDAPListener listener = null;
+    try
+    {
+      listener = new LDAPListener(localAddress, localPort,
+          connectionHandler, options);
+      System.out.println("Press any key to stop the server...");
+      System.in.read();
+    }
+    catch (final IOException e)
+    {
+      System.out.println("Error listening on " + localAddress + ":"
+          + localPort);
+      e.printStackTrace();
+    }
+    finally
+    {
+      if (listener != null)
+      {
+        listener.close();
+      }
+    }
+  }
+
+
+
+  /**
+   * Reads the entries from the named LDIF file.
+   *
+   * @param ldifFileName
+   *          The name of the LDIF file.
+   * @return The entries.
+   */
+  private static ConcurrentSkipListMap<DN, Entry> readEntriesFromLDIF(
+      final String ldifFileName)
+  {
+    final ConcurrentSkipListMap<DN, Entry> entries;
     // Read the LDIF.
     InputStream ldif;
     try
     {
-      ldif = new FileInputStream(args[2]);
+      ldif = new FileInputStream(ldifFileName);
     }
     catch (final FileNotFoundException e)
     {
       System.err.println(e.getMessage());
       System.exit(ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue());
-      return;
+      return null; // Satisfy compiler.
     }
 
+    entries = new ConcurrentSkipListMap<DN, Entry>();
     final LDIFEntryReader reader = new LDIFEntryReader(ldif);
-    ConcurrentSkipListMap<DN, Entry> entries = new ConcurrentSkipListMap<DN, Entry>();
     try
     {
       while (reader.hasNext())
@@ -566,7 +530,7 @@ public final class Main
     {
       System.err.println(e.getMessage());
       System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
-      return;
+      return null; // Satisfy compiler.
     }
     finally
     {
@@ -600,31 +564,7 @@ public final class Main
     {
       System.exit(1);
     }
-
-    // Create listener.
-    final LDAPListenerOptions options = new LDAPListenerOptions()
-        .setBacklog(4096);
-    LDAPListener listener = null;
-    try
-    {
-      listener = new LDAPListener(localAddress, localPort, new Store(
-          entries), options);
-      System.out.println("Press any key to stop the server...");
-      System.in.read();
-    }
-    catch (final IOException e)
-    {
-      System.out.println("Error listening on " + localAddress + ":"
-          + localPort);
-      e.printStackTrace();
-    }
-    finally
-    {
-      if (listener != null)
-      {
-        listener.close();
-      }
-    }
+    return entries;
   }
 
 

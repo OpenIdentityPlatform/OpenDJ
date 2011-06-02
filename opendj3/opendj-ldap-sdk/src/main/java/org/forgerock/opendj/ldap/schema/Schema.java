@@ -29,6 +29,7 @@ package org.forgerock.opendj.ldap.schema;
 
 
 import static org.forgerock.opendj.ldap.CoreMessages.*;
+import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -40,8 +41,6 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
-import org.forgerock.opendj.ldap.responses.Responses;
-import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 
 import com.forgerock.opendj.util.FutureResultTransformer;
@@ -1829,10 +1828,10 @@ public final class Schema
     if (subentryAttr == null || subentryAttr.isEmpty())
     {
       // Did not get the subschema sub-entry attribute.
-      final Result result = Responses.newResult(
-          ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED).setDiagnosticMessage(
-          ERR_NO_SUBSCHEMA_SUBENTRY_ATTR.get(name.toString()).toString());
-      throw ErrorResultException.wrap(result);
+      throw newErrorResult(
+          ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED,
+          ERR_NO_SUBSCHEMA_SUBENTRY_ATTR.get(name.toString())
+              .toString());
     }
 
     final String dnString = subentryAttr.iterator().next().toString();
@@ -1843,11 +1842,10 @@ public final class Schema
     }
     catch (final LocalizedIllegalArgumentException e)
     {
-      final Result result = Responses.newResult(
-          ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED).setDiagnosticMessage(
-          ERR_INVALID_SUBSCHEMA_SUBENTRY_ATTR.get(name.toString(), dnString,
-              e.getMessageObject()).toString());
-      throw ErrorResultException.wrap(result);
+      throw newErrorResult(
+          ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED,
+          ERR_INVALID_SUBSCHEMA_SUBENTRY_ATTR.get(name.toString(),
+              dnString, e.getMessageObject()).toString());
     }
     return subschemaDN;
   }

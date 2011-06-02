@@ -334,6 +334,83 @@ public final class Connections
 
 
 
+  /**
+   * Creates a new server connection factory using the provided
+   * {@link RequestHandler}. The returned factory will manage connection and
+   * request life-cycle, including request cancellation.
+   * <p>
+   * When processing requests, {@link RequestHandler} implementations are passed
+   * a {@link RequestContext} as the first parameter which may be used for
+   * detecting whether or not the request should be aborted due to cancellation
+   * requests or other events, such as connection failure.
+   * <p>
+   * The returned factory maintains state information which includes a table of
+   * active requests. Therefore, {@code RequestHandler} implementations are
+   * required to always return results in order to avoid potential memory leaks.
+   *
+   * @param <C>
+   *          The type of client context.
+   * @param requestHandler
+   *          The request handler which will be used for all client connections.
+   * @return The new server connection factory.
+   * @throws NullPointerException
+   *           If {@code requestHandler} was {@code null}.
+   */
+  public static <C> ServerConnectionFactory<C, Integer> newServerConnectionFactory(
+      final RequestHandler<RequestContext> requestHandler)
+      throws NullPointerException
+  {
+    Validator.ensureNotNull(requestHandler);
+
+    final RequestHandlerFactory<C, RequestContext> factory =
+      new RequestHandlerFactory<C, RequestContext>()
+    {
+
+      public RequestHandler<RequestContext> handleAccept(
+          C clientContext) throws ErrorResultException
+      {
+        return requestHandler;
+      }
+    };
+
+    return new RequestHandlerFactoryAdapter<C>(factory);
+  }
+
+
+
+  /**
+   * Creates a new server connection factory using the provided
+   * {@link RequestHandlerFactory}. The returned factory will manage connection
+   * and request life-cycle, including request cancellation.
+   * <p>
+   * When processing requests, {@link RequestHandler} implementations are passed
+   * a {@link RequestContext} as the first parameter which may be used for
+   * detecting whether or not the request should be aborted due to cancellation
+   * requests or other events, such as connection failure.
+   * <p>
+   * The returned factory maintains state information which includes a table of
+   * active requests. Therefore, {@code RequestHandler} implementations are
+   * required to always return results in order to avoid potential memory leaks.
+   *
+   * @param <C>
+   *          The type of client context.
+   * @param factory
+   *          The request handler factory to use for associating request
+   *          handlers with client connections.
+   * @return The new server connection factory.
+   * @throws NullPointerException
+   *           If {@code factory} was {@code null}.
+   */
+  public static <C> ServerConnectionFactory<C, Integer> newServerConnectionFactory(
+      final RequestHandlerFactory<C, RequestContext> factory)
+      throws NullPointerException
+  {
+    Validator.ensureNotNull(factory);
+    return new RequestHandlerFactoryAdapter<C>(factory);
+  }
+
+
+
   // Prevent instantiation.
   private Connections()
   {

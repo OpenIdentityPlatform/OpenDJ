@@ -223,7 +223,7 @@ public class LDAPListenerTestCase extends SdkTestCase
         throws UnsupportedOperationException
     {
       resultHandler
-          .handleErrorResult(ErrorResultException.wrap(request
+          .handleErrorResult(ErrorResultException.newErrorResult(request
               .getResultDecoder().newExtendedErrorResult(
                   ResultCode.PROTOCOL_ERROR, "",
                   "Extended operation " + request.getOID() + " not supported")));

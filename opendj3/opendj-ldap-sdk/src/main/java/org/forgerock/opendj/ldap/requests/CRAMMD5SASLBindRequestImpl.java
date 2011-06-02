@@ -29,6 +29,8 @@ package org.forgerock.opendj.ldap.requests;
 
 
 
+import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+
 import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
@@ -85,8 +87,7 @@ final class CRAMMD5SASLBindRequestImpl extends
       }
       catch (final SaslException e)
       {
-        throw ErrorResultException.wrap(Responses.newResult(
-            ResultCode.CLIENT_SIDE_LOCAL_ERROR).setCause(e));
+        throw newErrorResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR, e);
       }
     }
 
@@ -122,7 +123,7 @@ final class CRAMMD5SASLBindRequestImpl extends
       {
         // FIXME: I18N need to have a better error message.
         // FIXME: Is this the best result code?
-        throw ErrorResultException.wrap(Responses.newResult(
+        throw ErrorResultException.newErrorResult(Responses.newResult(
             ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
             "An error occurred during multi-stage authentication")
             .setCause(e));
