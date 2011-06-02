@@ -29,6 +29,8 @@ package org.forgerock.opendj.ldap;
 
 
 
+import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -37,8 +39,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
-
-import org.forgerock.opendj.ldap.responses.Responses;
 
 import com.forgerock.opendj.util.AsynchronousFutureResult;
 import com.forgerock.opendj.util.StaticUtils;
@@ -439,8 +439,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm
     // All factories are offline so give up. We could have a
     // configurable policy here such as waiting indefinitely, or for a
     // configurable timeout period.
-    throw ErrorResultException.wrap(Responses.newResult(
-        ResultCode.CLIENT_SIDE_CONNECT_ERROR).setDiagnosticMessage(
-        "No operational connection factories available"));
+    throw newErrorResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
+        "No operational connection factories available");
   }
 }

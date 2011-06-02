@@ -32,6 +32,7 @@ package org.forgerock.opendj.ldap.requests;
 import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
 import static com.forgerock.opendj.util.StaticUtils.joinCollection;
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_SASL_PROTOCOL_ERROR;
+import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.util.*;
 
@@ -49,7 +50,6 @@ import org.forgerock.opendj.ldap.ConnectionSecurityLayer;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.responses.BindResult;
-import org.forgerock.opendj.ldap.responses.Responses;
 
 import com.forgerock.opendj.util.Validator;
 
@@ -154,8 +154,7 @@ final class DigestMD5SASLBindRequestImpl extends
       }
       catch (final SaslException e)
       {
-        throw ErrorResultException.wrap(Responses.newResult(
-            ResultCode.CLIENT_SIDE_LOCAL_ERROR).setCause(e));
+        throw newErrorResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR, e);
       }
     }
 
@@ -191,11 +190,8 @@ final class DigestMD5SASLBindRequestImpl extends
       {
         // FIXME: I18N need to have a better error message.
         // FIXME: Is this the best result code?
-        throw ErrorResultException.wrap(Responses
-            .newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR)
-            .setDiagnosticMessage(
-                "An error occurred during multi-stage authentication")
-            .setCause(e));
+        throw newErrorResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR,
+            "An error occurred during multi-stage authentication", e);
       }
     }
 
@@ -229,9 +225,8 @@ final class DigestMD5SASLBindRequestImpl extends
       {
         final LocalizableMessage msg = ERR_SASL_PROTOCOL_ERROR.get(
             SASL_MECHANISM_NAME, getExceptionMessage(e));
-        throw ErrorResultException.wrap(Responses
-            .newResult(ResultCode.CLIENT_SIDE_DECODING_ERROR)
-            .setDiagnosticMessage(msg.toString()).setCause(e));
+        throw newErrorResult(ResultCode.CLIENT_SIDE_DECODING_ERROR,
+            msg.toString(), e);
       }
     }
 
@@ -249,9 +244,8 @@ final class DigestMD5SASLBindRequestImpl extends
       {
         final LocalizableMessage msg = ERR_SASL_PROTOCOL_ERROR.get(
             SASL_MECHANISM_NAME, getExceptionMessage(e));
-        throw ErrorResultException.wrap(Responses
-            .newResult(ResultCode.CLIENT_SIDE_ENCODING_ERROR)
-            .setDiagnosticMessage(msg.toString()).setCause(e));
+        throw newErrorResult(ResultCode.CLIENT_SIDE_ENCODING_ERROR,
+            msg.toString(), e);
       }
     }
 

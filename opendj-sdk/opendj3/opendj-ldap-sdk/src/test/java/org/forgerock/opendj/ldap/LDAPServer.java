@@ -200,7 +200,7 @@ public class LDAPServer implements
       {
         // duplicate entry.
         result = Responses.newResult(ResultCode.ENTRY_ALREADY_EXISTS);
-        final ErrorResultException ere = ErrorResultException.wrap(result);
+        final ErrorResultException ere = ErrorResultException.newErrorResult(result);
         handler.handleErrorResult(ere);
         // doesn't matter if it was canceled.
         requestsInProgress.remove(context);
@@ -222,7 +222,7 @@ public class LDAPServer implements
       if (abReq.isCanceled())
       {
         result = Responses.newResult(ResultCode.CANCELLED);
-        final ErrorResultException ere = ErrorResultException.wrap(result);
+        final ErrorResultException ere = ErrorResultException.newErrorResult(result);
         handler.handleErrorResult(ere);
         requestsInProgress.remove(context);
         return;
@@ -349,7 +349,7 @@ public class LDAPServer implements
                   }
                   catch (SaslException e)
                   {
-                    throw ErrorResultException.wrap(Responses.newResult(
+                    throw ErrorResultException.newErrorResult(Responses.newResult(
                         ResultCode.OPERATIONS_ERROR).setCause(e));
                   }
                 }
@@ -365,7 +365,7 @@ public class LDAPServer implements
                   }
                   catch (SaslException e)
                   {
-                    throw ErrorResultException.wrap(Responses.newResult(
+                    throw ErrorResultException.newErrorResult(Responses.newResult(
                         ResultCode.OPERATIONS_ERROR).setCause(e));
                   }
                 }
@@ -384,7 +384,7 @@ public class LDAPServer implements
         }
         catch (Exception e)
         {
-          resultHandler.handleErrorResult(ErrorResultException.wrap(Responses
+          resultHandler.handleErrorResult(ErrorResultException.newErrorResult(Responses
               .newBindResult(ResultCode.OPERATIONS_ERROR).setCause(e)
               .setDiagnosticMessage(e.toString())));
         }
@@ -469,7 +469,7 @@ public class LDAPServer implements
       {
         // entry not found.
         result = Responses.newCompareResult(ResultCode.NO_SUCH_ATTRIBUTE);
-        final ErrorResultException ere = ErrorResultException.wrap(result);
+        final ErrorResultException ere = ErrorResultException.newErrorResult(result);
         resultHandler.handleErrorResult(ere);
         // doesn't matter if it was canceled.
         requestsInProgress.remove(context);
@@ -488,7 +488,7 @@ public class LDAPServer implements
           if (abReq.isCanceled())
           {
             final Result r = Responses.newResult(ResultCode.CANCELLED);
-            final ErrorResultException ere = ErrorResultException.wrap(r);
+            final ErrorResultException ere = ErrorResultException.newErrorResult(r);
             resultHandler.handleErrorResult(ere);
             requestsInProgress.remove(context);
             return;
@@ -529,7 +529,7 @@ public class LDAPServer implements
       {
         // entry is not found.
         result = Responses.newResult(ResultCode.NO_SUCH_OBJECT);
-        final ErrorResultException ere = ErrorResultException.wrap(result);
+        final ErrorResultException ere = ErrorResultException.newErrorResult(result);
         handler.handleErrorResult(ere);
         // doesn't matter if it was canceled.
         requestsInProgress.remove(context);
@@ -539,7 +539,7 @@ public class LDAPServer implements
       if (abReq.isCanceled())
       {
         result = Responses.newResult(ResultCode.CANCELLED);
-        final ErrorResultException ere = ErrorResultException.wrap(result);
+        final ErrorResultException ere = ErrorResultException.newErrorResult(result);
         handler.handleErrorResult(ere);
         requestsInProgress.remove(context);
         return;
@@ -633,7 +633,7 @@ public class LDAPServer implements
       {
         // Entry not found.
         result = Responses.newResult(ResultCode.NO_SUCH_OBJECT);
-        final ErrorResultException ere = ErrorResultException.wrap(result);
+        final ErrorResultException ere = ErrorResultException.newErrorResult(result);
         resultHandler.handleErrorResult(ere);
         // Should searchResultHandler handle anything?
 
@@ -645,7 +645,7 @@ public class LDAPServer implements
       if (abReq.isCanceled())
       {
         result = Responses.newResult(ResultCode.CANCELLED);
-        final ErrorResultException ere = ErrorResultException.wrap(result);
+        final ErrorResultException ere = ErrorResultException.newErrorResult(result);
         resultHandler.handleErrorResult(ere);
         requestsInProgress.remove(context);
         return;

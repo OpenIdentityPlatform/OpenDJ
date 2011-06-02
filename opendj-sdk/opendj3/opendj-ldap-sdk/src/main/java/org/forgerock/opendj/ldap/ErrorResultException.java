@@ -45,6 +45,27 @@ public class ErrorResultException extends ExecutionException
 {
 
   /**
+   * Creates a new error result exception with the provided result code and an
+   * empty diagnostic message.
+   *
+   * @param resultCode
+   *          The result code.
+   * @return The new error result exception.
+   * @throws IllegalArgumentException
+   *           If the provided result code does not represent a failure.
+   * @throws NullPointerException
+   *           If {@code resultCode} was {@code null}.
+   */
+  public static ErrorResultException newErrorResult(
+      ResultCode resultCode) throws IllegalArgumentException,
+      NullPointerException
+  {
+    return newErrorResult(resultCode, null, null);
+  }
+
+
+
+  /**
    * Creates a new error result exception with the provided result code and
    * diagnostic message.
    *
@@ -59,11 +80,35 @@ public class ErrorResultException extends ExecutionException
    * @throws NullPointerException
    *           If {@code resultCode} was {@code null}.
    */
-  public static ErrorResultException newErrorResult(ResultCode resultCode,
-      String diagnosticMessage) throws IllegalArgumentException,
-      NullPointerException
+  public static ErrorResultException newErrorResult(
+      ResultCode resultCode, String diagnosticMessage)
+      throws IllegalArgumentException, NullPointerException
   {
     return newErrorResult(resultCode, diagnosticMessage, null);
+  }
+
+
+
+  /**
+   * Creates a new error result exception with the provided result code and
+   * cause. The diagnostic message will be taken from the cause, if provided.
+   *
+   * @param resultCode
+   *          The result code.
+   * @param cause
+   *          The throwable cause, which may be {@code null} indicating that
+   *          none was provided.
+   * @return The new error result exception.
+   * @throws IllegalArgumentException
+   *           If the provided result code does not represent a failure.
+   * @throws NullPointerException
+   *           If {@code resultCode} was {@code null}.
+   */
+  public static ErrorResultException newErrorResult(
+      ResultCode resultCode, Throwable cause)
+      throws IllegalArgumentException, NullPointerException
+  {
+    return newErrorResult(resultCode, null, cause);
   }
 
 
@@ -78,28 +123,35 @@ public class ErrorResultException extends ExecutionException
    *          The diagnostic message, which may be empty or {@code null}
    *          indicating that none was provided.
    * @param cause
-   *          The throwable cause, which may be null indicating that none was
-   *          provided.
+   *          The throwable cause, which may be {@code null} indicating that
+   *          none was provided.
    * @return The new error result exception.
    * @throws IllegalArgumentException
    *           If the provided result code does not represent a failure.
    * @throws NullPointerException
    *           If {@code resultCode} was {@code null}.
    */
-  public static ErrorResultException newErrorResult(ResultCode resultCode,
-      String diagnosticMessage, Throwable cause)
+  public static ErrorResultException newErrorResult(
+      ResultCode resultCode, String diagnosticMessage, Throwable cause)
       throws IllegalArgumentException, NullPointerException
   {
-    Result result = Responses.newResult(resultCode)
-        .setDiagnosticMessage(diagnosticMessage).setCause(cause);
-    return wrap(result);
+    final Result result = Responses.newResult(resultCode);
+    if (diagnosticMessage != null)
+    {
+      result.setDiagnosticMessage(diagnosticMessage);
+    }
+    else if (cause != null)
+    {
+      result.setDiagnosticMessage(cause.getLocalizedMessage());
+    }
+    result.setCause(cause);
+    return newErrorResult(result);
   }
 
 
 
   /**
-   * Wraps the provided result in an appropriate error result exception. The
-   * type of error result exception used depends on the underlying result code.
+   * Creates a new error result exception using the provided result.
    *
    * @param result
    *          The result whose result code indicates a failure.
@@ -109,8 +161,9 @@ public class ErrorResultException extends ExecutionException
    * @throws NullPointerException
    *           If {@code result} was {@code null}.
    */
-  public static ErrorResultException wrap(final Result result)
-      throws IllegalArgumentException, NullPointerException
+  public static ErrorResultException newErrorResult(
+      final Result result) throws IllegalArgumentException,
+      NullPointerException
   {
     if (!result.getResultCode().isExceptional())
     {
@@ -199,7 +252,8 @@ public class ErrorResultException extends ExecutionException
    */
   ErrorResultException(final Result result)
   {
-    super(result.getResultCode() + ": " + result.getDiagnosticMessage());
+    super(result.getResultCode() + ": "
+        + result.getDiagnosticMessage());
     this.result = result;
   }
 

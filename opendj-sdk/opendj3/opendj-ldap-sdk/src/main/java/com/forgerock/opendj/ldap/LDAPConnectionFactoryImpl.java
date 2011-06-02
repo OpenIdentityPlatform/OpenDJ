@@ -30,6 +30,8 @@ package com.forgerock.opendj.ldap;
 
 
 
+import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.concurrent.ExecutionException;
@@ -40,7 +42,6 @@ import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.StartTLSExtendedRequest;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
-import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.glassfish.grizzly.CompletionHandler;
 import org.glassfish.grizzly.Connection;
@@ -156,22 +157,18 @@ public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
                     @Override
                     public void failed(final Throwable throwable)
                     {
-                      final Result errorResult = Responses
-                          .newResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR)
-                          .setCause(throwable)
-                          .setDiagnosticMessage(throwable.getMessage());
-                      handler.handleErrorResult(ErrorResultException
-                          .wrap(errorResult));
+                      handler.handleErrorResult(newErrorResult(
+                          ResultCode.CLIENT_SIDE_CONNECT_ERROR,
+                          throwable.getMessage(), throwable));
                     }
                   });
               return null;
             }
             catch (final IOException ioe)
             {
-              final Result errorResult = Responses
-                  .newResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR)
-                  .setCause(ioe).setDiagnosticMessage(ioe.getMessage());
-              throw ErrorResultException.wrap(errorResult);
+              throw newErrorResult(
+                  ResultCode.CLIENT_SIDE_CONNECT_ERROR,
+                  ioe.getMessage(), ioe);
             }
           }
           handler.handleResult(null);
@@ -345,9 +342,7 @@ public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
       t = t.getCause();
     }
 
-    final Result result = Responses
-        .newResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR).setCause(t)
-        .setDiagnosticMessage(t.getMessage());
-    return ErrorResultException.wrap(result);
+    return newErrorResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
+        t.getMessage(), t);
   }
 }

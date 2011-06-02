@@ -32,6 +32,7 @@ package com.forgerock.opendj.ldap.tools;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.ldap.tools.ToolConstants.*;
 import static com.forgerock.opendj.ldap.tools.Utils.filterExitCode;
+import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -44,7 +45,6 @@ import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.ProxiedAuthV2RequestControl;
 import org.forgerock.opendj.ldap.requests.CompareRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
-import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 
 import com.forgerock.opendj.util.Base64;
@@ -229,9 +229,8 @@ public final class LDAPCompare extends ConsoleApplication
         {
           // This shouldn't happen because there are no other threads to
           // interrupt this one.
-          result = Responses.newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED)
-              .setCause(e).setDiagnosticMessage(e.getLocalizedMessage());
-          throw ErrorResultException.wrap(result);
+          throw newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED,
+              e.getLocalizedMessage(), e);
         }
 
         if (result.getResultCode() == ResultCode.COMPARE_FALSE)

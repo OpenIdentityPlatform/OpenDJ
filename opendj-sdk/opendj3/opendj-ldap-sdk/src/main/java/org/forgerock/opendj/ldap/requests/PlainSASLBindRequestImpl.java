@@ -29,6 +29,8 @@ package org.forgerock.opendj.ldap.requests;
 
 
 
+import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+
 import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
@@ -40,7 +42,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.responses.BindResult;
-import org.forgerock.opendj.ldap.responses.Responses;
 
 import com.forgerock.opendj.util.Validator;
 
@@ -87,8 +88,7 @@ final class PlainSASLBindRequestImpl extends
       }
       catch (final SaslException e)
       {
-        throw ErrorResultException.wrap(Responses.newResult(
-            ResultCode.CLIENT_SIDE_LOCAL_ERROR).setCause(e));
+        throw newErrorResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR, e);
       }
     }
 
