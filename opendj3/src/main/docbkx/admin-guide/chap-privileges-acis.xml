@@ -69,22 +69,24 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
   Although ACI attribute values can become difficult to read in LDIF, the
   basic syntax is simple.</para>
   
-  <literallayout><replaceable>target-spec</replaceable>(version 3.0;acl "<replaceable>desc</replaceable>";<replaceable>permissions</replaceable> <replaceable>bind-rules</replaceable>;)</literallayout>
+  <literallayout><replaceable>targets</replaceable>(version 3.0;acl "<replaceable>name</replaceable>";<replaceable>permissions</replaceable> <replaceable>subjects</replaceable>;)</literallayout>
 
   <para>The following list briefly explains the variables in the syntax above.</para>
 
   <variablelist>
    <varlistentry>
-    <term><replaceable>target-spec</replaceable></term>
+    <term><replaceable>targets</replaceable></term>
     <listitem>
-     <para>Specifies the entries, attributes, controls, and extended operations
-     to which the ACI applies.</para>
-     <para>To include multiple <replaceable>target-spec</replaceable>
-     specifications, enclose each specification in parentheses, ().</para>
+     <para>The <replaceable>targets</replaceable> specifies entries, attributes,
+     controls, and extended operations to which the ACI applies.</para>
+     <para>To include multiple <replaceable>targets</replaceable>, enclose
+     each individual target in parentheses, (). When you specify multiple
+     targets, all targets must match for the ACI to apply
+     (<literal>AND</literal>).</para>
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><replaceable>desc</replaceable></term>
+    <term><replaceable>name</replaceable></term>
     <listitem>
      <para>Supplies a human-readable description of what the ACI does.</para>
     </listitem>
@@ -92,53 +94,61 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
    <varlistentry>
     <term><replaceable>permissions</replaceable></term>
     <listitem>
-     <para>Defines which operations to allow, and which to deny.</para>
+     <para>Defines which actions to allow, and which to deny. Paired with
+     <replaceable>subjects</replaceable>.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><replaceable>bind-rules</replaceable></term>
+    <term><replaceable>subjects</replaceable></term>
     <listitem>
-     <para>Identify how the client performed the bind to the server in order
-     for the ACI to apply.</para>
+     <para>Identify clients to which the ACI applies depending on
+     who connected, and when, where, and how they connected. Paired with
+     <replaceable>permissions</replaceable>.</para>
     </listitem>
    </varlistentry>
   </variablelist>
 
-  <para>Separate multiple <replaceable>permissions</replaceable>
-  <replaceable>bind-rules</replaceable> definitions with semicolons, ;.</para>
+  <para>Separate multiple pairs of <replaceable>permissions</replaceable>
+  <replaceable>subjects</replaceable> definitions with semicolons, ;. When you
+  specify multiple permissions-subjects pairs, at least one must match
+  (<literal>OR</literal>).</para>
   
   <section>
-   <title>ACI Target Specifications</title>
+   <title>ACI Targets</title>
    
-   <para>ACI target specifications identify the target type that must match
-   or not match a particular target.</para>
+   <para>The seven types of ACI targets identify the objects to which the ACI
+   applies.</para>
    
    <variablelist>
     <varlistentry>
      <term><literal>(target = "ldap:///<replaceable>DN</replaceable>")</literal></term>
      <term><literal>(target != "ldap:///<replaceable>DN</replaceable>")</literal></term>
      <listitem>
-      <para>Sets the scope to <replaceable>DN</replaceable> and child entries.</para>
+      <para>Sets the scope to the entry with distinguished name
+      <replaceable>DN</replaceable>, and to child entries.</para>
       <para>You can use asterisks, *, to replace attribute types, attribute
       values, and entire DN components. In other words, the following
       specification targets both
       <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> and also
       <literal>cn=Frank Zappa,ou=Musicians,dc=example,dc=com</literal>.</para>
       <programlisting language="aci">(target = "ldap:///*=*,*,dc=example,dc=com")</programlisting>
+      <para>The <replaceable>DN</replaceable> must be in the subtree of the
+      entry on which the ACI is defined.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
-     <term><literal>(targetattr = "<replaceable>attr</replaceable>")</literal></term>
-     <term><literal>(targetattr != "<replaceable>attr</replaceable>")</literal></term>
+     <term><literal>(targetattr = "<replaceable>attr-list</replaceable>")</literal></term>
+     <term><literal>(targetattr != "<replaceable>attr-list</replaceable>")</literal></term>
      <listitem>
-      <para>Here <replaceable>attr</replaceable> is an attribute type name,
-      such as <literal>userPassword</literal>. Separate multiple attribute type
-      names with ||.</para>
+      <para>Replace <replaceable>attr-list</replaceable> with a list of
+      attribute type names, such as <literal>userPassword</literal>, separating
+      multiple attribute type names with ||.</para>
       <para>This specification affects the entry where the ACI is located, or
       the entries specified by other targets in the ACI.</para>
       <para>You can use an asterisk, *, to specify all non-operational
       attributes, although you will see better performance when explicitly
-      including or excluding attribute types needed.</para>
+      including or excluding attribute types needed. You can use a plus, +, to
+      specify all operational attributes.</para>
       <para>If you do not include this target specification, then by default
       no attributes are affected by the ACI.</para>
      </listitem>
@@ -148,7 +158,8 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
      <term><literal>(targetfilter != "<replaceable>ldap-filter</replaceable>")</literal></term>
      <listitem>
       <para>Sets the scope to match the <replaceable>ldap-filter</replaceable>
-      dynamically, as in an LDAP search.</para>
+      dynamically, as in an LDAP search. The
+      <replaceable>ldap-filter</replaceable> can be any valid LDAP filter.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -160,10 +171,10 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
       particular attributes.</para>
       <para>Here <replaceable>expression</replaceable> takes one of the
       following forms. Separate expressions with semicolons, ;.</para>
-      <literallayout>add=<replaceable>attr</replaceable>:<replaceable>filter</replaceable>[&amp;&amp; <replaceable>attr</replaceable>:<replaceable>filter</replaceable> ...]</literallayout>
-      <literallayout>delete=<replaceable>attr</replaceable>:<replaceable>filter</replaceable>[&amp;&amp; <replaceable>attr</replaceable>:<replaceable>filter</replaceable> ...]</literallayout>
-      <para>Here <literal>add</literal> is for operations creating attributes,
-      <literal>delete</literal> for operatins removing them.
+      <literallayout><replaceable>op</replaceable>=<replaceable>attr1</replaceable>:<replaceable>filter1</replaceable>[&amp;&amp; <replaceable>attr2</replaceable>:<replaceable>filter2</replaceable> ...][;<replaceable>op</replaceable>=<replaceable>attr3</replaceable>:<replaceable>filter3</replaceable>[&amp;&amp; <replaceable>attr4</replaceable>:<replaceable>filter4</replaceable> ...] ...]</literallayout>
+      <para>Here <replaceable>op</replaceable> can be either
+      <literal>add</literal> for operations creating attributes, or
+      <literal>delete</literal> for operations removing them.
       Replace <replaceable>attr</replaceable> with an attribute type.
       Replace <replaceable>filter</replaceable> with an LDAP filter that
       corresponds to the <replaceable>attr</replaceable> attribute type.</para>
@@ -171,28 +182,33 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
     </varlistentry>
     <varlistentry>
      <term><literal>(targetscope = "base|onelevel|subtree|subordinate")</literal></term>
-     <term><literal>(targetscope != "base|onelevel|subtree|subordinate")</literal></term>
      <listitem>
       <para>Here <literal>base</literal> refers to the entry where the ACI is
       defined, <literal>onelevel</literal> to immediate children,
       <literal>subtree</literal> to the base entry and all children, and
       <literal>subordinate</literal> to all children only.</para>
+      <para>If you do not specify <literal>targetscope</literal>, then the
+      default is <literal>subtree</literal>.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
      <term><literal>(targetcontrol = "<replaceable>OID</replaceable>")</literal></term>
      <term><literal>(targetcontrol != "<replaceable>OID</replaceable>")</literal></term>
      <listitem>
-      <para>Here, <replaceable>OID</replaceable> is the object identifier for
-      the LDAP control to target. Separate multiple OIDs with ||.</para>
+      <para>Replace <replaceable>OID</replaceable> with the object identifier
+      for the LDAP control to target. Separate multiple OIDs with ||.</para>
+      <para>This target cannot be restricted to a specific subtree by combining
+      it with another target.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
      <term><literal>(extop = "<replaceable>OID</replaceable>")</literal></term>
      <term><literal>(extop != "<replaceable>OID</replaceable>")</literal></term>
      <listitem>
-      <para>Here <replaceable>OID</replaceable> is the object identifier for
-      the extended operation to target. Separate multiple OIDs with ||.</para>
+      <para>Replace <replaceable>OID</replaceable> with the object identifier
+      for the extended operation to target. Separate multiple OIDs with ||.</para>
+      <para>This target cannot be restricted to a specific subtree by combining
+      it with another target.</para>
      </listitem>
     </varlistentry>
    </variablelist>
@@ -203,8 +219,8 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
    
    <para>ACI permission definitions take one of the following forms.</para>
    
-   <literallayout>allow(<replaceable>op</replaceable>[, <replaceable>op</replaceable> ...])</literallayout>
-   <literallayout>deny(<replaceable>op</replaceable>[, <replaceable>op</replaceable> ...])</literallayout>
+   <literallayout>allow(<replaceable>action</replaceable>[, <replaceable>action</replaceable> ...])</literallayout>
+   <literallayout>deny(<replaceable>action</replaceable>[, <replaceable>action</replaceable> ...])</literallayout>
    
    <tip>
     <para>Although <literal>deny</literal> is supported, avoid restricting
@@ -214,7 +230,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
     deployment with nested ACIs.</para>
    </tip>
    
-   <para>Here <replaceable>op</replaceable> is one of the following.</para>
+   <para>Replace <replaceable>action</replaceable> with one of the following.</para>
    
    <variablelist>
     <varlistentry>
@@ -289,11 +305,11 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
   </section>
 
   <section>
-   <title>ACI Bind Rules</title>
+   <title>ACI Subjects</title>
    
-   <para>ACI bind rules match characteristics of the client connection to the
-   server. You use bind rules to restrict whether the ACI applies depending on
-   who connected, and when, where, and how they connected.</para>
+   <para>ACI subjects match characteristics of the client connection to the
+   server. Use subjects to restrict whether the ACI applies depending on who
+   connected, and when, where, and how they connected.</para>
 
    <variablelist>
     <varlistentry>
@@ -311,7 +327,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
      <term><literal>dayofweek = "<replaceable>day</replaceable>[, <replaceable>day</replaceable> ...]"</literal></term>
      <term><literal>dayofweek != "<replaceable>day</replaceable>[, <replaceable>day</replaceable> ...]"</literal></term>
      <listitem>
-      <para>Here, <replaceable>day</replaceable> is one of
+      <para>Replace <replaceable>day</replaceable> with one of
       <literal>sun</literal>, <literal>mon</literal>, <literal>tue</literal>,
       <literal>wed</literal>, <literal>thu</literal>, <literal>fri</literal>,
       <literal>sat</literal>.</para>
@@ -378,7 +394,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
      <term><literal>userattr = "[parent[<replaceable>child-level</replaceable>].]<replaceable>attr</replaceable>#GROUPDN|USERDN"</literal></term>
      <term><literal>userattr != "[parent[<replaceable>child-level</replaceable>].]<replaceable>attr</replaceable>#GROUPDN|USERDN"</literal></term>
      <listitem>
-      <para>The <literal>userattr</literal> bind rule specifies an attribute
+      <para>The <literal>userattr</literal> subject specifies an attribute
       that must match on both the bind entry and the target of the ACI.</para>
       <para>To match when the attribute on the bind DN entry corresponds
       directly to the attribute on the target entry, replace
