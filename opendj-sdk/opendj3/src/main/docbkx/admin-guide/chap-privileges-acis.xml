@@ -166,7 +166,6 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
      <term><literal>(targattrfilters = "<replaceable>expression</replaceable>")</literal></term>
      <term><literal>(targattrfilters != "<replaceable>expression</replaceable>")</literal></term>
      <listitem>
-      <!-- TODO: Real world use case? -->
       <para>Use this target specification when managing changes made to
       particular attributes.</para>
       <para>Here <replaceable>expression</replaceable> takes one of the
@@ -601,15 +600,330 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
  </section>
 
  <section>
-  <title>Configuring Access Control</title>
-  
-  <para>TODO</para>
- </section>
- 
- <section>
   <title>Configuring Privileges</title>
   
-  <para>TODO</para>
+  <para>For root directory administrators, by default <literal>cn=Directory
+  Manager</literal>, you configure privileges using the
+  <command>dsconfig</command> command.</para>
+  
+  <para>For non-root directory administrators, you add privileges with
+  the <command>ldapmodify</command> command.</para>
+  
+  <procedure>
+   <title>To Change Root DN Privileges</title>
+   
+   <step>
+    <para>Start <command>dsconfig</command> in interactive mode.</para>
+    <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password</screen>
+   </step>
+   <step>
+    <para>Select the Root DN menu.</para>
+   </step>
+   <step>
+    <para>Select View and edit the Root DN.</para>
+   </step>
+   <step>
+    <para>Edit the <literal>default-root-privilege-name</literal>.</para>
+   </step>
+   <step>
+    <para>Make sure you apply the changes when finished.</para>
+   </step>
+  </procedure>
+  
+  <procedure>
+   <title>To Add Privileges on an Individual Entry</title>
+   
+   <para>Privileges are specified using the <literal>ds-privilege-name</literal>
+   operational attribute, which you can change on the command-line using
+   <command>ldapmodify</command>.</para>
+   
+   <step>
+    <para>Determine the privileges to add.</para>
+    <screen width="80">$ cat privilege.ldif 
+dn: uid=kvaughan,ou=People,dc=example,dc=com
+changetype: modify
+add: ds-privilege-name
+ds-privilege-name: config-read
+ds-privilege-name: password-reset
+
+</screen>
+    <para>This example lets the user read the server configuration, and reset
+    user passwords. In order for the user to be able to change a user password,
+    you must also allow the modification using ACIs. For this example, Kirsten
+    Vaughan is a member of the Directory Administrators group for Example.com,
+    and already has access to modify user entries.</para>
+    <para>Prior to having the privileges, Kirsten gets messages about
+    insufficent access when trying to read the server configuration, or
+    reset a user password.</para>
+    <screen width="80">$ ldapsearch -p 1389 -D "uid=kvaughan,ou=People,dc=example,dc=com" \
+&gt; -w bribery -b cn=config "(objectclass=*)"
+SEARCH operation failed
+Result Code:  50 (Insufficient Access Rights)
+Additional Information:  You do not have sufficient privileges to perform
+ search operations in the Directory Server configuration
+$ ldappasswordmodify -p 1389 -D "uid=kvaughan,ou=People,dc=example,dc=com" \
+&gt; -w bribery -a "dn:uid=scarter,ou=People,dc=example,dc=com" -n changeit
+The LDAP password modify operation failed with result code 50
+Error Message:  You do not have sufficient privileges to perform password
+reset operations</screen>
+   </step>
+   <step>
+    <para>Apply the change as a user with the
+    <literal>privilege-change</literal> privilege.</para>
+    <screen width="80">$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -f privilege.ldif
+Processing MODIFY request for uid=kvaughan,ou=People,dc=example,dc=com
+MODIFY operation successful for DN uid=kvaughan,ou=People,dc=example,dc=com</screen>
+    <para>At this point, Kirsten can perform the operations requiring
+    privileges.</para>
+    <screen width="80">$ ldapsearch -p 1389 -D "uid=kvaughan,ou=People,dc=example,dc=com" \
+&gt; -w bribery -b cn=config "(objectclass=*)"
+dn: cn=config
+ds-cfg-return-bind-error-messages: false
+ds-cfg-default-password-policy: cn=Default Password Policy,cn=Password Policies,
+ cn=config
+...
+$ ldappasswordmodify -p 1389 -D "uid=kvaughan,ou=People,dc=example,dc=com" \
+&gt; -w bribery -a "dn:uid=scarter,ou=People,dc=example,dc=com" -n changeit
+The LDAP password modify operation was successful</screen>
+   </step>
+  </procedure>
+  
+  <procedure>
+   <title>To Add Privileges For a Group of Administrators</title>
+   
+   <para>For deployments with more than one administrator, you no doubt use
+   a group to define adminstrative rights. You can use a collective attribute
+   subentry to specify privileges for the administrator group.</para>
+   
+   <para>Collective attributes provide a standard mechanism for defining
+   attributes that appear on all the entries in a particular subtree. OpenDJ
+   extends collective attributes to give you fine-grained control over the
+   which entries in the subtree are targetted. Also, OpenDJ lets you use
+   virtual attributes, such as <literal>isMemberOf</literal> to construct the
+   filter for targetting entries to which the collective attributes apply. This
+   allows you, for example, to define administrative privileges that apply to
+   all users who belong to an administrator group.</para>
+   
+   <step>
+    <para>Create an LDAP subentry that specifies the collective attributes.</para>
+    <screen width="80">$ cat collective.ldif 
+dn: cn=Administrator Privileges,dc=example,dc=com
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+objectClass: subentry
+objectClass: top
+cn: Administrator Privileges
+ds-privilege-name;collective: config-read
+ds-privilege-name;collective: config-write
+ds-privilege-name;collective: ldif-export
+ds-privilege-name;collective: modify-acl
+ds-privilege-name;collective: password-reset
+ds-privilege-name;collective: proxied-auth
+subtreeSpecification: {base "ou=people", specificationFilter
+  "(isMemberOf=cn=Directory Administrators,ou=Groups,dc=example,dc=com)" }
+
+$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -a -f collective.ldif
+Processing ADD request for cn=Administrator Privileges,dc=example,dc=com
+ADD operation successful for DN cn=Administrator Privileges,dc=example,dc=com</screen>
+    <para>The Directory Administrators group for Example.com includes members
+    like Kirsten Vaughan.</para>
+   </step>
+   <step>
+    <para>Observe that the change takes effect immediately.</para>
+    <screen width="80">$ ldappasswordmodify -p 1389 -D "uid=kvaughan,ou=People,dc=example,dc=com" \
+&gt; -w bribery -a "dn:uid=scarter,ou=People,dc=example,dc=com" -n changeit
+The LDAP password modify operation was successful</screen>    
+   </step>
+  </procedure>
+ </section>
+
+ <section>
+  <title>Configuring Access Control</title>
+  
+  <para>Access control instructions are defined in the data, as values for
+  <literal>aci</literal> attributes. They can be imported in LDIF. They can
+  be modified over LDAP. Yet in order to make changes to ACIs users first
+  need the <literal>modify-acl</literal> privilege described previously.
+  By default, only the root DN user has the <literal>modify-acl</literal>
+  privilege.</para>
+  
+  <para>Global ACIs on <literal>cn=Access Control Handler,cn=config</literal>
+  can be set using the <command>dsconfig</command> command. Global ACIs have
+  attribute type <literal>ds-cfg-global-aci</literal>. Modify global ACIs from
+  the Access Control Handler menu in <command>dsconfig</command>.</para>
+  
+  <itemizedlist>
+   <para>Default global ACIs set up the following access rules.</para>
+   <listitem>
+    <para>Users can employ LDAP controls and perform extended operations.</para>
+   </listitem>
+   <listitem>
+    <para>Anonymous read access is allowed for most user data attributes.</para>
+   </listitem>
+   <listitem>
+    <para>Users can read password values on their own entries after binding.
+    (Also by default, password values are hashed.)</para>
+   </listitem>
+   <listitem>
+    <para>Anonymous read access is allowed for schema-related operational
+    attributes.</para>
+   </listitem>
+   <listitem>
+    <para>Anonymous read access is allowed for root DSE attributes describing
+    what the server supports.</para>
+   </listitem>
+   <listitem>
+    <para>Anonymous read access is allowed for operational attributes related
+    to entry updates and entry identification.</para>
+   </listitem>
+   <listitem>
+    <para>Access to replication data is denied.</para>
+   </listitem>
+  </itemizedlist>
+  
+  <para>Users with write access to add ACIs and with the
+  <literal>modify-acl</literal> privilege can use the
+  <command>ldapmodify</command> command to change ACIs located in user
+  data.</para>
+  
+  <para>This section therefore focuses on ACI examples, rather than
+  demonstrating how to directory data for each example.</para>
+  
+  <example>
+   <title>ACI: Anonymous Reads &amp; Searches</title>
+   
+   <para>This works when the only attributes you do not want world-readable
+   are password attributes.</para>
+   <programlisting width="80" language="ldif">aci: (target ="ldap:///dc=example,dc=com")(targetattr !=
+ "authPassword || userPassword")(version 3.0;acl "Anonymous read-search access";
+ allow (read, search, compare)(userdn = "ldap:///anyone");)
+ </programlisting>
+  </example>
+
+  <example>
+   <title>ACI: Full Access for Administrators</title>
+   
+   <para>Directory Administrators need privileges as well for full access to
+   administrative operations.</para>
+   <programlisting width="80" language="ldif">aci: (target="ldap:///dc=example,dc=com") (targetattr =
+ "*")(version 3.0;acl "Admins can run amok"; allow(all) groupdn =
+ "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)
+ </programlisting>
+  </example>
+
+  <example>
+   <title>ACI: Change Own Password</title>
+   
+   <para>By default this capability is set in a global ACI.</para>
+   <programlisting width="80" language="ldif">aci: (target ="ldap:///ou=People,dc=example,dc=com")(targetattr =
+ "authPassword || userPassword")(version 3.0;acl "Allow users to change pass
+ words"; allow (write)(userdn = "ldap:///self");)</programlisting>
+  </example>
+
+  <example>
+   <title>ACI: Manage Own Group Membership</title>
+   
+   <para>For some static groups such as carpoolers and social club members,
+   you might choose to let users manage their own memberships.</para>
+   <programlisting width="80" language="ldif">aci: (target ="ldap:///ou=Self Service,ou=Groups,dc=example,dc=com")(
+ targetattr = "member")(version 3.0;acl "Self registration"; allow(selfwrite)(
+ userdn = "ldap:///uid=*,ou=People,dc=example,dc=com");)</programlisting>
+  </example>
+
+  <example>
+   <title>ACI: Manage Self Service Groups</title>
+   
+   <para>Let users create and delete self-managed groups.</para>
+   <programlisting width="80" language="ldif">aci: (target ="ldap:///ou=Self Service,ou=Groups,dc=example,dc=com")(
+ targattrfilters="add=objectClass:(objectClass=groupOfNames)")(version 3.0;
+ acl "All can create self service groups"; allow (add)(userdn= "
+ ldap:///uid=*,ou=People,dc=example,dc=com");)
+aci: (target ="ldap:///ou=Self Service,ou=Groups,dc=example,dc=com")(version 3
+ .0; acl "Owner can delete self service groups"; allow (delete)(userattr= "
+ owner#USERDN");)</programlisting>
+  </example>
+ 
+  <example>
+   <title>ACI: Permit Clear Text Access Over Loopback Only</title>
+   
+   <para>This ACI uses IP address and Security Strength Factor subjects.</para>
+   <programlisting width="80" language="ldif">aci: (target = "ldap:///dc=example,dc=com")(targetattr =
+ "*")(version 3.0;acl "Use loopback only for LDAP in the clear"; deny (all)(
+ ip != "127.0.0.1" and ssf &lt;= "1");)</programlisting>
+   <para>The <literal>ssf</literal> is one for example when using SSL but you
+   have not configured a cipher, so the packets are checksummed for integrity
+   checking by all content is nevertheless sent in clear text.</para>
+  </example>
+ </section>
+
+ <section>
+  <title>Viewing Effective Rights</title>
+ 
+  <para>Once you set up a number of ACIs, you might find it difficult to
+  understand by inspection what rights a user actually has to a given entry.
+  The Get Effective Rights control can help.</para>
+  
+  <note>
+   <para>The control OID, <literal>1.3.6.1.4.1.42.2.27.9.5.2</literal>, is
+   not allowed by the default global ACIs.</para>
+  </note>
+  
+  <para>In this example, Babs Jensen is the owner of a small group of people
+  who are willing to carpool.</para>
+  
+  <screen width="80">$ ldapsearch -p 1389 -D "uid=bjensen,ou=people,dc=example,dc=com" -w hifalutin \
+&gt; -b "ou=Self Service,ou=Groups,dc=example,dc=com" "cn=*" 
+dn: cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com
+objectClass: groupOfNames
+objectClass: top
+member: uid=bjensen,ou=People,dc=example,dc=com
+description: People who are willing to carpool
+owner: uid=bjensen,ou=People,dc=example,dc=com
+cn: Carpoolers
+
+</screen>
+
+  <para>Performing the same search with the get effective rights control, and
+  asking for the <literal>aclRights</literal> attribute, shows what rights
+  Babs has on the entry.</para>
+  
+  <screen width="80">$ ldapsearch -J effectiverights -p 1389 \
+&gt; -D "uid=bjensen,ou=people,dc=example,dc=com" -w hifalutin \
+&gt; -b "ou=Self Service,ou=Groups,dc=example,dc=com" "cn=*" aclRights
+dn: cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com
+aclRights;entryLevel: add:0,delete:1,read:1,write:0,proxy:0
+</screen>
+
+  <para>Requesting the <literal>aclRightsInfo</literal> attribute results in
+  information about the ACIs applied to arrive at the results.</para>
+  
+  <screen width="80">$ ldapsearch -J effectiverights -p 1389 \
+&gt; -D "uid=bjensen,ou=people,dc=example,dc=com" -w hifalutin \
+&gt; -b "ou=Self Service,ou=Groups,dc=example,dc=com" "cn=*" aclRights \
+&gt; aclRightsInfo
+dn: cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com
+aclRightsInfo;logs;entryLevel;read: acl_summary(main): access allowed(read) on e
+ ntry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, objectClas
+ s) to (uid=bjensen,ou=People,dc=example,dc=com) (not proxied) ( reason: evaluat
+ ed allow , deciding_aci: Anonymous read-search access)
+aclRightsInfo;logs;entryLevel;write: acl_summary(main): access not allowed(write
+ ) on entry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, NULL
+ ) to (uid=bjensen,ou=People,dc=example,dc=com) (not proxied) ( reason: no acis 
+ matched the subject )
+aclRightsInfo;logs;entryLevel;add: acl_summary(main): access not allowed(add) on
+  entry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, NULL) to
+  (uid=bjensen,ou=People,dc=example,dc=com) (not proxied) ( reason: no acis matc
+ hed the subject )
+aclRightsInfo;logs;entryLevel;delete: acl_summary(main): access allowed(delete) 
+ on entry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, NULL) 
+ to (uid=bjensen,ou=People,dc=example,dc=com) (not proxied) ( reason: evaluated 
+ allow , deciding_aci: Owner can delete self service groups)
+aclRights;entryLevel: add:0,delete:1,read:1,write:0,proxy:0
+aclRightsInfo;logs;entryLevel;proxy: acl_summary(main): access not allowed(proxy
+ ) on entry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, NULL
+ ) to (uid=bjensen,ou=People,dc=example,dc=com) (not proxied) ( reason: no acis 
+ matched the subject )
+
+</screen>
  </section>
 </chapter>
-
