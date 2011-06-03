@@ -497,6 +497,8 @@ public class LDAPServer implements
           {
             result = Responses.newCompareResult(ResultCode.COMPARE_TRUE);
             resultHandler.handleResult(result);
+            requestsInProgress.remove(context);
+            return;
           }
         }
       }
