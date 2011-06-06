@@ -554,7 +554,7 @@ public final class ResultCode
    * processing on the associated operation because the request included the
    * LDAP No-Op control.
    */
-  public static final ResultCode NO_OPERATION = registerErrorResultCode(16654,
+  public static final ResultCode NO_OPERATION = registerSuccessResultCode(16654,
       INFO_RESULT_NO_OPERATION.get());
 
 
@@ -720,10 +720,19 @@ public final class ResultCode
 
 
   /**
-   * Indicates whether or not this result code represents an error result. In
-   * order to make it easier for application to detect referrals, the {@code
-   * REFERRAL} result code is treated as an error result (the LDAP RFCs treat
-   * referrals as a success response).
+   * Indicates whether or not this result code represents an error result.
+   * <p>
+   * The following result codes are NOT interpreted as error results:
+   * <ul>
+   * <li>{@link #SUCCESS}
+   * <li>{@link #COMPARE_FALSE}
+   * <li>{@link #COMPARE_TRUE}
+   * <li>{@link #SASL_BIND_IN_PROGRESS}
+   * <li>{@link #NO_OPERATION}
+   * </ul>
+   * In order to make it easier for application to detect referrals, the
+   * {@link #REFERRAL} result code is interpreted as an error result (the LDAP
+   * RFCs treat referrals as a success response).
    *
    * @return {@code true} if this result code represents an error result,
    *         otherwise {@code false}.
