@@ -49,6 +49,8 @@
   <title>Description</title>
   <para>This utility can be used to perform LDAP modify, add, delete, and
   modify DN operations in the directory.</para>
+  <para>When not using a file to specify modifications, end your input with
+  EOF (Ctrl+D on UNIX, Ctrl+Z on Windows).</para>
  </refsect1>
  <refsect1>
   <title>Options</title>
@@ -289,6 +291,15 @@
      <term>0</term>
      <listitem>
       <para>The command completed successfully.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><replaceable>ldap-error</replaceable></term>
+     <listitem>
+      <para>An LDAP error occurred while processing the operation.</para>
+      <para>LDAP result codes are described in <link
+      xlink:href="http://tools.ietf.org/html/rfc4511#appendix-A">RFC
+      4511</link>. Also see the additional information for details.</para>
      </listitem>
     </varlistentry>
     <varlistentry>

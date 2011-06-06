@@ -276,6 +276,15 @@
      </listitem>
     </varlistentry>
     <varlistentry>
+     <term><replaceable>ldap-error</replaceable></term>
+     <listitem>
+      <para>An LDAP error occurred while processing the operation.</para>
+      <para>LDAP result codes are described in <link
+      xlink:href="http://tools.ietf.org/html/rfc4511#appendix-A">RFC
+      4511</link>. Also see the additional information for details.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
      <term>89</term>
      <listitem>
       <para>An error occurred while parsing the command-line arguments.</para>

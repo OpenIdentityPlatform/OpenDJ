@@ -39,6 +39,31 @@
 
  <para>This chapter demonstrates how to define virtual and collective
  attributes, showing common solutions as examples of their use.</para>
+ 
+ <section>
+  <title>Virtual Attributes</title>
+  
+  <para>TODO</para>
+ </section>
 
+ <section>
+  <title>Collective Attributes</title>
+  
+  <para>Collective attributes provide a standard mechanism for defining
+  attributes that appear on all the entries in a subtree potentially filtered
+  by object class. Standard collective attribute type names have the prefix
+  <literal>c-</literal>.</para>
+     
+  <para>OpenDJ extends collective attributes to make them easier to use.
+  You can define any OpenDJ attribute as collective using the
+  <literal>;collective</literal> attribute option. You can use LDAP filters
+  in your subtree specification for fine-grained control over which entries
+  have the collective attributes.</para>
+
+  <para>For example, you can define administrative privileges that
+  apply to all users who belong to an administrators group. Alternatively
+  you can define attributes that specify services available for a user
+  depending on that user's service level.</para>
+ </section>
 </chapter>
 

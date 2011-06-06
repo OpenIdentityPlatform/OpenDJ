@@ -32,12 +32,445 @@
  <title>Performing LDAP Operations</title>
 
  <para>OpenDJ comes with a Control Panel browser for managing entries and also
- command-line tools for performing LDAP operations. This chapter focuses on
- demonstrating how to use the command line tools to script LDAP
- operations.</para>
+ command-line tools for performing LDAP operations. This chapter demonstrates
+ how to use the command line tools to script LDAP operations.</para>
  
  <!-- TODO: search, compare, add, modify, modifyDN, delete, but also authrate,
  searchrate, modrate, and ldappasswordmodify, who am I?, cancel -->
+ 
+ <section>
+  <title>Searching the Directory</title>
+  
+  <para>Searching the directory resembles searching for a phone number in
+  a paper phone book. You can look up a phone number because you know the
+  last name of a subscriber's entry. In other words, you use the value of
+  one attribute of the entry to find entries that have another attribute
+  you want.</para>
+  
+  <para>Yet whereas a paper phone book has only one index (alphabetical order
+  by name), the directory has many indexes. For a search you therefore always
+  specify which index to use, by specifying which attribute(s) you are using
+  to lookup entries.</para>
+  
+  <para>Your paper phone book might be divided into white pages for residential
+  subscribers, and yellow pages for businesses. If you are looking up an
+  individual's phone number, you limit your search to the white pages.
+  Directory services divide entries in various ways, often to separate
+  organizations, and to separate groups from user entries from printers for
+  example, but potentially in other ways. When searching you therefore also
+  specify where in the directory to search.</para>
+  
+  <para>The <command>ldapsearch</command> command thus takes at minimum a
+  search base DN option and an LDAP filter. The search base DN identifies
+  where in the directory to search for entries that match the filter.
+  For example, if you are looking for printers, you might specify the base
+  DN as <literal>ou=Printers,dc=example,dc=com</literal>. Perhaps you are
+  visiting the <literal>GNB00</literal> office and are looking for a
+  printer.</para>
+  
+  <screen width="80">$ ldapsearch -b ou=Printers,dc=example,dc=com "(printerLocation=GNB00)"</screen>
+  
+  <para>In the example, the LDAP filter indicates to the directory that you
+  want to lookup printer entries where the <literal>printerLocation</literal>
+  attribute is equal to <literal>GNB00</literal>.</para>
 
+  <para>You also specify the host and port to access directory services,
+  what protocol to use (for example, LDAP/SSL, or StartTLS to protect
+  communication). If the directory service does not allow anonymous access
+  to the data you want to search, you also identify who is performing the
+  search and provide their credentials, such as a password or
+  certificate. Finally, you can specify a list of attributes to return.
+  If you do not specify attributes, then the search returns all user attributes
+  for the entry.</para>
+ 
+  <example>
+   <title>Search: Simple Filter</title>
+   
+   <para>The following example searches for entries with UID containing
+   <literal>jensen</literal>, returning only DNs and uid values.</para>
+   
+   <screen width="80">$ ldapsearch -p 1389 -b dc=example,dc=com "(uid=*jensen*)" uid
+dn: uid=ajensen,ou=People,dc=example,dc=com
+uid: ajensen
+
+dn: uid=bjensen,ou=People,dc=example,dc=com
+uid: bjensen
+
+dn: uid=gjensen,ou=People,dc=example,dc=com
+uid: gjensen
+
+dn: uid=jjensen,ou=People,dc=example,dc=com
+uid: jjensen
+
+dn: uid=kjensen,ou=People,dc=example,dc=com
+uid: kjensen
+
+dn: uid=rjensen,ou=People,dc=example,dc=com
+uid: rjensen
+
+dn: uid=tjensen,ou=People,dc=example,dc=com
+uid: tjensen
+
+
+Result Code:  0 (Success)</screen>
+  </example>
+  
+  <example>
+   <title>Search: Complex Filter</title>
+   
+   <para>The following example returns entries with <literal>uid</literal>
+   containing <literal>jensen</literal> for users located in Santa Clara. The
+   command returns the attributes associated with the <literal>person</literal>
+   object class.</para>
+   
+   <screen width="80">$ ldapsearch -p 1389 -b ou=people,dc=example,dc=com \
+&gt; "(&amp;(uid=*jensen*)(l=Santa Clara))" @person
+dn: uid=ajensen,ou=People,dc=example,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Allison Jensen
+telephoneNumber: +1 408 555 7892
+sn: Jensen
+
+dn: uid=gjensen,ou=People,dc=example,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Gern Jensen
+telephoneNumber: +1 408 555 3299
+sn: Jensen
+
+dn: uid=kjensen,ou=People,dc=example,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Kurt Jensen
+telephoneNumber: +1 408 555 6127
+sn: Jensen
+
+dn: uid=tjensen,ou=People,dc=example,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Ted Jensen
+telephoneNumber: +1 408 555 8622
+sn: Jensen
+
+</screen>
+  </example>
+ </section>
+ 
+ <section>
+  <title>Comparing Attribute Values</title>
+  
+  <para>The compare operation checks whether an attribute value you specify
+  matches the attribute value stored on one or more directory entries.</para>
+  
+  <example>
+   <title>Compare: Checking <literal>authPassword</literal></title>
+   
+   <para>In this example, Kirsten Vaughan checks whether the hashed password
+   value matches the stored value on <literal>authPassword</literal>.</para>
+
+   <screen width="80">$ ldapcompare -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
+ &gt; -w bribery 'authPassword:MD5$dFHgpDxXUT8=$qlC4xMXvmVlusJLz9/WJ5Q==' \
+ &gt; uid=kvaughan,ou=people,dc=example,dc=com
+ Comparing type authPassword with value
+  MD5$dFHgpDxXUT8=$qlC4xMXvmVlusJLz9/WJ5Q== in entry
+   uid=kvaughan,ou=people,dc=example,dc=com
+ Compare operation returned true for entry
+  uid=kvaughan,ou=people,dc=example,dc=com</screen>
+  </example>
+ </section>
+ 
+ <section>
+  <title>Updating the Directory</title>
+  
+  <para>Authorized users can change directory data using the LDAP add, modify,
+  modify DN, and delete operations.</para>
+  
+  <section>
+   <title>Adding Entries</title>
+   
+   <para>With the <command>ldapmodify -a</command> command, authorized users
+   can add entire entries from the same sort of LDIF file used to import
+   and export data.</para>
+   
+   <example>
+   <title>Add: Two New Users</title>
+   
+   <screen width="80">$ cat new-users.ldif 
+dn: cn=Arsene Lupin,ou=Special Users,dc=example,dc=com
+objectClass: person
+objectClass: top
+cn: Arsene Lupin
+telephoneNumber: +33 1 23 45 67 89
+sn: Lupin
+
+dn: cn=Horace Velmont,ou=Special Users,dc=example,dc=com
+objectClass: person
+objectClass: top
+cn: Horace Velmont
+telephoneNumber: +33 1 12 23 34 45
+sn: Velmont
+
+$ ldapmodify -a -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
+&gt; -w bribery -f new-users.ldif
+Processing ADD request for cn=Arsene Lupin,ou=Special Users,dc=example,dc=com
+ADD operation successful for DN
+ cn=Arsene Lupin,ou=Special Users,dc=example,dc=com
+Processing ADD request for cn=Horace Velmont,ou=Special Users,dc=example,dc=com
+ADD operation successful for DN
+ cn=Horace Velmont,ou=Special Users,dc=example,dc=com</screen>
+  </example> 
+ </section>
+
+  <section>
+   <title>Modifying Entry Attributes</title>
+   
+   <para>With the <command>ldapmodify</command> command, authorized users
+   can change the values of attributes in the directory using LDIF as specified
+   in <link xlink:href='http://tools.ietf.org/html/rfc2849'>RFC 2849</link>.</para>
+   
+  <example>
+   <title>Modify: Adding Attributes</title>
+   
+   <para>The following example adds a description and JPEG photo to Sam
+   Carter's entry.</para>
+   
+   <screen width="80">$ cat scarter-mods.ldif 
+dn: uid=scarter,ou=people,dc=example,dc=com
+changetype: modify
+add: description
+description: Accounting Manager
+-
+add: jpegphoto
+jpegphoto: /tmp/Samantha-Carter.jpg
+
+$ ldapmodify -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
+&gt; -w bribery -f scarter-mods.ldif 
+Processing MODIFY request for uid=scarter,ou=people,dc=example,dc=com
+MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com</screen>
+  </example>
+
+  <example>
+   <title>Modify: Changing an Attribute Value</title>
+   
+   <para>The following example replaces the description on Sam Carter's
+   entry.</para>
+   
+   <screen width="80">$ cat scarter-newdesc.ldif
+dn: uid=scarter,ou=people,dc=example,dc=com
+changetype: modify
+replace: description
+description: Accounting Director
+
+$ ldapmodify -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
+&gt; -w bribery -f scarter-newdesc.ldif 
+Processing MODIFY request for uid=scarter,ou=people,dc=example,dc=com
+MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com</screen>
+  </example>
+
+  <example>
+   <title>Modify: Deleting an Attribute Value</title>
+   
+   <para>The following example deletes the JPEG photo on Sam Carter's
+   entry.</para>
+   
+   <screen width="80">$ cat /path/to/scarter-deljpeg.ldif 
+dn: uid=scarter,ou=people,dc=example,dc=com
+changetype: modify
+delete: jpegphoto
+
+$ ldapmodify -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
+&gt; -w bribery -f scarter-deljpeg.ldif 
+Processing MODIFY request for uid=scarter,ou=people,dc=example,dc=com
+MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com</screen>
+  </example>
+  </section>
+
+  <section>
+   <title>Renaming Entries</title>
+   
+   <para>The Relative Distinguished Name (RDN) refers to the part of an
+   entry's DN that distinguishes it from all other DNs at the same level
+   in the directory tree. For example <literal>uid=bjensen</literal> is
+   the RDN of the entry having DN
+   <literal>uid=bjensen,ou=People,dc=example,dc=com</literal>.</para>
+   
+   <para>With the <command>ldapmodify</command> command, authorized users
+   can rename entries in the directory.</para>
+
+   <para>When you change the RDN of the entry, you are renaming the entry,
+   modifying the value of the naming attribute, but also modifying the entry's
+   DN.</para>
+   
+   <example>
+    <title>Rename: Modifying the DN</title>
+    
+    <para>Sam Carter is changing her last name to Jensen, and changing her
+    login from <literal>scarter</literal> to <literal>sjensen</literal>.
+    The following example renames and changes Sam Carter's entry
+    accordingly.</para>
+    
+    <screen width="80">$ cat /path/to/scarter-sjensen.ldif
+dn: uid=scarter,ou=people,dc=example,dc=com
+changetype: modrdn
+newrdn: uid=sjensen
+deleteoldrdn: 1
+
+dn: uid=sjensen,ou=people,dc=example,dc=com
+changetype: modify
+replace: cn
+cn: Sam Jensen
+-
+replace: sn
+sn: Jensen
+-
+replace: homeDirectory
+homeDirectory: /home/sjensen
+-
+replace: mail
+mail: sjensen@example.com
+
+$ ldapmodify -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
+&gt; -w bribery -f /path/to/scarter-sjensen.ldif 
+Processing MODIFY DN request for uid=scarter,ou=people,dc=example,dc=com
+MODIFY DN operation successful for DN uid=scarter,ou=people,dc=example,dc=com
+Processing MODIFY request for uid=sjensen,ou=people,dc=example,dc=com
+MODIFY operation successful for DN uid=sjensen,ou=people,dc=example,dc=com</screen>
+   </example>
+  </section>
+
+  <section>
+   <title>Moving Entries</title>
+
+   <para>When you rename an entry with child entries, the directory has
+   to move all the entries underneath.</para>
+   
+   <note>
+    <para>The modify DN operation only works when moving entries in the same
+    backend, under the same suffix. Also, depending on the number of entries
+    you move, this can be a resource-intensive operation.</para>
+   </note>
+     
+   <para>With the <command>ldapmodify</command> command, authorized users
+   can move entries in the directory.</para>
+
+   <example>
+    <title>Move: Merging Customer and Employees Under
+    <literal>ou=People</literal></title>
+    
+    <para>The following example moves
+    <literal>ou=Customers,dc=example,dc=com</literal> to
+    <literal>ou=People,dc=example,dc=com</literal>, and then moves each
+    employee under <literal>ou=Employees,dc=example,dc=com</literal>
+    under <literal>ou=People,dc=example,dc=com</literal> as well, finally
+    removing the empty <literal>ou=Employees,dc=example,dc=com</literal>
+    container.</para>
+    
+    <screen width="80">$ cat move-customers.ldif 
+dn: ou=Customers,dc=example,dc=com
+changetype: modrdn
+newrdn: ou=People
+deleteoldrdn: 1
+newsuperior: dc=example,dc=com
+
+$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password \
+&gt; -f move-customers.ldif 
+Processing MODIFY DN request for ou=Customers,dc=example,dc=com
+MODIFY DN operation successful for DN ou=Customers,dc=example,dc=com
+$ cat move-employees.pl 
+#!/usr/bin/perl -w
+
+# For each employee, construct a spec to move under ou=People.
+while (&lt;&gt;)
+{
+    # Next line folded for readability only. Should not be split.
+    $_ =~ s/dn: (.*?)(,.*)/dn: $1$2\nchangetype: moddn\nnewrdn: $1\n
+     deleteoldrdn: 0\nnewsuperior: ou=People,dc=example,dc=com/;
+    print;
+}
+$ ldapsearch -p 1389 -b ou=Employees,dc=example,dc=com uid=* - | \
+&gt; move-employees.pl > /tmp/move-employees.ldif
+$ head -n 6 /tmp/move-employees.ldif 
+dn: uid=abarnes,ou=Employees,dc=example,dc=com
+changetype: moddn
+newrdn: uid=abarnes
+deleteoldrdn: 0
+newsuperior: ou=People,dc=example,dc=com
+
+$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password \
+&gt; -f /tmp/move-employees.ldif 
+Processing MODIFY DN request for uid=abarnes,ou=Employees,dc=example,dc=com
+MODIFY DN operation successful for DN uid=abarnes,ou=Employees,dc=example,dc=com
+Processing MODIFY DN request for uid=abergin,ou=Employees,dc=example,dc=com
+MODIFY DN operation successful for DN uid=abergin,ou=Employees,dc=example,dc=com
+...
+Processing MODIFY DN request for uid=wlutz,ou=Employees,dc=example,dc=com
+MODIFY DN operation successful for DN uid=wlutz,ou=Employees,dc=example,dc=com
+$ ldapdelete -p 1389 -D "cn=Directory Manager" -w password \
+&gt; ou=Employees,dc=example,dc=com
+Processing DELETE request for ou=Employees,dc=example,dc=com
+DELETE operation successful for DN ou=Employees,dc=example,dc=com</screen>
+   </example>
+  </section>
+
+  <section>
+   <title>Deleting Entries</title>
+   
+   <para>With the <command>ldapmodify</command> command, authorized users
+   can delete entries from the directory.</para>
+
+   <example>
+    <title>Delete: Removing a Subtree</title>
+    
+    <para>The following example uses the subtree delete option to remove
+    all Special Users from the directory.</para>
+    
+    <screen width="80">$ ldapdelete -p 1389 -D "cn=Directory Manager" -w password \
+&gt; -x "ou=Special Users,dc=example,dc=com"
+Processing DELETE request for ou=Special Users,dc=example,dc=com
+DELETE operation successful for DN ou=Special Users,dc=example,dc=com</screen>
+   </example>
+  </section>
+ </section>
+
+ <section>
+  <title>Changing Passwords</title>
+  
+  <para>With the <command>ldappasswordmodify</command> command, authorized
+  users can change and reset user passwords.</para>
+  
+  <example>
+   <title>Password Reset</title>
+   
+   <para>The following example shows Kirsten Vaughan resetting Sam Carter's
+   password. Kirsten has the appropriate privilege to reset Sam's
+   password. The <option>-q</option> option means the same thing as
+   <option>--useStartTLS</option>.</para>
+   
+   <screen width="80">$ ldappasswordmodify -q -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
+&gt; -w bribery -a "dn:uid=scarter,ou=people,dc=example,dc=com" -n ChangeMe
+The LDAP password modify operation was successful</screen>
+
+   <para>You could also accomplish password reset with the following command,
+   but <command>set-password-is-reset</command> is a hidden option, supported
+   only for testing.</para>
+   
+   <screen width="80">$ manage-account -D "cn=Directory Manager" -w password \
+&gt; set-password-is-reset -b uid=scarter,ou=people,dc=example,dc=com -O true
+Password Is Reset:  true</screen>
+  </example>
+ </section>
 </chapter>
 
