@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -132,6 +133,7 @@ public class DefaultEntryCacheTestCase
       EntryCacheCfgDefn.getInstance(), cacheFIFOConfigEntry));
     cacheOrderMap.put(2, fifoCache);
 
+    File cacheDirectory = TestCaseUtils.createTemporaryDirectory("opendj-test");
     fsCache = new FileSystemEntryCache();
     cacheFSConfigEntry = TestCaseUtils.makeEntry(
       "dn: cn=File System,cn=Entry Caches,cn=config",
@@ -145,7 +147,9 @@ public class DefaultEntryCacheTestCase
       "ds-cfg-enabled: true",
       "ds-cfg-include-filter: uid=fs*",
       "ds-cfg-include-filter: uid=test3*",
-      "ds-cfg-include-filter: uid=test0*");
+      "ds-cfg-include-filter: uid=test0*",
+      "ds-cfg-cache-directory: " + cacheDirectory.getAbsolutePath());
+
     fsCache.initializeEntryCache(AdminTestCaseUtils.getConfiguration(
       EntryCacheCfgDefn.getInstance(), cacheFSConfigEntry));
     cacheOrderMap.put(3, fsCache);
