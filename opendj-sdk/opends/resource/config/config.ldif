@@ -187,7 +187,7 @@ ds-cfg-index-entry-limit: 4000
 ds-cfg-preload-time-limit: 0 seconds
 ds-cfg-entries-compressed: false
 ds-cfg-compact-encoding: true
-ds-cfg-db-cache-percent: 10
+ds-cfg-db-cache-percent: 50
 ds-cfg-db-cache-size: 0 megabytes
 ds-cfg-db-txn-no-sync: false
 ds-cfg-db-txn-write-no-sync: true
@@ -444,7 +444,6 @@ ds-cfg-send-rejection-notice: true
 ds-cfg-max-request-size: 5 megabytes
 ds-cfg-buffer-size: 4096 bytes
 ds-cfg-max-blocked-write-time-limit: 2 minutes
-ds-cfg-num-request-handlers: 2
 ds-cfg-allow-start-tls: false
 ds-cfg-use-ssl: false
 ds-cfg-ssl-client-auth-policy: optional
@@ -469,7 +468,6 @@ ds-cfg-send-rejection-notice: true
 ds-cfg-max-request-size: 5 megabytes
 ds-cfg-buffer-size: 4096 bytes
 ds-cfg-max-blocked-write-time-limit: 2 minutes
-ds-cfg-num-request-handlers: 2
 ds-cfg-allow-start-tls: false
 ds-cfg-use-ssl: true
 ds-cfg-ssl-client-auth-policy: optional

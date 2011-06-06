@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2010 Sun Microsystems, Inc.
+  !      Portions copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="replication-server"
   plural-name="replication-servers"
@@ -162,7 +163,7 @@
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>86400s</adm:value>
+        <adm:value>3 days</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>

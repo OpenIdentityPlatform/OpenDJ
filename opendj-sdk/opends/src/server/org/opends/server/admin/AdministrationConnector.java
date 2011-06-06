@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.admin;
 
@@ -431,7 +432,7 @@ public final class AdministrationConnector implements
     /**
      * {@inheritDoc}
      */
-    public int getNumRequestHandlers()
+    public Integer getNumRequestHandlers()
     {
       return ADMIN_NUM_REQUEST_HANDLERS;
     }

@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2009 Sun Microsystems, Inc.
+  !      Portions copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="ldap-connection-handler"
   plural-name="ldap-connection-handlers"
@@ -480,9 +481,11 @@
       <adm:component-restart />
     </adm:requires-admin-action>
     <adm:default-behavior>
-      <adm:defined>
-        <adm:value>2</adm:value>
-      </adm:defined>
+      <adm:alias>
+        <adm:synopsis>
+          Let the server decide.
+        </adm:synopsis>
+      </adm:alias>
     </adm:default-behavior>
     <adm:syntax>
       <adm:integer lower-limit="1" />
