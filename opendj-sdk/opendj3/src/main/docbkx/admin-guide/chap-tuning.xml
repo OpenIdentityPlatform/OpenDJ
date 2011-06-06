@@ -42,6 +42,8 @@
  maximize performance for clients given the constraints of your deployment.
  This chapter therefore aims to provide suggestions on how to measure and
  to improve directory service performance for better trade offs.</para>
+ 
+ <!-- TODO: Demonstrate measuring directory service throughput and response
+ times using authrate, modrate, and searchrate. -->
 
 </chapter>
-

@@ -51,6 +51,12 @@
   <title>Description</title>
   <para>This utility can be used to perform LDAP search operations in the
   directory.</para>
+  <para>In the list of attributes to return, you can specify
+  <literal>*</literal> to return all user attributes, <literal>+</literal> to
+  return all operational attributes, and
+  <literal>@<replaceable>object-class</replaceable></literal> to return
+  all attributes associated with the <replaceable>object-class</replaceable>
+  such as <literal>@person</literal>.</para>
  </refsect1>
  <refsect1>
   <title>Options</title>
@@ -366,6 +372,15 @@
      <term>0</term>
      <listitem>
       <para>The command completed successfully.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><replaceable>ldap-error</replaceable></term>
+     <listitem>
+      <para>An LDAP error occurred while processing the operation.</para>
+      <para>LDAP result codes are described in <link
+      xlink:href="http://tools.ietf.org/html/rfc4511#appendix-A">RFC
+      4511</link>. Also see the additional information for details.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
