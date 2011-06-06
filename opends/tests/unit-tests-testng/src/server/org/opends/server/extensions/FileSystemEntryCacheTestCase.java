@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -197,6 +198,7 @@ public class FileSystemEntryCacheTestCase
     TestCaseUtils.startServer();
 
     // Configure this entry cache.
+    File cacheDirectory = TestCaseUtils.createTemporaryDirectory("opendj-test");
     cacheConfigEntry = TestCaseUtils.makeEntry(
       "dn: cn=File System,cn=Entry Caches,cn=config",
       "objectClass: ds-cfg-file-system-entry-cache",
@@ -207,7 +209,8 @@ public class FileSystemEntryCacheTestCase
       "ds-cfg-java-class: " +
       "org.opends.server.extensions.FileSystemEntryCache",
       "ds-cfg-enabled: true",
-      "ds-cfg-max-entries: " + Integer.toString(super.MAXENTRIES));
+      "ds-cfg-max-entries: " + Integer.toString(super.MAXENTRIES),
+      "ds-cfg-cache-directory: " + cacheDirectory.getAbsolutePath());
     super.configuration = AdminTestCaseUtils.getConfiguration(
       EntryCacheCfgDefn.getInstance(), cacheConfigEntry);
 
