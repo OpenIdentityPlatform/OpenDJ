@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.opends.admin.ads;
@@ -507,9 +508,13 @@ public class TopologyCache
           {
             try
             {
-              replica.setAgeOfOldestMissingChange(
-                  new Long(ConnectionUtils.getFirstValue(sr,
-                      "approx-older-change-not-synchronized-millis")));
+              // This statistic is optional.
+              String s = ConnectionUtils.getFirstValue(sr,
+                  "approx-older-change-not-synchronized-millis");
+              if (s != null)
+              {
+                replica.setAgeOfOldestMissingChange(Long.valueOf(s));
+              }
             }
             catch (Throwable t)
             {
