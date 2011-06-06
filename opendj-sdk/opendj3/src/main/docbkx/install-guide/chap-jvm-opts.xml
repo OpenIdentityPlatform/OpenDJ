@@ -85,12 +85,12 @@
 
  <indexterm><primary>Database cache settings</primary></indexterm>
 
- <para>The database cache is 10% by default. The cache should be larger in
- production. For example, with a 2 GB JVM heap and 500 MB devoted to new gen,
- let the database cache use 1 GB.</para>
+ <para>The database cache is 50% by default. The cache setting is appropriate
+ for many production environments, yet you can change the setting. For example,
+ the following example increases the database cache size to 60%.</para>
  
  <screen width='80'
->$ dsconfig -n set-backed-prop --backend-name userRoot --set db-cache-percent:50</screen>
+>$ dsconfig -n set-backed-prop --backend-name userRoot --set db-cache-percent:60</screen>
 
 </chapter>
 
