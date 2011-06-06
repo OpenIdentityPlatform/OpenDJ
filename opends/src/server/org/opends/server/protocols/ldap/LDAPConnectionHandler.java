@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 import static org.opends.messages.ProtocolMessages.*;
@@ -239,26 +240,28 @@ public final class LDAPConnectionHandler extends
    * be initialized before it may be used.
    */
   public LDAPConnectionHandler() {
-   this(new WorkQueueStrategy(), DEFAULT_FRIENDLY_NAME);
+   this(new WorkQueueStrategy(), null); // Use name from configuration.
   }
+
 
 
   /**
    * Creates a new instance of this LDAP connection handler, using a queueing
    * strategy. It must be initialized before it may be used.
-   * @param strategy Request handling strategy.
-   * @param friendlyName Friendly name to use in this connector.
-   *        If null, the default one is used.
+   *
+   * @param strategy
+   *          Request handling strategy.
+   * @param friendlyName
+   *          The name of of this connection handler, or {@code null} if the
+   *          name should be taken from the configuration.
    */
-  public LDAPConnectionHandler(QueueingStrategy strategy, String friendlyName) {
-    super(DEFAULT_FRIENDLY_NAME + " Thread");
+  public LDAPConnectionHandler(QueueingStrategy strategy,
+      String friendlyName)
+  {
+    super(friendlyName != null ? friendlyName : DEFAULT_FRIENDLY_NAME
+        + " Thread");
 
-    if (friendlyName == null) {
-      this.friendlyName = DEFAULT_FRIENDLY_NAME;
-    } else {
-      this.friendlyName = friendlyName;
-    }
-
+    this.friendlyName = friendlyName;
     this.queueingStrategy = strategy;
 
     // No real implementation is required. Do all the work in the
@@ -637,6 +640,12 @@ public final class LDAPConnectionHandler extends
   public void initializeConnectionHandler(LDAPConnectionHandlerCfg config)
          throws ConfigException, InitializationException
   {
+    if (friendlyName == null)
+    {
+      friendlyName = config.dn().getRDN().getAttributeValue(0)
+          .toString();
+    }
+
     // Open the selector.
     try {
       selector = Selector.open();
@@ -670,7 +679,7 @@ public final class LDAPConnectionHandler extends
     backlog = config.getAcceptBacklog();
     listenAddresses = config.getListenAddress();
     listenPort = config.getListenPort();
-    numRequestHandlers = config.getNumRequestHandlers();
+    numRequestHandlers = getNumRequestHandlers(config);
 
     // Construct a unique name for this connection handler, and put
     // together the
@@ -1345,6 +1354,28 @@ public final class LDAPConnectionHandler extends
         // Already finalized - invoked immediately.
         r.run();
       }
+    }
+  }
+
+
+  // Determine the number of request handlers.
+  private int getNumRequestHandlers(LDAPConnectionHandlerCfg configuration)
+  {
+    if (configuration.getNumRequestHandlers() == null)
+    {
+      // Automatically choose based on the number of processors.
+      int cpus = Runtime.getRuntime().availableProcessors();
+      int value = Math.max(2, cpus / 2);
+
+      Message message = INFO_ERGONOMIC_SIZING_OF_REQUEST_HANDLER_THREADS
+          .get(friendlyName, value);
+      logError(message);
+
+      return value;
+    }
+    else
+    {
+      return configuration.getNumRequestHandlers();
     }
   }
 

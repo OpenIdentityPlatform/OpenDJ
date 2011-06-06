@@ -24,7 +24,7 @@
   !
   !
   !      Copyright 2007-2010 Sun Microsystems, Inc.
-  !      Portions Copyright 2010 ForgeRock AS.
+  !      Portions Copyright 2010-2011 ForgeRock AS.
   ! -->
 <adm:managed-object name="local-db-backend"
   plural-name="local-db-backends" package="org.opends.server.admin.std"
@@ -408,7 +408,7 @@
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>10</adm:value>
+        <adm:value>50</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
