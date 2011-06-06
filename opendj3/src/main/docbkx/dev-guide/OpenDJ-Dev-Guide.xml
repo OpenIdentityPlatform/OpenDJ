@@ -52,9 +52,9 @@
  <xinclude:include href='chap-best-practices.xml' />
  <xinclude:include href='chap-get-sdk.xml' />
  <xinclude:include href='chap-using-the-sdk.xml' />
+ <xinclude:include href='chap-authenticating.xml' />
  <xinclude:include href='chap-reading.xml' />
  <xinclude:include href='chap-getting-directory-info.xml' />
- <xinclude:include href='chap-authenticating.xml' />
  <xinclude:include href='chap-writing.xml' />
  <xinclude:include href='chap-ldif.xml' />
  <xinclude:include href='chap-controls.xml' />
@@ -65,13 +65,13 @@
  
  <reference>
   <title>Tools Reference</title>
-  <xinclude:include href='man-authrate.xml' />
-  <xinclude:include href='man-ldapcompare.xml' />
-  <xinclude:include href='man-ldapmodify.xml' />
-  <xinclude:include href='man-ldappasswordmodify.xml' />
-  <xinclude:include href='man-ldapsearch.xml' />
-  <xinclude:include href='man-modrate.xml' />
-  <xinclude:include href='man-searchrate.xml' />
+  <xinclude:include href='../shared/man-authrate.xml' />
+  <xinclude:include href='../shared/man-ldapcompare.xml' />
+  <xinclude:include href='../shared/man-ldapmodify.xml' />
+  <xinclude:include href='../shared/man-ldappasswordmodify.xml' />
+  <xinclude:include href='../shared/man-ldapsearch.xml' />
+  <xinclude:include href='../shared/man-modrate.xml' />
+  <xinclude:include href='../shared/man-searchrate.xml' />
  </reference>
 
  <index />
