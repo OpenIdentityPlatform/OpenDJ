@@ -472,5 +472,24 @@ The LDAP password modify operation was successful</screen>
 Password Is Reset:  true</screen>
   </example>
  </section>
+
+ <section>
+  <title>Configuring Default Settings</title>
+
+  <para>You can use <filename>~/.opendj/tools.properties</filename> to set
+  the defaults for bind DN, host name, and port number as in the following
+  example.</para>
+  <programlisting language="java">hostname=directory.example.com
+port=1389
+bindDN=uid=kvaughan,ou=People,dc=example,dc=com
+
+ldapcompare.port=1389
+ldapdelete.port=1389
+ldapmodify.port=1389
+ldappasswordmodify.port=1389
+ldapsearch.port=1389</programlisting>
+  <para>The location on Windows is
+  <filename>%UserProfile%/.opendj/tools.properties</filename>.</para>
+ </section>
 </chapter>
 
