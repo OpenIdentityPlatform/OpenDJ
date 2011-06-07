@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.opends.quicksetup.util;
@@ -179,7 +180,7 @@ public class UIKeyStore extends KeyStore
   private static String getKeyStorePath()
   {
     return System.getProperty("user.home") + File.separator +
-    ".opends" + File.separator + "gui-keystore";
+    ".opendj" + File.separator + "gui-keystore";
   }
 
   /**
