@@ -31,9 +31,460 @@
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Indexing Attribute Values</title>
 
- <para>OpenDJ provides several indexing schemes to speed up searches.
- This chapter describes how to index attribute values, and lists the
- default indexing configuration for the directory server.</para>
+ <para>OpenDJ provides several indexing schemes to speed up searches.</para>
+ 
+ <para>When a client requests a directory search operation, the client sends
+ the server a filter expression such as
+ <literal>(&amp;(uid=*jensen*)(l=Stavanger))</literal>. The server then uses
+ applicable indexes to find entries with attribute values likely to match
+ the search. If no indexes are applicable, then the server potentially has
+ to go through all entries to look for candidate matches.</para>
+ 
+ <para>Looking through all entries is resource-intensive for large directories.
+ For this reason, the <literal>unindexed-search</literal> privilege, allowing
+ users to request searches for which no applicable index exists, is reserved
+ for the directory root user by default.</para>
+ 
+ <para>Rather than granting the <literal>unindexed-search</literal> privilege
+ to more users and client applications, you configure indexes to correspond
+ to the searches that clients need to perform.</para>
+ 
+ <para>This chapter first describes index types, then demonstrates how to
+ index attribute values. This chapter also lists the default indexing
+ configuration for OpenDJ directory server.</para>
+ 
+ <section>
+  <title>Index Types &amp; What Each Does</title>
+  
+  <para>OpenDJ provides several different index types, each corresponding
+  to a different type of search.</para>
+  
+  <section>
+   <title>Approximate Index</title>
+   
+   <para>An approximate index is used to match values that "sound like" those
+   provided in the filter. An approximate index on <literal>cn</literal>
+   allows clients to find people even when they misspell names as in the
+   following example.</para>
+   
+   <screen width="80">$ ldapsearch -b dc=example,dc=com "(cn~=Babs Jansen)" cn
+dn: uid=bjensen,ou=People,dc=example,dc=com
+cn: Barbara Jensen
+cn: Babs Jensen</screen>
+  </section>
+  
+  <section>
+   <title>Equality Index</title>
+   
+   <para>An equality index is used to match values that correspond exactly
+   (though generally without case sensitivity) to the value provided in
+   the search filter. An equality index requires clients to match values
+   without wildcards or misspellings.</para>
+   
+   <screen width="80">$ ldapsearch -b dc=example,dc=com "(uid=bjensen)" mail
+dn: uid=bjensen,ou=People,dc=example,dc=com
+mail: bjensen@example.com</screen>
+  </section>
+  
+  <section>
+   <title>Ordering Index</title>
+   
+   <para>An ordering index is used to match values for a filter that
+   specifies a range. The <literal>ds-sync-hist</literal> has an ordering
+   index by default because searches on that attribute often seek entries
+   with changes more recent than the last time a search was performed.</para>
+   
+   <para>The following example shows a search that specifies ranges.</para>
+   
+   <screen width="80">$ ldapsearch -b dc=example,dc=com \
+&gt; "(&amp;(uidNumber>=1120)(roomNumber>=4500))" uid
+dn: uid=charvey,ou=People,dc=example,dc=com
+uid: charvey
 
+dn: uid=eward,ou=People,dc=example,dc=com
+uid: eward
+
+dn: uid=mvaughan,ou=People,dc=example,dc=com
+uid: mvaughan
+
+dn: uid=pchassin,ou=People,dc=example,dc=com
+uid: pchassin</screen>
+  </section>
+  
+  <section>
+   <title>Presence Index</title>
+   
+   <para>A presence index is used to match the fact that an attribute is
+   present on the entry, regardless of the value. The <literal>aci</literal>
+   attribute is indexed for presence by default to allow quick retrieval
+   of entries with ACIs.</para>
+   
+   <screen width="80">$ ldapsearch -b dc=example,dc=com "(aci=*)" -
+dn: dc=example,dc=com
+
+dn: ou=People,dc=example,dc=com</screen>
+  </section>
+  
+  <section>
+   <title>Substring Index</title>
+   
+   <para>A substring index is used to match values specified with wildcards
+   in the filter. Substring indexes can be expensive to maintain, especially
+   for large attribute values.</para>
+   
+   <screen width="80">$ ldapsearch -b dc=example,dc=com "(cn=Barb*)" cn
+dn: uid=bfrancis,ou=People,dc=example,dc=com
+cn: Barbara Francis
+
+dn: uid=bhal2,ou=People,dc=example,dc=com
+cn: Barbara Hall
+
+dn: uid=bjablons,ou=People,dc=example,dc=com
+cn: Barbara Jablonski
+
+dn: uid=bjensen,ou=People,dc=example,dc=com
+cn: Barbara Jensen
+cn: Babs Jensen
+
+dn: uid=bmaddox,ou=People,dc=example,dc=com
+cn: Barbara Maddox</screen>
+  </section>
+  
+  <section>
+   <title>Virtual List View (Browsing) Index</title>
+   
+   <para>A VLV or browsing index are designed to help the server respond to
+   client applications that need virtual list view results, for example to
+   browse through a long list in a GUI. They also help the server respond
+   to clients that request server-side sorting of the search results.</para>
+   
+   <para>VLV indexes correspond to particular searches. Configure your
+   VLV indexes using the Control Panel, and copy the command-line
+   equivalent from the Details pane for the operation, if necessary.</para>
+  </section>
+ </section>
+ 
+ <section>
+  <title>Configuring &amp; Rebuilding Indexes</title>
+  
+  <para>You modify index configurations using the <command>dsconfig</command>
+  command. The configuration changes then take effect after you rebuild the
+  index according to the new configuration, using the
+  <command>rebuild-index</command>.</para>
+  
+  <section>
+   <title>Configuring a Standard Index</title>
+   
+   <para>You can configure standard indexes from the Control Panel, and also
+   on the command line using the <command>dsconfig</command> command. After
+   you finish configuring the index, you must rebuild the index for the changes
+   to take effect.</para>
+   
+   <example>
+    <title>Create a New Index</title>
+    
+    <para>The following example creates a new substring index for
+    <literal>description</literal>.</para>
+    
+    <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+&gt; create-local-db-index --backend-name userRoot --index-name description 
+&gt; --set index-type:substring -n</screen>
+   </example>
+   
+   <example>
+    <title>Configure an Approximate Index</title>
+    
+    <para>The following example configures and approximate index for
+    <literal>cn</literal> (common name).</para>
+    
+    <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+&gt; set-local-db-index-prop --backend-name userRoot --index-name cn \
+&gt; --set index-type:approximate -n</screen>
+   </example>
+  </section>
+  
+  <section>
+   <title>Configuring a Virtual List View Index</title>
+   
+   <para>In the OpenDJ Control Panel, select Manage Indexes &gt;
+   New VLV Index..., and then set up your VLV index using the New VLV
+   Index window.</para>
+  
+   <mediaobject>
+    <imageobject>
+     <imagedata fileref="images/create-vlv-index.png" format="PNG" />
+    </imageobject>
+   </mediaobject>  
+
+   <para>After you finish configuring your index and click OK, the Control
+   Panel prompts you to make the additional changes necessary to complete the
+   VLV index configuration, and then to build the index.</para>
+  </section>
+
+  <section>
+   <title>Rebuilding Indexes</title>
+   
+   <para>After you change an index configuration, or when you find that
+   an index is corrupt, you can rebuild the index. If you rebuild the index
+   while the server is online, then you must schedule the rebuild process
+   as a task.</para>
+   
+   <example>
+    <title>Rebuild Index</title>
+
+    <para>The following example rebuilds the <literal>cn</literal> index
+    immediately with the server online.</para>
+    
+    <screen>$ rebuild-index -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+&gt; -b dc=example,dc=com -i cn -t 0
+Rebuild Index task 20110607171639867 scheduled to start Jun 7, 2011 5:16:39 PM</screen>
+   </example>
+  </section>
+
+  <section>
+   <title>Changing Index Entry Limits</title>
+   
+   <para>Indexing data makes sense when maintaining the index is quicker and
+   cheaper than searching through all entries.</para>
+   
+   <para>As the number of entries in your directory grows, it can make sense
+   not to maintain indexes for particular values. For example, every entry
+   in the directory has the value <literal>top</literal> for the
+   <literal>objectClass</literal> attribute, so maintaining a list of entries
+   that match the filter <literal>(objectClass=top)</literal> is not a
+   reasonable use of resources. In a very, very large directory, the same can
+   be true for <literal>(givenName=John)</literal> and
+   <literal>(sn=Smith)</literal>.</para>
+   
+   <para>In an index, each index key points to a list of entries that
+   are candidates to match. For the <literal>objectClass</literal> index key
+   that corresponds to <literal>=top</literal>, the list of entries can
+   include every entry in the directory.</para>
+   
+   <para>OpenDJ directory server therefore defines an index entry limit. When
+   the number of entries that an index key points to exceeds the index entry
+   limit, OpenDJ stops maintaining the list of entries for that index key.</para>
+   
+   <para>The default index entry limit value is 4000. 4000 is usually plenty
+   large for all index keys, except for <literal>objectClass</literal> indexes.
+   If you have clients performing searches with filters such as
+   <literal>(objectClass=person)</literal>, you might suggest that they adjust
+   the search to be more specific, such as
+   <literal>(&amp;(mail=username@maildomain.net)(objectClass=person))</literal>,
+   so that the server can use an index, in this case equality for mail, to
+   limit the number of candidate entries to check for matches.</para>
+
+   <para>You can change the index entry limit on a per index basis.</para>
+   
+   <example>
+    <title>Change Index Entry Limit</title>
+    
+    <para>The following example changes the index entry limit for the
+    <literal>objectClass</literal> index, and then rebuilds the index for the
+    configuration change to take effect.</para>
+    
+    <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+&gt; set-local-db-index-prop --backend-name userRoot --index-name objectClass \
+&gt; --set index-entry-limit:5000 -n
+$ rebuild-index -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+&gt; -b dc=example,dc=com -i objectclass -t 0
+Rebuild Index task 20110607160349596 scheduled to start Jun 7, 2011 4:03:49 PM</screen>    
+   </example>
+  </section>
+ </section>
+
+ <section>
+  <title>Verifying Indexes</title>
+  
+  <para>You can verify that indexes correspond to current directory data,
+  and that indexes do not contain errors using the
+  <command>verify-index</command> command.</para>
+  
+  <example>
+   <title>Verify Index</title>
+   
+   <para>The following example verifies the <literal>cn</literal> (common
+   name) index for completeness and for errors.</para>
+
+   <screen width="80">$ verify-index -b dc=example,dc=com -i cn --clean --countErrors
+[07/Jun/2011:16:06:50 +0200] category=BACKEND severity=INFORMATION
+ msgID=9437595 msg=Local DB backend userRoot does not specify the number of
+ lock tables: defaulting to 97
+[07/Jun/2011:16:06:50 +0200] category=BACKEND severity=INFORMATION
+ msgID=9437594 msg=Local DB backend userRoot does not specify the number of
+ cleaner threads: defaulting to 24 threads
+[07/Jun/2011:16:06:51 +0200] category=JEB severity=NOTICE msgID=8847461
+ msg=Checked 1316 records and found 0 error(s) in 0 seconds
+ (average rate 2506.7/sec)
+[07/Jun/2011:16:06:51 +0200] category=JEB severity=INFORMATION
+ msgID=8388710 msg=Number of records referencing more than one entry: 315
+[07/Jun/2011:16:06:51 +0200] category=JEB severity=INFORMATION
+ msgID=8388711 msg=Number of records that exceed the entry limit: 0
+[07/Jun/2011:16:06:51 +0200] category=JEB severity=INFORMATION
+ msgID=8388712 msg=Average number of entries referenced is 1.58/record
+[07/Jun/2011:16:06:51 +0200] category=JEB severity=INFORMATION
+ msgID=8388713 msg=Maximum number of entries referenced by any
+ record is 32</screen>
+  </example>
+ </section>
+ 
+ <section>
+  <title>Default Indexes</title>
+  
+  <para>When you first install OpenDJ directory server and import your
+  data from LDIF, the following indexes are configured.</para>
+  
+  <table frame="topbot" rowheader="firstcol">
+   <title>Default Indexes</title>
+   <tgroup cols="7" rowsep="1">
+   <colspec colnum="2" colname="c2" />
+   <colspec colnum="7" colname="c7" />
+    <thead>
+     <row>
+      <entry>Index</entry>
+      <entry>Approximate</entry>
+      <entry>Equality</entry>
+      <entry>Ordering</entry>
+      <entry>Presence</entry>
+      <entry>Substring</entry>
+      <entry>Entry Limit</entry>
+     </row>
+    </thead>
+    <tbody>
+     <row>
+      <entry><literal>aci</literal></entry>
+      <entry>-</entry>
+      <entry>-</entry>
+      <entry>-</entry>
+      <entry>Yes</entry>
+      <entry>-</entry>
+      <entry>4000</entry>
+     </row>
+     <row>
+      <entry><literal>cn</literal></entry>
+      <entry>-</entry>
+      <entry>Yes</entry>
+      <entry>-</entry>
+      <entry>-</entry>
+      <entry>Yes</entry>
+      <entry>4000</entry>
+     </row>
+     <row>
+      <entry><literal>dn2id</literal></entry>
+      <entry namest="c2" nameend="c7" align="center">Non-configurable
+      internal index</entry>
+     </row>
+     <row>
+      <entry><literal>ds-sync-conflict</literal></entry>
+      <entry>-</entry>
+      <entry>Yes</entry>
+      <entry>-</entry>
+      <entry>-</entry>
+      <entry>-</entry>
+      <entry>4000</entry>
+     </row>
+     <row>
+      <entry><literal>ds-sync-hist</literal></entry>
+      <entry>-</entry>
+      <entry>-</entry>
+      <entry>Yes</entry>
+      <entry>-</entry>
+      <entry>-</entry>
+      <entry>4000</entry>
+     </row>
+     <row>
+      <entry><literal>entryUUID</literal></entry>
+      <entry>-</entry>
+      <entry>Yes</entry>
+      <entry>-</entry>
+      <entry>-</entry>
+      <entry>-</entry>
+      <entry>4000</entry>
+     </row>
+     <row>
+      <entry><literal>givenName</literal></entry>
+      <entry>-</entry>
+      <entry>Yes</entry>
+      <entry>-</entry>
+      <entry>-</entry>
+      <entry>Yes</entry>
+      <entry>4000</entry>
+     </row>
+     <row>
+      <entry><literal>id2children</literal></entry>
+      <entry namest="c2" nameend="c7" align="center">Non-configurable
+      internal index</entry>
+     </row>
+     <row>
+      <entry><literal>id2subtree</literal></entry>
+      <entry namest="c2" nameend="c7" align="center">Non-configurable
+      internal index</entry>
+     </row>
+     <row>
+      <entry><literal>mail</literal></entry>
+      <entry>-</entry>
+      <entry>Yes</entry>
+      <entry>-</entry>
+      <entry>-</entry>
+      <entry>Yes</entry>
+      <entry>4000</entry>
+     </row>
+     <row>
+      <entry><literal>member</literal></entry>
+      <entry>-</entry>
+      <entry>Yes</entry>
+      <entry>-</entry>
+      <entry>-</entry>
+      <entry>-</entry>
+      <entry>4000</entry>
+     </row>
+     <row>
+      <entry><literal>objectClass</literal></entry>
+      <entry>-</entry>
+      <entry>Yes</entry>
+      <entry>-</entry>
+      <entry>-</entry>
+      <entry>-</entry>
+      <entry>4000</entry>
+     </row>
+     <row>
+      <entry><literal>sn</literal></entry>
+      <entry>-</entry>
+      <entry>Yes</entry>
+      <entry>-</entry>
+      <entry>-</entry>
+      <entry>Yes</entry>
+      <entry>4000</entry>
+     </row>
+     <row>
+      <entry><literal>telephoneNumber</literal></entry>
+      <entry>-</entry>
+      <entry>Yes</entry>
+      <entry>-</entry>
+      <entry>-</entry>
+      <entry>Yes</entry>
+      <entry>4000</entry>
+     </row>
+     <row>
+      <entry><literal>uid</literal></entry>
+      <entry>-</entry>
+      <entry>Yes</entry>
+      <entry>-</entry>
+      <entry>-</entry>
+      <entry>-</entry>
+      <entry>4000</entry>
+     </row>
+     <row>
+      <entry><literal>uniqueMember</literal></entry>
+      <entry>-</entry>
+      <entry>Yes</entry>
+      <entry>-</entry>
+      <entry>-</entry>
+      <entry>-</entry>
+      <entry>4000</entry>
+     </row>
+    </tbody>
+   </tgroup>
+  </table>
+ </section>
 </chapter>
-
