@@ -94,7 +94,7 @@ public class ToolConstants
    * The name of the opends configuration direction in the user
    * home directory.
    */
-  public static final String DEFAULT_OPENDS_CONFIG_DIR = ".opends";
+  public static final String DEFAULT_OPENDS_CONFIG_DIR = ".opendj";
 
   /**
    * The default properties file name.
