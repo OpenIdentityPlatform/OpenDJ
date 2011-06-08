@@ -102,6 +102,7 @@
     <dbstyle-dir>${basedir}/src/main/docbkx-stylesheets</dbstyle-dir>
     <docbkx-out>${basedir}/target/docbkx</docbkx-out>
     <site-out>${basedir}/target/site</site-out>
+    <legalnotice>${docbkx-out}/html/legalnotice.html</legalnotice>
   </properties>
   <build>
     <plugins>
@@ -217,10 +218,18 @@
               <detail>true</detail>
               <target>
         <!-- TODO: Figure out how to say foreach in ant. -->
-                <copy file='${env.PWD}/legalnotice.html' todir='${basedir}/target/docbkx/html/admin-guide' />
-                <copy file='${env.PWD}/legalnotice.html' todir='${basedir}/target/docbkx/html/dev-guide' />
-                <copy file='${env.PWD}/legalnotice.html' todir='${basedir}/target/docbkx/html/install-guide' />
-                <move file='${env.PWD}/legalnotice.html' todir='${basedir}/target/docbkx/html/release-notes' />
+                <copy file='${legalnotice}' todir='${basedir}/target/docbkx/html/admin-guide' />
+                <copy file='${legalnotice}' todir='${basedir}/target/docbkx/html/dev-guide' />
+                <copy file='${legalnotice}' todir='${basedir}/target/docbkx/html/install-guide' />
+                <copy file='${legalnotice}' todir='${basedir}/target/docbkx/html/release-notes' />
+              </target>
+              <target>
+                <replace
+                  dir="${basedir}/target/docbkx/html/"
+                  token="target/docbkx/html/legalnotice.html"
+                  value="legalnotice.html">
+                  <include name="**/**/*.html" />
+                </replace>
               </target>
             </configuration>
           </execution>
