@@ -203,7 +203,7 @@ uidNumber: 1076
     to directory data that the client wants to lookup or change.</para>
    </listitem>
    <listitem>
-    <para>Search (lookup). After binding, the client can request the server to
+    <para>Search (lookup). After binding, the client can request that the server
     return entries based on an LDAP filter, which is an expression that the
     server uses to find entries that match the request, and a base DN under
     which to search. For example, to lookup all entries for people with email
@@ -211,6 +211,11 @@ uidNumber: 1076
     you would specify a base DN such as
     <literal>ou=People,dc=example,dc=com</literal> and the filter
     <literal>(mail=bjensen@example.com)</literal>.</para>
+   </listitem>
+   <listitem>
+    <para>Compare. After binding, the client can request that the server
+    compare an attribute value the client specifies with the value stored
+    on an entry in the directory.</para>
    </listitem>
    <listitem>
     <para>Modify. After binding, the client can request that the server
