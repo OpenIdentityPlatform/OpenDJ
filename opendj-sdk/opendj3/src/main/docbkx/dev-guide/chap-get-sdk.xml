@@ -29,27 +29,27 @@
  xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <title>Getting OpenDJ SDK</title>
+ <title>Getting OpenDJ LDAP SDK</title>
 
- <para>This chapter introduces OpenDJ SDK, demonstrating how to get the
+ <para>This chapter introduces OpenDJ LDAP SDK, demonstrating how to get the
  software and to build a first basic directory client application.</para>
  
  <!-- TODO: Mavenized SDK, where to find the Javadoc. -->
 
  <section>
-  <title>About OpenDJ SDK</title>
+  <title>About OpenDJ LDAP SDK</title>
   
-  <para>OpenDJ SDK provides a set of modern, developer-friendly Java APIs
+  <para>OpenDJ LDAP SDK provides a set of modern, developer-friendly Java APIs
   as part of the OpenDJ product suite. The product suite includes the client
   SDK alongside command-line tools and sample code, a 100% pure Java directory
-  server, and more. You can use OpenDJ SDK to create client applications for
+  server, and more. You can use OpenDJ LDAP SDK to create client applications for
   use with any server that complies with the <citetitle>Lightweight Directory
   Access Protocol (LDAP): Technical Specification Road Map</citetitle>,
   <link xlink:href='http://tools.ietf.org/html/rfc4510'>RFC 4510</link>.</para>
   
-  <para>OpenDJ SDK brings you easy-to-use connection management, connection
+  <para>OpenDJ LDAP SDK brings you easy-to-use connection management, connection
   pooling, load balancing, and all the standard LDAP operations to read and
-  write directory entries. OpenDJ SDK also lets you build applications with
+  write directory entries. OpenDJ LDAP SDK also lets you build applications with
   capabilities defined in additional draft and experimental RFCs that are
   supported by modern LDAP servers.</para>
  </section>
@@ -65,18 +65,18 @@
  </section>
 
  <section>
-  <title>Getting the SDK</title>
+  <title>Getting the LDAP SDK</title>
 
   <para>You can either install a build or build your own from source.</para>  
 
   <task xml:id='install-stable-sdk'>
-   <title>To Install the Latest Stable OpenDJ SDK</title>
+   <title>To Install the Latest Stable OpenDJ LDAP SDK</title>
    
    <taskprerequisites>
-    <para>Before you either download a build of OpenDJ SDK, or get the source
-    code to build your own SDK, make sure you have a Java Development Kit
-    installed. OpenDJ SDK relies on Java 6 or later. You can check for Java 6
-    by running the following command.</para>
+    <para>Before you either download a build of OpenDJ LDAP SDK, or get the
+    source code to build your own SDK, make sure you have a Java Development Kit
+    installed. OpenDJ LDAP SDK relies on Java 6 or later. You can check for
+    Java 6 by running the following command.</para>
 
     <screen width="80">$ java -version
 java version "1.6.0_24"
@@ -88,47 +88,49 @@ Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
     <step>
      <para>Download the <link
      xlink:href='http://builds.forgerock.org/job/OpenDJ3/lastStableBuild/org.forgerock.opendj$opendj-ldap-toolkit/artifact/org.forgerock.opendj/opendj-ldap-toolkit/3.0.0-SNAPSHOT/opendj-ldap-toolkit-3.0.0-SNAPSHOT.zip'
-     >latest stable OpenDJ SDK and tools bundle</link>.</para>
+     >latest stable OpenDJ LDAP SDK and tools bundle</link>.</para>
     </step>
     <step>
      <para>Download the <link
      xlink:href='http://builds.forgerock.org/job/OpenDJ3/lastStableBuild/org.forgerock.opendj$opendj-ldap-sdk/artifact/org.forgerock.opendj/opendj-ldap-sdk/3.0.0-SNAPSHOT/opendj-ldap-sdk-3.0.0-SNAPSHOT-javadoc.jar'
-     >latest stable version of the OpenDJ SDK documentation</link>
+     >latest stable version of the OpenDJ LDAP SDK documentation</link>
      (javadoc).</para>
     </step>
     <step>
-     <para>Unzip the bundle, <filename>opendj-client-tools-<?eval
+     <para>Unzip the bundle, <filename>opendj-ldap-toolkit-<?eval
      ${project.version} ?>.zip</filename>, where you want to install the
      SDK.</para>
-     <screen width="80">$ unzip opendj-client-tools-<?eval ${project.version} ?>.zip</screen>
+     <screen width="80">$ unzip opendj-ldap-toolkit-<?eval ${project.version} ?>.zip</screen>
     </step>
     <step>
-     <para>Unpack the OpenDJ SDK documentation, <filename>opendj-sdk-<?eval
+     <para>Unpack the OpenDJ LDAP SDK documentation, <filename>opendj-ldap-sdk-<?eval
      ${project.version} ?>-javadoc.jar</filename>, under the SDK install
      directory.</para>
-     <screen width="80">$ mkdir opendj-client-tools-<?eval ${project.version} ?>/javadoc
- $ cd opendj-client-tools-<?eval ${project.version} ?>/javadoc
- $ jar -xf /path/to/opendj-sdk-<?eval ${project.version} ?>-javadoc.jar</screen>
+     <screen width="80">$ mkdir opendj-ldap-toolkit-<?eval ${project.version} ?>/javadoc
+ $ cd opendj-ldap-toolkit-<?eval ${project.version} ?>/javadoc
+ $ jar -xf /path/to/opendj-ldap-sdk-<?eval ${project.version} ?>-javadoc.jar</screen>
      </step>
      <step>
       <para>Add the tools to your PATH.</para>
       <screen width="80">(UNIX)
- $ export PATH=/path/to/opendj-client-tools-<?eval ${project.version} ?>/bin:$PATH</screen>
+ $ export PATH=/path/to/opendj-ldap-toolkit-<?eval ${project.version} ?>/bin:$PATH</screen>
          <screen width="80">(Windows)
- C:\>set PATH=\\path\to\opendj-client-tools-<?eval ${project.version} ?>\bat:%PATH%</screen>
+ C:\>set PATH=\\path\to\opendj-ldap-toolkit-<?eval ${project.version} ?>\bat:%PATH%</screen>
      </step>
      <step>
-      <para> Add the OpenDJ SDK for the APIs and Grizzly framework for the
+      <para> Add the OpenDJ LDAP SDK for the APIs,the I18N core library and Grizzly framework for the
       transport to your CLASSPATH, typically found under
-      <filename>opendj-client-tools-<?eval ${project.version}
+      <filename>opendj-ldap-toolkit-<?eval ${project.version}
       ?>/lib/</filename>.</para>
       <screen width="80">(UNIX)
- $ export CLASSPATH=/path/to/lib/grizzly-framework-2.0.0-RC3.jar:$CLASSPATH
- $ export CLASSPATH=/path/to/lib/opendj-sdk-<?eval ${project.version} ?>.jar:$CLASSPATH
+ $ export CLASSPATH=/path/to/lib/grizzly-framework-2.1.1.jar:$CLASSPATH
+ $ export CLASSPATH=/path/to/lib/i18n-core-1.2.0.jar:$CLASSPATH
+ $ export CLASSPATH=/path/to/lib/opendj-ldap-sdk-<?eval ${project.version} ?>.jar:$CLASSPATH
       </screen>
       <screen width="80">(Windows)
- C:\>set CLASSPATH=\\path\to\lib\grizzly-framework-2.0.0-RC3.jar:%CLASSPATH%
- C:\>set CLASSPATH=\\path\to\lib\opendj-sdk-<?eval ${project.version} ?>.jar:%CLASSPATH%</screen>
+ C:\>set CLASSPATH=\\path\to\lib\grizzly-framework-2.1.1.jar:%CLASSPATH%
+ C:\>set CLASSPATH=\\path\to\lib\i18n-core-1.2.0.jar:%CLASSPATH%
+ C:\>set CLASSPATH=\\path\to\lib\opendj-ldap-sdk-<?eval ${project.version} ?>.jar:%CLASSPATH%</screen>
      </step>
    </procedure>
   </task>
@@ -137,9 +139,9 @@ Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
    <title>To Build Your Own SDK From Source</title>
    
    <taskprerequisites>
-    <para>Before you either download a build of OpenDJ SDK, or get the source
+    <para>Before you either download a build of OpenDJ LDAP SDK, or get the source
     code to build your own SDK, make sure you have a Java Development Kit
-    installed. OpenDJ SDK relies on Java 6 or later. You can check for Java 6
+    installed. OpenDJ LDAP SDK relies on Java 6 or later. You can check for Java 6
     by running the following command.</para>
 
     <screen width="80">$ java -version
@@ -152,7 +154,6 @@ Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
    </taskprerequisites>
 
    <procedure xml:id='proc-roll-your-own-sdk'>
-    <title>To build your own SDK from source</title>
     <step>
      <para>Check out the source code.</para>
      <screen width="80">$ svn co https://svn.forgerock.org/opendj/trunk/opendj3
@@ -166,60 +167,61 @@ Certificate information:
  - Fingerprint: 73:96:5c:68:2c:f3:57:0e:e9:ee:6d:74:08:1b:34:16:53:b8:bd:39
 (R)eject, accept (t)emporarily or accept (p)ermanently? p
 ...
-A    opendj3/pom.xml
 A    opendj3/README
-Checked out revision 6777.</screen>
-      </step>
-      <step>
-        <para>
-          Build the modules and install them in the local repository.
-          </para>
-        <screen width="80">$ cd opendj3/
+ U   opendj3
+Checked out revision 6985.</screen>
+    </step>
+    <step>
+      <para>
+        Build the modules and install them in the local repository.
+      </para>
+    <screen width="80">$ cd opendj3/
 $ mvn install
 [INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
 [INFO] Reactor build order:
-[INFO]   OpenDJ Project
-[INFO]   OpenDJ Build Tools
-[INFO]   OpenDJ Maven Plugin
-[INFO]   OpenDJ TestNG Support
-[INFO]   OpenDJ Modules
-[INFO]   OpenDJ SDK
-[INFO]   OpenDJ Client Tools
+[INFO] 
+[INFO] OpenDJ Directory Services Project
+[INFO] OpenDJ Maven Build Tools
+[INFO] OpenDJ LDAP SDK
+[INFO] OpenDJ LDAP Toolkit
+[INFO] OpenDJ LDAP SDK Examples
 ...
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESSFUL
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time: 15 minutes 11 seconds
-[INFO] Finished at: Wed Mar 16 16:07:54 CET 2011
-[INFO] Final Memory: 54M/136M
+[INFO] Total time: 56.658s
+[INFO] Finished at: Wed Jun 08 09:19:57 CEST 2011
+[INFO] Final Memory: 27M/87M
 [INFO] ------------------------------------------------------------------------</screen>
     </step>
     <step>
      <para>Unzip the tools and libraries included in the file,
-     <filename>opendj3/opendj-modules/opendj-client-tools/target/opendj-client-tools-<?eval
+     <filename>opendj3/opendj-ldap-toolkit/target/opendj-ldap-toolkit-<?eval
      ${project.version} ?>.zip</filename>.</para>
     </step>
     <step>
-     <para>Add the <filename>opendj-client-tools-<?eval ${project.version}
-        ?>/bin</filename> (UNIX) or <filename>opendj-client-tools-<?eval
+     <para>Add the <filename>opendj-ldap-toolkit-<?eval ${project.version}
+        ?>/bin</filename> (UNIX) or <filename>opendj-ldap-toolkit-<?eval
      ${project.version} ?>\bat</filename> (Windows) directory to your
      PATH.</para>
     </step>
     <step>
-     <para>Set your CLASSPATH to include the OpenDJ SDK library,
-     <filename>opendj-sdk-<?eval ${project.version} ?>.jar</filename>, and the Grizzly
-     framework, <filename>grizzly-framework-2.0.0-RC3.jar</filename>,
-     under <filename>opendj-client-tools-<?eval ${project.version} ?>/lib/</filename>.</para>
+     <para>Set your CLASSPATH to include the OpenDJ LDAP SDK library,
+     <filename>opendj-ldap-sdk-<?eval ${project.version} ?>.jar</filename>, 
+     the I18N core library, <filename>i18n-core-1.2.0.jar</filename>, and the Grizzly
+     framework, <filename>grizzly-framework-2.1.1.jar</filename>,
+     under <filename>opendj-ldap-toolkit-<?eval ${project.version} ?>/lib/</filename>.</para>
     </step>
     <step>
-     <para>Find the OpenDJ SDK documentation under <link
-     xlink:href='file:///path/to/opendj3/opendj-modules/opendj-sdk/target/apidocs/index.html'
-     >file:///path/to/opendj3/opendj-modules/opendj-sdk/target/apidocs/index.html</link>.</para>
+     <para>Find the OpenDJ LDAP SDK documentation under <link
+     xlink:href='file:///path/to/opendj3/opendj-ldap-sdk/target/apidocs/index.html'
+     >file:///path/to/opendj3/opendj-ldap-sdk/target/apidocs/index.html</link>.</para>
     </step>
    </procedure>
   </task>
 
-  <para>After you install OpenDJ SDK and configure your environment as
+  <para>After you install OpenDJ LDAP SDK and configure your environment as
   described, if you have a directory server running import sample data,
   and test your configuration with a sample client application.</para>
 
@@ -228,9 +230,9 @@ $ mvn install
 //  If your LDAP server is not listening on localhost:1389, or if your
 //  data are different change the appropriate lines below.
 
-import org.opendj.sdk.*;
-import org.opendj.sdk.ldif.*;
-import org.opendj.sdk.responses.*;
+import org.forgerock.opendj.sdk.*;
+import org.forgerock.opendj.sdk.ldif.*;
+import org.forgerock.opendj.sdk.responses.*;
 
 class Test
 {
