@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2010 ForgeRock AS.
+ *      Portions Copyright 2010-2011 ForgeRock AS.
  */
 package org.opends.server.replication.server;
 
@@ -47,16 +47,20 @@ public class ReplicationData extends DatabaseEntry
    * Creates a new ReplicationData object from an UpdateMsg.
    *
    * @param change the UpdateMsg used to create the ReplicationData.
-   *
-   * @throws UnsupportedEncodingException When the encoding of the message
-   *         failed because the UTF-8 encoding is not supported.
    */
   public ReplicationData(UpdateMsg change)
-         throws UnsupportedEncodingException
   {
     // Always keep messages in the replication DB with the current protocol
     // version
-    this.setData(change.getBytes());
+    try
+    {
+      this.setData(change.getBytes());
+    }
+    catch (UnsupportedEncodingException e)
+    {
+      // This should not happen - UTF-8 is always available.
+      throw new RuntimeException(e);
+    }
   }
 
   /**

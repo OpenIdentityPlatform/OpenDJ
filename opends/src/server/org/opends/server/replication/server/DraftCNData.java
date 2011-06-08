@@ -23,9 +23,11 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2010 ForgeRock AS.
+ *      Portions Copyright 2010-2011 ForgeRock AS.
  */
 package org.opends.server.replication.server;
+
+import static org.opends.server.util.StaticUtils.getBytes;
 
 import java.io.UnsupportedEncodingException;
 
@@ -53,29 +55,14 @@ public class DraftCNData extends DatabaseEntry
    * @param value The value (cookie).
    * @param serviceID The serviceID (domain DN).
    * @param changeNumber The replication change number.
-   *
-   * @throws UnsupportedEncodingException When the encoding of the message
-   *         failed because the UTF-8 encoding is not supported.
    */
   public DraftCNData(int draftCN, String value,
       String serviceID, ChangeNumber changeNumber)
-  throws UnsupportedEncodingException
   {
     String record = value
                    + FIELD_SEPARATOR + serviceID
                    + FIELD_SEPARATOR + changeNumber;
-
-    byte[] byteValue;
-    try
-    {
-      byteValue = record.getBytes("UTF-8");
-      this.setData(byteValue);
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      // can't happen
-      return;
-    }
+    setData(getBytes(record));
   }
 
   /**
