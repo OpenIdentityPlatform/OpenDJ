@@ -40,16 +40,8 @@ import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 
-import com.sleepycat.je.Cursor;
-import com.sleepycat.je.Database;
-import com.sleepycat.je.DatabaseConfig;
-import com.sleepycat.je.DatabaseEntry;
-import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.Environment;
-import com.sleepycat.je.EnvironmentConfig;
-import com.sleepycat.je.LockMode;
-import com.sleepycat.je.OperationStatus;
-import com.sleepycat.je.Transaction;
+import com.sleepycat.je.*;
+
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -92,9 +84,23 @@ public class ReplicationDbEnv
      */
     envConfig.setAllowCreate(true);
     envConfig.setTransactional(true);
-    envConfig.setConfigParam("je.cleaner.expunge", "true");
     envConfig.setConfigParam("je.cleaner.threads", "2");
     envConfig.setConfigParam("je.checkpointer.highPriority", "true");
+
+    // If the JVM is reasonably large then we can safely default to
+    // bigger read buffers. This will result in more scalable checkpointer
+    // and cleaner performance.
+    if (Runtime.getRuntime().maxMemory() > 256 * 1024 * 1024)
+    {
+      envConfig.setConfigParam("je.cleaner.lookAheadCacheSize", String
+          .valueOf(2 * 1024 * 1024));
+
+      envConfig.setConfigParam("je.log.iteratorReadSize", String
+          .valueOf(2 * 1024 * 1024));
+
+      envConfig.setConfigParam("je.log.faultReadSize", String
+          .valueOf(4 * 1024));
+    }
 
     // Tests have shown that since the parsing of the Replication log is always
     // done sequentially, it is not necessary to use a large DB cache.
@@ -103,9 +109,14 @@ public class ReplicationDbEnv
 
     // Since records are always added at the end of the Replication log and
     // deleted at the beginning of the Replication log, this should never
-    // cause any deadlock. It is therefore safe to increase the TXN timeout
-    // to 10 seconds.
-    envConfig.setTxnTimeout(10, TimeUnit.SECONDS);
+    // cause any deadlock.
+    envConfig.setTxnTimeout(0, TimeUnit.SECONDS);
+    envConfig.setLockTimeout(0, TimeUnit.SECONDS);
+
+    // Since replication provides durability, we can reduce the DB durability
+    // level so that we are immune to application / JVM crashes.
+    envConfig.setDurability(Durability.COMMIT_WRITE_NO_SYNC);
+
     dbEnvironment = new Environment(new File(path), envConfig);
 
     /*
@@ -120,7 +131,6 @@ public class ReplicationDbEnv
 
     stateDb = dbEnvironment.openDatabase(null, "changelogstate", dbConfig);
     start();
-
   }
 
   /**
@@ -316,7 +326,7 @@ public class ReplicationDbEnv
               TRACER.debugInfo("getOrAddDb() Created in the state Db record " +
                 " serverId/Domain=<"+stringId+">");
             stateDb.put(txn, key, data);
-            txn.commitWriteNoSync();
+            txn.commit(Durability.COMMIT_WRITE_NO_SYNC);
           } catch (DatabaseException dbe)
           {
             // Abort the txn and propagate the Exception to the caller
@@ -347,7 +357,7 @@ public class ReplicationDbEnv
                   "Created in the state Db record Tag/Domain/GenId key=" +
                   stringId + " value=" + dataStringId);
             stateDb.put(txn, key, data);
-            txn.commitWriteNoSync();
+            txn.commit(Durability.COMMIT_WRITE_NO_SYNC);
           } catch (DatabaseException dbe)
           {
             // Abort the txn and propagate the Exception to the caller
@@ -432,7 +442,7 @@ public class ReplicationDbEnv
           try
           {
             stateDb.delete(txn, key);
-            txn.commitWriteNoSync();
+            txn.commit(Durability.COMMIT_WRITE_NO_SYNC);
             if (debugEnabled())
               TRACER.debugInfo(
                 "In " + this.replicationServer.getMonitorInstanceName() +
@@ -495,7 +505,7 @@ public class ReplicationDbEnv
           try {
             data.setData(byteId);
             stateDb.delete(txn, key);
-            txn.commitWriteNoSync();
+            txn.commit(Durability.COMMIT_WRITE_NO_SYNC);
             if (debugEnabled())
               TRACER.debugInfo(
                   " In " + this.replicationServer.getMonitorInstanceName() +
@@ -532,7 +542,7 @@ public class ReplicationDbEnv
       {
         txn = dbEnvironment.beginTransaction(null, null);
         dbEnvironment.truncateDatabase(txn, databaseName, false);
-        txn.commitWriteNoSync();
+        txn.commit(Durability.COMMIT_WRITE_NO_SYNC);
         txn = null;
       }
       catch (DatabaseException e)

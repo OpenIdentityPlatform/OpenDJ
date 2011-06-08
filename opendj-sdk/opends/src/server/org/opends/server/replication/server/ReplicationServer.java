@@ -32,6 +32,7 @@ import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.ServerConstants.EOL;
 import static org.opends.server.util.StaticUtils.getFileForPath;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.io.File;
 import java.io.IOException;
@@ -992,7 +993,7 @@ public final class ReplicationServer
    * @return  The time after which changes must be deleted from the
    *          persistent storage (in milliseconds).
    */
-  long getTrimage()
+  long getTrimAge()
   {
     return purgeDelay * 1000;
   }
@@ -2000,6 +2001,26 @@ public final class ReplicationServer
     {
       return new ArrayList<ReplicationServerDomain>(baseDNs.values());
     }
+  }
+
+
+
+  /**
+   * Shuts down replication when an unexpected database exception occurs. Note
+   * that we do not expect lock timeouts or txn timeouts because the replication
+   * databases are deadlock free, thus all operations should complete
+   * eventually.
+   *
+   * @param e
+   *          The unexpected database exception.
+   */
+  void handleUnexpectedDatabaseException(DatabaseException e)
+  {
+    MessageBuilder mb = new MessageBuilder();
+    mb.append(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR.get());
+    mb.append(stackTraceToSingleLineString(e));
+    logError(mb.toMessage());
+    shutdown();
   }
 
 }
