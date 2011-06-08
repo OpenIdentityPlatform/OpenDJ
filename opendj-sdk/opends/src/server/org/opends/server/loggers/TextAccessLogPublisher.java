@@ -631,6 +631,13 @@ public class TextAccessLogPublisher extends
     StringBuilder buffer = new StringBuilder(100);
     appendHeader(bindOperation, "BIND", CATEGORY_REQUEST, buffer);
 
+    final String protocolVersion = bindOperation.getProtocolVersion();
+    if (protocolVersion != null)
+    {
+      buffer.append(" version=");
+      buffer.append(protocolVersion);
+    }
+
     switch (bindOperation.getAuthenticationType())
     {
     case SIMPLE:
@@ -1087,7 +1094,7 @@ public class TextAccessLogPublisher extends
     String oid = extendedOperation.getRequestOID();
     StringBuilder buffer = new StringBuilder(100);
     appendHeader(extendedOperation, "EXTENDED", CATEGORY_REQUEST, buffer);
-    ExtendedOperationHandler extOpHandler =
+    ExtendedOperationHandler<?> extOpHandler =
       DirectoryServer.getExtendedOperationHandler(oid);
     if (extOpHandler != null) {
       name = extOpHandler.getExtendedOperationName();
@@ -1133,7 +1140,7 @@ public class TextAccessLogPublisher extends
     String oid = extendedOperation.getResponseOID();
     if (oid != null)
     {
-      ExtendedOperationHandler extOpHandler =
+      ExtendedOperationHandler<?> extOpHandler =
         DirectoryServer.getExtendedOperationHandler(oid);
       if (extOpHandler != null) {
         name = extOpHandler.getExtendedOperationName();
