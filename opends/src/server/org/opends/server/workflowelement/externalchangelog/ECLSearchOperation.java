@@ -1192,42 +1192,6 @@ public class ECLSearchOperation
         operationalAttrs.put(aType, attrList);
       else
         uAttrs.put(aType, attrList);
-
-      if (draftChangenumber>0)
-      {
-        // compat mode
-        if((aType = DirectoryServer.getAttributeType("targetuniqueid")) == null)
-          aType = DirectoryServer.getDefaultAttributeType("targetUniqueID");
-        String dseeValue = null;
-        try
-        {
-          dseeValue = ECLSearchOperation.openDsToSunDseeNsUniqueId(targetUUID);
-        }
-        catch(Exception e)
-        {
-          Message errMessage =
-            NOTE_ERR_ENTRY_UID_DSEE_MAPPING.get(
-                targetDN.toNormalizedString(),
-                targetUUID,
-                e.getLocalizedMessage());
-          logError(errMessage);
-          if (debugEnabled())
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        // If the mapping fails, we don't want to stop the operation
-        // or not return this entry.
-        if (dseeValue != null)
-        {
-          a = Attributes.create(aType, dseeValue);
-          attrList = new ArrayList<Attribute>(1);
-          attrList.add(a);
-          if(aType.isOperational())
-            operationalAttrs.put(aType, attrList);
-          else
-            uAttrs.put(aType, attrList);
-        }
-      }
     }
 
     if((aType = DirectoryServer.getAttributeType("changelogcookie")) == null)
@@ -1311,32 +1275,6 @@ public class ECLSearchOperation
       }
       catch(Exception e){}
     }
-  }
-
-  /**
-   * The unique identifier used in DSEE is named nsUniqueId and its format is
-   * HHHHHHHH-HHHHHHHH-HHHHHHHH-HHHHHHHH where H is a hex digit.
-   * An nsUniqueId value is for example 3970de28-08b311d9-8095b9bf-c4d9231c
-   * The unique identifier used in OpenDS is named entryUUID.
-   * Its value is for example entryUUID: 50dd9673-71e1-4478-b13c-dba387c4d7e1
-   * @param entryUid the OpenDS entry UID
-   * @return the Dsee format for the entry UID
-   */
-  private static String openDsToSunDseeNsUniqueId(String entryUid)
-  {
-    //  the conversion from one unique identifier to an other is
-    //  a question of formating : the last "-" is placed
-    StringBuilder buffer = new StringBuilder(entryUid);
-    //  Delete a "-" at 13 to get something like
-    buffer.deleteCharAt(13);
-
-    //  Delete a "-" at 23 to get something like
-    buffer.deleteCharAt(22);
-
-    //  Add the last "-" to get something like
-    buffer.insert(26,'-');
-
-    return buffer.toString();
   }
 
   /**

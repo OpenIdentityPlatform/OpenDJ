@@ -251,7 +251,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     // First and last should be ok whenever a request has been done or not
     // in compat mode.
     ECLCompatTestLimits(1,4,true);replicationServer.clearDb();
-    
+
     // Test with a mix of domains, a mix of DSes
     ECLTwoDomains(); replicationServer.clearDb();
 
@@ -263,7 +263,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     int ts = ECLCompatWriteReadAllOps(1);
 
     ECLCompatNoControl(1);
-    
+
     // Write additional changes and read ECL from a provided draft change number
     ts = ECLCompatWriteReadAllOps(5);replicationServer.clearDb();
 
@@ -353,8 +353,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     // Test request from a provided change number - read 6
     ECLCompatReadFrom(6);
-    
-    // Test request from change number 1, just check that Cookie controls 
+
+    // Test request from change number 1, just check that Cookie controls
     // are not returned with entries, when not requested.
     ECLCompatNoControl(1);
 
@@ -2894,7 +2894,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           +  stackTraceToSingleLineString(e));
     }
   }
-  
+
   private int ECLCompatWriteReadAllOps(int firstDraftChangeNumber)
   {
     String tn = "ECLCompatWriteReadAllOps/" + String.valueOf(firstDraftChangeNumber);
@@ -3015,7 +3015,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             checkValue(resultEntry,"changelogcookie","o=test:"+cn1.toString()+";");
             checkValue(resultEntry,"targetentryuuid",user1entryUUID);
             checkValue(resultEntry,"changenumber",String.valueOf(firstDraftChangeNumber+0));
-            checkValue(resultEntry,"targetuniqueid","11111111-11121113-11141111-11111115");
+            checkValue(resultEntry,"targetuniqueid",user1entryUUID);
           } else if (i==2)
           {
             // check the ADD entry has the right content
@@ -3108,7 +3108,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             checkValue(resultEntry,"changelogcookie","o=test:"+cn1.toString()+";");
             checkValue(resultEntry,"targetentryuuid",user1entryUUID);
             checkValue(resultEntry,"changenumber",String.valueOf(firstDraftChangeNumber+0));
-            checkValue(resultEntry,"targetuniqueid","11111111-11121113-11141111-11111115");
+            checkValue(resultEntry,"targetuniqueid",user1entryUUID);
           } else if (i==2)
           {
             // check the ADD entry has the right content
@@ -3296,7 +3296,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           +  stackTraceToSingleLineString(e));
     }
     debugInfo(tn, "Ending test with success");
-    
+
   }
 
 
@@ -3588,7 +3588,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     }
     debugInfo(tn, "Ending test with success");
   }
-  
+
   private void ECLOperationalAttributesFailTest()
   {
     String tn = "ECLOperationalAttributesFailTest";
@@ -3598,7 +3598,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     try
     {
       LinkedHashSet<String> attributes = new LinkedHashSet<String>();
-      
+
       attributes.add("firstchangenumber");
       attributes.add("lastchangenumber");
       attributes.add("changelog");
@@ -3619,7 +3619,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             null);
       waitOpResult(searchOp, ResultCode.SUCCESS);
       assertEquals(searchOp.getSearchEntries().size(), 1);
-      
+
       LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
       assertEquals(entries.size(), 1);
       for (SearchResultEntry resultEntry : entries)
@@ -3634,7 +3634,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           assertEquals(getAttributeValue(resultEntry, "lastExternalChangelogCookie"),
                 null);
       }
-  
+
       debugInfo(tn, "Ending test with success");
     }
     catch(Exception e)
