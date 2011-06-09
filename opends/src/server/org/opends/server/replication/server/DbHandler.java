@@ -654,8 +654,14 @@ public class DbHandler implements Runnable
   public int getCount(ChangeNumber from, ChangeNumber to)
   {
     int c=0;
-    flush();
-    c = db.count(from, to);
+    // Now that we always keep the last ChangeNumber in the DB to avoid
+    // expiring cookies to quickly, we need to check if the "to"
+    // is older than the trim date.
+    if ((to == null) || !to.older(new ChangeNumber(latestTrimDate, 0, 0)))
+    {
+      flush();
+      c = db.count(from, to);
+    }
     return c;
   }
 

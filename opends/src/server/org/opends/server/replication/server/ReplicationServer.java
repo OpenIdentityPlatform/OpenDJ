@@ -1860,6 +1860,7 @@ public final class ReplicationServer
 
     int firstDraftCN;
     int lastDraftCN;
+    Boolean dbEmpty = false;
     Long newestDate = 0L;
     DraftCNDbHandler draftCNDbH = this.getDraftCNDbHandler();
 
@@ -1870,6 +1871,7 @@ public final class ReplicationServer
     String domainForLastSeqnum = null;
     if (firstDraftCN < 1)
     {
+      dbEmpty = true;
       firstDraftCN = 0;
       lastDraftCN = 0;
     }
@@ -1912,8 +1914,11 @@ public final class ReplicationServer
         if (domainsServerStateForLastSeqnum == null)
         {
           // Count changes of this domain from the beginning of the changelog
+          ChangeNumber trimCN =
+              new ChangeNumber(rsd.getLatestDomainTrimDate(), 0,0);
           ec = rsd.getEligibleCount(
-              new ServerState(), crossDomainEligibleCN);
+                    rsd.getStartState().duplicateOnlyOlderThan(trimCN),
+                    crossDomainEligibleCN);
         }
         else
         {
@@ -1946,6 +1951,13 @@ public final class ReplicationServer
         if ((ec>0) && (firstDraftCN==0))
           firstDraftCN = 1;
       }
+    }
+    if (dbEmpty)
+    {
+      // The database was empty, just keep increasing numbers since last time
+      // we generated one DraftCN.
+      firstDraftCN += lastGeneratedDraftCN;
+      lastDraftCN += lastGeneratedDraftCN;
     }
     return new int[]{firstDraftCN, lastDraftCN};
   }

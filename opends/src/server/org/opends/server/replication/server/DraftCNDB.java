@@ -321,7 +321,7 @@ public class DraftCNDB
     private final Transaction txn;
     private final DatabaseEntry key;
     private final DatabaseEntry entry;
-
+    private DraftCNData seqnumData = null;
     private boolean isClosed = false;
 
 
@@ -367,17 +367,21 @@ public class DraftCNDB
             }
             else
             {
-              // We can move close to the startingChangeNumber.
-              // Let's create a cursor from that point.
-              DatabaseEntry key = new DatabaseEntry();
-              DatabaseEntry data = new DatabaseEntry();
-              if (localCursor.getPrev(
-                  key, data, LockMode.DEFAULT) != OperationStatus.SUCCESS)
+              if (localCursor.getPrev(key, entry, LockMode.DEFAULT)
+                      != OperationStatus.SUCCESS)
               {
                 localCursor.close();
                 localCursor = db.openCursor(localTxn, null);
               }
+              else
+              {
+                 seqnumData =  new DraftCNData(entry.getData());
+              }
             }
+          }
+          else
+          {
+            seqnumData = new DraftCNData(entry.getData());
           }
         }
 
@@ -514,15 +518,10 @@ public class DraftCNDB
     {
       try
       {
-        OperationStatus status =
-          cursor.getCurrent(key, entry, LockMode.DEFAULT);
-
-        if (status != OperationStatus.SUCCESS)
+        if (seqnumData != null)
         {
-          return null;
+          return seqnumData.getValue();
         }
-        DraftCNData seqnumData = new DraftCNData(entry.getData());
-        return seqnumData.getValue();
       }
       catch(Exception e)
       {
@@ -539,15 +538,10 @@ public class DraftCNDB
     {
       try
       {
-        OperationStatus status =
-          cursor.getCurrent(key, entry, LockMode.DEFAULT);
-
-        if (status != OperationStatus.SUCCESS)
+        if (seqnumData != null)
         {
-          return null;
+          return seqnumData.getServiceID();
         }
-        DraftCNData seqnumData = new DraftCNData(entry.getData());
-        return seqnumData.getServiceID();
       }
       catch(Exception e)
       {
@@ -557,7 +551,7 @@ public class DraftCNDB
     }
 
     /**
-     * Getter for the integer value of the current curson, representing
+     * Getter for the integer value of the current cursor, representing
      * the current DraftChangeNumber being processed.
      *
      * @return the current DraftCN as an integer.
@@ -566,13 +560,6 @@ public class DraftCNDB
     {
        try
       {
-        OperationStatus status =
-          cursor.getCurrent(key, entry, LockMode.DEFAULT);
-
-        if (status != OperationStatus.SUCCESS)
-        {
-          return -1;
-        }
         String str = decodeUTF8(key.getData());
         int draftCN = new Integer(str);
         return draftCN;
@@ -592,16 +579,10 @@ public class DraftCNDB
     {
       try
       {
-        OperationStatus status =
-          cursor.getCurrent(key, entry, LockMode.DEFAULT);
-
-        if (status != OperationStatus.SUCCESS)
+        if (seqnumData != null)
         {
-          return null;
+          return seqnumData.getChangeNumber();
         }
-        DraftCNData seqnumData =
-          new DraftCNData(entry.getData());
-        return seqnumData.getChangeNumber();
       }
       catch(Exception e)
       {
@@ -620,7 +601,15 @@ public class DraftCNDB
       OperationStatus status = cursor.getNext(key, entry, LockMode.DEFAULT);
       if (status != OperationStatus.SUCCESS)
       {
+        seqnumData = null;
         return false;
+      }
+      try {
+        seqnumData = new DraftCNData(entry.getData());
+      }
+      catch(Exception e)
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
       return true;
     }

@@ -50,6 +50,8 @@ import org.opends.server.types.Attributes;
 import org.opends.server.types.InitializationException;
 
 import com.sleepycat.je.DatabaseException;
+import java.util.HashMap;
+import org.opends.server.replication.common.MultiDomainServerState;
 
 /**
  * This class is used for managing the replicationServer database for each
@@ -385,11 +387,42 @@ public class DraftCNDbHandler implements Runnable
 
           int currentKey = cursor.currentKey();
 
-          // Do not delete the lastKey. This should allow us to
-          // preserve last change number over time.
-          if ((currentKey != lastkey) && (cn.older(fcn)))
+          if (cn.older(fcn))
           {
             cursor.delete();
+            continue;
+          }
+
+          ServerState cnVector = null;
+          try
+          {
+            HashMap<String,ServerState> cnStartStates =
+                MultiDomainServerState.splitGenStateToServerStates(
+                        cursor.currentValue());
+            cnVector = cnStartStates.get(serviceID);
+
+            if (debugEnabled())
+              TRACER.debugInfo("DraftCNDBHandler:clear() - ChangeVector:"+
+                      cnVector.toString()+
+                      " -- StartState:"+startState.toString());
+            // cnVector.update(cn);
+          }
+          catch(Exception e)
+          {
+            // We couldn't parse the mdss from the DraftCNData Value
+            assert(false);
+            cursor.delete();
+            continue;
+          }
+
+          if ((cnVector == null)
+                  || ((cnVector.getMaxChangeNumber(cn.getServerId()) != null)
+                      && !cnVector.cover(startState)))
+          {
+            cursor.delete();
+            if (debugEnabled())
+              TRACER.debugInfo("DraftCNDBHandler:clear() - deleted "+
+                      cn.toString()+"Not covering startState");
             continue;
           }
 
