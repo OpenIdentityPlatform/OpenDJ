@@ -68,23 +68,6 @@ public class DraftCNDbIterator
   }
 
   /**
-   * Getter for the value field (external changelog cookie).
-   * @return The value field (external changelog cookie).
-   */
-  public String getValue()
-  {
-    try
-    {
-      return this.draftCNDbCursor.currentValue();
-    }
-    catch(Exception e)
-    {
-      TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      return null;
-    }
-  }
-
-  /**
    * Getter for the serviceID field.
    * @return The service ID.
    */

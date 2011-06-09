@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -587,7 +588,7 @@ public class DbHandlerTest extends ReplicationTestCase
       }
       else
       {
-        expectedCnt = 1;
+        expectedCnt = 0;
       }
       debugInfo(tn,testcase + " actualCnt=" + actualCnt);
       assertEquals(actualCnt, expectedCnt, testcase);
