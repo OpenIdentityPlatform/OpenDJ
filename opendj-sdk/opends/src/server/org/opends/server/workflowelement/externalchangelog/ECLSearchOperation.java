@@ -30,7 +30,6 @@ package org.opends.server.workflowelement.externalchangelog;
 
 
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
@@ -791,7 +790,7 @@ public class ECLSearchOperation
           .getCookie().toString(), DN.decode(addMsg.getDn()),
           addMsg.getChangeNumber(), ldifChanges, // entry as created (in LDIF
                                                  // format)
-          addMsg.getUniqueId(), null, // real time current entry
+          addMsg.getUniqueId(),
           eclAttributes, // entry attributes
           eclmsg.getDraftChangeNumber(), "add", changeInitiatorsName);
 
@@ -859,7 +858,6 @@ public class ECLSearchOperation
           .getCookie().toString(), DN.decode(modifyMsg.getDn()),
           modifyMsg.getChangeNumber(), ldifChanges,
           modifyMsg.getUniqueId(),
-          null, // real time current entry
           modifyMsg.getEclIncludes(), // entry attributes
           eclmsg.getDraftChangeNumber(), changeType,
           changeInitiatorsName);
@@ -892,7 +890,7 @@ public class ECLSearchOperation
           .getCookie().toString(), DN.decode(delMsg.getDn()),
           delMsg.getChangeNumber(),
           null, // no changes
-          delMsg.getUniqueId(), null,
+          delMsg.getUniqueId(),
           delMsg.getEclIncludes(), // entry attributes
           eclmsg.getDraftChangeNumber(), "delete",
           delMsg.getInitiatorsName());
@@ -971,8 +969,7 @@ public class ECLSearchOperation
    * @param changeNumber    The provided replication changeNumber.
    * @param clearLDIFchanges     The provided LDIF changes for ADD and MODIFY
    * @param targetUUID      The provided targetUUID.
-   * @param entry           The provided related current entry.
-   * @param histEntryAttributes TODO:ECL Adress hist entry attributes
+   * @param includedAttributes TODO:ECL Adress hist entry attributes
    * @param draftChangenumber The provided draft change number (integer)
    * @param changetype      The provided change type (add, ...)
    * @param changeInitiatorsName The provided initiatiors name
@@ -987,8 +984,7 @@ public class ECLSearchOperation
       ChangeNumber changeNumber,
       String clearLDIFchanges,
       String targetUUID,
-      Entry entry,
-      List<RawAttribute> histEntryAttributes,
+      List<RawAttribute> includedAttributes,
       int draftChangenumber,
       String changetype,
       String changeInitiatorsName)
@@ -1204,27 +1200,38 @@ public class ECLSearchOperation
     else
       uAttrs.put(aType, attrList);
 
-    if (histEntryAttributes != null)
+    if (includedAttributes != null && !includedAttributes.isEmpty())
     {
-      for (RawAttribute ra : histEntryAttributes)
+      StringBuilder builder = new StringBuilder(256);
+      for (RawAttribute includedAttribute : includedAttributes)
       {
-        try
+        String name = includedAttribute.getAttributeType();
+        for (ByteString value : includedAttribute.getValues())
         {
-          String attrName = ra.getAttributeType().toLowerCase();
-          String eclName = "target" + attrName;
-          AttributeBuilder builder = new AttributeBuilder(
-              DirectoryServer.getDefaultAttributeType(eclName));
-          AttributeType at = builder.getAttributeType();
-          builder.setOptions(ra.toAttribute().getOptions());
-          builder.addAll(ra.toAttribute());
-          attrList = new ArrayList<Attribute>(1);
-          attrList.add(builder.toAttribute());
-          uAttrs.put(at, attrList);
+          builder.append(name);
+          appendLDIFSeparatorAndValue(builder, value);
+          builder.append('\n');
         }
-        catch(Exception e)
-        {
+      }
+      String includedAttributesLDIF = builder.toString();
 
-        }
+      if ((aType = DirectoryServer
+          .getAttributeType("includedattributes")) == null)
+      {
+        aType = DirectoryServer
+            .getDefaultAttributeType("includedAttributes");
+      }
+      a = Attributes.create(aType, includedAttributesLDIF);
+      attrList = new ArrayList<Attribute>(1);
+      attrList.add(a);
+
+      if (aType.isOperational())
+      {
+        operationalAttrs.put(aType, attrList);
+      }
+      else
+      {
+        uAttrs.put(aType, attrList);
       }
     }
 

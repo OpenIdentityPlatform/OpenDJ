@@ -218,7 +218,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
    * Launcher.
    */
   @Test(enabled=true)
-  public void ECLReplicationServerTest()
+  public void ECLReplicationServerTest() throws Exception
   {
     // No RSDomain created yet => RS only case => ECL is not a supported
     ECLIsNotASupportedSuffix();
@@ -3982,7 +3982,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
    * Test ECl entry attributes, and there configuration.
    *
    */
-  private void ECLIncludeAttributes()
+  private void ECLIncludeAttributes() throws Exception
   {
     String tn = "ECLIncludeAttributes";
     debugInfo(tn, "Starting test\n\n");
@@ -4176,27 +4176,31 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           s += "Entry:" + resultEntry.toLDIFString();
 
           String targetdn = getAttributeValue(resultEntry, "targetdn");
+
           if ((targetdn.endsWith("cn=robert hue,o=test3"))
             ||(targetdn.endsWith("cn=robert hue2,o=test3")))
           {
+            Entry targetEntry = parseIncludedAttributes(resultEntry,
+                targetdn);
+
             HashSet<String> eoc = new HashSet<String>();
             eoc.add("person");eoc.add("inetOrgPerson");eoc.add("organizationalPerson");eoc.add("top");
-            checkValues(resultEntry,"targetobjectclass",eoc);
+            assertEquals(targetEntry.getAttributes().size(), 0); // objectClass is handled separately
+            checkValues(targetEntry,"objectclass",eoc);
           }
           if (targetdn.endsWith("cn=fiona jensen,o=test2"))
           {
-            checkValue(resultEntry,"targetsn","jensen");
-            checkValue(resultEntry,"targetcn","Fiona Jensen");
+            Entry targetEntry = parseIncludedAttributes(resultEntry,
+                targetdn);
+
+            assertEquals(targetEntry.getAttributes().size(), 2);
+            checkValue(targetEntry,"sn","jensen");
+            checkValue(targetEntry,"cn","Fiona Jensen");
           }
           checkValue(resultEntry,"changeinitiatorsname", "cn=Internal Client,cn=Root DNs,cn=config");
         }
       }
       assertEquals(entries.size(),8, "Entries number returned by search" + s);
-    }
-    catch(Exception e)
-    {
-      fail("Ending "+tn+" test with exception:\n"
-          +  stackTraceToSingleLineString(e));
     }
     finally
     {
@@ -4237,6 +4241,20 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       catch(Exception e) {}
     }
     debugInfo(tn, "Ending test with success");
+  }
+
+  private Entry parseIncludedAttributes(
+      SearchResultEntry resultEntry, String targetdn)
+      throws Exception
+  {
+    // Parse includedAttributes as an entry.
+    String includedAttributes = getAttributeValue(resultEntry, "includedattributes");
+    String[] ldifAttributeLines = includedAttributes.split("\\n");
+    String[] ldif = new String[ldifAttributeLines.length + 1];
+    System.arraycopy(ldifAttributeLines, 0, ldif, 1, ldifAttributeLines.length);
+    ldif[0] = "dn: " + targetdn;
+    Entry targetEntry = TestCaseUtils.makeEntry(ldif);
+    return targetEntry;
   }
 
   private void waitOpResult(AbstractOperation operation,
