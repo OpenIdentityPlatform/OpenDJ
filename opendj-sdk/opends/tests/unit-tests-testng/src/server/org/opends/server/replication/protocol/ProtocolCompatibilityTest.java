@@ -75,7 +75,7 @@ import static org.testng.Assert.assertTrue;
  */
 public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
-  short REPLICATION_PROTOCOL_VLAST = ProtocolVersion.REPLICATION_PROTOCOL_V4;
+  short REPLICATION_PROTOCOL_VLAST = ProtocolVersion.REPLICATION_PROTOCOL_V5;
   /**
    * Set up the environment for performing the tests in this Class.
    *
@@ -946,7 +946,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   public Object[][] createOldServerStartData()
   {
     return new Object[][] {
-        {"140431323438001f6f3d74657374003136006675726f6e0030003000" +
+        {"140531323438001f6f3d74657374003136006675726f6e0030003000" +
           "300030003130300031303000747275650032363300303030303030303030303030303034" +
           "623031303730303030303030350000",
           16, "o=test", (byte) 31,}
@@ -965,7 +965,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(msg.getBaseDn(), dn);
     assertEquals(msg.getGroupId(), groupId);
     // We use V4 here because these PDU have not changed since 2.0.
-    BigInteger bi = new BigInteger(msg.getBytes(ProtocolVersion.REPLICATION_PROTOCOL_V4));
+    BigInteger bi = new BigInteger(msg.getBytes(ProtocolVersion.REPLICATION_PROTOCOL_V5));
     assertEquals(bi.toString(16), oldPdu);
   }
 

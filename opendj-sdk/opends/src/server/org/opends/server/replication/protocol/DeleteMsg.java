@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -154,7 +155,8 @@ public class DeleteMsg extends LDAPUpdateMsg
    * {@inheritDoc}
    */
   @Override
-  public byte[] getBytes_V4() throws UnsupportedEncodingException
+  public byte[] getBytes_V45(short reqProtocolVersion)
+      throws UnsupportedEncodingException
   {
     // Put together the different encoded pieces
     int bodyLength = 0;
@@ -179,7 +181,7 @@ public class DeleteMsg extends LDAPUpdateMsg
 
     /* encode the header in a byte[] large enough to also contain the mods */
     byte [] encodedMsg = encodeHeader(MSG_TYPE_DELETE, bodyLength,
-        ProtocolVersion.REPLICATION_PROTOCOL_V4);
+        reqProtocolVersion);
     int pos = encodedMsg.length - bodyLength;
     if (byteInitiatorsName != null)
       pos = addByteArray(byteInitiatorsName, encodedMsg, pos);

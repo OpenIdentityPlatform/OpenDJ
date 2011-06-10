@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -66,6 +67,14 @@ public class ProtocolVersion
   public static final short REPLICATION_PROTOCOL_V4 = 4;
 
   /**
+   * The constant for the 5th version of the replication protocol.
+   * - Add support for wild-cards in change log included attributes
+   * - Add support for specifying additional included attributes for deletes
+   * - See OPENDJ-194.
+   */
+  public static final short REPLICATION_PROTOCOL_V5 = 5;
+
+  /**
    * The replication protocol version used by the instance of RS/DS in this VM.
    */
   private static short currentVersion = -1;
@@ -100,7 +109,7 @@ public class ProtocolVersion
    */
   public static void resetCurrentVersion()
   {
-    currentVersion = REPLICATION_PROTOCOL_V4;
+    currentVersion = REPLICATION_PROTOCOL_V5;
   }
 
   /**
