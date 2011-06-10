@@ -77,6 +77,7 @@ public class DataServerHandler extends ServerHandler
   // DS safe data level (relevant if assured mode is safe data)
   private byte safeDataLevel = (byte) -1;
   private Set<String> eclIncludes = new HashSet<String>();
+  private Set<String> eclIncludesForDeletes = new HashSet<String>();
 
   /**
    * Creates a new data server handler.
@@ -651,7 +652,7 @@ public class DataServerHandler extends ServerHandler
   {
     DSInfo dsInfo = new DSInfo(serverId, replicationServerId, generationId,
       status, assuredFlag, assuredMode, safeDataLevel, groupId, refUrls,
-      eclIncludes, protocolVersion);
+      eclIncludes, eclIncludesForDeletes, protocolVersion);
 
     return dsInfo;
   }
@@ -727,6 +728,7 @@ public class DataServerHandler extends ServerHandler
     this.assuredMode = startSessionMsg.getAssuredMode();
     this.safeDataLevel = startSessionMsg.getSafeDataLevel();
     this.eclIncludes = startSessionMsg.getEclIncludes();
+    this.eclIncludesForDeletes = startSessionMsg.getEclIncludesForDeletes();
 
     /*
      * If we have already a generationID set for the domain

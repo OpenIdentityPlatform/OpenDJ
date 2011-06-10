@@ -91,6 +91,7 @@ public class LightweightServerHandler
   private short protocolVersion = -1;
 
   private Set<String> eclInclude = new HashSet<String>();
+  private Set<String> eclIncludeForDeletes = new HashSet<String>();
 
   /**
    * Creates a new LighweightServerHandler with the provided serverid, connected
@@ -109,13 +110,15 @@ public class LightweightServerHandler
    * @param assuredMode The assured mode of the remote DS
    * @param safeDataLevel The safe data level of the remote DS
    * @param eclInclude The list of entry attributes to be added to the ECL.
+   * @param eclIncludeForDeletes The list of entry attributes to be added to
+   *                             the ECL.
    * @param protocolVersion The protocol version supported by the remote DS.
    */
   public LightweightServerHandler(ReplicationServerHandler replServerHandler,
     int replicationServerId, int serverId, long generationId, byte groupId,
     ServerStatus status, List<String> refUrls, boolean assuredFlag,
     AssuredMode assuredMode, byte safeDataLevel, Set<String> eclInclude,
-    short protocolVersion)
+    Set<String> eclIncludeForDeletes, short protocolVersion)
   {
     this.replServerHandler = replServerHandler;
     this.rsDomain = replServerHandler.getDomain();
@@ -129,6 +132,7 @@ public class LightweightServerHandler
     this.assuredMode = assuredMode;
     this.safeDataLevel = safeDataLevel;
     this.eclInclude = eclInclude;
+    this.eclIncludeForDeletes = eclIncludeForDeletes;
     this.protocolVersion = protocolVersion;
 
     if (debugEnabled())
@@ -148,7 +152,7 @@ public class LightweightServerHandler
   {
     DSInfo dsInfo = new DSInfo(serverId, replicationServerId, generationId,
       status, assuredFlag, assuredMode, safeDataLevel, groupId, refUrls,
-      eclInclude, protocolVersion);
+      eclInclude, eclIncludeForDeletes, protocolVersion);
 
     return dsInfo;
   }

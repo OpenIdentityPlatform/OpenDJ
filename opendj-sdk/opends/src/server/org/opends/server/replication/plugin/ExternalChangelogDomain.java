@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -33,11 +34,9 @@ import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
-import org.opends.server.types.AttributeType;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.ResultCode;
-import java.util.HashSet;
 
 /**
  * This class specifies the external changelog feature for a replication
@@ -49,8 +48,8 @@ public class ExternalChangelogDomain
              ConfigurationChangeListener<ExternalChangelogDomainCfg>
 {
 
-  LDAPReplicationDomain domain;
-  boolean isEnabled;
+  private LDAPReplicationDomain domain;
+  private boolean isEnabled;
 
   /**
    * Constructor from a provided LDAPReplicationDomain.
@@ -60,16 +59,12 @@ public class ExternalChangelogDomain
   public ExternalChangelogDomain(LDAPReplicationDomain domain,
       ExternalChangelogDomainCfg configuration)
   {
-    this.domain =domain;
+    this.domain = domain;
     this.isEnabled = configuration.isEnabled();
     configuration.addChangeListener(this);
-    if (configuration.getECLInclude() != null)
-    {
-      HashSet<String> attrNames = new HashSet<String>(0);
-      for (AttributeType eclIncludeAttribute : configuration.getECLInclude())
-        attrNames.add(eclIncludeAttribute.getNormalizedPrimaryName());
-      domain.setEclInclude(domain.getServerId(), attrNames);
-    }
+    domain.setEclIncludes(domain.getServerId(),
+        configuration.getECLInclude(),
+        configuration.getECLIncludeForDeletes());
   }
 
 
@@ -95,10 +90,9 @@ public class ExternalChangelogDomain
     }
 
     this.isEnabled = configuration.isEnabled();
-    HashSet<String> attrNames = new HashSet<String>(0);
-    for (AttributeType eclInclude : configuration.getECLInclude())
-      attrNames.add(eclInclude.getNormalizedPrimaryName());
-    domain.setEclInclude(domain.getServerId(), attrNames);
+    domain.setEclIncludes(domain.getServerId(),
+        configuration.getECLInclude(),
+        configuration.getECLIncludeForDeletes());
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
 
@@ -126,10 +120,8 @@ public class ExternalChangelogDomain
       }
 
       this.isEnabled = configuration.isEnabled();
-      HashSet<String> attrNames = new HashSet<String>(0);
-      for (AttributeType eclInclude : configuration.getECLInclude())
-        attrNames.add(eclInclude.getNormalizedPrimaryName());
-      domain.changeConfig(attrNames);
+      domain.changeConfig(configuration.getECLInclude(),
+          configuration.getECLIncludeForDeletes());
       return new ConfigChangeResult(ResultCode.SUCCESS, false);
     }
     catch (Exception e)

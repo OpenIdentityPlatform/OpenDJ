@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -380,7 +381,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
         i++;
       }
     }
-    
+
     Operation generatedOperation = generatedMsg.createOperation(connection);
 
     assertEquals(generatedOperation.getClass(), DeleteOperationBasis.class);
@@ -1006,19 +1007,19 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     Set<String> a4 = new HashSet<String>();
 
     DSInfo dsInfo1 = new DSInfo(13, 26, (long)154631, ServerStatus.FULL_UPDATE_STATUS,
-      false, AssuredMode.SAFE_DATA_MODE, (byte)12, (byte)132, urls1, a1, (short)1);
+      false, AssuredMode.SAFE_DATA_MODE, (byte)12, (byte)132, urls1, a1, a1, (short)1);
 
     DSInfo dsInfo2 = new DSInfo(-436, 493, (long)-227896, ServerStatus.DEGRADED_STATUS,
-      true, AssuredMode.SAFE_READ_MODE, (byte)-7, (byte)-265, urls2, a2, (short)2);
+      true, AssuredMode.SAFE_READ_MODE, (byte)-7, (byte)-265, urls2, a2, a2, (short)2);
 
     DSInfo dsInfo3 = new DSInfo(2436, 591, (long)0, ServerStatus.NORMAL_STATUS,
-      false, AssuredMode.SAFE_READ_MODE, (byte)17, (byte)0, urls3, a3, (short)3);
+      false, AssuredMode.SAFE_READ_MODE, (byte)17, (byte)0, urls3, a3, a3, (short)3);
 
     DSInfo dsInfo4 = new DSInfo(415, 146, (long)0, ServerStatus.BAD_GEN_ID_STATUS,
-      true, AssuredMode.SAFE_DATA_MODE, (byte)2, (byte)15, urls4, a4, (short)4);
+      true, AssuredMode.SAFE_DATA_MODE, (byte)2, (byte)15, urls4, a4, a4, (short)4);
 
     DSInfo dsInfo5 = new DSInfo(452436, 45591, (long)0, ServerStatus.NORMAL_STATUS,
-        false, AssuredMode.SAFE_READ_MODE, (byte)17, (byte)0, urls3, a1, (short)5);
+        false, AssuredMode.SAFE_READ_MODE, (byte)17, (byte)0, urls3, a1, a1, (short)5);
 
     List<DSInfo> dsList1 = new ArrayList<DSInfo>();
     dsList1.add(dsInfo1);
@@ -1138,7 +1139,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   {
     StartSessionMsg msg = new StartSessionMsg(status, refUrls, assuredFlag,
       assuredMode, safedataLevel);
-    msg.setEclIncludes(attrs);
+    msg.setEclIncludes(attrs, attrs);
     StartSessionMsg newMsg =
       new StartSessionMsg(msg.getBytes(),ProtocolVersion.getCurrentVersion());
     assertEquals(msg.getStatus(), newMsg.getStatus());
@@ -1146,8 +1147,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.getAssuredMode(), newMsg.getAssuredMode());
     assertTrue(msg.getSafeDataLevel() == newMsg.getSafeDataLevel());
     assertEquals(msg.getReferralsURLs(), newMsg.getReferralsURLs());
-    Set<String> newAttrs = newMsg.getEclIncludes();
-    assertTrue(attrs.size() == newAttrs.size());
+    assertTrue(attrs.equals(newMsg.getEclIncludes()));
+    assertTrue(attrs.equals(newMsg.getEclIncludesForDeletes()));
   }
 
   /**

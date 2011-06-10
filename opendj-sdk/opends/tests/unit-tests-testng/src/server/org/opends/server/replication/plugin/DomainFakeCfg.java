@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -78,9 +79,8 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   private SortedSet<String> fractionalExcludes = new TreeSet<String>();
   private SortedSet<String> fractionalIncludes = new TreeSet<String>();
 
-  private SortedSet<String> eclIncludes = new TreeSet<String>();
   private ExternalChangelogDomainCfg eclCfg =
-    new ExternalChangelogDomainFakeCfg(true, new TreeSet<AttributeType>());
+    new ExternalChangelogDomainFakeCfg(true, null, null);
 
   /**
    * Creates a new Domain with the provided information
@@ -380,16 +380,6 @@ public class DomainFakeCfg implements ReplicationDomainCfg
     return true;
   }
 
-  public void setEclIncludes(SortedSet<String> attrs)
-  {
-    this.eclIncludes = attrs;
-  }
-
-  public SortedSet<String> getECLInclude()
-  {
-    return this.eclIncludes;
-  }
-
   public long getInitializationHeartbeatInterval()
   {
     return 180;
@@ -492,7 +482,7 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   {
     return true;
   }
-  
+
   /**
    * Gets the "conflicts-historical-purge-delay" property.
    * <p>
