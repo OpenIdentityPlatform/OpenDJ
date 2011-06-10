@@ -23,12 +23,11 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
 import java.net.UnknownHostException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
@@ -922,7 +921,7 @@ public class TopologyViewTest extends ReplicationTestCase
     }
 
     return new DSInfo(dsId, rsId, TEST_DN_WITH_ROOT_ENTRY_GENID, status, assuredFlag, assMode,
-       (byte)assuredSdLevel, groupId, urls, eclIncludes, protocolVersion);
+       (byte)assuredSdLevel, groupId, urls, eclIncludes, eclIncludes, protocolVersion);
   }
 
   /**
@@ -1122,10 +1121,11 @@ public class TopologyViewTest extends ReplicationTestCase
      byte safeDataLevel = rd.getAssuredSdLevel();
      byte groupId = rd.getGroupId();
      List<String> refUrls = rd.getRefUrls();
-     Set<String> eclInclude = rd.getEclInclude();
+     Set<String> eclInclude = rd.getEclIncludes();
+     Set<String> eclIncludeForDeletes = rd.getEclIncludesForDeletes();
      short protocolVersion = 4;
      DSInfo dsInfo = new DSInfo(dsId, rsId, TEST_DN_WITH_ROOT_ENTRY_GENID, status, assuredFlag, assuredMode,
-       safeDataLevel, groupId, refUrls, eclInclude, protocolVersion);
+       safeDataLevel, groupId, refUrls, eclInclude, eclIncludeForDeletes, protocolVersion);
      dsList.add(dsInfo);
 
      TopoView dsTopoView = new TopoView(dsList, rd.getRsList());

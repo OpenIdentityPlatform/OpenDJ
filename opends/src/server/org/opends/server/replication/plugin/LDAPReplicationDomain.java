@@ -39,27 +39,14 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.createEntry;
 import static org.opends.server.util.StaticUtils.getFileForPath;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.util.StaticUtils.toLowerCase;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.StringTokenizer;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -5104,90 +5091,132 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * @param op
    * @throws DirectoryException
    */
-  private void addEntryAttributesForCL(UpdateMsg msg,PostOperationOperation op)
-  throws DirectoryException
+  private void addEntryAttributesForCL(UpdateMsg msg,
+      PostOperationOperation op) throws DirectoryException
   {
-    String[] entryAttributeNames =
-      getEclInclude().toArray(new String[0]);
-    ArrayList<Attribute> newattrs = new ArrayList<Attribute>();
-
     if (op instanceof PostOperationDeleteOperation)
     {
-      Entry entry = null;
-      PostOperationDeleteOperation delOp = (PostOperationDeleteOperation)op;
-      entry = delOp.getEntryToDelete();
-      for (String name : entryAttributeNames)
-      {
-        AttributeType atype = DirectoryServer.getAttributeType(name);
-        List<Attribute> attrs = entry.getAttribute(atype);
-        if (attrs != null)
-          for (Attribute a : attrs)
-            newattrs.add(a);
-      }
-      ((DeleteMsg)msg).setEclIncludes(newattrs);
+      Set<String> names = getEclIncludesForDeletes();
+      PostOperationDeleteOperation delOp = (PostOperationDeleteOperation) op;
+      Entry entry = delOp.getEntryToDelete();
+      ((DeleteMsg) msg).setEclIncludes(getIncludedAttributes(entry, names));
 
       // For delete only, add the Authorized DN since it's required in the
       // ECL entry but is not part of rest of the message.
       DN deleterDN = delOp.getAuthorizationDN();
       if (deleterDN != null)
       {
-        ((DeleteMsg)msg).setInitiatorsName(deleterDN.toString());
+        ((DeleteMsg) msg).setInitiatorsName(deleterDN.toString());
       }
-
     }
     else if (op instanceof PostOperationModifyOperation)
     {
-      Entry entry = null;
-      PostOperationModifyOperation modOp = (PostOperationModifyOperation)op;
-      entry = modOp.getCurrentEntry();
-      for (String name : entryAttributeNames)
-      {
-        AttributeType atype = DirectoryServer.getAttributeType(name);
-        List<Attribute> attrs = entry.getAttribute(atype);
-        if (attrs != null)
-          for (Attribute a : attrs)
-            newattrs.add(a);
-      }
-      ((ModifyMsg)msg).setEclIncludes(newattrs);
+      Set<String> names = getEclIncludes();
+      PostOperationModifyOperation modOp = (PostOperationModifyOperation) op;
+      Entry entry = modOp.getCurrentEntry();
+      ((ModifyMsg) msg).setEclIncludes(getIncludedAttributes(entry, names));
     }
     else if (op instanceof PostOperationModifyDNOperation)
     {
-      Entry entry = null;
+      Set<String> names = getEclIncludes();
       PostOperationModifyDNOperation modDNOp =
-        (PostOperationModifyDNOperation)op;
-      entry = modDNOp.getOriginalEntry();
-      for (String name : entryAttributeNames)
-      {
-        AttributeType atype = DirectoryServer.getAttributeType(name);
-        List<Attribute> attrs = entry.getAttribute(atype);
-        if (attrs != null)
-          for (Attribute a : attrs)
-            newattrs.add(a);
-      }
-      ((ModifyDNMsg)msg).setEclIncludes(newattrs);
+        (PostOperationModifyDNOperation) op;
+      Entry entry = modDNOp.getOriginalEntry();
+      ((ModifyDNMsg) msg).setEclIncludes(getIncludedAttributes(entry, names));
     }
     else if (op instanceof PostOperationAddOperation)
     {
-      Entry entry = null;
-      PostOperationAddOperation addOp = (PostOperationAddOperation)op;
-      entry = addOp.getEntryToAdd();
-      for (String name : entryAttributeNames)
-      {
-        AttributeType atype = DirectoryServer.getAttributeType(name);
-        List<Attribute> attrs = entry.getAttribute(atype);
-        if (attrs != null)
-        {
-          for (Attribute a : attrs)
-            newattrs.add(a);
-        }
-        else
-        {
-          // FIXME:ECL
-        }
-      }
-      ((AddMsg)msg).setEclIncludes(newattrs);
+      Set<String> names = getEclIncludes();
+      PostOperationAddOperation addOp = (PostOperationAddOperation) op;
+      Entry entry = addOp.getEntryToAdd();
+      ((AddMsg) msg).setEclIncludes(getIncludedAttributes(entry, names));
     }
   }
+
+
+
+  private Collection<Attribute> getIncludedAttributes(Entry entry,
+      Set<String> names)
+  {
+    if (names.isEmpty())
+    {
+      // Fast-path.
+      return Collections.emptySet();
+    }
+    else if (names.size() == 1 && names.contains("*"))
+    {
+      // Potential fast-path for delete operations.
+      LinkedList<Attribute> attributes = new LinkedList<Attribute>();
+      for (List<Attribute> alist : entry.getUserAttributes().values())
+      {
+        attributes.addAll(alist);
+      }
+      Attribute ocattr = entry.getObjectClassAttribute();
+      if (ocattr != null)
+      {
+        attributes.add(ocattr);
+      }
+      return attributes;
+    }
+    else
+    {
+      // Expand @objectclass references in attribute list if needed. We
+      // do this now in order to take into account dynamic schema changes.
+
+      // Only rebuild the attribute set if necessary.
+      boolean needsExpanding = false;
+      for (String name : names)
+      {
+        if (name.startsWith("@"))
+        {
+          needsExpanding = true;
+          break;
+        }
+      }
+
+      Set<String> expandedNames;
+      if (needsExpanding)
+      {
+        expandedNames = new HashSet<String>(names.size());
+        for (String name : names)
+        {
+          if (name.startsWith("@"))
+          {
+            String ocName = name.substring(1);
+            ObjectClass objectClass = DirectoryServer
+                .getObjectClass(toLowerCase(ocName));
+            if (objectClass != null)
+            {
+              for (AttributeType at : objectClass
+                  .getRequiredAttributeChain())
+              {
+                expandedNames.add(at.getNameOrOID());
+              }
+              for (AttributeType at : objectClass
+                  .getOptionalAttributeChain())
+              {
+                expandedNames.add(at.getNameOrOID());
+              }
+            }
+          }
+          else
+          {
+            expandedNames.add(name);
+          }
+        }
+      }
+      else
+      {
+        expandedNames = names;
+      }
+
+      Entry filteredEntry = entry.filterEntry(expandedNames, false,
+          false, false);
+      return filteredEntry.getAttributes();
+    }
+  }
+
+
 
   /**
    * Gets the fractional configuration of this domain.

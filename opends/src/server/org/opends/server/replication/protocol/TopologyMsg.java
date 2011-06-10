@@ -151,15 +151,14 @@ public class TopologyMsg extends ReplicationMsg
         }
 
         Set<String> attrs = new HashSet<String>();
+        Set<String> delattrs = new HashSet<String>();
         short protocolVersion = -1;
-        if (version>=ProtocolVersion.REPLICATION_PROTOCOL_V4)
+        if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
         {
           byte nAttrs = in[pos++];
           nRead = 0;
           /* Read attrs until expected number read */
-          while ((nRead != nAttrs) &&
-            (pos < in.length) //security
-            )
+          while ((nRead != nAttrs) && (pos < in.length))
           {
             length = getNextLength(in, pos);
             String attr = new String(in, pos, length, "UTF-8");
@@ -167,6 +166,19 @@ public class TopologyMsg extends ReplicationMsg
             pos += length + 1;
             nRead++;
           }
+
+          nAttrs = in[pos++];
+          nRead = 0;
+          /* Read attrs until expected number read */
+          while ((nRead != nAttrs) && (pos < in.length))
+          {
+            length = getNextLength(in, pos);
+            String attr = new String(in, pos, length, "UTF-8");
+            delattrs.add(attr);
+            pos += length + 1;
+            nRead++;
+          }
+
           /* Read Protocol version */
           protocolVersion = Short.valueOf(in[pos++]);
         }
@@ -175,7 +187,7 @@ public class TopologyMsg extends ReplicationMsg
 
         DSInfo dsInfo = new DSInfo(dsId, rsId, generationId, status,
           assuredFlag, assuredMode, safeDataLevel, groupId, refUrls, attrs,
-          protocolVersion);
+          delattrs, protocolVersion);
         dsList.add(dsInfo);
 
         nDsInfo--;
@@ -347,9 +359,17 @@ public class TopologyMsg extends ReplicationMsg
             oStream.write(attr.getBytes("UTF-8"));
             oStream.write(0);
           }
+
+          Set<String> delattrs = dsInfo.getEclIncludesForDeletes();
+          oStream.write(delattrs.size());
+          for (String attr : delattrs)
+          {
+            oStream.write(attr.getBytes("UTF-8"));
+            oStream.write(0);
+          }
+
           oStream.write(dsInfo.getProtocolVersion());
         }
-
       }
 
       // Put number of following RS info entries

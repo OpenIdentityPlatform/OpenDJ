@@ -23,41 +23,47 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
 import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
-import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 
 /**
  * This class implement a configuration object for the ExternalChangelog domain
  * that can be used in unit tests to instantiate ExternalChangelogDomain.
  */
-public class ExternalChangelogDomainFakeCfg 
+public class ExternalChangelogDomainFakeCfg
   implements ExternalChangelogDomainCfg
 {
 
   // The value of the "ecl-include" property.
-  private SortedSet<AttributeType> pECLInclude;
+  private SortedSet<String> pECLInclude;
+
+  // The value of the "ecl-include-for-deletes" property.
+  private SortedSet<String> pECLIncludeForDeletes;
 
   // The value of the "enabled" property.
   private boolean pEnabled;
 
   private DN pDN;
-  
+
   /**
    * Creates a new Domain with the provided information
    * (assured mode disabled, default group id)
    */
   public ExternalChangelogDomainFakeCfg(boolean isEnabled,
-      SortedSet<AttributeType> eCLInclude)
+      SortedSet<String> eclInclude,
+      SortedSet<String> eclIncludeForDeletes)
   {
     this.pEnabled = isEnabled;
-    this.pECLInclude = eCLInclude;
+    this.pECLInclude = eclInclude != null ? eclInclude : new TreeSet<String>();
+    this.pECLIncludeForDeletes = eclIncludeForDeletes != null ? eclIncludeForDeletes : new TreeSet<String>();
   }
 
   /**
@@ -92,29 +98,14 @@ public class ExternalChangelogDomainFakeCfg
 
 
 
-  /**
-   * Gets the "ecl-include" property.
-   * <p>
-   * Allows to include some target entry attributes in the external
-   * changelog.
-   * <p>
-   * Specifies an attribute that will be included in every External
-   * Change Log entry related to this replication domain.
-   *
-   * @return Returns an unmodifiable set containing the values of the "ecl-include" property.
-   */
-  public SortedSet<AttributeType> getECLInclude()
+  public SortedSet<String> getECLInclude()
   {
     return this.pECLInclude;
   }
 
-  /**
-   * Set eclInclude.
-   * @param eclInclude the attribute to include.
-   */
-  public void setECLInclude(SortedSet<AttributeType> eclInclude)
+  public SortedSet<String> getECLIncludeForDeletes()
   {
-    this.pECLInclude = eclInclude;
+    return this.pECLIncludeForDeletes;
   }
 
 
@@ -140,7 +131,7 @@ public class ExternalChangelogDomainFakeCfg
   {
     return this.pEnabled;
   }
-  
+
   public DN dn()
   {
     return pDN;

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -73,6 +74,8 @@ public class StartSessionMsg extends ReplicationMsg
 
   private Set<String> eclIncludes = new HashSet<String>();
 
+  private Set<String> eclIncludesForDeletes = new HashSet<String>();
+
   /**
    * The protocolVersion that should be used when serializing this message.
    */
@@ -95,7 +98,7 @@ public class StartSessionMsg extends ReplicationMsg
     }
     else
     {
-      decode_V4(in);
+      decode_V4(in, version);
     }
   }
 
@@ -188,7 +191,7 @@ public class StartSessionMsg extends ReplicationMsg
     }
     else
     {
-      return getBytes_V4();
+      return getBytes_V4(protocolVersion);
     }
   }
 
@@ -205,11 +208,11 @@ public class StartSessionMsg extends ReplicationMsg
     }
     else
     {
-      return getBytes_V4();
+      return getBytes_V4(reqProtocolVersion);
     }
   }
 
-  private byte[] getBytes_V4()
+  private byte[] getBytes_V4(short version)
   {
     try
     {
@@ -229,14 +232,23 @@ public class StartSessionMsg extends ReplicationMsg
 
       writer.writeStartSequence();
       for (String attrDef : eclIncludes)
+      {
         writer.writeOctetString(attrDef);
+      }
+      writer.writeEndSequence();
+
+      writer.writeStartSequence();
+      for (String attrDef : eclIncludesForDeletes)
+      {
+        writer.writeOctetString(attrDef);
+      }
       writer.writeEndSequence();
 
       return byteBuilder.toByteArray();
     }
     catch (Exception e)
     {
-      return null;
+      throw new RuntimeException(e);
     }
   }
 
@@ -290,7 +302,7 @@ public class StartSessionMsg extends ReplicationMsg
   // Msg decoding
   // ============
 
-  private void decode_V4(byte[] in)
+  private void decode_V4(byte[] in, short version)
   throws DataFormatException
   {
     ByteSequenceReader reader = ByteString.wrap(in).asReader();
@@ -326,6 +338,14 @@ public class StartSessionMsg extends ReplicationMsg
       {
         String s = asn1Reader.readOctetStringAsString();
         this.eclIncludes.add(s);
+      }
+      asn1Reader.readEndSequence();
+
+      asn1Reader.readStartSequence();
+      while (asn1Reader.hasNextElement())
+      {
+        String s = asn1Reader.readOctetStringAsString();
+        this.eclIncludesForDeletes.add(s);
       }
       asn1Reader.readEndSequence();
     }
@@ -428,7 +448,8 @@ public class StartSessionMsg extends ReplicationMsg
       "\nassuredMode: " + assuredMode +
       "\nsafeDataLevel: " + safeDataLevel +
       "\nreferralsURLs: " + urls +
-      "\nEclIncludes: " + eclIncludes);
+      "\nEclIncludes " + eclIncludes +
+      "\nEclIncludeForDeletes: " + eclIncludesForDeletes);
   }
 
   /**
@@ -459,22 +480,48 @@ public class StartSessionMsg extends ReplicationMsg
   }
 
   /**
-   * Set the list of entry attributes to include in the ECL.
-   * @param eclIncludes The list of attributes.
+   * Set the attributes configured on a server to be included in the ECL.
+   *
+   * @param includeAttributes
+   *          attributes to be included with all change records.
+   * @param includeAttributesForDeletes
+   *          additional attributes to be included with delete change records.
    */
-  public void setEclIncludes(Set<String> eclIncludes)
+  public void setEclIncludes(
+      Set<String> includeAttributes,
+      Set<String> includeAttributesForDeletes)
   {
-    if (eclIncludes != null)
-      this.eclIncludes = eclIncludes;
+    if (includeAttributes != null)
+    {
+      eclIncludes = includeAttributes;
+    }
+
+    if (includeAttributesForDeletes != null)
+    {
+      eclIncludesForDeletes = includeAttributesForDeletes;
+    }
   }
 
   /**
-   * Get the list of entry attributes to include in the ECL..
-   * @return The list of entry attributes to include in the ECL.
+   * Get the attributes to include in each change for the ECL.
+   *
+   * @return The attributes to include in each change for the ECL.
    */
   public Set<String> getEclIncludes()
   {
     return eclIncludes;
+  }
+
+
+
+  /**
+   * Get the attributes to include in each delete change for the ECL.
+   *
+   * @return The attributes to include in each delete change for the ECL.
+   */
+  public Set<String> getEclIncludesForDeletes()
+  {
+    return eclIncludesForDeletes;
   }
 
 }

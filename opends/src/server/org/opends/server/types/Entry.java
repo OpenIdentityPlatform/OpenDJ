@@ -5062,9 +5062,7 @@ public class Entry
   @Override
   public String toString()
   {
-    StringBuilder buffer = new StringBuilder();
-    toString(buffer);
-    return buffer.toString();
+    return toLDIFString();
   }
 
 
@@ -5078,51 +5076,7 @@ public class Entry
    */
   public void toString(StringBuilder buffer)
   {
-    buffer.append("Entry(dn=\"");
-    dn.toString(buffer);
-
-    buffer.append("\", objectClasses={");
-    if (! objectClasses.isEmpty())
-    {
-      Iterator<String> ocNames = objectClasses.values().iterator();
-      buffer.append(ocNames.next());
-
-      while (ocNames.hasNext())
-      {
-        buffer.append(",");
-        buffer.append(ocNames.next());
-      }
-    }
-
-    buffer.append("}, userAttrs={");
-    if (! userAttributes.isEmpty())
-    {
-      Iterator<AttributeType> attrs =
-           userAttributes.keySet().iterator();
-      buffer.append(attrs.next().getNameOrOID());
-
-      while (attrs.hasNext())
-      {
-        buffer.append(",");
-        buffer.append(attrs.next().getNameOrOID());
-      }
-    }
-
-    buffer.append("}, operationalAttrs={");
-    if (! operationalAttributes.isEmpty())
-    {
-      Iterator<AttributeType> attrs =
-           operationalAttributes.keySet().iterator();
-      buffer.append(attrs.next().getNameOrOID());
-
-      while (attrs.hasNext())
-      {
-        buffer.append(",");
-        buffer.append(attrs.next().getNameOrOID());
-      }
-    }
-
-    buffer.append("})");
+    buffer.append(toString());
   }
 
 

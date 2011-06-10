@@ -48,16 +48,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
@@ -117,7 +108,6 @@ import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.ByteString;
@@ -693,7 +683,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       DomainFakeCfg domainConf =
         new DomainFakeCfg(baseDn2,  1602, replServers);
       ExternalChangelogDomainFakeCfg eclCfg =
-        new ExternalChangelogDomainFakeCfg(true, null);
+        new ExternalChangelogDomainFakeCfg(true, null, null);
       domainConf.setExternalChangelogDomain(eclCfg);
       LDAPReplicationDomain domain2 =
         MultimasterReplication.createNewDomain(domainConf);
@@ -753,7 +743,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       }
 
       eclCfg =
-        new ExternalChangelogDomainFakeCfg(false, null);
+        new ExternalChangelogDomainFakeCfg(false, null, null);
       domainConf.setExternalChangelogDomain(eclCfg);
       domain2.applyConfigurationChange(domainConf);
 
@@ -4008,11 +3998,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         new DomainFakeCfg(baseDn2, 1702, replServers);
 
       // on o=test2,sid=1702 include attrs set to : 'sn'
-      SortedSet<AttributeType> eclInclude = new TreeSet<AttributeType>();
-      eclInclude.add(DirectoryServer.getAttributeType("sn"));
-      eclInclude.add(DirectoryServer.getAttributeType("roomnumber"));
+      SortedSet<String> eclInclude = new TreeSet<String>();
+      eclInclude.add("sn");
+      eclInclude.add("roomnumber");
       ExternalChangelogDomainFakeCfg eclCfg =
-        new ExternalChangelogDomainFakeCfg(true, eclInclude);
+        new ExternalChangelogDomainFakeCfg(true, eclInclude, eclInclude);
       domainConf.setExternalChangelogDomain(eclCfg);
       // Set a Changetime heartbeat interval low enough (less than default
       // value that is 1000 ms) for the test to be sure to consider all changes
@@ -4028,10 +4018,13 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         new DomainFakeCfg(baseDn3, 1703, replServers);
 
       // on o=test3,sid=1703 include attrs set to : 'objectclass'
-      eclInclude = new TreeSet<AttributeType>();
-      eclInclude.add(DirectoryServer.getAttributeType("objectclass"));
-      eclCfg =
-        new ExternalChangelogDomainFakeCfg(true, eclInclude);
+      eclInclude = new TreeSet<String>();
+      eclInclude.add("objectclass");
+
+      TreeSet<String> eclIncludeForDeletes = new TreeSet<String>();
+      eclIncludeForDeletes.add("*");
+
+      eclCfg = new ExternalChangelogDomainFakeCfg(true, eclInclude, eclIncludeForDeletes);
       domainConf.setExternalChangelogDomain(eclCfg);
       // Set a Changetime heartbeat interval low enough (less than default
       // value that is 1000 ms) for the test to be sure to consider all changes
@@ -4043,10 +4036,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // on o=test2,sid=1704 include attrs set to : 'cn'
       domainConf =
         new DomainFakeCfg(baseDn2, 1704, replServers);
-      eclInclude = new TreeSet<AttributeType>();
-      eclInclude.add(DirectoryServer.getAttributeType("cn"));
+      eclInclude = new TreeSet<String>();
+      eclInclude.add("cn");
+
       eclCfg =
-        new ExternalChangelogDomainFakeCfg(true, eclInclude);
+        new ExternalChangelogDomainFakeCfg(true, eclInclude, eclInclude);
       domainConf.setExternalChangelogDomain(eclCfg);
       // Set a Changetime heartbeat interval low enough (less than default
       // value that is 1000 ms) for the test to be sure to consider all changes
@@ -4185,8 +4179,23 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
             HashSet<String> eoc = new HashSet<String>();
             eoc.add("person");eoc.add("inetOrgPerson");eoc.add("organizationalPerson");eoc.add("top");
-            assertEquals(targetEntry.getAttributes().size(), 0); // objectClass is handled separately
             checkValues(targetEntry,"objectclass",eoc);
+
+            String changeType = getAttributeValue(resultEntry,
+                "changetype");
+            if (changeType.equals("delete"))
+            {
+              // We are using "*" for deletes so should get back 4 attributes.
+              assertEquals(targetEntry.getAttributes().size(), 4);
+              checkValue(targetEntry, "uid", "robert");
+              checkValue(targetEntry, "cn", "Robert Hue2");
+              checkValue(targetEntry, "telephonenumber", "555555");
+              checkValue(targetEntry, "sn", "Robby");
+            }
+            else
+            {
+              assertEquals(targetEntry.getAttributes().size(), 0);
+            }
           }
           if (targetdn.endsWith("cn=fiona jensen,o=test2"))
           {

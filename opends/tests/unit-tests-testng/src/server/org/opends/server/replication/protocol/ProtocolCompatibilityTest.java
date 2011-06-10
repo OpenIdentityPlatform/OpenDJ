@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.replication.protocol;
@@ -1069,16 +1070,16 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     urls4.add("ldaps://host:port/dc=foobar2??sub?(sn=Another Entry 2)");
 
     DSInfo dsInfo1 = new DSInfo(13, 26, (long)154631, ServerStatus.FULL_UPDATE_STATUS,
-      false, AssuredMode.SAFE_DATA_MODE, (byte)12, (byte)132, urls1, new HashSet<String>(), (short)-1);
+      false, AssuredMode.SAFE_DATA_MODE, (byte)12, (byte)132, urls1, new HashSet<String>(), new HashSet<String>(), (short)-1);
 
     DSInfo dsInfo2 = new DSInfo(-436, 493, (long)-227896, ServerStatus.DEGRADED_STATUS,
-      true, AssuredMode.SAFE_READ_MODE, (byte)-7, (byte)-265, urls2, new HashSet<String>(), (short)-1);
+      true, AssuredMode.SAFE_READ_MODE, (byte)-7, (byte)-265, urls2, new HashSet<String>(), new HashSet<String>(), (short)-1);
 
     DSInfo dsInfo3 = new DSInfo(2436, 591, (long)0, ServerStatus.NORMAL_STATUS,
-      false, AssuredMode.SAFE_READ_MODE, (byte)17, (byte)0, urls3, new HashSet<String>(), (short)-1);
+      false, AssuredMode.SAFE_READ_MODE, (byte)17, (byte)0, urls3, new HashSet<String>(), new HashSet<String>(), (short)-1);
 
     DSInfo dsInfo4 = new DSInfo(415, 146, (long)0, ServerStatus.BAD_GEN_ID_STATUS,
-      true, AssuredMode.SAFE_DATA_MODE, (byte)2, (byte)15, urls4, new HashSet<String>(), (short)-1);
+      true, AssuredMode.SAFE_DATA_MODE, (byte)2, (byte)15, urls4, new HashSet<String>(), new HashSet<String>(), (short)-1);
 
     List<DSInfo> dsList1 = new ArrayList<DSInfo>();
     dsList1.add(dsInfo1);
@@ -1261,7 +1262,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
    * using protocol VLAST and V3 are working.
    */
   @Test(enabled=true, dataProvider="createInitializationRequestMsgData")
-  public void initializationRequestMsgTestVLASTV3(int sender, int dest, 
+  public void initializationRequestMsgTestVLASTV3(int sender, int dest,
       String baseDn, int initWindow)
   throws Exception
   {
@@ -1305,7 +1306,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     String baseDn = "dc=whatever";
     int entryCount = 56;
     int initWindow = 22;
-    Object[] set1 = new Object[] {sender, dest, initiator, baseDn, 
+    Object[] set1 = new Object[] {sender, dest, initiator, baseDn,
         entryCount, initWindow };
     return new Object [][] { set1};
   }
@@ -1315,7 +1316,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
    * using protocol VLAST and V3 are working.
    */
   @Test(enabled=true, dataProvider="createInitializeTargetMsgData")
-  public void initializeTargetMsgTestVLASTV3(int sender, int dest, 
+  public void initializeTargetMsgTestVLASTV3(int sender, int dest,
       int initiator, String baseDn, int entryCount, int initWindow)
   throws Exception
   {
@@ -1354,7 +1355,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(msg.getInitiatorID(), vlastMsg.getInitiatorID());
     assertEquals(msg.getInitWindow(), vlastMsg.getInitWindow());
   }
-  
+
   @DataProvider(name = "createEntryMsgV3")
   public Object[][] createEntryMsgV3()
   {

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
@@ -63,27 +64,44 @@ public class DSInfo
 
   private Set<String> eclIncludes = new HashSet<String>();
 
+  private Set<String> eclIncludesForDeletes = new HashSet<String>();
+
+
+
   /**
    * Creates a new instance of DSInfo with every given info.
    *
-   * @param dsId The DS id
-   * @param rsId The RS id the DS is connected to
-   * @param generationId The generation id the DS is using
-   * @param status The DS status
-   * @param assuredFlag DS assured replication enabled or not
-   * @param assuredMode DS assured mode
-   * @param safeDataLevel DS safe data level
-   * @param groupId DS group id
-   * @param refUrls DS exported referrals URLs
-   * @param eclIncludes The list of entry attributes to include in the ECL.
-   * @param protocolVersion Protocol version supported by this server.
+   * @param dsId
+   *          The DS id
+   * @param rsId
+   *          The RS id the DS is connected to
+   * @param generationId
+   *          The generation id the DS is using
+   * @param status
+   *          The DS status
+   * @param assuredFlag
+   *          DS assured replication enabled or not
+   * @param assuredMode
+   *          DS assured mode
+   * @param safeDataLevel
+   *          DS safe data level
+   * @param groupId
+   *          DS group id
+   * @param refUrls
+   *          DS exported referrals URLs
+   * @param eclIncludes
+   *          The list of entry attributes to include in the ECL.
+   * @param eclIncludesForDeletes
+   *          The list of entry attributes to include in the ECL for deletes.
+   * @param protocolVersion
+   *          Protocol version supported by this server.
    */
-  public DSInfo(int dsId, int rsId, long generationId, ServerStatus status,
-    boolean assuredFlag, AssuredMode assuredMode, byte safeDataLevel,
-    byte groupId, List<String> refUrls, Set<String> eclIncludes,
-    short protocolVersion)
+  public DSInfo(int dsId, int rsId, long generationId,
+      ServerStatus status, boolean assuredFlag,
+      AssuredMode assuredMode, byte safeDataLevel, byte groupId,
+      List<String> refUrls, Set<String> eclIncludes,
+      Set<String> eclIncludesForDeletes, short protocolVersion)
   {
-
     this.dsId = dsId;
     this.rsId = rsId;
     this.generationId = generationId;
@@ -94,6 +112,7 @@ public class DSInfo
     this.groupId = groupId;
     this.refUrls = refUrls;
     this.eclIncludes = eclIncludes;
+    this.eclIncludesForDeletes = eclIncludesForDeletes;
     this.protocolVersion = protocolVersion;
   }
 
@@ -188,6 +207,15 @@ public class DSInfo
   }
 
   /**
+   * Get the entry attributes to be included in the ECL for delete operations.
+   * @return The entry attributes to be included in the ECL.
+   */
+  public Set<String> getEclIncludesForDeletes()
+  {
+    return eclIncludesForDeletes;
+  }
+
+  /**
    * Get the protocol version supported by this server.
    * Returns -1 when the protocol version is not known (too old version).
    * @return The protocol version.
@@ -222,9 +250,13 @@ public class DSInfo
         (groupId == dsInfo.getGroupId()) &&
         (protocolVersion == dsInfo.getProtocolVersion()) &&
         (refUrls.equals(dsInfo.getRefUrls())) &&
-         (((eclIncludes == null) && (dsInfo.getEclIncludes() == null)) ||
-           ((eclIncludes != null) &&
-                         (eclIncludes.equals(dsInfo.getEclIncludes())))));
+        (((eclIncludes == null) && (dsInfo.getEclIncludes() == null)) ||
+          ((eclIncludes != null) &&
+            (eclIncludes.equals(dsInfo.getEclIncludes())))) &&
+        (((eclIncludesForDeletes == null)
+          && (dsInfo.getEclIncludesForDeletes() == null)) ||
+          ((eclIncludesForDeletes != null) &&
+           (eclIncludesForDeletes.equals(dsInfo.getEclIncludesForDeletes())))));
     } else
     {
       return false;
@@ -249,6 +281,8 @@ public class DSInfo
     hash = 73 * hash + this.safeDataLevel;
     hash = 73 * hash + (this.refUrls != null ? this.refUrls.hashCode() : 0);
     hash = 73 * hash + (this.eclIncludes != null ? eclIncludes.hashCode() : 0);
+    hash = 73 * hash + (this.eclIncludesForDeletes != null ?
+        eclIncludesForDeletes.hashCode() : 0);
     hash = 73 * hash + this.groupId;
     hash = 73 * hash + this.protocolVersion;
     return hash;
@@ -284,6 +318,8 @@ public class DSInfo
     sb.append(refUrls);
     sb.append(" ; ECL Include: ");
     sb.append(eclIncludes);
+    sb.append(" ; ECL Include for Deletes: ");
+    sb.append(eclIncludesForDeletes);
     return sb.toString();
   }
 

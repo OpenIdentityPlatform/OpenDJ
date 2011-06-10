@@ -23,12 +23,13 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.protocols.asn1.ASN1;
@@ -424,7 +425,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   /**
    * Encode a list of attributes.
    */
-   static private byte[] encodeAttributes(List<Attribute> attributes)
+   static private byte[] encodeAttributes(Collection<Attribute> attributes)
    {
      if (attributes==null)
        return new byte[0];
@@ -606,7 +607,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
    * Set a provided list of entry attributes.
    * @param entryAttrs  The provided list of entry attributes.
    */
-  public void setEclIncludes(List<Attribute> entryAttrs)
+  public void setEclIncludes(Collection<Attribute> entryAttrs)
   {
     this.encodedEclIncludes = encodeAttributes(entryAttrs);
   }
