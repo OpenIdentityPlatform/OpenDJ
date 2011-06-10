@@ -59,6 +59,7 @@ import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.DSInfo;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerStatus;
+import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.DN;
@@ -866,7 +867,7 @@ public class TopologyViewTest extends ReplicationTestCase
     int assuredSdLevel = -100;
     SortedSet<String> refUrls = null;
     Set<String> eclIncludes = new HashSet<String>();
-    short protocolVersion = 4;
+    short protocolVersion = ProtocolVersion.getCurrentVersion();
 
     switch (dsId)
       {
@@ -1123,7 +1124,7 @@ public class TopologyViewTest extends ReplicationTestCase
      List<String> refUrls = rd.getRefUrls();
      Set<String> eclInclude = rd.getEclIncludes();
      Set<String> eclIncludeForDeletes = rd.getEclIncludesForDeletes();
-     short protocolVersion = 4;
+     short protocolVersion = ProtocolVersion.getCurrentVersion();
      DSInfo dsInfo = new DSInfo(dsId, rsId, TEST_DN_WITH_ROOT_ENTRY_GENID, status, assuredFlag, assuredMode,
        safeDataLevel, groupId, refUrls, eclInclude, eclIncludeForDeletes, protocolVersion);
      dsList.add(dsInfo);

@@ -352,12 +352,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   throws UnsupportedEncodingException
   {
     // Encode in the current protocol version
-    if (bytes == null)
-    {
-      // this is the current version of the protocol
-      bytes = getBytes_V4();
-    }
-    return bytes;
+    return getBytes(ProtocolVersion.getCurrentVersion());
   }
 
   /**
@@ -381,7 +376,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
       if (bytes == null)
       {
         // this is the current version of the protocol
-        bytes = getBytes_V4();
+        bytes = getBytes_V45(reqProtocolVersion);
       }
       return bytes;
     }
@@ -411,15 +406,17 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
 
 
   /**
-   * Get the byte array representation of this Message. This uses the version
-   * 4 of the replication protocol (used for compatibility purpose).
+   * Get the byte array representation of this Message. This uses the provided
+   * version number which must be version 4 or newer.
+   * @param reqProtocolVersion TODO
    *
    * @return The byte array representation of this Message.
    *
    * @throws UnsupportedEncodingException  When the encoding of the message
    *         failed because the UTF-8 encoding is not supported.
    */
-  public abstract byte[] getBytes_V4() throws UnsupportedEncodingException;
+  public abstract byte[] getBytes_V45(short reqProtocolVersion)
+      throws UnsupportedEncodingException;
 
 
   /**

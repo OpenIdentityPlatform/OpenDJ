@@ -167,16 +167,24 @@ public class TopologyMsg extends ReplicationMsg
             nRead++;
           }
 
-          nAttrs = in[pos++];
-          nRead = 0;
-          /* Read attrs until expected number read */
-          while ((nRead != nAttrs) && (pos < in.length))
+          if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V5)
           {
-            length = getNextLength(in, pos);
-            String attr = new String(in, pos, length, "UTF-8");
-            delattrs.add(attr);
-            pos += length + 1;
-            nRead++;
+            nAttrs = in[pos++];
+            nRead = 0;
+            /* Read attrs until expected number read */
+            while ((nRead != nAttrs) && (pos < in.length))
+            {
+              length = getNextLength(in, pos);
+              String attr = new String(in, pos, length, "UTF-8");
+              delattrs.add(attr);
+              pos += length + 1;
+              nRead++;
+            }
+          }
+          else
+          {
+            // Default to using the same set of attributes for deletes.
+            delattrs.addAll(attrs);
           }
 
           /* Read Protocol version */
@@ -360,12 +368,15 @@ public class TopologyMsg extends ReplicationMsg
             oStream.write(0);
           }
 
-          Set<String> delattrs = dsInfo.getEclIncludesForDeletes();
-          oStream.write(delattrs.size());
-          for (String attr : delattrs)
+          if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V5)
           {
-            oStream.write(attr.getBytes("UTF-8"));
-            oStream.write(0);
+            Set<String> delattrs = dsInfo.getEclIncludesForDeletes();
+            oStream.write(delattrs.size());
+            for (String attr : delattrs)
+            {
+              oStream.write(attr.getBytes("UTF-8"));
+              oStream.write(0);
+            }
           }
 
           oStream.write(dsInfo.getProtocolVersion());
@@ -403,10 +414,11 @@ public class TopologyMsg extends ReplicationMsg
       }
 
       return oStream.toByteArray();
-    } catch (IOException e)
+    }
+    catch (IOException e)
     {
       // never happens
-      return null;
+      throw new RuntimeException(e);
     }
 
   }

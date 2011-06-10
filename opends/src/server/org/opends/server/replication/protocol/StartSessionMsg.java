@@ -98,7 +98,7 @@ public class StartSessionMsg extends ReplicationMsg
     }
     else
     {
-      decode_V4(in, version);
+      decode_V45(in, version);
     }
   }
 
@@ -191,7 +191,7 @@ public class StartSessionMsg extends ReplicationMsg
     }
     else
     {
-      return getBytes_V4(protocolVersion);
+      return getBytes_V45(protocolVersion);
     }
   }
 
@@ -208,11 +208,11 @@ public class StartSessionMsg extends ReplicationMsg
     }
     else
     {
-      return getBytes_V4(reqProtocolVersion);
+      return getBytes_V45(reqProtocolVersion);
     }
   }
 
-  private byte[] getBytes_V4(short version)
+  private byte[] getBytes_V45(short version)
   {
     try
     {
@@ -237,12 +237,15 @@ public class StartSessionMsg extends ReplicationMsg
       }
       writer.writeEndSequence();
 
-      writer.writeStartSequence();
-      for (String attrDef : eclIncludesForDeletes)
+      if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V5)
       {
-        writer.writeOctetString(attrDef);
+        writer.writeStartSequence();
+        for (String attrDef : eclIncludesForDeletes)
+        {
+          writer.writeOctetString(attrDef);
+        }
+        writer.writeEndSequence();
       }
-      writer.writeEndSequence();
 
       return byteBuilder.toByteArray();
     }
@@ -302,7 +305,7 @@ public class StartSessionMsg extends ReplicationMsg
   // Msg decoding
   // ============
 
-  private void decode_V4(byte[] in, short version)
+  private void decode_V45(byte[] in, short version)
   throws DataFormatException
   {
     ByteSequenceReader reader = ByteString.wrap(in).asReader();
@@ -341,16 +344,25 @@ public class StartSessionMsg extends ReplicationMsg
       }
       asn1Reader.readEndSequence();
 
-      asn1Reader.readStartSequence();
-      while (asn1Reader.hasNextElement())
+      if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V5)
       {
-        String s = asn1Reader.readOctetStringAsString();
-        this.eclIncludesForDeletes.add(s);
+        asn1Reader.readStartSequence();
+        while (asn1Reader.hasNextElement())
+        {
+          String s = asn1Reader.readOctetStringAsString();
+          this.eclIncludesForDeletes.add(s);
+        }
+        asn1Reader.readEndSequence();
       }
-      asn1Reader.readEndSequence();
+      else
+      {
+        // Default to using the same set of attributes for deletes.
+        this.eclIncludesForDeletes.addAll(eclIncludes);
+      }
     }
     catch (Exception e)
     {
+      throw new RuntimeException(e);
     }
   }
 
