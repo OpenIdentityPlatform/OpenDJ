@@ -230,6 +230,15 @@
     Control</link></para>
    </listitem>
   </varlistentry>
+  
+  <varlistentry>
+   <term>Public Changelog Exchange Control</term>
+   <listitem>
+    <para>Object Identifier: 1.3.6.1.4.1.26027.1.5.4</para>
+    <para>OpenDJ specific, for using the bookmark cookie when reading
+    the external change log.</para>
+   </listitem>
+  </varlistentry>
 
   <varlistentry>
    <term>Server Side Sort Request Control</term>
