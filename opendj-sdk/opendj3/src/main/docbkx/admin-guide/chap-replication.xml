@@ -328,9 +328,14 @@ for a detailed log of this operation.</screen>
 
 Preparing base DN dc=example,dc=com to be initialized externally ..... Done.
 
-Now you can proceed to the initialization of the contents of the base DN's on all the replicated servers.  You can use the command import-ldif or the binary copy to do so.  You must use the same LDIF file or binary copy on each server.
+Now you can proceed to the initialization of the contents of the base DN's
+ on all the replicated servers.  You can use the command import-ldif or the
+ binary copy to do so.  You must use the same LDIF file or binary copy on
+ each server.
 
-When the initialization is completed you must use the subcommand 'post-external-initialization' for replication to work with the new base DN's contents.</screen>
+When the initialization is completed you must use the subcommand
+ 'post-external-initialization' for replication to work with the
+ new base DN's contents.</screen>
     </step>
     <step>
      <para>Restore the new server database from the backup archive.</para>
