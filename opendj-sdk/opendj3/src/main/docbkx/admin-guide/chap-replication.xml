@@ -737,16 +737,217 @@ fractional-include:inetorgperson:cn,givenname,mail,mobile,sn,telephonenumber</sc
  <section>
   <title>Change Notification For Your Applications</title>
   
-  <para>Some of your applications might require notification when directory
-  data updates occur. For example, the application might need to sync directory
-  data with another database, or the application might need to kick off other
-  processing when certain updates occur.</para>
+  <para>Some applications require notification when directory data updates
+  occur. For example, an application might need to sync directory data with
+  another database, or the application might need to kick off other processing
+  when certain updates occur.</para>
   
   <para>In addition to supporting peristent search operations, OpenDJ
-  provides a change log mechanism to allow applications to be notified of
-  changes to directory data.</para>
+  provides an external change log mechanism to allow applications to be
+  notified of changes to directory data.</para>
   
-  <para>TODO</para>
+  <procedure>
+   <title>To Enable the External Change Log</title>
+
+   <para>OpenDJ directory servers not using replication cannnot expose an
+   external change log. The OpenDJ server that exposes the change log must
+   function both as a directory server, and also as a replication server for
+   the suffix whose changes you want logged.</para>
+   
+   <step>
+    <para>Enable replication without using the <option>--</option> or
+    <option>--</option> options.</para>
+
+    <para>With replication enabled, the changelog data can be accessed under
+    <literal>cn=changelog</literal>. For example, the following search shows
+    the publicly visible data available before any changes have been
+    made.</para>
+    
+    <screen width="80">$ ldapsearch -b cn=changelog -p 1389 "(objectclass=*)" \* +
+dn: cn=changelog
+cn: changelog
+objectClass: top
+objectClass: container
+subschemaSubentry: cn=schema
+hasSubordinates: false
+entryDN: cn=changelog
+</screen>
+   </step>
+  </procedure>
+  
+  <procedure>
+   <title>To Use the External Change Log</title>
+   
+   <para>You read the external change log over protocol. In addition, when you
+   poll the change log periodically, you can get the list of updates that
+   happened since your last request.</para>
+   
+   <para>The external change log mechanism uses an LDAP control with
+   OID <literal>1.3.6.1.4.1.26027.1.5.4</literal> to allow the exchange
+   of cookies for the client application to bookmark the last changes seen,
+   and then start reading the next set of changes from where it left off on
+   the previous request.</para>
+   
+   <para>This procedure shows the client reading the change log as
+   <literal>cn=Directory Manager</literal>. Make sure your client application
+   reads the changes with sufficient access to view all the changes it
+   needs to see.</para>
+   
+   <step>
+    <para>Send an initial search request using the LDAP control with an empty
+    cookie value.</para>
+    
+    <para>Notice the value of the <literal>changeLogCookie</literal> attribute
+    for the last of the two changes.</para>
+    
+    <screen width="80">$ ldapsearch -b cn=changelog -p 1389 -D "cn=Directory Manager" -w password \
+&gt; -J "1.3.6.1.4.1.26027.1.5.4:false:;" "(objectclass=*)" \* +
+dn: cn=changelog
+cn: changelog
+objectClass: top
+objectClass: container
+subschemaSubentry: cn=schema
+hasSubordinates: true
+entryDN: cn=changelog
+
+# Public changelog exchange control(1.3.6.1.4.1.26027.1.5.4):
+ dc=example,dc=com:0000013087cbc28212d100000001;
+dn: replicationCSN=0000013087cbc28212d100000001,dc=example,dc=com,cn=changelog
+targetDN: cn=arsene lupin,ou=special users,dc=example,dc=com
+changeNumber: 0
+changes:: b2JqZWN0Q2xhc3M6IHBlcnNvbgpvYmplY3RDbGFzczogdG9wCmNuOiBBcnNlbmUgTHVwaW
+ 4KdGVsZXBob25lTnVtYmVyOiArMzMgMSAyMyA0NSA2NyA4OQpzbjogTHVwaW4KZW50cnlVVUlEOiA5M
+ GM3MTRmNy00ODZiLTRkNDctOTQwOS1iNDRkMTlkZWEzMWUKY3JlYXRlVGltZXN0YW1wOiAyMDExMDYx
+ MzA2NTg1NVoKY3JlYXRvcnNOYW1lOiBjbj1EaXJlY3RvcnkgTWFuYWdlcixjbj1Sb290IEROcyxjbj1
+ jb25maWcK
+changeType: add
+changeTime: 20110613065855Z
+objectClass: top
+objectClass: changeLogEntry
+targetEntryUUID: 90c714f7-486b-4d47-9409-b44d19dea31e
+replicationCSN: 0000013087cbc28212d100000001
+numSubordinates: 0
+replicaIdentifier: 4817
+changeLogCookie: dc=example,dc=com:0000013087cbc28212d100000001;
+changeInitiatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+subschemaSubentry: cn=schema
+hasSubordinates: false
+entryDN: replicationCSN=0000013087cbc28212d100000001,dc=example,dc=com,cn=change
+ log
+
+# Public changelog exchange control(1.3.6.1.4.1.26027.1.5.4):
+ dc=example,dc=com:0000013087cbc34a12d100000002;
+dn: replicationCSN=0000013087cbc34a12d100000002,dc=example,dc=com,cn=changelog
+targetDN: cn=horace velmont,ou=special users,dc=example,dc=com
+changeNumber: 0
+changes:: b2JqZWN0Q2xhc3M6IHBlcnNvbgpvYmplY3RDbGFzczogdG9wCmNuOiBIb3JhY2UgVmVsbW
+ 9udAp0ZWxlcGhvbmVOdW1iZXI6ICszMyAxIDEyIDIzIDM0IDQ1CnNuOiBWZWxtb250CmVudHJ5VVVJR
+ DogNmIyMjQ0MGEtNzZkMC00MDMxLTk0YjctMzViMWQ4NmYwNjdlCmNyZWF0ZVRpbWVzdGFtcDogMjAx
+ MTA2MTMwNjU4NTVaCmNyZWF0b3JzTmFtZTogY249RGlyZWN0b3J5IE1hbmFnZXIsY249Um9vdCBETnM
+ sY249Y29uZmlnCg==
+changeType: add
+changeTime: 20110613065855Z
+objectClass: top
+objectClass: changeLogEntry
+targetEntryUUID: 6b22440a-76d0-4031-94b7-35b1d86f067e
+replicationCSN: 0000013087cbc34a12d100000002
+numSubordinates: 0
+replicaIdentifier: 4817
+<emphasis>changeLogCookie: dc=example,dc=com:0000013087cbc34a12d100000002;</emphasis>
+changeInitiatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+subschemaSubentry: cn=schema
+hasSubordinates: false
+entryDN: replicationCSN=0000013087cbc34a12d100000002,dc=example,dc=com,cn=change
+ log
+</screen>
+    
+    <para>In this example, two new users were added to another replica
+    before the change log request was made.</para>
+    
+    <para>Here the changes are base64 encoded, so you can decode them using
+    the <command>base64</command> command.</para>
+    
+    <screen>$ base64 decode -d b2JqZW...ZmlnCg==
+objectClass: person
+objectClass: top
+cn: Horace Velmont
+telephoneNumber: +33 1 12 23 34 45
+sn: Velmont
+entryUUID: 6b22440a-76d0-4031-94b7-35b1d86f067e
+createTimestamp: 20110613065855Z
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+    </screen>
+   </step>
+   
+   <step>
+    <para>For the next search, provide the cookie to start reading where
+   you left off last time.</para>
+   
+    <para>In this example, a description was added to Babs Jensen's entry.</para>
+   
+    <screen width="80">$ ldapsearch -b cn=changelog -p 1389 -D "cn=Directory Manager" -w password \
+&gt; -J "1.3.6.1.4.1.26027.1.5.4:false:\
+&gt; dc=example,dc=com:0000013087cbc34a12d100000002;" "(objectclass=*)" \* +
+dn: cn=changelog
+cn: changelog
+objectClass: top
+objectClass: container
+subschemaSubentry: cn=schema
+hasSubordinates: true
+entryDN: cn=changelog
+
+# Public changelog exchange control(1.3.6.1.4.1.26027.1.5.4):
+ dc=example,dc=com:0000013087d7e27f12d100000003;
+dn: replicationCSN=0000013087d7e27f12d100000003,dc=example,dc=com,cn=changelog
+targetDN: uid=bjensen,ou=people,dc=example,dc=com
+changeNumber: 0
+changes:: YWRkOiBkZXNjcmlwdGlvbgpkZXNjcmlwdGlvbjogQSB0aGlyZCBjaGFuZ2UKLQpyZXBsYW
+ NlOiBtb2RpZmllcnNOYW1lCm1vZGlmaWVyc05hbWU6IGNuPURpcmVjdG9yeSBNYW5hZ2VyLGNuPVJvb
+ 3QgRE5zLGNuPWNvbmZpZwotCnJlcGxhY2U6IG1vZGlmeVRpbWVzdGFtcAptb2RpZnlUaW1lc3RhbXA6
+ IDIwMTEwNjEzMDcxMjEwWgotCg==
+changeType: modify
+changeTime: 20110613071210Z
+objectClass: top
+objectClass: changeLogEntry
+targetEntryUUID: fc252fd9-b982-3ed6-b42a-c76d2546312c
+replicationCSN: 0000013087d7e27f12d100000003
+numSubordinates: 0
+replicaIdentifier: 4817
+changeLogCookie: dc=example,dc=com:0000013087d7e27f12d100000003;
+changeInitiatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+subschemaSubentry: cn=schema
+hasSubordinates: false
+entryDN: replicationCSN=0000013087d7e27f12d100000003,dc=example,dc=com,cn=change
+ log
+    </screen>
+    
+    <para>If we base64-decode the changes, we see the following.</para>
+    
+    <screen width="80">$ base64 decode -d YWRkO...gotCg==
+add: description
+description: A third change
+-
+replace: modifiersName
+modifiersName: cn=Directory Manager,cn=Root DNs,cn=config
+-
+replace: modifyTimestamp
+modifyTimestamp: 20110613071210Z
+-
+</screen>
+   </step>
+   <step>
+    <para>If for some reason you lose the cookie, you can start over from
+    the earliest available change by sending a search request with an empty
+    value for the cookie.</para>
+   </step>
+  </procedure>
+
+   <para>The external change log can also operate in a mode compatible with the
+   <link xlink:href="http://tools.ietf.org/html/draft-good-ldap-changelog-04"
+   >Internet-Draft: Definition of an Object Class to Hold LDAP Change
+   Records</link>. Thus, you can use the change log with legacy applications
+   that require this format without using cookies that facilitate retrieving
+   updates in a multi-master replication environment.</para>
  </section>
 </chapter>
 
