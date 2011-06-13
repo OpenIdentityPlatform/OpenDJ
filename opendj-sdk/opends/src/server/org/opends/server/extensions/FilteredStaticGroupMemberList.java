@@ -23,8 +23,10 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.extensions;
+import org.opends.server.types.ByteString;
 import org.opends.messages.Message;
 
 
@@ -76,11 +78,11 @@ public class FilteredStaticGroupMemberList
   private Entry nextMatchingEntry;
 
   // The iterator used to traverse the set of member DNs.
-  private Iterator<DN> memberDNIterator;
+  private Iterator<ByteString> memberDNIterator;
 
   // The set of DNs for the users that are members of the associated static
   // group.
-  private LinkedList<DN> memberDNs;
+  private LinkedList<ByteString> memberDNs;
 
   // The membership exception that should be thrown the next time a member is
   // requested.
@@ -111,13 +113,14 @@ public class FilteredStaticGroupMemberList
    *                    match.  If this is {@code null}, then all members will
    *                    be considered eligible.
    */
-  public FilteredStaticGroupMemberList(DN groupDN, Set<DN> memberDNs, DN baseDN,
-                                       SearchScope scope, SearchFilter filter)
+  public FilteredStaticGroupMemberList(DN groupDN, Set<ByteString> memberDNs,
+                                       DN baseDN, SearchScope scope,
+                                       SearchFilter filter)
   {
     ensureNotNull(groupDN, memberDNs);
 
     this.groupDN   = groupDN;
-    this.memberDNs = new LinkedList<DN>(memberDNs);
+    this.memberDNs = new LinkedList<ByteString>(memberDNs);
     memberDNIterator = memberDNs.iterator();
 
     this.baseDN = baseDN;
@@ -152,8 +155,25 @@ public class FilteredStaticGroupMemberList
   {
     while (memberDNIterator.hasNext())
     {
-      DN nextDN = memberDNIterator.next();
+      DN nextDN = null;
+      try
+      {
+        nextDN = DN.decode(memberDNIterator.next());
+      }
+      catch (DirectoryException de)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
+        }
 
+        Message message = ERR_STATICMEMBERS_CANNOT_DECODE_DN.
+            get(String.valueOf(nextDN), String.valueOf(groupDN),
+                String.valueOf(de.getMessageObject()));
+        nextMembershipException =
+             new MembershipException(message, true, de);
+        return;
+      }
 
       // Check to see if we can eliminate the entry as a possible match purely
       // based on base DN and scope.

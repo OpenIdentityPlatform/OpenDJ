@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.api;
 import org.opends.messages.Message;
@@ -299,7 +300,9 @@ public abstract class Group<T extends GroupImplementationCfg>
   public boolean isMember(DN userDN)
          throws DirectoryException
   {
-    return isMember(userDN, new HashSet<DN>());
+    if (userDN != null)
+      return isMember(userDN, new HashSet<DN>());
+    return false;
   }
 
 

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.extensions;
 import org.opends.messages.Message;
@@ -33,6 +34,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Set;
 
+import org.opends.server.types.ByteString;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
@@ -68,11 +70,11 @@ public class SimpleStaticGroupMemberList
   private DN groupDN;
 
   // The iterator used to traverse the set of member DNs.
-  private Iterator<DN> memberDNIterator;
+  private Iterator<ByteString> memberDNIterator;
 
   // The set of DNs for the users that are members of the associated static
   // group.
-  private LinkedList<DN> memberDNs;
+  private LinkedList<ByteString> memberDNs;
 
 
 
@@ -85,12 +87,12 @@ public class SimpleStaticGroupMemberList
    * @param  memberDNs  The set of DNs for the users that are members of the
    *                    associated static group.
    */
-  public SimpleStaticGroupMemberList(DN groupDN, Set<DN> memberDNs)
+  public SimpleStaticGroupMemberList(DN groupDN, Set<ByteString> memberDNs)
   {
     ensureNotNull(groupDN, memberDNs);
 
     this.groupDN   = groupDN;
-    this.memberDNs = new LinkedList<DN>(memberDNs);
+    this.memberDNs = new LinkedList<ByteString>(memberDNs);
     memberDNIterator = memberDNs.iterator();
   }
 
@@ -114,12 +116,28 @@ public class SimpleStaticGroupMemberList
   public DN nextMemberDN()
          throws MembershipException
   {
+    DN dn = null;
+
     if (memberDNIterator.hasNext())
     {
-      return memberDNIterator.next();
+      try{
+        dn = DN.decode(memberDNIterator.next());
+      }
+      catch (DirectoryException de)
+      {
+        // Should not happen
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
+        }
+        Message message = ERR_STATICMEMBERS_CANNOT_DECODE_DN.
+            get(String.valueOf(dn), String.valueOf(groupDN),
+                String.valueOf(de.getMessageObject()));
+        throw new MembershipException(message, true, de);
+      }
     }
 
-    return null;
+    return dn;
   }
 
 
@@ -133,11 +151,11 @@ public class SimpleStaticGroupMemberList
   {
     if (memberDNIterator.hasNext())
     {
-      DN memberDN = memberDNIterator.next();
+      ByteString memberDN = memberDNIterator.next();
 
       try
       {
-        Entry memberEntry = DirectoryConfig.getEntry(memberDN);
+        Entry memberEntry = DirectoryConfig.getEntry(DN.decode(memberDN));
         if (memberEntry == null)
         {
           Message message = ERR_STATICMEMBERS_NO_SUCH_ENTRY.get(

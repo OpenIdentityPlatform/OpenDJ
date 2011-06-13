@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -49,6 +50,7 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Attributes;
+import org.opends.server.types.ByteString;
 import org.opends.server.types.Control;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryConfig;
@@ -74,11 +76,12 @@ import static org.opends.server.util.Validator.*;
 
 /**
  * This class provides a static group implementation, in which the DNs
- * of all members are explicitly listed.  There are two variants of
- * static groups:  one based on the {@code groupOfNames} object class,
- * which stores the member list in the {@code member} attribute, and
- * one based on the {@code groupOfUniqueNames} object class, which
- * stores the member list in the {@code uniqueMember} attribute.
+ * of all members are explicitly listed.  There are three variants of
+ * static groups:  two based on the {@code groupOfNames} and
+ * {@code groupOfEntries} object classes, which store the member list in
+ * the {@code member} attribute, and one based on the
+ * {@code groupOfUniqueNames} object class, which stores the member list
+ * in the {@code uniqueMember} attribute.
  */
 public class StaticGroup
        extends Group<StaticGroupImplementationCfg>
@@ -95,7 +98,7 @@ public class StaticGroup
   private DN groupEntryDN;
 
   // The set of the DNs of the members for this group.
-  private LinkedHashSet<DN> memberDNs;
+  private LinkedHashSet<ByteString> memberDNs;
 
   //The list of nested group DNs for this group.
   private LinkedList<DN> nestedGroups = new LinkedList<DN>();
@@ -132,7 +135,7 @@ public class StaticGroup
    *                              group.
    */
   public StaticGroup(DN groupEntryDN, AttributeType memberAttributeType,
-                     LinkedHashSet<DN> memberDNs)
+                     LinkedHashSet<ByteString> memberDNs)
   {
     super();
 
@@ -170,9 +173,9 @@ public class StaticGroup
     ensureNotNull(groupEntry);
 
 
-    // Determine whether it is a groupOfNames or groupOfUniqueNames entry.  If
-    // neither, then that's a problem.
-    AttributeType memberAttributeType;
+    // Determine whether it is a groupOfNames, groupOfEntries or
+    // groupOfUniqueNames entry.  If not, then that's a problem.
+    AttributeType someMemberAttributeType;
     ObjectClass groupOfEntriesClass =
          DirectoryConfig.getObjectClass(OC_GROUP_OF_ENTRIES_LC, true);
     ObjectClass groupOfNamesClass =
@@ -196,7 +199,8 @@ public class StaticGroup
         throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
       }
 
-      memberAttributeType = DirectoryConfig.getAttributeType(ATTR_MEMBER, true);
+      someMemberAttributeType = DirectoryConfig
+              .getAttributeType(ATTR_MEMBER, true);
     }
     else if (groupEntry.hasObjectClass(groupOfNamesClass))
     {
@@ -208,11 +212,12 @@ public class StaticGroup
         throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
       }
 
-      memberAttributeType = DirectoryConfig.getAttributeType(ATTR_MEMBER, true);
+      someMemberAttributeType = DirectoryConfig
+              .getAttributeType(ATTR_MEMBER, true);
     }
     else if (groupEntry.hasObjectClass(groupOfUniqueNamesClass))
     {
-      memberAttributeType =
+      someMemberAttributeType =
            DirectoryConfig.getAttributeType(ATTR_UNIQUE_MEMBER_LC, true);
     }
     else
@@ -223,10 +228,19 @@ public class StaticGroup
       throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
     }
 
-
-    LinkedHashSet<DN> memberDNs = new LinkedHashSet<DN>();
     List<Attribute> memberAttrList =
-         groupEntry.getAttribute(memberAttributeType);
+         groupEntry.getAttribute(someMemberAttributeType);
+    int membersCount = 0;
+    if (memberAttrList != null)
+    {
+      for (Attribute a : memberAttrList)
+      {
+        membersCount += a.size();
+      }
+    }
+    LinkedHashSet<ByteString> someMemberDNs =
+            new LinkedHashSet<ByteString>(membersCount);
+
     if (memberAttrList != null)
     {
       for (Attribute a : memberAttrList)
@@ -235,8 +249,7 @@ public class StaticGroup
         {
           try
           {
-            DN memberDN = DN.decode(v.getValue());
-            memberDNs.add(memberDN);
+            someMemberDNs.add(v.getNormalizedValue());
           }
           catch (DirectoryException de)
           {
@@ -246,7 +259,8 @@ public class StaticGroup
             }
 
             Message message = ERR_STATICGROUP_CANNOT_DECODE_MEMBER_VALUE_AS_DN.
-                get(v.getValue().toString(), memberAttributeType.getNameOrOID(),
+                get(v.getValue().toString(),
+                    someMemberAttributeType.getNameOrOID(),
                     String.valueOf(groupEntry.getDN()), de.getMessageObject());
             ErrorLogger.logError(message);
           }
@@ -255,7 +269,8 @@ public class StaticGroup
     }
 
 
-    return new StaticGroup(groupEntry.getDN(), memberAttributeType, memberDNs);
+    return new StaticGroup(groupEntry.getDN(),
+            someMemberAttributeType, someMemberDNs);
   }
 
 
@@ -433,8 +448,9 @@ public class StaticGroup
       newNestedGroups.add(nestedGroupDN);
       nestedGroups = newNestedGroups;
       //Add it to the member DN list.
-      LinkedHashSet<DN> newMemberDNs = new LinkedHashSet<DN>(memberDNs);
-      newMemberDNs.add(nestedGroupDN);
+      LinkedHashSet<ByteString> newMemberDNs =
+              new LinkedHashSet<ByteString>(memberDNs);
+      newMemberDNs.add(ByteString.valueOf(nestedGroupDN.toNormalizedString()));
       memberDNs = newMemberDNs;
     }
   }
@@ -493,8 +509,10 @@ public class StaticGroup
       newNestedGroups.remove(nestedGroupDN);
       nestedGroups = newNestedGroups;
       //Remove it from the member DN list.
-      LinkedHashSet<DN> newMemberDNs = new LinkedHashSet<DN>(memberDNs);
-      newMemberDNs.remove(nestedGroupDN);
+      LinkedHashSet<ByteString> newMemberDNs =
+              new LinkedHashSet<ByteString>(memberDNs);
+      newMemberDNs.remove(
+              ByteString.valueOf(nestedGroupDN.toNormalizedString()));
       memberDNs = newMemberDNs;
     }
   }
@@ -509,7 +527,8 @@ public class StaticGroup
           throws DirectoryException
   {
     reloadIfNeeded();
-    if(memberDNs.contains(userDN))
+    ByteString userDNString = ByteString.valueOf(userDN.toNormalizedString());
+    if(memberDNs.contains(userDNString))
     {
       return true;
     }
@@ -570,18 +589,21 @@ public class StaticGroup
                   ERR_STATICGROUP_GROUP_INSTANCE_INVALID.get(
                     String.valueOf(groupEntryDN)));
         } else if(thisGroup != this) {
-          LinkedHashSet<DN> newMemberDNs = new LinkedHashSet<DN>();
+          LinkedHashSet<ByteString> newMemberDNs =
+                  new LinkedHashSet<ByteString>();
           MemberList memberList=thisGroup.getMembers();
           while (memberList.hasMoreMembers()) {
             try {
-              newMemberDNs.add(memberList.nextMemberDN());
+              newMemberDNs.add(ByteString.valueOf(
+                      memberList.nextMemberDN().toNormalizedString()));
             } catch (MembershipException ex) {}
           }
           memberDNs=newMemberDNs;
         }
         LinkedList<DN> newNestedGroups = new LinkedList<DN>();
-        for(DN dn : memberDNs)
+        for(ByteString dnString : memberDNs)
         {
+          DN dn = DN.decode(dnString);
           Group gr=DirectoryServer.getGroupManager().getGroupInstance(dn);
           if(gr != null)
           {
@@ -654,7 +676,9 @@ public class StaticGroup
     synchronized (this)
     {
       DN userDN = userEntry.getDN();
-      if (memberDNs.contains(userDN))
+      ByteString userDNString = ByteString.valueOf(userDN.toNormalizedString());
+
+      if (memberDNs.contains(userDNString))
       {
         Message message = ERR_STATICGROUP_ADD_MEMBER_ALREADY_EXISTS.get(
             String.valueOf(userDN), String.valueOf(groupEntryDN));
@@ -687,10 +711,10 @@ public class StaticGroup
       }
 
 
-      LinkedHashSet<DN> newMemberDNs =
-           new LinkedHashSet<DN>(memberDNs.size()+1);
+      LinkedHashSet<ByteString> newMemberDNs =
+           new LinkedHashSet<ByteString>(memberDNs.size()+1);
       newMemberDNs.addAll(memberDNs);
-      newMemberDNs.add(userDN);
+      newMemberDNs.add(userDNString);
       memberDNs = newMemberDNs;
     }
   }
@@ -706,9 +730,10 @@ public class StaticGroup
   {
     ensureNotNull(userDN);
 
+    ByteString userDNString = ByteString.valueOf(userDN.toNormalizedString());
     synchronized (this)
     {
-      if (! memberDNs.contains(userDN))
+      if (! memberDNs.contains(userDNString))
       {
         Message message = ERR_STATICGROUP_REMOVE_MEMBER_NO_SUCH_MEMBER.get(
             String.valueOf(userDN), String.valueOf(groupEntryDN));
@@ -741,8 +766,9 @@ public class StaticGroup
       }
 
 
-      LinkedHashSet<DN> newMemberDNs = new LinkedHashSet<DN>(memberDNs);
-      newMemberDNs.remove(userDN);
+      LinkedHashSet<ByteString> newMemberDNs =
+              new LinkedHashSet<ByteString>(memberDNs);
+      newMemberDNs.remove(userDNString);
       memberDNs = newMemberDNs;
       //If it is in the nested group list remove it.
       if(nestedGroups.contains(userDN)) {
