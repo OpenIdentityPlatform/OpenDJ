@@ -268,20 +268,21 @@ for a detailed log of this operation.</screen>
    <procedure>
     <title>To Create a New Replica From Existing Backup</title>
     
-    <para>Follow these steps to add another server to the topology by
-    copying the database</para>
+    <para>You can create a new replica from a backup of an existing replica.
+    The <command>dsreplication</command> commands use differ slightly from
+    the other cases, as you must reset the generation ID on the new replica,
+    such that replication can proceed from the proper starting point.
+    Follow these steps to add another server to the topology by restoring
+    from a backup copy of an existing server.</para>
     
+    <step>
+     <para>Install a new server to serve as the new replica.</para>
+    </step>
     <step>
      <para>Backup the database to replica on an existing server.</para>
     </step>
     <step>
-     <para>Install a new server.</para>
-    </step>
-    <step>
-     <para>Restore the new server database from the backup archive.</para>
-    </step>
-    <step>
-     <para>Enable replication on the new server.</para>
+     <para>Enable replication on the new replica.</para>
      <screen width="80">
 $ dsreplication enable -I admin -w password -X -n -b dc=example,dc=com \
 &gt; --host1 `hostname` --port1 4444 --bindDN1 "cn=Directory Manager" \
@@ -321,17 +322,27 @@ See
 for a detailed log of this operation.</screen>
     </step>
     <step>
-     <para>Initialize replication on the new server with the
-     <command>dsreplication initialize</command> command.</para>
-     <screen width="80">$ dsreplication initialize -I admin -w password -X -n -b dc=example,dc=com \
-&gt; -h `hostname` -p 6444
-Initializing base DN dc=example,dc=com with the contents from localhost:6444:
-161 entries processed (100 % complete).
-Base DN initialized successfully.
+     <para>Prepare the new replica for initialization.</para>
+     <screen width="80">$ dsreplication pre-external-initialization -I admin -w password -X -n -p 6444 \
+&gt; -b dc=example,dc=com
 
-See
-/var/.../opends-replication-4529243617755617341.log
-for a detailed log of this operation.</screen>
+Preparing base DN dc=example,dc=com to be initialized externally ..... Done.
+
+Now you can proceed to the initialization of the contents of the base DN's on all the replicated servers.  You can use the command import-ldif or the binary copy to do so.  You must use the same LDIF file or binary copy on each server.
+
+When the initialization is completed you must use the subcommand 'post-external-initialization' for replication to work with the new base DN's contents.</screen>
+    </step>
+    <step>
+     <para>Restore the new server database from the backup archive.</para>
+    </step>
+    <step>
+     <para>Initialize replication on the new replica.</para>
+     <screen width="80">$ dsreplication post-external-initialization -I admin -w password -X -n \
+&gt; -p 6444 -b dc=example,dc=com
+
+Updating replication information on base DN dc=example,dc=com ..... Done.
+
+Post initialization procedure completed successfully.</screen>
     </step>
    </procedure>
   </section>
