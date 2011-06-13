@@ -31,7 +31,7 @@ import org.opends.messages.Message;
 
 
 import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.Set;
 
 import org.opends.server.types.ByteString;
@@ -74,7 +74,7 @@ public class SimpleStaticGroupMemberList
 
   // The set of DNs for the users that are members of the associated static
   // group.
-  private LinkedList<ByteString> memberDNs;
+  private ArrayList<ByteString> memberDNs;
 
 
 
@@ -92,7 +92,7 @@ public class SimpleStaticGroupMemberList
     ensureNotNull(groupDN, memberDNs);
 
     this.groupDN   = groupDN;
-    this.memberDNs = new LinkedList<ByteString>(memberDNs);
+    this.memberDNs = new ArrayList<ByteString>(memberDNs);
     memberDNIterator = memberDNs.iterator();
   }
 
