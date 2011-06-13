@@ -794,14 +794,14 @@ entryDN: cn=changelog
    needs to see.</para>
    
    <step>
-    <para>Send an initial search request using the LDAP control with an empty
+    <para>Send an initial search request using the LDAP control with no
     cookie value.</para>
     
     <para>Notice the value of the <literal>changeLogCookie</literal> attribute
     for the last of the two changes.</para>
     
     <screen width="80">$ ldapsearch -b cn=changelog -p 1389 -D "cn=Directory Manager" -w password \
-&gt; -J "1.3.6.1.4.1.26027.1.5.4:false:;" "(objectclass=*)" \* +
+&gt; -J "1.3.6.1.4.1.26027.1.5.4:false" "(objectclass=*)" \* +
 dn: cn=changelog
 cn: changelog
 objectClass: top
@@ -937,7 +937,7 @@ modifyTimestamp: 20110613071210Z
    </step>
    <step>
     <para>If for some reason you lose the cookie, you can start over from
-    the earliest available change by sending a search request with an empty
+    the earliest available change by sending a search request with no
     value for the cookie.</para>
    </step>
   </procedure>
