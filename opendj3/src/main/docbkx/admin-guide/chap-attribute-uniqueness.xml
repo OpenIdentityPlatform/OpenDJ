@@ -56,7 +56,7 @@
  <procedure>
   <title>To Enable Unique UIDs</title>
   
-  <para>OpenDJ provides a unique attibute plugin that you configure by using
+  <para>OpenDJ provides a unique attribute plugin that you configure by using
   the <command>dsconfig</command> command. By default, the plugin is prepared
   to ensure attribute values are unique for <literal>uid</literal>
   attributes.</para>
