@@ -601,6 +601,16 @@ $ dsconfig -p 7444 -h `hostname` -D "cn=Directory Manager" -w password \
 &gt; --set group-id:2 -X -n</screen>
     </step>
    </procedure>
+
+   <tip>
+    <para>If you set up OpenDJ directory server to replicate by using the
+    Quick Setup wizard, then the wizard activated the replication service for
+    that server. You can turn off the replication service on OpenDJ directory
+    server, and then configure the server to work with a separate, stand-alone
+    replication server instead. Start by using the <command>dsreplication
+    disable --disableReplicationServer</command> command to turn off the
+    replication service on the server.</para>   
+   </tip>
   </section>
 
   <section>
