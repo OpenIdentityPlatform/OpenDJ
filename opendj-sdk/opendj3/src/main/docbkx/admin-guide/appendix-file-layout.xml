@@ -97,6 +97,8 @@
    <term><filename>config/config.ldif</filename></term>
    <listitem>
     <para>LDIF representation of current OpenDJ server config</para>
+    <para>Use the <command>dsconfig</command> command to edit OpenDJ server
+    configuration.</para>
    </listitem>
   </varlistentry>
   <varlistentry>
@@ -112,9 +114,18 @@
    </listitem>
   </varlistentry>
   <varlistentry>
+   <term><filename>config/tasks.ldif</filename></term>
+   <listitem>
+    <para>Data used by task scheduler backend so that scheduled tasks and
+    recurring tasks persist after server restart</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
    <term><filename>config/tools.properties</filename></term>
    <listitem>
     <para>Default settings for command-line tools</para>
+    <para>Use as a template when creating an
+    <filename>~/.opendj/tools.properties</filename> file.</para>
    </listitem>
   </varlistentry>
   <varlistentry>
