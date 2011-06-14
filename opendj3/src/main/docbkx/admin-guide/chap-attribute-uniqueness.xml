@@ -53,5 +53,114 @@
  <para>This chapter shows you how to set up attribute value uniqueness
  in your directory environment.</para>
 
+ <procedure>
+  <title>To Enable Unique UIDs</title>
+  
+  <para>OpenDJ provides a unique attibute plugin that you configure by using
+  the <command>dsconfig</command> command. By default, the plugin is prepared
+  to ensure attribute values are unique for <literal>uid</literal>
+  attributes.</para>
+  
+  <step>
+   <para>Set the base DN where <literal>uid</literal> should have unique
+   values, and enable the plugin.</para>
+   <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+&gt; set-plugin-prop --plugin-name "UID Unique Attribute" \
+&gt; --set base-dn:ou=people,dc=example,dc=com --set enabled:true -X -n</screen>
+  </step>
+  <step>
+   <para>Check that the plugin is working correctly.</para>
+   <screen width="80">$ cat bjensen.ldif 
+dn: uid=ajensen,ou=People,dc=example,dc=com
+changetype: modify
+add: uid
+uid: bjensen
+
+$ ldapmodify -a -p 1389 -D "cn=Directory Manager" -w password -f bjensen.ldif 
+Processing MODIFY request for uid=ajensen,ou=People,dc=example,dc=com
+MODIFY operation failed
+Result Code:  19 (Constraint Violation)
+Additional Information:  A unique attribute conflict was detected for \
+ attribute uid:  value bjensen already exists in entry
+ uid=bjensen,ou=People,dc=example,dc=com</screen>
+  </step>
+ </procedure>
+ 
+ <procedure>
+  <title>To Enable Unique Values For Other Attributes</title>
+ 
+  <para>You can also configure the unique attribute plugin for use with
+  other attributes, such as <literal>mail</literal>, <literal>mobile</literal>,
+  or attributes you define, for example <literal>cardNumber</literal>.</para>
+  
+  <step>
+   <para>Before you set up the plugin, index the attribute for equality.</para>
+  </step>
+  <step>
+   <para>Set up the plugin configuration for your attribute.</para>
+   <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+&gt; create-plugin --plugin-name "Unique mobile numbers" \
+&gt; --type unique-attribute --set enabled:true \
+&gt; --set base-dn:ou=people,dc=example,dc=com --set type:mobile -X -n</screen>
+  </step>
+  <step>
+   <para>Check that the plugin is working correctly.</para>
+   <screen width="80">$ cat mobile.ldif
+dn: uid=ajensen,ou=People,dc=example,dc=com
+changetype: modify
+add: mobile
+mobile: +1 828 555 1212
+
+dn: uid=bjensen,ou=People,dc=example,dc=com
+changetype: modify
+add: mobile
+mobile: +1 828 555 1212
+
+$ ldapmodify -a -p 1389 -D "cn=Directory Manager" -w password -f mobile.ldif 
+Processing MODIFY request for uid=ajensen,ou=People,dc=example,dc=com
+MODIFY operation successful for DN uid=ajensen,ou=People,dc=example,dc=com
+Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com
+MODIFY operation failed
+Result Code:  19 (Constraint Violation)
+Additional Information:  A unique attribute conflict was detected for
+ attribute mobile:  value +1 828 555 1212 already exists in entry
+ uid=ajensen,ou=People,dc=example,dc=com</screen>
+  </step>
+ </procedure>
+ 
+ <procedure>
+  <title>To Ensure Unique Attribute Values With Replication</title>
+  
+  <para>The unique attribute plugin ensures unique attribute values on the
+  directory server where the attribute value is updated. If client applications
+  separately write the same attribute value at the same time on different
+  directory replicas, it is possible that both servers consider the duplicate
+  value unique, especially if the network is down between the replicas.</para>
+  
+  <step>
+   <para>Enable the plugin identically on all replicas.</para>
+  </step>
+  <step>
+   <para>To avoid duplicate values where possible, try one of the following
+   solutions.</para>
+   <stepalternatives>
+    <step>
+     <para>Use a load balancer or proxy technology to direct all updates
+     to the unique attribute to the same directory server.</para>
+     <para>The drawback here is the need for an additional component to
+     direct the updates to the same server, and to manage failover should that
+     server go down.</para>
+    </step>
+    <step>
+     <para>Configure safe read mode assured replication between replicas
+     storing the unique attribute.</para>
+     <para>The drawbacks here are the cost of safe read assured replication,
+     and the likelihood that assured replication can enter degraded mode during
+     a network outage, thus continuing to allow updates during the
+     partition.</para>
+    </step>
+   </stepalternatives>
+  </step>  
+ </procedure>
 </chapter>
 
