@@ -23,9 +23,11 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.service;
 
+import java.io.File;
 import static org.testng.Assert.*;
 
 import java.util.List;
@@ -39,6 +41,7 @@ import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.DSInfo;
 import org.opends.server.replication.common.RSInfo;
@@ -47,6 +50,7 @@ import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.util.StaticUtils;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -233,10 +237,17 @@ public class ReplicationDomainTest extends ReplicationTestCase
         domain2.stopDomain();
 
       if (replServer1 != null)
+      {
         replServer1.remove();
-
+        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+                 replServer1.getDbDirName()));
+      }
       if (replServer2 != null)
+      {
         replServer2.remove();
+        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+                 replServer2.getDbDirName()));
+      }
     }
   }
 
@@ -317,7 +328,11 @@ public class ReplicationDomainTest extends ReplicationTestCase
         domain1.disableService();
 
       if (replServer1 != null)
+      {
         replServer1.remove();
+        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+                 replServer1.getDbDirName()));
+      }
     }
   }
 
@@ -410,7 +425,11 @@ public class ReplicationDomainTest extends ReplicationTestCase
         domain2.disableService();
 
       if (replServer != null)
+      {
         replServer.remove();
+        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+                 replServer.getDbDirName()));
+      }
     }
   }
 
@@ -505,10 +524,17 @@ public class ReplicationDomainTest extends ReplicationTestCase
         domain2.disableService();
 
       if (replServer1 != null)
+      {
         replServer1.remove();
-
+        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+                 replServer1.getDbDirName()));
+      }
       if (replServer2 != null)
+      {
         replServer2.remove();
+        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+                 replServer2.getDbDirName()));
+      }
     }
   }
 
@@ -569,7 +595,11 @@ public class ReplicationDomainTest extends ReplicationTestCase
         domain1.disableService();
 
       if (replServer != null)
+      {
         replServer.remove();
+        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+                 replServer.getDbDirName()));
+      }
     }
   }
 
@@ -631,7 +661,11 @@ public class ReplicationDomainTest extends ReplicationTestCase
         domain1.disableService();
 
       if (replServer != null)
+      {
         replServer.remove();
+        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+                 replServer.getDbDirName()));
+      }
     }
   }
 }

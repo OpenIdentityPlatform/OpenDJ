@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -76,6 +77,7 @@ public class TestBackendImpl extends JebTestCase {
     // This test suite depends on having the schema available, so we'll make
     // sure the server is started.
     TestCaseUtils.startServer();
+    TestCaseUtils.enableBackend("indexRoot");
 
     homeDirName = "db_index_test";
 
@@ -534,6 +536,7 @@ public class TestBackendImpl extends JebTestCase {
 
   @AfterClass
   public void cleanUp() throws Exception {
+    TestCaseUtils.disableBackend("importRoot");
   }
 
   @Test(expectedExceptions = DirectoryException.class)

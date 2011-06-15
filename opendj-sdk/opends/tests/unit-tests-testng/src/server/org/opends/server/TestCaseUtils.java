@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server;
 
@@ -1946,5 +1947,17 @@ public final class TestCaseUtils {
     }
 
     return buffer.toString();
+  }
+  
+  public static void enableBackend(String backendID)
+  {
+    dsconfig("set-backend-prop", "--backend-name", backendID,
+             "--set", "enabled:true");
+  }
+  
+  public static void disableBackend(String backendID)
+  {
+    dsconfig("set-backend-prop", "--backend-name", backendID,
+             "--set", "enabled:false");
   }
 }

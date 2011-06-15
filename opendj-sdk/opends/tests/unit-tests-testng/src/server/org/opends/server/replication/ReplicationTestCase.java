@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication;
 
@@ -88,6 +89,7 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
+import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -483,6 +485,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     // Clean RS databases
     cleanUpReplicationServersDB();
 
+    removeReplicationServerDB();
+    
     cleanConfigEntries();
     configEntryList = new LinkedList<DN>();
 
@@ -492,29 +496,6 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     // Clear the test backend (TestCaseUtils.TEST_ROOT_DN_STRING)
     // (in case our test created some emtries in it)
     TestCaseUtils.initializeTestBackend(true);
-
-    // Clean the default DB dir for replication server
-    String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-    String rsDbDirPath = buildRoot + File.separator + "build" +
-                  File.separator + "unit-tests" + File.separator +
-                  "package-instance"+ File.separator + "changelogDb";
-
-    File rsDbDir = new File(rsDbDirPath);
-    if (rsDbDir != null)
-    {
-      File[] dbFiles = rsDbDir.listFiles();
-      if (dbFiles != null)
-      {
-        for (File dbFile : dbFiles)
-        {
-          if (dbFile != null)
-            TRACER.debugInfo("ReplicationTestCase: classCleanUp: deleting " + dbFile);
-            dbFile.delete();
-        }
-      }
-      TRACER.debugInfo("ReplicationTestCase: classCleanUp: deleting " + rsDbDir);
-      rsDbDir.delete();
-    }
 
     // Check for unexpected replication config/objects left
     if (callParanoiaCheck)
@@ -570,6 +551,17 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     }
   }
 
+  /**
+   * Remove trailing directories and databases of the currently instantiated
+   * replication servers.
+   */
+  protected void removeReplicationServerDB() {
+    for (ReplicationServer rs : ReplicationServer.getAllInstances()) {
+      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+               rs.getDbDirName()));      
+    }
+  }
+  
   /**
    * Performs a search on the config backend with the specified filter.
    * Fails if a config entry is found.

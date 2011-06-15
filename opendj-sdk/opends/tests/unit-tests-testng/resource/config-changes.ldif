@@ -417,7 +417,7 @@ changetype: add
 objectClass: top
 objectClass: ds-cfg-backend
 objectClass: ds-cfg-local-db-backend
-ds-cfg-enabled: true
+ds-cfg-enabled: false
 ds-cfg-java-class: org.opends.server.backends.jeb.BackendImpl
 ds-cfg-backend-id: unindexedRoot
 ds-cfg-writability-mode: enabled
@@ -428,6 +428,7 @@ ds-cfg-index-entry-limit: 1
 ds-cfg-preload-time-limit: 0 seconds
 ds-cfg-entries-compressed: false
 ds-cfg-db-cache-percent: 2
+ds-cfg-db-run-cleaner: false
 
 dn: ds-cfg-attribute=oncRpcNumber,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 changetype: add
@@ -647,7 +648,7 @@ changetype: add
 objectClass: top
 objectClass: ds-cfg-backend
 objectClass: ds-cfg-local-db-backend
-ds-cfg-enabled: true
+ds-cfg-enabled: false
 ds-cfg-java-class: org.opends.server.backends.jeb.BackendImpl
 ds-cfg-backend-id: rebuildRoot
 ds-cfg-writability-mode: enabled
@@ -658,6 +659,7 @@ ds-cfg-index-entry-limit: 10
 ds-cfg-preload-time-limit: 0 seconds
 ds-cfg-entries-compressed: false
 ds-cfg-db-cache-percent: 2
+ds-cfg-db-run-cleaner: false
 
 dn: cn=VLV Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
 changetype: add
@@ -816,7 +818,7 @@ changetype: add
 objectClass: top
 objectClass: ds-cfg-backend
 objectClass: ds-cfg-local-db-backend
-ds-cfg-enabled: true
+ds-cfg-enabled: false
 ds-cfg-java-class: org.opends.server.backends.jeb.BackendImpl
 ds-cfg-backend-id: importRoot
 ds-cfg-writability-mode: enabled
@@ -828,6 +830,7 @@ ds-cfg-index-entry-limit: 10
 ds-cfg-preload-time-limit: 0 seconds
 ds-cfg-entries-compressed: false
 ds-cfg-db-cache-percent: 2
+ds-cfg-db-run-cleaner: false
 
 dn: cn=VLV Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
 changetype: add
@@ -982,7 +985,7 @@ changetype: add
 objectClass: top
 objectClass: ds-cfg-backend
 objectClass: ds-cfg-local-db-backend
-ds-cfg-enabled: true
+ds-cfg-enabled: false
 ds-cfg-java-class: org.opends.server.backends.jeb.BackendImpl
 ds-cfg-backend-id: verifyRoot
 ds-cfg-writability-mode: enabled
@@ -993,6 +996,7 @@ ds-cfg-index-entry-limit: 10
 ds-cfg-preload-time-limit: 0 seconds
 ds-cfg-entries-compressed: false
 ds-cfg-db-cache-percent: 2
+ds-cfg-db-run-cleaner: false
 
 dn: cn=VLV Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
 changetype: add
@@ -1179,7 +1183,7 @@ changetype: add
 objectClass: top
 objectClass: ds-cfg-backend
 objectClass: ds-cfg-local-db-backend
-ds-cfg-enabled: true
+ds-cfg-enabled: false
 ds-cfg-java-class: org.opends.server.backends.jeb.BackendImpl
 ds-cfg-backend-id: indexRoot
 ds-cfg-writability-mode: enabled
@@ -1192,6 +1196,7 @@ ds-cfg-index-entry-limit: 13
 ds-cfg-preload-time-limit: 0 seconds
 ds-cfg-entries-compressed: false
 ds-cfg-db-cache-percent: 2
+ds-cfg-db-run-cleaner: false
 
 dn: cn=VLV Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
 changetype: add

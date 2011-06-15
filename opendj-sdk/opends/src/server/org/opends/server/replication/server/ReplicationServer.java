@@ -2035,4 +2035,16 @@ public final class ReplicationServer
     shutdown();
   }
 
+  /**
+   * Get the replication server DB directory.
+   * This is useful for tests to be able to do some cleanup. Might even be
+   * useful for the server some day.
+   *
+   * @return the Database directory name
+   */
+  public String getDbDirName()
+  {
+    return dbDirname;
+  }
+
 }

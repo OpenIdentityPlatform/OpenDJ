@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -189,8 +190,9 @@ public class NumSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
                                ",dc=example,dc=com"), 0 },
 //      new Object[] { DN.decode("cn=monitor"),
 //          DirectoryServer.getMonitorProviders().size() },
-      new Object[] { DN.decode("cn=Backends,cn=config"),
-          DirectoryServer.getBackends().size() },
+// Disable test on # of backends. Some might be disabled, falsing count.
+//      new Object[] { DN.decode("cn=Backends,cn=config"),
+//          DirectoryServer.getBackends().size() },
       new Object[] { DN.decode("cn=Work Queue,cn=config"), 0 },
       new Object[] { DN.decode("cn=tasks"), 2 },
       new Object[] { DN.decode("cn=Recurring Tasks,cn=tasks"), 0 },

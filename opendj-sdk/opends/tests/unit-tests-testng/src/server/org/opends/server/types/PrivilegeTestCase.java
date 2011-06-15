@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -113,7 +114,8 @@ public class PrivilegeTestCase
          throws Exception
   {
     TestCaseUtils.startServer();
-
+    TestCaseUtils.enableBackend("unindexedRoot");
+            
     TestCaseUtils.dsconfig(
             "set-sasl-mechanism-handler-prop",
             "--handler-name", "DIGEST-MD5",
@@ -362,6 +364,9 @@ public class PrivilegeTestCase
     deleteOperation = conn.processDelete(DN
         .decode("dc=unindexed,dc=jeb"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+
+    TestCaseUtils.disableBackend("unindexedRoot");
+
   }
 
 

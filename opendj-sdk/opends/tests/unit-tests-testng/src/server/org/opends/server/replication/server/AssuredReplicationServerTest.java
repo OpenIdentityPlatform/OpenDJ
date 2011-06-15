@@ -27,6 +27,9 @@
  */
 package org.opends.server.replication.server;
 
+import org.opends.server.util.StaticUtils;
+import org.opends.server.core.DirectoryServer;
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
@@ -342,6 +345,8 @@ public class AssuredReplicationServerTest
     {
       rs1.clearDb();
       rs1.remove();
+      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+               rs1.getDbDirName()));
       rs1 = null;
     }
 
@@ -349,18 +354,24 @@ public class AssuredReplicationServerTest
     {
       rs2.clearDb();
       rs2.remove();
+      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+               rs2.getDbDirName()));
       rs2 = null;
     }
     if (rs3 != null)
     {
       rs3.clearDb();
       rs3.remove();
+      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+               rs3.getDbDirName()));
       rs3 = null;
     }
     if (rs4 != null)
     {
       rs4.clearDb();
       rs4.remove();
+      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+               rs4.getDbDirName()));
       rs4 = null;
     }
   }
