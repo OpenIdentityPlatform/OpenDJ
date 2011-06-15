@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap.tools;
@@ -215,81 +216,8 @@ public final class LDAPSearch extends ConsoleApplication
 
   public static void main(final String[] args)
   {
-    final int retCode = mainSearch(args, false, System.in, System.out,
-        System.err);
+    final int retCode = new LDAPSearch().run(args, false);
     System.exit(filterExitCode(retCode));
-  }
-
-
-
-  /**
-   * Parses the provided command-line arguments and uses that information to run
-   * the ldapsearch tool.
-   *
-   * @param args
-   *          The command-line arguments provided to this program.
-   * @return The error code.
-   */
-
-  static int mainSearch(final String[] args)
-  {
-    return mainSearch(args, true, System.in, System.out, System.err);
-  }
-
-
-
-  /**
-   * Parses the provided command-line arguments and uses that information to run
-   * the ldapsearch tool.
-   *
-   * @param args
-   *          The command-line arguments provided to this program.
-   * @param returnMatchingEntries
-   *          whether when the option --countEntries is specified, the number of
-   *          matching entries should be returned or not.
-   * @param inStream
-   *          The input stream to use for standard input, or <CODE>null</CODE>
-   *          if standard input is not needed.
-   * @param outStream
-   *          The output stream to use for standard output, or <CODE>null</CODE>
-   *          if standard output is not needed.
-   * @param errStream
-   *          The output stream to use for standard error, or <CODE>null</CODE>
-   *          if standard error is not needed.
-   * @return The error code.
-   */
-
-  static int mainSearch(final String[] args,
-      final boolean returnMatchingEntries, final InputStream inStream,
-      final OutputStream outStream, final OutputStream errStream)
-  {
-    return new LDAPSearch(inStream, outStream, errStream).run(args,
-        returnMatchingEntries);
-  }
-
-
-
-  /**
-   * Parses the provided command-line arguments and uses that information to run
-   * the ldapsearch tool.
-   *
-   * @param args
-   *          The command-line arguments provided to this program.
-   * @param inStream
-   *          The input stream to use for standard input, or <CODE>null</CODE>
-   *          if standard input is not needed.
-   * @param outStream
-   *          The output stream to use for standard output, or <CODE>null</CODE>
-   *          if standard output is not needed.
-   * @param errStream
-   *          The output stream to use for standard error, or <CODE>null</CODE>
-   *          if standard error is not needed.
-   * @return The error code.
-   */
-  static int mainSearch(final String[] args, final InputStream inStream,
-      final OutputStream outStream, final OutputStream errStream)
-  {
-    return mainSearch(args, true, inStream, outStream, errStream);
   }
 
 
@@ -300,90 +228,15 @@ public final class LDAPSearch extends ConsoleApplication
 
 
 
-  private LDAPSearch(final InputStream in, final OutputStream out,
-      final OutputStream err)
+  private LDAPSearch()
   {
-    super(in, out, err);
-
+    // Nothing to do.
   }
 
 
 
   /**
-   * Indicates whether or not the user has requested advanced mode.
-   *
-   * @return Returns <code>true</code> if the user has requested advanced mode.
-   */
-  @Override
-  public boolean isAdvancedMode()
-  {
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether or not the user has requested interactive behavior.
-   *
-   * @return Returns <code>true</code> if the user has requested interactive
-   *         behavior.
-   */
-  @Override
-  public boolean isInteractive()
-  {
-    return true;
-  }
-
-
-
-  /**
-   * Indicates whether or not this console application is running in its
-   * menu-driven mode. This can be used to dictate whether output should go to
-   * the error stream or not. In addition, it may also dictate whether or not
-   * sub-menus should display a cancel option as well as a quit option.
-   *
-   * @return Returns <code>true</code> if this console application is running in
-   *         its menu-driven mode.
-   */
-  @Override
-  public boolean isMenuDrivenMode()
-  {
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether or not the user has requested quiet output.
-   *
-   * @return Returns <code>true</code> if the user has requested quiet output.
-   */
-  @Override
-  public boolean isQuiet()
-  {
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether or not the user has requested script-friendly output.
-   *
-   * @return Returns <code>true</code> if the user has requested script-friendly
-   *         output.
-   */
-  @Override
-  public boolean isScriptFriendly()
-  {
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether or not the user has requested verbose output.
-   *
-   * @return Returns <code>true</code> if the user has requested verbose output.
+   * {@inheritDoc}
    */
   @Override
   public boolean isVerbose()

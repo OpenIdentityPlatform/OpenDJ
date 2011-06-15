@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap.tools;
@@ -33,9 +34,6 @@ import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.ldap.tools.ToolConstants.*;
 import static com.forgerock.opendj.ldap.tools.Utils.filterExitCode;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
-
-import java.io.InputStream;
-import java.io.OutputStream;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.*;
@@ -70,53 +68,8 @@ public final class LDAPPasswordModify extends ConsoleApplication
    */
   public static void main(final String[] args)
   {
-    final int retCode = mainPasswordModify(args, System.in, System.out,
-        System.err);
+    final int retCode = new LDAPPasswordModify().run(args);
     System.exit(filterExitCode(retCode));
-  }
-
-
-
-  /**
-   * Parses the command-line arguments, establishes a connection to the
-   * Directory Server, sends the password modify request, and reads the
-   * response.
-   *
-   * @param args
-   *          The command-line arguments provided to this program.
-   * @return An integer value of zero if everything completed successfully, or a
-   *         nonzero value if an error occurred.
-   */
-  static int mainPasswordModify(final String[] args)
-  {
-    return mainPasswordModify(args, System.in, System.out, System.err);
-  }
-
-
-
-  /**
-   * Parses the provided command-line arguments and uses that information to run
-   * the LDAPPasswordModify tool.
-   *
-   * @param args
-   *          The command-line arguments provided to this program. specified,
-   *          the number of matching entries should be returned or not.
-   * @param inStream
-   *          The input stream to use for standard input, or <CODE>null</CODE>
-   *          if standard input is not needed.
-   * @param outStream
-   *          The output stream to use for standard output, or <CODE>null</CODE>
-   *          if standard output is not needed.
-   * @param errStream
-   *          The output stream to use for standard error, or <CODE>null</CODE>
-   *          if standard error is not needed.
-   * @return The error code.
-   */
-  static int mainPasswordModify(final String[] args,
-      final InputStream inStream, final OutputStream outStream,
-      final OutputStream errStream)
-  {
-    return new LDAPPasswordModify(inStream, outStream, errStream).run(args);
   }
 
 
@@ -125,90 +78,15 @@ public final class LDAPPasswordModify extends ConsoleApplication
 
 
 
-  private LDAPPasswordModify(final InputStream in, final OutputStream out,
-      final OutputStream err)
+  private LDAPPasswordModify()
   {
-    super(in, out, err);
-
+    // Nothing to do.
   }
 
 
 
   /**
-   * Indicates whether or not the user has requested advanced mode.
-   *
-   * @return Returns <code>true</code> if the user has requested advanced mode.
-   */
-  @Override
-  public boolean isAdvancedMode()
-  {
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether or not the user has requested interactive behavior.
-   *
-   * @return Returns <code>true</code> if the user has requested interactive
-   *         behavior.
-   */
-  @Override
-  public boolean isInteractive()
-  {
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether or not this console application is running in its
-   * menu-driven mode. This can be used to dictate whether output should go to
-   * the error stream or not. In addition, it may also dictate whether or not
-   * sub-menus should display a cancel option as well as a quit option.
-   *
-   * @return Returns <code>true</code> if this console application is running in
-   *         its menu-driven mode.
-   */
-  @Override
-  public boolean isMenuDrivenMode()
-  {
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether or not the user has requested quiet output.
-   *
-   * @return Returns <code>true</code> if the user has requested quiet output.
-   */
-  @Override
-  public boolean isQuiet()
-  {
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether or not the user has requested script-friendly output.
-   *
-   * @return Returns <code>true</code> if the user has requested script-friendly
-   *         output.
-   */
-  @Override
-  public boolean isScriptFriendly()
-  {
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether or not the user has requested verbose output.
-   *
-   * @return Returns <code>true</code> if the user has requested verbose output.
+   * {@inheritDoc}
    */
   @Override
   public boolean isVerbose()

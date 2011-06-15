@@ -34,8 +34,6 @@ import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.ldap.tools.ToolConstants.*;
 import static com.forgerock.opendj.ldap.tools.Utils.filterExitCode;
 
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -444,51 +442,8 @@ public final class AuthRate extends ConsoleApplication
 
   public static void main(final String[] args)
   {
-    final int retCode = mainAuthRate(args, System.in, System.out, System.err);
+    final int retCode = new AuthRate().run(args);
     System.exit(filterExitCode(retCode));
-  }
-
-
-
-  /**
-   * Parses the provided command-line arguments and uses that information to run
-   * the tool.
-   *
-   * @param args
-   *          The command-line arguments provided to this program.
-   * @return The error code.
-   */
-
-  static int mainAuthRate(final String[] args)
-  {
-    return mainAuthRate(args, System.in, System.out, System.err);
-  }
-
-
-
-  /**
-   * Parses the provided command-line arguments and uses that information to run
-   * the tool.
-   *
-   * @param args
-   *          The command-line arguments provided to this program.
-   * @param inStream
-   *          The input stream to use for standard input, or <CODE>null</CODE>
-   *          if standard input is not needed.
-   * @param outStream
-   *          The output stream to use for standard output, or <CODE>null</CODE>
-   *          if standard output is not needed.
-   * @param errStream
-   *          The output stream to use for standard error, or <CODE>null</CODE>
-   *          if standard error is not needed.
-   * @return The error code.
-   */
-
-  static int mainAuthRate(final String[] args, final InputStream inStream,
-      final OutputStream outStream, final OutputStream errStream)
-
-  {
-    return new AuthRate(inStream, outStream, errStream).run(args);
   }
 
 
@@ -499,77 +454,15 @@ public final class AuthRate extends ConsoleApplication
 
 
 
-  private AuthRate(final InputStream in, final OutputStream out,
-      final OutputStream err)
+  private AuthRate()
   {
-    super(in, out, err);
-
+    // Nothing to do.
   }
 
 
 
   /**
-   * Indicates whether or not the user has requested advanced mode.
-   *
-   * @return Returns <code>true</code> if the user has requested advanced mode.
-   */
-  @Override
-  public boolean isAdvancedMode()
-  {
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether or not the user has requested interactive behavior.
-   *
-   * @return Returns <code>true</code> if the user has requested interactive
-   *         behavior.
-   */
-  @Override
-  public boolean isInteractive()
-  {
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether or not this console application is running in its
-   * menu-driven mode. This can be used to dictate whether output should go to
-   * the error stream or not. In addition, it may also dictate whether or not
-   * sub-menus should display a cancel option as well as a quit option.
-   *
-   * @return Returns <code>true</code> if this console application is running in
-   *         its menu-driven mode.
-   */
-  @Override
-  public boolean isMenuDrivenMode()
-  {
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether or not the user has requested quiet output.
-   *
-   * @return Returns <code>true</code> if the user has requested quiet output.
-   */
-  @Override
-  public boolean isQuiet()
-  {
-    return false;
-  }
-
-
-
-  /**
-   * Indicates whether or not the user has requested script-friendly output.
-   *
-   * @return Returns <code>true</code> if the user has requested script-friendly
-   *         output.
+   * {@inheritDoc}
    */
   @Override
   public boolean isScriptFriendly()
@@ -580,9 +473,7 @@ public final class AuthRate extends ConsoleApplication
 
 
   /**
-   * Indicates whether or not the user has requested verbose output.
-   *
-   * @return Returns <code>true</code> if the user has requested verbose output.
+   * {@inheritDoc}
    */
   @Override
   public boolean isVerbose()
