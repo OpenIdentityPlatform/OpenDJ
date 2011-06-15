@@ -486,7 +486,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     cleanUpReplicationServersDB();
 
     removeReplicationServerDB();
-    
+
     cleanConfigEntries();
     configEntryList = new LinkedList<DN>();
 
