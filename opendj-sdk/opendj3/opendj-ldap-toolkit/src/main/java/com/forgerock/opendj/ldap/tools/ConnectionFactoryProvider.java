@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap.tools;
@@ -596,7 +597,7 @@ final class ConnectionFactoryProvider
             || bindPasswordArg.isPresent())
         {
           bindRequest = Requests.newSimpleBindRequest(getBindName(),
-              getPassword().toCharArray());
+              getPassword());
         }
       }
       else if (mech.equals(DigestMD5SASLBindRequest.SASL_MECHANISM_NAME))
@@ -769,22 +770,24 @@ final class ConnectionFactoryProvider
    * @return The password stored into the specified file on by the command line
    *         argument, or null it if not specified.
    */
-  private String getPassword() throws ArgumentException
+  private char[] getPassword() throws ArgumentException
   {
-    String value = "";
+    char[] value = "".toCharArray();
+
     if (bindPasswordArg.isPresent())
     {
-      value = bindPasswordArg.getValue();
+      value = bindPasswordArg.getValue().toCharArray();
     }
     else if (bindPasswordFileArg.isPresent())
     {
-      value = bindPasswordFileArg.getValue();
+      value = bindPasswordFileArg.getValue().toCharArray();
     }
-    if (value.length() == 0 && app.isInteractive())
+
+    if (value.length == 0 && app.isInteractive())
     {
       try
       {
-        value = app.readLineOfInput(LocalizableMessage.raw("Bind Password:"));
+        value = app.readPassword(LocalizableMessage.raw("Bind Password:"));
       }
       catch(CLIException e)
       {

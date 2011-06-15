@@ -23,20 +23,18 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011 Nemanja Lukić
  */
 package com.forgerock.opendj.ldap.tools;
 
 
 
-import static com.forgerock.opendj.ldap.tools.ToolsMessages.INFO_ERROR_EMPTY_RESPONSE;
-import static com.forgerock.opendj.ldap.tools.ToolsMessages.INFO_MENU_PROMPT_RETURN_TO_CONTINUE;
-import static com.forgerock.opendj.ldap.tools.ToolsMessages.INFO_PROMPT_SINGLE_DEFAULT;
+import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.ldap.tools.Utils.MAX_LINE_WIDTH;
 import static com.forgerock.opendj.ldap.tools.Utils.wrapText;
 
 import java.io.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.forgerock.i18n.LocalizableMessage;
 
@@ -48,202 +46,33 @@ import org.forgerock.i18n.LocalizableMessage;
  */
 abstract class ConsoleApplication
 {
-  private static final class NullOutputStream extends OutputStream
-  {
-    /**
-     * The singleton instance for this class.
-     */
-    private static final NullOutputStream INSTANCE = new NullOutputStream();
+  private final PrintStream err = new PrintStream(System.out);
 
-    /**
-     * The singleton print stream tied to the null output stream.
-     */
-    private static final PrintStream PRINT_STREAM = new PrintStream(INSTANCE);
+  private final BufferedReader reader = new BufferedReader(
+      new InputStreamReader(System.in));
 
+  private final InputStream in = System.in;
 
+  private final PrintStream out = new PrintStream(System.out);
 
-    /**
-     * Retrieves a print stream using this null output stream.
-     *
-     * @return A print stream using this null output stream.
-     */
-    static PrintStream printStream()
-    {
-      return PRINT_STREAM;
-    }
-
-
-
-    /**
-     * Creates a new instance of this null output stream.
-     */
-    private NullOutputStream()
-    {
-      // No implementation is required.
-    }
-
-
-
-    /**
-     * Closes the output stream. This has no effect.
-     */
-    @Override
-    public void close()
-    {
-      // No implementation is required.
-    }
-
-
-
-    /**
-     * Flushes the output stream. This has no effect.
-     */
-    @Override
-    public void flush()
-    {
-      // No implementation is required.
-    }
-
-
-
-    /**
-     * Writes the provided data to this output stream. This has no effect.
-     *
-     * @param b
-     *          The byte array containing the data to be written.
-     */
-    @Override
-    public void write(final byte[] b)
-    {
-      // No implementation is required.
-    }
-
-
-
-    /**
-     * Writes the provided data to this output stream. This has no effect.
-     *
-     * @param b
-     *          The byte array containing the data to be written.
-     * @param off
-     *          The offset at which the real data begins.
-     * @param len
-     *          The number of bytes to be written.
-     */
-    @Override
-    public void write(final byte[] b, final int off, final int len)
-    {
-      // No implementation is required.
-    }
-
-
-
-    /**
-     * Writes the provided byte to this output stream. This has no effect.
-     *
-     * @param b
-     *          The byte to be written.
-     */
-    @Override
-    public void write(final int b)
-    {
-      // No implementation is required.
-    }
-  }
-
-
-
-  /**
-   * A null reader.
-   */
-  private static final class NullReader extends Reader
-  {
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void close() throws IOException
-    {
-      // Do nothing.
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int read(final char[] cbuf, final int off, final int len)
-        throws IOException
-    {
-      return -1;
-    }
-  }
-
-
-
-  // The error stream which this application should use.
-  private final PrintStream err;
-
-  // The input stream reader which this application should use.
-  private final BufferedReader reader;
-
-  private final InputStream in;
-
-  // The output stream which this application should use.
-  private final PrintStream out;
+  private final Console console = System.console();
 
 
 
   /**
    * Creates a new console application instance.
-   *
-   * @param in
-   *          The application input stream.
-   * @param out
-   *          The application output stream.
-   * @param err
-   *          The application error stream.
    */
-  ConsoleApplication(final InputStream in, final OutputStream out,
-      final OutputStream err)
+  ConsoleApplication()
   {
-    this.in = in;
-    if (in != null)
-    {
-      this.reader = new BufferedReader(new InputStreamReader(in));
-    }
-    else
-    {
-      this.reader = new BufferedReader(new NullReader());
-    }
-
-    if (out != null)
-    {
-      this.out = new PrintStream(out);
-    }
-    else
-    {
-      this.out = NullOutputStream.printStream();
-    }
-
-    if (err != null)
-    {
-      this.err = new PrintStream(err);
-    }
-    else
-    {
-      this.err = NullOutputStream.printStream();
-    }
+    // Nothing to do.
   }
 
 
 
   /**
-   * Gets the application error stream.
+   * Returns the application error stream.
    *
-   * @return Returns the application error stream.
+   * @return The application error stream.
    */
   final PrintStream getErrorStream()
   {
@@ -253,21 +82,9 @@ abstract class ConsoleApplication
 
 
   /**
-   * Gets the application input stream reader.
+   * Returns the application input stream.
    *
-   * @return Returns the application input stream.
-   */
-  final BufferedReader getInputReader()
-  {
-    return reader;
-  }
-
-
-
-  /**
-   * Gets the application input stream.
-   *
-   * @return Returns the application input stream.
+   * @return The application input stream.
    */
   final InputStream getInputStream()
   {
@@ -277,9 +94,9 @@ abstract class ConsoleApplication
 
 
   /**
-   * Gets the application output stream.
+   * Returns the application output stream.
    *
-   * @return Returns the application output stream.
+   * @return The application output stream.
    */
   final PrintStream getOutputStream()
   {
@@ -289,62 +106,54 @@ abstract class ConsoleApplication
 
 
   /**
-   * Indicates whether or not the user has requested advanced mode.
+   * Indicates whether or not the user has requested interactive behavior. The
+   * default implementation returns {@code true}.
    *
-   * @return Returns <code>true</code> if the user has requested advanced mode.
+   * @return {@code true} if the user has requested interactive behavior.
    */
-  abstract boolean isAdvancedMode();
+  boolean isInteractive()
+  {
+    return true;
+  }
 
 
 
   /**
-   * Indicates whether or not the user has requested interactive behavior.
+   * Indicates whether or not the user has requested quiet output. The default
+   * implementation returns {@code false}.
    *
-   * @return Returns <code>true</code> if the user has requested interactive
-   *         behavior.
+   * @return {@code true} if the user has requested quiet output.
    */
-  abstract boolean isInteractive();
+  boolean isQuiet()
+  {
+    return false;
+  }
 
 
 
   /**
-   * Indicates whether or not this console application is running in its
-   * menu-driven mode. This can be used to dictate whether output should go to
-   * the error stream or not. In addition, it may also dictate whether or not
-   * sub-menus should display a cancel option as well as a quit option.
+   * Indicates whether or not the user has requested script-friendly output. The
+   * default implementation returns {@code false}.
    *
-   * @return Returns <code>true</code> if this console application is running in
-   *         its menu-driven mode.
+   * @return {@code true} if the user has requested script-friendly output.
    */
-  abstract boolean isMenuDrivenMode();
+  boolean isScriptFriendly()
+  {
+    return false;
+  }
 
 
 
   /**
-   * Indicates whether or not the user has requested quiet output.
+   * Indicates whether or not the user has requested verbose output. The default
+   * implementation returns {@code false}.
    *
-   * @return Returns <code>true</code> if the user has requested quiet output.
+   * @return {@code true} if the user has requested verbose output.
    */
-  abstract boolean isQuiet();
-
-
-
-  /**
-   * Indicates whether or not the user has requested script-friendly output.
-   *
-   * @return Returns <code>true</code> if the user has requested script-friendly
-   *         output.
-   */
-  abstract boolean isScriptFriendly();
-
-
-
-  /**
-   * Indicates whether or not the user has requested verbose output.
-   *
-   * @return Returns <code>true</code> if the user has requested verbose output.
-   */
-  abstract boolean isVerbose();
+  boolean isVerbose()
+  {
+    return false;
+  }
 
 
 
@@ -356,7 +165,8 @@ abstract class ConsoleApplication
    */
   final void pressReturnToContinue()
   {
-    final LocalizableMessage msg = INFO_MENU_PROMPT_RETURN_TO_CONTINUE.get();
+    final LocalizableMessage msg = INFO_MENU_PROMPT_RETURN_TO_CONTINUE
+        .get();
     try
     {
       readLineOfInput(msg);
@@ -422,35 +232,6 @@ abstract class ConsoleApplication
 
 
   /**
-   * Displays a blank line to the output stream if we are not in quiet mode.
-   */
-  final void printlnProgress()
-  {
-    if (!isQuiet())
-    {
-      out.println();
-    }
-  }
-
-
-
-  /**
-   * Displays a message to the output stream if we are not in quiet mode.
-   *
-   * @param msg
-   *          The message.
-   */
-  final void printProgress(final LocalizableMessage msg)
-  {
-    if (!isQuiet())
-    {
-      out.print(msg);
-    }
-  }
-
-
-
-  /**
    * Displays a message to the error stream if verbose mode is enabled.
    *
    * @param msg
@@ -467,29 +248,29 @@ abstract class ConsoleApplication
 
 
   /**
-   * Commodity method that interactively prompts (on error output) the user to
-   * provide a string value. Any non-empty string will be allowed (the empty
-   * string will indicate that the default should be used, if there is one).
+   * Interactively prompts (on error output) the user to provide a string value.
+   * Any non-empty string will be allowed (the empty string will indicate that
+   * the default should be used, if there is one).
    *
    * @param prompt
    *          The prompt to present to the user.
    * @param defaultValue
    *          The default value to assume if the user presses ENTER without
-   *          typing anything, or <CODE>null</CODE> if there should not be a
-   *          default and the user must explicitly provide a value.
+   *          typing anything, or {@code null} if there should not be a default
+   *          and the user must explicitly provide a value.
    * @throws CLIException
    *           If the line of input could not be retrieved for some reason.
    * @return The string value read from the user.
    */
-  final String readInput(LocalizableMessage prompt, final String defaultValue)
-      throws CLIException
+  final String readInput(LocalizableMessage prompt,
+      final String defaultValue) throws CLIException
   {
     while (true)
     {
       if (defaultValue != null)
       {
-        prompt = INFO_PROMPT_SINGLE_DEFAULT
-            .get(prompt.toString(), defaultValue);
+        prompt = INFO_PROMPT_SINGLE_DEFAULT.get(prompt.toString(),
+            defaultValue);
       }
       final String response = readLineOfInput(prompt);
 
@@ -514,34 +295,43 @@ abstract class ConsoleApplication
 
 
   /**
-   * Commodity method that interactively prompts (on error output) the user to
-   * provide a string value. Any non-empty string will be allowed (the empty
-   * string will indicate that the default should be used, if there is one). If
-   * an error occurs a message will be logged to the provided logger.
+   * Interactively reads a password from the console.
    *
    * @param prompt
-   *          The prompt to present to the user.
-   * @param defaultValue
-   *          The default value to assume if the user presses ENTER without
-   *          typing anything, or <CODE>null</CODE> if there should not be a
-   *          default and the user must explicitly provide a value.
-   * @param logger
-   *          the Logger to be used to log the error message.
-   * @return The string value read from the user.
+   *          The password prompt.
+   * @return The password.
+   * @throws CLIException
+   *           If the password could not be retrieved for some reason.
    */
-  final String readInput(final LocalizableMessage prompt,
-      final String defaultValue, final Logger logger)
+  final char[] readPassword(final LocalizableMessage prompt)
+      throws CLIException
   {
-    String s = defaultValue;
-    try
+    if (console != null)
     {
-      s = readInput(prompt, defaultValue);
+      if (prompt != null)
+      {
+        err.print(wrapText(prompt, MAX_LINE_WIDTH));
+        err.print(" ");
+      }
+      try
+      {
+        final char[] password = console.readPassword();
+        if (password == null)
+        {
+          throw new EOFException("End of input");
+        }
+        return password;
+      }
+      catch (final Throwable e)
+      {
+        throw CLIException.adaptInputException(e);
+      }
     }
-    catch (final CLIException ce)
+    else
     {
-      logger.log(Level.WARNING, "Error reading input: " + ce, ce);
+      // FIXME: should go direct to char[] and avoid the String.
+      return readLineOfInput(prompt).toCharArray();
     }
-    return s;
   }
 
 
@@ -551,12 +341,11 @@ abstract class ConsoleApplication
    *
    * @param prompt
    *          The prompt.
-   * @return Returns the line of input, or <code>null</code> if the end of input
-   *         has been reached.
+   * @return The line of input.
    * @throws CLIException
    *           If the line of input could not be retrieved for some reason.
    */
-  final String readLineOfInput(final LocalizableMessage prompt)
+  private final String readLineOfInput(final LocalizableMessage prompt)
       throws CLIException
   {
     if (prompt != null)
@@ -569,8 +358,8 @@ abstract class ConsoleApplication
       final String s = reader.readLine();
       if (s == null)
       {
-        throw CLIException
-            .adaptInputException(new EOFException("End of input"));
+        throw CLIException.adaptInputException(new EOFException(
+            "End of input"));
       }
       else
       {
