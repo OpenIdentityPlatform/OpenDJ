@@ -23,12 +23,14 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
 
 
 
+import static com.forgerock.opendj.util.StaticUtils.copyOfBytes;
 import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
 import static com.forgerock.opendj.util.StaticUtils.joinCollection;
 import static org.forgerock.opendj.ldap.CoreMessages.*;
@@ -176,8 +178,10 @@ final class GSSAPISASLBindRequestImpl extends
       }
       else
       {
-        this.subject = kerberos5Login(initialBindRequest.getAuthenticationID(),
-            initialBindRequest.getPassword(), initialBindRequest.getRealm(),
+        this.subject = kerberos5Login(
+            initialBindRequest.getAuthenticationID(),
+            ByteString.wrap(initialBindRequest.getPassword()),
+            initialBindRequest.getRealm(),
             initialBindRequest.getKDCAddress());
       }
 
@@ -369,7 +373,7 @@ final class GSSAPISASLBindRequestImpl extends
 
   // Ignored if subject is non-null.
   private String authenticationID = null;
-  private ByteString password = null;
+  private byte[] password = null;
   private String realm = null;
 
   private String kdcAddress = null;
@@ -389,7 +393,7 @@ final class GSSAPISASLBindRequestImpl extends
 
 
   GSSAPISASLBindRequestImpl(final String authenticationID,
-      final ByteString password)
+      final byte[] password)
   {
     Validator.ensureNotNull(authenticationID, password);
     this.authenticationID = authenticationID;
@@ -415,7 +419,7 @@ final class GSSAPISASLBindRequestImpl extends
     this.subject = gssapiSASLBindRequest.getSubject();
 
     this.authenticationID = gssapiSASLBindRequest.getAuthenticationID();
-    this.password = gssapiSASLBindRequest.getPassword();
+    this.password = copyOfBytes(gssapiSASLBindRequest.getPassword());
     this.realm = gssapiSASLBindRequest.getRealm();
 
     this.kdcAddress = gssapiSASLBindRequest.getKDCAddress();
@@ -554,7 +558,7 @@ final class GSSAPISASLBindRequestImpl extends
    * {@inheritDoc}
    */
   @Override
-  public ByteString getPassword()
+  public byte[] getPassword()
   {
     return password;
   }
@@ -684,7 +688,7 @@ final class GSSAPISASLBindRequestImpl extends
    * {@inheritDoc}
    */
   @Override
-  public GSSAPISASLBindRequest setPassword(final ByteString password)
+  public GSSAPISASLBindRequest setPassword(final byte[] password)
       throws NullPointerException
   {
     Validator.ensureNotNull(password);
@@ -702,7 +706,7 @@ final class GSSAPISASLBindRequestImpl extends
       throws NullPointerException
   {
     Validator.ensureNotNull(password);
-    this.password = ByteString.valueOf(password);
+    this.password = StaticUtils.getBytes(password);
     return this;
   }
 
@@ -772,7 +776,7 @@ final class GSSAPISASLBindRequestImpl extends
       builder.append(", realm=");
       builder.append(realm);
       builder.append(", password=");
-      builder.append(password);
+      builder.append(ByteString.wrap(password));
     }
     builder.append(", controls=");
     builder.append(getControls());

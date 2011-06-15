@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap;
@@ -397,7 +398,7 @@ final class LDAPReader
       final int protocolVersion = (int) reader.readInteger();
       final String authName = reader.readOctetStringAsString();
       final byte authType = reader.peekType();
-      final ByteString authBytes = reader.readOctetString(authType);
+      final byte[] authBytes = reader.readOctetString(authType).toByteArray();
 
       final GenericBindRequest request = Requests.newGenericBindRequest(
           authName, authType, authBytes);

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -35,7 +36,6 @@ import java.util.Map;
 import javax.security.auth.Subject;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.ErrorResultException;
@@ -270,11 +270,15 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
   /**
    * Returns the password of the user that the client wishes to bind as.
    * <p>
+   * Unless otherwise indicated, implementations will store a reference to the
+   * returned password byte array, allowing applications to overwrite the
+   * password after it has been used.
+   * <p>
    * <b>NOTE</b>: this will not be used if a {@code Subject} is specified.
    *
    * @return The password of the user that the client wishes to bind as.
    */
-  ByteString getPassword();
+  byte[] getPassword();
 
 
 
@@ -431,6 +435,10 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
   /**
    * Sets the password of the user that the client wishes to bind as.
    * <p>
+   * Unless otherwise indicated, implementations will store a reference to the
+   * provided password byte array, allowing applications to overwrite the
+   * password after it has been used.
+   * <p>
    * <b>NOTE</b>: this will not be used if a {@code Subject} is specified.
    *
    * @param password
@@ -442,7 +450,7 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
    * @throws NullPointerException
    *           If {@code password} was {@code null}.
    */
-  GSSAPISASLBindRequest setPassword(ByteString password)
+  GSSAPISASLBindRequest setPassword(byte[] password)
       throws UnsupportedOperationException, NullPointerException;
 
 

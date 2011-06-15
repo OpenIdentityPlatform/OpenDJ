@@ -23,11 +23,14 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
 
 
+
+import static com.forgerock.opendj.util.StaticUtils.copyOfBytes;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ErrorResultException;
@@ -46,7 +49,7 @@ final class GenericBindRequestImpl extends
 
   private String name;
 
-  private ByteString authenticationValue;
+  private byte[] authenticationValue;
 
   private byte authenticationType;
 
@@ -56,7 +59,7 @@ final class GenericBindRequestImpl extends
    * Creates a new generic bind request using a generic bind client.
    */
   GenericBindRequestImpl(final String name, final byte authenticationType,
-      final ByteString authenticationValue)
+      final byte[] authenticationValue)
   {
     this.name = name;
     this.authenticationType = authenticationType;
@@ -73,7 +76,7 @@ final class GenericBindRequestImpl extends
    * package.
    */
   GenericBindRequestImpl(final String name, final byte authenticationType,
-      final ByteString authenticationValue, final BindClient bindClient)
+      final byte[] authenticationValue, final BindClient bindClient)
   {
     this.name = name;
     this.authenticationType = authenticationType;
@@ -98,8 +101,10 @@ final class GenericBindRequestImpl extends
   {
     super(genericBindRequest);
     this.name = genericBindRequest.getName();
-    this.authenticationType = genericBindRequest.getAuthenticationType();
-    this.authenticationValue = genericBindRequest.getAuthenticationValue();
+    this.authenticationType = genericBindRequest
+        .getAuthenticationType();
+    this.authenticationValue = copyOfBytes(genericBindRequest
+        .getAuthenticationValue());
     this.bindClient = null; // Create a new bind client each time.
   }
 
@@ -134,7 +139,7 @@ final class GenericBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public ByteString getAuthenticationValue()
+  public byte[] getAuthenticationValue()
   {
     return authenticationValue;
   }
@@ -167,7 +172,7 @@ final class GenericBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public GenericBindRequest setAuthenticationValue(final ByteString bytes)
+  public GenericBindRequest setAuthenticationValue(final byte[] bytes)
       throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(bytes);
@@ -202,7 +207,7 @@ final class GenericBindRequestImpl extends
     builder.append(", authenticationType=");
     builder.append(getAuthenticationType());
     builder.append(", authenticationValue=");
-    builder.append(getAuthenticationValue());
+    builder.append(ByteString.wrap(getAuthenticationValue()));
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");

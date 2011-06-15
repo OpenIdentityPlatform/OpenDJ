@@ -23,12 +23,14 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
 
 
 
+import static com.forgerock.opendj.util.StaticUtils.copyOfBytes;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import javax.security.auth.callback.NameCallback;
@@ -44,6 +46,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.Responses;
 
+import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.Validator;
 
 
@@ -69,7 +72,7 @@ final class CRAMMD5SASLBindRequestImpl extends
       super(initialBindRequest);
 
       this.authenticationID = initialBindRequest.getAuthenticationID();
-      this.password = initialBindRequest.getPassword();
+      this.password = ByteString.wrap(initialBindRequest.getPassword());
 
       try
       {
@@ -153,12 +156,12 @@ final class CRAMMD5SASLBindRequestImpl extends
 
   private String authenticationID;
 
-  private ByteString password;
+  private byte[] password;
 
 
 
   CRAMMD5SASLBindRequestImpl(final String authenticationID,
-      final ByteString password)
+      final byte[] password)
   {
     Validator.ensureNotNull(authenticationID, password);
     this.authenticationID = authenticationID;
@@ -182,7 +185,7 @@ final class CRAMMD5SASLBindRequestImpl extends
   {
     super(cramMD5SASLBindRequest);
     this.authenticationID = cramMD5SASLBindRequest.getAuthenticationID();
-    this.password = cramMD5SASLBindRequest.getPassword();
+    this.password = copyOfBytes(cramMD5SASLBindRequest.getPassword());
   }
 
 
@@ -211,7 +214,7 @@ final class CRAMMD5SASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public ByteString getPassword()
+  public byte[] getPassword()
   {
     return password;
   }
@@ -244,7 +247,7 @@ final class CRAMMD5SASLBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public CRAMMD5SASLBindRequest setPassword(final ByteString password)
+  public CRAMMD5SASLBindRequest setPassword(final byte[] password)
       throws NullPointerException
   {
     Validator.ensureNotNull(password);
@@ -261,7 +264,7 @@ final class CRAMMD5SASLBindRequestImpl extends
       throws NullPointerException
   {
     Validator.ensureNotNull(password);
-    this.password = ByteString.valueOf(password);
+    this.password = StaticUtils.getBytes(password);
     return this;
   }
 
@@ -279,7 +282,7 @@ final class CRAMMD5SASLBindRequestImpl extends
     builder.append(", authenticationID=");
     builder.append(authenticationID);
     builder.append(", password=");
-    builder.append(password);
+    builder.append(ByteString.wrap(password));
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");

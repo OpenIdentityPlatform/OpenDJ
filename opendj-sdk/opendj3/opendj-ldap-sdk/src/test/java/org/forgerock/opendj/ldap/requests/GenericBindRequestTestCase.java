@@ -23,13 +23,16 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
 
 
 
-import org.forgerock.opendj.ldap.ByteString;
+import static com.forgerock.opendj.util.StaticUtils.EMPTY_BYTES;
+import static com.forgerock.opendj.util.StaticUtils.getBytes;
+
 import org.forgerock.opendj.ldap.requests.GenericBindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.testng.annotations.DataProvider;
@@ -48,13 +51,11 @@ public class GenericBindRequestTestCase extends BindRequestTestCase
   {
     final GenericBindRequest[] requests = {
         Requests.newGenericBindRequest(LDAPConstants.TYPE_AUTHENTICATION_SASL,
-            ByteString.empty()),
+            EMPTY_BYTES),
         Requests.newGenericBindRequest(
-            LDAPConstants.TYPE_AUTHENTICATION_SIMPLE, ByteString
-                .valueOf("password")),
+            LDAPConstants.TYPE_AUTHENTICATION_SIMPLE, getBytes("password")),
         Requests.newGenericBindRequest("username",
-            LDAPConstants.TYPE_AUTHENTICATION_SIMPLE, ByteString
-                .valueOf("password")) };
+            LDAPConstants.TYPE_AUTHENTICATION_SIMPLE, getBytes("password")) };
     final Object[][] objArray = new Object[requests.length][1];
     for (int i = 0; i < requests.length; i++)
     {

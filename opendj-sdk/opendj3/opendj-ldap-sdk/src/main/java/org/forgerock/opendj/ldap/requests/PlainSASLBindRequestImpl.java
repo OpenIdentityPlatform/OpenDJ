@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -43,6 +44,7 @@ import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.responses.BindResult;
 
+import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.Validator;
 
 
@@ -68,7 +70,7 @@ final class PlainSASLBindRequestImpl extends
       super(initialBindRequest);
 
       this.authenticationID = initialBindRequest.getAuthenticationID();
-      this.password = initialBindRequest.getPassword();
+      this.password = ByteString.wrap(initialBindRequest.getPassword());
 
       try
       {
@@ -139,12 +141,12 @@ final class PlainSASLBindRequestImpl extends
   private String authenticationID;
   private String authorizationID;
 
-  private ByteString password;
+  private byte[] password;
 
 
 
   PlainSASLBindRequestImpl(final String authenticationID,
-      final ByteString password)
+      final byte[] password)
   {
     Validator.ensureNotNull(authenticationID, password);
     this.authenticationID = authenticationID;
@@ -169,7 +171,7 @@ final class PlainSASLBindRequestImpl extends
     super(plainSASLBindRequest);
     this.authenticationID = plainSASLBindRequest.getAuthenticationID();
     this.authorizationID = plainSASLBindRequest.getAuthorizationID();
-    this.password = plainSASLBindRequest.getPassword();
+    this.password = StaticUtils.copyOfBytes(plainSASLBindRequest.getPassword());
   }
 
 
@@ -196,7 +198,7 @@ final class PlainSASLBindRequestImpl extends
 
 
 
-  public ByteString getPassword()
+  public byte[] getPassword()
   {
     return password;
   }
@@ -230,7 +232,7 @@ final class PlainSASLBindRequestImpl extends
 
 
 
-  public PlainSASLBindRequest setPassword(final ByteString password)
+  public PlainSASLBindRequest setPassword(final byte[] password)
   {
     Validator.ensureNotNull(password);
     this.password = password;
@@ -246,7 +248,7 @@ final class PlainSASLBindRequestImpl extends
       throws NullPointerException
   {
     Validator.ensureNotNull(password);
-    this.password = ByteString.valueOf(password);
+    this.password = StaticUtils.getBytes(password);
     return this;
   }
 
@@ -266,7 +268,7 @@ final class PlainSASLBindRequestImpl extends
     builder.append(", authorizationID=");
     builder.append(authorizationID);
     builder.append(", password=");
-    builder.append(password);
+    builder.append(ByteString.wrap(password));
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");

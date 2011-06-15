@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -32,7 +33,6 @@ package org.forgerock.opendj.ldap.requests;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.ErrorResultException;
@@ -133,10 +133,14 @@ public interface CRAMMD5SASLBindRequest extends SASLBindRequest
 
   /**
    * Returns the password of the user that the client wishes to bind as.
+   * <p>
+   * Unless otherwise indicated, implementations will store a reference to the
+   * returned password byte array, allowing applications to overwrite the
+   * password after it has been used.
    *
    * @return The password of the user that the client wishes to bind as.
    */
-  ByteString getPassword();
+  byte[] getPassword();
 
 
 
@@ -172,6 +176,10 @@ public interface CRAMMD5SASLBindRequest extends SASLBindRequest
 
   /**
    * Sets the password of the user that the client wishes to bind as.
+   * <p>
+   * Unless otherwise indicated, implementations will store a reference to the
+   * provided password byte array, allowing applications to overwrite the
+   * password after it has been used.
    *
    * @param password
    *          The password of the user that the client wishes to bind as, which
@@ -182,7 +190,7 @@ public interface CRAMMD5SASLBindRequest extends SASLBindRequest
    * @throws NullPointerException
    *           If {@code password} was {@code null}.
    */
-  CRAMMD5SASLBindRequest setPassword(ByteString password)
+  CRAMMD5SASLBindRequest setPassword(byte[] password)
       throws UnsupportedOperationException, NullPointerException;
 
 

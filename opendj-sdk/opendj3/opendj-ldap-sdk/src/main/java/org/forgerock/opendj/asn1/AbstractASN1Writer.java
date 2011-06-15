@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.forgerock.opendj.asn1;
 
@@ -99,6 +100,27 @@ public abstract class AbstractASN1Writer implements ASN1Writer
   public ASN1Writer writeNull() throws IOException
   {
     return writeNull(UNIVERSAL_NULL_TYPE);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ASN1Writer writeOctetString(byte type, byte[] value)
+      throws IOException
+  {
+    return writeOctetString(type, value, 0, value.length);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ASN1Writer writeOctetString(byte[] value) throws IOException
+  {
+    return writeOctetString(value, 0, value.length);
   }
 
 

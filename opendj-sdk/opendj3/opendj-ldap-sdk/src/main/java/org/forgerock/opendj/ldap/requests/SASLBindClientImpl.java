@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -270,6 +271,6 @@ class SASLBindClientImpl extends BindClientImpl implements CallbackHandler
       throw new RuntimeException("Error encoding SaslCredentials");
     }
 
-    return setNextAuthenticationValue(builder.toByteString());
+    return setNextAuthenticationValue(builder.toByteString().toByteArray());
   }
 }

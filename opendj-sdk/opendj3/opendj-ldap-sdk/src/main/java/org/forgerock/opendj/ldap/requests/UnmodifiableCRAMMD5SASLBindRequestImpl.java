@@ -23,12 +23,14 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
-import org.forgerock.opendj.ldap.ByteString;
+
+import com.forgerock.opendj.util.StaticUtils;
 
 /**
  * Unmodifiable CRAM-MD5 SASL bind request implementation.
@@ -47,8 +49,9 @@ final class UnmodifiableCRAMMD5SASLBindRequestImpl extends
   }
 
   @Override
-  public ByteString getPassword() {
-    return impl.getPassword();
+  public byte[] getPassword() {
+    // Defensive copy.
+    return StaticUtils.copyOfBytes(impl.getPassword());
   }
 
   @Override
@@ -58,7 +61,7 @@ final class UnmodifiableCRAMMD5SASLBindRequestImpl extends
   }
 
   @Override
-  public CRAMMD5SASLBindRequest setPassword(ByteString password)
+  public CRAMMD5SASLBindRequest setPassword(byte[] password)
       throws UnsupportedOperationException, NullPointerException {
     throw new UnsupportedOperationException();
   }

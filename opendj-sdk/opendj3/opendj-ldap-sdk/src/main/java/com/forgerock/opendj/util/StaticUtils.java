@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package com.forgerock.opendj.util;
@@ -33,6 +34,9 @@ import static org.forgerock.opendj.ldap.CoreMessages.ERR_HEX_DECODE_INVALID_CHAR
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_HEX_DECODE_INVALID_LENGTH;
 
 import java.lang.reflect.InvocationTargetException;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -67,6 +71,11 @@ public final class StaticUtils
    * The end-of-line character for this platform.
    */
   public static final String EOL = System.getProperty("line.separator");
+
+  /**
+   * A zero-length byte array.
+   */
+  public static final byte[] EMPTY_BYTES = new byte[0];
 
   // The name of the time zone for universal coordinated time (UTC).
   private static final String TIME_ZONE_UTC = "UTC";
@@ -1363,6 +1372,26 @@ public final class StaticUtils
 
   /**
    * Construct a byte array containing the UTF-8 encoding of the provided
+   * character array.
+   *
+   * @param chars
+   *          The character array to convert to a UTF-8 byte array.
+   * @return A byte array containing the UTF-8 encoding of the provided
+   *         character array.
+   */
+  public static byte[] getBytes(final char[] chars)
+  {
+    final Charset utf8 = Charset.forName("UTF-8");
+    final ByteBuffer buffer = utf8.encode(CharBuffer.wrap(chars));
+    final byte[] bytes = new byte[buffer.remaining()];
+    buffer.get(bytes);
+    return bytes;
+  }
+
+
+
+  /**
+   * Construct a byte array containing the UTF-8 encoding of the provided
    * string. This is significantly faster than calling
    * {@link String#getBytes(String)} for ASCII strings.
    *
@@ -2242,6 +2271,20 @@ public final class StaticUtils
 
     // Still unsuccessful. Give up.
     return false;
+  }
+
+
+
+  /**
+   * Returns a copy of the provided byte array.
+   *
+   * @param bytes
+   *          The byte array to be copied.
+   * @return A copy of the provided byte array.
+   */
+  public static byte[] copyOfBytes(final byte[] bytes)
+  {
+    return Arrays.copyOf(bytes, bytes.length);
   }
 
 

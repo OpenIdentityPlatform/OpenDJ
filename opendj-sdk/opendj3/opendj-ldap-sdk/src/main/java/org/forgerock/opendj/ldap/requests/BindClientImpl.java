@@ -23,13 +23,13 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
 
 
 
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConnectionSecurityLayer;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.controls.Control;
@@ -56,9 +56,9 @@ class BindClientImpl implements BindClient, ConnectionSecurityLayer
    */
   BindClientImpl(final BindRequest initialBindRequest)
   {
-    this.nextBindRequest = new GenericBindRequestImpl(initialBindRequest
-        .getName(), initialBindRequest.getAuthenticationType(), ByteString
-        .empty(), this);
+    this.nextBindRequest = new GenericBindRequestImpl(
+        initialBindRequest.getName(),
+        initialBindRequest.getAuthenticationType(), new byte[0], this);
     for (final Control control : initialBindRequest.getControls())
     {
       this.nextBindRequest.addControl(control);
@@ -141,8 +141,7 @@ class BindClientImpl implements BindClient, ConnectionSecurityLayer
    *          The authentication value to be used in the next bind request.
    * @return A reference to this bind client.
    */
-  final BindClient setNextAuthenticationValue(
-      final ByteString authenticationValue)
+  final BindClient setNextAuthenticationValue(final byte[] authenticationValue)
   {
     nextBindRequest.setAuthenticationValue(authenticationValue);
     return this;

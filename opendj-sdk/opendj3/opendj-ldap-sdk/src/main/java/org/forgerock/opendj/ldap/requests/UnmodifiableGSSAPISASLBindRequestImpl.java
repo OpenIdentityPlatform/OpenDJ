@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -34,7 +35,8 @@ import java.util.Map;
 import javax.security.auth.Subject;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
-import org.forgerock.opendj.ldap.ByteString;
+
+import com.forgerock.opendj.util.StaticUtils;
 
 /**
  * Unmodifiable GSSAPI SASL bind request implementation.
@@ -90,8 +92,9 @@ final class UnmodifiableGSSAPISASLBindRequestImpl extends
   }
 
   @Override
-  public ByteString getPassword() {
-    return impl.getPassword();
+  public byte[] getPassword() {
+    // Defensive copy.
+    return StaticUtils.copyOfBytes(impl.getPassword());
   }
 
   @Override
@@ -145,7 +148,7 @@ final class UnmodifiableGSSAPISASLBindRequestImpl extends
   }
 
   @Override
-  public GSSAPISASLBindRequest setPassword(ByteString password)
+  public GSSAPISASLBindRequest setPassword(byte[] password)
       throws UnsupportedOperationException, NullPointerException {
     throw new UnsupportedOperationException();
   }
