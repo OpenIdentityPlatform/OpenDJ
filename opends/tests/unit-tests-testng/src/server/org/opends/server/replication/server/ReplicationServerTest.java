@@ -27,6 +27,7 @@
  */
 package org.opends.server.replication.server;
 
+import org.opends.server.util.StaticUtils;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.replication.protocol.OperationContext.SYNCHROCONTEXT;
@@ -122,7 +123,8 @@ public class ReplicationServerTest extends ReplicationTestCase
 
   private ChangeNumber unknownChangeNumberServer1;
 
-
+  private static final String exportLDIFAllFile = "exportLDIF.ldif";
+  private String exportLDIFDomainFile = null;
   /**
    * Set up the environment for performing the tests in this Class.
    * Replication
@@ -958,9 +960,19 @@ public class ReplicationServerTest extends ReplicationTestCase
       finally
       {
         if (changelogs[0] != null)
+        {
           changelogs[0].remove();
+          StaticUtils.recursiveDelete
+                  (new File(DirectoryServer.getInstanceRoot(),
+                   changelogs[0].getDbDirName()));     
+        }
         if (changelogs[1] != null)
+        {
           changelogs[1].remove();
+          StaticUtils.recursiveDelete
+                  (new File(DirectoryServer.getInstanceRoot(),
+                   changelogs[1].getDbDirName()));     
+        }
         if (broker1 != null)
           broker1.stop();
         if (broker2 != null)
@@ -1114,8 +1126,12 @@ public class ReplicationServerTest extends ReplicationTestCase
   {
     callParanoiaCheck = false;
     super.classCleanUp();
-
+    String dirName = replicationServer.getDbDirName();
+    
     shutdown();
+
+    StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+            dirName));     
 
     paranoiaCheck();
   }
@@ -1314,11 +1330,21 @@ public class ReplicationServerTest extends ReplicationTestCase
         Entry exportTask = createExportAllTask();
         addTask(exportTask, ResultCode.SUCCESS, null);
         waitTaskState(exportTask, TaskState.COMPLETED_SUCCESSFULLY, null);
-
+        // Not doing anything with the export file, let's delete it
+        File f = new File(DirectoryServer.getInstanceRoot(),exportLDIFAllFile);
+        f.delete();
+        
         debugInfo("Export domain");
         exportTask = createExportDomainTask("dc=domain2,dc=com");
         addTask(exportTask, ResultCode.SUCCESS, null);
         waitTaskState(exportTask, TaskState.COMPLETED_SUCCESSFULLY, null);
+        // Not doing anything with the export file, let's delete it
+        if (exportLDIFDomainFile != null)
+        {
+          File aFile = new File(DirectoryServer.getInstanceRoot(),
+                  exportLDIFDomainFile);
+          aFile.delete();
+        }
       } finally {
       if (server1 != null)
         server1.stop();
@@ -1360,14 +1386,13 @@ public class ReplicationServerTest extends ReplicationTestCase
    private Entry createExportAllTask()
    throws Exception
    {
-     String path = "exportLDIF.ldif";
      return TestCaseUtils.makeEntry(
      "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
      "objectclass: top",
      "objectclass: ds-task",
      "objectclass: ds-task-export",
      "ds-task-class-name: org.opends.server.tasks.ExportTask",
-     "ds-task-export-ldif-file: " + path,
+     "ds-task-export-ldif-file: " + exportLDIFAllFile,
      "ds-task-export-backend-id: replicationChanges",
      "ds-task-export-include-branch: dc=replicationChanges");
    }
@@ -1376,14 +1401,14 @@ public class ReplicationServerTest extends ReplicationTestCase
    throws Exception
    {
      String root = suffix.substring(suffix.indexOf('=')+1, suffix.indexOf(','));
-     String path = "exportLDIF" + root +".ldif";
+     exportLDIFDomainFile = "exportLDIF" + root +".ldif";
      return TestCaseUtils.makeEntry(
      "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
      "objectclass: top",
      "objectclass: ds-task",
      "objectclass: ds-task-export",
      "ds-task-class-name: org.opends.server.tasks.ExportTask",
-     "ds-task-export-ldif-file: " + path,
+     "ds-task-export-ldif-file: " + exportLDIFDomainFile,
      "ds-task-export-backend-id: replicationChanges",
      "ds-task-export-include-branch: "+suffix+",dc=replicationChanges");
    }
@@ -1951,9 +1976,19 @@ public class ReplicationServerTest extends ReplicationTestCase
        finally
        {
          if (changelogs[0] != null)
+         {
            changelogs[0].remove();
+           StaticUtils.recursiveDelete
+                  (new File(DirectoryServer.getInstanceRoot(),
+                   changelogs[0].getDbDirName()));     
+         }
          if (changelogs[1] != null)
+         {
            changelogs[1].remove();
+           StaticUtils.recursiveDelete
+                  (new File(DirectoryServer.getInstanceRoot(),
+                   changelogs[1].getDbDirName()));     
+         }
          if (broker1 != null)
            broker1.stop();
          if (broker2 != null)

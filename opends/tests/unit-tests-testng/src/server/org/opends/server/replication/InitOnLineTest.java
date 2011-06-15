@@ -23,9 +23,11 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication;
 
+import java.io.File;
 import static org.opends.server.config.ConfigConstants.ATTR_TASK_COMPLETION_TIME;
 import static org.opends.server.config.ConfigConstants.ATTR_TASK_INITIALIZE_DONE;
 import static org.opends.server.config.ConfigConstants.ATTR_TASK_INITIALIZE_LEFT;
@@ -83,6 +85,7 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 import org.opends.server.util.Base64;
+import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -1682,6 +1685,8 @@ public class InitOnLineTest extends ReplicationTestCase
     {
         changelog1.clearDb();
         changelog1.remove();
+        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+             changelog1.getDbDirName()));
         changelog1 = null;
     }
 
@@ -1689,6 +1694,8 @@ public class InitOnLineTest extends ReplicationTestCase
     {
         changelog2.clearDb();
         changelog2.remove();
+        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+             changelog2.getDbDirName()));
         changelog2 = null;
     }
 
@@ -1696,6 +1703,8 @@ public class InitOnLineTest extends ReplicationTestCase
     {
         changelog3.clearDb();
         changelog3.remove();
+        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+             changelog3.getDbDirName()));
         changelog3 = null;
     }
 

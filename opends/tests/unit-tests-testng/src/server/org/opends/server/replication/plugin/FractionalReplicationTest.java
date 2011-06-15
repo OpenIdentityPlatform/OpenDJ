@@ -23,9 +23,12 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
+import org.opends.server.util.StaticUtils;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -518,6 +521,8 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     {
       replicationServer.clearDb();
       replicationServer.remove();
+      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+                 replicationServer.getDbDirName()));
       replicationServer = null;
     }
   }

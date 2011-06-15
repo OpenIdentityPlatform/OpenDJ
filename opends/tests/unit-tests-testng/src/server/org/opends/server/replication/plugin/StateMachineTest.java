@@ -23,9 +23,12 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
+import org.opends.server.util.StaticUtils;
+import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.SocketException;
@@ -157,6 +160,8 @@ public class StateMachineTest extends ReplicationTestCase
     {
       rs1.clearDb();
       rs1.remove();
+      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+                 rs1.getDbDirName()));
       rs1 = null;
     }
 

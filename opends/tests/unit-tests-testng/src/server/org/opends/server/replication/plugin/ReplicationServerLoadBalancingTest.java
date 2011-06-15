@@ -23,9 +23,12 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
+import java.io.File;
+import org.opends.server.util.StaticUtils;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.Iterator;
@@ -44,6 +47,7 @@ import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
@@ -152,6 +156,8 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
       {
         rs[i].clearDb();
         rs[i].remove();
+        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+                 rs[i].getDbDirName()));
         rs[i] = null;
       }
       rsPort[i] = -1;

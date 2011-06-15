@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication;
 
@@ -82,6 +83,7 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -1369,18 +1371,24 @@ public class GenerationIdTest extends ReplicationTestCase
     {
       replServer1.clearDb();
       replServer1.remove();
+      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+               replServer1.getDbDirName()));
       replServer1 = null;
     }
     if (replServer2 != null)
     {
       replServer2.clearDb();
       replServer2.remove();
+      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+            replServer2.getDbDirName()));
       replServer2 = null;
     }
     if (replServer3 != null)
     {
       replServer3.clearDb();
       replServer3.remove();
+      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+             replServer3.getDbDirName()));
       replServer3 = null;
     }
 

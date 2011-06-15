@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -91,6 +92,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
   @BeforeClass
   public void setUp() throws Exception {
     TestCaseUtils.startServer();
+    TestCaseUtils.enableBackend(beID);
 
     SortKey[] sortKeys = new SortKey[3];
     sortKeys[0] = new SortKey(DirectoryServer.getAttributeType("givenname"), true);
@@ -214,6 +216,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
 
   @AfterClass
   public void cleanUp() throws Exception {
+    TestCaseUtils.disableBackend(beID);
   }
 
   /**

@@ -23,9 +23,13 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
+import org.opends.server.util.StaticUtils;
+import org.opends.server.core.DirectoryServer;
+import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.SortedSet;
@@ -127,6 +131,8 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
     {
       rs1.clearDb();
       rs1.remove();
+      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+                 rs1.getDbDirName()));
       rs1 = null;
     }
 
@@ -134,12 +140,16 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
     {
       rs2.clearDb();
       rs2.remove();
-      rs2 = null;
+      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+                 rs2.getDbDirName()));
+     rs2 = null;
     }
     if (rs3 != null)
     {
       rs3.clearDb();
       rs3.remove();
+      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+                 rs3.getDbDirName()));
       rs3 = null;
     }
     rs1Port = -1;

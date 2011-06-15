@@ -23,9 +23,12 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
+import org.opends.server.util.StaticUtils;
+import java.io.File;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
@@ -483,19 +486,25 @@ public class MonitorTest extends ReplicationTestCase
     {
       replServer1.clearDb();
       replServer1.remove();
+      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+                 replServer1.getDbDirName()));
       replServer1 = null;
     }
     if (replServer2 != null)
     {
       replServer2.clearDb();
       replServer2.remove();
+      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+                 replServer2.getDbDirName()));
       replServer2 = null;
     }
     if (replServer3 != null)
     {
       replServer3.clearDb();
       replServer3.remove();
-      replServer3 = null;
+      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+                 replServer3.getDbDirName()));
+     replServer3 = null;
     }
 
     super.cleanRealEntries();

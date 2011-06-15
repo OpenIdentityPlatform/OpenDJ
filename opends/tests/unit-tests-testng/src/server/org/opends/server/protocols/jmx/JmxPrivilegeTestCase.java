@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.protocols.jmx;
 
@@ -103,7 +104,7 @@ public class JmxPrivilegeTestCase
   {
     super.setUp();
 
-
+    TestCaseUtils.enableBackend("unindexedRoot");
     TestCaseUtils.initializeTestBackend(true);
     TestCaseUtils.addEntries(
       "dn: cn=Unprivileged Root,cn=Root DNs,cn=config",
@@ -349,6 +350,7 @@ public class JmxPrivilegeTestCase
       connections[i].finalize();
       connections[i] = null;
     }
+    TestCaseUtils.disableBackend("unindexedRoot");
   }
 
 

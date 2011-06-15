@@ -23,9 +23,11 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
+import java.io.File;
 import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
@@ -64,6 +66,7 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.Test;
 
@@ -231,6 +234,8 @@ public class HistoricalCsnOrderingTest
     {
       MultimasterReplication.deleteDomain(baseDn);
       rs.remove();
+      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+                 rs.getDbDirName()));
     }
   }
 

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -128,6 +129,7 @@ public class TestRebuildJob extends JebTestCase
   @BeforeClass
   public void setup() throws Exception {
     TestCaseUtils.startServer();
+    TestCaseUtils.enableBackend(beID);
     baseDNs = new DN[] {
         DN.decode(suffix)
     };
@@ -136,6 +138,7 @@ public class TestRebuildJob extends JebTestCase
   @AfterClass
   public void cleanUp() throws Exception {
     TestCaseUtils.clearJEBackend(false, beID, suffix);
+    TestCaseUtils.disableBackend(beID);
   }
 
   /**
