@@ -604,20 +604,20 @@ final class ConnectionFactoryProvider
       {
         bindRequest = Requests.newDigestMD5SASLBindRequest(
             getAuthID(DigestMD5SASLBindRequest.SASL_MECHANISM_NAME),
-            ByteString.valueOf(getPassword())).setAuthorizationID(getAuthzID())
+            getPassword()).setAuthorizationID(getAuthzID())
             .setRealm(getRealm());
       }
       else if (mech.equals(CRAMMD5SASLBindRequest.SASL_MECHANISM_NAME))
       {
         bindRequest = Requests.newCRAMMD5SASLBindRequest(
-            getAuthID(CRAMMD5SASLBindRequest.SASL_MECHANISM_NAME), ByteString
-                .valueOf(getPassword()));
+            getAuthID(CRAMMD5SASLBindRequest.SASL_MECHANISM_NAME),
+            getPassword());
       }
       else if (mech.equals(GSSAPISASLBindRequest.SASL_MECHANISM_NAME))
       {
         bindRequest = Requests.newGSSAPISASLBindRequest(
             getAuthID(GSSAPISASLBindRequest.SASL_MECHANISM_NAME),
-            ByteString.valueOf(getPassword())).setKDCAddress(getKDC()).setRealm(
+            getPassword()).setKDCAddress(getKDC()).setRealm(
             getRealm()).setAuthorizationID(getAuthzID());
       }
       else if (mech.equals(ExternalSASLBindRequest.SASL_MECHANISM_NAME))
@@ -641,7 +641,7 @@ final class ConnectionFactoryProvider
       {
         bindRequest = Requests.newPlainSASLBindRequest(
             getAuthID(PlainSASLBindRequest.SASL_MECHANISM_NAME),
-            ByteString.valueOf(getPassword())).setAuthorizationID(getAuthzID());
+            getPassword()).setAuthorizationID(getAuthzID());
       }
       else
       {

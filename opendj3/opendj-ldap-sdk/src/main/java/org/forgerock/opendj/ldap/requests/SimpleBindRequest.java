@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -31,7 +32,6 @@ package org.forgerock.opendj.ldap.requests;
 
 import java.util.List;
 
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.ErrorResultException;
@@ -105,11 +105,15 @@ public interface SimpleBindRequest extends BindRequest
    * Returns the password of the Directory object that the client wishes to bind
    * as. The password may be empty (but never {@code null}) when used for of
    * anonymous or unauthenticated binds.
+   * <p>
+   * Unless otherwise indicated, implementations will store a reference to the
+   * returned password byte array, allowing applications to overwrite the
+   * password after it has been used.
    *
    * @return The password of the Directory object that the client wishes to bind
    *         as.
    */
-  ByteString getPassword();
+  byte[] getPassword();
 
 
 
@@ -142,6 +146,10 @@ public interface SimpleBindRequest extends BindRequest
    * Sets the password of the Directory object that the client wishes to bind
    * as. The password may be empty (but never {@code null}) when used for of
    * anonymous or unauthenticated binds.
+   * <p>
+   * Unless otherwise indicated, implementations will store a reference to the
+   * provided password byte array, allowing applications to overwrite the
+   * password after it has been used.
    *
    * @param password
    *          The password of the Directory object that the client wishes to
@@ -153,7 +161,7 @@ public interface SimpleBindRequest extends BindRequest
    * @throws NullPointerException
    *           If {@code password} was {@code null}.
    */
-  SimpleBindRequest setPassword(ByteString password)
+  SimpleBindRequest setPassword(byte[] password)
       throws UnsupportedOperationException, NullPointerException;
 
 

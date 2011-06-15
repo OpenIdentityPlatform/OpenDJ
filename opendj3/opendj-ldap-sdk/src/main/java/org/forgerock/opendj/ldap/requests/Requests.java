@@ -23,12 +23,15 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
 
 
 
+import static com.forgerock.opendj.util.StaticUtils.EMPTY_BYTES;
+import static com.forgerock.opendj.util.StaticUtils.getBytes;
 import static org.forgerock.opendj.ldap.CoreMessages.WARN_READ_LDIF_RECORD_CHANGE_RECORD_WRONG_TYPE;
 
 import javax.net.ssl.SSLContext;
@@ -300,6 +303,30 @@ public final class Requests
    *          of the user, or "u:" followed by a user ID string, but other forms
    *          are permitted.
    * @param password
+   *          The password of the user that the client wishes to bind as.
+   * @return The new CRAM-MD5 SASL bind request.
+   * @throws NullPointerException
+   *           If {@code authenticationID} or {@code password} was {@code null}.
+   */
+  public static CRAMMD5SASLBindRequest newCRAMMD5SASLBindRequest(
+      final String authenticationID, final byte[] password)
+      throws NullPointerException
+  {
+    return new CRAMMD5SASLBindRequestImpl(authenticationID, password);
+  }
+
+
+
+  /**
+   * Creates a new CRAM-MD5 SASL bind request having the provided authentication
+   * ID and password.
+   *
+   * @param authenticationID
+   *          The authentication ID of the user. The authentication ID usually
+   *          has the form "dn:" immediately followed by the distinguished name
+   *          of the user, or "u:" followed by a user ID string, but other forms
+   *          are permitted.
+   * @param password
    *          The password of the user that the client wishes to bind as. The
    *          password will be converted to a UTF-8 octet string.
    * @return The new CRAM-MD5 SASL bind request.
@@ -307,10 +334,10 @@ public final class Requests
    *           If {@code authenticationID} or {@code password} was {@code null}.
    */
   public static CRAMMD5SASLBindRequest newCRAMMD5SASLBindRequest(
-      final String authenticationID, final ByteString password)
+      final String authenticationID, final char[] password)
       throws NullPointerException
   {
-    return new CRAMMD5SASLBindRequestImpl(authenticationID, password);
+    return new CRAMMD5SASLBindRequestImpl(authenticationID, getBytes(password));
   }
 
 
@@ -364,6 +391,30 @@ public final class Requests
    *          of the user, or "u:" followed by a user ID string, but other forms
    *          are permitted.
    * @param password
+   *          The password of the user that the client wishes to bind as.
+   * @return The new DIGEST-MD5 SASL bind request.
+   * @throws NullPointerException
+   *           If {@code authenticationID} or {@code password} was {@code null}.
+   */
+  public static DigestMD5SASLBindRequest newDigestMD5SASLBindRequest(
+      final String authenticationID, final byte[] password)
+      throws NullPointerException
+  {
+    return new DigestMD5SASLBindRequestImpl(authenticationID, password);
+  }
+
+
+
+  /**
+   * Creates a new DIGEST-MD5 SASL bind request having the provided
+   * authentication ID and password, but no realm or authorization ID.
+   *
+   * @param authenticationID
+   *          The authentication ID of the user. The authentication ID usually
+   *          has the form "dn:" immediately followed by the distinguished name
+   *          of the user, or "u:" followed by a user ID string, but other forms
+   *          are permitted.
+   * @param password
    *          The password of the user that the client wishes to bind as. The
    *          password will be converted to a UTF-8 octet string.
    * @return The new DIGEST-MD5 SASL bind request.
@@ -371,10 +422,11 @@ public final class Requests
    *           If {@code authenticationID} or {@code password} was {@code null}.
    */
   public static DigestMD5SASLBindRequest newDigestMD5SASLBindRequest(
-      final String authenticationID, final ByteString password)
+      final String authenticationID, final char[] password)
       throws NullPointerException
   {
-    return new DigestMD5SASLBindRequestImpl(authenticationID, password);
+    return new DigestMD5SASLBindRequestImpl(authenticationID,
+        getBytes(password));
   }
 
 
@@ -406,7 +458,7 @@ public final class Requests
    *           If {@code authenticationValue} was {@code null}.
    */
   public static GenericBindRequest newGenericBindRequest(
-      final byte authenticationType, final ByteString authenticationValue)
+      final byte authenticationType, final byte[] authenticationValue)
       throws NullPointerException
   {
     Validator.ensureNotNull(authenticationValue);
@@ -438,7 +490,7 @@ public final class Requests
    *           If {@code name} or {@code authenticationValue} was {@code null}.
    */
   public static GenericBindRequest newGenericBindRequest(final String name,
-      final byte authenticationType, final ByteString authenticationValue)
+      final byte authenticationType, final byte[] authenticationValue)
       throws NullPointerException
   {
     Validator.ensureNotNull(name, authenticationValue);
@@ -502,6 +554,30 @@ public final class Requests
    *          of the user, or "u:" followed by a user ID string, but other forms
    *          are permitted.
    * @param password
+   *          The password of the user that the client wishes to bind as.
+   * @return The new GSSAPI SASL bind request.
+   * @throws NullPointerException
+   *           If {@code authenticationID} or {@code password} was {@code null}.
+   */
+  public static GSSAPISASLBindRequest newGSSAPISASLBindRequest(
+      final String authenticationID, final byte[] password)
+      throws NullPointerException
+  {
+    return new GSSAPISASLBindRequestImpl(authenticationID, password);
+  }
+
+
+
+  /**
+   * Creates a new GSSAPI SASL bind request having the provided authentication
+   * ID and password, but no realm, KDC address, or authorization ID.
+   *
+   * @param authenticationID
+   *          The authentication ID of the user. The authentication ID usually
+   *          has the form "dn:" immediately followed by the distinguished name
+   *          of the user, or "u:" followed by a user ID string, but other forms
+   *          are permitted.
+   * @param password
    *          The password of the user that the client wishes to bind as. The
    *          password will be converted to a UTF-8 octet string.
    * @return The new GSSAPI SASL bind request.
@@ -509,10 +585,10 @@ public final class Requests
    *           If {@code authenticationID} or {@code password} was {@code null}.
    */
   public static GSSAPISASLBindRequest newGSSAPISASLBindRequest(
-      final String authenticationID, final ByteString password)
+      final String authenticationID, final char[] password)
       throws NullPointerException
   {
-    return new GSSAPISASLBindRequestImpl(authenticationID, password);
+    return new GSSAPISASLBindRequestImpl(authenticationID, getBytes(password));
   }
 
 
@@ -714,6 +790,30 @@ public final class Requests
    *          of the user, or "u:" followed by a user ID string, but other forms
    *          are permitted.
    * @param password
+   *          The password of the user that the client wishes to bind as.
+   * @return The new Plain SASL bind request.
+   * @throws NullPointerException
+   *           If {@code authenticationID} or {@code password} was {@code null}.
+   */
+  public static PlainSASLBindRequest newPlainSASLBindRequest(
+      final String authenticationID, final byte[] password)
+      throws NullPointerException
+  {
+    return new PlainSASLBindRequestImpl(authenticationID, password);
+  }
+
+
+
+  /**
+   * Creates a new Plain SASL bind request having the provided authentication ID
+   * and password, but no authorization ID.
+   *
+   * @param authenticationID
+   *          The authentication ID of the user. The authentication ID usually
+   *          has the form "dn:" immediately followed by the distinguished name
+   *          of the user, or "u:" followed by a user ID string, but other forms
+   *          are permitted.
+   * @param password
    *          The password of the user that the client wishes to bind as. The
    *          password will be converted to a UTF-8 octet string.
    * @return The new Plain SASL bind request.
@@ -721,10 +821,10 @@ public final class Requests
    *           If {@code authenticationID} or {@code password} was {@code null}.
    */
   public static PlainSASLBindRequest newPlainSASLBindRequest(
-      final String authenticationID, final ByteString password)
+      final String authenticationID, final char[] password)
       throws NullPointerException
   {
-    return new PlainSASLBindRequestImpl(authenticationID, password);
+    return new PlainSASLBindRequestImpl(authenticationID, getBytes(password));
   }
 
 
@@ -811,7 +911,7 @@ public final class Requests
    */
   public static SimpleBindRequest newSimpleBindRequest()
   {
-    return new SimpleBindRequestImpl("", ByteString.empty());
+    return new SimpleBindRequestImpl("", EMPTY_BYTES);
   }
 
 
@@ -837,10 +937,40 @@ public final class Requests
    *           If {@code name} or {@code password} was {@code null}.
    */
   public static SimpleBindRequest newSimpleBindRequest(final String name,
+      final byte[] password) throws NullPointerException
+  {
+    Validator.ensureNotNull(name, password);
+    return new SimpleBindRequestImpl(name, password);
+  }
+
+
+
+  /**
+   * Creates a new simple bind request having the provided name and password
+   * suitable for name/password authentication. The name will be decoded using
+   * the default schema.
+   * <p>
+   * The LDAP protocol defines the Bind name to be a distinguished name, however
+   * some LDAP implementations have relaxed this constraint and allow other
+   * identities to be used, such as the user's email address.
+   *
+   * @param name
+   *          The name of the Directory object that the client wishes to bind
+   *          as, which may be empty.
+   * @param password
+   *          The password of the Directory object that the client wishes to
+   *          bind as, which may be empty indicating that an unauthenticated
+   *          bind is to be performed. The password will be converted to a UTF-8
+   *          octet string.
+   * @return The new simple bind request.
+   * @throws NullPointerException
+   *           If {@code name} or {@code password} was {@code null}.
+   */
+  public static SimpleBindRequest newSimpleBindRequest(final String name,
       final char[] password) throws NullPointerException
   {
     Validator.ensureNotNull(name, password);
-    return new SimpleBindRequestImpl(name, ByteString.valueOf(password));
+    return new SimpleBindRequestImpl(name, getBytes(password));
   }
 
 
@@ -995,6 +1125,9 @@ public final class Requests
 
   /**
    * Creates an unmodifiable CRAM MD5 SASL bind request of the provided request.
+   * <p>
+   * The returned bind request creates defensive copies of the password in order
+   * to maintain immutability.
    *
    * @param request
    *          The CRAM MD5 SASL bind request to be copied.
@@ -1038,6 +1171,9 @@ public final class Requests
   /**
    * Creates an unmodifiable digest MD5 SASL bind request of the provided
    * request.
+   * <p>
+   * The returned bind request creates defensive copies of the password in order
+   * to maintain immutability.
    *
    * @param request
    *          The digest MD5 SASL bind request to be copied.
@@ -1080,6 +1216,9 @@ public final class Requests
 
   /**
    * Creates an unmodifiable generic bind request of the provided request.
+   * <p>
+   * The returned bind request creates defensive copies of the authentication
+   * value in order to maintain immutability.
    *
    * @param request
    *          The generic bind request to be copied.
@@ -1122,6 +1261,9 @@ public final class Requests
 
   /**
    * Creates an unmodifiable GSSAPI SASL bind request of the provided request.
+   * <p>
+   * The returned bind request creates defensive copies of the password in order
+   * to maintain immutability.
    *
    * @param request
    *          The GSSAPI SASL bind request to be copied.
@@ -1207,6 +1349,9 @@ public final class Requests
 
   /**
    * Creates an unmodifiable plain SASL bind request of the provided request.
+   * <p>
+   * The returned bind request creates defensive copies of the password in order
+   * to maintain immutability.
    *
    * @param request
    *          The plain SASL bind request to be copied.
@@ -1249,6 +1394,9 @@ public final class Requests
 
   /**
    * Creates an unmodifiable simple bind request of the provided request.
+   * <p>
+   * The returned bind request creates defensive copies of the password in order
+   * to maintain immutability.
    *
    * @param request
    *          The simple bind request to be copied.

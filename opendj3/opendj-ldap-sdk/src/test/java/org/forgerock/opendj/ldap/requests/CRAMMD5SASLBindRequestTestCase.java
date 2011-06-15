@@ -23,13 +23,16 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
 
 
 
-import org.forgerock.opendj.ldap.ByteString;
+import static com.forgerock.opendj.util.StaticUtils.EMPTY_BYTES;
+import static com.forgerock.opendj.util.StaticUtils.getBytes;
+
 import org.forgerock.opendj.ldap.requests.CRAMMD5SASLBindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.testng.annotations.DataProvider;
@@ -45,8 +48,8 @@ public class CRAMMD5SASLBindRequestTestCase extends BindRequestTestCase
   public Object[][] getCRAMMD5SASLBindRequests() throws Exception
   {
     final CRAMMD5SASLBindRequest[] requests = {
-        Requests.newCRAMMD5SASLBindRequest("id1", ByteString.empty()),
-        Requests.newCRAMMD5SASLBindRequest("id2", ByteString.valueOf("test")) };
+        Requests.newCRAMMD5SASLBindRequest("id1", EMPTY_BYTES),
+        Requests.newCRAMMD5SASLBindRequest("id2", getBytes("test")) };
     final Object[][] objArray = new Object[requests.length][1];
     for (int i = 0; i < requests.length; i++)
     {

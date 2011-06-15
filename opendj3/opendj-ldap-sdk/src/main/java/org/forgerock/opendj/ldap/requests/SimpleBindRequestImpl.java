@@ -23,17 +23,19 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
 
 
 
-import static com.forgerock.opendj.ldap.LDAPConstants.TYPE_AUTHENTICATION_SIMPLE;
+import static com.forgerock.opendj.ldap.LDAPConstants.*;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ErrorResultException;
 
+import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.Validator;
 
 
@@ -44,7 +46,7 @@ import com.forgerock.opendj.util.Validator;
 final class SimpleBindRequestImpl extends
     AbstractBindRequest<SimpleBindRequest> implements SimpleBindRequest
 {
-  private ByteString password = ByteString.empty();
+  private byte[] password = new byte[0];
 
   private String name = "".intern();
 
@@ -64,7 +66,7 @@ final class SimpleBindRequestImpl extends
    * @throws NullPointerException
    *           If {@code name} or {@code password} was {@code null}.
    */
-  SimpleBindRequestImpl(final String name, final ByteString password)
+  SimpleBindRequestImpl(final String name, final byte[] password)
       throws NullPointerException
   {
     this.name = name;
@@ -87,7 +89,7 @@ final class SimpleBindRequestImpl extends
   {
     super(simpleBindRequest);
     this.name = simpleBindRequest.getName();
-    this.password = simpleBindRequest.getPassword();
+    this.password = StaticUtils.copyOfBytes(simpleBindRequest.getPassword());
   }
 
 
@@ -121,7 +123,7 @@ final class SimpleBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public ByteString getPassword()
+  public byte[] getPassword()
   {
     return password;
   }
@@ -144,7 +146,7 @@ final class SimpleBindRequestImpl extends
   /**
    * {@inheritDoc}
    */
-  public SimpleBindRequest setPassword(final ByteString password)
+  public SimpleBindRequest setPassword(final byte[] password)
       throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(password);
@@ -161,7 +163,7 @@ final class SimpleBindRequestImpl extends
       throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(password);
-    this.password = ByteString.valueOf(password);
+    this.password = StaticUtils.getBytes(password);
     return this;
   }
 
@@ -178,7 +180,7 @@ final class SimpleBindRequestImpl extends
     builder.append(getName());
     builder.append(", authentication=simple");
     builder.append(", password=");
-    builder.append(getPassword());
+    builder.append(ByteString.wrap(getPassword()));
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");

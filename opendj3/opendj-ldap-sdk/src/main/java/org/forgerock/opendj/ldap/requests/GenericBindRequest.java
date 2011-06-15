@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -70,10 +71,14 @@ public interface GenericBindRequest extends BindRequest
   /**
    * Returns the authentication information for this bind request. The content
    * is defined by the authentication mechanism.
+   * <p>
+   * Unless otherwise indicated, implementations will store a reference to the
+   * returned byte array, allowing applications to overwrite any sensitive data
+   * such as passwords after it has been used.
    *
    * @return The authentication information.
    */
-  ByteString getAuthenticationValue();
+  byte[] getAuthenticationValue();
 
 
 
@@ -121,6 +126,10 @@ public interface GenericBindRequest extends BindRequest
   /**
    * Sets the authentication information for this generic bind request in a form
    * defined by the authentication mechanism.
+   * <p>
+   * Unless otherwise indicated, implementations will store a reference to the
+   * returned byte array, allowing applications to overwrite any sensitive data
+   * such as passwords after it has been used.
    *
    * @param bytes
    *          The authentication information for this generic bind request in a
@@ -132,7 +141,7 @@ public interface GenericBindRequest extends BindRequest
    * @throws NullPointerException
    *           If {@code bytes} was {@code null}.
    */
-  GenericBindRequest setAuthenticationValue(ByteString bytes)
+  GenericBindRequest setAuthenticationValue(byte[] bytes)
       throws UnsupportedOperationException, NullPointerException;
 
 

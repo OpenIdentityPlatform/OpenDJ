@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -32,7 +33,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
-import org.forgerock.opendj.ldap.ByteString;
+
+import com.forgerock.opendj.util.StaticUtils;
 
 /**
  * Unmodifiable digest-MD5 SASL bind request implementation.
@@ -89,8 +91,9 @@ final class UnmodifiableDigestMD5SASLBindRequestImpl extends
   }
 
   @Override
-  public ByteString getPassword() {
-    return impl.getPassword();
+  public byte[] getPassword() {
+    // Defensive copy.
+    return StaticUtils.copyOfBytes(impl.getPassword());
   }
 
   @Override
@@ -140,7 +143,7 @@ final class UnmodifiableDigestMD5SASLBindRequestImpl extends
   }
 
   @Override
-  public DigestMD5SASLBindRequest setPassword(ByteString password)
+  public DigestMD5SASLBindRequest setPassword(byte[] password)
       throws UnsupportedOperationException, NullPointerException {
     throw new UnsupportedOperationException();
   }

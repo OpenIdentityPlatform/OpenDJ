@@ -160,7 +160,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase
     factories[3][0] = new AuthenticatedConnectionFactory(
         new LDAPConnectionFactory("localhost", TestCaseUtils.getLdapPort()),
         Requests.newCRAMMD5SASLBindRequest("id:user",
-            ByteString.valueOf("password")));
+            "password".toCharArray()));
 
     // LDAPConnectionFactory with default options
     factories[4][0] = new LDAPConnectionFactory("localhost",
@@ -189,8 +189,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase
     factories[6][0] = new AuthenticatedConnectionFactory(
         new LDAPConnectionFactory(new InetSocketAddress("127.0.0.1",
             TestCaseUtils.getLdapPort()), options), Requests
-            .newDigestMD5SASLBindRequest("id:user",
-                ByteString.valueOf("password"))
+            .newDigestMD5SASLBindRequest("id:user", "password".toCharArray())
             .addQOP(DigestMD5SASLBindRequest.QOP_AUTH_CONF)
             .setCipher(DigestMD5SASLBindRequest.CIPHER_LOW));
 
@@ -282,8 +281,8 @@ public class ConnectionFactoryTestCase extends SdkTestCase
     // Use the handler to get the result asynchronously.
     final CountDownLatch latch = new CountDownLatch(1);
     final MyResultHandler handler = new MyResultHandler(latch);
-    final FutureResult<AsynchronousConnection> future = factory
-        .getAsynchronousConnection(handler);
+    factory.getAsynchronousConnection(handler);
+
     // Since we don't have anything to do, we would rather
     // be notified by the latch when the other thread calls our handler.
     latch.await(); // should do a timed wait rather?

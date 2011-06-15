@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.forgerock.opendj.asn1;
 
@@ -245,6 +246,21 @@ public interface ASN1Writer extends Closeable, Flushable
    *          The type tag of the element.
    * @param value
    *          The byte array containing the octet string data.
+   * @return A reference to this ASN.1 writer.
+   * @throws IOException
+   *           If an error occurs while writing the element.
+   */
+  ASN1Writer writeOctetString(byte type, byte[] value) throws IOException;
+
+
+
+  /**
+   * Writes an octet string element using the provided type tag.
+   *
+   * @param type
+   *          The type tag of the element.
+   * @param value
+   *          The byte array containing the octet string data.
    * @param offset
    *          The offset in the byte array.
    * @param length
@@ -286,6 +302,20 @@ public interface ASN1Writer extends Closeable, Flushable
    *           If an error occurs while writing the element.
    */
   ASN1Writer writeOctetString(byte type, String value) throws IOException;
+
+
+
+  /**
+   * Writes an octet string element using the Universal Octet String ASN.1 type
+   * tag.
+   *
+   * @param value
+   *          The byte array containing the octet string data.
+   * @return A reference to this ASN.1 writer.
+   * @throws IOException
+   *           If an error occurs while writing the element.
+   */
+  ASN1Writer writeOctetString(byte[] value) throws IOException;
 
 
 

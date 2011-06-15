@@ -23,12 +23,14 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
 
 
 
+import static com.forgerock.opendj.util.StaticUtils.copyOfBytes;
 import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
 import static com.forgerock.opendj.util.StaticUtils.joinCollection;
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_SASL_PROTOCOL_ERROR;
@@ -51,6 +53,7 @@ import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.responses.BindResult;
 
+import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.Validator;
 
 
@@ -77,7 +80,7 @@ final class DigestMD5SASLBindRequestImpl extends
       super(initialBindRequest);
 
       this.authenticationID = initialBindRequest.getAuthenticationID();
-      this.password = initialBindRequest.getPassword();
+      this.password = ByteString.wrap(initialBindRequest.getPassword());
       this.realm = initialBindRequest.getRealm();
 
       // Create property map containing all the parameters.
@@ -299,13 +302,13 @@ final class DigestMD5SASLBindRequestImpl extends
 
   private String authenticationID;
   private String authorizationID = null;
-  private ByteString password;
+  private byte[] password;
   private String realm = null;
 
 
 
   DigestMD5SASLBindRequestImpl(final String authenticationID,
-      final ByteString password)
+      final byte[] password)
   {
     Validator.ensureNotNull(authenticationID, password);
     this.authenticationID = authenticationID;
@@ -340,7 +343,7 @@ final class DigestMD5SASLBindRequestImpl extends
 
     this.authenticationID = digestMD5SASLBindRequest.getAuthenticationID();
     this.authorizationID = digestMD5SASLBindRequest.getAuthorizationID();
-    this.password = digestMD5SASLBindRequest.getPassword();
+    this.password = copyOfBytes(digestMD5SASLBindRequest.getPassword());
     this.realm = digestMD5SASLBindRequest.getRealm();
   }
 
@@ -459,7 +462,7 @@ final class DigestMD5SASLBindRequestImpl extends
    * {@inheritDoc}
    */
   @Override
-  public ByteString getPassword()
+  public byte[] getPassword()
   {
     return password;
   }
@@ -580,7 +583,7 @@ final class DigestMD5SASLBindRequestImpl extends
    * {@inheritDoc}
    */
   @Override
-  public DigestMD5SASLBindRequest setPassword(final ByteString password)
+  public DigestMD5SASLBindRequest setPassword(final byte[] password)
       throws NullPointerException
   {
     Validator.ensureNotNull(password);
@@ -598,7 +601,7 @@ final class DigestMD5SASLBindRequestImpl extends
       throws NullPointerException
   {
     Validator.ensureNotNull(password);
-    this.password = ByteString.valueOf(password);
+    this.password = StaticUtils.getBytes(password);
     return this;
   }
 
@@ -645,7 +648,7 @@ final class DigestMD5SASLBindRequestImpl extends
     builder.append(", realm=");
     builder.append(realm);
     builder.append(", password=");
-    builder.append(password);
+    builder.append(ByteString.wrap(password));
     builder.append(", controls=");
     builder.append(getControls());
     builder.append(")");

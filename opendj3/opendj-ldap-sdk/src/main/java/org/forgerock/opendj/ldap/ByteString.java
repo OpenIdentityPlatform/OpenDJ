@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
@@ -157,11 +158,7 @@ public final class ByteString implements ByteSequence
    */
   public static ByteString valueOf(final char[] chars)
   {
-    Charset utf8 = Charset.forName("UTF-8");
-    ByteBuffer buffer = utf8.encode(CharBuffer.wrap(chars));
-    byte[] bytes = new byte[buffer.remaining()];
-    buffer.get(bytes);
-    return wrap(bytes);
+    return wrap(StaticUtils.getBytes(chars));
   }
 
 

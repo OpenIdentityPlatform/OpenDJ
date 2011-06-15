@@ -23,17 +23,19 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
 
 
 
+import static com.forgerock.opendj.util.StaticUtils.EMPTY_BYTES;
+import static com.forgerock.opendj.util.StaticUtils.getBytes;
 import static org.testng.Assert.assertEquals;
 
 import java.util.Arrays;
 
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.GSSAPISASLBindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
@@ -49,9 +51,9 @@ public class GSSAPISASLBindRequestTestCase extends BindRequestTestCase
   public Object[][] getGSSAPISASLBindRequests() throws Exception
   {
     final GSSAPISASLBindRequest[] requests = {
-        Requests.newGSSAPISASLBindRequest("id1", ByteString.empty()),
+        Requests.newGSSAPISASLBindRequest("id1", EMPTY_BYTES),
         Requests
-            .newGSSAPISASLBindRequest("id2", ByteString.valueOf("password")) };
+            .newGSSAPISASLBindRequest("id2", getBytes("password")) };
     final Object[][] objArray = new Object[requests.length][1];
     for (int i = 0; i < requests.length; i++)
     {
