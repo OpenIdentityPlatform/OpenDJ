@@ -329,6 +329,7 @@ public final class Main
           resultHandler.handleErrorResult(ErrorResultException
               .newErrorResult(ResultCode.NO_SUCH_OBJECT, "The entry "
                   + dn.toString() + " does not exist"));
+          return;
         }
 
         SearchScope scope = request.getScope();
