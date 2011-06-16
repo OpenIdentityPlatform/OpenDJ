@@ -131,7 +131,7 @@
         <switch value="${os.arch}">
           <case value="x86_64">
             <!-- Linux i386 -->
-            <property name="os.myname" value="macosx-i386"/>
+            <property name="os.myname" value="macosx-universal"/>
           </case>
         </switch>
 
