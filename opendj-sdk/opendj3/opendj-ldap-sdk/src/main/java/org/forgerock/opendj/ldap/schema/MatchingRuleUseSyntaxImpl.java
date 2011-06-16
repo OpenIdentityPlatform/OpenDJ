@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -132,7 +133,8 @@ final class MatchingRuleUseSyntaxImpl extends AbstractSyntaxImpl
       reader.skipWhitespaces();
 
       // The next set of characters must be the OID.
-      SchemaUtils.readOID(reader);
+      SchemaUtils.readOID(reader,
+          schema.allowMalformedNamesAndOptions());
 
       // At this point, we should have a pretty specific syntax that
       // describes what may come next, but some of the components are
@@ -154,7 +156,8 @@ final class MatchingRuleUseSyntaxImpl extends AbstractSyntaxImpl
         }
         else if (tokenName.equalsIgnoreCase("name"))
         {
-          SchemaUtils.readNameDescriptors(reader);
+          SchemaUtils.readNameDescriptors(reader,
+              schema.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("desc"))
         {
@@ -171,7 +174,8 @@ final class MatchingRuleUseSyntaxImpl extends AbstractSyntaxImpl
         }
         else if (tokenName.equalsIgnoreCase("applies"))
         {
-          attributes = SchemaUtils.readOIDs(reader);
+          attributes = SchemaUtils.readOIDs(reader,
+              schema.allowMalformedNamesAndOptions());
         }
         else if (tokenName.matches("^X-[A-Za-z_-]+$"))
         {

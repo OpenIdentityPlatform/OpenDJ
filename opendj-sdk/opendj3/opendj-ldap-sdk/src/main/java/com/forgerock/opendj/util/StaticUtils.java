@@ -1773,6 +1773,25 @@ public final class StaticUtils
 
 
   /**
+   * Indicates whether the provided character is a keychar.
+   *
+   * @param c
+   *          The character for which to make the determination.
+   * @param allowCompatChars
+   *          {@code true} if certain illegal characters should be allowed for
+   *          compatibility reasons.
+   * @return <CODE>true</CODE> if the provided character represents a
+   *         keychar, or <CODE>false</CODE> if not.
+   */
+  public static boolean isKeyChar(final char c, final boolean allowCompatChars)
+  {
+    final ASCIICharProp cp = ASCIICharProp.valueOf(c);
+    return cp != null ? cp.isKeyChar(allowCompatChars) : false;
+  }
+
+
+
+  /**
    * Returns a string whose content is the string representation of the objects
    * contained in the provided collection concatenated together using the
    * provided separator.

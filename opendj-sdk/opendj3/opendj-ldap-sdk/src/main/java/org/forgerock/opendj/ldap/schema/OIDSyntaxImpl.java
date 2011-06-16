@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -96,7 +97,8 @@ final class OIDSyntaxImpl extends AbstractSyntaxImpl
   {
     try
     {
-      SchemaUtils.readOID(new SubstringReader(value.toString()));
+      SchemaUtils.readOID(new SubstringReader(value.toString()),
+          schema.allowMalformedNamesAndOptions());
       return true;
     }
     catch (final DecodeException de)

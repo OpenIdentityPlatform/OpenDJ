@@ -50,31 +50,31 @@ public class DITContentRuleSyntaxTest extends SyntaxTestCase
             "( 2.5.6.4 DESC 'content rule for organization' NOT "
                 + "( x121Address $ telexNumber ) )", true },
         {
-            "( 2.5.6.4 NAME 'full rule' DESC 'rule with all possible fields' "
+            "( 2.5.6.4 NAME 'fullRule' DESC 'rule with all possible fields' "
                 + " OBSOLETE" + " AUX ( posixAccount )" + " MUST ( cn $ sn )"
                 + " MAY ( dc )" + " NOT ( x121Address $ telexNumber ) )", true },
         {
-            "( 2.5.6.4 NAME 'full rule' DESC 'ommit parenthesis' "
+            "( 2.5.6.4 NAME 'fullRule' DESC 'ommit parenthesis' "
                 + " OBSOLETE" + " AUX posixAccount " + " MUST cn " + " MAY dc "
                 + " NOT x121Address )", true },
         {
-            "( 2.5.6.4 NAME 'full rule' DESC 'use numeric OIDs' " + " OBSOLETE"
+            "( 2.5.6.4 NAME 'fullRule' DESC 'use numeric OIDs' " + " OBSOLETE"
                 + " AUX 1.3.6.1.1.1.2.0" + " MUST cn " + " MAY dc "
                 + " NOT x121Address )", true },
         {
-            "( 2.5.6.4 NAME 'full rule' DESC 'illegal OIDs' " + " OBSOLETE"
+            "( 2.5.6.4 NAME 'fullRule' DESC 'illegal OIDs' " + " OBSOLETE"
                 + " AUX 2.5.6.." + " MUST cn " + " MAY dc "
                 + " NOT x121Address )", false },
         {
-            "( 2.5.6.4 NAME 'full rule' DESC 'illegal OIDs' " + " OBSOLETE"
+            "( 2.5.6.4 NAME 'fullRule' DESC 'illegal OIDs' " + " OBSOLETE"
                 + " AUX 2.5.6.x" + " MUST cn " + " MAY dc "
                 + " NOT x121Address )", false },
         {
-            "( 2.5.6.4 NAME 'full rule' DESC 'missing closing parenthesis' "
+            "( 2.5.6.4 NAME 'fullRule' DESC 'missing closing parenthesis' "
                 + " OBSOLETE" + " AUX posixAccount" + " MUST cn " + " MAY dc "
                 + " NOT x121Address", false },
         {
-            "( 2.5.6.4 NAME 'full rule' DESC 'extra parameterss' "
+            "( 2.5.6.4 NAME 'fullRule' DESC 'extra parameterss' "
                 + " MUST cn " + " X-name ( 'this is an extra parameter' ) )",
             true },
 

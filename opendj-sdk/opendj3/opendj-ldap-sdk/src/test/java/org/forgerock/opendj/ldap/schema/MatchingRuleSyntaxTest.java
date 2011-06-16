@@ -50,12 +50,12 @@ public class MatchingRuleSyntaxTest extends SyntaxTestCase
   {
     return new Object[][] {
         {
-            "( 1.2.3.4 NAME 'full matching rule' "
+            "( 1.2.3.4 NAME 'fullMatchingRule' "
                 + " DESC 'description of matching rule' OBSOLETE "
                 + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.17 "
                 + " X-name ( 'this is an extension' ) )", true },
         {
-            "( 1.2.3.4 NAME 'missing closing parenthesis' "
+            "( 1.2.3.4 NAME 'missingClosingParenthesis' "
                 + " DESC 'description of matching rule' "
                 + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.17 "
                 + " X-name ( 'this is an extension' ) ", false }, };

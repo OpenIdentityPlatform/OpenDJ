@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -120,7 +121,8 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl
       reader.skipWhitespaces();
 
       // The next set of characters must be the OID.
-      final String oid = SchemaUtils.readOID(reader);
+      final String oid = SchemaUtils.readOID(reader,
+          schema.allowMalformedNamesAndOptions());
 
       Map<String, List<String>> extraProperties = Collections.emptyMap();
       // At this point, we should have a pretty specific syntax that

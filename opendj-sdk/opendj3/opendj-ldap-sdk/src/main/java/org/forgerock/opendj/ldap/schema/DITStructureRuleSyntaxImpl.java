@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -143,7 +144,8 @@ final class DITStructureRuleSyntaxImpl extends AbstractSyntaxImpl
         }
         else if (tokenName.equalsIgnoreCase("name"))
         {
-          SchemaUtils.readNameDescriptors(reader);
+          SchemaUtils.readNameDescriptors(reader,
+              schema.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("desc"))
         {
@@ -160,7 +162,8 @@ final class DITStructureRuleSyntaxImpl extends AbstractSyntaxImpl
         }
         else if (tokenName.equalsIgnoreCase("form"))
         {
-          nameForm = SchemaUtils.readOID(reader);
+          nameForm = SchemaUtils.readOID(reader,
+              schema.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("sup"))
         {

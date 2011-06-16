@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -54,6 +55,8 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
    * Determines whether the provided string represents a valid criteria
    * according to the guide syntax.
    *
+   * @param schema
+   *          The schema in which this syntax is defined.
    * @param criteria
    *          The portion of the criteria for which to make the determination.
    * @param valueStr
@@ -64,7 +67,8 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
    * @return <CODE>true</CODE> if the provided string does contain a valid
    *         criteria, or <CODE>false</CODE> if not.
    */
-  static boolean criteriaIsValid(final String criteria, final String valueStr,
+  static boolean criteriaIsValid(final Schema schema,
+      final String criteria, final String valueStr,
       final LocalizableMessageBuilder invalidReason)
   {
     // See if the criteria starts with a '!'. If so, then just evaluate
@@ -72,7 +76,8 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
     char c = criteria.charAt(0);
     if (c == '!')
     {
-      return criteriaIsValid(criteria.substring(1), valueStr, invalidReason);
+      return criteriaIsValid(schema, criteria.substring(1), valueStr,
+          invalidReason);
     }
 
     // See if the criteria starts with a '('. If so, then find the
@@ -91,7 +96,7 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
           if (depth == 0)
           {
             final String subCriteria = criteria.substring(1, i);
-            if (!criteriaIsValid(subCriteria, valueStr, invalidReason))
+            if (!criteriaIsValid(schema, subCriteria, valueStr, invalidReason))
             {
               return false;
             }
@@ -108,7 +113,8 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
               c = criteria.charAt(i + 1);
               if (c == '|' || c == '&')
               {
-                return criteriaIsValid(criteria.substring(i + 2), valueStr,
+                return criteriaIsValid(schema,
+                    criteria.substring(i + 2), valueStr,
                     invalidReason);
               }
               else
@@ -152,7 +158,7 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
           c = criteria.charAt(5);
           if (c == '|' || c == '&')
           {
-            return criteriaIsValid(criteria.substring(6), valueStr,
+            return criteriaIsValid(schema, criteria.substring(6), valueStr,
                 invalidReason);
           }
           else
@@ -176,7 +182,7 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
           c = criteria.charAt(6);
           if (c == '|' || c == '&')
           {
-            return criteriaIsValid(criteria.substring(7), valueStr,
+            return criteriaIsValid(schema, criteria.substring(7), valueStr,
                 invalidReason);
           }
           else
@@ -230,7 +236,8 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
       try
       {
         SchemaUtils.readOID(new SubstringReader(criteria
-            .substring(0, dollarPos)));
+            .substring(0, dollarPos)),
+            schema.allowMalformedNamesAndOptions());
       }
       catch (final DecodeException de)
       {
@@ -328,8 +335,8 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
       c = criteria.charAt(endPos);
       if (c == '|' || c == '&')
       {
-        return criteriaIsValid(criteria.substring(endPos + 1), valueStr,
-            invalidReason);
+        return criteriaIsValid(schema,
+            criteria.substring(endPos + 1), valueStr, invalidReason);
       }
       else
       {
@@ -397,7 +404,7 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
     final int sharpPos = valueStr.indexOf('#');
     if (sharpPos < 0)
     {
-      return criteriaIsValid(valueStr, valueStr, invalidReason);
+      return criteriaIsValid(schema, valueStr, valueStr, invalidReason);
     }
 
     // Get the objectclass and see if it is a valid name or OID.
@@ -412,7 +419,8 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
 
     try
     {
-      SchemaUtils.readOID(new SubstringReader(ocName.substring(0, ocLength)));
+      SchemaUtils.readOID(new SubstringReader(ocName.substring(0, ocLength)),
+          schema.allowMalformedNamesAndOptions());
     }
     catch (final DecodeException de)
     {
@@ -421,7 +429,7 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
     }
 
     // The rest of the value must be the criteria.
-    return criteriaIsValid(valueStr.substring(sharpPos + 1), valueStr,
-        invalidReason);
+    return criteriaIsValid(schema, valueStr.substring(sharpPos + 1),
+        valueStr, invalidReason);
   }
 }
