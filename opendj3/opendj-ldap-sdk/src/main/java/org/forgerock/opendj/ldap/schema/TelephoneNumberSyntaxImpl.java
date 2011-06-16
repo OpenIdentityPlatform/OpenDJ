@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -112,7 +113,7 @@ final class TelephoneNumberSyntaxImpl extends AbstractSyntaxImpl
 
     final int length = valueStr.length();
 
-    if (schema.getSchemaCompatOptions().isTelephoneNumberSyntaxStrict())
+    if (!schema.getSchemaCompatOptions().allowNonStandardTelephoneNumbers())
     {
       // If the value does not start with a plus sign, then that's not
       // acceptable.
