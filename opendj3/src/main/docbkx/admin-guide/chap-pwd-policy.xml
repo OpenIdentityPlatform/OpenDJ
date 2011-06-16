@@ -40,6 +40,296 @@
  
  <para>This chapter covers password policy, including examples of how
  to configure password policies for common use cases.</para>
+ 
+ <!-- TODO: A section with a larger set of examples would be nice. -->
+ 
+ <section>
+  <title>About OpenDJ Password Policies</title>
+  
+  <para>OpenDJ password policies govern not only passwords, but also account
+  lockout, and how OpenDJ provides notification about account status.</para>
+  
+  <para>You manage OpenDJ password policies by using the
+  <command>dsconfig</command> command. The <command>dsconfig</command> command
+  stores password policies in the server configuration, rather than in the
+  directory user data. As a result, password policies are not replicated.
+  You must instead apply password policy configuration updates to each replica
+  in your deployment.</para>
+  
+  <para>By default, OpenDJ includes two password policy configurations, one
+  default for all users, and another for directory root DN users, such as
+  <literal>cn=Directory Manager</literal>. You can see all the default password
+  policy settings using the <command>dsconfig</command> command as
+  follows.</para>
+  
+  <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+&gt; get-password-policy-prop --policy-name "Default Password Policy" --advanced
+Property                                  : Value(s)
+------------------------------------------:--------------------------
+account-status-notification-handler       : -
+allow-expired-password-changes            : false
+allow-multiple-password-values            : false
+allow-pre-encoded-passwords               : false
+allow-user-password-changes               : true
+default-password-storage-scheme           : Salted SHA-1
+deprecated-password-storage-scheme        : -
+expire-passwords-without-warning          : false
+force-change-on-add                       : false
+force-change-on-reset                     : false
+grace-login-count                         : 0
+idle-lockout-interval                     : 0 s
+last-login-time-attribute                 : -
+last-login-time-format                    : -
+lockout-duration                          : 0 s
+lockout-failure-count                     : 0
+lockout-failure-expiration-interval       : 0 s
+max-password-age                          : 0 s
+max-password-reset-age                    : 0 s
+min-password-age                          : 0 s
+password-attribute                        : userpassword
+password-change-requires-current-password : false
+password-expiration-warning-interval      : 5 d
+password-generator                        : Random Password Generator
+password-history-count                    : 0
+password-history-duration                 : 0 s
+password-validator                        : -
+previous-last-login-time-format           : -
+require-change-by-time                    : -
+require-secure-authentication             : false
+require-secure-password-changes           : false
+skip-validation-for-administrators        : false
+state-update-failure-policy               : reactive</screen>
 
+  <para>Here you notice that many capabilities are not set by default: no
+  lockout, no password expiration, no multiple passwords, no password validator
+  to check that passwords contain the appropriate mix of characters. This means
+  that if you decide to use the directory to enforce password policy, you
+  must configure at least the default password policy to meet your needs.</para>
+  
+  <para>Yet a few basic protections are configured by default. When you import
+  LDIF with <literal>userPassword</literal> values, OpenDJ hashes the values
+  before storing them. When a user provides a password value during a bind for
+  example, the server hashes the value provided to compared it with the stored
+  value. Even the directory manager cannot see the plain text value of a user's
+  password.</para>
+  
+  <screen width="80">$ ldapsearch -p 1389 -D "cn=Directory Manager" -w password \
+&gt; -b dc=example,dc=com uid=bjensen userpassword
+dn: uid=bjensen,ou=People,dc=example,dc=com
+userpassword: {SSHA}QWAtw8ch/9850HNFRRqLNMIQc1YhxCnOoGmk1g==</screen>
+
+  <para>In addition, users can change their passwords provided you have granted
+  them access to do so. OpenDJ uses the <literal>userPassword</literal>
+  attribute to store passwords by default, rather than the
+  <literal>authPassword</literal> attribute, which is designed to store
+  passwords hashed by the client application.</para>
+  
+  <para>The password policy that applies to a user is identified by the
+  operational attribute, <literal>pwdPolicySubentry</literal>.</para>
+  
+  <screen width="80">$ ldapsearch -p 1389 -b dc=example,dc=com uid=bjensen pwdPolicySubentry
+dn: uid=bjensen,ou=People,dc=example,dc=com
+pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config</screen>
+ </section>
+
+ <section>
+  <title>Configuring Password Policies</title>
+
+  <para>You configure password policies using the <command>dsconfig</command>
+  command. Notice that password policies are part of the server configuration,
+  and therefore not replicated.</para>
+  
+  <procedure>
+   <title>To Adjust the Default Password Policy</title>
+  
+   <para>You can reconfigure the default password policy for example to
+   enforce password expiration, check that passwords do not match dictionary
+   words, and prevent password reuse.</para>
+   <step>
+    <para>Enable the appropriate password validator.</para>
+    <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+&gt; set-password-validator-prop --validator-name Dictionary --set enabled:true \
+&gt; -X -n</screen>
+   </step>
+   <step>
+    <para>Apply the changes to the default password policy.</para>
+    <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+&gt; set-password-policy-prop --policy-name "Default Password Policy" \
+&gt; --set max-password-age:90d --set min-password-age:4w \
+&gt; --set password-history-count:7 --set password-validator:Dictionary -X -n</screen>
+   </step>
+   <step>
+    <para>Check your work.</para>
+    <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+&gt; get-password-policy-prop --policy-name "Default Password Policy" 
+Property                                  : Value(s)
+------------------------------------------:--------------------------
+account-status-notification-handler       : -
+allow-expired-password-changes            : false
+allow-user-password-changes               : true
+default-password-storage-scheme           : Salted SHA-1
+deprecated-password-storage-scheme        : -
+expire-passwords-without-warning          : false
+force-change-on-add                       : false
+force-change-on-reset                     : false
+grace-login-count                         : 0
+idle-lockout-interval                     : 0 s
+last-login-time-attribute                 : -
+last-login-time-format                    : -
+lockout-duration                          : 0 s
+lockout-failure-count                     : 0
+lockout-failure-expiration-interval       : 0 s
+max-password-age                          : 12 w 6 d
+max-password-reset-age                    : 0 s
+min-password-age                          : 4 w
+password-attribute                        : userpassword
+password-change-requires-current-password : false
+password-expiration-warning-interval      : 5 d
+password-generator                        : Random Password Generator
+password-history-count                    : 7
+password-history-duration                 : 0 s
+password-validator                        : Dictionary
+previous-last-login-time-format           : -
+require-change-by-time                    : -
+require-secure-authentication             : false
+require-secure-password-changes           : false</screen>
+   </step>
+  </procedure>
+
+  <procedure>
+   <title>To Create a Password Policy</title>
+
+   <para>You can add a password policy for example for new users who have not
+   yet used their credentials to bind.</para>
+   <step>
+    <para>Create the new password policy.</para>
+    <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+&gt; create-password-policy --policy-name "New Account Password Policy" \
+&gt; --set default-password-storage-scheme:"Salted SHA-1" \
+&gt; --set force-change-on-add:true --set password-attribute:userPassword -X -n</screen>
+   </step>
+   <step>
+    <para>Check your work.</para>
+    <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+&gt; get-password-policy-prop --policy-name "New Account Password Policy"
+Property                                  : Value(s)
+------------------------------------------:-------------
+account-status-notification-handler       : -
+allow-expired-password-changes            : false
+allow-user-password-changes               : true
+default-password-storage-scheme           : Salted SHA-1
+deprecated-password-storage-scheme        : -
+expire-passwords-without-warning          : false
+force-change-on-add                       : true
+force-change-on-reset                     : false
+grace-login-count                         : 0
+idle-lockout-interval                     : 0 s
+last-login-time-attribute                 : -
+last-login-time-format                    : -
+lockout-duration                          : 0 s
+lockout-failure-count                     : 0
+lockout-failure-expiration-interval       : 0 s
+max-password-age                          : 0 s
+max-password-reset-age                    : 0 s
+min-password-age                          : 0 s
+password-attribute                        : userpassword
+password-change-requires-current-password : false
+password-expiration-warning-interval      : 5 d
+password-generator                        : -
+password-history-count                    : 0
+password-history-duration                 : 0 s
+password-validator                        : -
+previous-last-login-time-format           : -
+require-change-by-time                    : -
+require-secure-authentication             : false
+require-secure-password-changes           : false</screen>
+
+    <para>If you use a password policy like this, you might want to change the
+    user's policy again when the new user successfully updates the
+    password.</para>
+   </step>
+  </procedure>
+ </section>
+ 
+ <section>
+  <title>Assigning Password Policies</title>
+  
+  <para>You assign password policies by using the
+  <literal>ds-pwp-password-policy-dn</literal> attribute.</para>
+  
+  <procedure>
+   <title>To Assign a Password Policy to a User</title>
+   
+   <step>
+    <para>Prevent users from selecting their own password policy.</para>
+    
+    <screen width="80">$ cat protectpwp.ldif 
+dn: ou=People,dc=example,dc=com
+changetype: modify
+add: aci
+aci: (target ="ldap:///uid=*,ou=People,dc=example,dc=com")(targetattr =
+ "ds-pwp-password-policy-dn")(version 3.0;acl "Cannot choose own pass
+ word policy";deny (write)(userdn = "ldap:///self");)
+
+$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -f protectpwp.ldif 
+Processing MODIFY request for ou=People,dc=example,dc=com
+MODIFY operation successful for DN ou=People,dc=example,dc=com</screen>
+   </step>
+   <step>
+    <para>Update the user's <literal>ds-pwp-password-policy-dn</literal>
+    attribute.</para>
+    
+    <screen width="80">$ cat newuser.ldif 
+dn: uid=newuser,ou=People,dc=example,dc=com
+uid: newuser
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: top
+cn: New User
+sn: User
+ou: People
+mail: newuser@example.com
+userPassword: changeme
+ds-pwp-password-policy-dn: cn=New Account Password Policy,cn=Password Policies,
+ cn=config
+
+$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -a -f newuser.ldif 
+Processing ADD request for uid=newuser,ou=People,dc=example,dc=com
+ADD operation successful for DN uid=newuser,ou=People,dc=example,dc=com</screen>
+   </step>
+   <step>
+    <para>Check your work.</para>
+    <screen width="80">$ ldapsearch -p 1389 -D "cn=Directory Manager" -w password \
+&gt; -b dc=example,dc=com uid=newuser pwdPolicySubentry
+dn: uid=newuser,ou=People,dc=example,dc=com
+pwdPolicySubentry: cn=New Account Password Policy,cn=Password Policies,cn=config</screen>
+   </step>
+  </procedure>
+
+  <procedure>
+   <title>To Assign a Password Policy to a Group</title>
+   
+   <step>
+    <para>Create a virtual attribute to set the
+    <literal>ds-pwp-password-policy-dn</literal> attribute for group
+    members' entries.</para>
+    
+    <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+&gt; create-virtual-attribute --name "Dir Admin Password Policy" \
+&gt; --type user-defined --set attribute-type:ds-pwp-password-policy-dn \
+&gt; --set value:"cn=Root Password Policy,cn=Password Policies,cn=config" \
+&gt; --set group-dn:"cn=Directory Administrators,ou=Groups,dc=example,dc=com" \
+&gt; --set enabled:true -X -n</screen>
+   </step>
+   <step>
+    <para>Check your work.</para>
+    
+    <screen width="80">$ ldapsearch -p 1389 -b dc=example,dc=com uid=kvaughan pwdPolicySubentry
+dn: uid=kvaughan,ou=People,dc=example,dc=com
+pwdPolicySubentry: cn=Root Password Policy,cn=Password Policies,cn=config</screen>
+   </step>
+  </procedure>
+ </section>
 </chapter>
 
