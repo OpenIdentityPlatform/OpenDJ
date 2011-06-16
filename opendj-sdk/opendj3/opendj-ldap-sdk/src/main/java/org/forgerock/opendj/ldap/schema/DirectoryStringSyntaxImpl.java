@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -110,7 +111,7 @@ final class DirectoryStringSyntaxImpl extends AbstractSyntaxImpl
   {
     if (value.length() > 0
         || schema.getSchemaCompatOptions()
-            .isZeroLengthDirectoryStringsAllowed())
+            .allowZeroLengthDirectoryStrings())
     {
       return true;
     }

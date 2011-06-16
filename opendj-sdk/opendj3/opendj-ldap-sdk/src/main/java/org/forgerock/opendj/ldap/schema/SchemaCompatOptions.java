@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -42,7 +43,8 @@ public final class SchemaCompatOptions
    *          The options to be copied.
    * @return The copy of the provided schema compatibility options.
    */
-  public static SchemaCompatOptions copyOf(final SchemaCompatOptions options)
+  public static SchemaCompatOptions copyOf(
+      final SchemaCompatOptions options)
   {
     return defaultOptions().assign(options);
   }
@@ -61,9 +63,9 @@ public final class SchemaCompatOptions
 
 
 
-  private boolean isTelephoneNumberSyntaxStrict = false;
+  private boolean allowNonStandardTelephoneNumbers = true;
 
-  private boolean isZeroLengthDirectoryStringsAllowed = false;
+  private boolean allowZeroLengthDirectoryStrings = false;
 
 
 
@@ -76,55 +78,58 @@ public final class SchemaCompatOptions
 
 
   /**
-   * Indicates whether or not the Telephone Number syntax should ensure that all
-   * values conform to the E.123 international telephone number format. By
-   * default this compatibility option is set to {@code false}.
+   * Returns {@code true} if the Telephone Number syntax should allow values
+   * which do not conform to the E.123 international telephone number format.
+   * <p>
+   * By default this compatibility option is set to {@code true}.
    *
-   * @return {@code true} if the Telephone Number syntax should ensure that all
-   *         values conform to the E.123 international telephone number format,
-   *         or {@code false} if not.
+   * @return {@code true} if the Telephone Number syntax should allow values
+   *         which do not conform to the E.123 international telephone number
+   *         format.
    */
-  public boolean isTelephoneNumberSyntaxStrict()
+  public boolean allowNonStandardTelephoneNumbers()
   {
-    return isTelephoneNumberSyntaxStrict;
+    return allowNonStandardTelephoneNumbers;
   }
 
 
 
   /**
-   * Indicates whether or not zero-length values will be allowed by the
-   * Directory String syntax. This is technically forbidden by the LDAP
-   * specification, but it was allowed in earlier versions of the server, and
-   * the discussion of the directory string syntax in RFC 2252 does not
-   * explicitly state that they are not allowed. By default this compatibility
-   * option is set to {@code false}.
+   * Specifies whether or not the Telephone Number syntax should allow values
+   * which do not conform to the E.123 international telephone number format.
+   * <p>
+   * By default this compatibility option is set to {@code true}.
+   *
+   * @param allowNonStandardTelephoneNumbers
+   *          {@code true} if the Telephone Number syntax should allow values
+   *          which do not conform to the E.123 international telephone number
+   *          format.
+   * @return A reference to this {@code SchemaCompatOptions}.
+   */
+  public SchemaCompatOptions allowNonStandardTelephoneNumbers(
+      final boolean allowNonStandardTelephoneNumbers)
+  {
+    this.allowNonStandardTelephoneNumbers = allowNonStandardTelephoneNumbers;
+    return this;
+  }
+
+
+
+  /**
+   * Returns {@code true} if zero-length values will be allowed by the Directory
+   * String syntax. This is technically forbidden by the LDAP specification, but
+   * it was allowed in earlier versions of the server, and the discussion of the
+   * directory string syntax in RFC 2252 does not explicitly state that they are
+   * not allowed.
+   * <p>
+   * By default this compatibility option is set to {@code false}.
    *
    * @return {@code true} if zero-length values will be allowed by the Directory
    *         String syntax, or {@code false} if not.
    */
-  public boolean isZeroLengthDirectoryStringsAllowed()
+  public boolean allowZeroLengthDirectoryStrings()
   {
-    return isZeroLengthDirectoryStringsAllowed;
-  }
-
-
-
-  /**
-   * Indicates whether or not the Telephone Number syntax should ensure that all
-   * values conform to the E.123 international telephone number format. By
-   * default this compatibility option is set to {@code false}.
-   *
-   * @param isStrict
-   *          {@code true} if the Telephone Number syntax should ensure that all
-   *          values conform to the E.123 international telephone number format,
-   *          or {@code false} if not.
-   * @return A reference to this {@code SchemaCompat}.
-   */
-  public SchemaCompatOptions setTelephoneNumberSyntaxStrict(
-      final boolean isStrict)
-  {
-    this.isTelephoneNumberSyntaxStrict = isStrict;
-    return this;
+    return allowZeroLengthDirectoryStrings;
   }
 
 
@@ -134,18 +139,19 @@ public final class SchemaCompatOptions
    * Directory String syntax. This is technically forbidden by the LDAP
    * specification, but it was allowed in earlier versions of the server, and
    * the discussion of the directory string syntax in RFC 2252 does not
-   * explicitly state that they are not allowed. By default this compatibility
-   * option is set to {@code false}.
+   * explicitly state that they are not allowed.
+   * <p>
+   * By default this compatibility option is set to {@code false}.
    *
-   * @param isAllowed
+   * @param allowZeroLengthDirectoryStrings
    *          {@code true} if zero-length values will be allowed by the
    *          Directory String syntax, or {@code false} if not.
-   * @return A reference to this {@code SchemaCompat}.
+   * @return A reference to this {@code SchemaCompatOptions}.
    */
-  public SchemaCompatOptions setZeroLengthDirectoryStringsAllowed(
-      final boolean isAllowed)
+  public SchemaCompatOptions allowZeroLengthDirectoryStrings(
+      final boolean allowZeroLengthDirectoryStrings)
   {
-    this.isZeroLengthDirectoryStringsAllowed = isAllowed;
+    this.allowZeroLengthDirectoryStrings = allowZeroLengthDirectoryStrings;
     return this;
   }
 
@@ -154,9 +160,10 @@ public final class SchemaCompatOptions
   // Assigns the provided options to this set of options.
   SchemaCompatOptions assign(final SchemaCompatOptions options)
   {
-    return setTelephoneNumberSyntaxStrict(options.isTelephoneNumberSyntaxStrict)
-        .setZeroLengthDirectoryStringsAllowed(
-            options.isZeroLengthDirectoryStringsAllowed);
+    return allowNonStandardTelephoneNumbers(
+        options.allowNonStandardTelephoneNumbers)
+        .allowZeroLengthDirectoryStrings(
+            options.allowNonStandardTelephoneNumbers);
   }
 
 }
