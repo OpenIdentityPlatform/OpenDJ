@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -542,63 +543,28 @@ public final class AttributeDescription implements
 
 
   /**
-   * Creates an attribute description having the same attribute type and options
-   * as the provided attribute description and, in addition, the provided list
-   * of options.
+   * Returns an attribute description having the same attribute type and options
+   * as this attribute description as well as the provided option.
    *
-   * @param attributeDescription
-   *          The attribute description.
-   * @param options
-   *          The attribute options.
-   * @return The new attribute description containing {@code options}.
-   * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code options} was {@code
-   *           null}.
-   */
-  public static AttributeDescription create(
-      final AttributeDescription attributeDescription, final String... options)
-      throws NullPointerException
-  {
-    Validator.ensureNotNull(attributeDescription, options);
-
-    // This should not be called very often, so don't optimize.
-    AttributeDescription newAttributeDescription = attributeDescription;
-    for (final String option : options)
-    {
-      newAttributeDescription = create(newAttributeDescription, option);
-    }
-    return newAttributeDescription;
-  }
-
-
-
-  /**
-   * Creates an attribute description having the same attribute type and options
-   * as the provided attribute description and, in addition, the provided new
-   * option.
-   *
-   * @param attributeDescription
-   *          The attribute description.
    * @param option
    *          The attribute option.
    * @return The new attribute description containing {@code option}.
    * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code option} was {@code
-   *           null}.
+   *           If {@code attributeDescription} or {@code option} was
+   *           {@code null}.
    */
-  public static AttributeDescription create(
-      final AttributeDescription attributeDescription, final String option)
+  public AttributeDescription withOption(final String option)
       throws NullPointerException
   {
-    Validator.ensureNotNull(attributeDescription, option);
+    Validator.ensureNotNull(option);
 
     final String normalizedOption = toLowerCase(option);
-    if (attributeDescription.pimpl.containsOption(normalizedOption))
+    if (pimpl.containsOption(normalizedOption))
     {
-      return attributeDescription;
+      return this;
     }
 
-    final String oldAttributeDescription = attributeDescription.attributeDescription;
+    final String oldAttributeDescription = attributeDescription;
     final StringBuilder builder = new StringBuilder(oldAttributeDescription
         .length()
         + option.length() + 1);
@@ -607,11 +573,11 @@ public final class AttributeDescription implements
     builder.append(option);
     final String newAttributeDescription = builder.toString();
 
-    final Impl impl = attributeDescription.pimpl;
+    final Impl impl = pimpl;
     if (impl instanceof ZeroOptionImpl)
     {
       return new AttributeDescription(newAttributeDescription,
-          attributeDescription.attributeType, new SingleOptionImpl(option,
+          attributeType, new SingleOptionImpl(option,
               normalizedOption));
 
     }
@@ -631,7 +597,7 @@ public final class AttributeDescription implements
       }
 
       return new AttributeDescription(newAttributeDescription,
-          attributeDescription.attributeType, new MultiOptionImpl(newOptions,
+          attributeType, new MultiOptionImpl(newOptions,
               newNormalizedOptions));
     }
     else
@@ -677,7 +643,7 @@ public final class AttributeDescription implements
       }
 
       return new AttributeDescription(newAttributeDescription,
-          attributeDescription.attributeType, new MultiOptionImpl(newOptions,
+          attributeType, new MultiOptionImpl(newOptions,
               newNormalizedOptions));
     }
   }

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldif;
@@ -623,8 +624,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
     }
     else
     {
-      attributeDescription = AttributeDescription.create(attributeDescription,
-          "binary");
+      attributeDescription = attributeDescription.withOption("binary");
     }
 
     Attribute attribute = entry.getAttribute(attributeDescription);
