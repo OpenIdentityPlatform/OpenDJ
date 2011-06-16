@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldif;
@@ -586,8 +587,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements
       }
       else
       {
-        attributeDescription = AttributeDescription.create(
-            attributeDescription, "binary");
+        attributeDescription = attributeDescription.withOption("binary");
       }
 
       // Now go through the rest of the attributes until the "-" line is
@@ -620,8 +620,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements
         if (attributeDescription.getAttributeType().getSyntax()
             .isBEREncodingRequired())
         {
-          attributeDescription2 = AttributeDescription.create(
-              attributeDescription2, "binary");
+          attributeDescription2 = attributeDescription2.withOption("binary");
         }
 
         if (!attributeDescription2.equals(attributeDescription))
