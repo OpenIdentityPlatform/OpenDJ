@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -383,7 +384,7 @@ public abstract class AbstractAsynchronousConnection implements
       final ResultHandler<? super Schema> handler)
       throws UnsupportedOperationException, IllegalStateException
   {
-    return Schema.readSchema(this, name, handler);
+    return Schema.readSchemaForEntry(this, name, handler);
   }
 
 
