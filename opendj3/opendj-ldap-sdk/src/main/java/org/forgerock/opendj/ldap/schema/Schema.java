@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -46,6 +47,7 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import com.forgerock.opendj.util.FutureResultTransformer;
 import com.forgerock.opendj.util.RecursiveFutureResult;
 import com.forgerock.opendj.util.StaticUtils;
+import com.forgerock.opendj.util.Validator;
 
 
 
@@ -1456,12 +1458,11 @@ public final class Schema
   }
 
 
-
-  private static final Schema CORE_SCHEMA = CoreSchemaImpl.getInstance();
+  /*
+   * WARNING: do not reference the core schema in the following declarations.
+   */
 
   private static final Schema EMPTY_SCHEMA = new Schema(new EmptyImpl());
-
-  private static volatile Schema defaultSchema = CoreSchemaImpl.getInstance();
 
   static final String ATTR_ATTRIBUTE_TYPES = "attributeTypes";
 
@@ -1482,17 +1483,16 @@ public final class Schema
   private static final String ATTR_SUBSCHEMA_SUBENTRY = "subschemaSubentry";
 
   private static final String[] SUBSCHEMA_ATTRS = new String[] {
-      ATTR_LDAP_SYNTAXES.toString(), ATTR_ATTRIBUTE_TYPES.toString(),
-      ATTR_DIT_CONTENT_RULES.toString(), ATTR_DIT_STRUCTURE_RULES.toString(),
-      ATTR_MATCHING_RULE_USE.toString(), ATTR_MATCHING_RULES.toString(),
-      ATTR_NAME_FORMS.toString(), ATTR_OBJECT_CLASSES.toString() };
+      ATTR_LDAP_SYNTAXES, ATTR_ATTRIBUTE_TYPES,
+      ATTR_DIT_CONTENT_RULES, ATTR_DIT_STRUCTURE_RULES,
+      ATTR_MATCHING_RULE_USE, ATTR_MATCHING_RULES,
+      ATTR_NAME_FORMS, ATTR_OBJECT_CLASSES };
 
-  private static final Filter SUBSCHEMA_FILTER = Filter.newEqualityMatchFilter(
-      CoreSchema.getObjectClassAttributeType().getNameOrOID(), CoreSchema
-          .getSubschemaObjectClass().getNameOrOID());
+  private static final Filter SUBSCHEMA_FILTER = Filter
+      .valueOf("(objectClass=subschema)");
 
-  private static final String[] SUBSCHEMA_SUBENTRY_ATTRS = new String[] { ATTR_SUBSCHEMA_SUBENTRY
-      .toString() };
+  private static final String[] SUBSCHEMA_SUBENTRY_ATTRS =
+    new String[] { ATTR_SUBSCHEMA_SUBENTRY };
 
 
 
@@ -1518,7 +1518,7 @@ public final class Schema
    */
   public static Schema getCoreSchema()
   {
-    return CORE_SCHEMA;
+    return CoreSchemaImpl.getInstance();
   }
 
 
@@ -1531,7 +1531,7 @@ public final class Schema
    */
   public static Schema getDefaultSchema()
   {
-    return defaultSchema;
+    return DefaultSchema.schema;
   }
 
 
@@ -1765,7 +1765,8 @@ public final class Schema
    */
   public static void setDefaultSchema(final Schema schema)
   {
-    defaultSchema = schema;
+    Validator.ensureNotNull(schema);
+    DefaultSchema.schema = schema;
   }
 
 
@@ -1891,6 +1892,69 @@ public final class Schema
   private Schema(final Impl impl)
   {
     this.impl = impl;
+  }
+
+
+
+  /**
+   * Returns {@code true} if this schema allows certain illegal characters
+   * in OIDs and attribute options. When this compatibility option is set to
+   * {@code true} the following illegal characters will be permitted:
+   *
+   * <pre>
+   * USCORE  = %x5F ; underscore ("_")
+   * DOT     = %x2E ; period (".")
+   * </pre>
+   *
+   * By default this compatibility option is set to {@code false}.
+   *
+   * @return {@code true} if this schema allows certain illegal characters
+   *         in OIDs and attribute options.
+   * @see <a href="http://tools.ietf.org/html/rfc4512">RFC 4512 - Lightweight
+   *      Directory Access Protocol (LDAP): Directory Information Models </a>
+   */
+  public boolean allowMalformedNamesAndOptions()
+  {
+    return impl.getSchemaCompatOptions().allowMalformedNamesAndOptions();
+  }
+
+
+
+  /**
+   * Returns {@code true} if the Telephone Number syntax defined for this schema
+   * allows values which do not conform to the E.123 international telephone
+   * number format.
+   * <p>
+   * By default this compatibility option is set to {@code true}.
+   *
+   * @return {@code true} if the Telephone Number syntax defined for this schema
+   *         allows values which do not conform to the E.123 international
+   *         telephone number format.
+   */
+  public boolean allowNonStandardTelephoneNumbers()
+  {
+    return impl.getSchemaCompatOptions()
+        .allowNonStandardTelephoneNumbers();
+  }
+
+
+
+  /**
+   * Returns {@code true} if zero-length values will be allowed by the Directory
+   * String syntax defined for this schema. This is technically forbidden by the
+   * LDAP specification, but it was allowed in earlier versions of the server,
+   * and the discussion of the directory string syntax in RFC 2252 does not
+   * explicitly state that they are not allowed.
+   * <p>
+   * By default this compatibility option is set to {@code false}.
+   *
+   * @return {@code true} if zero-length values will be allowed by the Directory
+   *         String syntax defined for this schema, or {@code false} if not.
+   */
+  public boolean allowZeroLengthDirectoryStrings()
+  {
+    return impl.getSchemaCompatOptions()
+        .allowZeroLengthDirectoryStrings();
   }
 
 

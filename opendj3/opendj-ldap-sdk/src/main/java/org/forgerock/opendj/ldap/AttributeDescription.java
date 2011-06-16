@@ -884,6 +884,8 @@ public final class AttributeDescription implements
       final String attributeDescription, final Schema schema)
       throws LocalizedIllegalArgumentException
   {
+    final boolean allowMalformedNamesAndOptions = schema
+        .allowMalformedNamesAndOptions();
     int i = 0;
     final int length = attributeDescription.length();
     char c = 0;
@@ -933,7 +935,7 @@ public final class AttributeDescription implements
         }
 
         cp = ASCIICharProp.valueOf(c);
-        if (!cp.isKeyChar())
+        if (!cp.isKeyChar(allowMalformedNamesAndOptions))
         {
           final LocalizableMessage message = ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER
               .get(attributeDescription, c, i);
@@ -1003,7 +1005,7 @@ public final class AttributeDescription implements
     }
 
     // Get the attribute type from the schema.
-    AttributeType attributeType;
+    final AttributeType attributeType;
     try
     {
       attributeType = schema.getAttributeType(oid);
@@ -1046,7 +1048,7 @@ public final class AttributeDescription implements
       }
 
       cp = ASCIICharProp.valueOf(c);
-      if (!cp.isKeyChar())
+      if (!cp.isKeyChar(allowMalformedNamesAndOptions))
       {
         final LocalizableMessage message = ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER
             .get(attributeDescription, c, i);
@@ -1125,7 +1127,7 @@ public final class AttributeDescription implements
         }
 
         cp = ASCIICharProp.valueOf(c);
-        if (!cp.isKeyChar())
+        if (!cp.isKeyChar(allowMalformedNamesAndOptions))
         {
           final LocalizableMessage message = ERR_ATTRIBUTE_DESCRIPTION_ILLEGAL_CHARACTER
               .get(attributeDescription, c, i);

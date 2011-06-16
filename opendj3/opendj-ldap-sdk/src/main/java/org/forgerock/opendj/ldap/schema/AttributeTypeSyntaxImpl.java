@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -114,7 +115,8 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl
       reader.skipWhitespaces();
 
       // The next set of characters must be the OID.
-      final String oid = SchemaUtils.readOID(reader);
+      final String oid = SchemaUtils.readOID(reader,
+          schema.allowMalformedNamesAndOptions());
 
       // At this point, we should have a pretty specific syntax that
       // describes what may come next, but some of the components are
@@ -135,7 +137,8 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl
         }
         else if (tokenName.equalsIgnoreCase("name"))
         {
-          SchemaUtils.readNameDescriptors(reader);
+          SchemaUtils.readNameDescriptors(reader,
+              schema.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("desc"))
         {
@@ -155,25 +158,29 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl
           // This specifies the name or OID of the superior attribute
           // type from which this attribute type should inherit its
           // properties.
-          SchemaUtils.readOID(reader);
+          SchemaUtils.readOID(reader,
+              schema.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("equality"))
         {
           // This specifies the name or OID of the equality matching
           // rule to use for this attribute type.
-          SchemaUtils.readOID(reader);
+          SchemaUtils.readOID(reader,
+              schema.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("ordering"))
         {
           // This specifies the name or OID of the ordering matching
           // rule to use for this attribute type.
-          SchemaUtils.readOID(reader);
+          SchemaUtils.readOID(reader,
+              schema.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("substr"))
         {
           // This specifies the name or OID of the substring matching
           // rule to use for this attribute type.
-          SchemaUtils.readOID(reader);
+          SchemaUtils.readOID(reader,
+              schema.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("syntax"))
         {
@@ -185,7 +192,8 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl
           // implementation will ignore any such length because it does
           // not impose any practical limit on the length of attribute
           // values.
-          SchemaUtils.readOIDLen(reader);
+          SchemaUtils.readOIDLen(reader,
+              schema.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("single-definition"))
         {

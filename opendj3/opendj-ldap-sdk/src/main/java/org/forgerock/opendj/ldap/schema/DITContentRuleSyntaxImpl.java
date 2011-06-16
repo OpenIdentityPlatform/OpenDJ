@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -122,7 +123,8 @@ final class DITContentRuleSyntaxImpl extends AbstractSyntaxImpl
       reader.skipWhitespaces();
 
       // The next set of characters must be the OID.
-      SchemaUtils.readOID(reader);
+      SchemaUtils.readOID(reader,
+          schema.allowMalformedNamesAndOptions());
 
       // At this point, we should have a pretty specific syntax that
       // describes what may come next, but some of the components are
@@ -143,7 +145,8 @@ final class DITContentRuleSyntaxImpl extends AbstractSyntaxImpl
         }
         else if (tokenName.equalsIgnoreCase("name"))
         {
-          SchemaUtils.readNameDescriptors(reader);
+          SchemaUtils.readNameDescriptors(reader,
+              schema.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("desc"))
         {
@@ -160,19 +163,23 @@ final class DITContentRuleSyntaxImpl extends AbstractSyntaxImpl
         }
         else if (tokenName.equalsIgnoreCase("aux"))
         {
-          SchemaUtils.readOIDs(reader);
+          SchemaUtils.readOIDs(reader,
+              schema.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("must"))
         {
-          SchemaUtils.readOIDs(reader);
+          SchemaUtils.readOIDs(reader,
+              schema.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("may"))
         {
-          SchemaUtils.readOIDs(reader);
+          SchemaUtils.readOIDs(reader,
+              schema.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("not"))
         {
-          SchemaUtils.readOIDs(reader);
+          SchemaUtils.readOIDs(reader,
+              schema.allowMalformedNamesAndOptions());
         }
         else if (tokenName.matches("^X-[A-Za-z_-]+$"))
         {

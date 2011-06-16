@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -123,7 +124,8 @@ final class EnhancedGuideSyntaxImpl extends AbstractSyntaxImpl
 
     try
     {
-      SchemaUtils.readOID(new SubstringReader(ocName.substring(ocLength)));
+      SchemaUtils.readOID(new SubstringReader(ocName.substring(ocLength)),
+          schema.allowMalformedNamesAndOptions());
     }
     catch (final DecodeException de)
     {
@@ -176,6 +178,7 @@ final class EnhancedGuideSyntaxImpl extends AbstractSyntaxImpl
       return false;
     }
 
-    return GuideSyntaxImpl.criteriaIsValid(criteria, valueStr, invalidReason);
+    return GuideSyntaxImpl.criteriaIsValid(schema, criteria,
+        valueStr, invalidReason);
   }
 }

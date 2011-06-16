@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package com.forgerock.opendj.util;
@@ -55,6 +56,8 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp>
   private final boolean isLetter;
 
   private final boolean isKeyChar;
+
+  private final boolean isCompatKeyChar;
 
   private final boolean isHexChar;
 
@@ -137,6 +140,7 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp>
       this.isDigit = false;
       this.isLetter = true;
       this.isKeyChar = true;
+      this.isCompatKeyChar = true;
       this.decimalValue = -1;
       if (c >= 'a' && c <= 'f')
       {
@@ -158,6 +162,7 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp>
       this.isDigit = false;
       this.isLetter = true;
       this.isKeyChar = true;
+      this.isCompatKeyChar = true;
       this.decimalValue = -1;
       if (c >= 'A' && c <= 'F')
       {
@@ -179,6 +184,7 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp>
       this.isDigit = true;
       this.isLetter = false;
       this.isKeyChar = true;
+      this.isCompatKeyChar = true;
       this.isHexChar = true;
       this.hexValue = c - 48;
       this.decimalValue = c - 48;
@@ -192,6 +198,7 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp>
       this.isDigit = false;
       this.isLetter = false;
       this.isKeyChar = c == '-';
+      this.isCompatKeyChar = (c == '-') || (c == '.') || (c == '_');
       this.isHexChar = false;
       this.hexValue = -1;
       this.decimalValue = -1;
@@ -301,16 +308,26 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp>
 
 
   /**
-   * Indicates whether or not the char value associated with this {@code
-   * ASCIICharProp} is a {@code keychar} as defined in RFC 4512. A {@code
-   * keychar} is a letter, a digit, or a hyphen.
+   * Indicates whether or not the char value associated with this
+   * {@code ASCIICharProp} is a {@code keychar} as defined in RFC 4512. A
+   * {@code keychar} is a letter, a digit, or a hyphen. When
+   * {@code allowCompatChars} is {@code true} the following illegal characters
+   * will be permitted:
    *
-   * @return {@code true} if the char value associated with this {@code
-   *         ASCIICharProp} is a {@code keychar}.
+   * <pre>
+   * USCORE  = %x5F ; underscore ("_")
+   * DOT     = %x2E ; period (".")
+   * </pre>
+   *
+   * @param allowCompatChars
+   *          {@code true} if certain illegal characters should be allowed for
+   *          compatibility reasons.
+   * @return {@code true} if the char value associated with this
+   *         {@code ASCIICharProp} is a {@code keychar}.
    */
-  public boolean isKeyChar()
+  public boolean isKeyChar(final boolean allowCompatChars)
   {
-    return isKeyChar;
+    return allowCompatChars ? isCompatKeyChar : isKeyChar;
   }
 
 

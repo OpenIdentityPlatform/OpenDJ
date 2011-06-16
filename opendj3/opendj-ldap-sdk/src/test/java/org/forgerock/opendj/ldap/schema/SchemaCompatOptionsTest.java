@@ -80,7 +80,7 @@ public class SchemaCompatOptionsTest extends SchemaTestCase
    *          {@code true} if the attribute description requires the
    *          compatibility option to be set.
    */
-  @Test(enabled = false, dataProvider = "validAttributeDescriptions")
+  @Test(dataProvider = "validAttributeDescriptions")
   public void testValidAttributeDescriptions(String atd,
       boolean allowIllegalCharacters)
   {
@@ -129,9 +129,8 @@ public class SchemaCompatOptionsTest extends SchemaTestCase
    *          {@code true} if the attribute description requires the
    *          compatibility option to be set.
    */
-  @Test(enabled = false, dataProvider = "invalidAttributeDescriptions",
-      expectedExceptions = LocalizedIllegalArgumentException.class)
-  public void testinvalidAttributeDescriptions(String atd,
+  @Test(dataProvider = "invalidAttributeDescriptions", expectedExceptions = LocalizedIllegalArgumentException.class)
+  public void testInvalidAttributeDescriptions(String atd,
       boolean allowIllegalCharacters)
   {
     SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema())
@@ -139,5 +138,218 @@ public class SchemaCompatOptionsTest extends SchemaTestCase
             .allowMalformedNamesAndOptions(allowIllegalCharacters));
     Schema schema = builder.toSchema().nonStrict();
     AttributeDescription.valueOf(atd, schema);
+  }
+
+
+
+  private static final Syntax ATD_SYNTAX = CoreSchema
+      .getAttributeTypeDescriptionSyntax();
+  private static final Syntax OCD_SYNTAX = CoreSchema
+      .getObjectClassDescriptionSyntax();
+
+
+
+  /**
+   * Returns test data for invalid schema elements.
+   *
+   * @return The test data.
+   */
+  @DataProvider
+  public Object[][] invalidSchemaElements()
+  {
+    // @formatter:off
+    return new Object[][] {
+        { "(testtype+oid NAME 'testtype' DESC 'full type' OBSOLETE SUP cn "
+                     + " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch"
+                     + " SUBSTR caseIgnoreSubstringsMatch"
+                     + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
+                     + " USAGE userApplications )",
+          ATD_SYNTAX,
+          false
+        },
+        { "(testtype_oid NAME 'testtype' DESC 'full type' OBSOLETE SUP cn "
+                     + " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch"
+                     + " SUBSTR caseIgnoreSubstringsMatch"
+                     + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
+                     + " USAGE userApplications )",
+          ATD_SYNTAX,
+          false
+        },
+        { "(testtype.oid NAME 'testtype' DESC 'full type' OBSOLETE SUP cn "
+                     + " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch"
+                     + " SUBSTR caseIgnoreSubstringsMatch"
+                     + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
+                     + " USAGE userApplications )",
+          ATD_SYNTAX,
+          false
+        },
+        { "(1.2.8.5 NAME 'test+type' DESC 'full type' OBSOLETE SUP cn "
+                + " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch"
+                + " SUBSTR caseIgnoreSubstringsMatch"
+                + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
+                + " USAGE userApplications )",
+          ATD_SYNTAX,
+          false
+        },
+        { "(1.2.8.5 NAME 'test.type' DESC 'full type' OBSOLETE SUP cn "
+                + " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch"
+                + " SUBSTR caseIgnoreSubstringsMatch"
+                + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
+                + " USAGE userApplications )",
+          ATD_SYNTAX,
+          false
+        },
+        { "(1.2.8.5 NAME 'test_type' DESC 'full type' OBSOLETE SUP cn "
+                + " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch"
+                + " SUBSTR caseIgnoreSubstringsMatch"
+                + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
+                + " USAGE userApplications )",
+          ATD_SYNTAX,
+          false
+        },
+        { "(1.2.8.5 NAME 'test+type' DESC 'full type' OBSOLETE SUP cn "
+                + " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch"
+                + " SUBSTR caseIgnoreSubstringsMatch"
+                + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
+                + " USAGE userApplications )",
+          ATD_SYNTAX,
+          true
+        },
+    };
+    // @formatter:on
+  }
+
+
+
+  /**
+   * Test schema builder schema element parsing with compat chars.
+   *
+   * @param element
+   *          The schema element.
+   * @param syntax
+   *          The type of element.
+   * @param allowIllegalCharacters
+   *          {@code true} if the element requires the compatibility option to
+   *          be set.
+   */
+  @Test(dataProvider = "invalidSchemaElements", expectedExceptions = LocalizedIllegalArgumentException.class)
+  public void testInvalidSchemaBuilderElementParsers(String element,
+      Syntax syntax, boolean allowIllegalCharacters)
+  {
+    SchemaBuilder builder = new SchemaBuilder()
+        .setSchemaCompatOptions(SchemaCompatOptions.defaultOptions()
+            .allowMalformedNamesAndOptions(allowIllegalCharacters));
+
+    if (syntax == ATD_SYNTAX)
+    {
+      builder.addAttributeType(element, false);
+    }
+    else if (syntax == OCD_SYNTAX)
+    {
+      builder.addObjectClass(element, false);
+    }
+  }
+
+
+
+  /**
+   * Returns test data for valid schema elements.
+   *
+   * @return The test data.
+   */
+  @DataProvider
+  public Object[][] validSchemaElements()
+  {
+    // @formatter:off
+    return new Object[][] {
+        { "(1.2.8.5 NAME 'testtype' DESC 'full type' OBSOLETE SUP cn "
+                + " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch"
+                + " SUBSTR caseIgnoreSubstringsMatch"
+                + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
+                + " USAGE userApplications )",
+          ATD_SYNTAX,
+          false
+        },
+        { "(testtype-oid NAME 'testtype' DESC 'full type' OBSOLETE SUP cn "
+                     + " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch"
+                     + " SUBSTR caseIgnoreSubstringsMatch"
+                     + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
+                     + " USAGE userApplications )",
+          ATD_SYNTAX,
+          false
+        },
+        { "(testtype_oid NAME 'testtype' DESC 'full type' OBSOLETE SUP cn "
+                     + " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch"
+                     + " SUBSTR caseIgnoreSubstringsMatch"
+                     + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
+                     + " USAGE userApplications )",
+          ATD_SYNTAX,
+          true
+        },
+        { "(testtype.oid NAME 'testtype' DESC 'full type' OBSOLETE SUP cn "
+                     + " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch"
+                     + " SUBSTR caseIgnoreSubstringsMatch"
+                     + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
+                     + " USAGE userApplications )",
+          ATD_SYNTAX,
+          true
+        },
+        { "(1.2.8.5 NAME 'test-type' DESC 'full type' OBSOLETE SUP cn "
+                + " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch"
+                + " SUBSTR caseIgnoreSubstringsMatch"
+                + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
+                + " USAGE userApplications )",
+          ATD_SYNTAX,
+          false
+        },
+        { "(1.2.8.5 NAME 'test.type' DESC 'full type' OBSOLETE SUP cn "
+                + " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch"
+                + " SUBSTR caseIgnoreSubstringsMatch"
+                + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
+                + " USAGE userApplications )",
+          ATD_SYNTAX,
+          true
+        },
+        { "(1.2.8.5 NAME 'test_type' DESC 'full type' OBSOLETE SUP cn "
+                + " EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch"
+                + " SUBSTR caseIgnoreSubstringsMatch"
+                + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE"
+                + " USAGE userApplications )",
+          ATD_SYNTAX,
+          true
+        },
+    };
+    // @formatter:on
+  }
+
+
+
+  /**
+   * Test schema builder schema element parsing with compat chars.
+   *
+   * @param element
+   *          The schema element.
+   * @param syntax
+   *          The type of element.
+   * @param allowIllegalCharacters
+   *          {@code true} if the element requires the compatibility option to
+   *          be set.
+   */
+  @Test(dataProvider = "validSchemaElements")
+  public void testValidSchemaBuilderElementParsers(String element,
+      Syntax syntax, boolean allowIllegalCharacters)
+  {
+    SchemaBuilder builder = new SchemaBuilder()
+        .setSchemaCompatOptions(SchemaCompatOptions.defaultOptions()
+            .allowMalformedNamesAndOptions(allowIllegalCharacters));
+
+    if (syntax == ATD_SYNTAX)
+    {
+      builder.addAttributeType(element, false);
+    }
+    else if (syntax == OCD_SYNTAX)
+    {
+      builder.addObjectClass(element, false);
+    }
   }
 }

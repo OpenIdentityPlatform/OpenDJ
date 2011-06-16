@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -30,6 +31,7 @@ package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.util.StaticUtils.isAlpha;
 import static com.forgerock.opendj.util.StaticUtils.isDigit;
+import static com.forgerock.opendj.util.StaticUtils.isKeyChar;
 import static org.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.util.*;
@@ -137,10 +139,10 @@ final class SchemaUtils
 
 
 
-  static List<String> readNameDescriptors(final SubstringReader reader)
+  static List<String> readNameDescriptors(
+      final SubstringReader reader, final boolean allowCompatChars)
       throws DecodeException
   {
-    int length = 0;
     List<String> values;
 
     // Skip over any spaces at the beginning of the value.
@@ -148,18 +150,13 @@ final class SchemaUtils
 
     try
     {
+      reader.mark();
       char c = reader.read();
       if (c == '\'')
       {
-        reader.mark();
-        // Parse until the closing quote.
-        while (reader.read() != '\'')
-        {
-          length++;
-        }
-
         reader.reset();
-        values = Collections.singletonList(reader.read(length));
+        values = Collections.singletonList(readQuotedDescriptor(
+            reader, allowCompatChars));
         reader.read();
       }
       else if (c == '(')
@@ -179,7 +176,7 @@ final class SchemaUtils
           do
           {
             reader.reset();
-            values.add(readQuotedDescriptor(reader));
+            values.add(readQuotedDescriptor(reader, allowCompatChars));
             reader.skipWhitespaces();
             reader.mark();
           }
@@ -211,11 +208,15 @@ final class SchemaUtils
    *
    * @param reader
    *          The string representation of the definition.
+   * @param allowCompatChars
+   *          {@code true} if certain illegal characters should be allowed for
+   *          compatibility reasons.
    * @return The attribute description or numeric OID read from the definition.
    * @throws DecodeException
    *           If a problem is encountered while reading the name or OID.
    */
-  static String readOID(final SubstringReader reader) throws DecodeException
+  static String readOID(final SubstringReader reader,
+      final boolean allowCompatChars) throws DecodeException
   {
     int length = 0;
     boolean enclosingQuote = false;
@@ -305,7 +306,7 @@ final class SchemaUtils
             throw DecodeException.error(message);
           }
 
-          if (!isAlpha(c) && !isDigit(c) && c != '-' && c != '.' && c != '_')
+          if (!isKeyChar(c, allowCompatChars))
           {
             // This is an illegal character.
             final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID
@@ -355,11 +356,15 @@ final class SchemaUtils
    *
    * @param reader
    *          The string representation of the definition.
+   * @param allowCompatChars
+   *          {@code true} if certain illegal characters should be allowed for
+   *          compatibility reasons.
    * @return The OID read from the definition.
    * @throws DecodeException
    *           If a problem is encountered while reading the token name.
    */
-  static String readOIDLen(final SubstringReader reader) throws DecodeException
+  static String readOIDLen(final SubstringReader reader,
+      final boolean allowCompatChars) throws DecodeException
   {
     int length = 1;
     boolean enclosingQuote = false;
@@ -445,7 +450,7 @@ final class SchemaUtils
             throw DecodeException.error(message);
           }
 
-          if (!isAlpha(c) && !isDigit(c) && c != '-' && c != '.' && c != '_')
+          if (!isKeyChar(c, allowCompatChars))
           {
             // This is an illegal character.
             final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID
@@ -505,8 +510,8 @@ final class SchemaUtils
 
 
 
-  static Set<String> readOIDs(final SubstringReader reader)
-      throws DecodeException
+  static Set<String> readOIDs(final SubstringReader reader,
+      final boolean allowCompatChars) throws DecodeException
   {
     Set<String> values;
 
@@ -522,7 +527,7 @@ final class SchemaUtils
         values = new LinkedHashSet<String>();
         do
         {
-          values.add(readOID(reader));
+          values.add(readOID(reader, allowCompatChars));
 
           // Skip over any trailing spaces;
           reader.skipWhitespaces();
@@ -533,7 +538,7 @@ final class SchemaUtils
       else
       {
         reader.reset();
-        values = Collections.singleton(readOID(reader));
+        values = Collections.singleton(readOID(reader, allowCompatChars));
       }
 
       return values;
@@ -828,11 +833,15 @@ final class SchemaUtils
    *
    * @param reader
    *          The string representation of the definition.
+   * @param allowCompatChars
+   *          {@code true} if certain illegal characters should be allowed for
+   *          compatibility reasons.
    * @return The string value read from the definition.
    * @throws DecodeException
    *           If a problem is encountered while reading the quoted string.
    */
-  private static String readQuotedDescriptor(final SubstringReader reader)
+  private static String readQuotedDescriptor(
+      final SubstringReader reader, final boolean allowCompatChars)
       throws DecodeException
   {
     int length = 0;
@@ -863,7 +872,7 @@ final class SchemaUtils
           throw DecodeException.error(message);
         }
 
-        if (!isAlpha(c) && !isDigit(c) && c != '-' && c != '_' && c != '.')
+        if (!isKeyChar(c, allowCompatChars))
         {
           // This is an illegal character.
           final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID

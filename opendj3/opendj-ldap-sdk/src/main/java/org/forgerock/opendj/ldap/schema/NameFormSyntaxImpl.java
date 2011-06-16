@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -119,7 +120,8 @@ final class NameFormSyntaxImpl extends AbstractSyntaxImpl
       reader.skipWhitespaces();
 
       // The next set of characters must be the OID.
-      SchemaUtils.readOID(reader);
+      SchemaUtils.readOID(reader,
+          schema.allowMalformedNamesAndOptions());
 
       String structuralClass = null;
       Set<String> requiredAttributes = null;
@@ -143,7 +145,8 @@ final class NameFormSyntaxImpl extends AbstractSyntaxImpl
         }
         else if (tokenName.equalsIgnoreCase("name"))
         {
-          SchemaUtils.readNameDescriptors(reader);
+          SchemaUtils.readNameDescriptors(reader,
+              schema.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("desc"))
         {
@@ -160,15 +163,18 @@ final class NameFormSyntaxImpl extends AbstractSyntaxImpl
         }
         else if (tokenName.equalsIgnoreCase("oc"))
         {
-          structuralClass = SchemaUtils.readOID(reader);
+          structuralClass = SchemaUtils.readOID(reader,
+              schema.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("must"))
         {
-          requiredAttributes = SchemaUtils.readOIDs(reader);
+          requiredAttributes = SchemaUtils.readOIDs(reader,
+              schema.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("may"))
         {
-          SchemaUtils.readOIDs(reader);
+          SchemaUtils.readOIDs(reader,
+              schema.allowMalformedNamesAndOptions());
         }
         else if (tokenName.matches("^X-[A-Za-z_-]+$"))
         {

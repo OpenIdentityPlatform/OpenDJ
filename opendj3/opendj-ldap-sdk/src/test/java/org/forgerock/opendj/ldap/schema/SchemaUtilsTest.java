@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -49,6 +50,7 @@ public class SchemaUtilsTest extends SchemaTestCase
   {
     return new Object[][] { { "" }, { ".0" }, { "0." }, { "100." }, { ".999" },
         { "1one" }, { "one+two+three" },
+        { "one.two.three" },
         // AD puts quotes around OIDs - test mismatched quotes.
         { "'0" }, { "'10" }, { "999'" }, { "0.0'" }, };
   }
@@ -86,7 +88,7 @@ public class SchemaUtilsTest extends SchemaTestCase
         // Not strictly legal, but we'll be lenient with what we accept.
         { "0" }, { "1" }, { "2" }, { "3" }, { "4" }, { "5" }, { "6" }, { "7" },
         { "8" }, { "9" }, { "00" }, { "01" }, { "01.0" }, { "0.01" },
-        { "one.two.three" }, };
+      };
   }
 
 
@@ -95,7 +97,7 @@ public class SchemaUtilsTest extends SchemaTestCase
   public void testReadOIDInvalid(final String oid) throws DecodeException
   {
     final SubstringReader reader = new SubstringReader(oid);
-    SchemaUtils.readOID(reader);
+    SchemaUtils.readOID(reader, false);
   }
 
 
@@ -110,6 +112,6 @@ public class SchemaUtilsTest extends SchemaTestCase
     }
 
     final SubstringReader reader = new SubstringReader(oid);
-    Assert.assertEquals(SchemaUtils.readOID(reader), expected);
+    Assert.assertEquals(SchemaUtils.readOID(reader, false), expected);
   }
 }

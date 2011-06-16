@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -161,7 +162,8 @@ final class ObjectIdentifierEqualityMatchingRuleImpl extends
   {
     final String definition = value.toString();
     final SubstringReader reader = new SubstringReader(definition);
-    final String normalized = resolveNames(schema, SchemaUtils.readOID(reader));
+    final String normalized = resolveNames(schema, SchemaUtils.readOID(reader,
+        schema.allowMalformedNamesAndOptions()));
 
     return new OIDAssertion(normalized);
   }
@@ -173,7 +175,8 @@ final class ObjectIdentifierEqualityMatchingRuleImpl extends
   {
     final String definition = value.toString();
     final SubstringReader reader = new SubstringReader(definition);
-    final String normalized = resolveNames(schema, SchemaUtils.readOID(reader));
+    final String normalized = resolveNames(schema, SchemaUtils.readOID(reader,
+        schema.allowMalformedNamesAndOptions()));
     return ByteString.valueOf(normalized);
   }
 }

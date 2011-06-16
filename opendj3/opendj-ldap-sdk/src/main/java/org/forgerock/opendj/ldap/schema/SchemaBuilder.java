@@ -226,7 +226,8 @@ public final class SchemaBuilder
       reader.skipWhitespaces();
 
       // The next set of characters must be the OID.
-      final String oid = SchemaUtils.readOID(reader);
+      final String oid = SchemaUtils.readOID(reader,
+          options.allowMalformedNamesAndOptions());
 
       List<String> names = Collections.emptyList();
       String description = "".intern();
@@ -262,7 +263,8 @@ public final class SchemaBuilder
         }
         else if (tokenName.equalsIgnoreCase("name"))
         {
-          names = SchemaUtils.readNameDescriptors(reader);
+          names = SchemaUtils.readNameDescriptors(reader,
+              options.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("desc"))
         {
@@ -283,25 +285,29 @@ public final class SchemaBuilder
           // This specifies the name or OID of the superior attribute
           // type from which this attribute type should inherit its
           // properties.
-          superiorType = SchemaUtils.readOID(reader);
+          superiorType = SchemaUtils.readOID(reader,
+              options.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("equality"))
         {
           // This specifies the name or OID of the equality matching
           // rule to use for this attribute type.
-          equalityMatchingRule = SchemaUtils.readOID(reader);
+          equalityMatchingRule = SchemaUtils.readOID(reader,
+              options.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("ordering"))
         {
           // This specifies the name or OID of the ordering matching
           // rule to use for this attribute type.
-          orderingMatchingRule = SchemaUtils.readOID(reader);
+          orderingMatchingRule = SchemaUtils.readOID(reader,
+              options.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("substr"))
         {
           // This specifies the name or OID of the substring matching
           // rule to use for this attribute type.
-          substringMatchingRule = SchemaUtils.readOID(reader);
+          substringMatchingRule = SchemaUtils.readOID(reader,
+              options.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("syntax"))
         {
@@ -313,7 +319,8 @@ public final class SchemaBuilder
           // implementation will ignore any such length because it does
           // not impose any practical limit on the length of attribute
           // values.
-          syntax = SchemaUtils.readOIDLen(reader);
+          syntax = SchemaUtils.readOIDLen(reader,
+              options.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("single-definition"))
         {
@@ -569,7 +576,8 @@ public final class SchemaBuilder
       reader.skipWhitespaces();
 
       // The next set of characters must be the OID.
-      final String structuralClass = SchemaUtils.readOID(reader);
+      final String structuralClass = SchemaUtils.readOID(reader,
+          options.allowMalformedNamesAndOptions());
 
       List<String> names = Collections.emptyList();
       String description = "".intern();
@@ -599,7 +607,8 @@ public final class SchemaBuilder
         }
         else if (tokenName.equalsIgnoreCase("name"))
         {
-          names = SchemaUtils.readNameDescriptors(reader);
+          names = SchemaUtils.readNameDescriptors(reader,
+              options.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("desc"))
         {
@@ -617,19 +626,23 @@ public final class SchemaBuilder
         }
         else if (tokenName.equalsIgnoreCase("aux"))
         {
-          auxiliaryClasses = SchemaUtils.readOIDs(reader);
+          auxiliaryClasses = SchemaUtils.readOIDs(reader,
+              options.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("must"))
         {
-          requiredAttributes = SchemaUtils.readOIDs(reader);
+          requiredAttributes = SchemaUtils.readOIDs(reader,
+              options.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("may"))
         {
-          optionalAttributes = SchemaUtils.readOIDs(reader);
+          optionalAttributes = SchemaUtils.readOIDs(reader,
+              options.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("not"))
         {
-          prohibitedAttributes = SchemaUtils.readOIDs(reader);
+          prohibitedAttributes = SchemaUtils.readOIDs(reader,
+              options.allowMalformedNamesAndOptions());
         }
         else if (tokenName.matches("^X-[A-Za-z_-]+$"))
         {
@@ -857,7 +870,8 @@ public final class SchemaBuilder
         }
         else if (tokenName.equalsIgnoreCase("name"))
         {
-          names = SchemaUtils.readNameDescriptors(reader);
+          names = SchemaUtils.readNameDescriptors(reader,
+              options.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("desc"))
         {
@@ -875,7 +889,8 @@ public final class SchemaBuilder
         }
         else if (tokenName.equalsIgnoreCase("form"))
         {
-          nameForm = SchemaUtils.readOID(reader);
+          nameForm = SchemaUtils.readOID(reader,
+              options.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("sup"))
         {
@@ -1030,7 +1045,8 @@ public final class SchemaBuilder
       reader.skipWhitespaces();
 
       // The next set of characters must be the OID.
-      final String oid = SchemaUtils.readOID(reader);
+      final String oid = SchemaUtils.readOID(reader,
+          options.allowMalformedNamesAndOptions());
 
       List<String> names = Collections.emptyList();
       String description = "".intern();
@@ -1057,7 +1073,8 @@ public final class SchemaBuilder
         }
         else if (tokenName.equalsIgnoreCase("name"))
         {
-          names = SchemaUtils.readNameDescriptors(reader);
+          names = SchemaUtils.readNameDescriptors(reader,
+              options.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("desc"))
         {
@@ -1075,7 +1092,8 @@ public final class SchemaBuilder
         }
         else if (tokenName.equalsIgnoreCase("syntax"))
         {
-          syntax = SchemaUtils.readOID(reader);
+          syntax = SchemaUtils.readOID(reader,
+              options.allowMalformedNamesAndOptions());
         }
         else if (tokenName.matches("^X-[A-Za-z_-]+$"))
         {
@@ -1223,7 +1241,8 @@ public final class SchemaBuilder
       reader.skipWhitespaces();
 
       // The next set of characters must be the OID.
-      final String oid = SchemaUtils.readOID(reader);
+      final String oid = SchemaUtils.readOID(reader,
+          options.allowMalformedNamesAndOptions());
 
       List<String> names = Collections.emptyList();
       String description = "".intern();
@@ -1250,7 +1269,8 @@ public final class SchemaBuilder
         }
         else if (tokenName.equalsIgnoreCase("name"))
         {
-          names = SchemaUtils.readNameDescriptors(reader);
+          names = SchemaUtils.readNameDescriptors(reader,
+              options.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("desc"))
         {
@@ -1268,7 +1288,8 @@ public final class SchemaBuilder
         }
         else if (tokenName.equalsIgnoreCase("applies"))
         {
-          attributes = SchemaUtils.readOIDs(reader);
+          attributes = SchemaUtils.readOIDs(reader,
+              options.allowMalformedNamesAndOptions());
         }
         else if (tokenName.matches("^X-[A-Za-z_-]+$"))
         {
@@ -1413,7 +1434,8 @@ public final class SchemaBuilder
       reader.skipWhitespaces();
 
       // The next set of characters must be the OID.
-      final String oid = SchemaUtils.readOID(reader);
+      final String oid = SchemaUtils.readOID(reader,
+          options.allowMalformedNamesAndOptions());
 
       List<String> names = Collections.emptyList();
       String description = "".intern();
@@ -1442,7 +1464,8 @@ public final class SchemaBuilder
         }
         else if (tokenName.equalsIgnoreCase("name"))
         {
-          names = SchemaUtils.readNameDescriptors(reader);
+          names = SchemaUtils.readNameDescriptors(reader,
+              options.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("desc"))
         {
@@ -1460,15 +1483,18 @@ public final class SchemaBuilder
         }
         else if (tokenName.equalsIgnoreCase("oc"))
         {
-          structuralClass = SchemaUtils.readOID(reader);
+          structuralClass = SchemaUtils.readOID(reader,
+              options.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("must"))
         {
-          requiredAttributes = SchemaUtils.readOIDs(reader);
+          requiredAttributes = SchemaUtils.readOIDs(reader,
+              options.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("may"))
         {
-          optionalAttributes = SchemaUtils.readOIDs(reader);
+          optionalAttributes = SchemaUtils.readOIDs(reader,
+              options.allowMalformedNamesAndOptions());
         }
         else if (tokenName.matches("^X-[A-Za-z_-]+$"))
         {
@@ -1630,7 +1656,8 @@ public final class SchemaBuilder
       reader.skipWhitespaces();
 
       // The next set of characters must be the OID.
-      final String oid = SchemaUtils.readOID(reader);
+      final String oid = SchemaUtils.readOID(reader,
+          options.allowMalformedNamesAndOptions());
 
       List<String> names = Collections.emptyList();
       String description = "".intern();
@@ -1660,7 +1687,8 @@ public final class SchemaBuilder
         }
         else if (tokenName.equalsIgnoreCase("name"))
         {
-          names = SchemaUtils.readNameDescriptors(reader);
+          names = SchemaUtils.readNameDescriptors(reader,
+              options.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("desc"))
         {
@@ -1678,7 +1706,8 @@ public final class SchemaBuilder
         }
         else if (tokenName.equalsIgnoreCase("sup"))
         {
-          superiorClasses = SchemaUtils.readOIDs(reader);
+          superiorClasses = SchemaUtils.readOIDs(reader,
+              options.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("abstract"))
         {
@@ -1702,11 +1731,13 @@ public final class SchemaBuilder
         }
         else if (tokenName.equalsIgnoreCase("must"))
         {
-          requiredAttributes = SchemaUtils.readOIDs(reader);
+          requiredAttributes = SchemaUtils.readOIDs(reader,
+              options.allowMalformedNamesAndOptions());
         }
         else if (tokenName.equalsIgnoreCase("may"))
         {
-          optionalAttributes = SchemaUtils.readOIDs(reader);
+          optionalAttributes = SchemaUtils.readOIDs(reader,
+              options.allowMalformedNamesAndOptions());
         }
         else if (tokenName.matches("^X-[A-Za-z_-]+$"))
         {
@@ -2163,7 +2194,8 @@ public final class SchemaBuilder
       reader.skipWhitespaces();
 
       // The next set of characters must be the OID.
-      final String oid = SchemaUtils.readOID(reader);
+      final String oid = SchemaUtils.readOID(reader,
+          options.allowMalformedNamesAndOptions());
 
       String description = "".intern();
       Map<String, List<String>> extraProperties = Collections.emptyMap();

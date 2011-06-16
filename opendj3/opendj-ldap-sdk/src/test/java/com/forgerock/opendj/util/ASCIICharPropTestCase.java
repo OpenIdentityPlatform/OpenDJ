@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package com.forgerock.opendj.util;
@@ -30,7 +31,6 @@ package com.forgerock.opendj.util;
 
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -68,32 +68,140 @@ public class ASCIICharPropTestCase extends UtilTestCase
   @DataProvider(name = "validasciidata")
   public Object[][] createValidASCIIData()
   {
+    // @formatter:off
     return new Object[][] {
-        { (char) 1,/* uppercase */false,/* hex value */0,/* decimal value */0,/*
-                                                                               * is
-                                                                               * letter
-                                                                               */
-        false,/* is digit */false,/* is keychar */false },
-        { '-',/* uppercase */false,/* hex value */-1,/* decimal value */-1,/*
-                                                                            * is
-                                                                            * letter
-                                                                            */
-        false,/* is digit */false,/* is keychar */true },
-        { 'a',/* uppercase */false,/* hex value */10,/* decimal value */-1,/*
-                                                                            * is
-                                                                            * letter
-                                                                            */
-        true,/* is digit */false,/* is keychar */true },
-        { 'A',/* uppercase */true,/* hex value */10,/* decimal value */-1,/*
-                                                                           * is
-                                                                           * letter
-                                                                           */
-        true,/* is digit */false,/* is keychar */true },
-        { '1',/* uppercase */false,/* hex value */1,/* decimal value */1,/*
-                                                                          * is
-                                                                          * letter
-                                                                          */
-        false,/* is digit */true,/* is keychar */true }, };
+        {
+          (char) 1,
+          false, // uppercase
+          -1,    // hex
+          -1,    // decimal
+          false, // is letter
+          false, // is digit
+          false, // is key char
+          false  // is compat key char
+        },
+        {
+          '-',
+          false, // uppercase
+          -1,    // hex
+          -1,    // decimal
+          false, // is letter
+          false, // is digit
+          true,  // is key char
+          true   // is compat key char
+        },
+        {
+          '_',
+          false, // uppercase
+          -1,    // hex
+          -1,    // decimal
+          false, // is letter
+          false, // is digit
+          false, // is key char
+          true   // is compat key char
+        },
+        {
+          '.',
+          false, // uppercase
+          -1,    // hex
+          -1,    // decimal
+          false, // is letter
+          false, // is digit
+          false, // is key char
+          true   // is compat key char
+        },
+        {
+          '+',
+          false, // uppercase
+          -1,    // hex
+          -1,    // decimal
+          false, // is letter
+          false, // is digit
+          false, // is key char
+          false  // is compat key char
+        },
+        {
+          'a',
+          false, // uppercase
+          10,    // hex
+          -1,    // decimal
+          true,  // is letter
+          false, // is digit
+          true,  // is key char
+          true   // is compat key char
+        },
+        {
+          'A',
+          true,  // uppercase
+          10,    // hex
+          -1,    // decimal
+          true,  // is letter
+          false, // is digit
+          true,  // is key char
+          true   // is compat key char
+        },
+        {
+          'f',
+          false, // uppercase
+          15,    // hex
+          -1,    // decimal
+          true,  // is letter
+          false, // is digit
+          true,  // is key char
+          true   // is compat key char
+        },
+        {
+          'F',
+          true,  // uppercase
+          15,    // hex
+          -1,    // decimal
+          true,  // is letter
+          false, // is digit
+          true,  // is key char
+          true   // is compat key char
+        },
+        {
+          'z',
+          false, // uppercase
+          -1,    // hex
+          -1,    // decimal
+          true,  // is letter
+          false, // is digit
+          true,  // is key char
+          true   // is compat key char
+        },
+        {
+          'Z',
+          true,  // uppercase
+          -1,    // hex
+          -1,    // decimal
+          true,  // is letter
+          false, // is digit
+          true,  // is key char
+          true   // is compat key char
+        },
+        {
+          '0',
+          false, // uppercase
+          0,     // hex
+          0,     // decimal
+          false, // is letter
+          true,  // is digit
+          true,  // is key char
+          true   // is compat key char
+        },
+        {
+          '9',
+          false, // uppercase
+          9,     // hex
+          9,     // decimal
+          false, // is letter
+          true,  // is digit
+          true,  // is key char
+          true   // is compat key char
+        },
+    };
+    // @formatter:on
   }
 
 
@@ -107,7 +215,7 @@ public class ASCIICharPropTestCase extends UtilTestCase
    *           In case of any errors.
    */
   @Test(dataProvider = "invalidasciidata")
-  public void testEncode(final char myChar) throws Exception
+  public void testValueOf(final char myChar) throws Exception
   {
     assertEquals(ASCIICharProp.valueOf(myChar), null);
   }
@@ -131,55 +239,42 @@ public class ASCIICharPropTestCase extends UtilTestCase
    *          Whether the character is a digit
    * @param isKeyChar
    *          Whether the character is a key char.
+   * @param isCompatKeyChar
+   *          Whether the character is a compat key char.
    * @throws Exception
    *           In case of any errors.
    */
   @Test(dataProvider = "validasciidata")
-  public void testEncode(final char myChar, final Boolean isUpper,
-      final Integer hexValue, final Integer decimalValue,
-      final Boolean isLetter, final Boolean isDigit, final Boolean isKeyChar)
+  public void testValueOf(final char myChar, final boolean isUpper,
+      final int hexValue, final int decimalValue,
+      final boolean isLetter, final boolean isDigit,
+      final boolean isKeyChar, final boolean isCompatKeyChar)
       throws Exception
   {
     final ASCIICharProp myProp = ASCIICharProp.valueOf(myChar);
 
     // check letter.
-    if (isLetter)
-    {
-      assertTrue(myProp.isLetter());
-      // Check case.
-      if (isUpper)
-      {
-        assertTrue(myProp.isUpperCase());
-      }
-      else
-      {
-        assertTrue(myProp.isLowerCase());
-      }
-    }
+    assertEquals(isLetter, myProp.isLetter());
+
+    // Check case.
+    assertEquals(isLetter & isUpper, myProp.isUpperCase());
+    assertEquals(isLetter & !isUpper, myProp.isLowerCase());
 
     // check digit.
-    if (isDigit)
-    {
-      assertTrue(myProp.isDigit());
-    }
+    assertEquals(isDigit, myProp.isDigit());
 
-    if (isLetter || isDigit)
-    {
-      // Check hex.
-      final int hex = myProp.hexValue();
-      final int hex1 = hexValue.intValue();
-      assertEquals(myProp.hexValue(), hexValue.intValue());
-      // Decimal value.
-      assertEquals(myProp.decimalValue(), decimalValue.intValue());
-      // Check if it is equal to itself.
-      assertEquals(myProp.charValue(), myChar);
-      assertEquals(myProp.compareTo(ASCIICharProp.valueOf(myChar)), 0);
-    }
+    // Check hex.
+    assertEquals(myProp.hexValue(), hexValue);
+
+    // Decimal value.
+    assertEquals(myProp.decimalValue(), decimalValue);
+
+    // Check if it is equal to itself.
+    assertEquals(myProp.charValue(), myChar);
+    assertEquals(myProp.compareTo(ASCIICharProp.valueOf(myChar)), 0);
 
     // keychar.
-    if (isKeyChar)
-    {
-      assertTrue(myProp.isKeyChar());
-    }
+    assertEquals(isKeyChar, myProp.isKeyChar(false));
+    assertEquals(isCompatKeyChar, myProp.isKeyChar(true));
   }
 }
