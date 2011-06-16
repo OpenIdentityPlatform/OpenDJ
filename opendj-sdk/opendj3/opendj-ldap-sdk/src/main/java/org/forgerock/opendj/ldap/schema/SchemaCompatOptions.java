@@ -67,12 +67,66 @@ public final class SchemaCompatOptions
 
   private boolean allowZeroLengthDirectoryStrings = false;
 
+  private boolean allowMalformedNamesAndOptions = false;
+
 
 
   // Prevent direct instantiation.
   private SchemaCompatOptions()
   {
     // Nothing to do.
+  }
+
+
+
+  /**
+   * Returns {@code true} if the schema should allow certain illegal characters
+   * in OIDs and attribute options. When this compatibility option is set to
+   * {@code true} the following illegal characters will be permitted:
+   *
+   * <pre>
+   * USCORE  = %x5F ; underscore ("_")
+   * DOT     = %x2E ; period (".")
+   * </pre>
+   *
+   * By default this compatibility option is set to {@code false}.
+   *
+   * @return {@code true} if the schema should allow certain illegal characters
+   *         in OIDs and attribute options.
+   * @see <a href="http://tools.ietf.org/html/rfc4512">RFC 4512 - Lightweight
+   *      Directory Access Protocol (LDAP): Directory Information Models </a>
+   */
+  public boolean allowMalformedNamesAndOptions()
+  {
+    return allowMalformedNamesAndOptions;
+  }
+
+
+
+  /**
+   * Specifies whether or not the schema should allow certain illegal characters
+   * in OIDs and attribute options. When this compatibility option is set to
+   * {@code true} the following illegal characters will be permitted:
+   *
+   * <pre>
+   * USCORE  = %x5F ; underscore ("_")
+   * DOT     = %x2E ; period (".")
+   * </pre>
+   *
+   * By default this compatibility option is set to {@code false}.
+   *
+   * @param allowMalformedNamesAndOptions
+   *          {@code true} if the schema should allow certain illegal characters
+   *          in OIDs and attribute options.
+   * @return A reference to this {@code SchemaCompatOptions}.
+   * @see <a href="http://tools.ietf.org/html/rfc4512">RFC 4512 - Lightweight
+   *      Directory Access Protocol (LDAP): Directory Information Models </a>
+   */
+  public SchemaCompatOptions allowMalformedNamesAndOptions(
+      final boolean allowMalformedNamesAndOptions)
+  {
+    this.allowMalformedNamesAndOptions = allowMalformedNamesAndOptions;
+    return this;
   }
 
 
@@ -160,10 +214,10 @@ public final class SchemaCompatOptions
   // Assigns the provided options to this set of options.
   SchemaCompatOptions assign(final SchemaCompatOptions options)
   {
-    return allowNonStandardTelephoneNumbers(
-        options.allowNonStandardTelephoneNumbers)
-        .allowZeroLengthDirectoryStrings(
-            options.allowNonStandardTelephoneNumbers);
+    this.allowMalformedNamesAndOptions = options.allowMalformedNamesAndOptions;
+    this.allowNonStandardTelephoneNumbers =options.allowNonStandardTelephoneNumbers;
+    this.allowZeroLengthDirectoryStrings = options.allowZeroLengthDirectoryStrings;
+    return this;
   }
 
 }
