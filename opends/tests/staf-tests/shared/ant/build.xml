@@ -23,6 +23,7 @@
  !
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS
  ! -->
 <project name="opends-staf-tests" basedir="../.." default="usage">
 
@@ -60,7 +61,7 @@
     <!-- Define antfile.dir variable -->
     <property name="antfile.dir" value="${basedir}/shared/ant"/>
 
-    <!-- Define antfile.dir variable -->
+    <!-- Define tmp.dir variable -->
     <property name="tmp.dir" value="${java.io.tmpdir}/temp_files"/>
 
     <!-- Load ant-contrib -->
@@ -125,6 +126,22 @@
         <property name="extension.shell" value=""/>
         <property name="var.path" value="PATH"/>
       </case>
+      <case value="Mac OS X">
+        <!-- MacOSX system -->
+        <switch value="${os.arch}">
+          <case value="x86_64">
+            <!-- Linux i386 -->
+            <property name="os.myname" value="macosx-i386"/>
+          </case>
+        </switch>
+
+        <exec executable="uname" outputproperty="host.name">
+            <arg line="-n"/>
+        </exec>
+        <property name="extension.binary" value=""/>
+        <property name="extension.shell" value=""/>
+        <property name="var.path" value="PATH"/>
+      </case>
       <default>
         <osfamily property="os.family"/>
         <if>
@@ -139,7 +156,7 @@
             <property name="var.path" value="Path"/>
           </then>
           <else>
-            <fail>"Unsupported platform."</fail>
+            <fail>"Unsupported platform. ${os.name} - ${os.arch}"</fail>
           </else>
         </if>
       </default>
