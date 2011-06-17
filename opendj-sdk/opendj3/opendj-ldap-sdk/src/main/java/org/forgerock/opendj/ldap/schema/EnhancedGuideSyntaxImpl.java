@@ -108,7 +108,7 @@ final class EnhancedGuideSyntaxImpl extends AbstractSyntaxImpl
     {
 
       invalidReason
-          .append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_SHARP.get(valueStr));
+          .append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_SHARP1.get(valueStr));
       return false;
     }
 
@@ -118,7 +118,7 @@ final class EnhancedGuideSyntaxImpl extends AbstractSyntaxImpl
     if (ocLength == 0)
     {
 
-      invalidReason.append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_OC.get(valueStr));
+      invalidReason.append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_OC1.get(valueStr));
       return false;
     }
 

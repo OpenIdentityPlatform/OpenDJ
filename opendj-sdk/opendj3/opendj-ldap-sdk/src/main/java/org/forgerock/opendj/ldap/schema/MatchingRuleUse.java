@@ -29,8 +29,7 @@ package org.forgerock.opendj.ldap.schema;
 
 
 
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_MATCHING_RULE;
+import static org.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.util.*;
 
@@ -346,8 +345,8 @@ public final class MatchingRuleUse extends SchemaElement
     {
       // This is bad because the matching rule use is associated with a
       // matching rule that we don't know anything about.
-      final LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_MATCHING_RULE
-          .get(definition, oid);
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_MATCHING_RULE1
+          .get(getNameOrOID(), oid);
       throw new SchemaException(message, e);
     }
 
@@ -361,8 +360,8 @@ public final class MatchingRuleUse extends SchemaElement
       }
       catch (final UnknownSchemaElementException e)
       {
-        final LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR
-            .get(oid, attribute);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR1
+            .get(getNameOrOID(), attribute);
         throw new SchemaException(message, e);
       }
       attributes.add(attributeType);

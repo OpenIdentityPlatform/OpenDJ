@@ -713,7 +713,7 @@ public final class AttributeType extends SchemaElement implements
       }
       catch (final UnknownSchemaElementException e)
       {
-        final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUPERIOR_TYPE
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUPERIOR_TYPE1
             .get(getNameOrOID(), superiorTypeOID);
         throw new SchemaException(message);
       }
@@ -749,8 +749,8 @@ public final class AttributeType extends SchemaElement implements
         // never fail since the core schema is non-strict and will
         // substitute the syntax if required.
         syntax = Schema.getCoreSchema().getSyntax(syntaxOID);
-        final LocalizableMessage message = WARN_ATTR_TYPE_NOT_DEFINED.get(
-            getNameOrOID(), syntaxOID, syntax.toString());
+        final LocalizableMessage message = WARN_ATTR_TYPE_NOT_DEFINED1.get(
+            getNameOrOID(), syntaxOID, syntax.getOID());
         warnings.add(message);
       }
       else
@@ -773,7 +773,7 @@ public final class AttributeType extends SchemaElement implements
       }
       catch (final UnknownSchemaElementException e)
       {
-        final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_EQUALITY_MR
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_EQUALITY_MR1
             .get(getNameOrOID(), equalityMatchingRuleOID);
         throw new SchemaException(message);
       }
@@ -800,7 +800,7 @@ public final class AttributeType extends SchemaElement implements
       }
       catch (final UnknownSchemaElementException e)
       {
-        final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_ORDERING_MR
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_ORDERING_MR1
             .get(getNameOrOID(), orderingMatchingRuleOID);
         throw new SchemaException(message);
       }
@@ -828,7 +828,7 @@ public final class AttributeType extends SchemaElement implements
       }
       catch (final UnknownSchemaElementException e)
       {
-        final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUBSTRING_MR
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUBSTRING_MR1
             .get(getNameOrOID(), substringMatchingRuleOID);
         throw new SchemaException(message);
       }
@@ -856,7 +856,7 @@ public final class AttributeType extends SchemaElement implements
       }
       catch (final UnknownSchemaElementException e)
       {
-        final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_APPROXIMATE_MR
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_APPROXIMATE_MR1
             .get(getNameOrOID(), approximateMatchingRuleOID);
         throw new SchemaException(message);
       }

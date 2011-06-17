@@ -76,9 +76,9 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl
   public boolean valueIsAcceptable(final Schema schema,
       final ByteSequence value, final LocalizableMessageBuilder invalidReason)
   {
+    final String definition = value.toString();
     try
     {
-      final String definition = value.toString();
       final SubstringReader reader = new SubstringReader(definition);
 
       // We'll do this a character at a time. First, skip over any
@@ -89,8 +89,8 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl
       {
         // This means that the definition was empty or contained only
         // whitespace. That is illegal.
-        final LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_EMPTY_VALUE
-            .get();
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_EMPTY_VALUE1
+            .get(definition);
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("AttributeTypeSyntax",
             "valueIsAcceptable", e);
@@ -115,8 +115,7 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl
       reader.skipWhitespaces();
 
       // The next set of characters must be the OID.
-      final String oid = SchemaUtils.readOID(reader,
-          schema.allowMalformedNamesAndOptions());
+      SchemaUtils.readOID(reader, schema.allowMalformedNamesAndOptions());
 
       // At this point, we should have a pretty specific syntax that
       // describes what may come next, but some of the components are
@@ -242,8 +241,9 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl
               && !usageStr.equalsIgnoreCase("distributedoperation")
               && !usageStr.equalsIgnoreCase("dsaoperation"))
           {
-            final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE
-                .get(String.valueOf(oid), usageStr);
+            final LocalizableMessage message =
+              WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE1
+                .get(definition, usageStr);
             final DecodeException e = DecodeException.error(message);
             StaticUtils.DEBUG_LOG.throwing("AttributeTypeSyntax",
                 "valueIsAcceptable", e);
@@ -261,8 +261,8 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl
         }
         else
         {
-          final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN
-              .get(tokenName);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_TOKEN1
+              .get(definition, tokenName);
           final DecodeException e = DecodeException.error(message);
           StaticUtils.DEBUG_LOG.throwing("AttributeTypeSyntax",
               "valueIsAcceptable", e);
@@ -273,7 +273,8 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl
     }
     catch (final DecodeException de)
     {
-      invalidReason.append(de.getMessageObject());
+      invalidReason.append(ERR_ATTR_SYNTAX_ATTRTYPE_INVALID1.get(definition,
+          de.getMessageObject()));
       return false;
     }
   }

@@ -30,10 +30,7 @@ package org.forgerock.opendj.ldap.schema;
 
 
 
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_DSR_EMPTY_VALUE;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_DSR_EXPECTED_OPEN_PARENTHESIS;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_DSR_NO_NAME_FORM;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_ILLEGAL_TOKEN;
+import static org.forgerock.opendj.ldap.CoreMessages.*;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_INTEGER_FIRST_COMPONENT_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_DIT_STRUCTURE_RULE_NAME;
 
@@ -82,9 +79,9 @@ final class DITStructureRuleSyntaxImpl extends AbstractSyntaxImpl
   {
     // We'll use the decodeDITStructureRule method to determine if the
     // value is acceptable.
+    final String definition = value.toString();
     try
     {
-      final String definition = value.toString();
       final SubstringReader reader = new SubstringReader(definition);
 
       // We'll do this a character at a time. First, skip over any
@@ -95,8 +92,8 @@ final class DITStructureRuleSyntaxImpl extends AbstractSyntaxImpl
       {
         // This means that the value was empty or contained only
         // whitespace. That is illegal.
-        final LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_EMPTY_VALUE
-            .get();
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_EMPTY_VALUE1
+            .get(definition);
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("DITStructureRuleSyntax",
             "valueIsAcceptable", e);
@@ -180,8 +177,8 @@ final class DITStructureRuleSyntaxImpl extends AbstractSyntaxImpl
         }
         else
         {
-          final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN
-              .get(tokenName);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_ILLEGAL_TOKEN1
+              .get(definition, tokenName);
           final DecodeException e = DecodeException.error(message);
           StaticUtils.DEBUG_LOG.throwing("DITStructureRuleSyntax",
               "valueIsAcceptable", e);
@@ -202,7 +199,8 @@ final class DITStructureRuleSyntaxImpl extends AbstractSyntaxImpl
     }
     catch (final DecodeException de)
     {
-      invalidReason.append(de.getMessageObject());
+      invalidReason.append(ERR_ATTR_SYNTAX_DSR_INVALID1.get(definition,
+          de.getMessageObject()));
       return false;
     }
   }

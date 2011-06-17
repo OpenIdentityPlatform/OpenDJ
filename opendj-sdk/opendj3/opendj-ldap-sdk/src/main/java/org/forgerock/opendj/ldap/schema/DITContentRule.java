@@ -471,16 +471,15 @@ public final class DITContentRule extends SchemaElement
       }
       catch (final UnknownSchemaElementException e)
       {
-        final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_STRUCTURAL_CLASS
-            .get(definition, structuralClassOID);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_STRUCTURAL_CLASS1
+            .get(getNameOrOID(), structuralClassOID);
         throw new SchemaException(message, e);
       }
       if (structuralClass.getObjectClassType() != ObjectClassType.STRUCTURAL)
       {
-        final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_STRUCTURAL_CLASS_NOT_STRUCTURAL
-            .get(definition, structuralClass.getOID(), structuralClass
-                .getNameOrOID(), structuralClass.getObjectClassType()
-                .toString());
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_STRUCTURAL_CLASS_NOT_STRUCTURAL1
+            .get(getNameOrOID(), structuralClass.getNameOrOID(),
+                structuralClass.getObjectClassType().toString());
         warnings.add(message);
       }
     }
@@ -498,15 +497,15 @@ public final class DITContentRule extends SchemaElement
         catch (final UnknownSchemaElementException e)
         {
           // This isn't good because it is an unknown auxiliary class.
-          final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_AUXILIARY_CLASS
-              .get(definition, oid);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_AUXILIARY_CLASS1
+              .get(getNameOrOID(), oid);
           throw new SchemaException(message, e);
         }
         if (objectClass.getObjectClassType() != ObjectClassType.AUXILIARY)
         {
           // This isn't good because it isn't an auxiliary class.
-          final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_AUXILIARY_CLASS_NOT_AUXILIARY
-              .get(definition, structuralClass.getOID(), structuralClass
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_AUXILIARY_CLASS_NOT_AUXILIARY1
+              .get(getNameOrOID(), structuralClass.getOID(), structuralClass
                   .getObjectClassType().toString());
           throw new SchemaException(message);
         }
@@ -530,8 +529,8 @@ public final class DITContentRule extends SchemaElement
           // This isn't good because it means that the DIT content rule
           // requires an attribute type that we don't know anything
           // about.
-          final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_REQUIRED_ATTR
-              .get(definition, oid);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_REQUIRED_ATTR1
+              .get(getNameOrOID(), oid);
           throw new SchemaException(message, e);
         }
         requiredAttributes.add(attributeType);
@@ -554,8 +553,8 @@ public final class DITContentRule extends SchemaElement
           // This isn't good because it means that the DIT content rule
           // requires an attribute type that we don't know anything
           // about.
-          final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_OPTIONAL_ATTR
-              .get(definition, oid);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_OPTIONAL_ATTR1
+              .get(getNameOrOID(), oid);
           throw new SchemaException(message, e);
         }
         optionalAttributes.add(attributeType);
@@ -578,8 +577,8 @@ public final class DITContentRule extends SchemaElement
           // This isn't good because it means that the DIT content rule
           // requires an attribute type that we don't know anything
           // about.
-          final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_PROHIBITED_ATTR
-              .get(definition, oid);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_UNKNOWN_PROHIBITED_ATTR1
+              .get(getNameOrOID(), oid);
           throw new SchemaException(message, e);
         }
         prohibitedAttributes.add(attributeType);
@@ -593,7 +592,7 @@ public final class DITContentRule extends SchemaElement
       if (structuralClass.isRequired(t))
       {
         final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_PROHIBITED_REQUIRED_BY_STRUCTURAL
-            .get(definition, t.getNameOrOID(), structuralClass.getNameOrOID());
+            .get(getNameOrOID(), t.getNameOrOID(), structuralClass.getNameOrOID());
         throw new SchemaException(message);
       }
 
@@ -602,7 +601,7 @@ public final class DITContentRule extends SchemaElement
         if (oc.isRequired(t))
         {
           final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_PROHIBITED_REQUIRED_BY_AUXILIARY
-              .get(definition, t.getNameOrOID(), oc.getNameOrOID());
+              .get(getNameOrOID(), t.getNameOrOID(), oc.getNameOrOID());
           throw new SchemaException(message);
         }
       }

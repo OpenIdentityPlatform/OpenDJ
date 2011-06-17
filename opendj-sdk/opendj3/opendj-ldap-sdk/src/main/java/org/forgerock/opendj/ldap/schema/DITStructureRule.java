@@ -316,7 +316,7 @@ public final class DITStructureRule extends SchemaElement
     catch (final UnknownSchemaElementException e)
     {
       final LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM
-          .get(definition, nameFormOID);
+          .get(getNameOrRuleID(), nameFormOID);
       throw new SchemaException(message, e);
     }
 
@@ -333,7 +333,7 @@ public final class DITStructureRule extends SchemaElement
         catch (final UnknownSchemaElementException e)
         {
           final LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID
-              .get(definition, id);
+              .get(getNameOrRuleID(), id);
           throw new SchemaException(message, e);
         }
         superiorRules.add(rule);
