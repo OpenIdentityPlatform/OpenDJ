@@ -114,7 +114,7 @@ public final class AttributeDescriptionTestCase extends OpenDJTestCase
   public Object[][] dataForValueOfInvalidAttributeDescriptions()
   {
     return new Object[][] { { "" }, { " " }, { ";" }, { " ; " }, { "0cn" },
-        { "cn." }, { "cn;foo+bar" }, { "cn;foo;foo+bar" }, { ";foo" },
+        { "cn+" }, { "cn;foo+bar" }, { "cn;foo;foo+bar" }, { ";foo" },
         { "cn;" }, { "cn;;foo" }, { "cn; ;foo" }, { "cn;foo;" },
         { "cn;foo; " }, { "cn;foo;;bar" }, { "cn;foo; ;bar" },
         { "cn;foo;bar;;" }, { "1a" }, { "1.a" }, { "1-" }, { "1.1a" },
