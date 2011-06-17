@@ -78,9 +78,9 @@ final class ObjectClassSyntaxImpl extends AbstractSyntaxImpl
   {
     // We'll use the decodeObjectClass method to determine if the value
     // is acceptable.
+    final String definition = value.toString();
     try
     {
-      final String definition = value.toString();
       final SubstringReader reader = new SubstringReader(definition);
 
       // We'll do this a character at a time. First, skip over any
@@ -91,8 +91,8 @@ final class ObjectClassSyntaxImpl extends AbstractSyntaxImpl
       {
         // This means that the value was empty or contained only
         // whitespace. That is illegal.
-        final LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_EMPTY_VALUE
-            .get();
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_EMPTY_VALUE1
+            .get(definition);
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("ObjectClassSyntax",
             "valueIsAcceptable", e);
@@ -104,7 +104,7 @@ final class ObjectClassSyntaxImpl extends AbstractSyntaxImpl
       final char c = reader.read();
       if (c != '(')
       {
-        final LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_EXPECTED_OPEN_PARENTHESIS
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_EXPECTED_OPEN_PARENTHESIS1
             .get(definition, (reader.pos() - 1), String.valueOf(c));
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("ObjectClassSyntax",
@@ -198,8 +198,8 @@ final class ObjectClassSyntaxImpl extends AbstractSyntaxImpl
         }
         else
         {
-          final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN
-              .get(tokenName);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_TOKEN1
+              .get(definition, tokenName);
           final DecodeException e = DecodeException.error(message);
           StaticUtils.DEBUG_LOG.throwing("ObjectClassSyntax",
               "valueIsAcceptable", e);
@@ -210,7 +210,8 @@ final class ObjectClassSyntaxImpl extends AbstractSyntaxImpl
     }
     catch (final DecodeException de)
     {
-      invalidReason.append(de.getMessageObject());
+      invalidReason.append(ERR_ATTR_SYNTAX_OBJECTCLASS_INVALID1.get(definition,
+          de.getMessageObject()));
       return false;
     }
   }

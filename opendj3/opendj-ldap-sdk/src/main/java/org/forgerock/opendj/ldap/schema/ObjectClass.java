@@ -606,8 +606,8 @@ public final class ObjectClass extends SchemaElement
         }
         catch (final UnknownSchemaElementException e)
         {
-          final LocalizableMessage message = WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS
-              .get(oid, superClassOid);
+          final LocalizableMessage message = WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS1
+              .get(getNameOrOID(), superClassOid);
           throw new SchemaException(message, e);
         }
 
@@ -620,8 +620,8 @@ public final class ObjectClass extends SchemaElement
           // classes.
           if (superiorType != ObjectClassType.ABSTRACT)
           {
-            final LocalizableMessage message = WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE
-                .get(oid, objectClassType.toString(), superiorType.toString(),
+            final LocalizableMessage message = WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE1
+                .get(getNameOrOID(), objectClassType.toString(), superiorType.toString(),
                     superiorClass.getNameOrOID());
             throw new SchemaException(message);
           }
@@ -633,8 +633,8 @@ public final class ObjectClass extends SchemaElement
           if (superiorType != ObjectClassType.ABSTRACT
               && superiorType != ObjectClassType.AUXILIARY)
           {
-            final LocalizableMessage message = WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE
-                .get(oid, objectClassType.toString(), superiorType.toString(),
+            final LocalizableMessage message = WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE1
+                .get(getNameOrOID(), objectClassType.toString(), superiorType.toString(),
                     superiorClass.getNameOrOID());
             throw new SchemaException(message);
           }
@@ -646,8 +646,8 @@ public final class ObjectClass extends SchemaElement
           if (superiorType != ObjectClassType.ABSTRACT
               && superiorType != ObjectClassType.STRUCTURAL)
           {
-            final LocalizableMessage message = WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE
-                .get(oid, objectClassType.toString(), superiorType.toString(),
+            final LocalizableMessage message = WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE1
+                .get(getNameOrOID(), objectClassType.toString(), superiorType.toString(),
                     superiorClass.getNameOrOID());
             throw new SchemaException(message);
           }
@@ -701,8 +701,8 @@ public final class ObjectClass extends SchemaElement
     // in the superior chain.
     if (!derivesTop)
     {
-      final LocalizableMessage message = WARN_ATTR_SYNTAX_OBJECTCLASS_STRUCTURAL_SUPERIOR_NOT_TOP
-          .get(oid);
+      final LocalizableMessage message = WARN_ATTR_SYNTAX_OBJECTCLASS_STRUCTURAL_SUPERIOR_NOT_TOP1
+          .get(getNameOrOID());
       throw new SchemaException(message);
     }
 
@@ -737,8 +737,8 @@ public final class ObjectClass extends SchemaElement
             // This isn't good because it means that the objectclass
             // requires an attribute type that we don't know anything
             // about.
-            final LocalizableMessage message = WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_REQUIRED_ATTR
-                .get(oid, requiredAttribute);
+            final LocalizableMessage message = WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_REQUIRED_ATTR1
+                .get(getNameOrOID(), requiredAttribute);
             throw new SchemaException(message, e);
           }
           declaredRequiredAttributes.add(attributeType);
@@ -769,8 +769,8 @@ public final class ObjectClass extends SchemaElement
             // This isn't good because it means that the objectclass
             // requires an attribute type that we don't know anything
             // about.
-            final LocalizableMessage message = WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR
-                .get(oid, optionalAttribute);
+            final LocalizableMessage message = WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR1
+                .get(getNameOrOID(), optionalAttribute);
             throw new SchemaException(message, e);
           }
           declaredOptionalAttributes.add(attributeType);

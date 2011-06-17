@@ -92,9 +92,9 @@ final class MatchingRuleSyntaxImpl extends AbstractSyntaxImpl
   {
     // We'll use the decodeMatchingRule method to determine if the value
     // is acceptable.
+    final String definition = value.toString();
     try
     {
-      final String definition = value.toString();
       final SubstringReader reader = new SubstringReader(definition);
 
       // We'll do this a character at a time. First, skip over any
@@ -105,7 +105,8 @@ final class MatchingRuleSyntaxImpl extends AbstractSyntaxImpl
       {
         // This means that the value was empty or contained only
         // whitespace. That is illegal.
-        final LocalizableMessage message = ERR_ATTR_SYNTAX_MR_EMPTY_VALUE.get();
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_MR_EMPTY_VALUE1
+            .get(definition);
         final DecodeException e = DecodeException.error(message);
         StaticUtils.DEBUG_LOG.throwing("MatchingRuleSyntax",
             "valueIsAcceptable", e);
@@ -185,8 +186,8 @@ final class MatchingRuleSyntaxImpl extends AbstractSyntaxImpl
         }
         else
         {
-          final LocalizableMessage message = ERR_ATTR_SYNTAX_ILLEGAL_TOKEN
-              .get(tokenName);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_MR_ILLEGAL_TOKEN1
+              .get(definition, tokenName);
           final DecodeException e = DecodeException.error(message);
           StaticUtils.DEBUG_LOG.throwing("MatchingRuleSyntax",
               "valueIsAcceptable", e);
@@ -208,7 +209,8 @@ final class MatchingRuleSyntaxImpl extends AbstractSyntaxImpl
     }
     catch (final DecodeException de)
     {
-      invalidReason.append(de.getMessageObject());
+      invalidReason.append(ERR_ATTR_SYNTAX_MR_INVALID1.get(definition,
+          de.getMessageObject()));
       return false;
     }
   }

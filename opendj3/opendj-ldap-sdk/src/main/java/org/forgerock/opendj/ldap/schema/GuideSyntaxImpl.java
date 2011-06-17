@@ -413,7 +413,7 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl
     if (ocLength == 0)
     {
 
-      invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_NO_OC.get(valueStr));
+      invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_NO_OC1.get(valueStr));
       return false;
     }
 

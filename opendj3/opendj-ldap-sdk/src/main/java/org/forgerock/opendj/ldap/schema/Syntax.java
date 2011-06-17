@@ -359,8 +359,8 @@ public final class Syntax extends SchemaElement
       if (impl == null)
       {
         impl = Schema.getDefaultSyntax().impl;
-        final LocalizableMessage message = WARN_ATTR_SYNTAX_NOT_IMPLEMENTED
-            .get(oid, Schema.getDefaultSyntax().getOID());
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_NOT_IMPLEMENTED1
+            .get(getDescription(), oid, Schema.getDefaultSyntax().getOID());
         warnings.add(message);
       }
     }

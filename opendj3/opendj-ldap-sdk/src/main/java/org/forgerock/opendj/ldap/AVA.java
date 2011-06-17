@@ -434,8 +434,8 @@ public final class AVA implements Comparable<AVA>
         {
           if (lastWasPeriod)
           {
-            final LocalizableMessage message = ERR_ATTR_SYNTAX_OID_CONSECUTIVE_PERIODS
-                .get(reader.getString(), reader.pos() - 1);
+            final LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR
+                .get(reader.getString(), c, reader.pos() - 1);
             throw new LocalizedIllegalArgumentException(message);
           }
           else
@@ -446,8 +446,8 @@ public final class AVA implements Comparable<AVA>
         else if (!isDigit(c))
         {
           // This must have been an illegal character.
-          final LocalizableMessage message = ERR_ATTR_SYNTAX_OID_ILLEGAL_CHARACTER
-              .get(reader.getString(), reader.pos() - 1);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_DN_ATTR_ILLEGAL_CHAR
+              .get(reader.getString(), c, reader.pos() - 1);
           throw new LocalizedIllegalArgumentException(message);
         }
         else

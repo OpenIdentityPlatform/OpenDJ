@@ -29,8 +29,7 @@ package org.forgerock.opendj.ldap.schema;
 
 
 
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_MR_UNKNOWN_SYNTAX;
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_MATCHING_RULE_NOT_IMPLEMENTED;
+import static org.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.util.Comparator;
 import java.util.Iterator;
@@ -457,19 +456,19 @@ public final class MatchingRule extends SchemaElement
     if (impl == null)
     {
       impl = Schema.getDefaultMatchingRule().impl;
-      final LocalizableMessage message = WARN_MATCHING_RULE_NOT_IMPLEMENTED
-          .get(oid, Schema.getDefaultMatchingRule().getOID());
+      final LocalizableMessage message = WARN_MATCHING_RULE_NOT_IMPLEMENTED1
+          .get(getNameOrOID(), Schema.getDefaultMatchingRule().getOID());
       warnings.add(message);
     }
 
     try
     {
-      // Make sure the specifiec syntax is defined in this schema.
+      // Make sure the specific syntax is defined in this schema.
       syntax = schema.getSyntax(syntaxOID);
     }
     catch (final UnknownSchemaElementException e)
     {
-      final LocalizableMessage message = ERR_ATTR_SYNTAX_MR_UNKNOWN_SYNTAX.get(
+      final LocalizableMessage message = ERR_ATTR_SYNTAX_MR_UNKNOWN_SYNTAX1.get(
           getNameOrOID(), syntaxOID);
       throw new SchemaException(message, e);
     }

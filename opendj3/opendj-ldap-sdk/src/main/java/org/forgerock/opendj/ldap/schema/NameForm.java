@@ -382,16 +382,18 @@ public final class NameForm extends SchemaElement
     }
     catch (final UnknownSchemaElementException e)
     {
-      final LocalizableMessage message = ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_STRUCTURAL_CLASS
-          .get(oid, structuralClassOID);
+      final LocalizableMessage message =
+        ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_STRUCTURAL_CLASS1
+          .get(getNameOrOID(), structuralClassOID);
       throw new SchemaException(message, e);
     }
     if (structuralClass.getObjectClassType() != ObjectClassType.STRUCTURAL)
     {
       // This is bad because the associated structural class type is not
       // structural.
-      final LocalizableMessage message = ERR_ATTR_SYNTAX_NAME_FORM_STRUCTURAL_CLASS_NOT_STRUCTURAL
-          .get(oid, structuralClass.getOID(), structuralClass.getNameOrOID(),
+      final LocalizableMessage message =
+        ERR_ATTR_SYNTAX_NAME_FORM_STRUCTURAL_CLASS_NOT_STRUCTURAL1
+          .get(getNameOrOID(), structuralClass.getNameOrOID(),
               String.valueOf(structuralClass.getObjectClassType()));
       throw new SchemaException(message);
     }
@@ -409,8 +411,8 @@ public final class NameForm extends SchemaElement
       {
         // This isn't good because it means that the name form requires
         // an attribute type that we don't know anything about.
-        final LocalizableMessage message = ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR
-            .get(this.oid, oid);
+        final LocalizableMessage message = ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR1
+            .get(getNameOrOID(), oid);
         throw new SchemaException(message, e);
       }
       requiredAttributes.add(attributeType);
@@ -431,8 +433,8 @@ public final class NameForm extends SchemaElement
           // This isn't good because it means that the name form
           // requires an attribute type that we don't know anything
           // about.
-          final LocalizableMessage message = ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR
-              .get(this.oid, oid);
+          final LocalizableMessage message = ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR1
+              .get(getNameOrOID(), oid);
           throw new SchemaException(message, e);
         }
         optionalAttributes.add(attributeType);
