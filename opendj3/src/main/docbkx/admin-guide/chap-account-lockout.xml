@@ -38,21 +38,110 @@
  attempting to bind until success is achieved.</para>
 
  <para>Account lockout disables a user account after a specified
- number of successive bind failures. When you implement account
+ number of successive authentication failures. When you implement account
  lockout, you can opt to have the directory server unlock the account
  again after a specified interval, or you can leave the account locked
  until the password is reset.</para>
  
- <para>The catch is that if an attacker has separate access to each
- directory server replica in a topology, the attacker can try passwords
- until lockout on each server separately, or until replication manages
- to lock the accounts. In the worst case, therefore, the attacker gets
- N x R tries, where N is the number of bind failures allowed on a directory
- server, and R is the number of directory server replicas in the
- topology.</para>
- 
+ <note>
+  <para>When you configure account lockout as part of password policy, OpenDJ
+  locks an account after the specified number of consecutive authentication
+  failures. Account lockout is not transactional across a replication topology,
+  however. Under normal circumstances, replication nevertheless propagates
+  lockout quickly. If ever replication is delayed, an attacker with direct
+  access to multiple replica could get more than the specified number of tries
+  to authenticate before being locked out on all replicas.</para>
+ </note>
+  
  <para>This chapter shows you how to set up account lockout policies,
  and how to intervene manually to lock and unlock accounts.</para>
+ 
+ <section>
+  <title>Configuring Account Lockout</title>
+  
+  <para>Account lockout is configured as part of password policy. This section
+  demonstrates configuring account lockout as part of the default password
+  policy. Users are allowed three consecutive failures before being locked out
+  for five minutes. Failures themselves also expire after five minutes.</para>
+  
+  <para>Change the default password policy to activate lockout using the
+  <command>dsconfig</command> command. As the password policy is part of
+  the server configuration, you must manually apply the changes to each
+  replica in a replication topology.</para>
+  
+  <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+&gt; set-password-policy-prop --policy-name "Default Password Policy" \
+&gt; --set lockout-failure-count:3 --set lockout-duration:5m \
+&gt; --set lockout-failure-expiration-interval:5m -X -n</screen>
+
+  <para>Users having the default password policy are then locked out after
+  three failed attempts in succession.</para>
+  
+  <screen width="80">$ ldapsearch -p 1389 -D "uid=bjensen,ou=people,dc=example,dc=com" -w hifalutin \
+&gt; -b dc=example,dc=com uid=bjensen mail
+dn: uid=bjensen,ou=People,dc=example,dc=com
+mail: bjensen@example.com
+
+$ ldapsearch -p 1389 -D "uid=bjensen,ou=people,dc=example,dc=com" -w fatfngrs \
+&gt; -b dc=example,dc=com uid=bjensen mail
+The simple bind attempt failed
+Result Code:  49 (Invalid Credentials)
+$ ldapsearch -p 1389 -D "uid=bjensen,ou=people,dc=example,dc=com" -w fatfngrs \
+&gt; -b dc=example,dc=com uid=bjensen mail
+The simple bind attempt failed
+Result Code:  49 (Invalid Credentials)
+$ ldapsearch -p 1389 -D "uid=bjensen,ou=people,dc=example,dc=com" -w fatfngrs \
+&gt; -b dc=example,dc=com uid=bjensen mail
+The simple bind attempt failed
+Result Code:  49 (Invalid Credentials)
+$ ldapsearch -p 1389 -D "uid=bjensen,ou=people,dc=example,dc=com" -w hifalutin \
+&gt; -b dc=example,dc=com uid=bjensen mail
+The simple bind attempt failed
+Result Code:  49 (Invalid Credentials)</screen>
+ </section>
+ 
+ <section>
+  <title>Managing Accounts Manually</title>
+  
+  <para>This section covers disabling and enabling accounts by using the
+  <command>manage-account</command> command. Password reset is covered in
+  the chapter on performing LDAP operations.</para>
+  
+  <para>For the following examples, the directory admin user, Kirsten Vaughan,
+  has <literal>ds-privilege-name: password-reset</literal>, and the following
+  ACI on <literal>ou=People,dc=example,dc=com</literal>.</para>
+  <literallayout>(target="ldap:///ou=People,dc=example,dc=com") (targetattr ="*||+")(
+version 3.0;acl "Admins can run amok"; allow(all) groupdn =
+"ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)</literallayout>
+  
+  <procedure>
+   <title>To Disable an Account</title>
+   
+   <step>
+    <para>Set the account status to disabled with the
+    <command>manage-account</command> command.</para>
+    
+    <screen width="80">$ manage-account -p 4444 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
+&gt; -w bribery set-account-is-disabled -O true \
+&gt; -b uid=bjensen,ou=people,dc=example,dc=com -X
+Account Is Disabled:  true</screen>
+   </step>
+  </procedure>
+  
+  <procedure>
+   <title>To Activate a Disabled Account</title>
+   
+   <step>
+    <para>Clear the disabled status using the <command>manage-account</command>
+    command.</para>
+    
+    <screen width="80">$ manage-account -p 4444 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
+&gt; -w bribery clear-account-is-disabled \
+&gt; -b uid=bjensen,ou=people,dc=example,dc=com -X
+Account Is Disabled:  false</screen>
+   </step>
+  </procedure>
+ </section>
 
 </chapter>
 
