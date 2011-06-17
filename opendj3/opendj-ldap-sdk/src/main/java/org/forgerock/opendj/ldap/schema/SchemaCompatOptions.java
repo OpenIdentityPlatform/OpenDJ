@@ -67,7 +67,7 @@ public final class SchemaCompatOptions
 
   private boolean allowZeroLengthDirectoryStrings = false;
 
-  private boolean allowMalformedNamesAndOptions = false;
+  private boolean allowMalformedNamesAndOptions = true;
 
 
 
@@ -82,14 +82,16 @@ public final class SchemaCompatOptions
   /**
    * Returns {@code true} if the schema should allow certain illegal characters
    * in OIDs and attribute options. When this compatibility option is set to
-   * {@code true} the following illegal characters will be permitted:
+   * {@code true} the following illegal characters will be permitted in addition
+   * to those permitted in section 1.4 of RFC 4512:
    *
    * <pre>
    * USCORE  = %x5F ; underscore ("_")
    * DOT     = %x2E ; period (".")
    * </pre>
    *
-   * By default this compatibility option is set to {@code false}.
+   * By default this compatibility option is set to {@code true} because these
+   * characters are often used for naming purposes (such as collation rules).
    *
    * @return {@code true} if the schema should allow certain illegal characters
    *         in OIDs and attribute options.
@@ -106,14 +108,16 @@ public final class SchemaCompatOptions
   /**
    * Specifies whether or not the schema should allow certain illegal characters
    * in OIDs and attribute options. When this compatibility option is set to
-   * {@code true} the following illegal characters will be permitted:
+   * {@code true} the following illegal characters will be permitted in addition
+   * to those permitted in section 1.4 of RFC 4512:
    *
    * <pre>
    * USCORE  = %x5F ; underscore ("_")
    * DOT     = %x2E ; period (".")
    * </pre>
    *
-   * By default this compatibility option is set to {@code false}.
+   * By default this compatibility option is set to {@code true} because these
+   * characters are often used for naming purposes (such as collation rules).
    *
    * @param allowMalformedNamesAndOptions
    *          {@code true} if the schema should allow certain illegal characters

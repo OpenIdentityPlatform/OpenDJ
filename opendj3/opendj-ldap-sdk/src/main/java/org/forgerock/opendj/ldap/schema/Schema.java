@@ -1899,14 +1899,16 @@ public final class Schema
   /**
    * Returns {@code true} if this schema allows certain illegal characters
    * in OIDs and attribute options. When this compatibility option is set to
-   * {@code true} the following illegal characters will be permitted:
+   * {@code true} the following illegal characters will be permitted in addition
+   * to those permitted in section 1.4 of RFC 4512:
    *
    * <pre>
    * USCORE  = %x5F ; underscore ("_")
    * DOT     = %x2E ; period (".")
    * </pre>
    *
-   * By default this compatibility option is set to {@code false}.
+   * By default this compatibility option is set to {@code true} because these
+   * characters are often used for naming purposes (such as collation rules).
    *
    * @return {@code true} if this schema allows certain illegal characters
    *         in OIDs and attribute options.
