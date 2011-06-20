@@ -31,13 +31,10 @@ package org.forgerock.opendj.ldap.schema;
 
 
 import static org.forgerock.opendj.ldap.CoreMessages.*;
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.EXTENSIBLE_OBJECT_OBJECTCLASS_OID;
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.OMR_GENERIC_ENUM_NAME;
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.SCHEMA_PROPERTY_APPROX_RULE;
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.TOP_OBJECTCLASS_NAME;
-import static org.forgerock.opendj.ldap.schema.SchemaUtils.unmodifiableCopyOfExtraProperties;
-import static org.forgerock.opendj.ldap.schema.SchemaUtils.unmodifiableCopyOfList;
-import static org.forgerock.opendj.ldap.schema.SchemaUtils.unmodifiableCopyOfSet;
+import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+import static org.forgerock.opendj.ldap.schema.Schema.*;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
+import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,14 +42,12 @@ import java.util.regex.Pattern;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
-import org.forgerock.opendj.ldap.Attribute;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DecodeException;
-import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 
-import com.forgerock.opendj.util.StaticUtils;
-import com.forgerock.opendj.util.SubstringReader;
-import com.forgerock.opendj.util.Validator;
+import com.forgerock.opendj.util.*;
 
 
 
@@ -61,6 +56,71 @@ import com.forgerock.opendj.util.Validator;
  */
 public final class SchemaBuilder
 {
+
+  private static final String ATTR_SUBSCHEMA_SUBENTRY = "subschemaSubentry";
+
+  private static final String[] SUBSCHEMA_ATTRS = new String[] {
+      ATTR_LDAP_SYNTAXES, ATTR_ATTRIBUTE_TYPES, ATTR_DIT_CONTENT_RULES,
+      ATTR_DIT_STRUCTURE_RULES, ATTR_MATCHING_RULE_USE, ATTR_MATCHING_RULES,
+      ATTR_NAME_FORMS, ATTR_OBJECT_CLASSES };
+
+  private static final Filter SUBSCHEMA_FILTER = Filter
+      .valueOf("(objectClass=subschema)");
+
+  private static final String[] SUBSCHEMA_SUBENTRY_ATTRS =
+    new String[] { ATTR_SUBSCHEMA_SUBENTRY };
+
+
+
+  // Constructs a search request for retrieving the named subschema
+  // sub-entry.
+  private static SearchRequest getReadSchemaSearchRequest(final DN dn)
+  {
+    return Requests.newSearchRequest(dn, SearchScope.BASE_OBJECT,
+        SUBSCHEMA_FILTER, SUBSCHEMA_ATTRS);
+  }
+
+
+
+  // Constructs a search request for retrieving the subschemaSubentry
+  // attribute from the named entry.
+  private static SearchRequest getReadSchemaForEntrySearchRequest(final DN dn)
+  {
+    return Requests.newSearchRequest(dn, SearchScope.BASE_OBJECT,
+        Filter.getObjectClassPresentFilter(), SUBSCHEMA_SUBENTRY_ATTRS);
+  }
+
+
+
+  private static DN getSubschemaSubentryDN(final DN name, final Entry entry)
+      throws ErrorResultException
+  {
+    final Attribute subentryAttr = entry.getAttribute(ATTR_SUBSCHEMA_SUBENTRY);
+
+    if (subentryAttr == null || subentryAttr.isEmpty())
+    {
+      // Did not get the subschema sub-entry attribute.
+      throw newErrorResult(ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED,
+          ERR_NO_SUBSCHEMA_SUBENTRY_ATTR.get(name.toString()).toString());
+    }
+
+    final String dnString = subentryAttr.iterator().next().toString();
+    DN subschemaDN;
+    try
+    {
+      subschemaDN = DN.valueOf(dnString);
+    }
+    catch (final LocalizedIllegalArgumentException e)
+    {
+      throw newErrorResult(
+          ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED,
+          ERR_INVALID_SUBSCHEMA_SUBENTRY_ATTR.get(name.toString(), dnString,
+              e.getMessageObject()).toString());
+    }
+    return subschemaDN;
+  }
+
+
 
   private Map<Integer, DITStructureRule> id2StructureRules;
 
@@ -2111,6 +2171,211 @@ public final class SchemaBuilder
     }
 
     return this;
+  }
+
+
+
+  /**
+   * Reads the schema elements contained in the named subschema sub-entry and
+   * adds them to this schema builder.
+   * <p>
+   * If the requested schema is not returned by the Directory Server then the
+   * request will fail with an {@link EntryNotFoundException}.
+   *
+   * @param connection
+   *          A connection to the Directory Server whose schema is to be read.
+   * @param name
+   *          The distinguished name of the subschema sub-entry.
+   * @param handler
+   *          A result handler which can be used to asynchronously process the
+   *          operation result when it is received, may be {@code null}.
+   * @param overwrite
+   *          {@code true} if existing schema elements with the same conflicting
+   *          OIDs should be overwritten.
+   * @return A future representing the updated schema builder.
+   * @throws UnsupportedOperationException
+   *           If the connection does not support search operations.
+   * @throws IllegalStateException
+   *           If the connection has already been closed, i.e. if
+   *           {@code connection.isClosed() == true}.
+   * @throws NullPointerException
+   *           If the {@code connection} or {@code name} was {@code null}.
+   */
+  public FutureResult<SchemaBuilder> addSchema(
+      final AsynchronousConnection connection, final DN name,
+      final ResultHandler<? super SchemaBuilder> handler,
+      final boolean overwrite) throws UnsupportedOperationException,
+      IllegalStateException, NullPointerException
+  {
+    final SearchRequest request = getReadSchemaSearchRequest(name);
+
+    final FutureResultTransformer<SearchResultEntry, SchemaBuilder> future =
+      new FutureResultTransformer<SearchResultEntry, SchemaBuilder>(handler)
+    {
+
+      @Override
+      protected SchemaBuilder transformResult(final SearchResultEntry result)
+          throws ErrorResultException
+      {
+        addSchema(result, overwrite);
+        return SchemaBuilder.this;
+      }
+
+    };
+
+    final FutureResult<SearchResultEntry> innerFuture = connection
+        .searchSingleEntry(request, future);
+    future.setFutureResult(innerFuture);
+    return future;
+  }
+
+
+
+  /**
+   * Reads the schema elements contained in the named subschema sub-entry and
+   * adds them to this schema builder.
+   * <p>
+   * If the requested schema is not returned by the Directory Server then the
+   * request will fail with an {@link EntryNotFoundException}.
+   *
+   * @param connection
+   *          A connection to the Directory Server whose schema is to be read.
+   * @param name
+   *          The distinguished name of the subschema sub-entry.
+   * @param overwrite
+   *          {@code true} if existing schema elements with the same conflicting
+   *          OIDs should be overwritten.
+   * @return A reference to this schema builder.
+   * @throws ErrorResultException
+   *           If the result code indicates that the request failed for some
+   *           reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
+   * @throws UnsupportedOperationException
+   *           If the connection does not support search operations.
+   * @throws IllegalStateException
+   *           If the connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If the {@code connection} or {@code name} was {@code null}.
+   */
+  public SchemaBuilder addSchema(final Connection connection, final DN name,
+      final boolean overwrite) throws ErrorResultException,
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException, NullPointerException
+  {
+    final SearchRequest request = getReadSchemaSearchRequest(name);
+    final Entry entry = connection.searchSingleEntry(request);
+    return addSchema(entry, overwrite);
+  }
+
+
+
+  /**
+   * Reads the schema elements contained in the subschema sub-entry which
+   * applies to the named entry and adds them to this schema builder.
+   * <p>
+   * If the requested entry or its associated schema are not returned by the
+   * Directory Server then the request will fail with an
+   * {@link EntryNotFoundException}.
+   * <p>
+   * This implementation first reads the {@code subschemaSubentry} attribute of
+   * the entry in order to identify the schema and then invokes
+   * {@link #addSchema(AsynchronousConnection, DN, ResultHandler, boolean)} to
+   * read the schema.
+   *
+   * @param connection
+   *          A connection to the Directory Server whose schema is to be read.
+   * @param name
+   *          The distinguished name of the entry whose schema is to be located.
+   * @param handler
+   *          A result handler which can be used to asynchronously process the
+   *          operation result when it is received, may be {@code null}.
+   * @param overwrite
+   *          {@code true} if existing schema elements with the same conflicting
+   *          OIDs should be overwritten.
+   * @return A future representing the updated schema builder.
+   * @throws UnsupportedOperationException
+   *           If the connection does not support search operations.
+   * @throws IllegalStateException
+   *           If the connection has already been closed, i.e. if
+   *           {@code connection.isClosed() == true}.
+   * @throws NullPointerException
+   *           If the {@code connection} or {@code name} was {@code null}.
+   */
+  public FutureResult<SchemaBuilder> addSchemaForEntry(
+      final AsynchronousConnection connection, final DN name,
+      final ResultHandler<? super SchemaBuilder> handler,
+      final boolean overwrite) throws UnsupportedOperationException,
+      IllegalStateException, NullPointerException
+  {
+    final RecursiveFutureResult<SearchResultEntry, SchemaBuilder> future =
+      new RecursiveFutureResult<SearchResultEntry, SchemaBuilder>(handler)
+    {
+
+      @Override
+      protected FutureResult<SchemaBuilder> chainResult(
+          final SearchResultEntry innerResult,
+          final ResultHandler<? super SchemaBuilder> handler)
+          throws ErrorResultException
+      {
+        final DN subschemaDN = getSubschemaSubentryDN(name, innerResult);
+        return addSchema(connection, subschemaDN, handler, overwrite);
+      }
+
+    };
+
+    final SearchRequest request = getReadSchemaForEntrySearchRequest(name);
+    final FutureResult<SearchResultEntry> innerFuture = connection
+        .searchSingleEntry(request, future);
+    future.setFutureResult(innerFuture);
+    return future;
+  }
+
+
+
+  /**
+   * Reads the schema elements contained in the subschema sub-entry which
+   * applies to the named entry and adds them to this schema builder.
+   * <p>
+   * If the requested entry or its associated schema are not returned by the
+   * Directory Server then the request will fail with an
+   * {@link EntryNotFoundException}.
+   * <p>
+   * This implementation first reads the {@code subschemaSubentry} attribute of
+   * the entry in order to identify the schema and then invokes
+   * {@link #addSchemaForEntry(Connection, DN, boolean)} to read the schema.
+   *
+   * @param connection
+   *          A connection to the Directory Server whose schema is to be read.
+   * @param name
+   *          The distinguished name of the entry whose schema is to be located.
+   * @param overwrite
+   *          {@code true} if existing schema elements with the same conflicting
+   *          OIDs should be overwritten.
+   * @return A reference to this schema builder.
+   * @throws ErrorResultException
+   *           If the result code indicates that the request failed for some
+   *           reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
+   * @throws UnsupportedOperationException
+   *           If the connection does not support search operations.
+   * @throws IllegalStateException
+   *           If the connection has already been closed, i.e. if
+   *           {@code connection.isClosed() == true}.
+   * @throws NullPointerException
+   *           If the {@code connection} or {@code name} was {@code null}.
+   */
+  public SchemaBuilder addSchemaForEntry(final Connection connection,
+      final DN name, final boolean overwrite) throws ErrorResultException,
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException, NullPointerException
+  {
+    final SearchRequest request = getReadSchemaForEntrySearchRequest(name);
+    final Entry entry = connection.searchSingleEntry(request);
+    final DN subschemaDN = getSubschemaSubentryDN(name, entry);
+    return addSchema(connection, subschemaDN, overwrite);
   }
 
 

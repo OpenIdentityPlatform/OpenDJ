@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package com.forgerock.opendj.util;
@@ -34,7 +35,6 @@ import java.util.Collection;
 import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.requests.*;
 import org.forgerock.opendj.ldap.responses.*;
-import org.forgerock.opendj.ldap.schema.Schema;
 
 
 
@@ -390,48 +390,6 @@ public abstract class AsynchronousConnectionDecorator implements
       NullPointerException
   {
     return connection.readEntry(name, attributeDescriptions, handler);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   * <p>
-   * The default implementation is to delegate.
-   */
-  public FutureResult<RootDSE> readRootDSE(
-      ResultHandler<? super RootDSE> handler)
-      throws UnsupportedOperationException, IllegalStateException
-  {
-    return connection.readRootDSE(handler);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   * <p>
-   * The default implementation is to delegate.
-   */
-  public FutureResult<Schema> readSchema(DN name,
-      ResultHandler<? super Schema> handler)
-      throws UnsupportedOperationException, IllegalStateException
-  {
-    return connection.readSchema(name, handler);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   * <p>
-   * The default implementation is to delegate.
-   */
-  public FutureResult<Schema> readSchemaForEntry(DN name,
-      ResultHandler<? super Schema> handler)
-      throws UnsupportedOperationException, IllegalStateException
-  {
-    return connection.readSchemaForEntry(name, handler);
   }
 
 

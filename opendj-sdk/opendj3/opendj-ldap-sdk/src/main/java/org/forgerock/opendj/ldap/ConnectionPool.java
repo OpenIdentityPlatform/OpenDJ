@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -39,7 +40,6 @@ import java.util.logging.Level;
 
 import org.forgerock.opendj.ldap.requests.*;
 import org.forgerock.opendj.ldap.responses.*;
-import org.forgerock.opendj.ldap.schema.Schema;
 
 import com.forgerock.opendj.util.AsynchronousFutureResult;
 import com.forgerock.opendj.util.CompletedFutureResult;
@@ -547,57 +547,6 @@ final class ConnectionPool extends AbstractConnectionFactory
         throw new IllegalStateException();
       }
       return connection.readEntry(name, attributeDescriptions, resultHandler);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public FutureResult<RootDSE> readRootDSE(
-        final ResultHandler<? super RootDSE> handler)
-        throws UnsupportedOperationException, IllegalStateException
-    {
-      if (isClosed())
-      {
-        throw new IllegalStateException();
-      }
-      return connection.readRootDSE(handler);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public FutureResult<Schema> readSchema(final DN name,
-        final ResultHandler<? super Schema> handler)
-        throws UnsupportedOperationException, IllegalStateException
-    {
-      if (isClosed())
-      {
-        throw new IllegalStateException();
-      }
-      return connection.readSchema(name, handler);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public FutureResult<Schema> readSchemaForEntry(final DN name,
-        final ResultHandler<? super Schema> handler)
-        throws UnsupportedOperationException, IllegalStateException
-    {
-      if (isClosed())
-      {
-        throw new IllegalStateException();
-      }
-      return connection.readSchemaForEntry(name, handler);
     }
 
 
