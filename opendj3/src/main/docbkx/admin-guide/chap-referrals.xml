@@ -38,8 +38,95 @@
  server contains only some of the directory data for a suffix and points to
  other servers for branches whose data is not available locally.</para>
  
- <para>This chapter demonstrates how to set up referrals, and how to follow
- them with the command-line tools.</para>
+ <para>This chapter demonstrates how to add and remove referrals with the
+ <command>ldapmodify</command> command. You can also use the Manage Entries
+ window of the Control Panel to handle referrals.</para>
 
+ <section>
+  <title>About Referrals</title>
+ 
+  <para>Referrals are implemented as entries with <link
+  xlink:href="http://tools.ietf.org/html/rfc4516">LDAP URL</link>
+  <literal>ref</literal> attribute values that point elsewhere. The
+  <literal>ref</literal> attribute type is required by the referral object
+  class. The referral object class is structural, however, and therefore cannot
+  by default be added to an entry that already has a structural object class
+  defined. When adding a <literal>ref</literal> attribute type to an existing
+  entry, you can use the <literal>extensibleObject</literal> auxiliary
+  object class.</para>
+  
+  <para>When a referral is set, OpenDJ returns the referral to client
+  applications requesting the entry or child entries affected. Client
+  applications must be capable of following the referral returned.</para>
+ </section>
+
+ <section>
+  <title>Managing Referrals</title>
+ 
+  <para>To create an LDAP referral either you create a referral entry, or
+  you add the <literal>extensibleObject</literal> object class and the
+  <literal>ref</literal> attribute with an LDAP URL to an existing entry.
+  This section demonstrates use of the latter approach.</para>
+  
+  <screen width="80">$ cat referral.ldif 
+dn: ou=People,dc=example,dc=com
+changetype: modify
+add: objectClass
+objectClass: extensibleObject
+-
+add: ref
+ref: ldap://opendj.example.com:2389/ou=People,dc=example,dc=com
+
+$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -f referral.ldif 
+Processing MODIFY request for ou=People,dc=example,dc=com
+MODIFY operation successful for DN ou=People,dc=example,dc=com</screen>
+
+  <para>The example above adds a referral to
+  <literal>ou=People,dc=example,dc=com</literal>. OpenDJ can now return
+  a referral for operations under the People organizational unit.</para>
+  
+  <screen width="80">$ ldapsearch -p 1389 -b dc=example,dc=com uid=bjensen description
+SearchReference(referralURLs=
+ {ldap://opendj.example.com:2389/ou=People,dc=example,dc=com??sub?})
+$ ldapsearch -p 1389 -b dc=example,dc=com ou=people
+SearchReference(referralURLs=
+ {ldap://opendj.example.com:2389/ou=People,dc=example,dc=com??sub?})</screen>
+ 
+  <para>To access the entry instead of the referral, use the Manage DSAIT
+  control.</para>
+  
+  <screen width="80">$ ldapsearch -p 1389 -b dc=example,dc=com -J ManageDSAIT ou=people
+dn: ou=People,dc=example,dc=com
+ou: People
+objectClass: organizationalunit
+objectClass: extensibleObject
+objectClass: top
+
+$ cat people.ldif 
+dn: ou=People,dc=example,dc=com
+changetype: modify
+delete: ref
+ref: ldap://opendj.example.com:2389/ou=People,dc=example,dc=com
+
+$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -f people.ldif 
+Processing MODIFY request for ou=People,dc=example,dc=com
+MODIFY operation successful for DN ou=People,dc=example,dc=com
+A referral entry ou=People,dc=example,dc=com indicates that the operation must
+be processed at a different server
+[ldap://opendj.example.com:2389/ou=People,dc=example,dc=com]
+$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -J ManageDSAIT \
+&gt; -f people.ldif 
+Processing MODIFY request for ou=People,dc=example,dc=com
+MODIFY operation successful for DN ou=People,dc=example,dc=com
+$ ldapsearch -p 1389 -b dc=example,dc=com ou=people
+dn: ou=People,dc=example,dc=com
+ou: People
+objectClass: organizationalunit
+objectClass: extensibleObject
+objectClass: top</screen>
+
+  <para>The example above shows how to remove the referral using the Manage
+  DSAIT control with the <command>ldapmodify</command> command.</para>
+ </section>
 </chapter>
 
