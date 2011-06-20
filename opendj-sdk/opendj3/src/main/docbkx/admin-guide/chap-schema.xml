@@ -51,20 +51,343 @@
  <section>
   <title>About Directory Schema</title>
   
-  <para>TODO</para>
+  <para>Directory schema, described in <link
+  xlink:href='http://tools.ietf.org/html/rfc4512'>RFC 4512</link>, define
+  the kinds of information you find in the directory, and can define how
+  the information are related. This chapter focuses primarily on two types
+  of directory schema definitions.</para>
+  
+  <itemizedlist>
+   <listitem>
+    <para><firstterm>Attribute type</firstterm> definitions describe attributes
+    of directory entries, such as <literal>givenName</literal> or
+    <literal>mail</literal>.</para>
+    <para>Here is an example of an attribute type definition.</para>
+    <programlisting language="ldif" width="80"># Attribute type definition
+attributeTypes: ( 0.9.2342.19200300.100.1.3 NAME ( 'mail' 'rfc822Mailbox' )
+  EQUALITY caseIgnoreIA5Match SUBSTR caseIgnoreIA5SubstringsMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} X-ORIGIN 'RFC 4524' )</programlisting>
+    <para>Attribute type definitions start with an object identifier (OID),
+    and generally a short name or names that are easier to remember than the
+    OID. The attribute type definition can specify how attribute values
+    should be collated for sorting, and what syntax they use. The X-ORIGIN
+    is an extension to identify where the definition originated. When you
+    define your one schema, you likely want to provide an X-ORIGIN to help
+    you to track versions of definitions, and where the definitions came
+    from.</para>
+   </listitem>
+   <listitem>
+    <para><firstterm>Object class</firstterm> definitions identify the
+    attribute types that an entry must have, and may have. Examples of
+    object classes include <literal>person</literal> and
+    <literal>organizationalUnit</literal>.</para>
+    <para>Here is an example of an object class definition.</para>
+    <programlisting language="ldif" width="80"># Object class definition
+objectClasses: ( 2.5.6.6 NAME 'person' SUP top STRUCTURAL MUST ( sn $ cn )
+  MAY ( userPassword $ telephoneNumber $ seeAlso $ description )
+  X-ORIGIN 'RFC 4519' )</programlisting>
+    <para>Entries all have an attribute identifying their object classes,
+    called <literal>objectClass</literal>.</para>
+    <para>Object class definitions start with an object identifier (OID), and
+    generally a short name that is easier to remember than the OID. The
+    definition here says that the person object class inherits from the top
+    object class, which is the top-level parent of all object classes. When
+    you view the objectclass attribute values on an entry, you see the list
+    of object classes that the entry takes. An entry can have one STRUCTURAL
+    object class inheritance branch, such as <literal>top</literal> -
+    <literal>person</literal> - <literal>organizationalPerson</literal> -
+    <literal>inetOrgPerson</literal>. Yet entries can have multiple
+    AUXILIARY object classes. The object class then defines the attribute
+    types that must be included, and the attribute types that may be included
+    on entries having the object class.</para>
+   </listitem>
+  </itemizedlist>
+  
+  <para>OpenDJ exposes schema over protocol through the
+  <literal>cn=schema</literal> entry. OpenDJ stores the schema definitions
+  corresponding to the entry in LDIF under the
+  <filename>config/schema/</filename> directory. Many standard definitions
+  and definitions pertaining to the server configuration are included at
+  installation time.</para>
  </section>
 
  <section>
   <title>Updating Directory Schema</title>
+
+  <para>OpenDJ directory server is designed to permit updating the list of
+  directory schema definitions while the server is running. As a result you can
+  add support for new applications that require new attributes or new kinds
+  of entries without interrupting the directory service. OpenDJ also replicates
+  schema definitions, so the schema you add on one replica are propagated to
+  other replicas without you having to intervene manually.</para>
   
-  <para>TODO</para>
+  <para>As it is easy to introduce typos into schema definitions, the
+  best way to start defining your own schema is with the OpenDJ Control
+  Panel. Open the Control Panel &gt; Schema &gt; Manage Schema window to
+  get started creating your custom object classes and attribute types.</para>
+  
+  <mediaobject>
+   <imageobject>
+    <imagedata fileref="images/Manage-Schema.png" format="PNG" />
+   </imageobject>
+  </mediaobject>
+  
+  <para>As object classes reference attribute types, you first create
+  custom attribute types, and then create the object class that references
+  the attribute types.</para>
+  
+  <para>Create a custom attribute type through the New Attribute window.</para>
+  
+  <mediaobject>
+   <imageobject>
+    <imagedata fileref="images/custom-attrtype.png" format="PNG" />
+   </imageobject>
+  </mediaobject>
+  
+  <para>Using the New Object Class window, create an auxiliary object class
+  that allows your new custom attribute type. You set the type to Auxiliary
+  under Extra Options.</para>
+
+  <mediaobject>
+   <imageobject>
+    <imagedata fileref="images/custom-objclass.png" format="PNG" />
+   </imageobject>
+  </mediaobject>
+  
+  <para>When you finish, the schema changes show up by default in the file
+  <filename>config/schema/99-user.ldif</filename>. You can create this file
+  in the lab using the Control Panel, and then apply the definitions in
+  production by adapting the content for use with the
+  <command>ldapmodify</command> command, for example.</para>
+  
+  <screen width="80">$ cat config/schema/99-user.ldif 
+dn: cn=schema
+objectClass: top
+objectClass: ldapSubentry
+objectClass: subschema
+cn: schema
+attributeTypes: ( temporary-fake-attr-id NAME 'myCustomAttribute' EQUALITY case
+ IgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstrings
+ Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 USAGE userApplications )
+objectClasses: ( temporary-fake-oc-id NAME 'myCustomObjClass
+ ' SUP top AUXILIARY MAY myCustomAttribute )
+modifiersName: cn=Directory Manager,cn=Root DNs,cn=config
+modifyTimestamp: 20110620095948Z
+</screen>
+
+  <para>To test your schema definition, add the object class and attribute
+  to an entry.</para>
+  
+  <screen width="80">$ cat custom-attr.ldif 
+dn: uid=bjensen,ou=People,dc=example,dc=com
+changetype: modify
+add: objectClass
+objectClass: myCustomObjClass
+-
+add: myCustomAttribute
+myCustomAttribute: Testing 1, 2, 3...
+
+$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -f custom-attr.ldif
+Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com
+MODIFY operation successful for DN uid=bjensen,ou=People,dc=example,dc=com
+$ ldapsearch -p 1389 -b dc=example,dc=com uid=bjensen myCustomAttribute
+dn: uid=bjensen,ou=People,dc=example,dc=com
+myCustomAttribute: Testing 1, 2, 3...
+</screen>
+ </section>
+ 
+ <section>
+  <title>Relaxing Schema Checking to Import Legacy Data</title>
+  
+  <para>By default, OpenDJ accepts data that follows the standards in terms of
+  what is allowed and what is rejected. You might have legacy data from a
+  directory service that is more lenient, allowing non-standard constructions
+  such as multiple structural object classes per entry, not checking attribute
+  value syntax, or even not respecting schema definitions.</para>
+  
+  <para>For example, when importing data with multiple structural object
+  classes defined per entry, you can relax schema checking to warn rather
+  than reject entries having this issue.</para>
+  
+  <screen width="80">$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password \
+&gt; set-global-configuration-prop
+--set single-structural-objectclass-behavior:warn -X -n</screen>
+
+  <para>You can allow attribute values that do not respect the defined syntax
+  with the <command>dsconfig</command> command as well.</para>
+  
+  <screen width="80">$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password \
+&gt; set-global-configuration-prop
+--set invalid-attribute-syntax-behavior:warn -X -n</screen>
+
+  <para>You can even turn off schema checking altogether, although turning
+  off schema checking only really makes sense when you are absolutely sure
+  that the entries and attribute values respect the schema definitions, and
+  you simply want to turn off schema checking temporarily to speed up import
+  processing.</para>
+  
+  <screen width="80">$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password \
+&gt; set-global-configuration-prop --set check-schema:false -X -n</screen>
  </section>
 
  <section>
   <title>Standard Schema Included With OpenDJ</title>
   
-  <para>TODO</para>
+  <para>The following files under <filename>config/schema/</filename>
+  contain schema definitions out of the box.</para>
+  
+  <variablelist>
+   <varlistentry>
+    <term>
+     <filename>00-core.ldif</filename>
+    </term>
+    <listitem>
+     <para>This file contains a core set of attribute type and objectlass
+     definitions from several standard LDAP documents, including
+     draft-ietf-boreham-numsubordinates, draft-findlay-ldap-groupofentries,
+     draft-furuseth-ldap-untypedobject, draft-good-ldap-changelog,
+     draft-ietf-ldup-subentry, draft-wahl-ldap-adminaddr, RFC 1274, RFC 2079,
+     RFC 2256, RFC 2798, RFC 3045, RFC 3296, RFC 3671, RFC 3672, RFC 4512,
+     RFC 4519, RFC 4523, RFC 4524, RFC 4530, RFC 5020, and X.501.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>
+     <filename>01-pwpolicy.ldif</filename>
+    </term>
+    <listitem>
+     <para>This file contains schema definitions from
+     draft-behera-ldap-password-policy, which defines a mechanism for storing
+     password policy information in an LDAP directory server.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>
+     <filename>02-config.ldif</filename>
+    </term>
+    <listitem>
+     <para>This file contains the attribute type and objectclass definitions
+     for use with the directory server configuration.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>
+     <filename>03-changelog.ldif</filename>
+    </term>
+    <listitem>
+     <para>This file contains schema definitions from
+     draft-good-ldap-changelog, which defines a mechanism for storing
+     information about changes to directory server data.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>
+     <filename>03-rfc2713.ldif</filename>
+    </term>
+    <listitem>
+     <para>This file contains schema definitions from RFC 2713, which defines a
+     mechanism for storing serialized Java objects in the directory
+     server.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>
+     <filename>03-rfc2714.ldif</filename>
+    </term>
+    <listitem>
+     <para>This file contains schema definitions from RFC 2714, which defines a
+     mechanism for storing CORBA objects in the directory server.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>
+     <filename>03-rfc2739.ldif</filename>
+    </term>
+    <listitem>
+     <para>This file contains schema definitions from RFC 2739, which defines a
+     mechanism for storing calendar and vCard objects in the directory server.
+     Note that the definition in RFC 2739 contains a number of errors, and this
+     schema file has been altered from the standard definition in order to fix
+     a number of those problems.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>
+     <filename>03-rfc2926.ldif</filename>
+    </term>
+    <listitem>
+     <para>This file contains schema definitions from RFC 2926, which defines a
+     mechanism for mapping between Service Location Protocol (SLP)
+     advertisements and LDAP.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>
+     <filename>03-rfc3112.ldif</filename>
+    </term>
+    <listitem>
+     <para>This file contains schema definitions from RFC 3112, which defines
+     the authentication password schema.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>
+     <filename>03-rfc3712.ldif</filename>
+    </term>
+    <listitem>
+     <para>This file contains schema definitions from RFC 3712, which defines a
+     mechanism for storing printer information in the directory server.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>
+     <filename>03-uddiv3.ldif</filename>
+    </term>
+    <listitem>
+     <para>This file contains schema definitions from RFC 4403,
+     which defines a mechanism for storing UDDIv3 information in the directory
+     server.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>
+     <filename>04-rfc2307bis.ldif</filename>
+    </term>
+    <listitem>
+     <para>This file contains schema definitions from the
+     draft-howard-rfc2307bis specification, used to store naming service
+     information in the directory server.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>
+     <filename>05-rfc4876.ldif</filename>
+    </term>
+    <listitem>
+     <para>This file contains schema definitions from RFC 4876, which defines
+     a schema for storing Directory User Agent (DUA) profiles and preferences
+     in the directory server.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>
+     <filename>05-solaris.ldif</filename>
+    </term>
+    <listitem>
+     <para>This file contains schema definitions required for Solaris and
+     OpenSolaris LDAP naming services.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>
+     <filename>06-compat.ldif</filename>
+    </term>
+    <listitem>
+     <para>This file contains the attribute type and objectclass definitions
+     for use with the directory server configuration.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
  </section>
-
 </chapter>
 
