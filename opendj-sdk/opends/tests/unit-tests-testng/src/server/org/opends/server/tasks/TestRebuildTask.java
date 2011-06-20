@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.tasks;
 
@@ -87,10 +88,12 @@ public class TestRebuildTask extends TasksTestCase
   @BeforeClass
   public void setup() throws Exception {
     TestCaseUtils.startServer();
+    TestCaseUtils.enableBackend("rebuildRoot");
   }
 
   @AfterClass
   public void cleanUp() throws Exception {
+    TestCaseUtils.disableBackend("rebuildRoot");    
   }
 
   @DataProvider(name = "taskentry")
