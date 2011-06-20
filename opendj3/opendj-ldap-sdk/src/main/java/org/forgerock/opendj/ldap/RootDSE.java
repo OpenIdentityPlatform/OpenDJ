@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -168,7 +169,7 @@ public final class RootDSE
       protected RootDSE transformResult(final SearchResultEntry result)
           throws ErrorResultException
       {
-        return new RootDSE(result);
+        return valueOf(result);
       }
 
     };
@@ -210,6 +211,27 @@ public final class RootDSE
       NullPointerException
   {
     final Entry entry = connection.searchSingleEntry(SEARCH_REQUEST);
+    return valueOf(entry);
+  }
+
+
+
+  /**
+   * Creates a new Root DSE instance backed by the provided entry. Modifications
+   * made to {@code entry} will be reflected in the returned Root DSE. The
+   * returned Root DSE instance is unmodifiable and attempts to use modify any
+   * of the returned collections will result in a
+   * {@code UnsupportedOperationException}.
+   *
+   * @param entry
+   *          The Root DSE entry.
+   * @return A Root DSE instance backed by the provided entry.
+   * @throws NullPointerException
+   *           If {@code entry} was {@code null} .
+   */
+  public static RootDSE valueOf(Entry entry) throws NullPointerException
+  {
+    Validator.ensureNotNull(entry);
     return new RootDSE(entry);
   }
 
@@ -219,21 +241,9 @@ public final class RootDSE
 
 
 
-  /**
-   * Creates a new Root DSE instance backed by the provided entry. Modifications
-   * made to {@code entry} will be reflected in the returned Root DSE. The
-   * returned Root DSE instance is unmodifiable and attempts to use modify any
-   * of the returned collections will result in a {@code
-   * UnsupportedOperationException}.
-   *
-   * @param entry
-   *          The Root DSE entry.
-   * @throws NullPointerException
-   *           If {@code entry} was {@code null} .
-   */
-  public RootDSE(final Entry entry) throws NullPointerException
+  // Prevent direct instantiation.
+  private RootDSE(final Entry entry) throws NullPointerException
   {
-    Validator.ensureNotNull(entry);
     this.entry = entry;
   }
 

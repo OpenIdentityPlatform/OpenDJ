@@ -31,10 +31,7 @@ package org.forgerock.opendj.examples.schema;
 
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.ErrorResultException;
-import org.forgerock.opendj.ldap.LDAPConnectionFactory;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.schema.*;
 
 
@@ -81,7 +78,7 @@ public final class Main
       connection.bind(userName, password.toCharArray());
 
       // Read the schema.
-      Schema schema = connection.readSchemaForRootDSE();
+      Schema schema = Schema.readSchemaForEntry(connection, DN.rootDN());
 
       System.out.println("Attribute types");
       for (AttributeType at : schema.getAttributeTypes())

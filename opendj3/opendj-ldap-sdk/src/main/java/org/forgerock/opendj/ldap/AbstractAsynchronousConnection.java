@@ -30,9 +30,7 @@ package org.forgerock.opendj.ldap;
 
 
 
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_NO_SEARCH_RESULT_ENTRIES;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_UNEXPECTED_SEARCH_RESULT_REFERENCES;
+import static org.forgerock.opendj.ldap.CoreMessages.*;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.util.Collection;
@@ -41,7 +39,6 @@ import java.util.concurrent.TimeoutException;
 
 import org.forgerock.opendj.ldap.requests.*;
 import org.forgerock.opendj.ldap.responses.*;
-import org.forgerock.opendj.ldap.schema.Schema;
 
 
 
@@ -347,44 +344,11 @@ public abstract class AbstractAsynchronousConnection implements
   {
     final SearchRequest request = Requests.newSearchRequest(name,
         SearchScope.BASE_OBJECT, Filter.getObjectClassPresentFilter());
-    request.getAttributes().addAll(attributeDescriptions);
+    if (attributeDescriptions != null)
+    {
+      request.getAttributes().addAll(attributeDescriptions);
+    }
     return searchSingleEntry(request, handler);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public FutureResult<RootDSE> readRootDSE(
-      final ResultHandler<? super RootDSE> handler)
-      throws UnsupportedOperationException, IllegalStateException
-  {
-    return RootDSE.readRootDSE(this, handler);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public FutureResult<Schema> readSchema(final DN name,
-      final ResultHandler<? super Schema> handler)
-      throws UnsupportedOperationException, IllegalStateException
-  {
-    return Schema.readSchema(this, name, handler);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public FutureResult<Schema> readSchemaForEntry(final DN name,
-      final ResultHandler<? super Schema> handler)
-      throws UnsupportedOperationException, IllegalStateException
-  {
-    return Schema.readSchemaForEntry(this, name, handler);
   }
 
 

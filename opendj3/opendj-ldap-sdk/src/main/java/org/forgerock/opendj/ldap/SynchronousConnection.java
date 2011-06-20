@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -33,7 +34,6 @@ import java.util.concurrent.BlockingQueue;
 
 import org.forgerock.opendj.ldap.requests.*;
 import org.forgerock.opendj.ldap.responses.*;
-import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 
 import com.forgerock.opendj.util.Validator;
@@ -295,29 +295,6 @@ public class SynchronousConnection extends AbstractConnection
       NullPointerException
   {
     final FutureResult<Result> future = connection.modifyDN(request, null);
-    try
-    {
-      return future.get();
-    }
-    finally
-    {
-      // Cancel the request if it hasn't completed.
-      future.cancel(false);
-    }
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Schema readSchemaForEntry(final DN name) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException
-  {
-    final FutureResult<Schema> future = connection.readSchemaForEntry(name,
-        null);
     try
     {
       return future.get();

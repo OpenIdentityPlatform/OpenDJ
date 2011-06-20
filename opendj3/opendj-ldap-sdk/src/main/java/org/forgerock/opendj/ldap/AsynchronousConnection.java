@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -34,7 +35,6 @@ import java.util.Collection;
 
 import org.forgerock.opendj.ldap.requests.*;
 import org.forgerock.opendj.ldap.responses.*;
-import org.forgerock.opendj.ldap.schema.Schema;
 
 
 
@@ -663,87 +663,6 @@ public interface AsynchronousConnection extends Closeable
       ResultHandler<? super SearchResultEntry> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
-
-
-
-  /**
-   * Reads the Root DSE from the Directory Server.
-   * <p>
-   * If the Root DSE is not returned by the Directory Server then the request
-   * will fail with an {@link EntryNotFoundException}. More specifically, the
-   * returned future will never return {@code null}.
-   *
-   * @param handler
-   *          A result handler which can be used to asynchronously process the
-   *          operation result when it is received, may be {@code null}.
-   * @return A future representing the result of the operation.
-   * @throws UnsupportedOperationException
-   *           If this connection does not support search operations.
-   * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if
-   *           {@code isClosed() == true}.
-   */
-  FutureResult<RootDSE> readRootDSE(ResultHandler<? super RootDSE> handler)
-      throws UnsupportedOperationException, IllegalStateException;
-
-
-
-  /**
-   * Reads the schema from the Directory Server contained in the named subschema
-   * sub-entry.
-   * <p>
-   * If the requested schema is not returned by the Directory Server then the
-   * request will fail with an {@link EntryNotFoundException}. More
-   * specifically, the returned future will never return {@code null}.
-   * <p>
-   * Implementations may choose to perform optimizations such as caching.
-   *
-   * @param name
-   *          The distinguished name of the subschema sub-entry.
-   * @param handler
-   *          A result handler which can be used to asynchronously process the
-   *          operation result when it is received, may be {@code null}.
-   * @return A future representing the result of the operation.
-   * @throws UnsupportedOperationException
-   *           If this connection does not support search operations.
-   * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if
-   *           {@code isClosed() == true}.
-   */
-  FutureResult<Schema> readSchema(DN name, ResultHandler<? super Schema> handler)
-      throws UnsupportedOperationException, IllegalStateException;
-
-
-
-  /**
-   * Reads the schema from the Directory Server which applies to the named
-   * entry.
-   * <p>
-   * If the requested entry or its associated schema are not returned by the
-   * Directory Server then the request will fail with an
-   * {@link EntryNotFoundException}. More specifically, the returned future will
-   * never return {@code null}.
-   * <p>
-   * A typical implementation will first read the {@code subschemaSubentry}
-   * attribute of the entry in order to locate the schema. However,
-   * implementations may choose to perform other optimizations, such as caching.
-   *
-   * @param name
-   *          The distinguished name of the entry whose schema is to be located.
-   * @param handler
-   *          A result handler which can be used to asynchronously process the
-   *          operation result when it is received, may be {@code null}.
-   *          Optional additional handler parameter.
-   * @return A future representing the result of the operation.
-   * @throws UnsupportedOperationException
-   *           If this connection does not support search operations.
-   * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if
-   *           {@code isClosed() == true}.
-   */
-  FutureResult<Schema> readSchemaForEntry(DN name,
-      ResultHandler<? super Schema> handler)
-      throws UnsupportedOperationException, IllegalStateException;
 
 
 

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -36,7 +37,6 @@ import java.util.concurrent.BlockingQueue;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.requests.*;
 import org.forgerock.opendj.ldap.responses.*;
-import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 
 
@@ -774,197 +774,6 @@ public interface Connection extends Closeable
       throws ErrorResultException, InterruptedException,
       LocalizedIllegalArgumentException, UnsupportedOperationException,
       IllegalStateException, NullPointerException;
-
-
-
-  /**
-   * Reads the Root DSE from the Directory Server.
-   * <p>
-   * If the Root DSE is not returned by the Directory Server then the request
-   * will fail with an {@link EntryNotFoundException}. More specifically, this
-   * method will never return {@code null}.
-   *
-   * @return The Directory Server's Root DSE.
-   * @throws ErrorResultException
-   *           If the result code indicates that the request failed for some
-   *           reason.
-   * @throws InterruptedException
-   *           If the current thread was interrupted while waiting.
-   * @throws UnsupportedOperationException
-   *           If this connection does not support search operations.
-   * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
-   */
-  RootDSE readRootDSE() throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException;
-
-
-
-  /**
-   * Reads the schema from the Directory Server contained in the named subschema
-   * sub-entry.
-   * <p>
-   * If the requested schema is not returned by the Directory Server then the
-   * request will fail with an {@link EntryNotFoundException}. More
-   * specifically, this method will never return {@code null}.
-   * <p>
-   * Implementations may choose to perform optimizations such as caching.
-   *
-   * @param name
-   *          The distinguished name of the subschema sub-entry.
-   * @return The schema from the Directory Server.
-   * @throws ErrorResultException
-   *           If the result code indicates that the request failed for some
-   *           reason.
-   * @throws InterruptedException
-   *           If the current thread was interrupted while waiting.
-   * @throws UnsupportedOperationException
-   *           If this connection does not support search operations.
-   * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
-   */
-  Schema readSchema(DN name) throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException;
-
-
-
-  /**
-   * Reads the schema from the Directory Server contained in the named subschema
-   * sub-entry.
-   * <p>
-   * If the requested schema is not returned by the Directory Server then the
-   * request will fail with an {@link EntryNotFoundException}. More
-   * specifically, this method will never return {@code null}.
-   * <p>
-   * Implementations may choose to perform optimizations such as caching.
-   *
-   * @param name
-   *          The distinguished name of the subschema sub-entry.
-   * @return The schema from the Directory Server.
-   * @throws ErrorResultException
-   *           If the result code indicates that the request failed for some
-   *           reason.
-   * @throws LocalizedIllegalArgumentException
-   *           If {@code name} could not be decoded using the default schema.
-   * @throws InterruptedException
-   *           If the current thread was interrupted while waiting.
-   * @throws UnsupportedOperationException
-   *           If this connection does not support search operations.
-   * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
-   */
-  Schema readSchema(String name) throws ErrorResultException,
-      InterruptedException, LocalizedIllegalArgumentException,
-      UnsupportedOperationException, IllegalStateException;
-
-
-
-  /**
-   * Reads the schema from the Directory Server which applies to the named
-   * entry.
-   * <p>
-   * If the requested entry or its associated schema are not returned by the
-   * Directory Server then the request will fail with an
-   * {@link EntryNotFoundException}. More specifically, this method will never
-   * return {@code null}.
-   * <p>
-   * A typical implementation will first read the {@code subschemaSubentry}
-   * attribute of the entry in order to locate the schema. However,
-   * implementations may choose to perform other optimizations, such as caching.
-   *
-   * @param name
-   *          The distinguished name of the entry whose schema is to be located.
-   * @return The schema from the Directory Server which applies to the named
-   *         entry.
-   * @throws ErrorResultException
-   *           If the result code indicates that the request failed for some
-   *           reason.
-   * @throws InterruptedException
-   *           If the current thread was interrupted while waiting.
-   * @throws UnsupportedOperationException
-   *           If this connection does not support search operations.
-   * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
-   */
-  Schema readSchemaForEntry(DN name) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException;
-
-
-
-  /**
-   * Reads the schema from the Directory Server which applies to the named
-   * entry.
-   * <p>
-   * If the requested entry or its associated schema are not returned by the
-   * Directory Server then the request will fail with an
-   * {@link EntryNotFoundException}. More specifically, this method will never
-   * return {@code null}.
-   * <p>
-   * A typical implementation will first read the {@code subschemaSubentry}
-   * attribute of the entry in order to locate the schema. However,
-   * implementations may choose to perform other optimizations, such as caching.
-   *
-   * @param name
-   *          The distinguished name of the entry whose schema is to be located.
-   * @return The schema from the Directory Server which applies to the named
-   *         entry.
-   * @throws ErrorResultException
-   *           If the result code indicates that the request failed for some
-   *           reason.
-   * @throws LocalizedIllegalArgumentException
-   *           If {@code name} could not be decoded using the default schema.
-   * @throws InterruptedException
-   *           If the current thread was interrupted while waiting.
-   * @throws UnsupportedOperationException
-   *           If this connection does not support search operations.
-   * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
-   */
-  Schema readSchemaForEntry(String name) throws ErrorResultException,
-      InterruptedException, LocalizedIllegalArgumentException,
-      UnsupportedOperationException, IllegalStateException;
-
-
-
-  /**
-   * Reads the schema from the Directory Server which applies to the Root DSE.
-   * <p>
-   * If the requested schema is not returned by the Directory Server then the
-   * request will fail with an {@link EntryNotFoundException}. More
-   * specifically, this method will never return {@code null}.
-   * <p>
-   * A typical implementation will first read the {@code subschemaSubentry}
-   * attribute of the Root DSE in order to locate the schema. However,
-   * implementations may choose to perform other optimizations, such as caching.
-   * <p>
-   * This method is equivalent to the following code:
-   *
-   * <pre>
-   * connection.readSchemaForEntry(DN.rootDN());
-   * </pre>
-   *
-   * @return The schema from the Directory Server which applies to the named
-   *         entry.
-   * @throws ErrorResultException
-   *           If the result code indicates that the request failed for some
-   *           reason.
-   * @throws InterruptedException
-   *           If the current thread was interrupted while waiting.
-   * @throws UnsupportedOperationException
-   *           If this connection does not support search operations.
-   * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
-   */
-  Schema readSchemaForRootDSE() throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException;
 
 
 

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -42,7 +43,6 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.*;
-import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 
 import com.forgerock.opendj.util.Validator;
@@ -253,79 +253,6 @@ public abstract class AbstractConnection implements Connection
       NullPointerException
   {
     return readEntry(DN.valueOf(baseObject));
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public RootDSE readRootDSE() throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException
-  {
-    return RootDSE.readRootDSE(this);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public Schema readSchema(final DN name) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException
-  {
-    return Schema.readSchema(this, name);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public Schema readSchema(final String name) throws ErrorResultException,
-      InterruptedException, LocalizedIllegalArgumentException,
-      UnsupportedOperationException, IllegalStateException
-  {
-    return readSchema(DN.valueOf(name));
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public Schema readSchemaForEntry(final DN name) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException
-  {
-    return Schema.readSchemaForEntry(this, name);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public Schema readSchemaForEntry(final String name)
-      throws ErrorResultException, InterruptedException,
-      LocalizedIllegalArgumentException, UnsupportedOperationException,
-      IllegalStateException
-  {
-    return readSchemaForEntry(DN.valueOf(name));
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public Schema readSchemaForRootDSE() throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException
-  {
-    return readSchemaForEntry(DN.rootDN());
   }
 
 

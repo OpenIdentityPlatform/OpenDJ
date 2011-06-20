@@ -263,7 +263,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase
     final AsynchronousConnection con = future.get();
     // quickly check if it is a valid connection.
     // Don't use a result handler.
-    assertNotNull(con.readRootDSE(null).get());
+    assertNotNull(con.readEntry(DN.rootDN(), null, null).get());
     con.close();
   }
 
@@ -306,7 +306,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase
     final Connection con = factory.getConnection();
     assertNotNull(con);
     // quickly check if it is a valid connection.
-    assertTrue(con.readRootDSE().getEntry().getName().isRootDN());
+    assertTrue(con.readEntry("").getName().isRootDN());
     con.close();
   }
 
