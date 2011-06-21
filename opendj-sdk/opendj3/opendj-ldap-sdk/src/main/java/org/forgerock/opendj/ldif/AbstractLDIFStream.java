@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldif;
@@ -39,7 +40,6 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Matcher;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.schema.Schema;
 
 
 
@@ -56,8 +56,6 @@ abstract class AbstractLDIFStream
   boolean excludeUserAttributes = false;
 
   final Set<AttributeDescription> includeAttributes = new HashSet<AttributeDescription>();
-
-  Schema schema = Schema.getDefaultSchema();
 
   final Set<DN> includeBranches = new HashSet<DN>();
 

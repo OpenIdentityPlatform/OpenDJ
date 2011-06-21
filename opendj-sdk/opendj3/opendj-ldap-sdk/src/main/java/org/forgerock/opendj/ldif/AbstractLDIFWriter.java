@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldif;
@@ -39,6 +40,7 @@ import java.util.regex.Pattern;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.controls.Control;
+import org.forgerock.opendj.ldap.schema.Schema;
 
 import com.forgerock.opendj.util.Base64;
 import com.forgerock.opendj.util.Validator;
@@ -252,6 +254,8 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
   int wrapColumn = 0;
 
   private final StringBuilder builder = new StringBuilder(80);
+
+  Schema schema = Schema.getDefaultSchema();
 
 
 

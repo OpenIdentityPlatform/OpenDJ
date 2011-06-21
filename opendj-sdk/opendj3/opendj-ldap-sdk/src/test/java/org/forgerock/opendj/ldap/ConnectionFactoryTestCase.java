@@ -345,7 +345,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase
                   + "caseIgnoreIA5Match SUBSTR caseIgnoreIA5SubstringsMatch "
                   + "SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} )",
               false);
-      final Schema testSchema = builder.toSchema().nonStrict();
+      final Schema testSchema = builder.toSchema().asNonStrictSchema();
       assertThat(testSchema.getWarnings()).isEmpty();
       Schema.setDefaultSchema(testSchema);
 

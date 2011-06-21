@@ -784,6 +784,9 @@ public final class AttributeDescription implements
    * @param attributeDescription
    *          The LDAP string representation of an attribute description.
    * @return The parsed attribute description.
+   * @throws UnknownSchemaElementException
+   *           If {@code attributeDescription} contains an attribute type which
+   *           is not contained in the default schema and the schema is strict.
    * @throws LocalizedIllegalArgumentException
    *           If {@code attributeDescription} is not a valid LDAP string
    *           representation of an attribute description.
@@ -791,7 +794,8 @@ public final class AttributeDescription implements
    *           If {@code attributeDescription} was {@code null}.
    */
   public static AttributeDescription valueOf(final String attributeDescription)
-      throws LocalizedIllegalArgumentException, NullPointerException
+      throws UnknownSchemaElementException, LocalizedIllegalArgumentException,
+      NullPointerException
   {
     return valueOf(attributeDescription, Schema.getDefaultSchema());
   }
@@ -807,17 +811,20 @@ public final class AttributeDescription implements
    * @param schema
    *          The schema to use when parsing the attribute description.
    * @return The parsed attribute description.
+   * @throws UnknownSchemaElementException
+   *           If {@code attributeDescription} contains an attribute type which
+   *           is not contained in the provided schema and the schema is strict.
    * @throws LocalizedIllegalArgumentException
    *           If {@code attributeDescription} is not a valid LDAP string
    *           representation of an attribute description.
    * @throws NullPointerException
-   *           If {@code attributeDescription} or {@code schema} was {@code
-   *           null}.
+   *           If {@code attributeDescription} or {@code schema} was
+   *           {@code null}.
    */
   @SuppressWarnings("serial")
   public static AttributeDescription valueOf(final String attributeDescription,
-      final Schema schema) throws LocalizedIllegalArgumentException,
-      NullPointerException
+      final Schema schema) throws UnknownSchemaElementException,
+      LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(attributeDescription, schema);
 
@@ -1005,17 +1012,7 @@ public final class AttributeDescription implements
     }
 
     // Get the attribute type from the schema.
-    final AttributeType attributeType;
-    try
-    {
-      attributeType = schema.getAttributeType(oid);
-    }
-    catch (final UnknownSchemaElementException e)
-    {
-      final LocalizableMessage message = ERR_ATTRIBUTE_DESCRIPTION_TYPE_NOT_FOUND
-          .get(attributeDescription, e.getMessageObject());
-      throw new LocalizedIllegalArgumentException(message);
-    }
+    final AttributeType attributeType = schema.getAttributeType(oid);
 
     // If we're already at the end of the attribute description then it
     // does not contain any options.
