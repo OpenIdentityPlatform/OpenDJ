@@ -88,7 +88,6 @@
    <xinclude:include href='../shared/man-encode-password.xml' />
    <xinclude:include href='../shared/man-export-ldif.xml' />
    <xinclude:include href='../shared/man-import-ldif.xml' />
-   <xinclude:include href='../shared/man-install.xml' />
    <xinclude:include href='../shared/man-ldapcompare.xml' />
    <xinclude:include href='../shared/man-ldapdelete.xml' />
    <xinclude:include href='../shared/man-ldapmodify.xml' />
@@ -107,6 +106,7 @@
    <xinclude:include href='../shared/man-start-ds.xml' />
    <xinclude:include href='../shared/man-status.xml' />
    <xinclude:include href='../shared/man-stop-ds.xml' />
+   <xinclude:include href='../shared/man-uninstall.xml' />
    <xinclude:include href='../shared/man-upgrade.xml' />
    <xinclude:include href='../shared/man-verify-index.xml' />
  </reference>

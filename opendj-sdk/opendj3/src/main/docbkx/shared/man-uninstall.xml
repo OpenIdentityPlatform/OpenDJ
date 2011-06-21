@@ -23,7 +23,7 @@
   !      Copyright 2011 ForgeRock AS
   !    
 -->
-<refentry xml:id='status-1'
+<refentry xml:id='uninstall-1'
  xmlns='http://docbook.org/ns/docbook'
  version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
@@ -31,25 +31,87 @@
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <refmeta>
-  <refentrytitle>status</refentrytitle><manvolnum>1</manvolnum>
+  <refentrytitle>uninstall</refentrytitle><manvolnum>1</manvolnum>
  </refmeta>
  <refnamediv>
-  <refname>status</refname>
-  <refpurpose>display basic OpenDJ server information</refpurpose>
+  <refname>uninstall</refname>
+  <refpurpose>remove OpenDJ directory server software</refpurpose>
  </refnamediv>
  <refsynopsisdiv>
   <cmdsynopsis>
-   <command>status</command>
+   <command>uninstall</command>
    <arg choice="opt">options</arg>
   </cmdsynopsis>
  </refsynopsisdiv>
  <refsect1>
   <title>Description</title>
-  <para>This utility can be used to display basic server information.</para>
+  <para>This utility can be used to uninstall the directory server.</para>
  </refsect1>
  <refsect1>
   <title>Options</title>
   <para>The following options are supported.</para>
+  <variablelist>
+   <varlistentry>
+    <term><option>-a, --remove-all</option></term>
+    <listitem>
+     <para>Remove all components of the server (this option is not compatible
+     with the rest of remove options)</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-b, --backup-files</option></term>
+    <listitem>
+     <para>Remove backup files</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-c, --configuration-files</option></term>
+    <listitem>
+     <para>Remove configuration files</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-d, --databases</option></term>
+    <listitem>
+     <para>Remove database contents</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-e, --ldif-files</option></term>
+    <listitem>
+     <para>Remove LDIF files</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-f, --forceOnError</option></term>
+    <listitem>
+     <para>Specifies whether the uninstall should continue if there is an error
+    updating references to this server in remote server instances or not.  This
+    option can only be used with the --no-prompt option.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-i, --cli</option></term>
+    <listitem>
+     <para>Specifies to use the command line install.  If not specified the
+     graphical interface will be launched.  The rest of the options (excluding
+     help and version) will only be taken into account if this option is
+     specified</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-l, --server-libraries</option></term>
+    <listitem>
+     <para>Remove Server Libraries and Administrative Tools</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-L, --log-files</option></term>
+    <listitem>
+     <para>Remove log files</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
   <refsect2>
    <title>LDAP Connection Options</title>
    <variablelist>
@@ -62,10 +124,19 @@
      </listitem>
     </varlistentry>
     <varlistentry>
-     <term><option>-D, --bindDN {bindDN}</option></term>
+     <term><option>-h, --referencedHostName {host}</option></term>
      <listitem>
-      <para>DN to use to bind to the server</para>
-      <para>Default value: cn=Directory Manager</para>
+      <para>The name of this host (or IP address) as it is referenced in remote
+      servers for replication</para>
+      <para>Default value: localhost.localdomain</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-I, --adminUID {adminUID}</option></term>
+     <listitem>
+      <para>User ID of the Global Administrator to use to bind to the
+      server.</para>
+      <para>Default value: admin</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -154,17 +225,23 @@
      </listitem>
     </varlistentry>
     <varlistentry>
-     <term><option>-r, --refresh {period}</option></term>
+     <term><option>--propertiesFilePath {propertiesFilePath}</option></term>
      <listitem>
-      <para>When this argument is specified, the status command will display
-      its contents periodically.  Used to specify the period (in seconds)
-      between two status displays</para>
+      <para>Path to the file containing default property values used for
+      command line arguments</para>
      </listitem>
     </varlistentry>
     <varlistentry>
-     <term><option>-s, --script-friendly</option></term>
+     <term><option>-Q, --quiet</option></term>
      <listitem>
-      <para>Use script-friendly mode</para>
+      <para>Run setup in quiet mode.  Quiet mode will not output progress
+      information to standard output</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><option>-v, --verbose</option></term>
+     <listitem>
+      <para>Use verbose mode</para>
      </listitem>
     </varlistentry>
    </variablelist>
@@ -206,47 +283,18 @@
  </refsect1>
  <refsect1>
   <title>Examples</title>
-  <screen width="80">$ status -D "cn=Directory Manager" -w password
+  <para>The following command removes OpenDJ directory server without
+  interaction.</para>
+  <screen width="80">$ ./OpenDJ/uninstall -a --cli -I admin -w password -n
 
-          --- Server Status ---
-Server Run Status:        Started
-Open Connections:         1
+Stopping Directory Server ..... Done.
+Deleting Files under the Installation Path ..... Done.
 
-          --- Server Details ---
-Host Name:                localhost.localdomain
-Administrative Users:     cn=Directory Manager
-Installation Path:        /path/to/OpenDJ
-Version:                  OpenDJ <?eval ${project.version}?>
-Java Version:             1.6.0_24
-Administration Connector: Port 4444 (LDAPS)
-
-          --- Connection Handlers ---
-Address:Port : Protocol    : State
--------------:-------------:---------
---           : LDIF        : Disabled
-9989         : Replication : Enabled
-0.0.0.0:161  : SNMP        : Disabled
-0.0.0.0:636  : LDAPS       : Disabled
-0.0.0.0:1389 : LDAP        : Enabled
-0.0.0.0:1689 : JMX         : Disabled
-
-          --- Data Sources ---
-Base DN:                      dc=example,dc=com
-Backend ID:                   userRoot
-Entries:                      160
-Replication:                  Enabled
-Missing Changes:              0
-Age of Oldest Missing Change: &lt;not available&gt;
-
-Base DN:     dc=myCompany,dc=com
-Backend ID:  myCompanyRoot
-Entries:     3
-Replication: Disabled
-
-Base DN:     o=myOrg
-Backend ID:  myOrgRoot
-Entries:     3
-Replication: Disabled
-</screen>
+The Uninstall Completed Successfully.
+To complete the uninstallation, you must delete manually the following files
+and directories:
+/path/to/OpenDJ/lib
+See /var/.../opends-uninstall-3...0.log for a detailed log of this operation.
+$ rm -rf OpenDJ</screen>
  </refsect1>
 </refentry>
