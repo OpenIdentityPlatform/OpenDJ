@@ -35,72 +35,98 @@
  </refmeta>
  <refnamediv>
   <refname>start-ds</refname>
-  <refpurpose>TODO one-line description</refpurpose>
+  <refpurpose>start OpenDJ directory server</refpurpose>
  </refnamediv>
  <refsynopsisdiv>
   <cmdsynopsis>
    <command>start-ds</command>
-   <command><replaceable>subcommand</replaceable></command>
-   <arg choice="opt">--options</arg>
+   <arg choice="opt">options</arg>
   </cmdsynopsis>
  </refsynopsisdiv>
  <refsect1>
   <title>Description</title>
-  <para>TODO description.</para>
+  <para>This utility can be used to start the directory server, as well as to
+  obtain the server version and other forms of general server
+  information.</para>
  </refsect1>
  <refsect1>
-  <title>Global Options</title>
-  <para>The following global options are supported.</para>
+  <title>Options</title>
+  <para>The following options are supported.</para>
   <variablelist>
    <varlistentry>
-    <term><option>TODO</option></term>
+    <term><option>-L, --useLastKnownGoodConfig</option></term>
     <listitem>
-     <para>TODO Description.</para>
+     <para>Attempt to start using the configuration that was in place at the
+     last successful startup (if it is available) rather than using the current
+     active configuration.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-N, --nodetach</option></term>
+    <listitem>
+     <para>Do not detach from the terminal and continue running in the
+     foreground. This option cannot be used with the -t, --timeout
+     option.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-Q, --quiet</option></term>
+    <listitem>
+     <para>Use quiet mode.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-s, --systemInfo</option></term>
+    <listitem>
+     <para>Display general system information.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-t, --timeout {seconds}</option></term>
+    <listitem>
+     <para>Maximum time (in seconds) to wait before the command returns (the
+     server continues the startup process, regardless). A value of '0'
+     indicates an infinite timeout, which means that the command returns only
+     when the server startup is completed. The default value is 60 seconds.
+     This option cannot be used with the -N, --nodetach option.</para>
+     <para>Default value: 200</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-V, --version</option></term>
+    <listitem>
+     <para>Display version information.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>-?, -H, --help</option></term>
+    <listitem>
+     <para>Display usage information.</para>
     </listitem>
    </varlistentry>
   </variablelist>
  </refsect1>
  <refsect1>
-  <title>Subcommands</title>
-  <para>The following subcommands are supported.</para>
-  <refsect2>
-   <para>TODO Description.</para>
-   <cmdsynopsis>
-    <command>start-ds</command>
-    <command>TODO</command>
-    <arg choice="opt">--options</arg>
-   </cmdsynopsis>
-   <variablelist>
-    <varlistentry>
-     <term><option>TODO</option></term>
-     <listitem>
-      <para>TODO description.</para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
-  </refsect2>
- </refsect1>
- <refsect1>
-  <title>Files</title>
-  <para>TODO if command has configuration file.</para>
- </refsect1>
- <refsect1>
-  <title>Environment</title>
-  <para>TODO if command reads environment variables.</para>
- </refsect1>
- <refsect1>
   <title>Exit Codes</title>
-   <variablelist>
-    <varlistentry>
-     <term>TODO exit code</term>
-     <listitem>
-      <para>TODO description.</para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
+  <variablelist>
+   <varlistentry>
+    <term>0</term>
+    <listitem>
+     <para>The command completed successfully.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>&gt; 0</term>
+    <listitem>
+     <para>An error occurred.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
  </refsect1>
  <refsect1>
   <title>Examples</title>
-  <para>TODO</para>
+  <para>The following command starts the server without displaying
+  information about the startup process.</para>
+  <screen width="80">$ start-ds -Q</screen>
  </refsect1>
 </refentry>
