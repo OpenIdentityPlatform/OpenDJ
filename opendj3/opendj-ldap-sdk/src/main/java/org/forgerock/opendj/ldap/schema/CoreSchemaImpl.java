@@ -91,7 +91,7 @@ final class CoreSchemaImpl
     addRFC3112(builder);
     addSunProprietary(builder);
 
-    SINGLETON = builder.toSchema().nonStrict();
+    SINGLETON = builder.toSchema().asNonStrictSchema();
   }
 
 

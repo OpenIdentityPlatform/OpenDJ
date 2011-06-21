@@ -39,8 +39,6 @@ import org.forgerock.opendj.ldap.Entry;
 
 /**
  * An interface for writing entries to a data source, typically an LDIF file.
- * <p>
- * TODO: FilteredChangeRecordWriter
  */
 public interface EntryWriter extends Closeable, Flushable
 {

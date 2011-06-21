@@ -43,8 +43,6 @@ import org.forgerock.opendj.ldap.requests.ModifyRequest;
 /**
  * An interface for writing change records to a data source, typically an LDIF
  * file.
- * <p>
- * TODO: FilteredChangeRecordWriter
  */
 public interface ChangeRecordWriter extends Closeable, Flushable
 {

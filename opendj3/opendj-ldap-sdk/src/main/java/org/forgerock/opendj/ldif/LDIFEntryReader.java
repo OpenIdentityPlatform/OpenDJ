@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldif;
@@ -34,6 +35,7 @@ import static org.forgerock.opendj.ldap.CoreMessages.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -361,6 +363,25 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
 
 
   /**
+   * Sets the rejected record listener which should be notified whenever a
+   * record is skipped, malformed, or fails schema validation.
+   * <p>
+   * By default the {@link RejectedRecordListener#FAIL_FAST} listener is used.
+   *
+   * @param listener
+   *          The rejected record listener.
+   * @return A reference to this {@code LDIFEntryReader}.
+   */
+  public LDIFEntryReader setRejectedRecordListener(
+      final RejectedRecordListener listener)
+  {
+    this.rejectedRecordListener = listener;
+    return this;
+  }
+
+
+
+  /**
    * Sets the schema which should be used for decoding entries that are read
    * from LDIF. The default schema is used if no other is specified.
    *
@@ -372,7 +393,8 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
   public LDIFEntryReader setSchema(final Schema schema)
   {
     Validator.ensureNotNull(schema);
-    this.schema = schema;
+    this.schema = validateSchema ? schema.asStrictSchema() : schema
+        .asNonStrictSchema();
     return this;
   }
 
@@ -380,7 +402,12 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
 
   /**
    * Specifies whether or not schema validation should be performed for entries
-   * that are read from LDIF. The default is {@code true}.
+   * that are read from LDIF.
+   * <p>
+   * When enabled, this LDIF reader will implicitly use a strict schema so that
+   * unrecognized attribute types will be detected.
+   * <p>
+   * Schema validation is disabled by default.
    *
    * @param validateSchema
    *          {@code true} if schema validation should be performed, or
@@ -390,6 +417,8 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
   public LDIFEntryReader setValidateSchema(final boolean validateSchema)
   {
     this.validateSchema = validateSchema;
+    this.schema = validateSchema ? schema.asStrictSchema() : schema
+        .asNonStrictSchema();
     return this;
   }
 
@@ -399,69 +428,65 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
   {
     while (nextEntry == null)
     {
-      LDIFRecord record = null;
-
       // Read the set of lines that make up the next entry.
-      record = readLDIFRecord();
+      final LDIFRecord record = readLDIFRecord();
       if (record == null)
       {
         nextEntry = EOF;
         break;
       }
 
-      // Read the DN of the entry and see if it is one that should be
-      // included in the import.
-      DN entryDN;
       try
       {
-        entryDN = readLDIFRecordDN(record);
+        // Read the DN of the entry and see if it is one that should be
+        // included in the import.
+        final DN entryDN = readLDIFRecordDN(record);
         if (entryDN == null)
         {
           // Skip version record.
           continue;
         }
-      }
-      catch (final DecodeException e)
-      {
-        rejectLDIFRecord(record, e.getMessageObject());
-        continue;
-      }
 
-      // Skip if branch containing the entry DN is excluded.
-      if (isBranchExcluded(entryDN))
-      {
-        final LocalizableMessage message = LocalizableMessage
-            .raw("Skipping entry because it is in excluded branch");
-        skipLDIFRecord(record, message);
-        continue;
-      }
+        // Skip if branch containing the entry DN is excluded.
+        if (isBranchExcluded(entryDN))
+        {
+          final LocalizableMessage message = ERR_LDIF_ENTRY_EXCLUDED_BY_DN.get(
+              record.lineNumber, entryDN.toString());
+          handleSkippedRecord(record, message);
+          continue;
+        }
 
-      // Use an Entry for the AttributeSequence.
-      final Entry entry = new LinkedHashMapEntry(entryDN);
-      try
-      {
+        // Use an Entry for the AttributeSequence.
+        final Entry entry = new LinkedHashMapEntry(entryDN);
+        final List<LocalizableMessage> schemaErrors = new LinkedList<LocalizableMessage>();
         while (record.iterator.hasNext())
         {
           final String ldifLine = record.iterator.next();
-          readLDIFRecordAttributeValue(record, ldifLine, entry);
+          readLDIFRecordAttributeValue(record, ldifLine, entry, schemaErrors);
         }
+
+        // Skip if the entry is excluded by any filters.
+        if (isEntryExcluded(entry))
+        {
+          final LocalizableMessage message = ERR_LDIF_ENTRY_EXCLUDED_BY_FILTER
+              .get(record.lineNumber, entryDN.toString());
+          handleSkippedRecord(record, message);
+          continue;
+        }
+
+        if (!schemaErrors.isEmpty())
+        {
+          handleSchemaValidationFailure(record, schemaErrors);
+          continue;
+        }
+
+        nextEntry = entry;
       }
       catch (final DecodeException e)
       {
-        rejectLDIFRecord(record, e.getMessageObject());
+        handleMalformedRecord(record, e.getMessageObject());
         continue;
       }
-
-      // Skip if the entry is excluded by any filters.
-      if (isEntryExcluded(entry))
-      {
-        final LocalizableMessage message = LocalizableMessage
-            .raw("Skipping entry due to exclusing filters");
-        skipLDIFRecord(record, message);
-        continue;
-      }
-
-      nextEntry = entry;
     }
 
     return nextEntry;

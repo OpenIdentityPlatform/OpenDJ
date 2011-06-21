@@ -54,7 +54,7 @@ final class DistinguishedNameEqualityMatchingRuleImpl extends
   {
     try
     {
-      DN dn = DN.valueOf(value.toString(), schema.nonStrict());
+      DN dn = DN.valueOf(value.toString(), schema.asNonStrictSchema());
       StringBuilder builder = new StringBuilder(value.length());
       return ByteString.valueOf(normalizeDN(builder, dn));
     }

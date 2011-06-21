@@ -46,6 +46,8 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 
 import com.forgerock.opendj.util.Base64;
 import com.forgerock.opendj.util.Validator;
@@ -155,7 +157,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
 
 
     /**
-     *{@inheritDoc}
+     * {@inheritDoc}
      */
     public String readLine() throws IOException
     {
@@ -209,7 +211,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
 
 
     /**
-     *{@inheritDoc}
+     * {@inheritDoc}
      */
     public String readLine() throws IOException
     {
@@ -226,7 +228,11 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
 
 
 
-  boolean validateSchema = true;
+  RejectedRecordListener rejectedRecordListener = RejectedRecordListener.FAIL_FAST;
+
+  Schema schema = Schema.getDefaultSchema().asNonStrictSchema();
+
+  boolean validateSchema = false;
 
   private final LDIFReaderImpl impl;
 
@@ -322,8 +328,8 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
         {
           // The value did not have a valid base64-encoding.
           final LocalizableMessage message = ERR_LDIF_COULD_NOT_BASE64_DECODE_ATTR
-              .get(entryDN.toString(), record.lineNumber, ldifLine, e
-                  .getMessageObject());
+              .get(entryDN.toString(), record.lineNumber, ldifLine,
+                  e.getMessageObject());
           throw DecodeException.error(message);
         }
       }
@@ -345,8 +351,9 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
         catch (final Exception e)
         {
           // The URL was malformed or had an invalid protocol.
-          final LocalizableMessage message = ERR_LDIF_INVALID_URL.get(entryDN
-              .toString(), record.lineNumber, attrName, String.valueOf(e));
+          final LocalizableMessage message = ERR_LDIF_INVALID_URL.get(
+              entryDN.toString(), record.lineNumber, attrName,
+              String.valueOf(e));
           throw DecodeException.error(message);
         }
 
@@ -370,9 +377,9 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
         {
           // We were unable to read the contents of that URL for some
           // reason.
-          final LocalizableMessage message = ERR_LDIF_URL_IO_ERROR.get(entryDN
-              .toString(), record.lineNumber, attrName, String
-              .valueOf(contentURL), String.valueOf(e));
+          final LocalizableMessage message = ERR_LDIF_URL_IO_ERROR.get(
+              entryDN.toString(), record.lineNumber, attrName,
+              String.valueOf(contentURL), String.valueOf(e));
           throw DecodeException.error(message);
         }
         finally
@@ -583,7 +590,8 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
 
 
   final void readLDIFRecordAttributeValue(final LDIFRecord record,
-      final String ldifLine, final Entry entry) throws DecodeException
+      final String ldifLine, final Entry entry,
+      final List<LocalizableMessage> schemaErrors) throws DecodeException
   {
     // Parse the attribute description.
     final int colonPos = parseColonPosition(record, ldifLine);
@@ -594,9 +602,25 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
     {
       attributeDescription = AttributeDescription.valueOf(attrDescr, schema);
     }
+    catch (final UnknownSchemaElementException e)
+    {
+      final LocalizableMessage message = ERR_LDIF_UNKNOWN_ATTRIBUTE_TYPE.get(
+          record.lineNumber, entry.getName().toString(), attrDescr);
+      if (validateSchema)
+      {
+        schemaErrors.add(message);
+        return;
+      }
+      else
+      {
+        throw DecodeException.error(message);
+      }
+    }
     catch (final LocalizedIllegalArgumentException e)
     {
-      throw DecodeException.error(e.getMessageObject());
+      final LocalizableMessage message = ERR_LDIF_MALFORMED_ATTRIBUTE_NAME.get(
+          record.lineNumber, entry.getName().toString(), attrDescr);
+      throw DecodeException.error(message);
     }
 
     // Now parse the attribute value.
@@ -617,9 +641,10 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
     {
       if (validateSchema && attributeDescription.containsOption("binary"))
       {
-        final LocalizableMessage message = ERR_LDIF_INVALID_ATTR_OPTION.get(
-            entry.getName().toString(), record.lineNumber, attrDescr);
-        throw DecodeException.error(message);
+        final LocalizableMessage message = ERR_LDIF_UNEXPECTED_BINARY_OPTION
+            .get(record.lineNumber, entry.getName().toString(), attrDescr);
+        schemaErrors.add(message);
+        return;
       }
     }
     else
@@ -636,10 +661,11 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
         if (!attributeDescription.getAttributeType().getSyntax()
             .valueIsAcceptable(value, invalidReason))
         {
-          final LocalizableMessage message = WARN_LDIF_VALUE_VIOLATES_SYNTAX
-              .get(entry.getName().toString(), record.lineNumber, value
-                  .toString(), attrDescr, invalidReason);
-          throw DecodeException.error(message);
+          final LocalizableMessage message = WARN_LDIF_MALFORMED_ATTRIBUTE_VALUE
+              .get(record.lineNumber, entry.getName().toString(),
+                  value.toString(), attrDescr, invalidReason);
+          schemaErrors.add(message);
+          return;
         }
       }
 
@@ -654,25 +680,29 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
         if (!attributeDescription.getAttributeType().getSyntax()
             .valueIsAcceptable(value, invalidReason))
         {
-          final LocalizableMessage message = WARN_LDIF_VALUE_VIOLATES_SYNTAX
-              .get(entry.getName().toString(), record.lineNumber, value
-                  .toString(), attrDescr, invalidReason);
-          throw DecodeException.error(message);
+          final LocalizableMessage message = WARN_LDIF_MALFORMED_ATTRIBUTE_VALUE
+              .get(record.lineNumber, entry.getName().toString(),
+                  value.toString(), attrDescr, invalidReason);
+          schemaErrors.add(message);
+          return;
         }
 
-        if (!attribute.add(value))
+        if (!attribute.add(value) && validateSchema)
         {
-          final LocalizableMessage message = WARN_LDIF_DUPLICATE_ATTR.get(entry
-              .getName().toString(), record.lineNumber, attrDescr, value
-              .toString());
-          throw DecodeException.error(message);
+          final LocalizableMessage message = WARN_LDIF_DUPLICATE_ATTRIBUTE_VALUE
+              .get(record.lineNumber, entry.getName().toString(), attrDescr,
+                  value.toString());
+          schemaErrors.add(message);
+          return;
         }
 
-        if (attributeDescription.getAttributeType().isSingleValue())
+        if (validateSchema
+            && attributeDescription.getAttributeType().isSingleValue())
         {
-          final LocalizableMessage message = ERR_LDIF_MULTIPLE_VALUES_FOR_SINGLE_VALUED_ATTR
-              .get(entry.getName().toString(), record.lineNumber, attrDescr);
-          throw DecodeException.error(message);
+          final LocalizableMessage message = ERR_LDIF_MULTI_VALUED_SINGLE_VALUED_ATTRIBUTE
+              .get(record.lineNumber, entry.getName().toString(), attrDescr);
+          schemaErrors.add(message);
+          return;
         }
       }
       else
@@ -787,15 +817,13 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
 
   final String readLDIFRecordKeyValuePair(final LDIFRecord record,
       final KeyValuePair pair, final boolean allowBase64)
-      throws DecodeException
   {
     final String ldifLine = record.iterator.next();
     final int colonPos = ldifLine.indexOf(":");
     if (colonPos <= 0)
     {
-      final LocalizableMessage message = ERR_LDIF_NO_ATTR_NAME.get(
-          record.lineNumber, ldifLine);
-      throw DecodeException.error(message);
+      pair.key = null;
+      return ldifLine;
     }
     pair.key = ldifLine.substring(0, colonPos);
 
@@ -804,10 +832,8 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
     final int length = ldifLine.length();
     if (colonPos == length - 1)
     {
-      // FIXME: improve error.
-      final LocalizableMessage message = LocalizableMessage
-          .raw("Malformed changetype attribute");
-      throw DecodeException.error(message);
+      pair.key = null;
+      return ldifLine;
     }
 
     if (allowBase64 && ldifLine.charAt(colonPos + 1) == ':')
@@ -826,11 +852,8 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
       }
       catch (final LocalizedIllegalArgumentException e)
       {
-        // The value did not have a valid base64-encoding.
-        // FIXME: improve error.
-        final LocalizableMessage message = LocalizableMessage
-            .raw("Malformed base64 changetype attribute");
-        throw DecodeException.error(message);
+        pair.key = null;
+        return ldifLine;
       }
     }
     else
@@ -852,19 +875,29 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
 
 
 
-  final void rejectLDIFRecord(final LDIFRecord record,
+  final void handleMalformedRecord(final LDIFRecord record,
       final LocalizableMessage message) throws DecodeException
   {
-    // FIXME: not yet implemented.
-    throw DecodeException.error(message);
+    rejectedRecordListener.handleMalformedRecord(record.lineNumber,
+        record.ldifLines, message);
   }
 
 
 
-  final void skipLDIFRecord(final LDIFRecord record,
-      final LocalizableMessage message)
+  final void handleSchemaValidationFailure(final LDIFRecord record,
+      final List<LocalizableMessage> messages) throws DecodeException
   {
-    // FIXME: not yet implemented.
+    rejectedRecordListener.handleSchemaValidationFailure(record.lineNumber,
+        record.ldifLines, messages);
+  }
+
+
+
+  final void handleSkippedRecord(final LDIFRecord record,
+      final LocalizableMessage message) throws DecodeException
+  {
+    rejectedRecordListener.handleSkippedRecord(record.lineNumber,
+        record.ldifLines, message);
   }
 
 

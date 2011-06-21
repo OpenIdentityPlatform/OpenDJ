@@ -87,7 +87,7 @@ public class SchemaCompatOptionsTest extends SchemaTestCase
     SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema())
         .setSchemaCompatOptions(SchemaCompatOptions.defaultOptions()
             .allowMalformedNamesAndOptions(allowIllegalCharacters));
-    Schema schema = builder.toSchema().nonStrict();
+    Schema schema = builder.toSchema().asNonStrictSchema();
     AttributeDescription.valueOf(atd, schema);
   }
 
@@ -136,7 +136,7 @@ public class SchemaCompatOptionsTest extends SchemaTestCase
     SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema())
         .setSchemaCompatOptions(SchemaCompatOptions.defaultOptions()
             .allowMalformedNamesAndOptions(allowIllegalCharacters));
-    Schema schema = builder.toSchema().nonStrict();
+    Schema schema = builder.toSchema().asNonStrictSchema();
     AttributeDescription.valueOf(atd, schema);
   }
 

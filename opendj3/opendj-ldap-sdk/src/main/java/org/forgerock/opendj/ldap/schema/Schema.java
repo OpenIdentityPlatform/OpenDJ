@@ -2446,12 +2446,16 @@ public final class Schema
 
 
   /**
-   * Indicates whether or not this schema is strict. Attribute type queries in
-   * non-strict schema always succeed: if the requested attribute type is not
-   * found then a temporary attribute type is created automatically having the
-   * Octet String syntax and associated matching rules. Strict schema, on the
-   * other hand, throw an {@link UnknownSchemaElementException} whenever an
-   * attempt is made to retrieve a non-existent attribute type.
+   * Indicates whether or not this schema is strict.
+   * <p>
+   * Attribute type queries against non-strict schema always succeed: if the
+   * requested attribute type is not found then a temporary attribute type is
+   * created automatically having the Octet String syntax and associated
+   * matching rules.
+   * <p>
+   * Strict schema, on the other hand, throw an
+   * {@link UnknownSchemaElementException} whenever an attempt is made to
+   * retrieve a non-existent attribute type.
    *
    * @return {@code true} if this schema is strict.
    */
@@ -2463,16 +2467,14 @@ public final class Schema
 
 
   /**
-   * Returns a non-strict view of this schema. Attribute type queries in
-   * non-strict schema always succeed: if the requested attribute type is not
-   * found then a temporary attribute type is created automatically having the
-   * Octet String syntax and associated matching rules. Strict schema, on the
-   * other hand, throw an {@link UnknownSchemaElementException} whenever an
-   * attempt is made to retrieve a non-existent attribute type.
+   * Returns a non-strict view of this schema.
+   * <p>
+   * See the description of {@link #isStrict()} for more details.
    *
    * @return A non-strict view of this schema.
+   * @see Schema#isStrict()
    */
-  public Schema nonStrict()
+  public Schema asNonStrictSchema()
   {
     if (impl.isStrict())
     {
@@ -2481,6 +2483,28 @@ public final class Schema
     else
     {
       return this;
+    }
+  }
+
+
+
+  /**
+   * Returns a strict view of this schema.
+   * <p>
+   * See the description of {@link #isStrict()} for more details.
+   *
+   * @return A strict view of this schema.
+   * @see Schema#isStrict()
+   */
+  public Schema asStrictSchema()
+  {
+    if (impl.isStrict())
+    {
+      return this;
+    }
+    else
+    {
+      return new Schema(((NonStrictImpl) impl).strictImpl);
     }
   }
 
