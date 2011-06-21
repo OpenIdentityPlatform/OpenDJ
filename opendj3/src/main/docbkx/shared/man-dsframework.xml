@@ -48,6 +48,9 @@
   <title>Description</title>
   <para>This utility can be used to perform operations in the directory server
   administration framework.</para>
+  <para>This utility has no interactive mode. Consider using <option>-X</option>
+  if you authenticate over a secure connection protected with a self-signed
+  certificate.</para>
  </refsect1>
  <refsect1>
   <title>Subcommands</title>
@@ -252,8 +255,38 @@
     </varlistentry>
    </variablelist>
  </refsect1>
-<!--  <refsect1> -->
-<!--   <title>Examples</title> -->
-<!--   <para>TODO, pending OPENDJ-209</para> -->
-<!--  </refsect1> -->
+ <refsect1>
+  <title>Examples</title>
+  <para>This example lists server properties.</para>
+  <screen width="80">
+$ dsframework -p 4444 -h `hostname` -D "cn=Directory Manager" -w password -X \
+&gt; list-server-properties
+Option Types:
+
+ r -- Property value(s) are readable
+ w -- Property value(s) are writable
+ m -- The property is mandatory
+ s -- The property is single-valued
+
+Property                       Options  Syntax              Default value
+-------------------------------------------------------------------------
+ldapsport                      rw--     INTEGER             -
+certificate                    rw-s     STRING              -
+hostname                       r-ms     STRING              localhost
+ldapport                       rwm-     INTEGER             389
+jmxsEnabled                    rw-s     BOOLEAN             false
+instancepath                   rw-s     STRING              -
+ldapsEnabled                   rw-s     BOOLEAN             false
+jmxsport                       rw--     INTEGER             -
+os                             rw-s     STRING              -
+ds-cfg-key-id                  rw-s     STRING              -
+jmxport                        rw--     INTEGER             -
+description                    rw-s     STRING              -
+id                             rw-s     STRING              -
+startTLSEnabled                rw-s     BOOLEAN             false
+jmxEnabled                     rw-s     BOOLEAN             false
+ds-cfg-public-key-certificate  rw-s     CERTIFICATE_BINARY  -
+location                       rw-s     STRING              -
+ldapEnabled                    rw-s     BOOLEAN             false</screen>
+ </refsect1>
 </refentry>
