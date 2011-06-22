@@ -330,6 +330,38 @@ dn: uid=kvaughan,ou=People,dc=example,dc=com
 pwdPolicySubentry: cn=Root Password Policy,cn=Password Policies,cn=config</screen>
    </step>
   </procedure>
+  
+  <procedure>
+   <title>To Mail Users About Account Status</title>
+   
+   <step>
+    <para>Identify the SMTP server to which OpenDJ sends messages.</para>
+    <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+&gt; set-global-configuration-prop --set smtp-server:smtp.example.com -X -n</screen>
+   </step>
+   
+   <step>
+    <para>Set up OpenDJ to be able to mail users about account status.</para>
+    <screen width="80">dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+&gt; set-account-status-notification-handler-prop \
+&gt; --handler-name "SMTP Handler" --set enabled:true \
+&gt; --set email-address-attribute-type:mail -X -n</screen>
+    <para>You can also configure the <literal>message-subject</literal> and
+    <literal>message-template-file</literal> properties. Try interactive
+    mode if you plan to do so.</para>
+    <para>You find templates for messages by default under the
+    <filename>config/messages</filename> directory. You can edit the templates
+    to suit your purposes.</para>
+   </step>
+   
+   <step>
+    <para>Adjust applicable password policies to use the account status
+    notification handler you configured.</para>
+    <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+ &gt; set-password-policy-prop --policy-name "Default Password Policy" \
+ &gt; --set account-status-notification-handler:"SMTP Handler" -X -n</screen>
+   </step>
+  </procedure>
  </section>
 </chapter>
 
