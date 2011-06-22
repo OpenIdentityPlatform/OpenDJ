@@ -24,15 +24,279 @@
   !    
 -->
 <chapter xml:id='chap-monitoring'
-  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
-  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-  xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
-  xmlns:xlink='http://www.w3.org/1999/xlink'
-  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
-  <title>Monitoring Servers</title>
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Monitoring Servers</title>
 
-  <para>This chapter describes the monitoring capabilities that OpenDJ
-  implements, and shows how to configure them.</para>
+ <para>This chapter describes the monitoring capabilities that OpenDJ
+ implements, and shows how to configure them.</para>
+ 
+ <para>OpenDJ Control Panel provides basic monitoring capabilities under
+ Monitoring &gt; Connection Handler, Monitoring &gt; Connection Handler, and
+ Monitoring &gt; Manage Tasks. This chapter covers the other options for
+ monitoring OpenDJ.</para>
 
+ <section>
+  <title>LDAP-Based Monitoring</title>
+  
+  <para>OpenDJ exposes monitoring information over LDAP under the entry
+  <literal>cn=monitor</literal>. Many different types of information are
+  exposed. The following example shows monitoring information about the
+  <literal>userRoot</literal> backend holding Example.com data.</para>
+  
+  <screen width="80">$ ldapsearch -p 1389 -b cn=monitor "(cn=userRoot backend)"
+dn: cn=userRoot backend,cn=Disk Space Monitor,cn=monitor
+disk-state: normal
+objectClass: top
+objectClass: ds-monitor-entry
+objectClass: extensibleObject
+disk-dir: /path/to/OpenDJ/db/userRoot
+disk-free: 343039315968
+cn: userRoot backend
+
+dn: cn=userRoot Backend,cn=monitor
+objectClass: top
+objectClass: ds-monitor-entry
+objectClass: ds-backend-monitor-entry
+ds-backend-is-private: FALSE
+ds-backend-writability-mode: enabled
+cn: userRoot Backend
+ds-backend-entry-count: 163
+ds-backend-id: userRoot
+ds-base-dn-entry-count: 163 dc=example,dc=com
+ds-backend-base-dn: dc=example,dc=com
+</screen>
+
+  <para>You can set global ACIs on the Access Control Handler if you want
+  to limit read access under <literal>cn=monitor</literal>.</para>
+ </section>
+
+ <section>
+  <title>SNMP-Based Monitoring</title>
+  
+  <para>OpenDJ lets you monitor the server over the Simple Network Management
+  Protocol (SNMP), with support for the Management Information Base described
+  in <link xlink:href="http://tools.ietf.org/html/rfc2605">RFC 2605: Directory
+  Server Monitoring MIB</link>.</para>
+  
+  <para>OpenDJ SNMP-based monitoring depends on OpenDMK, not currently
+  installed by default. Before using SNMP-based monitoring, first <link
+  xlink:href="http://opendmk.java.net/download/">download</link>, and install
+  OpenDMK, provided separately due to licensing restrictions. Once you have
+  installed OpenDMK, you can set up a connection handler for SNMP.</para>
+  
+  <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+&gt; create-connection-handler --handler-name "SNMP Connection Handler" \
+&gt; --type snmp --set enabled:true --set listen-port:11161 
+&gt; --set trap-port:11162 -X -n
+&gt; --set opendmk-jarfile:<replaceable>OpenDMK-install-dir</replaceable>/lib/jdmkrt.jar</screen>
+ </section>
+
+ <section>
+  <title>JMX-Based Monitoring</title>
+  
+  <para>OpenDJ provides Java Management eXtensions (JMX) based monitoring. A
+  number of tools support JMX, including <command>jconsole</command> and
+  <command>jvisualvm</command>, which are bundled with the Sun/Oracle Java
+  platform. JMX is not configured by default. Use the
+  <command>dsconfig</command> command to configure the JMX connection
+  handler.</para>
+  
+  <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+&gt; set-connection-handler-prop --handler-name "JMX Connection Handler" \
+&gt; --set enabled:true -X -n</screen>
+
+  <para>By default, no users have privileges to access the JMX connection. The
+  following command adds JMX privileges for Directory Manager.</para>
+
+  <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+&gt; set-root-dn-prop --add default-root-privilege-name:jmx-notify \
+&gt; --add default-root-privilege-name:jmx-read \
+&gt; --add default-root-privilege-name:jmx-write -X -n</screen>
+
+  <para>You must also configure security to login remotely. Good luck.</para>
+  
+  <para>Alternatively, you can connect to a local server process by using the
+  server process identifier.</para>
+
+  <screen width="80">$ cat ../logs/server.pid 
+3363
+$ jvisualvm --openpid 3363 &amp;</screen>
+ </section>
+
+ <section>
+  <title>Server Operation &amp; Tasks</title>
+  
+  <para>OpenDJ comes with two commands for monitoring server processes and
+  tasks. The <command>status</command> command displays basic information
+  about the local server, similar to what is seen in the default window of the
+  Control Panel. The <command>manage-tasks</command> command lets you manage
+  tasks scheduled on a server, such as nightly backup.</para>
+  
+  <para>The <command>status</command> command takes administrative credentials
+  to read the configuration, as does the Control Panel.</para>
+  <screen width="80">$ status -D "cn=Directory Manager" -w password
+
+          --- Server Status ---
+Server Run Status:        Started
+Open Connections:         1
+
+          --- Server Details ---
+Host Name:                localhost
+Administrative Users:     cn=Directory Manager
+Installation Path:        /path/to/OpenDJ
+Version:                  OpenDJ <?eval ${project.version}?>
+Java Version:             1.6.0_24
+Administration Connector: Port 4444 (LDAPS)
+
+          --- Connection Handlers ---
+Address:Port : Protocol : State
+-------------:----------:---------
+--           : LDIF     : Disabled
+0.0.0.0:636  : LDAPS    : Disabled
+0.0.0.0:1389 : LDAP     : Enabled
+0.0.0.0:1689 : JMX      : Disabled
+
+          --- Data Sources ---
+Base DN:     dc=example,dc=com
+Backend ID:  userRoot
+Entries:     163
+Replication: Disabled</screen>
+
+  <para>The <command>manage-tasks</command> command connects over the
+  administration port, and so can connect to both local and remote
+  servers.</para>
+  
+  <screen width="80">$ manage-tasks -h opendj.example.com -p 4444 -D "cn=Directory Manager" \
+&gt; -w password -X -n
+
+  ID                         Type    Status
+  --------------------------------------------------------
+  example                    Backup  Recurring
+  example-20110623030000000  Backup  Waiting on start time</screen>
+ </section>
+
+ <section>
+  <title>Server Logs</title>
+  
+  <para>By default OpenDJ stores access and errors logs as well as a
+  server process ID file under the <filename>logs/</filename> directory.
+  For the replication service, OpenDJ also keeps a replication log there.
+  You can also configure a debug log. Furthermore, you can configure policies
+  about how logs are rotated, and how they are retained. You configure logging
+  using the <command>dsconfig</command> command.</para>
+  
+  <itemizedlist>
+   <listitem>
+    <para>The <firstterm>access log</firstterm> traces the operations the
+    server processes including timestamps, connection information, and
+    information about the operation itself. The access log can therefore
+    grow quickly, as each client request results in at least one new log
+    message.</para>
+    <para>The following access log excerpt shows a search operation from the
+    local host, with the first three lines wrapped for readability.</para>
+    <screen width="80">
+[21/Jun/2011:08:01:53 +0200] CONNECT conn=4 from=127.0.0.1:49708
+ to=127.0.0.1:1389 protocol=LDAP
+[21/Jun/2011:08:01:53 +0200] SEARCH REQ conn=4 op=0 msgID=1
+ base="dc=example,dc=com" scope=wholeSubtree filter="(uid=bjensen)" attrs="ALL"
+[21/Jun/2011:08:01:53 +0200] SEARCH RES conn=4 op=0 msgID=1
+ result=0 nentries=1 etime=3
+[21/Jun/2011:08:01:53 +0200] UNBIND REQ conn=4 op=1 msgID=2
+[21/Jun/2011:08:01:53 +0200] DISCONNECT conn=4 reason="Client Unbind"</screen>
+   </listitem>
+   <listitem>
+    <para>The <firstterm>errors log</firstterm> traces server events, error
+    conditions, and warnings, categorized and identified by severity.</para>
+    <para>The following errors log excerpt shows log entries about a
+    backup task, with lines wrapped for readability.</para>
+    <screen width="80">
+[22/Jun/2011:12:32:23 +0200] category=BACKEND severity=NOTICE msgID=9896349
+ msg=Backup task 20110622123224088 started execution
+[22/Jun/2011:12:32:23 +0200] category=TOOLS severity=NOTICE msgID=10944792
+ msg=Starting backup for backend userRoot
+[22/Jun/2011:12:32:24 +0200] category=JEB severity=NOTICE msgID=8847446
+ msg=Archived: 00000000.jdb
+[22/Jun/2011:12:32:24 +0200] category=TOOLS severity=NOTICE msgID=10944795
+ msg=The backup process completed successfully
+[22/Jun/2011:12:32:24 +0200] category=BACKEND severity=NOTICE msgID=9896350
+ msg=Backup task 20110622123224088 finished execution</screen>
+   </listitem>
+   <listitem>
+    <para>The <firstterm>replication log</firstterm> traces replication
+    events, with entries similar to the errors log. The following excerpt has
+    lines wrapped for readability.</para>
+    <screen width="80">
+[22/Jun/2011:14:37:34 +0200] category=SYNC severity=NOTICE msgID=15139026
+ msg=Finished total update: exported domain "dc=example,dc=com" from this
+ directory server DS(24065) to all remote directory servers. 
+[22/Jun/2011:14:37:35 +0200] category=SYNC severity=MILD_WARNING msgID=14745663
+ msg=Replication server RS(23947) at localhost/10.10.0.168:8989 has closed the
+ connection to this directory server DS(24065). This directory server will now
+ try to connect to another replication server in order to receive changes for
+ the domain "dc=example,dc=com"
+[22/Jun/2011:14:37:35 +0200] category=SYNC severity=NOTICE msgID=15138894
+ msg=The generation ID for domain "dc=example,dc=com" has been reset to 3679640</screen>
+    <para>Notice that the replication log does not trace replication operations.
+    Use the external change log instead to get notifications about changes to
+    directory data over protocol. You can alternatively configure an audit
+    log, which is a type of access log that dumps changes in LDIF.</para>
+   </listitem>
+   <listitem>
+    <para>A <firstterm>debug log</firstterm> traces details needed to
+    troubleshoot a problem in the server. Debug logs can grow large quickly,
+    and therefore no debug logs are enabled by default.</para>
+   </listitem>
+  </itemizedlist>
+  
+  <para>Each log depends on a <firstterm>log publisher</firstterm>, whose
+  type corresponds to the type of log. OpenDJ uses file-based log publishers.
+  The design allows for custom log publishers, however, which could publish
+  the logs elsewhere besides a file.</para>
+  
+  <para>Each log can also be associated with a <firstterm>log rotation
+  policy</firstterm>, and a <firstterm>log retention policy</firstterm>. The
+  former can specify when, after how much time, or at what maximum size a log
+  is rotated. The latter can specify a maximum number or size of logs to
+  retain, or an amount of free disk space to maintain. The design allows
+  for custom policies as well.</para>
+  
+  <para>For debug logging, you also set a <firstterm>debug target</firstterm>
+  to control what gets logged.</para>
+  
+  <para>By default the file-based logs are subject to rotation and retention
+  policies that you can list with <command>dsconfig
+  list-rotation-policies</command> and <command>dsconfig
+  list-retention-policies</command>.</para>
+ </section>
+
+ <section>
+  <title>Alert Notifications</title>
+  
+  <para>OpenDJ can send alerts to provide notifications of significant server
+  events. Yet alert notifications are not enabled by default. You can use
+  the <command>dsconfig</command> command to enable alert notifications.</para>
+  
+  <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+&gt; set-alert-handler-prop --handler-name "JMX Alert Handler" \
+&gt; --set enabled:true -X -n</screen>
+
+  <para>OpenDJ can also send mail over SMTP instead of JMX notifications.
+  Before you set up the SMTP-based alert handler, you must identify an SMTP
+  server to which OpenDJ sends messages.</para>
+  
+  <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+&gt; set-global-configuration-prop --set smtp-server:smtp.example.com -X -n
+$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+&gt; create-alert-handler --handler-name "SMTP Alert Handler" --type smtp \
+&gt; --set enabled:true --set message-subject:\
+&gt; "OpenDJ Alert, Type: %%alert-type%%, ID: %%alert-id%%"
+&gt; --set message-body:"%%alert-message%%" \
+&gt; --set recipient-address:kvaughan@example.com \
+&gt; --set sender-address:opendj@example.com -X -n</screen>
+ </section>
 </chapter>
 
