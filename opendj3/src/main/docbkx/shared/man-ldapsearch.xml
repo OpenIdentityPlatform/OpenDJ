@@ -159,6 +159,8 @@
     <listitem>
      <para>Search scope ('base', 'one', 'sub', or 'subordinate')</para>
      <para>Default value: sub</para>
+     <para><literal>subordinate</literal> is an LDAP extension that might
+     not work with all LDAP servers.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
