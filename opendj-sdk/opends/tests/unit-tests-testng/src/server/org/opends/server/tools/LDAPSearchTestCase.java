@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -2357,6 +2358,35 @@ public class LDAPSearchTestCase
     assertFalse(LDAPSearch.mainSearch(args, false, null, null) == 0);
   }
 
+  /**
+   * Tests the use of a control with an empty value.
+   * We use the ManageDSAIt control for this.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testControlNoValue()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-b", "o=test",
+      "-s", "base",
+      "-J", "managedsait:false:",
+      "--noPropertiesFile",
+      "(objectClass=*)",
+      "dn"
+    };
+
+    assertTrue(LDAPSearch.mainSearch(args, false, null, null) == 0);
+  }
+
 
 
   /**
@@ -2369,6 +2399,10 @@ public class LDAPSearchTestCase
   public void testVLVWithoutSort()
          throws Exception
   {
+    // Test is supposed to fail in parsing arguments. But we do not
+    // want it to fail because there no backend to search in.
+    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+
     String[] args =
     {
       "-h", "127.0.0.1",

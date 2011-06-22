@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -165,6 +166,11 @@ public class LDAPToolUtils
     }
 
     String valString = remainder.substring(idx+1, remainder.length());
+    if (valString.length() == 0)
+    {
+      control = new LDAPControl(controlOID, controlCriticality);
+      return control;
+    }
     if(valString.charAt(0) == ':')
     {
       controlValue =
