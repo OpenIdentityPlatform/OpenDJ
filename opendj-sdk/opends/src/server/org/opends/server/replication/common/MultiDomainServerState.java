@@ -23,12 +23,15 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
-import java.util.HashMap;
-import java.util.Iterator;
+import static org.opends.messages.ReplicationMessages.*;
+
+import java.util.Map;
 import java.util.TreeMap;
+import java.util.Iterator;
 
 import org.opends.messages.Category;
 import org.opends.messages.Message;
@@ -47,7 +50,7 @@ public class MultiDomainServerState implements Iterable<String>
   /**
    * The list of (domain service id, ServerState).
    */
-  private TreeMap<String, ServerState> list;
+  private Map<String, ServerState> list;
 
   /**
    * Creates a new empty object.
@@ -56,6 +59,18 @@ public class MultiDomainServerState implements Iterable<String>
   {
     list = new TreeMap<String, ServerState>();
   }
+
+  /**
+   * Create an object from a string representation.
+   * @param mdss The provided string representation of the state.
+   * @throws DirectoryException when the string has an invalid format
+   */
+  public MultiDomainServerState(String mdss)
+          throws DirectoryException
+  {
+    list = splitGenStateToServerStates(mdss);
+  }
+
 
   /**
    * Empty the object..
@@ -117,40 +132,10 @@ public class MultiDomainServerState implements Iterable<String>
   }
 
   /**
-   * Create an object from a string representation.
-   * @param mdss The provided string representation of the state.
-   */
-  public MultiDomainServerState(String mdss)
-  {
-    list = new TreeMap<String, ServerState>();
-    if ((mdss != null) &&
-        (mdss.length()>0))
-    {
-      String[] domains = mdss.split(";");
-      for (String domain : domains)
-      {
-        String[] fields = domain.split(":");
-        String name = fields[0];
-        ServerState ss = new ServerState();
-        if (fields.length>1)
-        {
-          String strState = fields[1].trim();
-          String[] strCN = strState.split(" ");
-          for (String sr : strCN)
-          {
-            ChangeNumber fromChangeNumber = new ChangeNumber(sr);
-            ss.update(fromChangeNumber);
-          }
-        }
-        this.list.put(name, ss);
-      }
-    }
-  }
-
-  /**
    * Returns a string representation of this object.
    * @return The string representation.
    */
+  @Override
   public String toString()
   {
     String res = "";
@@ -226,47 +211,61 @@ public class MultiDomainServerState implements Iterable<String>
   /**
    * Splits the provided generalizedServerState being a String with the
    * following syntax: "domain1:state1;domain2:state2;..."
-   * to a hashmap of (domain DN, domain ServerState).
+   * to a TreeMap of (domain DN, domain ServerState).
    * @param multidomainserverstate the provided state
    * @exception DirectoryException when an error occurs
-   * @return the splited state.
+   * @return the split state.
    */
-  public static HashMap<String,ServerState> splitGenStateToServerStates(
+  public static Map<String,ServerState> splitGenStateToServerStates(
       String multidomainserverstate)
       throws DirectoryException
   {
-    HashMap<String,ServerState> startStates = new HashMap<String,ServerState>();
-    try
+    Map<String, ServerState> startStates = new TreeMap<String, ServerState>();
+    if ((multidomainserverstate != null)
+        && (multidomainserverstate.length() > 0))
     {
-      // Split the provided multidomainserverstate into domains
-      String[] domains = multidomainserverstate.split(";");
-      for (String domain : domains)
+      try
       {
-        // For each domain, split the changenumbers by server
-        // and build a server state (SHOULD BE OPTIMIZED)
-        ServerState serverStateByDomain = new ServerState();
-
-        String[] fields = domain.split(":");
-        String domainBaseDN = fields[0];
-        if (fields.length>1)
+        // Split the provided multidomainserverstate into domains
+        String[] domains = multidomainserverstate.split(";");
+        for (String domain : domains)
         {
-          String strState = fields[1];
-          String[] strCN = strState.split(" ");
-          for (String sr : strCN)
+          // For each domain, split the changenumbers by server
+          // and build a server state (SHOULD BE OPTIMIZED)
+          ServerState serverStateByDomain = new ServerState();
+
+          String[] fields = domain.split(":");
+          if (fields.length == 0)
           {
-            ChangeNumber fromChangeNumber = new ChangeNumber(sr);
-            serverStateByDomain.update(fromChangeNumber);
+            throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                ERR_INVALID_COOKIE_SYNTAX.get());
           }
+          String domainBaseDN = fields[0];
+          if (fields.length > 1)
+          {
+            String strState = fields[1];
+            String[] strCN = strState.split(" ");
+            for (String sr : strCN)
+            {
+              ChangeNumber fromChangeNumber = new ChangeNumber(sr);
+              serverStateByDomain.update(fromChangeNumber);
+            }
+          }
+          startStates.put(domainBaseDN, serverStateByDomain);
         }
-        startStates.put(domainBaseDN, serverStateByDomain);
       }
-    }
-    catch(Exception e)
-    {
-      throw new DirectoryException(
-          ResultCode.OPERATIONS_ERROR,
-          Message.raw(Category.SYNC, Severity.INFORMATION,"Exception raised: "),
-          e);
+      catch (DirectoryException de)
+      {
+        throw de;
+      }
+      catch (Exception e)
+      {
+        throw new DirectoryException(
+            ResultCode.PROTOCOL_ERROR,
+            Message.raw(Category.SYNC, Severity.INFORMATION,
+            "Exception raised: " + e),
+            e);
+      }
     }
     return startStates;
   }
