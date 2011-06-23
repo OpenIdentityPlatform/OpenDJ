@@ -37,6 +37,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.DataFormatException;
@@ -696,7 +697,7 @@ public class ECLServerHandler extends ServerHandler
     // At the end, normally the map should be empty.
     // Depending on allowUnknownDomains provided flag, a non empty map will
     // be considered as an error when allowUnknownDomains is false.
-    HashMap<String,ServerState> startStatesFromProvidedCookie =
+    Map<String,ServerState> startStatesFromProvidedCookie =
       new HashMap<String,ServerState>();
 
     ReplicationServer rs = this.replicationServer;
@@ -1053,7 +1054,7 @@ public class ECLServerHandler extends ServerHandler
     {
       TRACER.debugCaught(DebugLogLevel.ERROR, e);
       throw new DirectoryException(
-          ResultCode.UNWILLING_TO_PERFORM,
+          ResultCode.PROTOCOL_ERROR,
           ERR_INVALID_COOKIE_SYNTAX.get());
     }
 

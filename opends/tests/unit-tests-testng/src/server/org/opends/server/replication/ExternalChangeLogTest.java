@@ -27,10 +27,7 @@
  */
 package org.opends.server.replication;
 
-import static org.opends.messages.ReplicationMessages.ERR_INVALID_COOKIE_SYNTAX;
-import static org.opends.messages.ReplicationMessages.ERR_RESYNC_REQUIRED_MISSING_DOMAIN_IN_PROVIDED_COOKIE;
-import static org.opends.messages.ReplicationMessages.ERR_RESYNC_REQUIRED_TOO_OLD_DOMAIN_IN_PROVIDED_COOKIE;
-import static org.opends.messages.ReplicationMessages.ERR_RESYNC_REQUIRED_UNKNOWN_DOMAIN_IN_PROVIDED_COOKIE;
+import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
@@ -44,6 +41,7 @@ import static org.testng.Assert.fail;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.ServerSocket;
@@ -128,6 +126,7 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.ServerConstants;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.externalchangelog.ECLSearchOperation;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
@@ -199,7 +198,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           replicationServerPort, "ExternalChangeLogTestDb",
           0, 71, 0, maxWindow, null);
 
-    replicationServer = new ReplicationServer(conf1);;
+    replicationServer = new ReplicationServer(conf1);
     debugInfo("configure", "ReplicationServer created"+replicationServer);
 
   }
@@ -596,7 +595,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       assertEquals(op2.getEntriesSent(), 1);
       debugInfo(tn, "Ending test successfully");
     }
-    catch(LDAPException e)
+    catch(Exception e)
     {
       fail("Ending test " + tn + " with exception e="
           +  stackTraceToSingleLineString(e));
@@ -609,6 +608,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
    * @return The built list of controls.
    */
   private ArrayList<Control> createControls(String cookie)
+          throws DirectoryException
   {
     ExternalChangelogRequestControl control =
       new ExternalChangelogRequestControl(true,
@@ -1131,7 +1131,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       controls,
       null);
 
-      waitOpResult(searchOp, ResultCode.UNWILLING_TO_PERFORM);
+      waitOpResult(searchOp, ResultCode.PROTOCOL_ERROR);
       assertEquals(searchOp.getSearchEntries().size(), 0);
       assertTrue(searchOp.getErrorMessage().toString().equals(
           ERR_INVALID_COOKIE_SYNTAX.get().toString()),
@@ -1163,11 +1163,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       waitOpResult(searchOp, ResultCode.UNWILLING_TO_PERFORM);
       assertEquals(searchOp.getSearchEntries().size(), 0);
-      assertTrue(searchOp.getErrorMessage().toString().startsWith(
-          ERR_RESYNC_REQUIRED_UNKNOWN_DOMAIN_IN_PROVIDED_COOKIE.get("{o=test6=}").toString().replace(")","")),
-          searchOp.getErrorMessage().toString());
-      // The cookie value is not tested because it is build from a hashmap in
-      // the server and the order of domains is not predictable.
+
       // Test missing domain in provided cookie
       newCookie = lastCookie.substring(lastCookie.indexOf(';')+1);
       control =
@@ -2628,13 +2624,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
    */
   protected void shutdown() throws Exception
   {
-    if (replicationServer != null)
+    if (replicationServer != null) {
       replicationServer.remove();
-    /*
-    TestCaseUtils.dsconfig(
-        "delete-replication-server",
-        "--provider-name", "Multimaster Synchronization");
-     */
+      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+            replicationServer.getDbDirName()));
+    }
     replicationServer = null;
   }
   /**

@@ -1866,7 +1866,7 @@ public final class ReplicationServer
 
     // Get the first DraftCN from the DraftCNdb
     firstDraftCN = draftCNDbH.getFirstKey();
-    HashMap<String,ServerState> domainsServerStateForLastSeqnum = null;
+    Map<String,ServerState> domainsServerStateForLastSeqnum = null;
     ChangeNumber changeNumberForLastSeqnum = null;
     String domainForLastSeqnum = null;
     if (firstDraftCN < 1)

@@ -23,11 +23,13 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
 import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.replication.common.MultiDomainServerState;
 
 /**
@@ -113,6 +115,10 @@ public class ECLUpdateMsg extends ReplicationMsg
         ReplicationMsg.generateMsg(
             encodedMsg, ProtocolVersion.getCurrentVersion());
       this.updateMsg = (LDAPUpdateMsg)rmsg;
+    }
+    catch(DirectoryException de)
+    {
+      throw new DataFormatException(de.toString());
     }
     catch (UnsupportedEncodingException e)
     {

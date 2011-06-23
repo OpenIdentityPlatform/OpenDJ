@@ -50,7 +50,7 @@ import org.opends.server.types.Attributes;
 import org.opends.server.types.InitializationException;
 
 import com.sleepycat.je.DatabaseException;
-import java.util.HashMap;
+import java.util.Map;
 import org.opends.server.replication.common.MultiDomainServerState;
 
 /**
@@ -396,7 +396,7 @@ public class DraftCNDbHandler implements Runnable
           ServerState cnVector = null;
           try
           {
-            HashMap<String,ServerState> cnStartStates =
+            Map<String,ServerState> cnStartStates =
                 MultiDomainServerState.splitGenStateToServerStates(
                         cursor.currentValue());
             cnVector = cnStartStates.get(serviceID);
