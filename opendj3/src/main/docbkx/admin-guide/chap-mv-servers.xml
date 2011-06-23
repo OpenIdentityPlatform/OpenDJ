@@ -36,7 +36,306 @@
  your replication configuration. This chapter shows what to do when moving
  a server.</para>
  
- <!-- Disable replication, move, fix certificates/ports, enable replication -->
+ <section>
+  <title>Overview</title>
+  
+  <para>From time to time you might change server hardware, file system layout,
+  or host names. At those times you move the services running on the system.
+  You can move OpenDJ data between servers and operating systems. Most of the
+  configuration is also portable.</para>
+ 
+  <itemizedlist>
+   <para>Two aspects of the configuration are not portable.</para>
+   <listitem>
+    <para>Server certificates contain the host name of the system. Even if you
+    did not set up secure communications when you installed the server, the
+    server still has a certificate used for secure communications on the
+    administrative port.</para>
+    <para>To resolve the issue with server certificates, you can change the
+    server certificates during the move as described in this chapter.</para>
+   </listitem>
+   <listitem>
+    <para>Replication configuration includes the host name and administrative
+    port numbers.</para>
+    <para>You can work around the issue with replication configuration by
+    disabling replication for the server before the move, and then enabling and
+    initializing replication again after the move.</para>
+   </listitem>
+  </itemizedlist>  
+ </section>
+ 
+ <section>
+  <title>Before You Move</title>
+  
+  <para>Take a moment to determine whether you find it quicker and easier to
+  move your server, or instead to recreate a copy. To recreate a copy, install
+  a new server, set up the new server configuration to match the old, and then
+  copy only the data from the old server to the new server, initializing
+  replication from existing data, or even from LDIF if your database is not
+  too large.</para>
+  
+  <para>After you decide to move a server, start by taking it out of
+  service. Taking it out of service means directing client applications
+  elsewhere, and then preventing updates from client applications, and finally
+  disabling replication, too. Directing client applications elsewhere depends
+  on your network configuration and possibly on your client application
+  configuration. The other two steps can be completed with the
+  <command>dsconfig</command> and <command>dsreplication</command>
+  commands.</para>
+  
+  <procedure>
+   <title>To Take the Server Out of Service</title>
+   
+   <step>
+    <para>Direct client applications to other servers.</para>
+    <para>How you do this depends on your network and client application
+    configurations.</para>
+   </step>
+   <step>
+    <para>Prevent the server from accepting updates from client
+    applications.</para>
+    <screen width="80">$ dsconfig -p 5444 -h `hostname` -D "cn=Directory Manager" -w password \
+&gt; set-global-configuration-prop --set writability-mode:internal-only -X -n</screen>
+   </step>
+   <step>
+    <para>Disable replication for the server.</para>
+    <screen width="80">$ dsreplication disable -a -p 5444 -h `hostname` -D "cn=Directory Manager" \
+&gt; -w password -X -n
+Establishing connections ..... Done.
+Disabling replication on base DN dc=example,dc=com of server localhost:5444
+ ..... Done.
+Disabling replication on base DN cn=admin data of server localhost:5444
+ ..... Done.
+Disabling replication on base DN cn=schema of server localhost:5444 ..... Done.
+Disabling replication port 9989 of server localhost:5444 ..... Done.
+Removing registration information ..... Done.
+Removing truststore information ..... Done.
 
+See
+/var/.../opends-replication-3173475478874782719.log
+for a detailed log of this operation.</screen>
+   </step>
+   <step>
+    <para>With the server no longer receiving traffic or accepting updates
+    from clients, and no longer replicating to other servers, you can shut it
+    down in preparation for the move.</para>
+    <screen width="80">$ stop-ds 
+Stopping Server...
+
+... msg=The Directory Server is now stopped</screen>
+   </step>
+   <step performance="optional">
+    <para>You might also choose to remove extra log files from the server
+    <filename>logs/</filename> directory before moving the server.</para>
+   </step>
+  </procedure>  
+ </section>
+
+ <section>
+  <title>Moving a Server</title>
+  
+  <para>Now that you have decided to move your server, and prepared for the
+  move, you must not only move the files but also fix the configuration and
+  the server certificates, and then enable replication.</para>
+  
+  <procedure>
+   <title>To Move the Server</title>
+   
+   <step>
+    <para>Move the contents of the server installation directory to the new
+    location.</para>
+   </step>
+   <step performance="optional">
+    <para>If you must change port numbers, edit the port numbers in
+    <filename>config/config.ldif</filename>, carefully avoiding to change
+    any whitespace or other lines in the file.</para>
+   </step>
+   <step>
+    <para>Change server certificates as described in the separate procedure
+    below.</para>
+   </step>
+   <step>
+    <para>Start the server.</para>
+    <screen width="80">$ start-ds
+... The Directory Server has started successfully</screen>
+   </step>
+   <step>
+    <para>Enable and initialize replication.</para>
+    <screen width="80">$ dsreplication enable -I admin -w password -X -n -b dc=example,dc=com \
+&gt; --host1 localhost --port1 4444 --bindDN1 "cn=Directory Manager" \
+&gt; --bindPassword1 password --replicationPort1 8989 \
+&gt; --host2 remotehost --port2 4444 --bindDN2 "cn=Directory Manager" \
+&gt; --bindPassword2 password --replicationPort2 8989
+
+Establishing connections ..... Done.
+Checking registration information ..... Done.
+Configuring Replication port on server localhost:4444 ..... Done.
+Updating remote references on server remotehost:4444 ..... Done.
+Updating replication configuration for baseDN dc=example,dc=com on server
+ localhost:4444 ..... Done.
+Updating replication configuration for baseDN dc=example,dc=com on server
+ remotehost:4444 ..... Done.
+Updating registration configuration on server localhost:4444 ..... Done.
+Updating registration configuration on server remotehost:4444 ..... Done.
+Updating replication configuration for baseDN cn=schema on server
+ localhost:4444 ..... Done.
+Updating replication configuration for baseDN cn=schema on server
+ remotehost:4444 ..... Done.
+Initializing registration information on server localhost:4444 with the
+ contents of server remotehost:4444 ..... Done.
+Initializing schema on server remotehost:4444 with the contents of server
+ localhost:4444 ..... Done.
+
+Replication has been successfully enabled.  Note that for replication to work
+ you must initialize the contents of the base DN's that are being replicated
+ (use dsreplication initialize to do so).
+
+See /tmp/opends-replication-1476402020764482023.log for a detailed log of this
+operation.
+
+$ dsreplication pre-external-initialization -I admin -w password -X -n -p 4444 \
+&gt; -b dc=example,dc=com
+
+Preparing base DN dc=example,dc=com to be initialized externally ..... Done.
+
+Now you can proceed to the initialization of the contents of the base DN's on
+ all the replicated servers.  You can use the command import-ldif or the binary
+ copy to do so.  You must use the same LDIF file or binary copy on each server.
+
+When the initialization is completed you must use the subcommand
+ 'post-external-initialization' for replication to work with the new base DN's
+ contents.
+$ dsreplication post-external-initialization -I admin -w password -X -n \
+&gt; -p 4444 -b dc=example,dc=com
+
+Updating replication information on base DN dc=example,dc=com ..... Done.
+
+Post initialization procedure completed successfully.</screen>
+   </step>
+   <step>
+    <para>Accept updates from client applications.</para>
+    <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+&gt; set-global-configuration-prop --set writability-mode:enabled -X -n</screen>
+   </step>
+   <step>
+    <para>Direct client applications to the server.</para>
+   </step>
+  </procedure>
+    
+  <procedure>
+   <title>To Change Server Certificates</title>
+   <note>
+    <para>This procedure demonstrates using a new self-signed certificate to
+    replace the existing certificate in the
+    <filename>admin-truststore</filename> and corresponding private key in the
+    <filename>admin-keystore</filename>. Use CA-signed certificates to protect
+    communications with client applications in production deployments.</para>
+   </note>
+   <para>To hold certificates for StartTLS/SSL, and for communication between
+   servers, OpenDJ uses key stores (for private keys) and trust stores (for
+   public, signed certificates), all located by default in the
+   <filename>config/</filename> directory. The default files are as
+   follows.</para>
+   
+   <variablelist>
+    <varlistentry>
+     <term><filename>admin-keystore</filename></term>
+     <listitem>
+      <para>This Java Key Store holds the private key corresponding to the
+      administrative certificate, <literal>admin-cert</literal>, used
+      to protect communications on the administration port, and for replication.
+      The password is stored in <filename>admin-keystore.pin</filename>.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><filename>admin-truststore</filename></term>
+     <listitem>
+      <para>This Java Key Store holds the public administrative certificate,
+      <literal>admin-cert</literal>, corresponding to the private key having the
+      same alias in the <filename>admin-keystore</filename>. The password is the
+      same as for the <filename>admin-keystore</filename>, in other words the
+      string in <filename>admin-keystore.pin</filename>.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><filename>ads-truststore</filename></term>
+     <listitem>
+      <para>This Java Key Store holds public certificates from other servers
+      participating in the same replication topology. The password is stored in
+      <filename>ads-truststore.pin</filename>.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><filename>keystore</filename></term>
+     <listitem>
+      <para>This Java Key Store holds the private key corresponding to the
+      server certificate used to protect TLS/SSL communications with client
+      applications. The password is stored in
+      <filename>keystore.pin</filename>.</para>
+     </listitem>
+    </varlistentry>
+    <varlistentry>
+     <term><filename>truststore</filename></term>
+     <listitem>
+      <para>This Java Key Store holds the public server certificate
+      corresponding to the private key having the same alias in the
+      <filename>keystore</filename>. The password is the same as for the
+      <filename>keystore</filename>, in other words the string in
+      <filename>keystore.pin</filename>.</para>
+     </listitem>
+    </varlistentry>
+   </variablelist>
+   <step>
+    <para>List information about the contents of the keystore and truststore
+    whose contents you want to replace.</para>
+    <screen width="80">$ cd /path/to/OpenDJ/config
+$ keytool -list -v -keystore admin-keystore -storepass `cat admin-keystore.pin`</screen>
+   </step>
+   <step>
+    <para>Remove the certificate to replace from the keystore and from the
+    truststore.</para>
+    <screen width="80">$ keytool -delete -alias admin-cert -keystore admin-keystore \
+&gt; -storepass `cat admin-keystore.pin`
+$ keytool -delete -alias admin-cert -keystore admin-truststore \
+&gt; -storepass `cat admin-keystore.pin`</screen>
+   </step>
+   <step>
+    <para>Generate the private key, storing it in the keystore.</para>
+    <screen width="80">$ keytool -genkey -alias admin-cert -keyalg RSA \
+&gt; -dname "CN=<replaceable>hostname</replaceable>, O=Administration Connector Self-Signed Certificate" \
+&gt; -keystore admin-keystore -storepass `cat admin-keystore.pin` \
+&gt; -keypass `cat admin-keystore.pin`</screen>
+    <para>You might choose to make the key valid for two years with
+    <option>-validity 730</option>.</para>
+   </step>
+   <step>
+    <para>Self-sign what you generated.</para>
+    <screen width="80">$ keytool -selfcert -alias admin-cert -keystore admin-keystore \
+&gt; -storepass `cat admin-keystore.pin`</screen>
+   </step>
+   <step>
+    <para>Export the certificate from the keystore.</para>
+    <screen width="80">$ keytool -export -alias admin-cert -keystore admin-keystore \
+&gt; -storepass `cat admin-keystore.pin` -file admin-cert.crt
+Certificate stored in file &lt;admin-cert.crt&gt;</screen>
+   </step>
+   <step>
+    <para>Import the certificate into the truststore.</para>
+    <screen width="80">$ keytool -import -alias admin-cert -keystore admin-truststore \
+&gt; -storepass `cat admin-keystore.pin` -file admin-cert.crt
+Owner: CN=<replaceable>hostname</replaceable>, O=Administration Connector Self-Signed Certificate
+Issuer: CN=<replaceable>hostname</replaceable>, O=Administration Connector Self-Signed Certificate
+Serial number: 4e0321c6
+Valid from: Thu Jun 23 13:21:42 CEST 2011 until: Wed Sep 21 13:21:42 CEST 2011
+Certificate fingerprints:
+  MD5:  5C:4B:CC:9A:37:E2:71:BD:C4:86:8E:FC:D4:37:39:57
+  SHA1: 70:D0:36:0D:EB:0D:AC:45:6D:A4:EF:8A:8E:CB:C7:04:7D:3A:EE:6E
+  Signature algorithm name: SHA1withRSA
+  Version: 3
+Trust this certificate? [no]:  yes
+Certificate was added to keystore</screen>
+   </step>
+  </procedure>
+ </section>
 </chapter>
 
