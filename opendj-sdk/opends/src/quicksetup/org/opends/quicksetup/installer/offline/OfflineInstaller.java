@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.quicksetup.installer.offline;
@@ -443,7 +444,7 @@ public class OfflineInstaller extends Installer
    */
   protected void initMaps()
   {
-    initSummaryMap(hmSummary);
+    initSummaryMap(hmSummary, true);
 
     /*
      * hmTime contains the relative time that takes for each task to be

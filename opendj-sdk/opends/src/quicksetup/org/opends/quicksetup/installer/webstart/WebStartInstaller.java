@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.quicksetup.installer.webstart;
@@ -359,7 +360,7 @@ public class WebStartInstaller extends Installer {
    */
   private void initMaps()
   {
-    initSummaryMap(hmSummary);
+    initSummaryMap(hmSummary, false);
 
     /*
      * hmTime contains the relative time that takes for each task to be
