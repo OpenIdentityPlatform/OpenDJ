@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="memory-backend" plural-name="memory-backends"
   package="org.opends.server.admin.std" extends="backend"
@@ -32,7 +33,7 @@
   <adm:synopsis>
     The 
     <adm:user-friendly-name />
-    provides a Directory Server backend
+    provides a directory server backend
     implementation that stores entries in memory.
   </adm:synopsis>
   <adm:description>

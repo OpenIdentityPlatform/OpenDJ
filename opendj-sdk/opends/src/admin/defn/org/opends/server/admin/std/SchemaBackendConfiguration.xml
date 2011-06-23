@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="schema-backend" plural-name="schema-backends"
   package="org.opends.server.admin.std" extends="backend"
@@ -32,7 +33,7 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    provides access to the Directory Server schema information,
+    provides access to the directory server schema information,
     including the attribute types, object classes, attribute syntaxes,
     matching rules, matching rule uses, DIT content rules, and DIT
     structure rules that it contains.

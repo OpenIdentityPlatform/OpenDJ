@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="access-control-handler"
   plural-name="access-control-handlers"
@@ -33,13 +34,13 @@
   xmlns:cli="http://www.opends.org/admin-cli">
   <adm:synopsis>
     <adm:user-friendly-plural-name />
-      manage the application-wide access control. The OpenDS access control 
+      manage the application-wide access control. The <adm:product-name /> access control 
       handler is defined through an extensible interface, so that alternate 
       implementations can be created. Only one access control handler may be 
       active in the server at any given time.  
   </adm:synopsis>
   <adm:description>
-     Note that OpenDS also has a privilege subsystem, which may have an impact 
+     Note that <adm:product-name /> also has a privilege subsystem, which may have an impact 
      on what clients may be allowed to do in the server. For example, any user 
      with the bypass-acl privilege is not subject to access control 
      checking regardless of whether the access control implementation is 

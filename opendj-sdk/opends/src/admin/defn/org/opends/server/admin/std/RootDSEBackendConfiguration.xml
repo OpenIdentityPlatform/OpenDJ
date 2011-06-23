@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="root-dse-backend"
   plural-name="root-dse-backends" package="org.opends.server.admin.std"
@@ -32,7 +33,7 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    contains the Directory Server root DSE.
+    contains the directory server root DSE.
   </adm:synopsis>
   <adm:description>
     This is a special meta-backend that dynamically generates the
@@ -73,7 +74,7 @@
     <adm:synopsis>
       Indicates whether all attributes in the root DSE are to be treated
       like user attributes (and therefore returned to clients by
-      default) regardless of the Directory Server schema configuration.
+      default) regardless of the directory server schema configuration.
     </adm:synopsis>
     <adm:syntax>
       <adm:boolean />

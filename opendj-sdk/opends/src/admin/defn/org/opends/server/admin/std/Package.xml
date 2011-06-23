@@ -24,12 +24,13 @@
   !
   !
   !      Copyright 2007-2009 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:package name="org.opends.server.admin.std"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
-    Core OpenDS Directory Server administrative components.
+    Core <adm:product-name /> directory server administrative components.
   </adm:synopsis>
   <adm:property name="listen-port" mandatory="true">
     <adm:synopsis>

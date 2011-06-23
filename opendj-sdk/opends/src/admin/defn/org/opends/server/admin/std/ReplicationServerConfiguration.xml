@@ -118,7 +118,7 @@
   <adm:property name="queue-size" advanced="true">
     <adm:synopsis>
       Specifies the number of changes that are kept in memory for
-      each Directory Server in the Replication Domain.
+      each directory server in the Replication Domain.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>

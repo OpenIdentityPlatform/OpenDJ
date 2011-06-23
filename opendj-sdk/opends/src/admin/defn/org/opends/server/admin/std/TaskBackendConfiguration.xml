@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="task-backend" plural-name="task-backends"
   package="org.opends.server.admin.std" extends="backend"
@@ -31,12 +32,12 @@
   xmlns:ldap="http://www.opends.org/admin-ldap">
   <adm:synopsis>
     The Task Backend provides a mechanism for scheduling tasks in the
-    OpenDS Directory Server. Tasks are intended to provide access to
+    <adm:product-name /> directory server. Tasks are intended to provide access to
     certain types of administrative functions in the server that may not
     be convenient to perform remotely.
   </adm:synopsis>
   <adm:description>
-    OpenDS supports tasks to backup and restore backends, to import and export LDIF 
+    <adm:product-name /> supports tasks to backup and restore backends, to import and export LDIF 
     files, and to stop and restart the server. The details of a task are
     in an entry that is below the root of the Task Backend. The Task Backend 
     is responsible for decoding that task entry and ensuring that it is processed 
@@ -74,7 +75,7 @@
     </adm:synopsis>
     <adm:description>
       It may be either an absolute path or a relative path to
-      the base of the OpenDS Directory Server instance.
+      the base of the <adm:product-name /> directory server instance.
     </adm:description>
     <adm:syntax>
       <adm:string />

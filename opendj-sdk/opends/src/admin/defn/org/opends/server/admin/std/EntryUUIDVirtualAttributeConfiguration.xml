@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="entry-uuid-virtual-attribute"
   plural-name="entry-uuid-virtual-attributes"
@@ -39,7 +40,7 @@
   <adm:description>
     The entryUUID values are generated based on a normalized
     representation of the entry's DN, which does not cause a
-    consistency problem because OpenDS does not allow modify DN 
+    consistency problem because <adm:product-name /> does not allow modify DN 
     operations to be performed in private backends.
   </adm:description>
   <adm:profile name="ldap">

@@ -24,6 +24,7 @@
   !
   !
   !      Portions Copyright 2008-2009 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
 ! -->
 <adm:managed-object name="snmp-connection-handler"
                     plural-name="snmp-connection-handlers"
@@ -304,7 +305,7 @@
     <adm:property name="registered-mbean">
         <adm:synopsis>
             Indicates whether the SNMP objects have to be registered in the 
-            Directory Server MBeanServer or not allowing to access SNMP Objects
+            directory server MBeanServer or not allowing to access SNMP Objects
             with RMI connector if enabled.
         </adm:synopsis>
         <adm:requires-admin-action>

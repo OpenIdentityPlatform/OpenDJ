@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="version-monitor-provider"
   plural-name="version-monitor-providers"
@@ -33,7 +34,7 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    can be used to publish Directory Server version information.
+    can be used to publish directory server version information.
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>

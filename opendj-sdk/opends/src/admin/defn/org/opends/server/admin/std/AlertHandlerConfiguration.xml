@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="alert-handler" plural-name="alert-handlers"
   package="org.opends.server.admin.std"
@@ -33,7 +34,7 @@
   <adm:synopsis>
     <adm:user-friendly-plural-name />
     are used to notify administrators of significant problems or notable
-    events that occur in the Directory Server.
+    events that occur in the <adm:product-name /> directory server.
   </adm:synopsis>
   <adm:tag name="core-server" />
   <adm:profile name="ldap">

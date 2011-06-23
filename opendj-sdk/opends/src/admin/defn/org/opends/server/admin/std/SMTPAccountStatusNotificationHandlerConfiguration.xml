@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="smtp-account-status-notification-handler"
   plural-name="smtp-account-status-notification-handlers"
@@ -65,7 +66,7 @@
     </adm:synopsis>
     <adm:description>
       You can specify more than one email address as separate values. In this case,
-      the OpenDS server sends a notification to all email addresses identified.
+      the <adm:product-name /> server sends a notification to all email addresses identified.
     </adm:description>
     <adm:default-behavior>
       <adm:alias>

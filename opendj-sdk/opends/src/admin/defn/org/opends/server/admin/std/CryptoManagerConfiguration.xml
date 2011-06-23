@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="crypto-manager" plural-name="crypto-managers"
   package="org.opends.server.admin.std"
@@ -45,7 +46,7 @@
   </adm:profile>
   <adm:property name="digest-algorithm" advanced="true">
     <adm:synopsis>
-      Specifies the preferred message digest algorithm for the Directory Server.
+      Specifies the preferred message digest algorithm for the directory server.
     </adm:synopsis>
     <adm:requires-admin-action>
       <adm:none>
@@ -72,7 +73,7 @@
   </adm:property>
   <adm:property name="mac-algorithm" advanced="true">
     <adm:synopsis>
-      Specifies the preferred MAC algorithm for the Directory Server.
+      Specifies the preferred MAC algorithm for the directory server.
     </adm:synopsis>
     <adm:requires-admin-action>
       <adm:none>
@@ -126,7 +127,7 @@
   </adm:property>
   <adm:property name="cipher-transformation" advanced="true">
     <adm:synopsis>
-      Specifies the cipher for the Directory Server 
+      Specifies the cipher for the directory server 
       using the syntax algorithm/mode/padding.
     </adm:synopsis>
     <adm:description>
@@ -191,7 +192,7 @@
   </adm:property>
     <adm:property name="key-wrapping-transformation" multi-valued="false" advanced="false">
     <adm:synopsis>
-      The preferred key wrapping transformation for the Directory Server. This value must
+      The preferred key wrapping transformation for the directory server. This value must
       be the same for all server instances in a replication topology.
     </adm:synopsis>
     <adm:requires-admin-action>
@@ -282,7 +283,7 @@
   <adm:property name="ssl-encryption">
     <adm:synopsis>
       Specifies whether SSL/TLS is used to provide encrypted
-      communication between two OpenDS server components.
+      communication between two <adm:product-name /> server components.
     </adm:synopsis>
     <adm:requires-admin-action>
       <adm:none>

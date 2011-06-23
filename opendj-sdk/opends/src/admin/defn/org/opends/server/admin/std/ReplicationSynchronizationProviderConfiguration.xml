@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="replication-synchronization-provider"
   plural-name="replication-synchronization-providers"
@@ -36,7 +37,7 @@
     The
     <adm:user-friendly-name />
     provides multi-master replication of data across multiple
-    Directory Server instances.
+    directory server instances.
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>

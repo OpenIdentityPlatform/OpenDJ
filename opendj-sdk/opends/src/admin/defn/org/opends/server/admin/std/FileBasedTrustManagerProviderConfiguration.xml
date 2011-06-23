@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="file-based-trust-manager-provider"
   plural-name="file-based-trust-manager-providers"
@@ -73,7 +74,7 @@
           <adm:regex>.*</adm:regex>
           <adm:usage>STRING</adm:usage>
           <adm:synopsis>
-            An absolute path or a path that is relative to the OpenDS Directory Server instance root.
+            An absolute path or a path that is relative to the <adm:product-name /> directory server instance root.
           </adm:synopsis>
         </adm:pattern>
       </adm:string>

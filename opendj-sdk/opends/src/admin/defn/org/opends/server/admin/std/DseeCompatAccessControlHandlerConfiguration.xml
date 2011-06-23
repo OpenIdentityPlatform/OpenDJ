@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2009 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="dsee-compat-access-control-handler"
   plural-name="dseecompat-access-control-handlers"
@@ -56,7 +57,7 @@
     <adm:synopsis>Defines global access control rules.</adm:synopsis>
     <adm:description>
       Global access control rules apply to all entries anywhere in the
-      data managed by the Directory Server. The global access control
+      data managed by the <adm:product-name /> directory server. The global access control
       rules may be overridden by more specific access control rules
       placed in the data.
     </adm:description>

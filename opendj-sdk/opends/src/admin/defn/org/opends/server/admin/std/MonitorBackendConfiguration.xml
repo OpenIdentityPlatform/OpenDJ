@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="monitor-backend"
   plural-name="monitor-backends" package="org.opends.server.admin.std"
@@ -34,7 +35,7 @@
     The 
     <adm:user-friendly-name />
     allows clients to access the information made
-    available by Directory Server monitor providers.
+    available by directory server monitor providers.
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>

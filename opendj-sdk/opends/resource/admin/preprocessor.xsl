@@ -1090,7 +1090,7 @@
     reason we get a circular dependency error when constructing
     the URI in JDK1.6.
   -->
-  <xsl:variable name="product-name" select="'OpenDS Directory Server'" />
+  <xsl:variable name="product-name" select="'OpenDJ'" />
   <xsl:variable name="this-name">
     <xsl:choose>
       <xsl:when test="/adm:managed-object">

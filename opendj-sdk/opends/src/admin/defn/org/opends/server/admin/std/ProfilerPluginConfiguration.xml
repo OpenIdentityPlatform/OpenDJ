@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="profiler-plugin"
   plural-name="profiler-plugins" package="org.opends.server.admin.std"
@@ -32,7 +33,7 @@
   <adm:synopsis>
     The Profiler plug-in
     captures profiling information about operations performed
-    inside the JVM while the Directory Server is running.
+    inside the JVM while the <adm:product-name /> directory server is running.
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>
@@ -95,11 +96,11 @@
     <adm:synopsis>
       Specifies the path to the directory where profile information
       is to be written. This path may be either an absolute path or a path 
-      that is relative to the root of the OpenDS Directory Server 
+      that is relative to the root of the <adm:product-name /> directory server 
       instance.
     </adm:synopsis>
     <adm:description>
-      The directory must exist and the Directory Server must have
+      The directory must exist and the directory server must have
       permission to create new files in it.
     </adm:description>
     <adm:syntax>
@@ -123,7 +124,7 @@
   <adm:property name="enable-profiling-on-startup" mandatory="true">
     <adm:synopsis>
       Indicates whether the profiler plug-in is to start collecting data
-      automatically when the Directory Server is started.
+      automatically when the directory server is started.
     </adm:synopsis>
     <adm:description>
       This property is read only when the server is 

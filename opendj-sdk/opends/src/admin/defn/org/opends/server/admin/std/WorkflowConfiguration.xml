@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2010 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="workflow" plural-name="workflows"
   package="org.opends.server.admin.std"
@@ -33,7 +34,7 @@
     The
     <adm:user-friendly-name />
     is a list of processing steps (Work Flow Elements) that are applied
-    to data as it is retrieved from the Directory Server.
+    to data as it is retrieved from the directory server.
   </adm:synopsis>
   <adm:tag name="core-server" />
   <adm:profile name="ldap">

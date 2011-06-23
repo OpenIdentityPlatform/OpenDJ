@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="entry-cache" plural-name="entry-caches"
   package="org.opends.server.admin.std"
@@ -33,7 +34,7 @@
   <adm:synopsis>
     <adm:user-friendly-plural-name />
     are responsible for caching entries which are likely to be accessed
-    by client applications in order to improve Directory Server
+    by client applications in order to improve <adm:product-name /> directory server
     performance.
   </adm:synopsis>
   <adm:tag name="database" />
