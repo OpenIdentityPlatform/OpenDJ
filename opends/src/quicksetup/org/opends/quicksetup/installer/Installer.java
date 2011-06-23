@@ -2164,9 +2164,11 @@ public abstract class Installer extends GuiApplication {
    * Updates the contents of the provided map with the localized summary
    * strings.
    * @param hmSummary the Map to be updated.
+   * @param isCli a boolean to indicate if the install is using CLI or GUI
    */
   protected void initSummaryMap(
-      Map<InstallProgressStep, Message> hmSummary)
+      Map<InstallProgressStep, Message> hmSummary,
+      boolean isCli)
   {
     hmSummary.put(InstallProgressStep.NOT_STARTED,
         getFormattedSummary(INFO_SUMMARY_INSTALL_NOT_STARTED.get()));
@@ -2204,7 +2206,11 @@ public abstract class Installer extends GuiApplication {
     Installation installation = getInstallation();
     String cmd = Utils.addWordBreaks(
         getPath(installation.getControlPanelCommandFile()), 60, 5);
-    cmd = UIFactory.applyFontToHtml(cmd, UIFactory.INSTRUCTIONS_MONOSPACE_FONT);
+    if (!isCli)
+    {
+      cmd = UIFactory.applyFontToHtml(cmd,
+                    UIFactory.INSTRUCTIONS_MONOSPACE_FONT);
+    }
     String formattedPath = Utils.addWordBreaks(
         formatter.getFormattedText(
             Message.raw(getPath(new File(getInstancePath())))).toString(),
