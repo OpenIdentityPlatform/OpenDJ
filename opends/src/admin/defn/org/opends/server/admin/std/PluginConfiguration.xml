@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2010 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="plugin" plural-name="plugins"
   package="org.opends.server.admin.std"
@@ -91,12 +92,12 @@
       <adm:enumeration>
         <adm:value name="startup">
           <adm:synopsis>
-            Invoked during the Directory Server startup process.
+            Invoked during the directory server startup process.
           </adm:synopsis>
         </adm:value>
         <adm:value name="shutdown">
           <adm:synopsis>
-            Invoked during a graceful Directory Server shutdown.
+            Invoked during a graceful directory server shutdown.
           </adm:synopsis>
         </adm:value>
         <adm:value name="postconnect">

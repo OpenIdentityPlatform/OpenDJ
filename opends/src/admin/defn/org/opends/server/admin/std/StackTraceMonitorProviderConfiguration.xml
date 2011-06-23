@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="stack-trace-monitor-provider"
   plural-name="stack-trace-monitor-providers"
@@ -34,7 +35,7 @@
     The
     <adm:user-friendly-name />
     enables clients to obtain a stack trace of all the threads that are 
-    currently running in the Directory Server.
+    currently running in the directory server.
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>

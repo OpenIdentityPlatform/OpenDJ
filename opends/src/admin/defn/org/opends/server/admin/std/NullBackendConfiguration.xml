@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2009 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="null-backend" plural-name="null-backends"
   package="org.opends.server.admin.std" advanced="true" extends="backend"
@@ -32,7 +33,7 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name/>
-    provides a Directory Server backend that implements a /dev/null like
+    provides a directory server backend that implements a /dev/null like
     behavior for development and testing.
   </adm:synopsis>
   <adm:description>

@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="system-info-monitor-provider"
   plural-name="system-info-monitor-providers"
@@ -34,7 +35,7 @@
     The
     <adm:user-friendly-name />
     can be used to publish information about the system and virtual
-    machine on which the Directory Server is running.
+    machine on which the directory server is running.
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>

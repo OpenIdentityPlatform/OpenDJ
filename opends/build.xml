@@ -28,7 +28,7 @@
 
 <project name="Directory Server" basedir="." default="package">
   <description>
-    This is the build script for the OpenDS Directory Server.  See the BUILDING
+    This is the build script for OpenDJ.  See the BUILDING
     file in this directory for build instructions.
   </description>
 

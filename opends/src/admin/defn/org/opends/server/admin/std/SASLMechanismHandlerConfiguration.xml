@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="sasl-mechanism-handler"
   plural-name="sasl-mechanism-handlers"
@@ -33,8 +34,8 @@
   xmlns:cli="http://www.opends.org/admin-cli">
   <adm:synopsis>
    The SASL mechanism handler configuration entry is the parent 
-   for all SASL mechanism handlers defined in the OpenDS 
-   Directory Server. 
+   for all SASL mechanism handlers defined in the <adm:product-name /> 
+   directory server. 
   </adm:synopsis>
   <adm:description>
     SASL mechanism handlers are responsible for 

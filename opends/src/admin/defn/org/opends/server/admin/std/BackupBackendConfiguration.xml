@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="backup-backend" plural-name="backup-backends"
   package="org.opends.server.admin.std" extends="backend"
@@ -33,7 +34,7 @@
     The
     <adm:user-friendly-name />
     provides read-only access to the set of backups
-    that are available for the OpenDS Directory Server. 
+    that are available for <adm:product-name />. 
   </adm:synopsis>
   <adm:description>
     It is provided as a convenience feature that makes it easier to determine what
@@ -69,8 +70,8 @@
       This is a multivalued property. Each value may specify a
       different backup directory if desired (one for each backend
       for which backups are taken). Values may be either absolute paths
-      or paths that are relative to the base of the OpenDS Directory
-      Server installation.
+      or paths that are relative to the base of the <adm:product-name /> directory
+      server installation.
     </adm:description>
     <adm:syntax>
       <adm:string />

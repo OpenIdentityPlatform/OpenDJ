@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2010 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="global" plural-name="globals"
   package="org.opends.server.admin.std"
@@ -53,7 +54,7 @@
       Indicates whether schema enforcement is active.
     </adm:synopsis>
     <adm:description>
-      When schema enforcement is activated, the Directory Server
+      When schema enforcement is activated, the directory server
       ensures that all operations result in entries are valid
       according to the defined server schema. It is strongly recommended
       that this option be left enabled to prevent the inadvertent
@@ -90,7 +91,7 @@
   </adm:property>
   <adm:property name="add-missing-rdn-attributes" advanced="true">
     <adm:synopsis>
-      Indicates whether the Directory Server should automatically add
+      Indicates whether the directory server should automatically add
       any attribute values contained in the entry's RDN into that entry
       when processing an add request.
     </adm:synopsis>
@@ -111,7 +112,7 @@
   <adm:property name="allow-attribute-name-exceptions"
     advanced="true">
     <adm:synopsis>
-      Indicates whether the Directory Server should allow underscores
+      Indicates whether the directory server should allow underscores
       in attribute names and allow attribute names
       to begin with numeric digits (both of which are violations of the
       LDAP standards).
@@ -133,7 +134,7 @@
   <adm:property name="invalid-attribute-syntax-behavior"
     advanced="true">
     <adm:synopsis>
-      Specifies how the Directory Server should handle operations whenever
+      Specifies how the directory server should handle operations whenever
       an attribute value violates the associated attribute syntax.
     </adm:synopsis>
     <adm:default-behavior>
@@ -145,7 +146,7 @@
       <adm:enumeration>
         <adm:value name="accept">
           <adm:synopsis>
-            The Directory Server silently accepts attribute values
+            The directory server silently accepts attribute values
             that are invalid according to their associated syntax.
             Matching operations targeting those values may not behave as
             expected.
@@ -153,13 +154,13 @@
         </adm:value>
         <adm:value name="reject">
           <adm:synopsis>
-            The Directory Server rejects attribute values that are
+            The directory server rejects attribute values that are
             invalid according to their associated syntax.
           </adm:synopsis>
         </adm:value>
         <adm:value name="warn">
           <adm:synopsis>
-            The Directory Server accepts attribute values that are
+            The directory server accepts attribute values that are
             invalid according to their associated syntax, but also
             logs a warning message to the error log. Matching operations
             targeting those values may not behave as expected.
@@ -195,7 +196,7 @@
   <adm:property name="single-structural-objectclass-behavior"
     advanced="true">
     <adm:synopsis>
-      Specifies how the Directory Server should handle operations an entry does
+      Specifies how the directory server should handle operations an entry does
       not contain a structural object class or contains multiple structural
       classes.
     </adm:synopsis>
@@ -208,7 +209,7 @@
       <adm:enumeration>
         <adm:value name="accept">
           <adm:synopsis>
-            The Directory Server silently accepts entries that do
+            The directory server silently accepts entries that do
             not contain exactly one structural object class. Certain
             schema features that depend on the entry's structural class
             may not behave as expected.
@@ -216,13 +217,13 @@
         </adm:value>
         <adm:value name="reject">
           <adm:synopsis>
-            The Directory Server rejects entries that do not contain
+            The directory server rejects entries that do not contain
             exactly one structural object class.
           </adm:synopsis>
         </adm:value>
         <adm:value name="warn">
           <adm:synopsis>
-            The Directory Server accepts entries that do not contain
+            The directory server accepts entries that do not contain
             exactly one structural object class, but also logs a
             warning message to the error log. Certain schema features
             that depend on the entry's structural class may not behave
@@ -241,7 +242,7 @@
   </adm:property>
   <adm:property name="notify-abandoned-operations" advanced="true">
     <adm:synopsis>
-      Indicates whether the Directory Server should send a response to
+      Indicates whether the directory server should send a response to
       any operation that is interrupted via an abandon request.
     </adm:synopsis>
     <adm:description>
@@ -344,7 +345,7 @@
   </adm:property>
   <adm:property name="writability-mode">
     <adm:synopsis>
-      Specifies the kinds of write operations the Directory Server
+      Specifies the kinds of write operations the directory server
       can process.
     </adm:synopsis>
     <adm:default-behavior>
@@ -356,20 +357,20 @@
       <adm:enumeration>
         <adm:value name="enabled">
           <adm:synopsis>
-            The Directory Server attempts to process all write
+            The directory server attempts to process all write
             operations that are requested of it, regardless of their
             origin.
           </adm:synopsis>
         </adm:value>
         <adm:value name="disabled">
           <adm:synopsis>
-            The Directory Server rejects all write operations that
+            The directory server rejects all write operations that
             are requested of it, regardless of their origin.
           </adm:synopsis>
         </adm:value>
         <adm:value name="internal-only">
           <adm:synopsis>
-            The Directory Server attempts to process write
+            The directory server attempts to process write
             operations requested as internal operations or through
             synchronization, but rejects any such operations
             requested from external clients.
@@ -385,7 +386,7 @@
   </adm:property>
   <adm:property name="reject-unauthenticated-requests">
     <adm:synopsis>
-      Indicates whether the Directory Server should reject any request
+      Indicates whether the directory server should reject any request
       (other than bind or StartTLS requests) received from a client that
       has not yet been authenticated, whose last authentication attempt was
       unsuccessful, or whose last authentication attempt used anonymous
@@ -407,7 +408,7 @@
   </adm:property>
   <adm:property name="bind-with-dn-requires-password">
     <adm:synopsis>
-      Indicates whether the Directory Server should reject any simple
+      Indicates whether the directory server should reject any simple
       bind request that contains a DN but no password.
     </adm:synopsis>
     <adm:description>
@@ -433,7 +434,7 @@
   </adm:property>
   <adm:property name="lookthrough-limit">
     <adm:synopsis>
-      Specifies the maximum number of entries that the Directory Server
+      Specifies the maximum number of entries that the directory server
       should "look through" in the course of processing a search
       request.
     </adm:synopsis>
@@ -733,7 +734,7 @@
   </adm:property>
   <adm:property name="save-config-on-successful-startup">
     <adm:synopsis>
-      Indicates whether the Directory Server should save a copy of its
+      Indicates whether the directory server should save a copy of its
       configuration whenever the startup process completes successfully.
     </adm:synopsis>
     <adm:description>
@@ -867,7 +868,7 @@
   <adm:property name="max-psearches">
     <adm:synopsis>
       Defines the maximum number of concurrent persistent searches that
-      can be performed on Directory Server
+      can be performed on directory server
     </adm:synopsis>
     <adm:description>
       The persistent search mechanism provides an active channel through which entries that change,

@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="exact-match-identity-mapper"
   plural-name="exact-match-identity-mappers"
@@ -61,7 +62,7 @@
     </adm:synopsis>
     <adm:description>
       At least one value must be provided. All values must refer to the
-      name or OID of an attribute type defined in the Directory Server
+      name or OID of an attribute type defined in the directory server
       schema. If multiple attributes or OIDs are provided, at least one of 
       those attributes must contain the provided ID string value in exactly 
       one entry. The internal search performed includes a logical OR across 

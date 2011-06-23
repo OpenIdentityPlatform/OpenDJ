@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="synchronization-provider"
   plural-name="synchronization-providers"
@@ -33,20 +34,20 @@
   xmlns:cli="http://www.opends.org/admin-cli">
   <adm:synopsis>
     <adm:user-friendly-plural-name />
-    are responsible for handling synchronization of the Directory Server
-    data with other OpenDS instances or other data repositories.
+    are responsible for handling synchronization of the directory server
+    data with other <adm:product-name /> instances or other data repositories.
   </adm:synopsis>
   <adm:description>
-    The OpenDS Directory Server takes a centralized approach to 
+    The <adm:product-name /> directory server takes a centralized approach to 
     replication, rather than the point-to-point approach taken by Sun 
-    Java System Directory Server. In OpenDS, one or more replication 
+    Java System Directory Server. In <adm:product-name />, one or more replication 
     servers are created in the environment. The replication servers 
     typically do not store user data but keep a log of all changes made 
-    within the topology. Each Directory Server instance in the topology 
+    within the topology. Each directory server instance in the topology 
     is pointed at the replication servers. This plan simplifies the 
     deployment and management of the environment. Although you can run 
     the replication server on the same system (or even in the same 
-    instance) as the Directory Server, the two servers can be separated 
+    instance) as the directory server, the two servers can be separated 
     onto different systems. This approach can provide better performance 
     or functionality in large environments.
   </adm:description>

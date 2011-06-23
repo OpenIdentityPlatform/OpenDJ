@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="client-connection-monitor-provider"
   plural-name="client-connection-monitor-providers"
@@ -34,7 +35,7 @@
     The
     <adm:user-friendly-name />
     exposes monitor information about the set of client connections that
-    are established to the Directory Server.
+    are established to the <adm:product-name /> directory server.
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>

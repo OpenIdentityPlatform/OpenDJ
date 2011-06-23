@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="get-symmetric-key-extended-operation-handler"
   plural-name="get-symmetric-key-extended-operation-handlers"
@@ -34,7 +35,7 @@
   <adm:synopsis>
     The
     <adm:user-friendly-name />
-    is used by the OpenDS cryptographic framework for creating and
+    is used by the <adm:product-name /> cryptographic framework for creating and
     obtaining symmetric encryption keys.
   </adm:synopsis>
   <adm:profile name="ldap">

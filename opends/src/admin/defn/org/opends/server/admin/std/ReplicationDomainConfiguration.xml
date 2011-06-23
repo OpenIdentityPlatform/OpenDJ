@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2010 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="replication-domain"
   plural-name="replication-domains"
@@ -56,7 +57,7 @@
     <adm:synopsis>
       Specifies the addresses of the Replication Servers within the
       <adm:user-friendly-name />
-      to which the Directory Server should try to connect at startup
+      to which the directory server should try to connect at startup
       time.
     </adm:synopsis>
     <adm:description>
@@ -81,13 +82,13 @@
   </adm:property>
   <adm:property name="server-id" mandatory="true" read-only="true">
     <adm:synopsis>
-      Specifies a unique identifier for the Directory Server within the
+      Specifies a unique identifier for the directory server within the
       <adm:user-friendly-name />.
     </adm:synopsis>
     <adm:description>
-      Each Directory Server within the same
+      Each directory server within the same
       <adm:user-friendly-name />
-      must have a different server ID. A Directory Server which is a
+      must have a different server ID. A directory server which is a
       member of multiple
       <adm:user-friendly-plural-name />
       may use the same server ID for each of its
@@ -118,7 +119,7 @@
   </adm:property>
   <adm:property name="window-size">
     <adm:synopsis>
-      Specifies the window size that the Directory Server will use when
+      Specifies the window size that the directory server will use when
       communicating with Replication Servers.
     </adm:synopsis>
     <adm:default-behavior>
@@ -137,11 +138,11 @@
   </adm:property>
   <adm:property name="heartbeat-interval">
     <adm:synopsis>
-      Specifies the heart-beat interval that the Directory Server will
+      Specifies the heart-beat interval that the directory server will
       use when communicating with Replication Servers.
     </adm:synopsis>
     <adm:description>
-      The Directory Server expects a regular heart-beat coming from
+      The directory server expects a regular heart-beat coming from
       the Replication Server within the specified interval. If a
       heartbeat is not received within the interval, the Directory
       Server closes its connection and connects to another
@@ -163,13 +164,13 @@
   </adm:property>
     <adm:property name="changetime-heartbeat-interval" advanced="true">
     <adm:synopsis>
-      Specifies the heart-beat interval that the Directory Server will
+      Specifies the heart-beat interval that the directory server will
       use when sending its local change time to the Replication Server.
     </adm:synopsis>
     <adm:description>
-      The Directory Server sends a regular heart-beat to the Replication
+      The directory server sends a regular heart-beat to the Replication
       within the specified interval. The heart-beat indicates the 
-      change time of the Directory Server to the Replication Server.
+      change time of the directory server to the Replication Server.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
@@ -187,7 +188,7 @@
   </adm:property>
   <adm:property name="isolation-policy">
     <adm:synopsis>
-      Specifies the behavior of the Directory Server if a write
+      Specifies the behavior of the directory server if a write
       operation is attempted on the data within the
       <adm:user-friendly-name />
       when none of the configured Replication Servers are available.
@@ -519,7 +520,7 @@
   </adm:property>
   <adm:property name="initialization-window-size">
     <adm:synopsis>
-      Specifies the window size that this Directory Server may use when
+      Specifies the window size that this directory server may use when
       communicating with remote Directory Servers for initialization.
     </adm:synopsis>
     <adm:default-behavior>

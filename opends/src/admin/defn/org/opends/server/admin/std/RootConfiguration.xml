@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2010 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:root-managed-object xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap"
@@ -464,7 +465,7 @@
       <ldap:rdn-sequence>cn=Extensions,cn=config</ldap:rdn-sequence>
     </adm:profile>
    </adm:relation>
-  <adm:product-name>OpenDS Directory Server</adm:product-name>
+  <adm:product-name>OpenDJ</adm:product-name>
   <adm:tag-definition name="logging">
     <adm:synopsis>Logging</adm:synopsis>
   </adm:tag-definition>
