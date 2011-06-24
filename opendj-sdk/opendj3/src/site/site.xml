@@ -70,7 +70,7 @@
    <item name="Installation Guide" href="./doc/install-guide/OpenDJ-Install-Guide.html" />
    <item name="Administration Guide" href="./doc/admin-guide/OpenDJ-Admin-Guide.html" />
    <item name="Developer Guide" href="./doc/dev-guide/OpenDJ-Dev-Guide.html" />
-   <item name="Config Reference" href="404.html" alt="TODO" />
+   <item name="Config Reference" href="./opendj-server/configref/index.html" />
    <item name="Plugin Javadoc" href="404.html" alt="TODO" />
    <item name="SDK Javadoc" href="./opendj-ldap-sdk/apidocs/index.html" />
   </menu>
