@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.admin.doc;
 
@@ -79,9 +80,10 @@ public class ConfigGuideGeneration {
   // Note : still to be done :
   // I18n support. Today all the strings are hardcoded in this file
 
-  private final static String ACI_SYNTAX_REL_URL = "/page/ACISyntax";
+  private final static String ACI_SYNTAX_REL_URL =
+    "/doc/admin-guide/OpenDJ-Admin-Guide.html#chap-privileges-acis";
   private final static String DURATION_SYNTAX_REL_URL =
-    "/page/DefinitionDuration";
+    "/404.html";
   private final String CSS_FILE = "opends-config.css";
 
   private final String MAIN_FILE = "index.html";
@@ -94,7 +96,7 @@ public class ConfigGuideGeneration {
   private final String MAINTOP_FILE = "maintop.html";
   private final String INDEX_FILE = "index.html";
 
-  private static final String CONFIG_GUIDE_DIR = "opends_config_guide";
+  private static final String CONFIG_GUIDE_DIR = "opendj_config_guide";
   private final String MAIN_FRAME = "mainFrame";
 
   /**
@@ -105,10 +107,11 @@ public class ConfigGuideGeneration {
    *              (default is /var/tmp/[CONFIG_GUIDE_DIR>])
    * LdapMapping - Presence means that the LDAP mapping section is to be
    *               generated (default is no)
-   * OpendsWiki - The URL of the OpenDS Wiki
-   *              (default is "https://www.opends.org/wiki")
-   * OpendsHome - The URL of the OpenDS project Home page
-   *              (default is "http://www.opends.org")
+   * OpenDJWiki - The URL of the OpenDJ Wiki
+   *              (default is
+   *              "http://wikis.forgerock.org/confluence/display/OPENDJ")
+   * OpenDJHome - The URL of the OpenDJ project Home page
+   *              (default is "http://opendj.forgerock.org")
    *
    * @param args none.
    */
@@ -133,18 +136,19 @@ public class ConfigGuideGeneration {
       ldapMapping = true;
     }
 
-    opendsWiki = properties.getProperty("OpendsWiki");
-    if (opendsWiki == null) {
+    OpenDJWiki = properties.getProperty("OpenDJWiki");
+    if (OpenDJWiki == null) {
       // Default is current wiki
-      opendsWiki = "https://www.opends.org/wiki";
+      OpenDJWiki = "http://wikis.forgerock.org/confluence/display/OPENDJ";
     }
-    aciSyntaxPage = opendsWiki + ACI_SYNTAX_REL_URL;
-    durationSyntaxPage = opendsWiki + DURATION_SYNTAX_REL_URL;
 
-    opendsHome = properties.getProperty("OpendsHome");
-    if (opendsHome == null) {
-      // Default is current OpenDS project home
-      opendsHome = "http://www.opends.org";
+    aciSyntaxPage = OpenDJHome + ACI_SYNTAX_REL_URL;
+    durationSyntaxPage = OpenDJHome + DURATION_SYNTAX_REL_URL; // TODO: missing
+
+    OpenDJHome = properties.getProperty("OpenDJHome");
+    if (OpenDJHome == null) {
+      // Default is current OpenDJ project home
+      OpenDJHome = "http://opendj.forgerock.org";
     }
 
     ConfigGuideGeneration myGen = new ConfigGuideGeneration();
@@ -1002,10 +1006,10 @@ public class ConfigGuideGeneration {
     htmlHeader(DynamicConstants.PRODUCT_NAME +
             " Configuration Reference - Main Top");
     htmlBuff.append("<div class=\"breadcrumb\"><span class=\"pageactions\">" +
-      "<a href=\"" + opendsWiki + "\" target=\"_parent\">" +
+      "<a href=\"" + OpenDJHome + "\" target=\"_parent\">" +
       "<span style=\"font-size: 12px;\">&laquo;&nbsp;&nbsp;</span>" +
       "Back to " +
-      DynamicConstants.PRODUCT_NAME + " Wiki</a></span>&nbsp;&nbsp;</div>\n");
+      DynamicConstants.PRODUCT_NAME + " Home</a></span>&nbsp;&nbsp;</div>\n");
     htmlBuff.append("<table class=\"titletable\" cellspacing=\"0\" " +
       "width=\"100%\">\n");
     htmlBuff.append("<tbody><tr>\n");
@@ -1013,9 +1017,9 @@ public class ConfigGuideGeneration {
             DynamicConstants.PRODUCT_NAME +
             " Configuration Reference</h2></td>\n");
     htmlBuff.append("  <td valign=\"bottom\" width=\"10%\">" +
-      "<a href=\"" + opendsHome + "\" target=\"_parent\">" +
-      "<img src=\"opends_logo_sm.png\" alt=\"OpenDS Logo\" align=\"bottom\" " +
-      "border=\"0\" height=\"33\" width=\"104\"></a></td>\n");
+      "<a href=\"" + OpenDJHome + "\" target=\"_parent\">" +
+      "<img src=\"opends_logo_sm.png\" alt=\"OpenDJ Logo\" align=\"bottom\" " +
+      "border=\"0\" height=\"33\" width=\"114\"></a></td>\n");
     htmlBuff.append("</tr>\n");
     htmlBuff.append("</tbody></table>\n");
 
@@ -1622,8 +1626,8 @@ public class ConfigGuideGeneration {
   private StringBuffer htmlBuff = new StringBuffer();
   private static String generationDir;
   private static boolean ldapMapping = false;
-  private static String opendsWiki;
-  private static String opendsHome;
+  private static String OpenDJWiki;
+  private static String OpenDJHome;
   private static String aciSyntaxPage;
   private static String durationSyntaxPage;
   private boolean inList = false;

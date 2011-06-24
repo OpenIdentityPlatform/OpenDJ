@@ -105,6 +105,32 @@
               </target>
             </configuration>
           </execution>
+          <execution>
+            <id>docgen</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <ant target="configguide" />
+              </target>
+            </configuration>
+          </execution>
+          <execution>
+            <id>cp-docget</id>
+            <phase>post-site</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <copy todir="build/site/configref">
+                  <fileset dir="build/docgen/configuration_guide/" />
+                </copy>
+              </target>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
       <plugin>
