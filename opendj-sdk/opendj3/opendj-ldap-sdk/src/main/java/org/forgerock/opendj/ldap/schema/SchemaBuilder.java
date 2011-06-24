@@ -30,11 +30,17 @@ package org.forgerock.opendj.ldap.schema;
 
 
 
+import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
 import static org.forgerock.opendj.ldap.CoreMessages.*;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 import static org.forgerock.opendj.ldap.schema.Schema.*;
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
-import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.EXTENSIBLE_OBJECT_OBJECTCLASS_OID;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.OMR_GENERIC_ENUM_NAME;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.SCHEMA_PROPERTY_APPROX_RULE;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.TOP_OBJECTCLASS_NAME;
+import static org.forgerock.opendj.ldap.schema.SchemaUtils.unmodifiableCopyOfExtraProperties;
+import static org.forgerock.opendj.ldap.schema.SchemaUtils.unmodifiableCopyOfList;
+import static org.forgerock.opendj.ldap.schema.SchemaUtils.unmodifiableCopyOfSet;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -67,18 +73,7 @@ public final class SchemaBuilder
   private static final Filter SUBSCHEMA_FILTER = Filter
       .valueOf("(objectClass=subschema)");
 
-  private static final String[] SUBSCHEMA_SUBENTRY_ATTRS =
-    new String[] { ATTR_SUBSCHEMA_SUBENTRY };
-
-
-
-  // Constructs a search request for retrieving the named subschema
-  // sub-entry.
-  private static SearchRequest getReadSchemaSearchRequest(final DN dn)
-  {
-    return Requests.newSearchRequest(dn, SearchScope.BASE_OBJECT,
-        SUBSCHEMA_FILTER, SUBSCHEMA_ATTRS);
-  }
+  private static final String[] SUBSCHEMA_SUBENTRY_ATTRS = new String[] { ATTR_SUBSCHEMA_SUBENTRY };
 
 
 
@@ -88,6 +83,16 @@ public final class SchemaBuilder
   {
     return Requests.newSearchRequest(dn, SearchScope.BASE_OBJECT,
         Filter.getObjectClassPresentFilter(), SUBSCHEMA_SUBENTRY_ATTRS);
+  }
+
+
+
+  // Constructs a search request for retrieving the named subschema
+  // sub-entry.
+  private static SearchRequest getReadSchemaSearchRequest(final DN dn)
+  {
+    return Requests.newSearchRequest(dn, SearchScope.BASE_OBJECT,
+        SUBSCHEMA_FILTER, SUBSCHEMA_ATTRS);
   }
 
 
@@ -156,11 +161,15 @@ public final class SchemaBuilder
 
   private Map<String, List<NameForm>> objectClass2NameForms;
 
-  private SchemaCompatOptions options;
+  private String schemaName;
 
   private List<LocalizableMessage> warnings;
 
-  private Schema schema;
+  private boolean allowNonStandardTelephoneNumbers;
+
+  private boolean allowZeroLengthDirectoryStrings;
+
+  private boolean allowMalformedNamesAndOptions;
 
   // A unique ID which can be used to uniquely identify schemas
   // constructed without a name.
@@ -211,7 +220,6 @@ public final class SchemaBuilder
   public SchemaBuilder(final Schema schema) throws NullPointerException
   {
     initBuilder(schema.getSchemaName());
-    setSchemaCompatOptions(schema.getSchemaCompatOptions());
     addSchema(schema, true);
   }
 
@@ -287,7 +295,7 @@ public final class SchemaBuilder
 
       // The next set of characters must be the OID.
       final String oid = SchemaUtils.readOID(reader,
-          options.allowMalformedNamesAndOptions());
+          allowMalformedNamesAndOptions);
 
       List<String> names = Collections.emptyList();
       String description = "".intern();
@@ -324,7 +332,7 @@ public final class SchemaBuilder
         else if (tokenName.equalsIgnoreCase("name"))
         {
           names = SchemaUtils.readNameDescriptors(reader,
-              options.allowMalformedNamesAndOptions());
+              allowMalformedNamesAndOptions);
         }
         else if (tokenName.equalsIgnoreCase("desc"))
         {
@@ -346,28 +354,28 @@ public final class SchemaBuilder
           // type from which this attribute type should inherit its
           // properties.
           superiorType = SchemaUtils.readOID(reader,
-              options.allowMalformedNamesAndOptions());
+              allowMalformedNamesAndOptions);
         }
         else if (tokenName.equalsIgnoreCase("equality"))
         {
           // This specifies the name or OID of the equality matching
           // rule to use for this attribute type.
           equalityMatchingRule = SchemaUtils.readOID(reader,
-              options.allowMalformedNamesAndOptions());
+              allowMalformedNamesAndOptions);
         }
         else if (tokenName.equalsIgnoreCase("ordering"))
         {
           // This specifies the name or OID of the ordering matching
           // rule to use for this attribute type.
           orderingMatchingRule = SchemaUtils.readOID(reader,
-              options.allowMalformedNamesAndOptions());
+              allowMalformedNamesAndOptions);
         }
         else if (tokenName.equalsIgnoreCase("substr"))
         {
           // This specifies the name or OID of the substring matching
           // rule to use for this attribute type.
           substringMatchingRule = SchemaUtils.readOID(reader,
-              options.allowMalformedNamesAndOptions());
+              allowMalformedNamesAndOptions);
         }
         else if (tokenName.equalsIgnoreCase("syntax"))
         {
@@ -379,8 +387,8 @@ public final class SchemaBuilder
           // implementation will ignore any such length because it does
           // not impose any practical limit on the length of attribute
           // values.
-          syntax = SchemaUtils.readOIDLen(reader,
-              options.allowMalformedNamesAndOptions());
+          syntax = SchemaUtils
+              .readOIDLen(reader, allowMalformedNamesAndOptions);
         }
         else if (tokenName.equalsIgnoreCase("single-definition"))
         {
@@ -494,8 +502,8 @@ public final class SchemaBuilder
     }
     catch (final DecodeException e)
     {
-      LocalizableMessage msg = ERR_ATTR_SYNTAX_ATTRTYPE_INVALID1.get(definition,
-          e.getMessageObject());
+      final LocalizableMessage msg = ERR_ATTR_SYNTAX_ATTRTYPE_INVALID1.get(
+          definition, e.getMessageObject());
       throw new LocalizedIllegalArgumentException(msg, e.getCause());
     }
     return this;
@@ -533,10 +541,10 @@ public final class SchemaBuilder
    *          be used or, if none is defined, the default matching rule
    *          associated with the syntax.
    * @param approximateMatchingRule
-   *          The OID of the approximate matching rule, which may be {@code
-   *          null} indicating that the superior attribute type's matching rule
-   *          should be used or, if none is defined, the default matching rule
-   *          associated with the syntax.
+   *          The OID of the approximate matching rule, which may be
+   *          {@code null} indicating that the superior attribute type's
+   *          matching rule should be used or, if none is defined, the default
+   *          matching rule associated with the syntax.
    * @param syntax
    *          The OID of the syntax definition.
    * @param singleValue
@@ -638,7 +646,7 @@ public final class SchemaBuilder
 
       // The next set of characters must be the OID.
       final String structuralClass = SchemaUtils.readOID(reader,
-          options.allowMalformedNamesAndOptions());
+          allowMalformedNamesAndOptions);
 
       List<String> names = Collections.emptyList();
       String description = "".intern();
@@ -669,7 +677,7 @@ public final class SchemaBuilder
         else if (tokenName.equalsIgnoreCase("name"))
         {
           names = SchemaUtils.readNameDescriptors(reader,
-              options.allowMalformedNamesAndOptions());
+              allowMalformedNamesAndOptions);
         }
         else if (tokenName.equalsIgnoreCase("desc"))
         {
@@ -688,22 +696,22 @@ public final class SchemaBuilder
         else if (tokenName.equalsIgnoreCase("aux"))
         {
           auxiliaryClasses = SchemaUtils.readOIDs(reader,
-              options.allowMalformedNamesAndOptions());
+              allowMalformedNamesAndOptions);
         }
         else if (tokenName.equalsIgnoreCase("must"))
         {
           requiredAttributes = SchemaUtils.readOIDs(reader,
-              options.allowMalformedNamesAndOptions());
+              allowMalformedNamesAndOptions);
         }
         else if (tokenName.equalsIgnoreCase("may"))
         {
           optionalAttributes = SchemaUtils.readOIDs(reader,
-              options.allowMalformedNamesAndOptions());
+              allowMalformedNamesAndOptions);
         }
         else if (tokenName.equalsIgnoreCase("not"))
         {
           prohibitedAttributes = SchemaUtils.readOIDs(reader,
-              options.allowMalformedNamesAndOptions());
+              allowMalformedNamesAndOptions);
         }
         else if (tokenName.matches("^X-[A-Za-z_-]+$"))
         {
@@ -738,8 +746,8 @@ public final class SchemaBuilder
     }
     catch (final DecodeException e)
     {
-      LocalizableMessage msg = ERR_ATTR_SYNTAX_DCR_INVALID1.get(definition,
-          e.getMessageObject());
+      final LocalizableMessage msg = ERR_ATTR_SYNTAX_DCR_INVALID1.get(
+          definition, e.getMessageObject());
       throw new LocalizedIllegalArgumentException(msg, e.getCause());
     }
     return this;
@@ -933,7 +941,7 @@ public final class SchemaBuilder
         else if (tokenName.equalsIgnoreCase("name"))
         {
           names = SchemaUtils.readNameDescriptors(reader,
-              options.allowMalformedNamesAndOptions());
+              allowMalformedNamesAndOptions);
         }
         else if (tokenName.equalsIgnoreCase("desc"))
         {
@@ -951,8 +959,7 @@ public final class SchemaBuilder
         }
         else if (tokenName.equalsIgnoreCase("form"))
         {
-          nameForm = SchemaUtils.readOID(reader,
-              options.allowMalformedNamesAndOptions());
+          nameForm = SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
         }
         else if (tokenName.equalsIgnoreCase("sup"))
         {
@@ -998,8 +1005,8 @@ public final class SchemaBuilder
     }
     catch (final DecodeException e)
     {
-      LocalizableMessage msg = ERR_ATTR_SYNTAX_DSR_INVALID1.get(definition,
-          e.getMessageObject());
+      final LocalizableMessage msg = ERR_ATTR_SYNTAX_DSR_INVALID1.get(
+          definition, e.getMessageObject());
       throw new LocalizedIllegalArgumentException(msg, e.getCause());
     }
     return this;
@@ -1031,13 +1038,14 @@ public final class SchemaBuilder
   {
     Validator.ensureNotNull((Object) enumerations);
 
-    final EnumSyntaxImpl enumImpl = new EnumSyntaxImpl(oid, Arrays
-        .asList(enumerations));
-    final Syntax enumSyntax = new Syntax(oid, description, Collections
-        .singletonMap("X-ENUM", Arrays.asList(enumerations)), null, enumImpl);
-    final MatchingRule enumOMR = new MatchingRule(enumImpl
-        .getOrderingMatchingRule(), Collections
-        .singletonList(OMR_GENERIC_ENUM_NAME + oid), "", false, oid,
+    final EnumSyntaxImpl enumImpl = new EnumSyntaxImpl(oid,
+        Arrays.asList(enumerations));
+    final Syntax enumSyntax = new Syntax(oid, description,
+        Collections.singletonMap("X-ENUM", Arrays.asList(enumerations)), null,
+        enumImpl);
+    final MatchingRule enumOMR = new MatchingRule(
+        enumImpl.getOrderingMatchingRule(),
+        Collections.singletonList(OMR_GENERIC_ENUM_NAME + oid), "", false, oid,
         CoreSchemaImpl.OPENDS_ORIGIN, null, new EnumOrderingMatchingRule(
             enumImpl));
 
@@ -1110,7 +1118,7 @@ public final class SchemaBuilder
 
       // The next set of characters must be the OID.
       final String oid = SchemaUtils.readOID(reader,
-          options.allowMalformedNamesAndOptions());
+          allowMalformedNamesAndOptions);
 
       List<String> names = Collections.emptyList();
       String description = "".intern();
@@ -1138,7 +1146,7 @@ public final class SchemaBuilder
         else if (tokenName.equalsIgnoreCase("name"))
         {
           names = SchemaUtils.readNameDescriptors(reader,
-              options.allowMalformedNamesAndOptions());
+              allowMalformedNamesAndOptions);
         }
         else if (tokenName.equalsIgnoreCase("desc"))
         {
@@ -1156,8 +1164,7 @@ public final class SchemaBuilder
         }
         else if (tokenName.equalsIgnoreCase("syntax"))
         {
-          syntax = SchemaUtils.readOID(reader,
-              options.allowMalformedNamesAndOptions());
+          syntax = SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
         }
         else if (tokenName.matches("^X-[A-Za-z_-]+$"))
         {
@@ -1198,8 +1205,8 @@ public final class SchemaBuilder
     }
     catch (final DecodeException e)
     {
-      LocalizableMessage msg = ERR_ATTR_SYNTAX_MR_INVALID1.get(definition,
-          e.getMessageObject());
+      final LocalizableMessage msg = ERR_ATTR_SYNTAX_MR_INVALID1.get(
+          definition, e.getMessageObject());
       throw new LocalizedIllegalArgumentException(msg, e.getCause());
     }
     return this;
@@ -1307,7 +1314,7 @@ public final class SchemaBuilder
 
       // The next set of characters must be the OID.
       final String oid = SchemaUtils.readOID(reader,
-          options.allowMalformedNamesAndOptions());
+          allowMalformedNamesAndOptions);
 
       List<String> names = Collections.emptyList();
       String description = "".intern();
@@ -1335,7 +1342,7 @@ public final class SchemaBuilder
         else if (tokenName.equalsIgnoreCase("name"))
         {
           names = SchemaUtils.readNameDescriptors(reader,
-              options.allowMalformedNamesAndOptions());
+              allowMalformedNamesAndOptions);
         }
         else if (tokenName.equalsIgnoreCase("desc"))
         {
@@ -1354,7 +1361,7 @@ public final class SchemaBuilder
         else if (tokenName.equalsIgnoreCase("applies"))
         {
           attributes = SchemaUtils.readOIDs(reader,
-              options.allowMalformedNamesAndOptions());
+              allowMalformedNamesAndOptions);
         }
         else if (tokenName.matches("^X-[A-Za-z_-]+$"))
         {
@@ -1396,8 +1403,8 @@ public final class SchemaBuilder
     }
     catch (final DecodeException e)
     {
-      LocalizableMessage msg = ERR_ATTR_SYNTAX_MRUSE_INVALID1.get(definition,
-          e.getMessageObject());
+      final LocalizableMessage msg = ERR_ATTR_SYNTAX_MRUSE_INVALID1.get(
+          definition, e.getMessageObject());
       throw new LocalizedIllegalArgumentException(msg, e.getCause());
     }
     return this;
@@ -1501,7 +1508,7 @@ public final class SchemaBuilder
 
       // The next set of characters must be the OID.
       final String oid = SchemaUtils.readOID(reader,
-          options.allowMalformedNamesAndOptions());
+          allowMalformedNamesAndOptions);
 
       List<String> names = Collections.emptyList();
       String description = "".intern();
@@ -1531,7 +1538,7 @@ public final class SchemaBuilder
         else if (tokenName.equalsIgnoreCase("name"))
         {
           names = SchemaUtils.readNameDescriptors(reader,
-              options.allowMalformedNamesAndOptions());
+              allowMalformedNamesAndOptions);
         }
         else if (tokenName.equalsIgnoreCase("desc"))
         {
@@ -1550,17 +1557,17 @@ public final class SchemaBuilder
         else if (tokenName.equalsIgnoreCase("oc"))
         {
           structuralClass = SchemaUtils.readOID(reader,
-              options.allowMalformedNamesAndOptions());
+              allowMalformedNamesAndOptions);
         }
         else if (tokenName.equalsIgnoreCase("must"))
         {
           requiredAttributes = SchemaUtils.readOIDs(reader,
-              options.allowMalformedNamesAndOptions());
+              allowMalformedNamesAndOptions);
         }
         else if (tokenName.equalsIgnoreCase("may"))
         {
           optionalAttributes = SchemaUtils.readOIDs(reader,
-              options.allowMalformedNamesAndOptions());
+              allowMalformedNamesAndOptions);
         }
         else if (tokenName.matches("^X-[A-Za-z_-]+$"))
         {
@@ -1611,8 +1618,8 @@ public final class SchemaBuilder
     }
     catch (final DecodeException e)
     {
-      LocalizableMessage msg = ERR_ATTR_SYNTAX_NAME_FORM_INVALID1.get(definition,
-          e.getMessageObject());
+      final LocalizableMessage msg = ERR_ATTR_SYNTAX_NAME_FORM_INVALID1.get(
+          definition, e.getMessageObject());
       throw new LocalizedIllegalArgumentException(msg, e.getCause());
     }
     return this;
@@ -1724,7 +1731,7 @@ public final class SchemaBuilder
 
       // The next set of characters must be the OID.
       final String oid = SchemaUtils.readOID(reader,
-          options.allowMalformedNamesAndOptions());
+          allowMalformedNamesAndOptions);
 
       List<String> names = Collections.emptyList();
       String description = "".intern();
@@ -1755,7 +1762,7 @@ public final class SchemaBuilder
         else if (tokenName.equalsIgnoreCase("name"))
         {
           names = SchemaUtils.readNameDescriptors(reader,
-              options.allowMalformedNamesAndOptions());
+              allowMalformedNamesAndOptions);
         }
         else if (tokenName.equalsIgnoreCase("desc"))
         {
@@ -1774,7 +1781,7 @@ public final class SchemaBuilder
         else if (tokenName.equalsIgnoreCase("sup"))
         {
           superiorClasses = SchemaUtils.readOIDs(reader,
-              options.allowMalformedNamesAndOptions());
+              allowMalformedNamesAndOptions);
         }
         else if (tokenName.equalsIgnoreCase("abstract"))
         {
@@ -1799,12 +1806,12 @@ public final class SchemaBuilder
         else if (tokenName.equalsIgnoreCase("must"))
         {
           requiredAttributes = SchemaUtils.readOIDs(reader,
-              options.allowMalformedNamesAndOptions());
+              allowMalformedNamesAndOptions);
         }
         else if (tokenName.equalsIgnoreCase("may"))
         {
           optionalAttributes = SchemaUtils.readOIDs(reader,
-              options.allowMalformedNamesAndOptions());
+              allowMalformedNamesAndOptions);
         }
         else if (tokenName.matches("^X-[A-Za-z_-]+$"))
         {
@@ -1851,8 +1858,8 @@ public final class SchemaBuilder
     }
     catch (final DecodeException e)
     {
-      LocalizableMessage msg = ERR_ATTR_SYNTAX_OBJECTCLASS_INVALID1.get(definition,
-          e.getMessageObject());
+      final LocalizableMessage msg = ERR_ATTR_SYNTAX_OBJECTCLASS_INVALID1.get(
+          definition, e.getMessageObject());
       throw new LocalizedIllegalArgumentException(msg, e.getCause());
     }
     return this;
@@ -1953,6 +1960,102 @@ public final class SchemaBuilder
             Collections.singletonList(pattern.toString())), null, null),
         overwrite);
     return this;
+  }
+
+
+
+  /**
+   * Reads the schema elements contained in the named subschema sub-entry and
+   * adds them to this schema builder.
+   * <p>
+   * If the requested schema is not returned by the Directory Server then the
+   * request will fail with an {@link EntryNotFoundException}.
+   *
+   * @param connection
+   *          A connection to the Directory Server whose schema is to be read.
+   * @param name
+   *          The distinguished name of the subschema sub-entry.
+   * @param handler
+   *          A result handler which can be used to asynchronously process the
+   *          operation result when it is received, may be {@code null}.
+   * @param overwrite
+   *          {@code true} if existing schema elements with the same conflicting
+   *          OIDs should be overwritten.
+   * @return A future representing the updated schema builder.
+   * @throws UnsupportedOperationException
+   *           If the connection does not support search operations.
+   * @throws IllegalStateException
+   *           If the connection has already been closed, i.e. if
+   *           {@code connection.isClosed() == true}.
+   * @throws NullPointerException
+   *           If the {@code connection} or {@code name} was {@code null}.
+   */
+  public FutureResult<SchemaBuilder> addSchema(
+      final AsynchronousConnection connection, final DN name,
+      final ResultHandler<? super SchemaBuilder> handler,
+      final boolean overwrite) throws UnsupportedOperationException,
+      IllegalStateException, NullPointerException
+  {
+    final SearchRequest request = getReadSchemaSearchRequest(name);
+
+    final FutureResultTransformer<SearchResultEntry, SchemaBuilder> future =
+      new FutureResultTransformer<SearchResultEntry, SchemaBuilder>(handler)
+    {
+
+      @Override
+      protected SchemaBuilder transformResult(final SearchResultEntry result)
+          throws ErrorResultException
+      {
+        addSchema(result, overwrite);
+        return SchemaBuilder.this;
+      }
+
+    };
+
+    final FutureResult<SearchResultEntry> innerFuture = connection
+        .searchSingleEntry(request, future);
+    future.setFutureResult(innerFuture);
+    return future;
+  }
+
+
+
+  /**
+   * Reads the schema elements contained in the named subschema sub-entry and
+   * adds them to this schema builder.
+   * <p>
+   * If the requested schema is not returned by the Directory Server then the
+   * request will fail with an {@link EntryNotFoundException}.
+   *
+   * @param connection
+   *          A connection to the Directory Server whose schema is to be read.
+   * @param name
+   *          The distinguished name of the subschema sub-entry.
+   * @param overwrite
+   *          {@code true} if existing schema elements with the same conflicting
+   *          OIDs should be overwritten.
+   * @return A reference to this schema builder.
+   * @throws ErrorResultException
+   *           If the result code indicates that the request failed for some
+   *           reason.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting.
+   * @throws UnsupportedOperationException
+   *           If the connection does not support search operations.
+   * @throws IllegalStateException
+   *           If the connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If the {@code connection} or {@code name} was {@code null}.
+   */
+  public SchemaBuilder addSchema(final Connection connection, final DN name,
+      final boolean overwrite) throws ErrorResultException,
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException, NullPointerException
+  {
+    final SearchRequest request = getReadSchemaSearchRequest(name);
+    final Entry entry = connection.searchSingleEntry(request);
+    return addSchema(entry, overwrite);
   }
 
 
@@ -2176,102 +2279,6 @@ public final class SchemaBuilder
 
 
   /**
-   * Reads the schema elements contained in the named subschema sub-entry and
-   * adds them to this schema builder.
-   * <p>
-   * If the requested schema is not returned by the Directory Server then the
-   * request will fail with an {@link EntryNotFoundException}.
-   *
-   * @param connection
-   *          A connection to the Directory Server whose schema is to be read.
-   * @param name
-   *          The distinguished name of the subschema sub-entry.
-   * @param handler
-   *          A result handler which can be used to asynchronously process the
-   *          operation result when it is received, may be {@code null}.
-   * @param overwrite
-   *          {@code true} if existing schema elements with the same conflicting
-   *          OIDs should be overwritten.
-   * @return A future representing the updated schema builder.
-   * @throws UnsupportedOperationException
-   *           If the connection does not support search operations.
-   * @throws IllegalStateException
-   *           If the connection has already been closed, i.e. if
-   *           {@code connection.isClosed() == true}.
-   * @throws NullPointerException
-   *           If the {@code connection} or {@code name} was {@code null}.
-   */
-  public FutureResult<SchemaBuilder> addSchema(
-      final AsynchronousConnection connection, final DN name,
-      final ResultHandler<? super SchemaBuilder> handler,
-      final boolean overwrite) throws UnsupportedOperationException,
-      IllegalStateException, NullPointerException
-  {
-    final SearchRequest request = getReadSchemaSearchRequest(name);
-
-    final FutureResultTransformer<SearchResultEntry, SchemaBuilder> future =
-      new FutureResultTransformer<SearchResultEntry, SchemaBuilder>(handler)
-    {
-
-      @Override
-      protected SchemaBuilder transformResult(final SearchResultEntry result)
-          throws ErrorResultException
-      {
-        addSchema(result, overwrite);
-        return SchemaBuilder.this;
-      }
-
-    };
-
-    final FutureResult<SearchResultEntry> innerFuture = connection
-        .searchSingleEntry(request, future);
-    future.setFutureResult(innerFuture);
-    return future;
-  }
-
-
-
-  /**
-   * Reads the schema elements contained in the named subschema sub-entry and
-   * adds them to this schema builder.
-   * <p>
-   * If the requested schema is not returned by the Directory Server then the
-   * request will fail with an {@link EntryNotFoundException}.
-   *
-   * @param connection
-   *          A connection to the Directory Server whose schema is to be read.
-   * @param name
-   *          The distinguished name of the subschema sub-entry.
-   * @param overwrite
-   *          {@code true} if existing schema elements with the same conflicting
-   *          OIDs should be overwritten.
-   * @return A reference to this schema builder.
-   * @throws ErrorResultException
-   *           If the result code indicates that the request failed for some
-   *           reason.
-   * @throws InterruptedException
-   *           If the current thread was interrupted while waiting.
-   * @throws UnsupportedOperationException
-   *           If the connection does not support search operations.
-   * @throws IllegalStateException
-   *           If the connection has already been closed, i.e. if
-   *           {@code isClosed() == true}.
-   * @throws NullPointerException
-   *           If the {@code connection} or {@code name} was {@code null}.
-   */
-  public SchemaBuilder addSchema(final Connection connection, final DN name,
-      final boolean overwrite) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException
-  {
-    final SearchRequest request = getReadSchemaSearchRequest(name);
-    final Entry entry = connection.searchSingleEntry(request);
-    return addSchema(entry, overwrite);
-  }
-
-
-
-  /**
    * Reads the schema elements contained in the subschema sub-entry which
    * applies to the named entry and adds them to this schema builder.
    * <p>
@@ -2403,8 +2410,10 @@ public final class SchemaBuilder
   {
     Validator.ensureNotNull(substituteSyntax);
 
-    addSyntax(new Syntax(oid, description, Collections.singletonMap("X-SUBST",
-        Collections.singletonList(substituteSyntax)), null, null), overwrite);
+    addSyntax(
+        new Syntax(oid, description, Collections.singletonMap("X-SUBST",
+            Collections.singletonList(substituteSyntax)), null, null),
+        overwrite);
     return this;
   }
 
@@ -2465,7 +2474,7 @@ public final class SchemaBuilder
 
       // The next set of characters must be the OID.
       final String oid = SchemaUtils.readOID(reader,
-          options.allowMalformedNamesAndOptions());
+          allowMalformedNamesAndOptions);
 
       String description = "".intern();
       Map<String, List<String>> extraProperties = Collections.emptyMap();
@@ -2525,15 +2534,15 @@ public final class SchemaBuilder
       {
         if (property.getKey().equalsIgnoreCase("x-enum"))
         {
-          final EnumSyntaxImpl enumImpl = new EnumSyntaxImpl(oid, property
-              .getValue());
+          final EnumSyntaxImpl enumImpl = new EnumSyntaxImpl(oid,
+              property.getValue());
           final Syntax enumSyntax = new Syntax(oid, description,
               extraProperties, definition, enumImpl);
-          final MatchingRule enumOMR = new MatchingRule(enumImpl
-              .getOrderingMatchingRule(), Collections
-              .singletonList(OMR_GENERIC_ENUM_NAME + oid), "", false, oid,
-              CoreSchemaImpl.OPENDS_ORIGIN, null, new EnumOrderingMatchingRule(
-                  enumImpl));
+          final MatchingRule enumOMR = new MatchingRule(
+              enumImpl.getOrderingMatchingRule(),
+              Collections.singletonList(OMR_GENERIC_ENUM_NAME + oid), "",
+              false, oid, CoreSchemaImpl.OPENDS_ORIGIN, null,
+              new EnumOrderingMatchingRule(enumImpl));
 
           addSyntax(enumSyntax, overwrite);
           addMatchingRule(enumOMR, overwrite);
@@ -2547,8 +2556,8 @@ public final class SchemaBuilder
     }
     catch (final DecodeException e)
     {
-      LocalizableMessage msg = ERR_ATTR_SYNTAX_ATTRSYNTAX_INVALID1.get(definition,
-          e.getMessageObject());
+      final LocalizableMessage msg = ERR_ATTR_SYNTAX_ATTRSYNTAX_INVALID1.get(
+          definition, e.getMessageObject());
       throw new LocalizedIllegalArgumentException(msg, e.getCause());
     }
     return this;
@@ -2592,6 +2601,80 @@ public final class SchemaBuilder
 
 
   /**
+   * Specifies whether or not the schema should allow certain illegal characters
+   * in OIDs and attribute options. When this compatibility option is set to
+   * {@code true} the following illegal characters will be permitted in addition
+   * to those permitted in section 1.4 of RFC 4512:
+   *
+   * <pre>
+   * USCORE  = %x5F ; underscore ("_")
+   * DOT     = %x2E ; period (".")
+   * </pre>
+   *
+   * By default this compatibility option is set to {@code true} because these
+   * characters are often used for naming purposes (such as collation rules).
+   *
+   * @param allowMalformedNamesAndOptions
+   *          {@code true} if the schema should allow certain illegal characters
+   *          in OIDs and attribute options.
+   * @return A reference to this {@code SchemaBuilder}.
+   * @see <a href="http://tools.ietf.org/html/rfc4512">RFC 4512 - Lightweight
+   *      Directory Access Protocol (LDAP): Directory Information Models </a>
+   */
+  public SchemaBuilder allowMalformedNamesAndOptions(
+      final boolean allowMalformedNamesAndOptions)
+  {
+    this.allowMalformedNamesAndOptions = allowMalformedNamesAndOptions;
+    return this;
+  }
+
+
+
+  /**
+   * Specifies whether or not the Telephone Number syntax should allow values
+   * which do not conform to the E.123 international telephone number format.
+   * <p>
+   * By default this compatibility option is set to {@code true}.
+   *
+   * @param allowNonStandardTelephoneNumbers
+   *          {@code true} if the Telephone Number syntax should allow values
+   *          which do not conform to the E.123 international telephone number
+   *          format.
+   * @return A reference to this {@code SchemaBuilder}.
+   */
+  public SchemaBuilder allowNonStandardTelephoneNumbers(
+      final boolean allowNonStandardTelephoneNumbers)
+  {
+    this.allowNonStandardTelephoneNumbers = allowNonStandardTelephoneNumbers;
+    return this;
+  }
+
+
+
+  /**
+   * Specifies whether or not zero-length values will be allowed by the
+   * Directory String syntax. This is technically forbidden by the LDAP
+   * specification, but it was allowed in earlier versions of the server, and
+   * the discussion of the directory string syntax in RFC 2252 does not
+   * explicitly state that they are not allowed.
+   * <p>
+   * By default this compatibility option is set to {@code false}.
+   *
+   * @param allowZeroLengthDirectoryStrings
+   *          {@code true} if zero-length values will be allowed by the
+   *          Directory String syntax, or {@code false} if not.
+   * @return A reference to this {@code SchemaBuilder}.
+   */
+  public SchemaBuilder allowZeroLengthDirectoryStrings(
+      final boolean allowZeroLengthDirectoryStrings)
+  {
+    this.allowZeroLengthDirectoryStrings = allowZeroLengthDirectoryStrings;
+    return this;
+  }
+
+
+
+  /**
    * Removes the named attribute type from this schema builder.
    *
    * @param name
@@ -2600,9 +2683,20 @@ public final class SchemaBuilder
    */
   public boolean removeAttributeType(final String name)
   {
-    if (schema.hasAttributeType(name))
+    final AttributeType element = numericOID2AttributeTypes.get(name);
+    if (element != null)
     {
-      removeAttributeType(schema.getAttributeType(name));
+      removeAttributeType(element);
+      return true;
+    }
+    final List<AttributeType> elements = name2AttributeTypes
+        .get(toLowerCase(name));
+    if (elements != null)
+    {
+      for (final AttributeType e : elements)
+      {
+        removeAttributeType(e);
+      }
       return true;
     }
     return false;
@@ -2619,9 +2713,20 @@ public final class SchemaBuilder
    */
   public boolean removeDITContentRule(final String name)
   {
-    if (schema.hasDITContentRule(name))
+    final DITContentRule element = numericOID2ContentRules.get(name);
+    if (element != null)
     {
-      removeDITContentRule(schema.getDITContentRule(name));
+      removeDITContentRule(element);
+      return true;
+    }
+    final List<DITContentRule> elements = name2ContentRules
+        .get(toLowerCase(name));
+    if (elements != null)
+    {
+      for (final DITContentRule e : elements)
+      {
+        removeDITContentRule(e);
+      }
       return true;
     }
     return false;
@@ -2636,11 +2741,12 @@ public final class SchemaBuilder
    *          The ID of the DIT structure rule to be removed.
    * @return {@code true} if the DIT structure rule was found.
    */
-  public boolean removeDITStructureRule(final Integer ruleID)
+  public boolean removeDITStructureRule(final int ruleID)
   {
-    if (schema.hasDITStructureRule(ruleID))
+    final DITStructureRule element = id2StructureRules.get(ruleID);
+    if (element != null)
     {
-      removeDITStructureRule(schema.getDITStructureRule(ruleID));
+      removeDITStructureRule(element);
       return true;
     }
     return false;
@@ -2657,9 +2763,20 @@ public final class SchemaBuilder
    */
   public boolean removeMatchingRule(final String name)
   {
-    if (schema.hasMatchingRule(name))
+    final MatchingRule element = numericOID2MatchingRules.get(name);
+    if (element != null)
     {
-      removeMatchingRule(schema.getMatchingRule(name));
+      removeMatchingRule(element);
+      return true;
+    }
+    final List<MatchingRule> elements = name2MatchingRules
+        .get(toLowerCase(name));
+    if (elements != null)
+    {
+      for (final MatchingRule e : elements)
+      {
+        removeMatchingRule(e);
+      }
       return true;
     }
     return false;
@@ -2676,9 +2793,20 @@ public final class SchemaBuilder
    */
   public boolean removeMatchingRuleUse(final String name)
   {
-    if (schema.hasMatchingRuleUse(name))
+    final MatchingRuleUse element = numericOID2MatchingRuleUses.get(name);
+    if (element != null)
     {
-      removeMatchingRuleUse(schema.getMatchingRuleUse(name));
+      removeMatchingRuleUse(element);
+      return true;
+    }
+    final List<MatchingRuleUse> elements = name2MatchingRuleUses
+        .get(toLowerCase(name));
+    if (elements != null)
+    {
+      for (final MatchingRuleUse e : elements)
+      {
+        removeMatchingRuleUse(e);
+      }
       return true;
     }
     return false;
@@ -2695,9 +2823,19 @@ public final class SchemaBuilder
    */
   public boolean removeNameForm(final String name)
   {
-    if (schema.hasNameForm(name))
+    final NameForm element = numericOID2NameForms.get(name);
+    if (element != null)
     {
-      removeNameForm(schema.getNameForm(name));
+      removeNameForm(element);
+      return true;
+    }
+    final List<NameForm> elements = name2NameForms.get(toLowerCase(name));
+    if (elements != null)
+    {
+      for (final NameForm e : elements)
+      {
+        removeNameForm(e);
+      }
       return true;
     }
     return false;
@@ -2714,9 +2852,20 @@ public final class SchemaBuilder
    */
   public boolean removeObjectClass(final String name)
   {
-    if (schema.hasObjectClass(name))
+    final ObjectClass element = numericOID2ObjectClasses.get(name);
+    if (element != null)
     {
-      removeObjectClass(schema.getObjectClass(name));
+      removeObjectClass(element);
+      return true;
+    }
+    final List<ObjectClass> elements = name2ObjectClasses
+        .get(toLowerCase(name));
+    if (elements != null)
+    {
+      for (final ObjectClass e : elements)
+      {
+        removeObjectClass(e);
+      }
       return true;
     }
     return false;
@@ -2733,34 +2882,13 @@ public final class SchemaBuilder
    */
   public boolean removeSyntax(final String numericOID)
   {
-    if (schema.hasSyntax(numericOID))
+    final Syntax element = numericOID2Syntaxes.get(numericOID);
+    if (element != null)
     {
-      removeSyntax(schema.getSyntax(numericOID));
+      removeSyntax(element);
       return true;
     }
     return false;
-  }
-
-
-
-  /**
-   * Sets the schema compatibility options for this schema builder. The schema
-   * builder maintains its own set of compatibility options, so subsequent
-   * changes to the provided set of options will not impact this schema builder.
-   *
-   * @param options
-   *          The set of schema compatibility options that this schema builder
-   *          should use.
-   * @return A reference to this schema builder.
-   * @throws NullPointerException
-   *           If {@code options} was {@code null}.
-   */
-  public SchemaBuilder setSchemaCompatOptions(final SchemaCompatOptions options)
-      throws NullPointerException
-  {
-    Validator.ensureNotNull(options);
-    this.options.assign(options);
-    return this;
   }
 
 
@@ -2779,10 +2907,19 @@ public final class SchemaBuilder
    */
   public Schema toSchema()
   {
-    validate();
-    final Schema builtSchema = schema;
+    final Schema schema = new Schema(schemaName, allowMalformedNamesAndOptions,
+        allowNonStandardTelephoneNumbers, allowZeroLengthDirectoryStrings,
+        numericOID2Syntaxes, numericOID2MatchingRules,
+        numericOID2MatchingRuleUses, numericOID2AttributeTypes,
+        numericOID2ObjectClasses, numericOID2NameForms,
+        numericOID2ContentRules, id2StructureRules, name2MatchingRules,
+        name2MatchingRuleUses, name2AttributeTypes, name2ObjectClasses,
+        name2NameForms, name2ContentRules, name2StructureRules,
+        objectClass2NameForms, nameForm2StructureRules, warnings);
+
+    validate(schema);
     initBuilder(null);
-    return builtSchema;
+    return schema;
   }
 
 
@@ -2881,8 +3018,8 @@ public final class SchemaBuilder
       if (!overwrite)
       {
         final LocalizableMessage message = ERR_SCHEMA_CONFLICTING_DIT_STRUCTURE_RULE_ID
-            .get(rule.getNameOrRuleID(), rule.getRuleID(), conflictingRule
-                .getNameOrRuleID());
+            .get(rule.getNameOrRuleID(), rule.getRuleID(),
+                conflictingRule.getNameOrRuleID());
         throw new ConflictingSchemaElementException(message);
       }
       removeDITStructureRule(conflictingRule);
@@ -2963,8 +3100,8 @@ public final class SchemaBuilder
       if (!overwrite)
       {
         final LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MATCHING_RULE_USE
-            .get(use.getNameOrOID(), use.getMatchingRuleOID(), conflictingUse
-                .getNameOrOID());
+            .get(use.getNameOrOID(), use.getMatchingRuleOID(),
+                conflictingUse.getNameOrOID());
         throw new ConflictingSchemaElementException(message);
       }
       removeMatchingRuleUse(conflictingUse);
@@ -3004,8 +3141,8 @@ public final class SchemaBuilder
       if (!overwrite)
       {
         final LocalizableMessage message = ERR_SCHEMA_CONFLICTING_NAME_FORM_OID
-            .get(form.getNameOrOID(), form.getOID(), conflictingForm
-                .getNameOrOID());
+            .get(form.getNameOrOID(), form.getOID(),
+                conflictingForm.getNameOrOID());
         throw new ConflictingSchemaElementException(message);
       }
       removeNameForm(conflictingForm);
@@ -3097,6 +3234,15 @@ public final class SchemaBuilder
 
   private void initBuilder(String schemaName)
   {
+    if (schemaName == null)
+    {
+      schemaName = String.format("Schema#%d", nextSchemaID.getAndIncrement());
+    }
+    this.schemaName = schemaName;
+
+    allowMalformedNamesAndOptions = true;
+    allowNonStandardTelephoneNumbers = true;
+    allowZeroLengthDirectoryStrings = false;
     numericOID2Syntaxes = new LinkedHashMap<String, Syntax>();
     numericOID2MatchingRules = new LinkedHashMap<String, MatchingRule>();
     numericOID2MatchingRuleUses = new LinkedHashMap<String, MatchingRuleUse>();
@@ -3116,22 +3262,7 @@ public final class SchemaBuilder
 
     objectClass2NameForms = new HashMap<String, List<NameForm>>();
     nameForm2StructureRules = new HashMap<String, List<DITStructureRule>>();
-    options = SchemaCompatOptions.defaultOptions();
     warnings = new LinkedList<LocalizableMessage>();
-
-    if (schemaName == null)
-    {
-      schemaName = String.format("Schema#%d", nextSchemaID.getAndIncrement());
-    }
-
-    schema = new Schema(schemaName, numericOID2Syntaxes,
-        numericOID2MatchingRules, numericOID2MatchingRuleUses,
-        numericOID2AttributeTypes, numericOID2ObjectClasses,
-        numericOID2NameForms, numericOID2ContentRules, id2StructureRules,
-        name2MatchingRules, name2MatchingRuleUses, name2AttributeTypes,
-        name2ObjectClasses, name2NameForms, name2ContentRules,
-        name2StructureRules, objectClass2NameForms, nameForm2StructureRules,
-        options, warnings);
   }
 
 
@@ -3306,7 +3437,7 @@ public final class SchemaBuilder
 
 
 
-  private void validate()
+  private void validate(final Schema schema)
   {
     // Verify all references in all elements
     for (final Syntax syntax : numericOID2Syntaxes.values().toArray(
@@ -3319,8 +3450,8 @@ public final class SchemaBuilder
       catch (final SchemaException e)
       {
         removeSyntax(syntax);
-        warnings.add(ERR_SYNTAX_VALIDATION_FAIL.get(
-            syntax.toString(), e.getMessageObject()));
+        warnings.add(ERR_SYNTAX_VALIDATION_FAIL.get(syntax.toString(),
+            e.getMessageObject()));
       }
     }
 
@@ -3349,8 +3480,8 @@ public final class SchemaBuilder
       catch (final SchemaException e)
       {
         removeAttributeType(attribute);
-        warnings.add(ERR_ATTR_TYPE_VALIDATION_FAIL.get(attribute.toString(), e
-            .getMessageObject()));
+        warnings.add(ERR_ATTR_TYPE_VALIDATION_FAIL.get(attribute.toString(),
+            e.getMessageObject()));
       }
     }
 
@@ -3413,8 +3544,8 @@ public final class SchemaBuilder
       catch (final SchemaException e)
       {
         removeNameForm(form);
-        warnings.add(ERR_NAMEFORM_VALIDATION_FAIL.get(form.toString(), e
-            .getMessageObject()));
+        warnings.add(ERR_NAMEFORM_VALIDATION_FAIL.get(form.toString(),
+            e.getMessageObject()));
       }
     }
 

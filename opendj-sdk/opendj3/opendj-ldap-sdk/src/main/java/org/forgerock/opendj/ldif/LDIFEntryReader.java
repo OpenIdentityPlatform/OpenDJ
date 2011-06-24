@@ -43,6 +43,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy;
 
 import com.forgerock.opendj.util.Validator;
 
@@ -393,32 +394,34 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
   public LDIFEntryReader setSchema(final Schema schema)
   {
     Validator.ensureNotNull(schema);
-    this.schema = validateSchema ? schema.asStrictSchema() : schema
-        .asNonStrictSchema();
+    this.schema = schemaValidationPolicy.checkAttributesAndObjectClasses()
+        .needsChecking() ? schema.asStrictSchema() : schema.asNonStrictSchema();
     return this;
   }
 
 
 
   /**
-   * Specifies whether or not schema validation should be performed for entries
-   * that are read from LDIF.
-   * <p>
-   * When enabled, this LDIF reader will implicitly use a strict schema so that
-   * unrecognized attribute types will be detected.
+   * Specifies the schema validation which should be used when reading LDIF
+   * entry records. If attribute value validation is enabled then all checks
+   * will be performed.
    * <p>
    * Schema validation is disabled by default.
+   * <p>
+   * <b>NOTE:</b> this method copies the provided policy so changes made to it
+   * after this method has been called will have no effect.
    *
-   * @param validateSchema
-   *          {@code true} if schema validation should be performed, or
-   *          {@code false} otherwise.
+   * @param policy
+   *          The schema validation which should be used when reading LDIF entry
+   *          records.
    * @return A reference to this {@code LDIFEntryReader}.
    */
-  public LDIFEntryReader setValidateSchema(final boolean validateSchema)
+  public LDIFEntryReader setSchemaValidationPolicy(
+      final SchemaValidationPolicy policy)
   {
-    this.validateSchema = validateSchema;
-    this.schema = validateSchema ? schema.asStrictSchema() : schema
-        .asNonStrictSchema();
+    this.schemaValidationPolicy = SchemaValidationPolicy.copyOf(policy);
+    this.schema = schemaValidationPolicy.checkAttributesAndObjectClasses()
+        .needsChecking() ? schema.asStrictSchema() : schema.asNonStrictSchema();
     return this;
   }
 
@@ -458,11 +461,16 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
 
         // Use an Entry for the AttributeSequence.
         final Entry entry = new LinkedHashMapEntry(entryDN);
+        boolean schemaValidationFailure = false;
         final List<LocalizableMessage> schemaErrors = new LinkedList<LocalizableMessage>();
         while (record.iterator.hasNext())
         {
           final String ldifLine = record.iterator.next();
-          readLDIFRecordAttributeValue(record, ldifLine, entry, schemaErrors);
+          if (!readLDIFRecordAttributeValue(record, ldifLine, entry,
+              schemaErrors))
+          {
+            schemaValidationFailure = true;
+          }
         }
 
         // Skip if the entry is excluded by any filters.
@@ -474,10 +482,20 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
           continue;
         }
 
-        if (!schemaErrors.isEmpty())
+        if (!schema.validateEntry(entry, schemaValidationPolicy, schemaErrors))
+        {
+          schemaValidationFailure = true;
+        }
+
+        if (schemaValidationFailure)
         {
           handleSchemaValidationFailure(record, schemaErrors);
           continue;
+        }
+
+        if (!schemaErrors.isEmpty())
+        {
+          handleSchemaValidationWarning(record, schemaErrors);
         }
 
         nextEntry = entry;

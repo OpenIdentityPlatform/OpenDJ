@@ -47,6 +47,8 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 
 import com.forgerock.opendj.util.Base64;
@@ -232,7 +234,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
 
   Schema schema = Schema.getDefaultSchema().asNonStrictSchema();
 
-  boolean validateSchema = false;
+  SchemaValidationPolicy schemaValidationPolicy = SchemaValidationPolicy.ignoreAll();
 
   private final LDIFReaderImpl impl;
 
@@ -589,7 +591,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
 
 
 
-  final void readLDIFRecordAttributeValue(final LDIFRecord record,
+  final boolean readLDIFRecordAttributeValue(final LDIFRecord record,
       final String ldifLine, final Entry entry,
       final List<LocalizableMessage> schemaErrors) throws DecodeException
   {
@@ -606,14 +608,19 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
     {
       final LocalizableMessage message = ERR_LDIF_UNKNOWN_ATTRIBUTE_TYPE.get(
           record.lineNumber, entry.getName().toString(), attrDescr);
-      if (validateSchema)
+      switch (schemaValidationPolicy.checkAttributesAndObjectClasses())
       {
+      case REJECT:
         schemaErrors.add(message);
-        return;
-      }
-      else
-      {
-        throw DecodeException.error(message);
+        return false;
+      case WARN:
+        schemaErrors.add(message);
+        return true;
+      default: // Ignore
+        // This should not happen: we should be using a non-strict schema for
+        // this policy.
+        throw new IllegalStateException("Schema is not consistent with policy",
+            e);
       }
     }
     catch (final LocalizedIllegalArgumentException e)
@@ -632,19 +639,29 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
     // known to violate the schema.
     if (isAttributeExcluded(attributeDescription))
     {
-      return;
+      return true;
     }
 
+    final Syntax syntax = attributeDescription.getAttributeType().getSyntax();
+
     // Ensure that the binary option is present if required.
-    if (!attributeDescription.getAttributeType().getSyntax()
-        .isBEREncodingRequired())
+    if (!syntax.isBEREncodingRequired())
     {
-      if (validateSchema && attributeDescription.containsOption("binary"))
+      if (schemaValidationPolicy.checkAttributeValues().needsChecking()
+          && attributeDescription.containsOption("binary"))
       {
         final LocalizableMessage message = ERR_LDIF_UNEXPECTED_BINARY_OPTION
             .get(record.lineNumber, entry.getName().toString(), attrDescr);
         schemaErrors.add(message);
-        return;
+        if (schemaValidationPolicy.checkAttributeValues().isReject())
+        {
+          return false;
+        }
+        else
+        {
+          // Skip to next attribute value.
+          return true;
+        }
       }
     }
     else
@@ -652,64 +669,57 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
       attributeDescription = attributeDescription.withOption("binary");
     }
 
+    final boolean checkAttributeValues = schemaValidationPolicy
+        .checkAttributeValues().needsChecking();
+    if (checkAttributeValues)
+    {
+      LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
+      if (!syntax.valueIsAcceptable(value, builder))
+      {
+        schemaErrors.add(builder.toMessage());
+        if (schemaValidationPolicy.checkAttributeValues().isReject())
+        {
+          return false;
+        }
+      }
+    }
+
     Attribute attribute = entry.getAttribute(attributeDescription);
     if (attribute == null)
     {
-      if (validateSchema)
-      {
-        final LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-        if (!attributeDescription.getAttributeType().getSyntax()
-            .valueIsAcceptable(value, invalidReason))
-        {
-          final LocalizableMessage message = WARN_LDIF_MALFORMED_ATTRIBUTE_VALUE
-              .get(record.lineNumber, entry.getName().toString(),
-                  value.toString(), attrDescr, invalidReason);
-          schemaErrors.add(message);
-          return;
-        }
-      }
-
       attribute = new LinkedAttribute(attributeDescription, value);
       entry.addAttribute(attribute);
     }
-    else
+    else if (checkAttributeValues)
     {
-      if (validateSchema)
+      if (!attribute.add(value))
       {
-        final LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-        if (!attributeDescription.getAttributeType().getSyntax()
-            .valueIsAcceptable(value, invalidReason))
+        final LocalizableMessage message = WARN_LDIF_DUPLICATE_ATTRIBUTE_VALUE
+            .get(record.lineNumber, entry.getName().toString(), attrDescr,
+                value.toString());
+        schemaErrors.add(message);
+        if (schemaValidationPolicy.checkAttributeValues().isReject())
         {
-          final LocalizableMessage message = WARN_LDIF_MALFORMED_ATTRIBUTE_VALUE
-              .get(record.lineNumber, entry.getName().toString(),
-                  value.toString(), attrDescr, invalidReason);
-          schemaErrors.add(message);
-          return;
-        }
-
-        if (!attribute.add(value) && validateSchema)
-        {
-          final LocalizableMessage message = WARN_LDIF_DUPLICATE_ATTRIBUTE_VALUE
-              .get(record.lineNumber, entry.getName().toString(), attrDescr,
-                  value.toString());
-          schemaErrors.add(message);
-          return;
-        }
-
-        if (validateSchema
-            && attributeDescription.getAttributeType().isSingleValue())
-        {
-          final LocalizableMessage message = ERR_LDIF_MULTI_VALUED_SINGLE_VALUED_ATTRIBUTE
-              .get(record.lineNumber, entry.getName().toString(), attrDescr);
-          schemaErrors.add(message);
-          return;
+          return false;
         }
       }
-      else
+      else if (attributeDescription.getAttributeType().isSingleValue())
       {
-        attribute.add(value);
+        final LocalizableMessage message = ERR_LDIF_MULTI_VALUED_SINGLE_VALUED_ATTRIBUTE
+            .get(record.lineNumber, entry.getName().toString(), attrDescr);
+        schemaErrors.add(message);
+        if (schemaValidationPolicy.checkAttributeValues().isReject())
+        {
+          return false;
+        }
       }
     }
+    else
+    {
+      attribute.add(value);
+    }
+
+    return true;
   }
 
 
@@ -888,6 +898,15 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
       final List<LocalizableMessage> messages) throws DecodeException
   {
     rejectedRecordListener.handleSchemaValidationFailure(record.lineNumber,
+        record.ldifLines, messages);
+  }
+
+
+
+  final void handleSchemaValidationWarning(final LDIFRecord record,
+      final List<LocalizableMessage> messages) throws DecodeException
+  {
+    rejectedRecordListener.handleSchemaValidationWarning(record.lineNumber,
         record.ldifLines, messages);
   }
 

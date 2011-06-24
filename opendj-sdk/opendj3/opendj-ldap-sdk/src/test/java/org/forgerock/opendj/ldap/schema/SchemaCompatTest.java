@@ -36,9 +36,9 @@ import org.testng.annotations.Test;
 
 
 /**
- * Test SchemaCompatOptions.
+ * Tests schema compatibility options.
  */
-public class SchemaCompatOptionsTest extends SchemaTestCase
+public class SchemaCompatTest extends SchemaTestCase
 {
   /**
    * Returns test data for valid attribute descriptions.
@@ -85,8 +85,7 @@ public class SchemaCompatOptionsTest extends SchemaTestCase
       boolean allowIllegalCharacters)
   {
     SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema())
-        .setSchemaCompatOptions(SchemaCompatOptions.defaultOptions()
-            .allowMalformedNamesAndOptions(allowIllegalCharacters));
+        .allowMalformedNamesAndOptions(allowIllegalCharacters);
     Schema schema = builder.toSchema().asNonStrictSchema();
     AttributeDescription.valueOf(atd, schema);
   }
@@ -134,8 +133,7 @@ public class SchemaCompatOptionsTest extends SchemaTestCase
       boolean allowIllegalCharacters)
   {
     SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema())
-        .setSchemaCompatOptions(SchemaCompatOptions.defaultOptions()
-            .allowMalformedNamesAndOptions(allowIllegalCharacters));
+        .allowMalformedNamesAndOptions(allowIllegalCharacters);
     Schema schema = builder.toSchema().asNonStrictSchema();
     AttributeDescription.valueOf(atd, schema);
   }
@@ -237,8 +235,7 @@ public class SchemaCompatOptionsTest extends SchemaTestCase
       Syntax syntax, boolean allowIllegalCharacters)
   {
     SchemaBuilder builder = new SchemaBuilder()
-        .setSchemaCompatOptions(SchemaCompatOptions.defaultOptions()
-            .allowMalformedNamesAndOptions(allowIllegalCharacters));
+        .allowMalformedNamesAndOptions(allowIllegalCharacters);
 
     if (syntax == ATD_SYNTAX)
     {
@@ -340,8 +337,7 @@ public class SchemaCompatOptionsTest extends SchemaTestCase
       Syntax syntax, boolean allowIllegalCharacters)
   {
     SchemaBuilder builder = new SchemaBuilder()
-        .setSchemaCompatOptions(SchemaCompatOptions.defaultOptions()
-            .allowMalformedNamesAndOptions(allowIllegalCharacters));
+        .allowMalformedNamesAndOptions(allowIllegalCharacters);
 
     if (syntax == ATD_SYNTAX)
     {

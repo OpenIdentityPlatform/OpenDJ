@@ -113,7 +113,7 @@ final class TelephoneNumberSyntaxImpl extends AbstractSyntaxImpl
 
     final int length = valueStr.length();
 
-    if (!schema.getSchemaCompatOptions().allowNonStandardTelephoneNumbers())
+    if (!schema.allowNonStandardTelephoneNumbers())
     {
       // If the value does not start with a plus sign, then that's not
       // acceptable.
