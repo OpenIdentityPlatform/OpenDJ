@@ -203,8 +203,6 @@ public class ReplicationServerTest extends ReplicationTestCase
     stopChangelog();
     exportBackend();
     backupRestore();
-    windowProbeTest();
-    replicationServerConnected();
   }
 
   /**
@@ -567,8 +565,8 @@ public class ReplicationServerTest extends ReplicationTestCase
 
     ReplicationBroker server = null;
     BrokerReader reader = null;
-    int TOTAL_MSG = 1000;     // number of messages to send during the test
-    int CLIENT_THREADS = 3;   // number of threads that will try to read
+    int TOTAL_MSG = 500;     // number of messages to send during the test
+    int CLIENT_THREADS = 4;   // number of threads that will try to read
                               // the messages
     ChangeNumberGenerator gen =
       new ChangeNumberGenerator(5 , (long) 0);
@@ -985,10 +983,16 @@ public class ReplicationServerTest extends ReplicationTestCase
    * Test that the Replication sends back correctly WindowsUpdate
    * when we send a WindowProbeMsg.
    */
-  private void windowProbeTest() throws Exception
+  @Test(enabled=true, dependsOnMethods = { "searchBackend"})
+  public void windowProbeTest() throws Exception
   {
+    
     debugInfo("Starting windowProbeTest");
     final int WINDOW = 10;
+    
+    replicationServer.clearDb();
+    TestCaseUtils.initializeTestBackend(true);
+
     /*
      * Open a session to the replication server.
      *
@@ -1050,50 +1054,6 @@ public class ReplicationServerTest extends ReplicationTestCase
       ReplicationMsg repMsg = session.receive();
       assertTrue(repMsg instanceof TopologyMsg);
 
-      // close the session
-      session.close();
-
-      // Sleep a while so the following connection is not perturbed by some
-      // topo messages signalling first connection has been dropped: let
-      // disocnnection fully happen before, connecting a second session
-      Thread.sleep(2000);
-
-      // open a new session to the replication Server
-      socket = new Socket();
-      socket.setReceiveBufferSize(1000000);
-      socket.setTcpNoDelay(true);
-      socket.connect(ServerAddr, 500);
-      session = replSessionSecurity.createClientSession(socket, 4000);
-
-      // send a ServerStartMsg containing the ServerState that was just
-      // received.
-      DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
-      msg = new ServerStartMsg(
-           1724, TEST_ROOT_DN_STRING,
-          WINDOW, (long) 5000, replServerState,
-          ProtocolVersion.getCurrentVersion(),
-          ReplicationTestCase.getGenerationId(baseDn),
-          sslEncryption, (byte)10);
-      session.publish(msg);
-
-      // Read the ReplServerStartDSMsg that should come back.
-      repMsg = session.receive();
-      assertTrue(repMsg instanceof ReplServerStartDSMsg);
-
-      if (!sslEncryption)
-      {
-        session.stopEncryption();
-      }
-
-      // Send StartSessionMsg
-      startSessionMsg = new StartSessionMsg(ServerStatus.NORMAL_STATUS,
-        new ArrayList<String>());
-      session.publish(startSessionMsg);
-
-      // Read the TopologyMsg that should come back.
-      repMsg = session.receive();
-      assertTrue(repMsg instanceof TopologyMsg);
-
       // Now comes the real test : check that the Replication Server
       // answers correctly to a WindowProbeMsg Message.
       session.publish(new WindowProbeMsg());
@@ -1121,7 +1081,6 @@ public class ReplicationServerTest extends ReplicationTestCase
    * @throws Exception If the environment could not be set up.
    */
   @AfterClass
-
   public void classCleanUp() throws Exception
   {
     callParanoiaCheck = false;
@@ -1803,12 +1762,16 @@ public class ReplicationServerTest extends ReplicationTestCase
     * - Make client 1 publish a change
     * - Check that client 2 does not receive the change
     */
-   private void replicationServerConnected() throws Exception
-   {
-       debugInfo("Starting replicationServerConnected");
-       ReplicationBroker broker1 = null;
-       ReplicationBroker broker2 = null;
-       boolean emptyOldChanges = true;
+    @Test(enabled=true, dependsOnMethods = { "searchBackend"})
+    public void replicationServerConnected() throws Exception
+    {
+      replicationServer.clearDb();
+      TestCaseUtils.initializeTestBackend(true);
+      
+      debugInfo("Starting replicationServerConnected");
+      ReplicationBroker broker1 = null;
+      ReplicationBroker broker2 = null;
+      boolean emptyOldChanges = true;
 
        // - Create 2 connected replicationServer
        ReplicationServer[] changelogs = new ReplicationServer[2];
