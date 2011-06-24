@@ -3,18 +3,18 @@ body                     { font-family: Arial, Helvetica, sans-serif;
                            color: #333; background-color: #fff; margin:20px 15px }
 
 /* +++ 210 Page titles, headings, and paragraphs +++ */
-.pagename                { font-size: 1.7em; font-weight: normal;color:#5F6466; 
+.pagename                { font-size: 1.7em; font-weight: normal;color:#626D75; 
                            margin: 0.5em 0.5em 0.5em 0; }
 h1                       { font-size: 2.0em; font-weight: normal;
-	                         margin-top: 0em; margin-bottom: 0em; color:#000}
+	                         margin-top: 0em; margin-bottom: 0em; color:#626D75}
 h2                       { font-size: 1.6em; font-weight: normal; 
                            margin: 0.5em 0em 1em 0em;
 						   
-	                        border-bottom: 1px #D9D9D9 solid; padding-bottom:5px; color:#000}
+	                        border-bottom: 1px #D9D9D9 solid; padding-bottom:5px; color:#626D75}
 h3                       { font-size: 1.4em; font-weight: bold;
                            margin: 1.5em 0em .8em 0em;
-						   border-top: 1px #D9D9D9 solid; padding-top:10px;color:#000 }
-h4                       { font-size: 1.2em; font-weight: bold;color:#000;
+						   border-top: 1px #D9D9D9 solid; padding-top:10px;color:#626D75 }
+h4                       { font-size: 1.2em; font-weight: bold;color:#626D75;
                            margin: 1.2em 0em .8em 0em; }
 h5                       { font-size: 1.0em; font-weight: bold;
 	                         margin: 1.2em 0em .8em 0em; }
@@ -23,8 +23,8 @@ h6                       { font-size: 0.8em; font-weight: bold;
 p                        { margin: .75em 0 1em 0; }
 strong, b                { font-weight: bold;	}
 
-a:link                        { color: #006699; }
-a:visited                { color: #0099CC; } 
+a:link                        { color: #47a; }
+a:visited                { color: #68a; } 
 
 
 /*ol                       { margin: 0.8em 0 0.8em 0.8em }
