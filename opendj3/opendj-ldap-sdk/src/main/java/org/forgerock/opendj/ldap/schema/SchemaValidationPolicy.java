@@ -45,7 +45,7 @@ public final class SchemaValidationPolicy
    * A call-back which will be called during DIT structure rule schema
    * validation in order to retrieve the parent of the entry being validated.
    */
-  public interface EntryResolver
+  public static interface EntryResolver
   {
     /**
      * Returns the named entry in order to enforce DIT structure rules.
