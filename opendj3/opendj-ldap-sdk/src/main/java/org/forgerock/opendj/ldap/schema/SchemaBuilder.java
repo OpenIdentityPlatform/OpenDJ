@@ -2233,6 +2233,11 @@ public final class SchemaBuilder
       throws ConflictingSchemaElementException, NullPointerException
   {
     Validator.ensureNotNull(schema);
+
+    // All of the schema elements must be duplicated because validation will
+    // cause them to update all their internal references which, although
+    // unlikely, may be different in the new schema.
+
     for (final Syntax syntax : schema.getSyntaxes())
     {
       addSyntax(syntax.duplicate(), overwrite);

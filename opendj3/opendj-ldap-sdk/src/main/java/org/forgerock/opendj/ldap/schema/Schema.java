@@ -3141,7 +3141,8 @@ public final class Schema
         // content rule.
         if (checkDITContentRule)
         {
-          if (objectClass.getObjectClassType() == ObjectClassType.AUXILIARY)
+          if (objectClass.getObjectClassType() == ObjectClassType.AUXILIARY
+              && !ditContentRule.getAuxiliaryClasses().contains(objectClass))
           {
             if (errorMessages != null)
             {
@@ -3161,11 +3162,11 @@ public final class Schema
         // present.
         if (checkObjectClasses)
         {
-          for (final AttributeType t : objectClass.getRequiredAttributes())
+          for (final AttributeType t : objectClass.getDeclaredRequiredAttributes())
           {
             final Attribute a = Attributes.emptyAttribute(AttributeDescription
                 .create(t));
-            if (entry.containsAttribute(a, null))
+            if (!entry.containsAttribute(a, null))
             {
               if (errorMessages != null)
               {
@@ -3191,7 +3192,7 @@ public final class Schema
         {
           final Attribute a = Attributes.emptyAttribute(AttributeDescription
               .create(t));
-          if (entry.containsAttribute(a, null))
+          if (!entry.containsAttribute(a, null))
           {
             if (errorMessages != null)
             {
@@ -3284,37 +3285,37 @@ public final class Schema
               }
             }
           }
+        }
 
-          // Check attributes contain an appropriate number of values.
-          if (checkAttributeValues)
+        // Check all attributes contain an appropriate number of values.
+        if (checkAttributeValues)
+        {
+          final int sz = attribute.size();
+
+          if (sz == 0)
           {
-            final int sz = attribute.size();
-
-            if (sz == 0)
+            if (errorMessages != null)
             {
-              if (errorMessages != null)
-              {
-                final LocalizableMessage message = ERR_ENTRY_SCHEMA_AT_EMPTY_ATTRIBUTE
-                    .get(entry.getName().toString(), t.getNameOrOID());
-                errorMessages.add(message);
-              }
-              if (policy.checkAttributeValues().isReject())
-              {
-                return false;
-              }
+              final LocalizableMessage message = ERR_ENTRY_SCHEMA_AT_EMPTY_ATTRIBUTE
+              .get(entry.getName().toString(), t.getNameOrOID());
+              errorMessages.add(message);
             }
-            else if (sz > 1 && t.isSingleValue())
+            if (policy.checkAttributeValues().isReject())
             {
-              if (errorMessages != null)
-              {
-                final LocalizableMessage message = ERR_ENTRY_SCHEMA_AT_SINGLE_VALUED_ATTRIBUTE
-                    .get(entry.getName().toString(), t.getNameOrOID());
-                errorMessages.add(message);
-              }
-              if (policy.checkAttributeValues().isReject())
-              {
-                return false;
-              }
+              return false;
+            }
+          }
+          else if (sz > 1 && t.isSingleValue())
+          {
+            if (errorMessages != null)
+            {
+              final LocalizableMessage message = ERR_ENTRY_SCHEMA_AT_SINGLE_VALUED_ATTRIBUTE
+              .get(entry.getName().toString(), t.getNameOrOID());
+              errorMessages.add(message);
+            }
+            if (policy.checkAttributeValues().isReject())
+            {
+              return false;
             }
           }
         }
@@ -3388,7 +3389,7 @@ public final class Schema
       for (final AVA ava : rdn)
       {
         final AttributeType t = ava.getAttributeType();
-        if (nameForm.isRequiredOrOptional(t))
+        if (!nameForm.isRequiredOrOptional(t))
         {
           if (nameFormWarnings != null)
           {
