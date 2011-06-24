@@ -63,8 +63,6 @@ public final class LDIFEntryReaderTestCase extends LDIFTestCase
     final LDIFEntryReader reader = new LDIFEntryReader(in);
     try
     {
-      reader.setValidateSchema(false);
-
       Assert.assertFalse(reader.hasNext());
       Assert.assertFalse(reader.hasNext());
       try
@@ -126,8 +124,6 @@ public final class LDIFEntryReaderTestCase extends LDIFTestCase
     final LDIFEntryReader reader = new LDIFEntryReader(in);
     try
     {
-      reader.setValidateSchema(false);
-
       Assert.assertTrue(reader.hasNext());
       final Entry entry = reader.readEntry();
       assertNotNull(entry);

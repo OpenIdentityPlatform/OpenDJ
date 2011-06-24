@@ -23,18 +23,22 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
 
 
 
-import java.util.Collection;
-import java.util.Iterator;
+import static org.forgerock.opendj.ldap.AttributeDescription.objectClass;
 
+import java.util.*;
+
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.schema.*;
 
 import com.forgerock.opendj.util.Function;
 import com.forgerock.opendj.util.Iterables;
@@ -352,6 +356,79 @@ public final class Entries
 
 
   /**
+   * Returns {@code true} if the provided entry is valid according to the
+   * specified schema and schema validation policy.
+   * <p>
+   * If attribute value validation is enabled then following checks will be
+   * performed:
+   * <ul>
+   * <li>checking that there is at least one value
+   * <li>checking that single-valued attributes contain only a single value
+   * </ul>
+   * In particular, attribute values will not be checked for conformance to
+   * their syntax since this is expected to have already been performed while
+   * adding the values to the entry.
+   *
+   * @param entry
+   *          The entry to be validated.
+   * @param schema
+   *          The schema against which the entry will be validated.
+   * @param policy
+   *          The schema validation policy.
+   * @param errorMessages
+   *          A collection into which any schema validation warnings or error
+   *          messages can be placed, or {@code null} if they should not be
+   *          saved.
+   * @return {@code true} if the provided entry is valid according to the
+   *         specified schema and schema validation policy.
+   * @see Schema#validateEntry(Entry, SchemaValidationPolicy, Collection)
+   */
+  public static boolean conformsToSchema(final Entry entry,
+      final Schema schema, final SchemaValidationPolicy policy,
+      final Collection<LocalizableMessage> errorMessages)
+  {
+    return schema.validateEntry(entry, policy, errorMessages);
+  }
+
+
+
+  /**
+   * Returns {@code true} if the provided entry is valid according to the
+   * default schema and schema validation policy.
+   * <p>
+   * If attribute value validation is enabled then following checks will be
+   * performed:
+   * <ul>
+   * <li>checking that there is at least one value
+   * <li>checking that single-valued attributes contain only a single value
+   * </ul>
+   * In particular, attribute values will not be checked for conformance to
+   * their syntax since this is expected to have already been performed while
+   * adding the values to the entry.
+   *
+   * @param entry
+   *          The entry to be validated.
+   * @param policy
+   *          The schema validation policy.
+   * @param errorMessages
+   *          A collection into which any schema validation warnings or error
+   *          messages can be placed, or {@code null} if they should not be
+   *          saved.
+   * @return {@code true} if the provided entry is valid according to the
+   *         default schema and schema validation policy.
+   * @see Schema#validateEntry(Entry, SchemaValidationPolicy, Collection)
+   */
+  public static boolean conformsToSchema(final Entry entry,
+      final SchemaValidationPolicy policy,
+      final Collection<LocalizableMessage> errorMessages)
+  {
+    return conformsToSchema(entry, Schema.getDefaultSchema(), policy,
+        errorMessages);
+  }
+
+
+
+  /**
    * Creates a new modify request containing a list of modifications which can
    * be used to transform {@code fromEntry} into entry {@code toEntry}.
    * <p>
@@ -379,7 +456,7 @@ public final class Entries
    *           If {@code fromEntry} or {@code toEntry} were {@code null}.
    * @see Requests#newModifyRequest(Entry, Entry)
    */
-  public static final ModifyRequest diffEntries(final Entry fromEntry,
+  public static ModifyRequest diffEntries(final Entry fromEntry,
       final Entry toEntry) throws NullPointerException
   {
     Validator.ensureNotNull(fromEntry, toEntry);
@@ -488,6 +565,146 @@ public final class Entries
 
 
   /**
+   * Returns an unmodifiable set containing the object classes associated with
+   * the provided entry. This method will ignore unrecognized object classes.
+   * <p>
+   * This method uses the default schema for decoding the object class attribute
+   * values.
+   *
+   * @param entry
+   *          The entry whose object classes are required.
+   * @return An unmodifiable set containing the object classes associated with
+   *         the provided entry.
+   */
+  public static Set<ObjectClass> getObjectClasses(final Entry entry)
+  {
+    return getObjectClasses(entry, Schema.getDefaultSchema());
+  }
+
+
+
+  /**
+   * Returns an unmodifiable set containing the object classes associated with
+   * the provided entry. This method will ignore unrecognized object classes.
+   *
+   * @param entry
+   *          The entry whose object classes are required.
+   * @param schema
+   *          The schema which should be used for decoding the object class
+   *          attribute values.
+   * @return An unmodifiable set containing the object classes associated with
+   *         the provided entry.
+   */
+  public static Set<ObjectClass> getObjectClasses(final Entry entry,
+      final Schema schema)
+  {
+    final Attribute objectClassAttribute = entry
+        .getAttribute(AttributeDescription.objectClass());
+    if (objectClassAttribute == null)
+    {
+      return Collections.emptySet();
+    }
+    else
+    {
+      final Set<ObjectClass> objectClasses = new HashSet<ObjectClass>(
+          objectClassAttribute.size());
+      for (final ByteString v : objectClassAttribute)
+      {
+        final String objectClassName = v.toString();
+        final ObjectClass objectClass;
+        try
+        {
+          objectClass = schema.getObjectClass(objectClassName);
+          objectClasses.add(objectClass);
+        }
+        catch (final UnknownSchemaElementException e)
+        {
+          // Ignore.
+          continue;
+        }
+      }
+      return Collections.unmodifiableSet(objectClasses);
+    }
+  }
+
+
+
+  /**
+   * Returns the structural object class associated with the provided entry, or
+   * {@code null} if none was found. If the entry contains multiple structural
+   * object classes then the first will be returned. This method will ignore
+   * unrecognized object classes.
+   * <p>
+   * This method uses the default schema for decoding the object class attribute
+   * values.
+   *
+   * @param entry
+   *          The entry whose structural object class is required.
+   * @return The structural object class associated with the provided entry, or
+   *         {@code null} if none was found.
+   */
+  public static ObjectClass getStructuralObjectClass(final Entry entry)
+  {
+    return getStructuralObjectClass(entry, Schema.getDefaultSchema());
+  }
+
+
+
+  /**
+   * Returns the structural object class associated with the provided entry, or
+   * {@code null} if none was found. If the entry contains multiple structural
+   * object classes then the first will be returned. This method will ignore
+   * unrecognized object classes.
+   *
+   * @param entry
+   *          The entry whose structural object class is required.
+   * @param schema
+   *          The schema which should be used for decoding the object class
+   *          attribute values.
+   * @return The structural object class associated with the provided entry, or
+   *         {@code null} if none was found.
+   */
+  public static ObjectClass getStructuralObjectClass(final Entry entry,
+      final Schema schema)
+  {
+    ObjectClass structuralObjectClass = null;
+    final Attribute objectClassAttribute = entry.getAttribute(objectClass());
+
+    if (objectClassAttribute == null)
+    {
+      return null;
+    }
+
+    for (final ByteString v : objectClassAttribute)
+    {
+      final String objectClassName = v.toString();
+      final ObjectClass objectClass;
+      try
+      {
+        objectClass = schema.getObjectClass(objectClassName);
+      }
+      catch (final UnknownSchemaElementException e)
+      {
+        // Ignore.
+        continue;
+      }
+
+      if (objectClass.getObjectClassType() == ObjectClassType.STRUCTURAL)
+      {
+        if (structuralObjectClass == null
+            || objectClass.isDescendantOf(structuralObjectClass))
+        {
+          structuralObjectClass = objectClass;
+        }
+      }
+    }
+
+    return structuralObjectClass;
+  }
+
+
+
+  /**
    * Returns a read-only view of {@code entry} and its attributes. Query
    * operations on the returned entry and its attributes "read-through" to the
    * underlying entry or attribute, and attempts to modify the returned entry
@@ -500,7 +717,7 @@ public final class Entries
    * @throws NullPointerException
    *           If {@code entry} was {@code null}.
    */
-  public static final Entry unmodifiableEntry(final Entry entry)
+  public static Entry unmodifiableEntry(final Entry entry)
       throws NullPointerException
   {
     return new UnmodifiableEntry(entry);

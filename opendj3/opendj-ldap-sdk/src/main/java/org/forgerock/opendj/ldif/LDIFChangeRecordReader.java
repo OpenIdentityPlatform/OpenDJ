@@ -38,12 +38,15 @@ import java.io.InputStream;
 import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 
 import com.forgerock.opendj.util.Validator;
@@ -363,32 +366,34 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements
   public LDIFChangeRecordReader setSchema(final Schema schema)
   {
     Validator.ensureNotNull(schema);
-    this.schema = validateSchema ? schema.asStrictSchema() : schema
-        .asNonStrictSchema();
+    this.schema = schemaValidationPolicy.checkAttributesAndObjectClasses()
+        .needsChecking() ? schema.asStrictSchema() : schema.asNonStrictSchema();
     return this;
   }
 
 
 
   /**
-   * Specifies whether or not schema validation should be performed for change
-   * records that are read from LDIF.
-   * <p>
-   * When enabled, the LDIF reader will implicitly use a strict schema so that
-   * unrecognized attribute types will be detected.
+   * Specifies the schema validation which should be used when reading LDIF
+   * change records. If attribute value validation is enabled then all checks
+   * will be performed.
    * <p>
    * Schema validation is disabled by default.
+   * <p>
+   * <b>NOTE:</b> this method copies the provided policy so changes made to it
+   * after this method has been called will have no effect.
    *
-   * @param validateSchema
-   *          {@code true} if schema validation should be performed, or
-   *          {@code false} otherwise.
+   * @param policy
+   *          The schema validation which should be used when reading LDIF
+   *          change records.
    * @return A reference to this {@code LDIFChangeRecordReader}.
    */
-  public LDIFChangeRecordReader setValidateSchema(final boolean validateSchema)
+  public LDIFChangeRecordReader setSchemaValidationPolicy(
+      final SchemaValidationPolicy policy)
   {
-    this.validateSchema = validateSchema;
-    this.schema = validateSchema ? schema.asStrictSchema() : schema
-        .asNonStrictSchema();
+    this.schemaValidationPolicy = SchemaValidationPolicy.copyOf(policy);
+    this.schema = schemaValidationPolicy.checkAttributesAndObjectClasses()
+        .needsChecking() ? schema.asStrictSchema() : schema.asNonStrictSchema();
     return this;
   }
 
@@ -497,24 +502,42 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements
   {
     // Use an Entry for the AttributeSequence.
     final Entry entry = new LinkedHashMapEntry(entryDN);
+    boolean schemaValidationFailure = false;
     final List<LocalizableMessage> schemaErrors = new LinkedList<LocalizableMessage>();
 
     if (lastLDIFLine != null)
     {
       // This line was read when looking for the change type.
-      readLDIFRecordAttributeValue(record, lastLDIFLine, entry, schemaErrors);
+      if (!readLDIFRecordAttributeValue(record, lastLDIFLine, entry,
+          schemaErrors))
+      {
+        schemaValidationFailure = true;
+      }
     }
 
     while (record.iterator.hasNext())
     {
       final String ldifLine = record.iterator.next();
-      readLDIFRecordAttributeValue(record, ldifLine, entry, schemaErrors);
+      if (!readLDIFRecordAttributeValue(record, ldifLine, entry, schemaErrors))
+      {
+        schemaValidationFailure = true;
+      }
+    }
+
+    if (!schema.validateEntry(entry, schemaValidationPolicy, schemaErrors))
+    {
+      schemaValidationFailure = true;
+    }
+
+    if (schemaValidationFailure)
+    {
+      handleSchemaValidationFailure(record, schemaErrors);
+      return null;
     }
 
     if (!schemaErrors.isEmpty())
     {
-      handleSchemaValidationFailure(record, schemaErrors);
-      return null;
+      handleSchemaValidationWarning(record, schemaErrors);
     }
 
     return Requests.newAddRequest(entry);
@@ -541,9 +564,9 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements
       final LDIFRecord record) throws DecodeException
   {
     final ModifyRequest modifyRequest = Requests.newModifyRequest(entryDN);
-
     final KeyValuePair pair = new KeyValuePair();
     final List<ByteString> attributeValues = new ArrayList<ByteString>();
+    boolean schemaValidationFailure = false;
     final List<LocalizableMessage> schemaErrors = new LinkedList<LocalizableMessage>();
 
     while (record.iterator.hasNext())
@@ -591,14 +614,20 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements
       {
         final LocalizableMessage message = ERR_LDIF_UNKNOWN_ATTRIBUTE_TYPE.get(
             record.lineNumber, entryDN.toString(), pair.value);
-        if (validateSchema)
+        switch (schemaValidationPolicy.checkAttributesAndObjectClasses())
         {
+        case REJECT:
+          schemaValidationFailure = true;
           schemaErrors.add(message);
           continue;
-        }
-        else
-        {
-          throw DecodeException.error(message);
+        case WARN:
+          schemaErrors.add(message);
+          continue;
+        default: //Ignore
+          // This should not happen: we should be using a non-strict schema for
+          // this policy.
+          throw new IllegalStateException(
+              "Schema is not consistent with policy", e);
         }
       }
       catch (final LocalizedIllegalArgumentException e)
@@ -616,14 +645,20 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements
         continue;
       }
 
+      final Syntax syntax = attributeDescription.getAttributeType().getSyntax();
+
       // Ensure that the binary option is present if required.
-      if (!attributeDescription.getAttributeType().getSyntax()
-          .isBEREncodingRequired())
+      if (!syntax.isBEREncodingRequired())
       {
-        if (validateSchema && attributeDescription.containsOption("binary"))
+        if (schemaValidationPolicy.checkAttributeValues().needsChecking()
+            && attributeDescription.containsOption("binary"))
         {
           final LocalizableMessage message = ERR_LDIF_UNEXPECTED_BINARY_OPTION
               .get(record.lineNumber, entryDN.toString(), pair.value);
+          if (schemaValidationPolicy.checkAttributeValues().isReject())
+          {
+            schemaValidationFailure = true;
+          }
           schemaErrors.add(message);
           continue;
         }
@@ -657,7 +692,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements
         catch (final LocalizedIllegalArgumentException e)
         {
           // No need to catch schema exception here because it implies that the
-          // attribute name is wrong.
+          // attribute name is wrong and the record is malformed.
           final LocalizableMessage message = ERR_LDIF_MALFORMED_ATTRIBUTE_NAME
               .get(record.lineNumber, entryDN.toString(), attrDescr);
           throw DecodeException.error(message);
@@ -672,6 +707,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements
 
         if (!attributeDescription2.equals(attributeDescription))
         {
+          // Malformed record.
           final LocalizableMessage message = ERR_LDIF_ATTRIBUTE_NAME_MISMATCH
               .get(record.lineNumber, entryDN.toString(),
                   attributeDescription2.toString(),
@@ -679,9 +715,26 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements
           throw DecodeException.error(message);
         }
 
-        // Now parse the attribute value.
-        attributeValues.add(parseSingleValue(record, ldifLine, entryDN,
-            colonPos, attrDescr));
+        // Parse the attribute value and check it if needed.
+        final ByteString value = parseSingleValue(record, ldifLine, entryDN,
+            colonPos, attrDescr);
+        if (schemaValidationPolicy.checkAttributeValues().needsChecking())
+        {
+          LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
+          if (!syntax.valueIsAcceptable(value, builder))
+          {
+            // Just log a message, but don't skip the value since this could
+            // change the semantics of the modification (e.g. if all values in a
+            // delete are skipped then this implies that the whole attribute
+            // should be removed).
+            if (schemaValidationPolicy.checkAttributeValues().isReject())
+            {
+              schemaValidationFailure = true;
+            }
+            schemaErrors.add(builder.toMessage());
+          }
+        }
+        attributeValues.add(value);
       }
 
       final Modification change = new Modification(modType,
@@ -689,10 +742,15 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements
       modifyRequest.addModification(change);
     }
 
-    if (!schemaErrors.isEmpty())
+    if (schemaValidationFailure)
     {
       handleSchemaValidationFailure(record, schemaErrors);
       return null;
+    }
+
+    if (!schemaErrors.isEmpty())
+    {
+      handleSchemaValidationWarning(record, schemaErrors);
     }
 
     return modifyRequest;

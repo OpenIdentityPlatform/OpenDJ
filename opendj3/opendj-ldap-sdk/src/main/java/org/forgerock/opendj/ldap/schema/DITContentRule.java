@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -42,7 +43,7 @@ import com.forgerock.opendj.util.Validator;
 /**
  * This class defines a DIT content rule, which defines the set of allowed,
  * required, and prohibited attributes for entries with a given structural
- * objectclass, and also indicates which auxiliary classes that may be included
+ * objectclass, and also indicates which auxiliary classes may be included
  * in the entry.
  */
 public final class DITContentRule extends SchemaElement
@@ -282,6 +283,55 @@ public final class DITContentRule extends SchemaElement
   public boolean isObsolete()
   {
     return isObsolete;
+  }
+
+
+
+  /**
+   * Indicates whether the provided attribute type is included in the optional
+   * attribute list for this DIT content rule.
+   *
+   * @param attributeType
+   *          The attribute type for which to make the determination.
+   * @return <code>true</code> if the provided attribute type is optional for
+   *         this DIT content rule, or <code>false</code> if not.
+   */
+  public boolean isOptional(final AttributeType attributeType)
+  {
+    return optionalAttributes.contains(attributeType);
+  }
+
+
+
+  /**
+   * Indicates whether the provided attribute type is included in the required
+   * attribute list for this DIT content rule.
+   *
+   * @param attributeType
+   *          The attribute type for which to make the determination.
+   * @return <code>true</code> if the provided attribute type is required by
+   *         this DIT content rule, or <code>false</code> if not.
+   */
+  public boolean isRequired(final AttributeType attributeType)
+  {
+    return requiredAttributes.contains(attributeType);
+  }
+
+
+
+  /**
+   * Indicates whether the provided attribute type is in the list of required or
+   * optional attributes for this DIT content rule.
+   *
+   * @param attributeType
+   *          The attribute type for which to make the determination.
+   * @return <code>true</code> if the provided attribute type is required or
+   *         allowed for this DIT content rule, or <code>false</code> if it is
+   *         not.
+   */
+  public boolean isRequiredOrOptional(final AttributeType attributeType)
+  {
+    return isRequired(attributeType) || isOptional(attributeType);
   }
 
 

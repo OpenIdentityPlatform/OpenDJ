@@ -29,12 +29,10 @@ package org.forgerock.opendj.ldap.schema;
 
 
 
+import static org.forgerock.opendj.ldap.AttributeDescription.objectClass;
 import static org.forgerock.opendj.ldap.CoreMessages.*;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.*;
@@ -63,17 +61,36 @@ public final class Schema
 {
   private static final class EmptyImpl implements Impl
   {
-    private final SchemaCompatOptions options;
-
-
 
     private EmptyImpl()
     {
-      this.options = SchemaCompatOptions.defaultOptions();
+      // Nothing to do.
     }
 
 
 
+    public boolean allowMalformedNamesAndOptions()
+    {
+      return true;
+    }
+
+
+
+    public boolean allowNonStandardTelephoneNumbers()
+    {
+      return true;
+    }
+
+
+
+    public boolean allowZeroLengthDirectoryStrings()
+    {
+      return false;
+    }
+
+
+
+    @Override
     public AttributeType getAttributeType(final String name)
     {
       // Construct an placeholder attribute type with the given name,
@@ -91,6 +108,7 @@ public final class Schema
 
 
 
+    @Override
     public Collection<AttributeType> getAttributeTypes()
     {
       return Collections.emptyList();
@@ -98,13 +116,23 @@ public final class Schema
 
 
 
-    public List<AttributeType> getAttributeTypesByName(final String name)
+    @Override
+    public List<AttributeType> getAttributeTypesWithName(final String name)
     {
       return Collections.emptyList();
     }
 
 
 
+    @Override
+    public DITContentRule getDITContentRule(final ObjectClass structuralClass)
+    {
+      return null;
+    }
+
+
+
+    @Override
     public DITContentRule getDITContentRule(final String name)
         throws UnknownSchemaElementException
     {
@@ -113,6 +141,7 @@ public final class Schema
 
 
 
+    @Override
     public Collection<DITContentRule> getDITContentRules()
     {
       return Collections.emptyList();
@@ -120,13 +149,16 @@ public final class Schema
 
 
 
-    public Collection<DITContentRule> getDITContentRulesByName(final String name)
+    @Override
+    public Collection<DITContentRule> getDITContentRulesWithName(
+        final String name)
     {
       return Collections.emptyList();
     }
 
 
 
+    @Override
     public DITStructureRule getDITStructureRule(final int ruleID)
         throws UnknownSchemaElementException
     {
@@ -136,15 +168,8 @@ public final class Schema
 
 
 
-    public Collection<DITStructureRule> getDITStructureRulesByName(
-        final String name)
-    {
-      return Collections.emptyList();
-    }
-
-
-
-    public Collection<DITStructureRule> getDITStructureRulesByNameForm(
+    @Override
+    public Collection<DITStructureRule> getDITStructureRules(
         final NameForm nameForm)
     {
       return Collections.emptyList();
@@ -152,6 +177,16 @@ public final class Schema
 
 
 
+    @Override
+    public Collection<DITStructureRule> getDITStructureRulesWithName(
+        final String name)
+    {
+      return Collections.emptyList();
+    }
+
+
+
+    @Override
     public Collection<DITStructureRule> getDITStuctureRules()
     {
       return Collections.emptyList();
@@ -159,6 +194,7 @@ public final class Schema
 
 
 
+    @Override
     public MatchingRule getMatchingRule(final String name)
         throws UnknownSchemaElementException
     {
@@ -167,6 +203,7 @@ public final class Schema
 
 
 
+    @Override
     public Collection<MatchingRule> getMatchingRules()
     {
       return Collections.emptyList();
@@ -174,21 +211,23 @@ public final class Schema
 
 
 
-    public Collection<MatchingRule> getMatchingRulesByName(final String name)
+    @Override
+    public Collection<MatchingRule> getMatchingRulesWithName(final String name)
     {
       return Collections.emptyList();
     }
 
 
 
+    @Override
     public MatchingRuleUse getMatchingRuleUse(final MatchingRule matchingRule)
-        throws UnknownSchemaElementException
     {
-      return getMatchingRuleUse(matchingRule.getOID());
+      return null;
     }
 
 
 
+    @Override
     public MatchingRuleUse getMatchingRuleUse(final String name)
         throws UnknownSchemaElementException
     {
@@ -197,6 +236,7 @@ public final class Schema
 
 
 
+    @Override
     public Collection<MatchingRuleUse> getMatchingRuleUses()
     {
       return Collections.emptyList();
@@ -204,7 +244,8 @@ public final class Schema
 
 
 
-    public Collection<MatchingRuleUse> getMatchingRuleUsesByName(
+    @Override
+    public Collection<MatchingRuleUse> getMatchingRuleUsesWithName(
         final String name)
     {
       return Collections.emptyList();
@@ -212,6 +253,7 @@ public final class Schema
 
 
 
+    @Override
     public NameForm getNameForm(final String name)
         throws UnknownSchemaElementException
     {
@@ -220,14 +262,7 @@ public final class Schema
 
 
 
-    public Collection<NameForm> getNameFormByObjectClass(
-        final ObjectClass structuralClass)
-    {
-      return Collections.emptyList();
-    }
-
-
-
+    @Override
     public Collection<NameForm> getNameForms()
     {
       return Collections.emptyList();
@@ -235,22 +270,33 @@ public final class Schema
 
 
 
-    public Collection<NameForm> getNameFormsByName(final String name)
+    @Override
+    public Collection<NameForm> getNameForms(final ObjectClass structuralClass)
     {
       return Collections.emptyList();
     }
 
 
 
-    public ObjectClass getObjectClass(final String name)
-        throws UnknownSchemaElementException
+    @Override
+    public Collection<NameForm> getNameFormsWithName(final String name)
     {
-      throw new UnknownSchemaElementException(WARN_OBJECTCLASS_UNKNOWN
-          .get(name));
+      return Collections.emptyList();
     }
 
 
 
+    @Override
+    public ObjectClass getObjectClass(final String name)
+        throws UnknownSchemaElementException
+    {
+      throw new UnknownSchemaElementException(
+          WARN_OBJECTCLASS_UNKNOWN.get(name));
+    }
+
+
+
+    @Override
     public Collection<ObjectClass> getObjectClasses()
     {
       return Collections.emptyList();
@@ -258,16 +304,10 @@ public final class Schema
 
 
 
-    public Collection<ObjectClass> getObjectClassesByName(final String name)
+    @Override
+    public Collection<ObjectClass> getObjectClassesWithName(final String name)
     {
       return Collections.emptyList();
-    }
-
-
-
-    public SchemaCompatOptions getSchemaCompatOptions()
-    {
-      return options;
     }
 
 
@@ -275,6 +315,7 @@ public final class Schema
     /**
      * {@inheritDoc}
      */
+    @Override
     public String getSchemaName()
     {
       return "Empty Schema";
@@ -282,6 +323,7 @@ public final class Schema
 
 
 
+    @Override
     public Syntax getSyntax(final String numericOID)
     {
       // Fake up a syntax substituted by the default syntax.
@@ -290,6 +332,7 @@ public final class Schema
 
 
 
+    @Override
     public Collection<Syntax> getSyntaxes()
     {
       return Collections.emptyList();
@@ -297,6 +340,7 @@ public final class Schema
 
 
 
+    @Override
     public Collection<LocalizableMessage> getWarnings()
     {
       return Collections.emptyList();
@@ -304,6 +348,7 @@ public final class Schema
 
 
 
+    @Override
     public boolean hasAttributeType(final String name)
     {
       // In theory a non-strict schema always contains the requested
@@ -315,6 +360,7 @@ public final class Schema
 
 
 
+    @Override
     public boolean hasDITContentRule(final String name)
     {
       return false;
@@ -322,6 +368,7 @@ public final class Schema
 
 
 
+    @Override
     public boolean hasDITStructureRule(final int ruleID)
     {
       return false;
@@ -329,6 +376,7 @@ public final class Schema
 
 
 
+    @Override
     public boolean hasMatchingRule(final String name)
     {
       return false;
@@ -336,6 +384,7 @@ public final class Schema
 
 
 
+    @Override
     public boolean hasMatchingRuleUse(final String name)
     {
       return false;
@@ -343,6 +392,7 @@ public final class Schema
 
 
 
+    @Override
     public boolean hasNameForm(final String name)
     {
       return false;
@@ -350,6 +400,7 @@ public final class Schema
 
 
 
+    @Override
     public boolean hasObjectClass(final String name)
     {
       return false;
@@ -357,6 +408,7 @@ public final class Schema
 
 
 
+    @Override
     public boolean hasSyntax(final String numericOID)
     {
       return false;
@@ -364,6 +416,7 @@ public final class Schema
 
 
 
+    @Override
     public boolean isStrict()
     {
       return false;
@@ -383,7 +436,11 @@ public final class Schema
 
 
 
-    List<AttributeType> getAttributeTypesByName(String name);
+    List<AttributeType> getAttributeTypesWithName(String name);
+
+
+
+    DITContentRule getDITContentRule(ObjectClass structuralClass);
 
 
 
@@ -396,7 +453,7 @@ public final class Schema
 
 
 
-    Collection<DITContentRule> getDITContentRulesByName(String name);
+    Collection<DITContentRule> getDITContentRulesWithName(String name);
 
 
 
@@ -405,12 +462,11 @@ public final class Schema
 
 
 
-    Collection<DITStructureRule> getDITStructureRulesByName(String name);
+    Collection<DITStructureRule> getDITStructureRules(NameForm nameForm);
 
 
 
-    Collection<DITStructureRule> getDITStructureRulesByNameForm(
-        NameForm nameForm);
+    Collection<DITStructureRule> getDITStructureRulesWithName(String name);
 
 
 
@@ -427,12 +483,11 @@ public final class Schema
 
 
 
-    Collection<MatchingRule> getMatchingRulesByName(String name);
+    Collection<MatchingRule> getMatchingRulesWithName(String name);
 
 
 
-    MatchingRuleUse getMatchingRuleUse(MatchingRule matchingRule)
-        throws UnknownSchemaElementException;
+    MatchingRuleUse getMatchingRuleUse(MatchingRule matchingRule);
 
 
 
@@ -445,7 +500,7 @@ public final class Schema
 
 
 
-    Collection<MatchingRuleUse> getMatchingRuleUsesByName(String name);
+    Collection<MatchingRuleUse> getMatchingRuleUsesWithName(String name);
 
 
 
@@ -453,15 +508,15 @@ public final class Schema
 
 
 
-    Collection<NameForm> getNameFormByObjectClass(ObjectClass structuralClass);
-
-
-
     Collection<NameForm> getNameForms();
 
 
 
-    Collection<NameForm> getNameFormsByName(String name);
+    Collection<NameForm> getNameForms(ObjectClass structuralClass);
+
+
+
+    Collection<NameForm> getNameFormsWithName(String name);
 
 
 
@@ -474,11 +529,7 @@ public final class Schema
 
 
 
-    Collection<ObjectClass> getObjectClassesByName(String name);
-
-
-
-    SchemaCompatOptions getSchemaCompatOptions();
+    Collection<ObjectClass> getObjectClassesWithName(String name);
 
 
 
@@ -531,6 +582,18 @@ public final class Schema
 
 
     boolean isStrict();
+
+
+
+    boolean allowMalformedNamesAndOptions();
+
+
+
+    boolean allowNonStandardTelephoneNumbers();
+
+
+
+    boolean allowZeroLengthDirectoryStrings();
   }
 
 
@@ -548,6 +611,28 @@ public final class Schema
 
 
 
+    public boolean allowMalformedNamesAndOptions()
+    {
+      return strictImpl.allowMalformedNamesAndOptions();
+    }
+
+
+
+    public boolean allowNonStandardTelephoneNumbers()
+    {
+      return strictImpl.allowNonStandardTelephoneNumbers();
+    }
+
+
+
+    public boolean allowZeroLengthDirectoryStrings()
+    {
+      return strictImpl.allowZeroLengthDirectoryStrings();
+    }
+
+
+
+    @Override
     public AttributeType getAttributeType(final String name)
         throws UnknownSchemaElementException
     {
@@ -570,6 +655,7 @@ public final class Schema
 
 
 
+    @Override
     public Collection<AttributeType> getAttributeTypes()
     {
       return strictImpl.getAttributeTypes();
@@ -577,13 +663,23 @@ public final class Schema
 
 
 
-    public List<AttributeType> getAttributeTypesByName(final String name)
+    @Override
+    public List<AttributeType> getAttributeTypesWithName(final String name)
     {
-      return strictImpl.getAttributeTypesByName(name);
+      return strictImpl.getAttributeTypesWithName(name);
     }
 
 
 
+    @Override
+    public DITContentRule getDITContentRule(final ObjectClass structuralClass)
+    {
+      return strictImpl.getDITContentRule(structuralClass);
+    }
+
+
+
+    @Override
     public DITContentRule getDITContentRule(final String name)
         throws UnknownSchemaElementException
     {
@@ -592,6 +688,7 @@ public final class Schema
 
 
 
+    @Override
     public Collection<DITContentRule> getDITContentRules()
     {
       return strictImpl.getDITContentRules();
@@ -599,13 +696,16 @@ public final class Schema
 
 
 
-    public Collection<DITContentRule> getDITContentRulesByName(final String name)
+    @Override
+    public Collection<DITContentRule> getDITContentRulesWithName(
+        final String name)
     {
-      return strictImpl.getDITContentRulesByName(name);
+      return strictImpl.getDITContentRulesWithName(name);
     }
 
 
 
+    @Override
     public DITStructureRule getDITStructureRule(final int ruleID)
         throws UnknownSchemaElementException
     {
@@ -614,22 +714,25 @@ public final class Schema
 
 
 
-    public Collection<DITStructureRule> getDITStructureRulesByName(
-        final String name)
-    {
-      return strictImpl.getDITStructureRulesByName(name);
-    }
-
-
-
-    public Collection<DITStructureRule> getDITStructureRulesByNameForm(
+    @Override
+    public Collection<DITStructureRule> getDITStructureRules(
         final NameForm nameForm)
     {
-      return strictImpl.getDITStructureRulesByNameForm(nameForm);
+      return strictImpl.getDITStructureRules(nameForm);
     }
 
 
 
+    @Override
+    public Collection<DITStructureRule> getDITStructureRulesWithName(
+        final String name)
+    {
+      return strictImpl.getDITStructureRulesWithName(name);
+    }
+
+
+
+    @Override
     public Collection<DITStructureRule> getDITStuctureRules()
     {
       return strictImpl.getDITStuctureRules();
@@ -637,6 +740,7 @@ public final class Schema
 
 
 
+    @Override
     public MatchingRule getMatchingRule(final String name)
         throws UnknownSchemaElementException
     {
@@ -645,6 +749,7 @@ public final class Schema
 
 
 
+    @Override
     public Collection<MatchingRule> getMatchingRules()
     {
       return strictImpl.getMatchingRules();
@@ -652,21 +757,23 @@ public final class Schema
 
 
 
-    public Collection<MatchingRule> getMatchingRulesByName(final String name)
+    @Override
+    public Collection<MatchingRule> getMatchingRulesWithName(final String name)
     {
-      return strictImpl.getMatchingRulesByName(name);
+      return strictImpl.getMatchingRulesWithName(name);
     }
 
 
 
+    @Override
     public MatchingRuleUse getMatchingRuleUse(final MatchingRule matchingRule)
-        throws UnknownSchemaElementException
     {
       return strictImpl.getMatchingRuleUse(matchingRule);
     }
 
 
 
+    @Override
     public MatchingRuleUse getMatchingRuleUse(final String name)
         throws UnknownSchemaElementException
     {
@@ -675,6 +782,7 @@ public final class Schema
 
 
 
+    @Override
     public Collection<MatchingRuleUse> getMatchingRuleUses()
     {
       return strictImpl.getMatchingRuleUses();
@@ -682,14 +790,16 @@ public final class Schema
 
 
 
-    public Collection<MatchingRuleUse> getMatchingRuleUsesByName(
+    @Override
+    public Collection<MatchingRuleUse> getMatchingRuleUsesWithName(
         final String name)
     {
-      return strictImpl.getMatchingRuleUsesByName(name);
+      return strictImpl.getMatchingRuleUsesWithName(name);
     }
 
 
 
+    @Override
     public NameForm getNameForm(final String name)
         throws UnknownSchemaElementException
     {
@@ -698,14 +808,7 @@ public final class Schema
 
 
 
-    public Collection<NameForm> getNameFormByObjectClass(
-        final ObjectClass structuralClass)
-    {
-      return strictImpl.getNameFormByObjectClass(structuralClass);
-    }
-
-
-
+    @Override
     public Collection<NameForm> getNameForms()
     {
       return strictImpl.getNameForms();
@@ -713,13 +816,23 @@ public final class Schema
 
 
 
-    public Collection<NameForm> getNameFormsByName(final String name)
+    @Override
+    public Collection<NameForm> getNameForms(final ObjectClass structuralClass)
     {
-      return strictImpl.getNameFormsByName(name);
+      return strictImpl.getNameForms(structuralClass);
     }
 
 
 
+    @Override
+    public Collection<NameForm> getNameFormsWithName(final String name)
+    {
+      return strictImpl.getNameFormsWithName(name);
+    }
+
+
+
+    @Override
     public ObjectClass getObjectClass(final String name)
         throws UnknownSchemaElementException
     {
@@ -728,6 +841,7 @@ public final class Schema
 
 
 
+    @Override
     public Collection<ObjectClass> getObjectClasses()
     {
       return strictImpl.getObjectClasses();
@@ -735,20 +849,15 @@ public final class Schema
 
 
 
-    public Collection<ObjectClass> getObjectClassesByName(final String name)
+    @Override
+    public Collection<ObjectClass> getObjectClassesWithName(final String name)
     {
-      return strictImpl.getObjectClassesByName(name);
+      return strictImpl.getObjectClassesWithName(name);
     }
 
 
 
-    public SchemaCompatOptions getSchemaCompatOptions()
-    {
-      return strictImpl.getSchemaCompatOptions();
-    }
-
-
-
+    @Override
     public String getSchemaName()
     {
       return strictImpl.getSchemaName();
@@ -756,6 +865,7 @@ public final class Schema
 
 
 
+    @Override
     public Syntax getSyntax(final String numericOID)
     {
       if (!strictImpl.hasSyntax(numericOID))
@@ -767,6 +877,7 @@ public final class Schema
 
 
 
+    @Override
     public Collection<Syntax> getSyntaxes()
     {
       return strictImpl.getSyntaxes();
@@ -774,6 +885,7 @@ public final class Schema
 
 
 
+    @Override
     public Collection<LocalizableMessage> getWarnings()
     {
       return strictImpl.getWarnings();
@@ -781,6 +893,7 @@ public final class Schema
 
 
 
+    @Override
     public boolean hasAttributeType(final String name)
     {
       // In theory a non-strict schema always contains the requested
@@ -792,6 +905,7 @@ public final class Schema
 
 
 
+    @Override
     public boolean hasDITContentRule(final String name)
     {
       return strictImpl.hasDITContentRule(name);
@@ -799,6 +913,7 @@ public final class Schema
 
 
 
+    @Override
     public boolean hasDITStructureRule(final int ruleID)
     {
       return strictImpl.hasDITStructureRule(ruleID);
@@ -806,6 +921,7 @@ public final class Schema
 
 
 
+    @Override
     public boolean hasMatchingRule(final String name)
     {
       return strictImpl.hasMatchingRule(name);
@@ -813,6 +929,7 @@ public final class Schema
 
 
 
+    @Override
     public boolean hasMatchingRuleUse(final String name)
     {
       return strictImpl.hasMatchingRuleUse(name);
@@ -820,6 +937,7 @@ public final class Schema
 
 
 
+    @Override
     public boolean hasNameForm(final String name)
     {
       return strictImpl.hasNameForm(name);
@@ -827,6 +945,7 @@ public final class Schema
 
 
 
+    @Override
     public boolean hasObjectClass(final String name)
     {
       return strictImpl.hasObjectClass(name);
@@ -834,6 +953,7 @@ public final class Schema
 
 
 
+    @Override
     public boolean hasSyntax(final String numericOID)
     {
       return strictImpl.hasSyntax(numericOID);
@@ -841,6 +961,7 @@ public final class Schema
 
 
 
+    @Override
     public boolean isStrict()
     {
       return false;
@@ -885,15 +1006,22 @@ public final class Schema
 
     private final Map<String, List<NameForm>> objectClass2NameForms;
 
-    private final SchemaCompatOptions options;
-
     private final List<LocalizableMessage> warnings;
 
     private final String schemaName;
 
+    private final boolean allowNonStandardTelephoneNumbers;
+
+    private final boolean allowZeroLengthDirectoryStrings;
+
+    private final boolean allowMalformedNamesAndOptions;
 
 
-    private StrictImpl(final String schemaName,
+
+    StrictImpl(final String schemaName,
+        final boolean allowMalformedNamesAndOptions,
+        final boolean allowNonStandardTelephoneNumbers,
+        final boolean allowZeroLengthDirectoryStrings,
         final Map<String, Syntax> numericOID2Syntaxes,
         final Map<String, MatchingRule> numericOID2MatchingRules,
         final Map<String, MatchingRuleUse> numericOID2MatchingRuleUses,
@@ -911,10 +1039,12 @@ public final class Schema
         final Map<String, List<DITStructureRule>> name2StructureRules,
         final Map<String, List<NameForm>> objectClass2NameForms,
         final Map<String, List<DITStructureRule>> nameForm2StructureRules,
-        final SchemaCompatOptions options,
         final List<LocalizableMessage> warnings)
     {
       this.schemaName = schemaName;
+      this.allowMalformedNamesAndOptions = allowMalformedNamesAndOptions;
+      this.allowNonStandardTelephoneNumbers = allowNonStandardTelephoneNumbers;
+      this.allowZeroLengthDirectoryStrings = allowZeroLengthDirectoryStrings;
       this.numericOID2Syntaxes = Collections
           .unmodifiableMap(numericOID2Syntaxes);
       this.numericOID2MatchingRules = Collections
@@ -944,12 +1074,33 @@ public final class Schema
           .unmodifiableMap(objectClass2NameForms);
       this.nameForm2StructureRules = Collections
           .unmodifiableMap(nameForm2StructureRules);
-      this.options = options;
       this.warnings = Collections.unmodifiableList(warnings);
     }
 
 
 
+    public boolean allowMalformedNamesAndOptions()
+    {
+      return allowMalformedNamesAndOptions;
+    }
+
+
+
+    public boolean allowNonStandardTelephoneNumbers()
+    {
+      return allowNonStandardTelephoneNumbers;
+    }
+
+
+
+    public boolean allowZeroLengthDirectoryStrings()
+    {
+      return allowZeroLengthDirectoryStrings;
+    }
+
+
+
+    @Override
     public AttributeType getAttributeType(final String name)
         throws UnknownSchemaElementException
     {
@@ -966,14 +1117,15 @@ public final class Schema
         {
           return attributes.get(0);
         }
-        throw new UnknownSchemaElementException(WARN_ATTR_TYPE_AMBIGIOUS
-            .get(name));
+        throw new UnknownSchemaElementException(
+            WARN_ATTR_TYPE_AMBIGIOUS.get(name));
       }
       throw new UnknownSchemaElementException(WARN_ATTR_TYPE_UNKNOWN.get(name));
     }
 
 
 
+    @Override
     public Collection<AttributeType> getAttributeTypes()
     {
       return numericOID2AttributeTypes.values();
@@ -981,7 +1133,8 @@ public final class Schema
 
 
 
-    public List<AttributeType> getAttributeTypesByName(final String name)
+    @Override
+    public List<AttributeType> getAttributeTypesWithName(final String name)
     {
       final List<AttributeType> attributes = name2AttributeTypes
           .get(StaticUtils.toLowerCase(name));
@@ -997,6 +1150,15 @@ public final class Schema
 
 
 
+    @Override
+    public DITContentRule getDITContentRule(final ObjectClass structuralClass)
+    {
+      return numericOID2ContentRules.get(structuralClass.getOID());
+    }
+
+
+
+    @Override
     public DITContentRule getDITContentRule(final String name)
         throws UnknownSchemaElementException
     {
@@ -1020,6 +1182,7 @@ public final class Schema
 
 
 
+    @Override
     public Collection<DITContentRule> getDITContentRules()
     {
       return numericOID2ContentRules.values();
@@ -1027,7 +1190,9 @@ public final class Schema
 
 
 
-    public Collection<DITContentRule> getDITContentRulesByName(final String name)
+    @Override
+    public Collection<DITContentRule> getDITContentRulesWithName(
+        final String name)
     {
       final List<DITContentRule> rules = name2ContentRules.get(StaticUtils
           .toLowerCase(name));
@@ -1043,6 +1208,7 @@ public final class Schema
 
 
 
+    @Override
     public DITStructureRule getDITStructureRule(final int ruleID)
         throws UnknownSchemaElementException
     {
@@ -1057,24 +1223,8 @@ public final class Schema
 
 
 
-    public Collection<DITStructureRule> getDITStructureRulesByName(
-        final String name)
-    {
-      final List<DITStructureRule> rules = name2StructureRules.get(StaticUtils
-          .toLowerCase(name));
-      if (rules == null)
-      {
-        return Collections.emptyList();
-      }
-      else
-      {
-        return rules;
-      }
-    }
-
-
-
-    public Collection<DITStructureRule> getDITStructureRulesByNameForm(
+    @Override
+    public Collection<DITStructureRule> getDITStructureRules(
         final NameForm nameForm)
     {
       final List<DITStructureRule> rules = nameForm2StructureRules.get(nameForm
@@ -1091,6 +1241,25 @@ public final class Schema
 
 
 
+    @Override
+    public Collection<DITStructureRule> getDITStructureRulesWithName(
+        final String name)
+    {
+      final List<DITStructureRule> rules = name2StructureRules.get(StaticUtils
+          .toLowerCase(name));
+      if (rules == null)
+      {
+        return Collections.emptyList();
+      }
+      else
+      {
+        return rules;
+      }
+    }
+
+
+
+    @Override
     public Collection<DITStructureRule> getDITStuctureRules()
     {
       return id2StructureRules.values();
@@ -1098,6 +1267,7 @@ public final class Schema
 
 
 
+    @Override
     public MatchingRule getMatchingRule(final String name)
         throws UnknownSchemaElementException
     {
@@ -1121,6 +1291,7 @@ public final class Schema
 
 
 
+    @Override
     public Collection<MatchingRule> getMatchingRules()
     {
       return numericOID2MatchingRules.values();
@@ -1128,7 +1299,8 @@ public final class Schema
 
 
 
-    public Collection<MatchingRule> getMatchingRulesByName(final String name)
+    @Override
+    public Collection<MatchingRule> getMatchingRulesWithName(final String name)
     {
       final List<MatchingRule> rules = name2MatchingRules.get(StaticUtils
           .toLowerCase(name));
@@ -1144,14 +1316,15 @@ public final class Schema
 
 
 
+    @Override
     public MatchingRuleUse getMatchingRuleUse(final MatchingRule matchingRule)
-        throws UnknownSchemaElementException
     {
-      return getMatchingRuleUse(matchingRule.getOID());
+      return numericOID2MatchingRuleUses.get(matchingRule.getOID());
     }
 
 
 
+    @Override
     public MatchingRuleUse getMatchingRuleUse(final String name)
         throws UnknownSchemaElementException
     {
@@ -1175,6 +1348,7 @@ public final class Schema
 
 
 
+    @Override
     public Collection<MatchingRuleUse> getMatchingRuleUses()
     {
       return numericOID2MatchingRuleUses.values();
@@ -1182,7 +1356,8 @@ public final class Schema
 
 
 
-    public Collection<MatchingRuleUse> getMatchingRuleUsesByName(
+    @Override
+    public Collection<MatchingRuleUse> getMatchingRuleUsesWithName(
         final String name)
     {
       final List<MatchingRuleUse> rules = name2MatchingRuleUses.get(StaticUtils
@@ -1199,6 +1374,7 @@ public final class Schema
 
 
 
+    @Override
     public NameForm getNameForm(final String name)
         throws UnknownSchemaElementException
     {
@@ -1215,16 +1391,24 @@ public final class Schema
         {
           return forms.get(0);
         }
-        throw new UnknownSchemaElementException(WARN_NAMEFORM_AMBIGIOUS
-            .get(name));
+        throw new UnknownSchemaElementException(
+            WARN_NAMEFORM_AMBIGIOUS.get(name));
       }
       throw new UnknownSchemaElementException(WARN_NAMEFORM_UNKNOWN.get(name));
     }
 
 
 
-    public Collection<NameForm> getNameFormByObjectClass(
-        final ObjectClass structuralClass)
+    @Override
+    public Collection<NameForm> getNameForms()
+    {
+      return numericOID2NameForms.values();
+    }
+
+
+
+    @Override
+    public Collection<NameForm> getNameForms(final ObjectClass structuralClass)
     {
       final List<NameForm> forms = objectClass2NameForms.get(structuralClass
           .getOID());
@@ -1240,14 +1424,8 @@ public final class Schema
 
 
 
-    public Collection<NameForm> getNameForms()
-    {
-      return numericOID2NameForms.values();
-    }
-
-
-
-    public Collection<NameForm> getNameFormsByName(final String name)
+    @Override
+    public Collection<NameForm> getNameFormsWithName(final String name)
     {
       final List<NameForm> forms = name2NameForms.get(StaticUtils
           .toLowerCase(name));
@@ -1263,6 +1441,7 @@ public final class Schema
 
 
 
+    @Override
     public ObjectClass getObjectClass(final String name)
         throws UnknownSchemaElementException
     {
@@ -1279,15 +1458,16 @@ public final class Schema
         {
           return classes.get(0);
         }
-        throw new UnknownSchemaElementException(WARN_OBJECTCLASS_AMBIGIOUS
-            .get(name));
+        throw new UnknownSchemaElementException(
+            WARN_OBJECTCLASS_AMBIGIOUS.get(name));
       }
-      throw new UnknownSchemaElementException(WARN_OBJECTCLASS_UNKNOWN
-          .get(name));
+      throw new UnknownSchemaElementException(
+          WARN_OBJECTCLASS_UNKNOWN.get(name));
     }
 
 
 
+    @Override
     public Collection<ObjectClass> getObjectClasses()
     {
       return numericOID2ObjectClasses.values();
@@ -1295,7 +1475,8 @@ public final class Schema
 
 
 
-    public Collection<ObjectClass> getObjectClassesByName(final String name)
+    @Override
+    public Collection<ObjectClass> getObjectClassesWithName(final String name)
     {
       final List<ObjectClass> classes = name2ObjectClasses.get(StaticUtils
           .toLowerCase(name));
@@ -1311,13 +1492,7 @@ public final class Schema
 
 
 
-    public SchemaCompatOptions getSchemaCompatOptions()
-    {
-      return options;
-    }
-
-
-
+    @Override
     public String getSchemaName()
     {
       return schemaName;
@@ -1325,20 +1500,22 @@ public final class Schema
 
 
 
+    @Override
     public Syntax getSyntax(final String numericOID)
         throws UnknownSchemaElementException
     {
       final Syntax syntax = numericOID2Syntaxes.get(numericOID);
       if (syntax == null)
       {
-        throw new UnknownSchemaElementException(WARN_SYNTAX_UNKNOWN
-            .get(numericOID));
+        throw new UnknownSchemaElementException(
+            WARN_SYNTAX_UNKNOWN.get(numericOID));
       }
       return syntax;
     }
 
 
 
+    @Override
     public Collection<Syntax> getSyntaxes()
     {
       return numericOID2Syntaxes.values();
@@ -1346,6 +1523,7 @@ public final class Schema
 
 
 
+    @Override
     public Collection<LocalizableMessage> getWarnings()
     {
       return warnings;
@@ -1353,6 +1531,7 @@ public final class Schema
 
 
 
+    @Override
     public boolean hasAttributeType(final String name)
     {
       if (numericOID2AttributeTypes.containsKey(name))
@@ -1366,6 +1545,7 @@ public final class Schema
 
 
 
+    @Override
     public boolean hasDITContentRule(final String name)
     {
       if (numericOID2ContentRules.containsKey(name))
@@ -1379,6 +1559,7 @@ public final class Schema
 
 
 
+    @Override
     public boolean hasDITStructureRule(final int ruleID)
     {
       return id2StructureRules.containsKey(ruleID);
@@ -1386,6 +1567,7 @@ public final class Schema
 
 
 
+    @Override
     public boolean hasMatchingRule(final String name)
     {
       if (numericOID2MatchingRules.containsKey(name))
@@ -1399,6 +1581,7 @@ public final class Schema
 
 
 
+    @Override
     public boolean hasMatchingRuleUse(final String name)
     {
       if (numericOID2MatchingRuleUses.containsKey(name))
@@ -1412,6 +1595,7 @@ public final class Schema
 
 
 
+    @Override
     public boolean hasNameForm(final String name)
     {
       if (numericOID2NameForms.containsKey(name))
@@ -1425,6 +1609,7 @@ public final class Schema
 
 
 
+    @Override
     public boolean hasObjectClass(final String name)
     {
       if (numericOID2ObjectClasses.containsKey(name))
@@ -1438,6 +1623,7 @@ public final class Schema
 
 
 
+    @Override
     public boolean hasSyntax(final String numericOID)
     {
       return numericOID2Syntaxes.containsKey(numericOID);
@@ -1445,11 +1631,13 @@ public final class Schema
 
 
 
+    @Override
     public boolean isStrict()
     {
       return true;
     }
   }
+
 
 
   /*
@@ -1600,8 +1788,8 @@ public final class Schema
    * @throws UnsupportedOperationException
    *           If the connection does not support search operations.
    * @throws IllegalStateException
-   *           If the connection has already been closed, i.e. if {@code
-   *           connection.isClosed() == true}.
+   *           If the connection has already been closed, i.e. if
+   *           {@code connection.isClosed() == true}.
    * @throws NullPointerException
    *           If the {@code connection} or {@code name} was {@code null}.
    */
@@ -1701,8 +1889,8 @@ public final class Schema
    * @throws UnsupportedOperationException
    *           If the connection does not support search operations.
    * @throws IllegalStateException
-   *           If the connection has already been closed, i.e. if {@code
-   *           connection.isClosed() == true}.
+   *           If the connection has already been closed, i.e. if
+   *           {@code connection.isClosed() == true}.
    * @throws NullPointerException
    *           If the {@code connection} or {@code name} was {@code null}.
    */
@@ -1767,6 +1955,9 @@ public final class Schema
 
 
   Schema(final String schemaName,
+      final boolean allowMalformedNamesAndOptions,
+      final boolean allowNonStandardTelephoneNumbers,
+      final boolean allowZeroLengthDirectoryStrings,
       final Map<String, Syntax> numericOID2Syntaxes,
       final Map<String, MatchingRule> numericOID2MatchingRules,
       final Map<String, MatchingRuleUse> numericOID2MatchingRuleUses,
@@ -1784,16 +1975,17 @@ public final class Schema
       final Map<String, List<DITStructureRule>> name2StructureRules,
       final Map<String, List<NameForm>> objectClass2NameForms,
       final Map<String, List<DITStructureRule>> nameForm2StructureRules,
-      final SchemaCompatOptions options, final List<LocalizableMessage> warnings)
+      final List<LocalizableMessage> warnings)
   {
-    impl = new StrictImpl(schemaName, numericOID2Syntaxes,
-        numericOID2MatchingRules, numericOID2MatchingRuleUses,
-        numericOID2AttributeTypes, numericOID2ObjectClasses,
-        numericOID2NameForms, numericOID2ContentRules, id2StructureRules,
-        name2MatchingRules, name2MatchingRuleUses, name2AttributeTypes,
-        name2ObjectClasses, name2NameForms, name2ContentRules,
-        name2StructureRules, objectClass2NameForms, nameForm2StructureRules,
-        options, warnings);
+    impl = new StrictImpl(schemaName, allowMalformedNamesAndOptions,
+        allowNonStandardTelephoneNumbers, allowZeroLengthDirectoryStrings,
+        numericOID2Syntaxes, numericOID2MatchingRules,
+        numericOID2MatchingRuleUses, numericOID2AttributeTypes,
+        numericOID2ObjectClasses, numericOID2NameForms,
+        numericOID2ContentRules, id2StructureRules, name2MatchingRules,
+        name2MatchingRuleUses, name2AttributeTypes, name2ObjectClasses,
+        name2NameForms, name2ContentRules, name2StructureRules,
+        objectClass2NameForms, nameForm2StructureRules, warnings);
   }
 
 
@@ -1806,8 +1998,8 @@ public final class Schema
 
 
   /**
-   * Returns {@code true} if this schema allows certain illegal characters
-   * in OIDs and attribute options. When this compatibility option is set to
+   * Returns {@code true} if this schema allows certain illegal characters in
+   * OIDs and attribute options. When this compatibility option is set to
    * {@code true} the following illegal characters will be permitted in addition
    * to those permitted in section 1.4 of RFC 4512:
    *
@@ -1819,14 +2011,14 @@ public final class Schema
    * By default this compatibility option is set to {@code true} because these
    * characters are often used for naming purposes (such as collation rules).
    *
-   * @return {@code true} if this schema allows certain illegal characters
-   *         in OIDs and attribute options.
+   * @return {@code true} if this schema allows certain illegal characters in
+   *         OIDs and attribute options.
    * @see <a href="http://tools.ietf.org/html/rfc4512">RFC 4512 - Lightweight
    *      Directory Access Protocol (LDAP): Directory Information Models </a>
    */
   public boolean allowMalformedNamesAndOptions()
   {
-    return impl.getSchemaCompatOptions().allowMalformedNamesAndOptions();
+    return impl.allowMalformedNamesAndOptions();
   }
 
 
@@ -1844,8 +2036,7 @@ public final class Schema
    */
   public boolean allowNonStandardTelephoneNumbers()
   {
-    return impl.getSchemaCompatOptions()
-        .allowNonStandardTelephoneNumbers();
+    return impl.allowNonStandardTelephoneNumbers();
   }
 
 
@@ -1864,8 +2055,51 @@ public final class Schema
    */
   public boolean allowZeroLengthDirectoryStrings()
   {
-    return impl.getSchemaCompatOptions()
-        .allowZeroLengthDirectoryStrings();
+    return impl.allowZeroLengthDirectoryStrings();
+  }
+
+
+
+  /**
+   * Returns a non-strict view of this schema.
+   * <p>
+   * See the description of {@link #isStrict()} for more details.
+   *
+   * @return A non-strict view of this schema.
+   * @see Schema#isStrict()
+   */
+  public Schema asNonStrictSchema()
+  {
+    if (impl.isStrict())
+    {
+      return new Schema(new NonStrictImpl(impl));
+    }
+    else
+    {
+      return this;
+    }
+  }
+
+
+
+  /**
+   * Returns a strict view of this schema.
+   * <p>
+   * See the description of {@link #isStrict()} for more details.
+   *
+   * @return A strict view of this schema.
+   * @see Schema#isStrict()
+   */
+  public Schema asStrictSchema()
+  {
+    if (impl.isStrict())
+    {
+      return this;
+    }
+    else
+    {
+      return new Schema(((NonStrictImpl) impl).strictImpl);
+    }
   }
 
 
@@ -1911,9 +2145,25 @@ public final class Schema
    * @return An unmodifiable collection containing all of the attribute types
    *         having the specified name or numeric OID.
    */
-  public List<AttributeType> getAttributeTypesByName(final String name)
+  public List<AttributeType> getAttributeTypesWithName(final String name)
   {
-    return impl.getAttributeTypesByName(name);
+    return impl.getAttributeTypesWithName(name);
+  }
+
+
+
+  /**
+   * Returns the DIT content rule associated with the provided structural object
+   * class, or {@code null} if no rule is defined.
+   *
+   * @param structuralClass
+   *          The structural object class .
+   * @return The DIT content rule associated with the provided structural object
+   *         class, or {@code null} if no rule is defined.
+   */
+  public DITContentRule getDITContentRule(final ObjectClass structuralClass)
+  {
+    return impl.getDITContentRule(structuralClass);
   }
 
 
@@ -1959,9 +2209,9 @@ public final class Schema
    * @return An unmodifiable collection containing all of the DIT content rules
    *         having the specified name or numeric OID.
    */
-  public Collection<DITContentRule> getDITContentRulesByName(final String name)
+  public Collection<DITContentRule> getDITContentRulesWithName(final String name)
   {
-    return impl.getDITContentRulesByName(name);
+    return impl.getDITContentRulesWithName(name);
   }
 
 
@@ -1986,6 +2236,23 @@ public final class Schema
 
   /**
    * Returns an unmodifiable collection containing all of the DIT structure
+   * rules associated with the provided name form.
+   *
+   * @param nameForm
+   *          The name form.
+   * @return An unmodifiable collection containing all of the DIT structure
+   *         rules associated with the provided name form.
+   */
+  public Collection<DITStructureRule> getDITStructureRules(
+      final NameForm nameForm)
+  {
+    return impl.getDITStructureRules(nameForm);
+  }
+
+
+
+  /**
+   * Returns an unmodifiable collection containing all of the DIT structure
    * rules having the specified name or numeric OID.
    *
    * @param name
@@ -1993,25 +2260,10 @@ public final class Schema
    * @return An unmodifiable collection containing all of the DIT structure
    *         rules having the specified name or numeric OID.
    */
-  public Collection<DITStructureRule> getDITStructureRulesByName(
+  public Collection<DITStructureRule> getDITStructureRulesWithName(
       final String name)
   {
-    return impl.getDITStructureRulesByName(name);
-  }
-
-
-
-  /**
-   * Retrieves the DIT structure rules for the provided name form.
-   *
-   * @param nameForm
-   *          The name form.
-   * @return The requested DIT structure rules.
-   */
-  public Collection<DITStructureRule> getDITStructureRulesByNameForm(
-      final NameForm nameForm)
-  {
-    return impl.getDITStructureRulesByNameForm(nameForm);
+    return impl.getDITStructureRulesWithName(name);
   }
 
 
@@ -2071,25 +2323,23 @@ public final class Schema
    * @return An unmodifiable collection containing all of the matching rules
    *         having the specified name or numeric OID.
    */
-  public Collection<MatchingRule> getMatchingRulesByName(final String name)
+  public Collection<MatchingRule> getMatchingRulesWithName(final String name)
   {
-    return impl.getMatchingRulesByName(name);
+    return impl.getMatchingRulesWithName(name);
   }
 
 
 
   /**
-   * Returns the matching rule use associated with the provided matching rule.
+   * Returns the matching rule use associated with the provided matching rule,
+   * or {@code null} if no use is defined.
    *
    * @param matchingRule
    *          The matching rule whose matching rule use is to be retrieved.
-   * @return The requested matching rule use.
-   * @throws UnknownSchemaElementException
-   *           If this is a strict schema and the requested matching rule use
-   *           was not found or if the provided name is ambiguous.
+   * @return The matching rule use associated with the provided matching rule,
+   *         or {@code null} if no use is defined.
    */
   public MatchingRuleUse getMatchingRuleUse(final MatchingRule matchingRule)
-      throws UnknownSchemaElementException
   {
     return getMatchingRuleUse(matchingRule.getOID());
   }
@@ -2137,9 +2387,10 @@ public final class Schema
    * @return An unmodifiable collection containing all of the matching rule uses
    *         having the specified name or numeric OID.
    */
-  public Collection<MatchingRuleUse> getMatchingRuleUsesByName(final String name)
+  public Collection<MatchingRuleUse> getMatchingRuleUsesWithName(
+      final String name)
   {
-    return impl.getMatchingRuleUsesByName(name);
+    return impl.getMatchingRuleUsesWithName(name);
   }
 
 
@@ -2163,21 +2414,6 @@ public final class Schema
 
 
   /**
-   * Retrieves the name forms for the specified structural objectclass.
-   *
-   * @param structuralClass
-   *          The structural objectclass for the name form to retrieve.
-   * @return The requested name forms
-   */
-  public Collection<NameForm> getNameFormByObjectClass(
-      final ObjectClass structuralClass)
-  {
-    return impl.getNameFormByObjectClass(structuralClass);
-  }
-
-
-
-  /**
    * Returns an unmodifiable collection containing all of the name forms
    * contained in this schema.
    *
@@ -2192,6 +2428,22 @@ public final class Schema
 
 
   /**
+   * Returns an unmodifiable collection containing all of the name forms
+   * associated with the provided structural object class.
+   *
+   * @param structuralClass
+   *          The structural object class whose name forms are to be retrieved.
+   * @return An unmodifiable collection containing all of the name forms
+   *         associated with the provided structural object class.
+   */
+  public Collection<NameForm> getNameForms(final ObjectClass structuralClass)
+  {
+    return impl.getNameForms(structuralClass);
+  }
+
+
+
+  /**
    * Returns an unmodifiable collection containing all of the name forms having
    * the specified name or numeric OID.
    *
@@ -2200,9 +2452,9 @@ public final class Schema
    * @return An unmodifiable collection containing all of the name forms having
    *         the specified name or numeric OID.
    */
-  public Collection<NameForm> getNameFormsByName(final String name)
+  public Collection<NameForm> getNameFormsWithName(final String name)
   {
-    return impl.getNameFormsByName(name);
+    return impl.getNameFormsWithName(name);
   }
 
 
@@ -2248,9 +2500,9 @@ public final class Schema
    * @return An unmodifiable collection containing all of the object classes
    *         having the specified name or numeric OID.
    */
-  public Collection<ObjectClass> getObjectClassesByName(final String name)
+  public Collection<ObjectClass> getObjectClassesWithName(final String name)
   {
-    return impl.getObjectClassesByName(name);
+    return impl.getObjectClassesWithName(name);
   }
 
 
@@ -2467,50 +2719,6 @@ public final class Schema
 
 
   /**
-   * Returns a non-strict view of this schema.
-   * <p>
-   * See the description of {@link #isStrict()} for more details.
-   *
-   * @return A non-strict view of this schema.
-   * @see Schema#isStrict()
-   */
-  public Schema asNonStrictSchema()
-  {
-    if (impl.isStrict())
-    {
-      return new Schema(new NonStrictImpl(impl));
-    }
-    else
-    {
-      return this;
-    }
-  }
-
-
-
-  /**
-   * Returns a strict view of this schema.
-   * <p>
-   * See the description of {@link #isStrict()} for more details.
-   *
-   * @return A strict view of this schema.
-   * @see Schema#isStrict()
-   */
-  public Schema asStrictSchema()
-  {
-    if (impl.isStrict())
-    {
-      return this;
-    }
-    else
-    {
-      return new Schema(((NonStrictImpl) impl).strictImpl);
-    }
-  }
-
-
-
-  /**
    * Adds the definitions of all the schema elements contained in this schema to
    * the provided subschema subentry. Any existing attributes (including schema
    * definitions) contained in the provided entry will be preserved.
@@ -2522,10 +2730,10 @@ public final class Schema
    * @throws NullPointerException
    *           If {@code entry} was {@code null}.
    */
-  public Entry toEntry(Entry entry) throws NullPointerException
+  public Entry toEntry(final Entry entry) throws NullPointerException
   {
     Attribute attr = new LinkedAttribute(Schema.ATTR_LDAP_SYNTAXES);
-    for (Syntax syntax : getSyntaxes())
+    for (final Syntax syntax : getSyntaxes())
     {
       attr.add(syntax.toString());
     }
@@ -2535,7 +2743,7 @@ public final class Schema
     }
 
     attr = new LinkedAttribute(Schema.ATTR_ATTRIBUTE_TYPES);
-    for (AttributeType attributeType : getAttributeTypes())
+    for (final AttributeType attributeType : getAttributeTypes())
     {
       attr.add(attributeType.toString());
     }
@@ -2545,7 +2753,7 @@ public final class Schema
     }
 
     attr = new LinkedAttribute(Schema.ATTR_OBJECT_CLASSES);
-    for (ObjectClass objectClass : getObjectClasses())
+    for (final ObjectClass objectClass : getObjectClasses())
     {
       attr.add(objectClass.toString());
     }
@@ -2555,7 +2763,7 @@ public final class Schema
     }
 
     attr = new LinkedAttribute(Schema.ATTR_MATCHING_RULE_USE);
-    for (MatchingRuleUse matchingRuleUse : getMatchingRuleUses())
+    for (final MatchingRuleUse matchingRuleUse : getMatchingRuleUses())
     {
       attr.add(matchingRuleUse.toString());
     }
@@ -2565,7 +2773,7 @@ public final class Schema
     }
 
     attr = new LinkedAttribute(Schema.ATTR_MATCHING_RULES);
-    for (MatchingRule matchingRule : getMatchingRules())
+    for (final MatchingRule matchingRule : getMatchingRules())
     {
       attr.add(matchingRule.toString());
     }
@@ -2575,7 +2783,7 @@ public final class Schema
     }
 
     attr = new LinkedAttribute(Schema.ATTR_DIT_CONTENT_RULES);
-    for (DITContentRule ditContentRule : getDITContentRules())
+    for (final DITContentRule ditContentRule : getDITContentRules())
     {
       attr.add(ditContentRule.toString());
     }
@@ -2585,7 +2793,7 @@ public final class Schema
     }
 
     attr = new LinkedAttribute(Schema.ATTR_DIT_STRUCTURE_RULES);
-    for (DITStructureRule ditStructureRule : getDITStuctureRules())
+    for (final DITStructureRule ditStructureRule : getDITStuctureRules())
     {
       attr.add(ditStructureRule.toString());
     }
@@ -2595,7 +2803,7 @@ public final class Schema
     }
 
     attr = new LinkedAttribute(Schema.ATTR_NAME_FORMS);
-    for (NameForm nameForm : getNameForms())
+    for (final NameForm nameForm : getNameForms())
     {
       attr.add(nameForm.toString());
     }
@@ -2609,8 +2817,631 @@ public final class Schema
 
 
 
-  SchemaCompatOptions getSchemaCompatOptions()
+  /**
+   * Returns {@code true} if the provided entry is valid according to this
+   * schema and the specified schema validation policy.
+   * <p>
+   * If attribute value validation is enabled then following checks will be
+   * performed:
+   * <ul>
+   * <li>checking that there is at least one value
+   * <li>checking that single-valued attributes contain only a single value
+   * </ul>
+   * In particular, attribute values will not be checked for conformance to
+   * their syntax since this is expected to have already been performed while
+   * adding the values to the entry.
+   *
+   * @param entry
+   *          The entry to be validated.
+   * @param policy
+   *          The schema validation policy.
+   * @param errorMessages
+   *          A collection into which any schema validation warnings or error
+   *          messages can be placed, or {@code null} if they should not be
+   *          saved.
+   * @return {@code true} if an entry conforms to this schema based on the
+   *         provided schema validation policy.
+   */
+  public boolean validateEntry(final Entry entry,
+      final SchemaValidationPolicy policy,
+      final Collection<LocalizableMessage> errorMessages)
   {
-    return impl.getSchemaCompatOptions();
+    // First check that the object classes are recognized and that there is one
+    // structural object class.
+    ObjectClass structuralObjectClass = null;
+    final Attribute objectClassAttribute = entry.getAttribute(objectClass());
+    final List<ObjectClass> objectClasses = new LinkedList<ObjectClass>();
+    if (objectClassAttribute != null)
+    {
+      for (final ByteString v : objectClassAttribute)
+      {
+        final String objectClassName = v.toString();
+        final ObjectClass objectClass;
+        try
+        {
+          objectClass = getObjectClass(objectClassName);
+          objectClasses.add(objectClass);
+        }
+        catch (final UnknownSchemaElementException e)
+        {
+          if (policy.checkAttributesAndObjectClasses().needsChecking())
+          {
+            if (errorMessages != null)
+            {
+              final LocalizableMessage message = ERR_ENTRY_SCHEMA_UNKNOWN_OBJECT_CLASS
+                  .get(entry.getName().toString(), objectClassName);
+              errorMessages.add(message);
+            }
+            if (policy.checkAttributesAndObjectClasses().isReject())
+            {
+              return false;
+            }
+          }
+          continue;
+        }
+
+        if (objectClass.getObjectClassType() == ObjectClassType.STRUCTURAL)
+        {
+          if (structuralObjectClass == null
+              || objectClass.isDescendantOf(structuralObjectClass))
+          {
+            structuralObjectClass = objectClass;
+          }
+          else if (!structuralObjectClass.isDescendantOf(objectClass))
+          {
+            if (policy.requireSingleStructuralObjectClass().needsChecking())
+            {
+              if (errorMessages != null)
+              {
+                final LocalizableMessage message = ERR_ENTRY_SCHEMA_MULTIPLE_STRUCTURAL_CLASSES
+                    .get(entry.getName().toString(),
+                        structuralObjectClass.getNameOrOID(), objectClassName);
+                errorMessages.add(message);
+              }
+              if (policy.requireSingleStructuralObjectClass().isReject())
+              {
+                return false;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    Collection<DITStructureRule> ditStructureRules = Collections.emptyList();
+    DITContentRule ditContentRule = null;
+
+    if (structuralObjectClass == null)
+    {
+      if (policy.requireSingleStructuralObjectClass().needsChecking())
+      {
+        if (errorMessages != null)
+        {
+          final LocalizableMessage message = ERR_ENTRY_SCHEMA_NO_STRUCTURAL_CLASS
+              .get(entry.getName().toString());
+          errorMessages.add(message);
+        }
+        if (policy.requireSingleStructuralObjectClass().isReject())
+        {
+          return false;
+        }
+      }
+    }
+    else
+    {
+      ditContentRule = getDITContentRule(structuralObjectClass);
+      if (ditContentRule != null && ditContentRule.isObsolete())
+      {
+        ditContentRule = null;
+      }
+    }
+
+    // Check entry conforms to object classes and optional content rule.
+    if (!checkAttributesAndObjectClasses(entry, policy, errorMessages,
+        objectClasses, ditContentRule))
+    {
+      return false;
+    }
+
+    // Check that the name of the entry conforms to at least one applicable name
+    // form.
+    if (policy.checkNameForms().needsChecking()
+        && structuralObjectClass != null)
+    {
+      /**
+       * There may be multiple name forms registered with this structural object
+       * class. However, we need to select only one of the name forms and its
+       * corresponding DIT structure rule(s). We will iterate over all the name
+       * forms and see if at least one is acceptable before rejecting the entry.
+       * DIT structure rules corresponding to other non-acceptable name forms
+       * are not applied.
+       */
+      boolean foundMatchingNameForms = false;
+      NameForm nameForm = null;
+      final List<LocalizableMessage> nameFormWarnings =
+        (errorMessages != null) ? new LinkedList<LocalizableMessage>() : null;
+      for (final NameForm nf : getNameForms(structuralObjectClass))
+      {
+        if (nf.isObsolete())
+        {
+          continue;
+        }
+
+        // If there are any candidate name forms then at least one should be
+        // valid.
+        foundMatchingNameForms = true;
+
+        if (checkNameForm(entry, policy, nameFormWarnings, nf))
+        {
+          nameForm = nf;
+          break;
+        }
+      }
+
+      if (foundMatchingNameForms)
+      {
+        if (nameForm != null)
+        {
+          ditStructureRules = getDITStructureRules(nameForm);
+        }
+        else
+        {
+          // We couldn't match this entry against any of the name forms, so
+          // append the reasons why they didn't match and reject if required.
+          if (errorMessages != null)
+          {
+            errorMessages.addAll(nameFormWarnings);
+          }
+          if (policy.checkNameForms().isReject())
+          {
+            return false;
+          }
+        }
+      }
+    }
+
+    // Check DIT structure rules - this needs the parent entry.
+    if (policy.checkDITStructureRules().needsChecking()
+        && !entry.getName().isRootDN())
+    {
+      boolean foundMatchingRules = false;
+      boolean foundValidRule = false;
+      final List<LocalizableMessage> ruleWarnings =
+        (errorMessages != null) ? new LinkedList<LocalizableMessage>() : null;
+      ObjectClass parentStructuralObjectClass = null;
+      boolean parentEntryHasBeenRead = false;
+      for (final DITStructureRule rule : ditStructureRules)
+      {
+        if (rule.isObsolete())
+        {
+          continue;
+        }
+
+        foundMatchingRules = true;
+
+        // A DIT structure rule with no superiors is automatically valid, so
+        // avoid reading the parent.
+        if (rule.getSuperiorRules().isEmpty())
+        {
+          foundValidRule = true;
+          break;
+        }
+
+        if (!parentEntryHasBeenRead)
+        {
+          // Don't drop out immediately on failure because there may be some
+          // applicable rules which do not require the parent entry.
+          parentStructuralObjectClass = getParentStructuralObjectClass(entry,
+              policy, ruleWarnings);
+          parentEntryHasBeenRead = true;
+        }
+
+        if (parentStructuralObjectClass != null)
+        {
+          if (checkDITStructureRule(entry, policy, ruleWarnings, rule,
+              structuralObjectClass, parentStructuralObjectClass))
+          {
+            foundValidRule = true;
+            break;
+          }
+        }
+      }
+
+      if (foundMatchingRules)
+      {
+        if (!foundValidRule)
+        {
+          // We couldn't match this entry against any of the rules, so
+          // append the reasons why they didn't match and reject if required.
+          if (errorMessages != null)
+          {
+            errorMessages.addAll(ruleWarnings);
+          }
+          if (policy.checkDITStructureRules().isReject())
+          {
+            return false;
+          }
+        }
+      }
+      else
+      {
+        // There is no DIT structure rule for this entry, but there may
+        // be one for the parent entry. If there is such a rule for the
+        // parent entry, then this entry will not be valid.
+
+        // The parent won't have been read yet.
+        parentStructuralObjectClass = getParentStructuralObjectClass(entry,
+            policy, ruleWarnings);
+        if (parentStructuralObjectClass == null)
+        {
+          if (errorMessages != null)
+          {
+            errorMessages.addAll(ruleWarnings);
+          }
+          if (policy.checkDITStructureRules().isReject())
+          {
+            return false;
+          }
+        }
+        else
+        {
+          for (final NameForm nf : getNameForms(parentStructuralObjectClass))
+          {
+            if (!nf.isObsolete())
+            {
+              for (final DITStructureRule rule : getDITStructureRules(nf))
+              {
+                if (!rule.isObsolete())
+                {
+                  if (errorMessages != null)
+                  {
+                    final LocalizableMessage message = ERR_ENTRY_SCHEMA_DSR_MISSING_DSR
+                        .get(entry.getName().toString(), rule.getNameOrRuleID());
+                    errorMessages.add(message);
+                  }
+                  if (policy.checkDITStructureRules().isReject())
+                  {
+                    return false;
+                  }
+
+                  // We could break out of the loop here in warn mode but
+                  // continuing allows us to collect all conflicts.
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // If we've gotten here, then the entry is acceptable.
+    return true;
+  }
+
+
+
+  private boolean checkAttributesAndObjectClasses(final Entry entry,
+      final SchemaValidationPolicy policy,
+      final Collection<LocalizableMessage> errorMessages,
+      final List<ObjectClass> objectClasses, final DITContentRule ditContentRule)
+  {
+    // Check object classes.
+    final boolean checkDITContentRule = policy.checkDITContentRules()
+        .needsChecking() && ditContentRule != null;
+    final boolean checkObjectClasses = policy.checkAttributesAndObjectClasses()
+        .needsChecking();
+    final boolean checkAttributeValues = policy.checkAttributeValues()
+        .needsChecking();
+
+    if (checkObjectClasses || checkDITContentRule)
+    {
+      for (final ObjectClass objectClass : objectClasses)
+      {
+        // Make sure that any auxiliary object classes are permitted by the
+        // content rule.
+        if (checkDITContentRule)
+        {
+          if (objectClass.getObjectClassType() == ObjectClassType.AUXILIARY)
+          {
+            if (errorMessages != null)
+            {
+              final LocalizableMessage message = ERR_ENTRY_SCHEMA_DCR_PROHIBITED_AUXILIARY_OC
+                  .get(entry.getName().toString(), objectClass.getNameOrOID(),
+                      ditContentRule.getNameOrOID());
+              errorMessages.add(message);
+            }
+            if (policy.checkDITContentRules().isReject())
+            {
+              return false;
+            }
+          }
+        }
+
+        // Make sure that all of the attributes required by the object class are
+        // present.
+        if (checkObjectClasses)
+        {
+          for (final AttributeType t : objectClass.getRequiredAttributes())
+          {
+            final Attribute a = Attributes.emptyAttribute(AttributeDescription
+                .create(t));
+            if (entry.containsAttribute(a, null))
+            {
+              if (errorMessages != null)
+              {
+                final LocalizableMessage message = ERR_ENTRY_SCHEMA_OC_MISSING_MUST_ATTRIBUTES
+                    .get(entry.getName().toString(), t.getNameOrOID(),
+                        objectClass.getNameOrOID());
+                errorMessages.add(message);
+              }
+              if (policy.checkAttributesAndObjectClasses().isReject())
+              {
+                return false;
+              }
+            }
+          }
+        }
+      }
+
+      // Make sure that all of the attributes required by the content rule are
+      // present.
+      if (checkDITContentRule)
+      {
+        for (final AttributeType t : ditContentRule.getRequiredAttributes())
+        {
+          final Attribute a = Attributes.emptyAttribute(AttributeDescription
+              .create(t));
+          if (entry.containsAttribute(a, null))
+          {
+            if (errorMessages != null)
+            {
+              final LocalizableMessage message = ERR_ENTRY_SCHEMA_DCR_MISSING_MUST_ATTRIBUTES
+                  .get(entry.getName().toString(), t.getNameOrOID(),
+                      ditContentRule.getNameOrOID());
+              errorMessages.add(message);
+            }
+            if (policy.checkDITContentRules().isReject())
+            {
+              return false;
+            }
+          }
+        }
+
+        // Make sure that attributes prohibited by the content rule are not
+        // present.
+        for (final AttributeType t : ditContentRule.getProhibitedAttributes())
+        {
+          final Attribute a = Attributes.emptyAttribute(AttributeDescription
+              .create(t));
+          if (entry.containsAttribute(a, null))
+          {
+            if (errorMessages != null)
+            {
+              final LocalizableMessage message = ERR_ENTRY_SCHEMA_DCR_PROHIBITED_ATTRIBUTES
+                  .get(entry.getName().toString(), t.getNameOrOID(),
+                      ditContentRule.getNameOrOID());
+              errorMessages.add(message);
+            }
+            if (policy.checkDITContentRules().isReject())
+            {
+              return false;
+            }
+          }
+        }
+      }
+    }
+
+    // Check attributes.
+    if (checkObjectClasses || checkDITContentRule || checkAttributeValues)
+    {
+      for (final Attribute attribute : entry.getAllAttributes())
+      {
+        final AttributeType t = attribute.getAttributeDescription()
+            .getAttributeType();
+
+        if (!t.isOperational())
+        {
+          if (checkObjectClasses || checkDITContentRule)
+          {
+            boolean isAllowed = false;
+            for (final ObjectClass objectClass : objectClasses)
+            {
+              if (objectClass.isRequiredOrOptional(t))
+              {
+                isAllowed = true;
+                break;
+              }
+            }
+            if (!isAllowed && ditContentRule != null)
+            {
+              if (ditContentRule.isRequiredOrOptional(t))
+              {
+                isAllowed = true;
+              }
+            }
+            if (!isAllowed)
+            {
+              if (errorMessages != null)
+              {
+                final LocalizableMessage message;
+                if (ditContentRule == null)
+                {
+                  message = ERR_ENTRY_SCHEMA_OC_DISALLOWED_ATTRIBUTES.get(entry
+                      .getName().toString(), t.getNameOrOID());
+                }
+                else
+                {
+                  message = ERR_ENTRY_SCHEMA_DCR_DISALLOWED_ATTRIBUTES.get(
+                      entry.getName().toString(), t.getNameOrOID(),
+                      ditContentRule.getNameOrOID());
+                }
+                errorMessages.add(message);
+              }
+              if (policy.checkAttributesAndObjectClasses().isReject()
+                  || policy.checkDITContentRules().isReject())
+              {
+                return false;
+              }
+            }
+          }
+
+          // Check attributes contain an appropriate number of values.
+          if (checkAttributeValues)
+          {
+            final int sz = attribute.size();
+
+            if (sz == 0)
+            {
+              if (errorMessages != null)
+              {
+                final LocalizableMessage message = ERR_ENTRY_SCHEMA_AT_EMPTY_ATTRIBUTE
+                    .get(entry.getName().toString(), t.getNameOrOID());
+                errorMessages.add(message);
+              }
+              if (policy.checkAttributeValues().isReject())
+              {
+                return false;
+              }
+            }
+            else if (sz > 1 && t.isSingleValue())
+            {
+              if (errorMessages != null)
+              {
+                final LocalizableMessage message = ERR_ENTRY_SCHEMA_AT_SINGLE_VALUED_ATTRIBUTE
+                    .get(entry.getName().toString(), t.getNameOrOID());
+                errorMessages.add(message);
+              }
+              if (policy.checkAttributeValues().isReject())
+              {
+                return false;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // If we've gotten here, then things are OK.
+    return true;
+  }
+
+
+
+  private boolean checkDITStructureRule(final Entry entry,
+      final SchemaValidationPolicy policy,
+      final List<LocalizableMessage> ruleWarnings, final DITStructureRule rule,
+      final ObjectClass structuralObjectClass,
+      final ObjectClass parentStructuralObjectClass)
+  {
+    boolean matchFound = false;
+    for (final DITStructureRule parentRule : rule.getSuperiorRules())
+    {
+      if (parentRule.getNameForm().getStructuralClass()
+          .equals(parentStructuralObjectClass))
+      {
+        matchFound = true;
+      }
+    }
+
+    if (!matchFound)
+    {
+      if (ruleWarnings != null)
+      {
+        final LocalizableMessage message = ERR_ENTRY_SCHEMA_DSR_ILLEGAL_OC.get(
+            entry.getName().toString(), rule.getNameOrRuleID(),
+            structuralObjectClass.getNameOrOID(),
+            parentStructuralObjectClass.getNameOrOID());
+        ruleWarnings.add(message);
+      }
+      return false;
+    }
+
+    return true;
+  }
+
+
+
+  private boolean checkNameForm(final Entry entry,
+      final SchemaValidationPolicy policy,
+      final List<LocalizableMessage> nameFormWarnings, final NameForm nameForm)
+  {
+    final RDN rdn = entry.getName().rdn();
+    if (rdn != null)
+    {
+      // Make sure that all the required AVAs are present.
+      for (final AttributeType t : nameForm.getRequiredAttributes())
+      {
+        if (rdn.getAttributeValue(t) == null)
+        {
+          if (nameFormWarnings != null)
+          {
+            final LocalizableMessage message = ERR_ENTRY_SCHEMA_NF_MISSING_MUST_ATTRIBUTES
+                .get(entry.getName().toString(), t.getNameOrOID(),
+                    nameForm.getNameOrOID());
+            nameFormWarnings.add(message);
+          }
+          return false;
+        }
+      }
+
+      // Make sure that all AVAs in the RDN are allowed.
+      for (final AVA ava : rdn)
+      {
+        final AttributeType t = ava.getAttributeType();
+        if (nameForm.isRequiredOrOptional(t))
+        {
+          if (nameFormWarnings != null)
+          {
+            final LocalizableMessage message = ERR_ENTRY_SCHEMA_NF_DISALLOWED_ATTRIBUTES
+                .get(entry.getName().toString(), t.getNameOrOID(),
+                    nameForm.getNameOrOID());
+            nameFormWarnings.add(message);
+          }
+          return false;
+        }
+      }
+    }
+
+    // If we've gotten here, then things are OK.
+    return true;
+  }
+
+
+
+  private ObjectClass getParentStructuralObjectClass(final Entry entry,
+      final SchemaValidationPolicy policy,
+      final List<LocalizableMessage> ruleWarnings)
+  {
+    final Entry parentEntry;
+    try
+    {
+      parentEntry = policy.checkDITStructureRulesEntryResolver().getEntry(
+          entry.getName().parent());
+    }
+    catch (final ErrorResultException e)
+    {
+      if (ruleWarnings != null)
+      {
+        final LocalizableMessage message = ERR_ENTRY_SCHEMA_DSR_PARENT_NOT_FOUND
+            .get(entry.getName().toString(), e.getResult()
+                .getDiagnosticMessage());
+        ruleWarnings.add(message);
+      }
+      return null;
+    }
+
+    final ObjectClass parentStructuralObjectClass = Entries
+        .getStructuralObjectClass(parentEntry, this);
+    if (parentStructuralObjectClass == null)
+    {
+      if (ruleWarnings != null)
+      {
+        final LocalizableMessage message = ERR_ENTRY_SCHEMA_DSR_NO_PARENT_OC
+            .get(entry.getName().toString());
+        ruleWarnings.add(message);
+      }
+      return null;
+    }
+    return parentStructuralObjectClass;
   }
 }

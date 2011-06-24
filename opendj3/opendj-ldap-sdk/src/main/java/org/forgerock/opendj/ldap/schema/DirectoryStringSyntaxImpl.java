@@ -109,9 +109,7 @@ final class DirectoryStringSyntaxImpl extends AbstractSyntaxImpl
   public boolean valueIsAcceptable(final Schema schema,
       final ByteSequence value, final LocalizableMessageBuilder invalidReason)
   {
-    if (value.length() > 0
-        || schema.getSchemaCompatOptions()
-            .allowZeroLengthDirectoryStrings())
+    if (value.length() > 0 || schema.allowZeroLengthDirectoryStrings())
     {
       return true;
     }

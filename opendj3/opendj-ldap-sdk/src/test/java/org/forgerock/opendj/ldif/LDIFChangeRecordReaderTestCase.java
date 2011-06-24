@@ -42,6 +42,8 @@ import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.DeleteRequest;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
+import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy;
+import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy.Policy;
 import org.testng.annotations.Test;
 
 
@@ -457,12 +459,64 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase
         "objectClass: domainComponent",
         "dc: example",
         "xxx: unknown attribute"
-        ).setRejectedRecordListener(listener).setValidateSchema(true);
+        ).setRejectedRecordListener(listener)
+         .setSchemaValidationPolicy(
+             SchemaValidationPolicy.ignoreAll()
+             .checkAttributesAndObjectClasses(Policy.REJECT));
     // @formatter:on
 
     assertThat(reader.hasNext()).isFalse();
 
     verify(listener).handleSchemaValidationFailure(
+        eq(1L),
+        eq(Arrays.asList("dn: dc=example,dc=com", "changetype: add",
+            "objectClass: top", "objectClass: domainComponent", "dc: example",
+            "xxx: unknown attribute")), anyListOf(LocalizableMessage.class));
+  }
+
+
+
+  /**
+   * Tests reading a record which does not conform to the schema invokes the
+   * warning record listener.
+   *
+   * @throws Exception
+   *           if an unexpected error occurred.
+   */
+  @Test
+  public void testRejectedRecordListenerWarnsBadSchemaRecord()
+      throws Exception
+  {
+    RejectedRecordListener listener = mock(RejectedRecordListener.class);
+
+    // @formatter:off
+    LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
+        "dn: dc=example,dc=com",
+        "changetype: add",
+        "objectClass: top",
+        "objectClass: domainComponent",
+        "dc: example",
+        "xxx: unknown attribute"
+        ).setRejectedRecordListener(listener)
+         .setSchemaValidationPolicy(
+             SchemaValidationPolicy.ignoreAll()
+             .checkAttributesAndObjectClasses(Policy.WARN));
+    // @formatter:on
+
+    assertThat(reader.hasNext()).isTrue();
+
+    ChangeRecord record = reader.readChangeRecord();
+    assertThat(record).isInstanceOf(AddRequest.class);
+    AddRequest addRequest = (AddRequest) record;
+    assertThat((Object) addRequest.getName()).isEqualTo(
+        DN.valueOf("dc=example,dc=com"));
+    assertThat(
+        addRequest.containsAttribute("objectClass", "top", "domainComponent"))
+        .isTrue();
+    assertThat(addRequest.containsAttribute("dc", "example")).isTrue();
+    assertThat(addRequest.getAttributeCount()).isEqualTo(2);
+
+    verify(listener).handleSchemaValidationWarning(
         eq(1L),
         eq(Arrays.asList("dn: dc=example,dc=com", "changetype: add",
             "objectClass: top", "objectClass: domainComponent", "dc: example",

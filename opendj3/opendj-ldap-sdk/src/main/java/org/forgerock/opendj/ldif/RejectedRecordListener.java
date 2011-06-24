@@ -78,6 +78,15 @@ public interface RejectedRecordListener
     {
       // Ignore skipped records.
     }
+
+
+
+    public void handleSchemaValidationWarning(long lineNumber,
+        List<String> ldifRecord, List<LocalizableMessage> reasons)
+        throws DecodeException
+    {
+      // Ignore schema validation warnings.
+    }
   };
 
 
@@ -117,6 +126,25 @@ public interface RejectedRecordListener
    *           If processing should terminate.
    */
   void handleSchemaValidationFailure(long lineNumber, List<String> ldifRecord,
+      List<LocalizableMessage> reasons) throws DecodeException;
+
+
+
+  /**
+   * Invoked when a record was not rejected but contained one or more schema validation warnings.
+   *
+   * @param lineNumber
+   *          The line number within the source location in which the
+   *          record is located, if known, otherwise {@code -1}.
+   * @param ldifRecord
+   *          An LDIF representation of the record which contained schema
+   *          validation warnings.
+   * @param reasons
+   *          The schema validation warnings.
+   * @throws DecodeException
+   *           If processing should terminate.
+   */
+  void handleSchemaValidationWarning(long lineNumber, List<String> ldifRecord,
       List<LocalizableMessage> reasons) throws DecodeException;
 
 
