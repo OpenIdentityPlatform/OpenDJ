@@ -83,6 +83,8 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
          throws Exception
   {
     TestCaseUtils.startServer();
+    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
 
     structuralObjectClassType =
          DirectoryServer.getAttributeType("structuralobjectclass", false);
@@ -153,9 +155,6 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
   public void testGetEntry(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     Entry e = DirectoryServer.getEntry(entryDN);
     assertNotNull(e);
     assertTrue(e.hasAttribute(structuralObjectClassType));
@@ -187,9 +186,6 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
   public void testSearchEmptyAttrs(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
 
@@ -219,9 +215,6 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
   public void testSearchNoAttrs(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -255,9 +248,6 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
   public void testSearchAllUserAttrs(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -291,9 +281,6 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
   public void testSearchAllOperationalAttrs(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -327,9 +314,6 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
   public void testSearchStructuralOCAttr(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -363,9 +347,6 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
   public void testSearchExcludeStructuralOCAttr(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -400,9 +381,6 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
   public void testSearchStructuralOCAttrInMatchingFilter(DN entryDN,String oc)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString(oc);
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -436,9 +414,6 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
   public void testSearchStructuralOCAttrInNonMatchingFilter(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(structuralObjectClass=abc)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -469,9 +444,6 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
   public void testSearchStructuralOCAttrRealAttrsOnly(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -513,9 +485,6 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
   public void testSearchStructuralOCAttrVirtualAttrsOnly(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);

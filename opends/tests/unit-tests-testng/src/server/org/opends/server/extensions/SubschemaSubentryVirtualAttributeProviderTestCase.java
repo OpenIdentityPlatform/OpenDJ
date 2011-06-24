@@ -82,6 +82,8 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
          throws Exception
   {
     TestCaseUtils.startServer();
+    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
 
     subschemaSubentryType =
          DirectoryServer.getAttributeType("subschemasubentry", false);
@@ -131,9 +133,6 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
   public void testGetEntry(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     Entry e = DirectoryServer.getEntry(entryDN);
     assertNotNull(e);
     assertTrue(e.hasAttribute(subschemaSubentryType));
@@ -165,9 +164,6 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
   public void testSearchEmptyAttrs(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
 
@@ -197,9 +193,6 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
   public void testSearchNoAttrs(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -233,9 +226,6 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
   public void testSearchAllUserAttrs(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -269,9 +259,6 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
   public void testSearchAllOperationalAttrs(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -305,9 +292,6 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
   public void testSearchSubschemaSubentryAttr(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -341,9 +325,6 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
   public void testSearchExcludeSubschemaSubentryAttr(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -378,9 +359,6 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
   public void testSearchSubschemaSubentryAttrInMatchingFilter(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(subschemaSubentry=cn=schema)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -414,9 +392,6 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
   public void testSearchSubschemaSubentryAttrInNonMatchingFilter(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(subschemaSubentry=cn=foo)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -447,9 +422,6 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
   public void testSearchSubschemaSubentryAttrRealAttrsOnly(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -491,9 +463,6 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
   public void testSearchSubschemaSubentryAttrVirtualAttrsOnly(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);

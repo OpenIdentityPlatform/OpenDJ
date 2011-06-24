@@ -75,6 +75,8 @@ public class EntryDNVirtualAttributeProviderTestCase
          throws Exception
   {
     TestCaseUtils.startServer();
+    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
 
     entryDNType = DirectoryServer.getAttributeType("entrydn", false);
     assertNotNull(entryDNType);
@@ -123,9 +125,6 @@ public class EntryDNVirtualAttributeProviderTestCase
   public void testGetEntry(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     Entry e = DirectoryServer.getEntry(entryDN);
     assertNotNull(e);
     assertTrue(e.hasAttribute(entryDNType));
@@ -157,9 +156,6 @@ public class EntryDNVirtualAttributeProviderTestCase
   public void testSearchEmptyAttrs(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
 
@@ -189,9 +185,6 @@ public class EntryDNVirtualAttributeProviderTestCase
   public void testSearchNoAttrs(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -225,9 +218,6 @@ public class EntryDNVirtualAttributeProviderTestCase
   public void testSearchAllUserAttrs(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -261,9 +251,6 @@ public class EntryDNVirtualAttributeProviderTestCase
   public void testSearchAllOperationalAttrs(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -297,9 +284,6 @@ public class EntryDNVirtualAttributeProviderTestCase
   public void testSearchEntryDNAttr(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -333,9 +317,6 @@ public class EntryDNVirtualAttributeProviderTestCase
   public void testSearchExcludeEntryDNAttr(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -370,9 +351,6 @@ public class EntryDNVirtualAttributeProviderTestCase
   public void testSearchEntryDNAttrInMatchingFilter(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(entryDN=" + entryDN.toString() +
                                              ")");
@@ -407,9 +385,6 @@ public class EntryDNVirtualAttributeProviderTestCase
   public void testSearchEntryDNAttrInNonMatchingFilter(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(entryDN=cn=Not A Match)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -440,9 +415,6 @@ public class EntryDNVirtualAttributeProviderTestCase
   public void testSearchEntryDNAttrRealAttrsOnly(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -483,9 +455,6 @@ public class EntryDNVirtualAttributeProviderTestCase
   public void testSearchEntryDNAttrVirtualAttrsOnly(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -1083,8 +1052,6 @@ public class EntryDNVirtualAttributeProviderTestCase
     {
       return;
     }
-
-    TestCaseUtils.initializeTestBackend(true);
 
     EntryDNVirtualAttributeProvider provider =
          new EntryDNVirtualAttributeProvider();
