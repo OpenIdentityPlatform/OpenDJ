@@ -84,6 +84,8 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
          throws Exception
   {
     TestCaseUtils.startServer();
+    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
 
     governingStructureRuleType =
          DirectoryServer.getAttributeType("governingstructurerule", false);
@@ -185,9 +187,6 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
   public void testGetEntry(DN entryDN,String ruleId)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     Entry e = DirectoryServer.getEntry(entryDN);
     assertNotNull(e);
     assertTrue(e.hasAttribute(governingStructureRuleType));
@@ -219,9 +218,6 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
   public void testSearchEmptyAttrs(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
 
@@ -251,9 +247,6 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
   public void testSearchNoAttrs(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -287,9 +280,6 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
   public void testSearchAllUserAttrs(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -323,9 +313,6 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
   public void testSearchAllOperationalAttrs(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -359,9 +346,6 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
   public void testSearchGoverningStructureRulesAttr(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -395,9 +379,6 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
   public void testSearchExcludeGovStructRuleAttr(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -432,9 +413,6 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
   public void testSearchGovStructRuleInMatchingFilter(DN entryDN,String oc)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("governingstructurerule="+oc);
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -468,9 +446,6 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
   public void testSearchGovStructRuleAttrInNonMatchingFilter(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(governingStructureRule=1)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -501,9 +476,6 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
   public void testSearchGovStructRuleAttrRealAttrsOnly(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
@@ -545,9 +517,6 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
   public void testSearchGovStructRuleAttrVirtualAttrsOnly(DN entryDN)
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
-
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
