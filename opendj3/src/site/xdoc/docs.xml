@@ -64,7 +64,7 @@
     <a href="./doc/OpenDJ-Dev-Guide.rtf">RTF</a></dd>
 
     <dt>Configuration Reference</dt>
-    <dd><a href="404.html">HTML</a></dd>
+    <dd><a href="./opendj-server/configref/index.html">HTML</a></dd>
     
     <dt>Server Plugin API Specification</dt>
     <dd><a href="404.html">HTML</a></dd>
