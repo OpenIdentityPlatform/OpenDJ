@@ -83,7 +83,7 @@ public class ConfigGuideGeneration {
   private final static String ACI_SYNTAX_REL_URL =
     "/doc/admin-guide/OpenDJ-Admin-Guide.html#chap-privileges-acis";
   private final static String DURATION_SYNTAX_REL_URL =
-    "/404.html";
+    "duration-syntax.html";
   private final String CSS_FILE = "opends-config.css";
 
   private final String MAIN_FILE = "index.html";
@@ -142,14 +142,14 @@ public class ConfigGuideGeneration {
       OpenDJWiki = "http://wikis.forgerock.org/confluence/display/OPENDJ";
     }
 
-    aciSyntaxPage = OpenDJHome + ACI_SYNTAX_REL_URL;
-    durationSyntaxPage = OpenDJHome + DURATION_SYNTAX_REL_URL; // TODO: missing
-
     OpenDJHome = properties.getProperty("OpenDJHome");
     if (OpenDJHome == null) {
       // Default is current OpenDJ project home
       OpenDJHome = "http://opendj.forgerock.org";
     }
+
+    aciSyntaxPage = OpenDJHome + ACI_SYNTAX_REL_URL;
+    durationSyntaxPage = DURATION_SYNTAX_REL_URL;
 
     ConfigGuideGeneration myGen = new ConfigGuideGeneration();
     myGen.generate();
