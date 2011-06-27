@@ -207,11 +207,15 @@ public class ExternalChangeLogTest extends ReplicationTestCase
    * Launcher.
    */
   @Test(enabled=true)
-  public void ECLReplicationServerTest() throws Exception
+  public void ECLReplicationServerPreTest() throws Exception
   {
     // No RSDomain created yet => RS only case => ECL is not a supported
     ECLIsNotASupportedSuffix();
+  }
 
+  @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerPreTest"})
+  public void ECLReplicationServerTest() throws Exception
+  {
     // Following test does not create RSDomain (only broker) but want to test
     // ECL .. so let's enable ECl manually
     // Now that we tested that ECl is not available
@@ -232,37 +236,69 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     // Test all types of ops.
     ECLAllOps(); // Do not clean the db for the next test
 
-    // Test that ECL Operational, virtual attributes are not visible
-    // outside rootDSE. Next test will test access in RootDSE.
-    // This one checks in data.
-    ECLOperationalAttributesFailTest();
-
     // First and last should be ok whenever a request has been done or not
     // in compat mode.
-    ECLCompatTestLimits(1,4,true);replicationServer.clearDb();
+    ECLCompatTestLimits(1,4,true);
+    replicationServer.clearDb();
+  }
+
+  @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerTest1()
+  {
 
     // Test with a mix of domains, a mix of DSes
-    ECLTwoDomains(); replicationServer.clearDb();
+    ECLTwoDomains();
+    replicationServer.clearDb();
+  }
+
+  @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerTest2()
+  {
 
     // Test ECL after changelog triming
-    ECLAfterChangelogTrim();replicationServer.clearDb();
+    ECLAfterChangelogTrim();
+    replicationServer.clearDb();
+  }
 
+  @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerTest3()
+  {
     // Write changes and read ECL from start
-    sleep(500); // Wait for draftCNDb to be purged also
     int ts = ECLCompatWriteReadAllOps(1);
 
     ECLCompatNoControl(1);
 
     // Write additional changes and read ECL from a provided draft change number
-    ts = ECLCompatWriteReadAllOps(5);replicationServer.clearDb();
+    ts = ECLCompatWriteReadAllOps(5);
+    replicationServer.clearDb();
+  }
 
-    ECLIncludeAttributes();replicationServer.clearDb();
+  @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerTest4()
+  {
+    ECLIncludeAttributes();
+    replicationServer.clearDb();
+  }
 
-    ChangeTimeHeartbeatTest();replicationServer.clearDb();
+  @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerTest5()
+  {
+
+    ChangeTimeHeartbeatTest();
+    replicationServer.clearDb();
 
   }
 
-  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerTest6()
+  {
+    // Test that ECL Operational, virtual attributes are not visible
+    // outside rootDSE. Next test will test access in RootDSE.
+    // This one checks in data.
+    ECLOperationalAttributesFailTest();
+  }
+
+  @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerTest"})
   public void ECLReplicationServerFullTest()
   {
     // ***********************************************
@@ -270,14 +306,29 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     // ***********************************************
 
     // Test that private backend is excluded from ECL
-    ECLOnPrivateBackend();replicationServer.clearDb();
+    ECLOnPrivateBackend();
+    replicationServer.clearDb();
+  }
 
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest1()
+  {
     // Test remote API (ECL through replication protocol) with empty ECL
-    ECLRemoteEmpty();replicationServer.clearDb();
+    ECLRemoteEmpty();
+    replicationServer.clearDb();
+  }
 
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest2()
+  {
     // Test with empty changelog
-    ECLEmpty();replicationServer.clearDb();
+    ECLEmpty();
+    replicationServer.clearDb();
+  }
 
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest3()
+  {
     // Test all types of ops.
     ECLAllOps(); // Do not clean the db for the next test
 
@@ -288,52 +339,112 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     // First and last should be ok whenever a request has been done or not
     // in compat mode.
-    ECLCompatTestLimits(1,4, true);replicationServer.clearDb();
+    ECLCompatTestLimits(1,4, true);
+    replicationServer.clearDb();
+  }
 
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest4()
+  {
     // Test remote API (ECL through replication protocol) with NON empty ECL
-    ECLRemoteNonEmpty();replicationServer.clearDb();
+    ECLRemoteNonEmpty();
+    replicationServer.clearDb();
+  }
 
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest5()
+  {
     // Test with a mix of domains, a mix of DSes
-    ECLTwoDomains();replicationServer.clearDb();
+    ECLTwoDomains();
+    replicationServer.clearDb();
+  }
 
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest6()
+  {
     // Test ECL after changelog triming
-    ECLAfterChangelogTrim();replicationServer.clearDb();
+    ECLAfterChangelogTrim();
+    replicationServer.clearDb();
+  }
 
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest7()
+  {
     // Persistent search with changesOnly request
-    ECLPsearch(true, false);replicationServer.clearDb();
+    ECLPsearch(true, false);
+    replicationServer.clearDb();
+  }
 
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest8()
+  {
     // Persistent search with init values request
-    ECLPsearch(false, false);replicationServer.clearDb();
+    ECLPsearch(false, false);
+    replicationServer.clearDb();
+  }
 
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest9()
+  {
     // Simultaneous psearches
-    ECLSimultaneousPsearches();replicationServer.clearDb();
+    ECLSimultaneousPsearches();
+    replicationServer.clearDb();
+  }
 
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest10()
+  {
     // Test eligible count method.
-    ECLGetEligibleCountTest();replicationServer.clearDb();
+    ECLGetEligibleCountTest();
+    replicationServer.clearDb();
+  }
 
-    // TODO:ECL Test SEARCH abandon and check everything shutdown and cleaned
-    // TODO:ECL Test PSEARCH abandon and check everything shutdown and cleaned
-    // TODO:ECL Test invalid DN in cookie returns UNWILLING + message
-    // TODO:ECL Test the attributes list and values returned in ECL entries
-    // TODO:ECL Test search -s base, -s one
+  // TODO:ECL Test SEARCH abandon and check everything shutdown and cleaned
+  // TODO:ECL Test PSEARCH abandon and check everything shutdown and cleaned
+  // TODO:ECL Test invalid DN in cookie returns UNWILLING + message
+  // TODO:ECL Test the attributes list and values returned in ECL entries
+  // TODO:ECL Test search -s base, -s one
 
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest11()
+  {
     // Test directly from the java obect that the changeTimeHeartbeatState
     // stored are ok.
-    ChangeTimeHeartbeatTest();replicationServer.clearDb();
+    ChangeTimeHeartbeatTest();
+    replicationServer.clearDb();
 
+  }
+
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest12()
+  {
     // Test the different forms of filter that are parsed in order to
     // optimize the request.
     ECLFilterTest();
+  }
 
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest13()
+  {
     // ***********************************************
     // Second set of test are in the draft compat mode
     // ***********************************************
     // Empty replication changelog
     ECLCompatEmpty();
 
+  }
+
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest14()
+  {
     // Request from an invalid draft change number
     ECLCompatBadSeqnum();
 
+  }
+
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest15()
+  {
     // Write 4 changes and read ECL from start
     int ts = ECLCompatWriteReadAllOps(1);
 
@@ -342,10 +453,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     // Test request from a provided change number - read 6
     ECLCompatReadFrom(6);
-
-    // Test request from change number 1, just check that Cookie controls
-    // are not returned with entries, when not requested.
-    ECLCompatNoControl(1);
 
     // Test request from a provided change number interval - read 5-7
     ECLCompatReadFromTo(5,7);
@@ -364,15 +471,24 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLCompatTestLimits(0,0, true);
 
     // Persistent search in changesOnly mode
-    ECLPsearch(true, true);replicationServer.clearDb();
+    ECLPsearch(true, true);
+    replicationServer.clearDb();
+  }
 
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest16()
+  {
     // Persistent search in init + changes mode
     ECLPsearch(false, true);
 
     // Test Filter on replication csn
     // TODO: test with optimization when code done.
     ECLFilterOnReplicationCsn();replicationServer.clearDb();
+  }
 
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLReplicationServerFullTest17()
+  {
     // Test simultaneous persistent searches in draft compat mode.
     ECLSimultaneousPsearches();replicationServer.clearDb();
 
@@ -3966,7 +4082,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
    * Test ECl entry attributes, and there configuration.
    *
    */
-  private void ECLIncludeAttributes() throws Exception
+  private void ECLIncludeAttributes()
   {
     String tn = "ECLIncludeAttributes";
     debugInfo(tn, "Starting test\n\n");
@@ -4205,6 +4321,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       }
       assertEquals(entries.size(),8, "Entries number returned by search" + s);
     }
+    catch(Exception e)
+    {
+      fail("End test "+tn+" with exception:\n" +
+          stackTraceToSingleLineString(e));
+    }
     finally
     {
       try
@@ -4241,7 +4362,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         removeTestBackend2(backend3);
 
       }
-      catch(Exception e) {}
+      catch(Exception e) {
+        fail("Ending test "+tn+" with exception in test cleanup:\n" +
+            stackTraceToSingleLineString(e));
+      }
     }
     debugInfo(tn, "Ending test with success");
   }
