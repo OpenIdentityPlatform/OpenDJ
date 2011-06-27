@@ -84,7 +84,12 @@ public final class ObjectClass extends SchemaElement
   private Set<AttributeType> declaredOptionalAttributes = Collections
       .emptySet();
   private Set<AttributeType> optionalAttributes = Collections.emptySet();
-  private boolean validated = false;
+
+  // Indicates whether or not validation has been performed.
+  private boolean needsValidating = true;
+
+  // The indicates whether or not validation failed.
+  private boolean isValid = false;
 
 
 
@@ -580,15 +585,19 @@ public final class ObjectClass extends SchemaElement
 
 
 
-  @Override
-  void validate(final List<LocalizableMessage> warnings, final Schema schema)
-      throws SchemaException
+  boolean validate(final Schema schema,
+      final List<ObjectClass> invalidSchemaElements,
+      final List<LocalizableMessage> warnings)
   {
-    if (validated)
+    // Avoid validating this schema element more than once. This may occur if
+    // multiple object classes specify the same superior.
+    if (!needsValidating)
     {
-      return;
+      return isValid;
     }
-    validated = true;
+
+    // Prevent re-validation.
+    needsValidating = false;
 
     // Init a flag to check to inheritance from top (only needed for
     // structural object classes) per RFC 4512
@@ -608,7 +617,8 @@ public final class ObjectClass extends SchemaElement
         {
           final LocalizableMessage message = WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_SUPERIOR_CLASS1
               .get(getNameOrOID(), superClassOid);
-          throw new SchemaException(message, e);
+          failValidation(invalidSchemaElements, warnings, message);
+          return false;
         }
 
         // Make sure that the inheritance configuration is acceptable.
@@ -623,7 +633,8 @@ public final class ObjectClass extends SchemaElement
             final LocalizableMessage message = WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE1
                 .get(getNameOrOID(), objectClassType.toString(), superiorType.toString(),
                     superiorClass.getNameOrOID());
-            throw new SchemaException(message);
+            failValidation(invalidSchemaElements, warnings, message);
+            return false;
           }
           break;
 
@@ -636,7 +647,8 @@ public final class ObjectClass extends SchemaElement
             final LocalizableMessage message = WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE1
                 .get(getNameOrOID(), objectClassType.toString(), superiorType.toString(),
                     superiorClass.getNameOrOID());
-            throw new SchemaException(message);
+            failValidation(invalidSchemaElements, warnings, message);
+            return false;
           }
           break;
 
@@ -649,7 +661,8 @@ public final class ObjectClass extends SchemaElement
             final LocalizableMessage message = WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE1
                 .get(getNameOrOID(), objectClassType.toString(), superiorType.toString(),
                     superiorClass.getNameOrOID());
-            throw new SchemaException(message);
+            failValidation(invalidSchemaElements, warnings, message);
+            return false;
           }
           break;
         }
@@ -661,9 +674,15 @@ public final class ObjectClass extends SchemaElement
           derivesTop = true;
         }
 
-        // Validate superior object class so we can inherit its
-        // attributes.
-        superiorClass.validate(warnings, schema);
+        // First ensure that the superior has been validated and fail if it is
+        // invalid.
+        if (!superiorClass.validate(schema, invalidSchemaElements, warnings))
+        {
+          final LocalizableMessage message = WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_CLASS
+              .get(getNameOrOID(), superClassOid);
+          failValidation(invalidSchemaElements, warnings, message);
+          return false;
+        }
 
         // Inherit all required attributes from superior class.
         Iterator<AttributeType> i = superiorClass.getRequiredAttributes()
@@ -703,7 +722,8 @@ public final class ObjectClass extends SchemaElement
     {
       final LocalizableMessage message = WARN_ATTR_SYNTAX_OBJECTCLASS_STRUCTURAL_SUPERIOR_NOT_TOP1
           .get(getNameOrOID());
-      throw new SchemaException(message);
+      failValidation(invalidSchemaElements, warnings, message);
+      return false;
     }
 
     if (oid.equals(EXTENSIBLE_OBJECT_OBJECTCLASS_OID))
@@ -739,7 +759,8 @@ public final class ObjectClass extends SchemaElement
             // about.
             final LocalizableMessage message = WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_REQUIRED_ATTR1
                 .get(getNameOrOID(), requiredAttribute);
-            throw new SchemaException(message, e);
+            failValidation(invalidSchemaElements, warnings, message);
+            return false;
           }
           declaredRequiredAttributes.add(attributeType);
         }
@@ -771,7 +792,8 @@ public final class ObjectClass extends SchemaElement
             // about.
             final LocalizableMessage message = WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR1
                 .get(getNameOrOID(), optionalAttribute);
-            throw new SchemaException(message, e);
+            failValidation(invalidSchemaElements, warnings, message);
+            return false;
           }
           declaredOptionalAttributes.add(attributeType);
         }
@@ -793,5 +815,16 @@ public final class ObjectClass extends SchemaElement
     optionalAttributes = Collections.unmodifiableSet(optionalAttributes);
     requiredAttributes = Collections.unmodifiableSet(requiredAttributes);
     superiorClasses = Collections.unmodifiableSet(superiorClasses);
+
+    return (isValid = true);
+  }
+
+
+
+  private void failValidation(final List<ObjectClass> invalidSchemaElements,
+      final List<LocalizableMessage> warnings, final LocalizableMessage message)
+  {
+    invalidSchemaElements.add(this);
+    warnings.add(ERR_OC_VALIDATION_FAIL.get(toString(), message));
   }
 }
