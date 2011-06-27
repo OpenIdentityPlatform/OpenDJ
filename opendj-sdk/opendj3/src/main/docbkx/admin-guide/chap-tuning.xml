@@ -354,7 +354,11 @@ Import task 20110627101758486 scheduled to start Jun 27, 2011 10:17:58 AM CEST</
    <para>Database cache size is, by default, set as a percentage of the JVM
    heap, using the backend property <literal>db-cache-percent</literal>.
    Alternatively, you use the backend property
-   <literal>db-cache-size</literal> to set the size.</para>
+   <literal>db-cache-size</literal> to set the size. If you set up multiple
+   database backends, the total percent of JVM heap used must remain less than
+   100, and must leave space for other uses. Default settings work for servers
+   with one user data backend JVM heaps up to 2 GB. For heaps larger than 2 GB,
+   you can allocate a larger percentage of heap space to DB cache.</para>
    
    <para>Depending on the size of your database, you have a choice to make
    about database cache settings.</para>
@@ -377,6 +381,21 @@ Import task 20110627101758486 scheduled to start Jun 27, 2011 10:17:58 AM CEST</
    response times for not having to pre-load the DB and not having garbage
    collection pauses with large JVMs. How you configure the file system cache
    depends on your operating system.</para>
+  </section>
+  
+  <section>
+   <title>Entry Cache Settings</title>
+   
+   <para>OpenDJ implements an entry cache. The entry cache is not designed to
+   cache every entry in your database, but is instead useful in cases where you
+   have a few, typically large entries that are regularly used. For example, if
+   you have a few large static groups and applications that regularly check
+   group membership, you could cache your group entries.</para>
+   
+   <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+&gt; create-entry-cache --cache-name "Large Group Entry Cache" --type fifo \
+&gt; --set cache-level:1 --set include-filter:"(ou=Large Static Groups)" \
+&gt; --set max-entries:10 --set enabled:true -X -n</screen>
   </section>
   
   <section>
