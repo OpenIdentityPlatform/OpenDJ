@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -33,8 +34,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.forgerock.i18n.LocalizableMessage;
 
 import com.forgerock.opendj.util.Validator;
 
@@ -181,9 +180,4 @@ abstract class SchemaElement
    *          The buffer to which the information should be appended.
    */
   abstract void toStringContent(StringBuilder buffer);
-
-
-
-  abstract void validate(List<LocalizableMessage> warnings, Schema schema)
-      throws SchemaException;
 }

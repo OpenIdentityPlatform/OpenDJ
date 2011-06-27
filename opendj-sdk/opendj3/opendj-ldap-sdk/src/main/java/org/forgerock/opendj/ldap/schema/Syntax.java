@@ -281,8 +281,7 @@ public final class Syntax extends SchemaElement
 
 
 
-  @Override
-  void validate(final List<LocalizableMessage> warnings, final Schema schema)
+  void validate(final Schema schema, final List<LocalizableMessage> warnings)
       throws SchemaException
   {
     this.schema = schema;
@@ -320,7 +319,7 @@ public final class Syntax extends SchemaElement
             if (subSyntax.impl == null)
             {
               // The substitution syntax was never validated.
-              subSyntax.validate(warnings, schema);
+              subSyntax.validate(schema, warnings);
             }
             impl = subSyntax.impl;
           }

@@ -29,8 +29,7 @@ package org.forgerock.opendj.ldap.schema;
 
 
 
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID;
+import static org.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.util.*;
 
@@ -66,6 +65,12 @@ public final class DITStructureRule extends SchemaElement
 
   private NameForm nameForm;
   private Set<DITStructureRule> superiorRules = Collections.emptySet();
+
+  // Indicates whether or not validation has been performed.
+  private boolean needsValidating = true;
+
+  // The indicates whether or not validation failed.
+  private boolean isValid = false;
 
 
 
@@ -305,10 +310,20 @@ public final class DITStructureRule extends SchemaElement
 
 
 
-  @Override
-  void validate(final List<LocalizableMessage> warnings, final Schema schema)
-      throws SchemaException
+  boolean validate(final Schema schema,
+      final List<DITStructureRule> invalidSchemaElements,
+      final List<LocalizableMessage> warnings)
   {
+    // Avoid validating this schema element more than once. This may occur if
+    // multiple rules specify the same superior.
+    if (!needsValidating)
+    {
+      return isValid;
+    }
+
+    // Prevent re-validation.
+    needsValidating = false;
+
     try
     {
       nameForm = schema.getNameForm(nameFormOID);
@@ -317,7 +332,8 @@ public final class DITStructureRule extends SchemaElement
     {
       final LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM
           .get(getNameOrRuleID(), nameFormOID);
-      throw new SchemaException(message, e);
+      failValidation(invalidSchemaElements, warnings, message);
+      return false;
     }
 
     if (!superiorRuleIDs.isEmpty())
@@ -334,11 +350,23 @@ public final class DITStructureRule extends SchemaElement
         {
           final LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID
               .get(getNameOrRuleID(), id);
-          throw new SchemaException(message, e);
+          failValidation(invalidSchemaElements, warnings, message);
+          return false;
         }
         superiorRules.add(rule);
       }
     }
     superiorRules = Collections.unmodifiableSet(superiorRules);
+
+    return (isValid = true);
+  }
+
+
+
+  private void failValidation(final List<DITStructureRule> invalidSchemaElements,
+      final List<LocalizableMessage> warnings, final LocalizableMessage message)
+  {
+    invalidSchemaElements.add(this);
+    warnings.add(ERR_DSR_VALIDATION_FAIL.get(toString(), message));
   }
 }

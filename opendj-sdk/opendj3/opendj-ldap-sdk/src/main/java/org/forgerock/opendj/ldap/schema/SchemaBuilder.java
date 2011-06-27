@@ -492,6 +492,13 @@ public final class SchemaBuilder
         extraProperties = Collections.unmodifiableMap(extraProperties);
       }
 
+      if (superiorType == null && syntax == null)
+      {
+        final LocalizableMessage msg = WARN_ATTR_SYNTAX_ATTRTYPE_MISSING_SYNTAX_AND_SUPERIOR
+            .get(definition);
+        throw new LocalizedIllegalArgumentException(msg);
+      }
+
       final AttributeType attrType = new AttributeType(oid, names, description,
           isObsolete, superiorType, equalityMatchingRule, orderingMatchingRule,
           substringMatchingRule, approximateMatchingRule, syntax,
@@ -3450,7 +3457,7 @@ public final class SchemaBuilder
     {
       try
       {
-        syntax.validate(warnings, schema);
+        syntax.validate(schema, warnings);
       }
       catch (final SchemaException e)
       {
@@ -3465,7 +3472,7 @@ public final class SchemaBuilder
     {
       try
       {
-        rule.validate(warnings, schema);
+        rule.validate(schema, warnings);
       }
       catch (final SchemaException e)
       {
@@ -3475,34 +3482,30 @@ public final class SchemaBuilder
       }
     }
 
-    for (final AttributeType attribute : numericOID2AttributeTypes.values()
-        .toArray(new AttributeType[numericOID2AttributeTypes.values().size()]))
+    // Attribute types need special processing because they have hierarchical
+    // dependencies.
+    List<AttributeType> invalidAttributeTypes = new LinkedList<AttributeType>();
+    for (final AttributeType attributeType : numericOID2AttributeTypes.values())
     {
-      try
-      {
-        attribute.validate(warnings, schema);
-      }
-      catch (final SchemaException e)
-      {
-        removeAttributeType(attribute);
-        warnings.add(ERR_ATTR_TYPE_VALIDATION_FAIL.get(attribute.toString(),
-            e.getMessageObject()));
-      }
+      attributeType.validate(schema, invalidAttributeTypes, warnings);
     }
 
-    for (final ObjectClass oc : numericOID2ObjectClasses.values().toArray(
-        new ObjectClass[numericOID2ObjectClasses.values().size()]))
+    for (AttributeType attributeType : invalidAttributeTypes)
     {
-      try
-      {
-        oc.validate(warnings, schema);
-      }
-      catch (final SchemaException e)
-      {
-        removeObjectClass(oc);
-        warnings.add(ERR_OC_VALIDATION_FAIL.get(oc.toString(),
-            e.getMessageObject()));
-      }
+      removeAttributeType(attributeType);
+    }
+
+    // Object classes need special processing because they have hierarchical
+    // dependencies.
+    List<ObjectClass> invalidObjectClasses = new LinkedList<ObjectClass>();
+    for (final ObjectClass objectClass : numericOID2ObjectClasses.values())
+    {
+      objectClass.validate(schema, invalidObjectClasses, warnings);
+    }
+
+    for (ObjectClass objectClass : invalidObjectClasses)
+    {
+      removeObjectClass(objectClass);
     }
 
     for (final MatchingRuleUse use : numericOID2MatchingRuleUses.values()
@@ -3511,7 +3514,7 @@ public final class SchemaBuilder
     {
       try
       {
-        use.validate(warnings, schema);
+        use.validate(schema, warnings);
       }
       catch (final SchemaException e)
       {
@@ -3526,7 +3529,7 @@ public final class SchemaBuilder
     {
       try
       {
-        form.validate(warnings, schema);
+        form.validate(schema, warnings);
 
         // build the objectClass2NameForms map
         List<NameForm> forms;
@@ -3559,7 +3562,7 @@ public final class SchemaBuilder
     {
       try
       {
-        rule.validate(warnings, schema);
+        rule.validate(schema, warnings);
       }
       catch (final SchemaException e)
       {
@@ -3569,36 +3572,37 @@ public final class SchemaBuilder
       }
     }
 
-    for (final DITStructureRule rule : id2StructureRules.values().toArray(
-        new DITStructureRule[id2StructureRules.values().size()]))
+    // DIT structure rules need special processing because they have hierarchical
+    // dependencies.
+    List<DITStructureRule> invalidStructureRules = new LinkedList<DITStructureRule>();
+    for (final DITStructureRule rule : id2StructureRules.values())
     {
-      try
-      {
-        rule.validate(warnings, schema);
+      rule.validate(schema, invalidStructureRules, warnings);
+    }
 
-        // build the nameForm2StructureRules map
-        List<DITStructureRule> rules;
-        final String ocOID = rule.getNameForm().getOID();
-        if ((rules = nameForm2StructureRules.get(ocOID)) == null)
-        {
-          nameForm2StructureRules.put(ocOID, Collections.singletonList(rule));
-        }
-        else if (rules.size() == 1)
-        {
-          rules = new ArrayList<DITStructureRule>(rules);
-          rules.add(rule);
-          nameForm2StructureRules.put(ocOID, rules);
-        }
-        else
-        {
-          rules.add(rule);
-        }
-      }
-      catch (final SchemaException e)
+    for (DITStructureRule rule : invalidStructureRules)
+    {
+      removeDITStructureRule(rule);
+    }
+
+    for (final DITStructureRule rule : id2StructureRules.values())
+    {
+      // build the nameForm2StructureRules map
+      List<DITStructureRule> rules;
+      final String ocOID = rule.getNameForm().getOID();
+      if ((rules = nameForm2StructureRules.get(ocOID)) == null)
       {
-        removeDITStructureRule(rule);
-        warnings.add(ERR_DSR_VALIDATION_FAIL.get(rule.toString(),
-            e.getMessageObject()));
+        nameForm2StructureRules.put(ocOID, Collections.singletonList(rule));
+      }
+      else if (rules.size() == 1)
+      {
+        rules = new ArrayList<DITStructureRule>(rules);
+        rules.add(rule);
+        nameForm2StructureRules.put(ocOID, rules);
+      }
+      else
+      {
+        rules.add(rule);
       }
     }
   }

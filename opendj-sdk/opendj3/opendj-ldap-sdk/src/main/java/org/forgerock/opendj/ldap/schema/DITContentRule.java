@@ -507,8 +507,7 @@ public final class DITContentRule extends SchemaElement
 
 
 
-  @Override
-  void validate(final List<LocalizableMessage> warnings, final Schema schema)
+  void validate(final Schema schema, final List<LocalizableMessage> warnings)
       throws SchemaException
   {
     // Get the objectclass with the specified OID. If it does not exist

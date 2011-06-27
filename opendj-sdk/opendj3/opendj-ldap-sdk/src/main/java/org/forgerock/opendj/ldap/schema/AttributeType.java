@@ -31,7 +31,7 @@ package org.forgerock.opendj.ldap.schema;
 
 
 import static org.forgerock.opendj.ldap.CoreMessages.*;
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.SCHEMA_PROPERTY_APPROX_RULE;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -127,6 +127,12 @@ public final class AttributeType extends SchemaElement implements
 
   // The syntax for this attribute type.
   private Syntax syntax;
+
+  // Indicates whether or not validation has been performed.
+  private boolean needsValidating = true;
+
+  // The indicates whether or not validation failed.
+  private boolean isValid = false;
 
 
 
@@ -698,13 +704,20 @@ public final class AttributeType extends SchemaElement implements
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  void validate(final List<LocalizableMessage> warnings, final Schema schema)
-      throws SchemaException
+  boolean validate(final Schema schema,
+      final List<AttributeType> invalidSchemaElements,
+      final List<LocalizableMessage> warnings)
   {
+    // Avoid validating this schema element more than once. This may occur if
+    // multiple attributes specify the same superior.
+    if (!needsValidating)
+    {
+      return isValid;
+    }
+
+    // Prevent re-validation.
+    needsValidating = false;
+
     if (superiorTypeOID != null)
     {
       try
@@ -715,7 +728,18 @@ public final class AttributeType extends SchemaElement implements
       {
         final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUPERIOR_TYPE1
             .get(getNameOrOID(), superiorTypeOID);
-        throw new SchemaException(message);
+        failValidation(invalidSchemaElements, warnings, message);
+        return false;
+      }
+
+      // First ensure that the superior has been validated and fail if it is
+      // invalid.
+      if (!superiorType.validate(schema, invalidSchemaElements, warnings))
+      {
+        final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_SUPERIOR_TYPE
+            .get(getNameOrOID(), superiorTypeOID);
+        failValidation(invalidSchemaElements, warnings, message);
+        return false;
       }
 
       // If there is a superior type, then it must have the same usage
@@ -726,7 +750,8 @@ public final class AttributeType extends SchemaElement implements
         final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_SUPERIOR_USAGE
             .get(getNameOrOID(), getUsage().toString(), superiorType
                 .getNameOrOID());
-        throw new SchemaException(message);
+        failValidation(invalidSchemaElements, warnings, message);
+        return false;
       }
 
       if (superiorType.isCollective() != isCollective())
@@ -736,7 +761,8 @@ public final class AttributeType extends SchemaElement implements
           LocalizableMessage message =
             WARN_ATTR_SYNTAX_ATTRTYPE_NONCOLLECTIVE_FROM_COLLECTIVE
               .get(getNameOrOID(), superiorType.getNameOrOID());
-          throw new SchemaException(message);
+          failValidation(invalidSchemaElements, warnings, message);
+          return false;
         }
       }
     }
@@ -775,7 +801,8 @@ public final class AttributeType extends SchemaElement implements
       {
         final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_EQUALITY_MR1
             .get(getNameOrOID(), equalityMatchingRuleOID);
-        throw new SchemaException(message);
+        failValidation(invalidSchemaElements, warnings, message);
+        return false;
       }
     }
     else if (getSuperiorType() != null
@@ -802,7 +829,8 @@ public final class AttributeType extends SchemaElement implements
       {
         final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_ORDERING_MR1
             .get(getNameOrOID(), orderingMatchingRuleOID);
-        throw new SchemaException(message);
+        failValidation(invalidSchemaElements, warnings, message);
+        return false;
       }
     }
     else if (getSuperiorType() != null
@@ -830,7 +858,8 @@ public final class AttributeType extends SchemaElement implements
       {
         final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_SUBSTRING_MR1
             .get(getNameOrOID(), substringMatchingRuleOID);
-        throw new SchemaException(message);
+        failValidation(invalidSchemaElements, warnings, message);
+        return false;
       }
     }
     else if (getSuperiorType() != null
@@ -858,7 +887,8 @@ public final class AttributeType extends SchemaElement implements
       {
         final LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_UNKNOWN_APPROXIMATE_MR1
             .get(getNameOrOID(), approximateMatchingRuleOID);
-        throw new SchemaException(message);
+        failValidation(invalidSchemaElements, warnings, message);
+        return false;
       }
     }
     else if (getSuperiorType() != null
@@ -892,5 +922,16 @@ public final class AttributeType extends SchemaElement implements
           .get(getNameOrOID());
       warnings.add(message);
     }
+
+    return (isValid = true);
+  }
+
+
+
+  private void failValidation(final List<AttributeType> invalidSchemaElements,
+      final List<LocalizableMessage> warnings, final LocalizableMessage message)
+  {
+    invalidSchemaElements.add(this);
+    warnings.add(ERR_ATTR_TYPE_VALIDATION_FAIL.get(toString(), message));
   }
 }

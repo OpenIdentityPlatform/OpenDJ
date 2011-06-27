@@ -46,7 +46,7 @@ public class SchemaBuilderTest extends SchemaTestCase
    * Tests that schema validation resolves dependencies between parent/child
    * attribute types regardless of the order in which they were added.
    */
-  @Test(enabled = false)
+  @Test
   public void testAttributeTypeDependenciesChildThenParent()
   {
     final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
@@ -85,7 +85,7 @@ public class SchemaBuilderTest extends SchemaTestCase
   /**
    * Tests that attribute types must have a syntax or a superior.
    */
-  @Test(enabled = false, expectedExceptions = LocalizedIllegalArgumentException.class)
+  @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
   public void testAttributeTypeNoSuperiorNoSyntax()
   {
     new SchemaBuilder(Schema.getCoreSchema()).addAttributeType(
@@ -98,7 +98,7 @@ public class SchemaBuilderTest extends SchemaTestCase
    * Tests that schema validation handles validation failures for superior
    * attribute types regardless of the order.
    */
-  @Test(enabled = false)
+  @Test
   public void testAttributeTypeSuperiorFailureChildThenParent()
   {
     final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
@@ -233,7 +233,7 @@ public class SchemaBuilderTest extends SchemaTestCase
    * Tests that schema validation handles validation failures for superior
    * object classes regardless of the order.
    */
-  @Test(enabled = false)
+  @Test
   public void testObjectClassSuperiorFailureChildThenParent()
   {
     final Schema schema = new SchemaBuilder(Schema.getCoreSchema())

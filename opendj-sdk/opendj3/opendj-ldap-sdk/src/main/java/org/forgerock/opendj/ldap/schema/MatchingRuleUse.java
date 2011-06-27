@@ -333,8 +333,7 @@ public final class MatchingRuleUse extends SchemaElement
 
 
 
-  @Override
-  void validate(final List<LocalizableMessage> warnings, final Schema schema)
+  void validate(final Schema schema, final List<LocalizableMessage> warnings)
       throws SchemaException
   {
     try

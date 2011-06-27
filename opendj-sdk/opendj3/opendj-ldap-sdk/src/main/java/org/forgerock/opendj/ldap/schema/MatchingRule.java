@@ -439,8 +439,7 @@ public final class MatchingRule extends SchemaElement
 
 
 
-  @Override
-  void validate(final List<LocalizableMessage> warnings, final Schema schema)
+  void validate(final Schema schema, final List<LocalizableMessage> warnings)
       throws SchemaException
   {
     // Try finding an implementation in the core schema
