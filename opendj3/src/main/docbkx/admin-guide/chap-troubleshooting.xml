@@ -34,5 +34,227 @@
 
  <para>This chapter describes how to troubleshoot common server problems,
  and how to collect information necessary when seeking support help.</para>
+ 
+ <section>
+  <title>Identifying the Problem</title>
+  
+  <para>In order to solve your problem methodically, save time by defining the
+  problem clearly up front. In a replicated environment with multiple directory
+  servers and many client applications, it can be particularly important to
+  pin down not only the problem (difference in observed behavior compared to
+  expected behavior), but also the circumstances and steps that lead to the
+  problem occurring.</para>
+  
+  <itemizedlist>
+   <para>Answer the following questions.</para>
+   
+   <listitem>
+    <para>How do you reproduce the problem?</para>
+   </listitem>
+   
+   <listitem>
+    <para>What exactly is the problem? In other words, what is the behavior
+    you expected? What is the behavior you observed?</para>
+   </listitem>
+   
+   <listitem>
+    <para>When did the problem start occurring? Under similar circumstances,
+    when does the problem not occur?</para>
+   </listitem>
+   
+   <listitem>
+    <para>Is the problem permanent? Intermittent? Is it getting worse?
+    Getting better? Staying the same?</para>
+   </listitem>
+  </itemizedlist>
+  
+  <para>Pinpointing the problem can sometimes indicate where you should
+  start looking for solutions.</para>
+ </section>
+ 
+ <section>
+  <title>Troubleshooting Installation &amp; Upgrade</title>
+ 
+  <para>Installation and upgrade procedures result in a log file tracing
+  the operation. The log location differs by operating system, but look for
+  lines in the command output of the following form.</para>
+  
+  <literallayout>See /var/....log for a detailed log of this operation.</literallayout>
+ </section>
+ 
+ <section>
+  <title>Troubleshooting LDIF Import</title>
+ 
+  <para>By default OpenDJ requires that LDIF data you import respect standards.
+  In particular, OpenDJ is set to check that entries to import match the
+  schema defined for the server. You can temporarily bypass this check by using
+  the <option>--skipSchemaValidation</option> with the
+  <command>import-ldif</command> command.</para>
+  
+  <para>OpenDJ also ensures by default that entries have only one inheritance
+  of structural object classes. You can relax this behavior by using the
+  advanced global configuration property,
+  <literal>single-structural-objectclass-behavior</literal>. This can be useful
+  when importing data exported from Sun Directory Server. For example, to
+  warn when entries have more than one structural object class instead of
+  reject such entries being added, set the property as follows.</para>
+  
+  <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+&gt; set-global-configuration-prop 
+&gt; --set single-structural-objectclass-behavior:warn -X -n</screen>
+  
+  <para>By default, OpenDJ also checks syntax for a number of attribute types.
+  You can relax this behavior as well by using the <command>dsconfig
+  set-attribute-syntax-prop</command> command. See the list of attribute
+  syntaxes and use the <option>--help</option> option for further
+  information.</para>
+  
+  <para>When running <command>import-ldif</command>, you can use the <option>-R
+  <replaceable>rejectFile</replaceable></option> option to capture entries that
+  could not be imported, and the <option>--countRejects</option> option to
+  return the number of rejected entries as the <command>import-ldif</command>
+  exit code.</para>
+  
+  <para>Once you work through the issues with your LDIF data, reinstate the
+  default behavior to ensure automated checking.</para>
+ </section>
+ 
+ <section>
+  <title>Troubleshooting TLS/SSL Connections</title>
+ 
+  <para>In order to trust the server certificate, client applications usually
+  compare the signature on certificates with those of the Certificate
+  Authorities (CAs) whose certificates are distributed with the client
+  software. For example, the Java environment is distributed with a key store
+  holding many CA certificates.</para>
+  
+  <screen width="80">$ keytool -list -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit \
+&gt; | wc -l
+     334</screen>
+  
+  <para>The self-signed server certificates that can be configured during
+  OpenDJ setup are not recognized as being signed by any CAs. Your software
+  therefore is configured not to trust the self-signed certificates by
+  default. You must either configure the client applications to accept the
+  self-signed certificates, or else use certificates signed by recognized
+  CAs.</para>
+  
+  <para>You can further debug the network traffic by collecting debug traces.
+  To see the traffic going over TLS/SSL in debug mode, configure OpenDJ to dump
+  debug traces from <literal>javax.net.debug</literal> into the
+  <filename>logs/server.out</filename> file.</para>
+  
+  <screen width="80">OPENDJ_JAVA_ARGS="-Djavax.net.debug=all" start-ds</screen>
+ </section>
+ 
+ <section>
+  <title>Troubleshooting Client Operations</title>
+ 
+  <para>By default OpenDJ logs information about all client operations in
+  <filename>logs/access</filename>. The following lines are wrapped for
+  readability, showing a search for the entry with
+  <literal>uid=bjensen</literal> as traced in the access log. In the access
+  log itself, each line starts with a time stamp.</para>
+  
+  <screen width="80">[27/Jun/2011:17:23:00 +0200] CONNECT conn=19 from=127.0.0.1:56641
+ to=127.0.0.1:1389 protocol=LDAP
+[27/Jun/2011:17:23:00 +0200] SEARCH REQ conn=19 op=0 msgID=1
+ base="dc=example,dc=com" scope=wholeSubtree filter="(uid=bjensen)" attrs="ALL"
+[27/Jun/2011:17:23:00 +0200] SEARCH RES conn=19 op=0 msgID=1
+ result=0 nentries=1 etime=3
+[27/Jun/2011:17:23:00 +0200] UNBIND REQ conn=19 op=1 msgID=2
+[27/Jun/2011:17:23:00 +0200] DISCONNECT conn=19 reason="Client Unbind"</screen>
+  
+  <para>As you see, each client connection and set of LDAP operations are
+  traced, starting with a time stamp and information about the operation
+  performed, then including information about the connection, the operation
+  number for the sequence of operations performed by the client, a message
+  identification number, and additional information about the operation.</para>
+  
+  <para>Do help diagnose errors due to access permissions, OpenDJ supports the
+  get effective rights control. The control OID,
+  <literal>1.3.6.1.4.1.42.2.27.9.5.2</literal>, is not allowed by the default
+  global ACIs. You must therefore add access to use the get effective rights
+  control when not using it as Directory Manager.</para>
+ </section>
+ 
+ <section>
+  <title>Troubleshooting Replication</title>
+  
+  <para>Replication can generally recover from conflicts and transient issues.
+  Replication does, however, require that update operations be copied
+  from server to server. It is therefore possible to experience temporary
+  delays while replicas converge, especially when the write operation load is
+  heavy. OpenDJ's tolerance for temporary divergence between replicas is what
+  allows OpenDJ to remain available to serve client applications even when
+  networks linking the replicas go down.</para>
+  
+  <para>In other words, the fact that directory services are loosely convergent
+  rather than transactional is a feature, not a bug.</para>
+  
+  <para>That said, you may encounter errors. Replication uses its own error log
+  file, <filename>logs/replication</filename>. Error messages in the log file
+  have <literal>category=SYNC</literal>. The messages have the following form.
+  Here the line is folded for readability.</para>
+  
+  <screen width="80">
+[27/Jun/2011:14:37:48 +0200] category=SYNC severity=INFORMATION msgID=14680169
+ msg=Replication server accepted a connection from 10.10.0.10/10.10.0.10:52859
+ to local address 0.0.0.0/0.0.0.0:8989 but the SSL handshake failed. This is
+ probably benign, but may indicate a transient network outage or a
+ misconfigured client application connecting to this replication server.
+ The error was: Remote host closed connection during handshake</screen>
+ 
+  <para>Replicas can become irrevocably out of sync if for example you restore
+  a replica from backup with a backup archive older than the last time
+  historical information for replication was purged from the system. If this
+  happens to you, disable the replica, and then reinitialize it with newer
+  data.</para>
+ </section>
+ 
+ <section>
+  <title>Asking For Help</title>
+  
+  <para>When you cannot resolve a problem yourself, and want to ask for help,
+  clearly identify the problem and how you reproduce it, and also the version
+  of OpenDJ you use to reproduce the problem. The version includes both a
+  version number and also a build time stamp.</para>
+  
+  <screen width="80">$ dsconfig --version
+OpenDJ <?eval ${project.version}?>
+Build <replaceable>yyyymmddhhmmss</replaceable>Z</screen>
+  
+  <itemizedlist>
+  
+   <para>Be ready to provide additional information, too.</para>
+   
+   <listitem>
+    <para>The output from the <command>java -version</command> command.</para>
+   </listitem>
+   
+   <listitem>
+    <para><filename>access</filename> and <filename>errors</filename> logs
+    showing what the server was doing when the problem started occurring</para>
+   </listitem>
+   
+   <listitem>
+    <para>A copy of the server configuration file,
+    <filename>config/config.ldif</filename>, in use when the problem started
+    occurring</para>
+   </listitem>
+   
+   <listitem>
+    <para>Other relevant logs or output, such as those from client applications
+    experiencing the problem</para>
+   </listitem>
+   
+   <listitem>
+    <para>A description of the environment where OpenDJ is running, including
+    system characteristics, host names, IP addresses, Java versions, storage
+    characteristics, and network characteristics. This helps to understand
+    the logs, and other information.</para>
+   </listitem>
+  </itemizedlist>
+ </section>
 
 </chapter>
