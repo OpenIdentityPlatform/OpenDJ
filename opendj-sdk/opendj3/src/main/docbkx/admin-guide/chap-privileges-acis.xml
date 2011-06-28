@@ -241,7 +241,8 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
     <varlistentry>
      <term><literal>all</literal></term>
      <listitem>
-      <para>All permissions</para>
+      <para>All permissions, except <literal>export</literal>,
+      <literal>import</literal>, <literal>proxy</literal></para>
      </listitem>
     </varlistentry>
     <varlistentry>
