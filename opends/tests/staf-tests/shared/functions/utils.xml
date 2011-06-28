@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS.
  ! -->
 <stax>
   <function name="checkRC">
@@ -4103,6 +4104,33 @@
         STAXResult
       </return>
 
+    </sequence>
+  </function>
+
+<!-- TestStep -->
+  <function name="testStep">
+    <function-prolog>
+      This function print out a test step.
+    </function-prolog>
+    
+    <function-map-args>
+      <function-arg-def name="stepMessage" type="required">
+        <function-arg-description>
+          test step message to display
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <script>
+        try:
+          stepNumber=stepNumber
+        except NameError:
+          stepNumber=1
+      </script>
+      <message>'*** Step%s: %s' % (stepNumber,stepMessage)</message>
+      <script>
+        stepNumber += 1
+      </script>
     </sequence>
   </function>
 
