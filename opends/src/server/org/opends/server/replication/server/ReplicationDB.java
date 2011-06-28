@@ -162,6 +162,8 @@ public class ReplicationDB
     }
   }
 
+
+
   /**
    * add a list of changes to the underlying db.
    *
@@ -172,8 +174,15 @@ public class ReplicationDB
     try
     {
       dbCloseLock.readLock().lock();
+
       try
       {
+        // If the DB has been closed then return immediately.
+        if (isDBClosed())
+        {
+          return;
+        }
+
         for (UpdateMsg change : changes)
         {
           DatabaseEntry key = new ReplicationKey(
@@ -226,6 +235,7 @@ public class ReplicationDB
       try
       {
         db.close();
+        db = null;
       }
       finally
       {
@@ -313,6 +323,12 @@ public class ReplicationDB
       dbCloseLock.readLock().lock();
       try
       {
+        // If the DB has been closed then return immediately.
+        if (isDBClosed())
+        {
+          return null;
+        }
+
         DatabaseEntry key = new DatabaseEntry();
         DatabaseEntry data = new DatabaseEntry();
 
@@ -375,6 +391,12 @@ public class ReplicationDB
       dbCloseLock.readLock().lock();
       try
       {
+        // If the DB has been closed then return immediately.
+        if (isDBClosed())
+        {
+          return null;
+        }
+
         DatabaseEntry key = new DatabaseEntry();
         DatabaseEntry data = new DatabaseEntry();
 
@@ -450,6 +472,12 @@ public class ReplicationDB
       dbCloseLock.readLock().lock();
       try
       {
+        // If the DB has been closed then return immediately.
+        if (isDBClosed())
+        {
+          return null;
+        }
+
         cursor = db.openCursor(null, null);
         if (cursor.getSearchKeyRange(key, data, LockMode.DEFAULT)
             == OperationStatus.SUCCESS)
@@ -580,6 +608,14 @@ public class ReplicationDB
       Cursor localCursor = null;
       try
       {
+        // If the DB has been closed then create empty cursor.
+        if (isDBClosed())
+        {
+          isClosed = true;
+          cursor = null;
+          return;
+        }
+
         localCursor = db.openCursor(txn, null);
         if (startingChangeNumber != null)
         {
@@ -630,6 +666,15 @@ public class ReplicationDB
       Cursor localCursor = null;
       try
       {
+        // If the DB has been closed then create empty cursor.
+        if (isDBClosed())
+        {
+          isClosed = true;
+          txn = null;
+          cursor = null;
+          return;
+        }
+
         // Create the transaction that will protect whatever done with this
         // write cursor.
         localTxn = dbenv.beginTransaction();
@@ -727,6 +772,11 @@ public class ReplicationDB
      */
     public ChangeNumber nextChangeNumber() throws DatabaseException
     {
+      if (isClosed)
+      {
+        return null;
+      }
+
       OperationStatus status = cursor.getNext(key, data, LockMode.DEFAULT);
 
       if (status != OperationStatus.SUCCESS)
@@ -744,6 +794,11 @@ public class ReplicationDB
      */
     public UpdateMsg next()
     {
+      if (isClosed)
+      {
+        return null;
+      }
+
       UpdateMsg currentChange = null;
       while (currentChange == null)
       {
@@ -794,6 +849,11 @@ public class ReplicationDB
      */
     public void delete() throws DatabaseException
     {
+      if (isClosed)
+      {
+        throw new IllegalStateException("ReplServerDBCursor already closed");
+      }
+
       cursor.delete();
     }
   } // ReplServerDBCursor
@@ -810,6 +870,12 @@ public class ReplicationDB
     dbCloseLock.writeLock().lock();
     try
     {
+      // If the DB has been closed then return immediately.
+      if (isDBClosed())
+      {
+        return;
+      }
+
       String dbName = db.getDatabaseName();
 
       // Clears the reference to this serverID
@@ -817,6 +883,7 @@ public class ReplicationDB
 
       // Closing is requested by the Berkeley DB before truncate
       db.close();
+      db = null; // In case there's a failure between here and recreation.
 
       // Clears the changes
       dbenv.clearDb(dbName);
@@ -843,7 +910,7 @@ public class ReplicationDB
    * @param start The lower limit of the count.
    * @param stop The higher limit of the count.
    * @return The number of changes between provided start and stop changeNumber.
-   * Returns -1 when an error occurs.
+   * Returns 0 when an error occurs.
    */
   public int count(ChangeNumber start, ChangeNumber stop)
   {
@@ -853,11 +920,20 @@ public class ReplicationDB
     int distBackToCounterRecord2 = 0;
     int count=0;
     OperationStatus status;
+
     try
     {
+      dbCloseLock.readLock().lock();
+
       Cursor cursor = null;
       try
       {
+        // If the DB has been closed then return immediately.
+        if (isDBClosed())
+        {
+          return 0;
+        }
+
         ChangeNumber cn ;
 
         if ((start==null)&&(stop==null))
@@ -977,10 +1053,7 @@ public class ReplicationDB
       }
       finally
       {
-        if (cursor != null)
-        {
-          cursor.close();
-        }
+        closeLockedCursor(cursor);
       }
     }
     catch (DatabaseException e)
@@ -1030,6 +1103,15 @@ public class ReplicationDB
   public void setCounterWindowSize(int size)
   {
     this.counterWindowSize = size;
+  }
+
+
+
+  // Returns {@code true} if the DB is closed. This method assumes that either
+  // the db read/write lock has been taken.
+  private boolean isDBClosed()
+  {
+    return db == null;
   }
 
 }

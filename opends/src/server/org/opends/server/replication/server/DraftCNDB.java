@@ -103,6 +103,12 @@ public class DraftCNDB
       dbCloseLock.readLock().lock();
       try
       {
+        // If the DB has been closed then return immediately.
+        if (isDBClosed())
+        {
+          return;
+        }
+
         txn = dbenv.beginTransaction();
         db.put(txn, key, data);
         txn.commit(Durability.COMMIT_WRITE_NO_SYNC);
@@ -141,6 +147,7 @@ public class DraftCNDB
       try
       {
         db.close();
+        db = null;
       }
       finally
       {
@@ -221,6 +228,12 @@ public class DraftCNDB
       Cursor cursor = null;
       try
       {
+        // If the DB has been closed then return immediately.
+        if (isDBClosed())
+        {
+          return 0;
+        }
+
         cursor = db.openCursor(null, null);
         DatabaseEntry key = new DatabaseEntry();
         DatabaseEntry entry = new DatabaseEntry();
@@ -252,13 +265,24 @@ public class DraftCNDB
    */
   public long count()
   {
+    dbCloseLock.readLock().lock();
     try
     {
+      // If the DB has been closed then return immediately.
+      if (isDBClosed())
+      {
+        return 0L;
+      }
+
       return db.count();
     }
-    catch(Exception e)
+    catch (Exception e)
     {
       TRACER.debugCaught(DebugLogLevel.ERROR, e);
+    }
+    finally
+    {
+      dbCloseLock.readLock().unlock();
     }
     return 0L;
   }
@@ -275,6 +299,12 @@ public class DraftCNDB
       Cursor cursor = null;
       try
       {
+        // If the DB has been closed then return immediately.
+        if (isDBClosed())
+        {
+          return 0;
+        }
+
         cursor = db.openCursor(null, null);
         DatabaseEntry key = new DatabaseEntry();
         DatabaseEntry entry = new DatabaseEntry();
@@ -351,6 +381,15 @@ public class DraftCNDB
 
       try
       {
+        // If the DB has been closed then create empty cursor.
+        if (isDBClosed())
+        {
+          isClosed = true;
+          txn = null;
+          cursor = null;
+          return;
+        }
+
         localCursor = db.openCursor(localTxn, null);
         if (startingDraftCN >= 0)
         {
@@ -410,6 +449,15 @@ public class DraftCNDB
       dbCloseLock.readLock().lock();
       try
       {
+        // If the DB has been closed then create empty cursor.
+        if (isDBClosed())
+        {
+          isClosed = true;
+          txn = null;
+          cursor = null;
+          return;
+        }
+
         // Create the transaction that will protect whatever done with this
         // write cursor.
         localTxn = dbenv.beginTransaction();
@@ -516,6 +564,11 @@ public class DraftCNDB
      */
     public String currentValue()
     {
+      if (isClosed)
+      {
+        return null;
+      }
+
       try
       {
         if (seqnumData != null)
@@ -536,6 +589,11 @@ public class DraftCNDB
      */
     public String currentServiceID()
     {
+      if (isClosed)
+      {
+        return null;
+      }
+
       try
       {
         if (seqnumData != null)
@@ -547,6 +605,7 @@ public class DraftCNDB
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
+
       return null;
     }
 
@@ -558,16 +617,22 @@ public class DraftCNDB
      */
     public int currentKey()
     {
-       try
+      if (isClosed)
+      {
+        return -1;
+      }
+
+      try
       {
         String str = decodeUTF8(key.getData());
         int draftCN = new Integer(str);
         return draftCN;
       }
-      catch(Exception e)
+      catch (Exception e)
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
+
       return -1;
     }
 
@@ -577,6 +642,11 @@ public class DraftCNDB
      */
     public ChangeNumber currentChangeNumber()
     {
+      if (isClosed)
+      {
+        return null;
+      }
+
       try
       {
         if (seqnumData != null)
@@ -598,6 +668,11 @@ public class DraftCNDB
      */
     public boolean next() throws DatabaseException
     {
+      if (isClosed)
+      {
+        return false;
+      }
+
       OperationStatus status = cursor.getNext(key, entry, LockMode.DEFAULT);
       if (status != OperationStatus.SUCCESS)
       {
@@ -621,6 +696,11 @@ public class DraftCNDB
      */
     public void delete() throws DatabaseException
     {
+      if (isClosed)
+      {
+        throw new IllegalStateException("DraftCNDB already closed");
+      }
+
       cursor.delete();
     }
 
@@ -631,6 +711,11 @@ public class DraftCNDB
      */
     public DatabaseEntry getKey()
     {
+      if (isClosed)
+      {
+        return null;
+      }
+
       return key;
     }
   }
@@ -647,10 +732,17 @@ public class DraftCNDB
     dbCloseLock.writeLock().lock();
     try
     {
+      // If the DB has been closed then return immediately.
+      if (isDBClosed())
+      {
+        return;
+      }
+
       String dbName = db.getDatabaseName();
 
       // Closing is requested by the Berkeley DB before truncate
       db.close();
+      db = null; // In case there's a failure between here and recreation.
 
       // Clears the changes
       dbenv.clearDb(dbName);
@@ -671,5 +763,14 @@ public class DraftCNDB
       // Relax the waiting users
       dbCloseLock.writeLock().unlock();
     }
+  }
+
+
+
+  //Returns {@code true} if the DB is closed. This method assumes that either
+  // the db read/write lock has been taken.
+  private boolean isDBClosed()
+  {
+    return db == null;
   }
 }
