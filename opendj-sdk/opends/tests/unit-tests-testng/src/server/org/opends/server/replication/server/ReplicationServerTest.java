@@ -962,14 +962,14 @@ public class ReplicationServerTest extends ReplicationTestCase
           changelogs[0].remove();
           StaticUtils.recursiveDelete
                   (new File(DirectoryServer.getInstanceRoot(),
-                   changelogs[0].getDbDirName()));     
+                   changelogs[0].getDbDirName()));
         }
         if (changelogs[1] != null)
         {
           changelogs[1].remove();
           StaticUtils.recursiveDelete
                   (new File(DirectoryServer.getInstanceRoot(),
-                   changelogs[1].getDbDirName()));     
+                   changelogs[1].getDbDirName()));
         }
         if (broker1 != null)
           broker1.stop();
@@ -986,10 +986,10 @@ public class ReplicationServerTest extends ReplicationTestCase
   @Test(enabled=true, dependsOnMethods = { "searchBackend"})
   public void windowProbeTest() throws Exception
   {
-    
+
     debugInfo("Starting windowProbeTest");
     final int WINDOW = 10;
-    
+
     replicationServer.clearDb();
     TestCaseUtils.initializeTestBackend(true);
 
@@ -1086,11 +1086,11 @@ public class ReplicationServerTest extends ReplicationTestCase
     callParanoiaCheck = false;
     super.classCleanUp();
     String dirName = replicationServer.getDbDirName();
-    
+
     shutdown();
 
     StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-            dirName));     
+            dirName));
 
     paranoiaCheck();
   }
@@ -1292,7 +1292,7 @@ public class ReplicationServerTest extends ReplicationTestCase
         // Not doing anything with the export file, let's delete it
         File f = new File(DirectoryServer.getInstanceRoot(),exportLDIFAllFile);
         f.delete();
-        
+
         debugInfo("Export domain");
         exportTask = createExportDomainTask("dc=domain2,dc=com");
         addTask(exportTask, ResultCode.SUCCESS, null);
@@ -1767,7 +1767,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     {
       replicationServer.clearDb();
       TestCaseUtils.initializeTestBackend(true);
-      
+
       debugInfo("Starting replicationServerConnected");
       ReplicationBroker broker1 = null;
       ReplicationBroker broker2 = null;
@@ -1813,10 +1813,10 @@ public class ReplicationServerTest extends ReplicationTestCase
          // Create and connect client1 to changelog1
          // and client2 to changelog2
          broker1 = openReplicationSession(DN.decode(TEST_ROOT_DN_STRING),
-              brokerIds[0], 100, changelogPorts[0], 1000, emptyOldChanges);
+              brokerIds[0], 100, changelogPorts[0], 3000, emptyOldChanges);
 
          broker2 = openReplicationSession(DN.decode(TEST_ROOT_DN_STRING),
-              brokerIds[1], 100, changelogPorts[1], 1000, emptyOldChanges);
+              brokerIds[1], 100, changelogPorts[1], 3000, emptyOldChanges);
 
          assertTrue(broker1.isConnected());
          assertTrue(broker2.isConnected());
@@ -1943,14 +1943,14 @@ public class ReplicationServerTest extends ReplicationTestCase
            changelogs[0].remove();
            StaticUtils.recursiveDelete
                   (new File(DirectoryServer.getInstanceRoot(),
-                   changelogs[0].getDbDirName()));     
+                   changelogs[0].getDbDirName()));
          }
          if (changelogs[1] != null)
          {
            changelogs[1].remove();
            StaticUtils.recursiveDelete
                   (new File(DirectoryServer.getInstanceRoot(),
-                   changelogs[1].getDbDirName()));     
+                   changelogs[1].getDbDirName()));
          }
          if (broker1 != null)
            broker1.stop();
