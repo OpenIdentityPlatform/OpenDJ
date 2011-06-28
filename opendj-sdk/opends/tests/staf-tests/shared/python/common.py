@@ -24,6 +24,7 @@
 #
 #
 #      Copyright 2007-2009 Sun Microsystems, Inc.
+#      Portions Copyright 2011 ForgeRock AS.
 
 __version__ = "$Revision$"
 # $Source$
@@ -49,7 +50,10 @@ __all__ = [ "format_testcase",
             "java_properties",
             "xmldoc_service" ,
             "xml_create_report" ,
-            "group_to_run" ]
+            "group_to_run" ,
+            "get_last_attr_from_entry" ,
+            "list_matches" ,
+            "count_attr" ]
 
 class format_testcase:
   'Format the Test name objects'
@@ -745,4 +749,44 @@ class group_to_run:
   def getName(self):
     return self.name
 
-                                                         
+def get_last_attr_from_entry(result,attribute):
+
+  changeEntry=result[0][1].split("\n")
+
+  attr=''
+  for changeAttr in changeEntry:
+    #print changeAttr
+    if changeAttr.startswith(attribute):
+      print 'get_last_attr_from_entry: %s' % changeAttr
+      attr = ' '.join(changeAttr.split(' ')[1:3])
+
+  return attr.replace(';','')
+
+def list_matches(mylist):
+
+  mycomp = 'True'
+  itemnum = 0
+
+  for item in mylist:
+    if not item:
+      # TODO: list item is empty do WARNING or ERROR
+      print "list_matches: WARNING: list item %s is empty." % itemnum
+    if item != mylist[0]:
+      print "list_matches: False. Match=(%s), Item=(%s)" % (mylist[0],item)
+      mycomp = 'False'
+    itemnum += 1
+
+  return mycomp
+
+def count_attr(result):
+
+  attrnum = 0
+  if result != None:
+
+    for attr in result[0][1].split('\n'):
+      if attr.startswith('dn:'):
+        print "Hit: attr (%s)" % attr
+        attrnum += 1
+
+  return attrnum
+

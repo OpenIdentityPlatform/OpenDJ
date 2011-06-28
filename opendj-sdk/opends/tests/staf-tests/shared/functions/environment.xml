@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS
+ !      Portions Copyright 2011 ForgeRock AS.
  ! -->
 <stax>
   
@@ -96,6 +96,7 @@
         from replication import *
         from snmp import *
         from schema import *
+        from objects import *
       </script>     
                         
     

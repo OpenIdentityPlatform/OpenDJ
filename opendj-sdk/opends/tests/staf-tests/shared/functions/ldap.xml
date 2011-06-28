@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS.
  ! -->
 <stax>
   <function name="addEntry">
@@ -991,6 +992,8 @@
         
         if dsBaseDN:
           STAFCmdParamsList.append('-b "%s"' % dsBaseDN)
+        else:
+          STAFCmdParamsList.append('-b ""')
           
         if dsContinueOnError:
           STAFCmdParamsList.append('-c')       
@@ -1027,7 +1030,7 @@
           STAFCmdParamsList.append('-j %s' % dsBindPasswordFile)
          
         if dsControl:
-          STAFCmdParamsList.append('-J %s' % dsControl)
+          STAFCmdParamsList.append('-J "%s"' % dsControl)
          
         if dsKeyStorePath:
           STAFCmdParamsList.append('-K %s' % dsKeyStorePath)
