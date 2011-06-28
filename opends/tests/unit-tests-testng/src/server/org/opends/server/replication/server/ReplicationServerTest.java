@@ -198,8 +198,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     newClientWithFirstChanges();
     newClientWithChangefromServer1();
     newClientWithChangefromServer2();
-    newClientWithUnknownChanges();
-    changelogChaining();
+    newClientWithUnknownChanges();    
     stopChangelog();
     exportBackend();
     backupRestore();
@@ -565,8 +564,8 @@ public class ReplicationServerTest extends ReplicationTestCase
 
     ReplicationBroker server = null;
     BrokerReader reader = null;
-    int TOTAL_MSG = 500;     // number of messages to send during the test
-    int CLIENT_THREADS = 4;   // number of threads that will try to read
+    int TOTAL_MSG = 1000;     // number of messages to send during the test
+    int CLIENT_THREADS = 2;   // number of threads that will try to read
                               // the messages
     ChangeNumberGenerator gen =
       new ChangeNumberGenerator(5 , (long) 0);
@@ -645,9 +644,6 @@ public class ReplicationServerTest extends ReplicationTestCase
 
       assertTrue(reader.errDetails==null,
           reader.exc + " " + reader.errDetails);
-
-      replicationServer.clearDb();
-      TestCaseUtils.initializeTestBackend(true);
     }
   }
 
@@ -707,7 +703,6 @@ public class ReplicationServerTest extends ReplicationTestCase
         reader[i].start();
       }
       debugInfo("multipleWriterMultipleReader produces and readers started");
-      //Thread.sleep(2000);
     }
     finally
     {
@@ -736,9 +731,6 @@ public class ReplicationServerTest extends ReplicationTestCase
           broker[i].stop();
       }
       debugInfo("multipleWriterMultipleReader brokers stopped");
-
-      replicationServer.clearDb();
-      TestCaseUtils.initializeTestBackend(true);
 
       for (int i = 0; i< THREADS; i++)
       {
@@ -772,9 +764,13 @@ public class ReplicationServerTest extends ReplicationTestCase
    * - Check that client 2 receives the changes published by client 1
    *
    */
-  private void changelogChaining() throws Exception
+  @Test(enabled=true, dependsOnMethods = { "searchBackend"})
+  public void changelogChaining() throws Exception
   {
     debugInfo("Starting changelogChaining");
+    replicationServer.clearDb();
+    TestCaseUtils.initializeTestBackend(true);
+    
     for (int itest = 0; itest <2; itest++)
     {
       ReplicationBroker broker2 = null;
@@ -889,7 +885,7 @@ public class ReplicationServerTest extends ReplicationTestCase
           servers.add("localhost:"+changelogPorts[0]);
           ReplServerFakeConfiguration conf =
             new ReplServerFakeConfiguration(changelogPorts[1], null, 0,
-                                           changelogIds[1], 0, 0, null);
+                                           changelogIds[1], 0, 100, null);
           changelogs[1] = new ReplicationServer(conf);
 
           // Connect broker 2 to changelog2
@@ -1899,13 +1895,10 @@ public class ReplicationServerTest extends ReplicationTestCase
            new ReplServerFakeConfiguration(changelogPorts[0], "changelogDb0", 0,
                                           changelogIds[0], 0, 100, servers);
          changelogs[0].applyConfigurationChange(conf) ;
-         // Sleep a while to be sure disconnection occurs
-         sleep(1000);
 
-         // We expect the receive to end because of a timeout : the link between RS1 & RS2
-         // should be distroyed by the new configuration
-
-         // Send 1 update and check that RS[1] does not receive the message after the timeout
+         // The link between RS[0] & RS[1] should be destroyed by the new configuration.
+         // So we expect a timeout exception when calling receive on RS[1].
+         // Send an update and check that RS[1] does not receive the message after the timeout
          try
          {
            // - Del
