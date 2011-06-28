@@ -122,15 +122,7 @@ public class DraftCNDbIterator
   public boolean next()
   throws Exception, DatabaseException
   {
-    boolean hasNext = draftCNDbCursor.next();
-    if (hasNext)
-    {
-      return true;
-    }
-    else
-    {
-      return false;
-    }
+    return draftCNDbCursor.next();
   }
 
   /**

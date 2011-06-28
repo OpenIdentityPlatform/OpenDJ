@@ -1424,19 +1424,23 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     if (handler == null)
       return null;
 
+    ReplicationIterator it;
     try
     {
-      ReplicationIterator it = handler.generateIterator(changeNumber);
-      if (it.next()==false)
-      {
-        it.releaseCursor();
-        throw new Exception("no new change");
-      }
-      return it;
-    } catch (Exception e)
+      it = handler.generateIterator(changeNumber);
+    }
+    catch (Exception e)
     {
       return null;
     }
+
+    if (it.next() == false)
+    {
+      it.releaseCursor();
+      return null;
+    }
+
+    return it;
   }
 
  /**
