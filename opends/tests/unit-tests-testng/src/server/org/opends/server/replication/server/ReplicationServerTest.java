@@ -1813,10 +1813,10 @@ public class ReplicationServerTest extends ReplicationTestCase
          // Create and connect client1 to changelog1
          // and client2 to changelog2
          broker1 = openReplicationSession(DN.decode(TEST_ROOT_DN_STRING),
-              brokerIds[0], 100, changelogPorts[0], 3000, emptyOldChanges);
+              brokerIds[0], 100, changelogPorts[0], 1000, emptyOldChanges);
 
          broker2 = openReplicationSession(DN.decode(TEST_ROOT_DN_STRING),
-              brokerIds[1], 100, changelogPorts[1], 3000, emptyOldChanges);
+              brokerIds[1], 100, changelogPorts[1], 1000, emptyOldChanges);
 
          assertTrue(broker1.isConnected());
          assertTrue(broker2.isConnected());
