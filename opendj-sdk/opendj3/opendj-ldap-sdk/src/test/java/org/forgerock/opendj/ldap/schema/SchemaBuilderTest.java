@@ -182,6 +182,98 @@ public class SchemaBuilderTest extends SchemaTestCase
 
 
   /**
+   * Tests that it is possible to create a schema which is an exact copy of
+   * another and take advantage of copy on write.
+   */
+  @Test
+  public void testCopyOnWriteNoChanges()
+  {
+    final Schema baseSchema = Schema.getCoreSchema();
+    final Schema schema = new SchemaBuilder(baseSchema).toSchema();
+
+    assertThat(schema).isSameAs(baseSchema);
+  }
+
+
+
+  /**
+   * Tests that it is possible to create a schema which is based on another.
+   */
+  @Test
+  public void testCopyOnWriteWithChanges()
+  {
+    final Schema baseSchema = Schema.getCoreSchema();
+    final Schema schema = new SchemaBuilder(baseSchema).addAttributeType(
+        "( testtype-oid NAME 'testtype' SUP name )", false).toSchema();
+    assertThat(schema).isNotSameAs(baseSchema);
+    assertThat(schema.getObjectClasses().containsAll(
+        baseSchema.getObjectClasses()));
+    assertThat(schema.getObjectClasses().size()).isEqualTo(
+        baseSchema.getObjectClasses().size());
+    assertThat(schema.getAttributeTypes().containsAll(
+        baseSchema.getAttributeTypes()));
+    assertThat(schema.getAttributeType("testtype")).isNotNull();
+    assertThat(schema.getSchemaName()).isEqualTo(baseSchema.getSchemaName());
+    assertThat(schema.allowMalformedNamesAndOptions()).isEqualTo(
+        baseSchema.allowMalformedNamesAndOptions());
+  }
+
+
+
+  /**
+   * Tests that it is possible to create an empty schema.
+   */
+  @Test
+  public void testCreateEmptySchema()
+  {
+    final Schema schema = new SchemaBuilder().toSchema();
+    assertThat(schema.getAttributeTypes()).isEmpty();
+    assertThat(schema.getObjectClasses()).isEmpty();
+    assertThat(schema.getSyntaxes()).isEmpty();
+    assertThat(schema.getWarnings()).isEmpty();
+    // Could go on...
+  }
+
+
+
+  /**
+   * Tests that multiple consecutive invocations of toSchema return the exact
+   * same schema.
+   */
+  @Test
+  public void testMultipleToSchema1()
+  {
+    final Schema baseSchema = Schema.getCoreSchema();
+    final SchemaBuilder builder = new SchemaBuilder(baseSchema);
+    final Schema schema1 = builder.toSchema();
+    final Schema schema2 = builder.toSchema();
+    assertThat(schema1).isSameAs(baseSchema);
+    assertThat(schema1).isSameAs(schema2);
+  }
+
+
+
+  /**
+   * Tests that multiple consecutive invocations of toSchema return the exact
+   * same schema.
+   */
+  @Test
+  public void testMultipleToSchema2()
+  {
+    final SchemaBuilder builder = new SchemaBuilder()
+        .addAttributeType(
+            "( testtype-oid NAME 'testtype' SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 )",
+            false);
+    final Schema schema1 = builder.toSchema();
+    final Schema schema2 = builder.toSchema();
+    assertThat(schema1).isSameAs(schema2);
+    assertThat(schema1.getAttributeType("testtype")).isNotNull();
+    assertThat(schema2.getAttributeType("testtype")).isNotNull();
+  }
+
+
+
+  /**
    * Tests that schema validation resolves dependencies between parent/child
    * object classes regardless of the order in which they were added.
    */
@@ -301,5 +393,30 @@ public class SchemaBuilderTest extends SchemaTestCase
     {
       // Expected.
     }
+  }
+
+
+
+  /**
+   * Tests that a schema builder can be re-used after toSchema has been called.
+   */
+  @Test
+  public void testReuseSchemaBuilder()
+  {
+    final SchemaBuilder builder = new SchemaBuilder();
+    final Schema schema1 = builder
+        .addAttributeType(
+            "( testtype1-oid NAME 'testtype1' SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 )",
+            false).toSchema();
+
+    final Schema schema2 = builder
+        .addAttributeType(
+            "( testtype2-oid NAME 'testtype2' SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 )",
+            false).toSchema();
+    assertThat(schema1).isNotSameAs(schema2);
+    assertThat(schema1.getAttributeType("testtype1")).isNotNull();
+    assertThat(schema1.hasAttributeType("testtype2")).isFalse();
+    assertThat(schema2.getAttributeType("testtype1")).isNotNull();
+    assertThat(schema2.getAttributeType("testtype2")).isNotNull();
   }
 }

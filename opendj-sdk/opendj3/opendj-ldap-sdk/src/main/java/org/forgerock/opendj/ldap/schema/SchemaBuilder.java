@@ -171,9 +171,12 @@ public final class SchemaBuilder
 
   private boolean allowMalformedNamesAndOptions;
 
+  // A schema which should be copied into this builder on any mutation.
+  private Schema copyOnWriteSchema = null;
+
   // A unique ID which can be used to uniquely identify schemas
   // constructed without a name.
-  private final AtomicInteger nextSchemaID = new AtomicInteger();
+  private static final AtomicInteger NEXT_SCHEMA_ID = new AtomicInteger();
 
 
 
@@ -183,7 +186,7 @@ public final class SchemaBuilder
    */
   public SchemaBuilder()
   {
-    initBuilder(null);
+    preLazyInitBuilder(null, null);
   }
 
 
@@ -201,8 +204,7 @@ public final class SchemaBuilder
    */
   public SchemaBuilder(final Entry entry) throws NullPointerException
   {
-    initBuilder(entry.getName().toString());
-
+    preLazyInitBuilder(entry.getName().toString(), null);
     addSchema(entry, true);
   }
 
@@ -219,8 +221,7 @@ public final class SchemaBuilder
    */
   public SchemaBuilder(final Schema schema) throws NullPointerException
   {
-    initBuilder(schema.getSchemaName());
-    addSchema(schema, true);
+    preLazyInitBuilder(schema.getSchemaName(), schema);
   }
 
 
@@ -235,7 +236,7 @@ public final class SchemaBuilder
    */
   public SchemaBuilder(final String schemaName)
   {
-    initBuilder(schemaName);
+    preLazyInitBuilder(schemaName, null);
   }
 
 
@@ -262,6 +263,9 @@ public final class SchemaBuilder
       LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(definition);
+
+    lazyInitBuilder();
+
     try
     {
       final SubstringReader reader = new SubstringReader(definition);
@@ -586,6 +590,8 @@ public final class SchemaBuilder
       final Map<String, List<String>> extraProperties, final boolean overwrite)
       throws ConflictingSchemaElementException
   {
+    lazyInitBuilder();
+
     final AttributeType attrType = new AttributeType(oid,
         unmodifiableCopyOfList(names), description, obsolete, superiorType,
         equalityMatchingRule, orderingMatchingRule, substringMatchingRule,
@@ -620,6 +626,9 @@ public final class SchemaBuilder
       LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(definition);
+
+    lazyInitBuilder();
+
     try
     {
       final SubstringReader reader = new SubstringReader(definition);
@@ -807,6 +816,8 @@ public final class SchemaBuilder
       final Map<String, List<String>> extraProperties, final boolean overwrite)
       throws ConflictingSchemaElementException
   {
+    lazyInitBuilder();
+
     final DITContentRule rule = new DITContentRule(structuralClass,
         unmodifiableCopyOfList(names), description, obsolete,
         unmodifiableCopyOfSet(auxiliaryClasses),
@@ -854,6 +865,8 @@ public final class SchemaBuilder
       final Map<String, List<String>> extraProperties, final boolean overwrite)
       throws ConflictingSchemaElementException
   {
+    lazyInitBuilder();
+
     final DITStructureRule rule = new DITStructureRule(ruleID,
         unmodifiableCopyOfList(names), description, obsolete, nameForm,
         unmodifiableCopyOfSet(superiorRules),
@@ -887,6 +900,9 @@ public final class SchemaBuilder
       LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(definition);
+
+    lazyInitBuilder();
+
     try
     {
       final SubstringReader reader = new SubstringReader(definition);
@@ -1045,6 +1061,8 @@ public final class SchemaBuilder
   {
     Validator.ensureNotNull((Object) enumerations);
 
+    lazyInitBuilder();
+
     final EnumSyntaxImpl enumImpl = new EnumSyntaxImpl(oid,
         Arrays.asList(enumerations));
     final Syntax enumSyntax = new Syntax(oid, description,
@@ -1092,6 +1110,9 @@ public final class SchemaBuilder
       LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(definition);
+
+    lazyInitBuilder();
+
     try
     {
       final SubstringReader reader = new SubstringReader(definition);
@@ -1256,6 +1277,9 @@ public final class SchemaBuilder
       throws ConflictingSchemaElementException
   {
     Validator.ensureNotNull(implementation);
+
+    lazyInitBuilder();
+
     final MatchingRule matchingRule = new MatchingRule(oid,
         unmodifiableCopyOfList(names), description, obsolete, assertionSyntax,
         unmodifiableCopyOfExtraProperties(extraProperties), null,
@@ -1288,6 +1312,9 @@ public final class SchemaBuilder
       LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(definition);
+
+    lazyInitBuilder();
+
     try
     {
       final SubstringReader reader = new SubstringReader(definition);
@@ -1450,6 +1477,8 @@ public final class SchemaBuilder
       final Map<String, List<String>> extraProperties, final boolean overwrite)
       throws ConflictingSchemaElementException
   {
+    lazyInitBuilder();
+
     final MatchingRuleUse use = new MatchingRuleUse(oid,
         unmodifiableCopyOfList(names), description, obsolete,
         unmodifiableCopyOfSet(attributeOIDs),
@@ -1482,6 +1511,9 @@ public final class SchemaBuilder
       LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(definition);
+
+    lazyInitBuilder();
+
     try
     {
       final SubstringReader reader = new SubstringReader(definition);
@@ -1672,6 +1704,8 @@ public final class SchemaBuilder
       final Map<String, List<String>> extraProperties, final boolean overwrite)
       throws ConflictingSchemaElementException
   {
+    lazyInitBuilder();
+
     final NameForm nameForm = new NameForm(oid, unmodifiableCopyOfList(names),
         description, obsolete, structuralClass,
         unmodifiableCopyOfSet(requiredAttributes),
@@ -1705,6 +1739,9 @@ public final class SchemaBuilder
       LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(definition);
+
+    lazyInitBuilder();
+
     try
     {
       final SubstringReader reader = new SubstringReader(definition);
@@ -1914,6 +1951,8 @@ public final class SchemaBuilder
       final Map<String, List<String>> extraProperties, final boolean overwrite)
       throws ConflictingSchemaElementException
   {
+    lazyInitBuilder();
+
     if (oid.equals(EXTENSIBLE_OBJECT_OBJECTCLASS_OID))
     {
       addObjectClass(new ObjectClass(description,
@@ -1962,6 +2001,8 @@ public final class SchemaBuilder
   {
     Validator.ensureNotNull(pattern);
 
+    lazyInitBuilder();
+
     addSyntax(
         new Syntax(oid, description, Collections.singletonMap("X-PATTERN",
             Collections.singletonList(pattern.toString())), null, null),
@@ -2003,6 +2044,7 @@ public final class SchemaBuilder
       final boolean overwrite) throws UnsupportedOperationException,
       IllegalStateException, NullPointerException
   {
+    // The call to addSchema will perform copyOnWrite.
     final SearchRequest request = getReadSchemaSearchRequest(name);
 
     final FutureResultTransformer<SearchResultEntry, SchemaBuilder> future =
@@ -2060,6 +2102,7 @@ public final class SchemaBuilder
       InterruptedException, UnsupportedOperationException,
       IllegalStateException, NullPointerException
   {
+    // The call to addSchema will perform copyOnWrite.
     final SearchRequest request = getReadSchemaSearchRequest(name);
     final Entry entry = connection.searchSingleEntry(request);
     return addSchema(entry, overwrite);
@@ -2086,6 +2129,8 @@ public final class SchemaBuilder
       throws NullPointerException
   {
     Validator.ensureNotNull(entry);
+
+    lazyInitBuilder();
 
     Attribute attr = entry.getAttribute(Schema.ATTR_LDAP_SYNTAXES);
     if (attr != null)
@@ -2241,50 +2286,9 @@ public final class SchemaBuilder
   {
     Validator.ensureNotNull(schema);
 
-    // All of the schema elements must be duplicated because validation will
-    // cause them to update all their internal references which, although
-    // unlikely, may be different in the new schema.
+    lazyInitBuilder();
 
-    for (final Syntax syntax : schema.getSyntaxes())
-    {
-      addSyntax(syntax.duplicate(), overwrite);
-    }
-
-    for (final MatchingRule matchingRule : schema.getMatchingRules())
-    {
-      addMatchingRule(matchingRule.duplicate(), overwrite);
-    }
-
-    for (final MatchingRuleUse matchingRuleUse : schema.getMatchingRuleUses())
-    {
-      addMatchingRuleUse(matchingRuleUse.duplicate(), overwrite);
-    }
-
-    for (final AttributeType attributeType : schema.getAttributeTypes())
-    {
-      addAttributeType(attributeType.duplicate(), overwrite);
-    }
-
-    for (final ObjectClass objectClass : schema.getObjectClasses())
-    {
-      addObjectClass(objectClass.duplicate(), overwrite);
-    }
-
-    for (final NameForm nameForm : schema.getNameForms())
-    {
-      addNameForm(nameForm.duplicate(), overwrite);
-    }
-
-    for (final DITContentRule contentRule : schema.getDITContentRules())
-    {
-      addDITContentRule(contentRule.duplicate(), overwrite);
-    }
-
-    for (final DITStructureRule structureRule : schema.getDITStuctureRules())
-    {
-      addDITStructureRule(structureRule.duplicate(), overwrite);
-    }
-
+    addSchema0(schema, overwrite);
     return this;
   }
 
@@ -2328,6 +2332,7 @@ public final class SchemaBuilder
       final boolean overwrite) throws UnsupportedOperationException,
       IllegalStateException, NullPointerException
   {
+    // The call to addSchema will perform copyOnWrite.
     final RecursiveFutureResult<SearchResultEntry, SchemaBuilder> future =
       new RecursiveFutureResult<SearchResultEntry, SchemaBuilder>(handler)
     {
@@ -2391,6 +2396,7 @@ public final class SchemaBuilder
       InterruptedException, UnsupportedOperationException,
       IllegalStateException, NullPointerException
   {
+    // The call to addSchema will perform copyOnWrite.
     final SearchRequest request = getReadSchemaForEntrySearchRequest(name);
     final Entry entry = connection.searchSingleEntry(request);
     final DN subschemaDN = getSubschemaSubentryDN(name, entry);
@@ -2421,6 +2427,8 @@ public final class SchemaBuilder
       final boolean overwrite) throws ConflictingSchemaElementException
   {
     Validator.ensureNotNull(substituteSyntax);
+
+    lazyInitBuilder();
 
     addSyntax(
         new Syntax(oid, description, Collections.singletonMap("X-SUBST",
@@ -2453,6 +2461,9 @@ public final class SchemaBuilder
       LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(definition);
+
+    lazyInitBuilder();
+
     try
     {
       final SubstringReader reader = new SubstringReader(definition);
@@ -2604,6 +2615,8 @@ public final class SchemaBuilder
       final SyntaxImpl implementation, final boolean overwrite)
       throws ConflictingSchemaElementException, NullPointerException
   {
+    lazyInitBuilder();
+
     addSyntax(new Syntax(oid, description,
         unmodifiableCopyOfExtraProperties(extraProperties), null,
         implementation), overwrite);
@@ -2636,6 +2649,8 @@ public final class SchemaBuilder
   public SchemaBuilder allowMalformedNamesAndOptions(
       final boolean allowMalformedNamesAndOptions)
   {
+    lazyInitBuilder();
+
     this.allowMalformedNamesAndOptions = allowMalformedNamesAndOptions;
     return this;
   }
@@ -2657,6 +2672,8 @@ public final class SchemaBuilder
   public SchemaBuilder allowNonStandardTelephoneNumbers(
       final boolean allowNonStandardTelephoneNumbers)
   {
+    lazyInitBuilder();
+
     this.allowNonStandardTelephoneNumbers = allowNonStandardTelephoneNumbers;
     return this;
   }
@@ -2680,6 +2697,8 @@ public final class SchemaBuilder
   public SchemaBuilder allowZeroLengthDirectoryStrings(
       final boolean allowZeroLengthDirectoryStrings)
   {
+    lazyInitBuilder();
+
     this.allowZeroLengthDirectoryStrings = allowZeroLengthDirectoryStrings;
     return this;
   }
@@ -2695,6 +2714,8 @@ public final class SchemaBuilder
    */
   public boolean removeAttributeType(final String name)
   {
+    lazyInitBuilder();
+
     final AttributeType element = numericOID2AttributeTypes.get(name);
     if (element != null)
     {
@@ -2725,6 +2746,8 @@ public final class SchemaBuilder
    */
   public boolean removeDITContentRule(final String name)
   {
+    lazyInitBuilder();
+
     final DITContentRule element = numericOID2ContentRules.get(name);
     if (element != null)
     {
@@ -2755,6 +2778,8 @@ public final class SchemaBuilder
    */
   public boolean removeDITStructureRule(final int ruleID)
   {
+    lazyInitBuilder();
+
     final DITStructureRule element = id2StructureRules.get(ruleID);
     if (element != null)
     {
@@ -2775,6 +2800,8 @@ public final class SchemaBuilder
    */
   public boolean removeMatchingRule(final String name)
   {
+    lazyInitBuilder();
+
     final MatchingRule element = numericOID2MatchingRules.get(name);
     if (element != null)
     {
@@ -2805,6 +2832,8 @@ public final class SchemaBuilder
    */
   public boolean removeMatchingRuleUse(final String name)
   {
+    lazyInitBuilder();
+
     final MatchingRuleUse element = numericOID2MatchingRuleUses.get(name);
     if (element != null)
     {
@@ -2835,6 +2864,8 @@ public final class SchemaBuilder
    */
   public boolean removeNameForm(final String name)
   {
+    lazyInitBuilder();
+
     final NameForm element = numericOID2NameForms.get(name);
     if (element != null)
     {
@@ -2864,6 +2895,8 @@ public final class SchemaBuilder
    */
   public boolean removeObjectClass(final String name)
   {
+    lazyInitBuilder();
+
     final ObjectClass element = numericOID2ObjectClasses.get(name);
     if (element != null)
     {
@@ -2894,6 +2927,8 @@ public final class SchemaBuilder
    */
   public boolean removeSyntax(final String numericOID)
   {
+    lazyInitBuilder();
+
     final Syntax element = numericOID2Syntaxes.get(numericOID);
     if (element != null)
     {
@@ -2910,8 +2945,7 @@ public final class SchemaBuilder
    * contained in this schema builder as well as the same set of schema
    * compatibility options.
    * <p>
-   * When this method returns this schema builder is empty and contains a
-   * default set of compatibility options.
+   * This method does not alter the contents of this schema builder.
    *
    * @return A {@code Schema} containing all of the schema elements contained in
    *         this schema builder as well as the same set of schema compatibility
@@ -2919,18 +2953,45 @@ public final class SchemaBuilder
    */
   public Schema toSchema()
   {
-    final Schema schema = new Schema(schemaName, allowMalformedNamesAndOptions,
-        allowNonStandardTelephoneNumbers, allowZeroLengthDirectoryStrings,
-        numericOID2Syntaxes, numericOID2MatchingRules,
-        numericOID2MatchingRuleUses, numericOID2AttributeTypes,
-        numericOID2ObjectClasses, numericOID2NameForms,
-        numericOID2ContentRules, id2StructureRules, name2MatchingRules,
-        name2MatchingRuleUses, name2AttributeTypes, name2ObjectClasses,
-        name2NameForms, name2ContentRules, name2StructureRules,
-        objectClass2NameForms, nameForm2StructureRules, warnings);
+    // If this schema builder was initialized from another schema and no
+    // modifications have been made since then we can simply return the original
+    // schema.
+    if (copyOnWriteSchema != null)
+    {
+      return copyOnWriteSchema;
+    }
+
+    // We still need to ensure that this builder has been initialized (otherwise
+    // some fields may still be null).
+    lazyInitBuilder();
+
+    final String localSchemaName;
+    if (schemaName != null)
+    {
+      localSchemaName = schemaName;
+    }
+    else
+    {
+      localSchemaName = String.format("Schema#%d",
+          NEXT_SCHEMA_ID.getAndIncrement());
+    }
+
+    final Schema schema = new Schema(localSchemaName,
+        allowMalformedNamesAndOptions, allowNonStandardTelephoneNumbers,
+        allowZeroLengthDirectoryStrings, numericOID2Syntaxes,
+        numericOID2MatchingRules, numericOID2MatchingRuleUses,
+        numericOID2AttributeTypes, numericOID2ObjectClasses,
+        numericOID2NameForms, numericOID2ContentRules, id2StructureRules,
+        name2MatchingRules, name2MatchingRuleUses, name2AttributeTypes,
+        name2ObjectClasses, name2NameForms, name2ContentRules,
+        name2StructureRules, objectClass2NameForms, nameForm2StructureRules,
+        warnings);
 
     validate(schema);
-    initBuilder(null);
+
+    // Re-init this builder so that it can continue to be used afterwards.
+    preLazyInitBuilder(schemaName, schema);
+
     return schema;
   }
 
@@ -3224,6 +3285,55 @@ public final class SchemaBuilder
 
 
 
+  private void addSchema0(final Schema schema, final boolean overwrite)
+  {
+    // All of the schema elements must be duplicated because validation will
+    // cause them to update all their internal references which, although
+    // unlikely, may be different in the new schema.
+
+    for (final Syntax syntax : schema.getSyntaxes())
+    {
+      addSyntax(syntax.duplicate(), overwrite);
+    }
+
+    for (final MatchingRule matchingRule : schema.getMatchingRules())
+    {
+      addMatchingRule(matchingRule.duplicate(), overwrite);
+    }
+
+    for (final MatchingRuleUse matchingRuleUse : schema.getMatchingRuleUses())
+    {
+      addMatchingRuleUse(matchingRuleUse.duplicate(), overwrite);
+    }
+
+    for (final AttributeType attributeType : schema.getAttributeTypes())
+    {
+      addAttributeType(attributeType.duplicate(), overwrite);
+    }
+
+    for (final ObjectClass objectClass : schema.getObjectClasses())
+    {
+      addObjectClass(objectClass.duplicate(), overwrite);
+    }
+
+    for (final NameForm nameForm : schema.getNameForms())
+    {
+      addNameForm(nameForm.duplicate(), overwrite);
+    }
+
+    for (final DITContentRule contentRule : schema.getDITContentRules())
+    {
+      addDITContentRule(contentRule.duplicate(), overwrite);
+    }
+
+    for (final DITStructureRule structureRule : schema.getDITStuctureRules())
+    {
+      addDITStructureRule(structureRule.duplicate(), overwrite);
+    }
+  }
+
+
+
   private void addSyntax(final Syntax syntax, final boolean overwrite)
       throws ConflictingSchemaElementException
   {
@@ -3244,37 +3354,85 @@ public final class SchemaBuilder
 
 
 
-  private void initBuilder(String schemaName)
+  private void lazyInitBuilder()
   {
-    if (schemaName == null)
+    // Lazy initialization.
+    if (numericOID2Syntaxes == null)
     {
-      schemaName = String.format("Schema#%d", nextSchemaID.getAndIncrement());
+      allowMalformedNamesAndOptions = true;
+      allowNonStandardTelephoneNumbers = true;
+      allowZeroLengthDirectoryStrings = false;
+
+      numericOID2Syntaxes = new LinkedHashMap<String, Syntax>();
+      numericOID2MatchingRules = new LinkedHashMap<String, MatchingRule>();
+      numericOID2MatchingRuleUses = new LinkedHashMap<String, MatchingRuleUse>();
+      numericOID2AttributeTypes = new LinkedHashMap<String, AttributeType>();
+      numericOID2ObjectClasses = new LinkedHashMap<String, ObjectClass>();
+      numericOID2NameForms = new LinkedHashMap<String, NameForm>();
+      numericOID2ContentRules = new LinkedHashMap<String, DITContentRule>();
+      id2StructureRules = new LinkedHashMap<Integer, DITStructureRule>();
+
+      name2MatchingRules = new LinkedHashMap<String, List<MatchingRule>>();
+      name2MatchingRuleUses = new LinkedHashMap<String, List<MatchingRuleUse>>();
+      name2AttributeTypes = new LinkedHashMap<String, List<AttributeType>>();
+      name2ObjectClasses = new LinkedHashMap<String, List<ObjectClass>>();
+      name2NameForms = new LinkedHashMap<String, List<NameForm>>();
+      name2ContentRules = new LinkedHashMap<String, List<DITContentRule>>();
+      name2StructureRules = new LinkedHashMap<String, List<DITStructureRule>>();
+
+      objectClass2NameForms = new HashMap<String, List<NameForm>>();
+      nameForm2StructureRules = new HashMap<String, List<DITStructureRule>>();
+      warnings = new LinkedList<LocalizableMessage>();
     }
+
+    if (copyOnWriteSchema != null)
+    {
+      // Copy the schema.
+      addSchema0(copyOnWriteSchema, true);
+
+      allowMalformedNamesAndOptions = copyOnWriteSchema
+          .allowMalformedNamesAndOptions();
+      allowNonStandardTelephoneNumbers = copyOnWriteSchema
+          .allowNonStandardTelephoneNumbers();
+      allowZeroLengthDirectoryStrings = copyOnWriteSchema
+          .allowZeroLengthDirectoryStrings();
+
+      copyOnWriteSchema = null;
+    }
+  }
+
+
+
+  private void preLazyInitBuilder(final String schemaName,
+      final Schema copyOnWriteSchema)
+  {
     this.schemaName = schemaName;
+    this.copyOnWriteSchema = copyOnWriteSchema;
 
-    allowMalformedNamesAndOptions = true;
-    allowNonStandardTelephoneNumbers = true;
-    allowZeroLengthDirectoryStrings = false;
-    numericOID2Syntaxes = new LinkedHashMap<String, Syntax>();
-    numericOID2MatchingRules = new LinkedHashMap<String, MatchingRule>();
-    numericOID2MatchingRuleUses = new LinkedHashMap<String, MatchingRuleUse>();
-    numericOID2AttributeTypes = new LinkedHashMap<String, AttributeType>();
-    numericOID2ObjectClasses = new LinkedHashMap<String, ObjectClass>();
-    numericOID2NameForms = new LinkedHashMap<String, NameForm>();
-    numericOID2ContentRules = new LinkedHashMap<String, DITContentRule>();
-    id2StructureRules = new LinkedHashMap<Integer, DITStructureRule>();
+    this.allowMalformedNamesAndOptions = true;
+    this.allowNonStandardTelephoneNumbers = true;
+    this.allowZeroLengthDirectoryStrings = false;
 
-    name2MatchingRules = new LinkedHashMap<String, List<MatchingRule>>();
-    name2MatchingRuleUses = new LinkedHashMap<String, List<MatchingRuleUse>>();
-    name2AttributeTypes = new LinkedHashMap<String, List<AttributeType>>();
-    name2ObjectClasses = new LinkedHashMap<String, List<ObjectClass>>();
-    name2NameForms = new LinkedHashMap<String, List<NameForm>>();
-    name2ContentRules = new LinkedHashMap<String, List<DITContentRule>>();
-    name2StructureRules = new LinkedHashMap<String, List<DITStructureRule>>();
+    this.numericOID2Syntaxes = null;
+    this.numericOID2MatchingRules = null;
+    this.numericOID2MatchingRuleUses = null;
+    this.numericOID2AttributeTypes = null;
+    this.numericOID2ObjectClasses = null;
+    this.numericOID2NameForms = null;
+    this.numericOID2ContentRules = null;
+    this.id2StructureRules = null;
 
-    objectClass2NameForms = new HashMap<String, List<NameForm>>();
-    nameForm2StructureRules = new HashMap<String, List<DITStructureRule>>();
-    warnings = new LinkedList<LocalizableMessage>();
+    this.name2MatchingRules = null;
+    this.name2MatchingRuleUses = null;
+    this.name2AttributeTypes = null;
+    this.name2ObjectClasses = null;
+    this.name2NameForms = null;
+    this.name2ContentRules = null;
+    this.name2StructureRules = null;
+
+    this.objectClass2NameForms = null;
+    this.nameForm2StructureRules = null;
+    this.warnings = null;
   }
 
 
@@ -3484,26 +3642,26 @@ public final class SchemaBuilder
 
     // Attribute types need special processing because they have hierarchical
     // dependencies.
-    List<AttributeType> invalidAttributeTypes = new LinkedList<AttributeType>();
+    final List<AttributeType> invalidAttributeTypes = new LinkedList<AttributeType>();
     for (final AttributeType attributeType : numericOID2AttributeTypes.values())
     {
       attributeType.validate(schema, invalidAttributeTypes, warnings);
     }
 
-    for (AttributeType attributeType : invalidAttributeTypes)
+    for (final AttributeType attributeType : invalidAttributeTypes)
     {
       removeAttributeType(attributeType);
     }
 
     // Object classes need special processing because they have hierarchical
     // dependencies.
-    List<ObjectClass> invalidObjectClasses = new LinkedList<ObjectClass>();
+    final List<ObjectClass> invalidObjectClasses = new LinkedList<ObjectClass>();
     for (final ObjectClass objectClass : numericOID2ObjectClasses.values())
     {
       objectClass.validate(schema, invalidObjectClasses, warnings);
     }
 
-    for (ObjectClass objectClass : invalidObjectClasses)
+    for (final ObjectClass objectClass : invalidObjectClasses)
     {
       removeObjectClass(objectClass);
     }
@@ -3572,15 +3730,16 @@ public final class SchemaBuilder
       }
     }
 
-    // DIT structure rules need special processing because they have hierarchical
+    // DIT structure rules need special processing because they have
+    // hierarchical
     // dependencies.
-    List<DITStructureRule> invalidStructureRules = new LinkedList<DITStructureRule>();
+    final List<DITStructureRule> invalidStructureRules = new LinkedList<DITStructureRule>();
     for (final DITStructureRule rule : id2StructureRules.values())
     {
       rule.validate(schema, invalidStructureRules, warnings);
     }
 
-    for (DITStructureRule rule : invalidStructureRules)
+    for (final DITStructureRule rule : invalidStructureRules)
     {
       removeDITStructureRule(rule);
     }
