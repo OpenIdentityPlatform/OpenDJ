@@ -37,13 +37,13 @@
   appendix  nop
   article/appendix  nop
   article   nop
-  book      toc,title,figure,table,example,equation
+  book      toc,title
   chapter   nop
   part      toc,title
   preface   nop
   qandadiv  nop
   qandaset  nop
-  reference nop
+  reference toc,title
   sect1     nop
   sect2     nop
   sect3     nop
