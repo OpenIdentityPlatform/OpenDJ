@@ -95,6 +95,7 @@ public class SearchOperationBasis
   // Indicates whether the filter references subentry or ldapSubentry object
   // class.
   private boolean filterIncludesSubentries;
+  private boolean filterNeedsCheckingForSubentries = true;
 
   // Indicates whether to include attribute types only or both types and values.
   private boolean typesOnly;
@@ -521,7 +522,6 @@ public class SearchOperationBasis
       if (filter == null)
       {
         filter = rawFilter.toSearchFilter();
-        filterIncludesSubentries = checkFilterForLDAPSubEntry(filter, 0);
       }
     }
     catch (DirectoryException de)
@@ -617,6 +617,12 @@ public class SearchOperationBasis
     // should be returned.
     if (entry.isSubentry() || entry.isLDAPSubentry())
     {
+      if (filterNeedsCheckingForSubentries == true)
+      {
+        filterIncludesSubentries = checkFilterForLDAPSubEntry(filter, 0);
+        filterNeedsCheckingForSubentries = false;
+      }
+
       if ((getScope() != SearchScope.BASE_OBJECT)
           && !filterIncludesSubentries
           && !isReturnSubentriesOnly())
