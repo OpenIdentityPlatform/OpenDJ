@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.core;
@@ -31,17 +32,12 @@ import static org.testng.Assert.*;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.controls.MatchedValuesControl;
 import org.opends.server.controls.MatchedValuesFilter;
+import org.opends.server.controls.SubentriesControl;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -122,6 +118,18 @@ public class SearchOperationTestCase extends OperationTestCase
       assertNotNull(DirectoryServer.getEntry(baseEntry.getDN()));
     }
 
+    // Add a test ldapsubentry.
+    Entry ldapSubentry = TestCaseUtils.makeEntry(
+         "dn: cn=subentry," + BASE,
+         "objectclass: ldapsubentry");
+    AddOperation addOperation =
+         connection.processAdd(ldapSubentry.getDN(),
+                               ldapSubentry.getObjectClasses(),
+                               ldapSubentry.getUserAttributes(),
+                               ldapSubentry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    assertNotNull(DirectoryServer.getEntry(ldapSubentry.getDN()));
+
     // Add a test entry.
     testEntry = TestCaseUtils.makeEntry(
          "dn: uid=rogasawara," + BASE,
@@ -162,25 +170,13 @@ public class SearchOperationTestCase extends OperationTestCase
     // The add operation changes the attributes, so let's duplicate the entry.
     Entry duplicateEntry = testEntry.duplicate(false);
 
-    AddOperation addOperation =
+    addOperation =
          connection.processAdd(duplicateEntry.getDN(),
                                duplicateEntry.getObjectClasses(),
                                duplicateEntry.getUserAttributes(),
                                duplicateEntry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(DirectoryServer.getEntry(testEntry.getDN()));
-
-    // Add a test ldapsubentry.
-    Entry ldapSubentry = TestCaseUtils.makeEntry(
-         "dn: cn=subentry," + BASE,
-         "objectclass: ldapsubentry");
-    addOperation =
-         connection.processAdd(ldapSubentry.getDN(),
-                               ldapSubentry.getObjectClasses(),
-                               ldapSubentry.getUserAttributes(),
-                               ldapSubentry.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(ldapSubentry.getDN()));
 
     // Add a test referral entry.
     Entry referralEntry = TestCaseUtils.makeEntry(
@@ -890,7 +886,7 @@ public class SearchOperationTestCase extends OperationTestCase
   }
 
   @Test
-  public void testSearchInternalSubEntry() throws Exception
+  public void testSearchInternalSubEntryEqualityFilter() throws Exception
   {
     InvocationCounterPlugin.resetAllCounters();
 
@@ -917,8 +913,47 @@ public class SearchOperationTestCase extends OperationTestCase
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertEquals(searchOperation.getEntriesSent(), 1);
     assertEquals(searchOperation.getErrorMessage().length(), 0);
+  }
 
-    searchOperation =
+  @Test
+  public void testSearchInternalSubEntryControl() throws Exception
+  {
+    InvocationCounterPlugin.resetAllCounters();
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    InternalSearchOperation searchOperation =
+         new InternalSearchOperation(
+              conn,
+              InternalClientConnection.nextOperationID(),
+              InternalClientConnection.nextMessageID(),
+              Collections.singletonList((Control)new SubentriesControl(true, true)),
+              ByteString.valueOf(BASE),
+              SearchScope.WHOLE_SUBTREE,
+              DereferencePolicy.NEVER_DEREF_ALIASES,
+              Integer.MAX_VALUE,
+              Integer.MAX_VALUE,
+              false,
+              LDAPFilter.decode("(objectclass=*)"),
+              null, null);
+
+    searchOperation.run();
+
+    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+    assertEquals(searchOperation.getEntriesSent(), 1);
+    assertEquals(searchOperation.getErrorMessage().length(), 0);
+  }
+
+  @Test
+  public void testSearchInternalSubEntryAndFilter() throws Exception
+  {
+    InvocationCounterPlugin.resetAllCounters();
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    InternalSearchOperation searchOperation =
          new InternalSearchOperation(
               conn,
               InternalClientConnection.nextOperationID(),
@@ -958,6 +993,36 @@ public class SearchOperationTestCase extends OperationTestCase
 
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertEquals(searchOperation.getEntriesSent(), 1);
+    assertEquals(searchOperation.getErrorMessage().length(), 0);
+  }
+
+  @Test
+  public void testSearchInternalSubEntryOrFilter() throws Exception
+  {
+    InvocationCounterPlugin.resetAllCounters();
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    InternalSearchOperation searchOperation =
+         new InternalSearchOperation(
+              conn,
+              InternalClientConnection.nextOperationID(),
+              InternalClientConnection.nextMessageID(),
+              new ArrayList<Control>(),
+              ByteString.valueOf(BASE),
+              SearchScope.WHOLE_SUBTREE,
+              DereferencePolicy.NEVER_DEREF_ALIASES,
+              Integer.MAX_VALUE,
+              Integer.MAX_VALUE,
+              false,
+              LDAPFilter.decode("(|(objectclass=ldapsubentry)(objectclass=top))"),
+              null, null);
+
+    searchOperation.run();
+
+    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+    assertEquals(searchOperation.getEntriesSent(), 3);
     assertEquals(searchOperation.getErrorMessage().length(), 0);
   }
 

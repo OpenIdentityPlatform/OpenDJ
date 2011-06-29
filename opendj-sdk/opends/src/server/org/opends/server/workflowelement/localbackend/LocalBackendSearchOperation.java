@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -512,7 +513,7 @@ searchProcessing:
         {
           SubentriesControl subentriesControl =
                   getRequestControl(SubentriesControl.DECODER);
-          setReturnLDAPSubentries(subentriesControl.getVisibility());
+          setReturnSubentriesOnly(subentriesControl.getVisibility());
         }
         else if (oid.equals(OID_MATCHED_VALUES))
         {
