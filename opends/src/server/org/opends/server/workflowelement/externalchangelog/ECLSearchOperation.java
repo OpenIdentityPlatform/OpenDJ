@@ -545,7 +545,7 @@ public class ECLSearchOperation
         {
           SubentriesControl subentriesControl =
                   getRequestControl(SubentriesControl.DECODER);
-          setReturnLDAPSubentries(subentriesControl.getVisibility());
+          setReturnSubentriesOnly(subentriesControl.getVisibility());
         }
         else if (oid.equals(OID_MATCHED_VALUES))
         {

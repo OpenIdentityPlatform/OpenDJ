@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -318,7 +319,7 @@ public interface SearchOperation extends Operation
    *
    * @return true if the LDAP subentries should be returned, false otherwise
    */
-  public abstract boolean isReturnLDAPSubentries();
+  public abstract boolean isReturnSubentriesOnly();
 
   /**
    * Set the flag indicating wether the LDAP subentries should be returned.
@@ -326,7 +327,7 @@ public interface SearchOperation extends Operation
    * @param returnLDAPSubentries - Boolean indicating wether the LDAP
    *                               subentries should be returned or not
    */
-  public abstract void setReturnLDAPSubentries(boolean returnLDAPSubentries);
+  public abstract void setReturnSubentriesOnly(boolean returnLDAPSubentries);
 
   /**
    * The matched values control associated with this search operation.

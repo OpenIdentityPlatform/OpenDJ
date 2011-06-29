@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -300,17 +301,17 @@ public abstract class SearchOperationWrapper extends OperationWrapper
   /**
    * {@inheritDoc}
    */
-  public boolean isReturnLDAPSubentries()
+  public boolean isReturnSubentriesOnly()
   {
-    return search.isReturnLDAPSubentries();
+    return search.isReturnSubentriesOnly();
   }
 
   /**
    * {@inheritDoc}
    */
-  public void setReturnLDAPSubentries(boolean returnLDAPSubentries)
+  public void setReturnSubentriesOnly(boolean returnLDAPSubentries)
   {
-    search.setReturnLDAPSubentries(returnLDAPSubentries);
+    search.setReturnSubentriesOnly(returnLDAPSubentries);
   }
 
   /**

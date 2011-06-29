@@ -89,8 +89,12 @@ public class SearchOperationBasis
   // Indicates whether to only real attributes should be returned.
   private boolean realAttributesOnly;
 
-  // Indicates whether LDAP subentries should be returned.
-  private boolean returnLDAPSubentries;
+  // Indicates whether only LDAP subentries should be returned.
+  private boolean returnSubentriesOnly;
+
+  // Indicates whether the filter references subentry or ldapSubentry object
+  // class.
+  private boolean filterIncludesSubentries;
 
   // Indicates whether to include attribute types only or both types and values.
   private boolean typesOnly;
@@ -246,7 +250,7 @@ public class SearchOperationBasis
     clientAcceptsReferrals = true;
     includeUsableControl   = false;
     responseSent           = new AtomicBoolean(false);
-    returnLDAPSubentries   = false;
+    returnSubentriesOnly   = false;
     matchedValuesControl   = null;
     realAttributesOnly     = false;
     virtualAttributesOnly  = false;
@@ -346,7 +350,7 @@ public class SearchOperationBasis
     clientAcceptsReferrals = true;
     includeUsableControl   = false;
     responseSent           = new AtomicBoolean(false);
-    returnLDAPSubentries   = false;
+    returnSubentriesOnly   = false;
     matchedValuesControl   = null;
   }
 
@@ -517,6 +521,7 @@ public class SearchOperationBasis
       if (filter == null)
       {
         filter = rawFilter.toSearchFilter();
+        filterIncludesSubentries = checkFilterForLDAPSubEntry(filter, 0);
       }
     }
     catch (DirectoryException de)
@@ -612,27 +617,16 @@ public class SearchOperationBasis
     // should be returned.
     if (entry.isSubentry() || entry.isLDAPSubentry())
     {
-      if ((getScope() != SearchScope.BASE_OBJECT) &&
-              (! isReturnLDAPSubentries()))
+      if ((getScope() != SearchScope.BASE_OBJECT)
+          && !filterIncludesSubentries
+          && !isReturnSubentriesOnly())
       {
-        // Check to see if the filter contains an equality element with the
-        // objectclass attribute type and a value of "ldapSubentry".  If so,
-        // then we'll return it anyway.  Technically, this isn't part of the
-        // specification so we don't need to get carried away with really in
-        // depth checks. Just do best effort for earlier draft compatibility.
-        checkFilterForLDAPSubEntry(getFilter(), 0);
-
-        if (! isReturnLDAPSubentries())
-        {
-          // We still shouldn't return it even based on the filter.
-          // Just throw it away without doing anything.
-          return true;
-        }
+        return true;
       }
     }
     else
     {
-      if (isReturnLDAPSubentries())
+      if (isReturnSubentriesOnly())
       {
         // Subentries are visible and normal entries are not.
         return true;
@@ -1148,17 +1142,17 @@ public class SearchOperationBasis
   /**
    * {@inheritDoc}
    */
-  public boolean isReturnLDAPSubentries()
+  public boolean isReturnSubentriesOnly()
   {
-    return returnLDAPSubentries;
+    return returnSubentriesOnly;
   }
 
   /**
    * {@inheritDoc}
    */
-  public void setReturnLDAPSubentries(boolean returnLDAPSubentries)
+  public void setReturnSubentriesOnly(boolean returnLDAPSubentries)
   {
-    this.returnLDAPSubentries = returnLDAPSubentries;
+    this.returnSubentriesOnly = returnLDAPSubentries;
   }
 
   /**
@@ -1464,19 +1458,22 @@ public class SearchOperationBasis
   }
 
 
+
   /**
-   * Checks if the filter contains an equality element with the
-   * objectclass attribute type and a value of "ldapSubentry"
-   * and if so sets returnLDAPSubentries to <code>true</code>.
+   * Checks if the filter contains an equality element with the objectclass
+   * attribute type and a value of "ldapSubentry" and if so sets
+   * returnSubentriesOnly to <code>true</code>.
    *
-   * @param filter The complete filter being checked, of which
-   *               this filter may be a subset.
-   * @param depth  The current depth of the evaluation, which
-   *               is used to prevent infinite recursion due
-   *               to highly nested filters and eventually
-   *               running out of stack space.
+   * @param filter
+   *          The complete filter being checked, of which this filter may be a
+   *          subset.
+   * @param depth
+   *          The current depth of the evaluation, which is used to prevent
+   *          infinite recursion due to highly nested filters and eventually
+   *          running out of stack space.
+   * @return {@code true} if the filter references the sub-entry object class.
    */
-  private void checkFilterForLDAPSubEntry(SearchFilter filter, int depth)
+  private boolean checkFilterForLDAPSubEntry(SearchFilter filter, int depth)
   {
     // Paranoid check to avoid recursion deep enough to provoke
     // the stack overflow. This should never happen because if
@@ -1488,7 +1485,7 @@ public class SearchOperationBasis
       {
         TRACER.debugError("Exceeded maximum filter depth");
       }
-      return;
+      return false;
     }
 
     switch (filter.getFilterType())
@@ -1503,7 +1500,7 @@ public class SearchOperationBasis
         if (stringValueLC.equals(OC_LDAP_SUBENTRY_LC) ||
             stringValueLC.equals(OC_SUBENTRY))
         {
-          setReturnLDAPSubentries(true);
+          return true;
         }
       }
       break;
@@ -1511,15 +1508,14 @@ public class SearchOperationBasis
     case OR:
       for (SearchFilter f : filter.getFilterComponents())
       {
-        checkFilterForLDAPSubEntry(f, depth + 1);
-
-        if (isReturnLDAPSubentries())
+        if (checkFilterForLDAPSubEntry(f, depth + 1))
         {
-          // No point in continuing.
-          break;
+          return true;
         }
       }
       break;
     }
+
+    return false;
   }
 }
