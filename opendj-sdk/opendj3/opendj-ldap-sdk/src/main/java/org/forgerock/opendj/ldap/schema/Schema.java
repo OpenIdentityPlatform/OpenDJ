@@ -1938,14 +1938,14 @@ public final class Schema
 
   static MatchingRule getDefaultMatchingRule()
   {
-    return CoreSchema.getOctetStringMatchingRule();
+    return CoreSchema.getCaseIgnoreMatchingRule();
   }
 
 
 
   static Syntax getDefaultSyntax()
   {
-    return CoreSchema.getOctetStringSyntax();
+    return CoreSchema.getDirectoryStringSyntax();
   }
 
 
