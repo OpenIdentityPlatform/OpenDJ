@@ -183,7 +183,7 @@ public class DistinguishedNameEqualityMatchingRuleTest extends MatchingRuleTest
         { "CN=Lu\\C4\\8Di\\C4\\87", "cn=lu\u010di\u0107"},
         { "ou=\\e5\\96\\b6\\e6\\a5\\ad\\e9\\83\\a8,o=Airius",
             "o=airius\u0000ou=\u55b6\u696d\u90e8"},
-        { "photo=\\ john \\ ,dc=com", "dc=com\u0000photo=\\ john \\ "},
+        { "photo=\\ john \\ ,dc=com", "dc=com\u0000photo=john"},
         { "AB-global=", "ab-global="},
         { "OU= Sales + CN = J. Smith ,DC=example,DC=net",
             "dc=net\u0000dc=example\u0000cn=j. smith\u0001ou=sales"},
