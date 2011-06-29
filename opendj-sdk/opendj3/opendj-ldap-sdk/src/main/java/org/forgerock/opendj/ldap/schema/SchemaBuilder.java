@@ -3731,8 +3731,7 @@ public final class SchemaBuilder
     }
 
     // DIT structure rules need special processing because they have
-    // hierarchical
-    // dependencies.
+    // hierarchical dependencies.
     final List<DITStructureRule> invalidStructureRules = new LinkedList<DITStructureRule>();
     for (final DITStructureRule rule : id2StructureRules.values())
     {
