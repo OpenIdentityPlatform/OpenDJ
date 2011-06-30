@@ -110,7 +110,7 @@ import org.opends.server.util.DynamicConstants;
  * This is an abstract class that is in charge of actually performing the
  * installation.
  *
- * It just takes a UserData object and based on that installs OpenDS.
+ * It just takes a UserData object and based on that installs OpenDJ.
  *
  * When there is an update during the installation it will notify the
  * ProgressUpdateListener objects that have been added to it.  The
@@ -4489,7 +4489,7 @@ public abstract class Installer extends GuiApplication {
   private String getSelfSignedCertificateSubjectDN()
   {
     return "cn="+Rdn.escapeValue(getUserData().getHostName())+
-    ",O=OpenDS Self-Signed Certificate";
+    ",O=OpenDJ Self-Signed Certificate";
   }
 
   /**
