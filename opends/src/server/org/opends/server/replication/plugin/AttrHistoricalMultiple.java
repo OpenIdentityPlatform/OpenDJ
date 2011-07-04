@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -244,10 +245,9 @@ public class AttrHistoricalMultiple extends AttrHistorical
   {
     // We are replaying an operation that was already done
     // on another master server and this operation has a potential
-    // conflict
-    // with some more recent operations on this same entry
+    // conflict with some more recent operations on this same entry
     // we need to take the more complex path to solve them
-    if ((ChangeNumber.compare(changeNumber, getLastUpdateTime()) <= 0) ||
+    if ((ChangeNumber.compare(changeNumber, getLastUpdateTime()) < 0) ||
         (m.getModificationType() != ModificationType.REPLACE))
     {
       // the attribute was modified after this change -> conflict

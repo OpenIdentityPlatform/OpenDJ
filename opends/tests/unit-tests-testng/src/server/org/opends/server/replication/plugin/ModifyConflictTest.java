@@ -23,10 +23,9 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
-
-import org.opends.server.replication.protocol.LDAPUpdateMsg;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,11 +45,9 @@ import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.plugin.FakeOperation;
-import org.opends.server.replication.plugin.FakeOperationComparator;
-import org.opends.server.replication.plugin.EntryHistorical;
 import org.opends.server.replication.protocol.ModifyContext;
 import org.opends.server.replication.protocol.ReplicationMsg;
+import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.LocalBackendAddOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
@@ -886,6 +883,63 @@ public class ModifyConflictTest
   }
 
   /**
+   * Test that a DEL of one value and REPLACE with no value, of the same
+   * attribute done in a single operation correctly results in the value
+   * being kept.
+   *
+   * This is not a conflict in the strict definition but does exert
+   * the conflict resolution code.
+   */
+  @Test()
+  public void DelAndReplaceSameOp() throws Exception
+  {
+    Entry entry = initializeEntry();
+
+    // load historical from the entry
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+
+    /*
+     * simulate a add of the description attribute done at time t10
+     */
+    testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
+        "init value", 10, true);
+    /*
+     * simulate a add of the description attribute done at time t10
+     */
+    testModify(entry, hist, DESCRIPTION, ModificationType.ADD,
+        "second value", 11, true);
+    /*
+     * Now simulate a delete of one value and a replace with no value
+     * in the same operation
+     */
+
+    Attribute attr = Attributes.create(DESCRIPTION, "init value");
+    Modification mod1 = new Modification(ModificationType.DELETE, attr);
+    
+    Attribute attr2 = Attributes.empty(DESCRIPTION);
+    Modification mod2 = new Modification(ModificationType.REPLACE, attr2);
+
+    List<Modification> mods = new LinkedList<Modification>();
+    mods.add(mod1);
+    mods.add(mod2);
+
+    List<Modification> mods2 = new LinkedList<Modification>(mods);
+    replayModifies(entry, hist, mods, 12);
+    assertEquals(mods.size(), 2,
+      "DEL one value, del by Replace of the same attribute was not correct");
+    assertEquals(mods.get(0), mod1,
+      "DEL one value, del by Replace of the same attribute was not correct");
+    assertEquals(mods.get(1), mod2,
+      "DEL one value, del by Replace of the same attribute was not correct");
+    
+    // Replay the same modifs again
+    replayModifies(entry, hist, mods2, 12);
+    assertEquals(mods2.size(), 2,
+      "DEL one value, del by Replace of the same attribute was not correct");
+    
+  }
+
+  /**
    * Test that a ADD and DEL of the same attribute same value done
    * in a single operation correctly results in the value being kept.
    *
@@ -994,7 +1048,7 @@ public class ModifyConflictTest
 
   /**
    * Test that conflict between a modify-add and modify-add for
-   * multi-valued attributes are handled correctly.
+   * single-valued attributes are handled correctly.
    */
   @Test()
   public void addAndAddSingle() throws Exception
@@ -1005,7 +1059,7 @@ public class ModifyConflictTest
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
-     * simulate a add of the description attribute done at time t10
+     * simulate a add of the displayName attribute done at time t10
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
         "init value", 10, true);
@@ -1036,7 +1090,8 @@ public class ModifyConflictTest
   }
 
   /**
-   * Test that conflict between add delete and add are handled correctly.
+   * Test that conflict between add, delete and add on aingle valued attribute
+   * are handled correctly.
    */
   @Test()
   public void addDelAddSingle() throws Exception
@@ -1047,13 +1102,13 @@ public class ModifyConflictTest
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
-     * simulate a add of the description attribute done at time t1
+     * simulate a add of the displayName attribute done at time t1
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
         "init value", 1, true);
 
     /*
-     * simulate a del of the description attribute done at time t3
+     * simulate a del of the displayName attribute done at time t3
      * this should be processed normally
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE,
@@ -1069,12 +1124,13 @@ public class ModifyConflictTest
   }
 
   /**
-   * Test that conflict between add, add and delete are handled correctly.
+   * Test that conflict between add, add and delete on single valued attributes
+   * are handled correctly.
    *
    * This test simulate the case where a simple add is done on a first server
    * and at a later date but before replication happens, a add followed by
    * a delete of the second value is done on another server.
-   * The test checks that the firs tvalue wins and stay in the entry.
+   * The test checks that the first value wins and stays in the entry.
    */
   @Test()
   public void addAddDelSingle() throws Exception
@@ -1085,13 +1141,13 @@ public class ModifyConflictTest
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     /*
-     * simulate a add of the description attribute done at time t1
+     * simulate a add of the displayName attribute done at time t1
      */
     testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
         "first value", 1, true);
 
     /*
-     * simulate a add of the description attribute done at time t2
+     * simulate a add of the displayName attribute done at time t2
      * with a second value. This should not work because there is already
      * a value
      */
