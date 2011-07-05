@@ -83,6 +83,11 @@ public final class ReplSessionSecurity
    */
   public static final int HANDSHAKE_TIMEOUT = 4000;
 
+  /**
+   * The default connection timeout.
+   */
+  public static final int CONNECTION_TIMEOUT = 4000;
+
 
 
   /**
