@@ -423,6 +423,9 @@ public final class ReplicationServer
             }
 
             // Avoid connecting to self.
+
+            // FIXME: this will need changing if we ever support listening on
+            // specific addresses.
             if (isLocalAddress(inetAddress) && (port == replicationPort))
             {
               continue;
