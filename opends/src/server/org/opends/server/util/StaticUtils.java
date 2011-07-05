@@ -34,27 +34,14 @@ import static org.opends.server.util.ServerConstants.*;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.RandomAccess;
-import java.util.StringTokenizer;
-import java.util.TimeZone;
+import java.util.*;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -4570,5 +4557,79 @@ public final class StaticUtils
       }
     }
   }
+
+
+
+  /**
+   * Returns {@code true} if the provided IPv4 or IPv6 address or host name
+   * represents the address of one of the interfaces on the current host
+   * machine.
+   *
+   * @param addressString
+   *          The IPv4 or IPv6 address or host name.
+   * @return {@code true} if the provided IPv4 or IPv6 address or host name
+   *         represents the address of one of the interfaces on the current host
+   *         machine.
+   */
+  public static boolean isLocalAddress(String addressString)
+  {
+    try
+    {
+      return isLocalAddress(InetAddress.getByName(addressString));
+    }
+    catch (UnknownHostException e)
+    {
+      return false;
+    }
+  }
+
+
+
+  /**
+   * Returns {@code true} if the provided {@code InetAddress} represents the
+   * address of one of the interfaces on the current host machine.
+   *
+   * @param address
+   *          The network address.
+   * @return {@code true} if the provided {@code InetAddress} represents the
+   *         address of one of the interfaces on the current host machine.
+   */
+  public static boolean isLocalAddress(InetAddress address)
+  {
+    if (address.isLoopbackAddress())
+    {
+      return true;
+    }
+    else
+    {
+      Enumeration<NetworkInterface> i;
+      try
+      {
+        i = NetworkInterface.getNetworkInterfaces();
+      }
+      catch (SocketException e)
+      {
+        // Unable to determine whether the address is local.
+        TRACER.debugCaught(DebugLogLevel.WARNING, e);
+        return false;
+      }
+
+      while (i.hasMoreElements())
+      {
+        NetworkInterface n = i.nextElement();
+        Enumeration<InetAddress> j = n.getInetAddresses();
+        while (j.hasMoreElements())
+        {
+          InetAddress localAddress = j.nextElement();
+          if (localAddress.equals(address))
+          {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+  }
+
 }
 
