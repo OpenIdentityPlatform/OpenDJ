@@ -3385,26 +3385,27 @@
     
     <sequence>
       <script>
-        myLocation            = location
-        myPath                = dsPath
-        myKnownIssue          = knownIssue
+        myLocation              = location
+        myPath                  = dsPath
+        myKnownIssue            = knownIssue
         
         # Mandatory attributes in a changeLogEntry
-        ecl_DN                = changelogEntry['dn'][0]
-        ecl_targetDN          = changelogEntry['targetdn'][0]
-        ecl_changeType        = changelogEntry['changetype'][0]
-        ecl_changeTime        = changelogEntry['changetime'][0]
-        ecl_changeNumber      = changelogEntry['changenumber'][0]
+        ecl_DN                  = changelogEntry['dn'][0]
+        ecl_targetDN            = changelogEntry['targetdn'][0]
+        ecl_changeType          = changelogEntry['changetype'][0]
+        ecl_changeTime          = changelogEntry['changetime'][0]
+        ecl_changeNumber        = changelogEntry['changenumber'][0]
         
         # Optional attributes
-        ecl_replicationCSN    = None
-        ecl_replicaIdentifier = None
-        ecl_targetEntryUUID   = None
-        ecl_newRDN            = None
-        ecl_deleteOldRDN      = None
-        ecl_newSuperior       = None
-        ecl_changes           = None         
-                
+        ecl_replicationCSN      = None
+        ecl_replicaIdentifier   = None
+        ecl_targetEntryUUID     = None
+        ecl_newRDN              = None
+        ecl_deleteOldRDN        = None
+        ecl_newSuperior         = None
+        ecl_changes             = None
+        ecl_includedttributes  = None
+
         if 'replicationcsn' in changelogEntry.keys():
           ecl_replicationCSN = changelogEntry['replicationcsn'][0]
         if 'replicaidentifier' in changelogEntry.keys():
@@ -3419,6 +3420,8 @@
           ecl_newSuperior = changelogEntry['newsuperior'][0]
         if 'changes' in changelogEntry.keys():
           ecl_changes = changelogEntry['changes'][0]
+        if 'includedattributes' in changelogEntry.keys():
+          ecl_includedAttributes = changelogEntry['includedattributes'][0]
       </script>
       
       <message>
@@ -3844,78 +3847,66 @@
           </else>
         </if>
       </if>
-      
+
       <if expr="includeAttrs">
-        <iterate var="attr" in="includeAttrs.keys()">
+        <if expr="ecl_includedAttributes">
           <sequence>
+            <!-- Decode the changes that are encoded in base64 -->
             <message>
-              'checkChangelogEntry: Checking include-attribute: %s' % attr
+              'checkChangelogEntry: Decode external changelog included attributes'
             </message>
+            <call function="'Base64WithScript'">
+              { 'location'    : myLocation,
+                'dsPath'      : myPath,
+                'subcommand'  : 'decode',
+                'encodedData' : ecl_includedAttributes
+              }
+            </call>
+            <!-- STAXResult is not always a list-->
             <script>
-              # included-attributes are preceded by 'target' prefix in the
-              # changelog entry, e.g.: 'description' -> 'targetdescription'
-              targetAttr    = 'target%s' % attr
-              valueList     = includeAttrs[attr]
-              ecl_valueList = None
-              
-              if targetAttr in changelogEntry.keys():
-                ecl_valueList = changelogEntry[targetAttr]
-                ecl_valueList.sort()
-                valueList.sort()
+              try:
+                decodeRC, decodedChanges = STAXResult[0]
+              except AttributeError, details:
+                decodedChanges = 'AttributeError: can not parse STAXResult %s' \
+                                 % details
+                decodeRC = '1'
             </script>
-            <if expr="ecl_valueList != None">
-              <!-- Some value found for (include-attribute) targetAttr -->
-              <if expr="attr in expectMissingIncAttrs">
-                <sequence>
-                  <message log="1" level="'Error'">
-                    'Found values %s for %s while NONE expected.' \
-                     % (valueList, targetAttr) 
-                  </message>
-                  <if expr="myKnownIssue == None">
-                    <call function="'testFailed'"/>
-                    <else>
-                      <call function="'setKnownIssue'">
-                        { 'issueId' : myKnownIssue }
-                      </call>
-                    </else>
-                  </if>
-                </sequence>
-                <else>
-                  <if expr="valueList == ecl_valueList">
-                    <message>
-                      'Found expected values for include attribute in %s: \
-                      %s' % (targetAttr, valueList)
-                    </message>
-                    <else>
-                      <sequence>
-                        <message log="1" level="'Error'">
-                          'Expected values %s could not be found in %s: %s' \
-                           % (valueList, targetAttr, ecl_valueList) 
-                        </message>
-                        <if expr="myKnownIssue == None">
-                          <call function="'testFailed'"/>
-                          <else>
-                            <call function="'setKnownIssue'">
-                              { 'issueId' : myKnownIssue }
-                            </call>
-                          </else>
-                        </if>
-                      </sequence>
-                    </else>
-                  </if>
-                </else>
-              </if>
-              <else>
-                <!-- No (include-attribute) targetAttr found -->
-                <if expr="attr in expectMissingIncAttrs">
-                  <message>
-                    'No %s could be found in the changelog entry, AS EXPECTED' \
-                    % targetAttr 
-                  </message>
-                  <else>
+            <message>
+              'checkChangelogEntry: Decoded changes:\n%s' % decodedChanges
+            </message>
+            <if expr="decodeRC == 0">
+              <sequence>
+                <call function="'parseLdifEntry'">
+                  { 'ldifEntry' : decodedChanges }
+                </call>
+                <script>
+                  ecl_includeAttrsMap = STAXResult
+                </script>
+                <message>
+                  'Parsed changelog entry changes:  \n%s' % ecl_includeAttrsMap
+                </message>
+              </sequence>
+            </if>
+            <iterate var="attr" in="includeAttrs.keys()">
+              <sequence>
+                <message>'Matching included attribute %s.' % attr</message>
+                <script>
+                  targetAttr    = attr            
+                  valueList     = includeAttrs[attr]
+                  ecl_valueList = None
+    
+                  if targetAttr in ecl_includeAttrsMap.keys():
+                    ecl_valueList = ecl_includeAttrsMap[targetAttr]
+                    ecl_valueList.sort()
+                    valueList.sort()
+                </script>
+                <if expr="ecl_valueList != None">
+                  <!-- Some value found for (include-attribute) targetAttr -->
+                  <if expr="attr in expectMissingIncAttrs">
                     <sequence>
                       <message log="1" level="'Error'">
-                        'No %s could be found in the changelog entry' % targetAttr 
+                        'Found values %s for %s while NONE expected.' \
+                         % (valueList, targetAttr)
                       </message>
                       <if expr="myKnownIssue == None">
                         <call function="'testFailed'"/>
@@ -3926,12 +3917,60 @@
                         </else>
                       </if>
                     </sequence>
+                    <else>
+                      <if expr="valueList == ecl_valueList">
+                        <message>
+                          'Found expected values for include attribute in %s: \
+                          %s' % (targetAttr, valueList)
+                        </message>
+                        <else>
+                          <sequence>
+                            <message log="1" level="'Error'">
+                              'Expected values %s could not be found in %s: %s' \
+                               % (valueList, targetAttr, ecl_valueList)
+                            </message>
+                            <if expr="myKnownIssue == None">
+                              <call function="'testFailed'"/>
+                              <else>
+                                <call function="'setKnownIssue'">
+                                  { 'issueId' : myKnownIssue }
+                                </call>
+                              </else>
+                            </if>
+                          </sequence>
+                        </else>
+                      </if>
+                    </else>
+                  </if>
+                  <else>
+                    <!-- No (include-attribute) targetAttr found -->
+                    <if expr="attr in expectMissingIncAttrs">
+                      <message>
+                        'No %s could be found in the changelog entry, AS EXPECTED' \
+                        % targetAttr
+                      </message>
+                      <else>
+                        <sequence>
+                          <message log="1" level="'Error'">
+                            'No %s could be found in the changelog entry' % targetAttr
+                          </message>
+                          <if expr="myKnownIssue == None">
+                            <call function="'testFailed'"/>
+                            <else>
+                              <call function="'setKnownIssue'">
+                                { 'issueId' : myKnownIssue }
+                              </call>
+                            </else>
+                          </if>
+                        </sequence>
+                      </else>
+                    </if>
                   </else>
                 </if>
-              </else>
-            </if>                    
+              </sequence>
+            </iterate>
           </sequence>
-        </iterate>
+        </if>
       </if>
       
     </sequence>
