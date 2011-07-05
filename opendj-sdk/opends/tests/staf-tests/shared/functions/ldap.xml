@@ -3584,7 +3584,7 @@
         if attributes:
           STAFCmdParamsList.append('%s' % attributes)
         else:
-          STAFCmdParamsList.append('"*" changeLogCookie targetEntryUUID')  
+          STAFCmdParamsList.append('"*" +')  
  
         STAFCmdParams=' '.join(STAFCmdParamsList)
       </script>
