@@ -325,7 +325,7 @@
   <title>Examples</title>
   <para>The following example starts <command>dsconfig</command> in interactive,
   menu-driven mode on the default port of the current host.</para>
-  <screen width="80">$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password
+  <screen>$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password
 
 &gt;&gt;&gt;&gt; OpenDS configuration console main menu
 

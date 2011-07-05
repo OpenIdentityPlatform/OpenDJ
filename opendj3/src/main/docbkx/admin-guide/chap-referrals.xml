@@ -68,7 +68,7 @@
   <literal>ref</literal> attribute with an LDAP URL to an existing entry.
   This section demonstrates use of the latter approach.</para>
   
-  <screen width="80">$ cat referral.ldif 
+  <screen>$ cat referral.ldif 
 dn: ou=People,dc=example,dc=com
 changetype: modify
 add: objectClass
@@ -85,7 +85,7 @@ MODIFY operation successful for DN ou=People,dc=example,dc=com</screen>
   <literal>ou=People,dc=example,dc=com</literal>. OpenDJ can now return
   a referral for operations under the People organizational unit.</para>
   
-  <screen width="80">$ ldapsearch -p 1389 -b dc=example,dc=com uid=bjensen description
+  <screen>$ ldapsearch -p 1389 -b dc=example,dc=com uid=bjensen description
 SearchReference(referralURLs=
  {ldap://opendj.example.com:2389/ou=People,dc=example,dc=com??sub?})
 $ ldapsearch -p 1389 -b dc=example,dc=com ou=people
@@ -95,7 +95,7 @@ SearchReference(referralURLs=
   <para>To access the entry instead of the referral, use the Manage DSAIT
   control.</para>
   
-  <screen width="80">$ ldapsearch -p 1389 -b dc=example,dc=com -J ManageDSAIT ou=people
+  <screen>$ ldapsearch -p 1389 -b dc=example,dc=com -J ManageDSAIT ou=people
 dn: ou=People,dc=example,dc=com
 ou: People
 objectClass: organizationalunit

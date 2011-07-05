@@ -142,7 +142,7 @@
   <title>Examples</title>
   <para>The following example demonstrates use of the command with two
   small LDIF files.</para>
-  <screen width="80">$ cat /path/to/newuser.ldif 
+  <screen>$ cat /path/to/newuser.ldif 
 dn: uid=newuser,ou=People,dc=example,dc=com
 uid: newuser
 objectClass: person

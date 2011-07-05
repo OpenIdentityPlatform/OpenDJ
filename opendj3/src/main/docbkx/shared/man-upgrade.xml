@@ -148,7 +148,7 @@
  <refsect1>
   <title>Examples</title>
   <para>The following example demonstrates upgrade without interaction.</para>
-  <screen width="80">$ ./OpenDJ/upgrade -f ~/Downloads/OpenDJ-<?eval ${project.version}?>.zip -n
+  <screen>$ ./OpenDJ/upgrade -f ~/Downloads/OpenDJ-<?eval ${project.version}?>.zip -n
 See
 /var/.../opends-upgrade-5650414945123366149.log
  for a detailed log of this operation.

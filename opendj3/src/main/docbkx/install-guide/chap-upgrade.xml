@@ -59,7 +59,7 @@
   >opendj_patch4upgrade.sh</link> to your current server, by
   running the shell script from the directory where the server is installed.</para>
   
-  <screen width="80">$ cd /path/to/OpenDJ
+  <screen>$ cd /path/to/OpenDJ
 $ sh /downloads/opendj_patch4upgrade.sh
 /path/to/OpenDJ has been patched, you can proceed with the upgrade program now</screen>
 
@@ -158,16 +158,16 @@ $ sh /downloads/opendj_patch4upgrade.sh
    
    <step>
     <para>Download the OpenDJ .zip file.</para>
-    <screen width='80'>$ cd /tmp
+    <screen>$ cd /tmp
 $ wget http://www.forgerock.org/downloads/opendj/<?eval ${project.version}?>/OpenDJ-<?eval ${project.version}?>.zip</screen>
    </step>
    <step>
     <para>Change to the directory at the root of the server instance.</para>
-    <screen width='80'>$ cd /path/to/OpenDJ</screen>
+    <screen>$ cd /path/to/OpenDJ</screen>
    </step>
    <step>
     <para>Pass the .zip file name to the <command>upgrade</command> command.</para>
-    <screen width='80'>$ ./upgrade -f /tmp/OpenDJ-<?eval ${project.version}?>.zip
+    <screen>$ ./upgrade -f /tmp/OpenDJ-<?eval ${project.version}?>.zip
 See /var/....log for a detailed log of this operation.
 
 Initializing Upgrade ..... Done.
@@ -194,7 +194,7 @@ See /var/....log for a detailed log of this operation.</screen>
     <command>rebuild-index</command> command to rebuild the
     <literal>dn2id</literal> index for your suffixes.</para>
     
-    <screen width='80'>$ ./bin/rebuild-index -i dn2id -b "dc=example,dc=com"
+    <screen>$ ./bin/rebuild-index -i dn2id -b "dc=example,dc=com"
 ...Rebuild complete. Processed 160 entries in 0 seconds (average rate 401.0/sec)</screen>
    </step>
   </procedure>

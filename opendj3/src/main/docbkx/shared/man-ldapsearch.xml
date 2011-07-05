@@ -412,7 +412,7 @@ ldapsearch.port=1389</programlisting>
   <title>Examples</title>
   <para>The following example searches for entries with UID containing
   <literal>jensen</literal>, returning only DNs and uid values.</para>
-  <screen width="80">$ ldapsearch -p 1389 -b dc=example,dc=com "(uid=*jensen*)" uid
+  <screen>$ ldapsearch -p 1389 -b dc=example,dc=com "(uid=*jensen*)" uid
 dn: uid=ajensen,ou=People,dc=example,dc=com
 uid: ajensen
 

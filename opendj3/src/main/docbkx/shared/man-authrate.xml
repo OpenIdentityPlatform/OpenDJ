@@ -350,7 +350,7 @@
   <title>Examples</title>
   <para>The following example demonstrates measuring simple bind
   performance.</para>
-  <screen width="80">$ authrate -p 1389 -g "rand(names.txt)" \
+  <screen>$ authrate -p 1389 -g "rand(names.txt)" \
 &gt; -D "uid=%s,ou=people,dc=example,dc=com" -w password -c 10 -f
 -----------------------------------------------------------------
      Throughput                            Response Time         

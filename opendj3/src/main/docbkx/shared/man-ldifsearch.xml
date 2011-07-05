@@ -154,7 +154,7 @@
  <refsect1>
   <title>Examples</title>
   <para>The following example demonstrates use of the command.</para>
-  <screen width="80">$ ldifsearch -l /path/to/Example.ldif -b dc=example,dc=com uid=bjensen
+  <screen>$ ldifsearch -l /path/to/Example.ldif -b dc=example,dc=com uid=bjensen
 dn: uid=bjensen,ou=People,dc=example,dc=com
 objectClass: person
 objectClass: organizationalPerson

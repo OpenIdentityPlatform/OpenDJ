@@ -406,7 +406,7 @@
   <title>Examples</title>
   <para>The following example imports the content of the LDIF file,
   <filename>Example.ldif</filename>, with the server offline.</para>
-  <screen width="80">
+  <screen>
   $ import-ldif -b dc=example,dc=com -n userRoot -l /path/to/Example.ldif
   [21/Jun/2011:13:38:03 +0200] category=RUNTIME_INFORMATION severity=NOTICE...
   ... msg=Import LDIF environment close took 0 seconds</screen>

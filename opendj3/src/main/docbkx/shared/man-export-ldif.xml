@@ -338,7 +338,7 @@
   <title>Examples</title>
   <para>The following example exports data to a file,
   <filename>Example.ldif</filename>, with the server offline.</para>
-  <screen width="80">$ export-ldif -b dc=example,dc=com -n userRoot -l ../ldif/Example.ldif
+  <screen>$ export-ldif -b dc=example,dc=com -n userRoot -l ../ldif/Example.ldif
 [21/Jun/2011:13:40:49 +0200] category=BACKEND severity=INFORMATION ...
 ...Exported 160 entries and skipped 0 in 0 seconds (average rate 1428.6/sec)</screen>
  </refsect1>

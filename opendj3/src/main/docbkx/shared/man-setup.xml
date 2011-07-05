@@ -323,7 +323,7 @@
   <title>Examples</title>
   <para>The following command installs OpenDJ directory server, enabling
   StartTLS and importing 100 example entries without interaction.</para>
-  <screen width="80">$ ./OpenDJ/setup --cli -b dc=example,dc=com -d 100 -D "cn=Directory Manager" \
+  <screen>$ ./OpenDJ/setup --cli -b dc=example,dc=com -d 100 -D "cn=Directory Manager" \
 &gt; -w password -h `hostname` -p 1389 \
 &gt; --generateSelfSignedCertificate --enableStartTLS -n 
 

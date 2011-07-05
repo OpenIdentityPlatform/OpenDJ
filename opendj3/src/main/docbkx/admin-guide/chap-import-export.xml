@@ -83,7 +83,7 @@
   <step>
    <para>Run the <command>make-ldif</command> command to generate your
    LDIF file.</para>
-   <screen width="80">$ make-ldif --randomSeed 0 -t /path/to/my.template \
+   <screen>$ make-ldif --randomSeed 0 -t /path/to/my.template \
 &gt; -o generated.ldif
 Processed 1000 entries
 Processed 2000 entries
@@ -108,13 +108,13 @@ LDIF processing complete.  10003 entries written</screen>
    <para>To speed up the operation for large data sets such as importing
    millions of entries, first shut down the server where you plan to import
    data.</para>
-   <screen width='80'>$ stop-ds</screen>
+   <screen>$ stop-ds</screen>
   </step>
   <step performance="optional">
    <para>Create a new JE backend for your data if you do not want to use
    an existing backend, such as <literal>userRoot</literal>, and set the
    base DN corresponding to your data.</para>
-   <screen width='80'>$ dsconfig create-backend --backend-name testData --type local-db
+   <screen>$ dsconfig create-backend --backend-name testData --type local-db
 
 
 &gt;&gt;&gt;&gt; Configuring the "base-dn" property
@@ -182,11 +182,11 @@ The Local DB Backend was created successfully</screen>
    <stepalternatives>
     <step>
      <para>If you stopped the server, import the data directly.</para>
-     <screen width='80'>$ import-ldif -b dc=example,dc=org -n userRoot -l /path/to/generated.ldif</screen>
+     <screen>$ import-ldif -b dc=example,dc=org -n userRoot -l /path/to/generated.ldif</screen>
     </step>
     <step>
      <para>If not, schedule a task to import the data while online.</para>
-     <screen width='80'>$ import-ldif -X -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+     <screen>$ import-ldif -X -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
 &gt; -b dc=example,dc=org -n userRoot -l /path/to/generated.ldif</screen>
      <para>Notice that the task is scheduled through communication over SSL on
      the administration port, by default <literal>4444</literal>. You can
@@ -209,7 +209,7 @@ The Local DB Backend was created successfully</screen>
   <step performance="optional">
    <para>To speed up the operation for large data sets such as exporting
    millions of entries, first shut down the server.</para>
-   <screen width='80'>$ stop-ds</screen>
+   <screen>$ stop-ds</screen>
   </step>
   <step>
    <para>The following example exports <literal>dc=example,dc=org</literal>
@@ -217,7 +217,7 @@ The Local DB Backend was created successfully</screen>
    <stepalternatives>
     <step>
      <para>If you stopped the server, export the data directly.</para>
-     <screen width='80'>$ export-ldif -b dc=example,dc=org -n userRoot -l /path/to/backup.ldif</screen>
+     <screen>$ export-ldif -b dc=example,dc=org -n userRoot -l /path/to/backup.ldif</screen>
     </step>
     <step>
      <para>If not, schedule a task to export the data while online.</para>
@@ -245,7 +245,7 @@ The Local DB Backend was created successfully</screen>
    in a similar way to how you search LDAP directories with the
    <command>ldapsearch</command> command.</para>
    
-   <screen width="80">$ ldifsearch -b dc=example,dc=org -l generated.ldif "(sn=Grenier)" mobile
+   <screen>$ ldifsearch -b dc=example,dc=org -l generated.ldif "(sn=Grenier)" mobile
 dn: uid=user.4630,ou=People,dc=example,dc=org
 mobile: +1 728 983 6669
 
@@ -263,7 +263,7 @@ mobile: +1 728 983 6669
    <para>The <command>ldifmodify</command> command lets you apply changes to
    LDIF files, generating a new, changed version of the original file.</para>
    
-   <screen width="80">$ cat changes.ldif 
+   <screen>$ cat changes.ldif 
 dn: uid=user.0,ou=People,dc=example,dc=org
 changetype: modify
 replace: description
@@ -284,7 +284,7 @@ $ ldifmodify -s generated.ldif -m changes.ldif -t new.ldif</screen>
    <para>The <command>ldif-diff</command> command reports differences between
    two LDIF files in LDIF format.</para>
    
-   <screen width="80">$ ldif-diff -s old.ldif -t new.ldif
+   <screen>$ ldif-diff -s old.ldif -t new.ldif
 dn: uid=user.0,ou=People,dc=example,dc=org
 changetype: modify
 add: initials

@@ -329,7 +329,7 @@ ldapsearch.port=1389</programlisting>
   <title>Examples</title>
   <para>The following example demonstrates use of the command to add an entry
   to the directory.</para>
-  <screen width="80">$ cat newuser.ldif 
+  <screen>$ cat newuser.ldif 
 dn: uid=newuser,ou=People,dc=example,dc=com
 uid: newuser
 facsimileTelephoneNumber: +1 408 555 1213
@@ -359,7 +359,7 @@ ADD operation successful for DN uid=newuser,ou=People,dc=example,dc=com</screen>
 
  <para>The following example demonstrates adding a Description attribute
  to the new user's entry.</para>
- <screen width="80">$ cat newdesc.ldif 
+ <screen>$ cat newdesc.ldif 
 dn: uid=newuser,ou=People,dc=example,dc=com
 changetype: modify
 add: description
@@ -372,7 +372,7 @@ MODIFY operation successful for DN uid=newuser,ou=People,dc=example,dc=com</scre
  
  <para>The following example demonstrates changing the Description attribute
  for the new user's entry.</para>
- <screen width="80">$ cat moddesc.ldif 
+ <screen>$ cat moddesc.ldif 
 dn: uid=newuser,ou=People,dc=example,dc=com
 changetype: modify
 replace: description
@@ -384,7 +384,7 @@ Processing MODIFY request for uid=newuser,ou=People,dc=example,dc=com
 MODIFY operation successful for DN uid=newuser,ou=People,dc=example,dc=com</screen>
  
  <para>The following example demonstrates deleting the new user's entry.</para>
- <screen width="80">$ cat deluser.ldif 
+ <screen>$ cat deluser.ldif 
 dn: uid=newuser,ou=People,dc=example,dc=com
 changetype: delete
 

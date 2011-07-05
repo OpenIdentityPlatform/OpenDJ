@@ -151,6 +151,6 @@
   <title>Examples</title>
   <para>The following example starts the Control Panel on a remote host.</para>
   
-  <screen width="80">$ control-panel -r -h opendj.example.com -p 4444 &amp;</screen>
+  <screen>$ control-panel -r -h opendj.example.com -p 4444 &amp;</screen>
  </refsect1>
 </refentry>

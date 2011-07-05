@@ -97,7 +97,7 @@
  </refsect1>
  <refsect1>
   <title>Examples</title>
-  <screen width="80">$ list-backends 
+  <screen>$ list-backends 
 Backend ID         : Base DN
 -------------------:----------------------
 adminRoot          : cn=admin data

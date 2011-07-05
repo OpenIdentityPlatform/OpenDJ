@@ -127,6 +127,6 @@
   <title>Examples</title>
   <para>The following command starts the server without displaying
   information about the startup process.</para>
-  <screen width="80">$ start-ds -Q</screen>
+  <screen>$ start-ds -Q</screen>
  </refsect1>
 </refentry>

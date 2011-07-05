@@ -103,7 +103,7 @@
  </refsect1>
  <refsect1>
   <title>Examples</title>
-  <screen width="80">$ dsjavaproperties 
+  <screen>$ dsjavaproperties 
 The operation was successful.  The server commands will use the java arguments
  and java home specified in the properties file located in
  /path/to/OpenDJ/config/java.properties</screen>

@@ -238,7 +238,7 @@
   <title>Examples</title>
   <para>The following example demonstrates use of the command with a server
   that does daily backups at 2:00 AM.</para>
-  <screen width="80">$ manage-tasks -p 4444 -h `hostname` -D "cn=Directory Manager" -w password -s
+  <screen>$ manage-tasks -p 4444 -h `hostname` -D "cn=Directory Manager" -w password -s
 
   ID                                Type    Status
   ---------------------------------------------------------------

@@ -47,7 +47,7 @@
   exposed. The following example shows monitoring information about the
   <literal>userRoot</literal> backend holding Example.com data.</para>
   
-  <screen width="80">$ ldapsearch -p 1389 -b cn=monitor "(cn=userRoot backend)"
+  <screen>$ ldapsearch -p 1389 -b cn=monitor "(cn=userRoot backend)"
 dn: cn=userRoot backend,cn=Disk Space Monitor,cn=monitor
 disk-state: normal
 objectClass: top
@@ -88,7 +88,7 @@ ds-backend-base-dn: dc=example,dc=com
   OpenDMK, provided separately due to licensing restrictions. Once you have
   installed OpenDMK, you can set up a connection handler for SNMP.</para>
   
-  <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
 &gt; create-connection-handler --handler-name "SNMP Connection Handler" \
 &gt; --type snmp --set enabled:true --set listen-port:11161 
 &gt; --set trap-port:11162 -X -n
@@ -105,14 +105,14 @@ ds-backend-base-dn: dc=example,dc=com
   <command>dsconfig</command> command to configure the JMX connection
   handler.</para>
   
-  <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
 &gt; set-connection-handler-prop --handler-name "JMX Connection Handler" \
 &gt; --set enabled:true -X -n</screen>
 
   <para>By default, no users have privileges to access the JMX connection. The
   following command adds JMX privileges for Directory Manager.</para>
 
-  <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
 &gt; set-root-dn-prop --add default-root-privilege-name:jmx-notify \
 &gt; --add default-root-privilege-name:jmx-read \
 &gt; --add default-root-privilege-name:jmx-write -X -n</screen>
@@ -122,7 +122,7 @@ ds-backend-base-dn: dc=example,dc=com
   <para>Alternatively, you can connect to a local server process by using the
   server process identifier.</para>
 
-  <screen width="80">$ cat ../logs/server.pid 
+  <screen>$ cat ../logs/server.pid 
 3363
 $ jvisualvm --openpid 3363 &amp;</screen>
  </section>
@@ -138,7 +138,7 @@ $ jvisualvm --openpid 3363 &amp;</screen>
   
   <para>The <command>status</command> command takes administrative credentials
   to read the configuration, as does the Control Panel.</para>
-  <screen width="80">$ status -D "cn=Directory Manager" -w password
+  <screen>$ status -D "cn=Directory Manager" -w password
 
           --- Server Status ---
 Server Run Status:        Started
@@ -170,7 +170,7 @@ Replication: Disabled</screen>
   administration port, and so can connect to both local and remote
   servers.</para>
   
-  <screen width="80">$ manage-tasks -h opendj.example.com -p 4444 -D "cn=Directory Manager" \
+  <screen>$ manage-tasks -h opendj.example.com -p 4444 -D "cn=Directory Manager" \
 &gt; -w password -X -n
 
   ID                         Type    Status
@@ -198,7 +198,7 @@ Replication: Disabled</screen>
     message.</para>
     <para>The following access log excerpt shows a search operation from the
     local host, with the first three lines wrapped for readability.</para>
-    <screen width="80">
+    <screen>
 [21/Jun/2011:08:01:53 +0200] CONNECT conn=4 from=127.0.0.1:49708
  to=127.0.0.1:1389 protocol=LDAP
 [21/Jun/2011:08:01:53 +0200] SEARCH REQ conn=4 op=0 msgID=1
@@ -213,7 +213,7 @@ Replication: Disabled</screen>
     conditions, and warnings, categorized and identified by severity.</para>
     <para>The following errors log excerpt shows log entries about a
     backup task, with lines wrapped for readability.</para>
-    <screen width="80">
+    <screen>
 [22/Jun/2011:12:32:23 +0200] category=BACKEND severity=NOTICE msgID=9896349
  msg=Backup task 20110622123224088 started execution
 [22/Jun/2011:12:32:23 +0200] category=TOOLS severity=NOTICE msgID=10944792
@@ -229,7 +229,7 @@ Replication: Disabled</screen>
     <para>The <firstterm>replication log</firstterm> traces replication
     events, with entries similar to the errors log. The following excerpt has
     lines wrapped for readability.</para>
-    <screen width="80">
+    <screen>
 [22/Jun/2011:14:37:34 +0200] category=SYNC severity=NOTICE msgID=15139026
  msg=Finished total update: exported domain "dc=example,dc=com" from this
  directory server DS(24065) to all remote directory servers. 
@@ -280,7 +280,7 @@ Replication: Disabled</screen>
   events. Yet alert notifications are not enabled by default. You can use
   the <command>dsconfig</command> command to enable alert notifications.</para>
   
-  <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
 &gt; set-alert-handler-prop --handler-name "JMX Alert Handler" \
 &gt; --set enabled:true -X -n</screen>
 
@@ -288,7 +288,7 @@ Replication: Disabled</screen>
   Before you set up the SMTP-based alert handler, you must identify an SMTP
   server to which OpenDJ sends messages.</para>
   
-  <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
 &gt; set-global-configuration-prop --set smtp-server:smtp.example.com -X -n
 $ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
 &gt; create-alert-handler --handler-name "SMTP Alert Handler" --type smtp \

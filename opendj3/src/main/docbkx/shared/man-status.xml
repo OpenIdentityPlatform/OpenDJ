@@ -206,7 +206,7 @@
  </refsect1>
  <refsect1>
   <title>Examples</title>
-  <screen width="80">$ status -D "cn=Directory Manager" -w password
+  <screen>$ status -D "cn=Directory Manager" -w password
 
           --- Server Status ---
 Server Run Status:        Started

@@ -258,7 +258,7 @@
  <refsect1>
   <title>Examples</title>
   <para>This example lists server properties.</para>
-  <screen width="80">
+  <screen>
 $ dsframework -p 4444 -h `hostname` -D "cn=Directory Manager" -w password -X \
 &gt; list-server-properties
 Option Types:

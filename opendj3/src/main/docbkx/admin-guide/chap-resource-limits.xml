@@ -80,7 +80,7 @@
    <title>To Set Search Limits For a User</title>
    <step>
     <para>Change the user entry to set the limits to override.</para>
-    <screen width="80">$ cat limit.ldif 
+    <screen>$ cat limit.ldif 
 dn: uid=bjensen,ou=People,dc=example,dc=com
 changetype: modify
 add: ds-rlim-size-limit
@@ -93,7 +93,7 @@ MODIFY operation successful for DN uid=bjensen,ou=People,dc=example,dc=com</scre
     <para>Now when Babs Jensen performs a search returning more than 10
     entries, she sees the following message.</para>
     
-    <screen width="80">Result Code:  4 (Size Limit Exceeded)
+    <screen>Result Code:  4 (Size Limit Exceeded)
 Additional Information:  This search operation has sent the maximum of
  10 entries to the client</screen>
    </step>
@@ -104,7 +104,7 @@ Additional Information:  This search operation has sent the maximum of
    <step>
     <para>Create an LDAP subentry to specify the limits using collective
     attributes.</para>
-    <screen width="80">$ cat grouplim.ldif 
+    <screen>$ cat grouplim.ldif 
 dn: cn=Remove Administrator Search Limits,dc=example,dc=com
 objectClass: collectiveAttributeSubentry
 objectClass: extensibleObject
@@ -125,7 +125,7 @@ ADD operation successful for DN
    </step>
    <step>
     <para>Check the results.</para>
-    <screen width="80">$ ldapsearch -p 1389 -b dc=example,dc=com uid=kvaughan + | grep ds-rlim
+    <screen>$ ldapsearch -p 1389 -b dc=example,dc=com uid=kvaughan + | grep ds-rlim
 ds-rlim-lookthrough-limit: 0
 ds-rlim-time-limit: 0
 ds-rlim-size-limit: 0</screen>
@@ -143,7 +143,7 @@ ds-rlim-size-limit: 0</screen>
   global configuration property, <literal>idle-time-limit</literal>. By
   default, no idle time limit is set.</para>
   
-  <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
 &gt; set-global-configuration-prop --set idle-time-limit:24h -X -n</screen>
 
   <para>The example shown sets the idle time limit to 24 hours.</para>
@@ -159,7 +159,7 @@ ds-rlim-size-limit: 0</screen>
   add groups with large numbers of members, those add requests can go beyond
   the 5 MB limit.</para>
   
-  <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
 &gt; set-connection-handler-prop --handler-name "LDAP Connection Handler" \
 &gt; --set max-request-size:20mb -X -n</screen>
   
