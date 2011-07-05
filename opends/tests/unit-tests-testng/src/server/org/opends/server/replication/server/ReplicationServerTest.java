@@ -198,7 +198,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     newClientWithFirstChanges();
     newClientWithChangefromServer1();
     newClientWithChangefromServer2();
-    newClientWithUnknownChanges();    
+    newClientWithUnknownChanges();
     stopChangelog();
     exportBackend();
     backupRestore();
@@ -770,7 +770,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     debugInfo("Starting changelogChaining");
     replicationServer.clearDb();
     TestCaseUtils.initializeTestBackend(true);
-    
+
     for (int itest = 0; itest <2; itest++)
     {
       ReplicationBroker broker2 = null;
@@ -1010,7 +1010,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     Socket socket = new Socket();
     socket.setReceiveBufferSize(1000000);
     socket.setTcpNoDelay(true);
-    socket.connect(ServerAddr, 500);
+    socket.connect(ServerAddr, ReplSessionSecurity.CONNECTION_TIMEOUT);
     ReplSessionSecurity replSessionSecurity = getReplSessionSecurity();
     ProtocolSession session =
          replSessionSecurity.createClientSession(socket,

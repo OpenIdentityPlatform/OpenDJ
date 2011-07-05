@@ -953,7 +953,7 @@ public class AssuredReplicationServerTest
           new InetSocketAddress("localhost", port);
         Socket socket = new Socket();
         socket.setTcpNoDelay(true);
-        socket.connect(serverAddr, 500);
+        socket.connect(serverAddr, ReplSessionSecurity.CONNECTION_TIMEOUT);
 
         // Create client session
         fakePort++;

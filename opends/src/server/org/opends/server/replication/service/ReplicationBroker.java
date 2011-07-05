@@ -1179,7 +1179,7 @@ public class ReplicationBroker
       socket = new Socket();
       socket.setReceiveBufferSize(1000000);
       socket.setTcpNoDelay(true);
-      socket.connect(serverAddr, 500);
+      socket.connect(serverAddr, ReplSessionSecurity.CONNECTION_TIMEOUT);
       localSession = replSessionSecurity.createClientSession(
           socket, ReplSessionSecurity.HANDSHAKE_TIMEOUT);
       boolean isSslEncryption = replSessionSecurity

@@ -522,7 +522,7 @@ public final class ReplicationServer
       InetSocketAddress ServerAddr = new InetSocketAddress(
           InetAddress.getByName(hostname), Integer.parseInt(port));
       socket.setTcpNoDelay(true);
-      socket.connect(ServerAddr, 500);
+      socket.connect(ServerAddr, ReplSessionSecurity.CONNECTION_TIMEOUT);
 
       session = replSessionSecurity.createClientSession(socket,
           ReplSessionSecurity.HANDSHAKE_TIMEOUT);
