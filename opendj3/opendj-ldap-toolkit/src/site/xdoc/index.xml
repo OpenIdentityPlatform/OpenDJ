@@ -31,7 +31,7 @@
   </properties>
   <body>
     <section name="About OpenDJ LDAP Toolkit">
-      <p>The OpenDJ LDAP Toolkit includes the following command-line tools.ß</p>
+      <p>The OpenDJ LDAP Toolkit includes the following command-line tools.</p>
       <dl>
        <dt>authrate</dt><dd>measure bind throughput and response time</dd>
        <dt>ldapcompare</dt><dd>perform LDAP compare operations</dd>
