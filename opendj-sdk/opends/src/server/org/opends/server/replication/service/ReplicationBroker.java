@@ -32,6 +32,7 @@ import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.StaticUtils.collectionToString;
+import static org.opends.server.util.StaticUtils.isLocalAddress;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.io.IOException;
@@ -390,7 +391,7 @@ public class ReplicationBroker
     InetAddress[] rs1Addresses = null;
     try
     {
-      if (rs1.equals("localhost") || rs1.equals("127.0.0.1"))
+      if (isLocalAddress(rs1))
       {
         // Replace localhost with the local official hostname
         rs1 = InetAddress.getLocalHost().getHostName();
@@ -406,7 +407,7 @@ public class ReplicationBroker
     InetAddress[] rs2Addresses = null;
     try
     {
-      if (rs2.equals("localhost") || rs2.equals("127.0.0.1"))
+      if (isLocalAddress(rs1))
       {
         // Replace localhost with the local official hostname
         rs2 = InetAddress.getLocalHost().getHostName();

@@ -26,22 +26,22 @@
  *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.server;
+
+
+
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.ServerConstants.EOL;
 import static org.opends.server.util.StaticUtils.getFileForPath;
+import static org.opends.server.util.StaticUtils.isLocalAddress;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.util.*;
 
 import org.opends.messages.Category;
@@ -53,39 +53,15 @@ import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.*;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
-import org.opends.server.api.Backend;
-import org.opends.server.api.BackupTaskListener;
-import org.opends.server.api.ExportTaskListener;
-import org.opends.server.api.ImportTaskListener;
-import org.opends.server.api.RestoreTaskListener;
-import org.opends.server.api.VirtualAttributeProvider;
+import org.opends.server.api.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.WorkflowImpl;
 import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.*;
-import org.opends.server.replication.protocol.ProtocolSession;
-import org.opends.server.replication.protocol.ReplServerStartMsg;
-import org.opends.server.replication.protocol.ReplSessionSecurity;
-import org.opends.server.replication.protocol.ReplicationMsg;
-import org.opends.server.replication.protocol.ServerStartECLMsg;
-import org.opends.server.replication.protocol.ServerStartMsg;
-import org.opends.server.replication.protocol.StartECLSessionMsg;
-import org.opends.server.replication.protocol.StartMsg;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.BackupConfig;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.RestoreConfig;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.VirtualAttributeRule;
+import org.opends.server.replication.protocol.*;
+import org.opends.server.types.*;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.TimeThread;
@@ -94,16 +70,14 @@ import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 import com.sleepycat.je.DatabaseException;
 import org.opends.server.types.SearchScope;
 
+
+
 /**
- * ReplicationServer Listener.
- *
- * This singleton is the main object of the replication server
- * It waits for the incoming connections and create listener
- * and publisher objects for
- * connection with LDAP servers and with replication servers
- *
- * It is responsible for creating the replication server replicationServerDomain
- * and managing it
+ * ReplicationServer Listener. This singleton is the main object of the
+ * replication server It waits for the incoming connections and create listener
+ * and publisher objects for connection with LDAP servers and with replication
+ * servers It is responsible for creating the replication server
+ * replicationServerDomain and managing it
  */
 public final class ReplicationServer
   implements ConfigurationChangeListener<ReplicationServerCfg>,
@@ -126,7 +100,6 @@ public final class ReplicationServer
   private final Map<String, ReplicationServerDomain> baseDNs =
           new HashMap<String, ReplicationServerDomain>();
 
-  private String localURL = "null";
   private volatile boolean shutdown = false;
   private ReplicationDbEnv dbEnv;
   private int rcvWindow;
@@ -413,12 +386,17 @@ public final class ReplicationServer
       while (!shutdown)
       {
         /*
-         * periodically check that we are connected to all other replication
+         * Periodically check that we are connected to all other replication
          * servers and if not establish the connection
          */
         for (ReplicationServerDomain domain : getReplicationServerDomains())
         {
-          Set<String> connectedReplServers = domain.getChangelogs();
+          // Create a normalized set of server URLs.
+          final Set<String> connectedReplServers = new HashSet<String>();
+          for (String url : domain.getChangelogs())
+          {
+            connectedReplServers.add(normalizeServerURL(url));
+          }
 
           /*
            * check that all replication server in the config are in the
@@ -426,51 +404,38 @@ public final class ReplicationServer
            */
           for (String serverURL : replicationServers)
           {
-            int separator = serverURL.lastIndexOf(':');
-            String port = serverURL.substring(separator + 1);
-            String hostname = serverURL.substring(0, separator);
-
+            final int separator = serverURL.lastIndexOf(':');
+            final String portString = serverURL.substring(separator + 1);
+            final int port = Integer.parseInt(portString);
+            final String hostname = serverURL.substring(0, separator);
+            final InetAddress inetAddress;
             try
             {
-              InetAddress inetAddress = InetAddress
-                  .getByName(hostname);
-              String serverAddress = inetAddress.getHostAddress()
-                  + ":" + port;
-              String alternServerAddress = null;
-
-              if (hostname.equalsIgnoreCase("localhost"))
-              {
-                // if "localhost" was used as the hostname in the configuration
-                // also check is the connection is already opened with the
-                // local address.
-                alternServerAddress = InetAddress.getLocalHost()
-                    .getHostAddress() + ":" + port;
-              }
-
-              if (inetAddress.equals(InetAddress.getLocalHost()))
-              {
-                // if the host address is the local one, also check
-                // if the connection is already opened with the "localhost"
-                // address
-                alternServerAddress = "127.0.0.1" + ":" + port;
-              }
-
-              if ((serverAddress.compareTo("127.0.0.1:"
-                  + replicationPort) != 0)
-                  && (serverAddress.compareTo(this.localURL) != 0)
-                  && (!connectedReplServers.contains(serverAddress)
-                      && ((alternServerAddress == null) || !connectedReplServers
-                      .contains(alternServerAddress))))
-              {
-                connect(serverURL, domain.getBaseDn());
-              }
+              inetAddress = InetAddress.getByName(hostname);
             }
-            catch (IOException e)
+            catch (UnknownHostException e)
             {
-              Message message = ERR_COULD_NOT_SOLVE_HOSTNAME
-                  .get(hostname);
+              // If the host name cannot be resolved then no chance of
+              // connecting anyway.
+              Message message = ERR_COULD_NOT_SOLVE_HOSTNAME.get(hostname);
               logError(message);
+              continue;
             }
+
+            // Avoid connecting to self.
+            if (isLocalAddress(inetAddress) && (port == replicationPort))
+            {
+              continue;
+            }
+
+            // Don't connect to a server if it is already connected.
+            final String normalizedServerURL = normalizeServerURL(serverURL);
+            if (connectedReplServers.contains(normalizedServerURL))
+            {
+              continue;
+            }
+
+            connect(serverURL, domain.getBaseDn());
           }
         }
 
@@ -574,9 +539,7 @@ public final class ReplicationServer
        * Open replicationServer socket
        */
       String localhostname = InetAddress.getLocalHost().getHostName();
-      String localAdddress = InetAddress.getLocalHost().getHostAddress();
       serverURL = localhostname + ":" + String.valueOf(changelogPort);
-      localURL = localAdddress + ":" + String.valueOf(changelogPort);
       listenSocket = new ServerSocket();
       listenSocket.bind(new InetSocketAddress(changelogPort));
 
@@ -1074,9 +1037,7 @@ public final class ReplicationServer
 
         replicationPort = newPort;
         String localhostname = InetAddress.getLocalHost().getHostName();
-        String localAdddress = InetAddress.getLocalHost().getHostAddress();
         serverURL = localhostname + ":" + String.valueOf(replicationPort);
-        localURL = localAdddress + ":" + String.valueOf(replicationPort);
         listenSocket = new ServerSocket();
         listenSocket.bind(new InetSocketAddress(replicationPort));
 
@@ -2047,4 +2008,35 @@ public final class ReplicationServer
     return dbDirname;
   }
 
+
+
+  private String normalizeServerURL(final String url)
+  {
+    final int separator = url.lastIndexOf(':');
+    final String portString = url.substring(separator + 1);
+    final String hostname = url.substring(0, separator);
+    try
+    {
+      final InetAddress inetAddress = InetAddress.getByName(hostname);
+
+      if (isLocalAddress(inetAddress))
+      {
+        // It doesn't matter whether we use an IP or hostname here.
+        return InetAddress.getLocalHost().getHostAddress() + ":" + portString;
+      }
+      else
+      {
+        return inetAddress.getHostAddress() + ":" + portString;
+      }
+    }
+    catch (UnknownHostException e)
+    {
+      // This should not happen, but if it does then just default to the
+      // original URL.
+      Message message = ERR_COULD_NOT_SOLVE_HOSTNAME.get(hostname);
+      logError(message);
+
+      return url;
+    }
+  }
 }
