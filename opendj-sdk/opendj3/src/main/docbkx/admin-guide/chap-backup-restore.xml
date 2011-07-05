@@ -58,13 +58,13 @@
      <step>
       <para>Back up only the database for Example.com, where the data
       is stored in the backend named <literal>userRoot</literal>.</para>
-      <screen width="80">$ backup -p 5444 -D "cn=Directory Manager" -w password \
+      <screen>$ backup -p 5444 -D "cn=Directory Manager" -w password \
 &gt; -n userRoot -d /path/to/OpenDJ/bak -t 0
 Backup task 20110613143715983 scheduled to start Jun 13, 2011 2:37:15 PM CEST</screen>
      </step>
      <step>
       <para>Stop the server to back up Example.com data offline.</para>
-      <screen width="80">$ stop-ds 
+      <screen>$ stop-ds 
 Stopping Server...
 
 [13/Jun/2011:14:31:00 +0200] category=BACKEND severity=NOTICE msgID=9896306
@@ -83,7 +83,7 @@ $ start-ds
      </step>
      <step>
       <para>Back up all user data on the server.</para>
-      <screen width="80">$ backup -p 5444 -D "cn=Directory Manager" -w password \
+      <screen>$ backup -p 5444 -D "cn=Directory Manager" -w password \
 &gt; -a -d /path/to/OpenDJ/bak -t 0
 Backup task 20110613143801866 scheduled to start Jun 13, 2011 2:38:01 PM CEST</screen>
      </step>
@@ -100,7 +100,7 @@ Backup task 20110613143801866 scheduled to start Jun 13, 2011 2:38:01 PM CEST</s
    <step>
     <para>Back up all user data every night at 2 AM, and notify
     diradmin@example.com when finished, or on error.</para>
-    <screen width="80">$ backup -p 5444 -D "cn=Directory Manager" -w password -a \
+    <screen>$ backup -p 5444 -D "cn=Directory Manager" -w password -a \
 &gt; -d /path/to/OpenDJ/bak --recurringTask "00 02 * * *" \
 &gt; --completionNotify diradmin@example.com --errorNotify diradmin@example.com
 Recurring Backup task BackupTask-988d6adf-4d65-44bf-8546-6ea74a2480b0
@@ -123,7 +123,7 @@ scheduled successfully</screen>
     <stepalternatives>
      <step>
       <para>Stop the server to restore data for Example.com.</para>
-      <screen width="80">$ stop-ds
+      <screen>$ stop-ds
 Stopping Server...
 
 [13/Jun/2011:15:44:06 +0200] category=BACKEND severity=NOTICE msgID=9896306
@@ -147,7 +147,7 @@ $ start-ds
      </step>
      <step>
       <para>Schedule the restore as a task to begin immediately.</para>
-      <screen width="80">$ restore -p 5444 -D "cn=Directory Manager" -w password \
+      <screen>$ restore -p 5444 -D "cn=Directory Manager" -w password \
 &gt; -d /path/to/OpenDJ/bak -I 20110613080032 -t 0
 Restore task 20110613155052932 scheduled to start Jun 13, 2011 3:50:52 PM CEST</screen>
      </step>
@@ -164,7 +164,7 @@ Restore task 20110613155052932 scheduled to start Jun 13, 2011 3:50:52 PM CEST</
    
    <step>
     <para>Prepare the replica to be restored.</para>
-    <screen width="80">$ dsreplication pre-external-initialization -I admin -w password -X -n \
+    <screen>$ dsreplication pre-external-initialization -I admin -w password -X -n \
 &gt; -p 5444 -b dc=example,dc=com
 
 Preparing base DN dc=example,dc=com to be initialized externally ..... Done.
@@ -180,7 +180,7 @@ When the initialization is completed you must use the subcommand
    </step>
    <step>
     <para>Restore the server database from the backup archive.</para>
-    <screen width="80">$ stop-ds
+    <screen>$ stop-ds
 Stopping Server...
 
 [13/Jun/2011:15:44:06 +0200] category=BACKEND severity=NOTICE msgID=9896306
@@ -204,7 +204,7 @@ $ start-ds
    </step>
    <step>
     <para>Reinitialize replication on the replica.</para>
-    <screen width="80">$ dsreplication post-external-initialization -I admin -w password -X -n \
+    <screen>$ dsreplication post-external-initialization -I admin -w password -X -n \
 &gt; -p 5444 -b dc=example,dc=com
 
 Updating replication information on base DN dc=example,dc=com ..... Done.

@@ -69,7 +69,7 @@
   the server configuration, you must manually apply the changes to each
   replica in a replication topology.</para>
   
-  <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
 &gt; set-password-policy-prop --policy-name "Default Password Policy" \
 &gt; --set lockout-failure-count:3 --set lockout-duration:5m \
 &gt; --set lockout-failure-expiration-interval:5m -X -n</screen>
@@ -77,7 +77,7 @@
   <para>Users having the default password policy are then locked out after
   three failed attempts in succession.</para>
   
-  <screen width="80">$ ldapsearch -p 1389 -D "uid=bjensen,ou=people,dc=example,dc=com" -w hifalutin \
+  <screen>$ ldapsearch -p 1389 -D "uid=bjensen,ou=people,dc=example,dc=com" -w hifalutin \
 &gt; -b dc=example,dc=com uid=bjensen mail
 dn: uid=bjensen,ou=People,dc=example,dc=com
 mail: bjensen@example.com
@@ -121,7 +121,7 @@ version 3.0;acl "Admins can run amok"; allow(all) groupdn =
     <para>Set the account status to disabled with the
     <command>manage-account</command> command.</para>
     
-    <screen width="80">$ manage-account -p 4444 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
+    <screen>$ manage-account -p 4444 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
 &gt; -w bribery set-account-is-disabled -O true \
 &gt; -b uid=bjensen,ou=people,dc=example,dc=com -X
 Account Is Disabled:  true</screen>
@@ -135,7 +135,7 @@ Account Is Disabled:  true</screen>
     <para>Clear the disabled status using the <command>manage-account</command>
     command.</para>
     
-    <screen width="80">$ manage-account -p 4444 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
+    <screen>$ manage-account -p 4444 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
 &gt; -w bribery clear-account-is-disabled \
 &gt; -b uid=bjensen,ou=people,dc=example,dc=com -X
 Account Is Disabled:  false</screen>

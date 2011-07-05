@@ -354,12 +354,12 @@
  version 3.0;acl "Admins can run amok"; allow(all) groupdn =
  "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)</literallayout>
   <para>The following command locks a user account.</para>
-  <screen width="80">$ manage-account -p 4444 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
+  <screen>$ manage-account -p 4444 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
 &gt; -w bribery set-account-is-disabled -O true \
 &gt; -b uid=bjensen,ou=people,dc=example,dc=com -X
 Account Is Disabled:  true</screen>
   <para>The following command unlocks a user account.</para>
-  <screen width="80">$ manage-account -p 4444 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
+  <screen>$ manage-account -p 4444 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
 &gt; -w bribery clear-account-is-disabled \
 &gt; -b uid=bjensen,ou=people,dc=example,dc=com -X
 Account Is Disabled:  false</screen>

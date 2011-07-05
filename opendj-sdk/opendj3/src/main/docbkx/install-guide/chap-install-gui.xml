@@ -56,7 +56,7 @@
  <command>javaws</command> command in a terminal window to start the
   installer.</para>
  
- <screen width='80'>$ export PATH=/path/to/sun-java6/bin:$PATH
+ <screen>$ export PATH=/path/to/sun-java6/bin:$PATH
 $ javaws http://www.forgerock.org/downloads/opendj/<?eval ${project.version}?>/install/QuickSetup.jnlp</screen>
 
  <para>The WebStart installer corresponds to what you start if you download

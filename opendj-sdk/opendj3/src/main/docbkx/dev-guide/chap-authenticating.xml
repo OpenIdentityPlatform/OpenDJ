@@ -31,12 +31,71 @@
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Authenticating To the Directory</title>
 
- <para>TODO</para>
+ <para>When your client application connects to the directory, the first
+ operation to perform is a bind operation. The bind operation authenticates
+ the client to the directory.</para>
 
  <section>
   <title>Simple Authentication</title>
   
-  <para>TODO</para>
+  <para>You perform simple authentication by binding with the distinguished
+  name of a user's directory entry and the user's password. For this reason
+  simple authentication over unsecure network connections should be done only
+  in the lab. If your real end users are providing their passwords, your
+  application must use simple authentication only if the network is
+  secure.</para>
+  
+  <para>To bind using Barbara Jensen's identity and simple authentication,
+  for example, your application would provide the DN
+  <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> with the
+  password <literal>hifalutin</literal>.</para>
+  
+  <para>The directory stores the password value used for simple authentication
+  in binary form on the <literal>userPassword</literal> attribute of the entry.
+  In other words, for the purposes of your application the password is not a
+  string, but instead an array of bytes. Typically the directory is further
+  configured to store only hashed values of user passwords, rather than plain
+  text versions. Thus even if someone managed to read the stored password
+  values, they would still have to crack the hash in order to learn the
+  actual passwords. When your application performing simple authentication
+  sends the password value, the directory server therefore hashes the password
+  value, and then compares the hashed result with the value of the
+  <literal>userPassword</literal> on the user entry. If the values match,
+  then the directory authenticates the user. Once the user has authenticated,
+  the directory determines authorization for operations on the connection
+  based on the users identity.</para>
+  
+  <programlisting language="java">// LDAP simple authentication
+
+final LDAPConnectionFactory factory = new LDAPConnectionFactory(
+    hostName, port);
+Connection connection = null;
+
+try
+{
+  connection = factory.getConnection();
+  connection.bind(userName, password.toCharArray());
+
+  System.out.println("Authenticated as " + userName + ".");
+  
+  // Perform LDAP operations here.
+}
+
+// Catch any exceptions here, and then close the connection.
+
+finally
+{
+  if (connection != null)
+  {
+    connection.close();
+  }
+}</programlisting>
+  
+  <para>If the password values do not match, a directory might nevertheless
+  authenticate the client application. The LDAP specifications say that in this
+  case, however, the directory authenticates the user as anonymous, therefore
+  no doubt with fewer rights than the normal user, and surely fewer rights
+  than an administrator.</para>
  </section>
  
  <section>

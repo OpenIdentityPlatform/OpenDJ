@@ -106,7 +106,7 @@
  <refsect1>
   <title>Examples</title>
   <para>The following example uses the default template to generate LDIF.</para>
-  <screen width="80">$ make-ldif -t ../config/MakeLDIF/example.template -o ../ldif/generated.ldif
+  <screen>$ make-ldif -t ../config/MakeLDIF/example.template -o ../ldif/generated.ldif
 Processed 1000 entries
 Processed 2000 entries
 ...

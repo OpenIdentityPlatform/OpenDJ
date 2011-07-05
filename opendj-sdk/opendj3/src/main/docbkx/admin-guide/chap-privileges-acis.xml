@@ -615,7 +615,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
    
    <step>
     <para>Start <command>dsconfig</command> in interactive mode.</para>
-    <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password</screen>
+    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password</screen>
    </step>
    <step>
     <para>Select the Root DN menu.</para>
@@ -640,7 +640,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
    
    <step>
     <para>Determine the privileges to add.</para>
-    <screen width="80">$ cat privilege.ldif 
+    <screen>$ cat privilege.ldif 
 dn: uid=kvaughan,ou=People,dc=example,dc=com
 changetype: modify
 add: ds-privilege-name
@@ -656,7 +656,7 @@ ds-privilege-name: password-reset
     <para>Prior to having the privileges, Kirsten gets messages about
     insufficent access when trying to read the server configuration, or
     reset a user password.</para>
-    <screen width="80">$ ldapsearch -p 1389 -D "uid=kvaughan,ou=People,dc=example,dc=com" \
+    <screen>$ ldapsearch -p 1389 -D "uid=kvaughan,ou=People,dc=example,dc=com" \
 &gt; -w bribery -b cn=config "(objectclass=*)"
 SEARCH operation failed
 Result Code:  50 (Insufficient Access Rights)
@@ -671,12 +671,12 @@ reset operations</screen>
    <step>
     <para>Apply the change as a user with the
     <literal>privilege-change</literal> privilege.</para>
-    <screen width="80">$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -f privilege.ldif
+    <screen>$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -f privilege.ldif
 Processing MODIFY request for uid=kvaughan,ou=People,dc=example,dc=com
 MODIFY operation successful for DN uid=kvaughan,ou=People,dc=example,dc=com</screen>
     <para>At this point, Kirsten can perform the operations requiring
     privileges.</para>
-    <screen width="80">$ ldapsearch -p 1389 -D "uid=kvaughan,ou=People,dc=example,dc=com" \
+    <screen>$ ldapsearch -p 1389 -D "uid=kvaughan,ou=People,dc=example,dc=com" \
 &gt; -w bribery -b cn=config "(objectclass=*)"
 dn: cn=config
 ds-cfg-return-bind-error-messages: false
@@ -707,7 +707,7 @@ The LDAP password modify operation was successful</screen>
    
    <step>
     <para>Create an LDAP subentry that specifies the collective attributes.</para>
-    <screen width="80">$ cat collective.ldif 
+    <screen>$ cat collective.ldif 
 dn: cn=Administrator Privileges,dc=example,dc=com
 objectClass: collectiveAttributeSubentry
 objectClass: extensibleObject
@@ -731,7 +731,7 @@ ADD operation successful for DN cn=Administrator Privileges,dc=example,dc=com</s
    </step>
    <step>
     <para>Observe that the change takes effect immediately.</para>
-    <screen width="80">$ ldappasswordmodify -p 1389 -D "uid=kvaughan,ou=People,dc=example,dc=com" \
+    <screen>$ ldappasswordmodify -p 1389 -D "uid=kvaughan,ou=People,dc=example,dc=com" \
 &gt; -w bribery -a "dn:uid=scarter,ou=People,dc=example,dc=com" -n changeit
 The LDAP password modify operation was successful</screen>    
    </step>
@@ -795,7 +795,7 @@ The LDAP password modify operation was successful</screen>
    
    <para>This works when the only attributes you do not want world-readable
    are password attributes.</para>
-   <programlisting width="80" language="ldif">aci: (target ="ldap:///dc=example,dc=com")(targetattr !=
+   <programlisting language="ldif">aci: (target ="ldap:///dc=example,dc=com")(targetattr !=
  "authPassword || userPassword")(version 3.0;acl "Anonymous read-search access";
  allow (read, search, compare)(userdn = "ldap:///anyone");)
  </programlisting>
@@ -806,7 +806,7 @@ The LDAP password modify operation was successful</screen>
    
    <para>Directory Administrators need privileges as well for full access to
    administrative operations.</para>
-   <programlisting width="80" language="ldif">aci: (target="ldap:///dc=example,dc=com") (targetattr =
+   <programlisting language="ldif">aci: (target="ldap:///dc=example,dc=com") (targetattr =
  "*")(version 3.0;acl "Admins can run amok"; allow(all) groupdn =
  "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)
  </programlisting>
@@ -816,7 +816,7 @@ The LDAP password modify operation was successful</screen>
    <title>ACI: Change Own Password</title>
    
    <para>By default this capability is set in a global ACI.</para>
-   <programlisting width="80" language="ldif">aci: (target ="ldap:///ou=People,dc=example,dc=com")(targetattr =
+   <programlisting language="ldif">aci: (target ="ldap:///ou=People,dc=example,dc=com")(targetattr =
  "authPassword || userPassword")(version 3.0;acl "Allow users to change pass
  words"; allow (write)(userdn = "ldap:///self");)</programlisting>
   </example>
@@ -826,7 +826,7 @@ The LDAP password modify operation was successful</screen>
    
    <para>For some static groups such as carpoolers and social club members,
    you might choose to let users manage their own memberships.</para>
-   <programlisting width="80" language="ldif">aci: (target ="ldap:///ou=Self Service,ou=Groups,dc=example,dc=com")(
+   <programlisting language="ldif">aci: (target ="ldap:///ou=Self Service,ou=Groups,dc=example,dc=com")(
  targetattr = "member")(version 3.0;acl "Self registration"; allow(selfwrite)(
  userdn = "ldap:///uid=*,ou=People,dc=example,dc=com");)</programlisting>
   </example>
@@ -835,7 +835,7 @@ The LDAP password modify operation was successful</screen>
    <title>ACI: Manage Self Service Groups</title>
    
    <para>Let users create and delete self-managed groups.</para>
-   <programlisting width="80" language="ldif">aci: (target ="ldap:///ou=Self Service,ou=Groups,dc=example,dc=com")(
+   <programlisting language="ldif">aci: (target ="ldap:///ou=Self Service,ou=Groups,dc=example,dc=com")(
  targattrfilters="add=objectClass:(objectClass=groupOfNames)")(version 3.0;
  acl "All can create self service groups"; allow (add)(userdn= "
  ldap:///uid=*,ou=People,dc=example,dc=com");)
@@ -848,7 +848,7 @@ aci: (target ="ldap:///ou=Self Service,ou=Groups,dc=example,dc=com")(version 3
    <title>ACI: Permit Clear Text Access Over Loopback Only</title>
    
    <para>This ACI uses IP address and Security Strength Factor subjects.</para>
-   <programlisting width="80" language="ldif">aci: (target = "ldap:///dc=example,dc=com")(targetattr =
+   <programlisting language="ldif">aci: (target = "ldap:///dc=example,dc=com")(targetattr =
  "*")(version 3.0;acl "Use loopback only for LDAP in the clear"; deny (all)(
  ip != "127.0.0.1" and ssf &lt;= "1");)</programlisting>
    <para>The <literal>ssf</literal> is one for example when using SSL but you
@@ -872,7 +872,7 @@ aci: (target ="ldap:///ou=Self Service,ou=Groups,dc=example,dc=com")(version 3
   <para>In this example, Babs Jensen is the owner of a small group of people
   who are willing to carpool.</para>
   
-  <screen width="80">$ ldapsearch -p 1389 -D "uid=bjensen,ou=people,dc=example,dc=com" -w hifalutin \
+  <screen>$ ldapsearch -p 1389 -D "uid=bjensen,ou=people,dc=example,dc=com" -w hifalutin \
 &gt; -b "ou=Self Service,ou=Groups,dc=example,dc=com" "cn=*" 
 dn: cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com
 objectClass: groupOfNames
@@ -888,7 +888,7 @@ cn: Carpoolers
   asking for the <literal>aclRights</literal> attribute, shows what rights
   Babs has on the entry.</para>
   
-  <screen width="80">$ ldapsearch -J effectiverights -p 1389 \
+  <screen>$ ldapsearch -J effectiverights -p 1389 \
 &gt; -D "uid=bjensen,ou=people,dc=example,dc=com" -w hifalutin \
 &gt; -b "ou=Self Service,ou=Groups,dc=example,dc=com" "cn=*" aclRights
 dn: cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com
@@ -898,7 +898,7 @@ aclRights;entryLevel: add:0,delete:1,read:1,write:0,proxy:0
   <para>Requesting the <literal>aclRightsInfo</literal> attribute results in
   information about the ACIs applied to arrive at the results.</para>
   
-  <screen width="80">$ ldapsearch -J effectiverights -p 1389 \
+  <screen>$ ldapsearch -J effectiverights -p 1389 \
 &gt; -D "uid=bjensen,ou=people,dc=example,dc=com" -w hifalutin \
 &gt; -b "ou=Self Service,ou=Groups,dc=example,dc=com" "cn=*" aclRights \
 &gt; aclRightsInfo

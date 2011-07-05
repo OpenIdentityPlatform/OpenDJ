@@ -67,7 +67,7 @@
    allows clients to find people even when they misspell names as in the
    following example.</para>
    
-   <screen width="80">$ ldapsearch -b dc=example,dc=com "(cn~=Babs Jansen)" cn
+   <screen>$ ldapsearch -b dc=example,dc=com "(cn~=Babs Jansen)" cn
 dn: uid=bjensen,ou=People,dc=example,dc=com
 cn: Barbara Jensen
 cn: Babs Jensen</screen>
@@ -81,7 +81,7 @@ cn: Babs Jensen</screen>
    the search filter. An equality index requires clients to match values
    without wildcards or misspellings.</para>
    
-   <screen width="80">$ ldapsearch -b dc=example,dc=com "(uid=bjensen)" mail
+   <screen>$ ldapsearch -b dc=example,dc=com "(uid=bjensen)" mail
 dn: uid=bjensen,ou=People,dc=example,dc=com
 mail: bjensen@example.com</screen>
   </section>
@@ -96,7 +96,7 @@ mail: bjensen@example.com</screen>
    
    <para>The following example shows a search that specifies ranges.</para>
    
-   <screen width="80">$ ldapsearch -b dc=example,dc=com \
+   <screen>$ ldapsearch -b dc=example,dc=com \
 &gt; "(&amp;(uidNumber>=1120)(roomNumber>=4500))" uid
 dn: uid=charvey,ou=People,dc=example,dc=com
 uid: charvey
@@ -119,7 +119,7 @@ uid: pchassin</screen>
    attribute is indexed for presence by default to allow quick retrieval
    of entries with ACIs.</para>
    
-   <screen width="80">$ ldapsearch -b dc=example,dc=com "(aci=*)" -
+   <screen>$ ldapsearch -b dc=example,dc=com "(aci=*)" -
 dn: dc=example,dc=com
 
 dn: ou=People,dc=example,dc=com</screen>
@@ -132,7 +132,7 @@ dn: ou=People,dc=example,dc=com</screen>
    in the filter. Substring indexes can be expensive to maintain, especially
    for large attribute values.</para>
    
-   <screen width="80">$ ldapsearch -b dc=example,dc=com "(cn=Barb*)" cn
+   <screen>$ ldapsearch -b dc=example,dc=com "(cn=Barb*)" cn
 dn: uid=bfrancis,ou=People,dc=example,dc=com
 cn: Barbara Francis
 
@@ -186,7 +186,7 @@ cn: Barbara Maddox</screen>
     <para>The following example creates a new substring index for
     <literal>description</literal>.</para>
     
-    <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
 &gt; create-local-db-index --backend-name userRoot --index-name description 
 &gt; --set index-type:substring -n</screen>
    </example>
@@ -197,7 +197,7 @@ cn: Barbara Maddox</screen>
     <para>The following example configures and approximate index for
     <literal>cn</literal> (common name).</para>
     
-    <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
 &gt; set-local-db-index-prop --backend-name userRoot --index-name cn \
 &gt; --set index-type:approximate -n</screen>
    </example>
@@ -283,7 +283,7 @@ Rebuild Index task 20110607171639867 scheduled to start Jun 7, 2011 5:16:39 PM</
     <literal>objectClass</literal> index, and then rebuilds the index for the
     configuration change to take effect.</para>
     
-    <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
 &gt; set-local-db-index-prop --backend-name userRoot --index-name objectClass \
 &gt; --set index-entry-limit:5000 -n
 $ rebuild-index -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
@@ -306,7 +306,7 @@ Rebuild Index task 20110607160349596 scheduled to start Jun 7, 2011 4:03:49 PM</
    <para>The following example verifies the <literal>cn</literal> (common
    name) index for completeness and for errors.</para>
 
-   <screen width="80">$ verify-index -b dc=example,dc=com -i cn --clean --countErrors
+   <screen>$ verify-index -b dc=example,dc=com -i cn --clean --countErrors
 [07/Jun/2011:16:06:50 +0200] category=BACKEND severity=INFORMATION
  msgID=9437595 msg=Local DB backend userRoot does not specify the number of
  lock tables: defaulting to 97
@@ -334,9 +334,9 @@ Rebuild Index task 20110607160349596 scheduled to start Jun 7, 2011 4:03:49 PM</
   <para>When you first install OpenDJ directory server and import your
   data from LDIF, the following indexes are configured.</para>
   
-  <table frame="topbot" rowheader="firstcol">
+  <table rowheader="firstcol">
    <title>Default Indexes</title>
-   <tgroup cols="7" rowsep="1">
+   <tgroup cols="7">
    <colspec colnum="2" colname="c2" />
    <colspec colnum="7" colname="c7" />
     <thead>

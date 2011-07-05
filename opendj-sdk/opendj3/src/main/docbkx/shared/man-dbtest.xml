@@ -125,7 +125,7 @@
   <title>Examples</title>
   <para>The following example displays debugging information about the
   equality index for <literal>sudoUser</literal>.</para>
-  <screen width="80">$ dbtest dump-database-container -n userRoot -b dc=example,dc=com \
+  <screen>$ dbtest dump-database-container -n userRoot -b dc=example,dc=com \
 &gt; -d sudoUser.equality
 Indexed Value (6 bytes): %admin
 Entry ID List (8 bytes): 165 

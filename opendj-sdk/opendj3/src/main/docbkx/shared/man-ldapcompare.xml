@@ -311,13 +311,13 @@ ldapsearch.port=1389</programlisting>
   <title>Examples</title>
   <para>The following examples demonstrate comparing Babs Jensen's UID.</para>
   <para>The following example uses a matching UID value.</para>
-  <screen width="80">$ ldapcompare -p 1389 uid:bjensen uid=bjensen,ou=people,dc=example,dc=com
+  <screen>$ ldapcompare -p 1389 uid:bjensen uid=bjensen,ou=people,dc=example,dc=com
 Comparing type uid with value bjensen in entry
 uid=bjensen,ou=people,dc=example,dc=com
 Compare operation returned true for entry
 uid=bjensen,ou=people,dc=example,dc=com</screen>
   <para>The following example uses a UID value that does not match.</para>
-  <screen width="80">$ ldapcompare -p 1389 uid:beavis uid=bjensen,ou=people,dc=example,dc=com
+  <screen>$ ldapcompare -p 1389 uid:beavis uid=bjensen,ou=people,dc=example,dc=com
 Comparing type uid with value beavis in entry
 uid=bjensen,ou=people,dc=example,dc=com
 Compare operation returned false for entry

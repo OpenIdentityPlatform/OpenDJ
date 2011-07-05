@@ -352,7 +352,7 @@
   for a new replica whose admin port is 5444 from an existing replica
   whose admin port is 4444.</para>
   
-  <screen width="80">$ dsreplication enable -I admin -w password -X -n -b dc=example,dc=com \
+  <screen>$ dsreplication enable -I admin -w password -X -n -b dc=example,dc=com \
 &gt; --host1 `hostname` --port1 4444 --bindDN1 "cn=Directory Manager" \
 &gt; --bindPassword1 password --replicationPort1 8989 \
 &gt; --host2 `hostname` --port2 5444 --bindDN2 "cn=Directory Manager" \

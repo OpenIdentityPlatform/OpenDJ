@@ -68,7 +68,7 @@
   visiting the <literal>GNB00</literal> office and are looking for a
   printer.</para>
   
-  <screen width="80">$ ldapsearch -b ou=Printers,dc=example,dc=com "(printerLocation=GNB00)"</screen>
+  <screen>$ ldapsearch -b ou=Printers,dc=example,dc=com "(printerLocation=GNB00)"</screen>
   
   <para>In the example, the LDAP filter indicates to the directory that you
   want to lookup printer entries where the <literal>printerLocation</literal>
@@ -89,7 +89,7 @@
    <para>The following example searches for entries with UID containing
    <literal>jensen</literal>, returning only DNs and uid values.</para>
    
-   <screen width="80">$ ldapsearch -p 1389 -b dc=example,dc=com "(uid=*jensen*)" uid
+   <screen>$ ldapsearch -p 1389 -b dc=example,dc=com "(uid=*jensen*)" uid
 dn: uid=ajensen,ou=People,dc=example,dc=com
 uid: ajensen
 
@@ -123,7 +123,7 @@ Result Code:  0 (Success)</screen>
    command returns the attributes associated with the <literal>person</literal>
    object class.</para>
    
-   <screen width="80">$ ldapsearch -p 1389 -b ou=people,dc=example,dc=com \
+   <screen>$ ldapsearch -p 1389 -b ou=people,dc=example,dc=com \
 &gt; "(&amp;(uid=*jensen*)(l=Santa Clara))" @person
 dn: uid=ajensen,ou=People,dc=example,dc=com
 objectClass: person
@@ -181,7 +181,7 @@ sn: Jensen
    <para>In this example, Kirsten Vaughan checks whether the hashed password
    value matches the stored value on <literal>authPassword</literal>.</para>
 
-   <screen width="80">$ ldapcompare -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
+   <screen>$ ldapcompare -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
  &gt; -w bribery 'authPassword:MD5$dFHgpDxXUT8=$qlC4xMXvmVlusJLz9/WJ5Q==' \
  &gt; uid=kvaughan,ou=people,dc=example,dc=com
  Comparing type authPassword with value
@@ -208,7 +208,7 @@ sn: Jensen
    <example>
    <title>Add: Two New Users</title>
    
-   <screen width="80">$ cat new-users.ldif 
+   <screen>$ cat new-users.ldif 
 dn: cn=Arsene Lupin,ou=Special Users,dc=example,dc=com
 objectClass: person
 objectClass: top
@@ -247,7 +247,7 @@ ADD operation successful for DN
    <para>The following example adds a description and JPEG photo to Sam
    Carter's entry.</para>
    
-   <screen width="80">$ cat scarter-mods.ldif 
+   <screen>$ cat scarter-mods.ldif 
 dn: uid=scarter,ou=people,dc=example,dc=com
 changetype: modify
 add: description
@@ -268,7 +268,7 @@ MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com</scre
    <para>The following example replaces the description on Sam Carter's
    entry.</para>
    
-   <screen width="80">$ cat scarter-newdesc.ldif
+   <screen>$ cat scarter-newdesc.ldif
 dn: uid=scarter,ou=people,dc=example,dc=com
 changetype: modify
 replace: description
@@ -286,7 +286,7 @@ MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com</scre
    <para>The following example deletes the JPEG photo on Sam Carter's
    entry.</para>
    
-   <screen width="80">$ cat /path/to/scarter-deljpeg.ldif 
+   <screen>$ cat /path/to/scarter-deljpeg.ldif 
 dn: uid=scarter,ou=people,dc=example,dc=com
 changetype: modify
 delete: jpegphoto
@@ -322,7 +322,7 @@ MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com</scre
     The following example renames and changes Sam Carter's entry
     accordingly.</para>
     
-    <screen width="80">$ cat /path/to/scarter-sjensen.ldif
+    <screen>$ cat /path/to/scarter-sjensen.ldif
 dn: uid=scarter,ou=people,dc=example,dc=com
 changetype: modrdn
 newrdn: uid=sjensen
@@ -378,7 +378,7 @@ MODIFY operation successful for DN uid=sjensen,ou=people,dc=example,dc=com</scre
     removing the empty <literal>ou=Employees,dc=example,dc=com</literal>
     container.</para>
     
-    <screen width="80">$ cat move-customers.ldif 
+    <screen>$ cat move-customers.ldif 
 dn: ou=Customers,dc=example,dc=com
 changetype: modrdn
 newrdn: ou=People
@@ -437,7 +437,7 @@ DELETE operation successful for DN ou=Employees,dc=example,dc=com</screen>
     <para>The following example uses the subtree delete option to remove
     all Special Users from the directory.</para>
     
-    <screen width="80">$ ldapdelete -p 1389 -D "cn=Directory Manager" -w password \
+    <screen>$ ldapdelete -p 1389 -D "cn=Directory Manager" -w password \
 &gt; -x "ou=Special Users,dc=example,dc=com"
 Processing DELETE request for ou=Special Users,dc=example,dc=com
 DELETE operation successful for DN ou=Special Users,dc=example,dc=com</screen>
@@ -459,7 +459,7 @@ DELETE operation successful for DN ou=Special Users,dc=example,dc=com</screen>
    password. The <option>-q</option> option means the same thing as
    <option>--useStartTLS</option>.</para>
    
-   <screen width="80">$ ldappasswordmodify -q -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
+   <screen>$ ldappasswordmodify -q -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
 &gt; -w bribery -a "dn:uid=scarter,ou=people,dc=example,dc=com" -n ChangeMe
 The LDAP password modify operation was successful</screen>
 
@@ -467,7 +467,7 @@ The LDAP password modify operation was successful</screen>
    but <command>set-password-is-reset</command> is a hidden option, supported
    only for testing.</para>
    
-   <screen width="80">$ manage-account -D "cn=Directory Manager" -w password \
+   <screen>$ manage-account -D "cn=Directory Manager" -w password \
 &gt; set-password-is-reset -b uid=scarter,ou=people,dc=example,dc=com -O true
 Password Is Reset:  true</screen>
   </example>

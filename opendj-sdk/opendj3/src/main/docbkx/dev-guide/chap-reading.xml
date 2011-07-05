@@ -31,7 +31,11 @@
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Searching &amp; Comparing Directory Data</title>
 
- <para>TODO</para>
+ <para>Traditionally directories excel at serving read requests. This chapter
+ covers the read (search and compare) capabilities that OpenDJ LDAP Java SDK
+ provides. The data used in examples here is
+ <link xlink:href="http://mcraig.org/ldif/Example.ldif">available
+ online</link>.</para>
 
  <section>
   <title>Search Objects &amp; Methods</title>

@@ -238,7 +238,7 @@
  <refsect1>
   <title>Examples</title>
   <para>The following example restarts OpenDJ directory server.</para>
-  <screen width="80">$ stop-ds --restart
+  <screen>$ stop-ds --restart
 Stopping Server...
 
 ...The Directory Server has started successfully</screen>

@@ -82,7 +82,7 @@
    <command>uninstall</command> options to specify choices for the options.
    See <command>uninstall --help</command> for more information.</para>
    
-   <screen width='80'>$ cd /path/to/OpenDJ-<?eval ${project.version}?>
+   <screen>$ cd /path/to/OpenDJ-<?eval ${project.version}?>
 $ ./uninstall --cli
 Do you want to remove all components of the server or select the components to
 remove?
@@ -112,7 +112,7 @@ See /var/....log for a detailed log of this operation.</screen>
    <para>If the command output tells you to delete files manually, then remove
    those remaining files to complete the process.</para>
  
-   <screen width='80'>$ rm -rf /path/to/OpenDJ-<?eval ${project.version}?></screen>
+   <screen>$ rm -rf /path/to/OpenDJ-<?eval ${project.version}?></screen>
   </step>
  </procedure>
 </chapter>

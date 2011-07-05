@@ -134,7 +134,7 @@
   <para>The following example verifies the <literal>cn</literal> (common
    name) index for completeness and for errors.</para>
 
-   <screen width="80">$ verify-index -b dc=example,dc=com -i cn --clean --countErrors
+   <screen>$ verify-index -b dc=example,dc=com -i cn --clean --countErrors
 [07/Jun/2011:16:06:50 +0200] category=BACKEND severity=INFORMATION
  msgID=9437595 msg=Local DB backend userRoot does not specify the number of
  lock tables: defaulting to 97

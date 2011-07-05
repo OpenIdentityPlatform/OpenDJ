@@ -99,7 +99,7 @@
   warn when entries have more than one structural object class instead of
   reject such entries being added, set the property as follows.</para>
   
-  <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
 &gt; set-global-configuration-prop 
 &gt; --set single-structural-objectclass-behavior:warn -X -n</screen>
   
@@ -128,7 +128,7 @@
   software. For example, the Java environment is distributed with a key store
   holding many CA certificates.</para>
   
-  <screen width="80">$ keytool -list -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit \
+  <screen>$ keytool -list -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit \
 &gt; | wc -l
      334</screen>
   
@@ -144,7 +144,7 @@
   debug traces from <literal>javax.net.debug</literal> into the
   <filename>logs/server.out</filename> file.</para>
   
-  <screen width="80">OPENDJ_JAVA_ARGS="-Djavax.net.debug=all" start-ds</screen>
+  <screen>OPENDJ_JAVA_ARGS="-Djavax.net.debug=all" start-ds</screen>
  </section>
  
  <section>
@@ -156,7 +156,7 @@
   <literal>uid=bjensen</literal> as traced in the access log. In the access
   log itself, each line starts with a time stamp.</para>
   
-  <screen width="80">[27/Jun/2011:17:23:00 +0200] CONNECT conn=19 from=127.0.0.1:56641
+  <screen>[27/Jun/2011:17:23:00 +0200] CONNECT conn=19 from=127.0.0.1:56641
  to=127.0.0.1:1389 protocol=LDAP
 [27/Jun/2011:17:23:00 +0200] SEARCH REQ conn=19 op=0 msgID=1
  base="dc=example,dc=com" scope=wholeSubtree filter="(uid=bjensen)" attrs="ALL"
@@ -197,8 +197,7 @@
   have <literal>category=SYNC</literal>. The messages have the following form.
   Here the line is folded for readability.</para>
   
-  <screen width="80">
-[27/Jun/2011:14:37:48 +0200] category=SYNC severity=INFORMATION msgID=14680169
+  <screen>[27/Jun/2011:14:37:48 +0200] category=SYNC severity=INFORMATION msgID=14680169
  msg=Replication server accepted a connection from 10.10.0.10/10.10.0.10:52859
  to local address 0.0.0.0/0.0.0.0:8989 but the SSL handshake failed. This is
  probably benign, but may indicate a transient network outage or a
@@ -220,7 +219,7 @@
   of OpenDJ you use to reproduce the problem. The version includes both a
   version number and also a build time stamp.</para>
   
-  <screen width="80">$ dsconfig --version
+  <screen>$ dsconfig --version
 OpenDJ <?eval ${project.version}?>
 Build <replaceable>yyyymmddhhmmss</replaceable>Z</screen>
   

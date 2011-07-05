@@ -94,12 +94,12 @@
    <step>
     <para>Prevent the server from accepting updates from client
     applications.</para>
-    <screen width="80">$ dsconfig -p 5444 -h `hostname` -D "cn=Directory Manager" -w password \
+    <screen>$ dsconfig -p 5444 -h `hostname` -D "cn=Directory Manager" -w password \
 &gt; set-global-configuration-prop --set writability-mode:internal-only -X -n</screen>
    </step>
    <step>
     <para>Disable replication for the server.</para>
-    <screen width="80">$ dsreplication disable -a -p 5444 -h `hostname` -D "cn=Directory Manager" \
+    <screen>$ dsreplication disable -a -p 5444 -h `hostname` -D "cn=Directory Manager" \
 &gt; -w password -X -n
 Establishing connections ..... Done.
 Disabling replication on base DN dc=example,dc=com of server localhost:5444
@@ -119,7 +119,7 @@ for a detailed log of this operation.</screen>
     <para>With the server no longer receiving traffic or accepting updates
     from clients, and no longer replicating to other servers, you can shut it
     down in preparation for the move.</para>
-    <screen width="80">$ stop-ds 
+    <screen>$ stop-ds 
 Stopping Server...
 
 ... msg=The Directory Server is now stopped</screen>
@@ -156,12 +156,12 @@ Stopping Server...
    </step>
    <step>
     <para>Start the server.</para>
-    <screen width="80">$ start-ds
+    <screen>$ start-ds
 ... The Directory Server has started successfully</screen>
    </step>
    <step>
     <para>Enable and initialize replication.</para>
-    <screen width="80">$ dsreplication enable -I admin -w password -X -n -b dc=example,dc=com \
+    <screen>$ dsreplication enable -I admin -w password -X -n -b dc=example,dc=com \
 &gt; --host1 localhost --port1 4444 --bindDN1 "cn=Directory Manager" \
 &gt; --bindPassword1 password --replicationPort1 8989 \
 &gt; --host2 remotehost --port2 4444 --bindDN2 "cn=Directory Manager" \
@@ -214,7 +214,7 @@ Post initialization procedure completed successfully.</screen>
    </step>
    <step>
     <para>Accept updates from client applications.</para>
-    <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
 &gt; set-global-configuration-prop --set writability-mode:enabled -X -n</screen>
    </step>
    <step>
@@ -288,20 +288,20 @@ Post initialization procedure completed successfully.</screen>
    <step>
     <para>List information about the contents of the keystore and truststore
     whose contents you want to replace.</para>
-    <screen width="80">$ cd /path/to/OpenDJ/config
+    <screen>$ cd /path/to/OpenDJ/config
 $ keytool -list -v -keystore admin-keystore -storepass `cat admin-keystore.pin`</screen>
    </step>
    <step>
     <para>Remove the certificate to replace from the keystore and from the
     truststore.</para>
-    <screen width="80">$ keytool -delete -alias admin-cert -keystore admin-keystore \
+    <screen>$ keytool -delete -alias admin-cert -keystore admin-keystore \
 &gt; -storepass `cat admin-keystore.pin`
 $ keytool -delete -alias admin-cert -keystore admin-truststore \
 &gt; -storepass `cat admin-keystore.pin`</screen>
    </step>
    <step>
     <para>Generate the private key, storing it in the keystore.</para>
-    <screen width="80">$ keytool -genkey -alias admin-cert -keyalg RSA \
+    <screen>$ keytool -genkey -alias admin-cert -keyalg RSA \
 &gt; -dname "CN=<replaceable>hostname</replaceable>, O=Administration Connector Self-Signed Certificate" \
 &gt; -keystore admin-keystore -storepass `cat admin-keystore.pin` \
 &gt; -keypass `cat admin-keystore.pin`</screen>
@@ -310,18 +310,18 @@ $ keytool -delete -alias admin-cert -keystore admin-truststore \
    </step>
    <step>
     <para>Self-sign what you generated.</para>
-    <screen width="80">$ keytool -selfcert -alias admin-cert -keystore admin-keystore \
+    <screen>$ keytool -selfcert -alias admin-cert -keystore admin-keystore \
 &gt; -storepass `cat admin-keystore.pin`</screen>
    </step>
    <step>
     <para>Export the certificate from the keystore.</para>
-    <screen width="80">$ keytool -export -alias admin-cert -keystore admin-keystore \
+    <screen>$ keytool -export -alias admin-cert -keystore admin-keystore \
 &gt; -storepass `cat admin-keystore.pin` -file admin-cert.crt
 Certificate stored in file &lt;admin-cert.crt&gt;</screen>
    </step>
    <step>
     <para>Import the certificate into the truststore.</para>
-    <screen width="80">$ keytool -import -alias admin-cert -keystore admin-truststore \
+    <screen>$ keytool -import -alias admin-cert -keystore admin-truststore \
 &gt; -storepass `cat admin-keystore.pin` -file admin-cert.crt
 Owner: CN=<replaceable>hostname</replaceable>, O=Administration Connector Self-Signed Certificate
 Issuer: CN=<replaceable>hostname</replaceable>, O=Administration Connector Self-Signed Certificate

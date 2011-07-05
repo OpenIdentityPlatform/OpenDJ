@@ -64,7 +64,7 @@
   <para>To create a static group, add a group entry such as the following
   to the directory.</para>
 
-  <screen width="80">$ cat static.ldif 
+  <screen>$ cat static.ldif 
 dn: cn=My Static Group,ou=Groups,dc=example,dc=com
 cn: My Static Group
 objectClass: groupOfUniqueNames
@@ -81,7 +81,7 @@ ADD operation successful for DN cn=My Static Group,ou=Groups,dc=example,dc=com</
   <para>To change group membership, modify the values of the membership
   attribute.</para>
   
-  <screen width="80">$ cat add2grp.ldif 
+  <screen>$ cat add2grp.ldif 
 dn: cn=My Static Group,ou=Groups,dc=example,dc=com
 changetype: modify
 add: uniqueMember
@@ -117,7 +117,7 @@ cn: My Static Group</screen>
   <para>To create a dynamic group, add a group entry such as the following to
   the directory.</para>
   
-  <screen width="80">$ cat dynamic.ldif
+  <screen>$ cat dynamic.ldif
 dn: cn=My Dynamic Group,ou=Groups,dc=example,dc=com
 cn: My Dynamic Group
 objectClass: top
@@ -132,7 +132,7 @@ ADD operation successful for DN cn=My Dynamic Group,ou=Groups,dc=example,dc=com<
   <para>Group membership changes dynamically as entries change to match the
   <literal>memberURL</literal> values.</para>
   
-  <screen width="80">$ ldapsearch -p 1389 -b dc=example,dc=com "(&amp;(uid=*jensen)
+  <screen>$ ldapsearch -p 1389 -b dc=example,dc=com "(&amp;(uid=*jensen)
  (isMemberOf=cn=My Dynamic Group,ou=Groups,dc=example,dc=com))" mail
 dn: uid=bjensen,ou=People,dc=example,dc=com
 mail: bjensen@example.com
@@ -182,14 +182,14 @@ mail: rjensen@example.com</screen>
   <literal>Virtual Static member</literal> or
   <literal>Virtual Static uniqueMember</literal> property.</para>
   
-  <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
   &gt; set-virtual-attribute-prop --name "Virtual Static member" \
   &gt; --set allow-retrieving-membership:true -X -n</screen>
   
   <para>The following example creates a virtual static group, and reads the
   group entry with all members.</para>
   
-  <screen width="80">$ cat virtual.ldif 
+  <screen>$ cat virtual.ldif 
 dn: cn=Virtual Static,ou=Groups,dc=example,dc=com
 cn: Virtual Static
 objectclass: top
@@ -250,7 +250,7 @@ ds-target-group-dn: cn=My Dynamic Group,ou=Groups,dc=example,dc=com</screen>
   <para>OpenDJ lets you look up which groups a user belongs to by using the
   <literal>isMemberOf</literal> attribute.</para>
   
-  <screen width="80">$ ldapsearch -p 1389 -b dc=example,dc=com uid=bjensen isMemberOf
+  <screen>$ ldapsearch -p 1389 -b dc=example,dc=com uid=bjensen isMemberOf
 dn: uid=bjensen,ou=People,dc=example,dc=com
 isMemberOf: cn=My Static Group,ou=Groups,dc=example,dc=com
 isMemberOf: cn=Virtual Static,ou=Groups,dc=example,dc=com
@@ -271,13 +271,13 @@ isMemberOf: cn=My Dynamic Group,ou=Groups,dc=example,dc=com</screen>
   referential integrity plugin is disabled by default. To enable the plugin,
   use the <command>dsconfig</command> command.</para>
   
-  <screen width="80">$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
+  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
 &gt; set-plugin-prop --plugin-name "Referential Integrity" --set enabled:true -X -n</screen>
 
   <para>With the plugin enabled, you can see OpenDJ referential integrity
   resolving group membership automatically.</para>
   
-  <screen width="80">$ ldapsearch -p 1389 -b dc=example,dc=com "(cn=My Static Group)"
+  <screen>$ ldapsearch -p 1389 -b dc=example,dc=com "(cn=My Static Group)"
 dn: cn=My Static Group,ou=Groups,dc=example,dc=com
 ou: Groups
 objectClass: groupOfUniqueNames

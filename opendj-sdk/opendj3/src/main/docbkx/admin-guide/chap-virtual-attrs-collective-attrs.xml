@@ -104,7 +104,7 @@
   <para>These virtual attributes are typically operational, so you get them
   back from a search only when you request them.</para>
   
-  <screen width="80">$ ldapsearch -p 1389 -b dc=example,dc=com dc=example
+  <screen>$ ldapsearch -p 1389 -b dc=example,dc=com dc=example
 dn: dc=example,dc=com
 dc: example
 objectClass: domain
@@ -121,7 +121,7 @@ numSubordinates: 4
   attribute is defined by the server configuration, which is not
   replicated.</para>
   
-  <screen width="80">$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password \
+  <screen>$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password \
 &gt; create-virtual-attribute --name "Served By Description" \
 &gt; --type user-defined --set enabled:true \
 &gt; --set attribute-type:description --set base-dn:dc=example,dc=com \
@@ -154,12 +154,9 @@ description: Served by OpenDJ.Example.com
   you can define attributes that specify services available for a user
   depending on that user's service level.</para>
   
-  <example>
-   <title>Collective Attributes: Class of Service</title>
-   
    <note>
-    <para>This example depends on the <literal>cos</literal> object class,
-    and the <literal>classOfService</literal> attribute type defined but
+    <para>The following example depends on the <literal>cos</literal> object
+    class, and the <literal>classOfService</literal> attribute type defined but
     commented out in the <link xlink:href="http://mcraig.org/ldif/Example.ldif"
     >Example.ldif</link> file imported as sample data. To try this example
     for yourself, add the attribute type and object class definitions
@@ -197,7 +194,7 @@ description: Served by OpenDJ.Example.com
    and adjust the definition of the <literal>cos</literal> object class to
    allow the two quota attributes.</para>
    
-   <screen width="80">$ cat quotas.ldif 
+   <screen>$ cat quotas.ldif 
 dn: cn=schema
 changetype: modify
 add: attributeTypes
@@ -229,7 +226,7 @@ MODIFY operation successful for DN cn=schema</screen>
    <para>Use the following collective attribute definitions to set the quotas
    depending on class of service.</para>
 
-   <programlisting language="ldif" width="80"># cos.ldif: quotas by class of service
+   <programlisting language="ldif"># cos.ldif: quotas by class of service
 dn: cn=Bronze Class of Service,dc=example,dc=com
 objectClass: collectiveAttributeSubentry
 objectClass: extensibleObject
@@ -267,7 +264,7 @@ subtreeSpecification: { base "ou=People", specificationFilter "(classOfService=
    <para>You can add the collective attribute subentries by using the
    <command>ldapmodify</command> command.</para>
    
-   <screen width="80">$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -a -f cos.ldif 
+   <screen>$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -a -f cos.ldif 
 Processing ADD request for cn=Bronze Class of Service,dc=example,dc=com
 ADD operation successful for DN cn=Bronze Class of Service,dc=example,dc=com
 Processing ADD request for cn=Silver Class of Service,dc=example,dc=com
@@ -278,7 +275,7 @@ ADD operation successful for DN cn=Gold Class of Service,dc=example,dc=com</scre
    <para>With the collective attributes defined, you can see the results on
    user entries.</para>
    
-   <screen width="80">$ ldapsearch -p 1389 -b dc=example,dc=com uid=bjensen \
+   <screen>$ ldapsearch -p 1389 -b dc=example,dc=com uid=bjensen \
 &gt; classOfService mailQuota diskQuota
 dn: uid=bjensen,ou=People,dc=example,dc=com
 mailQuota: 1 GB
@@ -298,6 +295,5 @@ dn: uid=scarter,ou=People,dc=example,dc=com
 mailQuota: 10 GB
 classOfService: gold
 diskQuota: 100 GB</screen>
-  </example>
  </section>
 </chapter>

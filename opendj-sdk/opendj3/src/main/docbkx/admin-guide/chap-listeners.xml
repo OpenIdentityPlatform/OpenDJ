@@ -55,14 +55,14 @@
    <step>
     <para>Change the port number using the <command>dsconfig</command>
     command.</para>
-    <screen width="80">$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password \
+    <screen>$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password \
 &gt; set-connection-handler-prop --handler-name "LDAP Connection Handler" \
 &gt; --set listen-port:11389 -n</screen>
     <para>This example changes the port number to 11389 in the configuration.</para>
    </step>
    <step>
     <para>Restart the server so the change takes effect.</para>
-    <screen width="80">$ stop-ds --restart</screen>
+    <screen>$ stop-ds --restart</screen>
    </step>
   </procedure>
  </section>
@@ -96,7 +96,7 @@
    <step>
     <para>Generate the server certificate using the Java
     <command>keytool</command> command.</para>
-    <screen width="80">$ keytool -genkey -alias server-cert -keyalg rsa \
+    <screen>$ keytool -genkey -alias server-cert -keyalg rsa \
 &gt; -dname "CN=mark-laptop,O=Example Corp,C=FR" \
 &gt; -keystore OpenDJ/config/keystore -storepass changeit -keypass changeit</screen>
     <para>In this example, OpenDJ is running on a system with hostname
@@ -106,14 +106,14 @@
    </step>
    <step>
     <para>Self-sign the server certificate.</para>
-    <screen width="80">$ keytool -selfcert -alias server-cert -keystore \
+    <screen>$ keytool -selfcert -alias server-cert -keystore \
 &gt; OpenDJ/config/keystore -storepass changeit</screen>
    </step>
    <step>
     <para>Configure the File Based Key Manager Provider for JKS to use the
     filename and key store PIN that you set up with the
     <command>keytool</command> command.</para>
-    <screen width="80">$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password -X \
+    <screen>$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password -X \
 &gt; set-key-manager-provider-prop --provider-name JKS \
 &gt; --set enabled:true --set key-store-pin:changeit \
 &gt; --remove key-store-pin-file:config/keystore.pin -n</screen>
@@ -121,7 +121,7 @@
    <step>
     <para>Configure the File Based Trust Manager Provider for JKS to use the
     key store and PIN as well.</para>
-    <screen width="80">$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password -X \
+    <screen>$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password -X \
 &gt; set-trust-manager-provider-prop --provider-name JKS \
 &gt; --set enabled:true --set trust-store-file:config/keystore \
 &gt; --set trust-store-pin:changeit -n</screen>
@@ -147,7 +147,7 @@
    </step>
    <step>
     <para>Activate StartTLS on the current LDAP port.</para>
-    <screen width="80">$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password \
+    <screen>$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password \
 &gt; set-connection-handler-prop --handler-name "LDAP Connection Handler" \
 &gt; --set allow-start-tls:true -n</screen>
     <para>The change takes effect. No need to restart the server.</para>
@@ -176,7 +176,7 @@
    </step>
    <step>
     <para>Configure the server to activate LDAPS access.</para>
-    <screen width="80">$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password \
+    <screen>$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password \
 &gt; set-connection-handler-prop --handler-name "LDAPS Connection Handler" \
 &gt; --set listen-port:1636 --set enabled:true --set use-ssl:true -n</screen>
     <para>This example changes the port number to 1636 in the configuration.</para>
@@ -189,14 +189,14 @@
    <step>
     <para>Change the port number using the <command>dsconfig</command>
     command.</para>
-    <screen width="80">$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password \
+    <screen>$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password \
 &gt; set-connection-handler-prop --handler-name "LDAPS Connection Handler" \
 &gt; --set listen-port:11636 -n</screen>
     <para>This example changes the port number to 11636 in the configuration.</para>
    </step>
    <step>
     <para>Restart the server so the change takes effect.</para>
-    <screen width="80">$ stop-ds --restart</screen>
+    <screen>$ stop-ds --restart</screen>
    </step>
   </procedure>
  </section>
@@ -240,14 +240,14 @@
    
    <step>
     <para>Configure the server to activate JMX access.</para>
-    <screen width="80">$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password \
+    <screen>$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password \
 &gt; set-connection-handler-prop --handler-name "JMX Connection Handler" \
 &gt; --set enabled:true -n</screen>
     <para>This example uses the default port number, 1689.</para>
    </step>
    <step>
     <para>Restart the server so the change takes effect.</para>
-    <screen width="80">$ stop-ds --restart</screen>
+    <screen>$ stop-ds --restart</screen>
    </step>
   </procedure>  
  </section>
@@ -267,14 +267,14 @@
    
    <step>
     <para>Activate LDIF file access.</para>
-    <screen width="80">$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password \
+    <screen>$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password \
 &gt; set-connection-handler-prop --handler-name "LDIF Connection Handler" \
 &gt; --set enabled:true -n</screen>
     <para>The change takes effect immediately.</para>
    </step>
    <step>
     <para>Add the directory where you put LDIF to be processed.</para>
-    <screen width="80">$ mkdir /path/to/OpenDJ/config/auto-process-ldif</screen>
+    <screen>$ mkdir /path/to/OpenDJ/config/auto-process-ldif</screen>
     <para>This example uses the default value of the
     <literal>ldif-directory</literal> property for the LDIF connection
     handler.</para>

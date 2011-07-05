@@ -313,13 +313,13 @@ ldapsearch.port=1389</programlisting>
  <refsect1>
   <title>Examples</title>
   <para>The following command deletes a user entry from the directory.</para>
-  <screen width="80">$ ldapdelete -p 1389 -D "cn=Directory Manager" -w password \
+  <screen>$ ldapdelete -p 1389 -D "cn=Directory Manager" -w password \
 &gt; uid=bjensen,ou=people,dc=example,dc=com
 Processing DELETE request for uid=bjensen,ou=people,dc=example,dc=com
 DELETE operation successful for DN uid=bjensen,ou=people,dc=example,dc=com</screen>
   <para>The following command deletes the ou=Groups entry and all entries
   underneath ou=Groups.</para>
-  <screen width="80">$ ldapdelete -p 1389 -D "cn=Directory Manager" -w password -x \
+  <screen>$ ldapdelete -p 1389 -D "cn=Directory Manager" -w password -x \
 &gt; Processing DELETE request for ou=groups,dc=example,dc=com
 DELETE operation successful for DN ou=groups,dc=example,dc=com</screen>
  </refsect1>
