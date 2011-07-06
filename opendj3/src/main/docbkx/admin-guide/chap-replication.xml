@@ -764,14 +764,15 @@ fractional-include:inetorgperson:cn,givenname,mail,mobile,sn,telephonenumber</sc
   <procedure>
    <title>To Enable the External Change Log</title>
 
-   <para>OpenDJ directory servers not using replication cannnot expose an
+   <para>OpenDJ directory servers not using replication cannot expose an
    external change log. The OpenDJ server that exposes the change log must
    function both as a directory server, and also as a replication server for
    the suffix whose changes you want logged.</para>
    
    <step>
-    <para>Enable replication without using the <option>--</option> or
-    <option>--</option> options.</para>
+    <para>Enable replication without using the
+    <option>--noReplicationServer</option> or
+    <option>--onlyReplicationServer</option> options.</para>
 
     <para>With replication enabled, the changelog data can be accessed under
     <literal>cn=changelog</literal>. For example, the following search shows
