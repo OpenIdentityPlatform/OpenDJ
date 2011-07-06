@@ -26,11 +26,39 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
 
  <xsl:import href="urn:docbkx:stylesheet"/>
+ <xsl:import href="titlepages.xsl"/>
  
- <xsl:param name="paper.type">A4</xsl:param>
+ <xsl:param name="page.height.portrait">9in</xsl:param>
+ <xsl:param name="page.width.portrait">7.5in</xsl:param>
  <xsl:param name="double.sided" select="1"></xsl:param>
  <xsl:param name="fop1.extensions" select="1" />
 
+ <xsl:param name="body.font.master">9</xsl:param>
+ <xsl:param name="body.font.family">DejaVuSerif</xsl:param>
+ <xsl:param name="dingbat.font.family">DejaVuSerif</xsl:param>
+ <xsl:param name="monospace.font.family">DejaVuSansMono</xsl:param>
+ <xsl:param name="sans.font.family">DejaVuSans</xsl:param>
+ <xsl:param name="title.font.family">DejaVuSans</xsl:param>
+
+ <xsl:attribute-set name="section.title.level1.properties">
+  <xsl:attribute name="font-size">14pt</xsl:attribute>
+ </xsl:attribute-set>
+ <xsl:attribute-set name="section.title.level2.properties">
+  <xsl:attribute name="font-size">12pt</xsl:attribute>
+ </xsl:attribute-set>
+ <xsl:attribute-set name="section.title.level3.properties">
+  <xsl:attribute name="font-size">11pt</xsl:attribute>
+ </xsl:attribute-set>
+ <xsl:attribute-set name="section.title.level4.properties">
+  <xsl:attribute name="font-size">10pt</xsl:attribute>
+ </xsl:attribute-set>
+ <xsl:attribute-set name="section.title.level5.properties">
+  <xsl:attribute name="font-size">10pt</xsl:attribute>
+  <xsl:attribute name="font-weight">normal</xsl:attribute>
+  <xsl:attribute name="font-style">italic</xsl:attribute>
+ </xsl:attribute-set>
+ 
+ 
  <xsl:param name="generate.toc">
   appendix  nop
   article/appendix  nop
@@ -51,33 +79,15 @@
   set       toc,title
  </xsl:param>
  <xsl:param name="toc.max.depth">0</xsl:param>
-
+ 
  <xsl:param name="default.table.frame">topbot</xsl:param>
  
  <xsl:param name="variablelist.as.blocks" select="1"></xsl:param>
  <xsl:param name="variablelist.term.separator"></xsl:param>
- <xsl:param name="variablelist.term.break.after">0</xsl:param>
+ <xsl:param name="variablelist.term.break.after">1</xsl:param>
  
  <xsl:attribute-set name="monospace.properties">
-  <xsl:attribute name="line-height">1em</xsl:attribute>
-  <xsl:attribute name="font-size">
-   <xsl:choose>
-    <xsl:when test="ancestor::note
-                    or ancestor::warning
-                    or ancestor::important
-                    or ancestor::caution
-                    or ancestor::title
-                    or ancestor::literal
-                    or ancestor::filename">0.9em</xsl:when>
-    <xsl:otherwise>0.75em</xsl:otherwise>
-   </xsl:choose>
-  </xsl:attribute>
- </xsl:attribute-set>
- <xsl:param name="monospace.verbatim.font.width">0.60em</xsl:param>
- <xsl:attribute-set name="monospace.verbatim.properties"
-  use-attribute-sets="verbatim.properties monospace.properties">
-  <xsl:attribute name="text-align">start</xsl:attribute>
-  <xsl:attribute name="wrap-option">no-wrap</xsl:attribute>
+  <xsl:attribute name="font-size">0.9em</xsl:attribute>
  </xsl:attribute-set>
  <xsl:param name="shade.verbatim" select="1" />
  <xsl:attribute-set name="shade.verbatim.style">
@@ -87,20 +97,7 @@
   <xsl:attribute name="border-color">#e0eeee</xsl:attribute>
   <xsl:attribute name="padding">3pt</xsl:attribute>
   <xsl:attribute name="wrap-option">no-wrap</xsl:attribute>
- </xsl:attribute-set>
- <xsl:attribute-set name="verbatim.properties">
-  <xsl:attribute name="space-before.minimum">0.8em</xsl:attribute>
-  <xsl:attribute name="space-before.optimum">1em</xsl:attribute>
-  <xsl:attribute name="space-before.maximum">1.2em</xsl:attribute>
-  <xsl:attribute name="space-after.minimum">0.8em</xsl:attribute>
-  <xsl:attribute name="space-after.optimum">1em</xsl:attribute>
-  <xsl:attribute name="space-after.maximum">1.2em</xsl:attribute>
-  <xsl:attribute name="hyphenate">false</xsl:attribute>
-  <xsl:attribute name="wrap-option">no-wrap</xsl:attribute>
-  <xsl:attribute name="white-space-collapse">false</xsl:attribute>
-  <xsl:attribute name="white-space-treatment">preserve</xsl:attribute>
-  <xsl:attribute name="linefeed-treatment">preserve</xsl:attribute>
-  <xsl:attribute name="text-align">start</xsl:attribute>
+  <xsl:attribute name="font-size">0.75em</xsl:attribute>
  </xsl:attribute-set>
 
  <xsl:param name="ulink.footnotes" select="1" />
