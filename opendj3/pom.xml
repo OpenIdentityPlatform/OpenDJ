@@ -101,11 +101,30 @@
     <docbkx-src>${basedir}/src/main/docbkx</docbkx-src>
     <dbstyle-dir>${basedir}/src/main/docbkx-stylesheets</dbstyle-dir>
     <docbkx-out>${basedir}/target/docbkx</docbkx-out>
+    <fonts-src>${basedir}/src/fonts</fonts-src>
+    <fonts-gen>${basedir}/target/fonts</fonts-gen>
     <site-out>${basedir}/target/site</site-out>
     <legalnotice>${basedir}/target/docbkx/html/legalnotice.html</legalnotice>
   </properties>
   <build>
     <plugins>
+      <plugin>
+        <groupId>com.agilejava.docbkx</groupId>
+        <artifactId>docbkx-fop-support</artifactId>
+        <version>2.0.13</version>
+        <inherited>false</inherited>
+        <executions>
+          <execution>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <ansi>true</ansi>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>com.agilejava.docbkx</groupId>
         <artifactId>docbkx-maven-plugin</artifactId>
@@ -119,6 +138,93 @@
 
           <includes>*/OpenDJ-*.xml</includes>
           <xincludeSupported>true</xincludeSupported>
+          
+          <fonts>
+           <font>
+            <name>DejaVuSans</name>
+            <style>normal</style>
+            <weight>normal</weight>
+            <embedFile>${fonts-src}/DejaVuSans.ttf</embedFile>
+            <metricsFile>${fonts-gen}/DejaVuSans-metrics.xml</metricsFile>
+           </font>
+           <font>
+            <name>DejaVuSans</name>
+            <style>normal</style>
+            <weight>bold</weight>
+            <embedFile>${fonts-src}/DejaVuSansCondensed-Bold.ttf</embedFile>
+            <metricsFile>${fonts-gen}/DejaVuSansCondensed-Bold-metrics.xml</metricsFile>
+           </font>
+           <font>
+            <name>DejaVuSans</name>
+            <style>italic</style>
+            <weight>normal</weight>
+            <embedFile>${fonts-src}/DejaVuSans-Oblique.ttf</embedFile>
+            <metricsFile>${fonts-gen}/DejaVuSans-Oblique-metrics.xml</metricsFile>
+           </font>
+           <font>
+            <name>DejaVuSans</name>
+            <style>italic</style>
+            <weight>bold</weight>
+            <embedFile>${fonts-src}/DejaVuSansCondensed-BoldOblique.ttf</embedFile>
+            <metricsFile>${fonts-gen}/DejaVuSansCondensed-BoldOblique-metrics.xml</metricsFile>
+           </font>
+           <font>
+            <name>DejaVuSansMono</name>
+            <style>normal</style>
+            <weight>normal</weight>
+            <embedFile>${fonts-src}/DejaVuSansMono.ttf</embedFile>
+            <metricsFile>${fonts-gen}/DejaVuSansMono-metrics.xml</metricsFile>
+           </font>
+           <font>
+            <name>DejaVuSansMono</name>
+            <style>normal</style>
+            <weight>bold</weight>
+            <embedFile>${fonts-src}/DejaVuSansMono-Bold.ttf</embedFile>
+            <metricsFile>${fonts-gen}/DejaVuSansMono-Bold-metrics.xml</metricsFile>
+           </font>
+           <font>
+            <name>DejaVuSansMono</name>
+            <style>italic</style>
+            <weight>normal</weight>
+            <embedFile>${fonts-src}/DejaVuSansMono-Oblique.ttf</embedFile>
+            <metricsFile>${fonts-gen}/DejaVuSansMono-Oblique-metrics.xml</metricsFile>
+           </font>
+           <font>
+            <name>DejaVuSansMono</name>
+            <style>italic</style>
+            <weight>bold</weight>
+            <embedFile>${fonts-src}/DejaVuSansMono-BoldOblique.ttf</embedFile>
+            <metricsFile>${fonts-gen}/DejaVuSansMono-BoldOblique-metrics.xml</metricsFile>
+           </font>
+           <font>
+            <name>DejaVuSerif</name>
+            <style>normal</style>
+            <weight>normal</weight>
+            <embedFile>${fonts-src}/DejaVuSerif.ttf</embedFile>
+            <metricsFile>${fonts-gen}/DejaVuSerif-metrics.xml</metricsFile>
+           </font>
+           <font>
+            <name>DejaVuSerif</name>
+            <style>normal</style>
+            <weight>bold</weight>
+            <embedFile>${fonts-src}/DejaVuSerifCondensed-Bold.ttf</embedFile>
+            <metricsFile>${fonts-gen}/DejaVuSerifCondensed-Bold-metrics.xml</metricsFile>
+           </font>
+           <font>
+            <name>DejaVuSerif</name>
+            <style>italic</style>
+            <weight>normal</weight>
+            <embedFile>${fonts-src}/DejaVuSerif-Italic.ttf</embedFile>
+            <metricsFile>${fonts-gen}/DejaVuSerif-Italic-metrics.xml</metricsFile>
+           </font>
+           <font>
+            <name>DejaVuSerif</name>
+            <style>italic</style>
+            <weight>bold</weight>
+            <embedFile>${fonts-src}/DejaVuSerifCondensed-BoldItalic.ttf</embedFile>
+            <metricsFile>${fonts-gen}/DejaVuSerifCondensed-BoldItalic-metrics.xml</metricsFile>
+           </font>
+          </fonts>
 
           <htmlStylesheet>css/coredoc.css</htmlStylesheet>
           <sectionAutolabel>true</sectionAutolabel>

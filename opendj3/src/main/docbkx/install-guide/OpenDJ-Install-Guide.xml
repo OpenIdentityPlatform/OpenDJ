@@ -41,7 +41,7 @@
    </author>
   </authorgroup>
   <xinclude:include href='../legal.xml' />
-  <pubdate><?eval ${maven.build.timestamp}?></pubdate>
+  <date><?dbtimestamp format="B d, Y"?></date>
  </info>
 
  <toc />
