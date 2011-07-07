@@ -491,5 +491,71 @@ ldapsearch.port=1389</programlisting>
   <para>The location on Windows is
   <filename>%UserProfile%/.opendj/tools.properties</filename>.</para>
  </section>
+ 
+ <section>
+  <title>Configuring Proxied Authorization</title>
+  
+  <para>Proxied authorization provides a standard control as defined in <link
+  xlink:href='http://tools.ietf.org/html/rfc4370'>RFC 4370</link> (and an
+  earlier Internet-Draft) for binding with the user credentials of a proxy, who
+  carries out LDAP operations on behalf of other users. You might use proxied
+  authorization, for example, to have your application bind with its
+  credentials, and then carry out operations as the users who login to the
+  application.</para>
+  
+  <para>Suppose you have an administrative directory client application that
+  has an entry in the directory with DN
+  <literal>cn=My App,ou=Apps,dc=example,dc=com</literal>. You can give that
+  application the access rights and privileges to use proxied authorization.
+  The default access control for OpenDJ permits authenticated users to use
+  the proxied authorization control.</para>
+  
+  <para>Suppose also that when directory administrator, Kirsten Vaughan, logs
+  in to your application to change Babs Jensen's entry, your application looks
+  up Kirsten's entry, and finds that she has DN
+  <literal>uid=kvaughan,ou=People,dc=example,dc=com</literal>. For the example
+  commands in the following procedure. My App uses proxied authorization to
+  make a change to Babs's entry as Kirsten.</para>
+  
+  <procedure>
+   <title>To Set Up Proxied Authorization</title>
+   <step>
+    <para>Grant access to applications that can use proxied authorization.</para>
+    <screen>$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password
+dn: dc=example,dc=com
+changetype: modify
+add: aci
+aci: (target="ldap:///dc=example,dc=com") (targetattr ="*
+ ")(version 3.0; acl "Allow apps proxied auth"; allow(all, proxy
+ )(userdn = "ldap:///cn=*,ou=Apps,dc=example,dc=com");)
+
+Processing MODIFY request for dc=example,dc=com
+MODIFY operation successful for DN dc=example,dc=com</screen>
+   </step>
+   <step>
+    <para>Grant the privilege to use proxied authorization to My App.</para>
+    <screen>$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password
+dn: cn=My App,ou=Apps,dc=example,dc=com
+changetype: modify
+add: ds-privilege-name
+ds-privilege-name: proxied-auth
+
+Processing MODIFY request for cn=My App,ou=Apps,dc=example,dc=com
+MODIFY operation successful for DN cn=My App,ou=Apps,dc=example,dc=com</screen>
+   </step>
+   <step>
+    <para>Test that My App can use proxied authorization.</para>
+    <screen>$ ldapmodify -p 1389 -D "cn=My App,ou=Apps,dc=example,dc=com" -w password
+ -Y "dn:uid=kvaughan,ou=People,dc=example,dc=com"
+dn: uid=bjensen,ou=People,dc=example,dc=com
+changetype: modify
+replace: description
+description: Changed through proxied auth
+
+Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com
+MODIFY operation successful for DN uid=bjensen,ou=People,dc=example,dc=com</screen>
+   </step>
+  </procedure>
+ </section>
 </chapter>
 
