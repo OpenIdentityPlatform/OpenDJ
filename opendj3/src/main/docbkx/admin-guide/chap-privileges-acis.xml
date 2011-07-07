@@ -807,9 +807,15 @@ The LDAP password modify operation was successful</screen>
    <para>Directory Administrators need privileges as well for full access to
    administrative operations.</para>
    <programlisting language="ldif">aci: (target="ldap:///dc=example,dc=com") (targetattr =
- "*")(version 3.0;acl "Admins can run amok"; allow(all) groupdn =
+ "* || +")(version 3.0;acl "Admins can run amok"; allow(
+ all, proxy, import, export) groupdn =
  "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)
  </programlisting>
+   <para>Notice both <literal>targetattr = "* || +"</literal>, which permits
+   access to both all user attributes and all operational attributes, and
+   <literal>allow(all, proxy, import, export)</literal>, which permits not
+   only all user operations, but also proxy authorization as well as data
+   import and export operations.</para>
   </example>
 
   <example>
