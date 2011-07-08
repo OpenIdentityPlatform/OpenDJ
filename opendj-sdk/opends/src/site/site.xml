@@ -68,8 +68,8 @@
       <item name="Release Notes" href="../doc/release-notes/OpenDJ-Release-Notes.html" />
       <item name="Installation Guide" href="../doc/install-guide/OpenDJ-Install-Guide.html" />
       <item name="Administration Guide" href="../doc/admin-guide/OpenDJ-Admin-Guide.html" />
-      <item name="Config Reference" href="./configref/index.html" alt="TODO" />
-      <item name="Plugin Javadoc" href="../404.html" alt="TODO" />
+      <item name="Config Reference" href="./configref/index.html" />
+      <item name="Plugin Javadoc" href="./javadoc/index.html" />
     </menu>
 
     <menu name="OpenDJ Development">
