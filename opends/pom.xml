@@ -106,20 +106,21 @@
             </configuration>
           </execution>
           <execution>
-            <id>docgen</id>
+            <id>generate-docs</id>
             <phase>pre-site</phase>
             <goals>
-              <goal>run</goal>
+             <goal>run</goal>
             </goals>
             <configuration>
-              <target>
-                <ant target="configguide" />
-              </target>
+             <target>
+              <ant target="javadoc" />
+              <ant target="configguide" />
+             </target>
             </configuration>
           </execution>
           <execution>
-            <id>cp-docget</id>
-            <phase>post-site</phase>
+            <id>cp-generated-docs</id>
+            <phase>site</phase>
             <goals>
               <goal>run</goal>
             </goals>
@@ -127,6 +128,9 @@
               <target>
                 <copy todir="build/site/configref">
                   <fileset dir="build/docgen/configuration_guide/" />
+                </copy>
+                <copy todir="build/site/javadoc">
+                  <fileset dir="build/javadoc/" />
                 </copy>
               </target>
             </configuration>
