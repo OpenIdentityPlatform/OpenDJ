@@ -74,7 +74,7 @@
  <xinclude:include href='chap-mv-servers.xml' />
  <xinclude:include href='chap-troubleshooting.xml' />
  
- <reference>
+ <reference xml:id="admin-tools-ref">
   <title>Tools Reference</title>
    <xinclude:include href='../shared/man-backup.xml' />
    <xinclude:include href='../shared/man-base64.xml' />
