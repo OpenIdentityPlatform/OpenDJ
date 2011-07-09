@@ -64,7 +64,7 @@
   >http://mcraig.org/ldif/Example.ldif</link>.</para>
  </section>
 
- <section>
+ <section xml:id="getting-the-ldap-sdk">
   <title>Getting the LDAP SDK</title>
 
   <para>You can either install a build or build your own from source.</para>  

@@ -29,7 +29,7 @@
  xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <title>Tested Operating Systems and Application Servers</title>
+ <title>Tested Operating Systems &amp; Application Servers</title>
 
  <para>OpenDJ software depends on the Java environment more than it depends
  on the underlying operating systems.</para>
