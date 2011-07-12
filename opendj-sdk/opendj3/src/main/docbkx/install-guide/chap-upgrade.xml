@@ -55,7 +55,7 @@
   schema by following the appropriate steps depending on your platform.</para>
   
   <para>(UNIX) Download and apply <link
-  xlink:href='https://wikis.forgerock.org/confluence/download/attachments/11632664/opendj_patch4upgrade.sh?version=1&amp;modificationDate=1299182493000'
+  xlink:href='http://wikis.forgerock.org/confluence/download/attachments/11632664/opendj_patch4upgrade.sh'
   >opendj_patch4upgrade.sh</link> to your current server, by
   running the shell script from the directory where the server is installed.</para>
   
