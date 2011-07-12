@@ -86,9 +86,9 @@
   </ciManagement>
   <distributionManagement>
     <site>
-      <id>opendj.forgerock.org</id>
+      <id>forgerock.org</id>
       <name>OpenDJ Community</name>
-      <url>scp://opendj.forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</url>
+      <url>${siteDistributionURL}</url>
     </site>
   </distributionManagement>
   <modules>
@@ -105,6 +105,7 @@
     <fonts-gen>${basedir}/target/fonts</fonts-gen>
     <site-out>${basedir}/target/site</site-out>
     <legalnotice>${basedir}/target/docbkx/html/legalnotice.html</legalnotice>
+    <siteDistributionURL>scp://forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
   </properties>
   <build>
     <plugins>
@@ -337,6 +338,7 @@
               <goal>generate-html</goal>
             </goals>
             <configuration>
+              <!-- <targetDatabaseDocument>${basedir}/src/main/docbkx/olinkdb.xml</targetDatabaseDocument> -->
               <chunkedOutput>true</chunkedOutput>
               <htmlCustomization>${dbstyle-dir}/html/chunked.xsl</htmlCustomization>
               
