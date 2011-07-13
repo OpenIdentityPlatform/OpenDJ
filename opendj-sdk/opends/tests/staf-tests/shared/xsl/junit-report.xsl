@@ -40,28 +40,25 @@
   <xsl:variable name="kfail-tests"      select="count($testcase/issues)"/>
   <xsl:variable name="fail-tests"       select="count($testcase[@result='fail'])"/>
   <xsl:variable name="inconc-tests"     select="count($testcase[@result='unknown'])"/>
-  <testsuite name="FunctionalTests"
+  <testsuite name="opendj.tests.functional"
     tests="{$total-tests}" time="0"
     failures="{$fail-tests}" errors="0"
     skipped="{$inconc-tests}">
     
-    <xsl:for-each select="$testsuite">
-      <xsl:variable name="testName" select="@testName"/>
+    <xsl:for-each select="$testcase">
       <xsl:variable name="message" select="'no message'"/>
-      <xsl:for-each select="$testcase">
-        <xsl:variable name="className" select="@name"/>
+      <xsl:variable name="className" select="$testsuite/@name"/>
         <xsl:variable name="outcome" select="@result"/>
-        <testcase classname="{$className}"
-          name="{$testName}"
+        <testcase classname="opendj.tests.functional"
+          name="{@name}"
           time="{@duration}">
           
-          <xsl:if test="contains($outcome, 'fail')">
+          <xsl:if test="contains(@result, 'fail')">
             <failure>
               <xsl:value-of select="$message" />
             </failure>
           </xsl:if>
         </testcase>
-      </xsl:for-each>
     </xsl:for-each>
   
   </testsuite>
