@@ -1,48 +1,47 @@
 This folder contains source code for an example "Hello World" style
 plugin. It features a plugin which has a configurable message (the
 default being "Hello World") which is displayed as a notice message
-when an OpenDS instance is started.
+when OpenDJ directory server is started.
 
 In order to build and use this example plugin, perform the following
-steps (presumably you are already at step 4):
+steps while the server is stopped:
 
-  1. In the top-level source folder for OpenDS, first build and
-     package OpenDS:
-
-     ./build.sh
-
-  2. Next go into the packages folder:
-
-     cd build/package/OpenDS-0.1
-
-  3. Then unzip the example-plugin.zip (in place):
+  1. Then unzip the example-plugin.zip (in place):
 
      unzip example-plugin.zip
 
-  4. Go into the example-plugin source folder:
+  2. Go into the example-plugin source folder:
 
      cd example-plugin
 
-  5. And build the plugin (this requires Ant version 7 or higher in your path):
+  3. And build the plugin (this requires Ant version 7 and Xalan-Java):
 
      ant install
 
-  6. This will copy the following files into the parent OpenDS
+     If this step fails for you as is, you can find Ant 7 and Xalan-Java
+     in the OpenDJ ext/ directory after checking the source out with
+     Subversion. Substitute your full path to OpenDJ sources for /src
+     in the following command:
+
+     /src/ext/ant/bin/ant -Dxalan.directory=/src/ext/xalan-j/ install
+
+  4. This will copy the following files into the parent OpenDJ
      installation:
 
      lib/extensions/example-plugin.jar
      config/example-plugin.ldif
      config/schema/99-example-plugin.ldif
 
-  7. Add the plugin's config to the server configuration. The
-     following instruction assumes usage of the Unix 'cat'
-     command, but obviously ldapadd can be used:
+  5. Add the plugin's config to the server configuration.
 
-     cd ../config
-     cat example-plugin.ldif >> config.ldif
+     cd ../bin
+     ./start-ds
+     ./dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password
+      create-plugin --plugin-name "Example Plugin" --type example
+      --set enabled:true --set plugin-type:startup
+      --set java-class:com.example.opends.ExamplePlugin -X -n
 
-  8. Start the server and look for the "hello world" notice in the start
+  6. Restart the server and look for the "hello world" notice in the start
      up log:
 
-     cd ..
-     ./bin/start-ds
+     ./stop-ds --restart
