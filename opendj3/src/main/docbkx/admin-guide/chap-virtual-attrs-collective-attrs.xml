@@ -121,11 +121,11 @@ numSubordinates: 4
   attribute is defined by the server configuration, which is not
   replicated.</para>
   
-  <screen>$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password \
-&gt; create-virtual-attribute --name "Served By Description" \
-&gt; --type user-defined --set enabled:true \
-&gt; --set attribute-type:description --set base-dn:dc=example,dc=com \
-&gt; --set value:"Served by OpenDJ.Example.com" -X -n
+  <screen>$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password
+ create-virtual-attribute --name "Served By Description"
+ --type user-defined --set enabled:true
+ --set attribute-type:description --set base-dn:dc=example,dc=com
+ --set value:"Served by OpenDJ.Example.com" -X -n
 $ ldapsearch -p 1389 -b dc=example,dc=com uid=bjensen description
 dn: uid=bjensen,ou=People,dc=example,dc=com
 description: Served by OpenDJ.Example.com
@@ -275,22 +275,22 @@ ADD operation successful for DN cn=Gold Class of Service,dc=example,dc=com</scre
    <para>With the collective attributes defined, you can see the results on
    user entries.</para>
    
-   <screen>$ ldapsearch -p 1389 -b dc=example,dc=com uid=bjensen \
-&gt; classOfService mailQuota diskQuota
+   <screen>$ ldapsearch -p 1389 -b dc=example,dc=com uid=bjensen
+ classOfService mailQuota diskQuota
 dn: uid=bjensen,ou=People,dc=example,dc=com
 mailQuota: 1 GB
 classOfService: bronze
 diskQuota: 10 GB
 
-$ ldapsearch -p 1389 -b dc=example,dc=com uid=kvaughan \
-&gt; classOfService mailQuota diskQuota
+$ ldapsearch -p 1389 -b dc=example,dc=com uid=kvaughan
+ classOfService mailQuota diskQuota
 dn: uid=kvaughan,ou=People,dc=example,dc=com
 mailQuota: 5 GB
 classOfService: silver
 diskQuota: 50 GB
 
-$ ldapsearch -p 1389 -b dc=example,dc=com uid=scarter \
-&gt; classOfService mailQuota diskQuota
+$ ldapsearch -p 1389 -b dc=example,dc=com uid=scarter
+ classOfService mailQuota diskQuota
 dn: uid=scarter,ou=People,dc=example,dc=com
 mailQuota: 10 GB
 classOfService: gold

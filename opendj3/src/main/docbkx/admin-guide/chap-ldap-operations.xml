@@ -123,8 +123,8 @@ Result Code:  0 (Success)</screen>
    command returns the attributes associated with the <literal>person</literal>
    object class.</para>
    
-   <screen>$ ldapsearch -p 1389 -b ou=people,dc=example,dc=com \
-&gt; "(&amp;(uid=*jensen*)(l=Santa Clara))" @person
+   <screen>$ ldapsearch -p 1389 -b ou=people,dc=example,dc=com
+ "(&amp;(uid=*jensen*)(l=Santa Clara))" @person
 dn: uid=ajensen,ou=People,dc=example,dc=com
 objectClass: person
 objectClass: organizationalPerson
@@ -181,14 +181,14 @@ sn: Jensen
    <para>In this example, Kirsten Vaughan checks whether the hashed password
    value matches the stored value on <literal>authPassword</literal>.</para>
 
-   <screen>$ ldapcompare -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
- &gt; -w bribery 'authPassword:MD5$dFHgpDxXUT8=$qlC4xMXvmVlusJLz9/WJ5Q==' \
- &gt; uid=kvaughan,ou=people,dc=example,dc=com
- Comparing type authPassword with value
-  MD5$dFHgpDxXUT8=$qlC4xMXvmVlusJLz9/WJ5Q== in entry
-   uid=kvaughan,ou=people,dc=example,dc=com
- Compare operation returned true for entry
-  uid=kvaughan,ou=people,dc=example,dc=com</screen>
+   <screen>$ ldapcompare -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com"
+ -w bribery 'authPassword:MD5$dFHgpDxXUT8=$qlC4xMXvmVlusJLz9/WJ5Q=='
+ uid=kvaughan,ou=people,dc=example,dc=com
+Comparing type authPassword with value
+ MD5$dFHgpDxXUT8=$qlC4xMXvmVlusJLz9/WJ5Q== in entry
+ uid=kvaughan,ou=people,dc=example,dc=com
+Compare operation returned true for entry
+ uid=kvaughan,ou=people,dc=example,dc=com</screen>
   </example>
  </section>
  
@@ -223,8 +223,8 @@ cn: Horace Velmont
 telephoneNumber: +33 1 12 23 34 45
 sn: Velmont
 
-$ ldapmodify -a -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
-&gt; -w bribery -f new-users.ldif
+$ ldapmodify -a -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com"
+ -w bribery -f new-users.ldif
 Processing ADD request for cn=Arsene Lupin,ou=Special Users,dc=example,dc=com
 ADD operation successful for DN
  cn=Arsene Lupin,ou=Special Users,dc=example,dc=com
@@ -256,8 +256,8 @@ description: Accounting Manager
 add: jpegphoto
 jpegphoto: /tmp/Samantha-Carter.jpg
 
-$ ldapmodify -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
-&gt; -w bribery -f scarter-mods.ldif 
+$ ldapmodify -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com"
+ -w bribery -f scarter-mods.ldif 
 Processing MODIFY request for uid=scarter,ou=people,dc=example,dc=com
 MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com</screen>
   </example>
@@ -274,8 +274,8 @@ changetype: modify
 replace: description
 description: Accounting Director
 
-$ ldapmodify -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
-&gt; -w bribery -f scarter-newdesc.ldif 
+$ ldapmodify -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com"
+ -w bribery -f scarter-newdesc.ldif 
 Processing MODIFY request for uid=scarter,ou=people,dc=example,dc=com
 MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com</screen>
   </example>
@@ -291,8 +291,8 @@ dn: uid=scarter,ou=people,dc=example,dc=com
 changetype: modify
 delete: jpegphoto
 
-$ ldapmodify -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
-&gt; -w bribery -f scarter-deljpeg.ldif 
+$ ldapmodify -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com"
+ -w bribery -f scarter-deljpeg.ldif 
 Processing MODIFY request for uid=scarter,ou=people,dc=example,dc=com
 MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com</screen>
   </example>
@@ -342,8 +342,8 @@ homeDirectory: /home/sjensen
 replace: mail
 mail: sjensen@example.com
 
-$ ldapmodify -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
-&gt; -w bribery -f /path/to/scarter-sjensen.ldif 
+$ ldapmodify -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com"
+ -w bribery -f /path/to/scarter-sjensen.ldif 
 Processing MODIFY DN request for uid=scarter,ou=people,dc=example,dc=com
 MODIFY DN operation successful for DN uid=scarter,ou=people,dc=example,dc=com
 Processing MODIFY request for uid=sjensen,ou=people,dc=example,dc=com
@@ -385,8 +385,8 @@ newrdn: ou=People
 deleteoldrdn: 1
 newsuperior: dc=example,dc=com
 
-$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password \
-&gt; -f move-customers.ldif 
+$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password
+ -f move-customers.ldif 
 Processing MODIFY DN request for ou=Customers,dc=example,dc=com
 MODIFY DN operation successful for DN ou=Customers,dc=example,dc=com
 $ cat move-employees.pl 
@@ -400,8 +400,8 @@ while (&lt;&gt;)
      deleteoldrdn: 0\nnewsuperior: ou=People,dc=example,dc=com/;
     print;
 }
-$ ldapsearch -p 1389 -b ou=Employees,dc=example,dc=com uid=* - | \
-&gt; move-employees.pl > /tmp/move-employees.ldif
+$ ldapsearch -p 1389 -b ou=Employees,dc=example,dc=com uid=* - |
+ move-employees.pl > /tmp/move-employees.ldif
 $ head -n 6 /tmp/move-employees.ldif 
 dn: uid=abarnes,ou=Employees,dc=example,dc=com
 changetype: moddn
@@ -409,8 +409,8 @@ newrdn: uid=abarnes
 deleteoldrdn: 0
 newsuperior: ou=People,dc=example,dc=com
 
-$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password \
-&gt; -f /tmp/move-employees.ldif 
+$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password
+ -f /tmp/move-employees.ldif 
 Processing MODIFY DN request for uid=abarnes,ou=Employees,dc=example,dc=com
 MODIFY DN operation successful for DN uid=abarnes,ou=Employees,dc=example,dc=com
 Processing MODIFY DN request for uid=abergin,ou=Employees,dc=example,dc=com
@@ -418,8 +418,8 @@ MODIFY DN operation successful for DN uid=abergin,ou=Employees,dc=example,dc=com
 ...
 Processing MODIFY DN request for uid=wlutz,ou=Employees,dc=example,dc=com
 MODIFY DN operation successful for DN uid=wlutz,ou=Employees,dc=example,dc=com
-$ ldapdelete -p 1389 -D "cn=Directory Manager" -w password \
-&gt; ou=Employees,dc=example,dc=com
+$ ldapdelete -p 1389 -D "cn=Directory Manager" -w password
+ ou=Employees,dc=example,dc=com
 Processing DELETE request for ou=Employees,dc=example,dc=com
 DELETE operation successful for DN ou=Employees,dc=example,dc=com</screen>
    </example>
@@ -437,8 +437,8 @@ DELETE operation successful for DN ou=Employees,dc=example,dc=com</screen>
     <para>The following example uses the subtree delete option to remove
     all Special Users from the directory.</para>
     
-    <screen>$ ldapdelete -p 1389 -D "cn=Directory Manager" -w password \
-&gt; -x "ou=Special Users,dc=example,dc=com"
+    <screen>$ ldapdelete -p 1389 -D "cn=Directory Manager" -w password
+ -x "ou=Special Users,dc=example,dc=com"
 Processing DELETE request for ou=Special Users,dc=example,dc=com
 DELETE operation successful for DN ou=Special Users,dc=example,dc=com</screen>
    </example>
@@ -459,16 +459,16 @@ DELETE operation successful for DN ou=Special Users,dc=example,dc=com</screen>
    password. The <option>-q</option> option means the same thing as
    <option>--useStartTLS</option>.</para>
    
-   <screen>$ ldappasswordmodify -q -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
-&gt; -w bribery -a "dn:uid=scarter,ou=people,dc=example,dc=com" -n ChangeMe
+   <screen>$ ldappasswordmodify -q -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com"
+ -w bribery -a "dn:uid=scarter,ou=people,dc=example,dc=com" -n ChangeMe
 The LDAP password modify operation was successful</screen>
 
    <para>You could also accomplish password reset with the following command,
    but <command>set-password-is-reset</command> is a hidden option, supported
    only for testing.</para>
    
-   <screen>$ manage-account -D "cn=Directory Manager" -w password \
-&gt; set-password-is-reset -b uid=scarter,ou=people,dc=example,dc=com -O true
+   <screen>$ manage-account -D "cn=Directory Manager" -w password
+ set-password-is-reset -b uid=scarter,ou=people,dc=example,dc=com -O true
 Password Is Reset:  true</screen>
   </example>
  </section>

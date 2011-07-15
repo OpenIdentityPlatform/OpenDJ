@@ -348,9 +348,9 @@
   using the modrate command to write random 16-character description values
   to all entries in a sample file.</para>
   <screen>$ grep ^uid: /path/to/Example.ldif | sed -e "s/uid: //" &gt; names.txt
-$ modrate -p 1389 -D cn=directory\ manager -w secret12 \
-&gt; -b "uid=%s,ou=people,dc=example,dc=com" -g "rand(names.txt)" \
-&gt;"description:%s" -g "randStr(16)" -A -F -c 4 -t 4
+$ modrate -p 1389 -D cn=directory\ manager -w secret12
+ -b "uid=%s,ou=people,dc=example,dc=com" -g "rand(names.txt)"
+ "description:%s" -g "randStr(16)" -A -F -c 4 -t 4
 -----------------------------------------------------------------
      Throughput                            Response Time         
    (ops/second)                           (milliseconds)         

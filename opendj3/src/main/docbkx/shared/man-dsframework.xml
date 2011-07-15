@@ -259,8 +259,8 @@
   <title>Examples</title>
   <para>This example lists server properties.</para>
   <screen>
-$ dsframework -p 4444 -h `hostname` -D "cn=Directory Manager" -w password -X \
-&gt; list-server-properties
+$ dsframework -p 4444 -h `hostname` -D "cn=Directory Manager" -w password -X
+ list-server-properties
 Option Types:
 
  r -- Property value(s) are readable

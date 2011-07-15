@@ -324,15 +324,15 @@
  <refsect1>
   <title>Examples</title>
   <para>The following example backs up all user data on the server.</para>
-  <screen>$ backup -p 5444 -D "cn=Directory Manager" -w password \
-&gt; -a -d /path/to/OpenDJ/bak -t 0
+  <screen>$ backup -p 5444 -D "cn=Directory Manager" -w password
+ -a -d /path/to/OpenDJ/bak -t 0
 Backup task 20110613143801866 scheduled to start Jun 13, 2011 2:38:01 PM CEST</screen>
 
   <para>The following example schedules back up of all user data every night at
   2 AM, and notifies diradmin@example.com when finished, or on error.</para>
-  <screen>$ backup -p 5444 -D "cn=Directory Manager" -w password -a \
-&gt; -d /path/to/OpenDJ/bak --recurringTask "00 02 * * *" \
-&gt; --completionNotify diradmin@example.com --errorNotify diradmin@example.com
+  <screen>$ backup -p 5444 -D "cn=Directory Manager" -w password -a
+ -d /path/to/OpenDJ/bak --recurringTask "00 02 * * *"
+ --completionNotify diradmin@example.com --errorNotify diradmin@example.com
 Recurring Backup task BackupTask-988d6adf-4d65-44bf-8546-6ea74a2480b0
 scheduled successfully</screen>
  </refsect1>

@@ -158,11 +158,11 @@
    <para>You can start the replication process by using the
    <command>dsreplication enable</command> command.</para>
    
-   <screen>$ dsreplication enable -I admin -w password -X -n -b dc=example,dc=com \
-&gt; --host1 `hostname` --port1 4444 --bindDN1 "cn=Directory Manager" \
-&gt; --bindPassword1 password --replicationPort1 8989 \
-&gt; --host2 `hostname` --port2 5444 --bindDN2 "cn=Directory Manager" \
-&gt; --bindPassword2 password --replicationPort2 9989
+   <screen>$ dsreplication enable -I admin -w password -X -n -b dc=example,dc=com
+ --host1 `hostname` --port1 4444 --bindDN1 "cn=Directory Manager"
+ --bindPassword1 password --replicationPort1 8989
+ --host2 `hostname` --port2 5444 --bindDN2 "cn=Directory Manager"
+ --bindPassword2 password --replicationPort2 9989
 
 Establishing connections ..... Done.
 Checking registration information ..... Done.
@@ -223,8 +223,8 @@ for a detailed log of this operation.</screen>
      <para>Start replication with the <command>dsreplication
      initialize-all</command> command.</para>
      
-     <screen>$ dsreplication initialize-all -I admin -w password -X -n -b dc=example,dc=com \
-&gt; -h `hostname` -p 4444
+     <screen>$ dsreplication initialize-all -I admin -w password -X -n -b dc=example,dc=com
+ -h `hostname` -p 4444
 
 Initializing base DN dc=example,dc=com with the contents from localhost:4444:
 160 entries processed (100 % complete).
@@ -253,8 +253,8 @@ for a detailed log of this operation.</screen>
     <step>
      <para>Start replication with the <command>dsreplication
      initialize-all</command> command.</para>
-     <screen>$ dsreplication initialize-all -I admin -w password -X -n -b dc=example,dc=com \
-&gt; ;-h `hostname` -p 4444
+     <screen>$ dsreplication initialize-all -I admin -w password -X -n -b dc=example,dc=com
+ ;-h `hostname` -p 4444
 Initializing base DN dc=example,dc=com with the contents from localhost:4444:
 161 entries processed (100 % complete).
 Base DN initialized successfully.
@@ -284,11 +284,11 @@ for a detailed log of this operation.</screen>
     <step>
      <para>Enable replication on the new replica.</para>
      <screen>
-$ dsreplication enable -I admin -w password -X -n -b dc=example,dc=com \
-&gt; --host1 `hostname` --port1 4444 --bindDN1 "cn=Directory Manager" \
-&gt; --bindPassword1 password --replicationPort1 8989 \
-&gt; --host2 `hostname` --port2 6444 --bindDN2 "cn=Directory Manager" \
-&gt; --bindPassword2 password --replicationPort2 10989
+$ dsreplication enable -I admin -w password -X -n -b dc=example,dc=com
+ --host1 `hostname` --port1 4444 --bindDN1 "cn=Directory Manager"
+ --bindPassword1 password --replicationPort1 8989
+ --host2 `hostname` --port2 6444 --bindDN2 "cn=Directory Manager"
+ --bindPassword2 password --replicationPort2 10989
 
 Establishing connections ..... Done.
 Checking registration information ..... Done.
@@ -323,8 +323,8 @@ for a detailed log of this operation.</screen>
     </step>
     <step>
      <para>Prepare the new replica for initialization.</para>
-     <screen>$ dsreplication pre-external-initialization -I admin -w password -X -n -p 6444 \
-&gt; -b dc=example,dc=com
+     <screen>$ dsreplication pre-external-initialization -I admin -w password -X -n -p 6444
+ -b dc=example,dc=com
 
 Preparing base DN dc=example,dc=com to be initialized externally ..... Done.
 
@@ -342,8 +342,8 @@ When the initialization is completed you must use the subcommand
     </step>
     <step>
      <para>Initialize replication on the new replica.</para>
-     <screen>$ dsreplication post-external-initialization -I admin -w password -X -n \
-&gt; -p 6444 -b dc=example,dc=com
+     <screen>$ dsreplication post-external-initialization -I admin -w password -X -n
+ -p 6444 -b dc=example,dc=com
 
 Updating replication information on base DN dc=example,dc=com ..... Done.
 
@@ -369,9 +369,9 @@ Post initialization procedure completed successfully.</screen>
      <para>Get the replication server property that identifies one of the
      replication service host:port combinations that you need to restart
      replication.</para>
-     <screen>$ dsconfig -p 5444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; get-replication-server-prop --provider-name "Multimaster Synchronization" \
-&gt; --property replication-server -X
+     <screen>$ dsconfig -p 5444 -h `hostname` -D "cn=Directory Manager" -w password
+ get-replication-server-prop --provider-name "Multimaster Synchronization"
+ --property replication-server -X
 Property           : Value(s)
 -------------------:-----------------------------------------------------------
 replication-server : localhost:8989,
@@ -380,17 +380,17 @@ replication-server : localhost:8989,
     <step>
      <para>Reset the replication server property to the default (no
      replication server) to pause replication.</para>
-     <screen>$ dsconfig -p 5444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; set-replication-server-prop --provider-name "Multimaster Synchronization" \
-&gt; --reset replication-server -X -n</screen>
+     <screen>$ dsconfig -p 5444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-replication-server-prop --provider-name "Multimaster Synchronization"
+ --reset replication-server -X -n</screen>
      <para>Do not modify the replica for which replication is paused.</para>
     </step>
     <step performance="optional">
      <para>When you are ready to resume replication, set the replication server
      property to the host:port combination of an active replication server.</para>
-     <screen>$ dsconfig -p 5444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; set-replication-server-prop --provider-name "Multimaster Synchronization" \
-&gt; --set replication-server:localhost:8989 -X -n</screen>
+     <screen>$ dsconfig -p 5444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-replication-server-prop --provider-name "Multimaster Synchronization"
+ --set replication-server:localhost:8989 -X -n</screen>
     </step>
    </procedure>
    
@@ -404,8 +404,8 @@ replication-server : localhost:8989,
     <step>
      <para>Stop replication using the <command>dsreplication disable</command>
      command.</para>
-     <screen>$ dsreplication disable -a -p 5444 -h `hostname` -D "cn=Directory Manager" \
-&gt; -w password -X -n
+     <screen>$ dsreplication disable -a -p 5444 -h `hostname` -D "cn=Directory Manager"
+ -w password -X -n
 Establishing connections ..... Done.
 Disabling replication on base DN cn=admin data of server localhost:5444
  ..... Done.
@@ -473,11 +473,11 @@ for a detailed log of this operation.</screen>
      <para>Enable replication with the appropriate
      <option>--noReplicationServer</option> and
      <option>--onlyReplicationServer</option> options.</para>
-     <screen>$ dsreplication enable -I admin -w password -X -n -b dc=example,dc=com \
-&gt; --host1 `hostname` --port1 4444 --bindDN1 "cn=Directory Manager" \
-&gt; --bindPassword1 password --noReplicationServer1 \
-&gt; --host2 `hostname` --port2 6444 --bindDN2 "cn=Directory Manager" \
-&gt; --bindPassword2 password --replicationPort2 8989 --onlyReplicationServer2
+     <screen>$ dsreplication enable -I admin -w password -X -n -b dc=example,dc=com
+ --host1 `hostname` --port1 4444 --bindDN1 "cn=Directory Manager"
+ --bindPassword1 password --noReplicationServer1
+ --host2 `hostname` --port2 6444 --bindDN2 "cn=Directory Manager"
+ --bindPassword2 password --replicationPort2 8989 --onlyReplicationServer2
 Establishing connections ..... Done.
 Only one replication server will be defined for the following base DN's:
 dc=example,dc=com
@@ -503,11 +503,11 @@ See
 /var/.../opends-replication-1720959352638609971.log
 for a detailed log of this operation.
 
-$ dsreplication enable -I admin -w password -X -n -b dc=example,dc=com \
-&gt; --host1 `hostname` --port1 5444 --bindDN1 "cn=Directory Manager" \
-&gt; --bindPassword1 password --noReplicationServer1 \
-&gt; --host2 `hostname` --port2 6444 --bindDN2 "cn=Directory Manager" \
-&gt; --bindPassword2 password --replicationPort2 8989 --onlyReplicationServer2
+$ dsreplication enable -I admin -w password -X -n -b dc=example,dc=com
+ --host1 `hostname` --port1 5444 --bindDN1 "cn=Directory Manager"
+ --bindPassword1 password --noReplicationServer1
+ --host2 `hostname` --port2 6444 --bindDN2 "cn=Directory Manager"
+ --bindPassword2 password --replicationPort2 8989 --onlyReplicationServer2
 
 Establishing connections ..... Done.
 Only one replication server will be defined for the following base DN's:
@@ -541,8 +541,8 @@ for a detailed log of this operation.</screen>
     </step>
     <step>
      <para>Initialize replication from one of the directory servers.</para>
-     <screen>$ dsreplication initialize-all -I admin -w password -X -n -b dc=example,dc=com \
-&gt; -h `hostname` -p 4444
+     <screen>$ dsreplication initialize-all -I admin -w password -X -n -b dc=example,dc=com
+ -h `hostname` -p 4444
 
 Initializing base DN dc=example,dc=com with the contents from localhost:4444:
 160 entries processed (100 % complete).
@@ -583,22 +583,22 @@ for a detailed log of this operation.</screen>
     <step>
      <para>Set the group ID for each group by replication domain on the
      directory servers.</para>
-     <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; set-replication-domain-prop --provider-name "MultimasterSynchronization" \
-&gt; --domain-name "dc=example,dc=com" --set group-id:1 -X -n
+     <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-replication-domain-prop --provider-name "MultimasterSynchronization"
+ --domain-name "dc=example,dc=com" --set group-id:1 -X -n
 
-$ dsconfig -p 5444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; set-replication-domain-prop --provider-name "Multimaster Synchronization" \
-&gt; --domain-name "dc=example,dc=com" --set group-id:2 -X -n</screen>
+$ dsconfig -p 5444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-replication-domain-prop --provider-name "Multimaster Synchronization"
+ --domain-name "dc=example,dc=com" --set group-id:2 -X -n</screen>
     </step>
     <step>
      <para>Set the group ID for each group on the replication servers.</para>
-     <screen>$ dsconfig -p 6444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; set-replication-server-prop --provider-name "Multimaster Synchronization" \
-&gt; --set group-id:1 -X -n
-$ dsconfig -p 7444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; set-replication-server-prop --provider-name "Multimaster Synchronization" \
-&gt; --set group-id:2 -X -n</screen>
+     <screen>$ dsconfig -p 6444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-replication-server-prop --provider-name "Multimaster Synchronization"
+ --set group-id:1 -X -n
+$ dsconfig -p 7444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-replication-server-prop --provider-name "Multimaster Synchronization"
+ --set group-id:2 -X -n</screen>
     </step>
    </procedure>
 
@@ -621,8 +621,8 @@ $ dsconfig -p 7444 -h `hostname` -D "cn=Directory Manager" -w password \
    from the replication protocol, and refuse updates from client
    applications.</para>
 
-   <screen>$ dsconfig -p 5444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; set-global-configuration-prop --set writability-mode:internal-only -X -n</screen>   
+   <screen>$ dsconfig -p 5444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-global-configuration-prop --set writability-mode:internal-only -X -n</screen>
   </section>
 
   <section>
@@ -657,15 +657,15 @@ $ dsconfig -p 7444 -h `hostname` -D "cn=Directory Manager" -w password \
      <para>For each directory server, set safe data mode for the replication
      domain, and also set the safe data level.</para>
      
-     <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; set-replication-domain-prop --provider-name "Multimaster Synchronization" \
-&gt; --domain-name "dc=example,dc=com" \
-&gt; --set assured-type:safe-data --set assured-sd-level:1 -X -n
+     <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-replication-domain-prop --provider-name "Multimaster Synchronization"
+ --domain-name "dc=example,dc=com"
+ --set assured-type:safe-data --set assured-sd-level:1 -X -n
 
-$ dsconfig -p 5444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; set-replication-domain-prop --provider-name "Multimaster Synchronization" \
-&gt; --domain-name "dc=example,dc=com" \
-&gt; --set assured-type:safe-data --set assured-sd-level:1 -X -n</screen>
+$ dsconfig -p 5444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-replication-domain-prop --provider-name "Multimaster Synchronization"
+ --domain-name "dc=example,dc=com"
+ --set assured-type:safe-data --set assured-sd-level:1 -X -n</screen>
     </step>
    </procedure>   
 
@@ -679,13 +679,13 @@ $ dsconfig -p 5444 -h `hostname` -D "cn=Directory Manager" -w password \
      <para>For each directory server, set safe read mode for the replication
      domain.</para>
      
-     <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; set-replication-domain-prop --provider-name "Multimaster Synchronization" \
-&gt; --domain-name "dc=example,dc=com" --set assured-type:safe-read -X -n
+     <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-replication-domain-prop --provider-name "Multimaster Synchronization"
+ --domain-name "dc=example,dc=com" --set assured-type:safe-read -X -n
 
-$ dsconfig -p 5444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; set-replication-domain-prop --provider-name "Multimaster Synchronization" \
-&gt; --domain-name "dc=example,dc=com" --set assured-type:safe-read -X -n</screen>
+$ dsconfig -p 5444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-replication-domain-prop --provider-name "Multimaster Synchronization"
+ --domain-name "dc=example,dc=com" --set assured-type:safe-read -X -n</screen>
     </step>
    </procedure>
    
@@ -732,16 +732,16 @@ $ dsconfig -p 5444 -h `hostname` -D "cn=Directory Manager" -w password \
    fractional replica to include only some <literal>inetOrgPerson</literal>
    attributes.</para>
    
-   <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; set-replication-domain-prop --provider-name "Multimaster Synchronization" \
---domain-name "dc=example,dc=com" -X -n --set \
-fractional-include:inetorgperson:cn,givenname,mail,mobile,sn,telephonenumber</screen>
+   <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-replication-domain-prop --provider-name "Multimaster Synchronization"
+ --domain-name "dc=example,dc=com" -X -n --set
+ fractional-include:inetorgperson:cn,givenname,mail,mobile,sn,telephonenumber</screen>
    
    <para>As another example, you might exclude a custom attribute called
    <literal>sessionToken</literal> from being replicated.</para>
    
-   <screen>dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; set-replication-domain-prop --provider-name "Multimaster Synchronization" \
+   <screen>dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-replication-domain-prop --provider-name "Multimaster Synchronization" \
 --domain-name "dc=example,dc=com" --set fractional-exclude:*:sessionToken -X -n</screen>
 
    <para>This last example only works if you first define a sessionToken
@@ -816,8 +816,8 @@ entryDN: cn=changelog
     <para>Notice the value of the <literal>changeLogCookie</literal> attribute
     for the last of the two changes.</para>
     
-    <screen>$ ldapsearch -b cn=changelog -p 1389 -D "cn=Directory Manager" -w password \
-&gt; -J "1.3.6.1.4.1.26027.1.5.4:false" "(objectclass=*)" \* +
+    <screen>$ ldapsearch -b cn=changelog -p 1389 -D "cn=Directory Manager" -w password
+ -J "1.3.6.1.4.1.26027.1.5.4:false" "(objectclass=*)" \* +
 dn: cn=changelog
 cn: changelog
 objectClass: top
@@ -901,9 +901,9 @@ creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
    
     <para>In this example, a description was added to Babs Jensen's entry.</para>
    
-    <screen>$ ldapsearch -b cn=changelog -p 1389 -D "cn=Directory Manager" -w password \
-&gt; -J "1.3.6.1.4.1.26027.1.5.4:false:\
-&gt; dc=example,dc=com:0000013087cbc34a12d100000002;" "(objectclass=*)" \* +
+    <screen>$ ldapsearch -b cn=changelog -p 1389 -D "cn=Directory Manager" -w password
+ -J "1.3.6.1.4.1.26027.1.5.4:false:
+ dc=example,dc=com:0000013087cbc34a12d100000002;" "(objectclass=*)" \* +
 dn: cn=changelog
 cn: changelog
 objectClass: top

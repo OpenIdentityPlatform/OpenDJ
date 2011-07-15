@@ -83,8 +83,7 @@
   <step>
    <para>Run the <command>make-ldif</command> command to generate your
    LDIF file.</para>
-   <screen>$ make-ldif --randomSeed 0 -t /path/to/my.template \
-&gt; -o generated.ldif
+   <screen>$ make-ldif --randomSeed 0 -t /path/to/my.template -o generated.ldif
 Processed 1000 entries
 Processed 2000 entries
 ...
@@ -186,8 +185,8 @@ The Local DB Backend was created successfully</screen>
     </step>
     <step>
      <para>If not, schedule a task to import the data while online.</para>
-     <screen>$ import-ldif -X -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; -b dc=example,dc=org -n userRoot -l /path/to/generated.ldif</screen>
+     <screen>$ import-ldif -X -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ -b dc=example,dc=org -n userRoot -l /path/to/generated.ldif</screen>
      <para>Notice that the task is scheduled through communication over SSL on
      the administration port, by default <literal>4444</literal>. You can
      schedule the import task to start at a particular time using the
@@ -221,9 +220,8 @@ The Local DB Backend was created successfully</screen>
     </step>
     <step>
      <para>If not, schedule a task to export the data while online.</para>
-     <screen>$ export-ldif -X -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; -b dc=example,dc=org -n userRoot -l /path/to/backup.ldif \
---start 20111221230000</screen>
+     <screen>$ export-ldif -X -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ -b dc=example,dc=org -n userRoot -l /path/to/backup.ldif --start 20111221230000</screen>
      <para>The <option>--start 20111221230000</option> option tells OpenDJ to
      start the export at 11 PM on December 21, 2012, assuming the world has
      not ended yet.</para>

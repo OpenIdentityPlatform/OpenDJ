@@ -62,8 +62,8 @@
   policy settings using the <command>dsconfig</command> command as
   follows.</para>
   
-  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; get-password-policy-prop --policy-name "Default Password Policy" --advanced
+  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ get-password-policy-prop --policy-name "Default Password Policy" --advanced
 Property                                  : Value(s)
 ------------------------------------------:--------------------------
 account-status-notification-handler       : -
@@ -113,8 +113,8 @@ state-update-failure-policy               : reactive</screen>
   value. Even the directory manager cannot see the plain text value of a user's
   password.</para>
   
-  <screen>$ ldapsearch -p 1389 -D "cn=Directory Manager" -w password \
-&gt; -b dc=example,dc=com uid=bjensen userpassword
+  <screen>$ ldapsearch -p 1389 -D "cn=Directory Manager" -w password
+ -b dc=example,dc=com uid=bjensen userpassword
 dn: uid=bjensen,ou=People,dc=example,dc=com
 userpassword: {SSHA}QWAtw8ch/9850HNFRRqLNMIQc1YhxCnOoGmk1g==</screen>
 
@@ -147,21 +147,21 @@ pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config</sc
    words, and prevent password reuse.</para>
    <step>
     <para>Enable the appropriate password validator.</para>
-    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; set-password-validator-prop --validator-name Dictionary --set enabled:true \
-&gt; -X -n</screen>
+    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-password-validator-prop --validator-name Dictionary --set enabled:true
+ -X -n</screen>
    </step>
    <step>
     <para>Apply the changes to the default password policy.</para>
-    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; set-password-policy-prop --policy-name "Default Password Policy" \
-&gt; --set max-password-age:90d --set min-password-age:4w \
-&gt; --set password-history-count:7 --set password-validator:Dictionary -X -n</screen>
+    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-password-policy-prop --policy-name "Default Password Policy"
+ --set max-password-age:90d --set min-password-age:4w
+ --set password-history-count:7 --set password-validator:Dictionary -X -n</screen>
    </step>
    <step>
     <para>Check your work.</para>
-    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; get-password-policy-prop --policy-name "Default Password Policy" 
+    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ get-password-policy-prop --policy-name "Default Password Policy" 
 Property                                  : Value(s)
 ------------------------------------------:--------------------------
 account-status-notification-handler       : -
@@ -203,15 +203,15 @@ require-secure-password-changes           : false</screen>
    yet used their credentials to bind.</para>
    <step>
     <para>Create the new password policy.</para>
-    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; create-password-policy --policy-name "New Account Password Policy" \
-&gt; --set default-password-storage-scheme:"Salted SHA-1" \
-&gt; --set force-change-on-add:true --set password-attribute:userPassword -X -n</screen>
+    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ create-password-policy --policy-name "New Account Password Policy"
+ --set default-password-storage-scheme:"Salted SHA-1"
+ --set force-change-on-add:true --set password-attribute:userPassword -X -n</screen>
    </step>
    <step>
     <para>Check your work.</para>
-    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; get-password-policy-prop --policy-name "New Account Password Policy"
+    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ get-password-policy-prop --policy-name "New Account Password Policy"
 Property                                  : Value(s)
 ------------------------------------------:-------------
 account-status-notification-handler       : -
@@ -300,8 +300,8 @@ ADD operation successful for DN uid=newuser,ou=People,dc=example,dc=com</screen>
    </step>
    <step>
     <para>Check your work.</para>
-    <screen>$ ldapsearch -p 1389 -D "cn=Directory Manager" -w password \
-&gt; -b dc=example,dc=com uid=newuser pwdPolicySubentry
+    <screen>$ ldapsearch -p 1389 -D "cn=Directory Manager" -w password
+ -b dc=example,dc=com uid=newuser pwdPolicySubentry
 dn: uid=newuser,ou=People,dc=example,dc=com
 pwdPolicySubentry: cn=New Account Password Policy,cn=Password Policies,cn=config</screen>
    </step>
@@ -315,12 +315,12 @@ pwdPolicySubentry: cn=New Account Password Policy,cn=Password Policies,cn=config
     <literal>ds-pwp-password-policy-dn</literal> attribute for group
     members' entries.</para>
     
-    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; create-virtual-attribute --name "Dir Admin Password Policy" \
-&gt; --type user-defined --set attribute-type:ds-pwp-password-policy-dn \
-&gt; --set value:"cn=Root Password Policy,cn=Password Policies,cn=config" \
-&gt; --set group-dn:"cn=Directory Administrators,ou=Groups,dc=example,dc=com" \
-&gt; --set enabled:true -X -n</screen>
+    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ create-virtual-attribute --name "Dir Admin Password Policy"
+ --type user-defined --set attribute-type:ds-pwp-password-policy-dn
+ --set value:"cn=Root Password Policy,cn=Password Policies,cn=config"
+ --set group-dn:"cn=Directory Administrators,ou=Groups,dc=example,dc=com"
+ --set enabled:true -X -n</screen>
    </step>
    <step>
     <para>Check your work.</para>
@@ -336,16 +336,16 @@ pwdPolicySubentry: cn=Root Password Policy,cn=Password Policies,cn=config</scree
    
    <step>
     <para>Identify the SMTP server to which OpenDJ sends messages.</para>
-    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; set-global-configuration-prop --set smtp-server:smtp.example.com -X -n</screen>
+    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-global-configuration-prop --set smtp-server:smtp.example.com -X -n</screen>
    </step>
    
    <step>
     <para>Set up OpenDJ to be able to mail users about account status.</para>
-    <screen>dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; set-account-status-notification-handler-prop \
-&gt; --handler-name "SMTP Handler" --set enabled:true \
-&gt; --set email-address-attribute-type:mail -X -n</screen>
+    <screen>dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-account-status-notification-handler-prop
+ --handler-name "SMTP Handler" --set enabled:true
+ --set email-address-attribute-type:mail -X -n</screen>
     <para>You can also configure the <literal>message-subject</literal> and
     <literal>message-template-file</literal> properties. Try interactive
     mode if you plan to do so.</para>
@@ -357,9 +357,9 @@ pwdPolicySubentry: cn=Root Password Policy,cn=Password Policies,cn=config</scree
    <step>
     <para>Adjust applicable password policies to use the account status
     notification handler you configured.</para>
-    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
- &gt; set-password-policy-prop --policy-name "Default Password Policy" \
- &gt; --set account-status-notification-handler:"SMTP Handler" -X -n</screen>
+    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-password-policy-prop --policy-name "Default Password Policy"
+ --set account-status-notification-handler:"SMTP Handler" -X -n</screen>
    </step>
   </procedure>
  </section>

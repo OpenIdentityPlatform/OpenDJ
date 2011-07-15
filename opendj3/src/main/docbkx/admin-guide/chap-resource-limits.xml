@@ -143,8 +143,8 @@ ds-rlim-size-limit: 0</screen>
   global configuration property, <literal>idle-time-limit</literal>. By
   default, no idle time limit is set.</para>
   
-  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; set-global-configuration-prop --set idle-time-limit:24h -X -n</screen>
+  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-global-configuration-prop --set idle-time-limit:24h -X -n</screen>
 
   <para>The example shown sets the idle time limit to 24 hours.</para>
  </section>
@@ -159,9 +159,9 @@ ds-rlim-size-limit: 0</screen>
   add groups with large numbers of members, those add requests can go beyond
   the 5 MB limit.</para>
   
-  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; set-connection-handler-prop --handler-name "LDAP Connection Handler" \
-&gt; --set max-request-size:20mb -X -n</screen>
+  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-connection-handler-prop --handler-name "LDAP Connection Handler"
+ --set max-request-size:20mb -X -n</screen>
   
   <para>The example shown sets the maximum request size on the LDAP connection
   handler to 20 MB.</para>

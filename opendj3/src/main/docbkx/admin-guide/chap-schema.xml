@@ -209,15 +209,15 @@ myCustomAttribute: Testing 1, 2, 3...
   classes defined per entry, you can relax schema checking to warn rather
   than reject entries having this issue.</para>
   
-  <screen>$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password \
-&gt; set-global-configuration-prop
+  <screen>$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password
+ set-global-configuration-prop
 --set single-structural-objectclass-behavior:warn -X -n</screen>
 
   <para>You can allow attribute values that do not respect the defined syntax
   with the <command>dsconfig</command> command as well.</para>
   
-  <screen>$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password \
-&gt; set-global-configuration-prop
+  <screen>$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password
+ set-global-configuration-prop
 --set invalid-attribute-syntax-behavior:warn -X -n</screen>
 
   <para>You can even turn off schema checking altogether, although turning
@@ -226,8 +226,8 @@ myCustomAttribute: Testing 1, 2, 3...
   you simply want to turn off schema checking temporarily to speed up import
   processing.</para>
   
-  <screen>$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password \
-&gt; set-global-configuration-prop --set check-schema:false -X -n</screen>
+  <screen>$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password
+ set-global-configuration-prop --set check-schema:false -X -n</screen>
  </section>
 
  <section>

@@ -352,8 +352,8 @@ ou: Product Development
 ou: People
 gidNumber: 10636
 
-$ ldapmodify -p 1389 -a -f newuser.ldif \
-&gt; -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery
+$ ldapmodify -p 1389 -a -f newuser.ldif
+ -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery
 Processing ADD request for uid=newuser,ou=People,dc=example,dc=com
 ADD operation successful for DN uid=newuser,ou=People,dc=example,dc=com</screen>
 
@@ -365,8 +365,8 @@ changetype: modify
 add: description
 description: A new user's entry
 
-$ ldapmodify -p 1389 -f newdesc.ldif \
-&gt; -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery
+$ ldapmodify -p 1389 -f newdesc.ldif
+ -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery
 Processing MODIFY request for uid=newuser,ou=People,dc=example,dc=com
 MODIFY operation successful for DN uid=newuser,ou=People,dc=example,dc=com</screen>
  
@@ -378,8 +378,8 @@ changetype: modify
 replace: description
 description: Another description
 
-$ ldapmodify -p 1389 -f moddesc.ldif \
-&gt; -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery
+$ ldapmodify -p 1389 -f moddesc.ldif
+ -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery
 Processing MODIFY request for uid=newuser,ou=People,dc=example,dc=com
 MODIFY operation successful for DN uid=newuser,ou=People,dc=example,dc=com</screen>
  
@@ -388,8 +388,8 @@ MODIFY operation successful for DN uid=newuser,ou=People,dc=example,dc=com</scre
 dn: uid=newuser,ou=People,dc=example,dc=com
 changetype: delete
 
-$ ldapmodify -p 1389 -f deluser.ldif \
-&gt; -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery
+$ ldapmodify -p 1389 -f deluser.ldif
+ -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery
 Processing DELETE request for uid=newuser,ou=People,dc=example,dc=com
 DELETE operation successful for DN uid=newuser,ou=People,dc=example,dc=com</screen>
  </refsect1>
