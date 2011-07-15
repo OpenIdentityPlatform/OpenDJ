@@ -114,8 +114,8 @@ MODIFY operation successful for DN ou=People,dc=example,dc=com
 A referral entry ou=People,dc=example,dc=com indicates that the operation must
 be processed at a different server
 [ldap://opendj.example.com:2389/ou=People,dc=example,dc=com]
-$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -J ManageDSAIT \
-&gt; -f people.ldif 
+$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -J ManageDSAIT
+ -f people.ldif 
 Processing MODIFY request for ou=People,dc=example,dc=com
 MODIFY operation successful for DN ou=People,dc=example,dc=com
 $ ldapsearch -p 1389 -b dc=example,dc=com ou=people

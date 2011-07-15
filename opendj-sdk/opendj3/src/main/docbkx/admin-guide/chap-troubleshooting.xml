@@ -99,8 +99,8 @@
   warn when entries have more than one structural object class instead of
   reject such entries being added, set the property as follows.</para>
   
-  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; set-global-configuration-prop 
+  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-global-configuration-prop 
 &gt; --set single-structural-objectclass-behavior:warn -X -n</screen>
   
   <para>By default, OpenDJ also checks syntax for a number of attribute types.
@@ -128,8 +128,8 @@
   software. For example, the Java environment is distributed with a key store
   holding many CA certificates.</para>
   
-  <screen>$ keytool -list -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit \
-&gt; | wc -l
+  <screen>$ keytool -list -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit
+ | wc -l
      334</screen>
   
   <para>The self-signed server certificates that can be configured during

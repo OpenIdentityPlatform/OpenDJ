@@ -48,7 +48,10 @@
  
  <preface>
   <title>About OpenDJ</title>
-  
+  <!--  
+  <para>Test link to <citetitle xlink:role="http://docbook.org/xlink/role/olink"
+  xlink:href="admin-guide#admin-guide">Admin Guide</citetitle>.</para>
+  -->
   <para>OpenDJ is an LDAPv3 compliant directory service, developed for
   the Java platform, providing a high performance, highly available,
   and secure store for the identities managed by your organization. Its

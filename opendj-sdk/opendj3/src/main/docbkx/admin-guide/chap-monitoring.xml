@@ -88,11 +88,11 @@ ds-backend-base-dn: dc=example,dc=com
   OpenDMK, provided separately due to licensing restrictions. Once you have
   installed OpenDMK, you can set up a connection handler for SNMP.</para>
   
-  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; create-connection-handler --handler-name "SNMP Connection Handler" \
-&gt; --type snmp --set enabled:true --set listen-port:11161 
-&gt; --set trap-port:11162 -X -n
-&gt; --set opendmk-jarfile:<replaceable>OpenDMK-install-dir</replaceable>/lib/jdmkrt.jar</screen>
+  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ create-connection-handler --handler-name "SNMP Connection Handler"
+ --type snmp --set enabled:true --set listen-port:11161
+ --set trap-port:11162 -X -n
+ --set opendmk-jarfile:<replaceable>OpenDMK-install-dir</replaceable>/lib/jdmkrt.jar</screen>
  </section>
 
  <section>
@@ -105,17 +105,17 @@ ds-backend-base-dn: dc=example,dc=com
   <command>dsconfig</command> command to configure the JMX connection
   handler.</para>
   
-  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; set-connection-handler-prop --handler-name "JMX Connection Handler" \
-&gt; --set enabled:true -X -n</screen>
+  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-connection-handler-prop --handler-name "JMX Connection Handler"
+ --set enabled:true -X -n</screen>
 
   <para>By default, no users have privileges to access the JMX connection. The
   following command adds JMX privileges for Directory Manager.</para>
 
-  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; set-root-dn-prop --add default-root-privilege-name:jmx-notify \
-&gt; --add default-root-privilege-name:jmx-read \
-&gt; --add default-root-privilege-name:jmx-write -X -n</screen>
+  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-root-dn-prop --add default-root-privilege-name:jmx-notify
+ --add default-root-privilege-name:jmx-read
+ --add default-root-privilege-name:jmx-write -X -n</screen>
 
   <para>You must also configure security to login remotely. Good luck.</para>
   
@@ -170,8 +170,8 @@ Replication: Disabled</screen>
   administration port, and so can connect to both local and remote
   servers.</para>
   
-  <screen>$ manage-tasks -h opendj.example.com -p 4444 -D "cn=Directory Manager" \
-&gt; -w password -X -n
+  <screen>$ manage-tasks -h opendj.example.com -p 4444 -D "cn=Directory Manager"
+ -w password -X -n
 
   ID                         Type    Status
   --------------------------------------------------------
@@ -280,23 +280,23 @@ Replication: Disabled</screen>
   events. Yet alert notifications are not enabled by default. You can use
   the <command>dsconfig</command> command to enable alert notifications.</para>
   
-  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; set-alert-handler-prop --handler-name "JMX Alert Handler" \
-&gt; --set enabled:true -X -n</screen>
+  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-alert-handler-prop --handler-name "JMX Alert Handler"
+ --set enabled:true -X -n</screen>
 
   <para>OpenDJ can also send mail over SMTP instead of JMX notifications.
   Before you set up the SMTP-based alert handler, you must identify an SMTP
   server to which OpenDJ sends messages.</para>
   
-  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; set-global-configuration-prop --set smtp-server:smtp.example.com -X -n
-$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; create-alert-handler --handler-name "SMTP Alert Handler" --type smtp \
-&gt; --set enabled:true --set message-subject:\
-&gt; "OpenDJ Alert, Type: %%alert-type%%, ID: %%alert-id%%"
-&gt; --set message-body:"%%alert-message%%" \
-&gt; --set recipient-address:kvaughan@example.com \
-&gt; --set sender-address:opendj@example.com -X -n</screen>
+  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-global-configuration-prop --set smtp-server:smtp.example.com -X -n
+$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ create-alert-handler --handler-name "SMTP Alert Handler" --type smtp
+ --set enabled:true
+ --set message-subject: "OpenDJ Alert, Type: %%alert-type%%, ID: %%alert-id%%"
+ --set message-body:"%%alert-message%%"
+ --set recipient-address:kvaughan@example.com
+ --set sender-address:opendj@example.com -X -n</screen>
  </section>
 </chapter>
 

@@ -357,8 +357,8 @@
   <title>Examples</title>
   <para>The following example demonstrates measuring search performance.</para>
   <screen>$ grep ^uid: /path/to/Example.ldif | sed -e "s/uid: //" &gt; names.txt
-$ searchrate -p 1389 -b dc=example,dc=com \
-&gt; -g "rand(names.txt)" "(uid=%s)" -A -F -c 4 -t 4
+$ searchrate -p 1389 -b dc=example,dc=com
+ -g "rand(names.txt)" "(uid=%s)" -A -F -c 4 -t 4
 -------------------------------------------------------------------------------
      Throughput                            Response Time                       
    (ops/second)                           (milliseconds)                       

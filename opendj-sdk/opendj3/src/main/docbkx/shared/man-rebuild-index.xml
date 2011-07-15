@@ -298,8 +298,8 @@
   <para>The following example schedules a task to start immediately that
   rebuilds the <literal>cn</literal> (common name) index.</para>
   
-  <screen>$ rebuild-index -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; -b dc=example,dc=com -i cn -t 0
+  <screen>$ rebuild-index -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ -b dc=example,dc=com -i cn -t 0
 Rebuild Index task 20110607160349596 scheduled to start Jun 7, 2011 4:03:49 PM</screen>
  </refsect1>
 </refentry>

@@ -352,11 +352,11 @@
   for a new replica whose admin port is 5444 from an existing replica
   whose admin port is 4444.</para>
   
-  <screen>$ dsreplication enable -I admin -w password -X -n -b dc=example,dc=com \
-&gt; --host1 `hostname` --port1 4444 --bindDN1 "cn=Directory Manager" \
-&gt; --bindPassword1 password --replicationPort1 8989 \
-&gt; --host2 `hostname` --port2 5444 --bindDN2 "cn=Directory Manager" \
-&gt; --bindPassword2 password --replicationPort2 9989
+  <screen>$ dsreplication enable -I admin -w password -X -n -b dc=example,dc=com
+ --host1 `hostname` --port1 4444 --bindDN1 "cn=Directory Manager"
+ --bindPassword1 password --replicationPort1 8989
+ --host2 `hostname` --port2 5444 --bindDN2 "cn=Directory Manager"
+ --bindPassword2 password --replicationPort2 9989
 
 Establishing connections ..... Done.
 Checking registration information ..... Done.
@@ -384,8 +384,8 @@ Replication has been successfully enabled.  Note that for replication to
 See
 /var/.../opends-replication-7958637258600693490.log
 for a detailed log of this operation.
-$ dsreplication initialize-all -I admin -w password -X -n -b dc=example,dc=com \
-&gt; -h `hostname` -p 4444
+$ dsreplication initialize-all -I admin -w password -X -n -b dc=example,dc=com
+ -h `hostname` -p 4444
 
 Initializing base DN dc=example,dc=com with the contents from localhost:4444:
 160 entries processed (100 % complete).

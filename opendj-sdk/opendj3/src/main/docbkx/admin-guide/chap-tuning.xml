@@ -316,10 +316,10 @@
    settings, so to force OpenDJ to compress the entries, import the data
    from LDIF.</para>
    
-   <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; set-backend-prop --backend-name userRoot --set entries-compressed:true -X -n
-$ import-ldif -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; -l /path/to/Example.ldif -n userRoot -b dc=example,dc=com -t 0
+   <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-backend-prop --backend-name userRoot --set entries-compressed:true -X -n
+$ import-ldif -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ -l /path/to/Example.ldif -n userRoot -b dc=example,dc=com -t 0
 Import task 20110627101758486 scheduled to start Jun 27, 2011 10:17:58 AM CEST</screen>
   </section>
   
@@ -370,8 +370,8 @@ Import task 20110627101758486 scheduled to start Jun 27, 2011 10:17:58 AM CEST</
    JVM. Test database pre-load on startup by setting the
    <literal>preload-time-limit</literal> for the backend.</para>
    
-   <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; set-backend-prop --backend-name userRoot --set preload-time-limit:30m -X -n</screen>
+   <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-backend-prop --backend-name userRoot --set preload-time-limit:30m -X -n</screen>
    
    <para>Database pre-load is single-threaded, and loads each database one
    at a time.</para>
@@ -392,10 +392,10 @@ Import task 20110627101758486 scheduled to start Jun 27, 2011 10:17:58 AM CEST</
    you have a few large static groups and applications that regularly check
    group membership, you could cache your group entries.</para>
    
-   <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; create-entry-cache --cache-name "Large Group Entry Cache" --type fifo \
-&gt; --set cache-level:1 --set include-filter:"(ou=Large Static Groups)" \
-&gt; --set max-entries:10 --set enabled:true -X -n</screen>
+   <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ create-entry-cache --cache-name "Large Group Entry Cache" --type fifo
+ --set cache-level:1 --set include-filter:"(ou=Large Static Groups)"
+ --set max-entries:10 --set enabled:true -X -n</screen>
   </section>
   
   <section>
@@ -413,9 +413,9 @@ Import task 20110627101758486 scheduled to start Jun 27, 2011 10:17:58 AM CEST</
    bottleneck, as each client request results in multiple access log
    messages. Consider disabling the access log in such cases.</para>
    
-   <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; set-log-publisher-prop  --publisher-name "File-Based Access Logger" \
-&gt; --set enabled:false -X -n</screen>
+   <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-log-publisher-prop  --publisher-name "File-Based Access Logger"
+ --set enabled:false -X -n</screen>
   </section>
  </section>
 </chapter>

@@ -182,9 +182,9 @@ mail: rjensen@example.com</screen>
   <literal>Virtual Static member</literal> or
   <literal>Virtual Static uniqueMember</literal> property.</para>
   
-  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-  &gt; set-virtual-attribute-prop --name "Virtual Static member" \
-  &gt; --set allow-retrieving-membership:true -X -n</screen>
+  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-virtual-attribute-prop --name "Virtual Static member"
+ --set allow-retrieving-membership:true -X -n</screen>
   
   <para>The following example creates a virtual static group, and reads the
   group entry with all members.</para>
@@ -271,8 +271,8 @@ isMemberOf: cn=My Dynamic Group,ou=Groups,dc=example,dc=com</screen>
   referential integrity plugin is disabled by default. To enable the plugin,
   use the <command>dsconfig</command> command.</para>
   
-  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password \
-&gt; set-plugin-prop --plugin-name "Referential Integrity" --set enabled:true -X -n</screen>
+  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ set-plugin-prop --plugin-name "Referential Integrity" --set enabled:true -X -n</screen>
 
   <para>With the plugin enabled, you can see OpenDJ referential integrity
   resolving group membership automatically.</para>
