@@ -23,9 +23,12 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication;
 
+import org.opends.server.util.StaticUtils;
+import java.io.File;
 import static org.testng.Assert.*;
 
 import java.io.FileNotFoundException;
@@ -231,9 +234,11 @@ public class DependencyTest extends ReplicationTestCase
     }
     finally
     {
-      if (replServer != null)
+      if (replServer != null) {
         replServer.remove();
-
+        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+            replServer.getDbDirName()));
+      }
       if (domain != null)
         MultimasterReplication.deleteDomain(baseDn);
     }
@@ -350,8 +355,11 @@ public class DependencyTest extends ReplicationTestCase
     }
     finally
     {
-      if (replServer != null)
+      if (replServer != null) {
         replServer.remove();
+        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+            replServer.getDbDirName()));
+      }
 
       if (domain != null)
         MultimasterReplication.deleteDomain(baseDn);
@@ -511,8 +519,11 @@ public class DependencyTest extends ReplicationTestCase
     }
     finally
     {
-      if (replServer != null)
+      if (replServer != null) {
         replServer.remove();
+        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+            replServer.getDbDirName()));
+      }
 
       if (domain != null)
         MultimasterReplication.deleteDomain(baseDn);
@@ -620,8 +631,11 @@ public class DependencyTest extends ReplicationTestCase
     }
     finally
     {
-      if (replServer != null)
+      if (replServer != null) {
         replServer.remove();
+        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+            replServer.getDbDirName()));
+      }
 
       if (domain != null)
         MultimasterReplication.deleteDomain(baseDn);
