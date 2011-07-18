@@ -2563,6 +2563,14 @@ attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.5
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.8
+  NAME 'ds-cfg-pwd-sync-policy'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.9
+  NAME 'ds-cfg-samba-administrator-dn'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.12
+  X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -4289,4 +4297,10 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.237
         ds-task-purge-conflicts-historical-purge-completed-in-time $
         ds-task-purge-conflicts-historical-purged-values-count )
   X-ORIGIN 'OpenDS Directory Server' )
-
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.2
+  NAME 'ds-cfg-samba-password-plugin'
+  SUP ds-cfg-plugin
+  STRUCTURAL
+  MUST ( ds-cfg-pwd-sync-policy )
+  MAY ( ds-cfg-samba-administrator-dn )
+  X-ORIGIN 'OpenDJ Directory Server' )
