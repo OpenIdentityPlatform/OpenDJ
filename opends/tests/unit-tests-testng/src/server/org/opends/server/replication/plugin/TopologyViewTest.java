@@ -38,6 +38,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.fail;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -53,6 +54,7 @@ import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.AssuredType;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.AssuredMode;
@@ -64,6 +66,7 @@ import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.util.StaticUtils;
 import org.testng.annotations.Test;
 
 /**
@@ -221,6 +224,8 @@ public class TopologyViewTest extends ReplicationTestCase
     {
       rs1.clearDb();
       rs1.remove();
+      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+            rs1.getDbDirName()));
       rs1 = null;
     }
 
@@ -228,6 +233,8 @@ public class TopologyViewTest extends ReplicationTestCase
     {
       rs2.clearDb();
       rs2.remove();
+      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+            rs2.getDbDirName()));
       rs2 = null;
     }
 
@@ -235,6 +242,8 @@ public class TopologyViewTest extends ReplicationTestCase
     {
       rs3.clearDb();
       rs3.remove();
+      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+            rs3.getDbDirName()));
       rs3 = null;
     }
     rs1Port = -1;
