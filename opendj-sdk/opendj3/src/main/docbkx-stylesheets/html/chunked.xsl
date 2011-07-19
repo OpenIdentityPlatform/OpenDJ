@@ -27,6 +27,7 @@
  version="1.0">
  <xsl:import href="urn:docbkx:stylesheet" />
 
+ <xsl:param name="html.stylesheet">css/coredoc.css</xsl:param>
  <xsl:param name="chunk.section.depth" select="0" />
  <xsl:param name="chunker.output.encoding">UTF-8</xsl:param>
  <xsl:param name="chunker.output.indent">yes</xsl:param>

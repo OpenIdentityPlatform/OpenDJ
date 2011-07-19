@@ -227,7 +227,6 @@
            </font>
           </fonts>
 
-          <htmlStylesheet>css/coredoc.css</htmlStylesheet>
           <sectionAutolabel>true</sectionAutolabel>
           <sectionLabelIncludesComponentLabel>true</sectionLabelIncludesComponentLabel>
         </configuration>
@@ -240,22 +239,38 @@
             </goals>
             <configuration>
               <epubCustomization>${dbstyle-dir}/epub/coredoc.xsl</epubCustomization>
-              
+              <!-- docbkx-tools does not seem to support multiple embedded
+                   fonts for epub format, missing exslt. -->
+              <epubEmbeddedFonts>DejaVuSans</epubEmbeddedFonts>
               <!-- Resources required but not copied by DocBook.xsl. -->
               <preProcess>
                 <copy todir='${docbkx-out}/epub/admin-guide/OpenDJ-Admin-Guide/images'>
                   <fileset dir='${docbkx-src}/admin-guide/images' />
                 </copy>
+                <copy todir='${docbkx-out}/epub/admin-guide/OpenDJ-Admin-Guide'>
+                  <fileset dir='${basedir}/src/main/resources' />
+                </copy>
                 <copy todir='${docbkx-out}/epub/dev-guide/OpenDJ-Dev-Guide/images'>
                   <fileset dir='${docbkx-src}/dev-guide/images' />
+                </copy>
+                <copy todir='${docbkx-out}/epub/dev-guide/OpenDJ-Dev-Guide'>
+                  <fileset dir='${basedir}/src/main/resources' />
                 </copy>
                 <copy
                   todir='${docbkx-out}/epub/install-guide/OpenDJ-Install-Guide/images'>
                   <fileset dir='${docbkx-src}/install-guide/images' />
                 </copy>
                 <copy
+                  todir='${docbkx-out}/epub/install-guide/OpenDJ-Install-Guide'>
+                  <fileset dir='${basedir}/src/main/resources' />
+                </copy>
+                <copy
                   todir='${docbkx-out}/epub/release-notes/OpenDJ-Release-Notes/images'>
                   <fileset dir='${docbkx-src}/release-notes/images' />
+                </copy>
+                <copy
+                  todir='${docbkx-out}/epub/release-notes/OpenDJ-Release-Notes'>
+                  <fileset dir='${basedir}/src/main/resources' />
                 </copy>
               </preProcess>
             </configuration>
