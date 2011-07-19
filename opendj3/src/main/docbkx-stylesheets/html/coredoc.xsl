@@ -26,6 +26,8 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
  version="1.0">
  <xsl:import href="urn:docbkx:stylesheet" />
+
+ <xsl:param name="html.stylesheet">css/coredoc.css</xsl:param>
  <xsl:param name="generate.legalnotice.link" select="1" />
  <xsl:param name="root.filename">index</xsl:param>
  <xsl:param name="use.id.as.filename" select="1" />
