@@ -203,8 +203,8 @@
                   dsVersion='unknown'
                   dsBuild='unknown'
 
-                dsServer = '%s - %s' \
-                           % (dsVersion.rstrip(), dsBuild)
+                dsServer = '%s %s - %s' \
+                           % (PRODUCTNAME, dsVersion.rstrip(), dsBuild)
 
                 dsServerType = DEFAULT_VALUES['dsServerType.1']
               </script>
