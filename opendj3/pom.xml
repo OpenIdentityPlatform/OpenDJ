@@ -43,7 +43,7 @@
     platform, providing a high performance, highly available and secure store
     for the identities managed by enterprises.
   </description>
-  <url>http://www.opendj.org/</url>
+  <url>http://opendj.forgerock.org</url>
   <issueManagement>
     <system>Jira</system>
     <url>https://bugster.forgerock.org/jira/browse/OPENDJ</url>
