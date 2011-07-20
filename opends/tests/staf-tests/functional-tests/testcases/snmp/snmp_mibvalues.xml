@@ -54,7 +54,7 @@
 
           <!--- Desactivate the verbose mode -->
           <script>
-            VERBOSE_MODE = 'False'
+            VERBOSE_MODE = 'false'
           </script>
 
           <!-- Default values -->
@@ -979,7 +979,7 @@
 
           <!--- Activate the verbose mode -->
           <script>
-            VERBOSE_MODE = 'True'
+            VERBOSE_MODE = 'true'
           </script>
 
           <call function="'testSuite_Postamble'"/>
