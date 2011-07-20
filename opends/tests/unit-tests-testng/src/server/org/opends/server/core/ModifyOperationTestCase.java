@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2011 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -4775,6 +4776,196 @@ responseLoop:
                             requestControls);
     assertTrue(modifyOperation.getResultCode() == ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
+  }
+  
+    /**
+   * Tests a modify operation that attempts change the user password doing
+   * a delete of all values followed of an add of a new value.
+   *
+   * @param  baseDN  The base DN for the test backend.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "baseDNs")
+  public void testModifyDelAddPasswordAttribute(String baseDN)
+         throws Exception
+  {
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
+
+     Entry entry = TestCaseUtils.makeEntry(
+         "dn: uid=testPassword01.user," + baseDN,
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "uid: test.user",
+         "givenName: Test",
+         "sn: User",
+         "cn: Test User",
+         "displayName: Test User",
+         "userPassword: password");
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    AddOperation addOperation =
+         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+                         entry.getUserAttributes(),
+                         entry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+    
+    String path = TestCaseUtils.createTempFile(
+         "dn: uid=testPassword01.user," + baseDN,
+         "changetype: modify",
+         "delete: userPassword",
+         "-",
+         "add: userPassword",
+         "userPassword: aNewPassword");
+ 
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+  }
+
+   /**
+   * Tests a modify operation that attempts change the user password doing
+   * a delete of a clear text value followed of an add of a new value.
+   *
+   * @param  baseDN  The base DN for the test backend.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "baseDNs")
+  public void testModifyDelOneAddOnePasswordAttribute(String baseDN)
+         throws Exception
+  {
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
+
+     Entry entry = TestCaseUtils.makeEntry(
+         "dn: uid=testPassword02.user," + baseDN,
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "uid: test.user",
+         "givenName: Test",
+         "sn: User",
+         "cn: Test User",
+         "displayName: Test User",
+         "userPassword: password");
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    AddOperation addOperation =
+         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+                         entry.getUserAttributes(),
+                         entry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+    
+    String path = TestCaseUtils.createTempFile(
+         "dn: uid=testPassword02.user," + baseDN,
+         "changetype: modify",
+         "delete: userPassword",
+         "userPassword: password",
+         "-",
+         "add: userPassword",
+         "userPassword: aNewPassword");
+ 
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
+  }
+
+   /**
+   * Tests a modify operation that attempts change the user password doing
+   * a delete of an encrypted value followed of an add of a new value.
+   *
+   * @param  baseDN  The base DN for the test backend.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "baseDNs")
+  public void testModifyDelEncryptedAddOnePasswordAttribute(String baseDN)
+         throws Exception
+  {
+    TestCaseUtils.clearJEBackend(true,"userRoot",baseDN);
+
+     Entry entry = TestCaseUtils.makeEntry(
+         "dn: uid=testPassword03.user," + baseDN,
+         "objectClass: top",
+         "objectClass: person",
+         "objectClass: organizationalPerson",
+         "objectClass: inetOrgPerson",
+         "uid: test.user",
+         "givenName: Test",
+         "sn: User",
+         "cn: Test User",
+         "displayName: Test User",
+         "userPassword: password");
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    AddOperation addOperation =
+         conn.processAdd(entry.getDN(), entry.getObjectClasses(),
+                         entry.getUserAttributes(),
+                         entry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+    Entry e = DirectoryServer.getEntry(
+            DN.decode("uid=testPassword03.user," + baseDN));
+    List<Attribute> attrList =
+         e.getAttribute(DirectoryServer.getAttributeType("userpassword", true));
+
+    assertNotNull(attrList);
+
+    String passwd = null;
+    for (Attribute a : attrList)
+    {
+      for (AttributeValue v : a)
+      {
+        passwd = v.toString();
+      }
+    }
+    
+    assertNotNull(passwd);
+
+    String path = TestCaseUtils.createTempFile(
+         "dn: uid=testPassword03.user," + baseDN,
+         "changetype: modify",
+         "delete: userPassword",
+         "userPassword: " + passwd,
+         "-",
+         "add: userPassword",
+         "userPassword: aNewPassword");
+ 
+    String[] args =
+    {
+      "-h", "127.0.0.1",
+      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-f", path
+    };
+
+    assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
   }
 
 }
