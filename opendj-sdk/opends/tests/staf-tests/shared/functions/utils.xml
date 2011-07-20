@@ -3405,7 +3405,7 @@
         ecl_deleteOldRDN        = None
         ecl_newSuperior         = None
         ecl_changes             = None
-        ecl_includedttributes  = None
+        ecl_includedAttributes  = None
 
         if 'replicationcsn' in changelogEntry.keys():
           ecl_replicationCSN = changelogEntry['replicationcsn'][0]
