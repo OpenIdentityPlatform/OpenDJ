@@ -80,9 +80,26 @@
 
               <call function="'testCase_Preamble'"/>
 
-              <message>
-                'v1_customconf: change the community property'
-              </message>
+              <!-- @Step1: Display default SNMP Connection Handler -->
+              <call function="'testStep'">
+                { 'stepMessage' : 'Display default SNMP Connection Handler.' }
+              </call>
+
+              <call function="'dsconfig'">
+                {
+                  'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+                  'subcommand'     : 'get-connection-handler-prop' ,
+                  'objectType'     : 'handler-name' ,
+                  'objectName'     : 'SNMP Connection Handler'
+                }
+              </call>
+
+              <!-- @Step2: Change the community property -->
+              <call function="'testStep'">
+                { 'stepMessage' : 'Change the community property.' }
+              </call>
 
               <call function="'dsconfig'">
                 {
@@ -96,9 +113,21 @@
                 }
               </call>
 
-              <message>
-                'v1_customconf: restart the SNMP Connection Handler'
-              </message>
+              <call function="'dsconfig'">
+                {
+                  'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+                  'subcommand'     : 'get-connection-handler-prop' ,
+                  'objectType'     : 'handler-name' ,
+                  'objectName'     : 'SNMP Connection Handler'
+                }
+              </call>
+
+              <!-- @Step3: Restart the SNMP Connection Handler -->
+              <call function="'testStep'">
+                { 'stepMessage' : 'Restart the SNMP Connection Handler.' }
+              </call>
 
               <call function="'restartSNMPConnectionHandler'">
                 {
@@ -108,9 +137,10 @@
                 }
               </call>
 
-              <message>
-                'v1_customconf: get with the old community'
-              </message>
+              <!-- @Step4: SNMPGet with the old community -->
+              <call function="'testStep'">
+                { 'stepMessage' : 'SNMPGet with the old community.' }
+              </call>
 
               <call function="'SNMPGet'">
                 {
@@ -123,9 +153,10 @@
                 }
               </call>
 
-              <message>
-                'v1_customconf: get with the new community'
-              </message>
+              <!-- @Step5: SNMPGet with the new community -->
+              <call function="'testStep'">
+                { 'stepMessage' : 'SNMPGet with the new community.' }
+              </call>
 
               <call function="'SNMPGet'">
                 {
@@ -138,9 +169,10 @@
                 }
               </call>
 
-              <message>
-                'v1_customconf: restore the community property'
-              </message>
+              <!-- @Step6: Restore the community property -->
+              <call function="'testStep'">
+                { 'stepMessage' : 'Restore the community property.' }
+              </call>
 
               <call function="'dsconfig'">
                 {
@@ -154,9 +186,21 @@
                 }
               </call>
 
-              <message>
-                'v1_customconf: restart the SNMP Connection Handler'
-              </message>
+              <call function="'dsconfig'">
+                {
+                  'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+                  'subcommand'     : 'get-connection-handler-prop' ,
+                  'objectType'     : 'handler-name' ,
+                  'objectName'     : 'SNMP Connection Handler'
+                }
+              </call>
+
+              <!-- @Step7: Restart the SNMP Connection Handler -->
+              <call function="'testStep'">
+                { 'stepMessage' : 'Restart the SNMP Connection Handler.' }
+              </call>
 
               <call function="'restartSNMPConnectionHandler'">
                 {
@@ -189,9 +233,10 @@
 
               <call function="'testCase_Preamble'"/>
 
-              <message>
-                'v1_customconf: change the allowed-manager property'
-              </message>
+              <!-- @Step1: Change the allowed-manager property -->
+              <call function="'testStep'">
+                { 'stepMessage' : 'Change the allowed-manager property.' }
+              </call>
 
               <call function="'dsconfig'">
                 {
@@ -205,9 +250,21 @@
                 }
               </call>
 
-              <message>
-                'v1_customconf: restart the SNMP Connection Handler'
-              </message>
+              <call function="'dsconfig'">
+                {
+                  'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+                  'subcommand'     : 'get-connection-handler-prop' ,
+                  'objectType'     : 'handler-name' ,
+                  'objectName'     : 'SNMP Connection Handler'
+                }
+              </call>
+
+              <!-- @Step2: Restart the SNMP Connection Handler -->
+              <call function="'testStep'">
+                { 'stepMessage' : 'Restart the SNMP Connection Handler.' }
+              </call>
 
               <call function="'restartSNMPConnectionHandler'">
                 {
@@ -217,9 +274,10 @@
                 }
               </call>
 
-              <message>
-                'v1_customconf: get with the new community'
-              </message>
+              <!-- @Step3: SNMPGet with the new community -->
+              <call function="'testStep'">
+                { 'stepMessage' : 'SNMPGet with the new community.' }
+              </call>
 
               <call function="'SNMPGet'">
                 {
@@ -232,9 +290,10 @@
                 }
               </call>
 
-              <message>
-                'v1_customconf: restore the community property'
-              </message>
+              <!-- @Step4: Restore the community property -->
+              <call function="'testStep'">
+                { 'stepMessage' : 'Restore the community property.' }
+              </call>
 
               <call function="'dsconfig'">
                 {
@@ -248,9 +307,21 @@
                 }
               </call>
 
-              <message>
-                'v1_customconf: restart the SNMP Connection Handler'
-              </message>
+              <call function="'dsconfig'">
+                {
+                  'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+                  'subcommand'     : 'get-connection-handler-prop' ,
+                  'objectType'     : 'handler-name' ,
+                  'objectName'     : 'SNMP Connection Handler'
+                }
+              </call>
+
+              <!-- @Step5: Restart the SNMP Connection Handler -->
+              <call function="'testStep'">
+                { 'stepMessage' : 'Restart the SNMP Connection Handler.' }
+              </call>
 
               <call function="'restartSNMPConnectionHandler'">
                 {
@@ -283,9 +354,10 @@
 
               <call function="'testCase_Preamble'"/>
 
-              <message>
-                'v1_customconf: change the allowed-manager property'
-              </message>
+              <!-- @Step1: Change the allowed-manager property -->
+              <call function="'testStep'">
+                { 'stepMessage' : 'Change the allowed-manager property.' }
+              </call>
 
               <call function="'dsconfig'">
                 {
@@ -300,9 +372,21 @@
                 }
               </call>
 
-              <message>
-                'v1_customconf: restart the SNMP Connection Handler'
-              </message>
+              <call function="'dsconfig'">
+                {
+                  'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+                  'subcommand'     : 'get-connection-handler-prop' ,
+                  'objectType'     : 'handler-name' ,
+                  'objectName'     : 'SNMP Connection Handler'
+                }
+              </call>
+
+              <!-- @Step2: Restart the SNMP Connection Handler -->
+              <call function="'testStep'">
+                { 'stepMessage' : 'Restart the SNMP Connection Handler.' }
+              </call>
 
               <call function="'restartSNMPConnectionHandler'">
                 {
@@ -312,8 +396,13 @@
                 }
               </call>
 
+              <!-- @Step3: SNMPGet with the old community -->
+              <call function="'testStep'">
+                { 'stepMessage' : 'SNMPGet with the old community.' }
+              </call>
+
               <message>
-                'v1_customconf: get with the old community'
+                'v1_customconf: '
               </message>
 
               <call function="'SNMPGet'">
@@ -327,9 +416,10 @@
                 }
               </call>
 
-              <message>
-                'v1_customconf: restore the community property'
-              </message>
+              <!-- @Step4: Restore the community property -->
+              <call function="'testStep'">
+                { 'stepMessage' : 'Restore the community property.' }
+              </call>
 
               <call function="'dsconfig'">
                 {
@@ -344,9 +434,21 @@
                 }
               </call>
 
-              <message>
-                'v1_customconf: restart the SNMP Connection Handler'
-              </message>
+              <call function="'dsconfig'">
+                {
+                  'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+                  'subcommand'     : 'get-connection-handler-prop' ,
+                  'objectType'     : 'handler-name' ,
+                  'objectName'     : 'SNMP Connection Handler'
+                }
+              </call>
+
+              <!-- @Step5: Restart the SNMP Connection Handler -->
+              <call function="'testStep'">
+                { 'stepMessage' : 'Restart the SNMP Connection Handler.' }
+              </call>
 
               <call function="'restartSNMPConnectionHandler'">
                 {
@@ -379,9 +481,10 @@
 
               <call function="'testCase_Preamble'"/>
 
-              <message>
-                'v1_customconf: set allowed-manager property to a list'
-              </message>
+              <!-- @Step1: Set allowed-manager property to a list -->
+              <call function="'testStep'">
+                { 'stepMessage' : 'Set allowed-manager property to a list.' }
+              </call>
 
               <call function="'dsconfig'">
                 {
@@ -408,9 +511,21 @@
                 }
               </call>
 
-              <message>
-                'v1_customconf: restart the SNMP Connection Handler'
-              </message>
+              <call function="'dsconfig'">
+                {
+                  'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+                  'subcommand'     : 'get-connection-handler-prop' ,
+                  'objectType'     : 'handler-name' ,
+                  'objectName'     : 'SNMP Connection Handler'
+                }
+              </call>
+
+              <!-- @Step2: Restart the SNMP Connection Handler -->
+              <call function="'testStep'">
+                { 'stepMessage' : 'Restart the SNMP Connection Handler.' }
+              </call>
 
               <call function="'restartSNMPConnectionHandler'">
                 {
@@ -420,9 +535,10 @@
                 }
               </call>
 
-              <message>
-                'v1_customconf: get from a not allowed manager'
-              </message>
+              <!-- @Step3: SNMPGet from a not allowed manager -->
+              <call function="'testStep'">
+                { 'stepMessage' : 'SNMPGet from a not allowed manager.' }
+              </call>
 
               <call function="'SNMPGet'">
                 {
@@ -435,9 +551,10 @@
                 }
               </call>
 
-              <message>
-                'v1_customconf: restore the community property'
-              </message>
+              <!-- @Step4: Restore the community property -->
+              <call function="'testStep'">
+                { 'stepMessage' : 'Restore the community property.' }
+              </call>
 
               <call function="'dsconfig'">
                 {
@@ -452,9 +569,21 @@
                 }
               </call>
 
-              <message>
-                'v1_customconf: restart the SNMP Connection Handler'
-              </message>
+              <call function="'dsconfig'">
+                {
+                  'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+                  'subcommand'     : 'get-connection-handler-prop' ,
+                  'objectType'     : 'handler-name' ,
+                  'objectName'     : 'SNMP Connection Handler'
+                }
+              </call>
+
+              <!-- @Step5: Restart the SNMP Connection Handler -->
+              <call function="'testStep'">
+                { 'stepMessage' : 'Restart the SNMP Connection Handler.' }
+              </call>
 
               <call function="'restartSNMPConnectionHandler'">
                 {
@@ -487,9 +616,10 @@
 
               <call function="'testCase_Preamble'"/>
 
-              <message>
-                'v1_customconf: set the community property to a list'
-              </message>
+              <!-- @Step1: Set the community property to a list -->
+              <call function="'testStep'">
+                { 'stepMessage' : 'Set the community property to a list.' }
+              </call>
 
               <call function="'dsconfig'">
                 {
@@ -514,10 +644,26 @@
                 msg = '%s %s %s' % (msg1, msg2, msg3)
               </script>
 
+              <!-- @Step2: Check that the return string is correct -->
+              <call function="'testStep'">
+                { 'stepMessage' : 'Check that the return string is correct.' }
+              </call>
+
               <call function="'checktestString'">
                 {
                 'returnString'   : returnString ,
                 'expectedString' : msg
+                }
+              </call>
+
+              <call function="'dsconfig'">
+                {
+                  'dsInstanceHost' : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceDn'   : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD ,
+                  'subcommand'     : 'get-connection-handler-prop' ,
+                  'objectType'     : 'handler-name' ,
+                  'objectName'     : 'SNMP Connection Handler'
                 }
               </call>
 

@@ -900,6 +900,7 @@
               logfile.seek(0,2)
               logfile.write('Begin testcase %s\n' % STAXCurrentTestcase)
               logfile.close()
+          stepNumber=1
         </script>
         <call function="'SetVar'">
           {
