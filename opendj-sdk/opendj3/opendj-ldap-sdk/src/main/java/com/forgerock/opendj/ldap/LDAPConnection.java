@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap;
@@ -293,18 +294,19 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
         future.adaptErrorResult(connectionInvalidReason);
         return future;
       }
-      if (!bindOrStartTLSInProgress.compareAndSet(false, true))
-      {
-        future.setResultOrError(Responses.newBindResult(
-            ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
-            "Bind or Start TLS operation in progress"));
-        return future;
-      }
       if (!pendingRequests.isEmpty())
       {
         future.setResultOrError(Responses.newBindResult(
             ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
             "There are other operations pending on this connection"));
+        return future;
+      }
+
+      if (!bindOrStartTLSInProgress.compareAndSet(false, true))
+      {
+        future.setResultOrError(Responses.newBindResult(
+            ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
+            "Bind or Start TLS operation in progress"));
         return future;
       }
 
@@ -330,6 +332,8 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
     catch (final IOException e)
     {
       pendingRequests.remove(messageID);
+
+      bindOrStartTLSInProgress.set(false);
 
       // FIXME: what other sort of IOExceptions can be thrown?
       // FIXME: Is this the best result code?
@@ -499,13 +503,6 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
         future.adaptErrorResult(connectionInvalidReason);
         return future;
       }
-      if (!bindOrStartTLSInProgress.compareAndSet(false, true))
-      {
-        future.setResultOrError(request.getResultDecoder()
-            .newExtendedErrorResult(ResultCode.OPERATIONS_ERROR, "",
-                "Bind or Start TLS operation in progress"));
-        return future;
-      }
       if (request.getOID().equals(StartTLSExtendedRequest.OID))
       {
         if (!pendingRequests.isEmpty())
@@ -520,6 +517,24 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
           future.setResultOrError(request.getResultDecoder()
               .newExtendedErrorResult(ResultCode.OPERATIONS_ERROR, "",
                   "This connection is already TLS enabled"));
+          return future;
+        }
+        if (!bindOrStartTLSInProgress.compareAndSet(false, true))
+        {
+          future.setResultOrError(request.getResultDecoder()
+                .newExtendedErrorResult(ResultCode.OPERATIONS_ERROR, "",
+                    "Bind or Start TLS operation in progress"));
+          return future;
+        }
+      }
+      else
+      {
+        if (bindOrStartTLSInProgress.get())
+        {
+          future.setResultOrError(request.getResultDecoder()
+                .newExtendedErrorResult(ResultCode.OPERATIONS_ERROR, "",
+                    "Bind or Start TLS operation in progress"));
+          return future;
         }
       }
       pendingRequests.put(messageID, future);
@@ -541,6 +556,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
     catch (final IOException e)
     {
       pendingRequests.remove(messageID);
+      bindOrStartTLSInProgress.set(false);
 
       // FIXME: what other sort of IOExceptions can be thrown?
       // FIXME: Is this the best result code?
