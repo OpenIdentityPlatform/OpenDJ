@@ -109,13 +109,13 @@
             <id>generate-docs</id>
             <phase>pre-site</phase>
             <goals>
-             <goal>run</goal>
+              <goal>run</goal>
             </goals>
             <configuration>
-             <target>
-              <ant target="javadoc" />
-              <ant target="configguide" />
-             </target>
+              <target>
+                <ant target="javadoc" />
+                <ant target="configguide" />
+              </target>
             </configuration>
           </execution>
           <execution>
@@ -138,21 +138,40 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.2</version>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.7</version>
         <executions>
           <execution>
-            <id>make-assembly</id>
+            <id>parse-version</id>
+            <goals>
+              <goal>parse-version</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <id>attach-artifacts</id>
             <phase>package</phase>
             <goals>
-              <goal>single</goal>
+              <goal>attach-artifact</goal>
             </goals>
             <configuration>
-              <appendAssemblyId>false</appendAssemblyId>
-              <descriptors>
-                <descriptor>src/main/assembly/descriptor.xml</descriptor>
-              </descriptors>
+              <artifacts>
+                <artifact>
+                  <file>build/package/OpenDJ-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}.zip</file>
+                  <type>zip</type>
+                </artifact>
+                <artifact>
+                  <file>build/package/OpenDJ-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}/lib/OpenDJ.jar</file>
+                  <type>jar</type>
+                </artifact>
+              </artifacts>
             </configuration>
           </execution>
         </executions>
