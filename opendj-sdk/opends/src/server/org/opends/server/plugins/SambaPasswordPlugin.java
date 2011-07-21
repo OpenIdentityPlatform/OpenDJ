@@ -30,7 +30,6 @@ package org.opends.server.plugins;
 
 
 import static org.opends.messages.PluginMessages.*;
-import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.util.StaticUtils.bytesToHexNoSpace;
 import static org.opends.server.util.StaticUtils.toLowerCase;
@@ -54,14 +53,14 @@ import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigException;
+import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
+import org.opends.server.extensions.PasswordModifyExtendedOperation;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationExtendedOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
@@ -694,69 +693,38 @@ public final class SambaPasswordPlugin extends
       }
     }
 
-    // Get the request and response value from the operation.
-    final ByteString requestValue = extendedOperation.getRequestValue();
-    final ByteString responseValue = extendedOperation.getResponseValue();
-    ASN1Reader asn1Reader = ASN1.getReader(requestValue.asReader());
+    // Get the name of the entry and clear passwords from the operation
+    // attachments.
+    final DN dn = (DN) extendedOperation
+        .getAttachment(PasswordModifyExtendedOperation.AUTHZ_DN_ATTACHMENT);
+    if (dn == null)
+    {
+      // The attachment is missing which should never happen.
+      if (DebugLogger.debugEnabled())
+      {
+        TRACER.debugInfo("SambaPasswordPlugin: missing DN attachment");
+      }
+      return PluginResult.PostOperation.continueOperationProcessing();
+    }
 
-    DN dn = null;
-    String password = null;
+    final String password = extendedOperation.getAttachment(
+        PasswordModifyExtendedOperation.CLEAR_PWD_ATTACHMENT).toString();
+    if (password == null)
+    {
+      if (DebugLogger.debugEnabled())
+      {
+        TRACER.debugInfo("SambaPasswordPlugin: skipping syncing "
+            + "pre-encoded password");
+      }
+      return PluginResult.PostOperation.continueOperationProcessing();
+    }
 
-    // @formatter:off
-
-    /*
-     * Request and response are defined like this:
-     *
-     * passwdModifyOID OBJECT IDENTIFIER ::= 1.3.6.1.4.1.4203.1.11.1
-     *
-     * PasswdModifyRequestValue ::= SEQUENCE
-     * {
-     *   userIdentity [0] OCTET STRING OPTIONAL
-     *   oldPasswd    [1] OCTET STRING OPTIONAL
-     *   newPasswd    [2] OCTET STRING OPTIONAL
-     * }
-     *
-     * PasswdModifyResponseValue ::= SEQUENCE
-     * {
-     *   genPasswd    [0] OCTET STRING OPTIONAL
-     * }
-     */
-
-    // @formatter:on
+    @SuppressWarnings("unchecked")
+    final List<ByteString> encPasswords = (List<ByteString>) extendedOperation
+        .getAttachment(PasswordModifyExtendedOperation.ENCODED_PWD_ATTACHMENT);
 
     try
     {
-      // FIXME: need to handle dn: and a: notation.
-
-      // Read the request value first.
-      asn1Reader.readStartSequence();
-
-      // First get the userIdentity field.
-      if (asn1Reader.hasNextElement()
-          && asn1Reader.peekType() == TYPE_PASSWORD_MODIFY_USER_ID)
-      {
-        dn = DN.decode(asn1Reader.readOctetString());
-        if (DebugLogger.debugEnabled())
-        {
-          TRACER.debugInfo("Processing DN:" + dn.toNormalizedString());
-        }
-      }
-
-      if (DebugLogger.debugEnabled())
-      {
-        TRACER.debugInfo("Authorization DN: " + authDN);
-      }
-
-      if (dn == null)
-      {
-        dn = authDN;
-        if (DebugLogger.debugEnabled())
-        {
-          TRACER.debugInfo("The DN was not found in the request, but "
-              + "we can use the authorization DN.");
-        }
-      }
-
       // Before proceeding make sure this entry has samba object class.
       final Entry entry = DirectoryServer.getEntry(dn);
       if (!isSynchronizable(entry))
@@ -768,92 +736,40 @@ public final class SambaPasswordPlugin extends
         return PluginResult.PostOperation.continueOperationProcessing();
       }
 
-      // Read the old password field if it exists. Skip it either way.
-      if (asn1Reader.hasNextElement()
-          && asn1Reader.peekType() == TYPE_PASSWORD_MODIFY_OLD_PASSWORD)
-      {
-        asn1Reader.skipElement();
-      }
-
-      // Read the new password field.
-      if (asn1Reader.hasNextElement()
-          && asn1Reader.peekType() == TYPE_PASSWORD_MODIFY_NEW_PASSWORD)
-      {
-        password = asn1Reader.readOctetStringAsString();
-        if (DebugLogger.debugEnabled())
-        {
-          TRACER.debugInfo("Got new password from the request.");
-        }
-      }
-
-      // Finish reading the request value.
-      asn1Reader.readEndSequence();
-
-      /*
-       * If the new password was not found in the request, look into the
-       * response - this usually the case when the password is changed by the
-       * directory manager or when the password is generated.
-       */
-      if (password == null)
-      {
-        if (DebugLogger.debugEnabled())
-        {
-          TRACER.debugInfo("Password couldn't be found in the"
-              + " request, getting it from the response.");
-        }
-
-        // Start reading the response value.
-        asn1Reader = ASN1.getReader(responseValue.asReader());
-        asn1Reader.readStartSequence();
-
-        // Read the generated password field.
-        if (asn1Reader.hasNextElement()
-            && asn1Reader.peekType() == TYPE_PASSWORD_MODIFY_GENERATED_PASSWORD)
-        {
-          password = asn1Reader.readOctetStringAsString();
-          if (DebugLogger.debugEnabled())
-          {
-            TRACER.debugInfo("Got the new password from the " + "response.");
-          }
-        }
-
-        // Finish reading.
-        asn1Reader.readEndSequence();
-      }
-
       /*
        * Make an internal connection to process the password modification. It
        * will not trigger this plugin again with the pre-operation modify since
        * the password passed would be encoded hence the pre operation part would
        * skip it.
        */
-
-      // FIXME: This should be performed with a write lock taken when processing
-      // the extended operation. However, this is not yet supported by OpenDJ
-      // See OPENDJ-235 - https://bugster.forgerock.org/jira/browse/OPENDJ-235
       final InternalClientConnection connection = InternalClientConnection
           .getRootConnection();
 
+      final List<Modification> modifications = getModifications(password);
+
+      // Use an assertion control to avoid race conditions since extended
+      // operation post-ops are done outside of the write lock.
+      List<Control> controls = null;
+      if (!encPasswords.isEmpty())
+      {
+        final AttributeType pwdAttribute = (AttributeType) extendedOperation
+            .getAttachment(
+                PasswordModifyExtendedOperation.PWD_ATTRIBUTE_ATTACHMENT);
+        final LDAPFilter filter = RawFilter.createEqualityFilter(
+            pwdAttribute.getNameOrOID(), encPasswords.get(0));
+        final Control assertionControl = new LDAPAssertionRequestControl(true,
+            filter);
+
+        // FIXME: see OPENDJ-241
+        // controls = Collections.singletonList(assertionControl);
+      }
+
       final ModifyOperation modifyOperation = connection.processModify(dn,
-          getModifications(password));
+          modifications, controls);
 
       if (DebugLogger.debugEnabled())
       {
         TRACER.debugInfo(modifyOperation.getResultCode().toString());
-      }
-    }
-    catch (final ASN1Exception e)
-    {
-      /*
-       * The ASN1 reader was not able to process the request because: - it
-       * started reading an element which is not a sequence; or - it was not
-       * able to decode an element; or - it was not able to determine the BER
-       * type of an element; or - it was not able to decode the value as octet
-       * string. Either way, this should not happen, so we just log it.
-       */
-      if (DebugLogger.debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.WARNING, e);
       }
     }
     catch (final DirectoryException e)

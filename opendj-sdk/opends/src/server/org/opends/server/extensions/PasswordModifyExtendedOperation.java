@@ -81,6 +81,43 @@ public class PasswordModifyExtendedOperation
        implements ConfigurationChangeListener<
                     PasswordModifyExtendedOperationHandlerCfg>
 {
+  // The following attachments may be used by post-op plugins (e.g. Samba) in
+  // order to avoid re-decoding the request parameters and also to enforce
+  // atomicity.
+
+  /**
+   * The name of the attachment which will be used to store the fully resolved
+   * target entry.
+   */
+  public static final String AUTHZ_DN_ATTACHMENT;
+
+  /**
+   * The name of the attachment which will be used to store the password
+   * attribute.
+   */
+  public static final String PWD_ATTRIBUTE_ATTACHMENT;
+
+  /**
+   * The clear text password, which may not be present if the provided password
+   * was pre-encoded.
+   */
+  public static final String CLEAR_PWD_ATTACHMENT;
+
+  /**
+   * A list containing the encoded passwords: plugins can perform changes
+   * atomically via CAS.
+   */
+  public static final String ENCODED_PWD_ATTACHMENT;
+
+  static
+  {
+    final String PREFIX = PasswordModifyExtendedOperation.class.getName();
+    AUTHZ_DN_ATTACHMENT = PREFIX + ".AUTHZ_DN";
+    PWD_ATTRIBUTE_ATTACHMENT = PREFIX + ".PWD_ATTRIBUTE";
+    CLEAR_PWD_ATTACHMENT = PREFIX + ".CLEAR_PWD";
+    ENCODED_PWD_ATTACHMENT = PREFIX + ".ENCODED_PWD";
+  }
+
   /**
    * The tracer object for the debug logger.
    */
@@ -567,7 +604,7 @@ public class PasswordModifyExtendedOperation
         operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
         operation.appendErrorMessage(message);
 
-          return;
+        return;
       }
 
 
@@ -716,7 +753,7 @@ public class PasswordModifyExtendedOperation
 
 
 
-      // If the a new password was provided, then peform any appropriate
+      // If the a new password was provided, then perform any appropriate
       // validation on it.  If not, then see if we can generate one.
       boolean generatedPassword = false;
       boolean isPreEncoded      = false;
@@ -1087,10 +1124,20 @@ public class PasswordModifyExtendedOperation
 
 
         // If we've gotten here, then everything is OK, so indicate that the
-        // operation was successful.  If a password was generated, then include
-        // it in the response.
+        // operation was successful.
         operation.setResultCode(ResultCode.SUCCESS);
 
+        // Save attachments for post-op plugins (e.g. Samba password plugin).
+        operation.setAttachment(AUTHZ_DN_ATTACHMENT, userDN);
+        operation.setAttachment(PWD_ATTRIBUTE_ATTACHMENT, pwPolicyState
+            .getPolicy().getPasswordAttribute());
+        if (!isPreEncoded)
+        {
+          operation.setAttachment(CLEAR_PWD_ATTACHMENT, newPassword);
+        }
+        operation.setAttachment(ENCODED_PWD_ATTACHMENT, encodedPasswords);
+
+        // If a password was generated, then include it in the response.
         if (generatedPassword)
         {
           ByteStringBuilder builder = new ByteStringBuilder();
