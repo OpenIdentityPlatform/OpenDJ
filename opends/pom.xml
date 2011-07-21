@@ -101,7 +101,7 @@
               <target>
                 <!-- We need to significantly refactor build.xml in order
                      to split this up any more -->
-                <ant target="precommit" />
+                <ant target="package" />
               </target>
             </configuration>
           </execution>
