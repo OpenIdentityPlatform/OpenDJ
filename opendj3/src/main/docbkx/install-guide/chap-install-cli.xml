@@ -119,6 +119,12 @@ Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
   <step>
    <para>Unzip <filename>OpenDJ-<?eval ${project.version}?>.zip</filename>
    in the file system directory where you want to install the server.</para>
+   
+   <para>Unlike the web-based Quick Setup install, the <command>setup</command>
+   command uses the directory where you unzipped the files as the installation
+   directory, and does not ask you where to install OpenDJ. Therefore, if you
+   want to install elsewhere on the file system, unzip the files in that
+   location.</para>
   </step>
   
   <step>
