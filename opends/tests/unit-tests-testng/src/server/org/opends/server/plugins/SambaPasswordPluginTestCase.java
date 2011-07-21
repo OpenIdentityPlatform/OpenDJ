@@ -426,16 +426,31 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
 
 
   /**
+   * Return test authz IDs for password modify extended operations.
+   *
+   * @return The test authz IDs.
+   */
+  @DataProvider
+  public Object[][] authzID()
+  {
+    return new Object[][] { { "uid=test.user,o=test" },
+        { "dn:uid=test.user,o=test" }, { "u:test.user" } };
+  }
+
+
+
+  /**
    * Test the Password Modify Extended Operation as ROOT.
    *
+   * @param authzID The authz ID.
    * @throws Exception
    *           if the test fails.
    */
-  @Test
-  public void testPWEOAsRoot() throws Exception
+  @Test(dataProvider="authzID")
+  public void testPWEOAsRoot(String authzID) throws Exception
   {
     // Test entry
-    Entry testEntry = TestCaseUtils.makeEntry("dn: uid=test.user5,o=test",
+    Entry testEntry = TestCaseUtils.makeEntry("dn: uid=test.user,o=test",
         "objectClass: top", "objectClass: person",
         "objectClass: organizationalPerson", "objectClass: inetOrgPerson",
         "objectClass: sambaSAMAccount", "uid: test.user", "cn: Test User",
@@ -462,10 +477,9 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
 
     writer.writeStartSequence();
 
-    // Write the DN of the entry we are changing.
-
+    // Write the authzID of the entry we are changing.
     writer.writeOctetString(ExtensionsConstants.TYPE_PASSWORD_MODIFY_USER_ID,
-        testEntry.getDN().toString());
+        authzID);
 
     /*
      * Since we perform the operation as ROOT, we don't have to put the old
@@ -474,7 +488,6 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
      */
 
     // Write the new password
-
     writer.writeOctetString(
         ExtensionsConstants.TYPE_PASSWORD_MODIFY_NEW_PASSWORD, "password");
 
@@ -499,14 +512,15 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
    * Test the Password Modify Extended Operation as Samba administrative user.
    * This operation should be skipped.
    *
+   * @param authzID The authz ID.
    * @throws Exception
    *           if the test fails.
    */
-  @Test
-  public void testPWEOAsSambaAdmin() throws Exception
+  @Test(dataProvider="authzID")
+  public void testPWEOAsSambaAdmin(String authzID) throws Exception
   {
     // Test entry
-    Entry testEntry = TestCaseUtils.makeEntry("dn: uid=test.user6,o=test",
+    Entry testEntry = TestCaseUtils.makeEntry("dn: uid=test.user,o=test",
         "objectClass: top", "objectClass: person",
         "objectClass: organizationalPerson", "objectClass: inetOrgPerson",
         "objectClass: sambaSAMAccount", "uid: test.user", "cn: Test User",
@@ -541,7 +555,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
     // Write the DN of the entry we are changing.
 
     writer.writeOctetString(ExtensionsConstants.TYPE_PASSWORD_MODIFY_USER_ID,
-        testEntry.getDN().toString());
+        authzID);
 
     /*
      * Since we perform the operation as Samba admininistrative user, we don't
@@ -584,14 +598,15 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
   /**
    * Test the Password Modify Extended Operation as normal user.
    *
+   * @param authzID The authz ID.
    * @throws Exception
    *           if the test fails.
    */
-  @Test
-  public void testPWEOAsUser() throws Exception
+  @Test(dataProvider="authzID")
+  public void testPWEOAsUser(String authzID) throws Exception
   {
     // Test entry
-    Entry testEntry = TestCaseUtils.makeEntry("dn: uid=test.user7,o=test",
+    Entry testEntry = TestCaseUtils.makeEntry("dn: uid=test.user,o=test",
         "objectClass: top", "objectClass: person",
         "objectClass: organizationalPerson", "objectClass: inetOrgPerson",
         "objectClass: sambaSAMAccount", "uid: test.user", "cn: Test User",
@@ -622,7 +637,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
     // Write the DN of the entry we are changing.
 
     writer.writeOctetString(ExtensionsConstants.TYPE_PASSWORD_MODIFY_USER_ID,
-        testEntry.getDN().toString());
+        authzID);
 
     // Write the old password
 
