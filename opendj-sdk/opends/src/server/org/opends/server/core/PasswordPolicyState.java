@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -1386,19 +1387,17 @@ public class PasswordPolicyState
       return;
     }
 
-    long highestFailureTime = -1;
-    for (Long l : authFailureTimes)
-    {
-      highestFailureTime = Math.max(l, highestFailureTime);
-    }
-
     AttributeType type =
          DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_FAILURE_TIME_LC,
                                           true);
+    this.authFailureTimes = authFailureTimes;
 
     AttributeBuilder builder = new AttributeBuilder(type);
+    long highestFailureTime = -1;
+
     for (Long l : authFailureTimes)
     {
+      highestFailureTime = Math.max(l, highestFailureTime);
       builder
           .add(AttributeValues.create(type, GeneralizedTimeSyntax.format(l)));
     }
@@ -2724,6 +2723,8 @@ public class PasswordPolicyState
 
     if (getRequiredChangeTime() != requiredChangeTime)
     {
+      this.requiredChangeTime = requiredChangeTime;
+
       AttributeType type = DirectoryServer.getAttributeType(
                                OP_ATTR_PWPOLICY_CHANGED_BY_REQUIRED_TIME, true);
 
@@ -2756,6 +2757,8 @@ public class PasswordPolicyState
       TRACER.debugInfo("Clearing required change time for user %s",
           userDNString);
     }
+
+    this.requiredChangeTime = Long.MIN_VALUE;
 
     AttributeType type = DirectoryServer.getAttributeType(
                              OP_ATTR_PWPOLICY_CHANGED_BY_REQUIRED_TIME, true);
@@ -3076,6 +3079,8 @@ public class PasswordPolicyState
       TRACER.debugInfo("Updating grace login times for user %s",
           userDNString);
     }
+
+    this.graceLoginTimes = graceLoginTimes;
 
     AttributeType type =
          DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME_LC,

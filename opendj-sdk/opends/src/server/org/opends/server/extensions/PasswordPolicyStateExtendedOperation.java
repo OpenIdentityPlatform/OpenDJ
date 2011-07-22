@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -588,39 +589,13 @@ public class PasswordPolicyStateExtendedOperation
     Entry userEntry;
     InternalClientConnection conn =
          new InternalClientConnection(clientConnection.getAuthenticationInfo());
-    InternalSearchOperation internalSearch =
-         conn.processSearch(targetDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 1, 0,
-                            false, userFilter, requestAttributes, null);
-    if (internalSearch.getResultCode() != ResultCode.SUCCESS)
+
+    userEntry = searchUserEntry(conn, operation, targetDN);
+
+    if (userEntry == null)
     {
-      operation.setResultCode(internalSearch.getResultCode());
-      operation.setErrorMessage(internalSearch.getErrorMessage());
-      operation.setMatchedDN(internalSearch.getMatchedDN());
-      operation.setReferralURLs(internalSearch.getReferralURLs());
       return;
     }
-
-    List<SearchResultEntry> matchingEntries = internalSearch.getSearchEntries();
-    if (matchingEntries.isEmpty())
-    {
-      operation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-      return;
-    }
-    else if (matchingEntries.size() > 1)
-    {
-      Message message = ERR_PWPSTATE_EXTOP_MULTIPLE_ENTRIES.get(
-              String.valueOf(targetDN));
-      operation.appendErrorMessage(message);
-      operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-      return;
-    }
-    else
-    {
-      userEntry = matchingEntries.get(0);
-    }
-
-
     // Get the password policy state for the user entry.
     PasswordPolicyState pwpState;
     PasswordPolicy      policy;
@@ -639,7 +614,6 @@ public class PasswordPolicyStateExtendedOperation
       operation.setResponseData(de);
       return;
     }
-
 
     // Create a hash set that will be used to hold the types of the return
     // types that should be included in the response.
@@ -721,6 +695,28 @@ public class PasswordPolicyStateExtendedOperation
           operation.setReferralURLs(modifyOperation.getReferralURLs());
           return;
         }
+        // Retrieve the updated entry
+        userEntry = searchUserEntry(conn, operation, targetDN);
+        if (userEntry == null)
+        {
+          return;
+        }
+        // And it's updated password policy state
+        try
+        {
+          pwpState = new PasswordPolicyState(userEntry, false);
+          policy = pwpState.getPolicy();
+        }
+        catch (DirectoryException de)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, de);
+          }
+
+          operation.setResponseData(de);
+          return;
+        }
       }
     }
     catch (Exception e)
@@ -736,7 +732,6 @@ public class PasswordPolicyStateExtendedOperation
       operation.setResultCode(ResultCode.PROTOCOL_ERROR);
       return;
     }
-
 
     try
     {
@@ -757,7 +752,57 @@ public class PasswordPolicyStateExtendedOperation
     }
   }
 
+  /**
+   * Searches and returns the entry referenced by targetDN. If there's not
+   * exactly one entry found, an error is reported for the operation.
+   *
+   * @param conn      The internal connection used to issue the search
+   * @param operation The extended operation being processed
+   * @param targetDN  The DN targeted by this operation
+   *
+   * @return the Entry if one and only one is found, null otherwise
+   */
+  private Entry searchUserEntry (InternalClientConnection conn,
+                              ExtendedOperation operation,
+                              DN targetDN)
+  {
+    Entry entry;
 
+    InternalSearchOperation internalSearch =
+         conn.processSearch(targetDN, SearchScope.BASE_OBJECT,
+                            DereferencePolicy.NEVER_DEREF_ALIASES, 1, 0,
+                            false, userFilter, requestAttributes, null);
+    if (internalSearch.getResultCode() != ResultCode.SUCCESS)
+    {
+      operation.setResultCode(internalSearch.getResultCode());
+      operation.setErrorMessage(internalSearch.getErrorMessage());
+      operation.setMatchedDN(internalSearch.getMatchedDN());
+      operation.setReferralURLs(internalSearch.getReferralURLs());
+      return null;
+    }
+
+    List<SearchResultEntry> matchingEntries = internalSearch.getSearchEntries();
+    if (matchingEntries.isEmpty())
+    {
+      operation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+      return null;
+    }
+    else if (matchingEntries.size() > 1)
+    {
+      Message message = ERR_PWPSTATE_EXTOP_MULTIPLE_ENTRIES.get(
+              String.valueOf(targetDN));
+      operation.appendErrorMessage(message);
+      operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+      return null;
+    }
+    else
+    {
+      entry = matchingEntries.get(0);
+    }
+
+    return entry;
+
+  }
 
   /**
    * Encodes the provided information in a form suitable for including in the
@@ -888,16 +933,15 @@ public class PasswordPolicyStateExtendedOperation
     if (returnAll ||
         returnTypes.contains(OP_GET_SECONDS_UNTIL_ACCOUNT_EXPIRATION))
     {
-      String secondsStr;
+      String secondsStr = null;
       long expTime = pwpState.getAccountExpirationTime();
-      if (expTime < 0)
+      if (expTime >= 0)
       {
-        secondsStr = null;
-      }
-      else
-      {
-        secondsStr =
-             String.valueOf((expTime - pwpState.getCurrentTime()) / 1000);
+        long seconds = (expTime - pwpState.getCurrentTime()) / 1000;
+        if (seconds > 0)
+        {
+          secondsStr = String.valueOf(seconds);
+        }
       }
 
       encode(writer, OP_GET_SECONDS_UNTIL_ACCOUNT_EXPIRATION,
