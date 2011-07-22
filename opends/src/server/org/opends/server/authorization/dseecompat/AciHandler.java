@@ -534,11 +534,18 @@ public final class AciHandler extends
    */
   @Override
   public boolean isAllowed(Operation operation, Entry entry,
-    SearchFilter filter) throws DirectoryException
+      SearchFilter filter) throws DirectoryException
   {
-    AciLDAPOperationContainer operationContainer =
+    if (skipAccessCheck(operation))
+    {
+      return true;
+    }
+    else
+    {
+      AciLDAPOperationContainer operationContainer =
         new AciLDAPOperationContainer(operation, (ACI_READ), entry);
-    return testFilter(operationContainer, filter);
+      return testFilter(operationContainer, filter);
+    }
   }
 
 
