@@ -759,9 +759,7 @@ public final class SambaPasswordPlugin extends
             pwdAttribute.getNameOrOID(), encPasswords.get(0));
         final Control assertionControl = new LDAPAssertionRequestControl(true,
             filter);
-
-        // FIXME: see OPENDJ-241
-        // controls = Collections.singletonList(assertionControl);
+        controls = Collections.singletonList(assertionControl);
       }
 
       final ModifyOperation modifyOperation = connection.processModify(dn,
