@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap.extensions;
@@ -1114,7 +1115,7 @@ public final class PasswordPolicyStateExtendedRequest
   public void setPasswordResetState(final boolean state)
   {
     operations.add(new MultiValueOperation(
-        PasswordPolicyStateOperationType.SET_LAST_LOGIN_TIME, ByteString
+        PasswordPolicyStateOperationType.SET_PASSWORD_RESET_STATE, ByteString
             .valueOf(String.valueOf(state))));
   }
 
