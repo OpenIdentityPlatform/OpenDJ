@@ -70,20 +70,7 @@
           <message>
             'Common ECL tests: reset data'
           </message>
-          
-          <!-- Pre-initialise the servers in the topology -->
-          <call function="'preInitializeReplication'">
-            { 'location'            : masterHost,
-              'dsPath'              : masterPath,
-              'dsInstanceHost'      : masterHost,
-              'dsInstanceAdminPort' : master.getAdminPort(),
-              'localOnly'           : False,
-              'replicationDnList'   : [synchroSuffix],
-              'adminUID'            : adminUID,
-              'adminPswd'           : adminPswd
-            }
-          </call>
-    
+   
           <!-- Stop "master" Directory Server -->
           <call function="'StopDsWithScript'">
             { 'location'    : masterHost,
@@ -303,11 +290,7 @@
                    indexvar="indx">
             <sequence>                    
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -538,11 +521,7 @@
                    indexvar="indx">
             <sequence>                    
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -773,11 +752,7 @@
                    indexvar="indx">
             <sequence>                    
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -1006,11 +981,7 @@
                    indexvar="indx">
             <sequence>                    
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -1237,11 +1208,7 @@
                    indexvar="indx">
             <sequence>                    
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -1471,11 +1438,7 @@
                    indexvar="indx">
             <sequence>
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -1709,11 +1672,7 @@
                    indexvar="indx">
             <sequence>
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -1942,11 +1901,7 @@
                    indexvar="indx">
             <sequence>
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -2180,11 +2135,7 @@
                    indexvar="indx">
             <sequence>                    
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -2375,11 +2326,7 @@
                 else:
                   lastIndexAttr = 'lastchangenumber'
                 
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               <call function="'ldapSearchWithScript'">
@@ -2433,11 +2380,7 @@
               
               <!-- Search changelog in the various replication servers -->
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -2574,11 +2517,6 @@
           <call function="'stopServers'">
             [consumerList]
           </call>
-          <if expr="globalSplitServers">
-            <call function="'stopServers'">
-              [_topologyReplServerList[1:]]
-            </call>
-          </if>
           
           <!-- Modify entry on "master" server -->
           <call function="'modifyAnAttribute'">
@@ -2636,11 +2574,6 @@
           <call function="'startServers'">
             [consumerList]
           </call>
-          <if expr="globalSplitServers">
-            <call function="'startServers'">
-              [_topologyReplServerList[1:]]
-            </call>
-          </if>
           
           <!-- Modify entry on "master" server -->
           <call function="'modifyAnAttribute'">
@@ -2716,11 +2649,7 @@
                    indexvar="indx">
             <sequence>
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -2914,11 +2843,7 @@
               <script>
                 serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
                 
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[i+1]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
                 
@@ -2928,13 +2853,7 @@
                   'dsPath'    :  serverPath
                 }
               </call>
-              <if expr="globalSplitServers">
-                <call function="'killDs'">
-                  { 'location'  :  replServer.getHostname(),
-                    'dsPath'    :  replServerPath
-                  }
-                </call>
-              </if>
+
             </sequence>
           </paralleliterate>
           
@@ -2994,11 +2913,6 @@
           <call function="'startServers'">
             [consumerList]
           </call>
-          <if expr="globalSplitServers">
-            <call function="'startServers'">
-              [_topologyReplServerList[1:]]
-            </call>
-          </if>
           
           <!-- Modify entry on "master" server -->
           <call function="'modifyAnAttribute'">
@@ -3074,11 +2988,7 @@
                    indexvar="indx">
             <sequence>
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -3343,11 +3253,7 @@
                    indexvar="indx">
             <sequence>
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -3630,11 +3536,7 @@
                 else:
                   myKnownIssue = None
                 
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -3924,11 +3826,7 @@
                 else:
                   myKnownIssue = None
                 
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -4213,11 +4111,7 @@
                 else:
                   myKnownIssue = None
                 
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -4455,11 +4349,7 @@
                 else:
                   myKnownIssue = None
                 
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -4688,11 +4578,7 @@
                    indexvar="indx">
             <sequence>
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -4851,52 +4737,7 @@
                   </call>
                 </sequence>
               </if>
-          
-              <if expr="globalSplitServers">
-                <sequence>
-                  <script>
-                    if master.isOnlyLdapServer():
-                      masterReplPort = None
-                    else:
-                      masterReplPort = masterReplicationServer.getPort()
-                    
-                    replServer = _topologyReplServerList[indx]
-                    replServerReplPort = replServer.getChangelogServer().getPort()
-                    
-                    replicatedDnList = [newReplSuffix]
-                  </script>
-                  
-                  <message>
-                    'Enable replication for server:\nHost: %s\nLdap port: %s\n\
-                    Replication port: %s\nReplicated DN list: %s' \
-                      % (replServer.getHostname(), replServer.getPort(), 
-                         replServerReplPort, replicatedDnList)
-                  </message>
-                  
-                  <call function="'enableReplication'">
-                    { 'location'             : clientHost,
-                      'dsPath'               : clientPath,
-                      'refInstanceHost'      : masterHost,
-                      'refInstanceAdminPort' : master.getAdminPort(),
-                      'refInstanceDn'        : master.getRootDn(),
-                      'refInstancePswd'      : master.getRootPwd(),
-                      'refReplicationPort'   : masterReplPort,
-                      'refSecureReplication' : secureReplication,
-                      'refOnlyLdapServer'    : master.isOnlyLdapServer(),
-                      'refOnlyReplServer'    : master.isOnlyReplServer(),
-                      'dsInstanceHost'       : replServer.getHostname(),
-                      'dsInstanceAdminPort'  : replServer.getAdminPort(),
-                      'dsInstanceDn'         : replServer.getRootDn(),
-                      'dsInstancePswd'       : replServer.getRootPwd(),
-                      'dsReplicationPort'    : replServerReplPort,
-                      'dsSecureReplication'  : secureReplication,
-                      'dsOnlyLdapServer'     : replServer.isOnlyLdapServer(),
-                      'dsOnlyReplServer'     : replServer.isOnlyReplServer(),
-                      'replicationDnList'    : replicatedDnList
-                    }
-                  </call>
-                </sequence>
-              </if>
+
             </sequence>
           </iterate>
 
@@ -4940,11 +4781,7 @@
                        indexvar="indx">
                 <sequence>
                   <script>
-                    if globalSplitServers:
-                      replServer = _topologyReplServerList[indx]
-                    else:
-                      replServer = server
-    
+                    replServer = server    
                     replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
                   </script>
                   
@@ -5115,11 +4952,7 @@
                    indexvar="indx">
             <sequence>
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -5446,11 +5279,7 @@
                    indexvar="indx">
             <sequence>
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -5654,11 +5483,7 @@
                    indexvar="indx">
             <sequence>
               <script>                
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -5870,11 +5695,7 @@
             else:
               lastIndexAttr = 'lastchangenumber'
             
-            if globalSplitServers:
-              replServer = _topologyReplServerList[0]
-            else:
-              replServer = master
-
+            replServer = master
             replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
           </script>
           <call function="'ldapSearchWithScript'">
@@ -5943,11 +5764,7 @@
                 myOptionString = """--domain-name "%s" --set enabled:false""" \
                                  % synchroSuffix
                 
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-    
+                replServer = server    
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               <message>
@@ -6022,11 +5839,7 @@
                 else:
                   myExpectedRC = 0
                 
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -6173,11 +5986,7 @@
                    indexvar="indx">
             <sequence>
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -6374,11 +6183,7 @@
                    indexvar="indx">
             <sequence>                    
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -6523,11 +6328,7 @@
                 myOptionString = """--domain-name "%s" --set enabled:true""" \
                                  % synchroSuffix
                 
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-    
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               <message>
@@ -6560,11 +6361,7 @@
                 lastCookie      = searchIndex
                 chgNumberFilter = None
                 
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[0]
-                else:
-                  replServer = master
-
+                replServer = master
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -6789,11 +6586,7 @@
                    indexvar="indx">
             <sequence>                    
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -6941,11 +6734,7 @@
                 myOptionString = """--domain-name "%s" --set enabled:false""" \
                                  % synchroSuffix
                     
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-    
+                replServer = server    
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               <message>
@@ -7000,11 +6789,7 @@
                 myOptionString = """--domain-name "%s" --set enabled:true""" \
                                  % synchroSuffix
                 
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-    
+                replServer = server    
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               <message>
@@ -7113,11 +6898,7 @@
                 else:
                   myKnownIssue = None
                 
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -7307,11 +7088,7 @@
             else:
               lastIndexAttr = 'lastchangenumber'
             
-            if globalSplitServers:
-              replServer = _topologyReplServerList[0]
-            else:
-              replServer = master
-
+            replServer = master
             replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
           </script>
           <call function="'ldapSearchWithScript'">
@@ -7379,11 +7156,7 @@
             myOptionString = """--domain-name "%s" --set ecl-include:%s""" \
                              % (synchroSuffix, incAttr)
             
-            if globalSplitServers:
-              replServer = _topologyReplServerList[0]
-            else:
-              replServer = master
-
+            replServer = master
             replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
           </script>
           <message>
@@ -7508,11 +7281,7 @@
                    indexvar="indx">
             <sequence>                    
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -7772,11 +7541,7 @@
                    indexvar="indx">
             <sequence>                    
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -7945,11 +7710,7 @@
             myOptionString = """--domain-name "%s" --set ecl-include:%s""" \
                              % (synchroSuffix, incAttr)
             
-            if globalSplitServers:
-              replServer = _topologyReplServerList[0]
-            else:
-              replServer = master
-
+            replServer = master
             replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
           </script>
           <message>
@@ -8082,11 +7843,7 @@
                    indexvar="indx">
             <sequence>                    
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -8255,11 +8012,7 @@
             myOptionString = """--domain-name "%s" --add ecl-include:%s""" \
                              % (synchroSuffix, incAttrs[0])
         
-            if globalSplitServers:
-              replServer = _topologyReplServerList[0]
-            else:
-              replServer = master
-
+            replServer = master
             replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
           </script>
           <message>
@@ -8388,11 +8141,7 @@
                    indexvar="indx">
             <sequence>                    
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -8666,11 +8415,7 @@
                    indexvar="indx">
             <sequence>                    
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -8846,11 +8591,7 @@
                 myOptionString = """--domain-name "%s" --set ecl-include:%s""" \
                                  % (synchroSuffix, incAttr)
                 
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = _topologyServerList[indx]
-    
+                replServer = _topologyServerList[indx]    
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               <message>
@@ -8982,11 +8723,7 @@
                    indexvar="indx">
             <sequence>
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -9223,11 +8960,7 @@
                 myOptionString = """--domain-name "%s" --set ecl-include:%s""" \
                                  % (synchroSuffix, incAttr)
                 
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-    
+                replServer = server    
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               <message>
@@ -9389,11 +9122,7 @@
                    indexvar="indx">
             <sequence>                    
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -9694,11 +9423,7 @@
                    indexvar="indx">
             <sequence>                    
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -9871,11 +9596,7 @@
             myOptionString = """--domain-name "%s" --add ecl-include:%s""" \
                              % (synchroSuffix, incAttrs[0])
         
-            if globalSplitServers:
-              replServer = _topologyReplServerList[0]
-            else:
-              replServer = master
-
+            replServer = master
             replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
           </script>
           <message>
@@ -10043,11 +9764,7 @@
                    indexvar="indx">
             <sequence>                    
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -10358,11 +10075,7 @@
                    indexvar="indx">
             <sequence>                    
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -10671,11 +10384,7 @@
                    indexvar="indx">
             <sequence>                    
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -10986,11 +10695,7 @@
                    indexvar="indx">
             <sequence>                    
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -11302,11 +11007,7 @@
                    indexvar="indx">
             <sequence>                    
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -11610,11 +11311,7 @@
                    indexvar="indx">
             <sequence>                    
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -11787,11 +11484,7 @@
             myOptionString = """--domain-name "%s" --add ecl-include:%s""" \
                              % (synchroSuffix, incAttrs[0])
         
-            if globalSplitServers:
-              replServer = _topologyReplServerList[0]
-            else:
-              replServer = master
-
+            replServer = master
             replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
           </script>
           <message>
@@ -11953,11 +11646,7 @@
                    indexvar="indx">
             <sequence>                    
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -12268,11 +11957,7 @@
                    indexvar="indx">
             <sequence>                    
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -12543,11 +12228,7 @@
                    indexvar="indx">
             <sequence>
               <script>
-                if globalSplitServers:
-                  replServer = _topologyReplServerList[indx]
-                else:
-                  replServer = server
-
+                replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
               
@@ -12674,20 +12355,7 @@
             Clean up environment for External Changelog tests' % ecl_mode
           </message>
               
-          <!-- Clean new suffixes on servers -->
-          <!-- Clean newReplSuffix changes from changelog -->
-          <call function="'preInitializeReplication'">
-            { 'location'            : masterHost,
-              'dsPath'              : masterPath,
-              'dsInstanceHost'      : masterHost,
-              'dsInstanceAdminPort' : master.getAdminPort(),
-              'localOnly'           : False,
-              'replicationDnList'   : [newReplSuffix],
-              'adminUID'            : adminUID,
-              'adminPswd'           : adminPswd
-            }
-          </call>
-          
+          <!-- Clean new suffixes on servers -->       
           <iterate var="server"
                    in="_topologyServerList"
                    indexvar="indx">
@@ -12712,24 +12380,6 @@
                   'replicationDnList'   : [newReplSuffix]
                 }
               </call>
-    
-              <if expr="globalSplitServers">
-                <sequence>
-                  <script>
-                    replServer     = _topologyReplServerList[indx]
-                    replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
-                  </script>
-                  <call function="'disableReplication'">
-                    { 'location'            : replServer.getHostname(),
-                      'dsPath'              : replServerPath,
-                      'dsInstanceHost'      : replServer.getHostname(),
-                      'dsInstanceAdminPort' : replServer.getAdminPort(),
-                      'replicationDnList'   : [newReplSuffix]
-                    }
-                  </call>
-                </sequence>
-              </if>          
-    
               
               <!-- Remove newReplSuffix -->
               <message>
