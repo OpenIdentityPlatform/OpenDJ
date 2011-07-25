@@ -57,20 +57,7 @@
             <message>
               'Common ECL tests: reset data'
             </message>
-            
-            <!-- Pre-initialise the servers in the topology -->
-            <call function="'preInitializeReplication'">
-              { 'location'            : masterHost,
-                'dsPath'              : masterPath,
-                'dsInstanceHost'      : masterHost,
-                'dsInstanceAdminPort' : master.getAdminPort(),
-                'localOnly'           : False,
-                'replicationDnList'   : [synchroSuffix],
-                'adminUID'            : adminUID,
-                'adminPswd'           : adminPswd
-              }
-            </call>
-      
+
             <!-- Stop "master" Directory Server -->
             <call function="'StopDsWithScript'">
               { 'location'    : masterHost,
