@@ -31,6 +31,11 @@
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <info>
   <title>OpenDJ <?eval ${project.version}?> Release Notes</title>
+  <abstract>
+   <para>Notes covering OpenDJ hardware &amp; software requirements, fixes,
+   known issues. The OpenDJ project offers open source LDAP directory services
+   in Java.</para>
+  </abstract>
   <copyright>
    <year>2011</year>
    <holder>ForgeRock AS</holder>
