@@ -558,10 +558,10 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   protected void removeReplicationServerDB() {
     for (ReplicationServer rs : ReplicationServer.getAllInstances()) {
       StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-               rs.getDbDirName()));      
+               rs.getDbDirName()));
     }
   }
-  
+
   /**
    * Performs a search on the config backend with the specified filter.
    * Fails if a config entry is found.
@@ -927,7 +927,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
           + addOperation.getResultCode()
           + " Expected:"
           + expectedResult + " Details:" + addOperation.getErrorMessage()
-          + addOperation.getAdditionalLogMessage());
+          + addOperation.getAdditionalLogItems());
 
       if (expectedResult != ResultCode.SUCCESS)
       {

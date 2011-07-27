@@ -60,16 +60,7 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.UnbindOperation;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.FilePermission;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.Operation;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 import org.opends.server.util.TimeThread;
 
 
@@ -485,13 +476,7 @@ public class TextAccessLogPublisher extends
       buffer.append('\"');
     }
 
-    msg = abandonOperation.getAdditionalLogMessage();
-    if ((msg != null) && (msg.length() > 0))
-    {
-      buffer.append(" additionalInfo=\"");
-      buffer.append(msg);
-      buffer.append('\"');
-    }
+    logAdditionalLogItems(abandonOperation, buffer);
 
     buffer.append(" etime=");
     buffer.append(abandonOperation.getProcessingTime());
@@ -571,13 +556,7 @@ public class TextAccessLogPublisher extends
       buffer.append('\"');
     }
 
-    msg = addOperation.getAdditionalLogMessage();
-    if ((msg != null) && (msg.length() > 0))
-    {
-      buffer.append(" additionalInfo=\"");
-      buffer.append(msg);
-      buffer.append('\"');
-    }
+    logAdditionalLogItems(addOperation, buffer);
 
     DN proxiedAuthDN = addOperation.getProxiedAuthorizationDN();
     if (proxiedAuthDN != null)
@@ -703,13 +682,7 @@ public class TextAccessLogPublisher extends
       buffer.append('\"');
     }
 
-    msg = bindOperation.getAdditionalLogMessage();
-    if ((msg != null) && (msg.length() > 0))
-    {
-      buffer.append(" additionalInfo=\"");
-      buffer.append(msg);
-      buffer.append('\"');
-    }
+    logAdditionalLogItems(bindOperation, buffer);
 
     if (bindOperation.getResultCode() == ResultCode.SUCCESS)
     {
@@ -825,13 +798,7 @@ public class TextAccessLogPublisher extends
       buffer.append('\"');
     }
 
-    msg = compareOperation.getAdditionalLogMessage();
-    if ((msg != null) && (msg.length() > 0))
-    {
-      buffer.append(" additionalInfo=\"");
-      buffer.append(msg);
-      buffer.append('\"');
-    }
+    logAdditionalLogItems(compareOperation, buffer);
 
     DN proxiedAuthDN = compareOperation.getProxiedAuthorizationDN();
     if (proxiedAuthDN != null)
@@ -974,13 +941,7 @@ public class TextAccessLogPublisher extends
       buffer.append('\"');
     }
 
-    msg = deleteOperation.getAdditionalLogMessage();
-    if ((msg != null) && (msg.length() > 0))
-    {
-      buffer.append(" additionalInfo=\"");
-      buffer.append(msg);
-      buffer.append('\"');
-    }
+    logAdditionalLogItems(deleteOperation, buffer);
 
     DN proxiedAuthDN = deleteOperation.getProxiedAuthorizationDN();
     if (proxiedAuthDN != null)
@@ -1166,13 +1127,7 @@ public class TextAccessLogPublisher extends
       buffer.append('\"');
     }
 
-    msg = extendedOperation.getAdditionalLogMessage();
-    if ((msg != null) && (msg.length() > 0))
-    {
-      buffer.append(" additionalInfo=\"");
-      buffer.append(msg);
-      buffer.append('\"');
-    }
+    logAdditionalLogItems(extendedOperation, buffer);
 
     buffer.append(" etime=");
     long etime = extendedOperation.getProcessingNanoTime();
@@ -1270,13 +1225,7 @@ public class TextAccessLogPublisher extends
       buffer.append('\"');
     }
 
-    msg = modifyDNOperation.getAdditionalLogMessage();
-    if ((msg != null) && (msg.length() > 0))
-    {
-      buffer.append(" additionalInfo=\"");
-      buffer.append(msg);
-      buffer.append('\"');
-    }
+    logAdditionalLogItems(modifyDNOperation, buffer);
 
     DN proxiedAuthDN = modifyDNOperation.getProxiedAuthorizationDN();
     if (proxiedAuthDN != null)
@@ -1369,13 +1318,7 @@ public class TextAccessLogPublisher extends
       buffer.append('\"');
     }
 
-    msg = modifyOperation.getAdditionalLogMessage();
-    if ((msg != null) && (msg.length() > 0))
-    {
-      buffer.append(" additionalInfo=\"");
-      buffer.append(msg);
-      buffer.append('\"');
-    }
+    logAdditionalLogItems(modifyOperation, buffer);
 
     DN proxiedAuthDN = modifyOperation.getProxiedAuthorizationDN();
     if (proxiedAuthDN != null)
@@ -1494,13 +1437,7 @@ public class TextAccessLogPublisher extends
     buffer.append(" nentries=");
     buffer.append(searchOperation.getEntriesSent());
 
-    msg = searchOperation.getAdditionalLogMessage();
-    if ((msg != null) && (msg.length() > 0))
-    {
-      buffer.append(" additionalInfo=\"");
-      buffer.append(msg);
-      buffer.append('\"');
-    }
+    logAdditionalLogItems(searchOperation, buffer);
 
     DN proxiedAuthDN = searchOperation.getProxiedAuthorizationDN();
     if (proxiedAuthDN != null)
@@ -1592,6 +1529,18 @@ public class TextAccessLogPublisher extends
       }
     }
     return true;
+  }
+
+
+
+  // Appends additional log items to the provided builder.
+  private void logAdditionalLogItems(Operation operation, StringBuilder builder)
+  {
+    for (AdditionalLogItem item : operation.getAdditionalLogItems())
+    {
+      builder.append(' ');
+      item.toString(builder);
+    }
   }
 
 

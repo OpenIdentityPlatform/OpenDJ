@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.types;
 import org.opends.messages.Message;
@@ -278,35 +279,24 @@ public interface Operation
   public abstract void appendErrorMessage(Message message);
 
   /**
-   * Retrieves the additional log message for this operation, which
-   * should be written to the log but not included in the response to
-   * the client.  The contents of this buffer may be altered by
-   * pre-parse, pre-operation, and post-operation plugins, but not by
-   * post-response plugins.
+   * Returns an unmodifiable list containing the additional log items for this
+   * operation, which should be written to the log but not included in the
+   * response to the client.
    *
-   * @return  The additional log message for this operation.
+   * @return An unmodifiable list containing the additional log items for this
+   *         operation.
    */
-  public abstract MessageBuilder getAdditionalLogMessage();
+  public abstract List<AdditionalLogItem> getAdditionalLogItems();
 
   /**
-   * Specifies the additional log message for this operation, which
-   * should be written to the log but not included in the response to
-   * the client.  This method may not be called by post-response
-   * plugins.
+   * Adds an additional log item to this operation, which should be written to
+   * the log but not included in the response to the client. This method may not
+   * be called by post-response plugins.
    *
-   * @param  additionalLogMessage  The additional log message for this
+   * @param item
+   *          The additional log item for this operation.
    */
-  public abstract void setAdditionalLogMessage(
-      MessageBuilder additionalLogMessage);
-
-  /**
-   * Appends the provided message to the additional log information
-   * for this operation.  This method may not be called by
-   * post-response plugins.
-   *
-   * @param  message  The message that should be appended to the
-   */
-  public abstract void appendAdditionalLogMessage(Message message);
+  public abstract void addAdditionalLogItem(AdditionalLogItem item);
 
   /**
    * Retrieves the matched DN for this operation.

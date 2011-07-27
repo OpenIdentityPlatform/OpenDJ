@@ -23,8 +23,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.types.operation;
+import java.util.List;
+
 import org.opends.messages.Message;
 
 
@@ -124,36 +127,25 @@ public interface PreParseOperation
 
 
   /**
-   * Retrieves the additional log message for this operation, which
-   * should be written to the log but not included in the response to
-   * the client.  The contents of this buffer may be altered by the
-   * caller.
+   * Returns an unmodifiable list containing the additional log items for this
+   * operation, which should be written to the log but not included in the
+   * response to the client.
    *
-   * @return  The additional log message for this operation.
+   * @return An unmodifiable list containing the additional log items for this
+   *         operation.
    */
-  public MessageBuilder getAdditionalLogMessage();
+  public List<AdditionalLogItem> getAdditionalLogItems();
 
 
 
   /**
-   * Specifies the additional log message for this operation, which
-   * should be written to the log but not included in the response to
-   * the client.
+   * Adds an additional log item to this operation, which should be written to
+   * the log but not included in the response to the client. This method may not
+   * be called by post-response plugins.
    *
-   * @param  additionalLogMessage  The additional log message for this
+   * @param item
+   *          The additional log item for this operation.
    */
-  public void setAdditionalLogMessage(
-                   MessageBuilder additionalLogMessage);
-
-
-
-  /**
-   * Appends the provided message to the additional log information
-   * for this operation.
-   *
-   * @param  message  The message that should be appended to the
-   *                  additional log information for this operation.
-   */
-  public void appendAdditionalLogMessage(Message message);
+  public void addAdditionalLogItem(AdditionalLogItem item);
 }
 

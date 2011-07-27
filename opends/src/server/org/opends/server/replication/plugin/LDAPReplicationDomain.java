@@ -108,39 +108,7 @@ import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.replication.service.ReplicationMonitor;
 import org.opends.server.tasks.TaskUtils;
-import org.opends.server.types.AbstractOperation;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.AttributeValues;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ExistingFileBehavior;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.Operation;
-import org.opends.server.types.OperationType;
-import org.opends.server.types.RDN;
-import org.opends.server.types.RawModification;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.Schema;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchResultReference;
-import org.opends.server.types.SearchScope;
-import org.opends.server.types.SynchronizationProviderResult;
+import org.opends.server.types.*;
 import org.opends.server.types.operation.PluginOperation;
 import org.opends.server.types.operation.PostOperationAddOperation;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
@@ -2324,9 +2292,8 @@ public class LDAPReplicationDomain extends ReplicationDomain
     ChangeNumber curChangeNumber = OperationContext.getChangeNumber(op);
     if ((curChangeNumber != null) && (logChangeNumber))
     {
-      Message message =
-        Message.raw("replicationCN:%s", curChangeNumber.toString());
-      op.appendAdditionalLogMessage(message);
+      op.addAdditionalLogItem(AdditionalLogItem.unquotedKeyValue(getClass(),
+          "replicationCN", curChangeNumber));
     }
 
     if ((result == ResultCode.SUCCESS) && (!op.isSynchronizationOperation()))
