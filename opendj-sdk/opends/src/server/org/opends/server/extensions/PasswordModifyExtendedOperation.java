@@ -639,9 +639,9 @@ public class PasswordModifyExtendedOperation
             (! operation.getClientConnection().isSecure()))
         {
           operation.setResultCode(ResultCode.CONFIDENTIALITY_REQUIRED);
-
-          operation.appendAdditionalLogMessage(
-                  ERR_EXTOP_PASSMOD_SECURE_AUTH_REQUIRED.get());
+          operation.addAdditionalLogItem(AdditionalLogItem.quotedKeyValue(
+              getClass(), "additionalInfo",
+              ERR_EXTOP_PASSMOD_SECURE_AUTH_REQUIRED.get()));
           return;
         }
 
@@ -652,9 +652,9 @@ public class PasswordModifyExtendedOperation
         else
         {
           operation.setResultCode(ResultCode.INVALID_CREDENTIALS);
-
-          operation.appendAdditionalLogMessage(
-                  ERR_EXTOP_PASSMOD_INVALID_OLD_PASSWORD.get());
+          operation.addAdditionalLogItem(AdditionalLogItem.quotedKeyValue(
+              getClass(), "additionalInfo",
+              ERR_EXTOP_PASSMOD_INVALID_OLD_PASSWORD.get()));
 
           pwPolicyState.updateAuthFailureTimes();
           List<Modification> mods = pwPolicyState.getModifications();

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -35,8 +36,6 @@ import static org.testng.Assert.*;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.IsolationPolicy;
-import org.opends.server.api.SynchronizationProvider;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.ReplicationTestCase;
@@ -55,8 +54,9 @@ public class IsolationTest extends ReplicationTestCase
    * Check that the server correctly accept or reject updates when
    * the replication is configured but could not connect to
    * any of the configured replication server.
+   *
+   * @throws Exception If an unexpected error occurred.
    */
-  @SuppressWarnings("unchecked")
   @Test()
   public void noUpdateIsolationPolicyTest() throws Exception
   {
@@ -100,7 +100,7 @@ public class IsolationTest extends ReplicationTestCase
 
       // check that the operation was successful.
       assertEquals(op.getResultCode(), ResultCode.SUCCESS,
-          op.getAdditionalLogMessage().toString());
+          op.getAdditionalLogItems().toString());
     }
     finally
     {

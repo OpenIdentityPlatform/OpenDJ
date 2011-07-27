@@ -23,21 +23,18 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.extensions;
 
 
 
-import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.std.server.AnonymousSASLMechanismHandlerCfg;
 import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -111,12 +108,8 @@ public class AnonymousSASLMechanismHandler
       String credString = saslCredentials.toString();
       if (credString.length() > 0)
       {
-        MessageBuilder mb = new MessageBuilder();
-        mb.append("trace='");
-        mb.append(credString);
-        mb.append("'");
-        bindOperation.appendAdditionalLogMessage(mb.toMessage());
-
+        bindOperation.addAdditionalLogItem(AdditionalLogItem.quotedKeyValue(
+            getClass(), "trace", credString));
         logError(INFO_SASLANONYMOUS_TRACE.
             get(bindOperation.getConnectionID(), bindOperation.getOperationID(),
                 credString));

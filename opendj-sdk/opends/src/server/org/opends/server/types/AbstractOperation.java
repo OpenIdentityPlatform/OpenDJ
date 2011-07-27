@@ -32,14 +32,12 @@ import org.opends.messages.MessageBuilder;
 
 import static org.opends.server.core.CoreConstants.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 import org.opends.server.api.ClientConnection;
 import org.opends.server.types.operation.PostResponseOperation;
 import org.opends.server.types.operation.PreParseOperation;
+import org.opends.server.util.Validator;
 import org.opends.server.core.DirectoryServer;
 
 import static org.opends.server.loggers.debug.
@@ -147,7 +145,7 @@ public abstract class AbstractOperation
 
   // Additional information that should be included in the log but
   // not sent to the client.
-  private MessageBuilder additionalLogMessage;
+  private List<AdditionalLogItem> additionalLogItems;
 
   // The error message for this operation that should be included in
   // the log and in the response to the client.
@@ -207,7 +205,7 @@ public abstract class AbstractOperation
     }
 
     resultCode                 = ResultCode.UNDEFINED;
-    additionalLogMessage       = null;
+    additionalLogItems         = null;
     errorMessage               = new MessageBuilder();
     attachments                = new HashMap<String,Object>();
     matchedDN                  = null;
@@ -565,64 +563,33 @@ public abstract class AbstractOperation
 
 
   /**
-   * Retrieves the additional log message for this operation, which
-   * should be written to the log but not included in the response to
-   * the client.  The contents of this buffer may be altered by
-   * pre-parse, pre-operation, and post-operation plugins, but not by
-   * post-response plugins.
-   *
-   * @return  The additional log message for this operation.
+   * {@inheritDoc}
    */
-  public final MessageBuilder getAdditionalLogMessage()
+  public List<AdditionalLogItem> getAdditionalLogItems()
   {
-    return additionalLogMessage;
-  }
-
-
-
-  /**
-   * Specifies the additional log message for this operation, which
-   * should be written to the log but not included in the response to
-   * the client.  This method may not be called by post-response
-   * plugins.
-   *
-   * @param  additionalLogMessage  The additional log message for this
-   *                               operation.
-   */
-  public final void setAdditionalLogMessage(
-                         MessageBuilder additionalLogMessage)
-  {
-    if (additionalLogMessage == null)
+    if (additionalLogItems == null)
     {
-      this.additionalLogMessage = new MessageBuilder();
+      return Collections.emptyList();
     }
     else
     {
-      this.additionalLogMessage = additionalLogMessage;
+      return Collections.unmodifiableList(additionalLogItems);
     }
   }
 
 
 
   /**
-   * Appends the provided message to the additional log information
-   * for this operation.  This method may not be called by
-   * post-response plugins.
-   *
-   * @param  message  The message that should be appended to the
-   *                  additional log information for this operation.
+   * {@inheritDoc}
    */
-  public final void appendAdditionalLogMessage(Message message)
+  public void addAdditionalLogItem(AdditionalLogItem item)
   {
-    if (additionalLogMessage == null)
+    Validator.ensureNotNull(item);
+    if (additionalLogItems == null)
     {
-      additionalLogMessage = new MessageBuilder(message);
+      additionalLogItems = new LinkedList<AdditionalLogItem>();
     }
-    else
-    {
-      additionalLogMessage.append(" ");
-      additionalLogMessage.append(message);
-    }
+    additionalLogItems.add(item);
   }
 
 
@@ -630,9 +597,8 @@ public abstract class AbstractOperation
   /**
    * Retrieves the matched DN for this operation.
    *
-   * @return  The matched DN for this operation, or {@code null} if
-   *          the operation has not yet completed or does not have a
-   *          matched DN.
+   * @return The matched DN for this operation, or {@code null} if the operation
+   *         has not yet completed or does not have a matched DN.
    */
   public final DN getMatchedDN()
   {

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.types.operation;
 import org.opends.messages.MessageBuilder;
@@ -30,6 +31,7 @@ import org.opends.messages.MessageBuilder;
 
 import java.util.List;
 
+import org.opends.server.types.AdditionalLogItem;
 import org.opends.server.types.DN;
 import org.opends.server.types.ResultCode;
 
@@ -67,18 +69,6 @@ public interface PostResponseOperation
    * @return  The error message for this operation.
    */
   public MessageBuilder getErrorMessage();
-
-
-
-  /**
-   * Retrieves the additional log message for this operation, which
-   * should be written to the log but not included in the response to
-   * the client.  The contents of this buffer may be altered by the
-   * caller.
-   *
-   * @return  The additional log message for this operation.
-   */
-  public MessageBuilder getAdditionalLogMessage();
 
 
 
@@ -139,5 +129,17 @@ public interface PostResponseOperation
    *          processing this operation.
    */
   public long getProcessingTime();
+
+
+
+  /**
+   * Returns an unmodifiable list containing the additional log items for this
+   * operation, which should be written to the log but not included in the
+   * response to the client.
+   *
+   * @return An unmodifiable list containing the additional log items for this
+   *         operation.
+   */
+  public List<AdditionalLogItem> getAdditionalLogItems();
 }
 

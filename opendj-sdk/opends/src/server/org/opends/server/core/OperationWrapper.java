@@ -77,14 +77,6 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
-  public void appendAdditionalLogMessage(Message message)
-  {
-    operation.appendAdditionalLogMessage(message);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
   public void appendErrorMessage(Message message)
   {
     operation.appendErrorMessage(message);
@@ -125,14 +117,6 @@ public class OperationWrapper implements Operation
   public boolean dontSynchronize()
   {
     return operation.dontSynchronize();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public MessageBuilder getAdditionalLogMessage()
-  {
-    return operation.getAdditionalLogMessage();
   }
 
   /**
@@ -387,14 +371,6 @@ public class OperationWrapper implements Operation
   /**
    * {@inheritDoc}
    */
-  public void setAdditionalLogMessage(MessageBuilder additionalLogMessage)
-  {
-    operation.setAdditionalLogMessage(additionalLogMessage);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
   public Object setAttachment(String name, Object value)
   {
     return operation.setAttachment(name, value);
@@ -539,5 +515,22 @@ public class OperationWrapper implements Operation
   {
     operation.registerPostResponseCallback(callback);
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public List<AdditionalLogItem> getAdditionalLogItems()
+  {
+    return operation.getAdditionalLogItems();
+  }
+
+  /**
+   *{@inheritDoc}
+   */
+  public void addAdditionalLogItem(AdditionalLogItem item)
+  {
+    operation.addAdditionalLogItem(item);
+  }
+
 }
 

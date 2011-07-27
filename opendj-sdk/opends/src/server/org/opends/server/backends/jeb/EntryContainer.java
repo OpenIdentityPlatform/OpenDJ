@@ -2057,8 +2057,9 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
 
       if(isSubtreeDelete)
       {
-        deleteOperation.appendAdditionalLogMessage(
-            NOTE_JEB_DELETED_ENTRY_COUNT.get(subordinateEntriesDeleted + 1));
+        deleteOperation.addAdditionalLogItem(AdditionalLogItem
+            .unquotedKeyValue(getClass(), "deletedEntries",
+                subordinateEntriesDeleted + 1));
       }
     }
     catch (DatabaseException databaseException)

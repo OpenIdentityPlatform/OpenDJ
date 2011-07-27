@@ -23,11 +23,15 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.types.operation;
+import java.util.List;
+
 import org.opends.messages.Message;
 
 
+import org.opends.server.types.AdditionalLogItem;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 
@@ -102,41 +106,6 @@ public interface PreOperationOperation
 
 
   /**
-   * Retrieves the additional log message for this operation, which
-   * should be written to the log but not included in the response to
-   * the client.  The contents of this buffer may be altered by the
-   * caller.
-   *
-   * @return  The additional log message for this operation.
-   */
-  public MessageBuilder getAdditionalLogMessage();
-
-
-
-  /**
-   * Specifies the additional log message for this operation, which
-   * should be written to the log but not included in the response to
-   * the client.
-   *
-   * @param  additionalLogMessage  The additional log message for this
-   */
-  public void setAdditionalLogMessage(
-                   MessageBuilder additionalLogMessage);
-
-
-
-  /**
-   * Appends the provided message to the additional log information
-   * for this operation.
-   *
-   * @param  message  The message that should be appended to the
-   *                  additional log information for this operation.
-   */
-  public void appendAdditionalLogMessage(Message message);
-
-
-
-  /**
    * Retrieves the authorization DN for this operation.  In many
    * cases, it will be the same as the DN of the authenticated user
    * for the underlying connection, or the null DN if no
@@ -148,5 +117,29 @@ public interface PreOperationOperation
    * @return  The authorization DN for this operation.
    */
   public DN getAuthorizationDN();
+
+
+
+  /**
+   * Returns an unmodifiable list containing the additional log items for this
+   * operation, which should be written to the log but not included in the
+   * response to the client.
+   *
+   * @return An unmodifiable list containing the additional log items for this
+   *         operation.
+   */
+  public List<AdditionalLogItem> getAdditionalLogItems();
+
+
+
+  /**
+   * Adds an additional log item to this operation, which should be written to
+   * the log but not included in the response to the client. This method may not
+   * be called by post-response plugins.
+   *
+   * @param item
+   *          The additional log item for this operation.
+   */
+  public void addAdditionalLogItem(AdditionalLogItem item);
 }
 
