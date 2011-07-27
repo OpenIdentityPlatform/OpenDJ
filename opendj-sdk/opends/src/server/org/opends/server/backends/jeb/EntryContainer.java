@@ -1144,6 +1144,10 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       {
         rootContainer.getMonitorProvider().updateUnindexedSearchCount();
       }
+
+      searchOperation.addAdditionalLogItem(
+          AdditionalLogItem.keyOnly(getClass(), "Unindexed"));
+
       // See if we could use a virtual attribute rule to process the search.
       for (VirtualAttributeRule rule : DirectoryServer.getVirtualAttributes())
       {
