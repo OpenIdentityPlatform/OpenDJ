@@ -23,13 +23,13 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.util;
 
 import org.testng.annotations.Test;
 import org.testng.annotations.DataProvider;
 import static org.testng.Assert.*;
-import org.opends.messages.Message;
 import org.opends.server.DirectoryServerTestCase;
 
 /**
