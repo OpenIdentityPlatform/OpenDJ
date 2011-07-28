@@ -440,9 +440,10 @@
           <call function="'testCase_Preamble'"/>
           <message>'Ports: Unauthorized LDAP port'</message>
           
-          <!-- This testcase is not relevant on Windows -->
+          <!-- This testcase is not relevant on Windows or as root user -->
           <script>
-            if is_windows_platform(STAF_REMOTE_HOSTNAME):
+            from java.lang import System
+            if is_windows_platform(STAF_REMOTE_HOSTNAME) or System.getProperty("user.name") == "root":
               skip=1
             else:
               skip=0
@@ -472,7 +473,7 @@
             </sequence>
             <else>
               <sequence>
-                <message>'This testcase is not relevant on Windows'</message>
+                <message>'This testcase is not relevant on Windows or as root user'</message>
                 <tcstatus result="'pass'"/>
               </sequence>
             </else>
