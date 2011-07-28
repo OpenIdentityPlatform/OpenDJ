@@ -1146,7 +1146,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       }
 
       searchOperation.addAdditionalLogItem(
-          AdditionalLogItem.keyOnly(getClass(), "Unindexed"));
+          AdditionalLogItem.keyOnly(getClass(), "unindexed"));
 
       // See if we could use a virtual attribute rule to process the search.
       for (VirtualAttributeRule rule : DirectoryServer.getVirtualAttributes())
