@@ -212,8 +212,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       try
       {
         //Try creating all the indexes before confirming they are valid ones.
-        AttributeIndex index =
-          new AttributeIndex(cfg, state, env, EntryContainer.this);
+        new AttributeIndex(cfg, state, env, EntryContainer.this);
       }
       catch(Exception e)
       {
