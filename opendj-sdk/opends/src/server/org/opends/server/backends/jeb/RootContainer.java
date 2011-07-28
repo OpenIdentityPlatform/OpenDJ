@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -126,7 +127,8 @@ public class RootContainer
 
     getMonitorProvider().enableFilterUseStats(
         config.isIndexFilterAnalyzerEnabled());
-    getMonitorProvider().setMaxEntries(config.getMaxEntries());
+    getMonitorProvider().setMaxEntries(
+        config.getIndexFilterAnalyzerMaxFilters());
 
     config.addLocalDBChangeListener(this);
     importForceCheckPoint.setForce(true);
@@ -1011,7 +1013,8 @@ public class RootContainer
 
       getMonitorProvider().enableFilterUseStats(
           cfg.isIndexFilterAnalyzerEnabled());
-      getMonitorProvider().setMaxEntries(cfg.getMaxEntries());
+      getMonitorProvider()
+          .setMaxEntries(cfg.getIndexFilterAnalyzerMaxFilters());
 
       this.config = cfg;
     }
