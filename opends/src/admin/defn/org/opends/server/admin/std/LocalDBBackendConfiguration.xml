@@ -988,7 +988,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="max-entries" advanced="true">
+  <adm:property name="index-filter-analyzer-max-filters" advanced="true">
     <adm:synopsis>
       The maximum number of search filter statistics to keep.
     </adm:synopsis>
@@ -1006,7 +1006,7 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:name>ds-cfg-max-entries</ldap:name>
+        <ldap:name>ds-cfg-index-filter-analyzer-max-filters</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
