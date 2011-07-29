@@ -58,6 +58,19 @@
               'Common ECL tests: reset data'
             </message>
 
+            <!-- Pre external initialization set generation id (-1) and clears cn=changelog -->
+            <call function="'preInitializeReplication'">
+              { 'location'            : masterHost,
+                'dsPath'              : masterPath,
+                'dsInstanceHost'      : masterHost,
+                'dsInstanceAdminPort' : master.getAdminPort(),
+                'localOnly'           : False,
+                'replicationDnList'   : [synchroSuffix],
+                'adminUID'            : adminUID,
+                'adminPswd'           : adminPswd
+              }
+            </call>
+
             <!-- Stop "master" Directory Server -->
             <call function="'StopDsWithScript'">
               { 'location'    : masterHost,
@@ -99,7 +112,7 @@
               }
             </call>
       
-            <!-- Perform the total update -->
+            <!-- Perform the total update, resets generation id from (-1) -->
             <call function="'initializeReplication'">
               { 'location'                : clientHost,
                 'dsPath'                  : clientPath,
@@ -141,11 +154,10 @@
             </paralleliterate>
 
             <!-- Verify the synchronization of the trees among the servers in
-              the topology        
+              the topology -->
             <call function="'verifyTrees'">
               [ clientHost, clientPath, master, consumerList, synchroSuffix ]
             </call>
--->
             
           </sequence>
           <finally>
@@ -302,7 +314,7 @@
             <call function="'verifyTrees'">
               [ clientHost, clientPath, master, consumerList, synchroSuffix ]
             </call>
-            
+
           </sequence>
           <finally>
             <call function="'testCase_Postamble'"/>
@@ -311,6 +323,216 @@
       </sequence>
     </testcase>
   </function>        
+
+  <!--- Test Case information
+  #@TestMarker          Replication
+  #@TestName            Replication : ECL: ChangeNumbers
+  #@TestID              ecl_changenumbers_001
+  #@TestPurpose         Verify that the 2 servers have consistent change numbers after add
+  #@TestPreamble
+  #@TestSteps           Step1: Check that the changeNumber and lastChangeNumber match
+  #@TestSteps           Step2: Check that firstChangeNumbers match
+  #@TestSteps           Step3: Count changelog entries in draft mode
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->
+  <function name="ecl_changenumbers_001" scope="local">
+    <testcase name="getTestCaseName('ecl_changenumbers_001')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <!-- Reset List  -->
+            <script>
+              cnsList = []
+            </script>
+
+            <!-- Step1: Check that the changeNumber and lastChangeNumber match -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Check that the changeNumber and lastChangeNumber match.' }
+            </call>
+
+            <iterate var="server" in="_topologyServerList">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+
+                <!-- Search for changeNumber -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : 'cn=changelog',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsAttributes'   : 'changeNumber',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  cn = get_last_attr_from_entry(STAXResult,'changeNumber')
+                  cnsList.append(cn)
+                  global_cnsList.set(cn)
+                </script>
+
+                <!-- Search for lastChangeNumber -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : '',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsScope'        : 'base',
+                    'dsAttributes'   : 'lastChangeNumber',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  lcn = get_last_attr_from_entry(STAXResult,'lastChangeNumber')
+                  cnsList.append(lcn)
+                </script>
+                  
+              </sequence>
+            </iterate>
+
+            <!-- Compare changeNumber and lastChangeNumber -->
+            <call function="'compareItems'">
+              { 'items' : cnsList,
+                'label' : 'changeNumbers'
+              }
+            </call>
+
+            <!-- Step2: Check that firstChangeNumbers match -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Check that firstChangeNumbers match.' }
+            </call>
+
+            <script>
+              fcnsList = []
+            </script>
+            <iterate var="server" in="_topologyServerList">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+
+                <!-- Search for firstChangeNumber -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : '',
+                    'dsScope'        : 'base',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsAttributes'   : 'firstChangeNumber',
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  fcn = get_last_attr_from_entry(STAXResult,'firstChangeNumber')
+                  fcnsList.append(fcn)
+                </script>
+                  
+              </sequence>
+            </iterate>
+
+            <!-- Compare firstChangeNumbers -->
+            <call function="'compareItems'">
+              { 'items' : fcnsList ,
+                'label' : 'firstChangeNumber'
+              }
+            </call>
+
+            <!-- Step3: Count changelog entries in draft mode -->
+            <call function="'testStep'">
+              { 'stepMessage' : 'Count changelog entries in draft mode.' }
+            </call>
+
+            <script>
+              dncList = []
+              #2 changes + top
+              noOfEntries = 3
+            </script>
+            <iterate var="server" in="_topologyServerList">
+              <sequence>
+
+                <script>
+                  replServer = server            
+                  replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME) 
+                </script>
+
+                <!-- Count the number of initial changes -->
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : replServer.getHostname(),
+                    'dsPath'         : replServerPath,
+                    'dsInstanceHost' : replServer.getHostname(),
+                    'dsInstancePort' : replServer.getPort(),
+                    'dsInstanceDn'   : replServer.getRootDn(),
+                    'dsInstancePswd' : replServer.getRootPwd(),
+                    'dsBaseDN'       : 'cn=changelog',
+                    'dsFilter'       : 'objectclass=*',
+                    'dsAttributes'   : 'dn' ,
+                    'extraParams'    : '-T'
+                  }
+                </call>
+
+                <script>
+                  dncount=int(count_attr(STAXResult))
+                  dncList.append(dncount)
+                </script>
+                
+                <if expr="dncount == noOfEntries">
+                  <message>
+                    'Search returned %s changes, expected %s' % (dncount,noOfEntries)
+                  </message>
+                <else>
+                  <sequence>
+                    <tcstatus result="'fail'"/>
+                    <message level="'error'">
+                      'Search returned %s changes, expected %s' % (dncount,noOfEntries)
+                    </message>
+                  </sequence>
+                </else>
+                </if>
+                  
+              </sequence>
+            </iterate>
+
+            <!-- Compare number of entries -->
+            <call function="'compareItems'">
+              { 'items' : dncList ,
+                'label' : 'numberOfEntries'
+              }
+            </call>
+                  
+          </sequence>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
             
   <!--- Test Case information
   #@TestMarker          Replication
@@ -469,7 +691,7 @@
             <call function="'verifyTrees'">
               [ clientHost, clientPath, master, consumerList, synchroSuffix ]
             </call>
-                  
+                
           </sequence>
           <finally>
             <call function="'testCase_Postamble'"/>
@@ -482,8 +704,8 @@
   <!--- Test Case information
   #@TestMarker          Replication
   #@TestName            Replication : ECL: ChangeNumbers
-  #@TestID              ecl_changenumbers_001
-  #@TestPurpose         Verify that the 2 servers have consistent change numbers
+  #@TestID              ecl_changenumbers_002
+  #@TestPurpose         Verify that the 2 servers have consistent change numbers after modify
   #@TestPreamble
   #@TestSteps           Step1: Check that the changeNumber and lastChangeNumber match
   #@TestSteps           Step2: Check that firstChangeNumbers match
@@ -491,8 +713,8 @@
   #@TestPostamble
   #@TestResult          Test is successful if the result code is 0
   -->
-  <function name="ecl_changenumbers_001" scope="local">
-    <testcase name="getTestCaseName('ecl_changenumbers_001')">                     
+  <function name="ecl_changenumbers_002" scope="local">
+    <testcase name="getTestCaseName('ecl_changenumbers_002')">                     
       <sequence> 
         <try>
           <sequence>                
@@ -656,7 +878,7 @@
                   dncList.append(dncount)
                 </script>
                 
-                <if expr="dncount == 5">
+                <if expr="dncount == noOfEntries">
                   <message>
                     'Search returned %s changes, expected %s' % (dncount,noOfEntries)
                   </message>
