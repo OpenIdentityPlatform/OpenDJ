@@ -23,11 +23,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import org.opends.server.util.StaticUtils;
 import com.sleepycat.je.*;
 
@@ -39,11 +38,6 @@ import java.util.Arrays;
  */
 public class State extends DatabaseContainer
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
-
   private static final byte[] falseBytes = new byte[]{0x00};
   private static final byte[] trueBytes = new byte[]{0x01};
 

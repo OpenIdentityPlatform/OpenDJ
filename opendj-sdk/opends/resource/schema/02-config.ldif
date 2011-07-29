@@ -2576,6 +2576,11 @@ attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.10
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.11
+  NAME 'ds-cfg-subordinate-indexes-enabled'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -2652,7 +2657,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.6
         ds-cfg-disk-full-threshold $
         ds-cfg-disk-low-threshold $
         ds-cfg-index-filter-analyzer-enabled $
-        ds-cfg-index-filter-analyzer-max-filters )
+        ds-cfg-index-filter-analyzer-max-filters $
+        ds-cfg-subordinate-indexes-enabled )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.7
   NAME 'ds-cfg-local-db-index'
