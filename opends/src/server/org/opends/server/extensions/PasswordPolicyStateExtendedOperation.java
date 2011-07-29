@@ -58,7 +58,8 @@ import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
+import static org.opends.messages.CoreMessages.INFO_MODIFY_ACCOUNT_DISABLED;
+import static org.opends.messages.CoreMessages.INFO_MODIFY_ACCOUNT_ENABLED;
 
 
 /**
@@ -434,7 +435,8 @@ public class PasswordPolicyStateExtendedOperation
   // The search filter that will be used to retrieve user entries.
   private SearchFilter userFilter;
 
-
+  private boolean isAccountSetDisabled;
+  private boolean isAccountSetEnabled;
 
   /**
    * Create an instance of this password policy state extended operation.  All
@@ -615,6 +617,8 @@ public class PasswordPolicyStateExtendedOperation
       return;
     }
 
+    isAccountSetDisabled = false;
+    isAccountSetEnabled = false;
     // Create a hash set that will be used to hold the types of the return
     // types that should be included in the response.
     boolean returnAll;
@@ -749,6 +753,24 @@ public class PasswordPolicyStateExtendedOperation
           e.getLocalizedMessage());
       operation.appendErrorMessage(message);
       operation.setResultCode(ResultCode.PROTOCOL_ERROR);
+    }
+    // Post AccountStatus Notifications if needed.
+    if (isAccountSetDisabled)
+    {
+      pwpState.generateAccountStatusNotification(
+            AccountStatusNotificationType.ACCOUNT_DISABLED,
+            userEntry, INFO_MODIFY_ACCOUNT_DISABLED.get(),
+            AccountStatusNotification.createProperties(pwpState, false, -1,
+                 null, null));
+
+    }
+    if (isAccountSetEnabled)
+    {
+      pwpState.generateAccountStatusNotification(
+            AccountStatusNotificationType.ACCOUNT_ENABLED,
+            userEntry, INFO_MODIFY_ACCOUNT_ENABLED.get(),
+            AccountStatusNotification.createProperties(pwpState, false, -1,
+                 null, null));
     }
   }
 
@@ -1299,10 +1321,12 @@ public class PasswordPolicyStateExtendedOperation
           if (value.equalsIgnoreCase("true"))
           {
             pwpState.setDisabled(true);
+            isAccountSetDisabled = true;
           }
           else if (value.equalsIgnoreCase("false"))
           {
             pwpState.setDisabled(false);
+            isAccountSetEnabled = true;
           }
           else
           {
@@ -1318,6 +1342,7 @@ public class PasswordPolicyStateExtendedOperation
 
       case OP_CLEAR_ACCOUNT_DISABLED_STATE:
         pwpState.setDisabled(false);
+        isAccountSetEnabled = true;
         returnTypes.add(OP_GET_ACCOUNT_DISABLED_STATE);
         break;
 
