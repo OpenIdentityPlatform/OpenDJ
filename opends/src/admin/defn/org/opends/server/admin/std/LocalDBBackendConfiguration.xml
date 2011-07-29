@@ -1010,4 +1010,33 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="subordinate-indexes-enabled" advanced="true">
+    <adm:synopsis>
+      Indicates whether id2children and id2subtree indexes should be used for
+      this backend. These indexes are used for constraining filtered searches
+      to the search request's scope as well as for generating values for the
+      hasSubordinates and numSubordinates virtual attributes.
+    </adm:synopsis>
+    <adm:description>
+      Subordinate indexing is enabled by default and should only be disabled
+      for specialized use cases. A typical use case is where the backend is
+      to be subjected to heavy add/delete load beneath the same parent entry
+      such as when used as a session database. Disabling the subordinate
+      indexes means that the numSubordinates and hasSubordinates virtual
+      attributes will not be supported.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>true</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-subordinate-indexes-enabled</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
 </adm:managed-object>

@@ -34,7 +34,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.*;
 import java.io.File;
-import java.io.FilenameFilter;
 import org.opends.server.monitors.DatabaseEnvironmentMonitor;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DN;
@@ -498,57 +497,6 @@ public class RootContainer
         logError(message);
       }
     }
-  }
-
-  /**
-   * Synchronously invokes the cleaner on the database environment then forces a
-   * checkpoint to delete the log files that are no longer in use.
-   *
-   * @throws DatabaseException If an error occurs while cleaning the database
-   * environment.
-   */
-  private void cleanDatabase()
-       throws DatabaseException
-  {
-    Message message;
-
-    FilenameFilter filenameFilter = new FilenameFilter()
-    {
-      public boolean accept(File d, String name)
-      {
-        return name.endsWith(".jdb");
-      }
-    };
-
-    File backendDirectory = env.getHome();
-    int beforeLogfileCount = backendDirectory.list(filenameFilter).length;
-
-    message = NOTE_JEB_CLEAN_DATABASE_START.get(
-        beforeLogfileCount, backendDirectory.getPath());
-    logError(message);
-
-    int currentCleaned = 0;
-    int totalCleaned = 0;
-    while ((currentCleaned = env.cleanLog()) > 0)
-    {
-      totalCleaned += currentCleaned;
-    }
-
-    message = NOTE_JEB_CLEAN_DATABASE_MARKED.get(totalCleaned);
-    logError(message);
-
-    if (totalCleaned > 0)
-    {
-      CheckpointConfig force = new CheckpointConfig();
-      force.setForce(true);
-      env.checkpoint(force);
-    }
-
-    int afterLogfileCount = backendDirectory.list(filenameFilter).length;
-
-    message = NOTE_JEB_CLEAN_DATABASE_FINISH.get(afterLogfileCount);
-    logError(message);
-
   }
 
   /**

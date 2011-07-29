@@ -260,7 +260,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     /**
      * {@inheritDoc}
      */
-    public synchronized boolean isConfigurationDeleteAcceptable(
+    public boolean isConfigurationDeleteAcceptable(
         LocalDBIndexCfg cfg, List<Message> unacceptableReasons)
     {
       // TODO: validate more before returning true?
@@ -550,28 +550,50 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       state = new State(databasePrefix + "_" + STATE_DATABASE_NAME, env, this);
       state.open();
 
-      id2children = new Index(databasePrefix + "_" + ID2CHILDREN_DATABASE_NAME,
-          new ID2CIndexer(), state,
-          config.getIndexEntryLimit(), 0, true,
-          env,this);
-      id2children.open();
-
-      if(!id2children.isTrusted())
+      if (config.isSubordinateIndexesEnabled())
       {
-        logError(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
-            id2children.getName()));
+        id2children = new Index(databasePrefix + "_"
+            + ID2CHILDREN_DATABASE_NAME, new ID2CIndexer(), state,
+            config.getIndexEntryLimit(), 0, true, env, this);
+        id2children.open();
+        if (!id2children.isTrusted())
+        {
+          logError(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(id2children
+              .getName()));
+        }
+
+        id2subtree = new Index(databasePrefix + "_" + ID2SUBTREE_DATABASE_NAME,
+            new ID2SIndexer(), state, config.getIndexEntryLimit(), 0, true,
+            env, this);
+        id2subtree.open();
+        if (!id2subtree.isTrusted())
+        {
+          logError(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD
+              .get(id2subtree.getName()));
+        }
       }
-
-      id2subtree = new Index(databasePrefix + "_" + ID2SUBTREE_DATABASE_NAME,
-          new ID2SIndexer(), state,
-          config.getIndexEntryLimit(), 0, true,
-          env, this);
-      id2subtree.open();
-
-      if(!id2subtree.isTrusted())
+      else
       {
-        logError(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
-            id2subtree.getName()));
+        // Use a null index and ensure that future attempts to use the real
+        // subordinate indexes will fail.
+        id2children = new NullIndex(databasePrefix + "_"
+            + ID2CHILDREN_DATABASE_NAME, new ID2CIndexer(), state, env, this);
+        if (!env.getConfig().getReadOnly())
+        {
+          state.putIndexTrustState(null, id2children, false);
+        }
+        id2children.open(); // No-op
+
+        id2subtree = new NullIndex(databasePrefix + "_"
+            + ID2SUBTREE_DATABASE_NAME, new ID2SIndexer(), state, env, this);
+        if (!env.getConfig().getReadOnly())
+        {
+          state.putIndexTrustState(null, id2subtree, false);
+        }
+        id2subtree.open(); // No-op
+
+        logError(NOTE_JEB_SUBORDINATE_INDEXES_DISABLED.get(backend
+            .getBackendID()));
       }
 
       dn2uri = new DN2URI(databasePrefix + "_" + REFERRAL_DATABASE_NAME,
@@ -3323,20 +3345,6 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     return count;
   }
 
-  /**
-   * Close cursors in the indexes of the context.
-   *
-   * @throws DatabaseException If a database error occurs.
-   */
-  public void closeIndexCursors() throws DatabaseException {
-    id2children.closeCursor();
-    id2subtree.closeCursor();
-    for (AttributeIndex index : attrIndexMap.values())
-    {
-      index.closeCursors();
-    }
-  }
-
 
   /**
    * Get a list of the databases opened by the entryContainer.
@@ -3347,8 +3355,11 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     dbList.add(dn2id);
     dbList.add(id2entry);
     dbList.add(dn2uri);
-    dbList.add(id2children);
-    dbList.add(id2subtree);
+    if (config.isSubordinateIndexesEnabled())
+    {
+      dbList.add(id2children);
+      dbList.add(id2subtree);
+    }
     dbList.add(state);
 
     for(AttributeIndex index : attrIndexMap.values())
@@ -3753,7 +3764,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   /**
    * {@inheritDoc}
    */
-  public synchronized boolean isConfigurationChangeAcceptable(
+  public boolean isConfigurationChangeAcceptable(
       LocalDBBackendCfg cfg, List<Message> unacceptableReasons)
   {
     // This is always true because only all config attributes used
@@ -3764,40 +3775,97 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   /**
    * {@inheritDoc}
    */
-  public synchronized ConfigChangeResult applyConfigurationChange(
-      LocalDBBackendCfg cfg)
+  public ConfigChangeResult applyConfigurationChange(LocalDBBackendCfg cfg)
   {
     boolean adminActionRequired = false;
     ArrayList<Message> messages = new ArrayList<Message>();
 
-    if(config.getIndexEntryLimit() != cfg.getIndexEntryLimit())
+    exclusiveLock.lock();
+    try
     {
-      if(id2children.setIndexEntryLimit(cfg.getIndexEntryLimit()))
+      if (config.isSubordinateIndexesEnabled() != cfg
+          .isSubordinateIndexesEnabled())
       {
-        adminActionRequired = true;
-        Message message =
-          NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
-              id2children.getName());
-        messages.add(message);
+        if (cfg.isSubordinateIndexesEnabled())
+        {
+          // Re-enabling subordinate indexes.
+          id2children = new Index(databasePrefix + "_"
+              + ID2CHILDREN_DATABASE_NAME, new ID2CIndexer(), state,
+              config.getIndexEntryLimit(), 0, true, env, this);
+          id2children.open();
+          if (!id2children.isTrusted())
+          {
+            logError(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(id2children
+                .getName()));
+          }
+
+          id2subtree = new Index(databasePrefix + "_" +ID2SUBTREE_DATABASE_NAME,
+              new ID2SIndexer(), state, config.getIndexEntryLimit(), 0, true,
+              env, this);
+          id2subtree.open();
+          if (!id2subtree.isTrusted())
+          {
+            logError(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD
+                .get(id2subtree.getName()));
+          }
+        }
+        else
+        {
+          // Disabling subordinate indexes. Use a null index and ensure that
+          // future attempts to use the real indexes will fail.
+          id2children.close();
+          id2children = new NullIndex(databasePrefix + "_"
+              + ID2CHILDREN_DATABASE_NAME, new ID2CIndexer(), state, env, this);
+          state.putIndexTrustState(null, id2children, false);
+          id2children.open(); // No-op
+
+          id2subtree.close();
+          id2subtree = new NullIndex(databasePrefix + "_"
+              + ID2SUBTREE_DATABASE_NAME, new ID2SIndexer(), state, env, this);
+          state.putIndexTrustState(null, id2subtree, false);
+          id2subtree.open(); // No-op
+
+          logError(NOTE_JEB_SUBORDINATE_INDEXES_DISABLED
+              .get(cfg.getBackendId()));
+        }
       }
 
-      if(id2subtree.setIndexEntryLimit(cfg.getIndexEntryLimit()))
+      if (config.getIndexEntryLimit() != cfg.getIndexEntryLimit())
       {
-        adminActionRequired = true;
-        Message message =
-          NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
-              id2subtree.getName());
-        messages.add(message);
+        if (id2children.setIndexEntryLimit(cfg.getIndexEntryLimit()))
+        {
+          adminActionRequired = true;
+          Message message = NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD
+              .get(id2children.getName());
+          messages.add(message);
+        }
+
+        if (id2subtree.setIndexEntryLimit(cfg.getIndexEntryLimit()))
+        {
+          adminActionRequired = true;
+          Message message = NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD
+              .get(id2subtree.getName());
+          messages.add(message);
+        }
       }
+
+      DataConfig entryDataConfig = new DataConfig(cfg.isEntriesCompressed(),
+          cfg.isCompactEncoding(), rootContainer.getCompressedSchema());
+      id2entry.setDataConfig(entryDataConfig);
+
+      this.config = cfg;
+    }
+    catch (DatabaseException e)
+    {
+      messages.add(Message.raw(stackTraceToSingleLineString(e)));
+      return new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
+          false, messages);
+    }
+    finally
+    {
+      exclusiveLock.unlock();
     }
 
-    DataConfig entryDataConfig =
-      new DataConfig(cfg.isEntriesCompressed(),
-          cfg.isCompactEncoding(),
-          rootContainer.getCompressedSchema());
-    id2entry.setDataConfig(entryDataConfig);
-
-    this.config = cfg;
     return new ConfigChangeResult(ResultCode.SUCCESS,
         adminActionRequired, messages);
   }

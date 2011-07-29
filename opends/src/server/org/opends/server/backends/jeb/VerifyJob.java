@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -50,6 +51,7 @@ import org.opends.server.util.ServerConstants;
 import org.opends.server.types.*;
 
 import static org.opends.messages.JebMessages.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -213,8 +215,11 @@ public class VerifyJob
       if (completeList.isEmpty() && cleanList.isEmpty())
       {
         verifyDN2ID = true;
-        verifyID2Children = true;
-        verifyID2Subtree = true;
+        if (rootContainer.getConfiguration().isSubordinateIndexesEnabled())
+        {
+          verifyID2Children = true;
+          verifyID2Subtree = true;
+        }
         attrIndexList.addAll(entryContainer.getAttributeIndexes());
       }
       else
@@ -239,11 +244,29 @@ public class VerifyJob
           }
           else if (lowerName.equals("id2children"))
           {
-            verifyID2Children = true;
+            if (rootContainer.getConfiguration().isSubordinateIndexesEnabled())
+            {
+              verifyID2Children = true;
+            }
+            else
+            {
+              Message msg = NOTE_JEB_SUBORDINATE_INDEXES_DISABLED
+                  .get(rootContainer.getConfiguration().getBackendId());
+              throw new JebException(msg);
+            }
           }
           else if (lowerName.equals("id2subtree"))
           {
-            verifyID2Subtree = true;
+            if (rootContainer.getConfiguration().isSubordinateIndexesEnabled())
+            {
+              verifyID2Subtree = true;
+            }
+            else
+            {
+              Message msg = NOTE_JEB_SUBORDINATE_INDEXES_DISABLED
+                  .get(rootContainer.getConfiguration().getBackendId());
+              throw new JebException(msg);
+            }
           }
           else if(lowerName.startsWith("vlv."))
           {

@@ -23,14 +23,12 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.admin;
 
 import static org.opends.server.util.ServerConstants.*;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -86,7 +84,7 @@ public class ValidateConfigDefinitionsTest extends DirectoryServerTestCase {
   @Test(dataProvider="enumrateManageObjectDefns")
   public void validateConfigObjectDefinitions(AbstractManagedObjectDefinition<?, ?> objectDef) {
     String objName = objectDef.getName();
-    StringBuilder errors = new StringBuilder(); 
+    StringBuilder errors = new StringBuilder();
     Collection<PropertyDefinition<?>> allDefinitions =
             objectDef.getAllPropertyDefinitions();
 
@@ -105,7 +103,7 @@ public class ValidateConfigDefinitionsTest extends DirectoryServerTestCase {
     }
     ObjectClass configObjectClass = DirectoryServer.getSchema().getObjectClass(ldapObjectclassName.toLowerCase());;
 
-    for (PropertyDefinition<?> propDef: allDefinitions) {     
+    for (PropertyDefinition<?> propDef: allDefinitions) {
       validatePropertyDefinition(objectDef, configObjectClass, propDef, errors);
     }
 
@@ -124,7 +122,8 @@ public class ValidateConfigDefinitionsTest extends DirectoryServerTestCase {
   // Exceptions to properties ending in -enabled being exactly 'enabled'.
   private static final List<String> ENABLED_PROPERTY_EXCEPTIONS =
           Arrays.asList(new String[]{
-                  "index-filter-analyzer-enabled"
+                  "index-filter-analyzer-enabled",
+                  "subordinate-indexes-enabled"
                   // e.g. "prop-name-ending-with-enabled"
           });
 
@@ -172,7 +171,7 @@ public class ValidateConfigDefinitionsTest extends DirectoryServerTestCase {
     }
 
     // It's redundant for properties to be prefixed with the name of their objecty
-    if (propName.startsWith(objName) && !propName.equals(objName) && 
+    if (propName.startsWith(objName) && !propName.equals(objName) &&
             !OBJECT_PREFIX_PROPERTY_EXCEPTIONS.contains(propName))
     {
       errors.append("The " + propName + " property on config object " + objName +
