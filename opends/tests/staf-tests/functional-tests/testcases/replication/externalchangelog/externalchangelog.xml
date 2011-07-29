@@ -83,6 +83,7 @@
                   ecl_modes.append('draft')
                 </script>    
 
+                <!-- Import the files for this test suite -->
                 <iterate var="ecl_mode" in="ecl_modes">
                   <sequence>
                     <import machine="STAF_LOCAL_HOSTNAME"
@@ -119,8 +120,9 @@
                   testsList=[]
                   testsList.append('ecl_setup')
                   testsList.append('ecl_add_cookies_001')
-                  testsList.append('ecl_mod_cookies_001')
                   testsList.append('ecl_changenumbers_001')
+                  testsList.append('ecl_mod_cookies_001')
+                  testsList.append('ecl_changenumbers_002')
                   testsList.append('ecl_draft_cookies_001')
                   testsList.append('ecl_cookies_001')
                   testsList.append('ecl_draft_changenumbers_001')

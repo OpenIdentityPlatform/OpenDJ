@@ -753,14 +753,20 @@ def get_last_attr_from_entry(result,attribute):
 
   changeEntry=result[0][1].split("\n")
 
-  attr=''
+  attrVal=''
   for changeAttr in changeEntry:
     #print changeAttr
     if changeAttr.startswith(attribute):
-      print 'get_last_attr_from_entry: %s' % changeAttr
-      attr = ' '.join(changeAttr.split(' ')[1:3])
+      #print 'get_last_attr_from_entry: %s' % changeAttr
+      attrVal = changeAttr.replace('%s: ' % attribute,'')
 
-  return attr.replace(';','')
+  if attrVal != '' and attrVal[len(attrVal)-1] == ';' :
+    lastAttr = attrVal[0:len(attrVal)-1]
+  else:
+    lastAttr = attrVal
+
+  print 'get_last_attr_from_entry: %s' % lastAttr
+  return lastAttr
 
 def list_matches(mylist):
 

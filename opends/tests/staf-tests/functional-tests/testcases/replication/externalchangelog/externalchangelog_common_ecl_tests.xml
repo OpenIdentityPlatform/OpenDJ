@@ -70,6 +70,19 @@
           <message>
             'Common ECL tests: reset data'
           </message>
+
+          <!-- Pre-initialise the servers in the topology -->
+          <call function="'preInitializeReplication'">
+            { 'location'            : masterHost,
+              'dsPath'              : masterPath,
+              'dsInstanceHost'      : masterHost,
+              'dsInstanceAdminPort' : master.getAdminPort(),
+              'localOnly'           : False,
+              'replicationDnList'   : [synchroSuffix],
+              'adminUID'            : adminUID,
+              'adminPswd'           : adminPswd
+            }
+          </call>
    
           <!-- Stop "master" Directory Server -->
           <call function="'StopDsWithScript'">
@@ -12354,6 +12367,19 @@
             'Replication: External Changelog: %s - Clean up. \
             Clean up environment for External Changelog tests' % ecl_mode
           </message>
+
+          <!-- Clean newReplSuffix changes from changelog -->
+          <call function="'preInitializeReplication'">
+            { 'location'            : masterHost,
+              'dsPath'              : masterPath,
+              'dsInstanceHost'      : masterHost,
+              'dsInstanceAdminPort' : master.getAdminPort(),
+              'localOnly'           : False,
+              'replicationDnList'   : [newReplSuffix],
+              'adminUID'            : adminUID,
+              'adminPswd'           : adminPswd
+            }
+          </call>
               
           <!-- Clean new suffixes on servers -->       
           <iterate var="server"
