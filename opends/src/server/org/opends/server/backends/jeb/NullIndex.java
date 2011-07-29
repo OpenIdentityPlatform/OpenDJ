@@ -452,7 +452,6 @@ final class NullIndex extends Index
   public Cursor openCursor(Transaction txn, CursorConfig cursorConfig)
       throws DatabaseException
   {
-    // FIXME: this will be called during verify and dbtest.
     throw new IllegalStateException();
   }
 
