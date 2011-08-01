@@ -21,7 +21,7 @@
   ! CCPL HEADER END
   !
   !      Copyright 2011 ForgeRock AS
-  !    
+  !
 -->
 <document
  xmlns="http://maven.apache.org/XDOC/2.0"
@@ -36,17 +36,17 @@
    <p>June 17, 2011. We released OpenDJ 2.4.3 today! OpenDJ 2.4.3 is an update
    release of the OpenDJ project and resolves several issues found around
    the External Change Log and the bundled database version. Visit the <a
-   href="http://www.forgerock.com/downloads-opendj.html">download page</a> for
+   href="http://www.forgerock.org/opendj.html">download page</a> for
    the Java WebStart and .zip versions, SVR4 packages for Solaris, and the
    DSML gateway. <a
    href="https://wikis.forgerock.org/confluence/display/OPENDJ/OpenDJ+2.4.3+Release+Notes"
    >Release Notes</a> are on the Wiki.</p>
-  
+
    <p>April 24, 2011. OpenDJ 2.4.2 is out! Come get 2.4.2 from the <a
-   href="http://www.forgerock.com/downloads-opendj.html">download page</a>.</p>
-   
+   href="http://www.forgerock.org/opendj.html">download page</a>.</p>
+
    <p>March 2, 2011. OpenDJ 2.4.1 now available! Get it from the <a
-   href="http://www.forgerock.com/downloads-opendj.html">download page</a>.</p>
+   href="http://www.forgerock.org/opendj.html">download page</a>.</p>
   </section>
  </body>
 </document>
