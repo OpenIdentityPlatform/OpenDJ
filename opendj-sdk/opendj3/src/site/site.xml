@@ -21,7 +21,7 @@
   ! CCPL HEADER END
   !
   !      Copyright 2011 ForgeRock AS
-  !    
+  !
 -->
 <project name="${project.name}"
  xmlns="http://maven.apache.org/DECORATION/1.0.1"
@@ -37,16 +37,16 @@
  <version position="right" />
 
  <body>
- 
+
   <breadcrumbs>
    <item name="Developer Community" href="http://www.forgerock.org" />
    <item name="OpenDJ" href="http://opendj.forgerock.org" />
   </breadcrumbs>
- 
+
   <menu name="OpenDJ">
    <item name="Welcome" href="index.html" />
    <item name="News" href="news.html" />
-   <item name="Downloads" href="http://www.forgerock.com/downloads-opendj.html" />
+   <item name="Downloads" href="http://www.forgerock.org/opendj.html" />
    <item name="FAQ" href="faq.html" />
    <item name="Wiki" href="http://wikis.forgerock.org/opendj/" />
    <item name="Mailing Lists" href="mail-lists.html" />
@@ -63,7 +63,7 @@
     <item name="Examples" href="opendj-ldap-sdk-examples" />
     <item name="Toolkit" href="opendj-ldap-toolkit" />
   </menu>
-  
+
   <menu name="OpenDJ Documentation">
    <item name="All Formats" href="docs.html" />
    <item name="Release Notes" href="./doc/release-notes/OpenDJ-Release-Notes.html" />
@@ -79,11 +79,11 @@
    <item name="Join" href="https://idp.forgerock.org/openam/UI/Login?service=register" />
    <item name="Issue Tracking" href="issue-tracking.html" />
    <item name="License" href="license.html" />
-   <item name="Source Repository" href="source-repository.html" />  
+   <item name="Source Repository" href="source-repository.html" />
   </menu>
-  
+
  </body>
- 
+
  <custom>
   <googleAnalytics>UA-23412190-2</googleAnalytics>
   <openproject>
