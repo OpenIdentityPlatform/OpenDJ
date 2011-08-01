@@ -21,7 +21,7 @@
   ! CCPL HEADER END
   !
   !      Copyright 2011 ForgeRock AS
-  !    
+  !
 -->
 <faqs
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -82,7 +82,7 @@
    <answer>
     <p>
       Download the latest stable version from the
-      <a href="http://www.forgerock.com/downloads-opendj.html">download
+      <a href="http://www.forgerock.org/opendj.html">download
       page</a>. You can also get the latest nightly build there. If you want
       to roll your own, check out the <a
       href="https://wikis.forgerock.org/confluence/display/OPENDJ/Guide+to+OpenDJ+Subversion"
@@ -139,7 +139,7 @@
       href="https://idp.forgerock.org/openam/UI/Login?service=register">Join
       the project</a>. Come discuss your work on the <a
       href="https://lists.forgerock.org/mailman/listinfo/opendj-dev">dev mailing
-      list</a>. 
+      list</a>.
     </p>
    </answer>
   </faq>
