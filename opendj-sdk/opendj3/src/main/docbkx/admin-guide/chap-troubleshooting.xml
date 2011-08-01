@@ -23,22 +23,17 @@
   !      Copyright 2011 ForgeRock AS
   !    
 -->
-<chapter version="5.0"
-         xsi:schemaLocation="http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd"
-         xml:id="chap-troubleshooting" xml:lang="en"
-         xmlns="http://docbook.org/ns/docbook"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns:xs="http://www.w3.org/2001/XMLSchema"
-         xmlns:xlink="http://www.w3.org/1999/xlink"
-         xmlns:xinclude="http://www.w3.org/2001/XInclude"
-         xmlns:ns="http://docbook.org/ns/docbook">
-  <title>Troubleshooting Server Problems</title>
+<chapter xml:id='chap-troubleshooting'
+ xmlns='http://docbook.org/ns/docbook'
+ version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Troubleshooting Server Problems</title>
 
-  <para>This chapter describes how to troubleshoot common server problems, and
-  how to collect information necessary when seeking support help.</para>
-
-  <section>
-    <title>Troubleshooting SSL Connections</title>
+ <para>This chapter describes how to troubleshoot common server problems,
+ and how to collect information necessary when seeking support help.</para>
  
  <section>
   <title>Identifying the Problem</title>
@@ -261,8 +256,4 @@ Build <replaceable>yyyymmddhhmmss</replaceable>Z</screen>
   </itemizedlist>
  </section>
 
-    <para>Troubleshooting</para>
-
-    <para></para>
-  </section>
 </chapter>
