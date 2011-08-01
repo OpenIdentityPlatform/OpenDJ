@@ -21,7 +21,7 @@
   ! CCPL HEADER END
   !
   !      Copyright 2011 ForgeRock AS
-  !    
+  !
 -->
 <chapter xml:id='chap-install-cli'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
@@ -30,21 +30,21 @@
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Installing OpenDJ From the Command Line</title>
- 
+
  <para>This chapter covers command-line installation with additional
  information on setup options.</para>
 
  <procedure>
   <title>To Prepare For Installation</title>
-   
+
   <step>
    <para>Make sure you have the correct Java environment installed.</para>
-   
+
    <screen>$ java -version
 java version "1.6.0_24"
 Java(TM) SE Runtime Environment (build 1.6.0_24-b07-334-9M3326)
 Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
-      
+
    <para>If your default Java environment is not appropriate, set
    <literal>OPENDS_JAVA_HOME</literal> to the path to the correct Java
    environment, or set <literal>OPENDS_JAVA_BIN</literal> to the absolute path
@@ -53,10 +53,10 @@ Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
    environment installed, and want to make sure you use the 64-bit
    version.</para>
   </step>
-    
+
   <step>
    <para>Get the appropriate installation packages from the <link
-     xlink:href='http://www.forgerock.com/downloads-opendj.html'
+     xlink:href='http://www.forgerock.org/opendj.html'
      >OpenDJ download page</link>.</para>
    <variablelist>
     <varlistentry>
@@ -79,7 +79,7 @@ Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
     </varlistentry>
    </variablelist>
   </step>
-    
+
   <step>
    <para>Allow OpenDJ software to use at least 64K (65536) file descriptors
    to operate properly.</para>
@@ -91,7 +91,7 @@ Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
    <para>Typically you use the <command>ulimit -a</command> command to list
    current settings.</para>
   </step>
-  
+
   <step>
    <para>If you plan to install OpenDJ DSML gateway, make sure you have an
    appropriate application server installed.</para>
@@ -103,34 +103,34 @@ Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
    properly signed digital certificate that your client applications
    recognize, such as one that fits with your organization's PKI or one
    provided by a recognized certificate authority.</para>
-   
+
    <para>To use the certificate during installation, the certificate
    must be located in a key store provided with Java (JKS, JCEKS, PKCS#12),
    or on a PKCS#11 token. To import a signed certificate into a key store,
    you can use the Java <command>keytool</command> command.</para>
-   
+
    <!-- TODO: Show how this is done for at least one key store type. -->
   </step>
  </procedure>
-  
+
  <procedure>
   <title>To Install OpenDJ Directory Server</title>
-  
+
   <step>
    <para>Unzip <filename>OpenDJ-<?eval ${project.version}?>.zip</filename>
    in the file system directory where you want to install the server.</para>
-   
+
    <para>Unlike the web-based Quick Setup install, the <command>setup</command>
    command uses the directory where you unzipped the files as the installation
    directory, and does not ask you where to install OpenDJ. Therefore, if you
    want to install elsewhere on the file system, unzip the files in that
    location.</para>
   </step>
-  
+
   <step>
    <para>Run the <command>setup --cli</command> command found in the
    <filename>OpenDJ-<?eval ${project.version}?></filename> directory.</para>
-   
+
    <para>This command starts the setup program in interactive mode on the
    command line, prompting you for each option. Alternatively, use
    additional <command>setup</command> options to specify
@@ -142,25 +142,25 @@ Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
    <literal>--cli</literal> option runs the Quick Start
    GUI installer with your local version of software, as does
    Java WebStart with a remote version of the software.</para>
-   
+
    <screen>$ /path/to/OpenDJ-<?eval ${project.version}?>/setup --cli
 
 OpenDJ <?eval ${project.version}?>
 Please wait while the setup program initializes...
 
 What would you like to use as the initial root user DN for the Directory
-Server? [cn=Directory Manager]: 
-Please provide the password to use for the initial root user: 
-Please re-enter the password for confirmation: 
+Server? [cn=Directory Manager]:
+Please provide the password to use for the initial root user:
+Please re-enter the password for confirmation:
 
 On which port would you like the Directory Server to accept connections from
-LDAP clients? [1389]: 
+LDAP clients? [1389]:
 
 On which port would you like the Administration Connector to accept
-connections? [4444]: 
-Do you want to create base DNs in the server? (yes / no) [yes]: 
+connections? [4444]:
+Do you want to create base DNs in the server? (yes / no) [yes]:
 
-Provide the base DN for the directory data: [dc=example,dc=com]: 
+Provide the base DN for the directory data: [dc=example,dc=com]:
 Options for populating the database:
 
     1)  Only create the base entry
@@ -173,12 +173,12 @@ Enter choice [1]: 3
 Please specify the path to the LDIF file containing the data to import: \
 /path/to/Example.ldif
 
-Do you want to enable SSL? (yes / no) [no]: 
+Do you want to enable SSL? (yes / no) [no]:
 
-Do you want to enable Start TLS? (yes / no) [no]: 
+Do you want to enable Start TLS? (yes / no) [no]:
 
 Do you want to start the server when the configuration is completed? (yes /
-no) [yes]: 
+no) [yes]:
 
 
 Setup Summary
@@ -200,7 +200,7 @@ What would you like to do?
     3)  Print equivalent non-interactive command-line
     4)  Cancel and exit
 
-Enter choice [1]: 
+Enter choice [1]:
 
 See /var/....log for a detailed log of this operation.
 
@@ -210,7 +210,7 @@ Starting Directory Server ........... Done.
 
 To see basic server configuration status and configuration you can launch \
 /path/to/OpenDJ-<?eval ${project.version}?>/bin/status</screen>
-      
+
    <variablelist>
     <para>Some notes on the options follow.</para>
     <varlistentry>
@@ -264,7 +264,7 @@ To see basic server configuration status and configuration you can launch \
        not want to import the data at the same time you install is because
        your data uses attributes not defined in the default schema, and so
        you will wait to add schema definitions before you import.</para>
-       
+
        <para>If you have a huge data set to import, you no doubt should
        also increase the import cache size, which you can do by passing
        a Java properties file. You might also prefer to perform data
@@ -316,18 +316,18 @@ To see basic server configuration status and configuration you can launch \
     </varlistentry>
    </variablelist>
   </step>
-    
+
   <step>
    <para>Run the <command>status</command> command to make sure your OpenDJ
    server is working as expected.</para>
-   
+
    <screen>$ /path/to/OpenDJ-<?eval ${project.version}?>/bin/status
 
 >>>> Specify OpenDJ LDAP connection parameters
 
-Administrator user bind DN [cn=Directory Manager]: 
+Administrator user bind DN [cn=Directory Manager]:
 
-Password for user 'cn=Directory Manager': 
+Password for user 'cn=Directory Manager':
 
           --- Server Status ---
 Server Run Status:        Started
@@ -357,7 +357,7 @@ Entries:     160
 Replication: Disabled</screen>
   </step>
  </procedure>
- 
+
  <note>
   <para>You can install OpenDJ in unattended and silent fashion by using the
   <command>setup</command> command with the <option>--no-prompt</option>
@@ -366,25 +366,25 @@ Replication: Disabled</screen>
 
  <procedure>
   <title>To Install OpenDJ DSML gateway</title>
-  
+
   <para>The OpenDJ DSML gateway functions as a web application located in a
   web application container. The DSML gateway runs independently of OpenDJ
   directory server. You configure the gateway to access your directory service
   by editing the <literal>ldap.host</literal> and <literal>ldap.port</literal>
   parameters in the <filename>WEB-INF/web.xml</filename> configuration
   file.</para>
-  
+
   <step>
    <para>Deploy <filename>OpenDJ-<?eval ${project.version}?>-DSML.war</filename>
    according to the instructions for your application server.</para>
   </step>
-  
+
   <step>
    <para>Edit <filename>WEB-INF/web.xml</filename> to ensure the values for
    <literal>ldap.host</literal> and <literal>ldap.port</literal> are
    correct.</para>
   </step>
-  
+
   <step>
    <para>Restart the web application container according to the instructions
    for your application server.</para>

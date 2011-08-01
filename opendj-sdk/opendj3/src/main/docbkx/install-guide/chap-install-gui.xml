@@ -21,7 +21,7 @@
   ! CCPL HEADER END
   !
   !      Copyright 2011 ForgeRock AS
-  !    
+  !
 -->
 <chapter xml:id='chap-install-gui'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
@@ -34,7 +34,7 @@
  <para>If you want only to try OpenDJ server software, and you do not plan to
  store any real or important data that you want to keep, then read only this
  section, or just try out installation without reading any further. Visit the
- <link xlink:href='http://www.forgerock.com/downloads-opendj.html'>download
+ <link xlink:href='http://www.forgerock.org/opendj.html'>download
  page</link>, and click the first link on the left for the latest release
  to start the Java WebStart installer directly from your browser.</para>
 
@@ -43,19 +43,19 @@
  to try OpenDJ directory server for the first time, or to do a quick test
  installation. You can also upgrade an OpenDJ directory server through the
  WebStart installer.</para>
- 
+
  <note><para>OpenDJ directory server relies on Java 6, so if your browser
  picks up an old installation of Java 5 for example, installation can fail.
  Currently also if you are on a Linux system, you need to get Sun Java 6
  before you use OpenDJ directory server.</para>
- 
+
  <para>If the WebStart installation does not work in your browser, copy
  the WebStart URL, ending in <literal>QuickSetup.jnlp</literal>, from the
  OpenDJ download page. This is the first link in the list of links for
  a version of OpenDJ. Next, pass the link as an argument to the
  <command>javaws</command> command in a terminal window to start the
   installer.</para>
- 
+
  <screen>$ export PATH=/path/to/sun-java6/bin:$PATH
 $ javaws http://www.forgerock.org/downloads/opendj/<?eval ${project.version}?>/install/QuickSetup.jnlp</screen>
 
@@ -64,17 +64,17 @@ $ javaws http://www.forgerock.org/downloads/opendj/<?eval ${project.version}?>/i
  OpenDJ-<?eval ${project.version}?>/setup (UNIX), OpenDJ-<?eval
  ${project.version}?>\setup.bat (Windows), or QuickSetup.app (Mac OS X).</para>
  </note>
-  
+
  <para>Java WebStart launches the the QuickSetup wizard, and soon the
  Welcome screen appears.</para>
-  
+
  <mediaobject>
   <imageobject>
    <imagedata fileref="images/QuickSetup-welcome.png" format="PNG" />
   </imageobject>
   <caption><para>The Welcome screen appears.</para></caption>
  </mediaobject>
- 
+
  <mediaobject>
   <imageobject>
    <imagedata fileref="images/QuickSetup-svrconf.png" format="PNG" />
@@ -82,7 +82,7 @@ $ javaws http://www.forgerock.org/downloads/opendj/<?eval ${project.version}?>/i
   <caption><para>Notice in the Server Settings screen that the default ports
   are 389 or 1389 for LDAP, 4444 for administrative access.</para></caption>
  </mediaobject>
-  
+
  <mediaobject>
    <imageobject>
      <imagedata fileref="images/QuickSetup-replopts.png" format="PNG" />
@@ -90,7 +90,7 @@ $ javaws http://www.forgerock.org/downloads/opendj/<?eval ${project.version}?>/i
    <caption><para>You can replicate data for high availability through the
    Topology Options screen.</para></caption>
  </mediaobject>
- 
+
  <mediaobject>
   <imageobject>
    <imagedata fileref="images/QuickSetup-gendata.png" format="PNG" />
@@ -98,7 +98,7 @@ $ javaws http://www.forgerock.org/downloads/opendj/<?eval ${project.version}?>/i
   <caption><para>Generate test data as part of server setup in the Directory
   Data screen.</para></caption>
  </mediaobject>
- 
+
  <mediaobject>
   <imageobject>
    <imagedata fileref="images/QuickSetup-jvmopts.png" format="PNG" />
@@ -106,14 +106,14 @@ $ javaws http://www.forgerock.org/downloads/opendj/<?eval ${project.version}?>/i
   <caption><para>For a real installation, you adjust JVM parameters for
   your server, for example to allow OpenDJ to use more memory.</para></caption>
  </mediaobject>
- 
+
  <mediaobject>
   <imageobject>
    <imagedata fileref="images/QuickSetup-review.png" format="PNG" />
   </imageobject>
   <caption><para>Opt to start your server when setup completes.</para></caption>
  </mediaobject>
- 
+
  <mediaobject>
   <imageobject>
    <imagedata fileref="images/QuickSetup-finished.png" format="PNG" />
@@ -121,7 +121,7 @@ $ javaws http://www.forgerock.org/downloads/opendj/<?eval ${project.version}?>/i
   <caption><para>Finally, click Launch Control Panel to check your newly
   installed server.</para></caption>
  </mediaobject>
- 
+
  <mediaobject>
   <imageobject>
    <imagedata fileref="images/QuickSetup-cpstart.png" format="PNG" />
