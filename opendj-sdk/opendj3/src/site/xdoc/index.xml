@@ -21,7 +21,7 @@
   ! CCPL HEADER END
   !
   !      Copyright 2011 ForgeRock AS
-  !    
+  !
 -->
 <document
  xmlns="http://maven.apache.org/XDOC/2.0"
@@ -52,7 +52,7 @@
    <p>You are welcome to join us. Here are some ways to get started.</p>
    <ul>
     <li>Download and install a build from the <a
-    href="http://www.forgerock.com/downloads-opendj.html">download page</a>.</li>
+    href="http://www.forgerock.org/opendj.html">download page</a>.</li>
     <li>Join the <a
     href="https://lists.forgerock.org/mailman/listinfo/opendj">OpenDJ
     mailing list</a> to ask questions, make suggestions, and tell us what
@@ -74,7 +74,7 @@
    <ul>
     <li>Get the source. See instructions in the <a
     href="https://wikis.forgerock.org/confluence/display/OPENDJ/Guide+to+OpenDJ+Subversion"
-    >Guide to OpenDJ Subversion</a>.</li>   
+    >Guide to OpenDJ Subversion</a>.</li>
     <li>Make sure you <a
     href="https://idp.forgerock.org/openam/UI/Login?service=register">register
     to join the community</a>, thus also registering to <a
