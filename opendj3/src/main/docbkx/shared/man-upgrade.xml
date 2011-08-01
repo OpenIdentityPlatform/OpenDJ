@@ -21,7 +21,7 @@
   ! CCPL HEADER END
   !
   !      Copyright 2011 ForgeRock AS
-  !    
+  !
 -->
 <refentry xml:id='upgrade-1'
  xmlns='http://docbook.org/ns/docbook'
@@ -51,7 +51,7 @@
   an OpenDJ install package (.zip) file and specify its location using the
   -f/--file option.  You can also upgrade your server using the Java Web Start
   version of this tool by visiting the OpenDJ web site at
-  www.forgerock.org/downloads-opendj.html.</para>
+  www.forgerock.org/opendj.html.</para>
   <para>When using the tool to revert to a previous version you must either
   indicate that you want to revert to the version before the most recent
   upgrade using the -r/--revertMostRecent option or specify the location of a

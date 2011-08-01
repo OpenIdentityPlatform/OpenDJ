@@ -21,16 +21,16 @@
   ! CCPL HEADER END
   !
   !      Copyright 2011 ForgeRock AS
-  !    
+  !
 -->
-<preface xml:id='preface' 
+<preface xml:id='preface'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
  xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Preface</title>
- 
+
  <para>This guide shows you how to work with OpenDJ SDK to create client
  applications in the Java language to connect to LDAP servers and perform
  LDAP operations.</para>
@@ -40,11 +40,11 @@
 
   <para>This guide is written for Java developers who want to build directory
   client applications with OpenDJ SDK.</para>
-  
+
   <para>This guide starts by explaining LDAP directories briefly, and
   describing best practices for LDAP client applications. Then it demonstrates
   how to install and use OpenDJ SDK to build LDAP clients.</para>
-  
+
   <para>You do not need to be an LDAP wizard to learn something from this
   guide. You do need some background in writing Java 6 and client-server
   applications to get the most out of this guide. You can nevertheless get
@@ -53,25 +53,25 @@
 
  <section>
   <title>Using Samples</title>
- 
+
   <para>This work is licensed under the <link
   xlink:href="http://creativecommons.org/licenses/by-nc-nd/3.0/"
   >Creative Commons Attribution-NonCommercial-NoDerivs 3.0 Unported
   License</link>.</para>
- 
+
   <para>See the license for the specific language governing permissions and
   limitations under the license.</para>
  </section>
 
  <section>
   <title>Formatting Conventions</title>
-  
+
   <note><para>Pay attention to notes like this one.</para></note>
-  
+
   <para>Some items might be formatted differently from other text, like
   <filename>filenames</filename>, <command>commands</command>, and
   <literal>literal values</literal>.</para>
-  
+
   <screen>$ echo Terminal sessions are formatted like this.
 Terminal sessions are formatted like this.</screen>
 
@@ -83,7 +83,7 @@ Terminal sessions are formatted like this.</screen>
 
     }
 }</programlisting>
-  
+
   <para>In many cases, sections pertaining to UNIX, GNU/Linux, Mac OS X, BSD,
   and so forth are marked (UNIX). Sections pertaining to Microsoft Windows
   might be marked (Windows). To avoid repetition, however, file system
@@ -96,7 +96,7 @@ Terminal sessions are formatted like this.</screen>
 
  <section>
   <title>Accessing OpenDJ Documentation Online</title>
-  
+
   <para>Core documentation, such as what you are now reading, aims to
   be technically accurate and complete with respect to the software
   documented. Core documentation therefore follows a <link
@@ -104,11 +104,11 @@ Terminal sessions are formatted like this.</screen>
   >three-phase review process</link> designed to eliminate errors. The
   review process should slow authors down enough that documentation you get
   with a stable release has had time to bake fully.</para>
-  
+
   <!-- TODO: online location of core documentation, perhaps docs.forgerock.org? -->
   <para>Fully baked core documentation is available at <link
   xlink:href='http://...'>...</link>.</para>
-  
+
   <para>You need not wait until the core documentation is finished, though,
   to read more about OpenDJ, and also to read about related topics that
   involve OpenDJ without being strictly about OpenDJ. The <link
@@ -117,34 +117,34 @@ Terminal sessions are formatted like this.</screen>
   you are welcome to <link
   xlink:href='https://idp.forgerock.org/openam/UI/Login?service=register'
   >sign up</link> and then edit the Wiki if you notice an error, or if you
-  have something to share.</para>  
+  have something to share.</para>
  </section>
 
  <section>
   <title>Joining the OpenDJ Community</title>
-  
+
   <para>After you <link
   xlink:href='https://idp.forgerock.org/openam/UI/Login?service=register'
   >sign up</link> at ForgeRock, you can also login to the Wiki and the issue
   database to follow what is happening with the project.</para>
-  
+
   <para>If you have questions regarding OpenDJ which are not answered by the
   documentation, there is a mailing list which can be found at
   <link xlink:href='https://lists.forgerock.org/mailman/listinfo/opendj'
   >https://lists.forgerock.org/mailman/listinfo/opendj</link> where you are
   likely to find an answer.</para>
- 
+
   <para>You can join the IRC discussion in the #opendj room at
   irc.freenode.net.</para>
-  
+
   <para>The Wiki has information on how to check out OpenDJ source code.
   There is also a mailing list for OpenDJ development which can be found at
   <link xlink:href='https://lists.forgerock.org/mailman/listinfo/opendj-dev'
   >https://lists.forgerock.org/mailman/listinfo/opendj-dev</link>
   Should you want to contribute a patch, test, or feature, or want to author
-  part of the core documentation, first have a look on the ForgeRock site
-  at <link xlink:href='http://www.forgerock.com/fcpa-faq.html'>how to get
-  involved</link>.</para>
+  part of the core documentation, first have a look on the ForgeRock Community
+  page at <link xlink:href='http://www.forgerock.org/community_process.html'>
+  how to get involved</link>.</para>
  </section>
 
 </preface>

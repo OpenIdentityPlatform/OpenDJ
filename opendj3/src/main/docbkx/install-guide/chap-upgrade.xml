@@ -21,7 +21,7 @@
   ! CCPL HEADER END
   !
   !      Copyright 2011 ForgeRock AS
-  !    
+  !
 -->
 <chapter xml:id='chap-upgrade'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
@@ -34,31 +34,31 @@
  <para>You can upgrade from an earlier version of OpenDJ either directly
  from within the Java WebStart installer, or on the command-line using the
  <command>upgrade</command> command.</para>
-  
+
  <note>
   <para>Upgrade from OpenDS 2.2 or OpenDJ 2.4 has been tested most thoroughly
   on Solaris, Mac OS X, and Linux. On Windows systems, export directory data
   to LDIF, start with a fresh installation of the OpenDJ software, and then
   import your data from LDIF.</para>
  </note>
-  
+
  <section>
   <title>Before You Upgrade</title>
-  
+
   <para>You must perform the upgrade procedure as the user who own the OpenDJ
   server. Make sure you have the credentials to run commands as the user who
   owns the server.</para>
-      
+
   <para>Do a full backup of your current OpenDJ installation.</para>
-  
+
   <para>When running a server version earlier than OpenDJ 2.4.1 fix the upgrade
   schema by following the appropriate steps depending on your platform.</para>
-  
+
   <para>(UNIX) Download and apply <link
   xlink:href='http://wikis.forgerock.org/confluence/download/attachments/11632664/opendj_patch4upgrade.sh'
   >opendj_patch4upgrade.sh</link> to your current server, by
   running the shell script from the directory where the server is installed.</para>
-  
+
   <screen>$ cd /path/to/OpenDJ
 $ sh /downloads/opendj_patch4upgrade.sh
 /path/to/OpenDJ has been patched, you can proceed with the upgrade program now</screen>
@@ -66,7 +66,7 @@ $ sh /downloads/opendj_patch4upgrade.sh
   <para>The <filename>opendj_patch4upgrade.sh</filename> script fixes a schema
   issuethat prevents smooth upgrades from earlier server versions. You can
   apply the script while the server is running.</para>
-  
+
   <para>(Windows) Follow these steps.</para>
   <orderedlist>
    <listitem>
@@ -97,22 +97,22 @@ $ sh /downloads/opendj_patch4upgrade.sh
 
  <section>
   <title>Upgrading OpenDJ Servers</title>
-  
+
   <para>You can upgrade from the graphical installer, or from the command
   line.</para>
-   
+
   <procedure>
    <title>To Upgrade From the Graphical Installer</title>
    <step>
     <para>Login to a session where you can use a GUI as the user who owns the
     current OpenDJ server.</para>
    </step>
-   
+
    <step performance='optional'>
-    <para><link xlink:href='http://www.forgerock.com/downloads-opendj.html'
+    <para><link xlink:href='http://www.forgerock.org/opendj.html'
      >Download OpenDJ</link>, and unzip the downloaded file.</para>
    </step>
-   
+
    <step>
     <para>Start the installer.</para>
     <itemizedlist>
@@ -130,18 +130,18 @@ $ sh /downloads/opendj_patch4upgrade.sh
      </listitem>
     </itemizedlist>
    </step>
-   
+
    <step>
     <para>In the OpenDJ QuickSetup Welcome screen, select Upgrade Existing
     Server Instance, and make sure Server to Upgrade points to the current
     OpenDJ server before clicking Next.</para>
    </step>
-   
+
    <step>
     <para>Follow the instructions in the QuickSetup wizard to complete the
     upgrade.</para>
    </step>
-  
+
    <step>
     <para>If you upgraded from OpenDS 2.2, open the OpenDJ control panel,
     select Indexes &gt; Rebuild Indexes..., and use the Rebuild Indexes dialog
@@ -151,11 +151,11 @@ $ sh /downloads/opendj_patch4upgrade.sh
 
   <procedure>
    <title>To Upgrade On the Command Line</title>
-   
+
    <step>
     <para>Login as the user who owns the current OpenDJ server.</para>
    </step>
-   
+
    <step>
     <para>Download the OpenDJ .zip file.</para>
     <screen>$ cd /tmp
@@ -193,7 +193,7 @@ See /var/....log for a detailed log of this operation.</screen>
     <para>If you upgraded from OpenDS 2.2, use the
     <command>rebuild-index</command> command to rebuild the
     <literal>dn2id</literal> index for your suffixes.</para>
-    
+
     <screen>$ ./bin/rebuild-index -i dn2id -b "dc=example,dc=com"
 ...Rebuild complete. Processed 160 entries in 0 seconds (average rate 401.0/sec)</screen>
    </step>
@@ -205,7 +205,7 @@ See /var/....log for a detailed log of this operation.</screen>
     <para>Upgrade each server sequentially, as described above.</para>
    </step>
   </procedure>
-  
+
   <procedure>
    <title>To Upgrade OpenDJ DSML Gateway</title>
    <step>
