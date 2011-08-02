@@ -249,7 +249,7 @@
   <!-- Search string -->
   <function name="searchString" scope="local">
     <function-prolog>
-      This function search for a string in the retrun string of a testcase
+      This function search for a string in the return string of a testcase
       Return 0 if the string is found, 1 otherwise
     </function-prolog>
 

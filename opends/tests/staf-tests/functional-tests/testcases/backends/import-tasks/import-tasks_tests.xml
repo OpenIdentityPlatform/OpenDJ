@@ -1161,31 +1161,37 @@
 
           <call function="'testCase_Preamble'"/>
 
+          <!-- Import Example.ldif -->
           <call function="'ImportLdifWithScript'">
-            { 'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-              'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
-              'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'ldifFile'       : '%s/backends/Append.ldif' % remote.data,
-              'append'         : 'TRUE'
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'         : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD,
+                'ldifFile'             : '%s/backends/Example.ldif' % remote.data,
+                'backEnd'              : DIRECTORY_INSTANCE_BE
             }
+          </call>
+
+          <!-- Import Example.ldif -->                                                                                           
+          <call function="'ImportLdifWithScript'">
+              { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'         : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD,
+                'ldifFile'             : '%s/backends/Append.ldif' % remote.data,
+                'append'               : 'TRUE'
+              }
           </call>
 
           <call function="'checkImport'">
-            { 'expectedEntries'  : ['ou=Departed,ou=People,dc=example,dc=com',
+            {  'dsBaseDN'          : 'dc=example,dc=com',
+               'expectedEntries'  : ['ou=Departed,ou=People,dc=example,dc=com',
                                     'uid=fvinker,ou=Departed,ou=People,dc=example,dc=com',
-                                    'uid=brammage,ou=Departed,ou=People,dc=example,dc=com'],
-              'startDS'         : 'no'
-            }
+                                    'uid=brammage,ou=Departed,ou=People,dc=example,dc=com'] ,
+               'expectedNoEntries' : '163' ,
+               'startDS'           : 'no'
+            }                        
           </call>
-
-          <if expr="RC != 0">
-            <sequence>
-              <call function="'setKnownIssue'">
-                { 'issueId' : 6962694 }
-              </call>
-            </sequence>
-          </if>
           
         </sequence>
 
@@ -1226,32 +1232,38 @@
 
           <call function="'testCase_Preamble'"/>
 
+          <!-- Import Example.ldif -->
           <call function="'ImportLdifWithScript'">
-            { 'dsInstanceHost'  : DIRECTORY_INSTANCE_HOST,
-             'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT,
-              'dsInstanceDn'    : DIRECTORY_INSTANCE_DN,
-              'dsInstancePswd'  : DIRECTORY_INSTANCE_PSWD,
-              'ldifFile'        : '%s/backends/Append.ldif' % remote.data,
-              'append'          : 'TRUE',
-              'replaceExisting' : 'TRUE'
-            }
-          </call>
-  
-          <call function="'checkImport'">
-            { 'expectedEntries'  : ['ou=Departed,ou=People,dc=example,dc=com',
-                                    'uid=fvinker,ou=Departed,ou=People,dc=example,dc=com',
-                                    'uid=brammage,ou=Departed,ou=People,dc=example,dc=com'],
-              'startDS'         : 'no'
+            { 'dsInstanceHost'         : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'         : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD,
+                'ldifFile'             : '%s/backends/Example.ldif' % remote.data,
+                'backEnd'              : DIRECTORY_INSTANCE_BE
             }
           </call>
 
-          <if expr="RC != 0">
-            <sequence>
-              <call function="'setKnownIssue'">
-                { 'issueId' : 6962694 }
-              </call>
-            </sequence>
-          </if>
+          <!-- Import Example.ldif -->                                                                                           
+          <call function="'ImportLdifWithScript'">
+              { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceAdminPort'  : DIRECTORY_INSTANCE_ADMIN_PORT,
+                'dsInstanceDn'         : DIRECTORY_INSTANCE_DN,
+                'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD,
+                'ldifFile'             : '%s/backends/Append.ldif' % remote.data,
+                'append'               : 'TRUE',
+                'replaceExisting'      : 'TRUE'
+              }
+          </call>
+
+          <call function="'checkImport'">
+            {  'dsBaseDN'          : 'dc=example,dc=com',
+               'expectedEntries'  : ['ou=Departed,ou=People,dc=example,dc=com',
+                                    'uid=fvinker,ou=Departed,ou=People,dc=example,dc=com',
+                                    'uid=brammage,ou=Departed,ou=People,dc=example,dc=com'] ,
+               'expectedNoEntries' : '163' ,
+               'startDS'           : 'no'
+            }                        
+          </call>
 
         </sequence>
 
