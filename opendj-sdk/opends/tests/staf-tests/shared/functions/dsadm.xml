@@ -1043,7 +1043,7 @@
   </function>
 
   <!-- Check Import Function -->
-  <function name="checkImport">
+  <function name="checkImport" scope="local">
     <function-prolog>
       This function verifies an import of an ldif file 
     </function-prolog>
@@ -1104,6 +1104,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
+      <function-arg-def name="dsBaseDN" type="optional">
+        <function-arg-description>
+          The baseDN for the search operation
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>
       <function-arg-def name="expectedEntries" type="required">
         <function-arg-description>
           Entries expected to be present after import
@@ -1134,6 +1140,14 @@
         </function-arg-description>
         <function-arg-property name="type" value="list"/>
       </function-arg-def>
+      <function-arg-def name="expectedNoEntries"
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Optional no of entries expected after import
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+      </function-arg-def>
       <function-arg-def name="suffix"
                         type="optional"
                         default="DIRECTORY_INSTANCE_SFX">
@@ -1161,6 +1175,7 @@
         myadminport=dsAdminPort
         mydn=dsDn
         mypswd=dsPswd
+        mybasedn=dsBaseDN
       </script>
 
       <!-- Assume that if DS is not started then there is no need to stop it -->      
@@ -1194,26 +1209,52 @@
           
         </sequence>
       </if>
-    
+
+      <!-- Count number of expected entries after import -->
+      <if expr="expectedNoEntries != None">
+        
+        <sequence>
+          <message>'Expected number of entries is %s' % expectedNoEntries</message>
+
+          <call function="'ldapSearchWithScript'">
+            { 'dsInstanceHost' : myhost ,
+              'dsInstancePort' : myport ,
+              'dsInstanceDn'   : mydn ,
+              'dsInstancePswd' : mypswd ,
+              'dsBaseDN'       : mybasedn ,
+              'dsFilter'       : 'objectclass=*',
+              'dsAttributes'   : 'dn',
+              'dsCountEntries' : True
+            }
+          </call>
+
+           <script>
+             returnString = STAXResult[0][1]
+           </script>
+
+           <call function="'searchString'">
+               { 'expectedString' : 'Total number of matching entries: %s' % expectedNoEntries,
+                 'returnString'   : returnString ,
+                 'expectedRC'     : expectedRC ,
+               }
+            </call>
+
+        </sequence>
+      </if>
+      
       <!-- Search for expected entries -->    
       <iterate var="expectedEntry" in="expectedEntries">
         <sequence>
-          <call function="'SearchObject'">
-            { 'location'       : myLocation ,
-              'dsPath'         : myPath,            
-              'dsInstanceHost' : myhost ,
+          <call function="'ldapSearchWithScript'">
+            { 'dsInstanceHost' : myhost ,
               'dsInstancePort' : myport ,
               'dsInstanceDn'   : mydn ,
               'dsInstancePswd' : mypswd ,
               'dsBaseDN'       : '%s' % expectedEntry ,
               'dsScope'        : 'base' ,
               'dsFilter'       : 'objectclass=*',
-              'attributes'     : 'dn'
+              'dsAttributes'   : 'dn'
             }
-          </call>
-          <call function="'checktestRC'">
-             { 'returncode' : RC ,
-               'result'     : STAXResult }
           </call>
         </sequence>
       </iterate>

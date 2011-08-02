@@ -1130,24 +1130,29 @@
         <sequence>
 
           <call function="'testCase_Preamble'"/>
-                                                                                           
+
+          <!-- Import Example.ldif -->
           <call function="'ImportLdifWithScript'">
-              { 'location'         : STAF_REMOTE_HOSTNAME,
-              'ldifFile'           : '%s/backends/Append.ldif' % remote.data,
-              'append'             : 'TRUE',
-              'backEnd'            : DIRECTORY_INSTANCE_BE
+            { 'ldifFile'  : '%s/backends/Example.ldif' % remote.data,
+              'backEnd'   : DIRECTORY_INSTANCE_BE
+            }
+          </call>
+
+          <!-- Import Example.ldif -->                                                                                           
+          <call function="'ImportLdifWithScript'">
+              { 'ldifFile' : '%s/backends/Append.ldif' % remote.data,
+                'append'   : 'TRUE',
+                'backEnd'  : DIRECTORY_INSTANCE_BE
               }
           </call>
 
           <call function="'checkImport'">
-            {  'expectedEntries'  : ['ou=Departed,ou=People,dc=example,dc=com',
+            {  'dsBaseDN'          : 'dc=example,dc=com',
+               'expectedEntries'  : ['ou=Departed,ou=People,dc=example,dc=com',
                                     'uid=fvinker,ou=Departed,ou=People,dc=example,dc=com',
-                                    'uid=brammage,ou=Departed,ou=People,dc=example,dc=com']
+                                    'uid=brammage,ou=Departed,ou=People,dc=example,dc=com'] ,
+               'expectedNoEntries' : '163'
             }                        
-          </call>
-
-          <call function="'setKnownIssue'">
-            { 'issueId' : 6962694 }
           </call>
 
         </sequence>
@@ -1187,26 +1192,30 @@
         <sequence>
 
           <call function="'testCase_Preamble'"/>
-                                                                                                         
+
+          <!-- Import Example.ldif -->
           <call function="'ImportLdifWithScript'">
-              { 'location'         : STAF_REMOTE_HOSTNAME,
-              'ldifFile'           : '%s/backends/Append.ldif' % remote.data,
-              'append'             : 'TRUE',
-              'replaceExisting'    : 'TRUE',
-              'backEnd'            : DIRECTORY_INSTANCE_BE,
-              'knownIssue'         : '6927338'
+            { 'ldifFile'  : '%s/backends/Example.ldif' % remote.data,
+              'backEnd'   : DIRECTORY_INSTANCE_BE
+            }
+          </call>
+
+          <!-- Import Example.ldif -->                                                                                           
+          <call function="'ImportLdifWithScript'">
+              { 'ldifFile'         : '%s/backends/Append.ldif' % remote.data,
+                'append'           : 'TRUE',
+                'replaceExisting'  : 'TRUE',
+                'backEnd'          : DIRECTORY_INSTANCE_BE
               }
           </call>
 
           <call function="'checkImport'">
-            {  'expectedEntries'  : ['ou=Departed,ou=People,dc=example,dc=com',
+            {  'dsBaseDN'          : 'dc=example,dc=com',
+               'expectedEntries'  : ['ou=Departed,ou=People,dc=example,dc=com',
                                     'uid=fvinker,ou=Departed,ou=People,dc=example,dc=com',
-                                    'uid=brammage,ou=Departed,ou=People,dc=example,dc=com']
+                                    'uid=brammage,ou=Departed,ou=People,dc=example,dc=com'] ,
+               'expectedNoEntries' : '163'
             }                        
-          </call>
-
-          <call function="'setKnownIssue'">
-            { 'issueId' : 6962694 }
           </call>
 
         </sequence>
