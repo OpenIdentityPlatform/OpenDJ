@@ -296,11 +296,7 @@
           
           <!-- StopDS -->
           <call function="'StopDsWithScript'">
-            { 'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME),
-              'dsAdminPort' : DsInstanceAdminPort,
-              'dsBindDN'    : mydn,
-              'dsBindPwd'   : mypswd
-            }
+            {'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME)}
           </call>
   
         </sequence>
