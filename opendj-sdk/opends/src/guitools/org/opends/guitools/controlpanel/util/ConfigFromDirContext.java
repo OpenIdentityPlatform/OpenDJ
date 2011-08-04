@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Copyright 2008-2011 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -310,7 +310,7 @@ public class ConfigFromDirContext extends ConfigReader
         try
         {
           BackendCfgClient backend = root.getBackend(backendNames[i]);
-          SortedSet<BaseDNDescriptor> baseDNs = new TreeSet<BaseDNDescriptor>();
+          Set<BaseDNDescriptor> baseDNs = new HashSet<BaseDNDescriptor>();
           for (DN dn : backend.getBaseDN())
           {
             BaseDNDescriptor baseDN =
@@ -318,9 +318,9 @@ public class ConfigFromDirContext extends ConfigReader
                   null, -1, -1, -1);
             baseDNs.add(baseDN);
           }
-          SortedSet<IndexDescriptor> indexes = new TreeSet<IndexDescriptor>();
-          SortedSet<VLVIndexDescriptor> vlvIndexes =
-            new TreeSet<VLVIndexDescriptor>();
+          Set<IndexDescriptor> indexes = new HashSet<IndexDescriptor>();
+          Set<VLVIndexDescriptor> vlvIndexes =
+            new HashSet<VLVIndexDescriptor>();
           BackendDescriptor.Type type;
           if (backend instanceof LocalDBBackendCfgClient)
           {

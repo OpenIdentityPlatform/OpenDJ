@@ -22,13 +22,14 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2011 Sun Microsystems, Inc.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
 
-import java.util.Collections;
+import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.opends.admin.ads.ADSContext;
 
@@ -38,15 +39,15 @@ import org.opends.admin.ads.ADSContext;
  */
 public class BackendDescriptor
 {
-  private String backendID;
+  private final String backendID;
   private SortedSet<BaseDNDescriptor> baseDns;
   private SortedSet<IndexDescriptor> indexes;
   private SortedSet<VLVIndexDescriptor> vlvIndexes;
   private int entries;
-  private boolean isConfigBackend;
-  private boolean isEnabled;
+  private final boolean isConfigBackend;
+  private final boolean isEnabled;
   private CustomSearchResult monitoringEntry;
-  private Type type;
+  private final Type type;
   private int hashCode;
 
   /**
@@ -95,20 +96,17 @@ public class BackendDescriptor
    * @param type the type of the backend.
    */
   public BackendDescriptor(String backendID,
-      SortedSet<BaseDNDescriptor> baseDns,
-      SortedSet<IndexDescriptor> indexes,
-      SortedSet<VLVIndexDescriptor> vlvIndexes,
+      Set<BaseDNDescriptor> baseDns,
+      Set<IndexDescriptor> indexes,
+      Set<VLVIndexDescriptor> vlvIndexes,
       int entries, boolean isEnabled, Type type)
   {
     this.backendID = backendID;
-    this.baseDns = Collections.unmodifiableSortedSet(baseDns);
-    this.indexes = Collections.unmodifiableSortedSet(indexes);
-    this.vlvIndexes = Collections.unmodifiableSortedSet(vlvIndexes);
     this.entries = entries;
     isConfigBackend = isConfigBackend(backendID);
     this.type = type;
     this.isEnabled = isEnabled;
-    updateBaseDnsAndIndexes();
+    updateBaseDnsAndIndexes(baseDns, indexes, vlvIndexes);
     recalculateHashCode();
   }
 
@@ -162,6 +160,7 @@ public class BackendDescriptor
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean equals(Object v)
   {
     boolean equals = false;
@@ -221,6 +220,7 @@ public class BackendDescriptor
   /**
    * {@inheritDoc}
    */
+  @Override
   public int hashCode()
   {
     return hashCode;
@@ -252,23 +252,32 @@ public class BackendDescriptor
 
   /**
    * Updates the base DNs and indexes contained in this backend so that they
-   * have a reference to this backend.
+   * have a reference to this backend.  It also initialize the members of this
+   * class with the base DNs and indexes.
+   * @param baseDns the base DNs associated with the Backend.
+   * @param indexes the indexes defined in the backend.
+   * @param vlvIndexes the VLV indexes defined in the backend.
    *
    */
-  private void updateBaseDnsAndIndexes()
+  private void updateBaseDnsAndIndexes(Set<BaseDNDescriptor> baseDns,
+      Set<IndexDescriptor> indexes,
+      Set<VLVIndexDescriptor> vlvIndexes)
   {
     for (BaseDNDescriptor baseDN : baseDns)
     {
       baseDN.setBackend(this);
     }
-    for (AbstractIndexDescriptor index : indexes)
+    this.baseDns = new TreeSet<BaseDNDescriptor>(baseDns);
+    for (IndexDescriptor index : indexes)
     {
       index.setBackend(this);
     }
-    for (AbstractIndexDescriptor index : vlvIndexes)
+    this.indexes = new TreeSet<IndexDescriptor>(indexes);
+    for (VLVIndexDescriptor index : vlvIndexes)
     {
       index.setBackend(this);
     }
+    this.vlvIndexes = new TreeSet<VLVIndexDescriptor>(vlvIndexes);
   }
 
   /**
