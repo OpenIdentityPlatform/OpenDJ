@@ -663,11 +663,21 @@
     </dependency>
   </dependencies>
   <licenses>
-    <license>
-      <name>CDDL-1.0</name>
-      <url>http://www.opensource.org/licenses/cddl1.php</url>
-      <comments>Common Development and Distribution License (CDDL) 1.0</comments>
-      <distribution>repo</distribution>
-    </license>
+   <license>
+    <name>CDDL-1.0</name>
+    <url>http://www.opensource.org/licenses/cddl1.php</url>
+    <comments>Common Development and Distribution License (CDDL) 1.0.
+    This license applies to OpenDJ source code as indicated in the
+    source files.</comments>
+    <distribution>repo</distribution>
+   </license>
+   <license>
+    <name>CC BY-NC-ND 3.0</name>
+    <url>http://creativecommons.org/licenses/by-nc-nd/3.0/</url>
+    <comments>Creative Commons Attribution-NonCommercial-NoDerivs 3.0
+    Unported. This license applies to the site content, and to the
+    documentation as indicated in the documentation source code.</comments>
+    <distribution>repo</distribution>
+   </license>
   </licenses>
 </project>
