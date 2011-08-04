@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Copyright 2008-2011 Sun Microsystems, Inc.
  *      Portions Copyright 2011 ForgeRock AS
  */
 
@@ -58,7 +58,7 @@ public class BaseDNDescriptor implements Comparable<BaseDNDescriptor>
   private BackendDescriptor backend;
   private long ageOfOldestMissingChange;
   private Type type;
-  private DN baseDn;
+  private final DN baseDn;
   private int replicaID = -1;
 
   private int hashCode;
@@ -100,6 +100,7 @@ public class BaseDNDescriptor implements Comparable<BaseDNDescriptor>
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean equals(Object v)
   {
     boolean equals = false;
@@ -112,9 +113,16 @@ public class BaseDNDescriptor implements Comparable<BaseDNDescriptor>
         getDn().equals(desc.getDn()) &&
         (getAgeOfOldestMissingChange() == desc.getAgeOfOldestMissingChange()) &&
         (getMissingChanges() == desc.getMissingChanges()) &&
-        getBackend().getBackendID().equals(
-            desc.getBackend().getBackendID()) &&
         (getEntries() == desc.getEntries());
+        if (equals)
+        {
+          if ((getBackend() != null) && (desc.getBackend() != null))
+          {
+            // Only compare the backend IDs.  In this context is enough
+            equals = getBackend().getBackendID().equals(
+                desc.getBackend().getBackendID());
+          }
+        }
       }
     }
     else
@@ -127,6 +135,7 @@ public class BaseDNDescriptor implements Comparable<BaseDNDescriptor>
   /**
    * {@inheritDoc}
    */
+  @Override
   public int hashCode()
   {
     return hashCode;
@@ -145,8 +154,12 @@ public class BaseDNDescriptor implements Comparable<BaseDNDescriptor>
     }
     if (returnValue == 0)
     {
-      returnValue = getBackend().getBackendID().compareTo(
-          desc.getBackend().getBackendID());
+      if ((getBackend() != null) && (desc.getBackend() != null))
+      {
+        // Only compare the backend IDs. In this context is enough
+        returnValue = getBackend().getBackendID().compareTo(
+            desc.getBackend().getBackendID());
+      }
     }
     if (returnValue == 0)
     {
