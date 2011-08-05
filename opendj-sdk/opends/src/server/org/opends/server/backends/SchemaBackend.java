@@ -646,7 +646,7 @@ public class SchemaBackend
     {
       if (entryDN.equals(baseDN))
       {
-        return getSchemaEntry(entryDN, false);
+        return getSchemaEntry(entryDN, false, true);
       }
     }
 
@@ -654,7 +654,6 @@ public class SchemaBackend
     // There is never anything below the schema entries, so we will return null.
     return null;
   }
-
 
 
   /**
@@ -668,6 +667,27 @@ public class SchemaBackend
    * @return  The schema entry that was generated.
    */
   public Entry getSchemaEntry(DN entryDN, boolean includeSchemaFile)
+  {
+    return getSchemaEntry(entryDN, includeSchemaFile, false);
+  }
+
+  /**
+   * Generates and returns a schema entry for the Directory Server.
+   *
+   * @param  entryDN            The DN to use for the generated entry.
+   * @param  includeSchemaFile  A boolean indicating if the X-SCHEMA-FILE
+   *                            extension should be used when generating
+   *                            the entry.
+   * @param ignoreShowAllOption A boolean indicating if the showAllAttributes
+   *                            parameter should be ignored or not. It must
+   *                            only considered for Search operation, and
+   *                            definitely ignored for Modify operations, i.e.
+   *                            when calling through getEntry().
+   *
+   * @return  The schema entry that was generated.
+   */
+  private Entry getSchemaEntry(DN entryDN, boolean includeSchemaFile,
+                                          boolean ignoreShowAllOption)
   {
     LinkedHashMap<AttributeType, List<Attribute>> userAttrs =
       new LinkedHashMap<AttributeType, List<Attribute>>();
@@ -767,7 +787,8 @@ public class SchemaBackend
 
     ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
     attrList.add(builder.toAttribute());
-    if (attributeTypesType.isOperational() && (!showAllAttributes))
+    if (attributeTypesType.isOperational() &&
+        (ignoreShowAllOption || (!showAllAttributes)))
     {
       operationalAttrs.put(attributeTypesType, attrList);
     }
@@ -812,7 +833,8 @@ public class SchemaBackend
     attrList = new ArrayList<Attribute>(1);
     attrList.add(builder.toAttribute());
 
-    if (objectClassesType.isOperational() && (!showAllAttributes))
+    if (objectClassesType.isOperational() &&
+        (ignoreShowAllOption || (!showAllAttributes)))
     {
       operationalAttrs.put(objectClassesType, attrList);
     }
@@ -827,7 +849,8 @@ public class SchemaBackend
     attrList = new ArrayList<Attribute>(1);
     attrList.add(builder.toAttribute());
 
-    if (matchingRulesType.isOperational() && (!showAllAttributes))
+    if (matchingRulesType.isOperational() &&
+        (ignoreShowAllOption || (!showAllAttributes)))
     {
       operationalAttrs.put(matchingRulesType, attrList);
     }
@@ -4313,7 +4336,7 @@ public class SchemaBackend
     // writer when we're done.
     try
     {
-      ldifWriter.writeEntry(getSchemaEntry(baseDNs[0], true));
+      ldifWriter.writeEntry(getSchemaEntry(baseDNs[0], true, true));
     }
     catch (Exception e)
     {
