@@ -113,11 +113,6 @@ h3
  font-size: 15px;
 }
 
-h3.author:before
-{
- content: "Written by: ";
-}
-
 h4
 {
  font-size: 14px;
