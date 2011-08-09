@@ -1276,7 +1276,9 @@ public class AssuredReplicationServerTest
    * - 1 optional other fake RS connected to RS, with same GID as RS or not
    * All possible combinations tested thanks to the provider
    */
-  @Test(dataProvider = "testSafeDataLevelOneProvider", groups = "slow", enabled = true)
+  @Test(dataProvider = "testSafeDataLevelOneProvider",
+        groups = { "slow", "opendj-256" },
+        enabled = true)
   public void testSafeDataLevelOne(
       int mainDsGid, boolean otherFakeDS, boolean fakeRS,
       int otherFakeDsGid, int fakeRsGid) throws Exception

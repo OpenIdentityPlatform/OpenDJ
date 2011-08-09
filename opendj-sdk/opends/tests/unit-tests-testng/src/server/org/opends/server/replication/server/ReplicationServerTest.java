@@ -658,7 +658,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * This test is configured for a relatively low stress
    * but can be changed using TOTAL_MSG and THREADS consts.
    */
-  @Test(enabled=true, dependsOnMethods = { "searchBackend"})
+  @Test(enabled=true, dependsOnMethods = { "searchBackend"}, groups = "opendj-256")
   public void multipleWriterMultipleReader() throws Exception
   {
     debugInfo("Starting multipleWriterMultipleReader");
@@ -1758,7 +1758,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     * - Make client 1 publish a change
     * - Check that client 2 does not receive the change
     */
-    @Test(enabled=true, dependsOnMethods = { "searchBackend"})
+    @Test(enabled=true, dependsOnMethods = { "searchBackend"}, groups = "opendj-256")
     public void replicationServerConnected() throws Exception
     {
       replicationServer.clearDb();
