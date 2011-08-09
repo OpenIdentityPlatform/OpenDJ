@@ -362,35 +362,24 @@ Post initialization procedure completed successfully.</screen>
     <title>To Stop Replication Temporarily For a Replica</title>
 
     <para>If you need to stop a server from replicating temporarily, you can
-    do so using <command>dsconfig</command> command. Do not update directory
+    do so using <command>dsconfig</command> command. Do NOT update directory
     data on the server while replication is interrupted.</para>
 
     <step>
-     <para>Get the replication server property that identifies one of the
-     replication service host:port combinations that you need to restart
-     replication.</para>
+     <para>Disable the multimaster synchronization provider.</para>
      <screen>$ dsconfig -p 5444 -h `hostname` -D "cn=Directory Manager" -w password
- get-replication-server-prop --provider-name "Multimaster Synchronization"
- --property replication-server -X
-Property           : Value(s)
--------------------:-----------------------------------------------------------
-replication-server : localhost:8989,
-                   : localhost:9989</screen>
-    </step>
-    <step>
-     <para>Reset the replication server property to the default (no
-     replication server) to pause replication.</para>
-     <screen>$ dsconfig -p 5444 -h `hostname` -D "cn=Directory Manager" -w password
- set-replication-server-prop --provider-name "Multimaster Synchronization"
- --reset replication-server -X -n</screen>
-     <para>Do not modify the replica for which replication is paused.</para>
+ set-synchronization-provider-prop -X -n
+ --provider-name "Multimaster Synchronization" --set enabled:false</screen>
+     <para>Do NOT allow modifications on the replica for which replication is
+     paused, as no record of such changes is kept, and the changes cause
+     replication to diverge.</para>
     </step>
     <step performance="optional">
-     <para>When you are ready to resume replication, set the replication server
-     property to the host:port combination of an active replication server.</para>
+     <para>When you are ready to resume replication, enable the multimaster
+     synchronization provider.</para>
      <screen>$ dsconfig -p 5444 -h `hostname` -D "cn=Directory Manager" -w password
- set-replication-server-prop --provider-name "Multimaster Synchronization"
- --set replication-server:localhost:8989 -X -n</screen>
+ set-synchronization-provider-prop -X -n
+ --provider-name "Multimaster Synchronization" --set enabled:true</screen>
     </step>
    </procedure>
    
