@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 /**
@@ -284,6 +285,7 @@ public class SSFTestCase extends AciTestCase {
         deleteAttrFromEntry(newUser, "aci");
         deleteAttrFromEntry(newUser, "description");
         //Test high strength.
+        // TODO: this hangs sometimes during the JNDIModify (see OPENDJ-256).
         addACILDIF = makeAddLDIF("aci", newUser, hiStrengthACI);
         LDIFModify(addACILDIF, DIR_MGR_DN, PWD);
         env.put("javax.security.sasl.strength", "high");
