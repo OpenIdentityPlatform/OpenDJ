@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.tasks;
@@ -373,7 +374,9 @@ public class TestImportAndExport extends TasksTestCase
     ObjectClass exportClass =
          DirectoryServer.getObjectClass("ds-task-export", true);
 
-    testTask(taskEntry, expectedState, 60);
+    // Use a big timeout since this test is sensitive to host environment (e.g.
+    // low memory, etc). See issue OPENDJ-256.
+    testTask(taskEntry, expectedState, 600);
      if ((expectedState == TaskState.COMPLETED_SUCCESSFULLY) ||
         (expectedState == TaskState.COMPLETED_WITH_ERRORS))
     {
