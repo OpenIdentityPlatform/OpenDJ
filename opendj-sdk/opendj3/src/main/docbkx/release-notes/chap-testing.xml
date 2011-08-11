@@ -30,9 +30,15 @@
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Tested Operating Systems &amp; Application Servers</title>
-
+ 
+ <indexterm><primary>System requirements</primary></indexterm>
  <para>OpenDJ software depends on the Java environment more than it depends
- on the underlying operating systems.</para>
+ on the underlying operating systems. OpenDJ directory server relies on Java 6,
+ specifically at least the Java Standard Edition 6.0 (Sun version 1.6.0_10)
+ runtime environment. For best server performance, use at least version
+ 1.6.0_22, which includes a major security fix for TLS as well. To build
+ applications with the OpenDJ LDAP SDK, you need the Java SDK as the runtime
+ environment has no compiler.</para>
 
  <para>That said, OpenDJ <?eval ${project.version}?> has been validated on
  the following operating systems.</para>
