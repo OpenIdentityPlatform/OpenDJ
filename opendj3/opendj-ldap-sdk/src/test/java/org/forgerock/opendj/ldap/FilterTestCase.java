@@ -36,7 +36,6 @@ import static org.testng.Assert.assertTrue;
 import java.util.ArrayList;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
-import org.forgerock.opendj.ldap.*;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 

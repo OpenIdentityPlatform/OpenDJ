@@ -30,7 +30,6 @@ package org.forgerock.opendj.ldap;
 
 import static org.testng.Assert.assertTrue;
 
-import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;

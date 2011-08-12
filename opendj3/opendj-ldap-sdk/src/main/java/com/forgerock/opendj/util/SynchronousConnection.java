@@ -26,17 +26,17 @@
  *      Portions copyright 2011 ForgeRock AS
  */
 
-package org.forgerock.opendj.ldap;
+package com.forgerock.opendj.util;
 
 
 
 import java.util.concurrent.BlockingQueue;
 
+import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.requests.*;
 import org.forgerock.opendj.ldap.responses.*;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 
-import com.forgerock.opendj.util.Validator;
 
 
 

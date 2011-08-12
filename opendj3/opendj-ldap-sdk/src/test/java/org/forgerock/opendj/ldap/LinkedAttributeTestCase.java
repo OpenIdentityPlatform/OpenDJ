@@ -34,7 +34,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.testng.Assert;
 import org.testng.annotations.Test;

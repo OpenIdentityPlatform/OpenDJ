@@ -89,7 +89,7 @@ public class StringPrepProfileTestCase extends UtilTestCase
 
   // Generates data for case exact matching rules.
   @DataProvider(name = "exactRuleData")
-  private Object[][] createExactRuleData()
+  public Object[][] createExactRuleData()
   {
     return new Object[][] { { "12345678", "12345678", ConditionResult.TRUE },
         { "ABC45678", "ABC45678", ConditionResult.TRUE },
@@ -104,7 +104,7 @@ public class StringPrepProfileTestCase extends UtilTestCase
 
   // Generates data for case ignore matching rules.
   @DataProvider(name = "caseFoldRuleData")
-  private Object[][] createIgnoreRuleData()
+  public Object[][] createIgnoreRuleData()
   {
     return new Object[][] { { "12345678", "12345678", ConditionResult.TRUE },
         { "ABC45678", "abc45678", ConditionResult.TRUE },

@@ -25,7 +25,7 @@
  *      Copyright 2010 Sun Microsystems, Inc.
  */
 
-package org.forgerock.opendj.ldap;
+package com.forgerock.opendj.util;
 
 
 
@@ -45,6 +45,8 @@ import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import com.forgerock.opendj.util.SynchronousConnection;
 
 
 
