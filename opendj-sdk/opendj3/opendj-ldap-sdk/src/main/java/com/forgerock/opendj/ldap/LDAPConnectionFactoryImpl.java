@@ -51,6 +51,7 @@ import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.filterchain.TransportFilter;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 
+import com.forgerock.opendj.util.AbstractConnectionFactory;
 import com.forgerock.opendj.util.CompletedFutureResult;
 import com.forgerock.opendj.util.FutureResultTransformer;
 import com.forgerock.opendj.util.RecursiveFutureResult;

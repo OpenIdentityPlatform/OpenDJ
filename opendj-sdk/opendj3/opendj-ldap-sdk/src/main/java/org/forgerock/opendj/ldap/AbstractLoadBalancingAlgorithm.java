@@ -40,6 +40,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
+import com.forgerock.opendj.util.AbstractConnectionFactory;
 import com.forgerock.opendj.util.AsynchronousFutureResult;
 import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.Validator;

@@ -23,16 +23,19 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
-package org.forgerock.opendj.ldap;
+package com.forgerock.opendj.util;
+
+import org.forgerock.opendj.ldap.*;
 
 
 
 /**
- * This class provides a skeletal implementation of the {@code
- * ConnectionFactory} interface, to minimize the effort required to implement
- * this interface.
+ * This class provides a skeletal implementation of the
+ * {@code ConnectionFactory} interface, to minimize the effort required to
+ * implement this interface.
  */
 public abstract class AbstractConnectionFactory implements ConnectionFactory
 {
@@ -58,13 +61,9 @@ public abstract class AbstractConnectionFactory implements ConnectionFactory
    * {@inheritDoc}
    * <p>
    * The default implementation is to convert the asynchronous connection
-   * returned from {@code blockingGetAsynchronousConnection()} to a synchronous
-   * connection using a {@link SynchronousConnection} as per the following code:
-   *
-   * <pre>
-   * return new SynchronousConnection(blockingGetAsynchronousConnection());
-   * </pre>
-   *
+   * returned from {@code getAsynchronousConnection()} to a synchronous
+   * connection using {@link AsynchronousConnection#getSynchronousConnection()}.
+   * <p>
    * Implementations should override this method if they wish to return a
    * different type of synchronous connection.
    *

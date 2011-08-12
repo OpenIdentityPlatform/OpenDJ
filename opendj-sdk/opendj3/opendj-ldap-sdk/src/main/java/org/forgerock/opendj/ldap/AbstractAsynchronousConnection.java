@@ -40,6 +40,8 @@ import java.util.concurrent.TimeoutException;
 import org.forgerock.opendj.ldap.requests.*;
 import org.forgerock.opendj.ldap.responses.*;
 
+import com.forgerock.opendj.util.SynchronousConnection;
+
 
 
 /**

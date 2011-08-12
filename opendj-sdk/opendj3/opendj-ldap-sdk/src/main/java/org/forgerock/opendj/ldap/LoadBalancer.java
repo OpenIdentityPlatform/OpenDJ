@@ -29,6 +29,7 @@ package org.forgerock.opendj.ldap;
 
 
 
+import com.forgerock.opendj.util.AbstractConnectionFactory;
 import com.forgerock.opendj.util.CompletedFutureResult;
 import com.forgerock.opendj.util.Validator;
 

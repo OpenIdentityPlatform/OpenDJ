@@ -66,9 +66,6 @@ public final class RDNTestCase extends TypesTestCase
   // org bytestring.
   private static final ByteString ORG = ByteString.valueOf("org");
 
-  // opendj bytestring.
-  private static final ByteString OPENDJ = ByteString.valueOf("opendj");
-
 
 
   /**
