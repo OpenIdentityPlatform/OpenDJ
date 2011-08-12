@@ -604,10 +604,11 @@ public class LDAPListenerTestCase extends SdkTestCase
 
       // Round robin.
       final ConnectionFactory loadBalancer = Connections
-          .newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(Arrays.asList(
-              Connections.newConnectionPool(offlineServer1, 10),
-              Connections.newConnectionPool(offlineServer2, 10),
-              Connections.newConnectionPool(onlineServer, 10))));
+          .newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(Arrays
+              .<ConnectionFactory> asList(
+                  Connections.newFixedConnectionPool(offlineServer1, 10),
+                  Connections.newFixedConnectionPool(offlineServer2, 10),
+                  Connections.newFixedConnectionPool(onlineServer, 10))));
 
       final MockServerConnection proxyServerConnection = new MockServerConnection();
       final MockServerConnectionFactory proxyServerConnectionFactory = new MockServerConnectionFactory(
@@ -699,10 +700,11 @@ public class LDAPListenerTestCase extends SdkTestCase
 
       // Round robin.
       final ConnectionFactory loadBalancer = Connections
-          .newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(Arrays.asList(
-              Connections.newConnectionPool(offlineServer1, 10),
-              Connections.newConnectionPool(offlineServer2, 10),
-              Connections.newConnectionPool(onlineServer, 10))));
+          .newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(Arrays
+              .<ConnectionFactory> asList(
+                  Connections.newFixedConnectionPool(offlineServer1, 10),
+                  Connections.newFixedConnectionPool(offlineServer2, 10),
+                  Connections.newFixedConnectionPool(onlineServer, 10))));
 
       final MockServerConnection proxyServerConnection = new MockServerConnection()
       {
