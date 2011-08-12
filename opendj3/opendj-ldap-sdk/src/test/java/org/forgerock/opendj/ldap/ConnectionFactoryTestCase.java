@@ -33,11 +33,14 @@ import static org.fest.assertions.Assertions.assertThat;
 
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
 import javax.net.ssl.SSLContext;
@@ -48,11 +51,14 @@ import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import com.forgerock.opendj.util.CompletedFutureResult;
 import com.forgerock.opendj.util.StaticUtils;
 
 
@@ -205,7 +211,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase
         "online");
 
     // Connection pools.
-    factories[7][0] = Connections.newConnectionPool(onlineServer, 10);
+    factories[7][0] = Connections.newFixedConnectionPool(onlineServer, 10);
 
     // Round robin.
     factories[8][0] = Connections
@@ -220,9 +226,10 @@ public class ConnectionFactoryTestCase extends SdkTestCase
         .newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(Arrays.asList(
             offlineServer1, offlineServer2, onlineServer)));
     factories[13][0] = Connections
-        .newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(Arrays.asList(
-            Connections.newConnectionPool(offlineServer1, 10),
-            Connections.newConnectionPool(onlineServer, 10))));
+        .newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(Arrays
+            .<ConnectionFactory> asList(
+                Connections.newFixedConnectionPool(offlineServer1, 10),
+                Connections.newFixedConnectionPool(onlineServer, 10))));
 
     // Fail-over.
     factories[14][0] = Connections
@@ -237,11 +244,12 @@ public class ConnectionFactoryTestCase extends SdkTestCase
         .newLoadBalancer(new FailoverLoadBalancingAlgorithm(Arrays.asList(
             offlineServer1, offlineServer2, onlineServer)));
     factories[19][0] = Connections
-        .newLoadBalancer(new FailoverLoadBalancingAlgorithm(Arrays.asList(
-            Connections.newConnectionPool(offlineServer1, 10),
-            Connections.newConnectionPool(onlineServer, 10))));
+        .newLoadBalancer(new FailoverLoadBalancingAlgorithm(Arrays
+            .<ConnectionFactory> asList(
+                Connections.newFixedConnectionPool(offlineServer1, 10),
+                Connections.newFixedConnectionPool(onlineServer, 10))));
 
-    factories[20][0] = Connections.newConnectionPool(onlineServer, 10);
+    factories[20][0] = Connections.newFixedConnectionPool(onlineServer, 10);
 
     return factories;
   }
@@ -366,5 +374,120 @@ public class ConnectionFactoryTestCase extends SdkTestCase
       // Close connection.
       connection.close();
     }
+  }
+
+
+
+  /**
+   * Tests connection pool closure.
+   *
+   * @throws Exception If an unexpected exception occurred.
+   */
+  @SuppressWarnings("unchecked")
+  @Test
+  public void testConnectionPoolClose() throws Exception
+  {
+    // We'll use a pool of 4 connections.
+    final int SIZE = 4;
+
+    // Count number of real connections which are open.
+    final AtomicInteger realConnectionCount = new AtomicInteger();
+    final boolean[] realConnectionIsClosed = new boolean[SIZE];
+    Arrays.fill(realConnectionIsClosed, true);
+
+    // Mock underlying connection factory which always succeeds.
+    final ConnectionFactory mockFactory = mock(ConnectionFactory.class);
+    when(mockFactory.getAsynchronousConnection(any(ResultHandler.class)))
+        .thenAnswer(new Answer<FutureResult<AsynchronousConnection>>()
+        {
+
+          public FutureResult<AsynchronousConnection> answer(
+              InvocationOnMock invocation) throws Throwable
+          {
+            // Update state.
+            final int connectionID = realConnectionCount.getAndIncrement();
+            realConnectionIsClosed[connectionID] = false;
+
+            // Mock connection decrements counter on close.
+            AsynchronousConnection mockConnection = mock(AsynchronousConnection.class);
+            doAnswer(new Answer<Void>()
+            {
+              public Void answer(InvocationOnMock invocation) throws Throwable
+              {
+                realConnectionCount.decrementAndGet();
+                realConnectionIsClosed[connectionID] = true;
+                return null;
+              }
+            }).when(mockConnection).close();
+            when(mockConnection.isValid()).thenReturn(true);
+            when(mockConnection.toString()).thenReturn("Mock connection " + connectionID);
+
+            // Excecute handler and return future.
+            ResultHandler<? super AsynchronousConnection> handler =
+              (ResultHandler<? super AsynchronousConnection>) invocation.getArguments()[0];
+            if (handler != null)
+            {
+              handler.handleResult(mockConnection);
+            }
+            return new CompletedFutureResult<AsynchronousConnection>(
+                mockConnection);
+          }
+        });
+
+    ConnectionPool pool = Connections.newFixedConnectionPool(mockFactory, SIZE);
+    Connection[] pooledConnections = new Connection[SIZE];
+    for (int i = 0; i < SIZE; i++)
+    {
+      pooledConnections[i] = pool.getConnection();
+    }
+
+    // Pool is fully utilized.
+    assertThat(realConnectionCount.get()).isEqualTo(SIZE);
+    assertThat(pooledConnections[0].isClosed()).isFalse();
+    assertThat(pooledConnections[1].isClosed()).isFalse();
+    assertThat(pooledConnections[2].isClosed()).isFalse();
+    assertThat(pooledConnections[3].isClosed()).isFalse();
+    assertThat(realConnectionIsClosed[0]).isFalse();
+    assertThat(realConnectionIsClosed[1]).isFalse();
+    assertThat(realConnectionIsClosed[2]).isFalse();
+    assertThat(realConnectionIsClosed[3]).isFalse();
+
+    // Release two connections.
+    pooledConnections[0].close();
+    pooledConnections[1].close();
+    assertThat(realConnectionCount.get()).isEqualTo(4);
+    assertThat(pooledConnections[0].isClosed()).isTrue();
+    assertThat(pooledConnections[1].isClosed()).isTrue();
+    assertThat(pooledConnections[2].isClosed()).isFalse();
+    assertThat(pooledConnections[3].isClosed()).isFalse();
+    assertThat(realConnectionIsClosed[0]).isFalse();
+    assertThat(realConnectionIsClosed[1]).isFalse();
+    assertThat(realConnectionIsClosed[2]).isFalse();
+    assertThat(realConnectionIsClosed[3]).isFalse();
+
+    // Close the pool closing the two connections immediately.
+    pool.close();
+    assertThat(realConnectionCount.get()).isEqualTo(2);
+    assertThat(pooledConnections[0].isClosed()).isTrue();
+    assertThat(pooledConnections[1].isClosed()).isTrue();
+    assertThat(pooledConnections[2].isClosed()).isFalse();
+    assertThat(pooledConnections[3].isClosed()).isFalse();
+    assertThat(realConnectionIsClosed[0]).isTrue();
+    assertThat(realConnectionIsClosed[1]).isTrue();
+    assertThat(realConnectionIsClosed[2]).isFalse();
+    assertThat(realConnectionIsClosed[3]).isFalse();
+
+    // Release two remaining connections and check that they get closed.
+    pooledConnections[2].close();
+    pooledConnections[3].close();
+    assertThat(realConnectionCount.get()).isEqualTo(0);
+    assertThat(pooledConnections[0].isClosed()).isTrue();
+    assertThat(pooledConnections[1].isClosed()).isTrue();
+    assertThat(pooledConnections[2].isClosed()).isTrue();
+    assertThat(pooledConnections[3].isClosed()).isTrue();
+    assertThat(realConnectionIsClosed[0]).isTrue();
+    assertThat(realConnectionIsClosed[1]).isTrue();
+    assertThat(realConnectionIsClosed[2]).isTrue();
+    assertThat(realConnectionIsClosed[3]).isTrue();
   }
 }

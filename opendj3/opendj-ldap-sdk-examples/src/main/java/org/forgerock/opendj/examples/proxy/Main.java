@@ -559,10 +559,10 @@ public final class Main
       final String remoteAddress = args[i];
       final int remotePort = Integer.parseInt(args[i + 1]);
 
-      factories.add(Connections.newConnectionPool(
+      factories.add(Connections.newFixedConnectionPool(
           new LDAPConnectionFactory(remoteAddress, remotePort),
           Integer.MAX_VALUE));
-      bindFactories.add(Connections.newConnectionPool(
+      bindFactories.add(Connections.newFixedConnectionPool(
           new LDAPConnectionFactory(remoteAddress, remotePort),
           Integer.MAX_VALUE));
     }

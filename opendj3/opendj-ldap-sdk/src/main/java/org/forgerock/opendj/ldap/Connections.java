@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -92,13 +93,13 @@ public final class Connections
    * @throws NullPointerException
    *           If {@code factory} was {@code null}.
    */
-  public static ConnectionFactory newConnectionPool(
+  public static ConnectionPool newFixedConnectionPool(
       final ConnectionFactory factory, final int poolSize)
       throws IllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(factory);
     Validator.ensureTrue(poolSize >= 0, "negative pool size");
-    return new ConnectionPool(factory, poolSize);
+    return new FixedConnectionPool(factory, poolSize);
   }
 
 
