@@ -5,6 +5,7 @@
   <module name="TreeWalker">
     <module name="JavadocMethod">
       <property name="scope" value="protected" />
+      <property name="allowUndeclaredRTE" value="true"/>
     </module>
     <module name="JavadocStyle">
       <property name="scope" value="protected" />
