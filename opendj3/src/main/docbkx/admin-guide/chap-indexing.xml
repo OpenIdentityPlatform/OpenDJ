@@ -328,6 +328,35 @@ Rebuild Index task 20110607160349596 scheduled to start Jun 7, 2011 4:03:49 PM</
  </section>
  
  <section>
+  <title>Checking Indexes For a Search</title>
+  
+  <para>When searching, you can improve performance by making sure your search
+  is indexed as you expect. One way of checking is to request the
+  <literal>debugsearchindex</literal> attribute in your results.</para>
+  
+  <screen>$ ldapsearch -p 1389 -b dc=example,dc=com "(uid=bjensen)" debugsearchindex
+dn: cn=debugsearch
+debugsearchindex: filter=(uid=bjensen)[INDEX:uid.equality][COUNT:1]
+ final=[COUNT:1]</screen>
+ 
+  <para>When you request the <literal>debugsearchindex</literal> attribute,
+  instead of performing the search, OpenDJ returns debug information indicating
+  how it would process the search operation. In the example above you notice
+  OpenDJ hits the equality index for <literal>uid</literal> right away.</para>
+  
+  <para>A less exact search requires more work from OpenDJ. In the following
+  example OpenDJ would have to return 160 entries.</para>
+  
+  <screen>$ ldapsearch -p 1389 -b dc=example,dc=com "(uid=*)" debugsearchindex
+dn: cn=debugsearch
+debugsearchindex: filter=(uid=*)[NOT-INDEXED] scope=wholeSubtree[COUNT:160]
+ final=[COUNT:160]</screen>
+  
+  <para>By default OpenDJ rejects unindexed searches when the number of
+  candidate entries goes beyond the search or look-though limit.</para>
+ </section>
+ 
+ <section>
   <title>Default Indexes</title>
   
   <para>When you first install OpenDJ directory server and import your
