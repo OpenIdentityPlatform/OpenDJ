@@ -116,7 +116,7 @@ Terminal sessions are formatted like this.</screen>
   <para>Core documentation, such as what you are now reading, aims to
   be technically accurate and complete with respect to the software
   documented. Core documentation therefore follows a <link
-  xlink:href='https://wikis.forgerock.org/confluence/display/devcom/Documentation+Review+Process'
+  xlink:href='https://wikis.forgerock.org/confluence/display/devcom/Review+Process'
   >three-phase review process</link> designed to eliminate errors. The
   review process should slow authors down enough that documentation you get
   with a stable release has had time to bake fully.</para>
@@ -159,7 +159,7 @@ Terminal sessions are formatted like this.</screen>
   >https://lists.forgerock.org/mailman/listinfo/opendj-dev</link>
   Should you want to contribute a patch, test, or feature, or want to author
   part of the core documentation, first have a look on the ForgeRock Community
-  page at <link xlink:href='http://www.forgerock.org/community_process.html'>
+  page at <link xlink:href='http://www.forgerock.org/get_involved.html'>
   how to get involved</link>.</para>
  </section>
 
