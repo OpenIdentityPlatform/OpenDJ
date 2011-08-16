@@ -122,7 +122,7 @@
       <listitem><para>Random number</para></listitem>
      </varlistentry>
      <varlistentry>
-      <term>"randStr({length},<replaceable>charSet</replaceable>)"</term>
+      <term>"randstr({length},<replaceable>charSet</replaceable>)"</term>
       <listitem><para>Random string of specified length and optionally from
       characters in the charSet string. A range of character can be specified
       with [start-end] charSet notation. If no charSet is specified,
@@ -350,7 +350,7 @@
   <screen>$ grep ^uid: /path/to/Example.ldif | sed -e "s/uid: //" &gt; names.txt
 $ modrate -p 1389 -D cn=directory\ manager -w secret12
  -b "uid=%s,ou=people,dc=example,dc=com" -g "rand(names.txt)"
- "description:%s" -g "randStr(16)" -A -F -c 4 -t 4
+ 'description:%2$s' -g "randstr(16)" -A -F -c 4 -t 4
 -----------------------------------------------------------------
      Throughput                            Response Time         
    (ops/second)                           (milliseconds)         
