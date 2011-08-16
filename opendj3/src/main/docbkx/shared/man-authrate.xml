@@ -119,7 +119,7 @@
       <listitem><para>Random number</para></listitem>
      </varlistentry>
      <varlistentry>
-      <term>"randStr({length},<replaceable>charSet</replaceable>)"</term>
+      <term>"randstr({length},<replaceable>charSet</replaceable>)"</term>
       <listitem><para>Random string of specified length and optionally from
       characters in the charSet string. A range of character can be specified
       with [start-end] charSet notation. If no charSet is specified,
