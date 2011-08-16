@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -38,7 +39,8 @@ import org.forgerock.opendj.ldap.responses.Result;
 
 /**
  * Thrown when the result code returned in a Result indicates that the Request
- * was unsuccessful.
+ * was unsuccessful. This class can be sub-classed in order to implement
+ * application specific exceptions.
  */
 @SuppressWarnings("serial")
 public class ErrorResultException extends ExecutionException
@@ -250,7 +252,7 @@ public class ErrorResultException extends ExecutionException
    * @param result
    *          The error result.
    */
-  ErrorResultException(final Result result)
+  protected ErrorResultException(final Result result)
   {
     super(result.getResultCode() + ": "
         + result.getDiagnosticMessage());
@@ -266,7 +268,7 @@ public class ErrorResultException extends ExecutionException
    *
    * @return The error result which caused this exception to be thrown.
    */
-  public Result getResult()
+  public final Result getResult()
   {
     return result;
   }
