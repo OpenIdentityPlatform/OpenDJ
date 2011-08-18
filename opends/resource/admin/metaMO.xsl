@@ -23,6 +23,7 @@
   !
   !
   !      Copyright 2007-2010 Sun Microsystems, Inc.
+  !      Portions copyright 2011 ForgeRock AS.
   ! -->
 <xsl:stylesheet version="1.0" xmlns:adm="http://www.opends.org/admin"
   xmlns:admpp="http://www.opends.org/admin-preprocessor"
@@ -1519,20 +1520,29 @@
   <xsl:template name="generate-change-listener-help">
     <xsl:param name="top-name" select="/.." />
     <xsl:param name="name" select="/.." />
+    
+    <xsl:variable name="_top-length" select="string-length($top-name)" />
+    <xsl:variable name="_length" select="string-length($name)" />
+    <xsl:variable name="_diff"   select="$_length - $_top-length" />
+    <xsl:variable name="_start"  select="substring($name, 1, $_diff - 1)" />
+    <xsl:variable name="_middle" select="substring($name, $_diff, 1)" />
+    <xsl:variable name="_end" 
+      select="substring($name, $_diff + 1, $_top-length)" />
+    
     <xsl:variable name="short-name">
       <xsl:choose>
         <xsl:when test="not($top-name) or $top-name = $name">
           <xsl:value-of select="''" />
         </xsl:when>
+        <xsl:when test="$_middle != '-' or $_end != $_top-name">
+          <xsl:value-of select="$name" />
+        </xsl:when>
         <xsl:otherwise>
-          <xsl:variable name="top-length"
-            select="string-length($top-name)" />
-          <xsl:variable name="length" select="string-length($name)" />
-          <xsl:variable name="diff" select="$length - $top-length" />
-          <xsl:value-of select="substring($name, 1, $diff - 1)" />
+          <xsl:value-of select="$_start" />
         </xsl:otherwise>
       </xsl:choose>
     </xsl:variable>
+    
     <xsl:variable name="java-class">
       <xsl:call-template name="name-to-java">
         <xsl:with-param name="value" select="$name" />
