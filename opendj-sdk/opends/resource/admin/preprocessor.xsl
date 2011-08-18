@@ -22,6 +22,7 @@
   !
   !
   !      Copyright 2008-2010 Sun Microsystems, Inc.
+  !      Portions copyright 2011 ForgeRock AS.
   ! -->
 <xsl:stylesheet version="1.0" xmlns:adm="http://www.opends.org/admin"
   xmlns:admpp="http://www.opends.org/admin-preprocessor"
@@ -1194,13 +1195,16 @@
       <xsl:when test="not($_top-name)">
         <xsl:value-of select="''" />
       </xsl:when>
+      <xsl:when test="$_middle != '-' or $_end != $_top-name">
+        <!--
+        <xsl:message terminate="no">
+          <xsl:value-of
+            select="concat('The managed object ', $this-name, ' should end with ', $_top-name)" />
+        </xsl:message>
+        -->
+        <xsl:value-of select="$this-name" />
+      </xsl:when>
       <xsl:otherwise>
-        <xsl:if test="$_middle != '-' or $_end != $_top-name">
-          <xsl:message terminate="yes">
-            <xsl:value-of
-              select="concat('The managed object ', $this-name, ' should end with ', $_top-name)" />
-          </xsl:message>
-        </xsl:if>
         <xsl:value-of select="$_start" />
       </xsl:otherwise>
     </xsl:choose>
