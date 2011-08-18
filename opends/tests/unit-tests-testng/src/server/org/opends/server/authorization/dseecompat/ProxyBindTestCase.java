@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 
 /**
@@ -79,6 +80,7 @@ public class ProxyBindTestCase extends AciTestCase {
               "--set", "server-fqdn:localhost");
       TestCaseUtils.dsconfig(
               "create-password-policy",
+              "--type", "password-policy",
               "--policy-name", pwdPolicy,
               "--set", "password-attribute:userPassword",
               "--set", "default-password-storage-scheme: Clear"

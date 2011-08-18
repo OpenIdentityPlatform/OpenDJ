@@ -1136,7 +1136,7 @@ modifyProcessing:
 
             // If it's a self change, then see if that's allowed.
             if (selfChange &&
-                (! pwPolicyState.getPolicy().allowUserPasswordChanges()))
+                (! pwPolicyState.getPolicy().isAllowUserPasswordChanges()))
             {
               pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
               throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
@@ -1146,7 +1146,7 @@ modifyProcessing:
 
             // If we require secure password changes, then makes sure it's a
             // secure communication channel.
-            if (pwPolicyState.getPolicy().requireSecurePasswordChanges() &&
+            if (pwPolicyState.getPolicy().isRequireSecurePasswordChanges() &&
                 (! clientConnection.isSecure()))
             {
               pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
@@ -1242,7 +1242,7 @@ modifyProcessing:
     // If there were multiple password values, then make sure that's
     // OK.
     if ((!isInternalOperation())
-        && (!pwPolicyState.getPolicy().allowMultiplePasswordValues())
+        && (!pwPolicyState.getPolicy().isAllowMultiplePasswordValues())
         && (passwordsToAdd > 1))
     {
       pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
@@ -1260,7 +1260,7 @@ modifyProcessing:
       if (pwPolicyState.passwordIsPreEncoded(v.getValue()))
       {
         if ((!isInternalOperation())
-            && !pwPolicyState.getPolicy().allowPreEncodedPasswords())
+            && !pwPolicyState.getPolicy().isAllowPreEncodedPasswords())
         {
           pwpErrorType = PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY;
           throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
@@ -1382,7 +1382,7 @@ modifyProcessing:
         {
           for (AttributeValue av : attr)
           {
-            if (pwPolicyState.getPolicy().usesAuthPasswordSyntax())
+            if (pwPolicyState.getPolicy().isAuthPasswordSyntax())
             {
               if (AuthPasswordSyntax.isEncoded(av.getValue()))
               {
@@ -1870,7 +1870,7 @@ modifyProcessing:
     // If it was a self change, then see if the current password was provided
     // and handle accordingly.
     if (selfChange &&
-        pwPolicyState.getPolicy().requireCurrentPassword() &&
+        pwPolicyState.getPolicy().isPasswordChangeRequiresCurrentPassword() &&
         (! currentPasswordProvided))
     {
       pwpErrorType = PasswordPolicyErrorType.MUST_SUPPLY_OLD_PASSWORD;
@@ -1883,7 +1883,7 @@ modifyProcessing:
     // If this change would result in multiple password values, then see if
     // that's OK.
     if ((numPasswords > 1) &&
-        (! pwPolicyState.getPolicy().allowMultiplePasswordValues()))
+        (! pwPolicyState.getPolicy().isAllowMultiplePasswordValues()))
     {
       pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
@@ -1893,7 +1893,7 @@ modifyProcessing:
 
     // If any of the password values should be validated, then do so now.
     if (selfChange ||
-        (! pwPolicyState.getPolicy().skipValidationForAdministrators()))
+        (! pwPolicyState.getPolicy().isSkipValidationForAdministrators()))
     {
       if (newPasswords != null)
       {
@@ -1966,7 +1966,7 @@ modifyProcessing:
           if (pwPolicyState.isPasswordInHistory(v.getValue()))
           {
             if (selfChange || (! pwPolicyState.getPolicy().
-                                      skipValidationForAdministrators()))
+                                      isSkipValidationForAdministrators()))
             {
               pwpErrorType = PasswordPolicyErrorType.PASSWORD_IN_HISTORY;
               throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
@@ -1992,8 +1992,8 @@ modifyProcessing:
     pwPolicyState.clearGraceLoginTimes();
     pwPolicyState.clearWarnedTime();
 
-    if (pwPolicyState.getPolicy().forceChangeOnAdd() ||
-        pwPolicyState.getPolicy().forceChangeOnReset())
+    if (pwPolicyState.getPolicy().isForceChangeOnAdd() ||
+        pwPolicyState.getPolicy().isForceChangeOnReset())
     {
       if (selfChange)
       {
@@ -2002,13 +2002,13 @@ modifyProcessing:
       else
       {
         if ((pwpErrorType == null) &&
-            pwPolicyState.getPolicy().forceChangeOnReset())
+            pwPolicyState.getPolicy().isForceChangeOnReset())
         {
           pwpErrorType = PasswordPolicyErrorType.CHANGE_AFTER_RESET;
         }
 
         pwPolicyState.setMustChangePassword(
-             pwPolicyState.getPolicy().forceChangeOnReset());
+             pwPolicyState.getPolicy().isForceChangeOnReset());
       }
     }
 

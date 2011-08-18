@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010 ForgeRock AS.
+ *      Portions Copyright 2010-2011 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -37,30 +37,19 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.DynamicConstants.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.util.Validator.*;
+import static org.opends.server.util.StaticUtils.getExceptionMessage;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.util.StaticUtils.toLowerCase;
+import static org.opends.server.util.Validator.ensureNotNull;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
+import java.io.*;
+import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.text.DecimalFormat;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.lang.management.ManagementFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.management.MBeanServer;
@@ -72,63 +61,11 @@ import org.opends.server.admin.AdministrationDataSync;
 import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.meta.GlobalCfgDefn.WorkflowConfigurationMode;
-import org.opends.server.admin.std.server.AlertHandlerCfg;
-import org.opends.server.admin.std.server.AttributeSyntaxCfg;
-import org.opends.server.admin.std.server.ConnectionHandlerCfg;
-import org.opends.server.admin.std.server.CryptoManagerCfg;
-import org.opends.server.admin.std.server.DirectoryStringAttributeSyntaxCfg;
-import org.opends.server.admin.std.server.MonitorProviderCfg;
-import org.opends.server.admin.std.server.PasswordValidatorCfg;
-import org.opends.server.admin.std.server.RootCfg;
-import org.opends.server.admin.std.server.RootDSEBackendCfg;
-import org.opends.server.admin.std.server.SynchronizationProviderCfg;
-import org.opends.server.api.AccessControlHandler;
-import org.opends.server.api.AccountStatusNotificationHandler;
-import org.opends.server.api.AlertGenerator;
-import org.opends.server.api.AlertHandler;
-import org.opends.server.api.ApproximateMatchingRule;
-import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.Backend;
-import org.opends.server.api.BackendInitializationListener;
-import org.opends.server.api.BackupTaskListener;
-import org.opends.server.api.CertificateMapper;
-import org.opends.server.api.ChangeNotificationListener;
-import org.opends.server.api.ClientConnection;
-import org.opends.server.api.CompressedSchema;
-import org.opends.server.api.ConfigAddListener;
-import org.opends.server.api.ConfigChangeListener;
-import org.opends.server.api.ConfigDeleteListener;
-import org.opends.server.api.ConfigHandler;
-import org.opends.server.api.ConnectionHandler;
-import org.opends.server.api.DirectoryServerMBean;
-import org.opends.server.api.EntryCache;
-import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.api.ExportTaskListener;
-import org.opends.server.api.ExtendedOperationHandler;
-import org.opends.server.api.Extension;
-import org.opends.server.api.IdentityMapper;
-import org.opends.server.api.ImportTaskListener;
-import org.opends.server.api.InitializationCompletedListener;
-import org.opends.server.api.InvokableComponent;
-import org.opends.server.api.KeyManagerProvider;
-import org.opends.server.api.MatchingRule;
-import org.opends.server.api.MatchingRuleFactory;
-import org.opends.server.api.MonitorProvider;
-import org.opends.server.api.OrderingMatchingRule;
-import org.opends.server.api.PasswordGenerator;
-import org.opends.server.api.PasswordStorageScheme;
-import org.opends.server.api.PasswordValidator;
-import org.opends.server.api.RestoreTaskListener;
-import org.opends.server.api.SASLMechanismHandler;
-import org.opends.server.api.ServerShutdownListener;
-import org.opends.server.api.SubstringMatchingRule;
-import org.opends.server.api.SynchronizationProvider;
-import org.opends.server.api.TrustManagerProvider;
-import org.opends.server.api.WorkQueue;
+import org.opends.server.admin.std.server.*;
+import org.opends.server.api.*;
 import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.api.ExtensibleMatchingRule;
 import org.opends.server.backends.RootDSEBackend;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
@@ -141,11 +78,7 @@ import org.opends.server.crypto.CryptoManagerImpl;
 import org.opends.server.crypto.CryptoManagerSync;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.extensions.JMXAlertHandler;
-import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.loggers.RetentionPolicy;
-import org.opends.server.loggers.RotationPolicy;
-import org.opends.server.loggers.TextErrorLogPublisher;
-import org.opends.server.loggers.TextWriter;
+import org.opends.server.loggers.*;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.loggers.debug.TextDebugLogPublisher;
@@ -153,89 +86,15 @@ import org.opends.server.monitors.BackendMonitor;
 import org.opends.server.monitors.ConnectionHandlerMonitor;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalConnectionHandler;
-import org.opends.server.schema.AttributeTypeSyntax;
-import org.opends.server.schema.BinarySyntax;
-import org.opends.server.schema.BooleanEqualityMatchingRuleFactory;
-import org.opends.server.schema.BooleanSyntax;
-import org.opends.server.schema.CaseExactEqualityMatchingRuleFactory;
-import org.opends.server.schema.CaseExactIA5EqualityMatchingRuleFactory;
-import org.opends.server.schema.CaseExactIA5SubstringMatchingRuleFactory;
-import org.opends.server.schema.CaseExactOrderingMatchingRuleFactory;
-import org.opends.server.schema.CaseExactSubstringMatchingRuleFactory;
-import org.opends.server.schema.CaseIgnoreEqualityMatchingRuleFactory;
-import org.opends.server.schema.CaseIgnoreIA5EqualityMatchingRuleFactory;
-import org.opends.server.schema.CaseIgnoreIA5SubstringMatchingRuleFactory;
-import org.opends.server.schema.CaseIgnoreOrderingMatchingRuleFactory;
-import org.opends.server.schema.CaseIgnoreSubstringMatchingRuleFactory;
-import org.opends.server.schema.DirectoryStringSyntax;
-import org.opends.server.schema.DistinguishedNameEqualityMatchingRuleFactory;
-import org.opends.server.schema.DistinguishedNameSyntax;
-import org.opends.server.schema.DoubleMetaphoneApproximateMatchingRuleFactory;
-import org.opends.server.schema.GeneralizedTimeEqualityMatchingRuleFactory;
-import org.opends.server.schema.GeneralizedTimeOrderingMatchingRuleFactory;
-import org.opends.server.schema.GeneralizedTimeSyntax;
-import org.opends.server.schema.IA5StringSyntax;
-import org.opends.server.schema.IntegerEqualityMatchingRuleFactory;
-import org.opends.server.schema.IntegerOrderingMatchingRuleFactory;
-import org.opends.server.schema.IntegerSyntax;
-import org.opends.server.schema.OIDSyntax;
-import org.opends.server.schema.ObjectClassSyntax;
-import org.opends.server.schema.ObjectIdentifierEqualityMatchingRuleFactory;
-import org.opends.server.schema.OctetStringEqualityMatchingRuleFactory;
-import org.opends.server.schema.OctetStringOrderingMatchingRuleFactory;
-import org.opends.server.schema.OctetStringSubstringMatchingRuleFactory;
-import org.opends.server.schema.TelephoneNumberEqualityMatchingRuleFactory;
-import org.opends.server.schema.TelephoneNumberSubstringMatchingRuleFactory;
-import org.opends.server.schema.TelephoneNumberSyntax;
+import org.opends.server.schema.*;
 import org.opends.server.servicetag.ServiceTagRegistration;
 import org.opends.server.tools.ConfigureWindowsService;
-import org.opends.server.types.AbstractOperation;
-import org.opends.server.types.AcceptRejectWarn;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeUsage;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.BackupConfig;
-import org.opends.server.types.Control;
-import org.opends.server.types.DITContentRule;
-import org.opends.server.types.DITStructureRule;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryEnvironmentConfig;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.HostPort;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.LockManager;
-import org.opends.server.types.MatchingRuleUse;
-import org.opends.server.types.Modification;
-import org.opends.server.types.NameForm;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.ObjectClassType;
-import org.opends.server.types.OperatingSystem;
-import org.opends.server.types.Privilege;
-import org.opends.server.types.RestoreConfig;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.Schema;
-import org.opends.server.types.VirtualAttributeRule;
-import org.opends.server.types.WritabilityMode;
-import org.opends.server.util.MultiOutputStream;
-import org.opends.server.util.RuntimeInformation;
-import org.opends.server.util.SetupUtils;
-import org.opends.server.util.StaticUtils;
-import org.opends.server.util.TimeThread;
-import org.opends.server.util.Validator;
-import org.opends.server.util.VersionCompatibilityIssue;
-import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.ArgumentParser;
-import org.opends.server.util.args.BooleanArgument;
-import org.opends.server.util.args.IntegerArgument;
-import org.opends.server.util.args.StringArgument;
+import org.opends.server.types.*;
+import org.opends.server.util.*;
+import org.opends.server.util.args.*;
 import org.opends.server.workflowelement.WorkflowElement;
 import org.opends.server.workflowelement.WorkflowElementConfigManager;
-import org.opends.server.workflowelement.
-    localbackend.LocalBackendWorkflowElement;
+import org.opends.server.workflowelement.localbackend.*;
 
 
 /**
@@ -443,10 +302,10 @@ public class DirectoryServer
   // generator implementation.
   private ConcurrentHashMap<DN,PasswordGenerator> passwordGenerators;
 
-  // The set of password policies registered with the Directory Server, as a
-  // mapping between the DN of the associated configuration entry and the policy
-  // implementation.
-  private ConcurrentHashMap<DN,PasswordPolicyConfig> passwordPolicies;
+  // The set of authentication policies registered with the Directory Server, as
+  // a mapping between the DN of the associated configuration entry and the
+  // policy implementation.
+  private ConcurrentHashMap<DN,AuthenticationPolicy> authenticationPolicies;
 
   // The set of password validators registered with the Directory Server, as a
   // mapping between the DN of the associated configuration entry and the
@@ -679,10 +538,10 @@ public class DirectoryServer
   private PasswordGeneratorConfigManager passwordGeneratorConfigManager;
 
   // The default password policy for the Directory Server.
-  private PasswordPolicyConfig defaultPasswordPolicyConfig;
+  private PasswordPolicy defaultPasswordPolicy;
 
-  // The configuration handler used to manage the password policies.
-  private PasswordPolicyConfigManager passwordPolicyConfigManager;
+  // The configuration handler used to manage the authentication policies.
+  private PasswordPolicyConfigManager authenticationPolicyConfigManager;
 
   // The configuration handler used to manage the password storage schemes.
   private PasswordStorageSchemeConfigManager storageSchemeConfigManager;
@@ -956,10 +815,10 @@ public class DirectoryServer
            new ConcurrentHashMap<DN, RetentionPolicy>();
       directoryServer.certificateMappers =
            new ConcurrentHashMap<DN,CertificateMapper>();
-      directoryServer.passwordPolicies =
-           new ConcurrentHashMap<DN,PasswordPolicyConfig>();
+      directoryServer.authenticationPolicies =
+           new ConcurrentHashMap<DN,AuthenticationPolicy>();
       directoryServer.defaultPasswordPolicyDN = null;
-      directoryServer.defaultPasswordPolicyConfig = null;
+      directoryServer.defaultPasswordPolicy = null;
       directoryServer.monitorProviders =
            new ConcurrentHashMap<String,
                     MonitorProvider<? extends MonitorProviderCfg>>();
@@ -1496,8 +1355,8 @@ public class DirectoryServer
       monitorConfigManager.initializeMonitorProviders();
 
 
-      // Initialize all the password policy components.
-      initializePasswordPolicyComponents();
+      // Initialize all the authentication policy components.
+      initializeAuthenticationPolicyComponents();
 
 
       // Load and initialize the user plugins.
@@ -2939,17 +2798,17 @@ public class DirectoryServer
 
 
   /**
-   * Initializes the set of password policy components for use by the Directory
-   * Server.
+   * Initializes the set of authentication policy components for use by the
+   * Directory Server.
    *
-   * @throws  ConfigException  If there is a configuration problem with any of
-   *                           the password policy components.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   the password policy components that is
-   *                                   not related to the server configuration.
+   * @throws ConfigException
+   *           If there is a configuration problem with any of the
+   *           authentication policy components.
+   * @throws InitializationException
+   *           If a problem occurs while initializing the authentication policy
+   *           components that is not related to the server configuration.
    */
-  public void initializePasswordPolicyComponents()
+  public void initializeAuthenticationPolicyComponents()
          throws ConfigException, InitializationException
   {
     // Initialize all the password storage schemes.
@@ -2974,9 +2833,9 @@ public class DirectoryServer
          initializeNotificationHandlers();
 
 
-    // Initialize all the password policies.
-    passwordPolicyConfigManager = new PasswordPolicyConfigManager();
-    passwordPolicyConfigManager.initializePasswordPolicies();
+    // Initialize all the authentication policies.
+    authenticationPolicyConfigManager = new PasswordPolicyConfigManager();
+    authenticationPolicyConfigManager.initializeAuthenticationPolicies();
   }
 
 
@@ -5315,106 +5174,104 @@ public class DirectoryServer
 
 
   /**
-   * Retrieves the set of password policies registered with the Directory
-   * Server. The references returned are to the actual password policy objects
-   * currently in use by the directory server and the referenced objects must
-   * not be modified.
+   * Returns an unmodifiable collection containing all of the authentication
+   * policies registered with the Directory Server. The references returned are
+   * to the actual authentication policy objects currently in use by the
+   * directory server and the referenced objects must not be modified.
    *
-   * @return  The set of password policies registered with the Directory Server.
+   * @return The unmodifiable collection containing all of the authentication
+   *         policies registered with the Directory Server.
    */
-  public static PasswordPolicy[] getPasswordPolicies()
+  public static Collection<AuthenticationPolicy> getAuthenticationPolicies()
   {
-    // The password policy objects are returned in an array to prevent the
-    // caller from modifying the map structure.
-    PasswordPolicyConfig[] values = directoryServer.passwordPolicies.values()
-                                          .toArray(new PasswordPolicyConfig[0]);
-    PasswordPolicy[] policies = new PasswordPolicy[values.length];
-    for( int i = 0 ; i < values.length; ++i)
+    return Collections
+       .unmodifiableCollection(directoryServer.authenticationPolicies.values());
+  }
+
+
+
+  /**
+   * Retrieves the authentication policy registered for the provided
+   * configuration entry.
+   *
+   * @param configEntryDN
+   *          The DN of the configuration entry for which to retrieve the
+   *          associated authentication policy.
+   * @return The authentication policy registered for the provided configuration
+   *         entry, or <CODE>null</CODE> if there is no such policy.
+   */
+  public static AuthenticationPolicy getAuthenticationPolicy(DN configEntryDN)
+  {
+    Validator.ensureNotNull(configEntryDN);
+    return directoryServer.authenticationPolicies.get(configEntryDN);
+  }
+
+
+
+  /**
+   * Registers the provided authentication policy with the Directory Server. If
+   * a policy is already registered for the provided configuration entry DN,
+   * then it will be replaced.
+   *
+   * @param configEntryDN
+   *          The DN of the configuration entry that defines the authentication
+   *          policy.
+   * @param policy
+   *          The authentication policy to register with the server.
+   */
+  public static void registerAuthenticationPolicy(DN configEntryDN,
+      AuthenticationPolicy policy)
+  {
+    Validator.ensureNotNull(configEntryDN, policy);
+
+    // Ensure default policy is synchronized.
+    synchronized (directoryServer.authenticationPolicies)
     {
-      policies[i] = values[i].getPolicy();
+      if (directoryServer.defaultPasswordPolicyDN.equals(configEntryDN))
+      {
+        // The correct policy type is enforced by the core config manager.
+        directoryServer.defaultPasswordPolicy = (PasswordPolicy) policy;
+      }
+
+      AuthenticationPolicy oldPolicy = directoryServer.authenticationPolicies
+          .put(configEntryDN, policy);
+
+      if (oldPolicy != null)
+      {
+        oldPolicy.finalizeAuthenticationPolicy();
+      }
     }
-
-    return policies;
   }
 
 
 
   /**
-   * Retrieves the password policy registered for the provided configuration
-   * entry.
+   * Deregisters the provided authentication policy with the Directory Server.
+   * If no such policy is registered, then no action will be taken.
    *
-   * @param  configEntryDN  The DN of the configuration entry for which to
-   *                        retrieve the associated password policy.
-   *
-   * @return  The password policy registered for the provided configuration
-   *          entry, or <CODE>null</CODE> if there is no such policy.
+   * @param configEntryDN
+   *          The DN of the configuration entry that defines the authentication
+   *          policy to deregister.
    */
-  public static PasswordPolicy getPasswordPolicy(DN configEntryDN)
+  public static void deregisterAuthenticationPolicy(DN configEntryDN)
   {
     Validator.ensureNotNull(configEntryDN);
 
-    PasswordPolicyConfig config
-            = directoryServer.passwordPolicies.get(configEntryDN);
-    return (null == config) ? null : config.getPolicy();
-  }
-
-
-  /**
-   * Retrieves the password policy registered for the provided configuration
-   * entry.
-   *
-   * @param  configEntryDN  The DN of the configuration entry for which to
-   *                        retrieve the associated password policy.
-   *
-   * @return  The password policy config registered for the provided
-   *          configuration entry, or <CODE>null</CODE> if there is
-   *          no such policy.
-   */
-  public static PasswordPolicyConfig getPasswordPolicyConfig(DN configEntryDN)
-  {
-    Validator.ensureNotNull(configEntryDN);
-
-    return directoryServer.passwordPolicies.get(configEntryDN);
-  }
-
-
-  /**
-   * Registers the provided password policy with the Directory Server.  If a
-   * policy is already registered for the provided configuration entry DN, then
-   * it will be replaced.
-   *
-   * @param  configEntryDN  The DN of the configuration entry that defines the
-   *                        password policy.
-   * @param  config         The password policy config to register with the
-   *                        server.
-   */
-  public static void registerPasswordPolicy(DN configEntryDN,
-                                            PasswordPolicyConfig config)
-  {
-    Validator.ensureNotNull(configEntryDN, config);
-
-    directoryServer.passwordPolicies.put(configEntryDN, config);
-  }
-
-
-
-  /**
-   * Deregisters the provided password policy with the Directory Server.  If no
-   * such policy is registered, then no action will be taken.
-   *
-   * @param  configEntryDN  The DN of the configuration entry that defines the
-   *                        password policy to deregister.
-   */
-  public static void deregisterPasswordPolicy(DN configEntryDN)
-  {
-    Validator.ensureNotNull(configEntryDN);
-
-    if (directoryServer.defaultPasswordPolicyDN.equals(configEntryDN))
+    // Ensure default policy is synchronized.
+    synchronized (directoryServer.authenticationPolicies)
     {
-      directoryServer.defaultPasswordPolicyConfig = null;
-    }
+      if (directoryServer.defaultPasswordPolicyDN.equals(configEntryDN))
+      {
+        directoryServer.defaultPasswordPolicy = null;
+      }
 
-    directoryServer.passwordPolicies.remove(configEntryDN);
+      AuthenticationPolicy oldPolicy = directoryServer.authenticationPolicies
+          .remove(configEntryDN);
+      if (oldPolicy != null)
+      {
+        oldPolicy.finalizeAuthenticationPolicy();
+      }
+    }
   }
 
 
@@ -5428,56 +5285,69 @@ public class DirectoryServer
    */
   public static DN getDefaultPasswordPolicyDN()
   {
-    return directoryServer.defaultPasswordPolicyDN;
+    synchronized (directoryServer.authenticationPolicies)
+    {
+      return directoryServer.defaultPasswordPolicyDN;
+    }
   }
 
 
 
   /**
-   * Specifies the DN of the configuration entry for the default password policy
-   * for the Directory Server. This routine does not check the registered
-   * password policies for the specified DN, since in the case of server
-   * initialization, the password policy entries will not yet have been loaded
-   * from the configuration backend.
+   * Specifies the DN of the configuration entry for the default authentication
+   * policy for the Directory Server. This routine does not check the registered
+   * authentication policies for the specified DN, since in the case of server
+   * initialization, the authentication policy entries will not yet have been
+   * loaded from the configuration backend.
    *
-   * @param  defaultPasswordPolicyDN  The DN of the configuration entry for the
-   *                                  default password policy for the Directory
-   *                                  Server.
+   * @param defaultPasswordPolicyDN
+   *          The DN of the configuration entry for the default authentication
+   *          policy for the Directory Server.
    */
   public static void setDefaultPasswordPolicyDN(DN defaultPasswordPolicyDN)
   {
-    directoryServer.defaultPasswordPolicyDN = defaultPasswordPolicyDN;
-    directoryServer.defaultPasswordPolicyConfig = null;
+    // Ensure default policy is synchronized.
+    synchronized (directoryServer.authenticationPolicies)
+    {
+      directoryServer.defaultPasswordPolicyDN = defaultPasswordPolicyDN;
+      directoryServer.defaultPasswordPolicy = null;
+    }
   }
 
 
 
   /**
-   * Retrieves the default password policy for the Directory Server. This method
-   * is equivalent to invoking <CODE>getPasswordPolicy</CODE> on the DN returned
-   * from <CODE>DirectoryServer.getDefaultPasswordPolicyDN()</CODE>.
+   * Retrieves the default password policy for the Directory Server. This
+   * method is equivalent to invoking <CODE>getAuthenticationPolicy</CODE> on
+   * the DN returned from
+   * <CODE>DirectoryServer.getDefaultPasswordPolicyDN()</CODE>.
    *
-   * @return  The default password policy for the Directory Server.
+   * @return The default password policy for the Directory Server.
    */
   public static PasswordPolicy getDefaultPasswordPolicy()
   {
-    assert null != directoryServer.passwordPolicies.get(
-                                       directoryServer.defaultPasswordPolicyDN)
-            : "Internal Error: no default password policy defined." ;
-
-    if ((directoryServer.defaultPasswordPolicyConfig == null) &&
-        (directoryServer.defaultPasswordPolicyDN != null))
+    // Ensure default policy is synchronized.
+    synchronized (directoryServer.authenticationPolicies)
     {
-      directoryServer.defaultPasswordPolicyConfig =
-           directoryServer.passwordPolicies.get(
-                                       directoryServer.defaultPasswordPolicyDN);
+      assert null != directoryServer.authenticationPolicies
+          .get(directoryServer.defaultPasswordPolicyDN) :
+            "Internal Error: no default password policy defined.";
+
+      if ((directoryServer.defaultPasswordPolicy == null)
+          && (directoryServer.defaultPasswordPolicyDN != null))
+      {
+        // The correct policy type is enforced by the core config manager.
+        directoryServer.defaultPasswordPolicy = (PasswordPolicy)
+          directoryServer.authenticationPolicies
+            .get(directoryServer.defaultPasswordPolicyDN);
+      }
+      assert directoryServer.authenticationPolicies
+          .get(directoryServer.defaultPasswordPolicyDN) ==
+            directoryServer.defaultPasswordPolicy :
+             "Internal Error: inconsistency between defaultPasswordPolicy"
+          + " cache and value in authenticationPolicies map.";
+      return directoryServer.defaultPasswordPolicy;
     }
-    assert directoryServer.passwordPolicies.get(
-                                       directoryServer.defaultPasswordPolicyDN)
-                == directoryServer.defaultPasswordPolicyConfig
-           : "Internal Error: inconsistency between defaultPasswordPolicyConfig"
-             + " cache and value in passwordPolicies map.";
-    return directoryServer.defaultPasswordPolicyConfig.getPolicy();
   }
 
 
@@ -8360,15 +8230,16 @@ public class DirectoryServer
 
 
     // Finalize the password policy map.
-    for (DN configEntryDN : directoryServer.passwordPolicies.keySet())
+    for (DN configEntryDN : directoryServer.authenticationPolicies.keySet())
     {
-      DirectoryServer.deregisterPasswordPolicy(configEntryDN);
+      DirectoryServer.deregisterAuthenticationPolicy(configEntryDN);
     }
 
     // Finalize password policies and their config manager.
-    if (directoryServer.passwordPolicyConfigManager != null)
+    if (directoryServer.authenticationPolicyConfigManager != null)
     {
-      directoryServer.passwordPolicyConfigManager.finalizePasswordPolicies();
+      directoryServer.authenticationPolicyConfigManager
+          .finalizeAuthenticationPolicies();
     }
 
     // Finalize the access control handler

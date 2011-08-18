@@ -30,8 +30,7 @@ package org.opends.server.core;
 
 
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.Set;
 
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -2181,7 +2180,7 @@ public class PasswordPolicyTestCase
       AdminTestCaseUtils.getConfiguration(PasswordPolicyCfgDefn.getInstance(),
           configEntry.getEntry());
 
-    new PasswordPolicy(configuration);
+    new PasswordPolicyFactory().createAuthenticationPolicy(configuration);
   }
 
 
@@ -2212,7 +2211,7 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     AttributeType  t = p.getPasswordAttribute();
     assertEquals(t, DirectoryServer.getAttributeType("authpassword"));
   }
@@ -2227,7 +2226,7 @@ public class PasswordPolicyTestCase
   public void testUsesAuthPasswordSyntaxDefault()
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
-    assertFalse(p.usesAuthPasswordSyntax());
+    assertFalse(p.isAuthPasswordSyntax());
   }
 
 
@@ -2244,8 +2243,8 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
-    assertTrue(p.usesAuthPasswordSyntax());
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertTrue(p.isAuthPasswordSyntax());
   }
 
 
@@ -2261,8 +2260,8 @@ public class PasswordPolicyTestCase
          throws Exception
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
-    CopyOnWriteArrayList<PasswordStorageScheme<?>> defaultSchemes =
-         p.getDefaultStorageSchemes();
+    List<PasswordStorageScheme<?>> defaultSchemes =
+         p.getDefaultPasswordStorageSchemes();
     assertNotNull(defaultSchemes);
     assertFalse(defaultSchemes.isEmpty());
 
@@ -2272,7 +2271,7 @@ public class PasswordPolicyTestCase
       "--set", "default-password-storage-scheme:Base64");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
-    defaultSchemes = p.getDefaultStorageSchemes();
+    defaultSchemes = p.getDefaultPasswordStorageSchemes();
     assertNotNull(defaultSchemes);
     assertFalse(defaultSchemes.isEmpty());
 
@@ -2296,9 +2295,9 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
-    CopyOnWriteArrayList<PasswordStorageScheme<?>> defaultSchemes =
-         p.getDefaultStorageSchemes();
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    List<PasswordStorageScheme<?>> defaultSchemes =
+         p.getDefaultPasswordStorageSchemes();
     assertNotNull(defaultSchemes);
     assertFalse(defaultSchemes.isEmpty());
 
@@ -2307,8 +2306,8 @@ public class PasswordPolicyTestCase
       "--policy-name", "SHA1 AuthPassword Policy",
       "--set", "default-password-storage-scheme:Salted MD5");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
-    defaultSchemes = p.getDefaultStorageSchemes();
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    defaultSchemes = p.getDefaultPasswordStorageSchemes();
     assertNotNull(defaultSchemes);
     assertFalse(defaultSchemes.isEmpty());
 
@@ -2331,8 +2330,8 @@ public class PasswordPolicyTestCase
          throws Exception
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
-    assertTrue(p.isDefaultStorageScheme("SSHA"));
-    assertFalse(p.isDefaultStorageScheme("CLEAR"));
+    assertTrue(p.isDefaultPasswordStorageScheme("SSHA"));
+    assertFalse(p.isDefaultPasswordStorageScheme("CLEAR"));
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -2340,8 +2339,8 @@ public class PasswordPolicyTestCase
       "--set", "default-password-storage-scheme:BASE64");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
-    assertTrue(p.isDefaultStorageScheme("BASE64"));
-    assertFalse(p.isDefaultStorageScheme("SSHA"));
+    assertTrue(p.isDefaultPasswordStorageScheme("BASE64"));
+    assertFalse(p.isDefaultPasswordStorageScheme("SSHA"));
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -2363,18 +2362,18 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
-    assertTrue(p.isDefaultStorageScheme("SHA1"));
-    assertFalse(p.isDefaultStorageScheme("MD5"));
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertTrue(p.isDefaultPasswordStorageScheme("SHA1"));
+    assertFalse(p.isDefaultPasswordStorageScheme("MD5"));
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
       "--set", "default-password-storage-scheme:Salted MD5");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
-    assertTrue(p.isDefaultStorageScheme("MD5"));
-    assertFalse(p.isDefaultStorageScheme("SHA1"));
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertTrue(p.isDefaultPasswordStorageScheme("MD5"));
+    assertFalse(p.isDefaultPasswordStorageScheme("SHA1"));
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -2395,8 +2394,8 @@ public class PasswordPolicyTestCase
          throws Exception
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
-    CopyOnWriteArraySet<String> deprecatedSchemes =
-         p.getDeprecatedStorageSchemes();
+    Set<String> deprecatedSchemes =
+         p.getDeprecatedPasswordStorageSchemes();
     assertNotNull(deprecatedSchemes);
     assertTrue(deprecatedSchemes.isEmpty());
 
@@ -2406,7 +2405,7 @@ public class PasswordPolicyTestCase
       "--set", "deprecated-password-storage-scheme:BASE64");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
-    deprecatedSchemes = p.getDeprecatedStorageSchemes();
+    deprecatedSchemes = p.getDeprecatedPasswordStorageSchemes();
     assertNotNull(deprecatedSchemes);
     assertFalse(deprecatedSchemes.isEmpty());
 
@@ -2430,9 +2429,9 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
-    CopyOnWriteArraySet<String> deprecatedSchemes =
-         p.getDeprecatedStorageSchemes();
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    Set<String> deprecatedSchemes =
+         p.getDeprecatedPasswordStorageSchemes();
     assertNotNull(deprecatedSchemes);
     assertTrue(deprecatedSchemes.isEmpty());
 
@@ -2441,8 +2440,8 @@ public class PasswordPolicyTestCase
       "--policy-name", "SHA1 AuthPassword Policy",
       "--set", "deprecated-password-storage-scheme:Salted MD5");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
-    deprecatedSchemes = p.getDeprecatedStorageSchemes();
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    deprecatedSchemes = p.getDeprecatedPasswordStorageSchemes();
     assertNotNull(deprecatedSchemes);
     assertFalse(deprecatedSchemes.isEmpty());
 
@@ -2465,7 +2464,7 @@ public class PasswordPolicyTestCase
          throws Exception
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
-    assertFalse(p.isDeprecatedStorageScheme("BASE64"));
+    assertFalse(p.isDeprecatedPasswordStorageScheme("BASE64"));
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -2473,7 +2472,7 @@ public class PasswordPolicyTestCase
       "--set", "deprecated-password-storage-scheme:BASE64");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
-    assertTrue(p.isDeprecatedStorageScheme("BASE64"));
+    assertTrue(p.isDeprecatedPasswordStorageScheme("BASE64"));
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -2495,16 +2494,16 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
-    assertFalse(p.isDeprecatedStorageScheme("MD5"));
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertFalse(p.isDeprecatedPasswordStorageScheme("MD5"));
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
       "--set", "deprecated-password-storage-scheme:Salted MD5");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
-    assertTrue(p.isDeprecatedStorageScheme("MD5"));
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertTrue(p.isDeprecatedPasswordStorageScheme("MD5"));
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -2557,7 +2556,7 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertNotNull(p.getPasswordValidators());
     assertFalse(p.getPasswordValidators().isEmpty());
 
@@ -2566,7 +2565,7 @@ public class PasswordPolicyTestCase
       "--policy-name", "SHA1 AuthPassword Policy",
       "--add", "password-validator:Length-Based Password Validator");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertNotNull(p.getPasswordValidators());
     assertFalse(p.getPasswordValidators().isEmpty());
 
@@ -2621,7 +2620,7 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertNotNull(p.getAccountStatusNotificationHandlers());
     assertTrue(p.getAccountStatusNotificationHandlers().isEmpty());
 
@@ -2630,7 +2629,7 @@ public class PasswordPolicyTestCase
       "--policy-name", "SHA1 AuthPassword Policy",
       "--add", "account-status-notification-handler:Error Log Handler");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertNotNull(p.getAccountStatusNotificationHandlers());
     assertFalse(p.getAccountStatusNotificationHandlers().isEmpty());
 
@@ -2653,7 +2652,7 @@ public class PasswordPolicyTestCase
          throws Exception
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
-    assertTrue(p.allowUserPasswordChanges());
+    assertTrue(p.isAllowUserPasswordChanges());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -2661,7 +2660,7 @@ public class PasswordPolicyTestCase
       "--set", "allow-user-password-changes:false");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
-    assertFalse(p.allowUserPasswordChanges());
+    assertFalse(p.isAllowUserPasswordChanges());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -2683,16 +2682,16 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
-    assertTrue(p.allowUserPasswordChanges());
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertTrue(p.isAllowUserPasswordChanges());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
       "--set", "allow-user-password-changes:false");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
-    assertFalse(p.allowUserPasswordChanges());
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertFalse(p.isAllowUserPasswordChanges());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -2713,7 +2712,7 @@ public class PasswordPolicyTestCase
          throws Exception
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
-    assertFalse(p.requireCurrentPassword());
+    assertFalse(p.isPasswordChangeRequiresCurrentPassword());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -2721,7 +2720,7 @@ public class PasswordPolicyTestCase
       "--set", "password-change-requires-current-password:true");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
-    assertTrue(p.requireCurrentPassword());
+    assertTrue(p.isPasswordChangeRequiresCurrentPassword());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -2743,16 +2742,16 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
-    assertFalse(p.requireCurrentPassword());
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertFalse(p.isPasswordChangeRequiresCurrentPassword());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
       "--set", "password-change-requires-current-password:true");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
-    assertTrue(p.allowUserPasswordChanges());
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertTrue(p.isAllowUserPasswordChanges());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -2773,7 +2772,7 @@ public class PasswordPolicyTestCase
          throws Exception
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
-    assertFalse(p.forceChangeOnAdd());
+    assertFalse(p.isForceChangeOnAdd());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -2781,7 +2780,7 @@ public class PasswordPolicyTestCase
       "--set", "force-change-on-add:true");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
-    assertTrue(p.forceChangeOnAdd());
+    assertTrue(p.isForceChangeOnAdd());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -2803,16 +2802,16 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
-    assertFalse(p.requireCurrentPassword());
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertFalse(p.isPasswordChangeRequiresCurrentPassword());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
       "--set", "force-change-on-add:true");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
-    assertTrue(p.forceChangeOnAdd());
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertTrue(p.isForceChangeOnAdd());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -2833,7 +2832,7 @@ public class PasswordPolicyTestCase
          throws Exception
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
-    assertFalse(p.forceChangeOnReset());
+    assertFalse(p.isForceChangeOnReset());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -2841,7 +2840,7 @@ public class PasswordPolicyTestCase
       "--set", "force-change-on-reset:true");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
-    assertTrue(p.forceChangeOnReset());
+    assertTrue(p.isForceChangeOnReset());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -2863,16 +2862,16 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
-    assertFalse(p.requireCurrentPassword());
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertFalse(p.isPasswordChangeRequiresCurrentPassword());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
       "--set", "force-change-on-reset:true");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
-    assertTrue(p.forceChangeOnReset());
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertTrue(p.isForceChangeOnReset());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -2893,7 +2892,7 @@ public class PasswordPolicyTestCase
          throws Exception
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
-    assertFalse(p.skipValidationForAdministrators());
+    assertFalse(p.isSkipValidationForAdministrators());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -2901,7 +2900,7 @@ public class PasswordPolicyTestCase
       "--set", "skip-validation-for-administrators:true");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
-    assertTrue(p.skipValidationForAdministrators());
+    assertTrue(p.isSkipValidationForAdministrators());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -2923,16 +2922,16 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
-    assertFalse(p.skipValidationForAdministrators());
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertFalse(p.isSkipValidationForAdministrators());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
       "--set", "skip-validation-for-administrators:true");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
-    assertTrue(p.skipValidationForAdministrators());
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertTrue(p.isSkipValidationForAdministrators());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -2983,7 +2982,7 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertNotNull(p.getPasswordGenerator());
 
     TestCaseUtils.dsconfig(
@@ -2991,7 +2990,7 @@ public class PasswordPolicyTestCase
       "--policy-name", "SHA1 AuthPassword Policy",
       "--remove", "password-generator:Random Password Generator");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertNull(p.getPasswordGenerator());
 
     TestCaseUtils.dsconfig(
@@ -3043,7 +3042,7 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertNotNull(p.getPasswordGenerator());
 
     TestCaseUtils.dsconfig(
@@ -3051,7 +3050,7 @@ public class PasswordPolicyTestCase
       "--policy-name", "SHA1 AuthPassword Policy",
       "--remove", "password-generator:Random Password Generator");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertNull(p.getPasswordGenerator());
 
     TestCaseUtils.dsconfig(
@@ -3073,7 +3072,7 @@ public class PasswordPolicyTestCase
          throws Exception
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
-    assertFalse(p.requireSecureAuthentication());
+    assertFalse(p.isRequireSecureAuthentication());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3081,7 +3080,7 @@ public class PasswordPolicyTestCase
       "--set", "require-secure-authentication:true");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
-    assertTrue(p.requireSecureAuthentication());
+    assertTrue(p.isRequireSecureAuthentication());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3103,16 +3102,16 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
-    assertFalse(p.requireSecureAuthentication());
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertFalse(p.isRequireSecureAuthentication());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
       "--set", "require-secure-authentication:true");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
-    assertTrue(p.requireSecureAuthentication());
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertTrue(p.isRequireSecureAuthentication());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3133,7 +3132,7 @@ public class PasswordPolicyTestCase
          throws Exception
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
-    assertFalse(p.requireSecurePasswordChanges());
+    assertFalse(p.isRequireSecurePasswordChanges());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3141,7 +3140,7 @@ public class PasswordPolicyTestCase
       "--set", "require-secure-password-changes:true");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
-    assertTrue(p.requireSecurePasswordChanges());
+    assertTrue(p.isRequireSecurePasswordChanges());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3163,16 +3162,16 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
-    assertFalse(p.requireSecurePasswordChanges());
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertFalse(p.isRequireSecurePasswordChanges());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
       "--set", "require-secure-password-changes:true");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
-    assertTrue(p.requireSecurePasswordChanges());
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertTrue(p.isRequireSecurePasswordChanges());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3193,7 +3192,7 @@ public class PasswordPolicyTestCase
          throws Exception
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
-    assertFalse(p.allowMultiplePasswordValues());
+    assertFalse(p.isAllowMultiplePasswordValues());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3201,7 +3200,7 @@ public class PasswordPolicyTestCase
       "--set", "allow-multiple-password-values:true");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
-    assertTrue(p.allowMultiplePasswordValues());
+    assertTrue(p.isAllowMultiplePasswordValues());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3223,16 +3222,16 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
-    assertFalse(p.allowMultiplePasswordValues());
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertFalse(p.isAllowMultiplePasswordValues());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
       "--set", "allow-multiple-password-values:true");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
-    assertTrue(p.allowMultiplePasswordValues());
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertTrue(p.isAllowMultiplePasswordValues());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3253,7 +3252,7 @@ public class PasswordPolicyTestCase
          throws Exception
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
-    assertFalse(p.allowPreEncodedPasswords());
+    assertFalse(p.isAllowPreEncodedPasswords());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3261,7 +3260,7 @@ public class PasswordPolicyTestCase
       "--set", "allow-pre-encoded-passwords:true");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
-    assertTrue(p.allowPreEncodedPasswords());
+    assertTrue(p.isAllowPreEncodedPasswords());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3283,16 +3282,16 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
-    assertFalse(p.allowPreEncodedPasswords());
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertFalse(p.isAllowPreEncodedPasswords());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
       "--set", "allow-pre-encoded-passwords:true");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
-    assertTrue(p.allowPreEncodedPasswords());
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertTrue(p.isAllowPreEncodedPasswords());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3313,7 +3312,7 @@ public class PasswordPolicyTestCase
          throws Exception
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
-    assertEquals(p.getMinimumPasswordAge(), 0);
+    assertEquals(p.getMinPasswordAge(), 0);
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3321,7 +3320,7 @@ public class PasswordPolicyTestCase
       "--set", "min-password-age:24 hours");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
-    assertEquals(p.getMinimumPasswordAge(), (24*60*60));
+    assertEquals(p.getMinPasswordAge(), (24*60*60));
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3343,16 +3342,16 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
-    assertEquals(p.getMinimumPasswordAge(), 0);
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertEquals(p.getMinPasswordAge(), 0);
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
       "--set", "min-password-age:24 hours");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
-    assertEquals(p.getMinimumPasswordAge(), (24*60*60));
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertEquals(p.getMinPasswordAge(), (24*60*60));
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3373,7 +3372,7 @@ public class PasswordPolicyTestCase
          throws Exception
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
-    assertEquals(p.getMaximumPasswordAge(), 0);
+    assertEquals(p.getMaxPasswordAge(), 0);
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3381,7 +3380,7 @@ public class PasswordPolicyTestCase
       "--set", "max-password-age:90 days");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
-    assertEquals(p.getMaximumPasswordAge(), (90*60*60*24));
+    assertEquals(p.getMaxPasswordAge(), (90*60*60*24));
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3403,16 +3402,16 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
-    assertEquals(p.getMaximumPasswordAge(), 0);
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertEquals(p.getMaxPasswordAge(), 0);
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
       "--set", "max-password-age:90 days");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
-    assertEquals(p.getMaximumPasswordAge(), (90*60*60*24));
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertEquals(p.getMaxPasswordAge(), (90*60*60*24));
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3433,7 +3432,7 @@ public class PasswordPolicyTestCase
          throws Exception
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
-    assertEquals(p.getMaximumPasswordResetAge(), 0);
+    assertEquals(p.getMaxPasswordResetAge(), 0);
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3441,7 +3440,7 @@ public class PasswordPolicyTestCase
       "--set", "max-password-reset-age:24 hours");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
-    assertEquals(p.getMaximumPasswordResetAge(), (24*60*60));
+    assertEquals(p.getMaxPasswordResetAge(), (24*60*60));
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3463,16 +3462,16 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
-    assertEquals(p.getMaximumPasswordResetAge(), 0);
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertEquals(p.getMaxPasswordResetAge(), 0);
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
       "--set", "max-password-reset-age:24 hours");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
-    assertEquals(p.getMaximumPasswordResetAge(), (24*60*60));
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertEquals(p.getMaxPasswordResetAge(), (24*60*60));
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3493,7 +3492,7 @@ public class PasswordPolicyTestCase
          throws Exception
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
-    assertEquals(p.getWarningInterval(), (5*60*60*24));
+    assertEquals(p.getPasswordExpirationWarningInterval(), (5*60*60*24));
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3501,7 +3500,7 @@ public class PasswordPolicyTestCase
       "--set", "password-expiration-warning-interval:24 hours");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
-    assertEquals(p.getWarningInterval(), (24*60*60));
+    assertEquals(p.getPasswordExpirationWarningInterval(), (24*60*60));
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3523,16 +3522,16 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
-    assertEquals(p.getWarningInterval(), (5*60*60*24));
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertEquals(p.getPasswordExpirationWarningInterval(), (5*60*60*24));
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
       "--set", "password-expiration-warning-interval:24 hours");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
-    assertEquals(p.getWarningInterval(), (24*60*60));
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertEquals(p.getPasswordExpirationWarningInterval(), (24*60*60));
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3553,7 +3552,7 @@ public class PasswordPolicyTestCase
          throws Exception
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
-    assertFalse(p.expirePasswordsWithoutWarning());
+    assertFalse(p.isExpirePasswordsWithoutWarning());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3561,7 +3560,7 @@ public class PasswordPolicyTestCase
       "--set", "expire-passwords-without-warning:true");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
-    assertTrue(p.expirePasswordsWithoutWarning());
+    assertTrue(p.isExpirePasswordsWithoutWarning());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3583,16 +3582,16 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
-    assertFalse(p.expirePasswordsWithoutWarning());
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertFalse(p.isExpirePasswordsWithoutWarning());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
       "--set", "expire-passwords-without-warning:true");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
-    assertTrue(p.expirePasswordsWithoutWarning());
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertTrue(p.isExpirePasswordsWithoutWarning());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3613,7 +3612,7 @@ public class PasswordPolicyTestCase
          throws Exception
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
-    assertFalse(p.allowExpiredPasswordChanges());
+    assertFalse(p.isAllowExpiredPasswordChanges());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3621,7 +3620,7 @@ public class PasswordPolicyTestCase
       "--set", "allow-expired-password-changes:true");
 
     p = DirectoryServer.getDefaultPasswordPolicy();
-    assertTrue(p.allowExpiredPasswordChanges());
+    assertTrue(p.isAllowExpiredPasswordChanges());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3643,16 +3642,16 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
-    assertFalse(p.allowExpiredPasswordChanges());
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertFalse(p.isAllowExpiredPasswordChanges());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
       "--policy-name", "SHA1 AuthPassword Policy",
       "--set", "allow-expired-password-changes:true");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
-    assertTrue(p.allowExpiredPasswordChanges());
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+    assertTrue(p.isAllowExpiredPasswordChanges());
 
     TestCaseUtils.dsconfig(
       "set-password-policy-prop",
@@ -3703,7 +3702,7 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertEquals(p.getGraceLoginCount(), 0);
 
     TestCaseUtils.dsconfig(
@@ -3711,7 +3710,7 @@ public class PasswordPolicyTestCase
       "--policy-name", "SHA1 AuthPassword Policy",
       "--set", "grace-login-count:3");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertEquals(p.getGraceLoginCount(), 3);
 
     TestCaseUtils.dsconfig(
@@ -3763,7 +3762,7 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertEquals(p.getLockoutFailureCount(), 0);
 
     TestCaseUtils.dsconfig(
@@ -3771,7 +3770,7 @@ public class PasswordPolicyTestCase
       "--policy-name", "SHA1 AuthPassword Policy",
       "--set", "lockout-failure-count:3");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertEquals(p.getLockoutFailureCount(), 3);
 
     TestCaseUtils.dsconfig(
@@ -3823,7 +3822,7 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertEquals(p.getLockoutDuration(), 0);
 
     TestCaseUtils.dsconfig(
@@ -3831,7 +3830,7 @@ public class PasswordPolicyTestCase
       "--policy-name", "SHA1 AuthPassword Policy",
       "--set", "lockout-duration:15 minutes");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertEquals(p.getLockoutDuration(), (15*60));
 
     TestCaseUtils.dsconfig(
@@ -3883,7 +3882,7 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertEquals(p.getLockoutFailureExpirationInterval(), 0);
 
     TestCaseUtils.dsconfig(
@@ -3891,7 +3890,7 @@ public class PasswordPolicyTestCase
       "--policy-name", "SHA1 AuthPassword Policy",
       "--set", "lockout-failure-expiration-interval:10 minutes");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertEquals(p.getLockoutFailureExpirationInterval(), (10*60));
 
     TestCaseUtils.dsconfig(
@@ -3943,7 +3942,7 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertEquals(p.getRequireChangeByTime(), 0);
 
     TestCaseUtils.dsconfig(
@@ -3951,7 +3950,7 @@ public class PasswordPolicyTestCase
       "--policy-name", "SHA1 AuthPassword Policy",
       "--set", "require-change-by-time:19700101000001Z");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertEquals(p.getRequireChangeByTime(), 1000);
 
     TestCaseUtils.dsconfig(
@@ -4003,7 +4002,7 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertNull(p.getLastLoginTimeAttribute());
 
     TestCaseUtils.dsconfig(
@@ -4011,7 +4010,7 @@ public class PasswordPolicyTestCase
       "--policy-name", "SHA1 AuthPassword Policy",
       "--set", "last-login-time-attribute:ds-pwp-last-login-time");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertNotNull(p.getLastLoginTimeAttribute());
 
     TestCaseUtils.dsconfig(
@@ -4063,7 +4062,7 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertNull(p.getLastLoginTimeFormat());
 
     TestCaseUtils.dsconfig(
@@ -4071,7 +4070,7 @@ public class PasswordPolicyTestCase
       "--policy-name", "SHA1 AuthPassword Policy",
       "--set", "last-login-time-format:yyyyMMdd");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertEquals(p.getLastLoginTimeFormat(), "yyyyMMdd");
 
     TestCaseUtils.dsconfig(
@@ -4125,7 +4124,7 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertNotNull(p.getPreviousLastLoginTimeFormats());
     assertTrue(p.getPreviousLastLoginTimeFormats().isEmpty());
 
@@ -4134,7 +4133,7 @@ public class PasswordPolicyTestCase
       "--policy-name", "SHA1 AuthPassword Policy",
       "--set", "previous-last-login-time-format:yyyyMMdd");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertNotNull(p.getPreviousLastLoginTimeFormats());
     assertFalse(p.getPreviousLastLoginTimeFormats().isEmpty());
 
@@ -4187,7 +4186,7 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertEquals(p.getIdleLockoutInterval(), 0);
 
     TestCaseUtils.dsconfig(
@@ -4195,7 +4194,7 @@ public class PasswordPolicyTestCase
       "--policy-name", "SHA1 AuthPassword Policy",
       "--set", "idle-lockout-interval:90 days");
 
-    p = DirectoryServer.getPasswordPolicy(dn);
+    p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertEquals(p.getIdleLockoutInterval(), (90*60*60*24));
 
     TestCaseUtils.dsconfig(
@@ -4674,10 +4673,6 @@ public class PasswordPolicyTestCase
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
     assertNotNull(p.toString());
-
-    StringBuilder buffer = new StringBuilder();
-    p.toString(buffer);
-    assertFalse(buffer.length() == 0);
   }
 
 
@@ -4694,12 +4689,8 @@ public class PasswordPolicyTestCase
   {
     DN dn = DN.decode("cn=SHA1 AuthPassword Policy,cn=Password Policies," +
                       "cn=config");
-    PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
+    PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
     assertNotNull(p.toString());
-
-    StringBuilder buffer = new StringBuilder();
-    p.toString(buffer);
-    assertFalse(buffer.length() == 0);
   }
 }
 

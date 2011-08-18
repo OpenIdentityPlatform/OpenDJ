@@ -41,7 +41,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.messages.Message;
@@ -1057,7 +1056,8 @@ addProcessing:
                                            de.getMessageObject()));
         }
 
-        passwordPolicy = DirectoryServer.getPasswordPolicy(policyDN);
+        passwordPolicy = (PasswordPolicy) DirectoryServer
+            .getAuthenticationPolicy(policyDN);
         if (passwordPolicy == null)
         {
           throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
@@ -1105,7 +1105,7 @@ addProcessing:
     }
 
     if ((!isInternalOperation())
-        && (!passwordPolicy.allowMultiplePasswordValues())
+        && (!passwordPolicy.isAllowMultiplePasswordValues())
         && (passwordAttr.size() > 1))
     {
       // FIXME -- What if they're pre-encoded and might all be the
@@ -1117,8 +1117,8 @@ addProcessing:
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
-    CopyOnWriteArrayList<PasswordStorageScheme<?>> defaultStorageSchemes =
-         passwordPolicy.getDefaultStorageSchemes();
+    List<PasswordStorageScheme<?>> defaultStorageSchemes =
+         passwordPolicy.getDefaultPasswordStorageSchemes();
     AttributeBuilder builder = new AttributeBuilder(passwordAttr, true);
     builder.setInitialCapacity(defaultStorageSchemes.size());
     for (AttributeValue v : passwordAttr)
@@ -1126,12 +1126,12 @@ addProcessing:
       ByteString value = v.getValue();
 
       // See if the password is pre-encoded.
-      if (passwordPolicy.usesAuthPasswordSyntax())
+      if (passwordPolicy.isAuthPasswordSyntax())
       {
         if (AuthPasswordSyntax.isEncoded(value))
         {
           if (isInternalOperation() ||
-              passwordPolicy.allowPreEncodedPasswords())
+              passwordPolicy.isAllowPreEncodedPasswords())
           {
             builder.add(v);
             continue;
@@ -1153,7 +1153,7 @@ addProcessing:
         if (UserPasswordSyntax.isEncoded(value))
         {
           if (isInternalOperation() ||
-              passwordPolicy.allowPreEncodedPasswords())
+              passwordPolicy.isAllowPreEncodedPasswords())
           {
             builder.add(v);
             continue;
@@ -1174,13 +1174,13 @@ addProcessing:
 
       // See if the password passes validation.  We should only do this if
       // validation should be performed for administrators.
-      if (! passwordPolicy.skipValidationForAdministrators())
+      if (! passwordPolicy.isSkipValidationForAdministrators())
       {
         // There are never any current passwords for an add operation.
         HashSet<ByteString> currentPasswords = new HashSet<ByteString>(0);
         MessageBuilder invalidReason = new MessageBuilder();
         for (PasswordValidator<?> validator :
-             passwordPolicy.getPasswordValidators().values())
+          passwordPolicy.getPasswordValidators())
         {
           if (! validator.passwordIsAcceptable(value, currentPasswords, this,
                                                entry, invalidReason))
@@ -1199,7 +1199,7 @@ addProcessing:
 
 
       // Encode the password.
-      if (passwordPolicy.usesAuthPasswordSyntax())
+      if (passwordPolicy.isAuthPasswordSyntax())
       {
         for (PasswordStorageScheme<?> s : defaultStorageSchemes)
         {
@@ -1233,7 +1233,7 @@ addProcessing:
 
 
     // If we should force change on add, then set the appropriate flag.
-    if (passwordPolicy.forceChangeOnAdd())
+    if (passwordPolicy.isForceChangeOnAdd())
     {
       addPWPolicyControl(PasswordPolicyErrorType.CHANGE_AFTER_RESET);
 

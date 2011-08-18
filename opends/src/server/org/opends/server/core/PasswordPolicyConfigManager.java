@@ -23,47 +23,50 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
 
 
 
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.opends.messages.Message;
+import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.admin.std.meta.AuthenticationPolicyCfgDefn;
+import org.opends.server.admin.std.server.AuthenticationPolicyCfg;
 import org.opends.server.admin.std.server.PasswordPolicyCfg;
 import org.opends.server.admin.std.server.RootCfg;
+import org.opends.server.api.AuthenticationPolicy;
+import org.opends.server.api.AuthenticationPolicyFactory;
 import org.opends.server.api.SubentryChangeListener;
 import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SubEntry;
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
+import org.opends.server.types.*;
 
 
 
 /**
  * This class defines a utility that will be used to manage the set of password
- * policies defined in the Directory Server.  It will initialize the policies
+ * policies defined in the Directory Server. It will initialize the policies
  * when the server starts, and then will manage any additions or removals while
  * the server is running.
  */
-public class PasswordPolicyConfigManager
-       implements SubentryChangeListener,
-       ConfigurationAddListener<PasswordPolicyCfg>,
-       ConfigurationDeleteListener<PasswordPolicyCfg>
+final class PasswordPolicyConfigManager implements SubentryChangeListener,
+    ConfigurationAddListener<AuthenticationPolicyCfg>,
+    ConfigurationDeleteListener<AuthenticationPolicyCfg>
 {
   /**
    * The tracer object for the debug logger.
@@ -77,63 +80,30 @@ public class PasswordPolicyConfigManager
    */
   public PasswordPolicyConfigManager()
   {
+    // Nothing to do.
   }
 
 
 
   /**
-   * Creates a password policy configuration object
-   * from password policy subentry.
-   * @param  subEntry password policy subentry.
-   * @return password policy configuration.
-   * @throws InitializationException if an error
-   *         occurs while parsing subentry into
-   *         password policy configuration.
-   */
-  private PasswordPolicyConfig createPasswordPolicyConfig(
-          SubEntry subEntry) throws InitializationException
-  {
-    try
-    {
-      SubentryPasswordPolicy subentryPolicy =
-              new SubentryPasswordPolicy(subEntry);
-      PasswordPolicy passwordPolicy =
-              new PasswordPolicy(subentryPolicy);
-      PasswordPolicyConfig config =
-              new PasswordPolicyConfig(passwordPolicy);
-      return config;
-    }
-    catch (Exception e)
-    {
-      Message message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.
-            get(String.valueOf(subEntry.getDN()),
-                stackTraceToSingleLineString(e));
-      throw new InitializationException(message, e);
-    }
-  }
-
-
-
-  /**
-   * Initializes all password policies currently defined in the Directory
-   * Server configuration.  This should only be called at Directory Server
+   * Initializes all authentication policies currently defined in the Directory
+   * Server configuration. This should only be called at Directory Server
    * startup.
    *
-   * @throws  ConfigException  If a configuration problem causes the password
-   *                           policy initialization process to fail.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   the password policies that is not
-   *                                   related to the server configuration.
+   * @throws ConfigException
+   *           If a configuration problem causes the authentication policy
+   *           initialization process to fail.
+   * @throws InitializationException
+   *           If a problem occurs while initializing the authentication
+   *           policies that is not related to the server configuration.
    */
-  public void initializePasswordPolicies()
-         throws ConfigException, InitializationException
+  public void initializeAuthenticationPolicies() throws ConfigException,
+      InitializationException
   {
     // Get the root configuration object.
-    ServerManagementContext managementContext =
-         ServerManagementContext.getInstance();
-    RootCfg rootConfiguration =
-         managementContext.getRootConfiguration();
+    ServerManagementContext managementContext = ServerManagementContext
+        .getInstance();
+    RootCfg rootConfiguration = managementContext.getRootConfiguration();
 
     // Register as an add and delete listener with the root configuration so we
     // can be notified if any password policy entries are added or removed.
@@ -141,85 +111,66 @@ public class PasswordPolicyConfigManager
     rootConfiguration.addPasswordPolicyDeleteListener(this);
 
     // First, get the configuration base entry.
-    String[] passwordPoliciesName = rootConfiguration.listPasswordPolicies() ;
+    String[] passwordPolicyNames = rootConfiguration.listPasswordPolicies();
 
-    // See if the base entry has any children.  If not, then that means that
+    // See if the base entry has any children. If not, then that means that
     // there are no policies defined, so that's a problem.
-    if (passwordPoliciesName.length == 0)
+    if (passwordPolicyNames.length == 0)
     {
       Message message = ERR_CONFIG_PWPOLICY_NO_POLICIES.get();
       throw new ConfigException(message);
     }
 
-
     // Get the DN of the default password policy from the core configuration.
-    if( null == DirectoryServer.getDefaultPasswordPolicyDN())
+    if (DirectoryServer.getDefaultPasswordPolicyDN() == null)
     {
       Message message = ERR_CONFIG_PWPOLICY_NO_DEFAULT_POLICY.get();
       throw new ConfigException(message);
     }
 
-
     // Iterate through the child entries and process them as password policy
     // configuration entries.
-    for (String passwordPolicyName : passwordPoliciesName)
+    for (String passwordPolicyName : passwordPolicyNames)
     {
-      PasswordPolicyCfg passwordPolicyConfiguration =
-        rootConfiguration.getPasswordPolicy(passwordPolicyName);
-
-      try
-      {
-        PasswordPolicy policy = new PasswordPolicy(passwordPolicyConfiguration);
-        PasswordPolicyConfig config = new PasswordPolicyConfig(policy);
-        DirectoryServer.registerPasswordPolicy(
-            passwordPolicyConfiguration.dn(), config);
-        passwordPolicyConfiguration.addChangeListener(config);
-      }
-      catch (ConfigException ce)
-      {
-        Message message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
-            String.valueOf(passwordPolicyConfiguration.dn()), ce.getMessage());
-        throw new ConfigException(message, ce);
-      }
-      catch (InitializationException ie)
-      {
-        Message message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
-            String.valueOf(passwordPolicyConfiguration.dn()), ie.getMessage());
-        throw new InitializationException(message, ie);
-      }
-      catch (Exception e)
-      {
-        Message message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.
-            get(String.valueOf(passwordPolicyConfiguration.dn()),
-                stackTraceToSingleLineString(e));
-        throw new InitializationException(message, e);
-      }
+      AuthenticationPolicyCfg passwordPolicyConfiguration = rootConfiguration
+          .getPasswordPolicy(passwordPolicyName);
+      createAuthenticationPolicy(passwordPolicyConfiguration);
     }
-
 
     // If the entry specified by the default password policy DN has not been
     // registered, then fail.
     if (null == DirectoryServer.getDefaultPasswordPolicy())
     {
       DN defaultPolicyDN = DirectoryServer.getDefaultPasswordPolicyDN();
-      Message message = ERR_CONFIG_PWPOLICY_MISSING_DEFAULT_POLICY.get(
-              String.valueOf(defaultPolicyDN));
+      Message message = ERR_CONFIG_PWPOLICY_MISSING_DEFAULT_POLICY.get(String
+          .valueOf(defaultPolicyDN));
       throw new ConfigException(message);
     }
 
     // Process and register any password policy subentries.
-    List<SubEntry> pwpSubEntries =
-            DirectoryServer.getSubentryManager().getSubentries();
+    List<SubEntry> pwpSubEntries = DirectoryServer.getSubentryManager()
+        .getSubentries();
     if ((pwpSubEntries != null) && (!pwpSubEntries.isEmpty()))
     {
       for (SubEntry subentry : pwpSubEntries)
       {
         if (subentry.getEntry().isPasswordPolicySubentry())
         {
-          PasswordPolicyConfig config =
-                  createPasswordPolicyConfig(subentry);
-          DirectoryServer.registerPasswordPolicy(
-              subentry.getDN(), config);
+          try
+          {
+            PasswordPolicy policy = new SubentryPasswordPolicy(subentry);
+            DirectoryServer.registerAuthenticationPolicy(subentry.getDN(),
+                policy);
+          }
+          catch (Exception e)
+          {
+            // Just log a message instead of failing the server initialization.
+            // This will allow the administrator to fix any problems.
+            Message message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
+                String.valueOf(subentry.getDN()),
+                stackTraceToSingleLineString(e));
+            logError(message);
+          }
         }
       }
     }
@@ -231,14 +182,20 @@ public class PasswordPolicyConfigManager
 
 
   /**
-   * Perform any required finalization tasks for all password policies
-   * currently defined. This should only be called at Directory Server
-   * shutdown.
+   * Perform any required finalization tasks for all authentication policies
+   * currently defined. This should only be called at Directory Server shutdown.
    */
-  public void finalizePasswordPolicies()
+  public void finalizeAuthenticationPolicies()
   {
     // Deregister this as subentry change listener with SubentryManager.
     DirectoryServer.getSubentryManager().deregisterChangeListener(this);
+
+    // Deregister as configuration change listeners.
+    ServerManagementContext managementContext = ServerManagementContext
+        .getInstance();
+    RootCfg rootConfiguration = managementContext.getRootConfiguration();
+    rootConfiguration.removePasswordPolicyAddListener(this);
+    rootConfiguration.removePasswordPolicyDeleteListener(this);
   }
 
 
@@ -246,43 +203,13 @@ public class PasswordPolicyConfigManager
   /**
    * {@inheritDoc}
    */
-  public boolean isConfigurationAddAcceptable(PasswordPolicyCfg configuration,
-                                       List<Message> unacceptableReason)
+  public boolean isConfigurationAddAcceptable(
+      AuthenticationPolicyCfg configuration, List<Message> unacceptableReason)
   {
     // See if we can create a password policy from the provided configuration
-    // entry.  If so, then it's acceptable.
-    try
-    {
-      new PasswordPolicy(configuration);
-    }
-    catch (ConfigException ce)
-    {
-      Message message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
-              String.valueOf(configuration.dn()),
-                                  ce.getMessage());
-      unacceptableReason.add(message);
-      return false;
-    }
-    catch (InitializationException ie)
-    {
-      Message message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
-              String.valueOf(configuration.dn()),
-                                  ie.getMessage());
-      unacceptableReason.add(message);
-      return false;
-    }
-    catch (Exception e)
-    {
-      Message message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
-              String.valueOf(configuration.dn()),
-              stackTraceToSingleLineString(e));
-      unacceptableReason.add(message);
-      return false;
-    }
-
-
-    // If we've gotten here, then it is acceptable.
-    return true;
+    // entry. If so, then it's acceptable.
+    return isAuthenticationPolicyConfigurationAcceptable(configuration,
+        unacceptableReason);
   }
 
 
@@ -291,49 +218,39 @@ public class PasswordPolicyConfigManager
    * {@inheritDoc}
    */
   public ConfigChangeResult applyConfigurationAdd(
-      PasswordPolicyCfg configuration)
+      AuthenticationPolicyCfg configuration)
   {
-    DN                configEntryDN       = configuration.dn();
-    ArrayList<Message> messages            = new ArrayList<Message>();
-
-
     // See if we can create a password policy from the provided configuration
-    // entry.  If so, then register it with the Directory Server.
+    // entry. If so, then register it with the Directory Server.
+    ArrayList<Message> messages = new ArrayList<Message>();
     try
     {
-      PasswordPolicy policy = new PasswordPolicy(configuration);
-      PasswordPolicyConfig config = new PasswordPolicyConfig(policy);
-
-      DirectoryServer.registerPasswordPolicy(configEntryDN, config);
-      configuration.addChangeListener(config);
+      createAuthenticationPolicy(configuration);
       return new ConfigChangeResult(ResultCode.SUCCESS, false, messages);
     }
     catch (ConfigException ce)
     {
       messages.add(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
-              String.valueOf(configuration.dn()),
-              ce.getMessage()));
+          String.valueOf(configuration.dn()), ce.getMessage()));
 
       return new ConfigChangeResult(ResultCode.CONSTRAINT_VIOLATION, false,
-                                    messages);
+          messages);
     }
     catch (InitializationException ie)
     {
       messages.add(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
-              String.valueOf(configuration.dn()),
-              ie.getMessage()));
+          String.valueOf(configuration.dn()), ie.getMessage()));
 
       return new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
-                                    false, messages);
+          false, messages);
     }
     catch (Exception e)
     {
       messages.add(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
-              String.valueOf(configuration.dn()),
-              stackTraceToSingleLineString(e)));
+          String.valueOf(configuration.dn()), stackTraceToSingleLineString(e)));
 
       return new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
-                                    false, messages);
+          false, messages);
     }
   }
 
@@ -343,18 +260,17 @@ public class PasswordPolicyConfigManager
    * {@inheritDoc}
    */
   public boolean isConfigurationDeleteAcceptable(
-      PasswordPolicyCfg configuration, List<Message> unacceptableReason)
+      AuthenticationPolicyCfg configuration, List<Message> unacceptableReason)
   {
     // We'll allow the policy to be removed as long as it isn't the default.
     // FIXME: something like a referential integrity check is needed to ensure
-    //  a policy is not removed when referenced by a user entry (either
+    // a policy is not removed when referenced by a user entry (either
     // directly or via a virtual attribute).
     DN defaultPolicyDN = DirectoryServer.getDefaultPasswordPolicyDN();
-    if ((defaultPolicyDN != null) &&
-        defaultPolicyDN.equals(configuration.dn()))
+    if ((defaultPolicyDN != null) && defaultPolicyDN.equals(configuration.dn()))
     {
-      Message message = WARN_CONFIG_PWPOLICY_CANNOT_DELETE_DEFAULT_POLICY.get(
-              String.valueOf(defaultPolicyDN));
+      Message message = WARN_CONFIG_PWPOLICY_CANNOT_DELETE_DEFAULT_POLICY
+          .get(String.valueOf(defaultPolicyDN));
       unacceptableReason.add(message);
       return false;
     }
@@ -370,32 +286,25 @@ public class PasswordPolicyConfigManager
    * {@inheritDoc}
    */
   public ConfigChangeResult applyConfigurationDelete(
-      PasswordPolicyCfg configuration)
+      AuthenticationPolicyCfg configuration)
   {
     // We'll allow the policy to be removed as long as it isn't the default.
     // FIXME: something like a referential integrity check is needed to ensure
-    //  a policy is not removed when referenced by a user entry (either
+    // a policy is not removed when referenced by a user entry (either
     // directly or via a virtual attribute).
     ArrayList<Message> messages = new ArrayList<Message>(1);
     DN policyDN = configuration.dn();
     DN defaultPolicyDN = DirectoryServer.getDefaultPasswordPolicyDN();
     if ((defaultPolicyDN != null) && defaultPolicyDN.equals(policyDN))
     {
-      messages.add(WARN_CONFIG_PWPOLICY_CANNOT_DELETE_DEFAULT_POLICY.get(
-              String.valueOf(defaultPolicyDN)));
+      messages.add(WARN_CONFIG_PWPOLICY_CANNOT_DELETE_DEFAULT_POLICY.get(String
+          .valueOf(defaultPolicyDN)));
       return new ConfigChangeResult(ResultCode.CONSTRAINT_VIOLATION, false,
-                                    messages);
+          messages);
     }
-    DirectoryServer.deregisterPasswordPolicy(policyDN);
-    PasswordPolicyConfig config =
-      DirectoryServer.getPasswordPolicyConfig(policyDN);
-    if (config != null)
-    {
-      configuration.removeChangeListener(config);
-    }
-
-    messages.add(INFO_CONFIG_PWPOLICY_REMOVED_POLICY.get(
-            String.valueOf(policyDN)));
+    DirectoryServer.deregisterAuthenticationPolicy(policyDN);
+    messages.add(INFO_CONFIG_PWPOLICY_REMOVED_POLICY.get(String
+        .valueOf(policyDN)));
 
     return new ConfigChangeResult(ResultCode.SUCCESS, false, messages);
   }
@@ -403,84 +312,57 @@ public class PasswordPolicyConfigManager
 
 
   /**
-   * Attempts to parse an entry as password policy
-   * subentry to create a password policy object.
-   * @param entry subentry to parse.
-   * @throws DirectoryException if a problem occurs
-   *         while creating a password policy from
-   *         given subentry.
-   */
-  public static void checkSubentryAcceptable(Entry entry)
-          throws DirectoryException
-  {
-    SubEntry subentry = new SubEntry(entry);
-    SubentryPasswordPolicy subentryPolicy =
-            new SubentryPasswordPolicy(subentry);
-    try
-    {
-      new PasswordPolicy(subentryPolicy);
-    }
-    catch (ConfigException ex)
-    {
-      throw new DirectoryException(
-              ResultCode.UNWILLING_TO_PERFORM,
-              ex.getMessageObject());
-    }
-    catch (InitializationException ex)
-    {
-      throw new DirectoryException(
-              ResultCode.UNWILLING_TO_PERFORM,
-              ex.getMessageObject());
-    }
-  }
-
-
-
-  /**
    * {@inheritDoc}
    */
-  public void checkSubentryAddAcceptable(Entry entry)
-          throws DirectoryException
+  public void checkSubentryAddAcceptable(Entry entry) throws DirectoryException
   {
     if (entry.isPasswordPolicySubentry())
     {
-      checkSubentryAcceptable(entry);
+      new SubentryPasswordPolicy(new SubEntry(entry));
     }
   }
+
+
 
   /**
    * {@inheritDoc}
    */
   public void checkSubentryDeleteAcceptable(Entry entry)
-          throws DirectoryException
+      throws DirectoryException
   {
     // FIXME: something like a referential integrity check is needed to
     // ensure a policy is not removed when referenced by a user entry (
     // either directly or via a virtual attribute).
   }
+
+
 
   /**
    * {@inheritDoc}
    */
   public void checkSubentryModifyAcceptable(Entry oldEntry, Entry newEntry)
-          throws DirectoryException
+      throws DirectoryException
   {
     if (newEntry.isPasswordPolicySubentry())
     {
-      checkSubentryAcceptable(newEntry);
+      new SubentryPasswordPolicy(new SubEntry(newEntry));
     }
   }
+
+
 
   /**
    * {@inheritDoc}
    */
   public void checkSubentryModifyDNAcceptable(Entry oldEntry, Entry newEntry)
-          throws DirectoryException
+      throws DirectoryException
   {
     // FIXME: something like a referential integrity check is needed to
     // ensure a policy is not removed when referenced by a user entry (
     // either directly or via a virtual attribute).
   }
+
+
 
   /**
    * {@inheritDoc}
@@ -491,24 +373,22 @@ public class PasswordPolicyConfigManager
     {
       try
       {
-        SubEntry subentry = new SubEntry(entry);
-        PasswordPolicyConfig config =
-                  createPasswordPolicyConfig(subentry);
-        DirectoryServer.registerPasswordPolicy(
-            subentry.getDN(), config);
+        PasswordPolicy policy = new SubentryPasswordPolicy(new SubEntry(entry));
+        DirectoryServer.registerAuthenticationPolicy(entry.getDN(), policy);
       }
       catch (Exception e)
       {
         if (debugEnabled())
         {
           TRACER.debugError("Could not create password policy subentry "
-                  + "DN %s: %s",
-                  entry.getDN().toString(),
-                  stackTraceToSingleLineString(e));
+              + "DN %s: %s", entry.getDN().toString(),
+              stackTraceToSingleLineString(e));
         }
       }
     }
   }
+
+
 
   /**
    * {@inheritDoc}
@@ -517,9 +397,11 @@ public class PasswordPolicyConfigManager
   {
     if (entry.isPasswordPolicySubentry())
     {
-      DirectoryServer.deregisterPasswordPolicy(entry.getDN());
+      DirectoryServer.deregisterAuthenticationPolicy(entry.getDN());
     }
   }
+
+
 
   /**
    * {@inheritDoc}
@@ -528,31 +410,30 @@ public class PasswordPolicyConfigManager
   {
     if (oldEntry.isPasswordPolicySubentry())
     {
-      DirectoryServer.deregisterPasswordPolicy(oldEntry.getDN());
+      DirectoryServer.deregisterAuthenticationPolicy(oldEntry.getDN());
     }
 
     if (newEntry.isPasswordPolicySubentry())
     {
       try
       {
-        SubEntry subentry = new SubEntry(newEntry);
-        PasswordPolicyConfig config =
-                  createPasswordPolicyConfig(subentry);
-        DirectoryServer.registerPasswordPolicy(
-            subentry.getDN(), config);
+        PasswordPolicy policy = new SubentryPasswordPolicy(new SubEntry(
+            newEntry));
+        DirectoryServer.registerAuthenticationPolicy(newEntry.getDN(), policy);
       }
       catch (Exception e)
       {
         if (debugEnabled())
         {
           TRACER.debugError("Could not create password policy subentry "
-                  + "DN %s: %s",
-                  newEntry.getDN().toString(),
-                  stackTraceToSingleLineString(e));
+              + "DN %s: %s", newEntry.getDN().toString(),
+              stackTraceToSingleLineString(e));
         }
       }
     }
   }
+
+
 
   /**
    * {@inheritDoc}
@@ -561,29 +442,176 @@ public class PasswordPolicyConfigManager
   {
     if (oldEntry.isPasswordPolicySubentry())
     {
-      DirectoryServer.deregisterPasswordPolicy(oldEntry.getDN());
+      DirectoryServer.deregisterAuthenticationPolicy(oldEntry.getDN());
     }
 
     if (newEntry.isPasswordPolicySubentry())
     {
       try
       {
-        SubEntry subentry = new SubEntry(newEntry);
-        PasswordPolicyConfig config =
-                  createPasswordPolicyConfig(subentry);
-        DirectoryServer.registerPasswordPolicy(
-            subentry.getDN(), config);
+        PasswordPolicy policy = new SubentryPasswordPolicy(new SubEntry(
+            newEntry));
+        DirectoryServer.registerAuthenticationPolicy(newEntry.getDN(), policy);
       }
       catch (Exception e)
       {
         if (debugEnabled())
         {
           TRACER.debugError("Could not create password policy subentry "
-                  + "DN %s: %s",
-                  newEntry.getDN().toString(),
-                  stackTraceToSingleLineString(e));
+              + "DN %s: %s", newEntry.getDN().toString(),
+              stackTraceToSingleLineString(e));
         }
       }
     }
   }
+
+
+
+  // Creates and registers the provided authentication policy
+  // configuration.
+  private static void createAuthenticationPolicy(
+      AuthenticationPolicyCfg policyConfiguration) throws ConfigException,
+      InitializationException
+  {
+    // If this is going to be the default password policy then check the type is
+    // correct.
+    if (policyConfiguration.dn().equals(
+        DirectoryServer.getDefaultPasswordPolicyDN()))
+    {
+      if (!(policyConfiguration instanceof PasswordPolicyCfg))
+      {
+        Message msg = ERR_CONFIG_PWPOLICY_DEFAULT_POLICY_IS_WRONG_TYPE
+            .get(String.valueOf(policyConfiguration.dn()));
+        throw new ConfigException(msg);
+      }
+    }
+
+    String className = policyConfiguration.getJavaClass();
+    AuthenticationPolicyCfgDefn d = AuthenticationPolicyCfgDefn.getInstance();
+    ClassPropertyDefinition pd = d.getJavaClassPropertyDefinition();
+
+    // Load the class and cast it to an authentication policy.
+    Class<?> theClass;
+    AuthenticationPolicyFactory<?> factory;
+
+    try
+    {
+      theClass = pd.loadClass(className, AuthenticationPolicyFactory.class);
+      factory = (AuthenticationPolicyFactory<?>) theClass.newInstance();
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      Message message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
+          String.valueOf(policyConfiguration.dn()),
+          stackTraceToSingleLineString(e));
+      throw new InitializationException(message, e);
+    }
+
+    // Perform the necessary initialization for the authentication policy.
+    AuthenticationPolicy policy;
+    try
+    {
+      // Determine the initialization method to use: it must take a
+      // single parameter which is the exact type of the configuration
+      // object.
+      Method method = theClass.getMethod("createAuthenticationPolicy",
+          policyConfiguration.configurationClass());
+
+      policy = (AuthenticationPolicy) method.invoke(factory,
+          policyConfiguration);
+    }
+    catch (Exception e)
+    {
+      if (e instanceof InvocationTargetException)
+      {
+        Throwable t = e.getCause();
+
+        if (t instanceof InitializationException)
+        {
+          throw (InitializationException) t;
+        }
+        else if (t instanceof ConfigException)
+        {
+          throw (ConfigException) t;
+        }
+      }
+
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      Message message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
+          String.valueOf(policyConfiguration.dn()),
+          stackTraceToSingleLineString(e));
+      throw new InitializationException(message, e);
+    }
+
+    DirectoryServer.registerAuthenticationPolicy(policyConfiguration.dn(),
+        policy);
+  }
+
+
+
+  // Determines whether or not the new authentication policy configuration's
+  // implementation class is acceptable.
+  private static boolean isAuthenticationPolicyConfigurationAcceptable(
+      AuthenticationPolicyCfg policyConfiguration,
+      List<Message> unacceptableReasons)
+  {
+    // If this is going to be the default password policy then check the type is
+    // correct.
+    if (policyConfiguration.dn().equals(
+        DirectoryServer.getDefaultPasswordPolicyDN()))
+    {
+      if (!(policyConfiguration instanceof PasswordPolicyCfg))
+      {
+        Message msg = ERR_CONFIG_PWPOLICY_DEFAULT_POLICY_IS_WRONG_TYPE
+            .get(String.valueOf(policyConfiguration.dn()));
+        unacceptableReasons.add(msg);
+        return false;
+      }
+    }
+
+    String className = policyConfiguration.getJavaClass();
+    AuthenticationPolicyCfgDefn d = AuthenticationPolicyCfgDefn.getInstance();
+    ClassPropertyDefinition pd = d.getJavaClassPropertyDefinition();
+
+    // Validate the configuration.
+    try
+    {
+      // Load the class and cast it to a authentication policy factory.
+      Class<?> theClass;
+      AuthenticationPolicyFactory<?> factory;
+
+      theClass = pd.loadClass(className, AuthenticationPolicyFactory.class);
+      factory = (AuthenticationPolicyFactory<?>) theClass.newInstance();
+
+      // Determine the initialization method to use: it must take a
+      // single parameter which is the exact type of the configuration
+      // object.
+      Method method = theClass.getMethod("isConfigurationAcceptable",
+          AuthenticationPolicyCfg.class, List.class);
+      return (Boolean) method.invoke(factory, policyConfiguration,
+          unacceptableReasons);
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      unacceptableReasons.add(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
+          String.valueOf(policyConfiguration.dn()),
+          stackTraceToSingleLineString(e)));
+      return false;
+    }
+  }
+
 }

@@ -3180,12 +3180,18 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.60
   MUST ( ds-cfg-password-character-set $
          ds-cfg-password-format )
   X-ORIGIN 'OpenDS Directory Server' )
-objectClasses: ( 1.3.6.1.4.1.26027.1.2.61
-  NAME 'ds-cfg-password-policy'
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.3
+  NAME 'ds-cfg-authentication-policy'
   SUP top
   STRUCTURAL
-  MUST ( cn $
-         ds-cfg-password-attribute $
+  MUST ( cn )
+  MAY ( ds-cfg-java-class )
+  X-ORIGIN 'OpenDJ Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.26027.1.2.61
+  NAME 'ds-cfg-password-policy'
+  SUP ds-cfg-authentication-policy
+  STRUCTURAL
+  MUST ( ds-cfg-password-attribute $
          ds-cfg-default-password-storage-scheme )
   MAY ( ds-cfg-account-status-notification-handler $
         ds-cfg-allow-expired-password-changes $

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -275,26 +276,26 @@ public class SubentryPasswordPolicyTestCase
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(DirectoryServer.getEntry(policyEntry.getDN()));
 
-    PasswordPolicy policy = DirectoryServer.getPasswordPolicy(
+    PasswordPolicy policy = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(
             DN.decode("cn=Temp Policy," + SUFFIX));
     assertNotNull(policy);
 
     // Check all pwp attributes for correct values.
     assertEquals(policy.getLockoutDuration(), 300);
     assertEquals(policy.getLockoutFailureCount(), 3);
-    assertEquals(policy.forceChangeOnReset(), true);
+    assertEquals(policy.isForceChangeOnReset(), true);
     assertTrue(policy.getPasswordAttribute(
             ).getPrimaryName().equalsIgnoreCase(
             "authPassword"));
-    assertEquals(policy.getMinimumPasswordAge(), 600);
-    assertEquals(policy.getMaximumPasswordAge(), 2147483647);
+    assertEquals(policy.getMinPasswordAge(), 600);
+    assertEquals(policy.getMaxPasswordAge(), 2147483647);
     assertEquals(policy.getPasswordHistoryCount(), 5);
-    assertEquals(policy.getWarningInterval(), 864000);
+    assertEquals(policy.getPasswordExpirationWarningInterval(), 864000);
     assertEquals(policy.getGraceLoginCount(), 3);
     assertEquals(policy.getLockoutFailureExpirationInterval(),
             3600);
-    assertEquals(policy.allowUserPasswordChanges(), false);
-    assertEquals(policy.requireCurrentPassword(), true);
+    assertEquals(policy.isAllowUserPasswordChanges(), false);
+    assertEquals(policy.isPasswordChangeRequiresCurrentPassword(), true);
 
     // Make sure this policy applies to the test entry
     // its supposed to target and that its the same
@@ -347,7 +348,7 @@ public class SubentryPasswordPolicyTestCase
     assertTrue(testEntry.hasAttribute(attrType));
     assertTrue(testEntry.hasValue(attrType, null,
             AttributeValues.create(attrType,
-            defaultPolicy.getConfigEntryDN(
+            defaultPolicy.getDN(
             ).toString())));
 
     // Add new subentry policy with the
@@ -397,7 +398,7 @@ public class SubentryPasswordPolicyTestCase
     assertTrue(testEntry.hasAttribute(attrType));
     assertTrue(testEntry.hasValue(attrType, null,
             AttributeValues.create(attrType,
-            defaultPolicy.getConfigEntryDN(
+            defaultPolicy.getDN(
             ).toString())));
   }
 }

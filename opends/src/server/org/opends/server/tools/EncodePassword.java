@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -912,7 +913,7 @@ public class EncodePassword
           // Initialize the subentry manager.
           directoryServer.initializeSubentryManager();
           //Initialize PWD policy components.
-          directoryServer.initializePasswordPolicyComponents();
+          directoryServer.initializeAuthenticationPolicyComponents();
           //Load the crypto-manager key cache among other things.
          new CryptoManagerSync();
     } catch (InitializationException ie) {

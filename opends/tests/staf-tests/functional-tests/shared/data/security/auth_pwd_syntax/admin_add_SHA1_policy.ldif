@@ -21,11 +21,14 @@
 # CDDL HEADER END
 #
 #      Copyright 2008 Sun Microsystems, Inc.
+#      Portions copyright 2011 ForgeRock AS.
 #
 
 dn: cn=Sales Password Policy,cn=Password Policies,cn=config
+objectClass: ds-cfg-authentication-policy
 objectClass: ds-cfg-password-policy
 objectClass: top
+ds-cfg-java-class: org.opends.server.core.PasswordPolicyFactory
 ds-cfg-skip-validation-for-administrators: false
 ds-cfg-password-expiration-warning-interval: 5 days
 ds-cfg-default-password-storage-scheme: cn=Salted SHA-1,cn=Password Storage Schemes,cn=config

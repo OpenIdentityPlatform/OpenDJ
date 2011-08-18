@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 
 package org.opends.server.extensions;
@@ -100,6 +101,7 @@ public class SASLOverTLSTestCase extends ExtensionsTestCase {
     TestCaseUtils.startServer();
     TestCaseUtils.dsconfig(
             "create-password-policy",
+            "--type", "password-policy",
             "--policy-name", pwdPolicy,
             "--set", "password-attribute:userPassword",
             "--set", "default-password-storage-scheme: Clear"

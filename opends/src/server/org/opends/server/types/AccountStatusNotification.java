@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -239,13 +240,13 @@ public final class AccountStatusNotification
     PasswordPolicy policy = pwPolicyState.getPolicy();
 
     ArrayList<String> propList = new ArrayList<String>(1);
-    propList.add(policy.getConfigEntryDN().toString());
+    propList.add(policy.getDN().toString());
     props.put(PASSWORD_POLICY_DN, propList);
 
     if (tempLocked)
     {
-      int secondsUntilUnlock = policy.getLockoutDuration();
-      if (secondsUntilUnlock > 0)
+      long secondsUntilUnlock = policy.getLockoutDuration();
+      if (secondsUntilUnlock > 0L)
       {
         propList = new ArrayList<String>(1);
         propList.add(String.valueOf(secondsUntilUnlock));

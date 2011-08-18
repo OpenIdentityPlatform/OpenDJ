@@ -613,7 +613,9 @@ public class PasswordModifyExtendedOperation
       // make sure that's OK.
       if (oldPassword == null)
       {
-        if (selfChange && pwPolicyState.getPolicy().requireCurrentPassword())
+        if (selfChange
+            && pwPolicyState.getPolicy()
+                .isPasswordChangeRequiresCurrentPassword())
         {
           operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
@@ -635,7 +637,7 @@ public class PasswordModifyExtendedOperation
       }
       else
       {
-        if (pwPolicyState.getPolicy().requireSecureAuthentication() &&
+        if (pwPolicyState.getPolicy().isRequireSecureAuthentication() &&
             (! operation.getClientConnection().isSecure()))
         {
           operation.setResultCode(ResultCode.CONFIDENTIALITY_REQUIRED);
@@ -673,7 +675,7 @@ public class PasswordModifyExtendedOperation
       // If it is a self password change and we don't allow that, then reject
       // the request.
       if (selfChange &&
-           (! pwPolicyState.getPolicy().allowUserPasswordChanges()))
+           (! pwPolicyState.getPolicy().isAllowUserPasswordChanges()))
       {
         if (pwPolicyRequested)
         {
@@ -695,7 +697,7 @@ public class PasswordModifyExtendedOperation
 
       // If we require secure password changes and the connection isn't secure,
       // then reject the request.
-      if (pwPolicyState.getPolicy().requireSecurePasswordChanges() &&
+      if (pwPolicyState.getPolicy().isRequireSecurePasswordChanges() &&
           (! operation.getClientConnection().isSecure()))
       {
 
@@ -732,7 +734,7 @@ public class PasswordModifyExtendedOperation
       // If the user's password is expired and it's a self-change request, then
       // see if that's OK.
       if ((selfChange && pwPolicyState.isPasswordExpired() &&
-          (! pwPolicyState.getPolicy().allowExpiredPasswordChanges())))
+          (! pwPolicyState.getPolicy().isAllowExpiredPasswordChanges())))
       {
         if (pwPolicyRequested)
         {
@@ -798,7 +800,7 @@ public class PasswordModifyExtendedOperation
           // by an internal operation or during synchronization, so we don't
           // need to check for those cases.
           isPreEncoded = true;
-          if (! pwPolicyState.getPolicy().allowPreEncodedPasswords())
+          if (! pwPolicyState.getPolicy().isAllowPreEncodedPasswords())
           {
             operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
@@ -810,8 +812,9 @@ public class PasswordModifyExtendedOperation
         else
         {
           // Run the new password through the set of password validators.
-          if (selfChange ||
-               (! pwPolicyState.getPolicy().skipValidationForAdministrators()))
+          if (selfChange
+              || (!pwPolicyState.getPolicy()
+                  .isSkipValidationForAdministrators()))
           {
             HashSet<ByteString> clearPasswords;
             if (oldPassword == null)
@@ -864,7 +867,7 @@ public class PasswordModifyExtendedOperation
             if (pwPolicyState.isPasswordInHistory(newPassword))
             {
               if (selfChange || (! pwPolicyState.getPolicy().
-                                      skipValidationForAdministrators()))
+                                      isSkipValidationForAdministrators()))
               {
                 operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
@@ -923,7 +926,7 @@ public class PasswordModifyExtendedOperation
         Set<AttributeValue> existingValues = pwPolicyState.getPasswordValues();
         LinkedHashSet<AttributeValue> deleteValues =
              new LinkedHashSet<AttributeValue>(existingValues.size());
-        if (pwPolicyState.getPolicy().usesAuthPasswordSyntax())
+        if (pwPolicyState.getPolicy().isAuthPasswordSyntax())
         {
           for (AttributeValue v : existingValues)
           {
@@ -1053,7 +1056,7 @@ public class PasswordModifyExtendedOperation
       else
       {
         pwPolicyState.setMustChangePassword(
-             pwPolicyState.getPolicy().forceChangeOnReset());
+             pwPolicyState.getPolicy().isForceChangeOnReset());
       }
 
 

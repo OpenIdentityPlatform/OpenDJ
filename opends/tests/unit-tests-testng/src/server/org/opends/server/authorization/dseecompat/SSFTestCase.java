@@ -102,6 +102,7 @@ public class SSFTestCase extends AciTestCase {
     public void setupClass() throws Exception {
       TestCaseUtils.dsconfig(
               "create-password-policy",
+              "--type", "password-policy",
               "--policy-name", pwdPolicy,
               "--set", "password-attribute:userPassword",
               "--set", "default-password-storage-scheme: Clear"

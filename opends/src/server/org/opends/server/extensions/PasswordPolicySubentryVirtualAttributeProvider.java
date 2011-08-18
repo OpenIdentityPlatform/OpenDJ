@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 
 package org.opends.server.extensions;
@@ -136,7 +137,7 @@ public class PasswordPolicySubentryVirtualAttributeProvider
       {
         AttributeType dnAttrType = DirectoryServer.getAttributeType(
                 "1.3.6.1.4.1.42.2.27.8.1.23");
-        DN policyDN = policy.getConfigEntryDN();
+        DN policyDN = policy.getDN();
         AttributeValue value = AttributeValues.create(
                 dnAttrType, policyDN.toString());
         valueSet.add(value);
