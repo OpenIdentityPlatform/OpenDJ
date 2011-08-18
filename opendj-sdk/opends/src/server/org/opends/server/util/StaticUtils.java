@@ -3848,7 +3848,7 @@ public final class StaticUtils
    * @return  The user-friendly representation of the specified number of
    *          seconds.
    */
-  public static Message secondsToTimeString(int numSeconds)
+  public static Message secondsToTimeString(long numSeconds)
   {
     if (numSeconds < 60)
     {
@@ -3858,25 +3858,25 @@ public final class StaticUtils
     else if (numSeconds < 3600)
     {
       // We can express it in minutes and seconds.
-      int m = numSeconds / 60;
-      int s = numSeconds % 60;
+      long m = numSeconds / 60;
+      long s = numSeconds % 60;
       return INFO_TIME_IN_MINUTES_SECONDS.get(m, s);
     }
     else if (numSeconds < 86400)
     {
       // We can express it in hours, minutes, and seconds.
-      int h = numSeconds / 3600;
-      int m = (numSeconds % 3600) / 60;
-      int s = numSeconds % 3600 % 60;
+      long h = numSeconds / 3600;
+      long m = (numSeconds % 3600) / 60;
+      long s = numSeconds % 3600 % 60;
       return INFO_TIME_IN_HOURS_MINUTES_SECONDS.get(h, m, s);
     }
     else
     {
       // We can express it in days, hours, minutes, and seconds.
-      int d = numSeconds / 86400;
-      int h = (numSeconds % 86400) / 3600;
-      int m = (numSeconds % 86400 % 3600) / 60;
-      int s = numSeconds % 86400 % 3600 % 60;
+      long d = numSeconds / 86400;
+      long h = (numSeconds % 86400) / 3600;
+      long m = (numSeconds % 86400 % 3600) / 60;
+      long s = numSeconds % 86400 % 3600 % 60;
       return INFO_TIME_IN_DAYS_HOURS_MINUTES_SECONDS.get(d, h, m, s);
     }
   }

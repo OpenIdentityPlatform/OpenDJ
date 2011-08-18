@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -41,6 +42,7 @@ import org.opends.server.admin.std.meta.GlobalCfgDefn.WorkflowConfigurationMode;
 import org.opends.server.admin.std.server.GlobalCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.*;
 
@@ -411,6 +413,20 @@ public class CoreConfigManager
           }
         }
       }
+    }
+
+    // Ensure that the default password policy always points to a password
+    // policy and not another type of authentication policy.
+    DN defaultPasswordPolicyDN = configuration.getDefaultPasswordPolicyDN();
+    AuthenticationPolicy policy = DirectoryServer
+        .getAuthenticationPolicy(defaultPasswordPolicyDN);
+    if (!(policy instanceof PasswordPolicy))
+    {
+      Message message =
+        ERR_CONFIG_PWPOLICY_CANNOT_CHANGE_DEFAULT_POLICY_WRONG_TYPE
+          .get(configuration.getDefaultPasswordPolicy());
+      unacceptableReasons.add(message);
+      configAcceptable = false;
     }
 
     return configAcceptable;

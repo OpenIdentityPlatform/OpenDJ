@@ -1448,7 +1448,9 @@ cn: Password Policies
 
 dn: cn=Default Password Policy,cn=Password Policies,cn=config
 objectClass: top
+objectClass: ds-cfg-authentication-policy
 objectClass: ds-cfg-password-policy
+ds-cfg-java-class: org.opends.server.core.PasswordPolicyFactory
 cn: Default Password Policy
 ds-cfg-password-attribute: userPassword
 ds-cfg-default-password-storage-scheme: cn=Salted SHA-1,cn=Password Storage Schemes,cn=config
@@ -1479,7 +1481,9 @@ ds-cfg-password-history-duration: 0 seconds
 
 dn: cn=Root Password Policy,cn=Password Policies,cn=config
 objectClass: top
+objectClass: ds-cfg-authentication-policy
 objectClass: ds-cfg-password-policy
+ds-cfg-java-class: org.opends.server.core.PasswordPolicyFactory
 cn: Root Password Policy
 ds-cfg-password-attribute: userPassword
 ds-cfg-default-password-storage-scheme: cn=Salted SHA-512,cn=Password Storage Schemes,cn=config

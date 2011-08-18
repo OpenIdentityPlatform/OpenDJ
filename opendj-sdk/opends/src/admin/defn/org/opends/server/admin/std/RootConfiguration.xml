@@ -289,8 +289,9 @@
       </cli:relation>
     </adm:profile>
   </adm:relation>
-  <adm:relation name="password-policy">
-    <adm:one-to-many />
+  <adm:relation name="password-policy"
+                managed-object-name="authentication-policy">
+    <adm:one-to-many plural-name="password-policies" />
     <adm:profile name="ldap">
       <ldap:rdn-sequence>
         cn=Password Policies,cn=config

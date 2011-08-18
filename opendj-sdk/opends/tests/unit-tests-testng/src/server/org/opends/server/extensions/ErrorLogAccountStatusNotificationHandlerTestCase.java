@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -265,7 +266,7 @@ public class ErrorLogAccountStatusNotificationHandlerTestCase
               new HashMap<AccountStatusNotificationProperty,List<String>>();
 
     ArrayList<String> propList = new ArrayList<String>(1);
-    propList.add(policy.getConfigEntryDN().toString());
+    propList.add(policy.getDN().toString());
     notificationProperties.put(PASSWORD_POLICY_DN, propList);
 
 

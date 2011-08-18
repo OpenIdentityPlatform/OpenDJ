@@ -80,6 +80,13 @@
       for users whose entries do not specify an alternate password
       policy (either via a real or virtual attribute).
     </adm:synopsis>
+    <adm:description>
+      In addition, the default password policy will be used for providing
+      default parameters for sub-entry based password policies when not
+      provided or supported by the sub-entry itself.
+      This property must reference a password policy and no other type of
+      authentication policy.
+    </adm:description>
     <adm:syntax>
       <adm:aggregation relation-name="password-policy" parent-path="/" />
     </adm:syntax>

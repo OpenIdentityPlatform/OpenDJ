@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -963,7 +964,8 @@ bindProcessing:
 
     // Check to see if the authentication must be done in a secure
     // manner.  If so, then the client connection must be secure.
-    if (policy.requireSecureAuthentication() && (! clientConnection.isSecure()))
+    if (policy.isRequireSecureAuthentication()
+        && (!clientConnection.isSecure()))
     {
       if (isSASLBind)
       {

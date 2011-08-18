@@ -76,8 +76,10 @@ ds-cfg-password-validator: cn=Test Password Validator,cn=Password Validators,cn=
 
 dn: cn=SSHA512 UserPassword Policy,cn=Password Policies,cn=config
 changetype: add
-objectClass: top
+objectClass: ds-cfg-authentication-policy
 objectClass: ds-cfg-password-policy
+objectClass: top
+ds-cfg-java-class: org.opends.server.core.PasswordPolicyFactory
 cn: SSHA512 UserPassword Policy
 ds-cfg-password-attribute: userPassword
 ds-cfg-default-password-storage-scheme: cn=Salted SHA-512,cn=Password Storage Schemes,cn=config
@@ -106,8 +108,10 @@ ds-cfg-password-validator: cn=Test Password Validator,cn=Password Validators,cn=
 
 dn: cn=SHA1 AuthPassword Policy,cn=Password Policies,cn=config
 changetype: add
-objectClass: top
+objectClass: ds-cfg-authentication-policy
 objectClass: ds-cfg-password-policy
+objectClass: top
+ds-cfg-java-class: org.opends.server.core.PasswordPolicyFactory
 cn: SHA1 AuthPassword Policy
 ds-cfg-password-attribute: authPassword
 ds-cfg-default-password-storage-scheme: cn=Salted SHA-1,cn=Password Storage Schemes,cn=config
@@ -136,8 +140,10 @@ ds-cfg-password-validator: cn=Test Password Validator,cn=Password Validators,cn=
 
 dn: cn=Clear UserPassword Policy,cn=Password Policies,cn=config
 changetype: add
-objectClass: top
+objectClass: ds-cfg-authentication-policy
 objectClass: ds-cfg-password-policy
+objectClass: top
+ds-cfg-java-class: org.opends.server.core.PasswordPolicyFactory
 cn: Test AuthPassword Policy
 ds-cfg-password-attribute: userPassword
 ds-cfg-default-password-storage-scheme: cn=CLEAR,cn=Password Storage Schemes,cn=config

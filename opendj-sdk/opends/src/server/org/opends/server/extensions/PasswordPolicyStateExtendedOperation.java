@@ -927,7 +927,7 @@ public class PasswordPolicyStateExtendedOperation
     if (returnAll || returnTypes.contains(OP_GET_PASSWORD_POLICY_DN))
     {
       encode(writer, OP_GET_PASSWORD_POLICY_DN,
-                            policy.getConfigEntryDN().toString());
+                            policy.getDN().toString());
     }
 
     if (returnAll || returnTypes.contains(OP_GET_ACCOUNT_DISABLED_STATE))
@@ -1025,14 +1025,15 @@ public class PasswordPolicyStateExtendedOperation
         returnTypes.contains(OP_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING))
     {
       String secondsStr;
-      int secondsUntilExp = pwpState.getSecondsUntilExpiration();
+      long secondsUntilExp = pwpState.getSecondsUntilExpiration();
       if (secondsUntilExp < 0)
       {
         secondsStr = null;
       }
       else
       {
-        int secondsUntilWarning = secondsUntilExp - policy.getWarningInterval();
+        long secondsUntilWarning = secondsUntilExp
+            - policy.getPasswordExpirationWarningInterval();
         if (secondsUntilWarning <= 0)
         {
           secondsStr = "0";
@@ -1124,7 +1125,7 @@ public class PasswordPolicyStateExtendedOperation
     if (returnAll || returnTypes.contains(OP_GET_SECONDS_UNTIL_IDLE_LOCKOUT))
     {
       String secondsStr;
-      int lockoutInterval = policy.getIdleLockoutInterval();
+      long lockoutInterval = policy.getIdleLockoutInterval();
       if (lockoutInterval > 0)
       {
         long lastLoginTime = pwpState.getLastLoginTime();
@@ -1167,13 +1168,13 @@ public class PasswordPolicyStateExtendedOperation
       String secondsStr;
       if (pwpState.mustChangePassword())
       {
-        int maxAge = policy.getMaximumPasswordResetAge();
+        long maxAge = policy.getMaxPasswordResetAge();
         if (maxAge > 0)
         {
           long currentTime = pwpState.getCurrentTime();
           long changedTime = pwpState.getPasswordChangedTime();
           int changeAge = (int) ((currentTime - changedTime) / 1000);
-          int timeToLockout = maxAge - changeAge;
+          long timeToLockout = maxAge - changeAge;
           if (timeToLockout <= 0)
           {
             secondsStr = "0";

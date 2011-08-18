@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2006-2008 Sun Microsystems, Inc.
+ !      Portions copyright 2011 ForgeRock AS.
  ! -->
 <stax>
 
@@ -75,7 +76,7 @@
               'subcommand'           : 'create-password-policy' ,
               'objectType'           : 'policy-name' ,
               'objectName'           : 'Sales Password Policy',
-              'optionsString'        : '--set "%s" --set %s' % (msg1,msg2),
+              'optionsString'        : '--type password-policy --set "%s" --set %s' % (msg1,msg2),
               'expectedRC'           : 0 }
             </call>
             

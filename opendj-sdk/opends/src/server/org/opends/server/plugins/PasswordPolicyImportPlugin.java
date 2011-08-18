@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.plugins;
 
@@ -41,13 +42,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.server.PasswordPolicyImportPluginCfg;
 import org.opends.server.admin.std.server.PluginCfg;
+import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ImportTaskListener;
 import org.opends.server.api.PasswordStorageScheme;
@@ -57,7 +58,7 @@ import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicy;
-import org.opends.server.core.PasswordPolicyConfigManager;
+import org.opends.server.core.SubentryPasswordPolicy;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
@@ -156,10 +157,10 @@ public final class PasswordPolicyImportPlugin
          configuration.getDefaultAuthPasswordStorageSchemeDNs();
     if (authSchemeDNs.isEmpty())
     {
-      if (defaultPolicy.usesAuthPasswordSyntax())
+      if (defaultPolicy.isAuthPasswordSyntax())
       {
-        CopyOnWriteArrayList<PasswordStorageScheme<?>> schemeList =
-             defaultPolicy.getDefaultStorageSchemes();
+        List<PasswordStorageScheme<?>> schemeList =
+             defaultPolicy.getDefaultPasswordStorageSchemes();
         defaultAuthPasswordSchemes =
              new PasswordStorageScheme[schemeList.size()];
         schemeList.toArray(defaultAuthPasswordSchemes);
@@ -212,10 +213,10 @@ public final class PasswordPolicyImportPlugin
          configuration.getDefaultUserPasswordStorageSchemeDNs();
     if (userSchemeDNs.isEmpty())
     {
-      if (! defaultPolicy.usesAuthPasswordSyntax())
+      if (! defaultPolicy.isAuthPasswordSyntax())
       {
-        CopyOnWriteArrayList<PasswordStorageScheme<?>> schemeList =
-             defaultPolicy.getDefaultStorageSchemes();
+        List<PasswordStorageScheme<?>> schemeList =
+             defaultPolicy.getDefaultPasswordStorageSchemes();
         defaultUserPasswordSchemes =
              new PasswordStorageScheme[schemeList.size()];
         schemeList.toArray(defaultUserPasswordSchemes);
@@ -285,14 +286,16 @@ public final class PasswordPolicyImportPlugin
     // attribute types associated with them.
     HashMap<DN,PasswordStorageScheme<?>[]> schemeMap =
          new HashMap<DN,PasswordStorageScheme<?>[]>();
-    for (PasswordPolicy p : DirectoryServer.getPasswordPolicies())
+    for (AuthenticationPolicy ap : DirectoryServer.getAuthenticationPolicies())
     {
-      CopyOnWriteArrayList<PasswordStorageScheme<?>> schemeList =
-           p.getDefaultStorageSchemes();
+      PasswordPolicy p = (PasswordPolicy) ap;
+
+      List<PasswordStorageScheme<?>> schemeList =
+           p.getDefaultPasswordStorageSchemes();
       PasswordStorageScheme<?>[] schemeArray =
            new PasswordStorageScheme[schemeList.size()];
       schemeList.toArray(schemeArray);
-      schemeMap.put(p.getConfigEntryDN(), schemeArray);
+      schemeMap.put(p.getDN(), schemeArray);
     }
 
 
@@ -333,7 +336,7 @@ public final class PasswordPolicyImportPlugin
     {
       try
       {
-        PasswordPolicyConfigManager.checkSubentryAcceptable(entry);
+        new SubentryPasswordPolicy(new SubEntry(entry));
       }
       catch (DirectoryException de)
       {
@@ -362,7 +365,8 @@ policyLoop:
           try
           {
             policyDN = DN.decode(v.getValue());
-            policy = DirectoryServer.getPasswordPolicy(policyDN);
+            policy = (PasswordPolicy) DirectoryServer
+                .getAuthenticationPolicy(policyDN);
             if (policy == null)
             {
               Message message = WARN_PLUGIN_PWIMPORT_NO_SUCH_POLICY.get(
@@ -401,7 +405,7 @@ policyLoop:
             {
               ByteString value = v.getValue();
 
-              if (policy.usesAuthPasswordSyntax())
+              if (policy.isAuthPasswordSyntax())
               {
                 if (!AuthPasswordSyntax.isEncoded(value))
                 {
@@ -761,10 +765,10 @@ policyLoop:
          configuration.getDefaultAuthPasswordStorageSchemeDNs();
     if (authSchemeDNs.isEmpty())
     {
-      if (defaultPolicy.usesAuthPasswordSyntax())
+      if (defaultPolicy.isAuthPasswordSyntax())
       {
-        CopyOnWriteArrayList<PasswordStorageScheme<?>> schemeList =
-             defaultPolicy.getDefaultStorageSchemes();
+        List<PasswordStorageScheme<?>> schemeList =
+             defaultPolicy.getDefaultPasswordStorageSchemes();
         defaultAuthSchemes =
              new PasswordStorageScheme[schemeList.size()];
         schemeList.toArray(defaultAuthSchemes);
@@ -820,10 +824,10 @@ policyLoop:
          configuration.getDefaultUserPasswordStorageSchemeDNs();
     if (userSchemeDNs.isEmpty())
     {
-      if (! defaultPolicy.usesAuthPasswordSyntax())
+      if (! defaultPolicy.isAuthPasswordSyntax())
       {
-        CopyOnWriteArrayList<PasswordStorageScheme<?>> schemeList =
-             defaultPolicy.getDefaultStorageSchemes();
+        List<PasswordStorageScheme<?>> schemeList =
+             defaultPolicy.getDefaultPasswordStorageSchemes();
         defaultUserSchemes =
              new PasswordStorageScheme[schemeList.size()];
         schemeList.toArray(defaultUserSchemes);

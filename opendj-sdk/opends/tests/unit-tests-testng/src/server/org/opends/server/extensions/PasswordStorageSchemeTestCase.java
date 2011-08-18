@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2010 ForgeRock AS.
+ *      Portions Copyright 2010-2011 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -97,7 +97,7 @@ public abstract class PasswordStorageSchemeTestCase
          throws Exception
   {
     TestCaseUtils.startServer();
-    
+
     if (configDNString != null)
     {
       configEntry = DirectoryServer.getConfigEntry(DN.decode(configDNString));
@@ -310,8 +310,8 @@ public abstract class PasswordStorageSchemeTestCase
     boolean previousValue = false;
     try {
       DN dn = DN.decode("cn=Default Password Policy,cn=Password Policies,cn=config");
-      PasswordPolicy p = DirectoryServer.getPasswordPolicy(dn);
-      previousValue = p.allowPreEncodedPasswords();
+      PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+      previousValue = p.isAllowPreEncodedPasswords();
 
       String attr  = "ds-cfg-allow-pre-encoded-passwords";
 
@@ -324,8 +324,8 @@ public abstract class PasswordStorageSchemeTestCase
       ModifyOperation modifyOperation = conn.processModify(dn, mods);
       assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
-      p = DirectoryServer.getPasswordPolicy(dn);
-      assertEquals(p.allowPreEncodedPasswords(), allowPreencoded);
+      p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
+      assertEquals(p.isAllowPreEncodedPasswords(), allowPreencoded);
     } catch (Exception e) {
       System.err.println("Failed to set ds-cfg-allow-pre-encoded-passwords " +
                          " to " + allowPreencoded);

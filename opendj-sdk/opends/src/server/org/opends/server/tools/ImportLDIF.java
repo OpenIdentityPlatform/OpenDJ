@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -939,7 +940,7 @@ public class ImportLDIF extends TaskTool {
       // Initialize all the password policy information.
       try
       {
-        directoryServer.initializePasswordPolicyComponents();
+        directoryServer.initializeAuthenticationPolicyComponents();
       }
       catch (ConfigException ce)
       {

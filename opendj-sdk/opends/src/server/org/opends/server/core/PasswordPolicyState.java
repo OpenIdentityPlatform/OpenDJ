@@ -46,7 +46,6 @@ import java.util.TreeMap;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn;
-import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.PasswordGenerator;
 import org.opends.server.api.PasswordStorageScheme;
@@ -73,7 +72,7 @@ import static org.opends.server.util.StaticUtils.*;
  * This class provides a data structure for holding password policy state
  * information for a user account.
  */
-public class PasswordPolicyState
+public final class PasswordPolicyState
 {
   /**
    * The tracer object for the debug logger.
@@ -318,7 +317,8 @@ public class PasswordPolicyState
           }
         }
 
-        PasswordPolicy policy = DirectoryServer.getPasswordPolicy(subentryDN);
+        PasswordPolicy policy = (PasswordPolicy) DirectoryServer
+            .getAuthenticationPolicy(subentryDN);
         if (policy == null)
         {
           if (debugEnabled())
@@ -364,8 +364,8 @@ public class PasswordPolicyState
         {
           if (subentry.getEntry().isPasswordPolicySubentry())
           {
-            PasswordPolicy policy = DirectoryServer.getPasswordPolicy(
-                    subentry.getDN());
+            PasswordPolicy policy = (PasswordPolicy) DirectoryServer
+                .getAuthenticationPolicy(subentry.getDN());
             if (policy == null)
             {
               // This shouldnt happen but if it does debug log
@@ -2093,9 +2093,9 @@ public class PasswordPolicyState
     // FIXME: the only getter responsible for a state attribute (pwdReset) that
     // considers the policy before checking the entry for the presence of the
     // attribute.
-    if (! (passwordPolicy.allowUserPasswordChanges()
-           && (passwordPolicy.forceChangeOnAdd()
-               || passwordPolicy.forceChangeOnReset())))
+    if (! (passwordPolicy.isAllowUserPasswordChanges()
+           && (passwordPolicy.isForceChangeOnAdd()
+               || passwordPolicy.isForceChangeOnReset())))
     {
       mustChangePassword = ConditionResult.FALSE;
       if (debugEnabled())
@@ -2235,7 +2235,7 @@ public class PasswordPolicyState
   {
     // This feature is reponsible for neither a state field nor an entry state
     // attribute.
-    if (passwordPolicy.getMaximumPasswordResetAge() <= 0)
+    if (passwordPolicy.getMaxPasswordResetAge() <= 0L)
     {
       if (debugEnabled())
       {
@@ -2258,7 +2258,7 @@ public class PasswordPolicyState
     }
 
     long maxResetTime = passwordChangedTime +
-        (1000L * passwordPolicy.getMaximumPasswordResetAge());
+        (1000L * passwordPolicy.getMaxPasswordResetAge());
     boolean locked = (maxResetTime < currentTime);
 
     if (debugEnabled())
@@ -2292,8 +2292,8 @@ public class PasswordPolicyState
 
       boolean checkWarning = false;
 
-      int maxAge = passwordPolicy.getMaximumPasswordAge();
-      if (maxAge > 0)
+      long maxAge = passwordPolicy.getMaxPasswordAge();
+      if (maxAge > 0L)
       {
         long expTime = passwordChangedTime + (1000L*maxAge);
         if (expTime < passwordExpirationTime)
@@ -2303,8 +2303,8 @@ public class PasswordPolicyState
         }
       }
 
-      int maxResetAge = passwordPolicy.getMaximumPasswordResetAge();
-      if (mustChangePassword() && (maxResetAge > 0))
+      long maxResetAge = passwordPolicy.getMaxPasswordResetAge();
+      if (mustChangePassword() && (maxResetAge > 0L))
       {
         long expTime = passwordChangedTime + (1000L*maxResetAge);
         if (expTime < passwordExpirationTime)
@@ -2338,8 +2338,9 @@ public class PasswordPolicyState
       {
         mayUseGraceLogin = ConditionResult.TRUE;
 
-        int warningInterval = passwordPolicy.getWarningInterval();
-        if (warningInterval > 0)
+        long warningInterval = passwordPolicy
+            .getPasswordExpirationWarningInterval();
+        if (warningInterval > 0L)
         {
           long shouldWarnTime =
                     passwordExpirationTime - (warningInterval*1000L);
@@ -2368,7 +2369,7 @@ public class PasswordPolicyState
                 isFirstWarning = ConditionResult.TRUE;
                 setWarnedTime();
 
-                if (! passwordPolicy.expirePasswordsWithoutWarning())
+                if (! passwordPolicy.isExpirePasswordsWithoutWarning())
                 {
                   passwordExpirationTime =
                        currentTime + (warningInterval*1000L);
@@ -2378,7 +2379,7 @@ public class PasswordPolicyState
               {
                 isFirstWarning = ConditionResult.FALSE;
 
-                if (! passwordPolicy.expirePasswordsWithoutWarning())
+                if (! passwordPolicy.isExpirePasswordsWithoutWarning())
                 {
                   passwordExpirationTime = warnedTime + (warningInterval*1000L);
                 }
@@ -2388,7 +2389,7 @@ public class PasswordPolicyState
             {
               // The expiration time has passed, but we may not actually be
               // expired if the user has not yet seen a warning.
-              if (passwordPolicy.expirePasswordsWithoutWarning())
+              if (passwordPolicy.isExpirePasswordsWithoutWarning())
               {
                 shouldWarn        = ConditionResult.FALSE;
                 isFirstWarning    = ConditionResult.FALSE;
@@ -2496,8 +2497,8 @@ public class PasswordPolicyState
   {
     // This feature is reponsible for neither a state field nor entry state
     // attribute.
-    int minAge = passwordPolicy.getMinimumPasswordAge();
-    if (minAge <= 0)
+    long minAge = passwordPolicy.getMinPasswordAge();
+    if (minAge <= 0L)
     {
       // There is no minimum age, so the user isn't in it.
       if (debugEnabled())
@@ -3167,7 +3168,7 @@ public class PasswordPolicyState
 
     for (Attribute a : attrList)
     {
-      boolean usesAuthPasswordSyntax = passwordPolicy.usesAuthPasswordSyntax();
+      boolean usesAuthPasswordSyntax = passwordPolicy.isAuthPasswordSyntax();
 
       for (AttributeValue v : a)
       {
@@ -3265,7 +3266,7 @@ public class PasswordPolicyState
 
     for (Attribute a : attrList)
     {
-      boolean usesAuthPasswordSyntax = passwordPolicy.usesAuthPasswordSyntax();
+      boolean usesAuthPasswordSyntax = passwordPolicy.isAuthPasswordSyntax();
 
       for (AttributeValue v : a)
       {
@@ -3362,7 +3363,7 @@ public class PasswordPolicyState
    */
   public boolean passwordIsPreEncoded(ByteString passwordValue)
   {
-    if (passwordPolicy.usesAuthPasswordSyntax())
+    if (passwordPolicy.isAuthPasswordSyntax())
     {
       return AuthPasswordSyntax.isEncoded(passwordValue);
     }
@@ -3389,11 +3390,11 @@ public class PasswordPolicyState
          throws DirectoryException
   {
     List<PasswordStorageScheme<?>> schemes =
-         passwordPolicy.getDefaultStorageSchemes();
+         passwordPolicy.getDefaultPasswordStorageSchemes();
     List<ByteString> encodedPasswords =
          new ArrayList<ByteString>(schemes.size());
 
-    if (passwordPolicy.usesAuthPasswordSyntax())
+    if (passwordPolicy.isAuthPasswordSyntax())
     {
       for (PasswordStorageScheme<?> s : schemes)
       {
@@ -3431,38 +3432,23 @@ public class PasswordPolicyState
    *          <CODE>false</CODE> if it is not.
    */
   public boolean passwordIsAcceptable(Operation operation, Entry userEntry,
-                                      ByteString newPassword,
-                                      Set<ByteString> currentPasswords,
-                                      MessageBuilder invalidReason)
+      ByteString newPassword, Set<ByteString> currentPasswords,
+      MessageBuilder invalidReason)
   {
-    for (DN validatorDN : passwordPolicy.getPasswordValidators().keySet())
+    for (PasswordValidator<?> validator : passwordPolicy
+        .getPasswordValidators())
     {
-      PasswordValidator<? extends PasswordValidatorCfg> validator =
-           passwordPolicy.getPasswordValidators().get(validatorDN);
-
-      if (! validator.passwordIsAcceptable(newPassword, currentPasswords,
-                                           operation, userEntry, invalidReason))
+      if (!validator.passwordIsAcceptable(newPassword, currentPasswords,
+          operation, userEntry, invalidReason))
       {
         if (debugEnabled())
         {
-          TRACER.debugInfo("The password provided for user %s failed " +
-              "the %s password validator.",
-              userDNString, validatorDN.toString());
+          TRACER.debugInfo("The password provided for user %s failed "
+              + "validation: %s", userDNString, invalidReason.toString());
         }
-
         return false;
       }
-      else
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("The password provided for user %s passed " +
-              "the %s password validator.",
-              userDNString, validatorDN.toString());
-        }
-      }
     }
-
     return true;
   }
 
@@ -3477,7 +3463,7 @@ public class PasswordPolicyState
    */
   public void handleDeprecatedStorageSchemes(ByteString password)
   {
-    if (passwordPolicy.getDefaultStorageSchemes().isEmpty())
+    if (passwordPolicy.getDefaultPasswordStorageSchemes().isEmpty())
     {
       if (debugEnabled())
       {
@@ -3509,7 +3495,7 @@ public class PasswordPolicyState
     LinkedHashSet<AttributeValue> updatedValues =
          new LinkedHashSet<AttributeValue>();
 
-    boolean usesAuthPasswordSyntax = passwordPolicy.usesAuthPasswordSyntax();
+    boolean usesAuthPasswordSyntax = passwordPolicy.isAuthPasswordSyntax();
 
     for (Attribute a : attrList)
     {
@@ -3561,12 +3547,13 @@ public class PasswordPolicyState
               ByteString.valueOf(pwComponents[1].toString()));
           if (passwordMatches)
           {
-            if (passwordPolicy.isDefaultStorageScheme(schemeName))
+            if (passwordPolicy.isDefaultPasswordStorageScheme(schemeName))
             {
               existingDefaultSchemes.add(schemeName);
               updatedValues.add(v);
             }
-            else if (passwordPolicy.isDeprecatedStorageScheme(schemeName))
+            else if (passwordPolicy
+                .isDeprecatedPasswordStorageScheme(schemeName))
             {
               if (debugEnabled())
               {
@@ -3612,7 +3599,7 @@ public class PasswordPolicyState
     LinkedHashSet<AttributeValue> addedValues = new
          LinkedHashSet<AttributeValue>();
     for (PasswordStorageScheme<?> s :
-         passwordPolicy.getDefaultStorageSchemes())
+         passwordPolicy.getDefaultPasswordStorageSchemes())
     {
       if (! existingDefaultSchemes.contains(
            toLowerCase(s.getStorageSchemeName())))
@@ -3764,8 +3751,8 @@ public class PasswordPolicyState
       }
     }
 
-    int historyDuration = passwordPolicy.getPasswordHistoryDuration();
-    if (historyDuration > 0)
+    long historyDuration = passwordPolicy.getPasswordHistoryDuration();
+    if (historyDuration > 0L)
     {
       long retainDate = currentTime - (1000 * historyDuration);
       Iterator<Long> iterator = historyMap.keySet().iterator();
@@ -4108,8 +4095,8 @@ public class PasswordPolicyState
 
     // If there is a maximum duration, then get rid of any values that would be
     // over the duration.
-    int historyDuration = passwordPolicy.getPasswordHistoryDuration();
-    if (historyDuration > 0)
+    long historyDuration = passwordPolicy.getPasswordHistoryDuration();
+    if (historyDuration > 0L)
     {
       long minAgeToKeep = currentTime - (1000L * historyDuration);
       Iterator<Long> iterator = historyMap.keySet().iterator();
@@ -4310,12 +4297,7 @@ public class PasswordPolicyState
                    AccountStatusNotification notification)
   {
     Collection<AccountStatusNotificationHandler<?>> handlers =
-         passwordPolicy.getAccountStatusNotificationHandlers().values();
-    if ((handlers == null) || handlers.isEmpty())
-    {
-      return;
-    }
-
+         passwordPolicy.getAccountStatusNotificationHandlers();
     for (AccountStatusNotificationHandler<?> handler : handlers)
     {
       handler.handleStatusNotification(notification);
