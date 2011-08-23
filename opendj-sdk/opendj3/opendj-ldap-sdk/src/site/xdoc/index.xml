@@ -109,9 +109,9 @@
         <ul>
           <li><a href="http://builds.forgerock.org/view/OpenDJ/job/OpenDJ3/lastStableBuild/org.forgerock.opendj$opendj-ldap-sdk/artifact/org.forgerock.opendj/opendj-ldap-sdk/3.0.0-SNAPSHOT/opendj-ldap-sdk-3.0.0-SNAPSHOT.jar">opendj-ldap-sdk-3.0.0-SNAPSHOT.jar</a> - OpenDJ LDAP SDK</li>
           <li><a href="http://maven.forgerock.org/repo/releases/org/forgerock/commons/i18n-core/1.2.0/i18n-core-1.2.0.jar">i18n-core-1.2.0.jar</a> - ForgeRock Commons I18N Framework</li>
-          <li><a href="http://download.java.net/maven/glassfish/org/glassfish/grizzly/grizzly-framework/2.1.1/grizzly-framework-2.1.1.jar">grizzly-framework-2.1.1.jar</a> - Grizzly IO Framework</li>
-          <li><a href="http://download.java.net/maven/2/org/glassfish/gmbal/gmbal-api-only/3.0.0-b023/gmbal-api-only-3.0.0-b023.jar">gmbal-api-only-3.0.0-b023.jar</a> - Glassfish Management API</li>
-          <li><a href="http://download.java.net/maven/2/org/glassfish/external/management-api/3.0.0-b012/management-api-3.0.0-b012.jar">management-api-3.0.0-b012.jar</a> - Glassfish Common Management API</li>
+          <li><a href="http://search.maven.org/remotecontent?filepath=org/glassfish/grizzly/grizzly-framework/2.1.2/grizzly-framework-2.1.2.jar">grizzly-framework-2.1.1.jar</a> - Grizzly IO Framework</li>
+          <li><a href="http://search.maven.org/remotecontent?filepath=org/glassfish/gmbal/gmbal-api-only/3.0.0-b023/gmbal-api-only-3.0.0-b023.jar">gmbal-api-only-3.0.0-b023.jar</a> - Glassfish Management API</li>
+          <li><a href="http://search.maven.org/remotecontent?filepath=org/glassfish/external/management-api/3.0.0-b012/management-api-3.0.0-b012.jar">management-api-3.0.0-b012.jar</a> - Glassfish Common Management API</li>
         </ul>
       </subsection>
       <subsection name="Build">
