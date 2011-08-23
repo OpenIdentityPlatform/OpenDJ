@@ -119,12 +119,12 @@ C:\>set PATH=\\path\to\opendj-ldap-toolkit-<?eval ${project.version} ?>\bat:%PAT
      <filename>opendj-ldap-toolkit-<?eval ${project.version}
       ?>/lib/</filename>.</para>
      <screen>(UNIX)
-$ export CLASSPATH=/path/to/lib/grizzly-framework-2.1.1.jar:$CLASSPATH
+$ export CLASSPATH=/path/to/lib/grizzly-framework-2.1.2.jar:$CLASSPATH
 $ export CLASSPATH=/path/to/lib/i18n-core-1.2.0.jar:$CLASSPATH
 $ export CLASSPATH=/path/to/lib/opendj-ldap-sdk-<?eval ${project.version} ?>.jar:$CLASSPATH
      </screen>
      <screen>(Windows)
-C:\>set CLASSPATH=\\path\to\lib\grizzly-framework-2.1.1.jar:%CLASSPATH%
+C:\>set CLASSPATH=\\path\to\lib\grizzly-framework-2.1.2.jar:%CLASSPATH%
 C:\>set CLASSPATH=\\path\to\lib\i18n-core-1.2.0.jar:%CLASSPATH%
 C:\>set CLASSPATH=\\path\to\lib\opendj-ldap-sdk-<?eval ${project.version} ?>.jar:%CLASSPATH%</screen>
     </step>
@@ -192,7 +192,7 @@ $ mvn install
     <para>Set your CLASSPATH to include the OpenDJ LDAP SDK library,
     <filename>opendj-ldap-sdk-<?eval ${project.version} ?>.jar</filename>, 
     the I18N core library, <filename>i18n-core-1.2.0.jar</filename>, and the Grizzly
-    framework, <filename>grizzly-framework-2.1.1.jar</filename>,
+    framework, <filename>grizzly-framework-2.1.2.jar</filename>,
     under <filename>opendj-ldap-toolkit-<?eval ${project.version} ?>/lib/</filename>.</para>
    </step>
    <step>
