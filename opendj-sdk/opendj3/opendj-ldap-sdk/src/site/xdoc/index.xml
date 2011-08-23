@@ -84,7 +84,7 @@
       &lt;enabled>false&lt;/enabled>
     &lt;/releases>
   &lt;/repository>
-&lt;repositories>
+&lt;/repositories>
 
 ...
 
