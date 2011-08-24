@@ -175,6 +175,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
    *           If the environment could not be set up.
    */
   @BeforeClass
+  @Override
   public void setUp() throws Exception
   {
     super.setUp();
@@ -436,7 +437,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLCompatTestLimits(1,8, true);
 
     // Test first and last draft changenumber, a dd a new change, do not
-    // search again the ECL, but search fro first and last
+    // search again the ECL, but search for first and last
     ECLCompatTestLimitsAndAdd(1,8, ts);
 
     // Test DraftCNDb is purged when replication change log is purged
@@ -929,7 +930,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ReplicationBroker s1test2 = null;
     ReplicationBroker s2test = null;
     ReplicationBroker s2test2 = null;
-    
+
     try
     {
       // Initialize a second test backend
@@ -2699,7 +2700,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       if (s1 != null)
       {
         try { s1.close(); } catch (Exception ignored) {};
-        while (!s1.isClosed()) sleep(100);      
+        while (!s1.isClosed()) sleep(100);
       }
       if (s2 != null)
       {
@@ -2868,12 +2869,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     // Initialize a second test backend
     Backend backend2 = null;
-    
+
     try
     {
       backend2 = initializeTestBackend(true, TEST_ROOT_DN_STRING2,
           TEST_BACKEND_ID2);
-          
+
       // --
       s1test = openReplicationSession(
           DN.decode(TEST_ROOT_DN_STRING),  1201,
