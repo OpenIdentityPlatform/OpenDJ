@@ -291,7 +291,8 @@ public class ECLServerHandler extends ServerHandler
   private String clDomCtxtsToString(String msg)
   {
     StringBuilder buffer = new StringBuilder();
-    buffer.append(msg+"\n");
+    buffer.append(msg);
+    buffer.append("\n");
     for (int i=0;i<domainCtxts.length;i++)
     {
       domainCtxts[i].toString(buffer);
@@ -624,17 +625,38 @@ public class ECLServerHandler extends ServerHandler
         {
           // startDraftCN provided in the request IS NOT in the DraftCNDb
 
-          // Is the provided startDraftCN <= the potential last DraftCN
-
           // Get the draftLimits (from the eligibleCN got at the beginning of
-          // the operation) in order to have the potential last DraftCN.
+          // the operation) in order to have the first and possible last
+          // DraftCN.
           int[] limits = replicationServer.getECLDraftCNLimits(
               eligibleCN, excludedServiceIDs);
 
-          if (startDraftCN<=limits[1])
+          // If the startDraftCN provided is lower than the first Draft CN in
+          // the DB, let's use the lower limit.
+          if (startDraftCN < limits[0])
           {
-          // startDraftCN is between first and potential last and has never been
-            // returned yet
+            crossDomainStartState = draftCNDb.getValue(limits[0]);
+
+            if (crossDomainStartState != null)
+            {
+              // startDraftCN (from the request filter) is present in the
+              // draftCnDb.
+              // Get an iterator to traverse it.
+              draftCNDbIter =
+                draftCNDb.generateIterator(limits[0]);
+            }
+            else
+            {
+              // This shouldn't happen
+              // Let's start from what we have in the changelog db.
+              isEndOfDraftCNReached = true;
+              crossDomainStartState = null;
+            }
+          }
+          else if (startDraftCN<=limits[1])
+          {
+            // startDraftCN is between first and potential last and has never
+            // been returned yet
             if (draftCNDb.count() == 0)
             {
               // db is empty
@@ -789,12 +811,12 @@ public class ECLServerHandler extends ServerHandler
                 // changelog db has been trimed and the cookie is not valid
                 // anymore.
                 boolean cookieTooOld = false;
-                for (int serverId : rsd.getStartState())
+                for (int aServerId : rsd.getStartState())
                 {
                   ChangeNumber dbOldestChange =
-                    rsd.getStartState().getMaxChangeNumber(serverId);
+                    rsd.getStartState().getMaxChangeNumber(aServerId);
                   ChangeNumber providedChange =
-                    newDomainCtxt.startState.getMaxChangeNumber(serverId);
+                    newDomainCtxt.startState.getMaxChangeNumber(aServerId);
                   if ((providedChange != null)
                       && (providedChange.older(dbOldestChange)))
                   {
@@ -928,6 +950,7 @@ public class ECLServerHandler extends ServerHandler
   /**
    * Shutdown this handler.
    */
+  @Override
   public void shutdown()
   {
     if (debugEnabled())
@@ -954,6 +977,7 @@ public class ECLServerHandler extends ServerHandler
   /**
    * Request to shutdown the associated writer.
    */
+  @Override
   protected void shutdownWriter()
   {
     shutdownWriter = true;
@@ -1211,6 +1235,7 @@ public class ECLServerHandler extends ServerHandler
    * @param synchronous - not used
    * @return the next message
    */
+  @Override
   protected UpdateMsg getnextMessage(boolean synchronous)
   {
     UpdateMsg msg = null;

@@ -1355,9 +1355,14 @@ public class ECLSearchOperation
     startCLmsg.setLastDraftChangeNumber(-1);
     startCLmsg.setChangeNumber(new ChangeNumber(0,0,(short)0));
 
+    // If there's no filter, just return
+    if (sf == null)
+    {
+      return startCLmsg;
+    }
+
     // Here are the 3 elementary cases we know how to optimize
-    if ((sf != null)
-        && (sf.getFilterType() == FilterType.GREATER_OR_EQUAL)
+    if ((sf.getFilterType() == FilterType.GREATER_OR_EQUAL)
         && (sf.getAttributeType() != null)
         && (sf.getAttributeType().getPrimaryName().
             equalsIgnoreCase("changeNumber")))
@@ -1367,8 +1372,7 @@ public class ECLSearchOperation
       startCLmsg.setFirstDraftChangeNumber(sn);
       return startCLmsg;
     }
-    else if ((sf != null)
-        && (sf.getFilterType() == FilterType.LESS_OR_EQUAL)
+    else if ((sf.getFilterType() == FilterType.LESS_OR_EQUAL)
         && (sf.getAttributeType() != null)
         && (sf.getAttributeType().getPrimaryName().
             equalsIgnoreCase("changeNumber")))
@@ -1378,8 +1382,7 @@ public class ECLSearchOperation
       startCLmsg.setLastDraftChangeNumber(sn);
       return startCLmsg;
     }
-    else if ((sf != null)
-        && (sf.getFilterType() == FilterType.EQUALITY)
+    else if ((sf.getFilterType() == FilterType.EQUALITY)
         && (sf.getAttributeType() != null)
         && (sf.getAttributeType().getPrimaryName().
             equalsIgnoreCase("replicationcsn")))
@@ -1389,8 +1392,7 @@ public class ECLSearchOperation
       startCLmsg.setChangeNumber(cn);
       return startCLmsg;
     }
-    else if ((sf != null)
-        && (sf.getFilterType() == FilterType.EQUALITY)
+    else if ((sf.getFilterType() == FilterType.EQUALITY)
         && (sf.getAttributeType() != null)
         && (sf.getAttributeType().getPrimaryName().
             equalsIgnoreCase("changenumber")))
@@ -1401,8 +1403,7 @@ public class ECLSearchOperation
       startCLmsg.setLastDraftChangeNumber(sn);
       return startCLmsg;
     }
-    else if ((sf != null)
-        && (sf.getFilterType() == FilterType.AND))
+    else if (sf.getFilterType() == FilterType.AND)
     {
       // Here is the only binary operation we know how to optimize
       Collection<SearchFilter> comps = sf.getFilterComponents();
