@@ -36,6 +36,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValues;
@@ -304,19 +305,15 @@ public class SubentryPasswordPolicyTestCase
             "uid=rogasawara," + BASE));
     assertNotNull(testEntry);
 
-    PasswordPolicyState state =
-            new PasswordPolicyState(testEntry, false);
-    assertNotNull(state);
-    PasswordPolicy statePolicy = state.getPolicy();
+    AuthenticationPolicy statePolicy = AuthenticationPolicy.forUser(testEntry,
+        false);
     assertNotNull(statePolicy);
     assertEquals(policy, statePolicy);
 
     // Make sure this policy is gone and default
     // policy is in effect instead.
     TestCaseUtils.deleteEntry(policyEntry.getDN());
-    state = new PasswordPolicyState(testEntry, false);
-    assertNotNull(state);
-    statePolicy = state.getPolicy();
+    statePolicy = AuthenticationPolicy.forUser(testEntry, false);
     assertNotNull(statePolicy);
     assertEquals(defaultPolicy, statePolicy);
   }

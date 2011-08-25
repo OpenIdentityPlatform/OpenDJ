@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 
 package org.opends.server.extensions;
@@ -48,6 +49,7 @@ import javax.security.sasl.SaslServer;
 import org.ietf.jgss.GSSException;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.messages.Message;
+import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.core.AccessControlConfigManager;
@@ -57,6 +59,7 @@ import org.opends.server.core.PasswordPolicyState;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPClientConnection;
 import org.opends.server.types.*;
+
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -100,6 +103,9 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
 
     //Error message used by callbacks.
     private Message cbMsg;
+
+    //Error code used by callbacks.
+    private ResultCode cbResultCode;
 
     //The current bind operation used by the callbacks.
     private BindOperation bindOp;
@@ -330,12 +336,25 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
         dispose();
         ClientConnection clientConn = bindOp.getClientConnection();
         clientConn.setSASLAuthStateInfo(null);
+
         //Check if the callback message is null and use that message if not.
-        if(cbMsg != null)
-            bindOp.setAuthFailureReason(cbMsg);
+        if (cbResultCode != null)
+        {
+          bindOp.setResultCode(cbResultCode);
+        }
         else
-            bindOp.setAuthFailureReason(msg);
-        bindOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
+        {
+          bindOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
+        }
+
+        if (cbMsg != null)
+        {
+          bindOp.setAuthFailureReason(cbMsg);
+        }
+        else
+        {
+          bindOp.setAuthFailureReason(msg);
+        }
     }
 
 
@@ -398,6 +417,18 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
      * @param cbMsg The message to set the callback message to.
      */
     private void setCallbackMsg(Message cbMsg) {
+        setCallbackMsg(ResultCode.INVALID_CREDENTIALS, cbMsg);
+    }
+
+
+    /**
+     * Sets the callback message to the specified message.
+     *
+     * @param cbResultCode The result code.
+     * @param cbMsg The message.
+     */
+    private void setCallbackMsg(ResultCode cbResultCode, Message cbMsg) {
+        this.cbResultCode = cbResultCode;
         this.cbMsg = cbMsg;
     }
 
@@ -614,8 +645,19 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
         //Try to get a clear password to use.
         List<ByteString> clearPasswords;
         try {
-          PasswordPolicyState pwPolicyState =
-                                    new PasswordPolicyState(authEntry, false);
+          AuthenticationPolicyState authState =
+            AuthenticationPolicyState.forUser(authEntry, false);
+
+          if (!authState.isPasswordPolicy())
+          {
+            Message message = ERR_SASL_ACCOUNT_NOT_LOCAL.get(
+                mechanism, String.valueOf(authEntry.getDN()));
+            setCallbackMsg(ResultCode.INAPPROPRIATE_AUTHENTICATION, message);
+            return;
+          }
+
+          PasswordPolicyState pwPolicyState = (PasswordPolicyState) authState;
+
           clearPasswords = pwPolicyState.getClearPasswords();
           if ((clearPasswords == null) || clearPasswords.isEmpty()) {
               setCallbackMsg(

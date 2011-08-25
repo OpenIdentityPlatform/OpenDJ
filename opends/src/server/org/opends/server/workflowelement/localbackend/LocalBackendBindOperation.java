@@ -35,9 +35,7 @@ import java.util.concurrent.locks.Lock;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn;
-import org.opends.server.api.Backend;
-import org.opends.server.api.ClientConnection;
-import org.opends.server.api.SASLMechanismHandler;
+import org.opends.server.api.*;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.AuthorizationIdentityResponseControl;
 import org.opends.server.controls.PasswordExpiredControl;
@@ -138,15 +136,8 @@ public class LocalBackendBindOperation
   // The idle time limit that should be enforced for the user.
   private long idleTimeLimit;
 
-  /**
-   * The password policy that applies to the user.
-   */
-  protected PasswordPolicy policy;
-
-  /**
-   * The password policy state for the user.
-   */
-  protected PasswordPolicyState pwPolicyState;
+  // Authentication policy state.
+  private AuthenticationPolicyState authPolicyState;
 
   // The password policy error type for this bind operation.
   private PasswordPolicyErrorType pwPolicyErrorType;
@@ -199,7 +190,7 @@ public class LocalBackendBindOperation
     idleTimeLimit            = DirectoryServer.getIdleTimeLimit();
     bindDN                   = getBindDN();
     saslMechanism            = getSASLMechanism();
-    pwPolicyState            = null;
+    authPolicyState          = null;
     pwPolicyErrorType        = null;
     pwPolicyControlRequested = false;
     isGraceLogin             = false;
@@ -330,9 +321,9 @@ bindProcessing:
     // required.
     try
     {
-      if (pwPolicyState != null)
+      if (authPolicyState != null)
       {
-        pwPolicyState.updateUserEntry();
+        authPolicyState.finalizeStateAfterBind();
       }
     }
     catch (DirectoryException de)
@@ -569,124 +560,148 @@ bindProcessing:
       }
 
 
-      // Check to see if the user has a password.  If not, then fail.
+      // Check to see if the user has a password. If not, then fail.
       // FIXME -- We need to have a way to enable/disable debugging.
-      pwPolicyState = new PasswordPolicyState(userEntry, false);
-      policy = pwPolicyState.getPolicy();
-      AttributeType  pwType = policy.getPasswordAttribute();
-
-      List<Attribute> pwAttr = userEntry.getAttribute(pwType);
-      if ((pwAttr == null) || (pwAttr.isEmpty()))
+      authPolicyState = AuthenticationPolicyState.forUser(userEntry, false);
+      if (authPolicyState.isPasswordPolicy())
       {
-        throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-                                     ERR_BIND_OPERATION_NO_PASSWORD.get(
-                                          String.valueOf(bindDN)));
-      }
+        // Account is managed locally.
+        PasswordPolicyState pwPolicyState =
+          (PasswordPolicyState) authPolicyState;
+        PasswordPolicy policy = pwPolicyState.getAuthenticationPolicy();
 
+        AttributeType pwType = policy.getPasswordAttribute();
 
-      // Perform a number of password policy state checks for the user.
-      checkPasswordPolicyState(userEntry, null);
-
-
-      // Invoke the pre-operation bind plugins.
-      executePostOpPlugins = true;
-      PluginResult.PreOperation preOpResult =
-          pluginConfigManager.invokePreOperationBindPlugins(this);
-      if (!preOpResult.continueProcessing())
-      {
-        setResultCode(preOpResult.getResultCode());
-        appendErrorMessage(preOpResult.getErrorMessage());
-        setMatchedDN(preOpResult.getMatchedDN());
-        setReferralURLs(preOpResult.getReferralURLs());
-        return false;
-      }
-
-
-      // Determine whether the provided password matches any of the stored
-      // passwords for the user.
-      if (pwPolicyState.passwordMatches(simplePassword))
-      {
-        setResultCode(ResultCode.SUCCESS);
-
-        if (DirectoryServer.lockdownMode() &&
-            (! ClientConnection.hasPrivilege(userEntry,
-                Privilege.BYPASS_LOCKDOWN)))
+        List<Attribute> pwAttr = userEntry.getAttribute(pwType);
+        if ((pwAttr == null) || (pwAttr.isEmpty()))
         {
           throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-                                 ERR_BIND_REJECTED_LOCKDOWN_MODE.get());
+              ERR_BIND_OPERATION_NO_PASSWORD.get(String.valueOf(bindDN)));
         }
-        setAuthenticationInfo(new AuthenticationInfo(userEntry, getBindDN(),
-            simplePassword, DirectoryServer.isRootDN(userEntry.getDN())));
 
+        // Perform a number of password policy state checks for the user.
+        checkPasswordPolicyState(userEntry, null);
 
-        // Set resource limits for the authenticated user.
-        setResourceLimits(userEntry);
-
-
-        // Perform any remaining processing for a successful simple
-        // authentication.
-        pwPolicyState.handleDeprecatedStorageSchemes(simplePassword);
-        pwPolicyState.clearFailureLockout();
-
-        if (isFirstWarning)
+        // Invoke pre-operation plugins.
+        if (!invokePreOpPlugins())
         {
-          pwPolicyState.setWarnedTime();
-
-          int numSeconds = pwPolicyState.getSecondsUntilExpiration();
-          Message m = WARN_BIND_PASSWORD_EXPIRING.get(
-                           secondsToTimeString(numSeconds));
-
-          pwPolicyState.generateAccountStatusNotification(
-               AccountStatusNotificationType.PASSWORD_EXPIRING, userEntry, m,
-               AccountStatusNotification.createProperties(pwPolicyState,
-                     false, numSeconds, null, null));
+          return false;
         }
 
-        if (isGraceLogin)
+        // Determine whether the provided password matches any of the stored
+        // passwords for the user.
+        if (pwPolicyState.passwordMatches(simplePassword))
         {
-          pwPolicyState.updateGraceLoginTimes();
-        }
+          setResultCode(ResultCode.SUCCESS);
 
-        pwPolicyState.setLastLoginTime();
+          if (DirectoryServer.lockdownMode()
+              && (!ClientConnection.hasPrivilege(userEntry,
+                  Privilege.BYPASS_LOCKDOWN)))
+          {
+            throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
+                ERR_BIND_REJECTED_LOCKDOWN_MODE.get());
+          }
+          setAuthenticationInfo(new AuthenticationInfo(userEntry, getBindDN(),
+              simplePassword, DirectoryServer.isRootDN(userEntry.getDN())));
+
+          // Set resource limits for the authenticated user.
+          setResourceLimits(userEntry);
+
+          // Perform any remaining processing for a successful simple
+          // authentication.
+          pwPolicyState.handleDeprecatedStorageSchemes(simplePassword);
+          pwPolicyState.clearFailureLockout();
+
+          if (isFirstWarning)
+          {
+            pwPolicyState.setWarnedTime();
+
+            int numSeconds = pwPolicyState.getSecondsUntilExpiration();
+            Message m = WARN_BIND_PASSWORD_EXPIRING
+                .get(secondsToTimeString(numSeconds));
+
+            pwPolicyState.generateAccountStatusNotification(
+                AccountStatusNotificationType.PASSWORD_EXPIRING, userEntry, m,
+                AccountStatusNotification.createProperties(pwPolicyState,
+                    false, numSeconds, null, null));
+          }
+
+          if (isGraceLogin)
+          {
+            pwPolicyState.updateGraceLoginTimes();
+          }
+
+          pwPolicyState.setLastLoginTime();
+        }
+        else
+        {
+          setResultCode(ResultCode.INVALID_CREDENTIALS);
+          setAuthFailureReason(ERR_BIND_OPERATION_WRONG_PASSWORD.get());
+
+          if (policy.getLockoutFailureCount() > 0)
+          {
+            pwPolicyState.updateAuthFailureTimes();
+            if (pwPolicyState.lockedDueToFailures())
+            {
+              AccountStatusNotificationType notificationType;
+              Message m;
+
+              boolean tempLocked;
+              int lockoutDuration = pwPolicyState.getSecondsUntilUnlock();
+              if (lockoutDuration > -1)
+              {
+                notificationType =
+                  AccountStatusNotificationType.ACCOUNT_TEMPORARILY_LOCKED;
+                tempLocked = true;
+
+                m = ERR_BIND_ACCOUNT_TEMPORARILY_LOCKED
+                    .get(secondsToTimeString(lockoutDuration));
+              }
+              else
+              {
+                notificationType =
+                  AccountStatusNotificationType.ACCOUNT_PERMANENTLY_LOCKED;
+                tempLocked = false;
+
+                m = ERR_BIND_ACCOUNT_PERMANENTLY_LOCKED.get();
+              }
+
+              pwPolicyState.generateAccountStatusNotification(notificationType,
+                  userEntry, m, AccountStatusNotification.createProperties(
+                      pwPolicyState, tempLocked, -1, null, null));
+            }
+          }
+        }
       }
       else
       {
-        setResultCode(ResultCode.INVALID_CREDENTIALS);
-        setAuthFailureReason(ERR_BIND_OPERATION_WRONG_PASSWORD.get());
-
-        if (policy.getLockoutFailureCount() > 0)
+        // Invoke pre-operation plugins.
+        if (!invokePreOpPlugins())
         {
-          pwPolicyState.updateAuthFailureTimes();
-          if (pwPolicyState.lockedDueToFailures())
+          return false;
+        }
+
+        if (authPolicyState.passwordMatches(simplePassword))
+        {
+          setResultCode(ResultCode.SUCCESS);
+
+          if (DirectoryServer.lockdownMode()
+              && (!ClientConnection.hasPrivilege(userEntry,
+                  Privilege.BYPASS_LOCKDOWN)))
           {
-            AccountStatusNotificationType notificationType;
-            Message m;
-
-            boolean tempLocked;
-            int lockoutDuration = pwPolicyState.getSecondsUntilUnlock();
-            if (lockoutDuration > -1)
-            {
-              notificationType = AccountStatusNotificationType.
-                                      ACCOUNT_TEMPORARILY_LOCKED;
-              tempLocked = true;
-
-              m = ERR_BIND_ACCOUNT_TEMPORARILY_LOCKED.get(
-                       secondsToTimeString(lockoutDuration));
-            }
-            else
-            {
-              notificationType = AccountStatusNotificationType.
-                                      ACCOUNT_PERMANENTLY_LOCKED;
-              tempLocked = false;
-
-              m = ERR_BIND_ACCOUNT_PERMANENTLY_LOCKED.get();
-            }
-
-            pwPolicyState.generateAccountStatusNotification(
-                 notificationType, userEntry, m,
-                 AccountStatusNotification.createProperties(pwPolicyState,
-                       tempLocked, -1, null, null));
+            throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
+                ERR_BIND_REJECTED_LOCKDOWN_MODE.get());
           }
+          setAuthenticationInfo(new AuthenticationInfo(userEntry, getBindDN(),
+              simplePassword, DirectoryServer.isRootDN(userEntry.getDN())));
+
+          // Set resource limits for the authenticated user.
+          setResourceLimits(userEntry);
+        }
+        else
+        {
+          setResultCode(ResultCode.INVALID_CREDENTIALS);
+          setAuthFailureReason(ERR_BIND_OPERATION_WRONG_PASSWORD.get());
         }
       }
 
@@ -728,16 +743,9 @@ bindProcessing:
     }
 
 
-    // Invoke the pre-operation bind plugins.
-    executePostOpPlugins = true;
-    PluginResult.PreOperation preOpResult =
-        pluginConfigManager.invokePreOperationBindPlugins(this);
-    if (!preOpResult.continueProcessing())
+    // Invoke pre-operation plugins.
+    if (!invokePreOpPlugins())
     {
-      setResultCode(preOpResult.getResultCode());
-      appendErrorMessage(preOpResult.getErrorMessage());
-      setMatchedDN(preOpResult.getMatchedDN());
-      setReferralURLs(preOpResult.getReferralURLs());
       return false;
     }
 
@@ -776,15 +784,9 @@ bindProcessing:
     // NYI
 
 
-    // Invoke the pre-operation bind plugins.
-    PluginResult.PreOperation preOpResult =
-        pluginConfigManager.invokePreOperationBindPlugins(this);
-    if (!preOpResult.continueProcessing())
+    // Invoke pre-operation plugins.
+    if (!invokePreOpPlugins())
     {
-      setResultCode(preOpResult.getResultCode());
-      appendErrorMessage(preOpResult.getErrorMessage());
-      setMatchedDN(preOpResult.getMatchedDN());
-      setReferralURLs(preOpResult.getReferralURLs());
       return false;
     }
 
@@ -813,21 +815,20 @@ bindProcessing:
     }
 
     // Create the password policy state object.
-    if (saslAuthUserEntry == null)
+    if (saslAuthUserEntry != null)
     {
-      pwPolicyState = null;
-    }
-    else
-    {
-      // FIXME -- Need to have a way to enable debugging.
-      pwPolicyState = new PasswordPolicyState(saslAuthUserEntry, false);
-      policy = pwPolicyState.getPolicy();
       setUserEntryDN(saslAuthUserEntry.getDN());
 
-
-      // Perform password policy checks that will need to be completed
-      // regardless of whether the authentication was successful.
-      checkPasswordPolicyState(saslAuthUserEntry, saslHandler);
+      // FIXME -- Need to have a way to enable debugging.
+      authPolicyState = AuthenticationPolicyState.forUser(
+          saslAuthUserEntry, false);
+      if (authPolicyState.isPasswordPolicy())
+      {
+        // Account is managed locally: perform password policy checks that will
+        // need to be completed regardless of whether the authentication was
+        // successful.
+        checkPasswordPolicyState(saslAuthUserEntry, saslHandler);
+      }
     }
 
 
@@ -836,8 +837,11 @@ bindProcessing:
     ResultCode resultCode = getResultCode();
     if (resultCode == ResultCode.SUCCESS)
     {
-      if (pwPolicyState != null)
+      if (authPolicyState != null && authPolicyState.isPasswordPolicy())
       {
+        PasswordPolicyState pwPolicyState =
+          (PasswordPolicyState) authPolicyState;
+
         if (saslHandler.isPasswordBased(saslMechanism) &&
             pwPolicyState.mustChangePassword())
         {
@@ -865,11 +869,10 @@ bindProcessing:
         }
 
         pwPolicyState.setLastLoginTime();
-
-
-        // Set appropriate resource limits for the user.
-        setResourceLimits(saslAuthUserEntry);
       }
+
+      // Set appropriate resource limits for the user.
+      setResourceLimits(saslAuthUserEntry);
     }
     else if (resultCode == ResultCode.SASL_BIND_IN_PROGRESS)
     {
@@ -878,12 +881,15 @@ bindProcessing:
     }
     else
     {
-      if (pwPolicyState != null)
+      if (authPolicyState != null && authPolicyState.isPasswordPolicy())
       {
+        PasswordPolicyState pwPolicyState =
+          (PasswordPolicyState) authPolicyState;
+
         if (saslHandler.isPasswordBased(saslMechanism))
         {
-
-          if (pwPolicyState.getPolicy().getLockoutFailureCount() > 0)
+          if (pwPolicyState.getAuthenticationPolicy()
+              .getLockoutFailureCount() > 0)
           {
             pwPolicyState.updateAuthFailureTimes();
             if (pwPolicyState.lockedDueToFailures())
@@ -924,20 +930,45 @@ bindProcessing:
 
 
 
+  private boolean invokePreOpPlugins()
+  {
+    executePostOpPlugins = true;
+    PluginResult.PreOperation preOpResult = pluginConfigManager
+        .invokePreOperationBindPlugins(this);
+    if (!preOpResult.continueProcessing())
+    {
+      setResultCode(preOpResult.getResultCode());
+      appendErrorMessage(preOpResult.getErrorMessage());
+      setMatchedDN(preOpResult.getMatchedDN());
+      setReferralURLs(preOpResult.getReferralURLs());
+      return false;
+    }
+    else
+    {
+      return true;
+    }
+  }
+
+
+
   /**
    * Validates a number of password policy state constraints for the user.
    *
-   * @param  userEntry    The entry for the user that is authenticating.
-   * @param  saslHandler  The SASL mechanism handler if this is a SASL bind, or
-   *                      {@code null} for a simple bind.
-   *
-   * @throws  DirectoryException  If a problem occurs that should cause the bind
-   *                              to fail.
+   * @param userEntry
+   *          The entry for the user that is authenticating.
+   * @param saslHandler
+   *          The SASL mechanism handler if this is a SASL bind, or {@code null}
+   *          for a simple bind.
+   * @throws DirectoryException
+   *           If a problem occurs that should cause the bind to fail.
    */
-  protected void checkPasswordPolicyState(Entry userEntry,
-                                          SASLMechanismHandler<?> saslHandler)
-          throws DirectoryException
+  protected void checkPasswordPolicyState(
+      Entry userEntry, SASLMechanismHandler<?> saslHandler)
+      throws DirectoryException
   {
+    PasswordPolicyState pwPolicyState = (PasswordPolicyState) authPolicyState;
+    PasswordPolicy policy = pwPolicyState.getAuthenticationPolicy();
+
     boolean isSASLBind = (saslHandler != null);
 
     // If the password policy is configured to track authentication failures or

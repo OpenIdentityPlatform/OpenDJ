@@ -420,7 +420,7 @@ public class CoreConfigManager
     DN defaultPasswordPolicyDN = configuration.getDefaultPasswordPolicyDN();
     AuthenticationPolicy policy = DirectoryServer
         .getAuthenticationPolicy(defaultPasswordPolicyDN);
-    if (!(policy instanceof PasswordPolicy))
+    if (!policy.isPasswordPolicy())
     {
       Message message =
         ERR_CONFIG_PWPOLICY_CANNOT_CHANGE_DEFAULT_POLICY_WRONG_TYPE

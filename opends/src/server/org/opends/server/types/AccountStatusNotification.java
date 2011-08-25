@@ -237,7 +237,7 @@ public final class AccountStatusNotification
          new HashMap<AccountStatusNotificationProperty,
                      List<String>>(4);
 
-    PasswordPolicy policy = pwPolicyState.getPolicy();
+    PasswordPolicy policy = pwPolicyState.getAuthenticationPolicy();
 
     ArrayList<String> propList = new ArrayList<String>(1);
     propList.add(policy.getDN().toString());

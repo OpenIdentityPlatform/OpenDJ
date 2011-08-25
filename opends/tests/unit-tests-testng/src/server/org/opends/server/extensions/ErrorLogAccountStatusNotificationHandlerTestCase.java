@@ -41,6 +41,7 @@ import org.testng.annotations.Test;
 import org.opends.server.TestCaseUtils;
 import org.opends.messages.Message;
 import org.opends.server.api.AccountStatusNotificationHandler;
+import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.
        ErrorLogAccountStatusNotificationHandlerCfgDefn;
@@ -50,7 +51,6 @@ import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicy;
-import org.opends.server.core.PasswordPolicyState;
 import org.opends.server.types.AccountStatusNotification;
 import org.opends.server.types.AccountStatusNotificationProperty;
 import org.opends.server.types.AccountStatusNotificationType;
@@ -189,7 +189,7 @@ public class ErrorLogAccountStatusNotificationHandlerTestCase
     String dnStr = "cn=Error Log Handler,cn=Account Status Notification " +
                         "Handlers,cn=config";
     DN handlerDN = DN.decode(dnStr);
-    AccountStatusNotificationHandler handler =
+    AccountStatusNotificationHandler<?> handler =
          DirectoryServer.getAccountStatusNotificationHandler(handlerDN);
     assertNotNull(handler);
     assertTrue(handler instanceof ErrorLogAccountStatusNotificationHandler);
@@ -250,16 +250,15 @@ public class ErrorLogAccountStatusNotificationHandlerTestCase
     String dnStr = "cn=Error Log Handler,cn=Account Status Notification " +
                         "Handlers,cn=config";
     DN handlerDN = DN.decode(dnStr);
-    AccountStatusNotificationHandler handler =
+    AccountStatusNotificationHandler<?> handler =
          DirectoryServer.getAccountStatusNotificationHandler(handlerDN);
     assertNotNull(handler);
 
     Entry userEntry =
                DirectoryServer.getEntry(DN.decode("uid=test.user,o=test"));
 
-    PasswordPolicyState pwPolicyState =
-         new PasswordPolicyState(userEntry, false);
-    PasswordPolicy policy = pwPolicyState.getPolicy();
+    PasswordPolicy policy = (PasswordPolicy) AuthenticationPolicy.forUser(
+        userEntry, false);
 
     HashMap<AccountStatusNotificationProperty,List<String>>
          notificationProperties =

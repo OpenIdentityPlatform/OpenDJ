@@ -36,6 +36,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.AccountUsableResponseControl;
@@ -639,47 +641,54 @@ public class SearchOperationBasis
       }
     }
 
-    // Determine whether to include the account usable control.  If so, then
+    // Determine whether to include the account usable control. If so, then
     // create it now.
     if (isIncludeUsableControl())
     {
       try
       {
         // FIXME -- Need a way to enable PWP debugging.
-        PasswordPolicyState pwpState = new PasswordPolicyState(entry, false);
-
-        boolean isInactive           = pwpState.isDisabled() ||
-                                       pwpState.isAccountExpired();
-        boolean isLocked             = pwpState.lockedDueToFailures() ||
-                                       pwpState.lockedDueToMaximumResetAge() ||
-                                       pwpState.lockedDueToIdleInterval();
-        boolean isReset              = pwpState.mustChangePassword();
-        boolean isExpired            = pwpState.isPasswordExpired();
-
-        if (isInactive || isLocked || isReset || isExpired)
+        AuthenticationPolicy policy = AuthenticationPolicy
+            .forUser(entry, false);
+        if (policy.isPasswordPolicy())
         {
-          int secondsBeforeUnlock  = pwpState.getSecondsUntilUnlock();
-          int remainingGraceLogins = pwpState.getGraceLoginsRemaining();
+          PasswordPolicyState pwpState = (PasswordPolicyState) policy
+              .createAuthenticationPolicyState(entry);
 
-          if (controls == null)
+          boolean isInactive = pwpState.isDisabled()
+              || pwpState.isAccountExpired();
+          boolean isLocked = pwpState.lockedDueToFailures()
+              || pwpState.lockedDueToMaximumResetAge()
+              || pwpState.lockedDueToIdleInterval();
+          boolean isReset = pwpState.mustChangePassword();
+          boolean isExpired = pwpState.isPasswordExpired();
+
+          if (isInactive || isLocked || isReset || isExpired)
           {
-            controls = new ArrayList<Control>(1);
-          }
+            int secondsBeforeUnlock = pwpState.getSecondsUntilUnlock();
+            int remainingGraceLogins = pwpState.getGraceLoginsRemaining();
 
-          controls.add(new AccountUsableResponseControl(isInactive, isReset,
-                                isExpired, remainingGraceLogins, isLocked,
-                                secondsBeforeUnlock));
-        }
-        else
-        {
-          if (controls == null)
+            if (controls == null)
+            {
+              controls = new ArrayList<Control>(1);
+            }
+
+            controls
+                .add(new AccountUsableResponseControl(isInactive, isReset,
+                    isExpired, remainingGraceLogins, isLocked,
+                    secondsBeforeUnlock));
+          }
+          else
           {
-            controls = new ArrayList<Control>(1);
-          }
+            if (controls == null)
+            {
+              controls = new ArrayList<Control>(1);
+            }
 
-          int secondsBeforeExpiration = pwpState.getSecondsUntilExpiration();
-          controls.add(new AccountUsableResponseControl(
-                                secondsBeforeExpiration));
+            int secondsBeforeExpiration = pwpState.getSecondsUntilExpiration();
+            controls.add(new AccountUsableResponseControl(
+                secondsBeforeExpiration));
+          }
         }
       }
       catch (Exception e)

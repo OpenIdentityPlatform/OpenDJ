@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -40,9 +41,7 @@ import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CramMD5SASLMechanismHandlerCfg;
 import org.opends.server.admin.std.server.SASLMechanismHandlerCfg;
-import org.opends.server.api.ClientConnection;
-import org.opends.server.api.IdentityMapper;
-import org.opends.server.api.SASLMechanismHandler;
+import org.opends.server.api.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
@@ -441,8 +440,19 @@ public class CRAMMD5SASLMechanismHandler
     List<ByteString> clearPasswords;
     try
     {
-      PasswordPolicyState pwPolicyState =
-           new PasswordPolicyState(userEntry, false);
+      AuthenticationPolicyState authState = AuthenticationPolicyState.forUser(
+          userEntry, false);
+
+      if (!authState.isPasswordPolicy())
+      {
+        bindOperation.setResultCode(ResultCode.INAPPROPRIATE_AUTHENTICATION);
+        Message message = ERR_SASL_ACCOUNT_NOT_LOCAL
+            .get(SASL_MECHANISM_CRAM_MD5, String.valueOf(userEntry.getDN()));
+        bindOperation.setAuthFailureReason(message);
+        return;
+      }
+
+      PasswordPolicyState pwPolicyState = (PasswordPolicyState) authState;
       clearPasswords = pwPolicyState.getClearPasswords();
       if ((clearPasswords == null) || clearPasswords.isEmpty())
       {

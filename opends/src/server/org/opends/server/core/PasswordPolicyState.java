@@ -46,10 +46,7 @@ import java.util.TreeMap;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn;
-import org.opends.server.api.AccountStatusNotificationHandler;
-import org.opends.server.api.PasswordGenerator;
-import org.opends.server.api.PasswordStorageScheme;
-import org.opends.server.api.PasswordValidator;
+import org.opends.server.api.*;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -58,7 +55,6 @@ import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.*;
-import org.opends.server.util.TimeThread;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -72,7 +68,7 @@ import static org.opends.server.util.StaticUtils.*;
  * This class provides a data structure for holding password policy state
  * information for a user account.
  */
-public final class PasswordPolicyState
+public final class PasswordPolicyState extends AuthenticationPolicyState
 {
   /**
    * The tracer object for the debug logger.
@@ -83,10 +79,6 @@ public final class PasswordPolicyState
 
   // The user entry with which this state information is associated.
   private final Entry userEntry;
-
-  // Indicates whether the user entry itself should be updated or if the updates
-  // should be stored as modifications.
-  private final boolean updateEntry;
 
   // The string representation of the user's DN.
   private final String userDNString;
@@ -162,56 +154,29 @@ public final class PasswordPolicyState
 
   /**
    * Creates a new password policy state object with the provided information.
-   *
-   * @param  userEntry    The entry with the user account.
-   * @param  updateEntry  Indicates whether changes should update the provided
-   *                      user entry directly or whether they should be
-   *                      collected as a set of modifications.
-   *
-   * @throws  DirectoryException  If a problem occurs while attempting to
-   *                              determine the password policy for the user or
-   *                              perform any other state initialization.
-   */
-  public PasswordPolicyState(Entry userEntry, boolean updateEntry)
-       throws DirectoryException
-  {
-    this(userEntry, updateEntry, TimeThread.getTime(), false);
-  }
-
-
-
-  /**
-   * Creates a new password policy state object with the provided information.
    * Note that this version of the constructor should only be used for testing
    * purposes when the tests should be evaluated with a fixed time rather than
-   * the actual current time.  For all other purposes, the other constructor
+   * the actual current time. For all other purposes, the other constructor
    * should be used.
    *
-   * @param  userEntry          The entry with the user account.
-   * @param  updateEntry        Indicates whether changes should update the
-   *                            provided user entry directly or whether they
-   *                            should be collected as a set of modifications.
-   * @param  currentTime        The time to use as the current time for all
-   *                            time-related determinations.
-   * @param  useDefaultOnError  Indicates whether the server should fall back to
-   *                            using the default password policy if there is a
-   *                            problem with the configured policy for the user.
-   *
-   * @throws  DirectoryException  If a problem occurs while attempting to
-   *                              determine the password policy for the user or
-   *                              perform any other state initialization.
+   * @param policy
+   *          The password policy associated with the state.
+   * @param userEntry
+   *          The entry with the user account.
+   * @param currentTime
+   *          The time to use as the current time for all time-related
+   *          determinations.
+   * @throws DirectoryException
+   *           If a problem occurs while attempting to determine the password
+   *           policy for the user or perform any other state initialization.
    */
-  public PasswordPolicyState(Entry userEntry, boolean updateEntry,
-                             long currentTime, boolean useDefaultOnError)
-       throws DirectoryException
+  PasswordPolicyState(PasswordPolicy policy, Entry userEntry, long currentTime)
+      throws DirectoryException
   {
     this.userEntry   = userEntry;
-    this.updateEntry = updateEntry;
     this.currentTime = currentTime;
-
-    userDNString     = userEntry.getDN().toString();
-    passwordPolicy   = getPasswordPolicy(this.userEntry,
-                                         useDefaultOnError);
+    this.userDNString     = userEntry.getDN().toString();
+    this.passwordPolicy   = policy;
 
     // Get the password changed time for the user.
     AttributeType type
@@ -246,163 +211,6 @@ public final class PasswordPolicyState
         }
       }
     }
-  }
-
-
-
-  /**
-   * Retrieves the password policy for the user. If the user entry contains the
-   * ds-pwp-password-policy-dn attribute (whether real or virtual), that
-   * password policy is returned, otherwise applicable to the user entry
-   * subentry password policy is returned, if any, otherwise the default
-   * password policy is returned.
-   *
-   * @param  userEntry          The user entry.
-   * @param  useDefaultOnError  Indicates whether the server should fall back to
-   *                            using the default password policy if there is a
-   *                            problem with the configured policy for the user.
-   *
-   * @return  The password policy for the user.
-   *
-   * @throws  DirectoryException  If a problem occurs while attempting to
-   *                              determine the password policy for the user.
-   */
-  public static PasswordPolicy getPasswordPolicy(Entry userEntry,
-                                     boolean useDefaultOnError)
-       throws DirectoryException
-  {
-    String userDNString = userEntry.getDN().toString();
-    AttributeType type = DirectoryServer.getAttributeType(
-            OP_ATTR_PWPOLICY_POLICY_DN, true);
-    List<Attribute> attrList = userEntry.getAttribute(type);
-
-    if (attrList != null)
-    {
-      for (Attribute a : attrList)
-      {
-        if (a.isEmpty()) continue;
-
-        AttributeValue v = a.iterator().next();
-        DN subentryDN;
-        try
-        {
-          subentryDN = DN.decode(v.getValue());
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-
-          if (debugEnabled())
-          {
-            TRACER.debugError("Could not parse password policy subentry " +
-                "DN %s for user %s: %s",
-                       v.getValue().toString(), userDNString,
-                       stackTraceToSingleLineString(e));
-          }
-
-          Message message = ERR_PWPSTATE_CANNOT_DECODE_SUBENTRY_VALUE_AS_DN.get(
-              v.getValue().toString(), userDNString, e.getMessage());
-          if (useDefaultOnError)
-          {
-            ErrorLogger.logError(message);
-            return DirectoryServer.getDefaultPasswordPolicy();
-          }
-          else
-          {
-            throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message,
-                                         e);
-          }
-        }
-
-        PasswordPolicy policy = (PasswordPolicy) DirectoryServer
-            .getAuthenticationPolicy(subentryDN);
-        if (policy == null)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugError("Password policy subentry %s for user %s " +
-                 "is not defined in the Directory Server.",
-                       String.valueOf(subentryDN), userDNString);
-          }
-
-          Message message = ERR_PWPSTATE_NO_SUCH_POLICY.get(
-              userDNString, String.valueOf(subentryDN));
-          if (useDefaultOnError)
-          {
-            ErrorLogger.logError(message);
-            return DirectoryServer.getDefaultPasswordPolicy();
-          }
-          else
-          {
-            throw new DirectoryException(
-                 DirectoryServer.getServerErrorResultCode(), message);
-          }
-        }
-
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Using password policy subentry %s for user %s.",
-              String.valueOf(subentryDN), userDNString);
-        }
-
-        return policy;
-      }
-    }
-
-    // No attribute defined password policy: try locating and using the
-    // closest to this entry password policy subentry defined, if any.
-    List<SubEntry> pwpSubEntries =
-            DirectoryServer.getSubentryManager().getSubentries(userEntry);
-    if ((pwpSubEntries != null) && (!pwpSubEntries.isEmpty()))
-    {
-      for (SubEntry subentry : pwpSubEntries)
-      {
-        try
-        {
-          if (subentry.getEntry().isPasswordPolicySubentry())
-          {
-            PasswordPolicy policy = (PasswordPolicy) DirectoryServer
-                .getAuthenticationPolicy(subentry.getDN());
-            if (policy == null)
-            {
-              // This shouldnt happen but if it does debug log
-              // this problem and fall back to default policy.
-              if (debugEnabled())
-              {
-                TRACER.debugError(
-                        "Found unknown password policy subentry "
-                        + "DN %s for user %s",
-                        subentry.getDN().toString(), userDNString);
-              }
-              break;
-            }
-            return policy;
-          }
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugError("Could not parse password policy subentry "
-                    + "DN %s for user %s: %s",
-                    subentry.getDN().toString(), userDNString,
-                    stackTraceToSingleLineString(e));
-          }
-        }
-      }
-    }
-
-    // There is no policy subentry defined: use the default.
-    if (debugEnabled())
-    {
-      TRACER.debugInfo("Using the default password policy for user %s",
-          userDNString);
-    }
-
-    return DirectoryServer.getDefaultPasswordPolicy();
   }
 
 
@@ -667,11 +475,9 @@ public final class PasswordPolicyState
 
 
   /**
-   * Retrieves the password policy associated with this state information.
-   *
-   * @return  The password policy associated with this state information.
+   * {@inheritDoc}
    */
-  public PasswordPolicy getPolicy()
+  public PasswordPolicy getAuthenticationPolicy()
   {
     return passwordPolicy;
   }
@@ -770,16 +576,7 @@ public final class PasswordPolicyState
       Attribute a = Attributes.create(OP_ATTR_PWPOLICY_CHANGED_TIME,
           timeValue);
 
-      if (updateEntry)
-      {
-        ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-        attrList.add(a);
-        userEntry.putAttribute(a.getAttributeType(), attrList);
-      }
-      else
-      {
-        modifications.add(new Modification(ModificationType.REPLACE, a, true));
-      }
+      modifications.add(new Modification(ModificationType.REPLACE, a, true));
     }
   }
 
@@ -801,15 +598,8 @@ public final class PasswordPolicyState
     AttributeType type =
          DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_CHANGED_TIME_LC,
                                        true);
-    if (updateEntry)
-    {
-      userEntry.removeAttribute(type);
-    }
-    else
-    {
-      Attribute a = Attributes.empty(type);
-      modifications.add(new Modification(ModificationType.REPLACE, a, true));
-    }
+    Attribute a = Attributes.empty(type);
+    modifications.add(new Modification(ModificationType.REPLACE, a, true));
 
 
     // Fall back to using the entry creation time as the password changed time,
@@ -930,30 +720,13 @@ public final class PasswordPolicyState
     if (isDisabled)
     {
       Attribute a = Attributes.create(type, String.valueOf(true));
-
-      if (updateEntry)
-      {
-        ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-        attrList.add(a);
-        userEntry.putAttribute(type, attrList);
-      }
-      else
-      {
-        modifications.add(new Modification(ModificationType.REPLACE, a, true));
-      }
+      modifications.add(new Modification(ModificationType.REPLACE, a, true));
     }
     else
     {
       // erase
-      if (updateEntry)
-      {
-        userEntry.removeAttribute(type);
-      }
-      else
-      {
-        modifications.add(new Modification(ModificationType.REPLACE,
+      modifications.add(new Modification(ModificationType.REPLACE,
                                            Attributes.empty(type), true));
-      }
     }
   }
 
@@ -1089,16 +862,7 @@ public final class PasswordPolicyState
                                             true);
 
       Attribute a = Attributes.create(type, timeStr);
-      if (updateEntry)
-      {
-        ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-        attrList.add(a);
-        userEntry.putAttribute(type, attrList);
-      }
-      else
-      {
-        modifications.add(new Modification(ModificationType.REPLACE, a, true));
-      }
+      modifications.add(new Modification(ModificationType.REPLACE, a, true));
     }
   }
 
@@ -1121,15 +885,8 @@ public final class PasswordPolicyState
          DirectoryServer.getAttributeType(OP_ATTR_ACCOUNT_EXPIRATION_TIME,
                                           true);
 
-    if (updateEntry)
-    {
-      userEntry.removeAttribute(type);
-    }
-    else
-    {
-      modifications.add(new Modification(ModificationType.REPLACE,
+    modifications.add(new Modification(ModificationType.REPLACE,
           Attributes.empty(type), true));
-    }
   }
 
 
@@ -1187,15 +944,8 @@ public final class PasswordPolicyState
 
       authFailureTimes = new ArrayList<Long>();
 
-      if (updateEntry)
-      {
-        userEntry.removeAttribute(type);
-      }
-      else
-      {
-        modifications.add(new Modification(ModificationType.REPLACE,
+      modifications.add(new Modification(ModificationType.REPLACE,
             Attributes.empty(type), true));
-      }
 
       return authFailureTimes;
     }
@@ -1245,33 +995,11 @@ public final class PasswordPolicyState
 
       if (valuesToRemove != null)
       {
-        if (updateEntry)
-        {
-          if (authFailureTimes.isEmpty())
-          {
-            userEntry.removeAttribute(type);
-          }
-          else
-          {
-            AttributeBuilder builder = new AttributeBuilder(type);
-            for (Long l : authFailureTimes)
-            {
-              builder.add(
-                 AttributeValues.create(type, GeneralizedTimeSyntax.format(l)));
-            }
-            ArrayList<Attribute> keepList = new ArrayList<Attribute>(1);
-            keepList.add(builder.toAttribute());
-            userEntry.putAttribute(type, keepList);
-          }
-        }
-        else
-        {
-          AttributeBuilder builder = new AttributeBuilder(type);
-          builder.addAll(valuesToRemove);
-          Attribute a = builder.toAttribute();
-          modifications.add(new Modification(ModificationType.DELETE, a,
-                                             true));
-        }
+        AttributeBuilder builder = new AttributeBuilder(type);
+        builder.addAll(valuesToRemove);
+        Attribute a = builder.toAttribute();
+        modifications.add(new Modification(ModificationType.DELETE, a,
+            true));
       }
     }
 
@@ -1344,14 +1072,7 @@ public final class PasswordPolicyState
     Attribute addAttr = Attributes.create(type, AttributeValues.create(type,
         GeneralizedTimeSyntax.format(highestFailureTime)));
 
-    if (updateEntry)
-    {
-      userEntry.putAttribute(type, attrList);
-    }
-    else
-    {
-      modifications.add(new Modification(ModificationType.ADD, addAttr, true));
-    }
+    modifications.add(new Modification(ModificationType.ADD, addAttr, true));
 
     // Now check to see if there have been sufficient failures to lock the
     // account.
@@ -1403,16 +1124,7 @@ public final class PasswordPolicyState
     }
     Attribute a = builder.toAttribute();
 
-    if (updateEntry)
-    {
-      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(a);
-      userEntry.putAttribute(type, attrList);
-    }
-    else
-    {
-      modifications.add(new Modification(ModificationType.REPLACE, a, true));
-    }
+    modifications.add(new Modification(ModificationType.REPLACE, a, true));
 
     // Now check to see if there have been sufficient failures to lock the
     // account.
@@ -1458,15 +1170,8 @@ public final class PasswordPolicyState
                                   OP_ATTR_PWPOLICY_FAILURE_TIME);
     }
 
-    if (updateEntry)
-    {
-      userEntry.removeAttribute(type);
-    }
-    else
-    {
-      modifications.add(new Modification(ModificationType.REPLACE,
+    modifications.add(new Modification(ModificationType.REPLACE,
                                          Attributes.empty(type), true));
-    }
   }
 
 
@@ -1544,16 +1249,7 @@ public final class PasswordPolicyState
     Attribute a = Attributes.create(type, AttributeValues.create(type,
         GeneralizedTimeSyntax.format(failureLockedTime)));
 
-    if (updateEntry)
-    {
-      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(a);
-      userEntry.putAttribute(type, attrList);
-    }
-    else
-    {
-      modifications.add(new Modification(ModificationType.REPLACE, a, true));
-    }
+    modifications.add(new Modification(ModificationType.REPLACE, a, true));
   }
 
 
@@ -1585,15 +1281,8 @@ public final class PasswordPolicyState
                                   OP_ATTR_PWPOLICY_LOCKED_TIME);
     }
 
-    if (updateEntry)
-    {
-      userEntry.removeAttribute(type);
-    }
-    else
-    {
-      modifications.add(new Modification(ModificationType.REPLACE,
+    modifications.add(new Modification(ModificationType.REPLACE,
                                          Attributes.empty(type), true));
-    }
   }
 
 
@@ -1936,16 +1625,7 @@ public final class PasswordPolicyState
 
 
     Attribute a = Attributes.create(type, timestamp);
-    if (updateEntry)
-    {
-      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(a);
-      userEntry.putAttribute(type, attrList);
-    }
-    else
-    {
-      modifications.add(new Modification(ModificationType.REPLACE, a, true));
-    }
+    modifications.add(new Modification(ModificationType.REPLACE, a, true));
 
     if (debugEnabled())
     {
@@ -1972,15 +1652,8 @@ public final class PasswordPolicyState
     AttributeType type =
          DirectoryServer.getAttributeType(OP_ATTR_LAST_LOGIN_TIME, true);
 
-    if (updateEntry)
-    {
-      userEntry.removeAttribute(type);
-    }
-    else
-    {
-      modifications.add(new Modification(ModificationType.REPLACE,
+    modifications.add(new Modification(ModificationType.REPLACE,
                                          Attributes.empty(type), true));
-    }
   }
 
 
@@ -2195,29 +1868,12 @@ public final class PasswordPolicyState
     if (mustChangePassword)
     {
       Attribute a = Attributes.create(type, String.valueOf(true));
-      if (updateEntry)
-      {
-        ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-        attrList.add(a);
-        userEntry.putAttribute(type, attrList);
-      }
-      else
-      {
-        modifications.add(new Modification(ModificationType.REPLACE, a, true));
-      }
+      modifications.add(new Modification(ModificationType.REPLACE, a, true));
     }
     else
     {
-      // erase
-      if (updateEntry)
-      {
-        userEntry.removeAttribute(type);
-      }
-      else
-      {
-        modifications.add(new Modification(ModificationType.REPLACE,
+      modifications.add(new Modification(ModificationType.REPLACE,
                                            Attributes.empty(type), true));
-      }
     }
   }
 
@@ -2732,16 +2388,7 @@ public final class PasswordPolicyState
       String timeValue = GeneralizedTimeSyntax.format(requiredChangeTime);
       Attribute a = Attributes.create(type, timeValue);
 
-      if (updateEntry)
-      {
-        ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-        attrList.add(a);
-        userEntry.putAttribute(type, attrList);
-      }
-      else
-      {
-        modifications.add(new Modification(ModificationType.REPLACE, a, true));
-      }
+      modifications.add(new Modification(ModificationType.REPLACE, a, true));
     }
   }
 
@@ -2763,15 +2410,8 @@ public final class PasswordPolicyState
 
     AttributeType type = DirectoryServer.getAttributeType(
                              OP_ATTR_PWPOLICY_CHANGED_BY_REQUIRED_TIME, true);
-    if (updateEntry)
-    {
-      userEntry.removeAttribute(type);
-    }
-    else
-    {
-      modifications.add(new Modification(ModificationType.REPLACE,
+    modifications.add(new Modification(ModificationType.REPLACE,
                                          Attributes.empty(type), true));
-    }
   }
 
 
@@ -2861,16 +2501,7 @@ public final class PasswordPolicyState
     Attribute a = Attributes.create(type, GeneralizedTimeSyntax
         .createGeneralizedTimeValue(currentTime));
 
-    if (updateEntry)
-    {
-      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(a);
-      userEntry.putAttribute(type, attrList);
-    }
-    else
-    {
-      modifications.add(new Modification(ModificationType.REPLACE, a, true));
-    }
+    modifications.add(new Modification(ModificationType.REPLACE, a, true));
 
     if (debugEnabled())
     {
@@ -2898,15 +2529,8 @@ public final class PasswordPolicyState
 
     AttributeType type =
          DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_WARNED_TIME, true);
-    if (updateEntry)
-    {
-      userEntry.removeAttribute(type);
-    }
-    else
-    {
-      Attribute a = Attributes.empty(type);
-      modifications.add(new Modification(ModificationType.REPLACE, a, true));
-    }
+    Attribute a = Attributes.empty(type);
+    modifications.add(new Modification(ModificationType.REPLACE, a, true));
 
     if (debugEnabled())
     {
@@ -2955,15 +2579,8 @@ public final class PasswordPolicyState
 
         graceLoginTimes = new ArrayList<Long>();
 
-        if (updateEntry)
-        {
-          userEntry.removeAttribute(type);
-        }
-        else
-        {
-          modifications.add(new Modification(ModificationType.REPLACE,
+        modifications.add(new Modification(ModificationType.REPLACE,
               Attributes.empty(type), true));
-        }
       }
     }
 
@@ -3036,27 +2653,10 @@ public final class PasswordPolicyState
                                   OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME);
     }
 
-    if (updateEntry)
-    {
-      AttributeBuilder builder = new AttributeBuilder(type);
-      for (Long l : graceTimes)
-      {
-        builder.add(AttributeValues.create(type, GeneralizedTimeSyntax
-            .format(l)));
-      }
+    Attribute addAttr = Attributes.create(type, AttributeValues.create(
+        type, GeneralizedTimeSyntax.format(highestGraceTime)));
 
-      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(builder.toAttribute());
-
-      userEntry.putAttribute(type, attrList);
-    }
-    else
-    {
-      Attribute addAttr = Attributes.create(type, AttributeValues.create(
-          type, GeneralizedTimeSyntax.format(highestGraceTime)));
-
-      modifications.add(new Modification(ModificationType.ADD, addAttr, true));
-    }
+    modifications.add(new Modification(ModificationType.ADD, addAttr, true));
   }
 
 
@@ -3094,17 +2694,7 @@ public final class PasswordPolicyState
     }
     Attribute a = builder.toAttribute();
 
-    if (updateEntry)
-    {
-      ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(a);
-
-      userEntry.putAttribute(type, attrList);
-    }
-    else
-    {
-      modifications.add(new Modification(ModificationType.REPLACE, a, true));
-    }
+    modifications.add(new Modification(ModificationType.REPLACE, a, true));
   }
 
 
@@ -3135,15 +2725,8 @@ public final class PasswordPolicyState
                                   OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME);
     }
 
-    if (updateEntry)
-    {
-      userEntry.removeAttribute(type);
-    }
-    else
-    {
-      modifications.add(new Modification(ModificationType.REPLACE,
+    modifications.add(new Modification(ModificationType.REPLACE,
                                          Attributes.empty(type), true));
-    }
   }
 
 
@@ -3240,13 +2823,7 @@ public final class PasswordPolicyState
 
 
   /**
-   * Indicates whether the provided password value matches any of the stored
-   * passwords in the user entry.
-   *
-   * @param  password  The user-provided password to verify.
-   *
-   * @return  <CODE>true</CODE> if the provided password matches any of the
-   *          stored password values, or <CODE>false</CODE> if not.
+   * {@inheritDoc}
    */
   public boolean passwordMatches(ByteString password)
   {
@@ -3644,28 +3221,17 @@ public final class PasswordPolicyState
       return;
     }
 
-    if (updateEntry)
-    {
-      AttributeBuilder builder = new AttributeBuilder(type);
-      builder.addAll(updatedValues);
-      ArrayList<Attribute> newList = new ArrayList<Attribute>(1);
-      newList.add(builder.toAttribute());
-      userEntry.putAttribute(type, newList);
-    }
-    else
-    {
-      AttributeBuilder builder = new AttributeBuilder(type);
-      builder.addAll(removedValues);
-      Attribute a = builder.toAttribute();
-      modifications.add(new Modification(ModificationType.DELETE, a, true));
+    AttributeBuilder builder = new AttributeBuilder(type);
+    builder.addAll(removedValues);
+    Attribute a = builder.toAttribute();
+    modifications.add(new Modification(ModificationType.DELETE, a, true));
 
-      if (! addedValues.isEmpty())
-      {
-        builder = new AttributeBuilder(type);
-        builder.addAll(addedValues);
-        Attribute a2 = builder.toAttribute();
-        modifications.add(new Modification(ModificationType.ADD, a2, true));
-      }
+    if (! addedValues.isEmpty())
+    {
+      builder = new AttributeBuilder(type);
+      builder.addAll(addedValues);
+      Attribute a2 = builder.toAttribute();
+      modifications.add(new Modification(ModificationType.ADD, a2, true));
     }
 
     if (debugEnabled())
@@ -4155,26 +3721,13 @@ public final class PasswordPolicyState
 
     // Apply the changes, either by adding modifications or by directly updating
     // the entry.
-    if (updateEntry)
+    for (Attribute a : removeAttrs)
     {
-      LinkedList<AttributeValue> valueList = new LinkedList<AttributeValue>();
-      for (Attribute a : removeAttrs)
-      {
-        userEntry.removeAttribute(a, valueList);
-      }
-
-      userEntry.addAttribute(newHistAttr, valueList);
+      modifications.add(new Modification(ModificationType.DELETE, a, true));
     }
-    else
-    {
-      for (Attribute a : removeAttrs)
-      {
-        modifications.add(new Modification(ModificationType.DELETE, a, true));
-      }
 
-      modifications.add(new Modification(ModificationType.ADD, newHistAttr,
-                                         true));
-    }
+    modifications.add(new Modification(ModificationType.ADD, newHistAttr,
+        true));
   }
 
 
@@ -4221,15 +3774,8 @@ public final class PasswordPolicyState
 
     AttributeType type = DirectoryServer.getAttributeType(
                              OP_ATTR_PWPOLICY_HISTORY_LC, true);
-    if (updateEntry)
-    {
-      userEntry.removeAttribute(type);
-    }
-    else
-    {
-      modifications.add(new Modification(ModificationType.REPLACE,
+    modifications.add(new Modification(ModificationType.REPLACE,
                                          Attributes.empty(type), true));
-    }
   }
 
 
@@ -4322,13 +3868,9 @@ public final class PasswordPolicyState
 
 
   /**
-   * Performs an internal modification to update the user's entry, if necessary.
-   * This will do nothing if no modifications are required.
-   *
-   * @throws  DirectoryException  If a problem occurs while processing the
-   *                              internal modification.
+   * {@inheritDoc}
    */
-  public void updateUserEntry()
+  public void finalizeStateAfterBind()
          throws DirectoryException
   {
     // If there are no modifications, then there's nothing to do.
