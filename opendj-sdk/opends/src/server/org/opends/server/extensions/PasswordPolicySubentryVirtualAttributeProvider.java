@@ -34,12 +34,11 @@ import java.util.Set;
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.
         PasswordPolicySubentryVirtualAttributeCfg;
+import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.PasswordPolicy;
-import org.opends.server.core.PasswordPolicyState;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
@@ -111,12 +110,11 @@ public class PasswordPolicySubentryVirtualAttributeProvider
 
     if (!entry.isSubentry() && !entry.isLDAPSubentry())
     {
-      PasswordPolicy policy = null;
+      AuthenticationPolicy policy = null;
 
       try
       {
-        policy = PasswordPolicyState.getPasswordPolicy(
-                entry, false);
+        policy = AuthenticationPolicy.forUser(entry, false);
       }
       catch (DirectoryException de)
       {
@@ -133,7 +131,7 @@ public class PasswordPolicySubentryVirtualAttributeProvider
         }
       }
 
-      if (policy != null)
+      if (policy != null && policy.isPasswordPolicy())
       {
         AttributeType dnAttrType = DirectoryServer.getAttributeType(
                 "1.3.6.1.4.1.42.2.27.8.1.23");

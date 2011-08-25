@@ -40,10 +40,7 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
 import org.opends.server.admin.std.server.
             PasswordModifyExtendedOperationHandlerCfg;
-import org.opends.server.api.ClientConnection;
-import org.opends.server.api.ExtendedOperationHandler;
-import org.opends.server.api.IdentityMapper;
-import org.opends.server.api.PasswordStorageScheme;
+import org.opends.server.api.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.controls.PasswordPolicyResponseControl;
 import org.opends.server.controls.PasswordPolicyWarningType;
@@ -514,7 +511,17 @@ public class PasswordModifyExtendedOperation
       PasswordPolicyState pwPolicyState;
       try
       {
-        pwPolicyState = new PasswordPolicyState(userEntry, false);
+        AuthenticationPolicy policy = AuthenticationPolicy.forUser(userEntry,
+            false);
+        if (!policy.isPasswordPolicy())
+        {
+          operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+          operation.appendErrorMessage(ERR_EXTOP_PASSMOD_ACCOUNT_NOT_LOCAL
+              .get(String.valueOf(userDN)));
+          return;
+        }
+        pwPolicyState = (PasswordPolicyState) policy
+          .createAuthenticationPolicyState(userEntry);
       }
       catch (DirectoryException de)
       {
@@ -531,6 +538,7 @@ public class PasswordModifyExtendedOperation
                         de.getMessageObject()));
         return;
       }
+
 
 
       // Determine whether the user is changing his own password or if it's an
@@ -614,7 +622,7 @@ public class PasswordModifyExtendedOperation
       if (oldPassword == null)
       {
         if (selfChange
-            && pwPolicyState.getPolicy()
+            && pwPolicyState.getAuthenticationPolicy()
                 .isPasswordChangeRequiresCurrentPassword())
         {
           operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
@@ -637,8 +645,9 @@ public class PasswordModifyExtendedOperation
       }
       else
       {
-        if (pwPolicyState.getPolicy().isRequireSecureAuthentication() &&
-            (! operation.getClientConnection().isSecure()))
+        if (pwPolicyState.getAuthenticationPolicy()
+            .isRequireSecureAuthentication()
+            && (!operation.getClientConnection().isSecure()))
         {
           operation.setResultCode(ResultCode.CONFIDENTIALITY_REQUIRED);
           operation.addAdditionalLogItem(AdditionalLogItem.quotedKeyValue(
@@ -674,8 +683,9 @@ public class PasswordModifyExtendedOperation
 
       // If it is a self password change and we don't allow that, then reject
       // the request.
-      if (selfChange &&
-           (! pwPolicyState.getPolicy().isAllowUserPasswordChanges()))
+      if (selfChange
+          && (!pwPolicyState.getAuthenticationPolicy()
+              .isAllowUserPasswordChanges()))
       {
         if (pwPolicyRequested)
         {
@@ -697,10 +707,10 @@ public class PasswordModifyExtendedOperation
 
       // If we require secure password changes and the connection isn't secure,
       // then reject the request.
-      if (pwPolicyState.getPolicy().isRequireSecurePasswordChanges() &&
-          (! operation.getClientConnection().isSecure()))
+      if (pwPolicyState.getAuthenticationPolicy()
+          .isRequireSecurePasswordChanges()
+          && (!operation.getClientConnection().isSecure()))
       {
-
         operation.setResultCode(ResultCode.CONFIDENTIALITY_REQUIRED);
 
         operation.appendErrorMessage(
@@ -733,8 +743,8 @@ public class PasswordModifyExtendedOperation
 
       // If the user's password is expired and it's a self-change request, then
       // see if that's OK.
-      if ((selfChange && pwPolicyState.isPasswordExpired() &&
-          (! pwPolicyState.getPolicy().isAllowExpiredPasswordChanges())))
+      if ((selfChange && pwPolicyState.isPasswordExpired() && (!pwPolicyState
+          .getAuthenticationPolicy().isAllowExpiredPasswordChanges())))
       {
         if (pwPolicyRequested)
         {
@@ -800,7 +810,8 @@ public class PasswordModifyExtendedOperation
           // by an internal operation or during synchronization, so we don't
           // need to check for those cases.
           isPreEncoded = true;
-          if (! pwPolicyState.getPolicy().isAllowPreEncodedPasswords())
+          if (!pwPolicyState.getAuthenticationPolicy()
+              .isAllowPreEncodedPasswords())
           {
             operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
 
@@ -813,7 +824,7 @@ public class PasswordModifyExtendedOperation
         {
           // Run the new password through the set of password validators.
           if (selfChange
-              || (!pwPolicyState.getPolicy()
+              || (!pwPolicyState.getAuthenticationPolicy()
                   .isSkipValidationForAdministrators()))
           {
             HashSet<ByteString> clearPasswords;
@@ -866,7 +877,7 @@ public class PasswordModifyExtendedOperation
           {
             if (pwPolicyState.isPasswordInHistory(newPassword))
             {
-              if (selfChange || (! pwPolicyState.getPolicy().
+              if (selfChange || (! pwPolicyState.getAuthenticationPolicy().
                                       isSkipValidationForAdministrators()))
               {
                 operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
@@ -918,7 +929,8 @@ public class PasswordModifyExtendedOperation
       // If the current password was provided, then remove all matching values
       // from the user's entry and replace them with the new password.
       // Otherwise replace all password values.
-      AttributeType attrType = pwPolicyState.getPolicy().getPasswordAttribute();
+      AttributeType attrType = pwPolicyState.getAuthenticationPolicy()
+          .getPasswordAttribute();
       List<Modification> modList = new ArrayList<Modification>();
       if (oldPassword != null)
       {
@@ -926,7 +938,7 @@ public class PasswordModifyExtendedOperation
         Set<AttributeValue> existingValues = pwPolicyState.getPasswordValues();
         LinkedHashSet<AttributeValue> deleteValues =
              new LinkedHashSet<AttributeValue>(existingValues.size());
-        if (pwPolicyState.getPolicy().isAuthPasswordSyntax())
+        if (pwPolicyState.getAuthenticationPolicy().isAuthPasswordSyntax())
         {
           for (AttributeValue v : existingValues)
           {
@@ -1056,7 +1068,7 @@ public class PasswordModifyExtendedOperation
       else
       {
         pwPolicyState.setMustChangePassword(
-             pwPolicyState.getPolicy().isForceChangeOnReset());
+             pwPolicyState.getAuthenticationPolicy().isForceChangeOnReset());
       }
 
 
@@ -1133,7 +1145,7 @@ public class PasswordModifyExtendedOperation
         // Save attachments for post-op plugins (e.g. Samba password plugin).
         operation.setAttachment(AUTHZ_DN_ATTACHMENT, userDN);
         operation.setAttachment(PWD_ATTRIBUTE_ATTACHMENT, pwPolicyState
-            .getPolicy().getPasswordAttribute());
+            .getAuthenticationPolicy().getPasswordAttribute());
         if (!isPreEncoded)
         {
           operation.setAttachment(CLEAR_PWD_ATTACHMENT, newPassword);

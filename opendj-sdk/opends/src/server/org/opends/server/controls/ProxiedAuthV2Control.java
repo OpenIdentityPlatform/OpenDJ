@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.controls;
 import org.opends.messages.Message;
@@ -32,6 +33,7 @@ import org.opends.messages.Message;
 import java.util.concurrent.locks.Lock;
 import java.io.IOException;
 
+import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicyState;
@@ -274,20 +276,7 @@ public class ProxiedAuthV2Control
 
           // FIXME -- We should provide some mechanism for enabling debug
           // processing.
-          PasswordPolicyState pwpState =
-               new PasswordPolicyState(userEntry, false);
-          if (pwpState.isDisabled() || pwpState.isAccountExpired() ||
-              pwpState.lockedDueToFailures() ||
-              pwpState.lockedDueToIdleInterval() ||
-              pwpState.lockedDueToMaximumResetAge() ||
-              pwpState.isPasswordExpired())
-          {
-            Message message =
-                ERR_PROXYAUTH2_UNUSABLE_ACCOUNT.get(String.valueOf(authzDN));
-            throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED,
-                                         message);
-          }
-
+          checkAccountIsUsable(userEntry);
 
           // If we've made it here, then the user is acceptable.
           return userEntry;
@@ -327,19 +316,7 @@ public class ProxiedAuthV2Control
       {
         // FIXME -- We should provide some mechanism for enabling debug
         // processing.
-        PasswordPolicyState pwpState =
-             new PasswordPolicyState(userEntry, false);
-        if (pwpState.isDisabled() || pwpState.isAccountExpired() ||
-            pwpState.lockedDueToFailures() ||
-            pwpState.lockedDueToIdleInterval() ||
-            pwpState.lockedDueToMaximumResetAge() ||
-            pwpState.isPasswordExpired())
-        {
-          Message message = ERR_PROXYAUTH2_UNUSABLE_ACCOUNT.get(
-              String.valueOf(userEntry.getDN()));
-          throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED,
-                                       message);
-        }
+        checkAccountIsUsable(userEntry);
 
         return userEntry;
       }
@@ -348,6 +325,31 @@ public class ProxiedAuthV2Control
     {
       Message message = ERR_PROXYAUTH2_INVALID_AUTHZID.get(lowerAuthzID);
       throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+    }
+  }
+
+
+
+  private void checkAccountIsUsable(Entry userEntry)
+      throws DirectoryException
+  {
+    AuthenticationPolicy policy = AuthenticationPolicy.forUser(userEntry,
+        false);
+    if (policy.isPasswordPolicy())
+    {
+      PasswordPolicyState pwpState = (PasswordPolicyState) policy
+          .createAuthenticationPolicyState(userEntry);
+      if (pwpState.isDisabled() || pwpState.isAccountExpired() ||
+          pwpState.lockedDueToFailures() ||
+          pwpState.lockedDueToIdleInterval() ||
+          pwpState.lockedDueToMaximumResetAge() ||
+          pwpState.isPasswordExpired())
+      {
+        Message message = ERR_PROXYAUTH2_UNUSABLE_ACCOUNT.get(String
+            .valueOf(userEntry.getDN()));
+        throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED,
+            message);
+      }
     }
   }
 

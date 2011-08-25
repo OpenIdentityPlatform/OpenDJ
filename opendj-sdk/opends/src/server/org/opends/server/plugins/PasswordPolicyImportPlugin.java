@@ -365,14 +365,20 @@ policyLoop:
           try
           {
             policyDN = DN.decode(v.getValue());
-            policy = (PasswordPolicy) DirectoryServer
+            AuthenticationPolicy authPolicy = DirectoryServer
                 .getAuthenticationPolicy(policyDN);
-            if (policy == null)
+            if (authPolicy == null)
             {
               Message message = WARN_PLUGIN_PWIMPORT_NO_SUCH_POLICY.get(
                   String.valueOf(entry.getDN()), String.valueOf(policyDN));
               logError(message);
             }
+
+            if (authPolicy.isPasswordPolicy())
+            {
+              policy = (PasswordPolicy) authPolicy;
+            }
+
             break policyLoop;
           }
           catch (DirectoryException de)

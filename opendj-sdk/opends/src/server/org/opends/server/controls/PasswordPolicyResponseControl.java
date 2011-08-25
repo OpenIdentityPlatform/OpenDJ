@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.controls;
 import org.opends.messages.Message;
@@ -189,12 +190,7 @@ public class PasswordPolicyResponseControl
    */
   public PasswordPolicyResponseControl()
   {
-    super(OID_PASSWORD_POLICY_CONTROL, false);
-
-
-    warningType  = null;
-    errorType    = null;
-    warningValue = -1;
+    this(false, null, -1, null);
   }
 
 

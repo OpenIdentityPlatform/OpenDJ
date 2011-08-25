@@ -38,20 +38,13 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
-import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.Backend;
-import org.opends.server.api.ChangeNotificationListener;
-import org.opends.server.api.ClientConnection;
-import org.opends.server.api.PasswordStorageScheme;
-import org.opends.server.api.PasswordValidator;
-import org.opends.server.api.SynchronizationProvider;
+import org.opends.server.api.*;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.controls.LDAPPostReadRequestControl;
@@ -1029,49 +1022,14 @@ addProcessing:
     // FIXME -- We need to check to see if the password policy subentry
     //          might be specified virtually rather than as a real
     //          attribute.
-    PasswordPolicy passwordPolicy = null;
-    List<Attribute> pwAttrList =
-         entry.getAttribute(OP_ATTR_PWPOLICY_POLICY_DN);
-    if ((pwAttrList != null) && (! pwAttrList.isEmpty()))
+    AuthenticationPolicy policy = AuthenticationPolicy.forUser(entry, false);
+    if (!policy.isPasswordPolicy())
     {
-      Attribute a = pwAttrList.get(0);
-      Iterator<AttributeValue> iterator = a.iterator();
-      if (iterator.hasNext())
-      {
-        DN policyDN;
-        try
-        {
-          policyDN = DN.decode(iterator.next().getValue());
-        }
-        catch (DirectoryException de)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
-
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       ERR_ADD_INVALID_PWPOLICY_DN_SYNTAX.get(
-                                            String.valueOf(entryDN),
-                                           de.getMessageObject()));
-        }
-
-        passwordPolicy = (PasswordPolicy) DirectoryServer
-            .getAuthenticationPolicy(policyDN);
-        if (passwordPolicy == null)
-        {
-          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                       ERR_ADD_NO_SUCH_PWPOLICY.get(
-                                            String.valueOf(entryDN),
-                                         String.valueOf(policyDN)));
-        }
-      }
+      // The entry doesn't have a locally managed password, so no action is
+      // required.
+      return;
     }
-
-    if (passwordPolicy == null)
-    {
-      passwordPolicy = DirectoryServer.getDefaultPasswordPolicy();
-    }
+    PasswordPolicy passwordPolicy = (PasswordPolicy) policy;
 
     // See if a password was specified.
     AttributeType passwordAttribute = passwordPolicy.getPasswordAttribute();

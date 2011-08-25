@@ -37,6 +37,9 @@ import java.util.SortedSet;
 import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn.*;
 import org.opends.server.api.*;
 import org.opends.server.types.AttributeType;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
 
 
 
@@ -54,6 +57,13 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
   {
     // Nothing to do.
   }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public abstract DN getDN();
 
 
 
@@ -607,4 +617,24 @@ public abstract class PasswordPolicy extends AuthenticationPolicy
    */
   public abstract StateUpdateFailurePolicy getStateUpdateFailurePolicy();
 
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isPasswordPolicy()
+  {
+    return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public PasswordPolicyState createAuthenticationPolicyState(Entry userEntry,
+      long time) throws DirectoryException
+  {
+    return new PasswordPolicyState(this, userEntry, time);
+  }
 }

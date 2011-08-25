@@ -37,6 +37,7 @@ import java.io.IOException;
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.
             PasswordPolicyStateExtendedOperationHandlerCfg;
+import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.config.ConfigException;
@@ -600,11 +601,19 @@ public class PasswordPolicyStateExtendedOperation
     }
     // Get the password policy state for the user entry.
     PasswordPolicyState pwpState;
-    PasswordPolicy      policy;
     try
     {
-      pwpState = new PasswordPolicyState(userEntry, false);
-      policy   = pwpState.getPolicy();
+      AuthenticationPolicy policy = AuthenticationPolicy.forUser(userEntry,
+          false);
+      if (!policy.isPasswordPolicy())
+      {
+        operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+        operation.appendErrorMessage(ERR_EXTOP_PWPSTATE_ACCOUNT_NOT_LOCAL
+            .get(String.valueOf(userEntry)));
+        return;
+      }
+      pwpState = (PasswordPolicyState) policy
+          .createAuthenticationPolicyState(userEntry);
     }
     catch (DirectoryException de)
     {
@@ -617,6 +626,7 @@ public class PasswordPolicyStateExtendedOperation
       return;
     }
 
+    PasswordPolicy policy = pwpState.getAuthenticationPolicy();
     isAccountSetDisabled = false;
     isAccountSetEnabled = false;
     // Create a hash set that will be used to hold the types of the return
@@ -708,8 +718,9 @@ public class PasswordPolicyStateExtendedOperation
         // And it's updated password policy state
         try
         {
-          pwpState = new PasswordPolicyState(userEntry, false);
-          policy = pwpState.getPolicy();
+          // We should not need to re-fetch the password policy.
+          pwpState = (PasswordPolicyState) policy
+              .createAuthenticationPolicyState(userEntry);
         }
         catch (DirectoryException de)
         {

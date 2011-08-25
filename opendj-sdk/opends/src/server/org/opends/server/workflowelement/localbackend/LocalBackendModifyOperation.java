@@ -44,12 +44,7 @@ import java.util.concurrent.locks.Lock;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
-import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.Backend;
-import org.opends.server.api.ChangeNotificationListener;
-import org.opends.server.api.ClientConnection;
-import org.opends.server.api.PasswordStorageScheme;
-import org.opends.server.api.SynchronizationProvider;
+import org.opends.server.api.*;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.controls.LDAPPostReadRequestControl;
@@ -67,14 +62,12 @@ import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.schema.AuthPasswordSyntax;
-import org.opends.server.schema.BooleanSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationModifyOperation;
 import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PostSynchronizationModifyOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
-import org.opends.server.util.TimeThread;
 import org.opends.server.util.Validator;
 
 
@@ -141,7 +134,7 @@ public class LocalBackendModifyOperation
   /**
    * Indicates whether the user's account was locked before this change.
    */
-  protected boolean wasLocked;
+  protected boolean wasLocked = false;
 
   /**
    * The client connection associated with this operation.
@@ -451,8 +444,13 @@ modifyProcessing:
           selfChange = entryDN.equals(getAuthorizationDN());
 
           // FIXME -- Need a way to enable debug mode.
-          pwPolicyState = new PasswordPolicyState(currentEntry, false,
-                                                  TimeThread.getTime(), true);
+          AuthenticationPolicy policy = AuthenticationPolicy.forUser(
+              currentEntry, true);
+          if (policy.isPasswordPolicy())
+          {
+            pwPolicyState = (PasswordPolicyState) policy
+                .createAuthenticationPolicyState(currentEntry);
+          }
         }
         catch (DirectoryException de)
         {
@@ -525,12 +523,7 @@ modifyProcessing:
         try
         {
           handleInitialPasswordPolicyProcessing();
-
-          wasLocked = false;
-          if (passwordChanged)
-          {
-            performAdditionalPasswordChangedProcessing();
-          }
+          performAdditionalPasswordChangedProcessing();
         }
         catch (DirectoryException de)
         {
@@ -632,20 +625,16 @@ modifyProcessing:
           }
           else
           {
-              if(!processPreOperation()) {
-                  break modifyProcessing;
-              }
+            if (!processPreOperation())
+            {
+              break modifyProcessing;
+            }
 
             backend.replaceEntry(currentEntry, modifiedEntry, this);
 
-
-
             // See if we need to generate any account status notifications as a
             // result of the changes.
-            if (passwordChanged || enabledStateChanged || wasLocked)
-            {
-              handleAccountStatusNotifications();
-            }
+            handleAccountStatusNotifications();
           }
 
 
@@ -997,36 +986,12 @@ modifyProcessing:
       }
 
       // If the modification is not updating the password attribute,
-      // then check if the isEnabled flag should be set and then perform any
-      // schema processing.
-      boolean isPassword =
-              t.equals(pwPolicyState.getPolicy().getPasswordAttribute());
+      // then perform any schema processing.
+      boolean isPassword = (pwPolicyState != null)
+          && t.equals(pwPolicyState.getAuthenticationPolicy()
+              .getPasswordAttribute());
       if (!isPassword )
       {
-        // See if it's an attribute used to maintain the account
-        // enabled/disabled state.
-        AttributeType disabledAttr =
-               DirectoryServer.getAttributeType(OP_ATTR_ACCOUNT_DISABLED, true);
-        if (t.equals(disabledAttr))
-        {
-          enabledStateChanged = true;
-          for (AttributeValue v : a)
-          {
-            try
-            {
-              isEnabled =
-                  (! BooleanSyntax.DECODER.decode(v));
-            }
-            catch (DirectoryException de)
-            {
-              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                      ERR_MODIFY_INVALID_DISABLED_VALUE.get(
-                              OP_ATTR_ACCOUNT_DISABLED,
-                              String.valueOf(de.getMessageObject())), de);
-            }
-          }
-        }
-
         switch (m.getModificationType())
         {
           case ADD:
@@ -1062,8 +1027,15 @@ modifyProcessing:
     currentPasswordProvided = false;
     isEnabled = true;
     enabledStateChanged = false;
+
+    if (pwPolicyState == null)
+    {
+      // Account not managed locally so nothing to do.
+      return;
+    }
+
     if (currentEntry.hasAttribute(
-            pwPolicyState.getPolicy().getPasswordAttribute()))
+            pwPolicyState.getAuthenticationPolicy().getPasswordAttribute()))
     {
       // It may actually have more than one, but we can't tell the difference if
       // the values are encoded, and its enough for our purposes just to know
@@ -1085,8 +1057,8 @@ modifyProcessing:
       for (Modification m : modifications)
       {
         AttributeType t = m.getAttribute().getAttributeType();
-        boolean isPassword =
-                t.equals(pwPolicyState.getPolicy().getPasswordAttribute());
+        boolean isPassword = t.equals(pwPolicyState.getAuthenticationPolicy()
+            .getPasswordAttribute());
         if (isPassword)
         {
           passwordChanged = true;
@@ -1116,8 +1088,8 @@ modifyProcessing:
       // If the modification is updating the password attribute, then perform
       // any necessary password policy processing.  This processing should be
       // skipped for synchronization operations.
-      boolean isPassword =
-              t.equals(pwPolicyState.getPolicy().getPasswordAttribute());
+      boolean isPassword = t.equals(pwPolicyState.getAuthenticationPolicy()
+          .getPasswordAttribute());
       if (isPassword)
       {
         if (!isSynchronizationOperation())
@@ -1135,8 +1107,9 @@ modifyProcessing:
 
 
             // If it's a self change, then see if that's allowed.
-            if (selfChange &&
-                (! pwPolicyState.getPolicy().isAllowUserPasswordChanges()))
+            if (selfChange
+                && (!pwPolicyState.getAuthenticationPolicy()
+                    .isAllowUserPasswordChanges()))
             {
               pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
               throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
@@ -1146,8 +1119,9 @@ modifyProcessing:
 
             // If we require secure password changes, then makes sure it's a
             // secure communication channel.
-            if (pwPolicyState.getPolicy().isRequireSecurePasswordChanges() &&
-                (! clientConnection.isSecure()))
+            if (pwPolicyState.getAuthenticationPolicy()
+                .isRequireSecurePasswordChanges()
+                && (!clientConnection.isSecure()))
             {
               pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
               throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
@@ -1242,8 +1216,8 @@ modifyProcessing:
     // If there were multiple password values, then make sure that's
     // OK.
     if ((!isInternalOperation())
-        && (!pwPolicyState.getPolicy().isAllowMultiplePasswordValues())
-        && (passwordsToAdd > 1))
+        && (!pwPolicyState.getAuthenticationPolicy()
+            .isAllowMultiplePasswordValues()) && (passwordsToAdd > 1))
     {
       pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
@@ -1260,7 +1234,8 @@ modifyProcessing:
       if (pwPolicyState.passwordIsPreEncoded(v.getValue()))
       {
         if ((!isInternalOperation())
-            && !pwPolicyState.getPolicy().isAllowPreEncodedPasswords())
+            && !pwPolicyState.getAuthenticationPolicy()
+                .isAllowPreEncodedPasswords())
         {
           pwpErrorType = PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY;
           throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
@@ -1382,7 +1357,7 @@ modifyProcessing:
         {
           for (AttributeValue av : attr)
           {
-            if (pwPolicyState.getPolicy().isAuthPasswordSyntax())
+            if (pwPolicyState.getAuthenticationPolicy().isAuthPasswordSyntax())
             {
               if (AuthPasswordSyntax.isEncoded(av.getValue()))
               {
@@ -1867,33 +1842,48 @@ modifyProcessing:
   public void performAdditionalPasswordChangedProcessing()
          throws DirectoryException
   {
+    if (pwPolicyState == null)
+    {
+      // Account not managed locally so nothing to do.
+      return;
+    }
+
+    if (!passwordChanged)
+    {
+      // Nothing to do.
+      return;
+    }
+
     // If it was a self change, then see if the current password was provided
     // and handle accordingly.
-    if (selfChange &&
-        pwPolicyState.getPolicy().isPasswordChangeRequiresCurrentPassword() &&
-        (! currentPasswordProvided))
+    if (selfChange
+        && pwPolicyState.getAuthenticationPolicy()
+            .isPasswordChangeRequiresCurrentPassword()
+        && (!currentPasswordProvided))
     {
       pwpErrorType = PasswordPolicyErrorType.MUST_SUPPLY_OLD_PASSWORD;
 
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                     ERR_MODIFY_PW_CHANGE_REQUIRES_CURRENT_PW.get());
+          ERR_MODIFY_PW_CHANGE_REQUIRES_CURRENT_PW.get());
     }
 
 
     // If this change would result in multiple password values, then see if
     // that's OK.
-    if ((numPasswords > 1) &&
-        (! pwPolicyState.getPolicy().isAllowMultiplePasswordValues()))
+    if ((numPasswords > 1)
+        && (!pwPolicyState.getAuthenticationPolicy()
+            .isAllowMultiplePasswordValues()))
     {
       pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                     ERR_MODIFY_MULTIPLE_PASSWORDS_NOT_ALLOWED.get());
+          ERR_MODIFY_MULTIPLE_PASSWORDS_NOT_ALLOWED.get());
     }
 
 
     // If any of the password values should be validated, then do so now.
-    if (selfChange ||
-        (! pwPolicyState.getPolicy().isSkipValidationForAdministrators()))
+    if (selfChange
+        || (!pwPolicyState.getAuthenticationPolicy()
+            .isSkipValidationForAdministrators()))
     {
       if (newPasswords != null)
       {
@@ -1965,7 +1955,7 @@ modifyProcessing:
         {
           if (pwPolicyState.isPasswordInHistory(v.getValue()))
           {
-            if (selfChange || (! pwPolicyState.getPolicy().
+            if (selfChange || (! pwPolicyState.getAuthenticationPolicy().
                                       isSkipValidationForAdministrators()))
             {
               pwpErrorType = PasswordPolicyErrorType.PASSWORD_IN_HISTORY;
@@ -1992,8 +1982,8 @@ modifyProcessing:
     pwPolicyState.clearGraceLoginTimes();
     pwPolicyState.clearWarnedTime();
 
-    if (pwPolicyState.getPolicy().isForceChangeOnAdd() ||
-        pwPolicyState.getPolicy().isForceChangeOnReset())
+    if (pwPolicyState.getAuthenticationPolicy().isForceChangeOnAdd() ||
+        pwPolicyState.getAuthenticationPolicy().isForceChangeOnReset())
     {
       if (selfChange)
       {
@@ -2002,17 +1992,17 @@ modifyProcessing:
       else
       {
         if ((pwpErrorType == null) &&
-            pwPolicyState.getPolicy().isForceChangeOnReset())
+            pwPolicyState.getAuthenticationPolicy().isForceChangeOnReset())
         {
           pwpErrorType = PasswordPolicyErrorType.CHANGE_AFTER_RESET;
         }
 
         pwPolicyState.setMustChangePassword(
-             pwPolicyState.getPolicy().isForceChangeOnReset());
+             pwPolicyState.getAuthenticationPolicy().isForceChangeOnReset());
       }
     }
 
-    if (pwPolicyState.getPolicy().getRequireChangeByTime() > 0)
+    if (pwPolicyState.getAuthenticationPolicy().getRequireChangeByTime() > 0)
     {
       pwPolicyState.setRequiredChangeTime();
     }
@@ -2079,6 +2069,18 @@ modifyProcessing:
    */
   protected void handleAccountStatusNotifications()
   {
+    if (pwPolicyState == null)
+    {
+      // Account not managed locally, so nothing to do.
+      return;
+    }
+
+    if (!(passwordChanged || enabledStateChanged || wasLocked))
+    {
+      // Account managed locally, but unchanged, so nothing to do.
+      return;
+    }
+
     if (passwordChanged)
     {
       if (selfChange)
