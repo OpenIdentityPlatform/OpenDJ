@@ -256,7 +256,7 @@ public class SearchOperationTestCase extends OperationTestCase
   private SearchResultEntryProtocolOp searchExternalForSingleEntry(
        SearchRequestProtocolOp searchRequest,
        ArrayList<Control> controls)
-       throws IOException, LDAPException, ASN1Exception, InterruptedException
+       throws Exception
   {
     // Establish a connection to the server.
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
@@ -264,7 +264,7 @@ public class SearchOperationTestCase extends OperationTestCase
     {
       org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
       LDAPWriter w = new LDAPWriter(s);
-      s.setSoTimeout(1500000);
+      TestCaseUtils.configureSocket(s);
 
       bindAsManager(w, r);
 

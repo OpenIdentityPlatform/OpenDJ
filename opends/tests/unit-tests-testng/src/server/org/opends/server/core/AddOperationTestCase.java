@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -820,7 +821,7 @@ public class AddOperationTestCase
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     LDAPReader r = new LDAPReader(s);
     LDAPWriter w = new LDAPWriter(s);
-    s.setSoTimeout(3000);
+    TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
@@ -1664,7 +1665,7 @@ public class AddOperationTestCase
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     LDAPReader r = new LDAPReader(s);
     LDAPWriter w = new LDAPWriter(s);
-    s.setSoTimeout(3000);
+    TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
@@ -1815,7 +1816,7 @@ public class AddOperationTestCase
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     LDAPReader r = new LDAPReader(s);
     LDAPWriter w = new LDAPWriter(s);
-    s.setSoTimeout(3000);
+    TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
@@ -2070,7 +2071,7 @@ public class AddOperationTestCase
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     LDAPReader r = new LDAPReader(s);
     LDAPWriter w = new LDAPWriter(s);
-    s.setSoTimeout(5000);
+    TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
@@ -2132,7 +2133,7 @@ public class AddOperationTestCase
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     LDAPReader r = new LDAPReader(s);
     LDAPWriter w = new LDAPWriter(s);
-    s.setSoTimeout(5000);
+    TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
@@ -2195,7 +2196,7 @@ public class AddOperationTestCase
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     LDAPReader r = new LDAPReader(s);
     LDAPWriter w = new LDAPWriter(s);
-    s.setSoTimeout(5000);
+    TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
@@ -2258,7 +2259,7 @@ public class AddOperationTestCase
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     LDAPReader r = new LDAPReader(s);
     LDAPWriter w = new LDAPWriter(s);
-    //s.setSoTimeout(5000);
+    //TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),

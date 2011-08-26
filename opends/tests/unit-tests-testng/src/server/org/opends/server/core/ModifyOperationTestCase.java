@@ -3562,7 +3562,7 @@ public class ModifyOperationTestCase
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
     LDAPWriter w = new LDAPWriter(s);
-    s.setSoTimeout(3000);
+    TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
@@ -3756,7 +3756,7 @@ public class ModifyOperationTestCase
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
     LDAPWriter w = new LDAPWriter(s);
-    s.setSoTimeout(3000);
+    TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
@@ -3955,7 +3955,7 @@ public class ModifyOperationTestCase
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
     LDAPWriter w = new LDAPWriter(s);
-    s.setSoTimeout(3000);
+    TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
@@ -4194,7 +4194,7 @@ public class ModifyOperationTestCase
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
     LDAPWriter w = new LDAPWriter(s);
-    s.setSoTimeout(5000);
+    TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
@@ -4252,7 +4252,7 @@ public class ModifyOperationTestCase
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
     LDAPWriter w = new LDAPWriter(s);
-    s.setSoTimeout(5000);
+    TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
@@ -4311,7 +4311,7 @@ public class ModifyOperationTestCase
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
     LDAPWriter w = new LDAPWriter(s);
-    s.setSoTimeout(5000);
+    TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
@@ -4398,7 +4398,7 @@ responseLoop:
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
     LDAPWriter w = new LDAPWriter(s);
-    s.setSoTimeout(5000);
+    TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),

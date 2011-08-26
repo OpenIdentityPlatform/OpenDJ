@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -885,7 +886,7 @@ public class DeleteOperationTestCase
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
     LDAPWriter w = new LDAPWriter(s);
-    s.setSoTimeout(5000);
+    TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
@@ -936,7 +937,7 @@ public class DeleteOperationTestCase
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
     LDAPWriter w = new LDAPWriter(s);
-    s.setSoTimeout(5000);
+    TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
@@ -988,7 +989,7 @@ public class DeleteOperationTestCase
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
     LDAPWriter w = new LDAPWriter(s);
-    s.setSoTimeout(5000);
+    TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),
@@ -1040,7 +1041,7 @@ public class DeleteOperationTestCase
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
     LDAPWriter w = new LDAPWriter(s);
-    s.setSoTimeout(5000);
+    TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
          new BindRequestProtocolOp(ByteString.valueOf("cn=Directory Manager"),

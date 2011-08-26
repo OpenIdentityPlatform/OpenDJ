@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.api;
 
@@ -82,7 +83,7 @@ public class PasswordValidatorTestCase
 
 
   /**
-   * Drops static references to allow garbage collection. 
+   * Drops static references to allow garbage collection.
    */
   @AfterClass
   public void shutdown()
@@ -508,7 +509,7 @@ public class PasswordValidatorTestCase
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
     LDAPWriter w = new LDAPWriter(s);
-    s.setSoTimeout(3000);
+    TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
       new BindRequestProtocolOp(
@@ -586,7 +587,7 @@ public class PasswordValidatorTestCase
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
     LDAPWriter w = new LDAPWriter(s);
-    s.setSoTimeout(3000);
+    TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
       new BindRequestProtocolOp(
@@ -668,7 +669,7 @@ public class PasswordValidatorTestCase
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
     LDAPWriter w = new LDAPWriter(s);
-    s.setSoTimeout(3000);
+    TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
       new BindRequestProtocolOp(
@@ -757,7 +758,7 @@ public class PasswordValidatorTestCase
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
     LDAPWriter w = new LDAPWriter(s);
-    s.setSoTimeout(3000);
+    TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
       new BindRequestProtocolOp(
@@ -841,7 +842,7 @@ public class PasswordValidatorTestCase
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
     LDAPWriter w = new LDAPWriter(s);
-    s.setSoTimeout(3000);
+    TestCaseUtils.configureSocket(s);
 
     BindRequestProtocolOp bindRequest =
       new BindRequestProtocolOp(
