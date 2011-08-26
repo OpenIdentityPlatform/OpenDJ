@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -1156,7 +1157,7 @@ public class TestModifyDNOperation extends OperationTestCase
 
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
     LDAPWriter w = new LDAPWriter(s);
-    s.setSoTimeout(6000);
+    TestCaseUtils.configureSocket(s);
     BindRequestProtocolOp bindRequest =
               new BindRequestProtocolOp(
                       ByteString.valueOf("cn=Directory Manager"),
@@ -1204,7 +1205,7 @@ public class TestModifyDNOperation extends OperationTestCase
     {
       org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
       LDAPWriter w = new LDAPWriter(s);
-      s.setSoTimeout(15000);
+      TestCaseUtils.configureSocket(s);
 
       BindRequestProtocolOp bindRequest =
            new BindRequestProtocolOp(

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -85,7 +86,7 @@ public class IdleTimeLimitTestCase
       s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
       LDAPWriter w = new LDAPWriter(s);
       org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-      s.setSoTimeout(60000);
+      TestCaseUtils.configureSocket(s);
 
       LDAPMessage m = r.readMessage();
       ExtendedResponseProtocolOp extendedResponse =
@@ -145,7 +146,7 @@ public class IdleTimeLimitTestCase
       s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
       LDAPWriter w = new LDAPWriter(s);
       org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-      s.setSoTimeout(60000);
+      TestCaseUtils.configureSocket(s);
 
 
       BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
@@ -214,7 +215,7 @@ public class IdleTimeLimitTestCase
       s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
       LDAPWriter w = new LDAPWriter(s);
       org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
-      s.setSoTimeout(60000);
+      TestCaseUtils.configureSocket(s);
 
 
       BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
