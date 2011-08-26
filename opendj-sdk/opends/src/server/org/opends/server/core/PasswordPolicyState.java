@@ -166,51 +166,13 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
    * @param currentTime
    *          The time to use as the current time for all time-related
    *          determinations.
-   * @throws DirectoryException
-   *           If a problem occurs while attempting to determine the password
-   *           policy for the user or perform any other state initialization.
    */
   PasswordPolicyState(PasswordPolicy policy, Entry userEntry, long currentTime)
-      throws DirectoryException
   {
     this.userEntry   = userEntry;
     this.currentTime = currentTime;
     this.userDNString     = userEntry.getDN().toString();
     this.passwordPolicy   = policy;
-
-    // Get the password changed time for the user.
-    AttributeType type
-         = DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_CHANGED_TIME_LC);
-    if (type == null)
-    {
-      type = DirectoryServer.getDefaultAttributeType(
-           OP_ATTR_PWPOLICY_CHANGED_TIME);
-    }
-
-    passwordChangedTime = getGeneralizedTime(type);
-    if (passwordChangedTime <= 0)
-    {
-      // Get the time that the user's account was created.
-      AttributeType createTimeType
-           = DirectoryServer.getAttributeType(OP_ATTR_CREATE_TIMESTAMP_LC);
-      if (createTimeType == null)
-      {
-        createTimeType
-            = DirectoryServer.getDefaultAttributeType(OP_ATTR_CREATE_TIMESTAMP);
-      }
-      passwordChangedTime = getGeneralizedTime(createTimeType);
-
-      if (passwordChangedTime <= 0)
-      {
-        passwordChangedTime = 0;
-
-        if (debugEnabled())
-        {
-          TRACER.debugWarning("Could not determine password changed time for " +
-              "user %s.", userDNString);
-        }
-      }
-    }
   }
 
 
@@ -491,6 +453,62 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
    */
   public long getPasswordChangedTime()
   {
+    if (passwordChangedTime < 0)
+    {
+      // Get the password changed time for the user.
+      AttributeType type = DirectoryServer.getAttributeType(
+          OP_ATTR_PWPOLICY_CHANGED_TIME_LC, true);
+
+      try
+      {
+        passwordChangedTime = getGeneralizedTime(type);
+      }
+      catch (DirectoryException e)
+      {
+        /*
+         * The password change time could not be parsed (but has been logged in
+         * the debug log). The best effort we can do from here is to a) use the
+         * current time, b) use the start of the epoch (1/1/1970), or c) use the
+         * create time stamp. Lets treat this problem as if the change time
+         * attribute did not exist and resort to the create time stamp.
+         */
+      }
+
+      if (passwordChangedTime < 0)
+      {
+        // Get the time that the user's account was created.
+        AttributeType createTimeType = DirectoryServer.getAttributeType(
+            OP_ATTR_CREATE_TIMESTAMP_LC, true);
+        try
+        {
+          passwordChangedTime = getGeneralizedTime(createTimeType);
+        }
+        catch (DirectoryException e)
+        {
+          /*
+           * The create time stamp could not be parsed (but has been logged in
+           * the debug log). The best effort we can do from here is to a) use
+           * the current time, or b) use the start of the epoch (1/1/1970). Lets
+           * treat this problem as if the change time attribute did not exist
+           * and use the start of the epoch. Doing so stands a greater chance of
+           * forcing a password change.
+           */
+        }
+
+        if (passwordChangedTime < 0)
+        {
+          passwordChangedTime = 0;
+
+          if (debugEnabled())
+          {
+            TRACER.debugWarning(
+                "Could not determine password changed time for " + "user %s.",
+                userDNString);
+          }
+        }
+      }
+    }
+
     return passwordChangedTime;
   }
 
@@ -568,7 +586,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
     // passwordChangedTime is computed in the constructor from values in the
     // entry.
-    if (this.passwordChangedTime != passwordChangedTime)
+    if (getPasswordChangedTime() != passwordChangedTime)
     {
       this.passwordChangedTime = passwordChangedTime;
 
@@ -609,7 +627,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     try
     {
       passwordChangedTime = getGeneralizedTime(createTimeType);
-      if (passwordChangedTime <= 0)
+      if (passwordChangedTime < 0)
       {
         passwordChangedTime = 0;
       }
@@ -1697,7 +1715,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     if(lockTime < 0) lockTime = 0;
 
     long lastLoginTime = getLastLoginTime();
-    if (lastLoginTime > lockTime || passwordChangedTime > lockTime)
+    if (lastLoginTime > lockTime || getPasswordChangedTime() > lockTime)
     {
       isIdleLocked = ConditionResult.FALSE;
       if (debugEnabled())
@@ -1913,7 +1931,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       return false;
     }
 
-    long maxResetTime = passwordChangedTime +
+    long maxResetTime = getPasswordChangedTime() +
         (1000L * passwordPolicy.getMaxPasswordResetAge());
     boolean locked = (maxResetTime < currentTime);
 
@@ -1951,7 +1969,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       long maxAge = passwordPolicy.getMaxPasswordAge();
       if (maxAge > 0L)
       {
-        long expTime = passwordChangedTime + (1000L*maxAge);
+        long expTime = getPasswordChangedTime() + (1000L*maxAge);
         if (expTime < passwordExpirationTime)
         {
           passwordExpirationTime = expTime;
@@ -1962,7 +1980,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       long maxResetAge = passwordPolicy.getMaxPasswordResetAge();
       if (mustChangePassword() && (maxResetAge > 0L))
       {
-        long expTime = passwordChangedTime + (1000L*maxResetAge);
+        long expTime = getPasswordChangedTime() + (1000L*maxResetAge);
         if (expTime < passwordExpirationTime)
         {
           passwordExpirationTime = expTime;
@@ -2164,7 +2182,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
       return false;
     }
-    else if ((passwordChangedTime + (minAge*1000L)) < currentTime)
+    else if ((getPasswordChangedTime() + (minAge*1000L)) < currentTime)
     {
       // It's been long enough since the user changed their password.
       if (debugEnabled())
