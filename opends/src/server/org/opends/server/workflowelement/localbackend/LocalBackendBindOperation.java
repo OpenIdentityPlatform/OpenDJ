@@ -871,8 +871,12 @@ bindProcessing:
         pwPolicyState.setLastLoginTime();
       }
 
-      // Set appropriate resource limits for the user.
-      setResourceLimits(saslAuthUserEntry);
+      // Set appropriate resource limits for the user (note that SASL ANONYMOUS
+      // does not have a user).
+      if (saslAuthUserEntry != null)
+      {
+        setResourceLimits(saslAuthUserEntry);
+      }
     }
     else if (resultCode == ResultCode.SASL_BIND_IN_PROGRESS)
     {
