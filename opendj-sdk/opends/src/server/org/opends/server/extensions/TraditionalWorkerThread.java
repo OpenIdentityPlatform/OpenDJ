@@ -182,6 +182,8 @@ public class TraditionalWorkerThread
                   stackTraceToSingleLineString(t));
           logError(message);
 
+          // Ensure that the client receives some kind of result so that it does
+          // not hang.
           operation.setResultCode(DirectoryServer.getServerErrorResultCode());
           operation.appendErrorMessage(message);
           operation.getClientConnection().sendResponse(operation);
