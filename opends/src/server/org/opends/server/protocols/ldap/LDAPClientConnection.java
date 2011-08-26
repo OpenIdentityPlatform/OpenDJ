@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010 ForgeRock AS.
+ *      Portions Copyright 2010-2011 ForgeRock AS.
  */
 package org.opends.server.protocols.ldap;
 
@@ -673,12 +673,17 @@ public class LDAPClientConnection extends ClientConnection implements
                 time);
     }
 
-    removeOperationInProgress(operation.getMessageID());
-
-    LDAPMessage message = operationToResponseLDAPMessage(operation);
-    if (message != null)
+    // Avoid sending the response if one has already been sent. This may happen
+    // if operation processing encounters a run-time exception after sending the
+    // response: the worker thread exception handling code will attempt to send
+    // an error result to the client indicating that a problem occurred.
+    if (removeOperationInProgress(operation.getMessageID()))
     {
-      sendLDAPMessage(message);
+      LDAPMessage message = operationToResponseLDAPMessage(operation);
+      if (message != null)
+      {
+        sendLDAPMessage(message);
+      }
     }
   }
 
