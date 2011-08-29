@@ -149,7 +149,8 @@
     <para>Activate StartTLS on the current LDAP port.</para>
     <screen>$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password
  set-connection-handler-prop --handler-name "LDAP Connection Handler"
- --set allow-start-tls:true -n</screen>
+ --set allow-start-tls:true --set key-manager-provider:JKS
+ --set trust-manager-provider:JKS-n</screen>
     <para>The change takes effect. No need to restart the server.</para>
    </step>
   </procedure>
