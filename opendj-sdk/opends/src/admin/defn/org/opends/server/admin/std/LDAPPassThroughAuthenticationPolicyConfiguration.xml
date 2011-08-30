@@ -194,7 +194,13 @@
       </adm:none>
     </adm:requires-admin-action>
     <adm:default-behavior>
-      <adm:undefined />
+      <adm:alias>
+        <adm:synopsis>
+          By default, no trust manager is specified indicating that only
+          certificates signed by the authorities associated with this JVM will
+          be accepted.
+        </adm:synopsis> 
+      </adm:alias>
     </adm:default-behavior>
     <adm:syntax>
       <adm:aggregation relation-name="trust-manager-provider"
