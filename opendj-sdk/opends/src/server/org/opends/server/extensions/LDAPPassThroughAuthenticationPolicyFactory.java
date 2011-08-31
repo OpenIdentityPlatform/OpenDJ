@@ -29,6 +29,7 @@ package org.opends.server.extensions;
 
 
 
+import java.io.Closeable;
 import java.util.List;
 
 import org.opends.messages.Message;
@@ -51,52 +52,100 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 {
 
   /**
-   * LDAP PTA policy state implementation.
+   * An LDAP connection which will be used in order to search for or
+   * authenticate users.
    */
-  private static final class StateImpl extends AuthenticationPolicyState
+  static interface Connection extends Closeable
   {
 
-    private final PolicyImpl policy;
-
-
-
-    private StateImpl(PolicyImpl policy)
-    {
-      this.policy = policy;
-    }
+    /**
+     * Closes this connection.
+     */
+    @Override
+    void close();
 
 
 
     /**
-     * {@inheritDoc}
+     * Returns the name of the user whose entry matches the provided search
+     * criteria.
+     *
+     * @param baseDN
+     *          The search base DN.
+     * @param scope
+     *          The search scope.
+     * @param filter
+     *          The search filter.
+     * @return The name of the user whose entry matches the provided search
+     *         criteria, or {@code null} if no matching user entry was found.
+     * @throws DirectoryException
+     *           If the search returned more than one entry, or if the search
+     *           failed unexpectedly.
      */
-    public boolean passwordMatches(ByteString password)
-        throws DirectoryException
-    {
-      // TODO: perform PTA here.
-      return false;
-    }
+    ByteString search(DN baseDN, SearchScope scope, SearchFilter filter)
+        throws DirectoryException;
 
 
 
     /**
-     * {@inheritDoc}
+     * Performs a simple bind for the user.
+     *
+     * @param username
+     *          The user name (usually a bind DN).
+     * @param password
+     *          The user's password.
+     * @throws DirectoryException
+     *           If the credentials were invalid, or the authentication failed
+     *           unexpectedly.
      */
-    public AuthenticationPolicy getAuthenticationPolicy()
-    {
-      return policy;
-    }
+    void simpleBind(ByteString username, ByteString password)
+        throws DirectoryException;
+  }
 
 
 
+  /**
+   * An interface for obtaining connections: users of this interface will obtain
+   * a connection, perform a single operation (search or bind), and then close
+   * it.
+   */
+  static interface ConnectionFactory
+  {
     /**
-     * {@inheritDoc}
+     * Returns a connection which can be used in order to search for or
+     * authenticate users.
+     *
+     * @return The connection.
+     * @throws DirectoryException
+     *           If an unexpected error occurred while attempting to obtain a
+     *           connection.
      */
-    public void finalizeStateAfterBind() throws DirectoryException
-    {
-      // TODO: cache password if needed.
-    }
+    Connection getConnection() throws DirectoryException;
+  }
 
+
+
+  /**
+   * An interface for obtaining a connection factory for LDAP connections to a
+   * named LDAP server.
+   */
+  static interface LDAPConnectionFactoryProvider
+  {
+    /**
+     * Returns a connection factory which can be used for obtaining connections
+     * to the specified LDAP server.
+     *
+     * @param host
+     *          The LDAP server host name.
+     * @param port
+     *          The LDAP server port.
+     * @param options
+     *          The LDAP connection options.
+     * @return A connection factory which can be used for obtaining connections
+     *         to the specified LDAP server.
+     */
+    ConnectionFactory getLDAPConnectionFactory(String host, int port,
+        LDAPPassThroughAuthenticationPolicyCfg options);
   }
 
 
@@ -108,36 +157,25 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       ConfigurationChangeListener<LDAPPassThroughAuthenticationPolicyCfg>
   {
 
-    private PolicyImpl(LDAPPassThroughAuthenticationPolicyCfg configuration)
+    // Current configuration.
+    private LDAPPassThroughAuthenticationPolicyCfg configuration;
+
+
+
+    private PolicyImpl(
+        final LDAPPassThroughAuthenticationPolicyCfg configuration)
     {
       this.configuration = configuration;
     }
 
 
 
-    // Current configuration.
-    private LDAPPassThroughAuthenticationPolicyCfg configuration;
-
-
-
     /**
      * {@inheritDoc}
      */
-    public boolean isConfigurationChangeAcceptable(
-        LDAPPassThroughAuthenticationPolicyCfg configuration,
-        List<Message> unacceptableReasons)
-    {
-      // The configuration is always valid.
-      return true;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public ConfigChangeResult applyConfigurationChange(
-        LDAPPassThroughAuthenticationPolicyCfg configuration)
+        final LDAPPassThroughAuthenticationPolicyCfg configuration)
     {
       // TODO: close and re-open connections if servers have changed.
       this.configuration = configuration;
@@ -149,6 +187,30 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     /**
      * {@inheritDoc}
      */
+    @Override
+    public AuthenticationPolicyState createAuthenticationPolicyState(
+        final Entry userEntry, final long time) throws DirectoryException
+    {
+      return new StateImpl(this);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void finalizeAuthenticationPolicy()
+    {
+      // TODO: release pooled connections, etc.
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public DN getDN()
     {
       return configuration.dn();
@@ -159,20 +221,13 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     /**
      * {@inheritDoc}
      */
-    public AuthenticationPolicyState createAuthenticationPolicyState(
-        Entry userEntry, long time) throws DirectoryException
+    @Override
+    public boolean isConfigurationChangeAcceptable(
+        final LDAPPassThroughAuthenticationPolicyCfg configuration,
+        final List<Message> unacceptableReasons)
     {
-      return new StateImpl(this);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public void finalizeAuthenticationPolicy()
-    {
-      // TODO: release pooled connections, etc.
+      // The configuration is always valid.
+      return true;
     }
 
   }
@@ -180,13 +235,117 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
   /**
+   * LDAP PTA policy state implementation.
+   */
+  private static final class StateImpl extends AuthenticationPolicyState
+  {
+
+    private final PolicyImpl policy;
+
+
+
+    private StateImpl(final PolicyImpl policy)
+    {
+      this.policy = policy;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void finalizeStateAfterBind() throws DirectoryException
+    {
+      // TODO: cache password if needed.
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public AuthenticationPolicy getAuthenticationPolicy()
+    {
+      return policy;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean passwordMatches(final ByteString password)
+        throws DirectoryException
+    {
+      // TODO: perform PTA here.
+      return false;
+    }
+
+  }
+
+
+
+  // The provider which should be used by policies to create LDAP connections.
+  private final LDAPConnectionFactoryProvider provider;
+
+  /**
+   * The default LDAP connection factory provider.
+   */
+  private static final LDAPConnectionFactoryProvider DEFAULT_PROVIDER =
+    new LDAPConnectionFactoryProvider()
+  {
+
+    @Override
+    public ConnectionFactory getLDAPConnectionFactory(final String host,
+        final int port, final LDAPPassThroughAuthenticationPolicyCfg options)
+    {
+      // TODO: not yet implemented.
+      return null;
+    }
+
+  };
+
+
+
+  /**
+   * Public default constructor used by the admin framework. This will use the
+   * default LDAP connection factory provider.
+   */
+  public LDAPPassThroughAuthenticationPolicyFactory()
+  {
+    this(DEFAULT_PROVIDER);
+  }
+
+
+
+  /**
+   * Package private constructor allowing unit tests to provide mock connection
+   * implementations.
+   *
+   * @param provider
+   *          The LDAP connection factory provider implementation which LDAP PTA
+   *          authentication policies will use.
+   */
+  LDAPPassThroughAuthenticationPolicyFactory(
+      final LDAPConnectionFactoryProvider provider)
+  {
+    this.provider = provider;
+  }
+
+
+
+  /**
    * {@inheritDoc}
    */
+  @Override
   public AuthenticationPolicy createAuthenticationPolicy(
-      LDAPPassThroughAuthenticationPolicyCfg configuration)
+      final LDAPPassThroughAuthenticationPolicyCfg configuration)
       throws ConfigException, InitializationException
   {
-    PolicyImpl policy = new PolicyImpl(configuration);
+    final PolicyImpl policy = new PolicyImpl(configuration);
     configuration.addLDAPPassThroughChangeListener(policy);
     return policy;
   }
@@ -196,9 +355,10 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAcceptable(
-      LDAPPassThroughAuthenticationPolicyCfg configuration,
-      List<Message> unacceptableReasons)
+      final LDAPPassThroughAuthenticationPolicyCfg configuration,
+      final List<Message> unacceptableReasons)
   {
     // The configuration is always valid.
     return true;
