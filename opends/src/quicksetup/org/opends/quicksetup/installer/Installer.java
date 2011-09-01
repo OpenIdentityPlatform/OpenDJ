@@ -2240,13 +2240,16 @@ public abstract class Installer extends GuiApplication {
    * @param hmSummary the Map containing the messages.
    */
   protected void updateSummaryWithServerState(
-      Map<InstallProgressStep, Message> hmSummary)
+      Map<InstallProgressStep, Message> hmSummary, Boolean isCli)
   {
    Installation installation = getInstallation();
    String cmd = getPath(installation.getControlPanelCommandFile());
-   cmd = Utils.addWordBreaks(
+   if (! isCli)
+   {
+     cmd = Utils.addWordBreaks(
        UIFactory.applyFontToHtml(cmd, UIFactory.INSTRUCTIONS_MONOSPACE_FONT),
        60, 5);
+   }
    Message status;
    if (installation.getStatus().isServerRunning())
    {

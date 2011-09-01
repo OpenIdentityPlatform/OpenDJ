@@ -265,7 +265,7 @@ public class WebStartInstaller extends Installer {
       }
 
       checkAbort();
-      updateSummaryWithServerState(hmSummary);
+      updateSummaryWithServerState(hmSummary, false);
       setCurrentProgressStep(InstallProgressStep.FINISHED_SUCCESSFULLY);
       notifyListeners(null);
 
@@ -296,7 +296,7 @@ public class WebStartInstaller extends Installer {
           }
         }
         notifyListeners(getLineBreak());
-        updateSummaryWithServerState(hmSummary);
+        updateSummaryWithServerState(hmSummary, false);
         setCurrentProgressStep(InstallProgressStep.FINISHED_WITH_ERROR);
         Message html = getFormattedError(ex, true);
         notifyListeners(html);
@@ -317,7 +317,7 @@ public class WebStartInstaller extends Installer {
         }
       }
       notifyListeners(getLineBreak());
-      updateSummaryWithServerState(hmSummary);
+      updateSummaryWithServerState(hmSummary, false);
       setCurrentProgressStep(InstallProgressStep.FINISHED_WITH_ERROR);
       ApplicationException ex = new ApplicationException(
           ReturnCode.BUG,
