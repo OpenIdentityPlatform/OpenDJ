@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS
+ !      Portions Copyright 2011 ForgeRock AS.
  ! -->
 <stax>
   <function name="createTopology">
@@ -205,11 +205,15 @@
     <sequence>
       <!-- ON LOCAL HOST: get data ready to copy to remote host -->
       <script>
+        # This is the original source location of the data files
         sourceTestsGroupDir='%s/%s'  % (source.data,groupDataDir)
+        # This is where the data files are staged locally before transit to SUT
         localTestsGroupDir ='%s/%s'  % (local.data, groupDataDir)
+        # This is where the data files are copied to on the remote SUT
         remoteTestsGroupDir='%s/%s'  % (remote.data,groupDataDir)
       </script>
-        
+
+      <!-- Check to see if local tests group directory is already created-->        
       <call function="'GetEntry'">
         { 'location'  : STAXServiceMachine,
           'entry'     : localTestsGroupDir,
@@ -221,94 +225,14 @@
       <if expr="RC == 48">
         <sequence>
 
-          <!-- Locally copy static data files to temporary staging area -->
-          <!-- LDIF (.ldif) test data files -->
-          <message>
-            'Copy ldif data files locally from %s to %s.' % \
-              (sourceTestsGroupDir,localTestsGroupDir)
-          </message>
-          <call function="'CopyFolderByExtension'">
-            { 'location'   : STAXServiceMachine,
-              'srcfolder'  : sourceTestsGroupDir,
-              'destfolder' : localTestsGroupDir,
-              'extension'  : 'ldif'
-            }
-          </call>
-
-          <if expr="len(fileExtensions) > 0">
-            <iterate var="ft" in="fileExtensions">
-              <sequence>
-                <!-- add file extension test data files -->
-                <message>
-                  'Copy %s data files locally from %s to %s.' % \
-                    (ft,sourceTestsGroupDir,localTestsGroupDir)
-                </message>
-                <call function="'CopyFolderByExtension'">
-                  { 'location'   : STAXServiceMachine,
-                    'srcfolder'  : sourceTestsGroupDir,
-                    'destfolder' : localTestsGroupDir,
-                    'extension'  : '%s' % ft
-                  }
-                </call>
-              </sequence>
-            </iterate>
-          </if>
-
-          <!-- LDIF (.ldif) files for quickinstall -->
+          <!-- Stage static data if remote host is not local (loopback) -->
           <script>
-            quickStartGroupDir='%s/quickstart' % (source.data)
-            quickStartLocalTestsGroupDir='%s/quickstart' % local.data
+            from socket import gethostbyname
           </script>
-          <message>
-            'Copy quickstart ldif data files locally from %s to %s.' % \
-              (quickStartGroupDir,quickStartLocalTestsGroupDir)
-          </message>
-          <call function="'CopyFolderByExtension'">
-            { 'location'   : STAXServiceMachine,
-              'srcfolder'  : quickStartGroupDir,
-              'destfolder' : quickStartLocalTestsGroupDir,
-              'extension'  : 'ldif'
-            }
-          </call>
-          
-          <!-- PWD (.pwd) files -->
-          <message>
-            'Copy pwd data files locally from %s to %s.' % \
-              (sourceTestsGroupDir,localTestsGroupDir)
-          </message>         
-          <call function="'CopyFolderByExtension'">
-            { 'location'   : STAXServiceMachine,
-              'srcfolder'  : sourceTestsGroupDir,
-              'destfolder' : localTestsGroupDir,
-              'extension'  : 'pwd' 
-            }
-          </call>
-          
-          <!-- Archive (.gz) files -->
-          <message>
-            'Copy gz data files locally from %s to %s.' % \
-              (sourceTestsGroupDir,localTestsGroupDir)
-          </message>
-          <call function="'CopyFolderByExtension'">
-            { 'location'   : STAXServiceMachine,
-              'srcfolder'  : sourceTestsGroupDir,
-              'destfolder' : localTestsGroupDir,
-              'extension'  : 'gz' 
-            }
-          </call>
 
-          <!-- Archive (.ref) files -->
-          <message>
-            'Copy ref data files locally from %s to %s.' % \
-              (sourceTestsGroupDir,localTestsGroupDir)
-          </message>
-          <call function="'CopyFolderByExtension'">
-            { 'location'   : STAXServiceMachine,
-              'srcfolder'  : sourceTestsGroupDir,
-              'destfolder' : localTestsGroupDir,
-              'extension'  : 'ref' 
-            }
-          </call>          
+          <call function="'stageDataFiles'">
+            { 'customFileExtensions' : fileExtensions }
+          </call>
           
           <!-- Archive (ldapjndi/.java) files -->
           <script>
@@ -412,20 +336,7 @@
                 }
               </call>
             </sequence>
-          </if>
-
-           <!-- Archive (.security) files -->
-          <message>
-            'Copy security data files locally from %s to %s.' % \
-              (sourceTestsGroupDir,localTestsGroupDir)
-          </message>
-          <call function="'CopyFolderByExtension'">
-            { 'location'   : STAXServiceMachine,
-              'srcfolder'  : sourceTestsGroupDir,
-              'destfolder' : localTestsGroupDir,
-              'extension'  : 'security' 
-            }
-          </call>              
+          </if>             
           
           <!-- Archive (snmp/.java) files -->
           <script>
@@ -3035,5 +2946,66 @@
       </return>
     </sequence>
   </function>
+
+  <function name="stageDataFiles">
+    <function-prolog>
+      This function stages locally the static data files 
+    </function-prolog>    
+    <function-map-args>     
+      <function-arg-def name="customFileExtensions" 
+                        type="optional" 
+                        default="''">
+        <function-arg-description>
+          Non default file extensions for specific tests
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>     
+      </function-arg-def>
+
+    </function-map-args>   
+    <sequence>
+      
+      <!-- Locally copy static data files to temporary staging area -->
+      <message>'Staging static data files on local machine.'</message>
+
+      <!-- All LDIF (.ldif) files for quickinstall are needed for each suite -->
+      <script>
+        quickStartGroupDir='%s/quickstart' % (source.data)
+        quickStartLocalTestsGroupDir='%s/quickstart' % local.data
+      </script>
+      <message>
+        'Copy quickstart ldif data files locally from %s to %s.' % \
+          (quickStartGroupDir,quickStartLocalTestsGroupDir)
+      </message>
+      <call function="'CopyFolderByExtension'">
+        { 'location'   : STAXServiceMachine,
+          'srcfolder'  : quickStartGroupDir,
+          'destfolder' : quickStartLocalTestsGroupDir,
+          'extension'  : 'ldif'
+        }
+      </call>
+
+      <!-- Default static data files -->
+      <script>
+        defaultFileExtensions=["ldif","pwd","gz","ref","security"]
+      </script>
+      
+      <iterate var="ft" in="defaultFileExtensions + customFileExtensions">
+        <sequence>
+          <message>
+            'Copy %s data files locally from %s to %s.' % \
+              (ft,sourceTestsGroupDir,localTestsGroupDir)
+          </message>
+          <call function="'CopyFolderByExtension'">
+            { 'location'   : STAXServiceMachine,
+              'srcfolder'  : sourceTestsGroupDir,
+              'destfolder' : localTestsGroupDir,
+              'extension'  : '%s' % ft
+            }
+          </call>
+        </sequence>
+      </iterate>
+
+    </sequence>
+   </function>
 
 </stax>
