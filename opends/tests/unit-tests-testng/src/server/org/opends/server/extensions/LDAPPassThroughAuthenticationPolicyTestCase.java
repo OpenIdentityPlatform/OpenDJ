@@ -643,6 +643,13 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       expectedEvents.add(expectedEvent);
       return this;
     }
+
+
+
+    void assertNoMoreEvents()
+    {
+      assertTrue(expectedEvents.isEmpty());
+    }
   }
 
 
@@ -927,6 +934,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
     state.finalizeStateAfterBind();
     policy.finalizeAuthenticationPolicy();
+    provider.assertNoMoreEvents();
   }
 
 
@@ -976,6 +984,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
     state.finalizeStateAfterBind();
     policy.finalizeAuthenticationPolicy();
+    provider.assertNoMoreEvents();
   }
 
 
@@ -1018,6 +1027,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
     state.finalizeStateAfterBind();
     policy.finalizeAuthenticationPolicy();
+    provider.assertNoMoreEvents();
   }
 
 
@@ -1059,6 +1069,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
     state.finalizeStateAfterBind();
     policy.finalizeAuthenticationPolicy();
+    provider.assertNoMoreEvents();
   }
 
 
