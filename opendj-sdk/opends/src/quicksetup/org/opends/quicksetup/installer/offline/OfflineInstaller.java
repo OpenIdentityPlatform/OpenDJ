@@ -223,7 +223,7 @@ public class OfflineInstaller extends Installer
       }
 
       checkAbort();
-      updateSummaryWithServerState(hmSummary);
+      updateSummaryWithServerState(hmSummary, true);
       setCurrentProgressStep(InstallProgressStep.FINISHED_SUCCESSFULLY);
       notifyListeners(null);
 
@@ -254,7 +254,7 @@ public class OfflineInstaller extends Installer
           }
         }
         notifyListeners(getLineBreak());
-        updateSummaryWithServerState(hmSummary);
+        updateSummaryWithServerState(hmSummary, true);
         setCurrentProgressStep(InstallProgressStep.FINISHED_WITH_ERROR);
         Message html = getFormattedError(ex, true);
         notifyListeners(html);
@@ -285,7 +285,7 @@ public class OfflineInstaller extends Installer
         }
       }
       notifyListeners(getLineBreak());
-      updateSummaryWithServerState(hmSummary);
+      updateSummaryWithServerState(hmSummary, true);
       setCurrentProgressStep(InstallProgressStep.FINISHED_WITH_ERROR);
       ApplicationException ex = new ApplicationException(
           ReturnCode.BUG,
