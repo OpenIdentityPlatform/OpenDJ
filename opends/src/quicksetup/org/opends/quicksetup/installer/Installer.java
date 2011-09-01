@@ -2238,6 +2238,7 @@ public abstract class Installer extends GuiApplication {
   /**
    * Updates the messages in the summary with the state of the server.
    * @param hmSummary the Map containing the messages.
+   * @param isCli a boolean to indicate if the install is using CLI or GUI
    */
   protected void updateSummaryWithServerState(
       Map<InstallProgressStep, Message> hmSummary, Boolean isCli)
