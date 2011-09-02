@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS.
  ! -->
 <stax>
   <!--- Test Case information
@@ -50,7 +51,7 @@
           </message>
 
           <call function="'backup'">
-           { 'backupDir'       : '%s/backends/backup1' % remote.data  }
+           { 'backupDir'       : '%s/backends/backup1' % remote.temp  }
           </call>
                 
         </sequence>
@@ -88,7 +89,7 @@
             'Backend Backup 002 Create an incremental backup of the data in OpenDS'
           </message>
           <call function="'backup'">
-            { 'backupDir'   : '%s/backends/backup1' % remote.data,
+            { 'backupDir'   : '%s/backends/backup1' % remote.temp,
               'extraParams' : '-i'
             }
           </call>
@@ -129,7 +130,7 @@
         </message>
 
         <call function="'backup'">
-          { 'backupDir'   : '%s/backends/backup2' % remote.data,
+          { 'backupDir'   : '%s/backends/backup2' % remote.temp,
             'extraParams' : '-I 20070714142807Z'
           }
         </call>
@@ -170,7 +171,7 @@
             'Backend Backup 004: Create an incremental backup of the data in OpenDS with a backup id'
           </message>
           <call function="'backup'">
-            { 'backupDir'   : '%s/backends/backup2' % remote.data,
+            { 'backupDir'   : '%s/backends/backup2' % remote.temp,
               'extraParams' : '-B 20070714142807Z -i'
             }
           </call>
@@ -212,7 +213,7 @@
             'Backend Backup 005: Create a compressed backup of the data in OpenDS'
           </message>
           <call function="'backup'">
-            { 'backupDir'   : '%s/backends/backup1' % remote.data,
+            { 'backupDir'   : '%s/backends/backup1' % remote.temp,
               'extraParams' : '-c'
             }
           </call>
@@ -254,7 +255,7 @@
           'Backend Backup 006: Create a backup with -n and -a'
           </message>
           <call function="'backup'">
-            { 'backupDir'   : '%s/backends/backup1' % remote.data,
+            { 'backupDir'   : '%s/backends/backup1' % remote.temp,
               'extraParams' : '-n dc=com' ,
               'extraParams' : '-a' ,
               'expectedRC'  : 1
@@ -309,7 +310,7 @@
             'Backend Backup 007: Create a backup with -A '
           </message>
           <call function="'backup'">
-            { 'backupDir'   : '%s/backends/backup1' % remote.data,
+            { 'backupDir'   : '%s/backends/backup1' % remote.temp,
               'extraParams' : '-A'
             }
           </call>
@@ -326,7 +327,7 @@
 
           <!-- restore with -n to validate the archive -->
           <call function="'restore'">
-            { 'backupDir'   : '%s/backends/backup1' % remote.data,
+            { 'backupDir'   : '%s/backends/backup1' % remote.temp,
               'extraParams' : '-n'
             }
           </call>
@@ -366,7 +367,7 @@
             'Backend Backup 008: Create a backup with a backup id'
           </message>
           <call function="'backup'">
-            { 'backupDir'   : '%s/backends/backup2' % remote.data,
+            { 'backupDir'   : '%s/backends/backup2' % remote.temp,
               'extraParams' : '-I unique-backupid'
             }
           </call>
@@ -375,7 +376,7 @@
             'Backend Backup 008: Create a backup with an existing backup id'
           </message>
           <call function="'backup'">
-            { 'backupDir'   : '%s/backends/backup2' % remote.data,
+            { 'backupDir'   : '%s/backends/backup2' % remote.temp,
               'extraParams' : '-I unique-backupid' ,
               'expectedRC'  : 1
             }
@@ -430,7 +431,7 @@
             'Backend Backup 009: Create a backup with -B but without -i '
           </message>
           <call function="'backup'">
-            { 'backupDir'   : '%s/backends/backup2' % remote.data,
+            { 'backupDir'   : '%s/backends/backup2' % remote.temp,
               'extraParams' : '-B 20070714142807Z' ,
               'expectedRC'  : 1
             }
@@ -486,7 +487,7 @@
             'Backend Backup 010: Create an incremental backup with a non existing backup dir'
           </message>
           <call function="'backup'">
-            { 'backupDir'   : '%s/backends/backup3' % remote.data,
+            { 'backupDir'   : '%s/backends/backup3' % remote.temp,
               'extraParams' : '-i'
             }
           </call>

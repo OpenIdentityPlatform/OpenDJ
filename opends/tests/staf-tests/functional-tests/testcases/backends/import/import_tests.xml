@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2009-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS.
  ! -->
 
 <stax>
@@ -1438,7 +1439,7 @@
           <call function="'ImportLdifWithScript'">
               { 'location'         : STAF_REMOTE_HOSTNAME,
               'ldifFile'           : '%s/backends/Example.ldif' % remote.data,
-              'rejectFile'         : '%s/rejects.txt' % remote.temp,
+              'rejectFile'         : '%s/backends/import_026-rejects.txt' % remote.temp,
               'backEnd'            : DIRECTORY_INSTANCE_BE
               }
           </call>
@@ -1491,7 +1492,7 @@
           <call function="'ImportLdifWithScript'">
               { 'location'         : STAF_REMOTE_HOSTNAME,
               'ldifFile'           : '%s/backends/Example.ldif' % remote.data,
-              'rejectFile'         : '%s/rejects.txt' % remote.temp,
+              'rejectFile'         : '%s/backends/import_027-rejects.txt' % remote.temp,
               'backEnd'            : DIRECTORY_INSTANCE_BE
               }
           </call>

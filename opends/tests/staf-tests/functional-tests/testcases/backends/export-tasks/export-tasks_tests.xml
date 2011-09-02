@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2009-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS.
  ! -->
 <stax>
 
@@ -200,7 +201,7 @@
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-              'ldifFile'       : '%s/backends/ExportTasks1.ldif' % remote.data
+              'ldifFile'       : '%s/backends/ExportTasks1.ldif' % remote.temp
             }
           </call>
 
@@ -210,8 +211,8 @@
           <call function="'LdifDiffWithScript'">
             {
               'sourceLdif' : '%s/backends/export_tasks_ldif/defaultBackEnd.ref' % remote.data,
-              'targetLdif' : '%s/backends/ExportTasks1.ldif' % remote.data,
-              'outputLdif' : '%s/ExportTasks1.out' % remote.temp
+              'targetLdif' : '%s/backends/ExportTasks1.ldif' % remote.temp,
+              'outputLdif' : '%s/backends/ExportTasks1.out' % remote.temp
             }
           </call>
           
@@ -264,7 +265,7 @@
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'backEnd' :  'nonDefault',
               'excludeAttributes' :  ["userPassword"],
-              'ldifFile'       : '%s/backends/ExportTasks2.ldif' % remote.data
+              'ldifFile'       : '%s/backends/ExportTasks2.ldif' % remote.temp
             }
           </call>
 
@@ -274,8 +275,8 @@
           <call function="'LdifDiffWithScript'">
             {
               'sourceLdif' : '%s/backends/export_tasks_ldif/nonDefaultBackEnd.ref' % remote.data,
-              'targetLdif' : '%s/backends/ExportTasks2.ldif' % remote.data,
-              'outputLdif' : '%s/ExportTasks2.out' % remote.temp
+              'targetLdif' : '%s/backends/ExportTasks2.ldif' % remote.temp,
+              'outputLdif' : '%s/backends/ExportTasks2.out' % remote.temp
             }
           </call>
 
@@ -327,7 +328,7 @@
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'includeBranches' :  ["ou=people,dc=example,dc=com"],
-              'ldifFile'       : '%s/backends/ExportTasks3.ldif' % remote.data
+              'ldifFile'       : '%s/backends/ExportTasks3.ldif' % remote.temp
             }
           </call>
           <message>
@@ -335,9 +336,9 @@
           </message>
           <call function="'LdifDiffWithScript'">
                   {
-                  'sourceLdif' : '%s/backends/ExportTasks3.ldif' % remote.data,
-                  'targetLdif' : '%s/backends/export_tasks_ldif/Include_Branch.ref' % remote.data,
-                  'outputLdif' : '%s/ExportTasks3.out' % remote.temp
+                  'sourceLdif' : '%s/backends/export_tasks_ldif/Include_Branch.ref' % remote.data,
+                  'targetLdif' : '%s/backends/ExportTasks3.ldif' % remote.temp,                  
+                  'outputLdif' : '%s/backends/ExportTasks3.out' % remote.temp
                   }
           </call>
 
@@ -392,7 +393,7 @@
               'includeBranches' :  ["cn=Directory Administrators,ou=Groups,dc=example,dc=com",
                                     "cn=HR Managers,ou=Groups,dc=example,dc=com",
                                     "cn=Accounting Managers,ou=Groups,dc=example,dc=com"],
-              'ldifFile'       : '%s/backends/ExportTasks4.ldif' % remote.data
+              'ldifFile'       : '%s/backends/ExportTasks4.ldif' % remote.temp
             }
           </call>
           <message>
@@ -400,9 +401,9 @@
           </message>
           <call function="'LdifDiffWithScript'">
                   {
-                  'sourceLdif' : '%s/backends/ExportTasks4.ldif' % remote.data,
-                  'targetLdif' : '%s/backends/export_tasks_ldif/Multiple_Include_Branch.ref' % remote.data,
-                  'outputLdif' : '%s/ExportTasks4.out' % remote.temp
+                  'sourceLdif' : '%s/backends/export_tasks_ldif/Multiple_Include_Branch.ref' % remote.data,
+                  'targetLdif' : '%s/backends/ExportTasks4.ldif' % remote.temp,                  
+                  'outputLdif' : '%s/backends/ExportTasks4.out' % remote.temp
                   }
           </call>
 
@@ -453,7 +454,7 @@
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'excludeBranches' :  ["ou=Groups,dc=example,dc=com"],
-              'ldifFile'       : '%s/backends/ExportTasks5.ldif' % remote.data
+              'ldifFile'       : '%s/backends/ExportTasks5.ldif' % remote.temp
             }
           </call>
           <message>
@@ -461,9 +462,9 @@
           </message>
           <call function="'LdifDiffWithScript'">
                   {
-                  'sourceLdif' : '%s/backends/ExportTasks5.ldif' % remote.data,
-                  'targetLdif' : '%s/backends/export_tasks_ldif/Exclude_Branch.ref' % remote.data,
-                  'outputLdif' : '%s/ExportTasks5.out' % remote.temp
+                  'sourceLdif' : '%s/backends/export_tasks_ldif/Exclude_Branch.ref' % remote.data,
+                  'targetLdif' : '%s/backends/ExportTasks5.ldif' % remote.temp,                  
+                  'outputLdif' : '%s/backends/ExportTasks5.out' % remote.temp
                   }
           </call>
 
@@ -518,7 +519,7 @@
               'excludeBranches' :  ["cn=Directory Administrators,ou=Groups,dc=example,dc=com",
                                     "cn=HR Managers,ou=Groups,dc=example,dc=com",
                                     "cn=Accounting Managers,ou=Groups,dc=example,dc=com"],
-              'ldifFile'       : '%s/backends/ExportTasks6.ldif' % remote.data
+              'ldifFile'       : '%s/backends/ExportTasks6.ldif' % remote.temp
             }
           </call>
           <message>
@@ -526,9 +527,9 @@
           </message>
           <call function="'LdifDiffWithScript'">
                   {
-                  'sourceLdif' : '%s/backends/ExportTasks6.ldif' % remote.data,
-                  'targetLdif' : '%s/backends/export_tasks_ldif/Multiple_Exclude_Branch.ref' % remote.data,
-                  'outputLdif' : '%s/ExportTasks6.out' % remote.temp
+                  'sourceLdif' : '%s/backends/export_tasks_ldif/Multiple_Exclude_Branch.ref' % remote.data,
+                  'targetLdif' : '%s/backends/ExportTasks6.ldif' % remote.temp,
+                  'outputLdif' : '%s/backends/ExportTasks6.out' % remote.temp
                   }
           </call>
 
@@ -582,17 +583,17 @@
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'includeBranches' :  ["ou=Groups,dc=example,dc=com"],
               'excludeBranches' :  ["cn=Accounting Managers,ou=Groups,dc=example,dc=com"],
-              'ldifFile'       : '%s/backends/ExportTasks7.ldif' % remote.data
+              'ldifFile'       : '%s/backends/ExportTasks7.ldif' % remote.temp
             }
           </call>
           <message>
-            'Backend ExportTasks6: Check no diff'
+            'Backend ExportTasks7: Check no diff'
           </message>
           <call function="'LdifDiffWithScript'">
                   {
-                  'sourceLdif' : '%s/backends/ExportTasks7.ldif' % remote.data,
-                  'targetLdif' : '%s/backends/export_tasks_ldif/Mix_Include_Exclude_Branch.ref' % remote.data,
-                  'outputLdif' : '%s/ExportTasks7.out' % remote.temp
+                  'sourceLdif' : '%s/backends/export_tasks_ldif/Mix_Include_Exclude_Branch.ref' % remote.data,
+                  'targetLdif' : '%s/backends/ExportTasks7.ldif' % remote.temp,
+                  'outputLdif' : '%s/backends/ExportTasks7.out' % remote.temp
                   }
           </call>
 
@@ -643,7 +644,7 @@
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'includeAttributes' :  ["dn"],
-              'ldifFile'       : '%s/backends/ExportTasks8.ldif' % remote.data
+              'ldifFile'       : '%s/backends/ExportTasks8.ldif' % remote.temp
             }
           </call>
           <message>
@@ -651,9 +652,9 @@
           </message>
           <call function="'LdifDiffWithScript'">
                   {
-                  'sourceLdif' : '%s/backends/ExportTasks8.ldif' % remote.data,
-                  'targetLdif' : '%s/backends/export_tasks_ldif/Include_Attribute.ref' % remote.data,
-                  'outputLdif' : '%s/ExportTasks8.out' % remote.temp
+                  'sourceLdif' : '%s/backends/export_tasks_ldif/Include_Attribute.ref' % remote.data,
+                  'targetLdif' : '%s/backends/ExportTasks8.ldif' % remote.temp,
+                  'outputLdif' : '%s/backends/ExportTasks8.out' % remote.temp
                   }
           </call>
 
@@ -705,7 +706,7 @@
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'includeAttributes' :  ["mail","givenName"],
-              'ldifFile'       : '%s/backends/ExportTasks9.ldif' % remote.data
+              'ldifFile'       : '%s/backends/ExportTasks9.ldif' % remote.temp
             }
           </call>
           <message>
@@ -713,9 +714,9 @@
           </message>
           <call function="'LdifDiffWithScript'">
             {
-            'sourceLdif' : '%s/backends/ExportTasks9.ldif' % remote.data,
-            'targetLdif' : '%s/backends/export_tasks_ldif/Multiple_Include_Attribute.ref' % remote.data,
-            'outputLdif' : '%s/ExportTasks9.out' % remote.temp
+            'sourceLdif' : '%s/backends/export_tasks_ldif/Multiple_Include_Attribute.ref' % remote.data,
+            'targetLdif' : '%s/backends/ExportTasks9.ldif' % remote.temp,
+            'outputLdif' : '%s/backends/ExportTasks9.out' % remote.temp
             }
           </call>
 
@@ -766,7 +767,7 @@
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'excludeAttributes' :  ["givenName"],
-              'ldifFile'       : '%s/backends/ExportTasks10.ldif' % remote.data
+              'ldifFile'       : '%s/backends/ExportTasks10.ldif' % remote.temp
             }
           </call>
           <message>
@@ -774,9 +775,9 @@
           </message>
           <call function="'LdifDiffWithScript'">
                   {
-                  'sourceLdif' : '%s/backends/ExportTasks10.ldif' % remote.data,
-                  'targetLdif' : '%s/backends/export_tasks_ldif/Exclude_Attribute.ref' % remote.data,
-                  'outputLdif' : '%s/ExportTasks10.out' % remote.temp
+                  'sourceLdif' : '%s/backends/export_tasks_ldif/Exclude_Attribute.ref' % remote.data,
+                  'targetLdif' : '%s/backends/ExportTasks10.ldif' % remote.temp,
+                  'outputLdif' : '%s/backends/ExportTasks10.out' % remote.temp
                   }
           </call>
 
@@ -828,7 +829,7 @@
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'excludeAttributes' :  ["cn","telephoneNumber"],
-              'ldifFile'       : '%s/backends/ExportTasks11.ldif' % remote.data
+              'ldifFile'       : '%s/backends/ExportTasks11.ldif' % remote.temp
             }
           </call>
           <message>
@@ -836,9 +837,9 @@
           </message>
           <call function="'LdifDiffWithScript'">
                   {
-                  'sourceLdif' : '%s/backends/ExportTasks11.ldif' % remote.data,
-                  'targetLdif' : '%s/backends/export_tasks_ldif/Multiple_Exclude_Attribute.ref' % remote.data,
-                  'outputLdif' : '%s/ExportTasks11.out' % remote.temp
+                  'sourceLdif' : '%s/backends/export_tasks_ldif/Multiple_Exclude_Attribute.ref' % remote.data,
+                  'targetLdif' : '%s/backends/ExportTasks11.ldif' % remote.temp,                  
+                  'outputLdif' : '%s/backends/ExportTasks11.out' % remote.temp
                   }
           </call>
 
@@ -891,7 +892,7 @@
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'includeBranches' :  ["ou=People,dc=example,dc=com"],
               'includeAttributes' :  ["givenName"],
-              'ldifFile'       : '%s/backends/ExportTasks12.ldif' % remote.data
+              'ldifFile'       : '%s/backends/ExportTasks12.ldif' % remote.temp
             }
           </call>
           <message>
@@ -899,9 +900,9 @@
           </message>
           <call function="'LdifDiffWithScript'">
                   {
-                  'sourceLdif' : '%s/backends/ExportTasks12.ldif' % remote.data,
-                  'targetLdif' : '%s/backends/export_tasks_ldif/Mix_IncludeBranch_IncludeAttribute.ref' % remote.data,
-                  'outputLdif' : '%s/ExportTasks7.out' % remote.temp
+                  'sourceLdif' : '%s/backends/export_tasks_ldif/Mix_IncludeBranch_IncludeAttribute.ref' % remote.data,
+                  'targetLdif' : '%s/backends/ExportTasks12.ldif' % remote.temp,
+                  'outputLdif' : '%s/backends/ExportTasks12.out' % remote.temp
                   }
           </call>
 
@@ -954,7 +955,7 @@
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'includeFilters' :  ["l=Santa Clara"],
-              'ldifFile'       : '%s/backends/ExportTasks13.ldif' % remote.data
+              'ldifFile'       : '%s/backends/ExportTasks13.ldif' % remote.temp
             }
           </call>
           <message>
@@ -962,9 +963,9 @@
           </message>
           <call function="'LdifDiffWithScript'">
             {
-            'sourceLdif' : '%s/backends/ExportTasks13.ldif' % remote.data,
-            'targetLdif' : '%s/backends/export_tasks_ldif/Filtered_Include.ref' % remote.data,
-            'outputLdif' : '%s/ExportTasks13.out' % remote.temp
+            'sourceLdif' : '%s/backends/export_tasks_ldif/Filtered_Include.ref' % remote.data,
+            'targetLdif' : '%s/backends/ExportTasks13.ldif' % remote.temp,
+            'outputLdif' : '%s/backends/ExportTasks13.out' % remote.temp
             }
           </call>
 
@@ -1016,7 +1017,7 @@
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'includeFilters' :  ["l=Santa Clara","ou=Accounting"],
-              'ldifFile'       : '%s/backends/ExportTasks14.ldif' % remote.data
+              'ldifFile'       : '%s/backends/ExportTasks14.ldif' % remote.temp
             }
           </call>
           <message>
@@ -1024,9 +1025,9 @@
           </message>
           <call function="'LdifDiffWithScript'">
                   {
-                  'sourceLdif' : '%s/backends/ExportTasks14.ldif' % remote.data,
-                  'targetLdif' : '%s/backends/export_tasks_ldif/Filtered_Includes.ref' % remote.data,
-                  'outputLdif' : '%s/ExportTasks14.out' % remote.temp
+                  'sourceLdif' : '%s/backends/export_tasks_ldif/Filtered_Includes.ref' % remote.data,
+                  'targetLdif' : '%s/backends/ExportTasks14.ldif' % remote.temp,
+                  'outputLdif' : '%s/backends/ExportTasks14.out' % remote.temp
                   }
           </call>
 
@@ -1078,7 +1079,7 @@
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'excludeFilters' :  ["uid=a*","l=Sunnyvale"],
-              'ldifFile'       : '%s/backends/ExportTasks15.ldif' % remote.data
+              'ldifFile'       : '%s/backends/ExportTasks15.ldif' % remote.temp
             }
           </call>
           <message>
@@ -1086,9 +1087,9 @@
           </message>
           <call function="'LdifDiffWithScript'">
           {
-            'sourceLdif' : '%s/backends/ExportTasks15.ldif' % remote.data,
-            'targetLdif' : '%s/backends/export_tasks_ldif/Filtered_Excludes.ref' % remote.data,
-            'outputLdif' : '%s/ExportTasks15.out' % remote.temp
+            'sourceLdif' : '%s/backends/export_tasks_ldif/Filtered_Excludes.ref' % remote.data,
+            'targetLdif' : '%s/backends/ExportTasks15.ldif' % remote.temp,
+            'outputLdif' : '%s/backends/ExportTasks15.out' % remote.temp
           }
           </call>
 
@@ -1142,7 +1143,7 @@
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'excludeFilters' :  ["&amp;(ou=Human Resources)(l=SunnyVale)"],
-              'ldifFile'       : '%s/backends/ExportTasks16.ldif' % remote.data
+              'ldifFile'       : '%s/backends/ExportTasks16.ldif' % remote.temp
             }
           </call>
           <message>
@@ -1150,9 +1151,9 @@
           </message>
           <call function="'LdifDiffWithScript'">
           {
-            'sourceLdif' : '%s/backends/ExportTasks16.ldif' % remote.data,
-            'targetLdif' : '%s/backends/export_tasks_ldif/Complex_Filter_Exclude.ref' % remote.data,
-            'outputLdif' : '%s/ExportTasks16.out' % remote.temp
+            'sourceLdif' : '%s/backends/export_tasks_ldif/Complex_Filter_Exclude.ref' % remote.data,
+            'targetLdif' : '%s/backends/ExportTasks16.ldif' % remote.temp,
+            'outputLdif' : '%s/backends/ExportTasks16.out' % remote.temp
           }
           </call>
 
@@ -1196,7 +1197,7 @@
           <call function="'testCase_Preamble'"/>
 
           <message>
-            'Backend ExportTasks15: Export the data  by scheduling a task and include branch ou=People,dc=example,dc=com \
+            'Backend ExportTasks17: Export the data  by scheduling a task and include branch ou=People,dc=example,dc=com \
             and exclude filter  l=Stanta Clara'
           </message>
 
@@ -1208,17 +1209,17 @@
             'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
             'includeBranches' :  ["ou=people,dc=example,dc=com"],
             'excludeFilters' :  ["l=Santa Clara"],
-            'ldifFile'       : '%s/backends/ExportTasks17.ldif' % remote.data
+            'ldifFile'       : '%s/backends/ExportTasks17.ldif' % remote.temp
           }
           </call>
           <message>
-            'Backend ExportTasks15: Check no diff'
+            'Backend ExportTasks17: Check no diff'
           </message>
           <call function="'LdifDiffWithScript'">
             {
-              'sourceLdif' : '%s/backends/ExportTasks17.ldif' % remote.data,
-              'targetLdif' : '%s/backends/export_tasks_ldif/Mix_Fractional_Filtered.ref' % remote.data,
-              'outputLdif' : '%s/ExportTasks17.out' % remote.temp
+              'sourceLdif' : '%s/backends/export_tasks_ldif/Mix_Fractional_Filtered.ref' % remote.data,
+              'targetLdif' : '%s/backends/ExportTasks17.ldif' % remote.temp,
+              'outputLdif' : '%s/backends/ExportTasks17.out' % remote.temp
             }
           </call>
 
@@ -1272,7 +1273,7 @@
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'includeBranches' :  ["ou=people,dc=example,dc=com"],
-              'ldifFile'       : '%s/backends/ExportTasks18.ldif' % remote.data
+              'ldifFile'       : '%s/backends/ExportTasks18.ldif' % remote.temp
             }
           </call>
 
@@ -1287,7 +1288,7 @@
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'includeBranches' :  ["cn=QA Managers,ou=Groups,dc=example,dc=com"],
-              'ldifFile'       : '%s/backends/ExportTasks18.ldif' % remote.data,
+              'ldifFile'       : '%s/backends/ExportTasks18.ldif' % remote.temp,
               'append'      : 'True'
             }
           </call>
@@ -1297,9 +1298,9 @@
           </message>
           <call function="'LdifDiffWithScript'">
            {
-            'sourceLdif' : '%s/backends/ExportTasks18.ldif' % remote.data,
-            'targetLdif' : '%s/backends/export_tasks_ldif/Append.ref' % remote.data,
-            'outputLdif' : '%s/ExportTasks18.out' % remote.temp
+            'sourceLdif' : '%s/backends/export_tasks_ldif/Append.ref' % remote.data,
+            'targetLdif' : '%s/backends/ExportTasks18.ldif' % remote.temp,
+            'outputLdif' : '%s/backends/ExportTasks18.out' % remote.temp
             }
           </call>
 
@@ -1356,7 +1357,7 @@
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'includeBranches' :  ["ou=people,dc=example,dc=com"],
               'isCompressed' : 'True',
-              'ldifFile'       : '%s/backends/ExportTasks19.ldif.gz' % remote.data
+              'ldifFile'       : '%s/backends/ExportTasks19.ldif.gz' % remote.temp
             }
           </call>
 
@@ -1400,7 +1401,7 @@
 
           <call function="'ImportLdifWithScript'">
             {
-              'ldifFile'      : '%s/backends/ExportTasks19.ldif.gz' % remote.data,
+              'ldifFile'      : '%s/backends/ExportTasks19.ldif.gz' % remote.temp,
               'backEnd'       : DIRECTORY_INSTANCE_BE,
               'append'        : ' ',
               'isCompressed'  : 'True'
@@ -1498,7 +1499,7 @@
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'includeBranches' :  ["ou=Groups,dc=example,dc=com"],
               'wrapColumn'  : 30,
-              'ldifFile'       : '%s/backends/ExportTasks20.ldif' % remote.data
+              'ldifFile'       : '%s/backends/ExportTasks20.ldif' % remote.temp
             }
           </call>
 
@@ -1508,9 +1509,9 @@
 
           <call function="'LdifDiffWithScript'">
             {
-            'sourceLdif' : '%s/backends/ExportTasks20.ldif' % remote.data,
-            'targetLdif' : '%s/backends/export_tasks_ldif/Include_Branch_Wrap.ref' % remote.data,
-            'outputLdif' : '%s/ExportTasks20.out' % remote.temp
+            'sourceLdif' : '%s/backends/export_tasks_ldif/Include_Branch_Wrap.ref' % remote.data,
+            'targetLdif' : '%s/backends/ExportTasks20.ldif' % remote.temp,
+            'outputLdif' : '%s/backends/ExportTasks20.out' % remote.temp
             }
           </call>
 

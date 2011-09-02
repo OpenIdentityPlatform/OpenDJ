@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS.
  ! -->
 <stax>
   
@@ -937,9 +938,15 @@
           STAFCmdParamsList.append('-S')
 
         if  skipFile:
+          if not os.path.exists(os.path.dirname(skipFile)):
+            os.makedirs(os.path.dirname(skipFile))
+
           STAFCmdParamsList.append('--skipFile %s' % skipFile)
 
         if  rejectFile:
+          if not os.path.exists(os.path.dirname(skipFile)):
+            os.makedirs(os.path.dirname(skipFile))
+
           STAFCmdParamsList.append('-R %s' % rejectFile)
 
         if  overwriteFile:
@@ -1479,6 +1486,9 @@
           STAFCmdParamsList.append('-p %s' % dsInstancePort)
 
         if ldifFile:
+          if not os.path.exists(os.path.dirname(ldifFile)):
+            os.makedirs(os.path.dirname(ldifFile))
+            
           STAFCmdParamsList.append('-l %s' % ldifFile)
 
         if startTask:

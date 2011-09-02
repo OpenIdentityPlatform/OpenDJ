@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS.
  ! -->
 <stax>
   <!--- Test Case information
@@ -56,7 +57,7 @@
               'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
               'backupID'            : 'scheduled-backup',
               'schedulePattern'     : '"0 15 * * 1-5"' ,
-              'backupDir'           : '%s/backends/' % remote.data ,
+              'backupDir'           : '%s/backends/' % remote.temp ,
               'extraParams'         : '--completionNotify foo' ,
               'expectedRC'          : 1
             }
@@ -74,7 +75,7 @@
               'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
               'backupID'            : 'scheduled-backup',
               'schedulePattern'     : '"0 15 * * 1-5"' ,
-              'backupDir'           : '%s/backends/' % remote.data ,
+              'backupDir'           : '%s/backends/' % remote.temp ,
               'extraParams'         : '--completionNotify foo@example.com'
             }
           </call>
@@ -125,7 +126,7 @@
               'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
               'backupID'            : 'scheduled-backup-2',
               'schedulePattern'     : '"0 15 * * 1-5"' ,
-              'backupDir'           : '%s/backends/' % remote.data ,
+              'backupDir'           : '%s/backends/' % remote.temp ,
               'extraParams'         : '--errorNotify foo' ,
               'expectedRC'          : 1
             }
@@ -143,7 +144,7 @@
               'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
               'backupID'            : 'scheduled-backup-2',
               'schedulePattern'     : '"0 15 * * 1-5"' ,
-              'backupDir'           : '%s/backends/' % remote.data ,
+              'backupDir'           : '%s/backends/' % remote.temp ,
               'extraParams'         : '--errorNotify foo@example.com'
             }
           </call>
@@ -192,7 +193,7 @@
               'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
               'backupID'            : 'scheduled-backup-3',
-              'backupDir'           : '%s/backends/' % remote.data ,
+              'backupDir'           : '%s/backends/' % remote.temp ,
               'extraParams'         : '--dependency foo' ,
               'expectedRC'          : 1
             }
