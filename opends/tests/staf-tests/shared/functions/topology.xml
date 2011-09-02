@@ -201,332 +201,63 @@
         </function-arg-description>
         <function-arg-property name="type" value="list"/>     
       </function-arg-def>
+      <function-arg-def name="javaProjects" 
+                        type="optional" 
+                        default="[]">
+        <function-arg-description>
+          Specifies a list of java projects to add to testdata.zip
+        </function-arg-description>
+        <function-arg-property name="type" value="list"/>     
+      </function-arg-def>
     </function-map-args>   
     <sequence>
       <!-- ON LOCAL HOST: get data ready to copy to remote host -->
       <script>
-        # This is the original source location of the data files
+        # Original source location of the data files
         sourceTestsGroupDir='%s/%s'  % (source.data,groupDataDir)
-        # This is where the data files are staged locally before transit to SUT
+
+        # Location of data files are staged locally before transit to SUT
         localTestsGroupDir ='%s/%s'  % (local.data, groupDataDir)
-        # This is where the data files are copied to on the remote SUT
+
+        # Location of data files are copied to on the remote SUT
         remoteTestsGroupDir='%s/%s'  % (remote.data,groupDataDir)
       </script>
+        
+      <!-- Stage static data-->
+      <call function="'stageStaticDataFiles'">
+        { 'customFileExtensions' : fileExtensions }
+      </call>
 
-      <!-- Check to see if local tests group directory is already created-->        
-      <call function="'GetEntry'">
-        { 'location'  : STAXServiceMachine,
-          'entry'     : localTestsGroupDir,
-          'attribute' : 'TYPE'
+      <!-- Stage (*/.java) files -->
+      <call function="'stageJavaFiles'">
+        { 'customJavaProjects' : javaProjects }
+      </call>
+
+      <!-- Stage (SNMP/.java) files -->
+      <call function="'stageSNMPFiles'"/>       
+          
+      <!-- Delete the any existing testdata archive -->
+      <message>
+        'Delete %s/testdata.zip' % local.temp
+      </message>
+      <call function="'deleteFile'">
+        { 'location' : STAXServiceMachine,
+          'filename' : '%s/testdata.zip' % local.temp 
         }
       </call>
-        
-      <!-- If the test data is already created then don't redo it -->
-      <if expr="RC == 48">
-        <sequence>
 
-          <!-- Stage static data if remote host is not local (loopback) -->
-          <script>
-            from socket import gethostbyname
-          </script>
-
-          <call function="'stageDataFiles'">
-            { 'customFileExtensions' : fileExtensions }
-          </call>
-          
-          <!-- Archive (ldapjndi/.java) files -->
-          <script>
-            javaSharedDir='%s/ldapjndi' % source.java
-            javaLocalDir ='%s/ldapjndi' % local.java
-          </script>
-          <message>
-            'Copy java files locally from %s to %s.' % \
-              (javaSharedDir,javaLocalDir)
-          </message>
-          <call function="'CopyFolderByExtension'">
-            { 
-            'location'   : STAXServiceMachine,
-            'srcfolder'  : javaSharedDir,
-            'destfolder' : javaLocalDir,
-            'extension'  : 'java' 
-            }
-          </call>
-          
-          <!---   Check if ldapjndi java files are already compiled -->
-          <call function="'listFolderByExtension'" >
-            { 
-            'location'   : STAXServiceMachine,
-            'foldername' : javaLocalDir,
-            'extension'  : 'class'
-            }
-          </call>
-          <if expr="len(STAXResult) == 0">
-            <sequence>
-              <!---   Compile ldapjndi java files on controler host -->
-              <message>
-                'Compile Java files under %s on %s' \
-                % (javaLocalDir, STAXServiceMachine)
-              </message>
-              <call function="'compileJava'" >
-                {
-                'location'   : STAXServiceMachine,
-                'foldername' : '%s' % javaLocalDir
-                }
-              </call>
-            </sequence>
-          </if>
-
-          <!-- Archive (ldapjdk/.java) files -->
-          <script>
-            javaSharedDir='%s/ldapjdk' % source.java
-            javaLocalDir ='%s/ldapjdk' % local.java
-          </script>
-          <message>
-            'Copy java files locally from %s to %s.' % \
-              (javaSharedDir,javaLocalDir)
-          </message>
-          <call function="'CopyFolderByExtension'">
-            {
-            'location'   : STAXServiceMachine,
-            'srcfolder'  : javaSharedDir,
-            'destfolder' : javaLocalDir,
-            'extension'  : 'java'
-            }
-          </call>
-          <call function="'CopyFolderByExtension'">
-            {
-            'location'   : STAXServiceMachine,
-            'srcfolder'  : javaSharedDir,
-            'destfolder' : javaLocalDir,
-            'extension'  : 'jar'
-            }
-          </call>
-
-          <!---   Check if ldapjdk java files are already compiled -->
-          <call function="'listFolderByExtension'" >
-            {
-            'location'   : STAXServiceMachine,
-            'foldername' : javaLocalDir,
-            'extension'  : 'class'
-            }
-          </call>
-          <if expr="len(STAXResult) == 0">
-            <sequence>
-              <!---   Compile ldapjdk java files on controller host -->
-              <message>
-                'Compile Java files under %s on %s' \
-                % (javaLocalDir, STAXServiceMachine)
-              </message>
-              <script>
-                if is_windows_platform(STAXServiceMachine):
-                  separator=';'
-                  jstaf_jarfile='%s\\bin\\JSTAF.jar' % LOCAL_STAF_ROOT
-                else:
-                  separator=':'
-                  jstaf_jarfile='%s/lib/JSTAF.jar' % LOCAL_STAF_ROOT
-
-                ldapjdk_jarfile='%s/ldapjdk.jar' % javaLocalDir
-              </script>
-              <call function="'compileJava'" >
-                {
-                'location'   : STAXServiceMachine,
-                'foldername' : '%s' % javaLocalDir,
-                'classpath'  : '%s%s%s' \
-                               % (ldapjdk_jarfile,separator,jstaf_jarfile)
-                }
-              </call>
-            </sequence>
-          </if>             
-          
-          <!-- Archive (snmp/.java) files -->
-          <script>
-            javaSharedDir = '%s/snmp' % source.java
-            javaLocalDir  = '%s/snmp' % local.java
-          </script>
-          <message>
-            'Copy java files locally from %s to %s.' % \
-              (javaSharedDir,javaLocalDir)
-          </message>
-          <call function="'CopyFolderByExtension'">
-            { 
-            'location'   : STAXServiceMachine,
-            'srcfolder'  : javaSharedDir,
-            'destfolder' : javaLocalDir,
-            'extension'  : 'java' 
-            }
-          </call>          
-
-          <!-- Check if 'SNMP_OPENDMK_JARFILE' exists -->
-          <call function="'GetEntry'">
-            {
-            'location'  : STAXServiceMachine,
-            'entry'     : SNMP_OPENDMK_JARFILE,
-            'attribute' : 'TYPE'
-            }
-          </call>
-
-          <if expr="RC == 48">
-            <message>
-              'OpenDMK jar %s not found.' % SNMP_OPENDMK_JARFILE
-            </message>            
-          </if>
-
-          <!-- 'SNMP_OPENDMK_JARFILE' exists so we can continue with SNMP -->
-          <if expr="RC != 48 or not PRODUCTNAME.startswith('OpenDJ')">
-            <sequence>          
-              <!---   Check if snmp java files are already compiled -->
-              <call function="'listFolderByExtension'" >
-                { 
-                'location'   : STAXServiceMachine,
-                'foldername' : javaLocalDir,
-                'extension'  : 'class'
-                }
-              </call>
-              <if expr="len(STAXResult) == 0">
-                <sequence>
-                  <!--- Install DS Copy zip file -->
-                  <message>
-                    'Copy DS zip archive locally from %s to %s.' % \
-                      (ZIPPATH,local.temp)
-                  </message>
-                  <call function="'copyFile'">
-                    { 
-                    'srcfile'    : '%s/%s' % (ZIPPATH, ZIPNAME),
-                    'destfile'   : '%s/%s' % (local.temp, ZIPNAME),
-                    'remotehost' : STAXServiceMachine
-                    }
-                  </call>
-                  
-                  <!--- Install DS Extract zip file -->
-                  <message>
-                    'Extract locally DS zip archive to %s' % local.temp
-                  </message>
-                  <call function="'unZipFile'">
-                    { 
-                    'location' : STAXServiceMachine,
-                    'zipfile'  : '%s/%s' % (local.temp, ZIPNAME),
-                    'unzipdir' : local.temp
-                    }
-                  </call>
-
-                  <!-- The jdmkrt.jar can be included in the OpenDS archive -->
-                  <script>
-                    if not PRODUCTNAME.startswith('OpenDJ'):
-                      SNMP_OPENDMK_JARFILE='%s/%s/addons/jdmkrt.jar' % (local.temp,OPENDSNAME)
-                  </script>
-
-                  <script>
-                    if is_windows_platform(STAXServiceMachine):
-                      jstaf_jarfile='%s\\bin\\JSTAF.jar' % LOCAL_STAF_ROOT
-                    else:
-                      jstaf_jarfile='%s/lib/JSTAF.jar' % LOCAL_STAF_ROOT
-                  </script>
-
-                  <!--- In IPS mode, get snmp-mib2605.jar from remote machine-->
-                  <if expr="IPS_PKG == True">
-                    <call function="'copyFile'">
-                      {
-                      'location'   : STAF_REMOTE_HOSTNAME,
-                      'srcfile'    : '%s/%s' % (DIRECTORY_INSTANCE_BIN,SNMP_OPENDS_JARFILE),
-                      'destfile'   : '%s/%s' % (local.temp,SNMP_OPENDS_JARFILE),
-                      'remotehost' : STAXServiceMachine
-                      }
-                    </call>
-                  </if>
-
-                  <!---   Compile snmp java files on controler host -->
-                  <message>
-                    'Compile Java files under %s on %s' \
-                    % (javaLocalDir, STAXServiceMachine)
-                  </message>
-                  <script>
-                    opends_jarfile='%s/%s' % (local.temp,SNMP_OPENDS_JARFILE)
-                    
-                    if is_windows_platform(STAXServiceMachine):
-                      separator=';'
-                    else:
-                      separator=':'
-                  </script>
-                  <call function="'compileJava'" >
-                    {
-                    'location'   : STAXServiceMachine,
-                    'foldername' : javaLocalDir,
-                    'classpath'  : '%s%s%s%s%s' \
-                    % (opends_jarfile,separator,SNMP_OPENDMK_JARFILE,separator,jstaf_jarfile)
-                    }
-                  </call>
-                  
-                  <!-- Archive SNMP_OPENDMK_JARFILE file -->
-                  <message>
-                    'Copy OpenDMK jar file %s locally to %s.' \
-                      % (SNMP_OPENDMK_JARFILE,javaLocalDir)
-                  </message>
-                  <call function="'copyFile'">
-                    { 
-                    'remotehost' : STAXServiceMachine,
-                    'srcfile'    : SNMP_OPENDMK_JARFILE,
-                    'destfile'   : '%s/jdmkrt.jar' % javaLocalDir,
-                    'remotehost' : STAXServiceMachine
-                    }
-                  </call>
-
-                  <!--  Delete the DS zip archive -->
-                  <message>
-                    'Delete %s/%s' % (local.temp, ZIPNAME)
-                  </message>
-                  <call function="'deleteFile'">
-                    { 
-                    'location' : STAXServiceMachine,
-                    'filename' : '%s/%s' % (local.temp, ZIPNAME)
-                    }
-                  </call>
-                  
-                  <!--  Delete the DS install dir -->
-                  <message>
-                    'Delete %s/%s' % (local.temp, OPENDSNAME)
-                  </message>
-                  <call function="'deleteFolder'">
-                    { 
-                    'location' : STAXServiceMachine,
-                    'foldername' : '%s/%s' % (local.temp, OPENDSNAME)
-                    }
-                  </call>
-                </sequence>
-              </if>
-            </sequence>
-          </if>          
-          
-          <!--  Delete the any existing testdata archive -->
-          <message>
-            'Delete %s/testdata.zip' % local.temp
-          </message>
-          <call function="'deleteFile'">
-            { 'location' : STAXServiceMachine,
-              'filename' : '%s/testdata.zip' % local.temp 
-            }
-          </call>
-                      
-          <message>
-            'Zip up local testdata files to %s/testdata.zip' % local.temp
-          </message>
-          <script>
-            javaLocalDir='%s' % local.java
-          </script>
-          <call function="'zipUpFile'">
-            { 'location'   : STAXServiceMachine,
-              'zipfile'    : '%s/testdata.zip' % local.temp, 
-              'folder'     : local.testdata,
-              'relativeto' : local.directory 
-            }                        
-          </call>
-          
-        </sequence>
-        <else>
-          <message>
-            'Test data for %s group is already created.' % groupDataDir
-          </message>
-        </else>
-      </if>
+      <!--  Zip up local testdata files for transit to SUT -->                  
+      <message>
+        'Zip up local testdata files to %s/testdata.zip' % local.temp
+      </message>
+      <call function="'zipUpFile'">
+        { 'location'   : STAXServiceMachine,
+          'zipfile'    : '%s/testdata.zip' % local.temp, 
+          'folder'     : local.testdata,
+          'relativeto' : local.directory 
+        }                        
+      </call>
+         
     </sequence>
   </function>
   
@@ -2947,7 +2678,7 @@
     </sequence>
   </function>
 
-  <function name="stageDataFiles">
+  <function name="stageStaticDataFiles">
     <function-prolog>
       This function stages locally the static data files 
     </function-prolog>    
@@ -2963,9 +2694,27 @@
 
     </function-map-args>   
     <sequence>
+
+      <!-- Check to see if local tests static data directory is already created-->        
+      <call function="'GetEntry'">
+        { 'location'  : STAXServiceMachine,
+          'entry'     : localTestsGroupDir,
+          'attribute' : 'TYPE'
+        }
+      </call>
+
+      <!-- If the static test data is already created then don't redo it -->
+      <if expr="RC != 48">
+        <sequence>
+          <message>'Not staging static data files as they already exist.'</message>
+          <return>0</return>
+        </sequence>
+      </if>
       
       <!-- Locally copy static data files to temporary staging area -->
-      <message>'Staging static data files on local machine.'</message>
+      <message>
+        'Staging static data files on local machine.'
+      </message>
 
       <!-- All LDIF (.ldif) files for quickinstall are needed for each suite -->
       <script>
@@ -2989,17 +2738,17 @@
         defaultFileExtensions=["ldif","pwd","gz","ref","security"]
       </script>
       
-      <iterate var="ft" in="defaultFileExtensions + customFileExtensions">
+      <iterate var="fExt" in="defaultFileExtensions + customFileExtensions">
         <sequence>
           <message>
             'Copy %s data files locally from %s to %s.' % \
-              (ft,sourceTestsGroupDir,localTestsGroupDir)
+              (fExt,sourceTestsGroupDir,localTestsGroupDir)
           </message>
           <call function="'CopyFolderByExtension'">
             { 'location'   : STAXServiceMachine,
               'srcfolder'  : sourceTestsGroupDir,
               'destfolder' : localTestsGroupDir,
-              'extension'  : '%s' % ft
+              'extension'  : '%s' % fExt
             }
           </call>
         </sequence>
@@ -3008,4 +2757,325 @@
     </sequence>
    </function>
 
+  <function name="stageJavaFiles">
+    <function-prolog>
+      This function stages locally and builds the java class files 
+    </function-prolog>    
+    <function-map-args>     
+      <function-arg-def name="customJavaProjects" 
+                        type="optional" 
+                        default="''">
+        <function-arg-description>
+          Name of the custom java based project (should be folder name)
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>     
+      </function-arg-def>
+
+    </function-map-args>
+      <sequence>
+
+        <script>
+          defaultJavaProjects=["ldapjndi","ldapjdk"]
+        </script>
+                
+        <!-- Archive (*/.java) files -->
+        <iterate var="javaProject" in="defaultJavaProjects + customJavaProjects">
+          <sequence>
+            <script>
+              javaSharedDir='%s/%s' % (source.java,javaProject)
+              javaLocalDir ='%s/%s' % (local.java,javaProject)
+            </script>
+            <!-- Check to see if local java data directory is already created-->        
+            <call function="'GetEntry'">
+              { 'location'  : STAXServiceMachine,
+                'entry'     : javaLocalDir,
+                'attribute' : 'TYPE'
+              }
+            </call>
+            <if expr="RC == 48">
+              <sequence>
+
+                <message>
+                  'Staging %s java files on local machine.' % javaProject
+                </message>
+
+                <message>
+                  'Copy %s java files locally from %s to %s.' % \
+                    (javaProject,javaSharedDir,javaLocalDir)
+                </message>
+                <call function="'CopyFolderByExtension'">
+                  { 
+                  'location'   : STAXServiceMachine,
+                  'srcfolder'  : javaSharedDir,
+                  'destfolder' : javaLocalDir,
+                  'extension'  : 'java' 
+                  }
+                </call>
+    
+                <message>
+                  'Copy any jar files locally from %s to %s.' % \
+                    (javaSharedDir,javaLocalDir)
+                </message>
+                <call function="'CopyFolderByExtension'">
+                  {
+                  'location'   : STAXServiceMachine,
+                  'srcfolder'  : javaSharedDir,
+                  'destfolder' : javaLocalDir,
+                  'extension'  : 'jar'
+                  }
+                </call>
+                
+                <!---   Check if these java files are already compiled -->
+                <call function="'listFolderByExtension'" >
+                  { 
+                  'location'   : STAXServiceMachine,
+                  'foldername' : javaLocalDir,
+                  'extension'  : 'class'
+                  }
+                </call>
+                <if expr="len(STAXResult) == 0">
+                  <sequence>
+                    <!-- Build Java CLASSPATH if needed-->
+                    <script>
+                      java_classpath = '.'
+                    </script>
+                    <!-- Build CLASSPATH for ldapjdk-->
+                    <if expr="javaProject == 'ldapjdk'">
+                      <script>
+                        if is_windows_platform(STAXServiceMachine):
+                          separator=';'
+                          jstaf_jarfile='%s\\bin\\JSTAF.jar' % LOCAL_STAF_ROOT
+                        else:
+                          separator=':'
+                          jstaf_jarfile='%s/lib/JSTAF.jar' % LOCAL_STAF_ROOT
+        
+                        ldapjdk_jarfile='%s/ldapjdk.jar' % javaLocalDir
+                        
+                        java_classpath ='%s%s%s' \
+                                   % (ldapjdk_jarfile,separator,jstaf_jarfile)
+                      </script>                  
+                    </if>
+                    <!--   Compile these java files on controler host -->
+                    <message>
+                      'Compile Java files under %s on %s' \
+                      % (javaLocalDir, STAXServiceMachine)
+                    </message>
+                    <call function="'compileJava'" >
+                      {
+                      'location'   : STAXServiceMachine,
+                      'foldername' : '%s' % javaLocalDir,
+                      'classpath'  : java_classpath
+                      }
+                    </call>
+                  </sequence>
+                </if>
+              </sequence>
+              <else>
+                <message>
+                  'Not Staging %s java files as they already exist.' % javaProject
+                </message>
+              </else>
+            </if>
+          </sequence>
+        </iterate>
+      </sequence>
+    </function>
+
+  <function name="stageSNMPFiles">
+    <function-prolog>
+      This function stages locally and builds the java class files 
+    </function-prolog>    
+    <function-map-args>     
+      <function-arg-def name="customSNMPProjects" 
+                        type="optional" 
+                        default="''">
+        <function-arg-description>
+          Name of the custom SNMP based project (should be folder name)
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>     
+      </function-arg-def>
+
+    </function-map-args>
+      <sequence>     
+          
+        <!-- Archive (snmp/.java) files -->
+        <script>
+          javaSharedDir = '%s/snmp' % source.java
+          javaLocalDir  = '%s/snmp' % local.java
+        </script>
+        
+        <!-- Check to see if local java data directory is already created-->        
+        <call function="'GetEntry'">
+          { 'location'  : STAXServiceMachine,
+            'entry'     : javaLocalDir,
+            'attribute' : 'TYPE'
+          }
+        </call>
+
+        <if expr="RC != 48">
+          <sequence>
+            <message>'Not Staging SNMP files as they already exist.'</message>
+            <return>0</return>
+          </sequence>
+        </if>
+
+        <message>
+          'Staging SNMP files on local machine.'
+        </message>
+
+        <message>
+          'Copy java files locally from %s to %s.' % \
+            (javaSharedDir,javaLocalDir)
+        </message>
+        <call function="'CopyFolderByExtension'">
+          { 
+          'location'   : STAXServiceMachine,
+          'srcfolder'  : javaSharedDir,
+          'destfolder' : javaLocalDir,
+          'extension'  : 'java' 
+          }
+        </call>          
+
+        <!-- Check if 'SNMP_OPENDMK_JARFILE' exists -->
+        <call function="'GetEntry'">
+          {
+          'location'  : STAXServiceMachine,
+          'entry'     : SNMP_OPENDMK_JARFILE,
+          'attribute' : 'TYPE'
+          }
+        </call>
+
+        <if expr="RC == 48">
+          <message>
+            'OpenDMK jar %s not found.' % SNMP_OPENDMK_JARFILE
+          </message>            
+        </if>
+
+        <!-- 'SNMP_OPENDMK_JARFILE' exists so we can continue with SNMP -->
+        <if expr="RC != 48 or not PRODUCTNAME.startswith('OpenDJ')">
+          <sequence>          
+            <!---   Check if snmp java files are already compiled -->
+            <call function="'listFolderByExtension'" >
+              { 
+              'location'   : STAXServiceMachine,
+              'foldername' : javaLocalDir,
+              'extension'  : 'class'
+              }
+            </call>
+            <if expr="len(STAXResult) == 0">
+              <sequence>
+                <!--- Install DS Copy zip file -->
+                <message>
+                  'Copy DS zip archive locally from %s to %s.' % \
+                    (ZIPPATH,local.temp)
+                </message>
+                <call function="'copyFile'">
+                  { 
+                  'srcfile'    : '%s/%s' % (ZIPPATH, ZIPNAME),
+                  'destfile'   : '%s/%s' % (local.temp, ZIPNAME),
+                  'remotehost' : STAXServiceMachine
+                  }
+                </call>
+                  
+                <!--- Install DS Extract zip file -->
+                <message>
+                  'Extract locally DS zip archive to %s' % local.temp
+                </message>
+                <call function="'unZipFile'">
+                  { 
+                  'location' : STAXServiceMachine,
+                  'zipfile'  : '%s/%s' % (local.temp, ZIPNAME),
+                  'unzipdir' : local.temp
+                  }
+                </call>
+
+                <!-- The jdmkrt.jar can be included in the OpenDS archive -->
+                <script>
+                  if not PRODUCTNAME.startswith('OpenDJ'):
+                    SNMP_OPENDMK_JARFILE='%s/%s/addons/jdmkrt.jar' % (local.temp,OPENDSNAME)
+                </script>
+
+                <script>
+                  if is_windows_platform(STAXServiceMachine):
+                    jstaf_jarfile='%s\\bin\\JSTAF.jar' % LOCAL_STAF_ROOT
+                  else:
+                    jstaf_jarfile='%s/lib/JSTAF.jar' % LOCAL_STAF_ROOT
+                </script>
+
+                <!--- In IPS mode, get snmp-mib2605.jar from remote machine-->
+                <if expr="IPS_PKG == True">
+                  <call function="'copyFile'">
+                    {
+                    'location'   : STAF_REMOTE_HOSTNAME,
+                    'srcfile'    : '%s/%s' % (DIRECTORY_INSTANCE_BIN,SNMP_OPENDS_JARFILE),
+                    'destfile'   : '%s/%s' % (local.temp,SNMP_OPENDS_JARFILE),
+                    'remotehost' : STAXServiceMachine
+                    }
+                  </call>
+                </if>
+
+                <!---   Compile snmp java files on controler host -->
+                <message>
+                  'Compile Java files under %s on %s' \
+                  % (javaLocalDir, STAXServiceMachine)
+                </message>
+                <script>
+                  opends_jarfile='%s/%s' % (local.temp,SNMP_OPENDS_JARFILE)
+                  
+                  if is_windows_platform(STAXServiceMachine):
+                    separator=';'
+                  else:
+                    separator=':'
+                </script>
+                <call function="'compileJava'" >
+                  {
+                  'location'   : STAXServiceMachine,
+                  'foldername' : javaLocalDir,
+                  'classpath'  : '%s%s%s%s%s' \
+                  % (opends_jarfile,separator,SNMP_OPENDMK_JARFILE,separator,jstaf_jarfile)
+                  }
+                </call>
+                  
+                <!-- Archive SNMP_OPENDMK_JARFILE file -->
+                <message>
+                  'Copy OpenDMK jar file %s locally to %s.' \
+                    % (SNMP_OPENDMK_JARFILE,javaLocalDir)
+                </message>
+                <call function="'copyFile'">
+                  { 
+                  'remotehost' : STAXServiceMachine,
+                  'srcfile'    : SNMP_OPENDMK_JARFILE,
+                  'destfile'   : '%s/jdmkrt.jar' % javaLocalDir,
+                  'remotehost' : STAXServiceMachine
+                  }
+                </call>
+
+                <!--  Delete the DS zip archive -->
+                <message>
+                  'Delete %s/%s' % (local.temp, ZIPNAME)
+                </message>
+                <call function="'deleteFile'">
+                  { 
+                  'location' : STAXServiceMachine,
+                  'filename' : '%s/%s' % (local.temp, ZIPNAME)
+                  }
+                </call>
+                  
+                <!--  Delete the DS install dir -->
+                <message>
+                  'Delete %s/%s' % (local.temp, OPENDSNAME)
+                </message>
+                <call function="'deleteFolder'">
+                  { 
+                  'location' : STAXServiceMachine,
+                  'foldername' : '%s/%s' % (local.temp, OPENDSNAME)
+                  }
+                </call>
+              </sequence>
+            </if>
+          </sequence>
+        </if>
+     </sequence>
+    </function>  
+              
 </stax>
