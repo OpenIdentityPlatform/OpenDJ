@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2009-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS.
  ! -->
 
 <stax>
@@ -1497,7 +1498,7 @@
               'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
               'ldifFile'       : '%s/backends/Example.ldif' % remote.data,
-              'rejectFile'                   : './rejects'
+              'rejectFile'     : '%s/backends/import_tasks_025-rejects.txt' % remote.temp
             }
           </call>
 
@@ -1555,8 +1556,8 @@
               'dsInstanceDn'         : DIRECTORY_INSTANCE_DN,
               'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD,
               'ldifFile'             : '%s/backends/Example.ldif' % remote.data,
-              'rejectFile'                    : './rejects',
-              'overwriteFile'              : 'TRUE'
+              'rejectFile'           : '%s/backends/import_tasks_026-rejects.txt' % remote.temp,
+              'overwriteFile'        : 'TRUE'
             }
           </call>
 

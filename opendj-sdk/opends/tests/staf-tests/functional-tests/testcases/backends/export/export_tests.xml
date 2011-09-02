@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2009-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS.
  ! -->
 
 <stax>
@@ -141,13 +142,13 @@
           </message>
           <call function="'exportLdifWithScript'">
             { 
-             'ldifFile' : '%s/backends/Export_default.ldif' % remote.data,
+             'ldifFile' : '%s/backends/Export_default.ldif' % remote.temp,
              'backEnd'  : '%s' % DIRECTORY_INSTANCE_BE
             }
           </call>
           
           <call function="'ImportLdifWithScript'">
-            { 'ldifFile' : '%s/backends/Export_default.ldif' % remote.data,
+            { 'ldifFile' : '%s/backends/Export_default.ldif' % remote.temp,
               'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
@@ -257,13 +258,13 @@
           <call function="'StopDsWithScript'"/>
 
           <call function="'exportLdifWithScript'">
-            { 'ldifFile' : '%s/backends/Export_nonDefault.ldif' % remote.data,
+            { 'ldifFile' : '%s/backends/Export_nonDefault.ldif' % remote.temp,
               'backEnd'  : 'nonDefault'
             }
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'ldifFile' : '%s/backends/Export_nonDefault.ldif' % remote.data,
+            { 'ldifFile' : '%s/backends/Export_nonDefault.ldif' % remote.temp,
               'backEnd'  : 'nonDefault' ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
@@ -338,13 +339,13 @@
             'Backend: Export: Export Fractional Include Branch'
           </message>
           <call function="'exportLdifWithScript'">
-            { 'ldifFile'    : '%s/backends/Export_IncludeBranch.ldif' % remote.data,
+            { 'ldifFile'    : '%s/backends/Export_IncludeBranch.ldif' % remote.temp,
                'includeBranches' :  ["dc=com"]
             }
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'ldifFile' : '%s/backends/Export_IncludeBranch.ldif' % remote.data,
+            { 'ldifFile' : '%s/backends/Export_IncludeBranch.ldif' % remote.temp,
               'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
@@ -419,13 +420,13 @@
           </message>
           <call function="'exportLdifWithScript'">
             { 
-              'ldifFile'       : '%s/backends/Export_IncludeBranches.ldif' % remote.data,
+              'ldifFile'       : '%s/backends/Export_IncludeBranches.ldif' % remote.temp,
               'includeBranches':  ["dc=com","dc=example,dc=com"]
             }
           </call>
           
           <call function="'ImportLdifWithScript'">
-            { 'ldifFile' : '%s/backends/Export_IncludeBranches.ldif' % remote.data,
+            { 'ldifFile' : '%s/backends/Export_IncludeBranches.ldif' % remote.temp,
               'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
@@ -500,13 +501,13 @@
             'Backend: Export: Export Fractional Exclude Branch'
           </message>
           <call function="'exportLdifWithScript'">
-            { 'ldifFile'    : '%s/backends/Export_ExcludeBranch.ldif' % remote.data,
+            { 'ldifFile'    : '%s/backends/Export_ExcludeBranch.ldif' % remote.temp,
               'excludeBranches' : ["dc=example,dc=com"]
             }
           </call>
   
           <call function="'ImportLdifWithScript'">
-            { 'ldifFile' : '%s/backends/Export_ExcludeBranch.ldif' % remote.data,
+            { 'ldifFile' : '%s/backends/Export_ExcludeBranch.ldif' % remote.temp,
               'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
@@ -581,13 +582,13 @@
             'Backend: Export: Export Fractional Exclude Branches'
           </message>
           <call function="'exportLdifWithScript'">
-            { 'ldifFile'    : '%s/backends/Export_ExcludeBranches.ldif' % remote.data,
+            { 'ldifFile'    : '%s/backends/Export_ExcludeBranches.ldif' % remote.temp,
               'excludeBranches' : ["ou=People,dc=example,dc=com","dc=example,dc=com"]
             }
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'ldifFile' : '%s/backends/Export_ExcludeBranches.ldif' % remote.data,
+            { 'ldifFile' : '%s/backends/Export_ExcludeBranches.ldif' % remote.temp,
               'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
@@ -661,14 +662,14 @@
             'Backend: Export: Export Fractional Branches Mix'
           </message>
           <call function="'exportLdifWithScript'">
-            { 'ldifFile'    : '%s/backends/Export_MixBranches.ldif' % remote.data,
+            { 'ldifFile'    : '%s/backends/Export_MixBranches.ldif' % remote.temp,
                'includeBranches' : ["dc=com"],
                'excludeBranches' : ["ou=People,dc=example,dc=com"]
             }
           </call>
   
           <call function="'ImportLdifWithScript'">
-            { 'ldifFile' : '%s/backends/Export_MixBranches.ldif' % remote.data,
+            { 'ldifFile' : '%s/backends/Export_MixBranches.ldif' % remote.temp,
               'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
@@ -741,13 +742,13 @@
             'Backend: Export: Export Fractional Include Attribute'
           </message>
           <call function="'exportLdifWithScript'">
-            { 'ldifFile'       : '%s/backends/Export_IncludeAttr.ldif' % remote.data,
+            { 'ldifFile'       : '%s/backends/Export_IncludeAttr.ldif' % remote.temp,
               'includeAttributes'    : ["dc"]
             }
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'ldifFile' : '%s/backends/Export_IncludeAttr.ldif' % remote.data,
+            { 'ldifFile' : '%s/backends/Export_IncludeAttr.ldif' % remote.temp,
               'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
@@ -819,13 +820,13 @@
             'Backend: Export: Export Fractional Include Attributes'
           </message>
           <call function="'exportLdifWithScript'">
-            { 'ldifFile'    : '%s/backends/Export_IncludeAttrs.ldif' % remote.data,
+            { 'ldifFile'    : '%s/backends/Export_IncludeAttrs.ldif' % remote.temp,
               'includeAttributes' : ["dc","cn","ou","sn","uid"]
             }
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'ldifFile' : '%s/backends/Export_IncludeAttrs.ldif' % remote.data,
+            { 'ldifFile' : '%s/backends/Export_IncludeAttrs.ldif' % remote.temp,
               'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
@@ -900,13 +901,13 @@
             'Backend: Export: Export Fractional Exclude Attribute'
           </message>
           <call function="'exportLdifWithScript'">
-            { 'ldifFile'    : '%s/backends/Export_ExcludeAttr.ldif' % remote.data,
+            { 'ldifFile'    : '%s/backends/Export_ExcludeAttr.ldif' % remote.temp,
               'excludeAttributes' : ["userPassword"]
             }
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'ldifFile' : '%s/backends/Export_ExcludeAttr.ldif' % remote.data,
+            { 'ldifFile' : '%s/backends/Export_ExcludeAttr.ldif' % remote.temp,
               'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
@@ -979,13 +980,13 @@
             'Backend: Export: Export Fractional Exclude Attributes'
           </message>
           <call function="'exportLdifWithScript'">
-            { 'ldifFile'    : '%s/backends/Export_ExcludeAttrs.ldif' % remote.data,
+            { 'ldifFile'    : '%s/backends/Export_ExcludeAttrs.ldif' % remote.temp,
               'excludeAttributes' : ["userPassword","mail","roomnumber"]
             }
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'ldifFile' : '%s/backends/Export_ExcludeAttrs.ldif' % remote.data,
+            { 'ldifFile' : '%s/backends/Export_ExcludeAttrs.ldif' % remote.temp,
               'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
@@ -1060,7 +1061,7 @@
             'Backend: Export: Export Fractional Mix'
           </message>
           <call function="'exportLdifWithScript'">
-            { 'ldifFile'    : '%s/backends/Export_FractionalMix.ldif' % remote.data,
+            { 'ldifFile'    : '%s/backends/Export_FractionalMix.ldif' % remote.temp,
              'includeAttributes' : ["dc","cn","ou","sn","uid"],
              'includeBranches' : ["dc=com","dc=example,dc=com","ou=People,dc=example,dc=com"],
              'excludeBranches' : ["ou=Departed,ou=People,dc=example,dc=com"]
@@ -1068,7 +1069,7 @@
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'ldifFile' : '%s/backends/Export_FractionalMix.ldif' % remote.data,
+            { 'ldifFile' : '%s/backends/Export_FractionalMix.ldif' % remote.temp,
               'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
@@ -1143,13 +1144,13 @@
             'Backend: Export: Export Filtered Include'
           </message>
           <call function="'exportLdifWithScript'">
-            { 'ldifFile'    : '%s/backends/Export_FilteredInclude.ldif' % remote.data,
+            { 'ldifFile'    : '%s/backends/Export_FilteredInclude.ldif' % remote.temp,
               'includeFilters' : ["objectclass=*"]
             }
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'ldifFile' : '%s/backends/Export_FilteredInclude.ldif' % remote.data,
+            { 'ldifFile' : '%s/backends/Export_FilteredInclude.ldif' % remote.temp,
               'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
@@ -1223,13 +1224,13 @@
             'Backend: Export: Export Filtered Includes'
           </message>
           <call function="'exportLdifWithScript'">
-            { 'ldifFile'    : '%s/backends/Export_FilteredIncludes.ldif' % remote.data,
+            { 'ldifFile'    : '%s/backends/Export_FilteredIncludes.ldif' % remote.temp,
               'includeFilters' : ["objectclass=domain","objectclass=organizationalunit"]
             }
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'ldifFile' : '%s/backends/Export_FilteredIncludes.ldif' % remote.data,
+            { 'ldifFile' : '%s/backends/Export_FilteredIncludes.ldif' % remote.temp,
               'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
@@ -1303,13 +1304,13 @@
             'Backend: Export: Export Filtered Exclude'
           </message>
           <call function="'exportLdifWithScript'">
-            { 'ldifFile'    : '%s/backends/Export_FilteredExclude.ldif' % remote.data,
+            { 'ldifFile'    : '%s/backends/Export_FilteredExclude.ldif' % remote.temp,
               'excludeFilters' : ["objectclass=person"]
             }
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'ldifFile' : '%s/backends/Export_FilteredExclude.ldif' % remote.data,
+            { 'ldifFile' : '%s/backends/Export_FilteredExclude.ldif' % remote.temp,
               'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
@@ -1385,13 +1386,13 @@
             'Backend: Export: Export Filtered Excludes'
           </message>
           <call function="'exportLdifWithScript'">
-            { 'ldifFile'    : '%s/backends/Export_FilteredExcludes.ldif' % remote.data,
+            { 'ldifFile'    : '%s/backends/Export_FilteredExcludes.ldif' % remote.temp,
                'excludeFilters' : ["objectclass=person","objectclass=organizationalunit"]
             }
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'ldifFile' : '%s/backends/Export_FilteredExcludes.ldif' % remote.data,
+            { 'ldifFile' : '%s/backends/Export_FilteredExcludes.ldif' % remote.temp,
               'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
@@ -1468,13 +1469,13 @@
           </message>
           <call function="'exportLdifWithScript'">
             { 
-              'ldifFile'       : '%s/backends/Export_FilteredIncludes.ldif' % remote.data,
+              'ldifFile'       : '%s/backends/Export_FilteredIncludes.ldif' % remote.temp,
               'includeFilters'    : [ "objectclass=domain", "objectclass=organizationalunit"]
             }
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'ldifFile' : '%s/backends/Export_FilteredIncludes.ldif' % remote.data,
+            { 'ldifFile' : '%s/backends/Export_FilteredIncludes.ldif' % remote.temp,
               'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
@@ -1549,13 +1550,13 @@
             'Backend: Export: Export Filtered Includes Complex'
           </message>
           <call function="'exportLdifWithScript'">
-            { 'ldifFile'    : '%s/backends/Export_FilteredComplexIncludes.ldif' % remote.data,
+            { 'ldifFile'    : '%s/backends/Export_FilteredComplexIncludes.ldif' % remote.temp,
               'includeFilters' : ["|(objectclass=person)(objectclass=domain)(objectclass=organizationalunit)"]
             }
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'ldifFile' : '%s/backends/Export_FilteredComplexIncludes.ldif' % remote.data,
+            { 'ldifFile' : '%s/backends/Export_FilteredComplexIncludes.ldif' % remote.temp,
               'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
@@ -1629,13 +1630,13 @@
             'Backend: Export: Export Filtered Excludes Complex'
           </message>
           <call function="'exportLdifWithScript'">
-            { 'ldifFile'    : '%s/backends/Export_FilteredComplexExcludes.ldif' % remote.data,
+            { 'ldifFile'    : '%s/backends/Export_FilteredComplexExcludes.ldif' % remote.temp,
               'excludeFilters' : ["&amp;(objectclass=person)(ou=Departed)"]
             }
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'ldifFile' : '%s/backends/Export_FilteredComplexExcludes.ldif' % remote.data,
+            { 'ldifFile' : '%s/backends/Export_FilteredComplexExcludes.ldif' % remote.temp,
               'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
@@ -1709,7 +1710,7 @@
             'Backend: Export: Export Fractional Filtered Mix'
           </message>
           <call function="'exportLdifWithScript'">
-            { 'ldifFile'    : '%s/backends/Export_FilteredMix.ldif' % remote.data,
+            { 'ldifFile'    : '%s/backends/Export_FilteredMix.ldif' % remote.temp,
              'excludeFilters' : ["&amp;(objectclass=person)(ou=Departed)"],
              'includeBranches' : ["dc=com"],
              'excludeAttributes' : ["userpassword"]
@@ -1717,7 +1718,7 @@
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'ldifFile' : '%s/backends/Export_FilteredMix.ldif' % remote.data,
+            { 'ldifFile' : '%s/backends/Export_FilteredMix.ldif' % remote.temp,
               'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }
@@ -1791,13 +1792,13 @@
             'Backend: Export: Export Append To LDIF'
           </message>
           <call function="'exportLdifWithScript'">
-            { 'ldifFile'    : '%s/backends/Export_FilteredMix.ldif' % remote.data,
+            { 'ldifFile'    : '%s/backends/Export_FilteredMix.ldif' % remote.temp,
                'append'      : 'True'
             }
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'ldifFile'  : '%s/backends/Export_FilteredMix.ldif' % remote.data,
+            { 'ldifFile'  : '%s/backends/Export_FilteredMix.ldif' % remote.temp,
               'append'    : 'True' ,
               'backEnd'   : DIRECTORY_INSTANCE_BE ,
               'dsPath'    : '%s/%s' % (DsInstanceDir, OPENDSNAME)
@@ -1872,13 +1873,13 @@
             'Backend: Export: Export Compress LDIF'
           </message>
           <call function="'exportLdifWithScript'">
-            { 'ldifFile'    : '%s/backends/ExportCompressed.ldif' % remote.data,
+            { 'ldifFile'    : '%s/backends/ExportCompressed.ldif' % remote.temp,
                'isCompressed' : 'True'
             }
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'ldifFile'      : '%s/backends/ExportCompressed.ldif' % remote.data,
+            { 'ldifFile'      : '%s/backends/ExportCompressed.ldif' % remote.temp,
               'isCompressed'  : 'True' ,
               'backEnd'       : DIRECTORY_INSTANCE_BE ,
               'dsPath'        : '%s/%s' % (DsInstanceDir, OPENDSNAME)
@@ -1953,13 +1954,13 @@
             'Backend: Export: Export Encrypt LDIF'
           </message>
           <call function="'exportLdifWithScript'">
-            { 'ldifFile'    : '%s/backends/ExportEncrypted.ldif' % remote.data,
+            { 'ldifFile'    : '%s/backends/ExportEncrypted.ldif' % remote.temp,
               'isEncrypted' : 'True'
             }
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'ldifFile'    : '%s/backends/ExportEncrypted.ldif' % remote.data,
+            { 'ldifFile'    : '%s/backends/ExportEncrypted.ldif' % remote.temp,
               'isEncrypted' : 'True' ,
               'backEnd'     : DIRECTORY_INSTANCE_BE ,
               'dsPath'      : '%s/%s' % (DsInstanceDir, OPENDSNAME)
@@ -2077,13 +2078,13 @@
             'Backend: Export: Export Wrap Column'
           </message>
           <call function="'exportLdifWithScript'">
-            { 'ldifFile'    : '%s/backends/ExportWrapCol.ldif' % remote.data,
+            { 'ldifFile'    : '%s/backends/ExportWrapCol.ldif' % remote.temp,
               'wrapColumn'  : 25,
             }
           </call>
 
           <call function="'ImportLdifWithScript'">
-            { 'ldifFile' : '%s/backends/ExportWrapCol.ldif' % remote.data,
+            { 'ldifFile' : '%s/backends/ExportWrapCol.ldif' % remote.temp,
               'backEnd'  : DIRECTORY_INSTANCE_BE ,
               'dsPath'   : '%s/%s' % (DsInstanceDir, OPENDSNAME)
             }

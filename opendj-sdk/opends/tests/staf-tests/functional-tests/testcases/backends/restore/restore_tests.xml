@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS.
  ! -->
 <stax>
   <!--- Test Case information
@@ -48,7 +49,7 @@
             'Backend Restore 001: Create a backup of the data in OpenDS'
           </message>
           <call function="'backup'">
-            { 'backupDir' : '%s/backends/backup1' % remote.data
+            { 'backupDir' : '%s/backends/backup1' % remote.temp
             }
           </call>
           
@@ -67,7 +68,7 @@
           </call>
                 
           <call function="'restore'">
-            { 'backupDir' : '%s/backends/backup1' % remote.data
+            { 'backupDir' : '%s/backends/backup1' % remote.temp
             }
           </call>
 
@@ -127,7 +128,7 @@
           </message>
 
           <call function="'backup'">
-            { 'backupDir'       : '%s/restore.compressed' % remote.data ,
+            { 'backupDir'       : '%s/restore.compressed' % remote.temp ,
               'extraParams'        : '-c'
             }
           </call>
@@ -206,7 +207,7 @@
           </call>
                 
           <call function="'restore'">
-            { 'backupDir'       : '%s/restore.compressed' % remote.data
+            { 'backupDir'       : '%s/restore.compressed' % remote.temp
             }
           </call>
             
@@ -293,7 +294,7 @@
             'Backend Restore 003: Create an encrypted and signhashed backup of the data in OpenDS'
           </message>
           <call function="'backup'">
-            { 'backupDir'           : '%s/backends/backup3' % remote.data ,
+            { 'backupDir'           : '%s/backends/backup3' % remote.temp ,
               'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_PORT ,
               'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
@@ -318,7 +319,7 @@
             'Backend Restore 003: Create an encrypted, hashed and signhashed backup of the data in OpenDS'
           </message>
           <call function="'backup'">
-            { 'backupDir'           : '%s/backends/backup3' % remote.data ,
+            { 'backupDir'           : '%s/backends/backup3' % remote.temp ,
               'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT ,
               'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
@@ -332,7 +333,7 @@
           </message>
 
           <call function="'restore'">
-            { 'backupDir'           : '%s/backends/backup3' % remote.data ,
+            { 'backupDir'           : '%s/backends/backup3' % remote.temp ,
               'extraParams'         : '-l' ,
               'knownIssue'          : '4203'
             }
@@ -354,7 +355,7 @@
 
           
           <call function="'restore'">
-            { 'backupDir'           : '%s/backends/backup3' % remote.data ,
+            { 'backupDir'           : '%s/backends/backup3' % remote.temp ,
               'dsInstanceHost'      : DIRECTORY_INSTANCE_HOST ,
               'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT ,
               'dsInstanceDn'        : DIRECTORY_INSTANCE_DN ,
