@@ -64,7 +64,9 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 {
 
   // TODO: multiple search base DNs
-  // TODO: multiple match attributes/values
+  // TODO: multiple mapping attributes/values
+  // TODO: searches returning no results or too many
+  // TODO: missing mapping attributes
   // TODO: connection pooling
   // TODO: load balancing
   // TODO: fail-over

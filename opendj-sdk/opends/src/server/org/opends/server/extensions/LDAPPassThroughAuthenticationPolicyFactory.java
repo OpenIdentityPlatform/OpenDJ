@@ -29,18 +29,25 @@ package org.opends.server.extensions;
 
 
 
+import static org.opends.messages.ExtensionMessages.*;
+
 import java.io.Closeable;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.
-  LDAPPassThroughAuthenticationPolicyCfg;
+    LDAPPassThroughAuthenticationPolicyCfg;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.AuthenticationPolicyFactory;
 import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.*;
+import org.opends.server.util.StaticUtils;
 
 
 
@@ -69,6 +76,8 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     /**
      * Returns the name of the user whose entry matches the provided search
      * criteria.
+     * <p>
+     * TODO: define result codes used when no entries found or too many entries.
      *
      * @param baseDN
      *          The search base DN.
@@ -77,10 +86,10 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
      * @param filter
      *          The search filter.
      * @return The name of the user whose entry matches the provided search
-     *         criteria, or {@code null} if no matching user entry was found.
+     *         criteria.
      * @throws DirectoryException
-     *           If the search returned more than one entry, or if the search
-     *           failed unexpectedly.
+     *           If the search returned no entries, more than one entry, or if
+     *           the search failed unexpectedly.
      */
     ByteString search(DN baseDN, SearchScope scope, SearchFilter filter)
         throws DirectoryException;
@@ -153,19 +162,284 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
   /**
    * LDAP PTA policy implementation.
    */
-  private static final class PolicyImpl extends AuthenticationPolicy implements
+  private final class PolicyImpl extends AuthenticationPolicy implements
       ConfigurationChangeListener<LDAPPassThroughAuthenticationPolicyCfg>
   {
+    /**
+     * LDAP PTA policy state implementation.
+     */
+    private final class StateImpl extends AuthenticationPolicyState
+    {
+
+      private final Entry userEntry;
+      private ByteString cachedPassword = null;
+
+
+
+      private StateImpl(final Entry userEntry)
+      {
+        this.userEntry = userEntry;
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public void finalizeStateAfterBind() throws DirectoryException
+      {
+        if (cachedPassword != null)
+        {
+          // TODO: persist cached password if needed.
+          cachedPassword = null;
+        }
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public AuthenticationPolicy getAuthenticationPolicy()
+      {
+        return PolicyImpl.this;
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public boolean passwordMatches(final ByteString password)
+          throws DirectoryException
+      {
+        sharedLock.lock();
+        try
+        {
+          // First of determine the user name to use when binding to the remote
+          // directory.
+          ByteString username = null;
+
+          switch (configuration.getMappingPolicy())
+          {
+          case UNMAPPED:
+            // The bind DN is the name of the user's entry.
+            username = ByteString.valueOf(userEntry.getDN().toString());
+            break;
+          case MAPPED_BIND:
+            // The bind DN is contained in an attribute in the user's entry.
+            mapBind: for (final AttributeType at : configuration
+                .getMappedAttribute())
+            {
+              final List<Attribute> attributes = userEntry.getAttribute(at);
+              if (attributes != null && !attributes.isEmpty())
+              {
+                for (final Attribute attribute : attributes)
+                {
+                  if (!attribute.isEmpty())
+                  {
+                    username = attribute.iterator().next().getValue();
+                    break mapBind;
+                  }
+                }
+              }
+            }
+
+            if (username == null)
+            {
+              /*
+               * The mapping attribute(s) is not present in the entry. This
+               * could be a configuration error, but it could also be because
+               * someone is attempting to authenticate using a bind DN which
+               * references a non-user entry.
+               */
+              throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
+                  ERR_LDAP_PTA_MAPPING_ATTRIBUTE_NOT_FOUND.get(
+                      String.valueOf(userEntry.getDN()),
+                      String.valueOf(configuration.dn()),
+                      StaticUtils.collectionToString(
+                          configuration.getMappedAttribute(), ", ")));
+            }
+
+            break;
+          case MAPPED_SEARCH:
+            // A search against the remote directory is required in order to
+            // determine the bind DN.
+
+            // Construct the search filter.
+            final LinkedList<SearchFilter> filterComponents =
+              new LinkedList<SearchFilter>();
+            for (final AttributeType at : configuration.getMappedAttribute())
+            {
+              final List<Attribute> attributes = userEntry.getAttribute(at);
+              if (attributes != null && !attributes.isEmpty())
+              {
+                for (final Attribute attribute : attributes)
+                {
+                  for (final AttributeValue value : attribute)
+                  {
+                    filterComponents.add(SearchFilter.createEqualityFilter(at,
+                        value));
+                  }
+                }
+              }
+            }
+
+            if (filterComponents.isEmpty())
+            {
+              /*
+               * The mapping attribute(s) is not present in the entry. This
+               * could be a configuration error, but it could also be because
+               * someone is attempting to authenticate using a bind DN which
+               * references a non-user entry.
+               */
+              throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
+                  ERR_LDAP_PTA_MAPPING_ATTRIBUTE_NOT_FOUND.get(
+                      String.valueOf(userEntry.getDN()),
+                      String.valueOf(configuration.dn()),
+                      StaticUtils.collectionToString(
+                          configuration.getMappedAttribute(), ", ")));
+            }
+
+            final SearchFilter filter;
+            if (filterComponents.size() == 1)
+            {
+              filter = filterComponents.getFirst();
+            }
+            else
+            {
+              filter = SearchFilter.createORFilter(filterComponents);
+            }
+
+            // Now search the configured base DNs, stopping at the first
+            // success.
+            for (final DN baseDN : configuration.getMappedSearchBaseDN())
+            {
+              Connection connection = null;
+              try
+              {
+                connection = searchFactory.getConnection();
+                username = connection.search(baseDN, SearchScope.WHOLE_SUBTREE,
+                    filter);
+              }
+              catch (final DirectoryException e)
+              {
+                switch (e.getResultCode())
+                {
+                // FIXME: specify possible result codes. What about authz
+                // errors?
+                case NO_SUCH_OBJECT:
+                case CLIENT_SIDE_NO_RESULTS_RETURNED:
+                  // Ignore and try next base DN.
+                  break;
+                case CLIENT_SIDE_MORE_RESULTS_TO_RETURN:
+                  // More than one matching entry was returned.
+                  throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
+                      ERR_LDAP_PTA_MAPPED_SEARCH_TOO_MANY_CANDIDATES.get(
+                          String.valueOf(userEntry.getDN()),
+                          String.valueOf(configuration.dn()),
+                          String.valueOf(baseDN), String.valueOf(filter)));
+                default:
+                  // We don't want to propagate this internal error to the
+                  // client. We should log it and map it to a more appropriate
+                  // error.
+                  throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
+                      ERR_LDAP_PTA_MAPPED_SEARCH_FAILED.get(
+                          String.valueOf(userEntry.getDN()),
+                          String.valueOf(configuration.dn()),
+                          e.getMessageObject()), e);
+                }
+              }
+              finally
+              {
+                if (connection != null)
+                {
+                  connection.close();
+                }
+              }
+            }
+
+            if (username == null)
+            {
+              /*
+               * No matching entries were found in the remote directory.
+               */
+              throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
+                  ERR_LDAP_PTA_MAPPED_SEARCH_NO_CANDIDATES.get(
+                      String.valueOf(userEntry.getDN()),
+                      String.valueOf(configuration.dn()),
+                      String.valueOf(filter)));
+            }
+
+            break;
+          }
+
+          // Now perform the bind.
+          Connection connection = null;
+          try
+          {
+            connection = bindFactory.getConnection();
+            connection.simpleBind(username, password);
+            return true;
+          }
+          catch (final DirectoryException e)
+          {
+            switch (e.getResultCode())
+            {
+            // FIXME: specify possible result codes.
+            case NO_SUCH_OBJECT:
+            case INVALID_CREDENTIALS:
+              return false;
+            default:
+              // We don't want to propagate this internal error to the
+              // client. We should log it and map it to a more appropriate
+              // error.
+              throw new DirectoryException(
+                  ResultCode.INVALID_CREDENTIALS,
+                  ERR_LDAP_PTA_MAPPED_BIND_FAILED.get(
+                      String.valueOf(userEntry.getDN()),
+                      String.valueOf(configuration.dn()), e.getMessageObject()),
+                  e);
+            }
+          }
+          finally
+          {
+            if (connection != null)
+            {
+              connection.close();
+            }
+          }
+        }
+        finally
+        {
+          sharedLock.unlock();
+        }
+      }
+    }
+
+
+
+    // Guards against configuration changes.
+    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    private final ReadLock sharedLock = lock.readLock();
+    private final WriteLock exclusiveLock = lock.writeLock();
 
     // Current configuration.
     private LDAPPassThroughAuthenticationPolicyCfg configuration;
+
+    // FIXME: initialize connection factories.
+    private ConnectionFactory searchFactory = null;
+    private ConnectionFactory bindFactory = null;
 
 
 
     private PolicyImpl(
         final LDAPPassThroughAuthenticationPolicyCfg configuration)
     {
-      this.configuration = configuration;
+      initializeConfiguration(configuration);
     }
 
 
@@ -177,8 +451,16 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     public ConfigChangeResult applyConfigurationChange(
         final LDAPPassThroughAuthenticationPolicyCfg configuration)
     {
-      // TODO: close and re-open connections if servers have changed.
-      this.configuration = configuration;
+      exclusiveLock.lock();
+      try
+      {
+        closeConnections();
+        initializeConfiguration(configuration);
+      }
+      finally
+      {
+        exclusiveLock.unlock();
+      }
       return new ConfigChangeResult(ResultCode.SUCCESS, false);
     }
 
@@ -191,7 +473,8 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     public AuthenticationPolicyState createAuthenticationPolicyState(
         final Entry userEntry, final long time) throws DirectoryException
     {
-      return new StateImpl(this);
+      // The current time is not needed for LDAP PTA.
+      return new StateImpl(userEntry);
     }
 
 
@@ -202,7 +485,16 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     @Override
     public void finalizeAuthenticationPolicy()
     {
-      // TODO: release pooled connections, etc.
+      exclusiveLock.lock();
+      try
+      {
+        configuration.removeLDAPPassThroughChangeListener(this);
+        closeConnections();
+      }
+      finally
+      {
+        exclusiveLock.unlock();
+      }
     }
 
 
@@ -230,58 +522,44 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       return true;
     }
 
-  }
 
 
-
-  /**
-   * LDAP PTA policy state implementation.
-   */
-  private static final class StateImpl extends AuthenticationPolicyState
-  {
-
-    private final PolicyImpl policy;
-
-
-
-    private StateImpl(final PolicyImpl policy)
+    private void closeConnections()
     {
-      this.policy = policy;
+      exclusiveLock.lock();
+      try
+      {
+        // TODO: close all connections.
+      }
+      finally
+      {
+        exclusiveLock.unlock();
+      }
     }
 
 
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void finalizeStateAfterBind() throws DirectoryException
+    private void initializeConfiguration(
+        final LDAPPassThroughAuthenticationPolicyCfg configuration)
     {
-      // TODO: cache password if needed.
+      this.configuration = configuration;
+
+      // TODO: implement FO/LB/CP + authenticated search factory.
+      final String hostPort = configuration.getPrimaryRemoteLDAPServer()
+          .first();
+      searchFactory = newLDAPConnectionFactory(hostPort);
+      bindFactory = newLDAPConnectionFactory(hostPort);
     }
 
 
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public AuthenticationPolicy getAuthenticationPolicy()
+    private ConnectionFactory newLDAPConnectionFactory(final String hostPort)
     {
-      return policy;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean passwordMatches(final ByteString password)
-        throws DirectoryException
-    {
-      // TODO: perform PTA here.
-      return false;
+      // Validation already performed by admin framework.
+      final int colonIndex = hostPort.lastIndexOf(":");
+      final String hostname = hostPort.substring(0, colonIndex);
+      final int port = Integer.parseInt(hostPort.substring(colonIndex + 1));
+      return provider.getLDAPConnectionFactory(hostname, port, configuration);
     }
 
   }
