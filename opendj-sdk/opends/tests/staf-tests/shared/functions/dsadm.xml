@@ -944,8 +944,8 @@
           STAFCmdParamsList.append('--skipFile %s' % skipFile)
 
         if  rejectFile:
-          if not os.path.exists(os.path.dirname(skipFile)):
-            os.makedirs(os.path.dirname(skipFile))
+          if not os.path.exists(os.path.dirname(rejectFile)):
+            os.makedirs(os.path.dirname(rejectFile))
 
           STAFCmdParamsList.append('-R %s' % rejectFile)
 
