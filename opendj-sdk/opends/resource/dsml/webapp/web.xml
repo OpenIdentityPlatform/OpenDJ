@@ -9,12 +9,61 @@
     <param-name>ldap.host</param-name>
     <param-value>localhost</param-value>
   </context-param>
-  
+
   <context-param>
     <description>The port number of the OpenDS server; e.g., 389</description>
     <param-name>ldap.port</param-name>
     <param-value>389</param-value>
   </context-param>
+
+<!-- Uncomment and fill if you want a default authentication between the DSML
+     gateway and the LDAP server when DSML request have no Basic HTTP authentication
+  <context-param>
+    <description>The user DN for authentication (optional)</description>
+    <param-name>ldap.userdn</param-name>
+    <param-value>cn=Directory Manager</param-value>
+  </context-param>
+
+  <context-param>
+    <description>The password for authentication (if ldap.userdn is set)</description>
+    <param-name>ldap.userpassword</param-name>
+    <param-value>secret12</param-value>
+  </context-param>
+-->
+
+  <context-param>
+    <description>A flag to specify if the ldap.port is the SSL secured port</description>
+    <param-name>ldap.usessl</param-name>
+    <param-value>false</param-value>
+  </context-param>
+
+  <context-param>
+    <description>A flag to specify if StartTLS should be use to secure connections to the ldap.port</description>
+    <param-name>ldap.usestarttls</param-name>
+    <param-value>false</param-value>
+  </context-param>
+
+  <context-param>
+    <description>A flag to specify is all certificates should be blindly trusted</description>
+    <param-name>ldap.trustall</param-name>
+    <param-value>false</param-value>
+  </context-param>
+
+
+<!-- Uncomment and fill if you enable SSL or StartTLS and want to verify
+     the LDAP server certificate
+  <context-param>
+    <description>The path to the truststore when ssl or starttls is enabled</description>
+    <param-name>ldap.truststore.path</param-name>
+    <param-value></param-value>
+  </context-param>
+
+  <context-param>
+    <description>The password of the truststore when ssl or starttls is enabled</description>
+    <param-name>ldap.truststore.password</param-name>
+    <param-value></param-value>
+  </context-param>
+-->
 
   <servlet>
     <servlet-name>DSMLServlet</servlet-name>
