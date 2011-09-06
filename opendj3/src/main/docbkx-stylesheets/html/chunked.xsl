@@ -32,7 +32,7 @@
  <xsl:param name="chunker.output.encoding">UTF-8</xsl:param>
  <xsl:param name="chunker.output.indent">yes</xsl:param>
  <xsl:param name="generate.legalnotice.link" select="1" />
- <xsl:param name="root.filename">index</xsl:param>
+ <xsl:param name="root.filename">index</xsl:param> <!-- docbkx-tools ignores this. -->
  <xsl:param name="use.id.as.filename" select="1" />
  <xsl:param name="generate.toc">
   appendix  nop
