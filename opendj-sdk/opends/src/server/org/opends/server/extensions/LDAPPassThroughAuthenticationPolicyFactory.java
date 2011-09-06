@@ -34,14 +34,17 @@ import static org.opends.messages.ExtensionMessages.*;
 import java.io.Closeable;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.
-    LDAPPassThroughAuthenticationPolicyCfg;
+import org.opends.server.admin.std.server.*;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.AuthenticationPolicyFactory;
 import org.opends.server.api.AuthenticationPolicyState;
@@ -57,6 +60,11 @@ import org.opends.server.util.StaticUtils;
 public final class LDAPPassThroughAuthenticationPolicyFactory implements
     AuthenticationPolicyFactory<LDAPPassThroughAuthenticationPolicyCfg>
 {
+
+  // TODO: retry operations transparently until all connections exhausted.
+  // TODO: handle password policy response controls? AD?
+  // TODO: periodically ping offline servers in order to detect when they come
+  // back.
 
   /**
    * An LDAP connection which will be used in order to search for or
@@ -75,9 +83,9 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
     /**
      * Returns the name of the user whose entry matches the provided search
-     * criteria.
-     * <p>
-     * TODO: define result codes used when no entries found or too many entries.
+     * criteria. This will return CLIENT_SIDE_NO_RESULTS_RETURNED/NO_SUCH_OBJECT
+     * if no search results were returned, or CLIENT_SIDE_MORE_RESULTS_TO_RETURN
+     * if too many results were returned.
      *
      * @param baseDN
      *          The search base DN.
@@ -165,6 +173,483 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
   private final class PolicyImpl extends AuthenticationPolicy implements
       ConfigurationChangeListener<LDAPPassThroughAuthenticationPolicyCfg>
   {
+
+    /**
+     * A factory which returns pre-authenticated connections for searches.
+     */
+    private final class AuthenticatedConnectionFactory implements
+        ConnectionFactory
+    {
+
+      private final ConnectionFactory factory;
+
+
+
+      private AuthenticatedConnectionFactory(final ConnectionFactory factory)
+      {
+        this.factory = factory;
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public Connection getConnection() throws DirectoryException
+      {
+        final DN username = configuration.getMappedSearchBindDN();
+        final String password = configuration.getMappedSearchBindPassword();
+
+        final Connection connection = factory.getConnection();
+        if (username != null && !username.isNullDN())
+        {
+          try
+          {
+            connection.simpleBind(ByteString.valueOf(username.toString()),
+                ByteString.valueOf(password));
+          }
+          catch (final DirectoryException e)
+          {
+            connection.close();
+            throw e;
+          }
+        }
+        return connection;
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public String toString()
+      {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("AuthenticationConnectionFactory(");
+        builder.append(factory);
+        builder.append(')');
+        return builder.toString();
+      }
+
+    }
+
+
+
+    /**
+     * PTA connection pool.
+     */
+    private final class ConnectionPool implements ConnectionFactory, Closeable
+    {
+
+      /**
+       * Pooled connection's intercept close and release connection back to the
+       * pool.
+       */
+      private final class PooledConnection implements Connection
+      {
+        private final Connection connection;
+        private boolean connectionIsClosed = false;
+
+
+
+        private PooledConnection(final Connection connection)
+        {
+          this.connection = connection;
+        }
+
+
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void close()
+        {
+          if (!connectionIsClosed)
+          {
+            connectionIsClosed = true;
+
+            // Guarded by PolicyImpl
+            if (poolIsClosed)
+            {
+              connection.close();
+            }
+            else
+            {
+              pooledConnections.offer(this);
+            }
+            availableConnections.release();
+          }
+        }
+
+
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public ByteString search(final DN baseDN, final SearchScope scope,
+            final SearchFilter filter) throws DirectoryException
+        {
+          try
+          {
+            return connection.search(baseDN, scope, filter);
+          }
+          catch (final DirectoryException e)
+          {
+            // Don't put the connection back in the pool if it has failed.
+            closeConnectionOnFatalError(e);
+            throw e;
+          }
+        }
+
+
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void simpleBind(final ByteString username,
+            final ByteString password) throws DirectoryException
+        {
+          try
+          {
+            connection.simpleBind(username, password);
+          }
+          catch (final DirectoryException e)
+          {
+            // Don't put the connection back in the pool if it has failed.
+            closeConnectionOnFatalError(e);
+            throw e;
+          }
+        }
+
+
+
+        private void closeConnectionOnFatalError(final DirectoryException e)
+        {
+          if (isFatalResultCode(e.getResultCode()))
+          {
+            connectionIsClosed = true;
+            connection.close();
+            availableConnections.release();
+          }
+        }
+
+      }
+
+
+
+      // Guarded by PolicyImpl.lock.
+      private boolean poolIsClosed = false;
+
+      private final ConnectionFactory factory;
+      private final int poolSize =
+        Runtime.getRuntime().availableProcessors() * 2;
+      private final Semaphore availableConnections = new Semaphore(poolSize);
+      private final LinkedBlockingQueue<PooledConnection> pooledConnections =
+        new LinkedBlockingQueue<PooledConnection>();
+
+
+
+      private ConnectionPool(final ConnectionFactory factory)
+      {
+        this.factory = factory;
+      }
+
+
+
+      /**
+       * Release all connections: do we want to block?
+       */
+      @Override
+      public void close()
+      {
+        // No need for synchronization as this can only be called with the
+        // policy's exclusive lock.
+        poolIsClosed = true;
+
+        PooledConnection pooledConnection;
+        while ((pooledConnection = pooledConnections.poll()) != null)
+        {
+          pooledConnection.connection.close();
+        }
+
+        // Since we have the exclusive lock, there should be no more connections
+        // in use.
+        if (availableConnections.availablePermits() != poolSize)
+        {
+          throw new IllegalStateException(
+              "Pool has remaining connections open after close");
+        }
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public Connection getConnection() throws DirectoryException
+      {
+        // This should only be called with the policy's shared lock.
+        if (poolIsClosed)
+        {
+          throw new IllegalStateException("pool is closed");
+        }
+
+        availableConnections.acquireUninterruptibly();
+
+        // There is either a pooled connection or we are allowed to create
+        // one.
+        PooledConnection pooledConnection = pooledConnections.poll();
+        if (pooledConnection == null)
+        {
+          try
+          {
+            final Connection connection = factory.getConnection();
+            pooledConnection = new PooledConnection(connection);
+          }
+          catch (final DirectoryException e)
+          {
+            availableConnections.release();
+            throw e;
+          }
+        }
+
+        return pooledConnection;
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public String toString()
+      {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("ConnectionPool(");
+        builder.append(factory);
+        builder.append(", poolSize=");
+        builder.append(poolSize);
+        builder.append(", inPool=");
+        builder.append(pooledConnections.size());
+        builder.append(", available=");
+        builder.append(availableConnections.availablePermits());
+        builder.append(')');
+        return builder.toString();
+      }
+    }
+
+
+
+    /**
+     * A simplistic two-way fail-over connection factory implementation.
+     */
+    private final class FailoverConnectionFactory implements ConnectionFactory,
+        Closeable
+    {
+      private final LoadBalancer primary;
+      private final LoadBalancer secondary;
+
+
+
+      private FailoverConnectionFactory(final LoadBalancer primary,
+          final LoadBalancer secondary)
+      {
+        this.primary = primary;
+        this.secondary = secondary;
+      }
+
+
+
+      /**
+       * Close underlying load-balancers.
+       */
+      @Override
+      public void close()
+      {
+        primary.close();
+        if (secondary != null)
+        {
+          secondary.close();
+        }
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public Connection getConnection() throws DirectoryException
+      {
+        if (secondary == null)
+        {
+          // No fail-over so just use the primary.
+          return primary.getConnection();
+        }
+        else
+        {
+          try
+          {
+            return primary.getConnection();
+          }
+          catch (final DirectoryException e)
+          {
+            return secondary.getConnection();
+          }
+        }
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public String toString()
+      {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("FailoverConnectionFactory(");
+        builder.append(primary);
+        builder.append(", ");
+        builder.append(secondary);
+        builder.append(')');
+        return builder.toString();
+      }
+
+    }
+
+
+
+    /**
+     * A simplistic load-balancer connection factory implementation using
+     * approximately round-robin balancing.
+     */
+    private final class LoadBalancer implements ConnectionFactory, Closeable
+    {
+      private final ConnectionPool[] factories;
+      private final AtomicInteger nextIndex = new AtomicInteger();
+      private final int maxIndex;
+
+
+
+      private LoadBalancer(final ConnectionPool[] factories)
+      {
+        this.factories = factories;
+        this.maxIndex = factories.length;
+      }
+
+
+
+      /**
+       * Close underlying connection pools.
+       */
+      @Override
+      public void close()
+      {
+        for (final ConnectionPool pool : factories)
+        {
+          pool.close();
+        }
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public Connection getConnection() throws DirectoryException
+      {
+        final int startIndex = getStartIndex();
+        int index = startIndex;
+        for (;;)
+        {
+          final ConnectionFactory factory = factories[index];
+
+          try
+          {
+            return factory.getConnection();
+          }
+          catch (final DirectoryException e)
+          {
+            // Try the next index.
+            if (++index == maxIndex)
+            {
+              index = 0;
+            }
+
+            // If all the factories have been tried then give up and throw the
+            // exception.
+            if (index == startIndex)
+            {
+              throw e;
+            }
+          }
+        }
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public String toString()
+      {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("LoadBalancer(");
+        builder.append(nextIndex);
+        for (final ConnectionFactory factory : factories)
+        {
+          builder.append(", ");
+          builder.append(factory);
+        }
+        builder.append(')');
+        return builder.toString();
+      }
+
+
+
+      // Determine the start index.
+      private int getStartIndex()
+      {
+        // A round robin pool of one connection factories is unlikely in
+        // practice and requires special treatment.
+        if (maxIndex == 1)
+        {
+          return 0;
+        }
+
+        // Determine the next factory to use: avoid blocking algorithm.
+        int oldNextIndex;
+        int newNextIndex;
+        do
+        {
+          oldNextIndex = nextIndex.get();
+          newNextIndex = oldNextIndex + 1;
+          if (newNextIndex == maxIndex)
+          {
+            newNextIndex = 0;
+          }
+        }
+        while (!nextIndex.compareAndSet(oldNextIndex, newNextIndex));
+
+        // There's a potential, but benign, race condition here: other threads
+        // could jump in and rotate through the list before we return the
+        // connection factory.
+        return newNextIndex;
+      }
+
+    }
+
+
+
     /**
      * LDAP PTA policy state implementation.
      */
@@ -329,8 +814,6 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
               {
                 switch (e.getResultCode())
                 {
-                // FIXME: specify possible result codes. What about authz
-                // errors?
                 case NO_SUCH_OBJECT:
                 case CLIENT_SIDE_NO_RESULTS_RETURNED:
                   // Ignore and try next base DN.
@@ -389,7 +872,6 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           {
             switch (e.getResultCode())
             {
-            // FIXME: specify possible result codes.
             case NO_SUCH_OBJECT:
             case INVALID_CREDENTIALS:
               return false;
@@ -430,9 +912,8 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     // Current configuration.
     private LDAPPassThroughAuthenticationPolicyCfg configuration;
 
-    // FIXME: initialize connection factories.
-    private ConnectionFactory searchFactory = null;
-    private ConnectionFactory bindFactory = null;
+    private FailoverConnectionFactory searchFactory = null;
+    private FailoverConnectionFactory bindFactory = null;
 
 
 
@@ -529,7 +1010,18 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       exclusiveLock.lock();
       try
       {
-        // TODO: close all connections.
+        if (searchFactory != null)
+        {
+          searchFactory.close();
+          searchFactory = null;
+        }
+
+        if (bindFactory != null)
+        {
+          bindFactory.close();
+          bindFactory = null;
+        }
+
       }
       finally
       {
@@ -544,11 +1036,54 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     {
       this.configuration = configuration;
 
-      // TODO: implement FO/LB/CP + authenticated search factory.
-      final String hostPort = configuration.getPrimaryRemoteLDAPServer()
-          .first();
-      searchFactory = newLDAPConnectionFactory(hostPort);
-      bindFactory = newLDAPConnectionFactory(hostPort);
+      // Create load-balancers for primary servers.
+      final LoadBalancer primarySearchLoadBalancer;
+      final LoadBalancer primaryBindLoadBalancer;
+
+      Set<String> servers = configuration.getPrimaryRemoteLDAPServer();
+      ConnectionPool[] searchPool = new ConnectionPool[servers.size()];
+      ConnectionPool[] bindPool = new ConnectionPool[servers.size()];
+      int index = 0;
+      for (final String hostPort : servers)
+      {
+        final ConnectionFactory factory = newLDAPConnectionFactory(hostPort);
+        searchPool[index] = new ConnectionPool(
+            new AuthenticatedConnectionFactory(factory));
+        bindPool[index++] = new ConnectionPool(factory);
+      }
+      primarySearchLoadBalancer = new LoadBalancer(searchPool);
+      primaryBindLoadBalancer = new LoadBalancer(bindPool);
+
+      // Create load-balancers for secondary servers.
+      final LoadBalancer secondarySearchLoadBalancer;
+      final LoadBalancer secondaryBindLoadBalancer;
+
+      servers = configuration.getSecondaryRemoteLDAPServer();
+      if (servers.isEmpty())
+      {
+        secondarySearchLoadBalancer = null;
+        secondaryBindLoadBalancer = null;
+      }
+      else
+      {
+        searchPool = new ConnectionPool[servers.size()];
+        bindPool = new ConnectionPool[servers.size()];
+        index = 0;
+        for (final String hostPort : servers)
+        {
+          final ConnectionFactory factory = newLDAPConnectionFactory(hostPort);
+          searchPool[index] = new ConnectionPool(
+              new AuthenticatedConnectionFactory(factory));
+          bindPool[index++] = new ConnectionPool(factory);
+        }
+        secondarySearchLoadBalancer = new LoadBalancer(searchPool);
+        secondaryBindLoadBalancer = new LoadBalancer(bindPool);
+      }
+
+      searchFactory = new FailoverConnectionFactory(primarySearchLoadBalancer,
+          secondarySearchLoadBalancer);
+      bindFactory = new FailoverConnectionFactory(primaryBindLoadBalancer,
+          secondaryBindLoadBalancer);
     }
 
 
@@ -585,6 +1120,33 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     }
 
   };
+
+
+
+  /**
+   * Determines whether or no a result code is expected to trigger the
+   * associated connection to be closed immediately.
+   *
+   * @param resultCode
+   *          The result code.
+   * @return {@code true} if the result code is expected to trigger the
+   *         associated connection to be closed immediately.
+   */
+  static boolean isFatalResultCode(final ResultCode resultCode)
+  {
+    switch (resultCode)
+    {
+    case BUSY:
+    case UNAVAILABLE:
+    case PROTOCOL_ERROR:
+    case OTHER:
+    case UNWILLING_TO_PERFORM:
+    case OPERATIONS_ERROR:
+      return true;
+    default:
+      return false;
+    }
+  }
 
 
 

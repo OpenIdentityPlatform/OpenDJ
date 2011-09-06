@@ -28,6 +28,7 @@ package org.opends.server.extensions;
 
 
 
+import static org.opends.server.extensions.LDAPPassThroughAuthenticationPolicyFactory.isFatalResultCode;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -309,7 +310,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     public void close()
     {
       CloseEvent event = new CloseEvent(getConnectionEvent);
-      mockProvider.assertNextEventExpected(event);
+      mockProvider.assertExpectedEventWasReceived(event);
     }
 
 
@@ -322,10 +323,10 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     {
       SearchEvent event = new SearchEvent(getConnectionEvent,
           baseDN.toString(), scope, filter.toString());
-      Object result = mockProvider.assertNextEventExpected(event);
-      if (result instanceof ByteString)
+      Object result = mockProvider.assertExpectedEventWasReceived(event);
+      if (result instanceof String)
       {
-        return (ByteString) result;
+        return ByteString.valueOf((String) result);
       }
       else
       {
@@ -343,7 +344,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     {
       SimpleBindEvent event = new SimpleBindEvent(getConnectionEvent,
           username.toString(), password.toString());
-      DirectoryException e = mockProvider.assertNextEventExpected(event);
+      DirectoryException e = mockProvider.assertExpectedEventWasReceived(event);
       if (e != null) throw e;
     }
 
@@ -376,7 +377,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       GetConnectionEvent event = new GetConnectionEvent(
           getLDAPConnectionFactoryEvent);
 
-      DirectoryException e = mockProvider.assertNextEventExpected(event);
+      DirectoryException e = mockProvider.assertExpectedEventWasReceived(event);
       if (e != null)
       {
         throw e;
@@ -624,14 +625,14 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     {
       GetLDAPConnectionFactoryEvent event = new GetLDAPConnectionFactoryEvent(
           host + ":" + port, options);
-      assertNextEventExpected(event);
+      assertExpectedEventWasReceived(event);
       return new MockFactory(this, event);
     }
 
 
 
     @SuppressWarnings("unchecked")
-    <T> T assertNextEventExpected(Event<T> actualEvent)
+    <T> T assertExpectedEventWasReceived(Event<T> actualEvent)
     {
       Event<?> expectedEvent = expectedEvents.poll();
       if (expectedEvent == null)
@@ -647,7 +648,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    MockProvider withExpectedEvent(Event<?> expectedEvent)
+    MockProvider expectEvent(Event<?> expectedEvent)
     {
       expectedEvents.add(expectedEvent);
       return this;
@@ -655,7 +656,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    void assertNoMoreEvents()
+    void assertAllExpectedEventsReceived()
     {
       assertTrue(expectedEvents.isEmpty());
     }
@@ -928,7 +929,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = false, dataProvider = "testConnectionFailureDuringSearchGetConnectionData")
+  @Test(enabled = true, dataProvider = "testConnectionFailureDuringSearchGetConnectionData")
   public void testConnectionFailureDuringSearchGetConnection(
       ResultCode connectResultCode) throws Exception
   {
@@ -943,8 +944,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
         phost1, cfg);
     GetConnectionEvent ceSearch = new GetConnectionEvent(fe, connectResultCode);
 
-    MockProvider provider = new MockProvider().withExpectedEvent(fe)
-        .withExpectedEvent(ceSearch);
+    MockProvider provider = new MockProvider().expectEvent(fe).expectEvent(
+        ceSearch);
 
     // Obtain policy and state.
     LDAPPassThroughAuthenticationPolicyFactory factory = new LDAPPassThroughAuthenticationPolicyFactory(
@@ -964,12 +965,12 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     catch (DirectoryException e)
     {
       // No valid connections available so this should always fail with
-      // UNAVAILABLE.
-      assertEquals(e.getResultCode(), ResultCode.UNAVAILABLE);
+      // INVALID_CREDENTIALS.
+      assertEquals(e.getResultCode(), ResultCode.INVALID_CREDENTIALS);
     }
 
     // Tear down and check final state.
-    provider.assertNoMoreEvents();
+    provider.assertAllExpectedEventsReceived();
     state.finalizeStateAfterBind();
     policy.finalizeAuthenticationPolicy();
   }
@@ -1008,7 +1009,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = false, dataProvider = "testConnectionFailureDuringSearchBindData")
+  @Test(enabled = true, dataProvider = "testConnectionFailureDuringSearchBindData")
   public void testConnectionFailureDuringSearchBind(ResultCode bindResultCode)
       throws Exception
   {
@@ -1024,11 +1025,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     GetConnectionEvent ceSearch = new GetConnectionEvent(fe);
 
     MockProvider provider = new MockProvider()
-        .withExpectedEvent(fe)
-        .withExpectedEvent(ceSearch)
-        .withExpectedEvent(
+        .expectEvent(fe)
+        .expectEvent(ceSearch)
+        .expectEvent(
             new SimpleBindEvent(ceSearch, searchBindDNString, "searchPassword",
-                bindResultCode)).withExpectedEvent(new CloseEvent(ceSearch));
+                bindResultCode)).expectEvent(new CloseEvent(ceSearch));
 
     // Obtain policy and state.
     LDAPPassThroughAuthenticationPolicyFactory factory = new LDAPPassThroughAuthenticationPolicyFactory(
@@ -1048,12 +1049,12 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     catch (DirectoryException e)
     {
       // No valid connections available so this should always fail with
-      // UNAVAILABLE.
-      assertEquals(e.getResultCode(), ResultCode.UNAVAILABLE);
+      // INVALID_CREDENTIALS.
+      assertEquals(e.getResultCode(), ResultCode.INVALID_CREDENTIALS);
     }
 
     // Tear down and check final state.
-    provider.assertNoMoreEvents();
+    provider.assertAllExpectedEventsReceived();
     state.finalizeStateAfterBind();
     policy.finalizeAuthenticationPolicy();
   }
@@ -1071,6 +1072,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // @formatter:off
     return new Object[][] {
         { ResultCode.NO_SUCH_OBJECT },
+        { ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED },
+        { ResultCode.CLIENT_SIDE_MORE_RESULTS_TO_RETURN },
         { ResultCode.UNAVAILABLE }
     };
     // @formatter:on
@@ -1089,7 +1092,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = false, dataProvider = "testConnectionFailureDuringSearchData")
+  @Test(enabled = true, dataProvider = "testConnectionFailureDuringSearchData")
   public void testConnectionFailureDuringSearch(ResultCode searchResultCode)
       throws Exception
   {
@@ -1105,18 +1108,18 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     GetConnectionEvent ceSearch = new GetConnectionEvent(fe);
 
     MockProvider provider = new MockProvider()
-        .withExpectedEvent(fe)
-        .withExpectedEvent(ceSearch)
-        .withExpectedEvent(
+        .expectEvent(fe)
+        .expectEvent(ceSearch)
+        .expectEvent(
             new SimpleBindEvent(ceSearch, searchBindDNString, "searchPassword",
                 ResultCode.SUCCESS))
-        .withExpectedEvent(
+        .expectEvent(
             new SearchEvent(ceSearch, "o=ad", SearchScope.WHOLE_SUBTREE,
                 "(uid=aduser)", searchResultCode));
     if (isFatalResultCode(searchResultCode))
     {
       // The connection will fail and be closed immediately.
-      provider.withExpectedEvent(new CloseEvent(ceSearch));
+      provider.expectEvent(new CloseEvent(ceSearch));
     }
 
     // Obtain policy and state.
@@ -1137,23 +1140,23 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     catch (DirectoryException e)
     {
       // No valid connections available so this should always fail with
-      // UNAVAILABLE.
-      assertEquals(e.getResultCode(), ResultCode.UNAVAILABLE);
+      // INVALID_CREDENTIALS.
+      assertEquals(e.getResultCode(), ResultCode.INVALID_CREDENTIALS);
     }
 
     // There should be no more pending events.
-    provider.assertNoMoreEvents();
+    provider.assertAllExpectedEventsReceived();
     state.finalizeStateAfterBind();
 
     // Cached connections should be closed when the policy is finalized.
     if (!isFatalResultCode(searchResultCode))
     {
-      provider.withExpectedEvent(new CloseEvent(ceSearch));
+      provider.expectEvent(new CloseEvent(ceSearch));
     }
 
     // Tear down and check final state.
     policy.finalizeAuthenticationPolicy();
-    provider.assertNoMoreEvents();
+    provider.assertAllExpectedEventsReceived();
   }
 
 
@@ -1168,7 +1171,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
   {
     // @formatter:off
     return new Object[][] {
-        /* policy, connection failure, invalid credentials */
+        /* policy, bind result code */
         { MappingPolicy.UNMAPPED, ResultCode.SUCCESS },
         { MappingPolicy.UNMAPPED, ResultCode.INVALID_CREDENTIALS },
         { MappingPolicy.UNMAPPED, ResultCode.UNAVAILABLE },
@@ -1201,7 +1204,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = false, dataProvider = "testMappingPolicyAuthenticationData")
+  @Test(enabled = true, dataProvider = "testMappingPolicyAuthenticationData")
   public void testMappingPolicyAuthentication(MappingPolicy mappingPolicy,
       ResultCode bindResultCode) throws Exception
   {
@@ -1216,31 +1219,34 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // Create the provider and its list of expected events.
     GetLDAPConnectionFactoryEvent fe = new GetLDAPConnectionFactoryEvent(
         phost1, cfg);
-    MockProvider provider = new MockProvider().withExpectedEvent(fe);
+    MockProvider provider = new MockProvider().expectEvent(fe);
 
     // Add search events if doing a mapped search.
     GetConnectionEvent ceSearch = null;
     if (mappingPolicy == MappingPolicy.MAPPED_SEARCH)
     {
       ceSearch = new GetConnectionEvent(fe);
-      provider.withExpectedEvent(
-          new SimpleBindEvent(ceSearch, searchBindDNString, "searchPassword",
-              ResultCode.SUCCESS)).withExpectedEvent(
-          new SearchEvent(ceSearch, "o=ad", SearchScope.WHOLE_SUBTREE,
-              "(uid=aduser)", adDNString));
+      provider
+          .expectEvent(ceSearch)
+          .expectEvent(
+              new SimpleBindEvent(ceSearch, searchBindDNString,
+                  "searchPassword", ResultCode.SUCCESS))
+          .expectEvent(
+              new SearchEvent(ceSearch, "o=ad", SearchScope.WHOLE_SUBTREE,
+                  "(uid=aduser)", adDNString));
       // Connection should be cached until the policy is finalized.
     }
 
     // Add bind events.
     GetConnectionEvent ceBind = new GetConnectionEvent(fe);
-    provider.withExpectedEvent(ceBind).withExpectedEvent(
+    provider.expectEvent(ceBind).expectEvent(
         new SimpleBindEvent(ceBind,
             mappingPolicy == MappingPolicy.UNMAPPED ? opendjDNString
                 : adDNString, userPassword, bindResultCode));
     if (isFatalResultCode(bindResultCode))
     {
       // The connection will fail and be closed immediately.
-      provider.withExpectedEvent(new CloseEvent(ceBind));
+      provider.expectEvent(new CloseEvent(ceBind));
     }
 
     // Connection should be cached until the policy is finalized or until the
@@ -1272,57 +1278,30 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       }
       catch (DirectoryException e)
       {
-        // No authentication related error codes should be mapped to
-        // UNAVAILABLE.
-        assertEquals(e.getResultCode(), ResultCode.UNAVAILABLE);
+        // No valid connections available so this should always fail with
+        // INVALID_CREDENTIALS.
+        assertEquals(e.getResultCode(), ResultCode.INVALID_CREDENTIALS);
       }
       break;
     }
 
     // There should be no more pending events.
-    provider.assertNoMoreEvents();
+    provider.assertAllExpectedEventsReceived();
     state.finalizeStateAfterBind();
 
     // Cached connections should be closed when the policy is finalized.
     if (ceSearch != null)
     {
-      provider.withExpectedEvent(new CloseEvent(ceSearch));
+      provider.expectEvent(new CloseEvent(ceSearch));
     }
     if (!isFatalResultCode(bindResultCode))
     {
-      provider.withExpectedEvent(new CloseEvent(ceBind));
+      provider.expectEvent(new CloseEvent(ceBind));
     }
 
     // Tear down and check final state.
     policy.finalizeAuthenticationPolicy();
-    provider.assertNoMoreEvents();
-  }
-
-
-
-  /**
-   * Determines whether or no a result code is expected to trigger the
-   * associated connection to be closed immediately.
-   *
-   * @param resultCode
-   *          The result code.
-   * @return {@code true} if the result code is expected to trigger the
-   *         associated connection to be closed immediately.
-   */
-  private boolean isFatalResultCode(ResultCode resultCode)
-  {
-    switch (resultCode)
-    {
-    case BUSY:
-    case UNAVAILABLE:
-    case PROTOCOL_ERROR:
-    case OTHER:
-    case UNWILLING_TO_PERFORM:
-    case OPERATIONS_ERROR:
-      return true;
-    default:
-      return false;
-    }
+    provider.assertAllExpectedEventsReceived();
   }
 
 
