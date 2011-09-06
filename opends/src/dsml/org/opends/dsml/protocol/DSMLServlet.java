@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.dsml.protocol;
 
@@ -63,6 +64,8 @@ import java.util.StringTokenizer;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.validation.SchemaFactory;
 import org.opends.server.tools.LDAPConnectionException;
+import org.opends.server.tools.SSLConnectionException;
+import org.opends.server.tools.SSLConnectionFactory;
 import org.opends.server.types.LDAPException;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -82,6 +85,13 @@ public class DSMLServlet extends HttpServlet {
   private static final String PKG_NAME = "org.opends.dsml.protocol";
   private static final String PORT = "ldap.port";
   private static final String HOST = "ldap.host";
+  private static final String USERDN = "ldap.userdn";
+  private static final String USERPWD = "ldap.userpassword";
+  private static final String USESSL = "ldap.usessl";
+  private static final String USESTARTTLS = "ldap.usestarttls";
+  private static final String TRUSTSTOREPATH = "ldap.truststore.path";
+  private static final String TRUSTSTOREPASSWORD = "ldap.truststore.password";
+  private static final String TRUSTALLCERTS = "ldap.trustall";
   private static final long serialVersionUID = -3748022009593442973L;
   private static final AtomicInteger nextMessageID = new AtomicInteger(1);
 
@@ -111,13 +121,20 @@ public class DSMLServlet extends HttpServlet {
 
   private String hostName;
   private Integer port;
+  private String userDN;
+  private String userPassword;
+  private Boolean useSSL;
+  private Boolean useStartTLS;
+  private String trustStorePathValue;
+  private String trustStorePasswordValue;
+  private Boolean trustAll;
 
   /**
    * This method will be called by the Servlet Container when
    * this servlet is being placed into service.
    *
    * @param config - the <CODE>ServletConfig</CODE> object that
-   *               contains configutation information for this servlet.
+   *               contains configuration information for this servlet.
    * @throws ServletException If an error occurs during processing.
    */
   public void init(ServletConfig config) throws ServletException {
@@ -126,6 +143,25 @@ public class DSMLServlet extends HttpServlet {
       hostName = config.getServletContext().getInitParameter(HOST);
 
       port = new Integer(config.getServletContext().getInitParameter(PORT));
+
+      userDN = config.getServletContext().getInitParameter(USERDN);
+
+      userPassword = config.getServletContext().getInitParameter(USERPWD);
+
+      useSSL = Boolean.valueOf(
+          config.getServletContext().getInitParameter(USESSL));
+
+      useStartTLS = Boolean.valueOf(
+          config.getServletContext().getInitParameter(USESTARTTLS));
+
+      trustStorePathValue =
+          config.getServletContext().getInitParameter(TRUSTSTOREPATH);
+
+      trustStorePasswordValue =
+          config.getServletContext().getInitParameter(TRUSTSTOREPASSWORD);
+
+      trustAll = Boolean.valueOf(
+          config.getServletContext().getInitParameter(TRUSTALLCERTS));
 
       if(jaxbContext==null)
         jaxbContext = JAXBContext.newInstance(PKG_NAME,
@@ -167,6 +203,9 @@ public class DSMLServlet extends HttpServlet {
   public void doPost(HttpServletRequest req, HttpServletResponse res)
   throws ServletException, IOException {
     LDAPConnectionOptions connOptions = new LDAPConnectionOptions();
+    connOptions.setUseSSL(useSSL);
+    connOptions.setStartTLS(useStartTLS);
+
     LDAPConnection connection = null;
     BatchRequest batchRequest = null;
 
@@ -184,6 +223,25 @@ public class DSMLServlet extends HttpServlet {
     BatchResponse batchResponse = objFactory.createBatchResponse();
     List<JAXBElement<?>> batchResponses = batchResponse.getBatchResponses();
     Document doc = db.newDocument();
+
+    if (useSSL || useStartTLS)
+    {
+      SSLConnectionFactory sslConnectionFactory = new SSLConnectionFactory();
+      try
+      {
+        sslConnectionFactory.init(trustAll, null, null, null,
+                                  trustStorePathValue, trustStorePasswordValue);
+      }
+      catch(SSLConnectionException e)
+      {
+        batchResponses.add(
+          createErrorResponse(
+            new LDAPException(LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR,
+              Message.raw(
+              "Invalid SSL or TLS configuration to connect to LDAP server."))));
+      }
+      connOptions.setSSLConnectionFactory(sslConnectionFactory);
+    }
 
     SOAPBody soapBody = null;
 
@@ -224,8 +282,26 @@ public class DSMLServlet extends HttpServlet {
 
     if ( ! authorizationInHeader ) {
       // if no authorization, set default user
-      bindDN = "";
-      bindPassword = "";
+      if (userDN != null)
+      {
+        bindDN = userDN;
+        if (userPassword != null)
+        {
+          bindPassword = userPassword;
+        }
+        else
+        {
+          batchResponses.add(
+              createErrorResponse(
+                    new LDAPException(LDAPResultCode.INVALID_CREDENTIALS,
+                    Message.raw("Invalid configured credentials."))));
+        }
+      }
+      else
+      {
+        bindDN = "";
+        bindPassword = "";
+      }
     } else {
       // otherwise if DN or password is null, send back an error
       if ( (bindDN == null || bindPassword == null)
