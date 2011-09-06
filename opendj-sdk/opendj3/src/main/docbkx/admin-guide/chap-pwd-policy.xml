@@ -49,20 +49,26 @@
   <para>OpenDJ password policies govern not only passwords, but also account
   lockout, and how OpenDJ provides notification about account status.</para>
   
-  <para>You manage OpenDJ password policies by using the
-  <command>dsconfig</command> command. The <command>dsconfig</command> command
-  stores password policies in the server configuration, rather than in the
-  directory user data. As a result, password policies are not replicated.
-  You must instead apply password policy configuration updates to each replica
-  in your deployment.</para>
+  <para>OpenDJ supports password policies as part of the server configuration,
+  and also subentry password policies as part of the (replicated) user
+  data.</para>
   
-  <para>By default, OpenDJ includes two password policy configurations, one
-  default for all users, and another for directory root DN users, such as
-  <literal>cn=Directory Manager</literal>. You can see all the default password
-  policy settings using the <command>dsconfig</command> command as
-  follows.</para>
-  
-  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+  <section>
+   <title>Server Based Password Policies</title>
+   
+   <para>You manage the password policies in the OpenDJ configuration by using
+   the <command>dsconfig</command> command. As they are part of the server
+   configuration, such password policies are not replicated. You must instead
+   apply password policy configuration updates to each replica in your
+   deployment.</para>
+   
+   <para>By default, OpenDJ includes two password policy configurations, one
+   default for all users, and another for directory root DN users, such as
+   <literal>cn=Directory Manager</literal>. You can see all the default password
+   policy settings using the <command>dsconfig</command> command as
+   follows.</para>
+   
+   <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
  get-password-policy-prop --policy-name "Default Password Policy" --advanced
 Property                                  : Value(s)
 ------------------------------------------:--------------------------
@@ -99,37 +105,147 @@ require-secure-authentication             : false
 require-secure-password-changes           : false
 skip-validation-for-administrators        : false
 state-update-failure-policy               : reactive</screen>
-
-  <para>Here you notice that many capabilities are not set by default: no
-  lockout, no password expiration, no multiple passwords, no password validator
-  to check that passwords contain the appropriate mix of characters. This means
-  that if you decide to use the directory to enforce password policy, you
-  must configure at least the default password policy to meet your needs.</para>
   
-  <para>Yet a few basic protections are configured by default. When you import
-  LDIF with <literal>userPassword</literal> values, OpenDJ hashes the values
-  before storing them. When a user provides a password value during a bind for
-  example, the server hashes the value provided to compared it with the stored
-  value. Even the directory manager cannot see the plain text value of a user's
-  password.</para>
-  
-  <screen>$ ldapsearch -p 1389 -D "cn=Directory Manager" -w password
+   <para>Here you notice that many capabilities are not set by default: no
+   lockout, no password expiration, no multiple passwords, no password validator
+   to check that passwords contain the appropriate mix of characters. This means
+   that if you decide to use the directory to enforce password policy, you
+   must configure at least the default password policy to meet your
+   needs.</para>
+   
+   <para>Yet a few basic protections are configured by default. When you import
+   LDIF with <literal>userPassword</literal> values, OpenDJ hashes the values
+   before storing them. When a user provides a password value during a bind for
+   example, the server hashes the value provided to compared it with the stored
+   value. Even the directory manager cannot see the plain text value of a user's
+   password.</para>
+   
+   <screen>$ ldapsearch -p 1389 -D "cn=Directory Manager" -w password
  -b dc=example,dc=com uid=bjensen userpassword
 dn: uid=bjensen,ou=People,dc=example,dc=com
 userpassword: {SSHA}QWAtw8ch/9850HNFRRqLNMIQc1YhxCnOoGmk1g==</screen>
-
-  <para>In addition, users can change their passwords provided you have granted
-  them access to do so. OpenDJ uses the <literal>userPassword</literal>
-  attribute to store passwords by default, rather than the
-  <literal>authPassword</literal> attribute, which is designed to store
-  passwords hashed by the client application.</para>
+   
+   <para>In addition, users can change their passwords provided you have
+   granted them access to do so. OpenDJ uses the <literal>userPassword</literal>
+   attribute to store passwords by default, rather than the
+   <literal>authPassword</literal> attribute, which is designed to store
+   passwords hashed by the client application.</para>
+  </section>
   
-  <para>The password policy that applies to a user is identified by the
-  operational attribute, <literal>pwdPolicySubentry</literal>.</para>
+  <section>
+   <title>Subentry Based Password Policies</title>
+   
+   <para>You manage subentry password policies by adding the subentries
+   alongside the user data. Thus OpenDJ can replicate subentry password
+   policies across servers.</para>
+   
+   <para>Subentry password policies support the Internet-Draft <link
+   xlink:href="http://tools.ietf.org/html/draft-behera-ldap-password-policy-09"
+   >Password Policy for LDAP Directories</link> (version 09). A subentry
+   password policy effectively overrides settings in the default password
+   policy defined in the OpenDJ configuration. Settings not supported or not
+   included in the subentry password policy are thus inherited from the default
+   password policy.</para>
+   
+   <para>As a result, the following Internet-Draft password policy attributes
+   override the default password policy when you set them in the
+   subentry.</para>
+   <itemizedlist>
+    <listitem><para><literal>pwdAllowUserChange</literal>, corresponding to the
+    OpenDJ password policy property
+    <literal>allow-user-password-changes</literal></para></listitem>
+    <listitem><para><literal>pwdMustChange</literal>, corresponding to the
+    OpenDJ password policy property
+    <literal>force-change-on-reset</literal></para></listitem>
+    <listitem><para><literal>pwdGraceAuthNLimit</literal>, corresponding to the
+    OpenDJ password policy property
+    <literal>grace-login-count</literal></para></listitem>
+    <listitem><para><literal>pwdLockoutDuration</literal>, corresponding to the
+    OpenDJ password policy property
+    <literal>lockout-duration</literal></para></listitem>
+    <listitem><para><literal>pwdMaxFailure</literal>, corresponding to the
+    OpenDJ password policy property
+    <literal>lockout-failure-count</literal></para></listitem>
+    <listitem><para><literal>pwdFailureCountInterval</literal>, corresponding
+    to the OpenDJ password policy property
+    <literal>lockout-failure-expiration-interval</literal></para></listitem>
+    <listitem><para><literal>pwdMaxAge</literal>, corresponding to the OpenDJ
+    password policy property
+    <literal>max-password-age</literal></para></listitem>
+    <listitem><para><literal>pwdMinAge</literal>, corresponding to the OpenDJ
+    password policy property
+    <literal>min-password-age</literal></para></listitem>
+    <listitem><para><literal>pwdAttribute</literal>, corresponding to the
+    OpenDJ password policy property
+    <literal>password-attribute</literal></para></listitem>
+    <listitem><para><literal>pwdSafeModify</literal>, corresponding to the
+    OpenDJ password policy property
+    <literal>password-change-requires-current-password</literal></para></listitem>
+    <listitem><para><literal>pwdExpireWarning</literal>, corresponding to the
+    OpenDJ password policy property
+    <literal>password-expiration-warning-interval</literal></para></listitem>
+    <listitem><para><literal>pwdInHistory</literal>, corresponding to the
+    OpenDJ password policy property
+    <literal>password-history-count</literal></para></listitem>
+   </itemizedlist>
+   
+   <para>The following Internet-Draft password policy attributes are not
+   taken into account by OpenDJ.</para>
+   <itemizedlist>
+    <listitem>
+     <para><literal>pwdCheckQuality</literal>, as OpenDJ has password
+     validators. You can set password validators to use in the default
+     password policy.</para>
+    </listitem>
+    <listitem>
+     <para><literal>pwdMinLength</literal>, as this is handled by the Length
+     Based Password Validator. You can configure this as part of the
+     default password policy.</para>
+    </listitem>
+    <listitem>
+     <para><literal>pwdLockout</literal>, as OpenDJ can deduce whether
+     lockout is configured based on the values of other lockout-related
+     password policy attributes.</para>
+    </listitem>
+   </itemizedlist>
+   
+   <para>Values of the following properties are inherited from the default
+   password policy for Internet-Draft based password policies.</para>
+   <itemizedlist>
+    <listitem><para><literal>account-status-notification-handlers</literal></para></listitem>
+    <listitem><para><literal>allow-expired-password-changes</literal></para></listitem>
+    <listitem><para><literal>allow-multiple-password-values</literal></para></listitem>
+    <listitem><para><literal>allow-pre-encoded-passwords</literal></para></listitem>
+    <listitem><para><literal>default-password-storage-schemes</literal></para></listitem>
+    <listitem><para><literal>deprecated-password-storage-schemes</literal></para></listitem>
+    <listitem><para><literal>expire-passwords-without-warning</literal></para></listitem>
+    <listitem><para><literal>force-change-on-add</literal></para></listitem>
+    <listitem><para><literal>idle-lockout-interval</literal></para></listitem>
+    <listitem><para><literal>last-login-time-attribute</literal></para></listitem>
+    <listitem><para><literal>last-login-time-format</literal></para></listitem>
+    <listitem><para><literal>max-password-reset-age</literal></para></listitem>
+    <listitem><para><literal>password-generator</literal></para></listitem>
+    <listitem><para><literal>password-history-duration</literal></para></listitem>
+    <listitem><para><literal>password-validators</literal></para></listitem>
+    <listitem><para><literal>previous-last-login-time-formats</literal></para></listitem>
+    <listitem><para><literal>require-change-by-time</literal></para></listitem>
+    <listitem><para><literal>require-secure-authentication</literal></para></listitem>
+    <listitem><para><literal>require-secure-password-changes</literal></para></listitem>
+    <listitem><para><literal>skip-validation-for-administrators</literal></para></listitem>
+    <listitem><para><literal>state-update-failure-policy</literal></para></listitem>
+   </itemizedlist>
+  </section>
   
-  <screen>$ ldapsearch -p 1389 -b dc=example,dc=com uid=bjensen pwdPolicySubentry
+  <section>
+   <title>Which Password Policy Applies</title>
+   
+   <para>The password policy that applies to a user is identified by the
+   operational attribute, <literal>pwdPolicySubentry</literal>.</para>
+   
+   <screen>$ ldapsearch -p 1389 -b dc=example,dc=com uid=bjensen pwdPolicySubentry
 dn: uid=bjensen,ou=People,dc=example,dc=com
 pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config</screen>
+  </section>
  </section>
 
  <section>
@@ -197,7 +313,7 @@ require-secure-password-changes           : false</screen>
   </procedure>
 
   <procedure>
-   <title>To Create a Password Policy</title>
+   <title>To Create a Server Based Password Policy</title>
 
    <para>You can add a password policy for example for new users who have not
    yet used their credentials to bind.</para>
@@ -249,12 +365,66 @@ require-secure-password-changes           : false</screen>
     password.</para>
    </step>
   </procedure>
+  
+  <procedure>
+   <title>To Create a Subentry Based Password Policy</title>
+   <para>You can add a subentry to configure a password policy that
+   applies to Directory Administrators.</para>
+   
+   <step>
+    <para>Create the entry that specifies the password policy.</para>
+    <screen>$ cat /path/to/subentry-pwp.ldif 
+dn: cn=Subentry Password Policy,dc=example,dc=com
+objectClass: top
+objectClass: ldapSubentry
+objectClass: pwdPolicy
+pwdAttribute: userPassword
+pwdLockout: TRUE
+pwdMaxFailure: 3
+pwdFailureCountInterval: 300
+pwdLockoutDuration: 300
+pwdAllowUserChange: TRUE
+pwdSafeModify: TRUE
+subtreeSpecification: {base "ou=people", specificationFilter
+  "(isMemberOf=cn=Directory Administrators,ou=Groups,dc=example,dc=com)" }</screen>
+   </step>
+   <step>
+    <para>Add the policy to the directory.</para>
+    <screen>$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -a
+ -f /path/to/subentry-pwp.ldif 
+Processing ADD request for cn=Subentry Password Policy,dc=example,dc=com
+ADD operation successful for DN cn=Subentry Password Policy,dc=example,dc=com</screen>
+   </step>
+   <step>
+    <para>Check that the policy applies as specified.</para>
+    <para>In the example, the policy should apply to a Directory Administrator,
+    while a normal user has the default password policy. Here, Kirsten Vaughan
+    is a member of the Directory Administrators group, and Babs Jensen is not
+    a member.</para>
+    <screen>$ ldapsearch -p 1389 -b dc=example,dc=com uid=kvaughan pwdPolicySubentry
+dn: uid=kvaughan,ou=People,dc=example,dc=com
+pwdPolicySubentry: cn=Subentry Password Policy,dc=example,dc=com
+
+$ ldapsearch -p 1389 -b dc=example,dc=com uid=bjensen pwdPolicySubentry
+dn: uid=bjensen,ou=People,dc=example,dc=com
+pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config</screen>
+   </step>
+  </procedure>
  </section>
  
  <section>
   <title>Assigning Password Policies</title>
   
-  <para>You assign password policies by using the
+  <para>You assign subentry based password policies for a subtree of the DIT by
+  adding the policy to an LDAP subentry whose immediate superior is the root of
+  the subtree. In other words you can add the subtree based password policy
+  under <literal>ou=People,dc=example,dc=com</literal>, to have it apply to all
+  entries under <literal>ou=People,dc=example,dc=com</literal>. You can further
+  use the capabilities of LDAP <link
+  xlink:href="http://tools.ietf.org/html/rfc3672">subentries</link> to refine
+  the scope of application.</para>
+  
+  <para>You assign server based password policies by using the
   <literal>ds-pwp-password-policy-dn</literal> attribute.</para>
   
   <procedure>
