@@ -210,10 +210,85 @@
 
   <para>You configure DSML client access by editing the
   <filename>WEB-INF/web.xml</filename> after you deploy the web
-  application. In particular, you must set the <literal>ldap.host</literal>
-  and <literal>ldap.port</literal> parameters if they differ from the
-  default values, which are <literal>localhost</literal> and
-  <literal>389</literal>.</para>
+  application. In particular, you must at least set the
+  <literal>ldap.host</literal> and <literal>ldap.port</literal> parameters
+  if they differ from the default values, which are
+  <literal>localhost</literal> and <literal>389</literal>.</para>
+  
+  <variablelist>
+   <para>The list of DSML configuration parameters, including those that are
+   optional, consists of the following.</para>
+   <varlistentry>
+    <term><literal>ldap.host</literal></term>
+    <listitem>
+     <para>Required parameter indicating the host name of the underlying
+     directory server. Default: <literal>localhost</literal>.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldap.port</literal></term>
+    <listitem>
+     <para>Required parameter indicating the LDAP port of the underlying
+     directory server. Default: 389.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldap.userdn</literal></term>
+    <listitem>
+     <para>Optional parameter specifying the DN used by the DSML gateway to
+     bind to the underlying directory server. Not used by default.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldap.userpassword</literal></term>
+    <listitem>
+     <para>Optional parameter specifying the password used by the DSML gateway
+     to bind to the underlying directory server. Not used by default.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldap.usessl</literal></term>
+    <listitem>
+     <para>Required parameter indicating whether <literal>ldap.port</literal>
+     points to a port listening for LDAPS (LDAP/SSL) traffic. Default:
+     <literal>false</literal>.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldap.usestarttls</literal></term>
+    <listitem>
+     <para>Required parameter indicating whether to use StartTLS to connect
+     to the specified <literal>ldap.port</literal>. Default:
+     <literal>false</literal>.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldap.trustall</literal></term>
+    <listitem>
+     <para>Required parameter indicating whether blindly to trust all
+     certificates presented to the DSML gateway when using secure connections
+     (LDAPS or StartTLS). Default: <literal>false</literal>.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldap.truststore.path</literal></term>
+    <listitem>
+     <para>Optional parameter indicating the trust store used to verify
+     certificates when using secure connections. If you want to connect
+     using LDAPS or StartTLS, and do not want the gateway blindly to trust
+     all certificates, then you must set up a trust store. Not used by
+     default.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>ldap.truststore.password</literal></term>
+    <listitem>
+     <para>Optional parameter indicating the trust store password. If you
+     set up and configure a trust store, then you need to set this as well.
+     Not used by default.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
   
   <para>The DSML servlet translates between DSML and LDAP, and passes requests
   to the directory server. For initial testing purposes, you might try
