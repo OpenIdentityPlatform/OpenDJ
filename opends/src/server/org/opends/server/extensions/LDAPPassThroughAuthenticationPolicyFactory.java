@@ -30,8 +30,13 @@ package org.opends.server.extensions;
 
 
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
 
 import java.io.Closeable;
+import java.io.IOException;
+import java.net.*;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -42,6 +47,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
+import javax.net.ssl.SSLException;
+
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.*;
@@ -49,6 +56,12 @@ import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.AuthenticationPolicyFactory;
 import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.config.ConfigException;
+import org.opends.server.loggers.debug.DebugLogger;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.protocols.asn1.ASN1Exception;
+import org.opends.server.protocols.ldap.*;
+import org.opends.server.tools.LDAPReader;
+import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
 
@@ -65,6 +78,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
   // TODO: handle password policy response controls? AD?
   // TODO: periodically ping offline servers in order to detect when they come
   // back.
+  // FIXME: validate host/port (check port in range).
 
   /**
    * An LDAP connection which will be used in order to search for or
@@ -168,6 +182,556 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
   /**
+   * The PTA design guarantees that connections are only used by a single thread
+   * at a time, so we do not need to perform any synchronization.
+   */
+  private static final class LDAPConnectionFactory implements ConnectionFactory
+  {
+    /**
+     * LDAP connection implementation.
+     */
+    private final class LDAPConnection implements Connection
+    {
+      private final Socket plainSocket;
+      private final Socket ldapSocket;
+      private final LDAPWriter writer;
+      private final LDAPReader reader;
+      private int nextMessageID = 0;
+      private boolean isClosed = false;
+
+
+
+      private LDAPConnection(final Socket plainSocket, final Socket ldapSocket,
+          final LDAPReader reader, final LDAPWriter writer)
+      {
+        this.plainSocket = plainSocket;
+        this.ldapSocket = ldapSocket;
+        this.reader = reader;
+        this.writer = writer;
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public void close()
+      {
+        /*
+         * This method is intentionally a bit "belt and braces" because we have
+         * seen far too many subtle resource leaks due to bugs within JDK,
+         * especially when used in conjunction with SSL (e.g.
+         * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=7025227).
+         */
+        if (isClosed)
+        {
+          return;
+        }
+        isClosed = true;
+
+        // Send an unbind request.
+        final LDAPMessage message = new LDAPMessage(nextMessageID++,
+            new UnbindRequestProtocolOp());
+        try
+        {
+          writer.writeMessage(message);
+        }
+        catch (final IOException e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+        }
+
+        // Close all IO resources.
+        writer.close();
+        reader.close();
+
+        try
+        {
+          ldapSocket.close();
+        }
+        catch (final IOException e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+        }
+
+        try
+        {
+          plainSocket.close();
+        }
+        catch (final IOException e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+        }
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public ByteString search(final DN baseDN, final SearchScope scope,
+          final SearchFilter filter) throws DirectoryException
+      {
+        // Create the search request and send it to the server.
+        final SearchRequestProtocolOp searchRequest =
+          new SearchRequestProtocolOp(
+            ByteString.valueOf(baseDN.toString()), scope,
+            DereferencePolicy.DEREF_ALWAYS, 1 /* size limit */,
+            (timeoutMS / 1000), false /* types only */,
+            RawFilter.create(filter), NO_ATTRIBUTES);
+        sendRequest(searchRequest);
+
+        // Read the responses from the server. We cannot fail-fast since this
+        // could leave unread search response messages.
+        byte opType;
+        ByteString username = null;
+        int resultCount = 0;
+
+        do
+        {
+          final LDAPMessage responseMessage = readResponse();
+          opType = responseMessage.getProtocolOpType();
+
+          switch (opType)
+          {
+          case OP_TYPE_SEARCH_RESULT_ENTRY:
+            final SearchResultEntryProtocolOp searchEntry = responseMessage
+                .getSearchResultEntryProtocolOp();
+            if (username != null)
+            {
+              username = ByteString.valueOf(searchEntry.getDN().toString());
+            }
+            resultCount++;
+            break;
+
+          case OP_TYPE_SEARCH_RESULT_REFERENCE:
+            // Count this as a result.
+            resultCount++;
+            break;
+
+          case OP_TYPE_SEARCH_RESULT_DONE:
+            final SearchResultDoneProtocolOp searchResult = responseMessage
+                .getSearchResultDoneProtocolOp();
+
+            final ResultCode resultCode = ResultCode.valueOf(searchResult
+                .getResultCode());
+            switch (resultCode)
+            {
+            case SUCCESS:
+              // The search succeeded. Drop out of the loop and check that we
+              // got a matching entry.
+              break;
+
+            case SIZE_LIMIT_EXCEEDED:
+              // TODO: Too many entries would have been returned.
+              throw new DirectoryException(
+                  ResultCode.CLIENT_SIDE_MORE_RESULTS_TO_RETURN,
+                  (Message) null);
+
+            case TIME_LIMIT_EXCEEDED:
+              // FIXME: search timed out.
+              throw new DirectoryException(ResultCode.CLIENT_SIDE_TIMEOUT,
+                  (Message) null);
+
+            default:
+              // FIXME: The search failed for some reason.
+              throw new DirectoryException(resultCode, (Message) null);
+            }
+
+            break;
+
+          default:
+            // Check for disconnect notifications.
+            handleUnexpectedResponse(responseMessage);
+            break;
+          }
+        }
+        while (opType != OP_TYPE_SEARCH_RESULT_DONE);
+
+        if (resultCount > 1)
+        {
+          // FIXME: too many matching entries found.
+          throw new DirectoryException(
+              ResultCode.CLIENT_SIDE_MORE_RESULTS_TO_RETURN, (Message) null);
+        }
+
+        if (username == null)
+        {
+          // FIXME: no matching entries found.
+          throw new DirectoryException(
+              ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED, (Message) null);
+        }
+
+        return username;
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public void simpleBind(final ByteString username,
+          final ByteString password) throws DirectoryException
+      {
+        // Create the bind request and send it to the server.
+        final BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
+            username, 3, password);
+        sendRequest(bindRequest);
+
+        // Read the response from the server.
+        final LDAPMessage responseMessage = readResponse();
+        switch (responseMessage.getProtocolOpType())
+        {
+        case OP_TYPE_BIND_RESPONSE:
+          final BindResponseProtocolOp bindResponse = responseMessage
+              .getBindResponseProtocolOp();
+
+          final ResultCode resultCode = ResultCode.valueOf(bindResponse
+              .getResultCode());
+          if (resultCode == ResultCode.SUCCESS)
+          {
+            // FIXME: need to look for things like password expiration
+            // warning, reset notice, etc.
+            return;
+          }
+          else
+          {
+            // The bind failed for some reason.
+            throw new DirectoryException(resultCode,
+                ERR_LDAP_PTA_CONNECTION_BIND_FAILED.get(host, port,
+                    String.valueOf(options.dn()), String.valueOf(username),
+                    resultCode.getIntValue(), resultCode.getResultCodeName(),
+                    bindResponse.getErrorMessage()));
+          }
+
+        default:
+          // Check for disconnect notifications.
+          handleUnexpectedResponse(responseMessage);
+          break;
+        }
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public String toString()
+      {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("LDAPConnection(");
+        builder.append(String.valueOf(ldapSocket.getLocalSocketAddress()));
+        builder.append(", ");
+        builder.append(String.valueOf(ldapSocket.getRemoteSocketAddress()));
+        builder.append(')');
+        return builder.toString();
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      protected void finalize()
+      {
+        close();
+      }
+
+
+
+      private void handleUnexpectedResponse(final LDAPMessage responseMessage)
+          throws DirectoryException
+      {
+        if (responseMessage.getProtocolOpType() == OP_TYPE_EXTENDED_RESPONSE)
+        {
+          final ExtendedResponseProtocolOp extendedResponse = responseMessage
+              .getExtendedResponseProtocolOp();
+          final String responseOID = extendedResponse.getOID();
+
+          if ((responseOID != null)
+              && responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
+          {
+            throw new DirectoryException(ResultCode.valueOf(extendedResponse
+                .getResultCode()), ERR_LDAP_PTA_CONNECTION_DISCONNECTING.get(
+                host, port, String.valueOf(options.dn()),
+                extendedResponse.getErrorMessage()));
+          }
+        }
+
+        // Unexpected response type.
+        throw new DirectoryException(ResultCode.CLIENT_SIDE_DECODING_ERROR,
+            ERR_LDAP_PTA_CONNECTION_WRONG_RESPONSE.get(host, port,
+                String.valueOf(options.dn()),
+                String.valueOf(responseMessage.getProtocolOp())));
+      }
+
+
+
+      // Reads a response message and adapts errors to directory exceptions.
+      private LDAPMessage readResponse() throws DirectoryException
+      {
+        final LDAPMessage responseMessage;
+        try
+        {
+          responseMessage = reader.readMessage();
+        }
+        catch (final ASN1Exception e)
+        {
+          throw new DirectoryException(ResultCode.CLIENT_SIDE_DECODING_ERROR,
+              ERR_LDAP_PTA_CONNECTION_DECODE_ERROR.get(host, port,
+                  String.valueOf(options.dn()), e.getMessage()), e);
+        }
+        catch (final LDAPException e)
+        {
+          throw new DirectoryException(ResultCode.CLIENT_SIDE_DECODING_ERROR,
+              ERR_LDAP_PTA_CONNECTION_DECODE_ERROR.get(host, port,
+                  String.valueOf(options.dn()), e.getMessage()), e);
+        }
+        catch (final SocketTimeoutException e)
+        {
+          throw new DirectoryException(ResultCode.CLIENT_SIDE_TIMEOUT,
+              ERR_LDAP_PTA_CONNECTION_TIMEOUT.get(host, port,
+                  String.valueOf(options.dn())), e);
+        }
+        catch (final IOException e)
+        {
+          throw new DirectoryException(ResultCode.CLIENT_SIDE_SERVER_DOWN,
+              ERR_LDAP_PTA_CONNECTION_OTHER_ERROR.get(host, port,
+                  String.valueOf(options.dn()), e.getMessage()), e);
+        }
+
+        if (responseMessage == null)
+        {
+          throw new DirectoryException(ResultCode.CLIENT_SIDE_SERVER_DOWN,
+              ERR_LDAP_PTA_CONNECTION_CLOSED.get(host, port,
+                  String.valueOf(options.dn())));
+        }
+        return responseMessage;
+      }
+
+
+
+      // Sends a request message and adapts errors to directory exceptions.
+      private void sendRequest(final ProtocolOp request)
+          throws DirectoryException
+      {
+        final LDAPMessage requestMessage = new LDAPMessage(nextMessageID++,
+            request);
+        try
+        {
+          writer.writeMessage(requestMessage);
+        }
+        catch (final IOException e)
+        {
+          throw new DirectoryException(ResultCode.CLIENT_SIDE_SERVER_DOWN,
+              ERR_LDAP_PTA_CONNECTION_OTHER_ERROR.get(host, port,
+                  String.valueOf(options.dn()), e.getMessage()), e);
+        }
+      }
+    }
+
+
+
+    private final String host;
+    private final int port;
+    private final LDAPPassThroughAuthenticationPolicyCfg options;
+
+    private final int timeoutMS;
+
+
+
+    private LDAPConnectionFactory(final String host, final int port,
+        final LDAPPassThroughAuthenticationPolicyCfg options)
+    {
+      this.host = host;
+      this.port = port;
+      this.options = options;
+
+      // Normalize the timeoutMS to an integer (admin framework ensures that the
+      // value is non-negative).
+      this.timeoutMS = (int) Math.min(options.getConnectionTimeout(),
+          Integer.MAX_VALUE);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Connection getConnection() throws DirectoryException
+    {
+      try
+      {
+        // Create the remote ldapSocket address.
+        final InetAddress address = InetAddress.getByName(host);
+        final InetSocketAddress socketAddress = new InetSocketAddress(address,
+            port);
+
+        // Create the ldapSocket and connect to the remote server.
+        final Socket plainSocket = new Socket();
+        Socket ldapSocket = null;
+        LDAPReader reader = null;
+        LDAPWriter writer = null;
+        LDAPConnection ldapConnection = null;
+
+        try
+        {
+          // Set ldapSocket options before connecting.
+          plainSocket.setTcpNoDelay(options.isUseTCPNoDelay());
+          plainSocket.setKeepAlive(options.isUseTCPKeepAlive());
+          plainSocket.setSoTimeout(timeoutMS);
+
+          // Connect the ldapSocket.
+          plainSocket.connect(socketAddress, timeoutMS);
+
+          if (options.isUseSSL())
+          {
+            // TODO: SSL configuration.
+            ldapSocket = plainSocket;
+          }
+          else
+          {
+            ldapSocket = plainSocket;
+          }
+
+          reader = new LDAPReader(ldapSocket);
+          writer = new LDAPWriter(ldapSocket);
+
+          ldapConnection = new LDAPConnection(plainSocket, ldapSocket, reader,
+              writer);
+
+          return ldapConnection;
+        }
+        finally
+        {
+          if (ldapConnection == null)
+          {
+            // Connection creation failed for some reason, so clean up IO
+            // resources.
+            if (reader != null)
+            {
+              reader.close();
+            }
+            if (writer != null)
+            {
+              writer.close();
+            }
+
+            if (ldapSocket != null)
+            {
+              try
+              {
+                ldapSocket.close();
+              }
+              catch (final IOException ignored)
+              {
+                // Ignore.
+              }
+            }
+
+            if (ldapSocket != plainSocket)
+            {
+              try
+              {
+                plainSocket.close();
+              }
+              catch (final IOException ignored)
+              {
+                // Ignore.
+              }
+            }
+          }
+        }
+      }
+      catch (final UnknownHostException e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+        throw new DirectoryException(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
+            ERR_LDAP_PTA_CONNECT_UNKNOWN_HOST.get(host, port,
+                String.valueOf(options.dn()), host), e);
+      }
+      catch (final ConnectException e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+        throw new DirectoryException(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
+            ERR_LDAP_PTA_CONNECT_ERROR.get(host, port,
+                String.valueOf(options.dn()), port), e);
+      }
+      catch (final SocketTimeoutException e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+        throw new DirectoryException(ResultCode.CLIENT_SIDE_TIMEOUT,
+            ERR_LDAP_PTA_CONNECT_TIMEOUT.get(host, port,
+                String.valueOf(options.dn())), e);
+      }
+      catch (final SSLException e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+        throw new DirectoryException(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
+            ERR_LDAP_PTA_CONNECT_SSL_ERROR.get(host, port,
+                String.valueOf(options.dn()), e.getMessage()), e);
+      }
+      catch (final IOException e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+        throw new DirectoryException(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
+            ERR_LDAP_PTA_CONNECT_OTHER_ERROR.get(host, port,
+                String.valueOf(options.dn()), e.getMessage()), e);
+      }
+
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString()
+    {
+      final StringBuilder builder = new StringBuilder();
+      builder.append("LDAPConnectionFactory(");
+      builder.append(host);
+      builder.append(':');
+      builder.append(port);
+      builder.append(')');
+      return builder.toString();
+    }
+  }
+
+
+
+  /**
    * LDAP PTA policy implementation.
    */
   private final class PolicyImpl extends AuthenticationPolicy implements
@@ -202,7 +766,8 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         final String password = configuration.getMappedSearchBindPassword();
 
         final Connection connection = factory.getConnection();
-        if (username != null && !username.isNullDN())
+        if (username != null && !username.isNullDN() && password != null
+            && password.length() > 0)
         {
           try
           {
@@ -1101,6 +1666,18 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
+  // Debug tracer for this class.
+  private static final DebugTracer TRACER = DebugLogger.getTracer();
+
+  // Attribute list for searches requesting no attributes.
+  private static final LinkedHashSet<String> NO_ATTRIBUTES;
+
+  static
+  {
+    NO_ATTRIBUTES = new LinkedHashSet<String>(1);
+    NO_ATTRIBUTES.add("1.1");
+  }
+
   // The provider which should be used by policies to create LDAP connections.
   private final LDAPConnectionFactoryProvider provider;
 
@@ -1115,8 +1692,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     public ConnectionFactory getLDAPConnectionFactory(final String host,
         final int port, final LDAPPassThroughAuthenticationPolicyCfg options)
     {
-      // TODO: not yet implemented.
-      return null;
+      return new LDAPConnectionFactory(host, port, options);
     }
 
   };
@@ -1142,6 +1718,12 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     case OTHER:
     case UNWILLING_TO_PERFORM:
     case OPERATIONS_ERROR:
+    case CLIENT_SIDE_CONNECT_ERROR:
+    case CLIENT_SIDE_DECODING_ERROR:
+    case CLIENT_SIDE_ENCODING_ERROR:
+    case CLIENT_SIDE_LOCAL_ERROR:
+    case CLIENT_SIDE_SERVER_DOWN:
+    case CLIENT_SIDE_TIMEOUT:
       return true;
     default:
       return false;
