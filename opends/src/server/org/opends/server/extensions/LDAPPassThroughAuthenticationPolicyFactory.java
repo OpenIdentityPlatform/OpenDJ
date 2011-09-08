@@ -316,8 +316,8 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
             break;
 
           case OP_TYPE_SEARCH_RESULT_REFERENCE:
-            // Count this as a result.
-            resultCount++;
+            // The reference does not necessarily mean that there would have
+            // been any matching results, so lets ignore it.
             break;
 
           case OP_TYPE_SEARCH_RESULT_DONE:
@@ -334,19 +334,28 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
               break;
 
             case SIZE_LIMIT_EXCEEDED:
-              // TODO: Too many entries would have been returned.
+              // Multiple matching candidates.
               throw new DirectoryException(
                   ResultCode.CLIENT_SIDE_MORE_RESULTS_TO_RETURN,
-                  (Message) null);
+                  ERR_LDAP_PTA_CONNECTION_SEARCH_SIZE_LIMIT.get(host, port,
+                      String.valueOf(options.dn()), String.valueOf(baseDN),
+                      String.valueOf(filter)));
 
             case TIME_LIMIT_EXCEEDED:
-              // FIXME: search timed out.
+              // The server timed out the search.
               throw new DirectoryException(ResultCode.CLIENT_SIDE_TIMEOUT,
-                  (Message) null);
+                  ERR_LDAP_PTA_CONNECTION_SEARCH_TIME_LIMIT.get(host, port,
+                      String.valueOf(options.dn()), String.valueOf(baseDN),
+                      String.valueOf(filter)));
 
             default:
-              // FIXME: The search failed for some reason.
-              throw new DirectoryException(resultCode, (Message) null);
+              // The search failed for some reason.
+              throw new DirectoryException(resultCode,
+                  ERR_LDAP_PTA_CONNECTION_SEARCH_FAILED.get(host, port,
+                      String.valueOf(options.dn()), String.valueOf(baseDN),
+                      String.valueOf(filter), resultCode.getIntValue(),
+                      resultCode.getResultCodeName(),
+                      searchResult.getErrorMessage()));
             }
 
             break;
@@ -361,16 +370,22 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
         if (resultCount > 1)
         {
-          // FIXME: too many matching entries found.
+          // Multiple matching candidates.
           throw new DirectoryException(
-              ResultCode.CLIENT_SIDE_MORE_RESULTS_TO_RETURN, (Message) null);
+              ResultCode.CLIENT_SIDE_MORE_RESULTS_TO_RETURN,
+              ERR_LDAP_PTA_CONNECTION_SEARCH_SIZE_LIMIT.get(host, port,
+                  String.valueOf(options.dn()), String.valueOf(baseDN),
+                  String.valueOf(filter)));
         }
 
         if (username == null)
         {
-          // FIXME: no matching entries found.
+          // No matching entries found.
           throw new DirectoryException(
-              ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED, (Message) null);
+              ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED,
+              ERR_LDAP_PTA_CONNECTION_SEARCH_NO_MATCHES.get(host, port,
+                  String.valueOf(options.dn()), String.valueOf(baseDN),
+                  String.valueOf(filter)));
         }
 
         return username;
