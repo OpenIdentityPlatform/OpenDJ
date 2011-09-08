@@ -184,8 +184,10 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
   /**
    * The PTA design guarantees that connections are only used by a single thread
    * at a time, so we do not need to perform any synchronization.
+   * <p>
+   * Package private for testing.
    */
-  private static final class LDAPConnectionFactory implements ConnectionFactory
+  static final class LDAPConnectionFactory implements ConnectionFactory
   {
     /**
      * LDAP connection implementation.
@@ -196,7 +198,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       private final Socket ldapSocket;
       private final LDAPWriter writer;
       private final LDAPReader reader;
-      private int nextMessageID = 0;
+      private int nextMessageID = 1;
       private boolean isClosed = false;
 
 
@@ -506,9 +508,25 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         }
         catch (final ASN1Exception e)
         {
-          throw new DirectoryException(ResultCode.CLIENT_SIDE_DECODING_ERROR,
-              ERR_LDAP_PTA_CONNECTION_DECODE_ERROR.get(host, port,
-                  String.valueOf(options.dn()), e.getMessage()), e);
+          // ASN1 layer hides all underlying IO exceptions.
+          if (e.getCause() instanceof SocketTimeoutException)
+          {
+            throw new DirectoryException(ResultCode.CLIENT_SIDE_TIMEOUT,
+                ERR_LDAP_PTA_CONNECTION_TIMEOUT.get(host, port,
+                    String.valueOf(options.dn())), e);
+          }
+          else if (e.getCause() instanceof IOException)
+          {
+            throw new DirectoryException(ResultCode.CLIENT_SIDE_SERVER_DOWN,
+                ERR_LDAP_PTA_CONNECTION_OTHER_ERROR.get(host, port,
+                    String.valueOf(options.dn()), e.getMessage()), e);
+          }
+          else
+          {
+            throw new DirectoryException(ResultCode.CLIENT_SIDE_DECODING_ERROR,
+                ERR_LDAP_PTA_CONNECTION_DECODE_ERROR.get(host, port,
+                    String.valueOf(options.dn()), e.getMessage()), e);
+          }
         }
         catch (final LDAPException e)
         {
@@ -564,12 +582,22 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     private final String host;
     private final int port;
     private final LDAPPassThroughAuthenticationPolicyCfg options;
-
     private final int timeoutMS;
 
 
 
-    private LDAPConnectionFactory(final String host, final int port,
+    /**
+     * LDAP connection factory implementation is package private so that it can
+     * be tested.
+     *
+     * @param host
+     *          The server host name.
+     * @param port
+     *          The server port.
+     * @param options
+     *          The options (SSL).
+     */
+    LDAPConnectionFactory(final String host, final int port,
         final LDAPPassThroughAuthenticationPolicyCfg options)
     {
       this.host = host;
