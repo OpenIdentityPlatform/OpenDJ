@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -51,6 +52,10 @@ public class AttrHistoricalSingle extends AttrHistorical
                                           // deleted
   private ChangeNumber addTime = null;    // last time when a value was added
   private AttributeValue value = null;    // last added value
+
+  // last operation applied. This is only used for multiple mods on the same
+  // single valued attribute in the same modification.
+  private HistAttrModificationKey lastMod = null;
 
   /**
    * {@inheritDoc}
@@ -99,11 +104,13 @@ public class AttrHistoricalSingle extends AttrHistorical
     case DELETE:
       this.deleteTime = changeNumber;
       this.value = newValue;
+      lastMod = HistAttrModificationKey.DEL;
       break;
 
     case ADD:
       this.addTime = changeNumber;
       this.value = newValue;
+      lastMod = HistAttrModificationKey.ADD;
       break;
 
     case REPLACE:
@@ -111,10 +118,12 @@ public class AttrHistoricalSingle extends AttrHistorical
       {
         // REPLACE with null value is actually a DELETE
         this.deleteTime = changeNumber;
+        lastMod = HistAttrModificationKey.DEL;
       }
       else
       {
         this.deleteTime = addTime = changeNumber;
+        lastMod = HistAttrModificationKey.REPL;
       }
       this.value = newValue;
       break;
@@ -144,21 +153,51 @@ public class AttrHistoricalSingle extends AttrHistorical
     switch (mod.getModificationType())
     {
     case DELETE:
-      if ((changeNumber.newer(addTime)) &&
-          ((newValue == null) ||
-              ((newValue != null) && (newValue.equals(value))) ||
-              (value == null)))
+      if (changeNumber.newer(addTime))
       {
-        if (changeNumber.newer(deleteTime))
-          deleteTime = changeNumber;
-        AttributeType type = modAttr.getAttributeType();
-        if (!modifiedEntry.hasAttribute(type))
+        if ((newValue == null) ||
+              ((newValue != null) && (newValue.equals(value))) ||
+              (value == null))
+        {
+          if (changeNumber.newer(deleteTime))
+          {
+            deleteTime = changeNumber;
+          }
+          AttributeType type = modAttr.getAttributeType();
+          if (!modifiedEntry.hasAttribute(type))
+          {
+            conflict = true;
+            modsIterator.remove();
+          }
+          else if ((newValue != null) &&
+              (!modifiedEntry.hasValue(type, modAttr.getOptions(), newValue)))
+          {
+            conflict = true;
+            modsIterator.remove();
+          }
+          else
+          {
+            lastMod = HistAttrModificationKey.DEL;
+          }
+        }
+        else
         {
           conflict = true;
           modsIterator.remove();
         }
-        else if ((newValue != null) &&
-            (!modifiedEntry.hasValue(type, modAttr.getOptions(), newValue)))
+      }
+      else if (changeNumber.equals(addTime))
+      {
+        if ((lastMod == HistAttrModificationKey.ADD)
+            || (lastMod == HistAttrModificationKey.REPL))
+        {
+          if (changeNumber.newer(deleteTime))
+          {
+            deleteTime = changeNumber;
+          }
+          lastMod = HistAttrModificationKey.DEL;
+        }
+        else
         {
           conflict = true;
           modsIterator.remove();
@@ -166,8 +205,8 @@ public class AttrHistoricalSingle extends AttrHistorical
       }
       else
       {
-        conflict = true;
-        modsIterator.remove();
+          conflict = true;
+          modsIterator.remove();
       }
       break;
 
@@ -178,6 +217,7 @@ public class AttrHistoricalSingle extends AttrHistorical
         mod.setModificationType(ModificationType.REPLACE);
         addTime = changeNumber;
         value = newValue;
+        lastMod = HistAttrModificationKey.REPL;
       }
       else
       {
@@ -187,18 +227,32 @@ public class AttrHistoricalSingle extends AttrHistorical
           // no conflict : don't do anything beside setting the addTime
           addTime = changeNumber;
           value = newValue;
+          lastMod = HistAttrModificationKey.ADD;
         }
         else
         {
-          conflict = true;
-          modsIterator.remove();
+          // Case where changeNumber = addTime = deleteTime
+          if (changeNumber.equals(deleteTime)
+              && changeNumber.equals(addTime)
+              && (lastMod == HistAttrModificationKey.DEL))
+          {
+            // No conflict, record the new value.
+            value = newValue;
+            lastMod = HistAttrModificationKey.ADD;
+          }
+          else
+          {
+            conflict = true;
+            modsIterator.remove();
+          }
         }
       }
 
       break;
 
     case REPLACE:
-      if ((changeNumber.older(deleteTime)) && (changeNumber.older(deleteTime)))
+      if ((changeNumber.older(deleteTime))
+          && ((addTime == null) || (changeNumber.older(addTime))))
       {
         conflict = true;
         modsIterator.remove();
@@ -209,12 +263,14 @@ public class AttrHistoricalSingle extends AttrHistorical
         {
           value = newValue;
           deleteTime = changeNumber;
+          lastMod = HistAttrModificationKey.DEL;
         }
         else
         {
           addTime = changeNumber;
           value = newValue;
           deleteTime = changeNumber;
+          lastMod = HistAttrModificationKey.REPL;
         }
       }
       break;

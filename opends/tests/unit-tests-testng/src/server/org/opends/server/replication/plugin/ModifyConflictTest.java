@@ -61,7 +61,8 @@ import static org.opends.server.TestCaseUtils.*;
  * attributes - conflict with single-valued attributes - conflict with
  * options - conflict with binary attributes - Replace, add, delete
  * attribute, delete attribute value - conflict on the objectclass
- * attribute
+ * attribute.
+ * Added tests for multiple mods on same attribute in the same modify operation.
  */
 
 public class ModifyConflictTest
@@ -915,7 +916,7 @@ public class ModifyConflictTest
 
     Attribute attr = Attributes.create(DESCRIPTION, "init value");
     Modification mod1 = new Modification(ModificationType.DELETE, attr);
-    
+
     Attribute attr2 = Attributes.empty(DESCRIPTION);
     Modification mod2 = new Modification(ModificationType.REPLACE, attr2);
 
@@ -931,12 +932,12 @@ public class ModifyConflictTest
       "DEL one value, del by Replace of the same attribute was not correct");
     assertEquals(mods.get(1), mod2,
       "DEL one value, del by Replace of the same attribute was not correct");
-    
+
     // Replay the same modifs again
     replayModifies(entry, hist, mods2, 12);
     assertEquals(mods2.size(), 2,
       "DEL one value, del by Replace of the same attribute was not correct");
-    
+
   }
 
   /**
@@ -1331,12 +1332,12 @@ public class ModifyConflictTest
   private void replayModifies(
       Entry entry, EntryHistorical hist, List<Modification> mods, int date)
   {
-    InternalClientConnection connection =
+    InternalClientConnection aConnection =
       InternalClientConnection.getRootConnection();
     ChangeNumber t = new ChangeNumber(date, 0, 0);
 
     ModifyOperationBasis modOpBasis =
-      new ModifyOperationBasis(connection, 1, 1, null, entry.getDN(), mods);
+      new ModifyOperationBasis(aConnection, 1, 1, null, entry.getDN(), mods);
     LocalBackendModifyOperation modOp = new LocalBackendModifyOperation(modOpBasis);
     ModifyContext ctx = new ModifyContext(t, "uniqueId");
     modOp.setAttachment(SYNCHROCONTEXT, ctx);
@@ -1351,7 +1352,7 @@ public class ModifyConflictTest
       DirectoryServer.getSchema().getAttributeType(
           EntryHistorical.HISTORICALATTRIBUTENAME);
 
-    InternalClientConnection connection =
+    InternalClientConnection aConnection =
       InternalClientConnection.getRootConnection();
     ChangeNumber t = new ChangeNumber(date, 0, 0);
 
@@ -1359,7 +1360,7 @@ public class ModifyConflictTest
     mods.add(mod);
 
     ModifyOperationBasis modOpBasis =
-      new ModifyOperationBasis(connection, 1, 1, null, entry.getDN(), mods);
+      new ModifyOperationBasis(aConnection, 1, 1, null, entry.getDN(), mods);
     LocalBackendModifyOperation modOp = new LocalBackendModifyOperation(modOpBasis);
     ModifyContext ctx = new ModifyContext(t, "uniqueId");
     modOp.setAttachment(SYNCHROCONTEXT, ctx);
@@ -1368,7 +1369,7 @@ public class ModifyConflictTest
     if (mod.getModificationType() == ModificationType.ADD)
     {
       AddOperationBasis addOpBasis =
-        new AddOperationBasis(connection, 1, 1, null, entry
+        new AddOperationBasis(aConnection, 1, 1, null, entry
           .getDN(), entry.getObjectClasses(), entry.getUserAttributes(),
           entry.getOperationalAttributes());
       LocalBackendAddOperation addOp = new LocalBackendAddOperation(addOpBasis);
@@ -1448,4 +1449,398 @@ public class ModifyConflictTest
       }
     }
   }
+
+    /**
+   * Test that a single replicated modify operation, that contains a
+   * modify-add of a value followed by modify-delete of that value
+   * is handled properly.
+   */
+  @Test()
+  public void addDeleteSameOpSingle() throws Exception
+  {
+    Entry entry = initializeEntry();
+
+    // load historical from the entry
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+
+    /*
+     * Add at time t1 that the previous delete. The
+     * conflict resolution should detect that this add must be ignored.
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
+        "aValue", 1, true);
+
+    /*
+     * simulate a delete of same value in the same operation done at time
+     * t1
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, "aValue", 1,
+        true);
+
+    /* The entry should have no value */
+    List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
+    assertNull(attrs);
+  }
+
+
+  /**
+   * Test that a single replicated modify operation, that contains a
+   * modify-add of a value followed by modify-delete of the attribute
+   * is handled properly.
+   */
+  @Test()
+  public void addDeleteAttrSameOpSingle() throws Exception
+  {
+    Entry entry = initializeEntry();
+
+    // load historical from the entry
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+
+    /*
+     * Add at time t1 that the previous delete. The
+     * conflict resolution should detect that this add must be ignored.
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
+        "aValue", 1, true);
+
+    /*
+     * simulate a delete of the attribute in the same operation done at time
+     * t1
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, null, 1,
+        true);
+
+    /* The entry should have no value */
+    List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
+    assertNull(attrs);
+  }
+
+  /**
+   * Test that the replay of a single replicated modify operation,
+   * that contains a modify-add of a value followed by modify-delete
+   * of the same value is handled properly.
+   */
+  @Test()
+  public void replayAddDeleteSameOpSingle() throws Exception
+  {
+    Entry entry = initializeEntry();
+
+    // load historical from the entry
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+
+    /*
+     * Add at time t1 that the previous delete. The
+     * conflict resolution should detect that this add must be ignored.
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
+        "aValue", 2, true);
+
+    /*
+     * simulate a delete of the attribute in the same operation done at time
+     * t1
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, "aValue", 2,
+        true);
+
+    /*
+     * Redo the same operations. This time, we expect them not to be applied.
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
+        "aValue", 2, true);
+
+    /*
+     * simulate a delete of the attribute in the same operation done at time
+     * t1
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, "aValue", 2,
+        true);
+
+    /* The entry should have no value */
+    List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
+    assertNull(attrs);
+  }
+
+  /**
+   * Test that the replay of a single replicated modify operation,
+   * that contains a modify-add of a value followed by modify-delete
+   * of the attribute is handled properly.
+   */
+  @Test()
+  public void replayAddDeleteAttrSameOpSingle() throws Exception
+  {
+    Entry entry = initializeEntry();
+
+    // load historical from the entry
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+
+    /*
+     * Add at time t1 that the previous delete. The
+     * conflict resolution should detect that this add must be ignored.
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
+        "aValue", 1, true);
+
+    /*
+     * simulate a delete of the attribute in the same operation done at time
+     * t1
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, null, 1,
+        true);
+
+    /*
+     * Redo the same operations. This time, we expect them not to be applied.
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.ADD,
+        "aValue", 1, true);
+
+    /*
+     * simulate a delete of the attribute in the same operation done at time
+     * t1
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, null, 1,
+        true);
+
+    /* The entry should have no value */
+    List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
+    assertNull(attrs);
+  }
+
+
+    /**
+   * Test that a single replicated modify operation, that contains a
+   * modify-replace of a value followed by modify-delete of that value
+   * is handled properly.
+   */
+  @Test()
+  public void replaceDeleteSameOpSingle() throws Exception
+  {
+    Entry entry = initializeEntry();
+
+    // load historical from the entry
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+
+    /*
+     * Add at time t1 that the previous delete. The
+     * conflict resolution should detect that this add must be ignored.
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.REPLACE,
+        "aValue", 1, true);
+
+    /*
+     * simulate a delete of same value in the same operation done at time
+     * t1
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, "aValue", 1,
+        true);
+
+    /* The entry should have no value */
+    List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
+    assertNull(attrs);
+  }
+
+
+  /**
+   * Test that a single replicated modify operation, that contains a
+   * modify-replace of a value followed by modify-delete of the attribute
+   * is handled properly.
+   */
+  @Test()
+  public void replaceDeleteAttrSameOpSingle() throws Exception
+  {
+    Entry entry = initializeEntry();
+
+    // load historical from the entry
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+
+    /*
+     * Add at time t1 that the previous delete. The
+     * conflict resolution should detect that this add must be ignored.
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.REPLACE,
+        "aValue", 1, true);
+
+    /*
+     * simulate a delete of the attribute in the same operation done at time
+     * t1
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, null, 1,
+        true);
+
+    /* The entry should have no value */
+    List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
+    assertNull(attrs);
+  }
+
+  /**
+   * Test that the replay of a single replicated modify operation,
+   * that contains a modify-replace of a value followed by modify-delete
+   * of the same value is handled properly.
+   */
+  @Test()
+  public void replayReplaceDeleteSameOpSingle() throws Exception
+  {
+    Entry entry = initializeEntry();
+
+    // load historical from the entry
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+
+    /*
+     * Add at time t1 that the previous delete. The
+     * conflict resolution should detect that this add must be ignored.
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.REPLACE,
+        "aValue", 2, true);
+
+    /*
+     * simulate a delete of the attribute in the same operation done at time
+     * t1
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, "aValue", 2,
+        true);
+
+    /*
+     * Redo the same operations. This time, we expect them not to be applied.
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.REPLACE,
+        "aValue", 2, true);
+
+    /*
+     * simulate a delete of the attribute in the same operation done at time
+     * t1
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, "aValue", 2,
+        true);
+
+    /* The entry should have no value */
+    List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
+    assertNull(attrs);
+  }
+
+  /**
+   * Test that the replay of a single replicated modify operation,
+   * that contains a modify-replace of a value followed by modify-delete
+   * of the attribute is handled properly.
+   */
+  @Test()
+  public void replayReplaceDeleteAttrSameOpSingle() throws Exception
+  {
+    Entry entry = initializeEntry();
+
+    // load historical from the entry
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+
+    /*
+     * Add at time t1 that the previous delete. The
+     * conflict resolution should detect that this add must be ignored.
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.REPLACE,
+        "aValue", 1, true);
+
+    /*
+     * simulate a delete of the attribute in the same operation done at time
+     * t1
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, null, 1,
+        true);
+
+    /*
+     * Redo the same operations. This time, we expect them not to be applied.
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.REPLACE,
+        "aValue", 1, true);
+
+    /*
+     * simulate a delete of the attribute in the same operation done at time
+     * t1
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, null, 1,
+        true);
+
+    /* The entry should have no value */
+    List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
+    assertNull(attrs);
+  }
+
+
+  /**
+   * Test that a single replicated modify operation, that contains a
+   * modify-replace of a value followed by modify-delete of that value,
+   * followed by a modify-add of a new value is handled properly.
+   */
+  @Test()
+  public void replaceDeleteAddSameOpSingle() throws Exception
+  {
+    Entry entry = initializeEntry();
+
+    // load historical from the entry
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+
+    /*
+     * Add at time t1 that the previous delete. The
+     * conflict resolution should detect that this add must be ignored.
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.REPLACE,
+        "aValue", 1, true);
+
+    /*
+     * simulate a delete of same value in the same operation done at time
+     * t1
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, "aValue", 1,
+        true);
+    /*
+     * simulate an add of new value in the same operation done at time
+     * t1
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.ADD, "NewValue", 1,
+        true);
+
+    /* The entry should have one value */
+    List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
+    Attribute attr = attrs.get(0);
+    assertEquals(1, attr.size());
+    attr.contains(AttributeValues.create(attr.getAttributeType(), "NewValue"));
+  }
+
+  /**
+   * Test that a single replicated modify operation, that contains a
+   * modify-replace of a value followed by modify-delete of the attribute,
+   * followed by a modify-add of a new value is handled properly.
+   */
+  @Test()
+  public void replaceDeleteAttrAddSameOpSingle() throws Exception
+  {
+    Entry entry = initializeEntry();
+
+    // load historical from the entry
+    EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
+
+    /*
+     * Add at time t1 that the previous delete. The
+     * conflict resolution should detect that this add must be ignored.
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.REPLACE,
+        "aValue", 1, true);
+
+    /*
+     * simulate a delete of same value in the same operation done at time
+     * t1
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.DELETE, null, 1,
+        true);
+    /*
+     * simulate an add of new value in the same operation done at time
+     * t1
+     */
+    testModify(entry, hist, DISPLAYNAME, ModificationType.ADD, "NewValue", 1,
+        true);
+
+    /* The entry should have no value */
+    List<Attribute> attrs = entry.getAttribute(DISPLAYNAME);
+    Attribute attr = attrs.get(0);
+    assertEquals(1, attr.size());
+    attr.contains(AttributeValues.create(attr.getAttributeType(), "NewValue"));
+  }
+
+
 }
