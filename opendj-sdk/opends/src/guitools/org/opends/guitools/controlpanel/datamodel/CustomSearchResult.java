@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -65,7 +66,8 @@ import org.opends.server.util.LDIFReader;
  * exceptions that most of the methods in SearchResult throw.
  *
  */
-public class CustomSearchResult implements Comparable<CustomSearchResult> {
+public class CustomSearchResult implements Comparable<CustomSearchResult>
+{
   private String dn;
   private Map<String, List<Object>> attributes;
   private SortedSet<String> attrNames;
@@ -213,7 +215,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult> {
   /**
    * {@inheritDoc}
    */
-  public CustomSearchResult clone()
+  public CustomSearchResult duplicate()
   {
     CustomSearchResult sr = new CustomSearchResult(dn);
     sr.attributes = new HashMap<String, List<Object>>(attributes);

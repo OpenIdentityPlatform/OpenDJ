@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -658,7 +659,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
       }
       else
       {
-        filteredSr = sr.clone();
+        filteredSr = sr.duplicate();
         filteredSr.set(EntryHistorical.HISTORICALATTRIBUTENAME, newValues);
       }
     }
