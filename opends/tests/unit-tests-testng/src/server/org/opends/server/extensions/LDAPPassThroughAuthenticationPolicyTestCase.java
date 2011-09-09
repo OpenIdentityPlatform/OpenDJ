@@ -29,6 +29,7 @@ package org.opends.server.extensions;
 
 
 import static org.opends.server.extensions.LDAPPassThroughAuthenticationPolicyFactory.isFatalResultCode;
+import static org.opends.server.protocols.ldap.LDAPConstants.OID_NOTICE_OF_DISCONNECTION;
 import static org.testng.Assert.*;
 
 import java.io.IOException;
@@ -51,9 +52,7 @@ import org.opends.server.extensions.LDAPPassThroughAuthenticationPolicyFactory.C
 import org.opends.server.extensions.LDAPPassThroughAuthenticationPolicyFactory.LDAPConnectionFactory;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Writer;
-import org.opends.server.protocols.ldap.LDAPMessage;
-import org.opends.server.protocols.ldap.ProtocolOp;
-import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
+import org.opends.server.protocols.ldap.*;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
@@ -424,7 +423,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     private MappingPolicy mappingPolicy = MappingPolicy.UNMAPPED;
     private final SortedSet<String> primaryServers = new TreeSet<String>();
     private final SortedSet<String> secondaryServers = new TreeSet<String>();
-    private int timeoutMS = 3000;
+    private int timeoutMS = 0; // unlimited
 
 
 
@@ -1320,7 +1319,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     {
       // No valid connections available so this should always fail with
       // INVALID_CREDENTIALS.
-      assertEquals(e.getResultCode(), ResultCode.INVALID_CREDENTIALS);
+      assertEquals(e.getResultCode(), ResultCode.INVALID_CREDENTIALS,
+          e.getMessage());
     }
 
     // There should be no more pending events.
@@ -1394,7 +1394,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     {
       // No valid connections available so this should always fail with
       // INVALID_CREDENTIALS.
-      assertEquals(e.getResultCode(), ResultCode.INVALID_CREDENTIALS);
+      assertEquals(e.getResultCode(), ResultCode.INVALID_CREDENTIALS,
+          e.getMessage());
     }
 
     // Tear down and check final state.
@@ -1490,7 +1491,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     {
       // No valid connections available so this should always fail with
       // INVALID_CREDENTIALS.
-      assertEquals(e.getResultCode(), ResultCode.INVALID_CREDENTIALS);
+      assertEquals(e.getResultCode(), ResultCode.INVALID_CREDENTIALS,
+          e.getMessage());
     }
 
     // Tear down and check final state.
@@ -1516,85 +1518,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
         { ResultCode.UNAVAILABLE }
     };
     // @formatter:on
-  }
-
-
-
-  /**
-   * Checks connect and immediately unbind work ok.
-   *
-   * @throws Exception
-   *           If an unexpected exception occurred.
-   */
-  @Test(enabled = true)
-  public void testLDAPConnectionFactoryConnectAndUnbind() throws Exception
-  {
-    // Mock configuration.
-    final LDAPPassThroughAuthenticationPolicyCfg cfg = mockCfg();
-
-    // Mock server.
-    final MockServer server = mockServer(cfg).thenAccept()
-        .thenReceive(1, new UnbindRequestProtocolOp()).thenClose().start();
-
-    // Test connect and close.
-    final LDAPConnectionFactory factory = new LDAPConnectionFactory(
-        "127.0.0.1", server.getPort(), cfg);
-    try
-    {
-      Connection connection = factory.getConnection();
-      connection.close();
-    }
-    finally
-    {
-      server.stop();
-    }
-  }
-
-
-
-  /**
-   * Checks that client side IO timeouts are enforced.
-   *
-   * @throws Exception
-   *           If an unexpected exception occurred.
-   */
-  @Test(enabled = true)
-  public void testLDAPConnectionFactoryConnectTimeout() throws Exception
-  {
-    // Mock configuration.
-    final LDAPPassThroughAuthenticationPolicyCfg cfg = mockCfg()
-        .withConnectionTimeout(500);
-
-    // Mock server.
-    final MockServer server = mockServer(cfg).thenAccept().thenBlock().start();
-
-    // Test connect and close.
-    final LDAPConnectionFactory factory = new LDAPConnectionFactory(
-        "127.0.0.1", server.getPort(), cfg);
-    Connection connection = null;
-    try
-    {
-      connection = factory.getConnection();
-      connection.search(searchBindDN, SearchScope.WHOLE_SUBTREE,
-          SearchFilter.createFilterFromString("(objectClass=*)"));
-      fail("Search attempt should have timed out");
-    }
-    catch (DirectoryException e)
-    {
-      if (e.getResultCode() != ResultCode.CLIENT_SIDE_TIMEOUT)
-      {
-        throw e;
-      }
-    }
-    finally
-    {
-      if (connection != null)
-      {
-        connection.close();
-      }
-      server.unblock();
-      server.stop();
-    }
   }
 
 
@@ -1691,7 +1614,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       {
         // No valid connections available so this should always fail with
         // INVALID_CREDENTIALS.
-        assertEquals(e.getResultCode(), ResultCode.INVALID_CREDENTIALS);
+        assertEquals(e.getResultCode(), ResultCode.INVALID_CREDENTIALS,
+            e.getMessage());
       }
       break;
     }
@@ -1745,6 +1669,565 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
+  /**
+   * Tests that unknown hosts are handled properly. These should trigger a
+   * CLIENT_SIDE_CONNECT_ERROR result code.
+   *
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(enabled = true)
+  public void testLDAPConnectionFactoryConnectUnknownHost() throws Exception
+  {
+    // Mock configuration.
+    final LDAPPassThroughAuthenticationPolicyCfg cfg = mockCfg();
+
+    // FIXME: can we guarantee that "unknownhost" does not exist?
+    final LDAPConnectionFactory factory = new LDAPConnectionFactory(
+        "unknownhost", 31415, cfg);
+    Connection connection = null;
+    try
+    {
+      connection = factory.getConnection();
+      fail("Connect attempt should have failed");
+    }
+    catch (DirectoryException e)
+    {
+      assertEquals(e.getResultCode(), ResultCode.CLIENT_SIDE_CONNECT_ERROR,
+          e.getMessage());
+    }
+    finally
+    {
+      if (connection != null)
+      {
+        connection.close();
+      }
+    }
+  }
+
+
+
+  /**
+   * Tests that invalid ports are handled properly. These should trigger a
+   * CLIENT_SIDE_CONNECT_ERROR result code.
+   *
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(enabled = true)
+  public void testLDAPConnectionFactoryConnectPortNotInUse() throws Exception
+  {
+    // Grab an unused port.
+    ServerSocket socket = TestCaseUtils.bindFreePort();
+    int port = socket.getLocalPort();
+
+    // FIXME: will it matter if the port is left in TIME_WAIT?
+    socket.close();
+
+    // Mock configuration.
+    final LDAPPassThroughAuthenticationPolicyCfg cfg = mockCfg();
+
+    // Test connect and close.
+    final LDAPConnectionFactory factory = new LDAPConnectionFactory(
+        "127.0.0.1", port, cfg);
+    Connection connection = null;
+    try
+    {
+      connection = factory.getConnection();
+      fail("Connect attempt should have failed");
+    }
+    catch (DirectoryException e)
+    {
+      assertEquals(e.getResultCode(), ResultCode.CLIENT_SIDE_CONNECT_ERROR,
+          e.getMessage());
+    }
+    finally
+    {
+      if (connection != null)
+      {
+        connection.close();
+      }
+    }
+  }
+
+
+
+  /**
+   * Tests successful connect/unbind.
+   *
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(enabled = true)
+  public void testLDAPConnectionFactoryConnectAndUnbind() throws Exception
+  {
+    // Mock configuration.
+    final LDAPPassThroughAuthenticationPolicyCfg cfg = mockCfg();
+
+    // Mock server.
+    final MockServer server = mockServer(cfg).thenAccept()
+        .thenReceive(1, new UnbindRequestProtocolOp()).thenClose().start();
+
+    // Test connect and close.
+    final LDAPConnectionFactory factory = new LDAPConnectionFactory(
+        "127.0.0.1", server.getPort(), cfg);
+    try
+    {
+      Connection connection = factory.getConnection();
+      connection.close();
+    }
+    finally
+    {
+      server.stop();
+    }
+  }
+
+
+
+  /**
+   * Tests valid search returning a single entry works properly.
+   *
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(enabled = true)
+  public void testLDAPConnectionFactorySearchSuccess() throws Exception
+  {
+    // Mock configuration.
+    final LDAPPassThroughAuthenticationPolicyCfg cfg = mockCfg();
+
+    // Mock server.
+    final MockServer server = mockServer(cfg)
+        .thenAccept()
+        .thenReceive(1,
+            newSearchRequest(searchBindDNString, "(uid=aduser)", cfg))
+        .thenSend(1, newSearchEntry(adDNString))
+        .thenSend(1, newSearchResult(ResultCode.SUCCESS)).start();
+
+    // Test connect and close.
+    final LDAPConnectionFactory factory = new LDAPConnectionFactory(
+        "127.0.0.1", server.getPort(), cfg);
+    Connection connection = null;
+    try
+    {
+      connection = factory.getConnection();
+      ByteString username = connection.search(searchBindDN,
+          SearchScope.WHOLE_SUBTREE,
+          SearchFilter.createFilterFromString("(uid=aduser)"));
+      assertEquals(username, ByteString.valueOf(adDNString));
+    }
+    finally
+    {
+      if (connection != null)
+      {
+        connection.close();
+      }
+      server.stop();
+    }
+  }
+
+
+
+  /**
+   * Tests valid search returning no results are handled properly. These should
+   * trigger a CLIENT_SIDE_NO_RESULTS_RETURNED result code.
+   *
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(enabled = true)
+  public void testLDAPConnectionFactorySearchNoResults() throws Exception
+  {
+    // Mock configuration.
+    final LDAPPassThroughAuthenticationPolicyCfg cfg = mockCfg();
+
+    // Mock server.
+    final MockServer server = mockServer(cfg)
+        .thenAccept()
+        .thenReceive(1,
+            newSearchRequest(searchBindDNString, "(uid=aduser)", cfg))
+        .thenSend(1, newSearchResult(ResultCode.SUCCESS)).start();
+
+    // Test connect and close.
+    final LDAPConnectionFactory factory = new LDAPConnectionFactory(
+        "127.0.0.1", server.getPort(), cfg);
+    Connection connection = null;
+    try
+    {
+      connection = factory.getConnection();
+      connection.search(searchBindDN, SearchScope.WHOLE_SUBTREE,
+          SearchFilter.createFilterFromString("(uid=aduser)"));
+      fail("Search attempt should have failed");
+    }
+    catch (DirectoryException e)
+    {
+      assertEquals(e.getResultCode(),
+          ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED, e.getMessage());
+    }
+    finally
+    {
+      if (connection != null)
+      {
+        connection.close();
+      }
+      server.stop();
+    }
+  }
+
+
+
+  /**
+   * Tests valid search returning many results are handled properly. These
+   * should trigger a CLIENT_SIDE_MORE_RESULTS_TO_RETURN result code.
+   *
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(enabled = true)
+  public void testLDAPConnectionFactorySearchTooManyResults() throws Exception
+  {
+    // Mock configuration.
+    final LDAPPassThroughAuthenticationPolicyCfg cfg = mockCfg();
+
+    // Mock server.
+    final MockServer server = mockServer(cfg)
+        .thenAccept()
+        .thenReceive(1,
+            newSearchRequest(searchBindDNString, "(uid=aduser)", cfg))
+        .thenSend(1, newSearchEntry(adDNString))
+        .thenSend(1, newSearchEntry(opendjDNString))
+        .thenSend(1, newSearchResult(ResultCode.SUCCESS)).start();
+
+    // Test connect and close.
+    final LDAPConnectionFactory factory = new LDAPConnectionFactory(
+        "127.0.0.1", server.getPort(), cfg);
+    Connection connection = null;
+    try
+    {
+      connection = factory.getConnection();
+      connection.search(searchBindDN, SearchScope.WHOLE_SUBTREE,
+          SearchFilter.createFilterFromString("(uid=aduser)"));
+      fail("Search attempt should have failed");
+    }
+    catch (DirectoryException e)
+    {
+      assertEquals(e.getResultCode(),
+          ResultCode.CLIENT_SIDE_MORE_RESULTS_TO_RETURN, e.getMessage());
+    }
+    finally
+    {
+      if (connection != null)
+      {
+        connection.close();
+      }
+      server.stop();
+    }
+  }
+
+
+
+  /**
+   * Tests valid search returning a single entry followed by a size limit
+   * exceeded error are handled properly. These should trigger a
+   * CLIENT_SIDE_MORE_RESULTS_TO_RETURN result code.
+   *
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(enabled = true)
+  public void testLDAPConnectionFactorySearchSizeLimit() throws Exception
+  {
+    // Mock configuration.
+    final LDAPPassThroughAuthenticationPolicyCfg cfg = mockCfg();
+
+    // Mock server.
+    final MockServer server = mockServer(cfg)
+        .thenAccept()
+        .thenReceive(1,
+            newSearchRequest(searchBindDNString, "(uid=aduser)", cfg))
+        .thenSend(1, newSearchEntry(adDNString))
+        .thenSend(1, newSearchResult(ResultCode.SIZE_LIMIT_EXCEEDED)).start();
+
+    // Test connect and close.
+    final LDAPConnectionFactory factory = new LDAPConnectionFactory(
+        "127.0.0.1", server.getPort(), cfg);
+    Connection connection = null;
+    try
+    {
+      connection = factory.getConnection();
+      connection.search(searchBindDN, SearchScope.WHOLE_SUBTREE,
+          SearchFilter.createFilterFromString("(uid=aduser)"));
+      fail("Search attempt should have failed");
+    }
+    catch (DirectoryException e)
+    {
+      assertEquals(e.getResultCode(),
+          ResultCode.CLIENT_SIDE_MORE_RESULTS_TO_RETURN, e.getMessage());
+    }
+    finally
+    {
+      if (connection != null)
+      {
+        connection.close();
+      }
+      server.stop();
+    }
+  }
+
+
+
+  /**
+   * Tests valid search which times out at the client. These should trigger a
+   * CLIENT_SIDE_TIMEOUT result code.
+   *
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(enabled = true)
+  public void testLDAPConnectionFactorySearchClientTimeout() throws Exception
+  {
+    // Mock configuration.
+    final LDAPPassThroughAuthenticationPolicyCfg cfg = mockCfg()
+        .withConnectionTimeout(500);
+
+    // Mock server.
+    final MockServer server = mockServer(cfg).thenAccept().thenBlock().start();
+
+    // Test connect and close.
+    final LDAPConnectionFactory factory = new LDAPConnectionFactory(
+        "127.0.0.1", server.getPort(), cfg);
+    Connection connection = null;
+    try
+    {
+      connection = factory.getConnection();
+      connection.search(searchBindDN, SearchScope.WHOLE_SUBTREE,
+          SearchFilter.createFilterFromString("(objectClass=*)"));
+      fail("Search attempt should have timed out");
+    }
+    catch (DirectoryException e)
+    {
+      assertEquals(e.getResultCode(), ResultCode.CLIENT_SIDE_TIMEOUT,
+          e.getMessage());
+    }
+    finally
+    {
+      if (connection != null)
+      {
+        connection.close();
+      }
+      server.unblock();
+      server.stop();
+    }
+  }
+
+
+
+  /**
+   * Tests valid search returning a single entry followed by a time limit
+   * exceeded error are handled properly. These should trigger a
+   * CLIENT_SIDE_MORE_RESULTS_TO_RETURN result code.
+   *
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(enabled = true)
+  public void testLDAPConnectionFactorySearchTimeLimit() throws Exception
+  {
+    // Mock configuration.
+    final LDAPPassThroughAuthenticationPolicyCfg cfg = mockCfg();
+
+    // Mock server.
+    final MockServer server = mockServer(cfg)
+        .thenAccept()
+        .thenReceive(1,
+            newSearchRequest(searchBindDNString, "(uid=aduser)", cfg))
+        .thenSend(1, newSearchEntry(adDNString))
+        .thenSend(1, newSearchResult(ResultCode.TIME_LIMIT_EXCEEDED)).start();
+
+    // Test connect and close.
+    final LDAPConnectionFactory factory = new LDAPConnectionFactory(
+        "127.0.0.1", server.getPort(), cfg);
+    Connection connection = null;
+    try
+    {
+      connection = factory.getConnection();
+      connection.search(searchBindDN, SearchScope.WHOLE_SUBTREE,
+          SearchFilter.createFilterFromString("(uid=aduser)"));
+      fail("Search attempt should have failed");
+    }
+    catch (DirectoryException e)
+    {
+      assertEquals(e.getResultCode(), ResultCode.TIME_LIMIT_EXCEEDED,
+          e.getMessage());
+    }
+    finally
+    {
+      if (connection != null)
+      {
+        connection.close();
+      }
+      server.stop();
+    }
+  }
+
+
+
+  /**
+   * Tests valid search no entries and an error result. The error result code
+   * should be passed back to the called.
+   *
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(enabled = true)
+  public void testLDAPConnectionFactorySearchOtherError() throws Exception
+  {
+    // Mock configuration.
+    final LDAPPassThroughAuthenticationPolicyCfg cfg = mockCfg();
+
+    // Mock server.
+    final MockServer server = mockServer(cfg)
+        .thenAccept()
+        .thenReceive(1,
+            newSearchRequest(searchBindDNString, "(uid=aduser)", cfg))
+        .thenSend(1, newSearchResult(ResultCode.UNAVAILABLE)).start();
+
+    // Test connect and close.
+    final LDAPConnectionFactory factory = new LDAPConnectionFactory(
+        "127.0.0.1", server.getPort(), cfg);
+    Connection connection = null;
+    try
+    {
+      connection = factory.getConnection();
+      connection.search(searchBindDN, SearchScope.WHOLE_SUBTREE,
+          SearchFilter.createFilterFromString("(uid=aduser)"));
+      fail("Search attempt should have failed");
+    }
+    catch (DirectoryException e)
+    {
+      // Should be the result code sent by the server.
+      assertEquals(e.getResultCode(), ResultCode.UNAVAILABLE, e.getMessage());
+    }
+    finally
+    {
+      if (connection != null)
+      {
+        connection.close();
+      }
+      server.stop();
+    }
+  }
+
+
+
+  /**
+   * Tests valid search which receives a disconnect notification. The error
+   * result code should be passed back to the called.
+   *
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(enabled = true)
+  public void testLDAPConnectionFactorySearchDisconnectNotification()
+      throws Exception
+  {
+    // Mock configuration.
+    final LDAPPassThroughAuthenticationPolicyCfg cfg = mockCfg();
+
+    // Mock server.
+    final MockServer server = mockServer(cfg)
+        .thenAccept()
+        .thenReceive(1,
+            newSearchRequest(searchBindDNString, "(uid=aduser)", cfg))
+        .thenSend(0 /* disconnect ID */,
+            newDisconnectNotification(ResultCode.UNAVAILABLE)).start();
+
+    // Test connect and close.
+    final LDAPConnectionFactory factory = new LDAPConnectionFactory(
+        "127.0.0.1", server.getPort(), cfg);
+    Connection connection = null;
+    try
+    {
+      connection = factory.getConnection();
+      connection.search(searchBindDN, SearchScope.WHOLE_SUBTREE,
+          SearchFilter.createFilterFromString("(uid=aduser)"));
+      fail("Search attempt should have failed");
+    }
+    catch (DirectoryException e)
+    {
+      // Should be the result code sent by the server.
+      assertEquals(e.getResultCode(), ResultCode.UNAVAILABLE, e.getMessage());
+    }
+    finally
+    {
+      if (connection != null)
+      {
+        connection.close();
+      }
+      server.stop();
+    }
+  }
+
+
+
+  /**
+   * Tests valid search which never receives a response because the server
+   * abruptly closes the connection.
+   *
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(enabled = true)
+  public void testLDAPConnectionFactorySearchConnectionClosed()
+      throws Exception
+  {
+    // Mock configuration.
+    final LDAPPassThroughAuthenticationPolicyCfg cfg = mockCfg();
+
+    // Mock server.
+    final MockServer server = mockServer(cfg)
+        .thenAccept()
+        .thenReceive(1,
+            newSearchRequest(searchBindDNString, "(uid=aduser)", cfg))
+        .thenClose().start();
+
+    // Test connect and close.
+    final LDAPConnectionFactory factory = new LDAPConnectionFactory(
+        "127.0.0.1", server.getPort(), cfg);
+    Connection connection = null;
+    try
+    {
+      connection = factory.getConnection();
+      connection.search(searchBindDN, SearchScope.WHOLE_SUBTREE,
+          SearchFilter.createFilterFromString("(uid=aduser)"));
+      fail("Search attempt should have failed");
+    }
+    catch (DirectoryException e)
+    {
+      assertEquals(e.getResultCode(), ResultCode.CLIENT_SIDE_SERVER_DOWN,
+          e.getMessage());
+    }
+    finally
+    {
+      if (connection != null)
+      {
+        connection.close();
+      }
+      server.stop();
+    }
+  }
+
+
+
+  // Bind success
+  // Bind authn failure (pwd)
+  // Bind auth failure (username)
+  // Bind auth timeout
+  // Bind auth fatal error
+  // Bind auth non-fatal error
+  // Bind + notice of disconnect
+  // Bind + server close
+
   MockPolicyCfg mockCfg()
   {
     return new MockPolicyCfg();
@@ -1757,5 +2240,40 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
   {
     final ServerSocket serverSocket = TestCaseUtils.bindFreePort();
     return new MockServer(serverSocket);
+  }
+
+
+
+  SearchRequestProtocolOp newSearchRequest(String dn, String filter,
+      LDAPPassThroughAuthenticationPolicyCfg cfg) throws LDAPException
+  {
+    int timeout = (int) (cfg.getConnectionTimeout() / 1000);
+    return new SearchRequestProtocolOp(ByteString.valueOf(dn),
+        SearchScope.WHOLE_SUBTREE, DereferencePolicy.DEREF_ALWAYS, 1, timeout,
+        true, RawFilter.create(filter),
+        LDAPPassThroughAuthenticationPolicyFactory.NO_ATTRIBUTES);
+  }
+
+
+
+  SearchResultEntryProtocolOp newSearchEntry(String dn)
+      throws DirectoryException
+  {
+    return new SearchResultEntryProtocolOp(DN.decode(dn));
+  }
+
+
+
+  SearchResultDoneProtocolOp newSearchResult(ResultCode resultCode)
+  {
+    return new SearchResultDoneProtocolOp(resultCode.getIntValue());
+  }
+
+
+
+  ExtendedResponseProtocolOp newDisconnectNotification(ResultCode resultCode)
+  {
+    return new ExtendedResponseProtocolOp(resultCode.getIntValue(), null, null,
+        null, OID_NOTICE_OF_DISCONNECTION, null);
   }
 }
