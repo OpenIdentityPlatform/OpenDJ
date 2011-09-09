@@ -40,7 +40,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -988,8 +988,8 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       private final int poolSize =
         Runtime.getRuntime().availableProcessors() * 2;
       private final Semaphore availableConnections = new Semaphore(poolSize);
-      private final LinkedBlockingQueue<Connection> connectionPool =
-        new LinkedBlockingQueue<Connection>();
+      private final ConcurrentLinkedQueue<Connection> connectionPool =
+        new ConcurrentLinkedQueue<Connection>();
 
 
 
