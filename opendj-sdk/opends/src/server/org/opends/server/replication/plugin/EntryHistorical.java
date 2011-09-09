@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -621,7 +622,7 @@ public class EntryHistorical
    * @return A boolean indicating if the Entry was renamed or added after
    *                   the ChangeNumber that is given as a parameter.
    */
-  public boolean AddedOrRenamedAfter(ChangeNumber cn)
+  public boolean addedOrRenamedAfter(ChangeNumber cn)
   {
     if (cn.older(entryADDDate) || cn.older(entryMODDNDate))
     {

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -288,7 +289,7 @@ public class PendingChanges
    *                   or must continue (true).
    */
 
-  public synchronized boolean RecoveryUntil(ChangeNumber recovered)
+  public synchronized boolean recoveryUntil(ChangeNumber recovered)
   {
     ChangeNumber lastLocalChange = domain.getLastLocalChange();
 

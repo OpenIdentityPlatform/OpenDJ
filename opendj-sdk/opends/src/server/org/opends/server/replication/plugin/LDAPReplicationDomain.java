@@ -2106,7 +2106,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
        */
       EntryHistorical hist = EntryHistorical.newInstanceFromEntry(
           modifyDNOperation.getOriginalEntry());
-      if (hist.AddedOrRenamedAfter(ctx.getChangeNumber()))
+      if (hist.addedOrRenamedAfter(ctx.getChangeNumber()))
       {
         return new SynchronizationProviderResult.StopProcessing(
             ResultCode.NO_OPERATION, null);
@@ -2462,7 +2462,7 @@ public class LDAPReplicationDomain extends ReplicationDomain
          entrytoRename = entry;
          entrytoRenameDate = history.getDNDate();
        }
-       else if (!history.AddedOrRenamedAfter(entrytoRenameDate))
+       else if (!history.addedOrRenamedAfter(entrytoRenameDate))
        {
          // this conflict is older than the previous, keep it.
          entrytoRename = entry;
@@ -4830,7 +4830,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         currentStartChangeNumber = endChangeNumber;
       }
 
-    } while (pendingChanges.RecoveryUntil(lastRetrievedChange) &&
+    } while (pendingChanges.recoveryUntil(lastRetrievedChange) &&
              (op.getResultCode().equals(ResultCode.SUCCESS)));
 
     return op.getResultCode().equals(ResultCode.SUCCESS);
