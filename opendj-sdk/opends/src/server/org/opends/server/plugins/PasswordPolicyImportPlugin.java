@@ -288,14 +288,17 @@ public final class PasswordPolicyImportPlugin
          new HashMap<DN,PasswordStorageScheme<?>[]>();
     for (AuthenticationPolicy ap : DirectoryServer.getAuthenticationPolicies())
     {
-      PasswordPolicy p = (PasswordPolicy) ap;
+      if (ap.isPasswordPolicy())
+      {
+        PasswordPolicy p = (PasswordPolicy) ap;
 
-      List<PasswordStorageScheme<?>> schemeList =
-           p.getDefaultPasswordStorageSchemes();
-      PasswordStorageScheme<?>[] schemeArray =
-           new PasswordStorageScheme[schemeList.size()];
-      schemeList.toArray(schemeArray);
-      schemeMap.put(p.getDN(), schemeArray);
+        List<PasswordStorageScheme<?>> schemeList = p
+            .getDefaultPasswordStorageSchemes();
+        PasswordStorageScheme<?>[] schemeArray =
+          new PasswordStorageScheme[schemeList.size()];
+        schemeList.toArray(schemeArray);
+        schemeMap.put(p.getDN(), schemeArray);
+      }
     }
 
 
