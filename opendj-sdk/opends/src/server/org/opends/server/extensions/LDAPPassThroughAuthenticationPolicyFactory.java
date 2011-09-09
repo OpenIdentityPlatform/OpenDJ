@@ -290,7 +290,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           new SearchRequestProtocolOp(
             ByteString.valueOf(baseDN.toString()), scope,
             DereferencePolicy.DEREF_ALWAYS, 1 /* size limit */,
-            (timeoutMS / 1000), false /* types only */,
+            (timeoutMS / 1000), true /* types only */,
             RawFilter.create(filter), NO_ATTRIBUTES);
         sendRequest(searchRequest);
 
@@ -310,7 +310,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           case OP_TYPE_SEARCH_RESULT_ENTRY:
             final SearchResultEntryProtocolOp searchEntry = responseMessage
                 .getSearchResultEntryProtocolOp();
-            if (username != null)
+            if (username == null)
             {
               username = ByteString.valueOf(searchEntry.getDN().toString());
             }
@@ -340,13 +340,6 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
               throw new DirectoryException(
                   ResultCode.CLIENT_SIDE_MORE_RESULTS_TO_RETURN,
                   ERR_LDAP_PTA_CONNECTION_SEARCH_SIZE_LIMIT.get(host, port,
-                      String.valueOf(options.dn()), String.valueOf(baseDN),
-                      String.valueOf(filter)));
-
-            case TIME_LIMIT_EXCEEDED:
-              // The server timed out the search.
-              throw new DirectoryException(ResultCode.CLIENT_SIDE_TIMEOUT,
-                  ERR_LDAP_PTA_CONNECTION_SEARCH_TIME_LIMIT.get(host, port,
                       String.valueOf(options.dn()), String.valueOf(baseDN),
                       String.valueOf(filter)));
 
@@ -1712,8 +1705,10 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
   // Debug tracer for this class.
   private static final DebugTracer TRACER = DebugLogger.getTracer();
 
-  // Attribute list for searches requesting no attributes.
-  private static final LinkedHashSet<String> NO_ATTRIBUTES;
+  /**
+   * Attribute list for searches requesting no attributes.
+   */
+  static final LinkedHashSet<String> NO_ATTRIBUTES;
 
   static
   {
@@ -1761,6 +1756,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     case OTHER:
     case UNWILLING_TO_PERFORM:
     case OPERATIONS_ERROR:
+    case TIME_LIMIT_EXCEEDED:
     case CLIENT_SIDE_CONNECT_ERROR:
     case CLIENT_SIDE_DECODING_ERROR:
     case CLIENT_SIDE_ENCODING_ERROR:
