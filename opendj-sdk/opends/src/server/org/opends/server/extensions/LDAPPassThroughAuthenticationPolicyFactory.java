@@ -47,7 +47,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
-import javax.net.ssl.SSLException;
+import javax.net.ssl.*;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -55,7 +55,9 @@ import org.opends.server.admin.std.server.*;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.AuthenticationPolicyFactory;
 import org.opends.server.api.AuthenticationPolicyState;
+import org.opends.server.api.TrustManagerProvider;
 import org.opends.server.config.ConfigException;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1Exception;
@@ -637,8 +639,41 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
           if (options.isUseSSL())
           {
-            // TODO: SSL configuration.
-            ldapSocket = plainSocket;
+            // Obtain the configured trust manager which will be used in order
+            // to determine the trust of the remote LDAP server.
+            DN trustManagerDN = options.getTrustManagerProviderDN();
+            TrustManagerProvider<?> trustManagerProvider = DirectoryServer
+                .getTrustManagerProvider(trustManagerDN);
+            TrustManager[] tm = null;
+            if (trustManagerProvider != null)
+            {
+              tm = trustManagerProvider.getTrustManagers();
+            }
+
+            // Create the SSL context and initialize it.
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null /* key managers */, tm, null /* rng */);
+
+            // Create the SSL socket.
+            SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+            SSLSocket sslSocket = (SSLSocket) sslSocketFactory.createSocket(
+                plainSocket, host, port, true);
+            ldapSocket = sslSocket;
+
+            sslSocket.setUseClientMode(true);
+            if (!options.getSSLProtocol().isEmpty())
+            {
+              sslSocket.setEnabledProtocols(options.getSSLProtocol().toArray(
+                  new String[0]));
+            }
+            if (!options.getSSLCipherSuite().isEmpty())
+            {
+              sslSocket.setEnabledCipherSuites(options.getSSLCipherSuite()
+                  .toArray(new String[0]));
+            }
+
+            // Force TLS negotiation.
+            sslSocket.startHandshake();
           }
           else
           {
@@ -734,7 +769,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
             ERR_LDAP_PTA_CONNECT_SSL_ERROR.get(host, port,
                 String.valueOf(options.dn()), e.getMessage()), e);
       }
-      catch (final IOException e)
+      catch (final Exception e)
       {
         if (debugEnabled())
         {
@@ -879,7 +914,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
             }
             else
             {
-              pooledConnections.offer(this);
+              connectionPool.offer(connection);
             }
             availableConnections.release();
           }
@@ -933,9 +968,12 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         {
           if (isFatalResultCode(e.getResultCode()))
           {
-            connectionIsClosed = true;
-            connection.close();
-            availableConnections.release();
+            if (!connectionIsClosed)
+            {
+              connectionIsClosed = true;
+              connection.close();
+              availableConnections.release();
+            }
           }
         }
 
@@ -950,8 +988,8 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       private final int poolSize =
         Runtime.getRuntime().availableProcessors() * 2;
       private final Semaphore availableConnections = new Semaphore(poolSize);
-      private final LinkedBlockingQueue<PooledConnection> pooledConnections =
-        new LinkedBlockingQueue<PooledConnection>();
+      private final LinkedBlockingQueue<Connection> connectionPool =
+        new LinkedBlockingQueue<Connection>();
 
 
 
@@ -972,10 +1010,10 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         // policy's exclusive lock.
         poolIsClosed = true;
 
-        PooledConnection pooledConnection;
-        while ((pooledConnection = pooledConnections.poll()) != null)
+        Connection connection;
+        while ((connection = connectionPool.poll()) != null)
         {
-          pooledConnection.connection.close();
+          connection.close();
         }
 
         // Since we have the exclusive lock, there should be no more connections
@@ -1005,13 +1043,12 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
         // There is either a pooled connection or we are allowed to create
         // one.
-        PooledConnection pooledConnection = pooledConnections.poll();
-        if (pooledConnection == null)
+        Connection connection = connectionPool.poll();
+        if (connection == null)
         {
           try
           {
-            final Connection connection = factory.getConnection();
-            pooledConnection = new PooledConnection(connection);
+            connection = factory.getConnection();
           }
           catch (final DirectoryException e)
           {
@@ -1020,7 +1057,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           }
         }
 
-        return pooledConnection;
+        return new PooledConnection(connection);
       }
 
 
@@ -1037,7 +1074,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         builder.append(", poolSize=");
         builder.append(poolSize);
         builder.append(", inPool=");
-        builder.append(pooledConnections.size());
+        builder.append(connectionPool.size());
         builder.append(", available=");
         builder.append(availableConnections.availablePermits());
         builder.append(')');
