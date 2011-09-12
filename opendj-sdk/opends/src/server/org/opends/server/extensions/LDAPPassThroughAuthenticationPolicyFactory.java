@@ -36,10 +36,7 @@ import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.*;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -65,7 +62,6 @@ import org.opends.server.protocols.ldap.*;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
-import org.opends.server.util.StaticUtils;
 
 
 
@@ -1382,11 +1378,10 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
                * references a non-user entry.
                */
               throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-                  ERR_LDAP_PTA_MAPPING_ATTRIBUTE_NOT_FOUND.get(
-                      String.valueOf(userEntry.getDN()),
-                      String.valueOf(configuration.dn()),
-                      StaticUtils.collectionToString(
-                          configuration.getMappedAttribute(), ", ")));
+                  ERR_LDAP_PTA_MAPPING_ATTRIBUTE_NOT_FOUND.get(String
+                      .valueOf(userEntry.getDN()), String.valueOf(configuration
+                      .dn()), mappedAttributesAsString(configuration
+                      .getMappedAttribute())));
             }
 
             break;
@@ -1422,11 +1417,10 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
                * references a non-user entry.
                */
               throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-                  ERR_LDAP_PTA_MAPPING_ATTRIBUTE_NOT_FOUND.get(
-                      String.valueOf(userEntry.getDN()),
-                      String.valueOf(configuration.dn()),
-                      StaticUtils.collectionToString(
-                          configuration.getMappedAttribute(), ", ")));
+                  ERR_LDAP_PTA_MAPPING_ATTRIBUTE_NOT_FOUND.get(String
+                      .valueOf(userEntry.getDN()), String.valueOf(configuration
+                      .dn()), mappedAttributesAsString(configuration
+                      .getMappedAttribute())));
             }
 
             final SearchFilter filter;
@@ -1906,4 +1900,27 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     return true;
   }
 
+
+
+  private static String mappedAttributesAsString(
+      Collection<AttributeType> attributes)
+  {
+    switch (attributes.size())
+    {
+    case 0:
+      return "";
+    case 1:
+      return attributes.iterator().next().getNameOrOID();
+    default:
+      StringBuilder builder = new StringBuilder();
+      Iterator<AttributeType> i = attributes.iterator();
+      builder.append(i.next().getNameOrOID());
+      while (i.hasNext())
+      {
+        builder.append(", ");
+        builder.append(i.next().getNameOrOID());
+      }
+      return builder.toString();
+    }
+  }
 }

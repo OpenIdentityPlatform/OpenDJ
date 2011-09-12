@@ -71,14 +71,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     ExtensionsTestCase
 {
 
-  // TODO: multiple search base DNs
-  // TODO: multiple mapping attributes/values
-  // TODO: searches returning no results or too many
-  // TODO: missing mapping attributes
-  // TODO: connection pooling
-  // TODO: load balancing
-  // TODO: fail-over
-
   static class CloseEvent extends Event<Void>
   {
     private final GetConnectionEvent getConnectionEvent;
@@ -2541,6 +2533,315 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
   }
 
 
+
+  /**
+   * Tests that mapped PTA performs searches across multiple base DNs if
+   * configured.
+   *
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(enabled = true)
+  public void testMultipleSearchBaseDNs() throws Exception
+  {
+    // Mock configuration.
+    final LDAPPassThroughAuthenticationPolicyCfg cfg = mockCfg()
+        .withPrimaryServer(phost1)
+        .withMappingPolicy(MappingPolicy.MAPPED_SEARCH)
+        .withMappedAttribute("uid").withBaseDN("o=first")
+        .withBaseDN("o=second").withBaseDN("o=third");
+
+    // Create the provider and its list of expected events.
+    final GetLDAPConnectionFactoryEvent fe = new GetLDAPConnectionFactoryEvent(
+        phost1, cfg);
+    final MockProvider provider = new MockProvider().expectEvent(fe);
+
+    // Add search events.
+    GetConnectionEvent ceSearch = new GetConnectionEvent(fe);
+    provider
+        .expectEvent(ceSearch)
+        .expectEvent(
+            new SimpleBindEvent(ceSearch, searchBindDNString, "searchPassword",
+                ResultCode.SUCCESS))
+        .expectEvent(
+            new SearchEvent(ceSearch, "o=first", SearchScope.WHOLE_SUBTREE,
+                "(uid=aduser)", ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED))
+        .expectEvent(
+            new SearchEvent(ceSearch, "o=second", SearchScope.WHOLE_SUBTREE,
+                "(uid=aduser)", ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED))
+        .expectEvent(
+            new SearchEvent(ceSearch, "o=third", SearchScope.WHOLE_SUBTREE,
+                "(uid=aduser)", adDNString));
+    // Connection should be cached until the policy is finalized.
+
+    // Add bind events.
+    final GetConnectionEvent ceBind = new GetConnectionEvent(fe);
+    provider.expectEvent(ceBind).expectEvent(
+        new SimpleBindEvent(ceBind, adDNString, userPassword,
+            ResultCode.SUCCESS));
+
+    // Connection should be cached until the policy is finalized.
+
+    // Obtain policy and state.
+    final LDAPPassThroughAuthenticationPolicyFactory factory = new LDAPPassThroughAuthenticationPolicyFactory(
+        provider);
+    assertTrue(factory.isConfigurationAcceptable(cfg, null));
+    final AuthenticationPolicy policy = factory.createAuthenticationPolicy(cfg);
+    final AuthenticationPolicyState state = policy
+        .createAuthenticationPolicyState(userEntry);
+    assertEquals(state.getAuthenticationPolicy(), policy);
+
+    // Perform authentication.
+    assertTrue(state.passwordMatches(ByteString.valueOf(userPassword)));
+
+    // There should be no more pending events.
+    provider.assertAllExpectedEventsReceived();
+    state.finalizeStateAfterBind();
+
+    // Cached connections should be closed when the policy is finalized.
+    provider.expectEvent(new CloseEvent(ceSearch));
+    provider.expectEvent(new CloseEvent(ceBind));
+
+    // Tear down and check final state.
+    policy.finalizeAuthenticationPolicy();
+    provider.assertAllExpectedEventsReceived();
+  }
+
+
+
+  /**
+   * Tests that mapped PTA uses an appropriate filter when multiple match
+   * attributes are defined.
+   *
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(enabled = true)
+  public void testMultipleMappingAttributes() throws Exception
+  {
+    // Mock configuration.
+    final LDAPPassThroughAuthenticationPolicyCfg cfg = mockCfg()
+        .withPrimaryServer(phost1)
+        .withMappingPolicy(MappingPolicy.MAPPED_SEARCH)
+        .withMappedAttribute("uid1").withMappedAttribute("uid2")
+        .withMappedAttribute("uid3").withBaseDN("o=ad");
+
+    // Create the provider and its list of expected events.
+    final GetLDAPConnectionFactoryEvent fe = new GetLDAPConnectionFactoryEvent(
+        phost1, cfg);
+    final MockProvider provider = new MockProvider().expectEvent(fe);
+
+    // Add search events.
+    GetConnectionEvent ceSearch = new GetConnectionEvent(fe);
+    provider
+        .expectEvent(ceSearch)
+        .expectEvent(
+            new SimpleBindEvent(ceSearch, searchBindDNString, "searchPassword",
+                ResultCode.SUCCESS))
+        .expectEvent(
+            new SearchEvent(ceSearch, "o=ad", SearchScope.WHOLE_SUBTREE,
+                "(|(uid1=one)(uid2=two)(uid3=three))", adDNString));
+    // Connection should be cached until the policy is finalized.
+
+    // Add bind events.
+    final GetConnectionEvent ceBind = new GetConnectionEvent(fe);
+    provider.expectEvent(ceBind).expectEvent(
+        new SimpleBindEvent(ceBind, adDNString, userPassword,
+            ResultCode.SUCCESS));
+
+    // Connection should be cached until the policy is finalized.
+
+    // Obtain policy and state.
+    Entry testUser = TestCaseUtils.makeEntry(
+        /* @formatter:off */
+        "dn: " + opendjDNString,
+        "objectClass: top",
+        "objectClass: person",
+        "sn: user",
+        "cn: test user",
+        "aduser: " + adDNString,
+        "uid1: one",
+        "uid2: two",
+        "uid3: three"
+        /* @formatter:on */
+    );
+
+    final LDAPPassThroughAuthenticationPolicyFactory factory = new LDAPPassThroughAuthenticationPolicyFactory(
+        provider);
+    assertTrue(factory.isConfigurationAcceptable(cfg, null));
+    final AuthenticationPolicy policy = factory.createAuthenticationPolicy(cfg);
+    final AuthenticationPolicyState state = policy
+        .createAuthenticationPolicyState(testUser);
+    assertEquals(state.getAuthenticationPolicy(), policy);
+
+    // Perform authentication.
+    assertTrue(state.passwordMatches(ByteString.valueOf(userPassword)));
+
+    // There should be no more pending events.
+    provider.assertAllExpectedEventsReceived();
+    state.finalizeStateAfterBind();
+
+    // Cached connections should be closed when the policy is finalized.
+    provider.expectEvent(new CloseEvent(ceSearch));
+    provider.expectEvent(new CloseEvent(ceBind));
+
+    // Tear down and check final state.
+    policy.finalizeAuthenticationPolicy();
+    provider.assertAllExpectedEventsReceived();
+  }
+
+
+
+  /**
+   * Tests that mapped PTA uses an appropriate filter when multiple match
+   * attribute values are found.
+   *
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(enabled = true)
+  public void testMultipleMappingAttributeValues() throws Exception
+  {
+    // Mock configuration.
+    final LDAPPassThroughAuthenticationPolicyCfg cfg = mockCfg()
+        .withPrimaryServer(phost1)
+        .withMappingPolicy(MappingPolicy.MAPPED_SEARCH)
+        .withMappedAttribute("uid1").withBaseDN("o=ad");
+
+    // Create the provider and its list of expected events.
+    final GetLDAPConnectionFactoryEvent fe = new GetLDAPConnectionFactoryEvent(
+        phost1, cfg);
+    final MockProvider provider = new MockProvider().expectEvent(fe);
+
+    // Add search events.
+    GetConnectionEvent ceSearch = new GetConnectionEvent(fe);
+    provider
+        .expectEvent(ceSearch)
+        .expectEvent(
+            new SimpleBindEvent(ceSearch, searchBindDNString, "searchPassword",
+                ResultCode.SUCCESS))
+        .expectEvent(
+            new SearchEvent(ceSearch, "o=ad", SearchScope.WHOLE_SUBTREE,
+                "(|(uid1=one)(uid1=two)(uid1=three))", adDNString));
+    // Connection should be cached until the policy is finalized.
+
+    // Add bind events.
+    final GetConnectionEvent ceBind = new GetConnectionEvent(fe);
+    provider.expectEvent(ceBind).expectEvent(
+        new SimpleBindEvent(ceBind, adDNString, userPassword,
+            ResultCode.SUCCESS));
+
+    // Connection should be cached until the policy is finalized.
+
+    // Obtain policy and state.
+    Entry testUser = TestCaseUtils.makeEntry(
+        /* @formatter:off */
+        "dn: " + opendjDNString,
+        "objectClass: top",
+        "objectClass: person",
+        "sn: user",
+        "cn: test user",
+        "aduser: " + adDNString,
+        "uid1: one",
+        "uid1: two",
+        "uid1: three"
+        /* @formatter:on */
+    );
+
+    final LDAPPassThroughAuthenticationPolicyFactory factory = new LDAPPassThroughAuthenticationPolicyFactory(
+        provider);
+    assertTrue(factory.isConfigurationAcceptable(cfg, null));
+    final AuthenticationPolicy policy = factory.createAuthenticationPolicy(cfg);
+    final AuthenticationPolicyState state = policy
+        .createAuthenticationPolicyState(testUser);
+    assertEquals(state.getAuthenticationPolicy(), policy);
+
+    // Perform authentication.
+    assertTrue(state.passwordMatches(ByteString.valueOf(userPassword)));
+
+    // There should be no more pending events.
+    provider.assertAllExpectedEventsReceived();
+    state.finalizeStateAfterBind();
+
+    // Cached connections should be closed when the policy is finalized.
+    provider.expectEvent(new CloseEvent(ceSearch));
+    provider.expectEvent(new CloseEvent(ceBind));
+
+    // Tear down and check final state.
+    policy.finalizeAuthenticationPolicy();
+    provider.assertAllExpectedEventsReceived();
+  }
+
+
+
+  /**
+   * Tests that mapped PTA fails when no match attribute values are found.
+   *
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(enabled = true)
+  public void testMissingMappingAttributes() throws Exception
+  {
+    // Mock configuration.
+    final LDAPPassThroughAuthenticationPolicyCfg cfg = mockCfg()
+        .withPrimaryServer(phost1)
+        .withMappingPolicy(MappingPolicy.MAPPED_SEARCH)
+        .withMappedAttribute("uid1").withBaseDN("o=ad");
+
+    // Create the provider and its list of expected events.
+    final GetLDAPConnectionFactoryEvent fe = new GetLDAPConnectionFactoryEvent(
+        phost1, cfg);
+    final MockProvider provider = new MockProvider().expectEvent(fe);
+
+    // Obtain policy and state.
+    Entry testUser = TestCaseUtils.makeEntry(
+        /* @formatter:off */
+        "dn: " + opendjDNString,
+        "objectClass: top",
+        "objectClass: person",
+        "sn: user",
+        "cn: test user",
+        "aduser: " + adDNString
+        /* @formatter:on */
+    );
+
+    final LDAPPassThroughAuthenticationPolicyFactory factory = new LDAPPassThroughAuthenticationPolicyFactory(
+        provider);
+    assertTrue(factory.isConfigurationAcceptable(cfg, null));
+    final AuthenticationPolicy policy = factory.createAuthenticationPolicy(cfg);
+    final AuthenticationPolicyState state = policy
+        .createAuthenticationPolicyState(testUser);
+    assertEquals(state.getAuthenticationPolicy(), policy);
+
+    // Perform authentication.
+    try
+    {
+      state.passwordMatches(ByteString.valueOf(userPassword));
+      fail("password match unexpectedly succeeded");
+    }
+    catch (final DirectoryException e)
+    {
+      // No mapping attributes so this should always fail with
+      // INVALID_CREDENTIALS.
+      assertEquals(e.getResultCode(), ResultCode.INVALID_CREDENTIALS,
+          e.getMessage());
+    }
+
+    // There should be no more pending events.
+    provider.assertAllExpectedEventsReceived();
+    state.finalizeStateAfterBind();
+
+    // Tear down and check final state.
+    policy.finalizeAuthenticationPolicy();
+    provider.assertAllExpectedEventsReceived();
+  }
+
+
+
+  // TODO: connection pooling
+  // TODO: load balancing
+  // TODO: fail-over
 
   MockPolicyCfg mockCfg()
   {
