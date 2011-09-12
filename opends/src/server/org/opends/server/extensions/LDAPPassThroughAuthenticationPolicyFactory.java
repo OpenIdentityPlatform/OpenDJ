@@ -80,7 +80,6 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
   // TODO: handle password policy response controls? AD?
   // TODO: periodically ping offline servers in order to detect when they come
   // back.
-  // FIXME: validate host/port (check port in range).
 
   /**
    * An LDAP connection which will be used in order to search for or
@@ -1637,8 +1636,8 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         final LDAPPassThroughAuthenticationPolicyCfg configuration,
         final List<Message> unacceptableReasons)
     {
-      // The configuration is always valid.
-      return true;
+      return LDAPPassThroughAuthenticationPolicyFactory.this
+          .isConfigurationAcceptable(configuration, unacceptableReasons);
     }
 
 
@@ -1673,6 +1672,11 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         final LDAPPassThroughAuthenticationPolicyCfg configuration)
     {
       this.configuration = configuration;
+
+      // Use two pools per server: one for authentication (bind) and one for
+      // searches. Even if the searches are performed anonymously we cannot use
+      // the same pool, otherwise they will be performed as the most recently
+      // authenticated user.
 
       // Create load-balancers for primary servers.
       final LoadBalancer primarySearchLoadBalancer;
@@ -1858,7 +1862,44 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       final LDAPPassThroughAuthenticationPolicyCfg configuration,
       final List<Message> unacceptableReasons)
   {
-    // The configuration is always valid.
+    // Check that the port numbers are valid. We won't actually try and connect
+    // to the server since they may not be available (hence we have fail-over
+    // capabilities).
+    boolean configurationIsAcceptable = true;
+
+    for (String hostPort : configuration.getPrimaryRemoteLDAPServer())
+    {
+      configurationIsAcceptable &= isServerAddressValid(configuration,
+          unacceptableReasons, hostPort);
+    }
+
+    for (String hostPort : configuration.getSecondaryRemoteLDAPServer())
+    {
+      configurationIsAcceptable &= isServerAddressValid(configuration,
+          unacceptableReasons, hostPort);
+    }
+
+    return configurationIsAcceptable;
+  }
+
+
+
+  private static boolean isServerAddressValid(
+      final LDAPPassThroughAuthenticationPolicyCfg configuration,
+      final List<Message> unacceptableReasons, String hostPort)
+  {
+    final int colonIndex = hostPort.lastIndexOf(":");
+    final int port = Integer.parseInt(hostPort.substring(colonIndex + 1));
+    if (port < 1 || port > 65535)
+    {
+      if (unacceptableReasons != null)
+      {
+        Message msg = ERR_LDAP_PTA_INVALID_PORT_NUMBER.get(
+            String.valueOf(configuration.dn()), hostPort);
+        unacceptableReasons.add(msg);
+      }
+      return false;
+    }
     return true;
   }
 
