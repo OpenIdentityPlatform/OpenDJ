@@ -558,9 +558,9 @@ public class HistoricalTest
         "set-replication-domain-prop",
         "--provider-name","Multimaster Synchronization",
         "--domain-name",testName,
-        "--set","conflicts-historical-purge-delay:1s");
+        "--set","conflicts-historical-purge-delay:1m");
 
-    Thread.sleep(2*1000);
+    Thread.sleep(60*1000);
 
     // launch the purge
     Entry taskInit = TestCaseUtils.makeEntry(
