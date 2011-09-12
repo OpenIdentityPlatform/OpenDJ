@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.replication;
@@ -316,63 +317,69 @@ public class  UpdateOperationTest extends ReplicationTestCase
       openReplicationSession(baseDn, 2, 100, replServerPort, 1000, true);
 
 
-    /*
-     * Create a Change number generator to generate new changenumbers
-     * when we need to send operation messages to the replicationServer.
-     */
-    ChangeNumberGenerator gen = new ChangeNumberGenerator(2, 0);
+    try
+    {
+      /*
+       * Create a Change number generator to generate new changenumbers
+       * when we need to send operation messages to the replicationServer.
+       */
+      ChangeNumberGenerator gen = new ChangeNumberGenerator(2, 0);
 
 
-    // Disable the directory server receive status.
-    setReceiveStatus(synchroServerEntry.getDN().toString(), false);
+      // Disable the directory server receive status.
+      setReceiveStatus(synchroServerEntry.getDN().toString(), false);
 
 
-    // Create and publish an update message to add an entry.
-    AddMsg addMsg = new AddMsg(gen.newChangeNumber(),
-        personWithUUIDEntry.getDN().toString(),
-        user1entryUUID,
-        baseUUID,
-        personWithUUIDEntry.getObjectClassAttribute(),
-        personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
-    broker.publish(addMsg);
+      // Create and publish an update message to add an entry.
+      AddMsg addMsg = new AddMsg(gen.newChangeNumber(),
+          personWithUUIDEntry.getDN().toString(),
+          user1entryUUID,
+          baseUUID,
+          personWithUUIDEntry.getObjectClassAttribute(),
+          personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
+      broker.publish(addMsg);
 
-    Entry resultEntry;
+      Entry resultEntry;
 
-    // Check that the entry has not been created in the directory server.
-    resultEntry = getEntry(personWithUUIDEntry.getDN(), 1000, true);
-    assertNull(resultEntry,
-        "The replication message was replayed while the server " +
-             "receive status was disabled");
+      // Check that the entry has not been created in the directory server.
+      resultEntry = getEntry(personWithUUIDEntry.getDN(), 1000, true);
+      assertNull(resultEntry,
+          "The replication message was replayed while the server "
+          + "receive status was disabled");
 
-    // Enable the directory server receive status.
-    setReceiveStatus(synchroServerEntry.getDN().toString(), true);
+      // Enable the directory server receive status.
+      setReceiveStatus(synchroServerEntry.getDN().toString(), true);
 
-    // Create and publish another update message to add an entry.
-    addMsg = new AddMsg(gen.newChangeNumber(),
-        personWithUUIDEntry.getDN().toString(),
-        user1entryUUID,
-        baseUUID,
-        personWithUUIDEntry.getObjectClassAttribute(),
-        personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
-    broker.publish(addMsg);
+      // Create and publish another update message to add an entry.
+      addMsg = new AddMsg(gen.newChangeNumber(),
+          personWithUUIDEntry.getDN().toString(),
+          user1entryUUID,
+          baseUUID,
+          personWithUUIDEntry.getObjectClassAttribute(),
+          personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
+      broker.publish(addMsg);
 
-    // Check that the entry has been created in the directory server.
-    resultEntry = getEntry(personWithUUIDEntry.getDN(), 10000, true);
-    assertNotNull(resultEntry,
-        "The replication message was not replayed after the server " +
-             "receive status was enabled");
+      // Check that the entry has been created in the directory server.
+      resultEntry = getEntry(personWithUUIDEntry.getDN(), 10000, true);
+      assertNotNull(resultEntry,
+          "The replication message was not replayed after the server "
+          + "receive status was enabled");
 
-    // Delete the entries to clean the database.
-    DeleteMsg delMsg =
-      new DeleteMsg(personWithUUIDEntry.getDN().toString(),
+      // Delete the entries to clean the database.
+      DeleteMsg delMsg =
+          new DeleteMsg(personWithUUIDEntry.getDN().toString(),
           gen.newChangeNumber(), user1entryUUID);
-    broker.publish(delMsg);
-    resultEntry = getEntry(personWithUUIDEntry.getDN(), 10000, false);
+      broker.publish(delMsg);
+      resultEntry = getEntry(personWithUUIDEntry.getDN(), 10000, false);
 
-    // Check that the delete operation has been applied.
-    assertNull(resultEntry,
-        "The DELETE replication message was not replayed");
-    broker.stop();
+      // Check that the delete operation has been applied.
+      assertNull(resultEntry,
+          "The DELETE replication message was not replayed");
+    }
+    finally
+    {
+      broker.stop();
+    }
   }
 
   /**
@@ -397,77 +404,82 @@ public class  UpdateOperationTest extends ReplicationTestCase
     ReplicationBroker broker =
       openReplicationSession(baseDn, 2, 100, replServerPort, 1000, true);
 
-
-    /*
-     * Create a Change number generator to generate new changenumbers
-     * when we need to send operation messages to the replicationServer.
-     */
-    ChangeNumberGenerator gen = new ChangeNumberGenerator( 2, 0);
-
-
-    // Create and publish an update message to add an entry.
-    AddMsg addMsg = new AddMsg(gen.newChangeNumber(),
-        personWithUUIDEntry.getDN().toString(),
-        user1entryUUID,
-        baseUUID,
-        personWithUUIDEntry.getObjectClassAttribute(),
-        personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
-    broker.publish(addMsg);
-
-    Entry resultEntry;
-
-    // Check that the entry has been created in the directory server.
-    resultEntry = getEntry(personWithUUIDEntry.getDN(), 30000, true);
-    assertNotNull(resultEntry,
-        "The ADD replication message was not replayed");
-
-    // Send a first modify operation message.
-    List<Modification> mods = generatemods("telephonenumber", "01 02 45");
-    ModifyMsg modMsg = new ModifyMsg(gen.newChangeNumber(),
-        personWithUUIDEntry.getDN(), mods,
-        user1entryUUID);
-    broker.publish(modMsg);
-
-    // Check that the modify has been replayed.
-    boolean found = checkEntryHasAttribute(personWithUUIDEntry.getDN(),
-                           "telephonenumber", "01 02 45", 10000, true);
-    if (!found)
+    try
     {
-      fail("The first modification was not replayed.");
-    }
+      /*
+       * Create a Change number generator to generate new changenumbers
+       * when we need to send operation messages to the replicationServer.
+       */
+      ChangeNumberGenerator gen = new ChangeNumberGenerator(2, 0);
 
-    // Simulate loss of heartbeats.
-    HeartbeatThread.setHeartbeatsDisabled(true);
-    Thread.sleep(3000);
-    HeartbeatThread.setHeartbeatsDisabled(false);
 
-    // Send a second modify operation message.
-    mods = generatemods("description", "Description was changed");
-    modMsg = new ModifyMsg(gen.newChangeNumber(),
-        personWithUUIDEntry.getDN(), mods,
-        user1entryUUID);
-    broker.publish(modMsg);
+      // Create and publish an update message to add an entry.
+      AddMsg addMsg = new AddMsg(gen.newChangeNumber(),
+          personWithUUIDEntry.getDN().toString(),
+          user1entryUUID,
+          baseUUID,
+          personWithUUIDEntry.getObjectClassAttribute(),
+          personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
+      broker.publish(addMsg);
 
-    // Check that the modify has been replayed.
-    found = checkEntryHasAttribute(personWithUUIDEntry.getDN(),
-                                   "description", "Description was changed",
-                                   10000, true);
-    if (!found)
-    {
-      fail("The second modification was not replayed.");
-    }
+      Entry resultEntry;
 
-    // Delete the entries to clean the database.
-    DeleteMsg delMsg =
-      new DeleteMsg(personWithUUIDEntry.getDN().toString(),
+      // Check that the entry has been created in the directory server.
+      resultEntry = getEntry(personWithUUIDEntry.getDN(), 30000, true);
+      assertNotNull(resultEntry,
+          "The ADD replication message was not replayed");
+
+      // Send a first modify operation message.
+      List<Modification> mods = generatemods("telephonenumber", "01 02 45");
+      ModifyMsg modMsg = new ModifyMsg(gen.newChangeNumber(),
+          personWithUUIDEntry.getDN(), mods,
+          user1entryUUID);
+      broker.publish(modMsg);
+
+      // Check that the modify has been replayed.
+      boolean found = checkEntryHasAttribute(personWithUUIDEntry.getDN(),
+          "telephonenumber", "01 02 45", 10000, true);
+      if (!found)
+      {
+        fail("The first modification was not replayed.");
+      }
+
+      // Simulate loss of heartbeats.
+      HeartbeatThread.setHeartbeatsDisabled(true);
+      Thread.sleep(3000);
+      HeartbeatThread.setHeartbeatsDisabled(false);
+
+      // Send a second modify operation message.
+      mods = generatemods("description", "Description was changed");
+      modMsg = new ModifyMsg(gen.newChangeNumber(),
+          personWithUUIDEntry.getDN(), mods,
+          user1entryUUID);
+      broker.publish(modMsg);
+
+      // Check that the modify has been replayed.
+      found = checkEntryHasAttribute(personWithUUIDEntry.getDN(),
+          "description", "Description was changed",
+          10000, true);
+      if (!found)
+      {
+        fail("The second modification was not replayed.");
+      }
+
+      // Delete the entries to clean the database.
+      DeleteMsg delMsg =
+          new DeleteMsg(personWithUUIDEntry.getDN().toString(),
           gen.newChangeNumber(), user1entryUUID);
-    broker.publish(delMsg);
-    resultEntry = getEntry(personWithUUIDEntry.getDN(), 10000, false);
+      broker.publish(delMsg);
+      resultEntry = getEntry(personWithUUIDEntry.getDN(), 10000, false);
 
-    // Check that the delete operation has been applied.
-    assertNull(resultEntry,
-        "The DELETE replication message was not replayed");
-    broker.stop();
+      // Check that the delete operation has been applied.
+      assertNull(resultEntry,
+          "The DELETE replication message was not replayed");
+    }
+    finally
+    {
+      broker.stop();
+    }
   }
 
   /**
@@ -500,109 +512,113 @@ public class  UpdateOperationTest extends ReplicationTestCase
      * This must use a different serverId to that of the directory server.
      */
     ReplicationBroker broker =
-      openReplicationSession(baseDn, 2, 100, replServerPort, 1000, true);
+        openReplicationSession(baseDn, 2, 100, replServerPort, 1000, true);
 
-    // Add the first test entry.
-    TestCaseUtils.addEntry(
-         "dn: cn=test1," + baseDn.toString(),
-         "displayname: Test1",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "cn: test1",
-         "sn: test"
-       );
+    try
+    {
+      // Add the first test entry.
+      TestCaseUtils.addEntry(
+          "dn: cn=test1," + baseDn.toString(),
+          "displayname: Test1",
+          "objectClass: top",
+          "objectClass: person",
+          "objectClass: organizationalPerson",
+          "objectClass: inetOrgPerson",
+          "cn: test1",
+          "sn: test");
 
-    // Read the entry back to get its UUID.
-    Entry entry = DirectoryServer.getEntry(dn1);
-    List<Attribute> attrs = entry.getAttribute(entryuuidType);
-    String entryuuid =
-         attrs.get(0).iterator().next().getValue().toString();
+      // Read the entry back to get its UUID.
+      Entry entry = DirectoryServer.getEntry(dn1);
+      List<Attribute> attrs = entry.getAttribute(entryuuidType);
+      String entryuuid =
+          attrs.get(0).iterator().next().getValue().toString();
 
-    // A change on a first server.
-    long changeTime = TimeThread.getTime();
-    ChangeNumber t1 = new ChangeNumber(changeTime,  0,  3);
+      // A change on a first server.
+      long changeTime = TimeThread.getTime();
+      ChangeNumber t1 = new ChangeNumber(changeTime, 0, 3);
 
-    // A change on a second server.
-    changeTime++;
-    ChangeNumber t2 = new ChangeNumber(changeTime,  0,  4);
+      // A change on a second server.
+      changeTime++;
+      ChangeNumber t2 = new ChangeNumber(changeTime, 0, 4);
 
-    // Simulate the ordering t2:replace:B followed by t1:add:A that
-    updateMonitorCount(baseDn, monitorAttr);
+      // Simulate the ordering t2:replace:B followed by t1:add:A that
+      updateMonitorCount(baseDn, monitorAttr);
 
-    // Replay a replace of a value B at time t2 on a second server.
-    Attribute attr = Attributes.create(attrType, "B");
-    Modification mod = new Modification(ModificationType.REPLACE, attr);
-    List<Modification> mods = new ArrayList<Modification>(1);
-    mods.add(mod);
-    ModifyMsg modMsg = new ModifyMsg(t2, dn1, mods, entryuuid);
-    broker.publish(modMsg);
+      // Replay a replace of a value B at time t2 on a second server.
+      Attribute attr = Attributes.create(attrType, "B");
+      Modification mod = new Modification(ModificationType.REPLACE, attr);
+      List<Modification> mods = new ArrayList<Modification>(1);
+      mods.add(mod);
+      ModifyMsg modMsg = new ModifyMsg(t2, dn1, mods, entryuuid);
+      broker.publish(modMsg);
 
-    Thread.sleep(2000);
+      Thread.sleep(2000);
 
-    // Replay an add of a value A at time t1 on a first server.
-    attr = Attributes.create(attrType, "A");
-    mod = new Modification(ModificationType.ADD, attr);
-    mods = new ArrayList<Modification>(1);
-    mods.add(mod);
-    modMsg = new ModifyMsg(t1, dn1, mods, entryuuid);
-    broker.publish(modMsg);
+      // Replay an add of a value A at time t1 on a first server.
+      attr = Attributes.create(attrType, "A");
+      mod = new Modification(ModificationType.ADD, attr);
+      mods = new ArrayList<Modification>(1);
+      mods.add(mod);
+      modMsg = new ModifyMsg(t1, dn1, mods, entryuuid);
+      broker.publish(modMsg);
 
-    Thread.sleep(2000);
+      Thread.sleep(2000);
 
-    // Read the entry to see how the conflict was resolved.
-    entry = DirectoryServer.getEntry(dn1);
-    attrs = entry.getAttribute(attrType);
-    String attrValue1 =
-         attrs.get(0).iterator().next().getValue().toString();
+      // Read the entry to see how the conflict was resolved.
+      entry = DirectoryServer.getEntry(dn1);
+      attrs = entry.getAttribute(attrType);
+      String attrValue1 =
+          attrs.get(0).iterator().next().getValue().toString();
 
-    // the value should be the last (time t2) value added
-    assertEquals(attrValue1, "B");
-    assertEquals(getMonitorDelta(), 1);
+      // the value should be the last (time t2) value added
+      assertEquals(attrValue1, "B");
+      assertEquals(getMonitorDelta(), 1);
 
-    // Simulate the ordering t2:delete:displayname followed by
-    // t1:replace:displayname
-    // A change on a first server.
-    changeTime++;
-    t1 = new ChangeNumber(changeTime,  0,  3);
+      // Simulate the ordering t2:delete:displayname followed by
+      // t1:replace:displayname
+      // A change on a first server.
+      changeTime++;
+      t1 = new ChangeNumber(changeTime, 0, 3);
 
-    // A change on a second server.
-    changeTime++;
-    t2 = new ChangeNumber(changeTime,  0,  4);
+      // A change on a second server.
+      changeTime++;
+      t2 = new ChangeNumber(changeTime, 0, 4);
 
-    // Simulate the ordering t2:delete:displayname followed by t1:replace:A
-    updateMonitorCount(baseDn, monitorAttr);
+      // Simulate the ordering t2:delete:displayname followed by t1:replace:A
+      updateMonitorCount(baseDn, monitorAttr);
 
-    // Replay an delete of attribute displayname at time t2 on a second server.
-    attr = Attributes.empty(attrType);
-    mod = new Modification(ModificationType.DELETE, attr);
-    mods = new ArrayList<Modification>(1);
-    mods.add(mod);
-    modMsg = new ModifyMsg(t2, dn1, mods, entryuuid);
-    broker.publish(modMsg);
+      // Replay an delete of attribute displayname at time t2 on a second server.
+      attr = Attributes.empty(attrType);
+      mod = new Modification(ModificationType.DELETE, attr);
+      mods = new ArrayList<Modification>(1);
+      mods.add(mod);
+      modMsg = new ModifyMsg(t2, dn1, mods, entryuuid);
+      broker.publish(modMsg);
 
-    Thread.sleep(2000);
+      Thread.sleep(2000);
 
-    // Replay a replace of a value A at time t1 on a first server.
-    attr = Attributes.create(attrType, "A");
-    mod = new Modification(ModificationType.REPLACE, attr);
-    mods = new ArrayList<Modification>(1);
-    mods.add(mod);
-    modMsg = new ModifyMsg(t1, dn1, mods, entryuuid);
-    broker.publish(modMsg);
+      // Replay a replace of a value A at time t1 on a first server.
+      attr = Attributes.create(attrType, "A");
+      mod = new Modification(ModificationType.REPLACE, attr);
+      mods = new ArrayList<Modification>(1);
+      mods.add(mod);
+      modMsg = new ModifyMsg(t1, dn1, mods, entryuuid);
+      broker.publish(modMsg);
 
-    Thread.sleep(2000);
+      Thread.sleep(2000);
 
-    // Read the entry to see how the conflict was resolved.
-    entry = DirectoryServer.getEntry(dn1);
-    attrs = entry.getAttribute(attrType);
+      // Read the entry to see how the conflict was resolved.
+      entry = DirectoryServer.getEntry(dn1);
+      attrs = entry.getAttribute(attrType);
 
-    // there should not be a value (delete at time t1)
-    assertNull(attrs);
-    assertEquals(getMonitorDelta(), 1);
-
-    broker.stop();
+      // there should not be a value (delete at time t2)
+      assertNull(attrs);
+      assertEquals(getMonitorDelta(), 1);
+    }
+    finally
+    {
+      broker.stop();
+    }
   }
 
 
@@ -636,6 +652,8 @@ public class  UpdateOperationTest extends ReplicationTestCase
     ReplicationBroker broker =
       openReplicationSession(baseDn, 2, 100, replServerPort, 1000, true);
 
+    try
+    {
     /*
      * Create a Change number generator to generate new changenumbers
      * when we need to send operations messages to the replicationServer.
@@ -1299,8 +1317,11 @@ public class  UpdateOperationTest extends ReplicationTestCase
         DN.decode("uid=new person,ou=baseDn2,"+baseDn),
         LDAPReplicationDomain.DS_SYNC_CONFLICT,
         "uid=newrdn,ou=baseDn2,ou=People," + TEST_ROOT_DN_STRING, 1000, true));
-
-    broker.stop();
+    }
+    finally
+    {
+      broker.stop();
+    }
   }
 
   /**
@@ -1731,63 +1752,69 @@ public class  UpdateOperationTest extends ReplicationTestCase
     ReplicationBroker broker =
       openReplicationSession(baseDn, serverId, 100, replServerPort, 1000, true);
 
-    /*
-     * Create a Change number generator to generate new changenumbers
-     * when we need to send operation messages to the replicationServer.
-     */
-    long inTheFutur = System.currentTimeMillis() + (3600*1000);
-    ChangeNumberGenerator gen = new ChangeNumberGenerator(serverId, inTheFutur);
+    try
+    {
+      /*
+       * Create a Change number generator to generate new changenumbers
+       * when we need to send operation messages to the replicationServer.
+       */
+      long inTheFutur = System.currentTimeMillis() + (3600 * 1000);
+      ChangeNumberGenerator gen = new ChangeNumberGenerator(serverId, inTheFutur);
 
-    // Create and publish an update message to add an entry.
-    AddMsg addMsg = new AddMsg(
-        gen.newChangeNumber(),
-        user3dn.toString(),
-        user3UUID,
-        baseUUID,
-        user3Entry.getObjectClassAttribute(),
-        user3Entry.getAttributes(),
-        new ArrayList<Attribute>());
-    broker.publish(addMsg);
+      // Create and publish an update message to add an entry.
+      AddMsg addMsg = new AddMsg(
+          gen.newChangeNumber(),
+          user3dn.toString(),
+          user3UUID,
+          baseUUID,
+          user3Entry.getObjectClassAttribute(),
+          user3Entry.getAttributes(),
+          new ArrayList<Attribute>());
+      broker.publish(addMsg);
 
-    Entry resultEntry;
+      Entry resultEntry;
 
-    // Check that the entry has not been created in the directory server.
-    resultEntry = getEntry(user3Entry.getDN(), 1000, true);
-    assertNotNull(resultEntry, "The entry has not been created");
+      // Check that the entry has not been created in the directory server.
+      resultEntry = getEntry(user3Entry.getDN(), 1000, true);
+      assertNotNull(resultEntry, "The entry has not been created");
 
-    // Modify the entry
-    List<Modification> mods = generatemods("telephonenumber", "01 02 45");
-    ModifyOperationBasis modOp = new ModifyOperationBasis(
-        connection,
-        InternalClientConnection.nextOperationID(),
-        InternalClientConnection.nextMessageID(),
-        null,
-        user3Entry.getDN(),
-        mods);
-    modOp.setInternalOperation(true);
-    modOp.run();
+      // Modify the entry
+      List<Modification> mods = generatemods("telephonenumber", "01 02 45");
+      ModifyOperationBasis modOp = new ModifyOperationBasis(
+          connection,
+          InternalClientConnection.nextOperationID(),
+          InternalClientConnection.nextMessageID(),
+          null,
+          user3Entry.getDN(),
+          mods);
+      modOp.setInternalOperation(true);
+      modOp.run();
 
-    // See if the client has received the msg
-    ReplicationMsg msg = broker.receive();
-    assertTrue(msg instanceof ModifyMsg,
-      "The received replication message is not a MODIFY msg");
-    ModifyMsg modMsg = (ModifyMsg) msg;
-    assertEquals(addMsg.getChangeNumber().getTimeSec(),
-                 modMsg.getChangeNumber().getTimeSec(),
-                "The MOD timestamp should have been adjusted to the ADD one");
+      // See if the client has received the msg
+      ReplicationMsg msg = broker.receive();
+      assertTrue(msg instanceof ModifyMsg,
+          "The received replication message is not a MODIFY msg");
+      ModifyMsg modMsg = (ModifyMsg) msg;
+      assertEquals(addMsg.getChangeNumber().getTimeSec(),
+          modMsg.getChangeNumber().getTimeSec(),
+          "The MOD timestamp should have been adjusted to the ADD one");
 
-    // Delete the entries to clean the database.
-    DeleteMsg delMsg =
-      new DeleteMsg(
+      // Delete the entries to clean the database.
+      DeleteMsg delMsg =
+          new DeleteMsg(
           user3Entry.getDN().toString(),
           gen.newChangeNumber(),
           user3UUID);
-    broker.publish(delMsg);
+      broker.publish(delMsg);
 
-    // Check that the delete operation has been applied.
-    resultEntry = getEntry(user3Entry.getDN(), 10000, false);
-    assertNull(resultEntry,
-        "The DELETE replication message was not replayed");
-    broker.stop();
+      // Check that the delete operation has been applied.
+      resultEntry = getEntry(user3Entry.getDN(), 10000, false);
+      assertNull(resultEntry,
+          "The DELETE replication message was not replayed");
+    }
+    finally
+    {
+      broker.stop();
+    }
   }
 }
