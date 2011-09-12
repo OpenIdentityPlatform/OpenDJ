@@ -284,8 +284,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     {
       builder.append("GetLDAPConnectionFactoryEvent(");
       builder.append(hostPort);
-      builder.append(", ");
-      builder.append(options);
       builder.append(')');
       return builder;
     }
@@ -2839,9 +2837,142 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-  // TODO: connection pooling
-  // TODO: load balancing
   // TODO: fail-over
+  // TODO: retry search/bind on error
+  // TODO: detect when servers come back online
+
+  /**
+   * Tests load balancing across 3 servers.
+   *
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(enabled = true)
+  public void testLoadBalancing() throws Exception
+  {
+    // Mock configuration.
+    final LDAPPassThroughAuthenticationPolicyCfg cfg = mockCfg()
+        .withPrimaryServer(phost1).withPrimaryServer(phost2)
+        .withPrimaryServer(phost3)
+        .withMappingPolicy(MappingPolicy.MAPPED_SEARCH)
+        .withMappedAttribute("uid").withBaseDN("o=ad");
+
+    // Create all the events.
+    final MockProvider provider = new MockProvider();
+
+    // First of all the connection factories are created.
+    final GetLDAPConnectionFactoryEvent fe1 = new GetLDAPConnectionFactoryEvent(
+        phost1, cfg);
+    final GetLDAPConnectionFactoryEvent fe2 = new GetLDAPConnectionFactoryEvent(
+        phost2, cfg);
+    final GetLDAPConnectionFactoryEvent fe3 = new GetLDAPConnectionFactoryEvent(
+        phost3, cfg);
+    provider.expectEvent(fe1).expectEvent(fe2).expectEvent(fe3);
+
+    // Get connection for phost1, then search, then bind.
+    final GetConnectionEvent ceSearch1 = new GetConnectionEvent(fe1);
+    final GetConnectionEvent ceBind1 = new GetConnectionEvent(fe1);
+    provider
+        .expectEvent(ceSearch1)
+        .expectEvent(
+            new SimpleBindEvent(ceSearch1, searchBindDNString,
+                "searchPassword", ResultCode.SUCCESS))
+        .expectEvent(
+            new SearchEvent(ceSearch1, "o=ad", SearchScope.WHOLE_SUBTREE,
+                "(uid=aduser)", adDNString))
+        .expectEvent(ceBind1)
+        .expectEvent(
+            new SimpleBindEvent(ceBind1, adDNString, userPassword,
+                ResultCode.SUCCESS));
+
+    // Get connection for phost2, then search, then bind.
+    final GetConnectionEvent ceSearch2 = new GetConnectionEvent(fe2);
+    final GetConnectionEvent ceBind2 = new GetConnectionEvent(fe2);
+    provider
+        .expectEvent(ceSearch2)
+        .expectEvent(
+            new SimpleBindEvent(ceSearch2, searchBindDNString,
+                "searchPassword", ResultCode.SUCCESS))
+        .expectEvent(
+            new SearchEvent(ceSearch2, "o=ad", SearchScope.WHOLE_SUBTREE,
+                "(uid=aduser)", adDNString))
+        .expectEvent(ceBind2)
+        .expectEvent(
+            new SimpleBindEvent(ceBind2, adDNString, userPassword,
+                ResultCode.SUCCESS));
+
+    // Get connection for phost3, then search, then bind.
+    final GetConnectionEvent ceSearch3 = new GetConnectionEvent(fe3);
+    final GetConnectionEvent ceBind3 = new GetConnectionEvent(fe3);
+    provider
+        .expectEvent(ceSearch3)
+        .expectEvent(
+            new SimpleBindEvent(ceSearch3, searchBindDNString,
+                "searchPassword", ResultCode.SUCCESS))
+        .expectEvent(
+            new SearchEvent(ceSearch3, "o=ad", SearchScope.WHOLE_SUBTREE,
+                "(uid=aduser)", adDNString))
+        .expectEvent(ceBind3)
+        .expectEvent(
+            new SimpleBindEvent(ceBind3, adDNString, userPassword,
+                ResultCode.SUCCESS));
+
+    // Repeat again using cached connection to phost1: search, then bind.
+    provider.expectEvent(
+        new SearchEvent(ceSearch1, "o=ad", SearchScope.WHOLE_SUBTREE,
+            "(uid=aduser)", adDNString)).expectEvent(
+        new SimpleBindEvent(ceBind1, adDNString, userPassword,
+            ResultCode.SUCCESS));
+
+    // Repeat again using cached connection to phost2: search, then bind.
+    provider.expectEvent(
+        new SearchEvent(ceSearch2, "o=ad", SearchScope.WHOLE_SUBTREE,
+            "(uid=aduser)", adDNString)).expectEvent(
+        new SimpleBindEvent(ceBind2, adDNString, userPassword,
+            ResultCode.SUCCESS));
+
+    // Repeat again using cached connection to phost3: search, then bind.
+    provider.expectEvent(
+        new SearchEvent(ceSearch3, "o=ad", SearchScope.WHOLE_SUBTREE,
+            "(uid=aduser)", adDNString)).expectEvent(
+        new SimpleBindEvent(ceBind3, adDNString, userPassword,
+            ResultCode.SUCCESS));
+
+    // Connections should be cached until the policy is finalized.
+
+    // Obtain policy and state.
+    final LDAPPassThroughAuthenticationPolicyFactory factory = new LDAPPassThroughAuthenticationPolicyFactory(
+        provider);
+    assertTrue(factory.isConfigurationAcceptable(cfg, null));
+    final AuthenticationPolicy policy = factory.createAuthenticationPolicy(cfg);
+
+    // Cycle twice through the LB pool.
+    for (int i = 0; i < 6; i++)
+    {
+      final AuthenticationPolicyState state = policy
+          .createAuthenticationPolicyState(userEntry);
+      assertEquals(state.getAuthenticationPolicy(), policy);
+
+      // Perform authentication.
+      assertTrue(state.passwordMatches(ByteString.valueOf(userPassword)));
+
+      state.finalizeStateAfterBind();
+    }
+
+    // Cached connections should be closed when the policy is finalized.
+    provider.expectEvent(new CloseEvent(ceSearch1));
+    provider.expectEvent(new CloseEvent(ceSearch2));
+    provider.expectEvent(new CloseEvent(ceSearch3));
+    provider.expectEvent(new CloseEvent(ceBind1));
+    provider.expectEvent(new CloseEvent(ceBind2));
+    provider.expectEvent(new CloseEvent(ceBind3));
+
+    // Tear down and check final state.
+    policy.finalizeAuthenticationPolicy();
+    provider.assertAllExpectedEventsReceived();
+  }
+
+
 
   MockPolicyCfg mockCfg()
   {
