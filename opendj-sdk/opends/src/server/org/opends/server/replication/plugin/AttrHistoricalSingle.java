@@ -251,8 +251,7 @@ public class AttrHistoricalSingle extends AttrHistorical
       break;
 
     case REPLACE:
-      if ((changeNumber.older(deleteTime))
-          && ((addTime == null) || (changeNumber.older(addTime))))
+      if (changeNumber.older(deleteTime))
       {
         conflict = true;
         modsIterator.remove();

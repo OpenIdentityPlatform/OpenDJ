@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.replication.plugin;
@@ -346,8 +347,6 @@ public class HistoricalTest
     mod = new Modification(ModificationType.ADD, attr);
     publishModify(broker, t2, dn1, entryuuid, mod);
 
-    Thread.sleep(2000);
-
     // Simulate the reverse ordering t2:add:B followed by t1:add:A that
     // would happen on the other server.
 
@@ -529,16 +528,16 @@ public class HistoricalTest
 
       assertEquals(count, assertCount);
     }
-  
+
   /**
-   * Test the task that purges the replication historical stored in the user 
+   * Test the task that purges the replication historical stored in the user
    * entry.
    * Steps :
    * - creates entry containing historical
    * - wait for the pruge delay
    * - lauch the purge task
    * - verify that all historical has been purged
-   * 
+   *
    * TODO: another test should be written that configures the task no NOT have
    * the time to purge everything in 1 run .. and thus to relauch it to finish
    * the purge. And verify that the second run starts on the changeNumber where
@@ -554,36 +553,14 @@ public class HistoricalTest
 
     addEntriesWithHistorical(1, entryCnt);
 
-    /*
-    // every entry should have its hist
-    try
-    {
-      // Search for matching entries in config backend
-      InternalSearchOperation op = connection.processSearch(
-          ByteString.valueOf(TEST_ROOT_DN_STRING),
-          SearchScope.WHOLE_SUBTREE,
-          LDAPFilter.decode("(ds-sync-hist=*)"));
-      assertEquals(op.getResultCode(), ResultCode.SUCCESS,
-          op.getErrorMessage().toString());
-
-      // Check that no entries have been found
-      LinkedList<SearchResultEntry> entries = op.getSearchEntries();
-      assertTrue(entries != null);
-      assertEquals(entries.size(), entryCnt);
-    } catch (Exception e)
-    {
-      fail("assertNoConfigEntriesWithFilter: could not search config backend" + e.getMessage());
-    }
-    */
-
     // set the purge delay to 1 sec
     TestCaseUtils.dsconfig(
         "set-replication-domain-prop",
         "--provider-name","Multimaster Synchronization",
         "--domain-name",testName,
-        "--set","conflicts-historical-purge-delay:1m");
+        "--set","conflicts-historical-purge-delay:1s");
 
-    Thread.sleep(60*1000);
+    Thread.sleep(2*1000);
 
     // launch the purge
     Entry taskInit = TestCaseUtils.makeEntry(
@@ -594,7 +571,7 @@ public class HistoricalTest
         "objectclass: ds-task-purge-conflicts-historical",
         "ds-task-class-name: org.opends.server.tasks.PurgeConflictsHistoricalTask",
         "ds-task-purge-conflicts-historical-domain-dn: "+TEST_ROOT_DN_STRING,
-    "ds-task-purge-conflicts-historical-maximum-duration: 1000"); // 1000 sec
+    "ds-task-purge-conflicts-historical-maximum-duration: 120"); // 120 sec
 
     addTask(taskInit, ResultCode.SUCCESS, null);
 
@@ -699,5 +676,5 @@ public class HistoricalTest
 
       assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
     }
-  }  
+  }
 }
