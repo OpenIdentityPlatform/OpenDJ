@@ -1279,7 +1279,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         // There's a potential, but benign, race condition here: other threads
         // could jump in and rotate through the list before we return the
         // connection factory.
-        return newNextIndex;
+        return oldNextIndex;
       }
 
     }
