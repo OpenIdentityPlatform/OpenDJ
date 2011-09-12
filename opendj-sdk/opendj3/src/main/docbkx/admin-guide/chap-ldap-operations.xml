@@ -498,7 +498,13 @@ The LDAP password modify operation was successful</screen>
       <para>Generate an encoded password value using the
       <command>encode-password</command> command.</para>
       <para>By default, the password for Directory Manager uses the SSHA512
-      password storage scheme.</para>
+      password storage scheme. In the following example, the encoded password
+      is wrapped to fit on a printed page.</para>
+      <screen>$ encode-password -s SSHA512 -i
+Please enter the password :
+Please renter the password:
+Encoded Password:  "{SSHA512}U7Kx5oYcLxdsqSrpSkBk425LwL0Z61loNfS0dBVCcEKVhMyTT
+oe3oWikDJ/AJjKEkYBg+q3VUQ5hWgrGVf7MjfDrm5mum6yI"</screen>
      </listitem>
      <listitem>
       <para>Stop OpenDJ.</para>
