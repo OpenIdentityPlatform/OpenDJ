@@ -39,6 +39,7 @@ import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.opends.messages.Message;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.LDAPPassThroughAuthenticationPolicyCfgDefn.MappingPolicy;
@@ -2485,6 +2486,56 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
         { MappingPolicy.MAPPED_SEARCH, ResultCode.SUCCESS },
         { MappingPolicy.MAPPED_SEARCH, ResultCode.INVALID_CREDENTIALS },
         { MappingPolicy.MAPPED_SEARCH, ResultCode.UNAVAILABLE },
+    };
+    // @formatter:on
+  }
+
+
+
+  /**
+   * Tests configuration validation.
+   *
+   * @param cfg
+   *          The configuration to be tested.
+   * @param isValid
+   *          Whether or not the provided configuration is valid.
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(enabled = true, dataProvider = "testIsConfigurationAcceptableData")
+  public void testIsConfigurationAcceptable(
+      final LDAPPassThroughAuthenticationPolicyCfg cfg, final boolean isValid)
+      throws Exception
+  {
+    final LDAPPassThroughAuthenticationPolicyFactory factory = new LDAPPassThroughAuthenticationPolicyFactory();
+    assertEquals(
+        factory.isConfigurationAcceptable(cfg, new LinkedList<Message>()),
+        isValid);
+  }
+
+
+
+  /**
+   * Returns test data for {@link #testIsConfigurationAcceptable}.
+   *
+   * @return Test data for {@link #testIsConfigurationAcceptable}.
+   */
+  @DataProvider
+  public Object[][] testIsConfigurationAcceptableData()
+  {
+    // @formatter:off
+    return new Object[][] {
+        /* cfg, isValid */
+        { mockCfg().withPrimaryServer("test:1"), true },
+        { mockCfg().withPrimaryServer("test:65535"), true },
+        { mockCfg().withPrimaryServer("test:0"), false },
+        { mockCfg().withPrimaryServer("test:65536"), false },
+        { mockCfg().withPrimaryServer("test:1000000"), false },
+        { mockCfg().withSecondaryServer("test:1"), true },
+        { mockCfg().withSecondaryServer("test:65535"), true },
+        { mockCfg().withSecondaryServer("test:0"), false },
+        { mockCfg().withSecondaryServer("test:65536"), false },
+        { mockCfg().withSecondaryServer("test:1000000"), false },
     };
     // @formatter:on
   }
