@@ -638,15 +638,18 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
           if (options.isUseSSL())
           {
-            // Obtain the configured trust manager which will be used in order
-            // to determine the trust of the remote LDAP server.
-            DN trustManagerDN = options.getTrustManagerProviderDN();
-            TrustManagerProvider<?> trustManagerProvider = DirectoryServer
-                .getTrustManagerProvider(trustManagerDN);
+            // Obtain the optional configured trust manager which will be used
+            // in order to determine the trust of the remote LDAP server.
             TrustManager[] tm = null;
-            if (trustManagerProvider != null)
+            DN trustManagerDN = options.getTrustManagerProviderDN();
+            if (trustManagerDN != null)
             {
-              tm = trustManagerProvider.getTrustManagers();
+              TrustManagerProvider<?> trustManagerProvider = DirectoryServer
+                  .getTrustManagerProvider(trustManagerDN);
+              if (trustManagerProvider != null)
+              {
+                tm = trustManagerProvider.getTrustManagers();
+              }
             }
 
             // Create the SSL context and initialize it.
