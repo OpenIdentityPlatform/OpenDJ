@@ -477,20 +477,30 @@ pwdPolicySubentry: cn=New Account Password Policy,cn=Password Policies,cn=config
    </step>
   </procedure>
 
-  <procedure>
+  <procedure xml:id="assign-pwp-to-group">
    <title>To Assign a Password Policy to a Group</title>
    
    <step>
-    <para>Create a virtual attribute to set the
+    <para>Create a subentry defining the collective attribute that sets the
     <literal>ds-pwp-password-policy-dn</literal> attribute for group
     members' entries.</para>
     
-    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
- create-virtual-attribute --name "Dir Admin Password Policy"
- --type user-defined --set attribute-type:ds-pwp-password-policy-dn
- --set value:"cn=Root Password Policy,cn=Password Policies,cn=config"
- --set group-dn:"cn=Directory Administrators,ou=Groups,dc=example,dc=com"
- --set enabled:true -X -n</screen>
+    <screen>$ cat pwp-coll.ldif
+dn: cn=Password Policy for Dir Admins,dc=example,dc=com
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+objectClass: subentry
+objectClass: top
+cn: Password Policy for Dir Admins
+ds-pwp-password-policy-dn;collective: cn=Root Password Policy,cn=Pass
+ word Policies,cn=config
+subtreeSpecification: { base "ou=People", specificationFilter "(isMemberOf=
+ cn=Directory Administrators,ou=Groups,dc=example,dc=com)"}
+
+$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -a -f pwp-coll.ldif
+Processing ADD request for cn=Password Policy for Dir Admins,dc=example,dc=com
+ADD operation successful for DN cn=Password Policy for Dir
+ Admins,dc=example,dc=com</screen>
    </step>
    <step>
     <para>Check your work.</para>
