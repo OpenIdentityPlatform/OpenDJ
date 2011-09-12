@@ -471,6 +471,50 @@ The LDAP password modify operation was successful</screen>
  set-password-is-reset -b uid=scarter,ou=people,dc=example,dc=com -O true
 Password Is Reset:  true</screen>
   </example>
+  
+  <example>
+   <title>Change Own Password</title>
+   
+   <para>You can use the <command>ldappasswordmodify</command> command to
+   change your password, as long as you know your current password.</para>
+   
+   <screen>$ ldappasswordmodify -p 1389 -a "dn:uid=bjensen,ou=people,dc=example,dc=com"
+ --currentPassword hifalutin --newPassword secret12
+The LDAP password modify operation was successful</screen>
+   
+   <para>The same operation works for <literal>cn=Directory
+   Manager</literal>.</para>
+   
+   <screen>$ ldappasswordmodify -p 1389 -a "dn:cn=Directory Manager"
+ --currentPassword password --newPassword secret12
+The LDAP password modify operation was successful</screen>
+  </example>
+  
+  <tip xml:id="fix-forgotten-directory-manager-pwd">
+   <para>If you forget the password for <literal>cn=Directory Manager</literal>,
+   then one remedy uses the following steps.</para>
+    <orderedlist>
+     <listitem>
+      <para>Generate an encoded password value using the
+      <command>encode-password</command> command.</para>
+      <para>By default, the password for Directory Manager uses the SSHA512
+      password storage scheme.</para>
+     </listitem>
+     <listitem>
+      <para>Stop OpenDJ.</para>
+     </listitem>
+     <listitem>
+      <para>Edit <filename>config/config.ldif</filename>, replacing the
+      <literal>userPassword</literal> value on the entry for
+      <literal>cn=Directory Manager,cn=Root DNs,cn=config</literal> with
+      the encoded password, taking care not to leave any whitespace at the
+      end of the line.</para>
+     </listitem>
+     <listitem>
+      <para>Start OpenDJ.</para>
+     </listitem>
+    </orderedlist>
+  </tip>
  </section>
 
  <section>
