@@ -28,7 +28,7 @@
 
 package org.opends.server.extensions;
 
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Set;
 
 import org.opends.messages.Message;
@@ -106,8 +106,6 @@ public class PasswordPolicySubentryVirtualAttributeProvider
   public Set<AttributeValue> getValues(Entry entry,
                                        VirtualAttributeRule rule)
   {
-    Set<AttributeValue> valueSet = new HashSet<AttributeValue>();
-
     if (!entry.isSubentry() && !entry.isLDAPSubentry())
     {
       AuthenticationPolicy policy = null;
@@ -131,28 +129,38 @@ public class PasswordPolicySubentryVirtualAttributeProvider
         }
       }
 
-      if (policy != null && policy.isPasswordPolicy())
+      if (policy == null)
       {
-        AttributeType dnAttrType = DirectoryServer.getAttributeType(
-                "1.3.6.1.4.1.42.2.27.8.1.23");
+        // No authentication policy: debug log this as an error since all
+        // entries should have at least the default password policy.
+        if (debugEnabled())
+        {
+          TRACER.debugError("No applicable password policy for user %s", entry
+              .getDN().toString());
+        }
+      }
+      else if (policy.isPasswordPolicy())
+      {
+        AttributeType dnAttrType = DirectoryServer
+            .getAttributeType("1.3.6.1.4.1.42.2.27.8.1.23");
         DN policyDN = policy.getDN();
-        AttributeValue value = AttributeValues.create(
-                dnAttrType, policyDN.toString());
-        valueSet.add(value);
+        AttributeValue value = AttributeValues.create(dnAttrType,
+            policyDN.toString());
+        return Collections.singleton(value);
       }
       else
       {
-        // No default policy, debug log this.
+        // Not a password policy, could be PTA, etc.
         if (debugEnabled())
         {
-          TRACER.debugError(
-                  "No applicable password policy for user %s"
-                  + entry.getDN().toString());
+          TRACER.debugVerbose("Authentication policy %s found for user %s is "
+              + "not a password policy", policy.getDN().toString(), entry
+              .getDN().toString());
         }
       }
     }
 
-    return valueSet;
+    return Collections.emptySet();
   }
 
 
