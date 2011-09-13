@@ -2837,7 +2837,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-  // TODO: fail-over
   // TODO: retry search/bind on error
   // TODO: detect when servers come back online
 
@@ -2965,6 +2964,134 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     provider.expectEvent(new CloseEvent(ceSearch3));
     provider.expectEvent(new CloseEvent(ceBind1));
     provider.expectEvent(new CloseEvent(ceBind2));
+    provider.expectEvent(new CloseEvent(ceBind3));
+
+    // Tear down and check final state.
+    policy.finalizeAuthenticationPolicy();
+    provider.assertAllExpectedEventsReceived();
+  }
+
+
+
+  /**
+   * Tests fail-over between 2 primary servers then to the secondary data
+   * center.
+   *
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(enabled = true)
+  public void testFailOverOnConnect() throws Exception
+  {
+    // Mock configuration.
+    final LDAPPassThroughAuthenticationPolicyCfg cfg = mockCfg()
+        .withPrimaryServer(phost1).withPrimaryServer(phost2)
+        .withSecondaryServer(shost1)
+        .withMappingPolicy(MappingPolicy.MAPPED_SEARCH)
+        .withMappedAttribute("uid").withBaseDN("o=ad");
+
+    // Create all the events.
+    final MockProvider provider = new MockProvider();
+
+    // First of all the connection factories are created.
+    final GetLDAPConnectionFactoryEvent fe1 = new GetLDAPConnectionFactoryEvent(
+        phost1, cfg);
+    final GetLDAPConnectionFactoryEvent fe2 = new GetLDAPConnectionFactoryEvent(
+        phost2, cfg);
+    final GetLDAPConnectionFactoryEvent fe3 = new GetLDAPConnectionFactoryEvent(
+        shost1, cfg);
+    provider.expectEvent(fe1).expectEvent(fe2).expectEvent(fe3);
+
+    // Get connection for phost1, then search, then bind.
+    final GetConnectionEvent ceSearch1 = new GetConnectionEvent(fe1,
+        ResultCode.CLIENT_SIDE_CONNECT_ERROR);
+    final GetConnectionEvent ceSearch2 = new GetConnectionEvent(fe2,
+        ResultCode.CLIENT_SIDE_CONNECT_ERROR);
+    final GetConnectionEvent ceSearch3 = new GetConnectionEvent(fe3);
+
+    final GetConnectionEvent ceBind1 = new GetConnectionEvent(fe1,
+        ResultCode.CLIENT_SIDE_CONNECT_ERROR);
+    final GetConnectionEvent ceBind2 = new GetConnectionEvent(fe2,
+        ResultCode.CLIENT_SIDE_CONNECT_ERROR);
+    final GetConnectionEvent ceBind3 = new GetConnectionEvent(fe3);
+
+    provider
+        .expectEvent(ceSearch1)
+        .expectEvent(ceSearch2)
+        .expectEvent(ceSearch3)
+        .expectEvent(
+            new SimpleBindEvent(ceSearch3, searchBindDNString,
+                "searchPassword", ResultCode.SUCCESS))
+        .expectEvent(
+            new SearchEvent(ceSearch3, "o=ad", SearchScope.WHOLE_SUBTREE,
+                "(uid=aduser)", adDNString))
+        .expectEvent(ceBind1)
+        .expectEvent(ceBind2)
+        .expectEvent(ceBind3)
+        .expectEvent(
+            new SimpleBindEvent(ceBind3, adDNString, userPassword,
+                ResultCode.SUCCESS));
+
+    // Repeat again using cached connection to shost1: search, then bind.
+
+    // Note that LB will cause phost2 to be tried first, hence ceSearch2 then
+    // ceSearch1.
+    provider
+        .expectEvent(ceSearch2)
+        .expectEvent(ceSearch1)
+        .expectEvent(
+            new SearchEvent(ceSearch3, "o=ad", SearchScope.WHOLE_SUBTREE,
+                "(uid=aduser)", adDNString))
+        .expectEvent(ceBind2)
+        .expectEvent(ceBind1)
+        .expectEvent(
+            new SimpleBindEvent(ceBind3, adDNString, userPassword,
+                ResultCode.SUCCESS));
+
+    // Now simulate phost2 coming back and fail back to it
+    final GetConnectionEvent ceSearch2ok = new GetConnectionEvent(fe2);
+    final GetConnectionEvent ceBind2ok = new GetConnectionEvent(fe2);
+    provider
+        .expectEvent(ceSearch1)
+        .expectEvent(ceSearch2ok)
+        .expectEvent(
+            new SimpleBindEvent(ceSearch2ok, searchBindDNString,
+                "searchPassword", ResultCode.SUCCESS))
+        .expectEvent(
+            new SearchEvent(ceSearch2ok, "o=ad", SearchScope.WHOLE_SUBTREE,
+                "(uid=aduser)", adDNString))
+        .expectEvent(ceBind1)
+        .expectEvent(ceBind2ok)
+        .expectEvent(
+            new SimpleBindEvent(ceBind2ok, adDNString, userPassword,
+                ResultCode.SUCCESS));
+
+    // Connections should be cached until the policy is finalized.
+
+    // Obtain policy and state.
+    final LDAPPassThroughAuthenticationPolicyFactory factory = new LDAPPassThroughAuthenticationPolicyFactory(
+        provider);
+    assertTrue(factory.isConfigurationAcceptable(cfg, null));
+    final AuthenticationPolicy policy = factory.createAuthenticationPolicy(cfg);
+
+    // Authenticate 3 times test above fail-over.
+    for (int i = 0; i < 3; i++)
+    {
+      final AuthenticationPolicyState state = policy
+          .createAuthenticationPolicyState(userEntry);
+      assertEquals(state.getAuthenticationPolicy(), policy);
+
+      // Perform authentication.
+      assertTrue(state.passwordMatches(ByteString.valueOf(userPassword)));
+
+      state.finalizeStateAfterBind();
+    }
+
+    // Cached connections should be closed when the policy is finalized
+    // (primaries first, then secondaries).
+    provider.expectEvent(new CloseEvent(ceSearch2ok));
+    provider.expectEvent(new CloseEvent(ceSearch3));
+    provider.expectEvent(new CloseEvent(ceBind2ok));
     provider.expectEvent(new CloseEvent(ceBind3));
 
     // Tear down and check final state.
