@@ -23,10 +23,12 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.extensions;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,11 +40,9 @@ import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.config.ConfigException;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 
 /**
  * This class implements a virtual attribute provider to serve the
@@ -53,11 +53,6 @@ public class CollectiveAttributeSubentriesVirtualAttributeProvider
         extends VirtualAttributeProvider<
         CollectiveAttributeSubentriesVirtualAttributeCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
-
   /**
    * Creates a new instance of this collectiveAttributeSubentries
    * virtual attribute provider.
@@ -103,13 +98,12 @@ public class CollectiveAttributeSubentriesVirtualAttributeProvider
   public Set<AttributeValue> getValues(Entry entry,
                                        VirtualAttributeRule rule)
   {
-    Set<AttributeValue> valueSet = new HashSet<AttributeValue>();
+    Set<AttributeValue> values = null;
 
     if (!entry.isSubentry() && !entry.isLDAPSubentry())
     {
-      List<SubEntry> subentries =
-              DirectoryServer.getSubentryManager(
-              ).getCollectiveSubentries(entry);
+      List<SubEntry> subentries = DirectoryServer.getSubentryManager()
+          .getCollectiveSubentries(entry);
 
       AttributeType dnAttrType =
               DirectoryServer.getAttributeType("2.5.4.49");
@@ -121,12 +115,34 @@ public class CollectiveAttributeSubentriesVirtualAttributeProvider
           DN subentryDN = subentry.getDN();
           AttributeValue value = AttributeValues.create(
                   dnAttrType, subentryDN.toString());
-          valueSet.add(value);
+
+          if (values == null)
+          {
+            values = Collections.singleton(value);
+          }
+          else if (values.size() == 1)
+          {
+            Set<AttributeValue> tmp = new HashSet<AttributeValue>(2);
+            tmp.addAll(values);
+            tmp.add(value);
+            values = tmp;
+          }
+          else
+          {
+            values.add(value);
+          }
         }
       }
     }
 
-    return valueSet;
+    if (values == null)
+    {
+      return Collections.emptySet();
+    }
+    else
+    {
+      return Collections.unmodifiableSet(values);
+    }
   }
 
 

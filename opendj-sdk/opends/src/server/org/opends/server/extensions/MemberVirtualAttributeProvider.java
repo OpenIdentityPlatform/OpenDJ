@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.extensions;
 import org.opends.messages.Message;
@@ -130,7 +131,8 @@ public class MemberVirtualAttributeProvider
       return Collections.emptySet();
     }
 
-    Group g = DirectoryServer.getGroupManager().getGroupInstance(entry.getDN());
+    Group<?> g =
+      DirectoryServer.getGroupManager().getGroupInstance(entry.getDN());
     if (g == null)
     {
       return Collections.emptySet();
@@ -179,7 +181,8 @@ public class MemberVirtualAttributeProvider
   @Override()
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
-    Group g = DirectoryServer.getGroupManager().getGroupInstance(entry.getDN());
+    Group<?> g =
+      DirectoryServer.getGroupManager().getGroupInstance(entry.getDN());
     if (g == null)
     {
       return false;
@@ -228,7 +231,8 @@ public class MemberVirtualAttributeProvider
   public boolean hasValue(Entry entry, VirtualAttributeRule rule,
                           AttributeValue value)
   {
-    Group g = DirectoryServer.getGroupManager().getGroupInstance(entry.getDN());
+    Group<?> g =
+      DirectoryServer.getGroupManager().getGroupInstance(entry.getDN());
     if (g == null)
     {
       return false;

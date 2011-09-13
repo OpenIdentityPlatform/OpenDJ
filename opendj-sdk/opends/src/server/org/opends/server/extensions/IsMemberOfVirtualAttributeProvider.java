@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -106,15 +107,30 @@ public class IsMemberOfVirtualAttributeProvider
                                        VirtualAttributeRule rule)
   {
     // FIXME -- This probably isn't the most efficient implementation.
-    HashSet<AttributeValue> values = new HashSet<AttributeValue>();
-    for (Group g : DirectoryServer.getGroupManager().getGroupInstances())
+    Set<AttributeValue> values = null;
+    for (Group<?> g : DirectoryServer.getGroupManager().getGroupInstances())
     {
       try
       {
         if (g.isMember(entry))
         {
-          values.add(AttributeValues.create(rule.getAttributeType(),
-                                        g.getGroupDN().toString()));
+          AttributeValue value = AttributeValues.create(
+              rule.getAttributeType(), g.getGroupDN().toString());
+          if (values == null)
+          {
+            values = Collections.singleton(value);
+          }
+          else if (values.size() == 1)
+          {
+            Set<AttributeValue> tmp = new HashSet<AttributeValue>(2);
+            tmp.addAll(values);
+            tmp.add(value);
+            values = tmp;
+          }
+          else
+          {
+            values.add(value);
+          }
         }
       }
       catch (Exception e)
@@ -126,7 +142,14 @@ public class IsMemberOfVirtualAttributeProvider
       }
     }
 
-    return Collections.unmodifiableSet(values);
+    if (values == null)
+    {
+      return Collections.emptySet();
+    }
+    else
+    {
+      return Collections.unmodifiableSet(values);
+    }
   }
 
 
@@ -138,7 +161,7 @@ public class IsMemberOfVirtualAttributeProvider
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
     // FIXME -- This probably isn't the most efficient implementation.
-    for (Group g : DirectoryServer.getGroupManager().getGroupInstances())
+    for (Group<?> g : DirectoryServer.getGroupManager().getGroupInstances())
     {
       try
       {
@@ -171,7 +194,7 @@ public class IsMemberOfVirtualAttributeProvider
     try
     {
       DN groupDN = DN.decode(value.getValue());
-      Group g = DirectoryServer.getGroupManager().getGroupInstance(groupDN);
+      Group<?> g = DirectoryServer.getGroupManager().getGroupInstance(groupDN);
       if (g == null)
       {
         return false;
@@ -344,7 +367,7 @@ public class IsMemberOfVirtualAttributeProvider
                             SearchOperation searchOperation)
   {
     SearchFilter filter = searchOperation.getFilter();
-    Group group = extractGroup(rule.getAttributeType(), filter);
+    Group<?> group = extractGroup(rule.getAttributeType(), filter);
     if (group == null)
     {
       return;
@@ -393,14 +416,15 @@ public class IsMemberOfVirtualAttributeProvider
    * @return  The first group encountered in the provided filter, or
    *          {@code null} if there is no match.
    */
-  private Group extractGroup(AttributeType attributeType, SearchFilter filter)
+  private Group<?> extractGroup(AttributeType attributeType,
+      SearchFilter filter)
   {
     switch (filter.getFilterType())
     {
       case AND:
         for (SearchFilter f : filter.getFilterComponents())
         {
-          Group g = extractGroup(attributeType, f);
+          Group<?> g = extractGroup(attributeType, f);
           if (g != null)
           {
             return g;
