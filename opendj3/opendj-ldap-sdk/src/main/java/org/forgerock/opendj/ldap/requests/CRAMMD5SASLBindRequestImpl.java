@@ -115,6 +115,11 @@ final class CRAMMD5SASLBindRequestImpl extends
     public boolean evaluateResult(final BindResult result)
         throws ErrorResultException
     {
+      if (saslClient.isComplete())
+      {
+        return true;
+      }
+
       try
       {
         setNextSASLCredentials(saslClient.evaluateChallenge(result

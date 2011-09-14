@@ -144,6 +144,11 @@ final class GSSAPISASLBindRequestImpl extends
       @Override
       public Boolean run() throws ErrorResultException
       {
+        if (saslClient.isComplete())
+        {
+          return true;
+        }
+
         try
         {
           setNextSASLCredentials(saslClient.evaluateChallenge(lastResult
