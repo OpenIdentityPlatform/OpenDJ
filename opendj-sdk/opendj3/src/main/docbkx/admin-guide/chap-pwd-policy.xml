@@ -376,8 +376,9 @@ require-secure-password-changes           : false</screen>
     <screen>$ cat /path/to/subentry-pwp.ldif 
 dn: cn=Subentry Password Policy,dc=example,dc=com
 objectClass: top
-objectClass: ldapSubentry
+objectClass: subentry
 objectClass: pwdPolicy
+cn: Subentry Password Policy
 pwdAttribute: userPassword
 pwdLockout: TRUE
 pwdMaxFailure: 3
