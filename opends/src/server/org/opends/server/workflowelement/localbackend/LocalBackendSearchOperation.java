@@ -515,6 +515,11 @@ searchProcessing:
                   getRequestControl(SubentriesControl.DECODER);
           setReturnSubentriesOnly(subentriesControl.getVisibility());
         }
+        else if (oid.equals(OID_LDUP_SUBENTRIES))
+        {
+          // Support for legacy draft-ietf-ldup-subentry.
+          setReturnSubentriesOnly(true);
+        }
         else if (oid.equals(OID_MATCHED_VALUES))
         {
           MatchedValuesControl matchedValuesControl =

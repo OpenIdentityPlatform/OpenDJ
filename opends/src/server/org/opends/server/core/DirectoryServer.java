@@ -2607,6 +2607,7 @@ public class DirectoryServer
     supportedControls.add(OID_AUTHZID_REQUEST);
     supportedControls.add(OID_MATCHED_VALUES);
     supportedControls.add(OID_LDAP_SUBENTRIES);
+    supportedControls.add(OID_LDUP_SUBENTRIES);
     supportedControls.add(OID_PASSWORD_POLICY_CONTROL);
     supportedControls.add(OID_PERMISSIVE_MODIFY_CONTROL);
     supportedControls.add(OID_REAL_ATTRS_ONLY);
