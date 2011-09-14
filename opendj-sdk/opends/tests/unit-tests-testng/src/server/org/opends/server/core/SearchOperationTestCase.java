@@ -28,6 +28,7 @@
 
 package org.opends.server.core;
 
+import static org.opends.server.util.ServerConstants.OID_LDUP_SUBENTRIES;
 import static org.testng.Assert.*;
 
 import java.io.IOException;
@@ -937,6 +938,30 @@ public class SearchOperationTestCase extends OperationTestCase
               false,
               LDAPFilter.decode("(objectclass=*)"),
               null, null);
+
+    searchOperation.run();
+
+    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+    assertEquals(searchOperation.getEntriesSent(), 1);
+    assertEquals(searchOperation.getErrorMessage().length(), 0);
+  }
+
+  @Test
+  public void testSearchInternalLegacySubEntryControl() throws Exception
+  {
+    InvocationCounterPlugin.resetAllCounters();
+
+    InternalClientConnection conn =
+         InternalClientConnection.getRootConnection();
+
+    InternalSearchOperation searchOperation = new InternalSearchOperation(conn,
+        InternalClientConnection.nextOperationID(),
+        InternalClientConnection.nextMessageID(),
+        Collections.singletonList((Control) new LDAPControl(
+            OID_LDUP_SUBENTRIES, true)), ByteString.valueOf(BASE),
+        SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES,
+        Integer.MAX_VALUE, Integer.MAX_VALUE, false,
+        LDAPFilter.decode("(objectclass=*)"), null, null);
 
     searchOperation.run();
 

@@ -2273,10 +2273,19 @@ public final class ServerConstants
 
 
   /**
-   * The OID for the LDAP subentries control used to indicate that matching
-   * subentries should be returned.
+   * The OID for the LDAP subentries control as defined in RFC 3672, which is
+   * used to indicate that matching subentries should be returned.
    */
   public static final String OID_LDAP_SUBENTRIES = "1.3.6.1.4.1.4203.1.10.1";
+
+
+
+  /**
+   * The OID for the LDAP subentries control as defined in the legacy
+   * draft-ietf-ldup-subentry internet draft, which is used to indicate that
+   * matching subentries should be returned.
+   */
+  public static final String OID_LDUP_SUBENTRIES = "1.3.6.1.4.1.7628.5.101.1";
 
 
 
