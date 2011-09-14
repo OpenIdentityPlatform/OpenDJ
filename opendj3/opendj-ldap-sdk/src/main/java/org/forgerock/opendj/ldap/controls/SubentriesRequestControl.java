@@ -23,48 +23,57 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.controls;
 
 
 
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_SUBENTRIES_CONTROL_BAD_OID;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_SUBENTRIES_INVALID_CONTROL_VALUE;
+import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
+import static org.forgerock.opendj.ldap.CoreMessages.*;
+
+import java.io.IOException;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.asn1.ASN1;
+import org.forgerock.opendj.asn1.ASN1Reader;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 
+import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.Validator;
 
 
 
 /**
- * The sub-entries request control as defined in draft-ietf-ldup-subentry. This
- * control may be included in a search request to indicate that sub-entries
- * should be included in the search results.
+ * The sub-entries request control as defined in RFC 3672. This control may be
+ * included in a search request to indicate that sub-entries should be included
+ * in the search results.
  * <p>
  * In the absence of the sub-entries request control, sub-entries are not
  * visible to search operations unless the target/base of the operation is a
- * sub-entry. In the presence of the sub-entry request control, only sub-entries
- * are visible.
+ * sub-entry. In the presence of the sub-entry request control, sub-entries are
+ * visible if and only if the control's value is {@code TRUE}.
  *
- * @see <a
- *      href="http://tools.ietf.org/html/draft-ietf-ldup-subentry">draft-ietf-ldup-subentry
- *      - LDAP Subentry Schema </a>
+ * @see <a href="http://tools.ietf.org/html/rfc3672">RFC 3672 - Subentries in
+ *      the Lightweight Directory Access Protocol </a>
  */
 public final class SubentriesRequestControl implements Control
 {
   /**
    * The OID for the sub-entries request control.
    */
-  public static final String OID = "1.3.6.1.4.1.7628.5.101.1";
+  public static final String OID = "1.3.6.1.4.1.4203.1.10.1";
 
-  private static final SubentriesRequestControl CRITICAL_INSTANCE = new SubentriesRequestControl(
-      true);
-  private static final SubentriesRequestControl NONCRITICAL_INSTANCE = new SubentriesRequestControl(
-      false);
+  private static final SubentriesRequestControl CRITICAL_VISIBLE_INSTANCE =
+    new SubentriesRequestControl(true, true);
+  private static final SubentriesRequestControl NONCRITICAL_VISIBLE_INSTANCE =
+    new SubentriesRequestControl(false, true);
+  private static final SubentriesRequestControl CRITICAL_INVISIBLE_INSTANCE =
+    new SubentriesRequestControl(true, false);
+  private static final SubentriesRequestControl NONCRITICAL_INVISIBLE_INSTANCE =
+    new SubentriesRequestControl(false, false);
 
   /**
    * A decoder which can be used for decoding the sub-entries request control.
@@ -90,14 +99,30 @@ public final class SubentriesRequestControl implements Control
         throw DecodeException.error(message);
       }
 
-      if (control.hasValue())
+      if (!control.hasValue())
       {
-        final LocalizableMessage message = ERR_SUBENTRIES_INVALID_CONTROL_VALUE
+        // The response control must always have a value.
+        final LocalizableMessage message = ERR_SUBENTRIES_NO_CONTROL_VALUE
             .get();
         throw DecodeException.error(message);
       }
 
-      return control.isCritical() ? CRITICAL_INSTANCE : NONCRITICAL_INSTANCE;
+      final ASN1Reader reader = ASN1.getReader(control.getValue());
+      final boolean visibility;
+      try
+      {
+        visibility = reader.readBoolean();
+      }
+      catch (final IOException e)
+      {
+        StaticUtils.DEBUG_LOG.throwing("SubentriesRequestControl.Decoder",
+            "decode", e);
+        final LocalizableMessage message = ERR_SUBENTRIES_CANNOT_DECODE_VALUE
+            .get(getExceptionMessage(e));
+        throw DecodeException.error(message);
+      }
+
+      return newControl(control.isCritical(), visibility);
     }
 
 
@@ -111,28 +136,46 @@ public final class SubentriesRequestControl implements Control
 
 
   /**
-   * Creates a new sub-entries request control having the provided criticality.
+   * Creates a new sub-entries request control having the provided criticality
+   * and sub-entry visibility.
    *
    * @param isCritical
    *          {@code true} if it is unacceptable to perform the operation
    *          without applying the semantics of this control, or {@code false}
    *          if it can be ignored.
+   * @param visibility
+   *          {@code true} if sub-entries should be included in the search
+   *          results and normal entries excluded, or {@code false} if normal
+   *          entries should be included and sub-entries excluded.
    * @return The new control.
    */
-  public static SubentriesRequestControl newControl(final boolean isCritical)
+  public static SubentriesRequestControl newControl(final boolean isCritical,
+      final boolean visibility)
   {
-    return isCritical ? CRITICAL_INSTANCE : NONCRITICAL_INSTANCE;
+    if (isCritical)
+    {
+      return visibility ? CRITICAL_VISIBLE_INSTANCE
+          : CRITICAL_INVISIBLE_INSTANCE;
+    }
+    else
+    {
+      return visibility ? NONCRITICAL_VISIBLE_INSTANCE
+          : NONCRITICAL_INVISIBLE_INSTANCE;
+    }
   }
 
 
 
   private final boolean isCritical;
+  private final boolean visibility;
 
 
 
-  private SubentriesRequestControl(final boolean isCritical)
+  private SubentriesRequestControl(final boolean isCritical,
+      final boolean visibility)
   {
     this.isCritical = isCritical;
+    this.visibility = visibility;
   }
 
 
@@ -153,6 +196,21 @@ public final class SubentriesRequestControl implements Control
   public ByteString getValue()
   {
     return null;
+  }
+
+
+
+  /**
+   * Returns a boolean indicating whether or not sub-entries should be included
+   * in the search results.
+   *
+   * @return {@code true} if sub-entries should be included in the search results
+   *         and normal entries excluded, or {@code false} if normal entries
+   *         should be included and sub-entries excluded.
+   */
+  public boolean getVisibility()
+  {
+    return visibility;
   }
 
 
@@ -188,6 +246,8 @@ public final class SubentriesRequestControl implements Control
     builder.append(getOID());
     builder.append(", criticality=");
     builder.append(isCritical());
+    builder.append(", visibility=");
+    builder.append(getVisibility());
     builder.append(")");
     return builder.toString();
   }
