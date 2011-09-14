@@ -69,7 +69,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
   Although ACI attribute values can become difficult to read in LDIF, the
   basic syntax is simple.</para>
   
-  <literallayout><replaceable>targets</replaceable>(version 3.0;acl "<replaceable>name</replaceable>";<replaceable>permissions</replaceable> <replaceable>subjects</replaceable>;)</literallayout>
+  <literallayout class="monospaced"><replaceable>targets</replaceable>(version 3.0;acl "<replaceable>name</replaceable>";<replaceable>permissions</replaceable> <replaceable>subjects</replaceable>;)</literallayout>
 
   <para>The following list briefly explains the variables in the syntax above.</para>
 
@@ -170,7 +170,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
       particular attributes.</para>
       <para>Here <replaceable>expression</replaceable> takes one of the
       following forms. Separate expressions with semicolons, ;.</para>
-      <literallayout><replaceable>op</replaceable>=<replaceable>attr1</replaceable>:<replaceable>filter1</replaceable>[&amp;&amp; <replaceable>attr2</replaceable>:<replaceable>filter2</replaceable> ...][;<replaceable>op</replaceable>=<replaceable>attr3</replaceable>:<replaceable>filter3</replaceable>[&amp;&amp; <replaceable>attr4</replaceable>:<replaceable>filter4</replaceable> ...] ...]</literallayout>
+      <literallayout class="monospaced"><replaceable>op</replaceable>=<replaceable>attr1</replaceable>:<replaceable>filter1</replaceable>[&amp;&amp; <replaceable>attr2</replaceable>:<replaceable>filter2</replaceable> ...][;<replaceable>op</replaceable>=<replaceable>attr3</replaceable>:<replaceable>filter3</replaceable>[&amp;&amp; <replaceable>attr4</replaceable>:<replaceable>filter4</replaceable> ...] ...]</literallayout>
       <para>Here <replaceable>op</replaceable> can be either
       <literal>add</literal> for operations creating attributes, or
       <literal>delete</literal> for operations removing them.
@@ -218,8 +218,8 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
    
    <para>ACI permission definitions take one of the following forms.</para>
    
-   <literallayout>allow(<replaceable>action</replaceable>[, <replaceable>action</replaceable> ...])</literallayout>
-   <literallayout>deny(<replaceable>action</replaceable>[, <replaceable>action</replaceable> ...])</literallayout>
+   <literallayout class="monospaced">allow(<replaceable>action</replaceable>[, <replaceable>action</replaceable> ...])</literallayout>
+   <literallayout class="monospaced">deny(<replaceable>action</replaceable>[, <replaceable>action</replaceable> ...])</literallayout>
    
    <tip>
     <para>Although <literal>deny</literal> is supported, avoid restricting

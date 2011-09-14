@@ -350,7 +350,7 @@
   <para>For the following examples, the directory admin user, Kirsten Vaughan,
   has <literal>ds-privilege-name: password-reset</literal>, and the following
   ACI on <literal>ou=People,dc=example,dc=com</literal>.</para>
-  <literallayout>(target="ldap:///ou=People,dc=example,dc=com") (targetattr ="*||+")(
+  <literallayout class="monospaced">(target="ldap:///ou=People,dc=example,dc=com") (targetattr ="*||+")(
  version 3.0;acl "Admins can run amok"; allow(all) groupdn =
  "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)</literallayout>
   <para>The following command locks a user account.</para>
