@@ -271,12 +271,16 @@
   </varlistentry>
 
   <varlistentry>
-   <term>Sub-entries Request Control</term>
+   <term>Subentries Request Controls</term>
    <listitem>
+    <para>Object Identifier: 1.3.6.1.4.1.4203.1.10.1</para>
+    <para>RFC: <link
+    xlink:href='http://tools.ietf.org/html/rfc3672'
+    >Subentries in the Lightweight Directory Access Protocol (LDAP)</link></para>
     <para>Object Identifier: 1.3.6.1.4.1.7628.5.101.1</para>
     <para>Internet-Draft: <link
-    xlink:href='http://tools.ietf.org/html/draft-ietf-ldup-subentry'
-    >draft-ietf-ldup-subentry - LDAP Subentry Schema</link></para>
+     xlink:href='http://tools.ietf.org/html/draft-ietf-ldup-subentry'
+     >draft-ietf-ldup-subentry - LDAP Subentry Schema</link></para>
    </listitem>
   </varlistentry>
 
