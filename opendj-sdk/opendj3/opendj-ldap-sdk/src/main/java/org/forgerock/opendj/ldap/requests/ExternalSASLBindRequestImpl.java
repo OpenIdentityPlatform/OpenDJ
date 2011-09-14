@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -103,6 +104,11 @@ final class ExternalSASLBindRequestImpl extends
     public boolean evaluateResult(final BindResult result)
         throws ErrorResultException
     {
+      if (saslClient.isComplete())
+      {
+        return true;
+      }
+
       try
       {
         setNextSASLCredentials(saslClient.evaluateChallenge(result
