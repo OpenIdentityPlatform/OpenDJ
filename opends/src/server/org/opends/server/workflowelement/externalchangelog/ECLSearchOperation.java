@@ -550,6 +550,9 @@ public class ECLSearchOperation
         else if (oid.equals(OID_LDUP_SUBENTRIES))
         {
           // Support for legacy draft-ietf-ldup-subentry.
+          addAdditionalLogItem(AdditionalLogItem.keyOnly(getClass(),
+              "obsoleteSubentryControl"));
+
           setReturnSubentriesOnly(true);
         }
         else if (oid.equals(OID_MATCHED_VALUES))
