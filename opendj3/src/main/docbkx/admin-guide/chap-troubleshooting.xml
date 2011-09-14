@@ -79,7 +79,7 @@
   the operation. The log location differs by operating system, but look for
   lines in the command output of the following form.</para>
   
-  <literallayout>See /var/....log for a detailed log of this operation.</literallayout>
+  <literallayout class="monospaced">See /var/....log for a detailed log of this operation.</literallayout>
  </section>
  
  <section>
