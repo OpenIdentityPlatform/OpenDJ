@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.tools.dsreplication;
@@ -11149,14 +11150,15 @@ public class ReplicationCliMain extends ConsoleApplication
         if (server1.isReplicationServer())
         {
           int replicationID1 = server1.getReplicationServerId();
+          String replServerHostPort1 = server1.getReplicationServerHostPort();
           boolean found = false;
           for (ServerDescriptor server2 : cache2.getServers())
           {
             if (server2.isReplicationServer())
             {
-              int replicationID2 = server2.getReplicationServerId();
-              found = replicationID2 == replicationID1;
-              if (found)
+              if ((server2.getReplicationServerId() == replicationID1)
+                  && (! server2.getReplicationServerHostPort()
+                          .equalsIgnoreCase(replServerHostPort1)))
               {
                 commonRepServerIDErrors.add(
                     ERR_REPLICATION_ENABLE_COMMON_REPLICATION_SERVER_ID_ARG.get(
@@ -11181,7 +11183,7 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           if (replica1.isReplicated())
           {
-            int domain1 = replica1.getReplicationId();
+            int domain1Id = replica1.getReplicationId();
             boolean found = false;
             for (SuffixDescriptor suffix2 : cache2.getSuffixes())
             {
@@ -11195,8 +11197,7 @@ public class ReplicationCliMain extends ConsoleApplication
               {
                 if (replica2.isReplicated())
                 {
-                  int domain2 = replica2.getReplicationId();
-                  if (domain1 == domain2)
+                  if (domain1Id == replica2.getReplicationId())
                   {
                     commonDomainIDErrors.add(
                         ERR_REPLICATION_ENABLE_COMMON_DOMAIN_ID_ARG.get(
@@ -11204,7 +11205,7 @@ public class ReplicationCliMain extends ConsoleApplication
                             suffix1.getDN(),
                             replica2.getServer().getHostPort(true),
                             suffix2.getDN(),
-                            domain1));
+                            domain1Id));
                     found = true;
                     break;
                   }
