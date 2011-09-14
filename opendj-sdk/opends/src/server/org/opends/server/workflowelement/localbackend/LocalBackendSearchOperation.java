@@ -47,15 +47,7 @@ import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.SearchOperationWrapper;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.CanceledOperationException;
-import org.opends.server.types.Control;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Privilege;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
+import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationSearchOperation;
 import org.opends.server.types.operation.PreOperationSearchOperation;
 import org.opends.server.types.operation.SearchEntrySearchOperation;
@@ -518,6 +510,9 @@ searchProcessing:
         else if (oid.equals(OID_LDUP_SUBENTRIES))
         {
           // Support for legacy draft-ietf-ldup-subentry.
+          addAdditionalLogItem(AdditionalLogItem.keyOnly(getClass(),
+              "obsoleteSubentryControl"));
+
           setReturnSubentriesOnly(true);
         }
         else if (oid.equals(OID_MATCHED_VALUES))
