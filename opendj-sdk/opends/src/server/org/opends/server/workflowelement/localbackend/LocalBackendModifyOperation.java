@@ -859,6 +859,10 @@ modifyProcessing:
         }
         else if (oid.equals(OID_PROXIED_AUTH_V1))
         {
+          // Log usage of legacy proxy authz V1 control.
+          addAdditionalLogItem(AdditionalLogItem.keyOnly(getClass(),
+              "obsoleteProxiedAuthzV1Control"));
+
           // The requester must have the PROXIED_AUTH privilige in order to
           // be able to use this control.
           if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH, this))

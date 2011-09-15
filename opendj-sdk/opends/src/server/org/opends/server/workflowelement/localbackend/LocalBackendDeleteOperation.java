@@ -46,17 +46,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.CanceledOperationException;
-import org.opends.server.types.Control;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LockManager;
-import org.opends.server.types.Privilege;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SynchronizationProviderResult;
+import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
 import org.opends.server.types.operation.PostResponseDeleteOperation;
 import org.opends.server.types.operation.PreOperationDeleteOperation;
@@ -595,6 +585,10 @@ deleteProcessing:
         }
         else if (oid.equals(OID_PROXIED_AUTH_V1))
         {
+          // Log usage of legacy proxy authz V1 control.
+          addAdditionalLogItem(AdditionalLogItem.keyOnly(getClass(),
+              "obsoleteProxiedAuthzV1Control"));
+
           // The requester must have the PROXIED_AUTH privilige in order to
           // be able to use this control.
           if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH, this))

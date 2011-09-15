@@ -168,6 +168,10 @@ public class WhoAmIExtendedOperation
         }
         else
         {
+          // Log usage of legacy proxy authz V1 control.
+          operation.addAdditionalLogItem(AdditionalLogItem.keyOnly(getClass(),
+              "obsoleteProxiedAuthzV1Control"));
+
           authorizationEntry = proxyControlV1.getAuthorizationEntry();
         }
         operation.setAuthorizationEntry(authorizationEntry);
