@@ -403,6 +403,16 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       }
     }
 
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public void close()
+    {
+      // Nothing to do.
+    }
+
   }
 
 
@@ -1200,22 +1210,15 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
   private final String phost2 = "phost2:22";
   private final String phost3 = "phost3:33";
   private final String shost1 = "shost1:11";
-  private final String shost2 = "shost2:22";
-
-  private final String shost3 = "shost3:33";
   private DN policyDN;
-
   private final String policyDNString = "cn=test policy,o=test";
   private DN searchBindDN;
-
   private final String searchBindDNString = "cn=search bind dn";
   private DN trustManagerDN;
-
   private final String trustManagerDNString = "cn=ignored";
   private final String adDNString = "uid=aduser,o=ad";
   private final String opendjDNString = "cn=test user,o=opendj";
   private Entry userEntry;
-
   private final String userPassword = "password";
 
 

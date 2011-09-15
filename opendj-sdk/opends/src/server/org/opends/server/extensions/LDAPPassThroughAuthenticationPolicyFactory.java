@@ -76,6 +76,83 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
   // TODO: handle password policy response controls? AD?
   // TODO: periodically ping offline servers in order to detect when they come
   // back.
+  // TODO: provide alternative cfg for search password.
+
+  /**
+   * A factory which returns pre-authenticated connections for searches.
+   * <p>
+   * Package private for testing.
+   */
+  static final class AuthenticatedConnectionFactory implements
+      ConnectionFactory
+  {
+
+    private final ConnectionFactory factory;
+    private final DN username;
+    private final String password;
+
+
+
+    /**
+     * Creates a new authenticated connection factory which will bind on
+     * connect.
+     *
+     * @param factory
+     *          The underlying connection factory whose connections are to be
+     *          authenticated.
+     * @param username
+     *          The username taken from the configuration.
+     * @param password
+     *          The password taken from the configuration.
+     */
+    AuthenticatedConnectionFactory(final ConnectionFactory factory,
+        final DN username, final String password)
+    {
+      this.factory = factory;
+      this.username = username;
+      this.password = password;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void close()
+    {
+      factory.close();
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Connection getConnection() throws DirectoryException
+    {
+      final Connection connection = factory.getConnection();
+      if (username != null && !username.isNullDN() && password != null
+          && password.length() > 0)
+      {
+        try
+        {
+          connection.simpleBind(ByteString.valueOf(username.toString()),
+              ByteString.valueOf(password));
+        }
+        catch (final DirectoryException e)
+        {
+          connection.close();
+          throw e;
+        }
+      }
+      return connection;
+    }
+
+  }
+
+
 
   /**
    * An LDAP connection which will be used in order to search for or
@@ -137,8 +214,18 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
    * a connection, perform a single operation (search or bind), and then close
    * it.
    */
-  static interface ConnectionFactory
+  static interface ConnectionFactory extends Closeable
   {
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Must never throw an exception.
+     */
+    @Override
+    void close();
+
+
+
     /**
      * Returns a connection which can be used in order to search for or
      * authenticate users.
@@ -154,26 +241,275 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
   /**
-   * An interface for obtaining a connection factory for LDAP connections to a
-   * named LDAP server.
+   * PTA connection pool.
+   * <p>
+   * Package private for testing.
    */
-  static interface LDAPConnectionFactoryProvider
+  static final class ConnectionPool implements ConnectionFactory, Closeable
   {
+
     /**
-     * Returns a connection factory which can be used for obtaining connections
-     * to the specified LDAP server.
-     *
-     * @param host
-     *          The LDAP server host name.
-     * @param port
-     *          The LDAP server port.
-     * @param options
-     *          The LDAP connection options.
-     * @return A connection factory which can be used for obtaining connections
-     *         to the specified LDAP server.
+     * Pooled connection's intercept close and release connection back to the
+     * pool.
      */
-    ConnectionFactory getLDAPConnectionFactory(String host, int port,
-        LDAPPassThroughAuthenticationPolicyCfg options);
+    private final class PooledConnection implements Connection
+    {
+      private final Connection connection;
+      private boolean connectionIsClosed = false;
+
+
+
+      private PooledConnection(final Connection connection)
+      {
+        this.connection = connection;
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public void close()
+      {
+        if (!connectionIsClosed)
+        {
+          connectionIsClosed = true;
+
+          // Guarded by PolicyImpl
+          if (poolIsClosed)
+          {
+            connection.close();
+          }
+          else
+          {
+            connectionPool.offer(connection);
+          }
+          availableConnections.release();
+        }
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public ByteString search(final DN baseDN, final SearchScope scope,
+          final SearchFilter filter) throws DirectoryException
+      {
+        try
+        {
+          return connection.search(baseDN, scope, filter);
+        }
+        catch (final DirectoryException e)
+        {
+          // Don't put the connection back in the pool if it has failed.
+          closeConnectionOnFatalError(e);
+          throw e;
+        }
+      }
+
+
+
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public void simpleBind(final ByteString username,
+          final ByteString password) throws DirectoryException
+      {
+        try
+        {
+          connection.simpleBind(username, password);
+        }
+        catch (final DirectoryException e)
+        {
+          // Don't put the connection back in the pool if it has failed.
+          closeConnectionOnFatalError(e);
+          throw e;
+        }
+      }
+
+
+
+      private void closeConnectionOnFatalError(final DirectoryException e)
+      {
+        if (isFatalResultCode(e.getResultCode()))
+        {
+          if (!connectionIsClosed)
+          {
+            connectionIsClosed = true;
+            connection.close();
+            availableConnections.release();
+          }
+        }
+      }
+
+    }
+
+
+
+    // Guarded by PolicyImpl.lock.
+    private boolean poolIsClosed = false;
+
+    private final ConnectionFactory factory;
+    private final int poolSize = Runtime.getRuntime().availableProcessors() * 2;
+    private final Semaphore availableConnections = new Semaphore(poolSize);
+    private final Queue<Connection> connectionPool =
+      new ConcurrentLinkedQueue<Connection>();
+
+
+
+    /**
+     * Creates a new connection pool for the provided factory.
+     *
+     * @param factory
+     *          The underlying connection factory whose connections are to be
+     *          pooled.
+     */
+    ConnectionPool(final ConnectionFactory factory)
+    {
+      this.factory = factory;
+    }
+
+
+
+    /**
+     * Release all connections: do we want to block?
+     */
+    @Override
+    public void close()
+    {
+      // No need for synchronization as this can only be called with the
+      // policy's exclusive lock.
+      poolIsClosed = true;
+
+      Connection connection;
+      while ((connection = connectionPool.poll()) != null)
+      {
+        connection.close();
+      }
+
+      factory.close();
+
+      // Since we have the exclusive lock, there should be no more connections
+      // in use.
+      if (availableConnections.availablePermits() != poolSize)
+      {
+        throw new IllegalStateException(
+            "Pool has remaining connections open after close");
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Connection getConnection() throws DirectoryException
+    {
+      // This should only be called with the policy's shared lock.
+      if (poolIsClosed)
+      {
+        throw new IllegalStateException("pool is closed");
+      }
+
+      availableConnections.acquireUninterruptibly();
+
+      // There is either a pooled connection or we are allowed to create
+      // one.
+      Connection connection = connectionPool.poll();
+      if (connection == null)
+      {
+        try
+        {
+          connection = factory.getConnection();
+        }
+        catch (final DirectoryException e)
+        {
+          availableConnections.release();
+          throw e;
+        }
+      }
+
+      return new PooledConnection(connection);
+    }
+  }
+
+
+
+  /**
+   * A simplistic two-way fail-over connection factory implementation.
+   * <p>
+   * Package private for testing.
+   */
+  static final class FailoverConnectionFactory implements ConnectionFactory,
+      Closeable
+  {
+    private final ConnectionFactory primary;
+    private final ConnectionFactory secondary;
+
+
+
+    /**
+     * Creates a new fail-over connection factory which will always try the
+     * primary connection factory first, before trying the second.
+     *
+     * @param primary
+     *          The primary connection factory.
+     * @param secondary
+     *          The secondary connection factory.
+     */
+    FailoverConnectionFactory(final ConnectionFactory primary,
+        final ConnectionFactory secondary)
+    {
+      this.primary = primary;
+      this.secondary = secondary;
+    }
+
+
+
+    /**
+     * Close underlying load-balancers.
+     */
+    @Override
+    public void close()
+    {
+      primary.close();
+      if (secondary != null)
+      {
+        secondary.close();
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Connection getConnection() throws DirectoryException
+    {
+      if (secondary == null)
+      {
+        // No fail-over so just use the primary.
+        return primary.getConnection();
+      }
+      else
+      {
+        try
+        {
+          return primary.getConnection();
+        }
+        catch (final DirectoryException e)
+        {
+          return secondary.getConnection();
+        }
+      }
+    }
+
   }
 
 
@@ -337,14 +673,14 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
               throw new DirectoryException(
                   ResultCode.CLIENT_SIDE_MORE_RESULTS_TO_RETURN,
                   ERR_LDAP_PTA_CONNECTION_SEARCH_SIZE_LIMIT.get(host, port,
-                      String.valueOf(options.dn()), String.valueOf(baseDN),
+                      String.valueOf(cfg.dn()), String.valueOf(baseDN),
                       String.valueOf(filter)));
 
             default:
               // The search failed for some reason.
               throw new DirectoryException(resultCode,
                   ERR_LDAP_PTA_CONNECTION_SEARCH_FAILED.get(host, port,
-                      String.valueOf(options.dn()), String.valueOf(baseDN),
+                      String.valueOf(cfg.dn()), String.valueOf(baseDN),
                       String.valueOf(filter), resultCode.getIntValue(),
                       resultCode.getResultCodeName(),
                       searchResult.getErrorMessage()));
@@ -366,7 +702,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           throw new DirectoryException(
               ResultCode.CLIENT_SIDE_MORE_RESULTS_TO_RETURN,
               ERR_LDAP_PTA_CONNECTION_SEARCH_SIZE_LIMIT.get(host, port,
-                  String.valueOf(options.dn()), String.valueOf(baseDN),
+                  String.valueOf(cfg.dn()), String.valueOf(baseDN),
                   String.valueOf(filter)));
         }
 
@@ -376,7 +712,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           throw new DirectoryException(
               ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED,
               ERR_LDAP_PTA_CONNECTION_SEARCH_NO_MATCHES.get(host, port,
-                  String.valueOf(options.dn()), String.valueOf(baseDN),
+                  String.valueOf(cfg.dn()), String.valueOf(baseDN),
                   String.valueOf(filter)));
         }
 
@@ -418,7 +754,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
             // The bind failed for some reason.
             throw new DirectoryException(resultCode,
                 ERR_LDAP_PTA_CONNECTION_BIND_FAILED.get(host, port,
-                    String.valueOf(options.dn()), String.valueOf(username),
+                    String.valueOf(cfg.dn()), String.valueOf(username),
                     resultCode.getIntValue(), resultCode.getResultCodeName(),
                     bindResponse.getErrorMessage()));
           }
@@ -428,23 +764,6 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           handleUnexpectedResponse(responseMessage);
           break;
         }
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public String toString()
-      {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("LDAPConnection(");
-        builder.append(String.valueOf(ldapSocket.getLocalSocketAddress()));
-        builder.append(", ");
-        builder.append(String.valueOf(ldapSocket.getRemoteSocketAddress()));
-        builder.append(')');
-        return builder.toString();
       }
 
 
@@ -474,7 +793,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           {
             throw new DirectoryException(ResultCode.valueOf(extendedResponse
                 .getResultCode()), ERR_LDAP_PTA_CONNECTION_DISCONNECTING.get(
-                host, port, String.valueOf(options.dn()),
+                host, port, String.valueOf(cfg.dn()),
                 extendedResponse.getErrorMessage()));
           }
         }
@@ -482,7 +801,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         // Unexpected response type.
         throw new DirectoryException(ResultCode.CLIENT_SIDE_DECODING_ERROR,
             ERR_LDAP_PTA_CONNECTION_WRONG_RESPONSE.get(host, port,
-                String.valueOf(options.dn()),
+                String.valueOf(cfg.dn()),
                 String.valueOf(responseMessage.getProtocolOp())));
       }
 
@@ -503,45 +822,45 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           {
             throw new DirectoryException(ResultCode.CLIENT_SIDE_TIMEOUT,
                 ERR_LDAP_PTA_CONNECTION_TIMEOUT.get(host, port,
-                    String.valueOf(options.dn())), e);
+                    String.valueOf(cfg.dn())), e);
           }
           else if (e.getCause() instanceof IOException)
           {
             throw new DirectoryException(ResultCode.CLIENT_SIDE_SERVER_DOWN,
                 ERR_LDAP_PTA_CONNECTION_OTHER_ERROR.get(host, port,
-                    String.valueOf(options.dn()), e.getMessage()), e);
+                    String.valueOf(cfg.dn()), e.getMessage()), e);
           }
           else
           {
             throw new DirectoryException(ResultCode.CLIENT_SIDE_DECODING_ERROR,
                 ERR_LDAP_PTA_CONNECTION_DECODE_ERROR.get(host, port,
-                    String.valueOf(options.dn()), e.getMessage()), e);
+                    String.valueOf(cfg.dn()), e.getMessage()), e);
           }
         }
         catch (final LDAPException e)
         {
           throw new DirectoryException(ResultCode.CLIENT_SIDE_DECODING_ERROR,
               ERR_LDAP_PTA_CONNECTION_DECODE_ERROR.get(host, port,
-                  String.valueOf(options.dn()), e.getMessage()), e);
+                  String.valueOf(cfg.dn()), e.getMessage()), e);
         }
         catch (final SocketTimeoutException e)
         {
           throw new DirectoryException(ResultCode.CLIENT_SIDE_TIMEOUT,
               ERR_LDAP_PTA_CONNECTION_TIMEOUT.get(host, port,
-                  String.valueOf(options.dn())), e);
+                  String.valueOf(cfg.dn())), e);
         }
         catch (final IOException e)
         {
           throw new DirectoryException(ResultCode.CLIENT_SIDE_SERVER_DOWN,
               ERR_LDAP_PTA_CONNECTION_OTHER_ERROR.get(host, port,
-                  String.valueOf(options.dn()), e.getMessage()), e);
+                  String.valueOf(cfg.dn()), e.getMessage()), e);
         }
 
         if (responseMessage == null)
         {
           throw new DirectoryException(ResultCode.CLIENT_SIDE_SERVER_DOWN,
               ERR_LDAP_PTA_CONNECTION_CLOSED.get(host, port,
-                  String.valueOf(options.dn())));
+                  String.valueOf(cfg.dn())));
         }
         return responseMessage;
       }
@@ -562,7 +881,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         {
           throw new DirectoryException(ResultCode.CLIENT_SIDE_SERVER_DOWN,
               ERR_LDAP_PTA_CONNECTION_OTHER_ERROR.get(host, port,
-                  String.valueOf(options.dn()), e.getMessage()), e);
+                  String.valueOf(cfg.dn()), e.getMessage()), e);
         }
       }
     }
@@ -571,7 +890,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
     private final String host;
     private final int port;
-    private final LDAPPassThroughAuthenticationPolicyCfg options;
+    private final LDAPPassThroughAuthenticationPolicyCfg cfg;
     private final int timeoutMS;
 
 
@@ -584,20 +903,31 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
      *          The server host name.
      * @param port
      *          The server port.
-     * @param options
-     *          The options (SSL).
+     * @param cfg
+     *          The configuration (for SSL).
      */
     LDAPConnectionFactory(final String host, final int port,
-        final LDAPPassThroughAuthenticationPolicyCfg options)
+        final LDAPPassThroughAuthenticationPolicyCfg cfg)
     {
       this.host = host;
       this.port = port;
-      this.options = options;
+      this.cfg = cfg;
 
       // Normalize the timeoutMS to an integer (admin framework ensures that the
       // value is non-negative).
-      this.timeoutMS = (int) Math.min(options.getConnectionTimeout(),
+      this.timeoutMS = (int) Math.min(cfg.getConnectionTimeout(),
           Integer.MAX_VALUE);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void close()
+    {
+      // Nothing to do.
     }
 
 
@@ -624,24 +954,24 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
         try
         {
-          // Set ldapSocket options before connecting.
-          plainSocket.setTcpNoDelay(options.isUseTCPNoDelay());
-          plainSocket.setKeepAlive(options.isUseTCPKeepAlive());
+          // Set ldapSocket cfg before connecting.
+          plainSocket.setTcpNoDelay(cfg.isUseTCPNoDelay());
+          plainSocket.setKeepAlive(cfg.isUseTCPKeepAlive());
           plainSocket.setSoTimeout(timeoutMS);
 
           // Connect the ldapSocket.
           plainSocket.connect(socketAddress, timeoutMS);
 
-          if (options.isUseSSL())
+          if (cfg.isUseSSL())
           {
             // Obtain the optional configured trust manager which will be used
             // in order to determine the trust of the remote LDAP server.
             TrustManager[] tm = null;
-            DN trustManagerDN = options.getTrustManagerProviderDN();
+            final DN trustManagerDN = cfg.getTrustManagerProviderDN();
             if (trustManagerDN != null)
             {
-              TrustManagerProvider<?> trustManagerProvider = DirectoryServer
-                  .getTrustManagerProvider(trustManagerDN);
+              final TrustManagerProvider<?> trustManagerProvider =
+                DirectoryServer.getTrustManagerProvider(trustManagerDN);
               if (trustManagerProvider != null)
               {
                 tm = trustManagerProvider.getTrustManagers();
@@ -649,25 +979,26 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
             }
 
             // Create the SSL context and initialize it.
-            SSLContext sslContext = SSLContext.getInstance("TLS");
+            final SSLContext sslContext = SSLContext.getInstance("TLS");
             sslContext.init(null /* key managers */, tm, null /* rng */);
 
             // Create the SSL socket.
-            SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
-            SSLSocket sslSocket = (SSLSocket) sslSocketFactory.createSocket(
-                plainSocket, host, port, true);
+            final SSLSocketFactory sslSocketFactory = sslContext
+                .getSocketFactory();
+            final SSLSocket sslSocket = (SSLSocket) sslSocketFactory
+                .createSocket(plainSocket, host, port, true);
             ldapSocket = sslSocket;
 
             sslSocket.setUseClientMode(true);
-            if (!options.getSSLProtocol().isEmpty())
+            if (!cfg.getSSLProtocol().isEmpty())
             {
-              sslSocket.setEnabledProtocols(options.getSSLProtocol().toArray(
+              sslSocket.setEnabledProtocols(cfg.getSSLProtocol().toArray(
                   new String[0]));
             }
-            if (!options.getSSLCipherSuite().isEmpty())
+            if (!cfg.getSSLCipherSuite().isEmpty())
             {
-              sslSocket.setEnabledCipherSuites(options.getSSLCipherSuite()
-                  .toArray(new String[0]));
+              sslSocket.setEnabledCipherSuites(cfg.getSSLCipherSuite().toArray(
+                  new String[0]));
             }
 
             // Force TLS negotiation.
@@ -735,7 +1066,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         }
         throw new DirectoryException(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
             ERR_LDAP_PTA_CONNECT_UNKNOWN_HOST.get(host, port,
-                String.valueOf(options.dn()), host), e);
+                String.valueOf(cfg.dn()), host), e);
       }
       catch (final ConnectException e)
       {
@@ -745,7 +1076,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         }
         throw new DirectoryException(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
             ERR_LDAP_PTA_CONNECT_ERROR.get(host, port,
-                String.valueOf(options.dn()), port), e);
+                String.valueOf(cfg.dn()), port), e);
       }
       catch (final SocketTimeoutException e)
       {
@@ -755,7 +1086,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         }
         throw new DirectoryException(ResultCode.CLIENT_SIDE_TIMEOUT,
             ERR_LDAP_PTA_CONNECT_TIMEOUT.get(host, port,
-                String.valueOf(options.dn())), e);
+                String.valueOf(cfg.dn())), e);
       }
       catch (final SSLException e)
       {
@@ -765,7 +1096,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         }
         throw new DirectoryException(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
             ERR_LDAP_PTA_CONNECT_SSL_ERROR.get(host, port,
-                String.valueOf(options.dn()), e.getMessage()), e);
+                String.valueOf(cfg.dn()), e.getMessage()), e);
       }
       catch (final Exception e)
       {
@@ -775,9 +1106,76 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         }
         throw new DirectoryException(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
             ERR_LDAP_PTA_CONNECT_OTHER_ERROR.get(host, port,
-                String.valueOf(options.dn()), e.getMessage()), e);
+                String.valueOf(cfg.dn()), e.getMessage()), e);
       }
 
+    }
+  }
+
+
+
+  /**
+   * An interface for obtaining a connection factory for LDAP connections to a
+   * named LDAP server.
+   */
+  static interface LDAPConnectionFactoryProvider
+  {
+    /**
+     * Returns a connection factory which can be used for obtaining connections
+     * to the specified LDAP server.
+     *
+     * @param host
+     *          The LDAP server host name.
+     * @param port
+     *          The LDAP server port.
+     * @param cfg
+     *          The LDAP connection configuration.
+     * @return A connection factory which can be used for obtaining connections
+     *         to the specified LDAP server.
+     */
+    ConnectionFactory getLDAPConnectionFactory(String host, int port,
+        LDAPPassThroughAuthenticationPolicyCfg cfg);
+  }
+
+
+
+  /**
+   * A simplistic load-balancer connection factory implementation using
+   * approximately round-robin balancing.
+   */
+  static final class LoadBalancer implements ConnectionFactory, Closeable
+  {
+    private final ConnectionFactory[] factories;
+    private final AtomicInteger nextIndex = new AtomicInteger();
+    private final int maxIndex;
+
+
+
+    /**
+     * Creates a new load-balancer which will distribute connection requests
+     * across a set of underlying connection factories.
+     *
+     * @param factories
+     *          The list of underlying connection factories.
+     */
+    LoadBalancer(final ConnectionFactory[] factories)
+    {
+      this.factories = factories;
+      this.maxIndex = factories.length;
+    }
+
+
+
+    /**
+     * Close underlying connection pools.
+     */
+    @Override
+    public void close()
+    {
+      for (final ConnectionFactory factory : factories)
+      {
+        factory.close();
+      }
     }
 
 
@@ -786,16 +1184,68 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
      * {@inheritDoc}
      */
     @Override
-    public String toString()
+    public Connection getConnection() throws DirectoryException
     {
-      final StringBuilder builder = new StringBuilder();
-      builder.append("LDAPConnectionFactory(");
-      builder.append(host);
-      builder.append(':');
-      builder.append(port);
-      builder.append(')');
-      return builder.toString();
+      final int startIndex = getStartIndex();
+      int index = startIndex;
+      for (;;)
+      {
+        final ConnectionFactory factory = factories[index];
+
+        try
+        {
+          return factory.getConnection();
+        }
+        catch (final DirectoryException e)
+        {
+          // Try the next index.
+          if (++index == maxIndex)
+          {
+            index = 0;
+          }
+
+          // If all the factories have been tried then give up and throw the
+          // exception.
+          if (index == startIndex)
+          {
+            throw e;
+          }
+        }
+      }
     }
+
+
+
+    // Determine the start index.
+    private int getStartIndex()
+    {
+      // A round robin pool of one connection factories is unlikely in
+      // practice and requires special treatment.
+      if (maxIndex == 1)
+      {
+        return 0;
+      }
+
+      // Determine the next factory to use: avoid blocking algorithm.
+      int oldNextIndex;
+      int newNextIndex;
+      do
+      {
+        oldNextIndex = nextIndex.get();
+        newNextIndex = oldNextIndex + 1;
+        if (newNextIndex == maxIndex)
+        {
+          newNextIndex = 0;
+        }
+      }
+      while (!nextIndex.compareAndSet(oldNextIndex, newNextIndex));
+
+      // There's a potential, but benign, race condition here: other threads
+      // could jump in and rotate through the list before we return the
+      // connection factory.
+      return oldNextIndex;
+    }
+
   }
 
 
@@ -806,485 +1256,6 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
   private final class PolicyImpl extends AuthenticationPolicy implements
       ConfigurationChangeListener<LDAPPassThroughAuthenticationPolicyCfg>
   {
-
-    /**
-     * A factory which returns pre-authenticated connections for searches.
-     */
-    private final class AuthenticatedConnectionFactory implements
-        ConnectionFactory
-    {
-
-      private final ConnectionFactory factory;
-
-
-
-      private AuthenticatedConnectionFactory(final ConnectionFactory factory)
-      {
-        this.factory = factory;
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public Connection getConnection() throws DirectoryException
-      {
-        final DN username = configuration.getMappedSearchBindDN();
-        final String password = configuration.getMappedSearchBindPassword();
-
-        final Connection connection = factory.getConnection();
-        if (username != null && !username.isNullDN() && password != null
-            && password.length() > 0)
-        {
-          try
-          {
-            connection.simpleBind(ByteString.valueOf(username.toString()),
-                ByteString.valueOf(password));
-          }
-          catch (final DirectoryException e)
-          {
-            connection.close();
-            throw e;
-          }
-        }
-        return connection;
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public String toString()
-      {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("AuthenticationConnectionFactory(");
-        builder.append(factory);
-        builder.append(')');
-        return builder.toString();
-      }
-
-    }
-
-
-
-    /**
-     * PTA connection pool.
-     */
-    private final class ConnectionPool implements ConnectionFactory, Closeable
-    {
-
-      /**
-       * Pooled connection's intercept close and release connection back to the
-       * pool.
-       */
-      private final class PooledConnection implements Connection
-      {
-        private final Connection connection;
-        private boolean connectionIsClosed = false;
-
-
-
-        private PooledConnection(final Connection connection)
-        {
-          this.connection = connection;
-        }
-
-
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void close()
-        {
-          if (!connectionIsClosed)
-          {
-            connectionIsClosed = true;
-
-            // Guarded by PolicyImpl
-            if (poolIsClosed)
-            {
-              connection.close();
-            }
-            else
-            {
-              connectionPool.offer(connection);
-            }
-            availableConnections.release();
-          }
-        }
-
-
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public ByteString search(final DN baseDN, final SearchScope scope,
-            final SearchFilter filter) throws DirectoryException
-        {
-          try
-          {
-            return connection.search(baseDN, scope, filter);
-          }
-          catch (final DirectoryException e)
-          {
-            // Don't put the connection back in the pool if it has failed.
-            closeConnectionOnFatalError(e);
-            throw e;
-          }
-        }
-
-
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void simpleBind(final ByteString username,
-            final ByteString password) throws DirectoryException
-        {
-          try
-          {
-            connection.simpleBind(username, password);
-          }
-          catch (final DirectoryException e)
-          {
-            // Don't put the connection back in the pool if it has failed.
-            closeConnectionOnFatalError(e);
-            throw e;
-          }
-        }
-
-
-
-        private void closeConnectionOnFatalError(final DirectoryException e)
-        {
-          if (isFatalResultCode(e.getResultCode()))
-          {
-            if (!connectionIsClosed)
-            {
-              connectionIsClosed = true;
-              connection.close();
-              availableConnections.release();
-            }
-          }
-        }
-
-      }
-
-
-
-      // Guarded by PolicyImpl.lock.
-      private boolean poolIsClosed = false;
-
-      private final ConnectionFactory factory;
-      private final int poolSize =
-        Runtime.getRuntime().availableProcessors() * 2;
-      private final Semaphore availableConnections = new Semaphore(poolSize);
-      private final ConcurrentLinkedQueue<Connection> connectionPool =
-        new ConcurrentLinkedQueue<Connection>();
-
-
-
-      private ConnectionPool(final ConnectionFactory factory)
-      {
-        this.factory = factory;
-      }
-
-
-
-      /**
-       * Release all connections: do we want to block?
-       */
-      @Override
-      public void close()
-      {
-        // No need for synchronization as this can only be called with the
-        // policy's exclusive lock.
-        poolIsClosed = true;
-
-        Connection connection;
-        while ((connection = connectionPool.poll()) != null)
-        {
-          connection.close();
-        }
-
-        // Since we have the exclusive lock, there should be no more connections
-        // in use.
-        if (availableConnections.availablePermits() != poolSize)
-        {
-          throw new IllegalStateException(
-              "Pool has remaining connections open after close");
-        }
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public Connection getConnection() throws DirectoryException
-      {
-        // This should only be called with the policy's shared lock.
-        if (poolIsClosed)
-        {
-          throw new IllegalStateException("pool is closed");
-        }
-
-        availableConnections.acquireUninterruptibly();
-
-        // There is either a pooled connection or we are allowed to create
-        // one.
-        Connection connection = connectionPool.poll();
-        if (connection == null)
-        {
-          try
-          {
-            connection = factory.getConnection();
-          }
-          catch (final DirectoryException e)
-          {
-            availableConnections.release();
-            throw e;
-          }
-        }
-
-        return new PooledConnection(connection);
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public String toString()
-      {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("ConnectionPool(");
-        builder.append(factory);
-        builder.append(", poolSize=");
-        builder.append(poolSize);
-        builder.append(", inPool=");
-        builder.append(connectionPool.size());
-        builder.append(", available=");
-        builder.append(availableConnections.availablePermits());
-        builder.append(')');
-        return builder.toString();
-      }
-    }
-
-
-
-    /**
-     * A simplistic two-way fail-over connection factory implementation.
-     */
-    private final class FailoverConnectionFactory implements ConnectionFactory,
-        Closeable
-    {
-      private final LoadBalancer primary;
-      private final LoadBalancer secondary;
-
-
-
-      private FailoverConnectionFactory(final LoadBalancer primary,
-          final LoadBalancer secondary)
-      {
-        this.primary = primary;
-        this.secondary = secondary;
-      }
-
-
-
-      /**
-       * Close underlying load-balancers.
-       */
-      @Override
-      public void close()
-      {
-        primary.close();
-        if (secondary != null)
-        {
-          secondary.close();
-        }
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public Connection getConnection() throws DirectoryException
-      {
-        if (secondary == null)
-        {
-          // No fail-over so just use the primary.
-          return primary.getConnection();
-        }
-        else
-        {
-          try
-          {
-            return primary.getConnection();
-          }
-          catch (final DirectoryException e)
-          {
-            return secondary.getConnection();
-          }
-        }
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public String toString()
-      {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("FailoverConnectionFactory(");
-        builder.append(primary);
-        builder.append(", ");
-        builder.append(secondary);
-        builder.append(')');
-        return builder.toString();
-      }
-
-    }
-
-
-
-    /**
-     * A simplistic load-balancer connection factory implementation using
-     * approximately round-robin balancing.
-     */
-    private final class LoadBalancer implements ConnectionFactory, Closeable
-    {
-      private final ConnectionPool[] factories;
-      private final AtomicInteger nextIndex = new AtomicInteger();
-      private final int maxIndex;
-
-
-
-      private LoadBalancer(final ConnectionPool[] factories)
-      {
-        this.factories = factories;
-        this.maxIndex = factories.length;
-      }
-
-
-
-      /**
-       * Close underlying connection pools.
-       */
-      @Override
-      public void close()
-      {
-        for (final ConnectionPool pool : factories)
-        {
-          pool.close();
-        }
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public Connection getConnection() throws DirectoryException
-      {
-        final int startIndex = getStartIndex();
-        int index = startIndex;
-        for (;;)
-        {
-          final ConnectionFactory factory = factories[index];
-
-          try
-          {
-            return factory.getConnection();
-          }
-          catch (final DirectoryException e)
-          {
-            // Try the next index.
-            if (++index == maxIndex)
-            {
-              index = 0;
-            }
-
-            // If all the factories have been tried then give up and throw the
-            // exception.
-            if (index == startIndex)
-            {
-              throw e;
-            }
-          }
-        }
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public String toString()
-      {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("LoadBalancer(");
-        builder.append(nextIndex);
-        for (final ConnectionFactory factory : factories)
-        {
-          builder.append(", ");
-          builder.append(factory);
-        }
-        builder.append(')');
-        return builder.toString();
-      }
-
-
-
-      // Determine the start index.
-      private int getStartIndex()
-      {
-        // A round robin pool of one connection factories is unlikely in
-        // practice and requires special treatment.
-        if (maxIndex == 1)
-        {
-          return 0;
-        }
-
-        // Determine the next factory to use: avoid blocking algorithm.
-        int oldNextIndex;
-        int newNextIndex;
-        do
-        {
-          oldNextIndex = nextIndex.get();
-          newNextIndex = oldNextIndex + 1;
-          if (newNextIndex == maxIndex)
-          {
-            newNextIndex = 0;
-          }
-        }
-        while (!nextIndex.compareAndSet(oldNextIndex, newNextIndex));
-
-        // There's a potential, but benign, race condition here: other threads
-        // could jump in and rotate through the list before we return the
-        // connection factory.
-        return oldNextIndex;
-      }
-
-    }
-
-
 
     /**
      * LDAP PTA policy state implementation.
@@ -1344,7 +1315,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           // directory.
           ByteString username = null;
 
-          switch (configuration.getMappingPolicy())
+          switch (cfg.getMappingPolicy())
           {
           case UNMAPPED:
             // The bind DN is the name of the user's entry.
@@ -1352,8 +1323,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
             break;
           case MAPPED_BIND:
             // The bind DN is contained in an attribute in the user's entry.
-            mapBind: for (final AttributeType at : configuration
-                .getMappedAttribute())
+            mapBind: for (final AttributeType at : cfg.getMappedAttribute())
             {
               final List<Attribute> attributes = userEntry.getAttribute(at);
               if (attributes != null && !attributes.isEmpty())
@@ -1378,10 +1348,10 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
                * references a non-user entry.
                */
               throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-                  ERR_LDAP_PTA_MAPPING_ATTRIBUTE_NOT_FOUND.get(String
-                      .valueOf(userEntry.getDN()), String.valueOf(configuration
-                      .dn()), mappedAttributesAsString(configuration
-                      .getMappedAttribute())));
+                  ERR_LDAP_PTA_MAPPING_ATTRIBUTE_NOT_FOUND.get(
+                      String.valueOf(userEntry.getDN()),
+                      String.valueOf(cfg.dn()),
+                      mappedAttributesAsString(cfg.getMappedAttribute())));
             }
 
             break;
@@ -1392,7 +1362,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
             // Construct the search filter.
             final LinkedList<SearchFilter> filterComponents =
               new LinkedList<SearchFilter>();
-            for (final AttributeType at : configuration.getMappedAttribute())
+            for (final AttributeType at : cfg.getMappedAttribute())
             {
               final List<Attribute> attributes = userEntry.getAttribute(at);
               if (attributes != null && !attributes.isEmpty())
@@ -1417,10 +1387,10 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
                * references a non-user entry.
                */
               throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
-                  ERR_LDAP_PTA_MAPPING_ATTRIBUTE_NOT_FOUND.get(String
-                      .valueOf(userEntry.getDN()), String.valueOf(configuration
-                      .dn()), mappedAttributesAsString(configuration
-                      .getMappedAttribute())));
+                  ERR_LDAP_PTA_MAPPING_ATTRIBUTE_NOT_FOUND.get(
+                      String.valueOf(userEntry.getDN()),
+                      String.valueOf(cfg.dn()),
+                      mappedAttributesAsString(cfg.getMappedAttribute())));
             }
 
             final SearchFilter filter;
@@ -1435,7 +1405,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
             // Now search the configured base DNs, stopping at the first
             // success.
-            for (final DN baseDN : configuration.getMappedSearchBaseDN())
+            for (final DN baseDN : cfg.getMappedSearchBaseDN())
             {
               Connection connection = null;
               try
@@ -1457,8 +1427,8 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
                   throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
                       ERR_LDAP_PTA_MAPPED_SEARCH_TOO_MANY_CANDIDATES.get(
                           String.valueOf(userEntry.getDN()),
-                          String.valueOf(configuration.dn()),
-                          String.valueOf(baseDN), String.valueOf(filter)));
+                          String.valueOf(cfg.dn()), String.valueOf(baseDN),
+                          String.valueOf(filter)));
                 default:
                   // We don't want to propagate this internal error to the
                   // client. We should log it and map it to a more appropriate
@@ -1466,8 +1436,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
                   throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
                       ERR_LDAP_PTA_MAPPED_SEARCH_FAILED.get(
                           String.valueOf(userEntry.getDN()),
-                          String.valueOf(configuration.dn()),
-                          e.getMessageObject()), e);
+                          String.valueOf(cfg.dn()), e.getMessageObject()), e);
                 }
               }
               finally
@@ -1487,8 +1456,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
               throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
                   ERR_LDAP_PTA_MAPPED_SEARCH_NO_CANDIDATES.get(
                       String.valueOf(userEntry.getDN()),
-                      String.valueOf(configuration.dn()),
-                      String.valueOf(filter)));
+                      String.valueOf(cfg.dn()), String.valueOf(filter)));
             }
 
             break;
@@ -1513,12 +1481,10 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
               // We don't want to propagate this internal error to the
               // client. We should log it and map it to a more appropriate
               // error.
-              throw new DirectoryException(
-                  ResultCode.INVALID_CREDENTIALS,
+              throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
                   ERR_LDAP_PTA_MAPPED_BIND_FAILED.get(
                       String.valueOf(userEntry.getDN()),
-                      String.valueOf(configuration.dn()), e.getMessageObject()),
-                  e);
+                      String.valueOf(cfg.dn()), e.getMessageObject()), e);
             }
           }
           finally
@@ -1544,7 +1510,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     private final WriteLock exclusiveLock = lock.writeLock();
 
     // Current configuration.
-    private LDAPPassThroughAuthenticationPolicyCfg configuration;
+    private LDAPPassThroughAuthenticationPolicyCfg cfg;
 
     private FailoverConnectionFactory searchFactory = null;
     private FailoverConnectionFactory bindFactory = null;
@@ -1564,13 +1530,13 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
      */
     @Override
     public ConfigChangeResult applyConfigurationChange(
-        final LDAPPassThroughAuthenticationPolicyCfg configuration)
+        final LDAPPassThroughAuthenticationPolicyCfg cfg)
     {
       exclusiveLock.lock();
       try
       {
         closeConnections();
-        initializeConfiguration(configuration);
+        initializeConfiguration(cfg);
       }
       finally
       {
@@ -1603,7 +1569,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       exclusiveLock.lock();
       try
       {
-        configuration.removeLDAPPassThroughChangeListener(this);
+        cfg.removeLDAPPassThroughChangeListener(this);
         closeConnections();
       }
       finally
@@ -1620,7 +1586,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     @Override
     public DN getDN()
     {
-      return configuration.dn();
+      return cfg.dn();
     }
 
 
@@ -1630,11 +1596,11 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
      */
     @Override
     public boolean isConfigurationChangeAcceptable(
-        final LDAPPassThroughAuthenticationPolicyCfg configuration,
+        final LDAPPassThroughAuthenticationPolicyCfg cfg,
         final List<Message> unacceptableReasons)
     {
       return LDAPPassThroughAuthenticationPolicyFactory.this
-          .isConfigurationAcceptable(configuration, unacceptableReasons);
+          .isConfigurationAcceptable(cfg, unacceptableReasons);
     }
 
 
@@ -1666,9 +1632,9 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
     private void initializeConfiguration(
-        final LDAPPassThroughAuthenticationPolicyCfg configuration)
+        final LDAPPassThroughAuthenticationPolicyCfg cfg)
     {
-      this.configuration = configuration;
+      this.cfg = cfg;
 
       // Use two pools per server: one for authentication (bind) and one for
       // searches. Even if the searches are performed anonymously we cannot use
@@ -1679,7 +1645,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       final LoadBalancer primarySearchLoadBalancer;
       final LoadBalancer primaryBindLoadBalancer;
 
-      Set<String> servers = configuration.getPrimaryRemoteLDAPServer();
+      Set<String> servers = cfg.getPrimaryRemoteLDAPServer();
       ConnectionPool[] searchPool = new ConnectionPool[servers.size()];
       ConnectionPool[] bindPool = new ConnectionPool[servers.size()];
       int index = 0;
@@ -1687,7 +1653,9 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       {
         final ConnectionFactory factory = newLDAPConnectionFactory(hostPort);
         searchPool[index] = new ConnectionPool(
-            new AuthenticatedConnectionFactory(factory));
+            new AuthenticatedConnectionFactory(factory,
+                cfg.getMappedSearchBindDN(),
+                cfg.getMappedSearchBindPassword()));
         bindPool[index++] = new ConnectionPool(factory);
       }
       primarySearchLoadBalancer = new LoadBalancer(searchPool);
@@ -1697,7 +1665,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       final LoadBalancer secondarySearchLoadBalancer;
       final LoadBalancer secondaryBindLoadBalancer;
 
-      servers = configuration.getSecondaryRemoteLDAPServer();
+      servers = cfg.getSecondaryRemoteLDAPServer();
       if (servers.isEmpty())
       {
         secondarySearchLoadBalancer = null;
@@ -1712,7 +1680,9 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         {
           final ConnectionFactory factory = newLDAPConnectionFactory(hostPort);
           searchPool[index] = new ConnectionPool(
-              new AuthenticatedConnectionFactory(factory));
+              new AuthenticatedConnectionFactory(factory,
+                  cfg.getMappedSearchBindDN(),
+                  cfg.getMappedSearchBindPassword()));
           bindPool[index++] = new ConnectionPool(factory);
         }
         secondarySearchLoadBalancer = new LoadBalancer(searchPool);
@@ -1733,7 +1703,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       final int colonIndex = hostPort.lastIndexOf(":");
       final String hostname = hostPort.substring(0, colonIndex);
       final int port = Integer.parseInt(hostPort.substring(colonIndex + 1));
-      return provider.getLDAPConnectionFactory(hostname, port, configuration);
+      return provider.getLDAPConnectionFactory(hostname, port, cfg);
     }
 
   }
@@ -1766,9 +1736,9 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
     @Override
     public ConnectionFactory getLDAPConnectionFactory(final String host,
-        final int port, final LDAPPassThroughAuthenticationPolicyCfg options)
+        final int port, final LDAPPassThroughAuthenticationPolicyCfg cfg)
     {
-      return new LDAPConnectionFactory(host, port, options);
+      return new LDAPConnectionFactory(host, port, cfg);
     }
 
   };
@@ -1804,6 +1774,51 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       return true;
     default:
       return false;
+    }
+  }
+
+
+
+  private static boolean isServerAddressValid(
+      final LDAPPassThroughAuthenticationPolicyCfg configuration,
+      final List<Message> unacceptableReasons, final String hostPort)
+  {
+    final int colonIndex = hostPort.lastIndexOf(":");
+    final int port = Integer.parseInt(hostPort.substring(colonIndex + 1));
+    if (port < 1 || port > 65535)
+    {
+      if (unacceptableReasons != null)
+      {
+        final Message msg = ERR_LDAP_PTA_INVALID_PORT_NUMBER.get(
+            String.valueOf(configuration.dn()), hostPort);
+        unacceptableReasons.add(msg);
+      }
+      return false;
+    }
+    return true;
+  }
+
+
+
+  private static String mappedAttributesAsString(
+      final Collection<AttributeType> attributes)
+  {
+    switch (attributes.size())
+    {
+    case 0:
+      return "";
+    case 1:
+      return attributes.iterator().next().getNameOrOID();
+    default:
+      final StringBuilder builder = new StringBuilder();
+      final Iterator<AttributeType> i = attributes.iterator();
+      builder.append(i.next().getNameOrOID());
+      while (i.hasNext())
+      {
+        builder.append(", ");
+        builder.append(i.next().getNameOrOID());
+      }
+      return builder.toString();
     }
   }
 
@@ -1864,63 +1879,18 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     // capabilities).
     boolean configurationIsAcceptable = true;
 
-    for (String hostPort : configuration.getPrimaryRemoteLDAPServer())
+    for (final String hostPort : configuration.getPrimaryRemoteLDAPServer())
     {
       configurationIsAcceptable &= isServerAddressValid(configuration,
           unacceptableReasons, hostPort);
     }
 
-    for (String hostPort : configuration.getSecondaryRemoteLDAPServer())
+    for (final String hostPort : configuration.getSecondaryRemoteLDAPServer())
     {
       configurationIsAcceptable &= isServerAddressValid(configuration,
           unacceptableReasons, hostPort);
     }
 
     return configurationIsAcceptable;
-  }
-
-
-
-  private static boolean isServerAddressValid(
-      final LDAPPassThroughAuthenticationPolicyCfg configuration,
-      final List<Message> unacceptableReasons, String hostPort)
-  {
-    final int colonIndex = hostPort.lastIndexOf(":");
-    final int port = Integer.parseInt(hostPort.substring(colonIndex + 1));
-    if (port < 1 || port > 65535)
-    {
-      if (unacceptableReasons != null)
-      {
-        Message msg = ERR_LDAP_PTA_INVALID_PORT_NUMBER.get(
-            String.valueOf(configuration.dn()), hostPort);
-        unacceptableReasons.add(msg);
-      }
-      return false;
-    }
-    return true;
-  }
-
-
-
-  private static String mappedAttributesAsString(
-      Collection<AttributeType> attributes)
-  {
-    switch (attributes.size())
-    {
-    case 0:
-      return "";
-    case 1:
-      return attributes.iterator().next().getNameOrOID();
-    default:
-      StringBuilder builder = new StringBuilder();
-      Iterator<AttributeType> i = attributes.iterator();
-      builder.append(i.next().getNameOrOID());
-      while (i.hasNext())
-      {
-        builder.append(", ");
-        builder.append(i.next().getNameOrOID());
-      }
-      return builder.toString();
-    }
   }
 }
