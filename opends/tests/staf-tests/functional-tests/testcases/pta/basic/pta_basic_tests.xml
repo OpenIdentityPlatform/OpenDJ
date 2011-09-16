@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ ! 
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/CDDLv1_0.txt
+ ! or http://forgerock.org/license/CDDLv1.0.html.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ ! 
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/CDDLv1_0.txt.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2011 ForgeRock AS
+ ! -->
+<stax>
+
+  <!-- Definition of Test Cases -->             
+
+  <!--- Test Cases : Basic : PTA -->
+  
+  <!--- Test Case information
+  #@TestMarker          Basic: PTA unmapped
+  #@TestName            Basic: PTA unmapped
+  #@TestID              basic_pta_001
+  #@TestPurpose         Verify user with a LDAP PTA unmapped policy can authenticated to remote server
+  #@TestPreamble
+  #@TestSteps           Configure LDAP PTA Policy
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->   
+  
+  <!--- Test Case information
+  #@TestMarker          Basic: PTA mapped-bind
+  #@TestName            Basic: PTA mapped-bind
+  #@TestID              basic_pta_002
+  #@TestPurpose         Verify user with a LDAP PTA mapped-bind policy can authenticated to remote server
+  #@TestPreamble
+  #@TestSteps           Configure LDAP PTA Policy
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->   
+      
+  <!--- Test Case information
+  #@TestMarker          Basic: PTA mapped-search
+  #@TestName            Basic: PTA mapped-search
+  #@TestID              basic_pta_003
+  #@TestPurpose         Verify user with a LDAP PTA mapped-search policy can authenticated to remote server
+  #@TestPreamble
+  #@TestSteps           Configure LDAP PTA Policy
+  #@TestPostamble
+  #@TestResult          Test is successful if the result code is 0
+  -->                           
+  <function name="basic_pta_003" scope="local">
+    <testcase name="getTestCaseName('PTA mapped-search')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <!-- On primary server configure LDAP PTA -->
+            <script>
+              primaryHost   = primary_remote_ldap_server.getHostname()
+              primaryPort   = primary_remote_ldap_server.getPort()
+              secondaryHost = secondary_remote_ldap_server.getHostname()
+              secondaryPort = secondary_remote_ldap_server.getPort()
+
+              options=[]
+              options.append('--set primary-remote-ldap-server:%s:%s' % (primaryHost,primaryPort))
+              options.append('--set mapped-attribute:cn')
+              options.append('--set mapped-search-base-dn:dc=AD,dc=com')
+              options.append('--set mapping-policy:mapped-search')
+              options.append('--set secondary-remote-ldap-server:%s:%s' % (secondaryHost,secondaryPort))
+              options.append('--type ldap-pass-through')
+              options.append('--policy-name "LDAP PTA"')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'location'            : local_ldap_server.getHostname(),
+                'dsPath'              : '%s/%s' \
+                                         % (local_ldap_server.getDir(),OPENDSNAME),
+                'dsInstanceHost'      : local_ldap_server.getHostname(),
+                'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
+                'dsInstanceDn'        : local_ldap_server.getRootDn(),
+                'dsInstancePswd'      : local_ldap_server.getRootPwd(),
+                'subcommand'          : 'create-password-policy',
+                'optionsString'       : dsconfigOptions
+              }
+            </call>
+
+            <!-- Read back the "authentication policy" object -->
+            <script>
+              options=[]
+              options.append('--policy-name "LDAP PTA"')
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'location'            : local_ldap_server.getHostname(),
+                'dsPath'              : '%s/%s' \
+                                         % (local_ldap_server.getDir(),OPENDSNAME),
+                'dsInstanceHost'      : local_ldap_server.getHostname(),
+                'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
+                'dsInstanceDn'        : local_ldap_server.getRootDn(),
+                'dsInstancePswd'      : local_ldap_server.getRootPwd(),
+                'subcommand'          : 'get-password-policy-prop',
+                'optionsString'       : dsconfigOptions
+              }
+            </call>
+
+            <!-- Add ds-pwp-password-policy-dn: 
+              cn=LDAP PTA,cn=Password Policies,cn=config 
+              to users entry -->
+            <script>
+              remotePTAuserName='uid=jvedder, ou=People, o=example'
+              remotePTAuserPSWD='befitting'
+              ldapObject=[]
+              ldapObject.append('ds-pwp-password-policy-dn: cn=LDAP PTA,cn=Password Policies,cn=config')
+           </script>
+
+            <call function="'modifyAnAttribute'">
+              { 'location'        : local_ldap_server.getHostname(),
+                'dsPath'                 : '%s/%s' \
+                                           % (local_ldap_server.getDir(),OPENDSNAME),
+                'dsInstanceHost'  : local_ldap_server.getHostname() ,
+                'dsInstancePort'  : local_ldap_server.getPort(),
+                'dsInstanceDn'    : local_ldap_server.getRootDn(),
+                'dsInstancePswd'  : local_ldap_server.getRootPwd(),
+                'DNToModify'      : remotePTAuserName ,
+                'listAttributes'  : ldapObject ,
+                'changetype'      : 'add' }
+            </call>
+
+            <!-- Search users entry as Directory Manager for operational attributes -->
+            <call function="'ldapSearchWithScript'">
+              { 'location'        : local_ldap_server.getHostname(),
+                'dsPath'                 : '%s/%s' \
+                                           % (local_ldap_server.getDir(),OPENDSNAME),
+                'dsInstanceHost'  : local_ldap_server.getHostname() ,
+                'dsInstancePort'  : local_ldap_server.getPort(),
+                'dsInstanceDn'    : local_ldap_server.getRootDn(),
+                'dsInstancePswd'  : local_ldap_server.getRootPwd(),
+                'dsBaseDN'        : remotePTAuserName ,
+                'dsFilter'        : 'objectclass=*' ,
+                'dsAttributes'    : '+'
+              }
+            </call>
+
+            <!-- Search users entry as himself -->
+            <call function="'ldapSearchWithScript'">
+              { 'location'        : local_ldap_server.getHostname(),
+                'dsPath'                 : '%s/%s' \
+                                           % (local_ldap_server.getDir(),OPENDSNAME),
+                'dsInstanceHost'  : local_ldap_server.getHostname() ,
+                'dsInstancePort'  : local_ldap_server.getPort(),
+                'dsInstanceDn'    : remotePTAuserName,
+                'dsInstancePswd'  : remotePTAuserPSWD ,
+                'dsBaseDN'        : remotePTAuserName ,
+                'dsFilter'        : 'objectclass=*'
+              }
+            </call>
+
+            <!-- Modify the users entry -->
+            <script>
+              ldapObject=[]
+              ldapObject.append('description: i am now a remote LDAP PTA user')
+           </script>
+
+            <call function="'modifyAnAttribute'">
+              { 'location'        : local_ldap_server.getHostname(),
+                'dsPath'                 : '%s/%s' \
+                                           % (local_ldap_server.getDir(),OPENDSNAME),
+                'dsInstanceHost'  : local_ldap_server.getHostname() ,
+                'dsInstancePort'  : local_ldap_server.getPort(),
+                'dsInstanceDn'    : remotePTAuserName,
+                'dsInstancePswd'  : remotePTAuserPSWD,
+                'DNToModify'      : remotePTAuserName ,
+                'listAttributes'  : ldapObject ,
+                'changetype'      : 'replace' }
+            </call>
+
+            <!-- Delete LDAP PTA (authentication) password policy attribute -->
+            <script>
+              ldapObject=[]
+              ldapObject.append('ds-pwp-password-policy-dn: cn=LDAP PTA,cn=Password Policies,cn=config')
+           </script>
+
+            <call function="'modifyAnAttribute'">
+              { 'location'        : local_ldap_server.getHostname(),
+                'dsPath'                 : '%s/%s' \
+                                           % (local_ldap_server.getDir(),OPENDSNAME),
+                'dsInstanceHost'  : local_ldap_server.getHostname() ,
+                'dsInstancePort'  : local_ldap_server.getPort(),
+                'dsInstanceDn'    : local_ldap_server.getRootDn(),
+                'dsInstancePswd'  : local_ldap_server.getRootPwd(),
+                'DNToModify'      : remotePTAuserName ,
+                'listAttributes'  : ldapObject ,
+                'changetype'      : 'delete' }
+            </call>
+                        
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <call function="'testCase_Postamble'"/>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+   
+</stax>
