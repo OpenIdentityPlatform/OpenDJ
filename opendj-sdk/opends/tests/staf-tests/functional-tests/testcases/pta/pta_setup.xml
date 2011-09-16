@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ ! 
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/CDDLv1_0.txt
+ ! or http://forgerock.org/license/CDDLv1.0.html.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ ! 
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/CDDLv1_0.txt.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2011 ForgeRock AS.
+ ! -->
+<stax>
+
+  <defaultcall function="pta_setup"/>
+
+  <function name="pta_setup">
+    <function-map-args>
+      <function-arg-def name="topologyFile" 
+                        type="optional" 
+                        default="'%s/basic_topology.txt' % REPLICATION_CONFIG_DIR">
+        <function-arg-description>
+          Pathname to file describing the topology.
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+    </function-map-args>    
+    
+    <sequence>
+
+      <block name="'pta-setup'">
+
+        <testcase name="getTestCaseName('PTA Setup')">
+                  
+          <try>
+
+            <sequence>
+              
+              <call function="'testCase_Preamble'"/>
+          
+              <message>
+                 'Create DS topology as described in %s' % topologyFile
+              </message>
+                     
+              <call function="'createTopology'">
+                { 'topologyDescFile'        : topologyFile,
+                  'sharedDataFolder'        : 'pta'
+                }
+              </call>  
+    
+              <!-- Start the servers in the topology -->        
+              <call function="'startServers'">
+                [_splitServerList ]
+              </call>
+    
+              <script>
+                local_ldap            = 0
+                primary_remote_ldap   = 1
+                secondary_remote_ldap = 2
+                
+                local_ldap_server = _topologyServerList[local_ldap]
+                primary_remote_ldap_server = _topologyServerList[primary_remote_ldap]
+                secondary_remote_ldap_server = _topologyServerList[secondary_remote_ldap]
+              </script>
+    
+              <!-- On remote servers create suffixes -->
+              <paralleliterate var="server"
+                                 in="_topologyServerList"
+                                 indexvar="whoami">
+                <sequence>
+                  <if expr="whoami == local_ldap">
+                    <sequence>
+                      <message>
+                        'local-ldap-server %s:%s' % \
+                            (server.getHostname(),server.getPort())
+                      </message>
+                      <script>
+                        dataFile = 'Example.ldif'
+                        serverDataFile   = '%s/pta/%s' \
+                          % (server.getDataDir(), dataFile)
+                        serverSkipFile   = '%s/pta/skipped%s.ldif' \
+                          % (server.getTmpDir(),whoami)
+                        serverRejectFile = '%s/pta/rejects%s.ldif' \
+                          % (server.getTmpDir(),whoami)
+                      </script>
+                      <message>
+                        'Import data from %s into local-ldap-server %s:%s' \
+                        % (serverDataFile, server.getHostname(), server.getPort())
+                      </message>
+                        
+                      <!-- Import data into "local-ldap-server" -->
+                      <call function="'ImportLdifWithScript'">
+                        { 'location'            : server.getHostname(),
+                          'dsPath'              : '%s/%s' \
+                                                     % (server.getDir(),OPENDSNAME),
+                          'dsInstanceHost'      : server.getHostname(),
+                          'dsInstanceAdminPort' : server.getAdminPort(),
+                          'dsInstanceDn'        : server.getRootDn(),
+                          'dsInstancePswd'      : server.getRootPwd(),
+                          'backEnd'             : 'userRoot',
+                          'ldifFile'            : serverDataFile ,
+                          'skipFile'            : serverSkipFile ,
+                          'rejectFile'          : serverRejectFile
+                        }
+                      </call>
+                    </sequence>
+                  <else>
+                    <sequence>
+                      <message>
+                        'remote-ldap-server %s:%s' \
+                          % (server.getHostname(),server.getPort())
+                      </message>
+                      
+                      <!-- Create different backend on remote-ldap-servers -->
+                      <script>
+                        options=[]
+                        options.append('--backend-name "AD"')
+                        options.append('--set base-dn:"dc=AD,dc=com"')
+                        options.append('--set enabled:true')
+                        options.append('--set writability-mode:enabled')
+                        options.append('--type local-db')
+                        createBackendOptions=' '.join(options)
+                      </script>
+      
+                      <call function="'dsconfig'">
+                        { 'location'            : server.getHostname(),
+                          'dsPath'              : '%s/%s' \
+                                                   % (server.getDir(),OPENDSNAME),
+                          'dsInstanceHost'      : server.getHostname(),
+                          'dsInstanceAdminPort' : server.getAdminPort(),
+                          'dsInstanceDn'        : server.getRootDn(),
+                          'dsInstancePswd'      : server.getRootPwd(),
+                          'subcommand'          : 'create-backend',
+                          'optionsString'       : createBackendOptions
+                        }
+                      </call>
+
+                      <script>
+                        dataFile = 'AD.ldif'
+                        serverDataFile   = '%s/pta/%s' \
+                          % (server.getDataDir(), dataFile)
+                        serverSkipFile   = '%s/pta/skipped%s.ldif' \
+                          % (server.getTmpDir(),whoami)
+                        serverRejectFile = '%s/pta/rejects%s.ldif' \
+                          % (server.getTmpDir(),whoami)
+                      </script>
+
+                      <message>
+                        'Import data from %s into remote-ldap-server %s:%s' \
+                          % (serverDataFile, server.getHostname(), server.getPort())
+                      </message>
+    
+                      <!-- Import data into "remote-ldap-servers" -->
+                      <call function="'ImportLdifWithScript'">
+                        { 'location'           : server.getHostname(),
+                          'dsPath'             : '%s/%s' \
+                                                   % (server.getDir(),OPENDSNAME),
+                          'dsInstanceHost'      : server.getHostname(),
+                          'dsInstanceAdminPort' : server.getAdminPort(),
+                          'dsInstanceDn'        : server.getRootDn(),
+                          'dsInstancePswd'      : server.getRootPwd(),
+                          'backEnd'             : 'AD',
+                          'ldifFile'            : serverDataFile,
+                          'skipFile'            : serverSkipFile ,
+                          'rejectFile'          : serverRejectFile
+                        }
+                      </call>
+    
+                    </sequence>
+                  </else>
+                  </if>
+                </sequence>
+              </paralleliterate>
+    
+            </sequence>
+              
+          <finally>
+            <!-- Test Group postamble -->
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+
+         </try>
+          
+        </testcase>
+ 
+      </block>
+    
+    </sequence>
+
+  </function>
+
+</stax>
