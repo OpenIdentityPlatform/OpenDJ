@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS.
 ! -->
 <stax>
   <defaultcall function="restore_db"/>
@@ -75,7 +76,7 @@
                 'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                 'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
                 'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
-                'backupDir'           : '%s/tasks/backup_synchronous' % remote.data,
+                'backupDir'           : '%s/tasks/backup_synchronous' % remote.temp,
                 'backupID'            : 'recurring-restore-1',
                 'backEnd'             : DIRECTORY_INSTANCE_BE}
               </call>
@@ -106,7 +107,7 @@
                 'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                 'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
                 'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
-                'backupDir'           : '%s/tasks/backup_synchronous' % remote.data,
+                'backupDir'           : '%s/tasks/backup_synchronous' % remote.temp,
                 'startTask'           : '0'}
               </call>
               
@@ -140,7 +141,7 @@
                 'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                 'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
                 'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
-                'backupDir'           : '%s/tasks/backup_synchronous' % remote.data}
+                'backupDir'           : '%s/tasks/backup_synchronous' % remote.temp}
               </call>
   
               <script>checkRC=9999</script>
@@ -225,7 +226,7 @@
                 'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
                 'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
                 'startTask'           : '%s' % mydate,
-                'backupDir'           : '%s/tasks/backup_synchronous' % remote.data
+                'backupDir'           : '%s/tasks/backup_synchronous' % remote.temp
                 }
               </call>
       
@@ -278,7 +279,7 @@
                 'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
                 'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
                 'schedulePattern'     : '"0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48,50,52,54,56,58 * * * *"',
-                'backupDir'           : '%s/tasks/backup_synchronous' % remote.data,
+                'backupDir'           : '%s/tasks/backup_synchronous' % remote.temp,
                 'backupID'            : 'recurring-restore-1'}
               </call>
   

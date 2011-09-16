@@ -128,7 +128,7 @@
             <if expr="splitReplicationServers">
               <sequence>
                 <message>
-                  'Replication servers will be splitted from ldap servers.'
+                  'Replication servers will be split from ldap servers.'
                 </message>
                 <iterate var="server" in="_topologyServerList" indexvar="i">
                   <sequence>
@@ -225,7 +225,8 @@
         
       <!-- Stage static data-->
       <call function="'stageStaticDataFiles'">
-        { 'customFileExtensions' : fileExtensions }
+        { 'customFileExtensions' : fileExtensions,
+          'testGroupDirName'     : groupDataDir }
       </call>
 
       <!-- Stage (*/.java) files -->
@@ -1412,7 +1413,7 @@
             changelogList.append( line[line.find('ChangelogServer') + 16:].strip() )
           elif (line.isspace()) or (len(line) == 0):
             server = Server(hostname, dir, port, adminport, sslport, jmxport,
-                            rootDn, rootPwd, baseDn)
+                            rootDn, rootPwd, baseDn, remote.data)
             
             if changelogport != None:
               changelogServer = ChangelogServer(changelogport, serverId)
@@ -1448,7 +1449,7 @@
         
         if hostname != None:
           server = Server(hostname, dir, port, adminport, sslport, jmxport,
-                          rootDn, rootPwd, baseDn)
+                          rootDn, rootPwd, baseDn, remote.data)
           
           if changelogport != None:
             changelogServer = ChangelogServer(changelogport, serverId)
@@ -2691,9 +2692,39 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>     
       </function-arg-def>
+      <function-arg-def name="testGroupDirName" 
+                        type="optional" 
+                        default="''">
+        <function-arg-description>
+          Name of the test group directory that holds the 
+          static data files
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>     
+      </function-arg-def>
 
     </function-map-args>   
     <sequence>
+
+      <!-- If remote host is local loopback then no need to stage static data files -->
+      <script>
+        from socket import gethostbyname
+      </script>
+
+      <if expr="host_is_localhost(STAF_REMOTE_HOSTNAME)">
+        <sequence>
+          <message>
+            'Not staging static data files as remote host %s (%s) is local.' % (STAF_REMOTE_HOSTNAME,gethostbyname(STAF_REMOTE_HOSTNAME))
+          </message>
+          <message>'Will creating stub folder in testdata.'</message>
+          <call function="'createStubFolders'"/>
+          <return>0</return>
+        </sequence>
+        <else>
+          <message>
+            'Remote host %s (%s) is not local.' % (STAF_REMOTE_HOSTNAME,gethostbyname(STAF_REMOTE_HOSTNAME))
+          </message>
+        </else>
+      </if>
 
       <!-- Check to see if local tests static data directory is already created-->        
       <call function="'GetEntry'">
@@ -3076,6 +3107,24 @@
           </sequence>
         </if>
      </sequence>
-    </function>  
+    </function>
+  
+  <function name="createStubFolders">
+    <function-prolog>
+      This function creates some stub folders in testdata
+    </function-prolog>    
+    <function-no-args/>     
+      <sequence>
+
+      <message>
+        'Create folder %s/data on host %s' % (local.directory,STAF_LOCAL_HOSTNAME)
+      </message>
+      <call function="'createFolder'">
+        { 'location'   : STAF_LOCAL_HOSTNAME,
+          'foldername' : '%s/data' % local.directory
+        }
+      </call>
+      </sequence>
+    </function>
               
 </stax>

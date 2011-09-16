@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS.
  ! -->
 <stax>
 
@@ -118,7 +119,7 @@
                 'dsBaseDn'       : "dc=example,dc=com",
                 'operation'      : "delete",
                 'ldif'           : "True",
-                'outputFile'     : '%s/core/psearch/delete/delete.out' % remote.data
+                'outputFile'     : '%s/core/psearch/delete/psearch-delete.out' % remote.temp
               }
               </call>
             </sequence>
@@ -172,9 +173,9 @@
               </message>
               <call function="'LdifDiffWithScript'">
               {
-                'sourceLdif' : '%s/core/psearch/delete/delete.out' % remote.data,
+                'sourceLdif' : '%s/core/psearch/delete/psearch-delete.out' % remote.temp,
                 'targetLdif' : '%s/core/psearch/delete/delete.ref' % remote.data,
-                'outputLdif' : '%s/delete.out' % remote.temp
+                'outputLdif' : '%s/psearch-delete-diffs.out' % remote.temp
               }
               </call>
               <if expr="STAXResult != 0">
@@ -238,7 +239,7 @@
                   'dsBaseDn'       : "dc=example,dc=com",
                   'operation'      : "delete",
                   'ldif'           : "True",
-                  'outputFile'     : '%s/core/psearch/delete/delete_blank.out' % remote.data
+                  'outputFile'     : '%s/core/psearch/delete/delete_blank.out' % remote.temp
                 }
               </call>
             </sequence>
@@ -329,7 +330,7 @@
           <call function="'GetEntry'">
             {
               'location'  : STAF_REMOTE_HOSTNAME ,
-              'entry'     :  '%s/core/psearch/delete/delete_blank.out' % remote.data,
+              'entry'     :  '%s/core/psearch/delete/delete_blank.out' % remote.temp,
               'attribute' : 'TYPE'
             }
           </call>
@@ -393,7 +394,7 @@
                 'dsBaseDn'       : "dc=example,dc=com",
                 'operation'      : "modify",
                 'ldif'           : "True",
-                'outputFile'     : '%s/core/psearch/modify/modify.out' % remote.data
+                'outputFile'     : '%s/core/psearch/modify/psearch-modify.out' % remote.temp
               }
               </call>
             </sequence>
@@ -450,9 +451,9 @@
               </message>
               <call function="'LdifDiffWithScript'">
               {
-                'sourceLdif' : '%s/core/psearch/modify/modify.out' % remote.data,
+                'sourceLdif' : '%s/core/psearch/modify/psearch-modify.out' % remote.temp,
                 'targetLdif' : '%s/core/psearch/modify/modify.ref' % remote.data,
-                'outputLdif' : '%s/modify.out' % remote.temp
+                'outputLdif' : '%s/psearch-modify-diffs.out' % remote.temp
               }
               </call>
               <if expr="STAXResult != 0">
@@ -516,7 +517,7 @@
                 'dsBaseDn'       : "dc=example,dc=com",
                 'operation'      : "modify",
                 'ldif'           : "True",
-                'outputFile'     : '%s/core/psearch/modify/modify_blank.out' % remote.data
+                'outputFile'     : '%s/core/psearch/modify/psearch-modify_blank.out' % remote.temp
               }
               </call>
             </sequence>
@@ -607,7 +608,7 @@
           <call function="'GetEntry'">
             {
             'location'  : STAF_REMOTE_HOSTNAME ,
-            'entry'     :  '%s/core/psearch/modify/modify_blank.out' % remote.data,
+            'entry'     :  '%s/core/psearch/modify/psearch-modify_blank.out' % remote.temp,
             'attribute' : 'TYPE'
             }
           </call>
@@ -670,7 +671,7 @@
                   'dsBaseDn'       : "dc=example,dc=com",
                   'operation'      : "moddn",
                   'ldif'           : "True",
-                  'outputFile'     : '%s/core/psearch/moddn/moddn.out' % remote.data
+                  'outputFile'     : '%s/core/psearch/moddn/psearch-moddn.out' % remote.temp
                 }
               </call>
             </sequence>
@@ -727,9 +728,9 @@
               </message>
               <call function="'LdifDiffWithScript'">
                 {
-                  'sourceLdif' : '%s/core/psearch/moddn/moddn.out' % remote.data,
+                  'sourceLdif' : '%s/core/psearch/moddn/psearch-moddn.out' % remote.temp,
                   'targetLdif' : '%s/core/psearch/moddn/moddn.ref' % remote.data,
-                  'outputLdif' : '%s/moddn.out' % remote.temp
+                  'outputLdif' : '%s/psearch-moddn-diffs.out' % remote.temp
                 }
               </call>
               <if expr="STAXResult != 0">
@@ -793,7 +794,7 @@
                   'dsBaseDn'       : "dc=example,dc=com",
                   'operation'      : "moddn",
                   'ldif'           : "True",
-                  'outputFile'     : '%s/core/psearch/moddn/moddn_blank.out' % remote.data
+                  'outputFile'     : '%s/core/psearch/moddn/psearch-moddn_blank.out' % remote.temp
                 }
               </call>
             </sequence>
@@ -884,7 +885,7 @@
           <call function="'GetEntry'">
             {
               'location'  : STAF_REMOTE_HOSTNAME ,
-              'entry'     :  '%s/core/psearch/moddn/moddn_blank.out' % remote.data,
+              'entry'     :  '%s/core/psearch/moddn/psearch-moddn_blank.out' % remote.temp,
               'attribute' : 'TYPE'
             }
           </call>
@@ -948,7 +949,7 @@
                 'dsBaseDn'       : "dc=example,dc=com",
                 'operation'      : "add",
                 'ldif'           : "True",
-                'outputFile'     : '%s/core/psearch/add/add.out' % remote.data
+                'outputFile'     : '%s/core/psearch/add/psearch-add.out' % remote.temp
               }
               </call>
             </sequence>
@@ -1005,9 +1006,9 @@
               </message>
               <call function="'LdifDiffWithScript'">
               {
-                'sourceLdif' : '%s/core/psearch/add/add.out' % remote.data,
+                'sourceLdif' : '%s/core/psearch/add/psearch-add.out' % remote.temp,
                 'targetLdif' : '%s/core/psearch/add/add.ref' % remote.data,
-                'outputLdif' : '%s/add.out' % remote.temp
+                'outputLdif' : '%s/psearch-add-diffs.out' % remote.temp
               }
               </call>
               <if expr="STAXResult != 0">
@@ -1071,7 +1072,7 @@
                 'dsBaseDn'       : "dc=example,dc=com",
                 'operation'      : "add",
                 'ldif'           : "True",
-                'outputFile'     : '%s/core/psearch/add/add_blank.out' % remote.data
+                'outputFile'     : '%s/core/psearch/add/psearch-add_blank.out' % remote.temp
               }
               </call>
             </sequence>
@@ -1162,7 +1163,7 @@
           <call function="'GetEntry'">
             {
               'location'  : STAF_REMOTE_HOSTNAME ,
-              'entry'     :  '%s/core/psearch/add/add_blank.out' % remote.data,
+              'entry'     :  '%s/core/psearch/add/psearch-add_blank.out' % remote.temp,
               'attribute' : 'TYPE'
             }
           </call>

@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS.
  ! -->
 <stax>
   <defaultcall function="replication_resynchronization"/>
@@ -102,6 +103,18 @@
                 'Replication: Re-Synchronization: Off-line initialisation. \
                 Initialise replicated servers using off-line backup/restore'
               </message>
+
+              <!-- Backup "master" server -->
+              <message>
+                '+++++ binary copy off-line: back-up server %s:%s' \
+                % (masterHost, master.getPort())
+              </message>
+              <call function="'backup'">
+                { 'location'  : masterHost,
+                  'dsPath'    : masterPath,
+                  'backupDir' : '%s/replication/master_backup' % masterBackupDir
+                }
+              </call>
                              
               <!-- Add entry to "master" server -->
               <message>
@@ -128,12 +141,17 @@
               <!-- Copy master backup to "consumer" servers and restore it -->
               <paralleliterate var="consumer" in="consumerList">
                 <sequence>
+                  <script>
+                    #TODO: Fix me
+                    consumerBackupDir = '%s/%s' % (consumer.getDir(),remote.reldatadir)
+                  </script>
                   <call function="'CopyFolderByExtension'">
                     { 'location'   : masterHost,
                       'remotehost' : consumer.getHostname(),
-                      'srcfolder'  : masterBackupDir,
-                      'destfolder' : '%s/%s/replication/master_backup' \
-                                     % (consumer.getDir(),remote.reldatadir),
+                      'srcfolder'  : '%s/replication/master_backup' \
+                                     % masterBackupDir,
+                      'destfolder' : '%s/replication/master_backup' \
+                                     % consumerBackupDir,
                       'extension'  : '*'
                     }
                   </call>
@@ -145,8 +163,8 @@
                   <call function="'restore'">
                     { 'location'  :  consumer.getHostname(),
                       'dsPath'    :  '%s/%s' % (consumer.getDir(), OPENDSNAME),
-                      'backupDir' :  '%s/%s/replication/master_backup' \
-                                     % (consumer.getDir(),remote.reldatadir)
+                      'backupDir' :  '%s/replication/master_backup' \
+                                     % consumerBackupDir
                     }
                   </call>
                 </sequence>
@@ -255,7 +273,7 @@
                   'dsInstancePswd' : master.getRootPwd(),
                   'taskID'         : 'backup task - tc2',
                   'backupDir'      : '%s/replication/master_backup_online' \
-                                     % masterDataDir
+                                     % masterBackupDir
                 }
               </call>
               
@@ -295,13 +313,17 @@
               <!-- Copy backup to "consumer" servers and restore it -->
               <paralleliterate var="consumer" in="consumerList">
                 <sequence>
+                  <script>
+                    #TODO: Fix me
+                    consumerBackupDir = '%s/%s' % (consumer.getDir(),remote.reldatadir)
+                  </script>
                   <call function="'CopyFolderByExtension'">
                     { 'location'   : masterHost,
                       'remotehost' : consumer.getHostname(),
                       'srcfolder'  : '%s/replication/master_backup_online' \
-                                     % masterDataDir,
-                      'destfolder' : '%s/%s/replication/master_backup_online' \
-                                     % (consumer.getDir(),remote.reldatadir),
+                                     % masterBackupDir,
+                      'destfolder' : '%s/replication/master_backup_online' \
+                                     % consumerBackupDir,
                       'extension'  : '*'
                     }
                   </call>
@@ -318,8 +340,8 @@
                       'dsInstanceDn'   : consumer.getRootDn(),
                       'dsInstancePswd' : consumer.getRootPwd(),
                       'taskID'         : 'restore task - tc2',
-                      'backupDir'   : '%s/%s/replication/master_backup_online' \
-                                      % (consumer.getDir(),remote.reldatadir)
+                      'backupDir'   : '%s/replication/master_backup_online' \
+                                      % consumerBackupDir
                     }
                   </call>
                 </sequence>
@@ -493,7 +515,7 @@
                   'dsInstancePswd' : master.getRootPwd(),
                   'taskID'         : 'backup task - tc3',
                   'backupDir'      : '%s/replication/master_backup_online' \
-                                     % masterDataDir
+                                     % masterBackupDir
                 }
               </call>
 
@@ -717,13 +739,17 @@
               </paralleliterate>
               
               <!-- Copy backup to new server and restore it -->
+              <script>
+                #TODO: Fix me
+                server3BackupDir = '%s/%s' % (server3.getDir(),remote.reldatadir)
+              </script>
               <call function="'CopyFolderByExtension'">
                 { 'location'   : masterHost,
                   'remotehost' : server3.getHostname(),
                   'srcfolder'  : '%s/replication/master_backup_online' \
-                                 % masterDataDir,
-                  'destfolder' : '%s/%s/replication/master_backup_online' \
-                                 % (server3.getDir(),remote.reldatadir),
+                                 % masterBackupDir,
+                  'destfolder' : '%s/replication/master_backup_online' \
+                                 % server3BackupDir,
                   'extension'  : '*'
                 }
               </call>
@@ -740,8 +766,8 @@
                   'dsInstanceDn'   : server3.getRootDn(),
                   'dsInstancePswd' : server3.getRootPwd(),
                   'taskID'         : 'restore task - tc3',
-                  'backupDir'      : '%s/%s/replication/master_backup_online' \
-                                     % (server3.getDir(),remote.reldatadir)
+                  'backupDir'      : '%s/replication/master_backup_online' \
+                                     % server3BackupDir
                 }
               </call>
               

@@ -4098,6 +4098,9 @@
           STAFCmdParamsList.append('-l')
 
         if outputFile:
+          if not os.path.exists(os.path.dirname(outputFile)):
+            os.makedirs(os.path.dirname(outputFile))
+
           STAFCmdParamsList.append('-f %s' % outputFile)
 
         if nbrOfThread:

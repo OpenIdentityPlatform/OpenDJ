@@ -24,12 +24,13 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS.
  ! -->
 <stax>
 
   <defaultcall function="aci_target"/>
 
-  <function name="aci_target">
+  <function name="aci_target" scope="local">
 
     <sequence>
 

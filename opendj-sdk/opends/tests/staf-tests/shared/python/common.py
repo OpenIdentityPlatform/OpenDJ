@@ -53,7 +53,8 @@ __all__ = [ "format_testcase",
             "group_to_run" ,
             "get_last_attr_from_entry" ,
             "list_matches" ,
-            "count_attr" ]
+            "count_attr" ,
+            "host_is_localhost"]
 
 class format_testcase:
   'Format the Test name objects'
@@ -531,7 +532,7 @@ class test_env:
     'Container to hold local and remote test data instance objects'
     def __init__(self,dir):
       self.directory=dir
-      self.testdata='%s/testdata' % dir
+      self.testdata='%s/testdata' % dir      
       self.java='%s/java' % self.testdata
       self.data='%s/data' % self.testdata
       self.temp='%s/temp'  % dir
@@ -558,6 +559,9 @@ class test_env:
 
     def get_reljavadir(self):
       return self.directory
+
+    def set_data(self,dir):
+      self.data=dir
 
 def get_test_name(name):
   i=2
@@ -795,4 +799,19 @@ def count_attr(result):
         attrnum += 1
 
   return attrnum
+
+def host_is_localhost(hostname):
+  from socket import gethostbyname
+  if gethostbyname(hostname).startswith('127.0'):
+    return 1
+  else:
+    return 0
+  
+def hosts_are_same(hostname1,hostname2):
+  from socket import gethostbyname
+  if hostname1 == hostname2:
+    return 1
+  else:
+    return 0
+  
 

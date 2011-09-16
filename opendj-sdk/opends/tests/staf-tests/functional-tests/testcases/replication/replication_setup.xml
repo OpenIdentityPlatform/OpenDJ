@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS.
  ! -->
 <stax>
 
@@ -106,7 +107,6 @@
             client = _topologyServerList[0]
             clientHost = client.getHostname()
             clientPath = '%s/%s' % (client.getDir(),OPENDSNAME)
-            clientDataDir = '%s/%s' % (client.getDir(),remote.reldatadir)
              
             server1 = _topologyServerList[0]
             server2 = _topologyServerList[1]          
@@ -115,9 +115,12 @@
             masterHost = master.getHostname()
             masterReplicationServer = master.getChangelogServer()
             masterPath = '%s/%s' % (master.getDir(),OPENDSNAME)
-            masterDataDir = '%s/%s' % (master.getDir(),remote.reldatadir)
+
+            masterDataDir = '%s' % master.getDataDir()
+            clientDataDir = '%s' % client.getDataDir()
+            masterBackupDir = '%s' % master.getTmpDir()
+
             synchroSuffix = master.getSynchronizedSuffixList()[0].getSuffixDn()
-            masterBackupDir = '%s/replication/master_backup' % masterDataDir
             
             consumerList = _topologyServerList[1:]
               

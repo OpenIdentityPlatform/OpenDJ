@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS.
  ! -->
 <stax>
   <function name="copyFile">
@@ -57,6 +58,21 @@
       </function-arg-def>
     </function-map-args>
     <sequence>
+      <message>
+        'Copy file %s:%s to %s:%s.' \
+        % (location,srcfile,remotehost,destfile)
+      </message>
+
+      <script>
+        destfolder = os.path.dirname(destfile)
+      </script>
+      
+      <call function="'createFolder'">
+        { 'location'   : location,
+          'foldername' : '%s' % destfolder
+        }
+      </call>      
+
       <stafcmd name="'STAF Command: Copy File'">
         <location>'%s' % location</location>
         <service>'fs'</service>
@@ -111,10 +127,17 @@
       </function-arg-def>
     </function-map-args>
     <sequence>
+      <message>
+        'Copy all %s Files from %s:%s to %s:%s.' \
+        % (extension,location,srcfolder,remotehost,destfolder)
+      </message>
       <stafcmd name="'STAF Command: Copy all %s Files.' % (extension)">
         <location>'%s' % location</location>
         <service>'fs'</service>
-        <request>'COPY DIRECTORY %s TODIRECTORY %s TOMACHINE %s EXT %s RECURSE' % (srcfolder,destfolder,remotehost,extension) </request>
+        <request>
+          'COPY DIRECTORY %s TODIRECTORY %s TOMACHINE %s EXT %s RECURSE' \
+          % (srcfolder,destfolder,remotehost,extension)
+        </request>
       </stafcmd>
       <script>
         cmdRC=RC
@@ -159,6 +182,10 @@
       </function-arg-def>
     </function-map-args>
     <sequence>
+      <message>
+        'Copy folder %s:%s to %s:%s.' \
+        % (location,srcfolder,remotehost,destfolder)
+      </message>
       <stafcmd name="'STAF Command: Copy %s folder to %s.' % (srcfolder,destfolder)">
         <location>'%s' % location</location>
         <service>'fs'</service>

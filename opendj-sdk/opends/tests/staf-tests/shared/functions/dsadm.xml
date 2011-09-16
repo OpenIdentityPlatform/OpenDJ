@@ -1224,7 +1224,9 @@
           <message>'Expected number of entries is %s' % expectedNoEntries</message>
 
           <call function="'ldapSearchWithScript'">
-            { 'dsInstanceHost' : myhost ,
+            { 'location'       : myLocation ,
+              'dsPath'         : myPath,
+              'dsInstanceHost' : myhost ,
               'dsInstancePort' : myport ,
               'dsInstanceDn'   : mydn ,
               'dsInstancePswd' : mypswd ,
@@ -1253,7 +1255,9 @@
       <iterate var="expectedEntry" in="expectedEntries">
         <sequence>
           <call function="'ldapSearchWithScript'">
-            { 'dsInstanceHost' : myhost ,
+            { 'location'       : myLocation ,
+              'dsPath'         : myPath,
+              'dsInstanceHost' : myhost ,
               'dsInstancePort' : myport ,
               'dsInstanceDn'   : mydn ,
               'dsInstancePswd' : mypswd ,
@@ -1705,6 +1709,9 @@
           STAFCmd='%s/backup%s' % (dsBinPath,fileExt)
          
         if backupDir:
+          if not os.path.exists(os.path.dirname(backupDir)):
+            os.makedirs(os.path.dirname(backupDir))
+
           STAFCmdParamsList.append('-d %s' % backupDir)    
 
        if backEnd:
@@ -1877,6 +1884,9 @@
       
       <!-- Build the backup task configuration object -->
       <script>
+        if not os.path.exists(os.path.dirname(backupDir)):
+          os.makedirs(os.path.dirname(backupDir))
+
         ldifLines=[]
         ldifLines.append('dn: %s' % taskDN)
         ldifLines.append('objectclass: top')
