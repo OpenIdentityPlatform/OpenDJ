@@ -539,7 +539,7 @@ modifyProcessing:
 
         DN authzDN = getAuthorizationDN();
         if ((!passwordChanged) && (!isInternalOperation())
-            && pwPolicyState.mustChangePassword())
+            && pwPolicyState != null && pwPolicyState.mustChangePassword())
         {
           if (authzDN != null && authzDN.equals(entryDN))
           {
