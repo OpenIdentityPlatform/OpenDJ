@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS.
  ! -->
 <stax>
 
@@ -131,25 +132,29 @@
               <message>
                 '+++++ ldif import off-line: export suffix on server %s:%s' \
                 % (masterHost, master.getPort())
-              </message>                
+              </message>
               <call function="'exportLdifWithScript'">
                 { 'location'  : masterHost,
                   'dsPath'    : masterPath,
-                  'ldifFile'  : '%s/replication/master_export.ldif' \
-                                % masterDataDir
+                  'ldifFile'  : '%s/replication/master_export_offline.ldif' \
+                                % masterBackupDir
                 }
               </call>
                 
               <!-- Copy export file  to "consumer" servers and import it -->
               <paralleliterate var="consumer" in="consumerList">
                 <sequence>
+                  <script>
+                      consumerDataDir = '%s' % consumer.getDataDir()
+                      consumerBackupDir = '%s' % consumer.getTmpDir()
+                  </script>
                   <call function="'copyFile'">
                     { 'location'   : masterHost,
                       'remotehost' : consumer.getHostname(),
-                      'srcfile'    : '%s/replication/master_export.ldif' \
-                                     % masterDataDir,
-                      'destfile'   : '%s/%s/replication/master_export.ldif' \
-                                     % (consumer.getDir(),remote.reldatadir)
+                      'srcfile'    : '%s/replication/master_export_offline.ldif' \
+                                     % masterBackupDir,
+                      'destfile'   : '%s/replication/master_export_offline.ldif' \
+                                     % consumerBackupDir
                     }
                   </call>
 
@@ -161,14 +166,12 @@
                     { 'location'   : consumer.getHostname(),
                       'dsPath'     : '%s/%s' % (consumer.getDir(), OPENDSNAME),
                       'backEnd'    : DIRECTORY_INSTANCE_BE,
-                      'ldifFile'   : '%s/%s/replication/master_export.ldif' \
-                                     % (consumer.getDir(),remote.reldatadir)
+                      'ldifFile'   : '%s/replication/master_export_offline.ldif' \
+                                     % consumerBackupDir
                     }
                   </call>                                 
                 </sequence>
               </paralleliterate>
-                
-                
 
               <!-- Start the servers in the topology -->
               <call function="'startServers'">
@@ -225,11 +228,8 @@
                 
               <!-- Verify the synchronization of the trees among the servers in
                 the topology -->
-              <!-- If the trees differ, it could be due to Issue 3122
-                (Off-line import-export sequence produces no generationID) -->
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, master, consumerList, synchroSuffix,
-                  '3122' ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call> 
 
 
@@ -315,7 +315,7 @@
 
               <script>
                 sourceFile = '%s/replication/master_export_online.ldif' \
-                             % masterDataDir
+                             % masterBackupDir
               </script>
                 
               <!-- Export data from  "master" server -->
@@ -338,10 +338,13 @@
               <paralleliterate var="consumer" in="consumerList">
                 <sequence>
                   <script>
-                    filename = 'master_export_online_ldif'
-                    destinationFile = '%s/%s/replication/%s'\
-                                      % (consumer.getDir(),remote.reldatadir,
-                                          filename)
+                    consumerDataDir = '%s' % consumer.getDataDir()
+                    consumerBackupDir = '%s' % consumer.getTmpDir()
+                  </script>
+                  <script>
+                    filename = 'master_export_online.ldif'
+                    destinationFile = '%s/replication/%s'\
+                                      % (consumerBackupDir,filename)
                   </script>
 
                   <call function="'copyFile'">

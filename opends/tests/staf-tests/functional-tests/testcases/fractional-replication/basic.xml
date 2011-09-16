@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2009-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS.
  ! -->
 <stax>
   <defaultcall function="fractional-replication_basic"/>
@@ -216,10 +217,10 @@
           <call function="'basic_initialization'"/>
 
           <call function="'basic_add'">
-            {  'masterEntry'  : '%s/%s/fractional-replication/basic-masterAdd.ldif' \
-                                % (Pservers[0].getDir(),remote.reldatadir),
-               'replicaEntry' : '%s/%s/fractional-replication/basic-replicaExcludeAdd.ldif' \
-                                % (Pservers[1].getDir(),remote.reldatadir)
+            {  'masterEntry'  : '%s/fractional-replication/basic-masterAdd.ldif' \
+                                % Pservers[0].getDataDir(),
+               'replicaEntry' : '%s/fractional-replication/basic-replicaExcludeAdd.ldif' \
+                                % Pservers[1].getDataDir()
             }
           </call>
 
@@ -299,10 +300,10 @@
           <call function="'basic_initialization'"/>
 
           <call function="'basic_add'">
-            {  'masterEntry'  : '%s/%s/fractional-replication/basic-masterAdd.ldif' \
-                                % (Pservers[0].getDir(),remote.reldatadir),
-               'replicaEntry' : '%s/%s/fractional-replication/basic-replicaIncludeAdd.ldif' \
-                                % (Pservers[1].getDir(),remote.reldatadir)
+            {  'masterEntry'  : '%s/fractional-replication/basic-masterAdd.ldif' \
+                                % Pservers[0].getDataDir(),
+               'replicaEntry' : '%s/fractional-replication/basic-replicaIncludeAdd.ldif' \
+                                % Pservers[1].getDataDir()
             }
           </call>
 
@@ -349,8 +350,8 @@
             { "location"          : Pservers[0].getHostname(),
               "dsPath"            : '%s/%s' % (Pservers[0].getDir(),OPENDSNAME),
               "backEnd"           : "userRoot",
-              "templateFile"      : "%s/%s/fractional-replication/basic-master.template" % \
-                                    (Pservers[0].getDir(),remote.reldatadir),
+              "templateFile"      : "%s/fractional-replication/basic-master.template" \
+                                      % Pservers[0].getDataDir(),
               "replaceExisting"   : True,
             }
           </call>
@@ -359,6 +360,9 @@
             [ Pservers ]
           </call>
           <!-- Check some data was imported into Directory Server -->
+          <message>
+            'Checking import on %s folder %s.' % (Pservers[0].getHostname(),Pservers[0].getDir())
+          </message>
           <call function="'checkImport'">
             { 'location'            : Pservers[0].getHostname(),
               'dsPath'              : '%s/%s' \
@@ -448,6 +452,15 @@
             }
           </call>
 
+          <script>
+            thisDataDir1="%s/fractional-replication" \
+                                  % Pservers[0].getDataDir()
+            thisDataDir2="%s/fractional-replication" \
+                                  % Pservers[1].getDataDir()
+            thisTempdir1=Pservers[0].getTmpDir()
+            thisTempdir2=Pservers[1].getTmpDir()
+          </script>
+
           <call function="'ImportLdifWithScript'">
             { 'location'            : Pservers[0].getHostname(),
               'dsPath'              : '%s/%s' % (Pservers[0].getDir(),OPENDSNAME),
@@ -457,10 +470,10 @@
               'dsInstancePswd'      : Pservers[0].getRootPwd(),
               'backEnd'             : 'userRoot',
               'append'              : True,
-              'rejectFile'          : '%s/basic-masterOnlineImport.rejected' % remote.temp,
+              'rejectFile'          : '%s/basic-masterOnlineImport.rejected' % thisTempdir1,
               'overwriteFile'       : True,
-              'templateFile'        : '%s/%s/fractional-replication/basic-masterOnlineImport.template' % \
-                                      (Pservers[0].getDir(),remote.reldatadir)
+              'templateFile'        : '%s/basic-masterOnlineImport.template' % \
+                                      thisDataDir1
             }
           </call>
           <call function="'ImportLdifWithScript'">
@@ -472,10 +485,10 @@
               'dsInstancePswd'      : Pservers[1].getRootPwd(),
               'backEnd'             : 'userRoot',
               'append'              : True,
-              'rejectFile'          : '%s/basic-masterOnlineImport.rejected' % remote.temp,
+              'rejectFile'          : '%s/basic-masterOnlineImport.rejected' % thisTempdir2,
               'overwriteFile'       : True,
-              'templateFile'        : '%s/%s/fractional-replication/basic-masterOnlineImport.template' % \
-                                      (Pservers[1].getDir(),remote.reldatadir)
+              'templateFile'        : '%s/basic-masterOnlineImport.template' % \
+                                      thisDataDir2
             }
           </call>
           <call function="'replicationStatus'">
@@ -716,6 +729,12 @@
       <try>
         <sequence>
           <call function="'testCase_Preamble'"/>
+          
+          <script>
+            thisDataDir1="%s/fractional-replication" \
+                                  % Pservers[0].getDataDir()
+          </script>
+
           <call function="'ldapModifyWithScript'">
             { 'location'       : Pservers[0].getHostname(),
               'dsPath'         : '%s/%s' % (Pservers[0].getDir(),OPENDSNAME),
@@ -723,9 +742,9 @@
               'dsInstancePort' : Pservers[0].getPort(),
               'dsInstanceDn'   : Pservers[0].getRootDn(),
               'dsInstancePswd' : Pservers[0].getRootPwd(),
-              'dsFilename'     : '%s/%s/fractional-replication/basic-masterModify.ldif' \
-                                 % (Pservers[0].getDir(),remote.reldatadir)
-            }                
+              'dsFilename'     : '%s/basic-masterModify.ldif' \
+                                 % thisDataDir1
+            }
           </call>
           <call function="'SearchObject'">
             { 'location'       : Pservers[0].getHostname(),
@@ -781,6 +800,12 @@
       <try>
         <sequence>
           <call function="'testCase_Preamble'"/>
+          
+          <script>
+            thisDataDir1 = "%s/fractional-replication" \
+                             % Pservers[0].getDataDir()
+          </script>
+
           <call function="'addEntry'">
             { 'location'            : Pservers[0].getHostname(),
               'dsPath'              : '%s/%s' % (Pservers[0].getDir(),OPENDSNAME),
@@ -788,8 +813,8 @@
               'dsInstancePort' : Pservers[0].getPort(),
               'dsInstanceDn'   : Pservers[0].getRootDn(),
               'dsInstancePswd' : Pservers[0].getRootPwd(),
-              'entryToBeAdded' : '%s/%s/fractional-replication/basic-masterModifyDN.ldif' \
-                                 % (Pservers[0].getDir(),remote.reldatadir)
+              'entryToBeAdded' : '%s/basic-masterModifyDN.ldif' \
+                                 % thisDataDir1
             }
           </call>
           <call function="'SearchObject'">

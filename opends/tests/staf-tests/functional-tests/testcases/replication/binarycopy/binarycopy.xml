@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS.
  ! -->
 <stax>
   <defaultcall function="replication_binarycopy"/>
@@ -126,24 +127,28 @@
               <call function="'backup'">
                 { 'location'  : masterHost,
                   'dsPath'    : masterPath,
-                  'backupDir' : '%s/replication/master_backup' % masterDataDir
+                  'backupDir' : '%s/replication/master_backup' % masterBackupDir
                 }
               </call>
-              
+
               <!-- Copy backup to "consumer" servers and restore it -->
               <paralleliterate var="consumer" in="consumerList">
                 <sequence>
+                  <script>
+                    #TODO: Fix me
+                    consumerBackupDir = '%s/%s' % (consumer.getDir(),remote.reldatadir)
+                  </script>
                   <call function="'CopyFolderByExtension'">
                     { 'location'   : masterHost,
                       'remotehost' : consumer.getHostname(),
                       'srcfolder'  : '%s/replication/master_backup' \
-                                     % masterDataDir,
-                      'destfolder' : '%s/%s/replication/master_backup' \
-                                     % (consumer.getDir(),remote.reldatadir),
+                                     % masterBackupDir,
+                      'destfolder' : '%s/replication/master_backup' \
+                                     % consumerBackupDir,
                       'extension'  : '*'
                     }
                   </call>
-                    
+
                   <message>
                     '+++++ binary copy off-line: restore back-up on %s:%s' \
                     % (consumer.getHostname(), consumer.getPort())
@@ -151,8 +156,8 @@
                   <call function="'restore'">
                     { 'location'  : consumer.getHostname(),
                       'dsPath'    : '%s/%s' % (consumer.getDir(), OPENDSNAME),
-                      'backupDir' : '%s/%s/replication/master_backup' \
-                                    % (consumer.getDir(),remote.reldatadir)
+                      'backupDir' : '%s/replication/master_backup' \
+                                    % consumerBackupDir
                     }
                   </call>
                 </sequence>
@@ -308,20 +313,25 @@
                   'dsInstancePswd' : master.getRootPwd(),
                   'taskID'         : 'backup task',
                   'backupDir'      : '%s/replication/master_backup_online' \
-                                     % masterDataDir 
+                                     % masterBackupDir 
                 }
               </call>
               
               <!-- Copy backup to "consumer" servers and restore it -->
               <paralleliterate var="consumer" in="consumerList">
                 <sequence>
+                  <script>
+                    #TODO: Fix me
+                    consumerBackupDir = '%s/%s' % (consumer.getDir(),remote.reldatadir)
+                  </script>
+
                   <call function="'CopyFolderByExtension'">
                     { 'location'   : masterHost,
                       'remotehost' : consumer.getHostname(),
                       'srcfolder'  : '%s/replication/master_backup_online' \
-                                     % masterDataDir,
-                      'destfolder' : '%s/%s/replication/master_backup_online' \
-                                     % (consumer.getDir(),remote.reldatadir),
+                                     % masterBackupDir,
+                      'destfolder' : '%s/replication/master_backup_online' \
+                                     % consumerBackupDir,
                       'extension'  : '*'
                     }
                   </call>
@@ -338,8 +348,8 @@
                       'dsInstanceDn'   : consumer.getRootDn(),
                       'dsInstancePswd' : consumer.getRootPwd(),
                       'taskID'         : 'restore task',
-                      'backupDir'   : '%s/%s/replication/master_backup_online' \
-                                      % (consumer.getDir(),remote.reldatadir)
+                      'backupDir'   : '%s/replication/master_backup_online' \
+                                      % consumerBackupDir
                     }
                   </call>
                 </sequence>

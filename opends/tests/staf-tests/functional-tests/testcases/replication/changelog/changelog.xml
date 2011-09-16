@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS.
  ! -->
 <stax>
     
@@ -288,11 +289,9 @@
                       replServer = server
 
                     replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
-                    replServerDataDir = '%s/%s' \
-                      % (replServer.getDir(),remote.reldatadir)
-                    exportedChangelog = \
-                      '%s/replication/changelog_export_online.ldif' \
-                      % replServerDataDir                     
+
+                    replServerBackupDir = '%s' % replServer.getTmpDir()
+
                   </script>
 
                   <!-- Export changelog data from server -->
@@ -303,7 +302,8 @@
                       'dsInstanceAdminPort' : replServer.getAdminPort(),
                       'dsInstanceDn'   : replServer.getRootDn(),
                       'dsInstancePswd' : replServer.getRootPwd(),
-                      'ldifFile'       : exportedChangelog,
+                      'ldifFile'       : '%s/replication/changelog_export_online.ldif' \
+                                         % replServerBackupDir,
                       'backEnd'        : 'replicationChanges'
                     }
                   </call>
@@ -312,7 +312,8 @@
                   <call function="'grep'">
                     {
                       'location'   : replServer.getHostname(),
-                      'filename'   : exportedChangelog,
+                      'filename'   : '%s/replication/changelog_export_online.ldif' \
+                                         % replServerBackupDir,
                       'testString' : 'uid=iabizen.2'
                     }
                   </call>
@@ -339,8 +340,7 @@
           #@TestID              Backup-restore (off-line)
           #@TestPurpose         Check replication changelog can be backuped and
                                 restored off-line
-          #@TestPreamble        Backup server suffix (done at the beginning of
-                                the test suite)
+          #@TestPreamble        Backup server suffix
           #@TestSteps           Add entry A to server
           #@TestSteps           Stop servers
           #@TestSteps           Backup every changelog
@@ -361,9 +361,21 @@
               <call function="'testCase_Preamble'"/>
               <message>
                 'Replication: Changelog: Backup-restore (off-line). \
-                Check replication changelog can be backuped and restored \
+                Check replication changelog can be backed up and restored \
                 off-line'
               </message>
+
+              <!-- Backup "master" server -->
+              <message>
+                '+++++ binary copy off-line: back-up server %s:%s' \
+                % (masterHost, master.getPort())
+              </message>
+              <call function="'backup'">
+                { 'location'  : masterHost,
+                  'dsPath'    : masterPath,
+                  'backupDir' : '%s/replication/master_backup' % masterBackupDir
+                }
+              </call>
 
               <!-- Add entry A to "master" server -->
               <script>
@@ -420,16 +432,15 @@
                       replServer = server
 
                     replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
-                    replServerDataDir = '%s/%s' \
-                      % (replServer.getDir(),remote.reldatadir)
-                    changelogBackupDir = '%s/replication/changelog_backup' \
-                                         % replServerDataDir                     
+                    replServerDataDir = '%s' % replServer.getDataDir()
+                    replServerBackupDir = '%s' % replServer.getTmpDir()           
                   </script>
 
                   <call function="'backup'">
                     { 'location'  : replServer.getHostname(),
                       'dsPath'    : replServerPath,
-                      'backupDir' : changelogBackupDir,
+                      'backupDir' : '%s/replication/changelog_backup' \
+                                         % replServerBackupDir,
                       'backEnd'   : 'replicationChanges'
                     }
                   </call>                    
@@ -499,12 +510,12 @@
                       replServer = server
 
                     serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
-                    serverDataDir = '%s/%s' % (server.getDir(),remote.reldatadir)
+                    
                     replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
-                    replServerDataDir = '%s/%s' \
-                      % (replServer.getDir(),remote.reldatadir)
-                    changelogBackupDir = '%s/replication/changelog_backup' \
-                                         % replServerDataDir                     
+
+                    serverBackupDir = '%s' % server.getTmpDir()
+                    replServerDataDir = '%s' % replServer.getDataDir()
+                    replServerBackupDir = '%s' % replServer.getTmpDir()     
                   </script>
 
                   <!-- Restore master_backup -->  
@@ -512,6 +523,7 @@
                     <!-- _topologyServerList[0] corresponds to "master", so
                       no need to copy the files for that case -->
                     <sequence>
+                      <!-- TODO: check what schematokens.dat files are? -->
                       <if expr="os.path.exists
                                 ('%s/config/schematokens.dat' % dsPath)" >
                         <call function="'copyFile'">
@@ -529,7 +541,7 @@
                           'remotehost' : server.getHostname(),
                           'srcfolder'  : masterBackupDir,
                           'destfolder' : '%s/replication/master_backup' \
-                                         % serverDataDir,
+                                         % serverBackupDir,
                           'extension'  : '*'
                         }
                       </call>                      
@@ -539,7 +551,7 @@
                     { 'location'  : server.getHostname(),
                       'dsPath'    : serverPath,
                       'backupDir' : '%s/replication/master_backup' \
-                                    % serverDataDir
+                                    % serverBackupDir
                     }
                   </call>                    
                                                             
@@ -547,7 +559,8 @@
                   <call function="'restore'">
                     { 'location'  : replServer.getHostname(),
                       'dsPath'    : replServerPath,
-                      'backupDir' : changelogBackupDir
+                      'backupDir' : '%s/replication/changelog_backup' \
+                                         % replServerBackupDir
                     }
                   </call>                    
                 </sequence>                  
@@ -751,11 +764,8 @@
                       replServer = server
 
                     replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
-                    replServerDataDir = '%s/%s' \
-                      % (replServer.getDir(),remote.reldatadir)
-                    changelogBackupDir = \
-                      '%s/replication/changelog_backup_online' \
-                      % replServerDataDir                     
+
+                    replServerBackupDir = '%s' % replServer.getTmpDir()                 
                   </script>
 
                   <call function="'backupTask'">
@@ -766,7 +776,8 @@
                       'dsInstanceDn'   : replServer.getRootDn(),
                       'dsInstancePswd' : replServer.getRootPwd(),
                       'taskID'         : 'changelog backup task',
-                      'backupDir'      : changelogBackupDir,
+                      'backupDir'      : '%s/replication/changelog_backup_online' \
+                                          % replServerBackupDir,
                       'backEnd'        : 'replicationChanges'
                     }
                   </call>
@@ -820,13 +831,12 @@
                       replServer = server
 
                     serverPath = '%s/%s' % (server.getDir(), OPENDSNAME)
-                    serverDataDir = '%s/%s' % (server.getDir(),remote.reldatadir)
+                    
                     replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
-                    replServerDataDir = '%s/%s' \
-                      % (replServer.getDir(),remote.reldatadir)
-                    changelogBackupDir = \
-                      '%s/replication/changelog_backup_online' \
-                      % replServerDataDir                     
+
+                    serverBackupDir = '%s' % server.getTmpDir()
+                    replServerBackupDir = '%s' % replServer.getTmpDir()
+                   
                   </script>
 
                   <!-- Restore changelog_backup -->
@@ -838,7 +848,8 @@
                       'dsInstanceDn'   : replServer.getRootDn(),
                       'dsInstancePswd' : replServer.getRootPwd(),
                       'taskID'         : 'changelog restore task',
-                      'backupDir'      : changelogBackupDir
+                      'backupDir'      : '%s/replication/changelog_backup_online' \
+                                          % replServerBackupDir
                     }
                   </call>                    
                                         
@@ -864,7 +875,7 @@
                           'remotehost' : server.getHostname(),
                           'srcfolder'  : masterBackupDir,
                           'destfolder' : '%s/replication/master_backup' \
-                                         % serverDataDir,
+                                         % serverBackupDir,
                           'extension'  : '*'
                         }
                       </call>                      
@@ -879,7 +890,7 @@
                       'dsInstancePswd' : server.getRootPwd(),
                       'taskID'         : 'restore task',
                       'backupDir'      : '%s/replication/master_backup' \
-                                         % serverDataDir
+                                         % serverBackupDir
                     }
                   </call>                             
                                                             

@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS.
  ! -->
 <stax>
 
@@ -107,7 +108,7 @@
                      'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                      'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                      'dsInstancePswd'   : 'ACIRules' ,
-                     'ldifFile'         : '%s/privileges/export_task_out.ldif' % remote.data ,
+                     'ldifFile'         : '%s/privileges/export_task_out.ldif' % remote.temp ,
                      'expectedRC'       : 1
                   }
                 </call>
@@ -146,7 +147,7 @@
                      'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'ldifFile'         : '%s/privileges/export_task_out.ldif' % remote.data ,
+                    'ldifFile'         : '%s/privileges/export_task_out.ldif' % remote.temp ,
                     'expectedRC'       : 1
                   }
                 </call>
@@ -189,7 +190,7 @@
                      'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'ldifFile'         : '%s/privileges/export_task_out.ldif' % remote.data
+                    'ldifFile'         : '%s/privileges/export_task_out.ldif' % remote.temp
                   }
                 </call>
                   
@@ -232,7 +233,7 @@
                      'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'     : 'uid=auser,o=Privileges Tests,dc=example,dc=com' ,
                     'dsInstancePswd'   : 'ACIRules' ,
-                    'ldifFile'         : '%s/privileges/export_task_out2.ldif' % remote.data ,
+                    'ldifFile'         : '%s/privileges/export_task_out2.ldif' % remote.temp ,
                    'expectedRC'       : 1
                   }
                 </call>
@@ -285,7 +286,7 @@
                     'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'ldifFile'         : '%s/privileges/export_task_out3.ldif' % remote.data
+                    'ldifFile'         : '%s/privileges/export_task_out3.ldif' % remote.temp
                   }
                 </call>
                   
@@ -313,7 +314,7 @@
                      'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'ldifFile'         : '%s/privileges/export_task_out4.ldif' % remote.data ,
+                    'ldifFile'         : '%s/privileges/export_task_out4.ldif' % remote.temp ,
                     'expectedRC'       : 1
                   }
                 </call>
@@ -352,7 +353,7 @@
                      'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
-                    'ldifFile'         : '%s/privileges/export_task_out5.ldif' % remote.data
+                    'ldifFile'         : '%s/privileges/export_task_out5.ldif' % remote.temp
                   }
                 </call>
                        
@@ -406,7 +407,7 @@
                     'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'     : 'cn=Zroot' ,
                     'dsInstancePswd'   : 'PrivsRule' ,
-                    'ldifFile'         : '%s/privileges/export_task_out6.ldif' % remote.data
+                    'ldifFile'         : '%s/privileges/export_task_out6.ldif' % remote.temp
                   }
                 </call>
                   
@@ -434,7 +435,7 @@
                      'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'     : 'cn=Zroot' ,
                     'dsInstancePswd'   : 'PrivsRule' ,
-                    'ldifFile'         : '%s/privileges/export_task_out7.ldif' % remote.data ,
+                    'ldifFile'         : '%s/privileges/export_task_out7.ldif' % remote.temp ,
                    'expectedRC'       : 1
                   }
                 </call>
@@ -473,7 +474,7 @@
                     'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                     'dsInstanceDn'     : 'cn=Zroot' ,
                     'dsInstancePswd'   : 'PrivsRule' ,
-                    'ldifFile'         : '%s/privileges/export_task_out8.ldif' % remote.data
+                    'ldifFile'         : '%s/privileges/export_task_out8.ldif' % remote.temp
                   }
                 </call>
                        

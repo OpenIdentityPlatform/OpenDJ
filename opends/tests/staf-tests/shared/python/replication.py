@@ -24,6 +24,7 @@
 #
 #
 #      Copyright 2008 Sun Microsystems, Inc.
+#      Portions Copyright 2011 ForgeRock AS.
 
 
 
@@ -76,9 +77,14 @@ class SynchronizedSuffix:
 	    
 # Define Server class
 class Server:
-  def __init__(self, hostname, dir, port, adminPort, sslPort, jmxPort, rootDn, rootPwd, baseDn):
+  def __init__(self, hostname, dir, port, adminPort, sslPort, jmxPort, rootDn, rootPwd, baseDn, datadir):
     self.hostname = hostname
     self.dir = dir
+    self.temp = '%s/temp' % dir
+    if self.hostIsLocal(self.hostname):
+      self.data = datadir
+    else:
+      self.data = '%s/testdata/data' % self.dir
     self.port = port
     self.adminPort = adminPort
     self.sslPort = sslPort
@@ -100,9 +106,15 @@ class Server:
 
   def getHostname(self):
     return self.hostname
-
+  
   def getDir(self):
     return self.dir
+  
+  def getTmpDir(self):
+    return self.temp
+
+  def getDataDir(self):
+    return self.data
 
   def getPort(self):
     return self.port
@@ -159,7 +171,12 @@ class Server:
 
     return replServer
 
-
+  def hostIsLocal(self,hostname):
+    from socket import gethostbyname
+    if gethostbyname(hostname).startswith('127.0'):
+      return 1
+    else:
+      return 0
 
 
 

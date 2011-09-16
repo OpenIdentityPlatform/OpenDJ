@@ -55,7 +55,7 @@
           initialisation.
           If no filename provided (default), the topology won't be initialised.
           If a filename provided, after initialisation the suffix will be
-          backuped under masterBackupDir.
+          backed up under masterBackupDir.
         </function-arg-description>
         <function-arg-property name="type" value="filename"/>
       </function-arg-def>
@@ -116,9 +116,10 @@
             masterHost = master.getHostname()
             masterReplicationServer = master.getChangelogServer()
             masterPath = '%s/%s' % (master.getDir(),OPENDSNAME)
-            masterDataDir = '%s/%s' % (master.getDir(),remote.reldatadir)
+            masterDataDir = master.getDataDir()
+            masterTempDir = master.getTmpDir()
             synchroSuffix = master.getSynchronizedSuffixList()[0].getSuffixDn()
-            masterBackupDir = '%s/fractional-replication/master_backup' % masterDataDir
+            masterBackupDir = '%s/fractional-replication/master_backup' % masterTempDir
 
             consumerList = _topologyServerList[1:]
 
