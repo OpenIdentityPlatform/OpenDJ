@@ -179,7 +179,8 @@ div.chapter,div.preface
 
 .abstract,.example,.toc
 {
-    margin: 6px;       
+    margin: 6px;
+    font-size: 12px;
 }
 
 img
