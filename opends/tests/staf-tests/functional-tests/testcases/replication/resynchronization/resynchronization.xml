@@ -142,8 +142,7 @@
               <paralleliterate var="consumer" in="consumerList">
                 <sequence>
                   <script>
-                    #TODO: Fix me
-                    consumerBackupDir = '%s/%s' % (consumer.getDir(),remote.reldatadir)
+                    consumerBackupDir = '%s' % consumer.getTmpDir()
                   </script>
                   <call function="'CopyFolderByExtension'">
                     { 'location'   : masterHost,
@@ -314,8 +313,7 @@
               <paralleliterate var="consumer" in="consumerList">
                 <sequence>
                   <script>
-                    #TODO: Fix me
-                    consumerBackupDir = '%s/%s' % (consumer.getDir(),remote.reldatadir)
+                    consumerBackupDir = '%s' % consumer.getTmpDir()
                   </script>
                   <call function="'CopyFolderByExtension'">
                     { 'location'   : masterHost,
@@ -740,8 +738,7 @@
               
               <!-- Copy backup to new server and restore it -->
               <script>
-                #TODO: Fix me
-                server3BackupDir = '%s/%s' % (server3.getDir(),remote.reldatadir)
+                server3BackupDir = '%s' % server3.getTmpDir()
               </script>
               <call function="'CopyFolderByExtension'">
                 { 'location'   : masterHost,
