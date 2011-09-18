@@ -1753,7 +1753,7 @@
   </function>
      
   <!-- Backup Task Function -->
-  <function name="backupTask">
+  <function name="backupTask" scope="local">
     <function-prolog>
         This function performs an on line backup task 
     </function-prolog>
@@ -1868,12 +1868,7 @@
         myLocation=location
         myPath=dsPath
         
-        try:
-          import hashlib
-          m = hashlib.md5()
-        except ImportError:
-          import md5
-          m = md5.new()
+        m = md5_hash()
         m.update(location)
         m.update(dsPath)
         taskLdifFile='backup-task-%s.ldif' % m.hexdigest()
