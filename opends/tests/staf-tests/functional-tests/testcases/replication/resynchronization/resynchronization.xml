@@ -99,6 +99,10 @@
           <testcase name="getTestCaseName('Off-line initialisation')">
             <sequence>
               <call function="'testCase_Preamble'"/>
+              <script>
+                m = md5_hash()
+                m.update(STAXCurrentTestcase)
+              </script>
               <message>
                 'Replication: Re-Synchronization: Off-line initialisation. \
                 Initialise replicated servers using off-line backup/restore'
@@ -112,7 +116,8 @@
               <call function="'backup'">
                 { 'location'  : masterHost,
                   'dsPath'    : masterPath,
-                  'backupDir' : '%s/replication/master_backup' % masterBackupDir
+                  'backupDir' : '%s/replication/master_backup_%s' \
+                                  % (masterBackupDir,m.hexdigest())
                 }
               </call>
                              
@@ -147,10 +152,10 @@
                   <call function="'CopyFolderByExtension'">
                     { 'location'   : masterHost,
                       'remotehost' : consumer.getHostname(),
-                      'srcfolder'  : '%s/replication/master_backup' \
-                                     % masterBackupDir,
-                      'destfolder' : '%s/replication/master_backup' \
-                                     % consumerBackupDir,
+                      'srcfolder'  : '%s/replication/master_backup_%s' \
+                                     % (masterBackupDir,m.hexdigest()),
+                      'destfolder' : '%s/replication/master_backup_%s' \
+                                     % (consumerBackupDir,m.hexdigest()),
                       'extension'  : '*'
                     }
                   </call>
@@ -162,8 +167,8 @@
                   <call function="'restore'">
                     { 'location'  :  consumer.getHostname(),
                       'dsPath'    :  '%s/%s' % (consumer.getDir(), OPENDSNAME),
-                      'backupDir' :  '%s/replication/master_backup' \
-                                     % consumerBackupDir
+                      'backupDir' :  '%s/replication/master_backup_%s' \
+                                     % (consumerBackupDir,m.hexdigest())
                     }
                   </call>
                 </sequence>
@@ -203,6 +208,10 @@
           <testcase name="getTestCaseName('On-line initialisation')">
             <sequence>
               <call function="'testCase_Preamble'"/>
+              <script>
+                m = md5_hash()
+                m.update(STAXCurrentTestcase)
+              </script>
               <message>
                 'Replication: Re-Synchronization: On-line initialisation. \
                 Initialise replicated servers using on-line backup/restore'
@@ -271,8 +280,8 @@
                   'dsInstanceDn'   : master.getRootDn(),
                   'dsInstancePswd' : master.getRootPwd(),
                   'taskID'         : 'backup task - tc2',
-                  'backupDir'      : '%s/replication/master_backup_online' \
-                                     % masterBackupDir
+                  'backupDir'      : '%s/replication/master_backup_%s' \
+                                     % (masterBackupDir,m.hexdigest())
                 }
               </call>
               
@@ -318,10 +327,10 @@
                   <call function="'CopyFolderByExtension'">
                     { 'location'   : masterHost,
                       'remotehost' : consumer.getHostname(),
-                      'srcfolder'  : '%s/replication/master_backup_online' \
-                                     % masterBackupDir,
-                      'destfolder' : '%s/replication/master_backup_online' \
-                                     % consumerBackupDir,
+                      'srcfolder'  : '%s/replication/master_backup_%s' \
+                                     % (masterBackupDir,m.hexdigest()),
+                      'destfolder' : '%s/replication/master_backup_%s' \
+                                     % (consumerBackupDir,m.hexdigest()),
                       'extension'  : '*'
                     }
                   </call>
@@ -338,8 +347,8 @@
                       'dsInstanceDn'   : consumer.getRootDn(),
                       'dsInstancePswd' : consumer.getRootPwd(),
                       'taskID'         : 'restore task - tc2',
-                      'backupDir'   : '%s/replication/master_backup_online' \
-                                      % consumerBackupDir
+                      'backupDir'   : '%s/replication/master_backup_%s' \
+                                      % (consumerBackupDir,m.hexdigest())
                     }
                   </call>
                 </sequence>
@@ -376,6 +385,10 @@
           <testcase name="getTestCaseName('Add new Server')">
             <sequence>
               <call function="'testCase_Preamble'"/>
+              <script>
+                m = md5_hash()
+                m.update(STAXCurrentTestcase)
+              </script>
               <message>
                 'Replication: Re-Synchronization: Add new server. \
                 Initialise newly added server using on-line backup/restore'
@@ -512,8 +525,8 @@
                   'dsInstanceDn'   : master.getRootDn(),
                   'dsInstancePswd' : master.getRootPwd(),
                   'taskID'         : 'backup task - tc3',
-                  'backupDir'      : '%s/replication/master_backup_online' \
-                                     % masterBackupDir
+                  'backupDir'      : '%s/replication/master_backup_%s' \
+                                     % (masterBackupDir,m.hexdigest())
                 }
               </call>
 
@@ -743,10 +756,10 @@
               <call function="'CopyFolderByExtension'">
                 { 'location'   : masterHost,
                   'remotehost' : server3.getHostname(),
-                  'srcfolder'  : '%s/replication/master_backup_online' \
-                                 % masterBackupDir,
-                  'destfolder' : '%s/replication/master_backup_online' \
-                                 % server3BackupDir,
+                  'srcfolder'  : '%s/replication/master_backup_%s' \
+                                 % (masterBackupDir,m.hexdigest()),
+                  'destfolder' : '%s/replication/master_backup_%s' \
+                                 % (server3BackupDir,m.hexdigest()),
                   'extension'  : '*'
                 }
               </call>
@@ -763,8 +776,8 @@
                   'dsInstanceDn'   : server3.getRootDn(),
                   'dsInstancePswd' : server3.getRootPwd(),
                   'taskID'         : 'restore task - tc3',
-                  'backupDir'      : '%s/replication/master_backup_online' \
-                                     % server3BackupDir
+                  'backupDir'      : '%s/replication/master_backup_%s' \
+                                     % (server3BackupDir,m.hexdigest())
                 }
               </call>
               
@@ -807,8 +820,7 @@
               <!-- If the trees don't match, we may have come across Issue 4052
                (Ghost adds in Replication Server) -->              
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, master, consumerList, synchroSuffix,
-                  '4052' ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>
               
               <call function="'testCase_Postamble'"/>

@@ -54,7 +54,8 @@ __all__ = [ "format_testcase",
             "get_last_attr_from_entry" ,
             "list_matches" ,
             "count_attr" ,
-            "host_is_localhost"]
+            "host_is_localhost" ,
+            "md5_hash"]
 
 class format_testcase:
   'Format the Test name objects'
@@ -814,4 +815,11 @@ def hosts_are_same(hostname1,hostname2):
   else:
     return 0
   
-
+def md5_hash():
+  try:
+    import hashlib
+    m = hashlib.md5()
+  except ImportError:
+    import md5
+    m = md5.new()
+  return m

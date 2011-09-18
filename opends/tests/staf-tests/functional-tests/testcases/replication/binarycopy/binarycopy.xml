@@ -78,6 +78,10 @@
           <testcase name="getTestCaseName('Off-line initialisation')">
             <sequence>
               <call function="'testCase_Preamble'"/>
+              <script>
+                m = md5_hash()
+                m.update(STAXCurrentTestcase)
+              </script>
               <message>
                  'Replication: Binary Copy: Off-line initialisation. \
                  Initialise replicated servers using off-line backup/restore'
@@ -127,7 +131,8 @@
               <call function="'backup'">
                 { 'location'  : masterHost,
                   'dsPath'    : masterPath,
-                  'backupDir' : '%s/replication/master_backup' % masterBackupDir
+                  'backupDir' : '%s/replication/master_backup_%s' \
+                                  % (masterBackupDir,m.hexdigest())
                 }
               </call>
 
@@ -140,10 +145,10 @@
                   <call function="'CopyFolderByExtension'">
                     { 'location'   : masterHost,
                       'remotehost' : consumer.getHostname(),
-                      'srcfolder'  : '%s/replication/master_backup' \
-                                     % masterBackupDir,
-                      'destfolder' : '%s/replication/master_backup' \
-                                     % consumerBackupDir,
+                      'srcfolder'  : '%s/replication/master_backup_%s' \
+                                     % (masterBackupDir,m.hexdigest()),
+                      'destfolder' : '%s/replication/master_backup_%s' \
+                                     % (consumerBackupDir,m.hexdigest()),
                       'extension'  : '*'
                     }
                   </call>
@@ -155,8 +160,8 @@
                   <call function="'restore'">
                     { 'location'  : consumer.getHostname(),
                       'dsPath'    : '%s/%s' % (consumer.getDir(), OPENDSNAME),
-                      'backupDir' : '%s/replication/master_backup' \
-                                    % consumerBackupDir
+                      'backupDir' : '%s/replication/master_backup_%s' \
+                                    % (consumerBackupDir,m.hexdigest())
                     }
                   </call>
                 </sequence>
@@ -243,6 +248,10 @@
           <testcase name="getTestCaseName('On-line initialisation')">
             <sequence>
               <call function="'testCase_Preamble'"/>
+              <script>
+                m = md5_hash()
+                m.update(STAXCurrentTestcase)
+              </script>
               <message>
                  'Replication: Binary Copy: On-line initialisation. Initialise \
                  replicated servers using on-line backup/restore'
@@ -311,8 +320,8 @@
                   'dsInstanceDn'   : master.getRootDn(),
                   'dsInstancePswd' : master.getRootPwd(),
                   'taskID'         : 'backup task',
-                  'backupDir'      : '%s/replication/master_backup_online' \
-                                     % masterBackupDir 
+                  'backupDir'      : '%s/replication/master_backup_%s' \
+                                     % (masterBackupDir,m.hexdigest()) 
                 }
               </call>
               
@@ -326,10 +335,10 @@
                   <call function="'CopyFolderByExtension'">
                     { 'location'   : masterHost,
                       'remotehost' : consumer.getHostname(),
-                      'srcfolder'  : '%s/replication/master_backup_online' \
-                                     % masterBackupDir,
-                      'destfolder' : '%s/replication/master_backup_online' \
-                                     % consumerBackupDir,
+                      'srcfolder'  : '%s/replication/master_backup_%s' \
+                                     % (masterBackupDir,m.hexdigest()),
+                      'destfolder' : '%s/replication/master_backup_%s' \
+                                     % (consumerBackupDir,m.hexdigest()),
                       'extension'  : '*'
                     }
                   </call>
@@ -346,8 +355,8 @@
                       'dsInstanceDn'   : consumer.getRootDn(),
                       'dsInstancePswd' : consumer.getRootPwd(),
                       'taskID'         : 'restore task',
-                      'backupDir'   : '%s/replication/master_backup_online' \
-                                      % consumerBackupDir
+                      'backupDir'   : '%s/replication/master_backup_%s' \
+                                      % (consumerBackupDir,m.hexdigest())
                     }
                   </call>
                 </sequence>
