@@ -126,6 +126,75 @@
                           'rejectFile'          : serverRejectFile
                         }
                       </call>
+
+                      <script>
+                        options=[]
+                        options.append('--backend-name "AD"')
+                        options.append('--set base-dn:"dc=AD,dc=com"')
+                        options.append('--set enabled:true')
+                        options.append('--set writability-mode:enabled')
+                        options.append('--type local-db')
+                        dsconfigOptions=' '.join(options)
+                      </script>
+          
+                      <call function="'dsconfig'">
+                        { 'location'            : local_ldap_server.getHostname(),
+                          'dsPath'              : '%s/%s' \
+                                                   % (local_ldap_server.getDir(),OPENDSNAME),
+                          'dsInstanceHost'      : local_ldap_server.getHostname(),
+                          'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
+                          'dsInstanceDn'        : local_ldap_server.getRootDn(),
+                          'dsInstancePswd'      : local_ldap_server.getRootPwd(),
+                          'subcommand'          : 'create-backend',
+                          'optionsString'       : dsconfigOptions
+                        }
+                      </call>
+          
+                      <script>
+                        dataFile = 'AD10.ldif'
+                        serverDataFile   = '%s/pta/%s' \
+                          % (local_ldap_server.getDataDir(), dataFile)
+                        serverSkipFile   = '%s/pta/skippedAD10.ldif' \
+                          % local_ldap_server.getTmpDir()
+                        serverRejectFile = '%s/pta/rejectsAD10.ldif' \
+                          % local_ldap_server.getTmpDir()
+                      </script>
+              
+                      <call function="'ImportLdifWithScript'">
+                        { 'location'           : local_ldap_server.getHostname(),
+                          'dsPath'             : '%s/%s' \
+                                                   % (local_ldap_server.getDir(),OPENDSNAME),
+                          'dsInstanceHost'      : local_ldap_server.getHostname(),
+                          'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
+                          'dsInstanceDn'        : local_ldap_server.getRootDn(),
+                          'dsInstancePswd'      : local_ldap_server.getRootPwd(),
+                          'backEnd'             : 'AD',
+                          'ldifFile'            : serverDataFile,
+                          'skipFile'            : serverSkipFile ,
+                          'rejectFile'          : serverRejectFile
+                        }
+                      </call>
+  
+                      <script>
+                        options=[]
+                        options.append('--backend-name "AD"')
+                        options.append('--set enabled:false')
+                        dsconfigOptions=' '.join(options)
+                      </script>
+          
+                      <call function="'dsconfig'">
+                        { 'location'            : local_ldap_server.getHostname(),
+                          'dsPath'              : '%s/%s' \
+                                                   % (local_ldap_server.getDir(),OPENDSNAME),
+                          'dsInstanceHost'      : local_ldap_server.getHostname(),
+                          'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
+                          'dsInstanceDn'        : local_ldap_server.getRootDn(),
+                          'dsInstancePswd'      : local_ldap_server.getRootPwd(),
+                          'subcommand'          : 'set-backend-prop',
+                          'optionsString'       : dsconfigOptions
+                        }
+                      </call>
+
                     </sequence>
                   <else>
                     <sequence>
