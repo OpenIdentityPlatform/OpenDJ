@@ -28,7 +28,7 @@ package org.opends.server.extensions;
 
 
 
-import static org.opends.server.extensions.LDAPPassThroughAuthenticationPolicyFactory.isFatalResultCode;
+import static org.opends.server.extensions.LDAPPassThroughAuthenticationPolicyFactory.isServiceError;
 import static org.opends.server.protocols.ldap.LDAPConstants.OID_NOTICE_OF_DISCONNECTION;
 import static org.testng.Assert.*;
 
@@ -1534,7 +1534,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
         .expectEvent(
             new SearchEvent(ceSearch, "o=ad", SearchScope.WHOLE_SUBTREE,
                 "(uid=aduser)", searchResultCode));
-    if (isFatalResultCode(searchResultCode))
+    if (isServiceError(searchResultCode))
     {
       // The connection will fail and be closed immediately.
       provider.expectEvent(new CloseEvent(ceSearch));
@@ -1568,7 +1568,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     state.finalizeStateAfterBind();
 
     // Cached connections should be closed when the policy is finalized.
-    if (!isFatalResultCode(searchResultCode))
+    if (!isServiceError(searchResultCode))
     {
       provider.expectEvent(new CloseEvent(ceSearch));
     }
@@ -3234,7 +3234,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
         new SimpleBindEvent(ceBind,
             mappingPolicy == MappingPolicy.UNMAPPED ? opendjDNString
                 : adDNString, userPassword, bindResultCode));
-    if (isFatalResultCode(bindResultCode))
+    if (isServiceError(bindResultCode))
     {
       // The connection will fail and be closed immediately.
       provider.expectEvent(new CloseEvent(ceBind));
@@ -3286,7 +3286,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     {
       provider.expectEvent(new CloseEvent(ceSearch));
     }
-    if (!isFatalResultCode(bindResultCode))
+    if (!isServiceError(bindResultCode))
     {
       provider.expectEvent(new CloseEvent(ceBind));
     }

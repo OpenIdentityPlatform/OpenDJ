@@ -202,7 +202,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       {
         // If the error does not indicate that the connection has failed, then
         // pass this back to the caller.
-        if (!isFatalResultCode(e.getResultCode()))
+        if (!isServiceError(e.getResultCode()))
         {
           throw e;
         }
@@ -643,7 +643,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         catch (final DirectoryException e)
         {
           // Don't put the connection back in the pool if it has failed.
-          closeConnectionOnFatalError(e);
+          closeConnectionIfServiceError(e);
           throw e;
         }
       }
@@ -664,16 +664,16 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         catch (final DirectoryException e)
         {
           // Don't put the connection back in the pool if it has failed.
-          closeConnectionOnFatalError(e);
+          closeConnectionIfServiceError(e);
           throw e;
         }
       }
 
 
 
-      private void closeConnectionOnFatalError(final DirectoryException e)
+      private void closeConnectionIfServiceError(final DirectoryException e)
       {
-        if (isFatalResultCode(e.getResultCode()))
+        if (isServiceError(e.getResultCode()))
         {
           if (!connectionIsClosed)
           {
@@ -1097,10 +1097,28 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           if ((responseOID != null)
               && responseOID.equals(OID_NOTICE_OF_DISCONNECTION))
           {
-            throw new DirectoryException(ResultCode.valueOf(extendedResponse
-                .getResultCode()), ERR_LDAP_PTA_CONNECTION_DISCONNECTING.get(
-                host, port, String.valueOf(cfg.dn()),
-                extendedResponse.getErrorMessage()));
+            ResultCode resultCode = ResultCode.valueOf(extendedResponse
+                .getResultCode());
+
+            /*
+             * Since the connection has been disconnected we want to ensure that
+             * upper layers treat all disconnect notifications as fatal and
+             * close the connection. Therefore we map the result code to a fatal
+             * error code if needed. A good example of a non-fatal error code
+             * being returned is INVALID_CREDENTIALS which is used to indicate
+             * that the currently bound user has had their entry removed. We
+             * definitely don't want to pass this straight back to the caller
+             * since it will be misinterpreted as an authentication failure if
+             * the operation being performed is a bind.
+             */
+            ResultCode mappedResultCode = isServiceError(resultCode) ?
+                resultCode : ResultCode.UNAVAILABLE;
+
+            throw new DirectoryException(mappedResultCode,
+                ERR_LDAP_PTA_CONNECTION_DISCONNECTING.get(host, port,
+                    String.valueOf(cfg.dn()), resultCode.getIntValue(),
+                    resultCode.getResultCodeName(),
+                    extendedResponse.getErrorMessage()));
           }
         }
 
@@ -2052,17 +2070,20 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
    * @return {@code true} if the result code is expected to trigger the
    *         associated connection to be closed immediately.
    */
-  static boolean isFatalResultCode(final ResultCode resultCode)
+  static boolean isServiceError(final ResultCode resultCode)
   {
     switch (resultCode)
     {
+    case OPERATIONS_ERROR:
+    case PROTOCOL_ERROR:
+    case TIME_LIMIT_EXCEEDED:
+    case ADMIN_LIMIT_EXCEEDED:
+    case UNAVAILABLE_CRITICAL_EXTENSION:
     case BUSY:
     case UNAVAILABLE:
-    case PROTOCOL_ERROR:
-    case OTHER:
     case UNWILLING_TO_PERFORM:
-    case OPERATIONS_ERROR:
-    case TIME_LIMIT_EXCEEDED:
+    case LOOP_DETECT:
+    case OTHER:
     case CLIENT_SIDE_CONNECT_ERROR:
     case CLIENT_SIDE_DECODING_ERROR:
     case CLIENT_SIDE_ENCODING_ERROR:
