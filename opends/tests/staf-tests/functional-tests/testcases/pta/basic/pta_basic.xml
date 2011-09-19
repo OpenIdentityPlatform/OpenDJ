@@ -78,8 +78,10 @@
                 <!-- List of Test Cases -->
                 <script>
                   testsList=[]
+                  testsList.append('basic_pta_001')
                   testsList.append('basic_pta_002')
                   testsList.append('basic_pta_003')
+                  testsList.append('basic_pta_004')
                 </script>
 
                 <!-- Execute the Tests -->
