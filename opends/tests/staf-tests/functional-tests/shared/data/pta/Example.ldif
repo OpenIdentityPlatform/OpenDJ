@@ -422,7 +422,7 @@ mail: jmcFarla@example.com
 telephonenumber: +1 408 555 2567
 facsimiletelephonenumber: +1 408 555 4774
 roomnumber: 2359
-userpassword: walnut
+seealso: uid=jmcFarla, ou=People, dc=AD, dc=com
 
 dn: uid=llabonte, ou=People, o=example
 cn: Lee Labonte
@@ -476,7 +476,7 @@ mail: bhal2@example.com
 telephonenumber: +1 408 555 4491
 facsimiletelephonenumber: +1 408 555 8473
 roomnumber: 2758
-userpassword: truths
+seealso: uid=bhal2, ou=People, dc=AD, dc=com
 
 dn: uid=alutz, ou=People, o=example
 cn: Alexander Lutz
@@ -548,7 +548,7 @@ mail: hmiller@example.com
 telephonenumber: +1 408 555 9804
 facsimiletelephonenumber: +1 408 555 9332
 roomnumber: 4304
-userpassword: hillock
+seealso: uid=hmiller, ou=People, dc=AD, dc=com
 
 dn: uid=jcampai2, ou=People, o=example
 cn: Jeffrey Campaigne
@@ -638,7 +638,7 @@ mail: gtriplet@example.com
 telephonenumber: +1 408 555 2582
 facsimiletelephonenumber: +1 408 555 3372
 roomnumber: 4023
-userpassword: placeable
+seealso: uid=gtriplet, ou=People, dc=AD, dc=com
 
 dn: uid=jfalena, ou=People, o=example
 cn: John Falena
@@ -710,7 +710,7 @@ mail: prigden@example.com
 telephonenumber: +1 408 555 5099
 facsimiletelephonenumber: +1 408 555 8473
 roomnumber: 1271
-userpassword: epiphyseal
+seealso: uid=prigden, ou=People, dc=AD, dc=com
 
 dn: uid=bwalker, ou=People, o=example
 cn: Brad Walker
@@ -907,7 +907,7 @@ mail: brentz@example.com
 telephonenumber: +1 408 555 5526
 facsimiletelephonenumber: +1 408 555 1992
 roomnumber: 0617
-userpassword: diachronic
+seealso: uid=brentz, ou=People, dc=AD, dc=com
 
 dn: uid=dsmith, ou=People, o=example
 cn: Daniel Smith
@@ -979,7 +979,7 @@ mail: ekohler@example.com
 telephonenumber: +1 408 555 1926
 facsimiletelephonenumber: +1 408 555 9332
 roomnumber: 2721
-userpassword: guildhall
+seealso: uid=jmcFarla, ou=People, dc=AD, dc=com
 
 dn: uid=lcampbel, ou=People, o=example
 cn: Laurel Campbell
@@ -2003,7 +2003,7 @@ mail: wlutz@example.com
 telephonenumber: +1 408 555 3358
 facsimiletelephonenumber: +1 408 555 9332
 roomnumber: 4912
-userpassword: bassinet
+seealso: uid=wlutz, ou=People, dc=AD,dc=com
 
 dn: uid=jlutz, ou=People, o=example
 cn: Janet Lutz
@@ -2128,7 +2128,7 @@ mail: jbourke@example.com
 telephonenumber: +1 408 555 8541
 facsimiletelephonenumber: +1 408 555 4774
 roomnumber: 0034
-userpassword: brainwash
+seealso: uid=jbourke, ou=People, dc=AD, dc=com
 
 dn: uid=dlanoway, ou=People, o=example
 cn: Dan Lanoway
@@ -2629,7 +2629,7 @@ mail: rjense2@example.com
 telephonenumber: +1 408 555 9045
 facsimiletelephonenumber: +1 408 555 1992
 roomnumber: 1984
-userpassword: transpose
+seealso: uid=rjense2, ou=People, dc=AD, dc=com
 
 dn: uid=rhunt, ou=People, o=example
 cn: Richard Hunt
@@ -2767,7 +2767,7 @@ description: People who can manage accounting entries
 dn: cn=PTA Remote Users,ou=groups,o=example
 objectclass: top
 objectclass: groupOfUniqueNames
-cn: Accounting Managers
+cn: PTA Remote Users
 ou: groups
 uniquemember: uid=jvedder, ou=People, o=example
 uniquemember: uid=tmorris, ou=People, o=example

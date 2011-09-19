@@ -69,6 +69,9 @@
               </call>
     
               <script>
+                ldapPtaPolicyName     = 'LDAP PTA'
+                ldapPtaPolicyDn       = 'cn=%s,cn=Password Policies,cn=config' % ldapPtaPolicyName
+
                 local_ldap            = 0
                 primary_remote_ldap   = 1
                 secondary_remote_ldap = 2
@@ -76,6 +79,11 @@
                 local_ldap_server = _topologyServerList[local_ldap]
                 primary_remote_ldap_server = _topologyServerList[primary_remote_ldap]
                 secondary_remote_ldap_server = _topologyServerList[secondary_remote_ldap]
+                
+                primaryHost   = primary_remote_ldap_server.getHostname()
+                primaryPort   = primary_remote_ldap_server.getPort()
+                secondaryHost = secondary_remote_ldap_server.getHostname()
+                secondaryPort = secondary_remote_ldap_server.getPort()
               </script>
     
               <!-- On remote servers create suffixes -->
