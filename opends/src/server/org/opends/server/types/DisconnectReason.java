@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.types;
 import org.opends.messages.Message;
@@ -113,6 +114,15 @@ public enum DisconnectReason
    */
   SECURITY_PROBLEM(
           INFO_DISCONNECT_DUE_TO_SECURITY_PROBLEM.get()),
+
+
+
+  /**
+   * The disconnect reason that indicates that the client connection was closed
+   * because the bound user's entry is no longer accessible.
+   */
+  INVALID_CREDENTIALS(
+          INFO_DISCONNECT_DUE_TO_INVALID_CREDENTIALS.get()),
 
 
 
