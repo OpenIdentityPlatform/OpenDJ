@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.core;
 import java.util.HashSet;
@@ -234,7 +235,7 @@ public class AuthenticatedUsers
         Message message = WARN_CLIENTCONNECTION_DISCONNECT_DUE_TO_DELETE.get(
                 String.valueOf(entry.getDN()));
 
-        conn.disconnect(DisconnectReason.OTHER, true, message);
+        conn.disconnect(DisconnectReason.INVALID_CREDENTIALS, true, message);
       }
     }
   }

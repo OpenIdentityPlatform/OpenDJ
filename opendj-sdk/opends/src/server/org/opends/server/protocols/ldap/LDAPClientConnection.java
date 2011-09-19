@@ -1091,6 +1091,9 @@ public class LDAPClientConnection extends ClientConnection implements
         case CONNECTION_REJECTED:
           resultCode = LDAPResultCode.CONSTRAINT_VIOLATION;
           break;
+        case INVALID_CREDENTIALS:
+          resultCode = LDAPResultCode.INVALID_CREDENTIALS;
+          break;
         default:
           resultCode = LDAPResultCode.OTHER;
           break;
