@@ -32,7 +32,7 @@ import org.opends.messages.Message;
 import java.util.concurrent.locks.Lock;
 import java.io.IOException;
 
-import org.opends.server.api.AuthenticationPolicy;
+import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicyState;
 import org.opends.server.protocols.asn1.*;
@@ -325,13 +325,20 @@ public class ProxiedAuthV1Control
 
       // FIXME -- We should provide some mechanism for enabling debug
       // processing.
-      AuthenticationPolicy policy = AuthenticationPolicy.forUser(userEntry,
-          false);
-      if (policy.isPasswordPolicy())
+      AuthenticationPolicyState state = AuthenticationPolicyState.forUser(
+          userEntry, false);
+
+      if (state.isDisabled())
       {
-        PasswordPolicyState pwpState = (PasswordPolicyState) policy
-            .createAuthenticationPolicyState(userEntry);
-        if (pwpState.isDisabled() || pwpState.isAccountExpired() ||
+        Message message = ERR_PROXYAUTH1_UNUSABLE_ACCOUNT.get(String
+            .valueOf(userEntry.getDN()));
+        throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message);
+      }
+
+      if (state.isPasswordPolicy())
+      {
+        PasswordPolicyState pwpState = (PasswordPolicyState) state;
+        if (pwpState.isAccountExpired() ||
             pwpState.lockedDueToFailures() ||
             pwpState.lockedDueToIdleInterval() ||
             pwpState.lockedDueToMaximumResetAge() ||

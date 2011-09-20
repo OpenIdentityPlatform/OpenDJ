@@ -675,6 +675,14 @@ bindProcessing:
       }
       else
       {
+        // Check to see if the user is administratively disabled or locked.
+        if (authPolicyState.isDisabled())
+        {
+          throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
+              ERR_BIND_OPERATION_ACCOUNT_DISABLED.get(String.valueOf(userEntry
+                  .getDN())));
+        }
+
         // Invoke pre-operation plugins.
         if (!invokePreOpPlugins())
         {

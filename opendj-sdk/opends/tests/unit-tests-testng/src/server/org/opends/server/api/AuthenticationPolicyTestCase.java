@@ -30,6 +30,7 @@ package org.opends.server.api;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 import org.opends.server.TestCaseUtils;
@@ -38,6 +39,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 
@@ -54,6 +56,8 @@ public class AuthenticationPolicyTestCase extends APITestCase
    */
   private final class MockPolicy extends AuthenticationPolicy
   {
+    private final boolean isDisabled;
+
     private boolean isPolicyFinalized = false;
 
     private boolean isStateFinalized = false;
@@ -93,9 +97,9 @@ public class AuthenticationPolicyTestCase extends APITestCase
      *
      * @return The password which was tested.
      */
-    public String getMatchedPassword()
+    public ByteString getMatchedPassword()
     {
-      return matchedPassword.toString();
+      return matchedPassword;
     }
 
 
@@ -105,10 +109,13 @@ public class AuthenticationPolicyTestCase extends APITestCase
      *
      * @param matches
      *          The result to always return from {@code passwordMatches}.
+     * @param isDisabled
+     *          The result to return from {@code isDisabled}.
      */
-    public MockPolicy(boolean matches)
+    public MockPolicy(boolean matches, boolean isDisabled)
     {
       this.matches = matches;
+      this.isDisabled = isDisabled;
     }
 
 
@@ -129,7 +136,7 @@ public class AuthenticationPolicyTestCase extends APITestCase
     public AuthenticationPolicyState createAuthenticationPolicyState(
         Entry userEntry, long time) throws DirectoryException
     {
-      return new AuthenticationPolicyState()
+      return new AuthenticationPolicyState(userEntry)
       {
 
         /**
@@ -140,6 +147,16 @@ public class AuthenticationPolicyTestCase extends APITestCase
         {
           matchedPassword = password;
           return matches;
+        }
+
+
+
+        /**
+         * {@inheritDoc}
+         */
+        public boolean isDisabled()
+        {
+          return MockPolicy.this.isDisabled;
         }
 
 
@@ -202,29 +219,22 @@ public class AuthenticationPolicyTestCase extends APITestCase
 
 
   /**
-   * Test simple authentication where password validation succeeds.
+   * Returns test data for the simple/sasl tests.
    *
-   * @throws Exception
-   *           If an unexpected exception occurred.
+   * @return Test data for the simple/sasl tests.
    */
-  @Test
-  public void testSimpleBindAllowed() throws Exception
+  @DataProvider
+  public Object[][] testBindData()
   {
-    testSimpleBind(true);
-  }
-
-
-
-  /**
-   * Test simple authentication where password validation fails.
-   *
-   * @throws Exception
-   *           If an unexpected exception occurred.
-   */
-  @Test
-  public void testSimpleBindRefused() throws Exception
-  {
-    testSimpleBind(false);
+    // @formatter:off
+    return new Object[][] {
+        /* password matches, account is disabled */
+        { false, false },
+        { false,  true },
+        {  true, false },
+        {  true,  true },
+    };
+    // @formatter:on
   }
 
 
@@ -232,34 +242,18 @@ public class AuthenticationPolicyTestCase extends APITestCase
   /**
    * Test simple authentication where password validation succeeds.
    *
+   * @param matches
+   *          The result to always return from {@code passwordMatches}.
+   * @param isDisabled
+   *          The result to return from {@code isDisabled}.
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test
-  public void testSASLPLAINBindAllowed() throws Exception
+  @Test(dataProvider = "testBindData")
+  public void testSimpleBind(boolean matches, boolean isDisabled)
+      throws Exception
   {
-    testSASLPLAINBind(true);
-  }
-
-
-
-  /**
-   * Test simple authentication where password validation fails.
-   *
-   * @throws Exception
-   *           If an unexpected exception occurred.
-   */
-  @Test
-  public void testSASLPLAINBindRefused() throws Exception
-  {
-    testSASLPLAINBind(false);
-  }
-
-
-
-  private void testSimpleBind(boolean allow) throws Exception
-  {
-    MockPolicy policy = new MockPolicy(allow);
+    MockPolicy policy = new MockPolicy(matches, isDisabled);
     DirectoryServer.registerAuthenticationPolicy(policyDN, policy);
     try
     {
@@ -287,13 +281,24 @@ public class AuthenticationPolicyTestCase extends APITestCase
       BindOperation bind = conn.processSimpleBind(userDNString, "password");
 
       // Check authentication result.
-      assertEquals(bind.getResultCode(), allow ? ResultCode.SUCCESS
-          : ResultCode.INVALID_CREDENTIALS);
+      assertEquals(bind.getResultCode(),
+          matches & !isDisabled ? ResultCode.SUCCESS
+              : ResultCode.INVALID_CREDENTIALS);
 
       // Verify interaction with the policy/state.
       assertTrue(policy.isStateFinalized());
       assertFalse(policy.isPolicyFinalized());
-      assertEquals(policy.getMatchedPassword(), "password");
+      if (!isDisabled)
+      {
+        assertEquals(policy.getMatchedPassword().toString(), "password");
+      }
+      else
+      {
+        // If the account is disabled then the password should not have been
+        // checked. This is important because we want to avoid potentially
+        // expensive password fetches (e.g. PTA).
+        assertNull(policy.getMatchedPassword());
+      }
     }
     finally
     {
@@ -304,9 +309,21 @@ public class AuthenticationPolicyTestCase extends APITestCase
 
 
 
-  private void testSASLPLAINBind(boolean allow) throws Exception
+  /**
+   * Test simple authentication where password validation succeeds.
+   *
+   * @param matches
+   *          The result to always return from {@code passwordMatches}.
+   * @param isDisabled
+   *          The result to return from {@code isDisabled}.
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(dataProvider = "testBindData")
+  public void testSASLPLAINBind(boolean matches, boolean isDisabled)
+      throws Exception
   {
-    MockPolicy policy = new MockPolicy(allow);
+    MockPolicy policy = new MockPolicy(matches, isDisabled);
     DirectoryServer.registerAuthenticationPolicy(policyDN, policy);
     try
     {
@@ -342,13 +359,24 @@ public class AuthenticationPolicyTestCase extends APITestCase
           credentials.toByteString());
 
       // Check authentication result.
-      assertEquals(bind.getResultCode(), allow ? ResultCode.SUCCESS
-          : ResultCode.INVALID_CREDENTIALS);
+      assertEquals(bind.getResultCode(),
+          matches & !isDisabled ? ResultCode.SUCCESS
+              : ResultCode.INVALID_CREDENTIALS);
 
       // Verify interaction with the policy/state.
       assertTrue(policy.isStateFinalized());
       assertFalse(policy.isPolicyFinalized());
-      assertEquals(policy.getMatchedPassword(), "password");
+      if (!isDisabled)
+      {
+        assertEquals(policy.getMatchedPassword().toString(), "password");
+      }
+      else
+      {
+        // If the account is disabled then the password should not have been
+        // checked. This is important because we want to avoid potentially
+        // expensive password fetches (e.g. PTA).
+        assertNull(policy.getMatchedPassword());
+      }
     }
     finally
     {
@@ -356,4 +384,5 @@ public class AuthenticationPolicyTestCase extends APITestCase
       assertTrue(policy.isPolicyFinalized());
     }
   }
+
 }

@@ -33,7 +33,7 @@ import org.opends.messages.Message;
 import java.util.concurrent.locks.Lock;
 import java.io.IOException;
 
-import org.opends.server.api.AuthenticationPolicy;
+import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicyState;
@@ -333,13 +333,20 @@ public class ProxiedAuthV2Control
   private void checkAccountIsUsable(Entry userEntry)
       throws DirectoryException
   {
-    AuthenticationPolicy policy = AuthenticationPolicy.forUser(userEntry,
-        false);
-    if (policy.isPasswordPolicy())
+    AuthenticationPolicyState state = AuthenticationPolicyState.forUser(
+        userEntry, false);
+
+    if (state.isDisabled())
     {
-      PasswordPolicyState pwpState = (PasswordPolicyState) policy
-          .createAuthenticationPolicyState(userEntry);
-      if (pwpState.isDisabled() || pwpState.isAccountExpired() ||
+      Message message = ERR_PROXYAUTH2_UNUSABLE_ACCOUNT.get(String
+          .valueOf(userEntry.getDN()));
+      throw new DirectoryException(ResultCode.AUTHORIZATION_DENIED, message);
+    }
+
+    if (state.isPasswordPolicy())
+    {
+      PasswordPolicyState pwpState = (PasswordPolicyState) state;
+      if (pwpState.isAccountExpired() ||
           pwpState.lockedDueToFailures() ||
           pwpState.lockedDueToIdleInterval() ||
           pwpState.lockedDueToMaximumResetAge() ||
