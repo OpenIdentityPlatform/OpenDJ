@@ -877,7 +877,24 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
       }
 
       // Mark the connection as invalid.
-      connectionInvalidReason = reason;
+      if (!isDisconnectNotification)
+      {
+        // Connection termination was detected locally, so use the provided
+        // reason for all subsequent requests.
+        connectionInvalidReason = reason;
+      }
+      else
+      {
+        // Connection termination was triggered remotely. We don't want to
+        // blindly pass on the result code to requests since it could be
+        // confused for a genuine response. For example, if the disconnect
+        // contained the invalidCredentials result code then this could be
+        // misinterpreted as a genuine authentication failure for subsequent
+        // bind requests.
+        connectionInvalidReason = Responses.newResult(
+            ResultCode.CLIENT_SIDE_SERVER_DOWN).setDiagnosticMessage(
+            "Connection closed by server");
+      }
     }
 
     // First abort all outstanding requests.
@@ -887,7 +904,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
           .remove(requestID);
       if (future != null)
       {
-        future.adaptErrorResult(reason);
+        future.adaptErrorResult(connectionInvalidReason);
       }
     }
 
@@ -937,6 +954,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
     {
       for (final ConnectionEventListener listener : listeners)
       {
+        // Use the reason provided in the disconnect notification.
         listener.handleConnectionError(isDisconnectNotification,
             newErrorResult(reason));
       }
