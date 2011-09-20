@@ -73,7 +73,6 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
   // TODO: handle password policy response controls? AD?
   // TODO: custom aliveness pings
-  // TODO: manage account lockout
   // TODO: cache password
 
   /**
@@ -1555,14 +1554,13 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     private final class StateImpl extends AuthenticationPolicyState
     {
 
-      private final Entry userEntry;
       private ByteString cachedPassword = null;
 
 
 
       private StateImpl(final Entry userEntry)
       {
-        this.userEntry = userEntry;
+        super(userEntry);
       }
 
 

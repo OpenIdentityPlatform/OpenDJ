@@ -29,6 +29,7 @@ package org.opends.server.extensions;
 
 
 
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
@@ -504,6 +505,17 @@ public class PlainSASLMechanismHandler
       // the user's entry when the bind completes.
       AuthenticationPolicyState authState = AuthenticationPolicyState.forUser(
           userEntry, false);
+
+      if (authState.isDisabled())
+      {
+        // Check to see if the user is administratively disabled or locked.
+        bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
+        Message message = ERR_BIND_OPERATION_ACCOUNT_DISABLED.get(String
+            .valueOf(userEntry.getDN()));
+        bindOperation.setAuthFailureReason(message);
+        return;
+      }
+
       if (!authState.passwordMatches(ByteString.valueOf(password)))
       {
         bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);

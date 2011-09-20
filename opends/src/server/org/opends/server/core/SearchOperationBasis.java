@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.opends.server.api.AuthenticationPolicy;
+import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.AccountUsableResponseControl;
@@ -645,15 +645,19 @@ public class SearchOperationBasis
     // create it now.
     if (isIncludeUsableControl())
     {
+      if (controls == null)
+      {
+        controls = new ArrayList<Control>(1);
+      }
+
       try
       {
         // FIXME -- Need a way to enable PWP debugging.
-        AuthenticationPolicy policy = AuthenticationPolicy
-            .forUser(entry, false);
-        if (policy.isPasswordPolicy())
+        AuthenticationPolicyState state = AuthenticationPolicyState.forUser(
+            entry, false);
+        if (state.isPasswordPolicy())
         {
-          PasswordPolicyState pwpState = (PasswordPolicyState) policy
-              .createAuthenticationPolicyState(entry);
+          PasswordPolicyState pwpState = (PasswordPolicyState) state;
 
           boolean isInactive = pwpState.isDisabled()
               || pwpState.isAccountExpired();
@@ -667,12 +671,6 @@ public class SearchOperationBasis
           {
             int secondsBeforeUnlock = pwpState.getSecondsUntilUnlock();
             int remainingGraceLogins = pwpState.getGraceLoginsRemaining();
-
-            if (controls == null)
-            {
-              controls = new ArrayList<Control>(1);
-            }
-
             controls
                 .add(new AccountUsableResponseControl(isInactive, isReset,
                     isExpired, remainingGraceLogins, isLocked,
@@ -680,14 +678,22 @@ public class SearchOperationBasis
           }
           else
           {
-            if (controls == null)
-            {
-              controls = new ArrayList<Control>(1);
-            }
-
             int secondsBeforeExpiration = pwpState.getSecondsUntilExpiration();
             controls.add(new AccountUsableResponseControl(
                 secondsBeforeExpiration));
+          }
+        }
+        else
+        {
+          // Another type of authentication policy (e.g. PTA).
+          if (state.isDisabled())
+          {
+            controls.add(new AccountUsableResponseControl(false, false, false,
+                -1, true, -1));
+          }
+          else
+          {
+            controls.add(new AccountUsableResponseControl(-1));
           }
         }
       }

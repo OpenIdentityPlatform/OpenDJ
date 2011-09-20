@@ -77,9 +77,6 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
 
 
-  // The user entry with which this state information is associated.
-  private final Entry userEntry;
-
   // The string representation of the user's DN.
   private final String userDNString;
 
@@ -169,7 +166,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
    */
   PasswordPolicyState(PasswordPolicy policy, Entry userEntry, long currentTime)
   {
-    this.userEntry   = userEntry;
+    super(userEntry);
     this.currentTime = currentTime;
     this.userDNString     = userEntry.getDN().toString();
     this.passwordPolicy   = policy;
@@ -220,74 +217,6 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     }
 
     return stringValue;
-  }
-
-
-
-  /**
-   * Retrieves the value of the specified attribute from the user's entry as a
-   * time in generalized time format.
-   *
-   * @param  attributeType  The attribute type whose value should be parsed as a
-   *                        generalized time value.
-   *
-   * @return  The requested time, or -1 if it could not be determined.
-   *
-   * @throws  DirectoryException  If a problem occurs while attempting to
-   *                              decode the value as a generalized time.
-   */
-  private long getGeneralizedTime(AttributeType attributeType)
-          throws DirectoryException
-  {
-    long timeValue = -1 ;
-
-    List<Attribute> attrList = userEntry.getAttribute(attributeType);
-    if (attrList != null)
-    {
-      for (Attribute a : attrList)
-      {
-        if (a.isEmpty()) continue;
-
-        AttributeValue v = a.iterator().next();
-        try
-        {
-          timeValue = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
-                          v.getNormalizedValue());
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-
-            TRACER.debugWarning("Unable to decode value %s for attribute %s " +
-                "in user entry %s: %s",
-                v.getValue().toString(), attributeType.getNameOrOID(),
-                userDNString, stackTraceToSingleLineString(e));
-          }
-
-          Message message = ERR_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME.
-              get(v.getValue().toString(), attributeType.getNameOrOID(),
-                  userDNString, String.valueOf(e));
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message, e);
-        }
-        break ;
-      }
-    }
-
-    if (timeValue == -1)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Returning -1 because attribute %s does not " +
-            "exist in user entry %s",
-            attributeType.getNameOrOID(), userDNString);
-      }
-    }
-    // FIXME: else to be consistent...
-
-    return timeValue;
   }
 
 
@@ -359,84 +288,6 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
 
   /**
-   * Retrieves the value of the specified attribute from the user's entry as a
-   * Boolean.
-   *
-   * @param  attributeType  The attribute type whose value should be parsed as a
-   *                        Boolean.
-   *
-   * @return  The attribute's value represented as a ConditionResult value, or
-   *          ConditionResult.UNDEFINED if the specified attribute does not
-   *          exist in the entry.
-   *
-   * @throws  DirectoryException  If the value cannot be decoded as a Boolean.
-   */
-  private ConditionResult getBoolean(AttributeType attributeType)
-          throws DirectoryException
-  {
-    List<Attribute> attrList = userEntry.getAttribute(attributeType);
-    if (attrList != null)
-    {
-      for (Attribute a : attrList)
-      {
-        if (a.isEmpty()) continue;
-
-        String valueString
-             = toLowerCase(a.iterator().next().getValue().toString());
-
-        if (valueString.equals("true") || valueString.equals("yes") ||
-            valueString.equals("on") || valueString.equals("1"))
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugInfo("Attribute %s resolves to true for user entry " +
-                "%s", attributeType.getNameOrOID(), userDNString);
-          }
-
-          return ConditionResult.TRUE;
-        }
-
-        if (valueString.equals("false") || valueString.equals("no") ||
-                 valueString.equals("off") || valueString.equals("0"))
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugInfo("Attribute %s resolves to false for user " +
-                "entry %s", attributeType.getNameOrOID(), userDNString);
-          }
-
-          return ConditionResult.FALSE;
-        }
-
-        if(debugEnabled())
-        {
-          TRACER.debugError("Unable to resolve value %s for attribute %s " +
-              "in user entry %s as a Boolean.",
-              valueString, attributeType.getNameOrOID(),
-              userDNString);
-        }
-
-        Message message = ERR_PWPSTATE_CANNOT_DECODE_BOOLEAN.get(
-            valueString, attributeType.getNameOrOID(), userDNString);
-        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-            message);
-      }
-    }
-
-    if (debugEnabled())
-    {
-      TRACER.debugInfo("Returning %s because attribute %s does not exist " +
-          "in user entry %s",
-          ConditionResult.UNDEFINED.toString(),
-          attributeType.getNameOrOID(), userDNString);
-    }
-
-    return ConditionResult.UNDEFINED;
-  }
-
-
-
-  /**
    * {@inheritDoc}
    */
   public PasswordPolicy getAuthenticationPolicy()
@@ -461,7 +312,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
       try
       {
-        passwordChangedTime = getGeneralizedTime(type);
+        passwordChangedTime = getGeneralizedTime(userEntry, type);
       }
       catch (DirectoryException e)
       {
@@ -481,7 +332,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
             OP_ATTR_CREATE_TIMESTAMP_LC, true);
         try
         {
-          passwordChangedTime = getGeneralizedTime(createTimeType);
+          passwordChangedTime = getGeneralizedTime(userEntry, createTimeType);
         }
         catch (DirectoryException e)
         {
@@ -626,7 +477,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
          DirectoryServer.getAttributeType(OP_ATTR_CREATE_TIMESTAMP_LC, true);
     try
     {
-      passwordChangedTime = getGeneralizedTime(createTimeType);
+      passwordChangedTime = getGeneralizedTime(userEntry, createTimeType);
       if (passwordChangedTime < 0)
       {
         passwordChangedTime = 0;
@@ -640,81 +491,13 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
 
 
-
-  /**
-   * Indicates whether the user account has been administratively disabled.
-   *
-   * @return  <CODE>true</CODE> if the user account has been administratively
-   *          disabled, or <CODE>false</CODE> otherwise.
-   */
-  public boolean isDisabled()
-  {
-    if (isDisabled != ConditionResult.UNDEFINED)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("Returning stored result of %b for user %s",
-            (isDisabled == ConditionResult.TRUE), userDNString);
-      }
-
-      return isDisabled == ConditionResult.TRUE;
-    }
-
-    AttributeType type =
-         DirectoryServer.getAttributeType(OP_ATTR_ACCOUNT_DISABLED, true);
-    try
-    {
-      isDisabled = getBoolean(type);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      isDisabled = ConditionResult.TRUE;
-      if (debugEnabled())
-      {
-          TRACER.debugWarning("User %s is considered administratively " +
-              "disabled because an error occurred while attempting to make " +
-              "the determination: %s.",
-                       userDNString, stackTraceToSingleLineString(e));
-      }
-
-      return true;
-    }
-
-    if (isDisabled == ConditionResult.UNDEFINED)
-    {
-      isDisabled = ConditionResult.FALSE;
-      if (debugEnabled())
-      {
-        TRACER.debugInfo("User %s is not administratively disabled since " +
-            "the attribute \"%s\" is not present in the entry.",
-            userDNString, OP_ATTR_ACCOUNT_DISABLED);
-      }
-      return false;
-    }
-
-    if (debugEnabled())
-    {
-      TRACER.debugInfo("User %s %s administratively disabled.",
-          userDNString,
-          ((isDisabled == ConditionResult.TRUE) ? " is" : " is not"));
-    }
-
-    return isDisabled == ConditionResult.TRUE;
-  }
-
-
-
   /**
    * Updates the user entry to indicate whether user account has been
    * administratively disabled.
    *
-   * @param  isDisabled  Indicates whether the user account has been
-   *                     administratively disabled.
+   * @param isDisabled
+   *          Indicates whether the user account has been administratively
+   *          disabled.
    */
   public void setDisabled(boolean isDisabled)
   {
@@ -775,7 +558,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
     try
     {
-      accountExpirationTime = getGeneralizedTime(type);
+      accountExpirationTime = getGeneralizedTime(userEntry, type);
      }
     catch (Exception e)
     {
@@ -1216,7 +999,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
     try
     {
-      failureLockedTime = getGeneralizedTime(type);
+      failureLockedTime = getGeneralizedTime(userEntry, type);
     }
     catch (Exception e)
     {
@@ -1811,7 +1594,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
     try
     {
-      mustChangePassword = getBoolean(type);
+      mustChangePassword = getBoolean(userEntry, type);
     }
     catch (Exception e)
     {
@@ -2335,7 +2118,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
     try
     {
-      requiredChangeTime = getGeneralizedTime(type);
+      requiredChangeTime = getGeneralizedTime(userEntry, type);
     }
     catch (Exception e)
     {
@@ -2449,7 +2232,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
            DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_WARNED_TIME, true);
       try
       {
-        warnedTime = getGeneralizedTime(type);
+        warnedTime = getGeneralizedTime(userEntry, type);
       }
       catch (Exception e)
       {
