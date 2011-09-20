@@ -424,6 +424,12 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     private final SortedSet<String> primaryServers = new TreeSet<String>();
     private final SortedSet<String> secondaryServers = new TreeSet<String>();
     private int timeoutMS = 0; // unlimited
+    private DN mappedSearchBindDN = searchBindDN;
+    private String mappedSearchBindPassword = "searchPassword";
+    private String mappedSearchBindPasswordEnvVar = null;
+    private String mappedSearchBindPasswordFile = null;
+    private String mappedSearchBindPasswordProperty = null;
+
 
 
 
@@ -496,7 +502,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     @Override
     public DN getMappedSearchBindDN()
     {
-      return searchBindDN;
+      return mappedSearchBindDN;
     }
 
 
@@ -504,7 +510,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     @Override
     public String getMappedSearchBindPassword()
     {
-      return "searchPassword";
+      return mappedSearchBindPassword;
     }
 
 
@@ -659,6 +665,76 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     {
       secondaryServers.add(hostPort);
       return this;
+    }
+
+
+
+    MockPolicyCfg withMappedSearchBindDN(final DN value)
+    {
+      this.mappedSearchBindDN = value;
+      return this;
+    }
+
+
+
+    MockPolicyCfg withMappedSearchBindPassword(final String value)
+    {
+      this.mappedSearchBindPassword = value;
+      return this;
+    }
+
+
+
+    MockPolicyCfg withMappedSearchBindPasswordEnvironmentVariable(final String value)
+    {
+      this.mappedSearchBindPasswordEnvVar = value;
+      return this;
+    }
+
+
+
+    MockPolicyCfg withMappedSearchBindPasswordFile(final String value)
+    {
+      this.mappedSearchBindPasswordFile = value;
+      return this;
+    }
+
+
+
+    MockPolicyCfg withMappedSearchBindPasswordProperty(final String value)
+    {
+      this.mappedSearchBindPasswordProperty = value;
+      return this;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public String getMappedSearchBindPasswordEnvironmentVariable()
+    {
+      return mappedSearchBindPasswordEnvVar;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public String getMappedSearchBindPasswordFile()
+    {
+      return mappedSearchBindPasswordFile;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public String getMappedSearchBindPasswordProperty()
+    {
+      return mappedSearchBindPasswordProperty;
     }
   }
 
@@ -2063,6 +2139,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // @formatter:off
     return new Object[][] {
         /* cfg, isValid */
+
+        // Test server configuration.
         { mockCfg().withPrimaryServer("test:1"), true },
         { mockCfg().withPrimaryServer("test:65535"), true },
         { mockCfg().withPrimaryServer("test:0"), false },
@@ -2073,6 +2151,17 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
         { mockCfg().withSecondaryServer("test:0"), false },
         { mockCfg().withSecondaryServer("test:65536"), false },
         { mockCfg().withSecondaryServer("test:1000000"), false },
+
+        // Test mapped search parameters.
+        { mockCfg().withMappingPolicy(MappingPolicy.MAPPED_SEARCH), true },
+        { mockCfg().withMappingPolicy(MappingPolicy.MAPPED_SEARCH).withMappedSearchBindDN(null).withMappedSearchBindPassword(null), true },
+        { mockCfg().withMappingPolicy(MappingPolicy.MAPPED_SEARCH).withMappedSearchBindPassword(null), false },
+        { mockCfg().withMappingPolicy(MappingPolicy.MAPPED_SEARCH).withMappedSearchBindPasswordProperty("org.opendj.dummy.property"), false },
+        { mockCfg().withMappingPolicy(MappingPolicy.MAPPED_SEARCH).withMappedSearchBindPasswordProperty("java.version"), true },
+        { mockCfg().withMappingPolicy(MappingPolicy.MAPPED_SEARCH).withMappedSearchBindPasswordEnvironmentVariable("ORG_OPENDJ_DUMMY_ENVVAR"), false },
+        { mockCfg().withMappingPolicy(MappingPolicy.MAPPED_SEARCH).withMappedSearchBindPasswordFile("dummy_file.txt"), false },
+        { mockCfg().withMappingPolicy(MappingPolicy.MAPPED_SEARCH).withMappedSearchBindPasswordFile("config/admin-keystore.pin"), true },
+
     };
     // @formatter:on
   }

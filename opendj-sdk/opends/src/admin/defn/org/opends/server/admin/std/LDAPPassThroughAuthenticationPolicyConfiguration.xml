@@ -60,14 +60,33 @@
   <adm:constraint>
     <adm:synopsis>
       One or more search base DNs must be specified when using the
-      "mapped-search" mapping policies.
+      "mapped-search" mapping policy.
     </adm:synopsis>
     <adm:condition>
       <adm:implies>
-        <adm:or>
-          <adm:contains property="mapping-policy" value="mapped-search" />
-        </adm:or>
+        <adm:contains property="mapping-policy" value="mapped-search" />
         <adm:is-present property="mapped-search-base-dn" />
+      </adm:implies>
+    </adm:condition>
+  </adm:constraint>
+
+  <adm:constraint>
+    <adm:synopsis>
+      The mapped search bind password must be specified when using the
+      "mapped-search" mapping policy and a mapped-search-bind-dn is defined.
+    </adm:synopsis>
+    <adm:condition>
+      <adm:implies>
+        <adm:and>
+          <adm:contains property="mapping-policy" value="mapped-search" />
+          <adm:is-present property="mapped-search-bind-dn" />
+        </adm:and>
+        <adm:or>
+          <adm:is-present property="mapped-search-bind-password" />
+          <adm:is-present property="mapped-search-bind-password-property" />
+          <adm:is-present property="mapped-search-bind-password-environment-variable" />
+          <adm:is-present property="mapped-search-bind-password-file" />
+        </adm:or>
       </adm:implies>
     </adm:condition>
   </adm:constraint>
@@ -330,9 +349,7 @@
       user searches in the remote LDAP directory service.
     </adm:synopsis>
     <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>Searches will be performed anonymously.</adm:synopsis>
-      </adm:alias>
+      <adm:undefined/>
     </adm:default-behavior>
     <adm:syntax>
       <adm:password />
@@ -340,6 +357,65 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-mapped-search-bind-password</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="mapped-search-bind-password-property">
+    <adm:synopsis>
+      Specifies the name of a Java property containing the bind password which
+      should be used to perform user searches in the remote LDAP directory
+      service.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:undefined/>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-mapped-search-bind-password-property</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="mapped-search-bind-password-environment-variable">
+    <adm:synopsis>
+      Specifies the name of an environment variable containing the bind 
+      password which should be used to perform user searches in the remote LDAP
+      directory service.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:undefined/>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>
+          ds-cfg-mapped-search-bind-password-environment-variable
+        </ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="mapped-search-bind-password-file">
+    <adm:synopsis>
+      Specifies the name of a file containing the bind 
+      password which should be used to perform user searches in the remote LDAP
+      directory service.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:undefined/>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-mapped-search-bind-password-file</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

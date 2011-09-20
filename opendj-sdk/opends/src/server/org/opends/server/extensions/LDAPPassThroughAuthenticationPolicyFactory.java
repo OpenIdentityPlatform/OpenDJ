@@ -32,9 +32,10 @@ package org.opends.server.extensions;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.util.StaticUtils.getExceptionMessage;
+import static org.opends.server.util.StaticUtils.getFileForPath;
 
-import java.io.Closeable;
-import java.io.IOException;
+import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -47,6 +48,8 @@ import javax.net.ssl.*;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.meta.
+  LDAPPassThroughAuthenticationPolicyCfgDefn.MappingPolicy;
 import org.opends.server.admin.std.server.*;
 import org.opends.server.api.*;
 import org.opends.server.config.ConfigException;
@@ -69,7 +72,6 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 {
 
   // TODO: handle password policy response controls? AD?
-  // TODO: provide alternative cfg for search password.
   // TODO: custom aliveness pings
   // TODO: manage account lockout
   // TODO: cache password
@@ -1926,6 +1928,22 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     {
       this.cfg = cfg;
 
+      // First obtain the mapped search password if needed, ignoring any errors
+      // since these should have already been detected during configuration
+      // validation.
+      final String mappedSearchPassword;
+      if (cfg.getMappingPolicy() == MappingPolicy.MAPPED_SEARCH
+          && cfg.getMappedSearchBindDN() != null
+          && !cfg.getMappedSearchBindDN().isNullDN())
+      {
+        mappedSearchPassword = getMappedSearchBindPassword(cfg,
+            new LinkedList<Message>());
+      }
+      else
+      {
+        mappedSearchPassword = null;
+      }
+
       // Use two pools per server: one for authentication (bind) and one for
       // searches. Even if the searches are performed anonymously we cannot use
       // the same pool, otherwise they will be performed as the most recently
@@ -1947,7 +1965,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         searchPool[index] = new ConnectionPool(
             new AuthenticatedConnectionFactory(factory,
                 cfg.getMappedSearchBindDN(),
-                cfg.getMappedSearchBindPassword()));
+                mappedSearchPassword));
         bindPool[index++] = new ConnectionPool(factory);
       }
       primarySearchLoadBalancer = new RoundRobinLoadBalancer(searchPool,
@@ -1972,7 +1990,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           searchPool[index] = new ConnectionPool(
               new AuthenticatedConnectionFactory(factory,
                   cfg.getMappedSearchBindDN(),
-                  cfg.getMappedSearchBindPassword()));
+                  mappedSearchPassword));
           bindPool[index++] = new ConnectionPool(factory);
         }
         final RoundRobinLoadBalancer secondarySearchLoadBalancer =
@@ -2098,6 +2116,100 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
+//Get the search bind password performing mapped searches.
+  //
+  // We will offer several places to look for the password, and we will
+  // do so in the following order:
+  //
+  // - In a specified Java property
+  // - In a specified environment variable
+  // - In a specified file on the server filesystem.
+  // - As the value of a configuration attribute.
+  //
+  // In any case, the password must be in the clear.
+  private static String getMappedSearchBindPassword(
+      final LDAPPassThroughAuthenticationPolicyCfg cfg,
+      final List<Message> unacceptableReasons)
+  {
+    String password = null;
+
+    if (cfg.getMappedSearchBindPasswordProperty() != null)
+    {
+      String propertyName = cfg.getMappedSearchBindPasswordProperty();
+      password = System.getProperty(propertyName);
+      if (password == null)
+      {
+        unacceptableReasons.add(ERR_LDAP_PTA_PWD_PROPERTY_NOT_SET.get(
+            String.valueOf(cfg.dn()), String.valueOf(propertyName)));
+      }
+    }
+    else if (cfg.getMappedSearchBindPasswordEnvironmentVariable() != null)
+    {
+      String envVarName = cfg.getMappedSearchBindPasswordEnvironmentVariable();
+      password = System.getenv(envVarName);
+      if (password == null)
+      {
+        unacceptableReasons.add(ERR_LDAP_PTA_PWD_ENVAR_NOT_SET.get(
+            String.valueOf(cfg.dn()), String.valueOf(envVarName)));
+      }
+    }
+    else if (cfg.getMappedSearchBindPasswordFile() != null)
+    {
+      String fileName = cfg.getMappedSearchBindPasswordFile();
+      File passwordFile = getFileForPath(fileName);
+      if (!passwordFile.exists())
+      {
+        unacceptableReasons.add(ERR_LDAP_PTA_PWD_NO_SUCH_FILE.get(
+            String.valueOf(cfg.dn()), String.valueOf(fileName)));
+      }
+      else
+      {
+        BufferedReader br = null;
+        try
+        {
+          br = new BufferedReader(new FileReader(passwordFile));
+          password = br.readLine();
+          if (password == null)
+          {
+            unacceptableReasons.add(ERR_LDAP_PTA_PWD_FILE_EMPTY.get(
+                String.valueOf(cfg.dn()), String.valueOf(fileName)));
+          }
+        }
+        catch (IOException e)
+        {
+          unacceptableReasons.add(ERR_LDAP_PTA_PWD_FILE_CANNOT_READ.get(
+              String.valueOf(cfg.dn()), String.valueOf(fileName),
+              getExceptionMessage(e)));
+        }
+        finally
+        {
+          try
+          {
+            br.close();
+          }
+          catch (Exception e)
+          {
+            // Ignored.
+          }
+        }
+      }
+    }
+    else if (cfg.getMappedSearchBindPassword() != null)
+    {
+      password = cfg.getMappedSearchBindPassword();
+    }
+    else
+    {
+      // Password wasn't defined anywhere.
+      unacceptableReasons
+          .add(ERR_LDAP_PTA_NO_PWD.get(String.valueOf(cfg.dn())));
+    }
+
+    return password;
+  }
+
+
+
   private static boolean isServerAddressValid(
       final LDAPPassThroughAuthenticationPolicyCfg configuration,
       final List<Message> unacceptableReasons, final String hostPort)
@@ -2189,7 +2301,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
    */
   @Override
   public boolean isConfigurationAcceptable(
-      final LDAPPassThroughAuthenticationPolicyCfg configuration,
+      final LDAPPassThroughAuthenticationPolicyCfg cfg,
       final List<Message> unacceptableReasons)
   {
     // Check that the port numbers are valid. We won't actually try and connect
@@ -2197,16 +2309,27 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     // capabilities).
     boolean configurationIsAcceptable = true;
 
-    for (final String hostPort : configuration.getPrimaryRemoteLDAPServer())
+    for (final String hostPort : cfg.getPrimaryRemoteLDAPServer())
     {
-      configurationIsAcceptable &= isServerAddressValid(configuration,
+      configurationIsAcceptable &= isServerAddressValid(cfg,
           unacceptableReasons, hostPort);
     }
 
-    for (final String hostPort : configuration.getSecondaryRemoteLDAPServer())
+    for (final String hostPort : cfg.getSecondaryRemoteLDAPServer())
     {
-      configurationIsAcceptable &= isServerAddressValid(configuration,
+      configurationIsAcceptable &= isServerAddressValid(cfg,
           unacceptableReasons, hostPort);
+    }
+
+    // Ensure that the search bind password is defined somewhere.
+    if (cfg.getMappingPolicy() == MappingPolicy.MAPPED_SEARCH
+        && cfg.getMappedSearchBindDN() != null
+        && !cfg.getMappedSearchBindDN().isNullDN())
+    {
+      if (getMappedSearchBindPassword(cfg, unacceptableReasons) == null)
+      {
+        configurationIsAcceptable = false;
+      }
     }
 
     return configurationIsAcceptable;
