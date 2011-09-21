@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
@@ -32,6 +33,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
 import java.util.logging.Level;
 
 import com.forgerock.opendj.util.StaticUtils;
@@ -364,22 +367,22 @@ public final class ByteStringBuilder implements ByteSequence
    * An invocation of the form:
    *
    * <pre>
-   * src.append(b)
+   * src.append(bytes)
    * </pre>
    *
    * Behaves in exactly the same way as the invocation:
    *
    * <pre>
-   * src.append(b, 0, b.length);
+   * src.append(bytes, 0, bytes.length);
    * </pre>
    *
-   * @param b
+   * @param bytes
    *          The byte array to be appended to this byte string builder.
    * @return This byte string builder.
    */
-  public ByteStringBuilder append(final byte[] b)
+  public ByteStringBuilder append(final byte[] bytes)
   {
-    return append(b, 0, b.length);
+    return append(bytes, 0, bytes.length);
   }
 
 
@@ -387,28 +390,28 @@ public final class ByteStringBuilder implements ByteSequence
   /**
    * Appends the provided byte array to this byte string builder.
    *
-   * @param b
+   * @param bytes
    *          The byte array to be appended to this byte string builder.
    * @param offset
    *          The offset of the byte array to be used; must be non-negative and
-   *          no larger than {@code b.length} .
+   *          no larger than {@code bytes.length} .
    * @param length
    *          The length of the byte array to be used; must be non-negative and
-   *          no larger than {@code b.length - offset}.
+   *          no larger than {@code bytes.length - offset}.
    * @return This byte string builder.
    * @throws IndexOutOfBoundsException
    *           If {@code offset} is negative or if {@code length} is negative or
-   *           if {@code offset + length} is greater than {@code b.length}.
+   *           if {@code offset + length} is greater than {@code bytes.length}.
    */
-  public ByteStringBuilder append(final byte[] b, final int offset,
+  public ByteStringBuilder append(final byte[] bytes, final int offset,
       final int length) throws IndexOutOfBoundsException
   {
-    ByteString.checkArrayBounds(b, offset, length);
+    ByteString.checkArrayBounds(bytes, offset, length);
 
     if (length != 0)
     {
       ensureAdditionalCapacity(length);
-      System.arraycopy(b, offset, buffer, this.length, length);
+      System.arraycopy(bytes, offset, buffer, this.length, length);
       this.length += length;
     }
 
@@ -498,6 +501,57 @@ public final class ByteStringBuilder implements ByteSequence
 
 
   /**
+   * Appends the UTF-8 encoded bytes of the provided
+   * char array to this byte string
+   * builder.
+   *
+   * @param chars
+   *          The char array whose UTF-8 encoding is to be appended to this byte
+   *          string builder.
+   * @return This byte string builder.
+   */
+  public ByteStringBuilder append(final char[] chars)
+  {
+    if (chars == null)
+    {
+      return this;
+    }
+
+    // Assume that each char is 1 byte
+    final int len = chars.length;
+    ensureAdditionalCapacity(len);
+
+    for (int i = 0; i < len; i++)
+    {
+      final char c = chars[i];
+      final byte b = (byte) (c & 0x0000007F);
+
+      if (c == b)
+      {
+        buffer[this.length + i] = b;
+      }
+      else
+      {
+        // There is a multi-byte char. Defer to JDK.
+        final Charset utf8 = Charset.forName("UTF-8");
+        final ByteBuffer byteBuffer = utf8.encode(CharBuffer.wrap(chars));
+        final int remaining = byteBuffer.remaining();
+        ensureAdditionalCapacity(remaining - len);
+        byteBuffer.get(buffer, this.length, remaining);
+        this.length += remaining;
+        return this;
+      }
+    }
+
+    // The 1 byte char assumption was correct
+    this.length += len;
+    return this;
+
+  }
+
+
+
+  /**
    * Appends the provided {@code InputStream} to this byte string builder.
    *
    * @param stream
@@ -578,11 +632,26 @@ public final class ByteStringBuilder implements ByteSequence
 
 
   /**
-   * Appends the provided object to this byte string builder. If the object is
-   * an instance of {@code ByteSequence} then its contents will be appended
-   * directly to this byte string builder using the {@code append(ByteSequence)}
-   * method. Otherwise the string representation of the object will be appended
-   * using the {@code append(String)} method.
+   * Appends the byte string representation of the provided object to this byte
+   * string builder. The object is converted to a byte string as follows:
+   * <ul>
+   * <li>if the object is an instance of {@code ByteSequence} then this method
+   * is equivalent to calling {@link #append(ByteSequence)}
+   * <li>if the object is a {@code byte[]} then this method is equivalent to
+   * calling {@link #append(byte[])}
+   * <li>if the object is a {@code char[]} then this method is equivalent to
+   * calling {@link #append(char[])}
+   * <li>for all other types of object this method is equivalent to calling
+   * {@link #append(String)} with the {@code toString()} representation of the
+   * provided object.
+   * </ul>
+   * <b>Note:</b> this method treats {@code Long} and {@code Integer} objects
+   * like any other type of {@code Object}. More specifically, the following
+   * invocations are not equivalent:
+   * <ul>
+   * <li>{@code append(0)} is not equivalent to {@code append((Object) 0)}
+   * <li>{@code append(0L)} is not equivalent to {@code append((Object) 0L)}
+   * </ul>
    *
    * @param o
    *          The object to be appended to this byte string builder.
@@ -597,6 +666,14 @@ public final class ByteStringBuilder implements ByteSequence
     else if (o instanceof ByteSequence)
     {
       return append((ByteSequence) o);
+    }
+    else if (o instanceof byte[])
+    {
+      return append((byte[]) o);
+    }
+    else if (o instanceof char[])
+    {
+      return append((char[]) o);
     }
     else
     {
@@ -795,11 +872,12 @@ public final class ByteStringBuilder implements ByteSequence
   /**
    * {@inheritDoc}
    */
-  public int compareTo(final byte[] b, final int offset, final int length)
+  public int compareTo(final byte[] bytes, final int offset, final int length)
       throws IndexOutOfBoundsException
   {
-    ByteString.checkArrayBounds(b, offset, length);
-    return ByteString.compareTo(this.buffer, 0, this.length, b, offset, length);
+    ByteString.checkArrayBounds(bytes, offset, length);
+    return ByteString.compareTo(this.buffer, 0, this.length, bytes, offset,
+        length);
   }
 
 
@@ -821,10 +899,10 @@ public final class ByteStringBuilder implements ByteSequence
   /**
    * {@inheritDoc}
    */
-  public byte[] copyTo(final byte[] b)
+  public byte[] copyTo(final byte[] bytes)
   {
-    copyTo(b, 0);
-    return b;
+    copyTo(bytes, 0);
+    return bytes;
   }
 
 
@@ -832,15 +910,16 @@ public final class ByteStringBuilder implements ByteSequence
   /**
    * {@inheritDoc}
    */
-  public byte[] copyTo(final byte[] b, final int offset)
+  public byte[] copyTo(final byte[] bytes, final int offset)
       throws IndexOutOfBoundsException
   {
     if (offset < 0)
     {
       throw new IndexOutOfBoundsException();
     }
-    System.arraycopy(buffer, 0, b, offset, Math.min(length, b.length - offset));
-    return b;
+    System.arraycopy(buffer, 0, bytes, offset,
+        Math.min(length, bytes.length - offset));
+    return bytes;
   }
 
 
@@ -892,11 +971,12 @@ public final class ByteStringBuilder implements ByteSequence
   /**
    * {@inheritDoc}
    */
-  public boolean equals(final byte[] b, final int offset, final int length)
+  public boolean equals(final byte[] bytes, final int offset, final int length)
       throws IndexOutOfBoundsException
   {
-    ByteString.checkArrayBounds(b, offset, length);
-    return ByteString.equals(this.buffer, 0, this.length, b, offset, length);
+    ByteString.checkArrayBounds(bytes, offset, length);
+    return ByteString
+        .equals(this.buffer, 0, this.length, bytes, offset, length);
   }
 
 

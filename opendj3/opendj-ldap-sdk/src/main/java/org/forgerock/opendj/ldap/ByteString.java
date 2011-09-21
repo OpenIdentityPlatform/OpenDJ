@@ -34,6 +34,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.logging.Level;
 
 import com.forgerock.opendj.util.StaticUtils;
@@ -108,11 +109,26 @@ public final class ByteString implements ByteSequence
 
 
   /**
-   * Returns a byte string containing the provided object. If the object is an
-   * instance of {@code ByteSequence} then it is converted to a byte string
-   * using the {@code toByteString()} method. Otherwise a new byte string is
-   * created containing the UTF-8 encoded bytes of the string representation of
-   * the provided object.
+   * Returns a byte string representation of the provided object. The object is
+   * converted to a byte string as follows:
+   * <ul>
+   * <li>if the object is an instance of {@code ByteSequence} then this method
+   * is equivalent to calling {@code o.toByteString()}
+   * <li>if the object is a {@code byte[]} then this method is equivalent to
+   * calling {@link #valueOf(byte[])}
+   * <li>if the object is a {@code char[]} then this method is equivalent to
+   * calling {@link #valueOf(char[])}
+   * <li>for all other types of object this method is equivalent to calling
+   * {@link #valueOf(String)} with the {@code toString()} representation of the
+   * provided object.
+   * </ul>
+   * <b>Note:</b> this method treats {@code Long} and {@code Integer} objects
+   * like any other type of {@code Object}. More specifically, the following
+   * invocations are not equivalent:
+   * <ul>
+   * <li>{@code valueOf(0)} is not equivalent to {@code valueOf((Object) 0)}
+   * <li>{@code valueOf(0L)} is not equivalent to {@code valueOf((Object) 0L)}
+   * </ul>
    *
    * @param o
    *          The object to use.
@@ -124,9 +140,17 @@ public final class ByteString implements ByteSequence
     {
       return ((ByteSequence) o).toByteString();
     }
+    else if (o instanceof byte[])
+    {
+      return valueOf((byte[]) o);
+    }
+    else if (o instanceof char[])
+    {
+      return valueOf((char[]) o);
+    }
     else
     {
-      return wrap(StaticUtils.getBytes(o.toString()));
+      return valueOf(o.toString());
     }
   }
 
@@ -143,6 +167,23 @@ public final class ByteString implements ByteSequence
   public static ByteString valueOf(final String s)
   {
     return wrap(StaticUtils.getBytes(s));
+  }
+
+
+
+  /**
+   * Returns a byte string containing the contents of the provided byte array.
+   * <p>
+   * This method differs from {@link #wrap(byte[])} in that it defensively
+   * copies the provided byte array.
+   *
+   * @param bytes
+   *          The byte array to use.
+   * @return A byte string containing a copy of the provided byte array.
+   */
+  public static ByteString valueOf(final byte[] bytes)
+  {
+    return wrap(Arrays.copyOf(bytes, bytes.length));
   }
 
 
@@ -170,13 +211,13 @@ public final class ByteString implements ByteSequence
    * therefore, the byte array MUST NOT be altered directly after this method
    * returns.
    *
-   * @param b
+   * @param bytes
    *          The byte array to wrap.
    * @return The byte string that wraps the given byte array.
    */
-  public static ByteString wrap(final byte[] b)
+  public static ByteString wrap(final byte[] bytes)
   {
-    return new ByteString(b, 0, b.length);
+    return new ByteString(bytes, 0, bytes.length);
   }
 
 
@@ -188,24 +229,24 @@ public final class ByteString implements ByteSequence
    * therefore, the byte array MUST NOT be altered directly after this method
    * returns.
    *
-   * @param b
+   * @param bytes
    *          The byte array to wrap.
    * @param offset
    *          The offset of the byte array to be used; must be non-negative and
-   *          no larger than {@code b.length} .
+   *          no larger than {@code bytes.length} .
    * @param length
    *          The length of the byte array to be used; must be non-negative and
-   *          no larger than {@code b.length - offset}.
+   *          no larger than {@code bytes.length - offset}.
    * @return The byte string that wraps the given byte array.
    * @throws IndexOutOfBoundsException
    *           If {@code offset} is negative or if {@code length} is negative or
-   *           if {@code offset + length} is greater than {@code b.length}.
+   *           if {@code offset + length} is greater than {@code bytes.length}.
    */
-  public static ByteString wrap(final byte[] b, final int offset,
+  public static ByteString wrap(final byte[] bytes, final int offset,
       final int length) throws IndexOutOfBoundsException
   {
-    checkArrayBounds(b, offset, length);
-    return new ByteString(b, offset, length);
+    checkArrayBounds(bytes, offset, length);
+    return new ByteString(bytes, offset, length);
   }
 
 
@@ -457,11 +498,12 @@ public final class ByteString implements ByteSequence
   /**
    * {@inheritDoc}
    */
-  public int compareTo(final byte[] b, final int offset, final int length)
+  public int compareTo(final byte[] bytes, final int offset, final int length)
       throws IndexOutOfBoundsException
   {
-    checkArrayBounds(b, offset, length);
-    return compareTo(this.buffer, this.offset, this.length, b, offset, length);
+    checkArrayBounds(bytes, offset, length);
+    return compareTo(this.buffer, this.offset, this.length, bytes, offset,
+        length);
   }
 
 
@@ -483,10 +525,10 @@ public final class ByteString implements ByteSequence
   /**
    * {@inheritDoc}
    */
-  public byte[] copyTo(final byte[] b)
+  public byte[] copyTo(final byte[] bytes)
   {
-    copyTo(b, 0);
-    return b;
+    copyTo(bytes, 0);
+    return bytes;
   }
 
 
@@ -494,16 +536,16 @@ public final class ByteString implements ByteSequence
   /**
    * {@inheritDoc}
    */
-  public byte[] copyTo(final byte[] b, final int offset)
+  public byte[] copyTo(final byte[] bytes, final int offset)
       throws IndexOutOfBoundsException
   {
     if (offset < 0)
     {
       throw new IndexOutOfBoundsException();
     }
-    System.arraycopy(buffer, this.offset, b, offset, Math.min(length, b.length
-        - offset));
-    return b;
+    System.arraycopy(buffer, this.offset, bytes, offset,
+        Math.min(length, bytes.length - offset));
+    return bytes;
   }
 
 
@@ -533,11 +575,11 @@ public final class ByteString implements ByteSequence
   /**
    * {@inheritDoc}
    */
-  public boolean equals(final byte[] b, final int offset, final int length)
+  public boolean equals(final byte[] bytes, final int offset, final int length)
       throws IndexOutOfBoundsException
   {
-    checkArrayBounds(b, offset, length);
-    return equals(this.buffer, this.offset, this.length, b, offset, length);
+    checkArrayBounds(bytes, offset, length);
+    return equals(this.buffer, this.offset, this.length, bytes, offset, length);
   }
 
 

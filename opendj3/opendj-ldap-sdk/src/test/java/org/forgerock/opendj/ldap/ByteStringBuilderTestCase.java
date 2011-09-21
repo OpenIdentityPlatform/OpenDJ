@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -257,6 +258,23 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase
                 (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF } },
         { new ByteStringBuilder(11).append("this is a").append(" test"),
             "this is a test".getBytes("UTF-8") },
+        {
+            new ByteStringBuilder().append((Object) "this is a").append(
+                (Object) " test"), "this is a test".getBytes("UTF-8") },
+        {
+            new ByteStringBuilder().append("this is a".toCharArray()).append(
+                " test".toCharArray()), "this is a test".getBytes("UTF-8") },
+        {
+            new ByteStringBuilder().append((Object) "this is a".toCharArray())
+                .append((Object) " test".toCharArray()),
+            "this is a test".getBytes("UTF-8") },
+        {
+            new ByteStringBuilder().append((Object) eightBytes).append(
+                (Object) eightBytes),
+            new byte[] { (byte) 0x01, (byte) 0x02, (byte) 0x03, (byte) 0x04,
+                (byte) 0x05, (byte) 0x06, (byte) 0x07, (byte) 0x08,
+                (byte) 0x01, (byte) 0x02, (byte) 0x03, (byte) 0x04,
+                (byte) 0x05, (byte) 0x06, (byte) 0x07, (byte) 0x08 } },
         {
             new ByteStringBuilder().appendBERLength(0x00000000)
                 .appendBERLength(0x00000001).appendBERLength(0x0000000F)
