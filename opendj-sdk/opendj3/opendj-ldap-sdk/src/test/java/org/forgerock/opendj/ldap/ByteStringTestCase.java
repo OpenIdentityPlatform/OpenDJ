@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -51,6 +52,10 @@ public class ByteStringTestCase extends ByteSequenceTestCase
   @DataProvider(name = "byteSequenceProvider")
   public Object[][] byteSequenceProvider() throws Exception
   {
+    byte[] testBytes = new byte[] { (byte) 0x01, (byte) 0x02, (byte) 0x03,
+        (byte) 0x04, (byte) 0x05, (byte) 0x06, (byte) 0x07,
+        (byte) 0x08 };
+
     return new Object[][] {
         { ByteString.empty(), new byte[0] },
         { ByteString.valueOf(1),
@@ -68,6 +73,12 @@ public class ByteStringTestCase extends ByteSequenceTestCase
             new byte[] { (byte) 0x80, (byte) 0x00, (byte) 0x00, (byte) 0x00,
                 (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00 } },
         { ByteString.valueOf("cn=testvalue"), "cn=testvalue".getBytes("UTF-8") },
+        { ByteString.valueOf((Object) "cn=testvalue"), "cn=testvalue".getBytes("UTF-8") },
+        { ByteString.valueOf("cn=testvalue".toCharArray()), "cn=testvalue".getBytes("UTF-8") },
+        { ByteString.valueOf((Object) "cn=testvalue".toCharArray()), "cn=testvalue".getBytes("UTF-8") },
+        { ByteString.valueOf(testBytes), testBytes },
+        { ByteString.valueOf((Object) testBytes), testBytes },
+        { ByteString.valueOf(ByteString.valueOf("cn=testvalue")), "cn=testvalue".getBytes("UTF-8") },
         { ByteString.wrap(new byte[0]), new byte[0] },
         {
             ByteString
@@ -159,10 +170,20 @@ public class ByteStringTestCase extends ByteSequenceTestCase
 
 
   @Test(dataProvider = "byteStringCharArrayProvider")
-  public void testToCharArray(final String s)
+  public void testFromStringToCharArray(final String s)
   {
     ByteString bs = ByteString.valueOf(s);
     Assert.assertTrue(Arrays.equals(bs.toCharArray(), s.toCharArray()));
+  }
+
+
+
+  @Test(dataProvider = "byteStringCharArrayProvider")
+  public void testFromCharArrayToCharArray(final String s)
+  {
+    final char[] chars = s.toCharArray();
+    ByteString bs = ByteString.valueOf(chars);
+    Assert.assertTrue(Arrays.equals(bs.toCharArray(), chars));
   }
 
 

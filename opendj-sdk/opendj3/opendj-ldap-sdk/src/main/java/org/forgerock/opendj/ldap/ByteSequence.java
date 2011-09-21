@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
@@ -77,22 +78,23 @@ public interface ByteSequence extends Comparable<ByteSequence>
    * whether this byte sequence is less than, equal to, or greater than the
    * specified byte array sub-sequence.
    *
-   * @param b
+   * @param bytes
    *          The byte array to compare.
    * @param offset
    *          The offset of the sub-sequence in the byte array to be compared;
-   *          must be non-negative and no larger than {@code b.length} .
+   *          must be non-negative and no larger than {@code bytes.length} .
    * @param length
    *          The length of the sub-sequence in the byte array to be compared;
-   *          must be non-negative and no larger than {@code b.length - offset}.
+   *          must be non-negative and no larger than
+   *          {@code bytes.length - offset}.
    * @return A negative integer, zero, or a positive integer depending on
    *         whether this byte sequence is less than, equal to, or greater than
    *         the specified byte array sub-sequence.
    * @throws IndexOutOfBoundsException
    *           If {@code offset} is negative or if {@code length} is negative or
-   *           if {@code offset + length} is greater than {@code b.length}.
+   *           if {@code offset + length} is greater than {@code bytes.length}.
    */
-  int compareTo(byte[] b, int offset, int length)
+  int compareTo(byte[] bytes, int offset, int length)
       throws IndexOutOfBoundsException;
 
 
@@ -122,20 +124,20 @@ public interface ByteSequence extends Comparable<ByteSequence>
    * An invocation of the form:
    *
    * <pre>
-   * src.copyTo(b)
+   * src.copyTo(bytes)
    * </pre>
    *
    * Behaves in exactly the same way as the invocation:
    *
    * <pre>
-   * src.copyTo(b, 0);
+   * src.copyTo(bytes, 0);
    * </pre>
    *
-   * @param b
+   * @param bytes
    *          The byte array to which bytes are to be copied.
    * @return The byte array.
    */
-  byte[] copyTo(byte[] b);
+  byte[] copyTo(byte[] bytes);
 
 
 
@@ -149,29 +151,29 @@ public interface ByteSequence extends Comparable<ByteSequence>
    * An invocation of the form:
    *
    * <pre>
-   * src.copyTo(b, offset)
+   * src.copyTo(bytes, offset)
    * </pre>
    *
    * Behaves in exactly the same way as the invocation:
    *
    * <pre>
-   * int len = Math.min(src.length(), b.length - offset);
+   * int len = Math.min(src.length(), bytes.length - offset);
    * for (int i = 0; i &lt; len; i++)
-   *   b[offset + i] = src.get(i);
+   *   bytes[offset + i] = src.get(i);
    * </pre>
    *
    * Except that it is potentially much more efficient.
    *
-   * @param b
+   * @param bytes
    *          The byte array to which bytes are to be copied.
    * @param offset
    *          The offset within the array of the first byte to be written; must
-   *          be non-negative and no larger than b.length.
+   *          be non-negative and no larger than bytes.length.
    * @return The byte array.
    * @throws IndexOutOfBoundsException
    *           If {@code offset} is negative.
    */
-  byte[] copyTo(byte[] b, int offset) throws IndexOutOfBoundsException;
+  byte[] copyTo(byte[] bytes, int offset) throws IndexOutOfBoundsException;
 
 
 
@@ -206,21 +208,22 @@ public interface ByteSequence extends Comparable<ByteSequence>
    * byte sequence. In order for it to be considered equal, the provided byte
    * array sub-sequence must contain the same bytes in the same order.
    *
-   * @param b
+   * @param bytes
    *          The byte array for which to make the determination.
    * @param offset
    *          The offset of the sub-sequence in the byte array to be compared;
-   *          must be non-negative and no larger than {@code b.length} .
+   *          must be non-negative and no larger than {@code bytes.length} .
    * @param length
    *          The length of the sub-sequence in the byte array to be compared;
-   *          must be non-negative and no larger than {@code b.length - offset}.
+   *          must be non-negative and no larger than
+   *          {@code bytes.length - offset}.
    * @return {@code true} if the content of the provided byte array sub-sequence
    *         is equal to that of this byte sequence, or {@code false} if not.
    * @throws IndexOutOfBoundsException
    *           If {@code offset} is negative or if {@code length} is negative or
-   *           if {@code offset + length} is greater than {@code b.length}.
+   *           if {@code offset + length} is greater than {@code bytes.length}.
    */
-  boolean equals(byte[] b, int offset, int length)
+  boolean equals(byte[] bytes, int offset, int length)
       throws IndexOutOfBoundsException;
 
 
