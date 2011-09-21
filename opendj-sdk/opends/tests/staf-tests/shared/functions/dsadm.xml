@@ -88,6 +88,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="Port number"/>
       </function-arg-def>
+      <function-arg-def name="dsSslPort" type="optional">
+        <function-arg-description>
+          Directory server SSL port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
       <function-arg-def name="dsJmxPort" type="optional">
         <function-arg-description>
           Directory server JMX port number
@@ -166,6 +172,10 @@
 
         if dsAdminPort:
           STAFCmdParamsList.append('--adminConnectorPort %s' % dsAdminPort)
+
+        if dsSslPort:
+          STAFCmdParamsList.append('-Z %s' % dsSslPort)
+          STAFCmdParamsList.append('--generateSelfSignedCertificate')
 
         if dsJmxPort:
           STAFCmdParamsList.append('-x %s' % dsJmxPort)

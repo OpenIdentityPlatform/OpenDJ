@@ -306,7 +306,7 @@
       </function-arg-def>
       <function-arg-def name="dsSslPort"
                         type="optional"
-                        default="DIRECTORY_INSTANCE_SSL_PORT">
+                        default="None">
         <function-arg-description>
           Directory Server SSL port number      
         </function-arg-description>
@@ -474,6 +474,7 @@
           'dsPath'                 : '%s/%s' % (dsDir, OPENDSNAME),
           'dsPort'                 : dsPort,
           'dsAdminPort'            : dsAdminPort,
+          'dsSslPort'              : dsSslPort,
           'dsJmxPort'              : dsJmxPort,
           'dsBindDN'               : dsBindDN,
           'dsBindPwd'              : dsBindPwd,

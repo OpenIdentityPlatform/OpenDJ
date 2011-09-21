@@ -80,14 +80,28 @@
                 primary_remote_ldap_server = _topologyServerList[primary_remote_ldap]
                 secondary_remote_ldap_server = _topologyServerList[secondary_remote_ldap]
                 
-                primaryHost   = primary_remote_ldap_server.getHostname()
-                primaryPort   = primary_remote_ldap_server.getPort()
-                secondaryHost = secondary_remote_ldap_server.getHostname()
-                secondaryPort = secondary_remote_ldap_server.getPort()
+                primaryHost       = primary_remote_ldap_server.getHostname()
+                primaryPort       = primary_remote_ldap_server.getPort()
+                primarySslPort    = primary_remote_ldap_server.getSslPort()
+                secondaryHost     = secondary_remote_ldap_server.getHostname()
+                secondaryPort     = secondary_remote_ldap_server.getPort()
+                secondarySslPort  = secondary_remote_ldap_server.getSslPort()
+              </script>
+
+              <!-- Get the local server store password from keystore.pin -->
+              <call function="'getFile'">
+                { 'location'    : local_ldap_server.getHostname(),
+                  'filename'    : '%s/%s/config/keystore.pin' \
+                                    % (local_ldap_server.getDir(),OPENDSNAME)
+                }
+              </call>
+              <script>
+                LocalKeyStorePin = STAXResult[1].replace('\n','')
+                print "Local store password = %s" % LocalKeyStorePin
               </script>
     
-              <!-- On remote servers create suffixes -->
-              <paralleliterate var="server"
+              <!-- On all servers create suffixes -->
+              <iterate var="server"
                                  in="_topologyServerList"
                                  indexvar="whoami">
                 <sequence>
@@ -257,12 +271,87 @@
                           'rejectFile'          : serverRejectFile
                         }
                       </call>
-    
+
+                      <!-- Get the store password from keystore.pin -->
+                      <call function="'getFile'">
+                        { 'location'    : server.getHostname(),
+                          'filename'    : '%s/%s/config/keystore.pin' \
+                                            % (server.getDir(),OPENDSNAME)
+                        }
+                      </call>
+                      <script>
+                        keyStorePin = STAXResult[1].replace('\n','')
+                        serverCertPEM = '%s/%s/config/server-cert%s.pem' \
+                                            % (server.getDir(),OPENDSNAME,whoami)
+                        print "Remote store password = %s" % keyStorePin
+                      </script>
+
+                      <!-- Show the certificate details for remote servers -->
+                      <call function="'ListCertificate'">
+                        { 'location'   : server.getHostname(),
+                          'dsPath'     : '%s/%s' \
+                                            % (server.getDir(),OPENDSNAME),
+                          'certAlias'  : 'server-cert' ,
+                          'keystore'   : 'truststore' ,
+                          'storepass'  : keyStorePin,
+                        }
+                      </call>
+                      
+                      <!-- Export certificates from remote servers -->
+                      <call function="'ExportCertificate'">
+                        { 'location'   : server.getHostname(),
+                          'dsPath'     : '%s/%s' \
+                                            % (server.getDir(),OPENDSNAME),
+                          'certAlias'  : 'server-cert' ,
+                          'outputfile' : serverCertPEM,
+                          'storepass'  : keyStorePin,
+                          'storetype'  : 'JKS',
+                          'format'     : 'rfc'
+                        }
+                      </call>
+                      
+                      <!-- Copy the certificates to local server -->
+                      <script>
+                        LocalServerCertPEM = '%s/%s/config/server-cert%s.pem' \
+                                            % (local_ldap_server.getDir(),OPENDSNAME,whoami)
+                      </script>
+
+                      <call function="'copyFile'">
+                        { 'location'   : server.getHostname(),
+                          'srcfile'    : serverCertPEM,
+                          'destfile'   : LocalServerCertPEM,
+                          'remotehost' : local_ldap_server.getHostname() }
+                      </call>
+
+                      <!-- Import Certificates into local server -->
+                      <call function="'ImportCertificate'">
+                        { 'location'   : local_ldap_server.getHostname(),
+                          'dsPath'     : '%s/%s' \
+                                            % (local_ldap_server.getDir(),OPENDSNAME),
+                          'certAlias'  : 'server-cert%s' % whoami,
+                          'inputfile'  : LocalServerCertPEM,
+                          'keystore'   : 'truststore' ,
+                          'storepass'  : LocalKeyStorePin,
+                          'storetype'  : 'JKS'
+                        }
+                      </call>
+
+                      <!-- Show the certificate details for local server -->
+                      <call function="'ListCertificate'">
+                        { 'location'   : local_ldap_server.getHostname(),
+                          'dsPath'     : '%s/%s' \
+                                            % (local_ldap_server.getDir(),OPENDSNAME),
+                          'certAlias'  : 'server-cert%s' % whoami ,
+                          'keystore'   : 'truststore' ,
+                          'storepass'  : LocalKeyStorePin
+                        }
+                      </call>
+
                     </sequence>
                   </else>
                   </if>
                 </sequence>
-              </paralleliterate>
+              </iterate>
     
             </sequence>
               

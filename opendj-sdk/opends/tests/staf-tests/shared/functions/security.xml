@@ -328,7 +328,86 @@
       <return>STAXResult</return>
     </sequence>
   </function>
-  
+
+  <!-- **************************************************** -->
+  <!--                       List a certificate                                 -->
+  <!-- **************************************************** -->  
+  <function name="ListCertificate">
+    <function-prolog>
+      This function lists a certificate
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="certAlias" type="optional" default="'server-cert'">
+        <function-arg-description>
+          Alias certificate
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="keystore" type="optional" default="'keystore'">
+        <function-arg-description>
+          Path for the key store file
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="storepass" type="optional" default="'servercert'">
+        <function-arg-description>
+          Password to protect the contents of the key store
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0.
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    
+    <sequence>
+      <!-- Local variables -->
+      <script>
+        if dsPath:
+          dsConfigPath='%s/config' % (dsPath)
+          dsBinPath='%s/%s' % (dsPath,fileFolder)
+        
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+
+        STAFCmdParamsList.append('-list')
+        STAFCmdParamsList.append('-v')
+        
+        if certAlias:
+          STAFCmdParamsList.append('-alias %s' % certAlias)
+        
+        if keystore:
+          STAFCmdParamsList.append('-keystore %s' % keystore)
+
+        if storepass:
+          STAFCmdParamsList.append('-storepass %s' % storepass)
+        
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+
+      </script>
+      
+      <call function="'runCommand'">
+        { 'name'       : 'List a Certificate',
+          'location'   : location,
+          'command'    : '%s/bin/keytool' % JAVA_HOME,
+          'arguments'  : STAFCmdParams ,
+          'path'       : dsConfigPath,
+          'expectedRC' : expectedRC
+        }
+      </call>
+      <return>STAXResult</return>  
+    </sequence>
+  </function>  
   
   <!-- **************************************************** -->
   <!--                      Add certificate to an attribute -->
