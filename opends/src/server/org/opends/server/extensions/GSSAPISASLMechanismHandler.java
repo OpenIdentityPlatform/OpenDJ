@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -79,7 +80,7 @@ import org.opends.server.types.ResultCode;
 
 /**
  * This class provides an implementation of a SASL mechanism that
- * authenticates clients through Kerberos over GSSAPI.
+ * authenticates clients through Kerberos v5 over GSSAPI.
  */
 public class GSSAPISASLMechanismHandler extends
     SASLMechanismHandler<GSSAPISASLMechanismHandlerCfg> implements
@@ -108,7 +109,8 @@ public class GSSAPISASLMechanismHandler extends
   private String serverFQDN;
 
   // The login context used to perform server-side authentication.
-  private LoginContext loginContext;
+  private volatile LoginContext loginContext;
+  private final Object loginContextLock = new Object();
 
 
 
@@ -159,16 +161,6 @@ public class GSSAPISASLMechanismHandler extends
       Message message = ERR_SASLGSSAPI_CANNOT_CREATE_JAAS_CONFIG
           .get(getExceptionMessage(ioe));
       throw new InitializationException(message, ioe);
-    }
-    catch (LoginException le)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, le);
-      }
-      Message message = ERR_SASLGSSAPI_CANNOT_CREATE_LOGIN_CONTEXT
-          .get(getExceptionMessage(le));
-      throw new InitializationException(message, le);
     }
   }
 
@@ -245,20 +237,31 @@ public class GSSAPISASLMechanismHandler extends
     return serverName;
   }
 
-
-
   /**
-   * Create a login context or login using the principal and keytab
+   *
+   * Return the login context. If it's not been initialized yet,
+   * create a login context or login using the principal and keytab
    * information specified in the configuration.
    *
+   * @return the login context
    * @throws LoginException
    *           If a login context cannot be created.
    */
-  private void login() throws LoginException
+  private LoginContext getLoginContext() throws LoginException
   {
-    loginContext = new LoginContext(GSSAPISASLMechanismHandler.class.getName(),
-        this);
-    loginContext.login();
+    if (loginContext == null)
+    {
+      synchronized (loginContextLock)
+      {
+        if (loginContext == null)
+        {
+          loginContext = new LoginContext(
+                GSSAPISASLMechanismHandler.class.getName(), this);
+          loginContext.login();
+        }
+      }
+    }
+    return loginContext;
   }
 
 
@@ -270,7 +273,14 @@ public class GSSAPISASLMechanismHandler extends
   {
     try
     {
-      loginContext.logout();
+      synchronized (loginContextLock)
+      {
+        if (loginContext != null)
+        {
+          loginContext.logout();
+          loginContext = null;
+        }
+      }
     }
     catch (LoginException e)
     {
@@ -321,11 +331,17 @@ public class GSSAPISASLMechanismHandler extends
     String principalName = configuration.getPrincipalName();
     String realm = configuration.getRealm();
     if (principalName != null)
-      principal.append("principal=\"" + principalName);
+    {
+      principal.append("principal=\"").append(principalName);
+    }
     else
-      principal.append("principal=\"ldap/" + serverFQDN);
+    {
+      principal.append("principal=\"ldap/").append(serverFQDN);
+    }
     if (realm != null)
-      principal.append("@" + realm);
+    {
+      principal.append("@").append(realm);
+    }
     w.write(principal.toString());
     Message msg = INFO_GSSAPI_PRINCIPAL_NAME.get(principal.toString());
     logError(msg);
@@ -347,7 +363,9 @@ public class GSSAPISASLMechanismHandler extends
   public void finalizeSASLMechanismHandler() {
     logout();
     if(configuration != null)
-    configuration.removeGSSAPIChangeListener(this);
+    {
+      configuration.removeGSSAPIChangeListener(this);
+    }
     DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_GSSAPI);
     clearProperties();
     Message msg = INFO_GSSAPI_STOPPED.get();
@@ -411,7 +429,24 @@ private void clearProperties() {
         return;
       }
     }
-    saslContext.performAuthentication(loginContext, bindOp);
+    try
+    {
+      saslContext.performAuthentication(getLoginContext(), bindOp);
+    }
+    catch (LoginException ex)
+    {
+      if (debugEnabled())
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      Message message = ERR_SASLGSSAPI_CANNOT_CREATE_LOGIN_CONTEXT
+            .get(getExceptionMessage(ex));
+      // Log a configuration error.
+      logError(message);
+      clientConn.setSASLAuthStateInfo(null);
+      bindOp.setAuthFailureReason(message);
+      bindOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
+      return;
+
+    }
   }
 
 
@@ -505,54 +540,50 @@ private void clearProperties() {
   public boolean isConfigurationChangeAcceptable(
       GSSAPISASLMechanismHandlerCfg newConfiguration,
       List<Message> unacceptableReasons) {
-    boolean returnCode = true;
-    boolean newStateEnabled = newConfiguration.isEnabled();
-    boolean oldStateEnabled = false;
-    if(this.configuration != null)
-      oldStateEnabled = configuration.isEnabled();
-    if(newStateEnabled) {
-      try {
-       if(oldStateEnabled)
-         finalizeSASLMechanismHandler();
-       initialize(newConfiguration);
-       finalizeSASLMechanismHandler();
-      } catch (InitializationException ex) {
-        if (debugEnabled())
-          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-        Message message = ex.getMessageObject();
-        unacceptableReasons.add(message);
-        clearProperties();
-        returnCode = false;
-      } catch (UnknownHostException ex) {
-        if (debugEnabled())
-          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-        Message message = ERR_SASL_CANNOT_GET_SERVER_FQDN.get(String
-            .valueOf(configEntryDN), getExceptionMessage(ex));
-        unacceptableReasons.add(message);
-        clearProperties();
-        returnCode = false;
-      } catch (IOException ex) {
-        if (debugEnabled())
-          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-        Message message = ERR_SASLGSSAPI_CANNOT_CREATE_JAAS_CONFIG
-            .get(getExceptionMessage(ex));
-        unacceptableReasons.add(message);
-        clearProperties();
-        returnCode = false;
-      } catch (LoginException ex) {
-        if (debugEnabled())
-          TRACER.debugCaught(DebugLogLevel.ERROR, ex);
-        Message message = ERR_SASLGSSAPI_CANNOT_CREATE_LOGIN_CONTEXT
-            .get(getExceptionMessage(ex));
-        unacceptableReasons.add(message);
-        clearProperties();
-        returnCode = false;
-      }
-    } else {
-      if(oldStateEnabled)
-       this.finalizeSASLMechanismHandler();
+    boolean isAcceptable = true;
+
+    try
+    {
+      getFQDN(newConfiguration);
     }
-    return returnCode;
+    catch (UnknownHostException ex)
+    {
+      if (debugEnabled())
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      Message message = ERR_SASL_CANNOT_GET_SERVER_FQDN.get(String
+          .valueOf(configEntryDN), getExceptionMessage(ex));
+      unacceptableReasons.add(message);
+      isAcceptable = false;
+    }
+
+    String keyTabFilePath = newConfiguration.getKeytab();
+    if(keyTabFilePath == null) {
+      String home = System.getProperty("user.home");
+      String sep = System.getProperty("file.separator");
+      keyTabFilePath = home+sep+"krb5.keytab";
+    }
+    File keyTabFile = new File(keyTabFilePath);
+    if(!keyTabFile.exists()) {
+      Message message = ERR_SASL_GSSAPI_KEYTAB_INVALID.get(keyTabFilePath);
+      unacceptableReasons.add(message);
+      if (debugEnabled())
+        TRACER.debugError(message.toString());
+      isAcceptable = false;
+    }
+
+    String kdcAddress = newConfiguration.getKdcAddress();
+    String realm = newConfiguration.getRealm();
+    if ((kdcAddress != null && realm == null)
+        || (kdcAddress == null && realm != null))
+    {
+      Message message = ERR_SASLGSSAPI_KDC_REALM_NOT_DEFINED.get();
+      unacceptableReasons.add(message);
+      if (debugEnabled())
+        TRACER.debugError(message.toString());
+      isAcceptable = false;
+    }
+
+    return isAcceptable;
   }
 
 
@@ -561,10 +592,41 @@ private void clearProperties() {
    * {@inheritDoc}
    */
   public ConfigChangeResult applyConfigurationChange(
-      GSSAPISASLMechanismHandlerCfg configuration) {
+      GSSAPISASLMechanismHandlerCfg newConfiguration) {
+    ArrayList<Message> messages = new ArrayList<Message>();
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    try
+    {
+      logout();
+      clearProperties();
+      initialize(newConfiguration);
+      this.configuration = newConfiguration;
+    }
+    catch (InitializationException ex) {
+      if (debugEnabled())
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      Message message = ex.getMessageObject();
+      messages.add(message);
+      clearProperties();
+      resultCode = ResultCode.OTHER;
+    } catch (UnknownHostException ex) {
+      if (debugEnabled())
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+        Message message = ERR_SASL_CANNOT_GET_SERVER_FQDN.get(String
+          .valueOf(configEntryDN), getExceptionMessage(ex));
+      messages.add(message);
+      clearProperties();
+      resultCode = ResultCode.OTHER;
+    } catch (IOException ex) {
+      if (debugEnabled())
+        TRACER.debugCaught(DebugLogLevel.ERROR, ex);
+      Message message = ERR_SASLGSSAPI_CANNOT_CREATE_JAAS_CONFIG
+        .get(getExceptionMessage(ex));
+      messages.add(message);
+      clearProperties();
+      resultCode = ResultCode.OTHER;
+    }
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 
@@ -579,8 +641,9 @@ private void clearProperties() {
  * @throws InitializationException If the keytab file does not exist.
  */
 private void initialize(GSSAPISASLMechanismHandlerCfg config)
-throws UnknownHostException, IOException,
-       LoginException, InitializationException {
+throws UnknownHostException,
+       IOException,
+       InitializationException {
     configEntryDN = config.dn();
     DN identityMapperDN = config.getIdentityMapperDN();
     identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
@@ -594,7 +657,6 @@ throws UnknownHostException, IOException,
     System.setProperty(JAAS_PROPERTY_CONFIG_FILE, configFileName);
     System.setProperty(JAAS_PROPERTY_SUBJECT_CREDS_ONLY, "false");
     getKdcRealm(config);
-    login();
 }
 
   /**
