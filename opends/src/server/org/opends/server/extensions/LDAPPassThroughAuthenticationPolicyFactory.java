@@ -74,6 +74,8 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
   // TODO: handle password policy response controls? AD?
   // TODO: custom aliveness pings
   // TODO: cache password
+  // TODO: handle idle timeouts (connection resets): implement retry logic in
+  // connection pools.
 
   /**
    * A simplistic load-balancer connection factory implementation using
@@ -112,6 +114,10 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
                 connection = factory.getConnection();
                 incrementNextIndex();
                 return;
+              }
+              else if (lastException == null)
+              {
+                lastException = factory.lastException;
               }
             }
             catch (final DirectoryException e)
@@ -265,7 +271,10 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     private final class MonitoredConnectionFactory implements ConnectionFactory
     {
       private final ConnectionFactory factory;
+
+      // isAvailable acts as memory barrier for lastException.
       private volatile boolean isAvailable = true;
+      private DirectoryException lastException = null;
 
 
 
@@ -305,7 +314,8 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           {
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
-          isAvailable = false;
+          lastException = e;
+          isAvailable = false; // publish lastException
           throw e;
         }
       }
