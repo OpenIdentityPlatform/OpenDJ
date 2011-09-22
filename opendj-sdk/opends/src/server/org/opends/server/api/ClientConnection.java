@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -89,8 +90,10 @@ public abstract class ClientConnection
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // The set of authentication information for this client connection.
-  private AuthenticationInfo authenticationInfo;
+  /**
+   * The set of authentication information for this client connection.
+   */
+  protected AuthenticationInfo authenticationInfo;
 
   /**
    * Indicates whether a multistage SASL bind is currently in progress
@@ -185,8 +188,7 @@ public abstract class ClientConnection
 
   /**
    * Performs any internal cleanup that may be necessary when this
-   * client connection is disconnected, or if not on disconnec, then
-   * ultimately whenever it is reaped by the garbage collector.  In
+   * client connection is disconnected.  In
    * this case, it will be used to ensure that the connection is
    * deregistered with the {@code AuthenticatedUsers} manager, and
    * will then invoke the {@code finalizeClientConnection} method.
@@ -234,39 +236,6 @@ public abstract class ClientConnection
     }
 
     networkGroup.removeConnection(this);
-
-    try
-    {
-      finalizeClientConnection();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
-  }
-
-
-
-  /**
-   * Performs any cleanup work that may be necessary when this client
-   * connection is terminated.  By default, no action is taken.
-   * <BR><BR>
-   * If possible, this method will be invoked when the client
-   * connection is disconnected.  If it isn't invoked at that time,
-   * then it will be called when the client connection object is
-   * finalized by the garbage collector.
-   */
- @org.opends.server.types.PublicAPI(
-      stability=org.opends.server.types.StabilityLevel.VOLATILE,
-      mayInstantiate=false,
-      mayExtend=true,
-      mayInvoke=false)
-  protected void finalizeClientConnection()
-  {
-    // No implementation is required by default.
   }
 
 
@@ -1316,7 +1285,7 @@ public abstract class ClientConnection
    *                 user and should automatically inherit the root
    *                 privilege set.
    */
-  private void updatePrivileges(Entry entry, boolean isRoot)
+  protected void updatePrivileges(Entry entry, boolean isRoot)
   {
     privileges = getPrivileges(entry, isRoot);
   }
@@ -1592,7 +1561,7 @@ public abstract class ClientConnection
    * @throws  DirectoryException  If a problem occurs while attempting
    *                              to make the determination.
    */
-  public Set<Group> getGroups(Operation operation)
+  public Set<Group<?>> getGroups(Operation operation)
          throws DirectoryException
   {
     // FIXME -- This probably isn't the most efficient implementation.
@@ -1616,17 +1585,17 @@ public abstract class ClientConnection
 
     if ((authzDN == null) || authzDN.isNullDN())
     {
-      return Collections.<Group>emptySet();
+      return Collections.<Group<?>>emptySet();
     }
 
     Entry userEntry = DirectoryServer.getEntry(authzDN);
     if (userEntry == null)
     {
-      return Collections.<Group>emptySet();
+      return Collections.<Group<?>>emptySet();
     }
 
-    HashSet<Group> groupSet = new HashSet<Group>();
-    for (Group g :
+    HashSet<Group<?>> groupSet = new HashSet<Group<?>>();
+    for (Group<?> g :
          DirectoryServer.getGroupManager().getGroupInstances())
     {
       if (g.isMember(userEntry))

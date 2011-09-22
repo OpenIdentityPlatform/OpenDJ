@@ -37,13 +37,16 @@ import static org.testng.Assert.assertTrue;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.GlobalCfgDefn;
 import org.opends.server.admin.std.meta.RootDNCfgDefn;
+import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskBackend;
 import org.opends.server.backends.task.TaskState;
@@ -63,9 +66,10 @@ import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.tools.LDAPModify;
-import org.opends.server.tools.LDAPPasswordModify;
-import org.opends.server.tools.LDAPSearch;
+import org.opends.server.protocols.ldap.BindRequestProtocolOp;
+import org.opends.server.protocols.ldap.BindResponseProtocolOp;
+import org.opends.server.protocols.ldap.LDAPMessage;
+import org.opends.server.tools.*;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -115,7 +119,7 @@ public class PrivilegeTestCase
   {
     TestCaseUtils.startServer();
     TestCaseUtils.enableBackend("unindexedRoot");
-            
+
     TestCaseUtils.dsconfig(
             "set-sasl-mechanism-handler-prop",
             "--handler-name", "DIGEST-MD5",
@@ -2563,45 +2567,66 @@ public class PrivilegeTestCase
       "sn: User",
       "userPassword: password");
 
-    Entry testEntry =
-               DirectoryServer.getEntry(DN.decode("cn=Test User,o=test"));
-    AuthenticationInfo authInfo = new AuthenticationInfo(testEntry, false);
-    InternalClientConnection testConnection =
-         new InternalClientConnection(authInfo);
-
-
-    // Make sure the user starts out without any privileges.
-    for (Privilege p : Privilege.values())
+    // We won't use an internal connection here because these are not notified
+    // of dynamic changes to authentication info.
+    Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
+    try
     {
-      assertFalse(testConnection.hasPrivilege(p, null));
+      TestCaseUtils.configureSocket(s);
+      LDAPReader r = new LDAPReader(s);
+      LDAPWriter w = new LDAPWriter(s);
+
+      BindRequestProtocolOp bindRequest = new BindRequestProtocolOp(
+          ByteString.valueOf("cn=Test User,o=test"), 3,
+          ByteString.valueOf("password"));
+      LDAPMessage message = new LDAPMessage(1, bindRequest);
+      w.writeMessage(message);
+
+      message = r.readMessage();
+      BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
+      assertEquals(bindResponse.getResultCode(), 0);
+
+      CopyOnWriteArraySet<ClientConnection> connections = DirectoryServer
+          .getAuthenticatedUsers().get(DN.decode("cn=Test User,o=test"));
+
+      assertNotNull(connections);
+      assertEquals(connections.size(), 1);
+      ClientConnection testConnection = connections.iterator().next();
+
+      // Make sure the user starts out without any privileges.
+      for (Privilege p : Privilege.values())
+      {
+        assertFalse(testConnection.hasPrivilege(p, null));
+      }
+
+      // Modify the user entry to add the CONFIG_READ privilege and verify that
+      // the client connection reflects that.
+      ArrayList<Modification> mods = new ArrayList<Modification>();
+      mods.add(new Modification(ModificationType.ADD, Attributes.create(
+          "ds-privilege-name", "config-read")));
+      ModifyOperation modifyOperation = rootConnection.processModify(
+          DN.decode("cn=Test User,o=test"), mods);
+      assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+      assertTrue(testConnection.hasPrivilege(Privilege.CONFIG_READ, null));
+
+      // Take the privilege away from the user and verify that it is recognized
+      // immediately.
+      mods.clear();
+      mods.add(new Modification(ModificationType.DELETE, Attributes.create(
+          "ds-privilege-name", "config-read")));
+      modifyOperation = rootConnection.processModify(
+          DN.decode("cn=Test User,o=test"), mods);
+      assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+      assertFalse(testConnection.hasPrivilege(Privilege.CONFIG_READ, null));
+
+      DeleteOperation deleteOperation = rootConnection.processDelete(DN
+          .decode("cn=Test User,o=test"));
+      assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     }
-
-
-    // Modify the user entry to add the CONFIG_READ privilege and verify that
-    // the client connection reflects that.
-    ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.ADD,
-        Attributes.create("ds-privilege-name", "config-read")));
-    ModifyOperation modifyOperation =
-         rootConnection.processModify(DN.decode("cn=Test User,o=test"), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-    assertTrue(testConnection.hasPrivilege(Privilege.CONFIG_READ, null));
-
-
-    // Take the privilege away from the user and verify that it is recognized
-    // immediately.
-    mods.clear();
-    mods.add(new Modification(ModificationType.DELETE,
-        Attributes.create("ds-privilege-name", "config-read")));
-    modifyOperation =
-         rootConnection.processModify(DN.decode("cn=Test User,o=test"), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-    assertFalse(testConnection.hasPrivilege(Privilege.CONFIG_READ, null));
-
-
-    DeleteOperation deleteOperation =
-         rootConnection.processDelete(DN.decode("cn=Test User,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    finally
+    {
+      s.close();
+    }
   }
 
 

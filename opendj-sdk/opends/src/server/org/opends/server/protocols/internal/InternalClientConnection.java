@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.protocols.internal;
 
@@ -98,9 +99,6 @@ public final class InternalClientConnection
 
   // The static connection for root-based connections.
   private static InternalClientConnection rootConnection;
-
-  // The authentication info for this connection.
-  private AuthenticationInfo authenticationInfo;
 
   // The empty operation list for this connection.
   private LinkedList<Operation> operationList;
@@ -236,11 +234,23 @@ public final class InternalClientConnection
   {
     super();
 
-
     this.setNetworkGroup(NetworkGroup.getInternalNetworkGroup());
 
-    this.authenticationInfo = authInfo;
-    super.setAuthenticationInfo(authInfo);
+    // Don't call super.setAuthenticationInfo() since this will register this
+    // connection in the authenticated users table, which is unnecessary and
+    // will also cause the connection to be leaked since internal connections
+    // are never closed/disconnected.
+    if (authInfo == null)
+    {
+      this.authenticationInfo = new AuthenticationInfo();
+      updatePrivileges(null, false);
+    }
+    else
+    {
+      this.authenticationInfo = authInfo;
+      updatePrivileges(authInfo.getAuthorizationEntry(), authInfo.isRoot());
+    }
+
     super.setSizeLimit(0);
     super.setTimeLimit(0);
     super.setIdleTimeLimit(0);
@@ -650,21 +660,6 @@ public final class InternalClientConnection
   {
     // There will not be any response sent by this method, since there
     // is not an actual connection.
-  }
-
-
-
-  /**
-   * Retrieves information about the authentication that has been
-   * performed for this connection.
-   *
-   * @return  Information about the user that is currently
-   *          authenticated on this connection.
-   */
-  @Override()
-  public AuthenticationInfo getAuthenticationInfo()
-  {
-    return authenticationInfo;
   }
 
 

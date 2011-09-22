@@ -167,7 +167,7 @@ public class AuthenticatedUsers
    * @return  The set of client connections authenticated as the specified user,
    *          or {@code null} if there are none.
    */
-  synchronized CopyOnWriteArraySet<ClientConnection> get(DN userDN)
+  public CopyOnWriteArraySet<ClientConnection> get(DN userDN)
   {
     lock.readLock().lock();
     try
