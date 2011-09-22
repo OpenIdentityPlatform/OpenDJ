@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -1430,7 +1431,7 @@ public class GroupManagerTestCase
     assertFalse(conn0.isMemberOf(group2, searchOperation));
     assertFalse(conn0.isMemberOf(group3, searchOperation));
 
-    Set<Group> groupSet = conn0.getGroups(null);
+    Set<Group<?>> groupSet = conn0.getGroups(null);
     assertTrue(groupSet.isEmpty());
 
     groupSet = conn0.getGroups(searchOperation);
