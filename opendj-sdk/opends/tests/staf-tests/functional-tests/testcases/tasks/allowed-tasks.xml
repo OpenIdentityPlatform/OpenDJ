@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS.
 ! -->
 <stax>
   <defaultcall function="allowed-tasks"/>
@@ -88,7 +89,7 @@
                 'dsInstanceAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
                 'dsInstanceDn'        : DIRECTORY_INSTANCE_DN,
                 'dsInstancePswd'      : DIRECTORY_INSTANCE_PSWD,
-                'ldifFile'            : '%s/tasks/export_asynchronous' % remote.data,
+                'ldifFile'            : '%s/tasks/export_asynchronous' % remote.temp,
                 'startTask'           : '0',
                 'backEnd'             : DIRECTORY_INSTANCE_BE,
                 'expectedRC'          : 1}
