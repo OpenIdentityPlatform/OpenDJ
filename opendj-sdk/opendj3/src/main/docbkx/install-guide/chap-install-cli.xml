@@ -37,9 +37,10 @@
  <procedure xml:id="before-you-install">
   <title>To Prepare For Installation</title>
 
-  <step>
+  <step xml:id="check-for-java">
    <para>Make sure you have the correct Java environment installed.</para>
-
+   <indexterm><primary>Java requirements</primary></indexterm>
+   
    <screen>$ java -version
 java version "1.6.0_24"
 Java(TM) SE Runtime Environment (build 1.6.0_24-b07-334-9M3326)
@@ -54,7 +55,9 @@ Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
    version.</para>
   </step>
 
-  <step>
+  <step xml:id="download-opendj">
+   <indexterm><primary>Download OpenDJ</primary></indexterm>
+   
    <para>Get the appropriate installation packages from the <link
      xlink:href='http://www.forgerock.org/opendj.html'
      >OpenDJ download page</link>.</para>
@@ -68,7 +71,7 @@ Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
     <varlistentry>
      <term>opendj.zip</term>
      <listitem>
-      <para>Solaris native packages</para>
+      <para>SVR4 format native packages for Solaris</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -80,7 +83,7 @@ Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
    </variablelist>
   </step>
 
-  <step>
+  <step xml:id="enough-file-descriptors">
    <para>Allow OpenDJ software to use at least 64K (65536) file descriptors
    to operate properly.</para>
 
@@ -92,7 +95,7 @@ Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
    current settings.</para>
   </step>
 
-  <step>
+  <step xml:id="app-server-needed-for-dsml">
    <para>If you plan to install OpenDJ DSML gateway, make sure you have an
    appropriate application server installed.</para>
   </step>
@@ -109,7 +112,7 @@ Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
    or on a PKCS#11 token. To import a signed certificate into a key store,
    you can use the Java <command>keytool</command> command.</para>
 
-   <!-- TODO: Show how this is done for at least one key store type. -->
+   <!-- TODO: Add an olink when the functionality becomes available. -->
   </step>
  </procedure>
 
