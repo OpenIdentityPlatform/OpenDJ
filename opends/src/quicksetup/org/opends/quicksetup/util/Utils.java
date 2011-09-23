@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.quicksetup.util;
 
@@ -2485,7 +2486,7 @@ public class Utils
       UserData userData, Set<String> baseDNs, ServerDescriptor server)
   {
     ArrayList<String> cmdLine = new ArrayList<String>();
-    String cmdName = getCommandLinePath("dsreplication");
+    String cmdName = getCommandLinePath(userData, "dsreplication");
     cmdLine.add(cmdName);
     cmdLine.add("enable");
 
@@ -2560,48 +2561,29 @@ public class Utils
 
   /**
    * Returns the full path of the command-line for a given script name.
+   * @param userData  the user data.
    * @param scriptBasicName the script basic name (with no extension).
    * @return the full path of the command-line for a given script name.
    */
-  private static String getCommandLinePath(String scriptBasicName)
+  private static String getCommandLinePath(UserData userData,
+                                           String scriptBasicName)
   {
     String cmdLineName;
     if (isWindows())
     {
-      cmdLineName = getBinaryDir()+scriptBasicName+".bat";
+      cmdLineName = getInstallDir(userData)
+          + Installation.WINDOWS_BINARIES_PATH_RELATIVE
+          + File.separatorChar
+          + scriptBasicName + ".bat";
     }
     else
     {
-      cmdLineName = getBinaryDir()+scriptBasicName;
+      cmdLineName = getInstallDir(userData)
+          + Installation.UNIX_BINARIES_PATH_RELATIVE
+          + File.separatorChar
+          + scriptBasicName;
     }
     return cmdLineName;
-  }
-
-  private static String binDir;
-  /**
-   * Returns the binary/script directory.
-   * @return the binary/script directory.
-   */
-  private static String getBinaryDir()
-  {
-    if (binDir == null)
-    {
-      File f = Installation.getLocal().getBinariesDirectory();
-      try
-      {
-        binDir = f.getCanonicalPath();
-      }
-      catch (Throwable t)
-      {
-        binDir = f.getAbsolutePath();
-      }
-      if (binDir.lastIndexOf(File.separatorChar) != (binDir.length() - 1))
-      {
-        binDir += File.separatorChar;
-      }
-    }
-
-    return binDir;
   }
 
   private static String installDir;
@@ -2645,7 +2627,7 @@ public class Utils
       UserData userData, Set<String> baseDNs, ServerDescriptor server)
   {
     ArrayList<String> cmdLine = new ArrayList<String>();
-    String cmdName = getCommandLinePath("dsreplication");
+    String cmdName = getCommandLinePath(userData, "dsreplication");
     cmdLine.add(cmdName);
     cmdLine.add("initialize");
 
@@ -2774,7 +2756,7 @@ public class Utils
   {
     ArrayList<ArrayList<String>> cmdLines = new ArrayList<ArrayList<String>>();
 
-    String cmdName = getCommandLinePath("dsconfig");
+    String cmdName = getCommandLinePath(userData, "dsconfig");
 
     ArrayList<String> connectionArgs = new ArrayList<String>();
     connectionArgs.add("--hostName");
