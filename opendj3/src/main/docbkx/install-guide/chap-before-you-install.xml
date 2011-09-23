@@ -112,9 +112,8 @@
   not only does a directory service write entries to disk when they are
   changed, but a directory service also writes changelog data and
   historical information in order to resolve potential replication
-  conflicts. In the same way that you consider your network throughput
-  needs based on peak loads, also evaluate your peak storage throughput
-  needs in order to select the storage hardware.</para>
+  conflicts. You base your network throughput needs on peak loads. Also
+  base your storage throughput needs on peak loads.</para>
    
   <note>
    <para>OpenDJ servers do not currently support network file systems such
