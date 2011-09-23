@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -524,6 +525,8 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
   private void updateMenus(ServerDescriptor desc)
   {
     menuBar.newEntryFromLDIFMenuItem.setEnabled(desc.isAuthenticated());
+    menuBar.deleteBackendMenuItem.setEnabled(desc.isAuthenticated());
+    menuBar.deleteBaseDNMenuItem.setEnabled(desc.isAuthenticated());
   }
 
   /**
@@ -1195,6 +1198,8 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
     JMenuItem newDomainMenuItem;
     JMenuItem newEntryFromLDIFMenuItem;
     JMenuItem duplicateEntryMenuItem;
+    JMenuItem deleteBaseDNMenuItem;
+    JMenuItem deleteBackendMenuItem;
 
     /**
      * Constructor.
@@ -1560,7 +1565,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
       deleteMenuItem.setEnabled(false);
       menu.add(deleteMenuItem);
       menu.add(new JSeparator());
-      JMenuItem deleteBaseDNMenuItem = Utilities.createMenuItem(
+      deleteBaseDNMenuItem = Utilities.createMenuItem(
           INFO_CTRL_PANEL_DELETE_BASE_DN_MENU.get());
       deleteBaseDNMenuItem.addActionListener(new ActionListener()
       {
@@ -1572,9 +1577,10 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
           deleteBaseDN();
         }
       });
+      deleteBaseDNMenuItem.setEnabled(false);
       menu.add(deleteBaseDNMenuItem);
 
-      JMenuItem deleteBackendMenuItem = Utilities.createMenuItem(
+      deleteBackendMenuItem = Utilities.createMenuItem(
           INFO_CTRL_PANEL_DELETE_BACKEND_MENU.get());
       deleteBackendMenuItem.addActionListener(new ActionListener()
       {
@@ -1586,6 +1592,7 @@ public class BrowseEntriesPanel extends AbstractBrowseEntriesPanel
           deleteBackend();
         }
       });
+      deleteBackendMenuItem.setEnabled(false);
       menu.add(deleteBackendMenuItem);
       return menu;
     }
