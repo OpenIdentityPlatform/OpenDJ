@@ -48,7 +48,7 @@ import org.opends.server.util.SetupUtils;
  * All the operations are dependent upon the root directory that is
  * specified in the constructor.
  */
-public class Installation {
+public final class Installation {
 
   /**
    * Relative path to OpenDJ jar files.
@@ -1151,6 +1151,8 @@ public class Installation {
     if (buildInformation == null || !useCachedVersion) {
       FutureTask<BuildInformation> ft = new FutureTask<BuildInformation>(
               new Callable<BuildInformation>() {
+
+                @Override
                 public BuildInformation call() throws ApplicationException {
                   return BuildInformation.create(Installation.this);
                 }
