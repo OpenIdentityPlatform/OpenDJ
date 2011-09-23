@@ -34,9 +34,10 @@
  <para>This chapter covers covers what you need to consider before you run
  OpenDJ in your production environment.</para>
  
- <section>
+ <section xml:id="prerequisites-java">
   <title>Java Environment</title>
-   
+  <indexterm><primary>Java requirements</primary></indexterm>
+  
   <para>OpenDJ software consists of pure Java applications. OpenDJ servers
   and clients therefore should run on any system with full Java support.
   OpenDJ is tested on a variety of operating systems, including Solaris
@@ -49,9 +50,10 @@
   major security fix for TLS as well.</para>
  </section>
 
- <section>
-  <title>System, Network, &amp; Storage Hardware</title>
-   
+ <section xml:id="prerequisites-hardware">
+  <title>Hardware</title>
+  <indexterm><primary>Hardware requirements</primary></indexterm>
+  
   <para>Thanks to the underlying Java platform, OpenDJ software runs well
   on a variety of processor architectures. Many directory service
   deployments meet their service-level agreements without the very latest
@@ -65,7 +67,7 @@
    
   <para>OpenDJ directory servers almost always benefit from having enough
   system memory to cache all directory database files used. The reason
-  is that reading from and writing to memory is typically must faster
+  is that reading from and writing to memory is typically much faster
   than reading from and writing to disk storage. For small data sets,
   you might not need extra memory. For large directories with millions of
   user directory entries, the system might not have enough slots to house
