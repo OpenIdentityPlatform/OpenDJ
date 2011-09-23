@@ -3720,6 +3720,85 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
+  /**
+   * Test for issue OPENDJ-292 (https://bugster.forgerock.org/jira/browse/OPENDJ-292).
+   *
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(enabled = true)
+  public void testIssueOPENDJ292() throws Exception
+  {
+    // Mock configuration.
+    final LDAPPassThroughAuthenticationPolicyCfg cfg = mockCfg()
+        .withPrimaryServer(phost1)
+        .withSecondaryServer(shost1)
+        .withMappingPolicy(MappingPolicy.MAPPED_SEARCH)
+        .withMappedAttribute("uid").withBaseDN("o=ad");
+
+    // Create all the events.
+    final MockProvider provider = new MockProvider();
+
+    // First of all the connection factories are created.
+    final GetLDAPConnectionFactoryEvent fe1 = new GetLDAPConnectionFactoryEvent(
+        phost1, cfg);
+    final GetLDAPConnectionFactoryEvent fe2 = new GetLDAPConnectionFactoryEvent(
+        shost1, cfg);
+    provider.expectEvent(fe1).expectEvent(fe2);
+
+    // Get connection for phost1, then search, then bind.
+    final GetConnectionEvent ceSearch1 = new GetConnectionEvent(fe1,
+        ResultCode.CLIENT_SIDE_CONNECT_ERROR);
+    final GetConnectionEvent ceSearch2 = new GetConnectionEvent(fe2);
+
+    provider
+        .expectEvent(ceSearch1)
+        .expectEvent(ceSearch2)
+        .expectEvent(
+            new SimpleBindEvent(ceSearch2, searchBindDNString,
+                "searchPassword", ResultCode.INVALID_CREDENTIALS))
+        .expectEvent(new CloseEvent(ceSearch2));
+
+    // Connections should be cached until the policy is finalized.
+
+    // Obtain policy and state.
+    final LDAPPassThroughAuthenticationPolicyFactory factory = new LDAPPassThroughAuthenticationPolicyFactory(
+        provider);
+    assertTrue(factory.isConfigurationAcceptable(cfg, null));
+    final AuthenticationPolicy policy = factory.createAuthenticationPolicy(cfg);
+
+    // Authenticate twice, the second time was causing a NPE because none of the
+    // factories were available and an attempt was made to throw a null
+    // exception.
+    final AuthenticationPolicyState state = policy
+        .createAuthenticationPolicyState(userEntry);
+    assertEquals(state.getAuthenticationPolicy(), policy);
+
+    // Perform authentication.
+    for (int i = 0; i < 2; i++)
+    {
+      try
+      {
+        state.passwordMatches(ByteString.valueOf(userPassword));
+        fail("password match unexpectedly succeeded");
+      }
+      catch (final DirectoryException e)
+      {
+        // No mapping attributes so this should always fail with
+        // INVALID_CREDENTIALS.
+        assertEquals(e.getResultCode(), ResultCode.INVALID_CREDENTIALS,
+            e.getMessage());
+      }
+      state.finalizeStateAfterBind();
+    }
+
+    // Tear down and check final state.
+    policy.finalizeAuthenticationPolicy();
+    provider.assertAllExpectedEventsReceived();
+  }
+
+
+
   // TODO: detect when servers come back online
 
   MockPolicyCfg mockCfg()
