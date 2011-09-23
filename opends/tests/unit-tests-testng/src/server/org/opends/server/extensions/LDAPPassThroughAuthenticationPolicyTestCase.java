@@ -3759,8 +3759,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
                 "searchPassword", ResultCode.INVALID_CREDENTIALS))
         .expectEvent(new CloseEvent(ceSearch2));
 
-    // Connections should be cached until the policy is finalized.
-
     // Obtain policy and state.
     final LDAPPassThroughAuthenticationPolicyFactory factory = new LDAPPassThroughAuthenticationPolicyFactory(
         provider);
@@ -3791,6 +3789,140 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       }
       state.finalizeStateAfterBind();
     }
+
+    // Tear down and check final state.
+    policy.finalizeAuthenticationPolicy();
+    provider.assertAllExpectedEventsReceived();
+  }
+
+
+
+  /**
+   * Test for issue OPENDJ-294
+   * (https://bugster.forgerock.org/jira/browse/OPENDJ-294). Password
+   * configuration changes do not seem to be taking effect.
+   *
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @SuppressWarnings("unchecked")
+  @Test(enabled = true)
+  public void testIssueOPENDJ294() throws Exception
+  {
+    // Mock configurations.
+    final LDAPPassThroughAuthenticationPolicyCfg cfg = mockCfg()
+        .withPrimaryServer(phost1)
+        .withMappingPolicy(MappingPolicy.MAPPED_SEARCH)
+        .withMappedAttribute("uid").withBaseDN("o=ad");
+
+    final LDAPPassThroughAuthenticationPolicyCfg cfg2 = mockCfg()
+        .withPrimaryServer(phost1)
+        .withMappingPolicy(MappingPolicy.MAPPED_SEARCH)
+        .withMappedAttribute("uid").withBaseDN("o=ad")
+        .withMappedSearchBindPassword("newSearchPassword");
+
+    // Create all the events.
+    final MockProvider provider = new MockProvider();
+
+    // First of all the connection factories are created.
+    final GetLDAPConnectionFactoryEvent fe1 = new GetLDAPConnectionFactoryEvent(
+        phost1, cfg);
+    provider.expectEvent(fe1);
+
+    // Get connection for phost1, then search, then bind.
+    final GetConnectionEvent ceSearch1 = new GetConnectionEvent(fe1);
+    provider
+        .expectEvent(ceSearch1)
+        .expectEvent(
+            new SimpleBindEvent(ceSearch1, searchBindDNString,
+                "searchPassword", ResultCode.INVALID_CREDENTIALS))
+        .expectEvent(new CloseEvent(ceSearch1));
+
+    // Now simulate monitor thread run which will fail for the same reason.
+    final GetConnectionEvent ceSearch2 = new GetConnectionEvent(fe1);
+    provider
+        .expectEvent(ceSearch2)
+        .expectEvent(
+            new SimpleBindEvent(ceSearch1, searchBindDNString,
+                "searchPassword", ResultCode.INVALID_CREDENTIALS))
+        .expectEvent(new CloseEvent(ceSearch1));
+
+    // Change configuration, re-run monitor (none remaining), and search/bind
+    // again.
+
+    // First of all the connection factories are created.
+    final GetLDAPConnectionFactoryEvent fe2 = new GetLDAPConnectionFactoryEvent(
+        phost1, cfg2);
+    provider.expectEvent(fe2);
+
+    final GetConnectionEvent ceSearch3 = new GetConnectionEvent(fe2);
+    final GetConnectionEvent ceBind1 = new GetConnectionEvent(fe2);
+    provider
+        .expectEvent(ceSearch3)
+        .expectEvent(
+            new SimpleBindEvent(ceSearch3, searchBindDNString,
+                "newSearchPassword"))
+        .expectEvent(
+            new SearchEvent(ceSearch3, "o=ad", SearchScope.WHOLE_SUBTREE,
+                "(uid=aduser)", adDNString))
+        .expectEvent(ceBind1)
+        .expectEvent(
+            new SimpleBindEvent(ceBind1, adDNString, userPassword,
+                ResultCode.SUCCESS));
+
+    // Re-run monitor - again nothing to do.
+
+    // Connections should be cached until the policy is finalized.
+
+    // Obtain policy and state.
+    final LDAPPassThroughAuthenticationPolicyFactory factory = new LDAPPassThroughAuthenticationPolicyFactory(
+        provider);
+    assertTrue(factory.isConfigurationAcceptable(cfg, null));
+    final AuthenticationPolicy policy = factory.createAuthenticationPolicy(cfg);
+
+    // Authenticate twice, correcting the configuration in between.
+    final AuthenticationPolicyState state = policy
+        .createAuthenticationPolicyState(userEntry);
+    assertEquals(state.getAuthenticationPolicy(), policy);
+
+    // Perform authentication.
+    try
+    {
+      state.passwordMatches(ByteString.valueOf(userPassword));
+      fail("password match unexpectedly succeeded");
+    }
+    catch (final DirectoryException e)
+    {
+      // No mapping attributes so this should always fail with
+      // INVALID_CREDENTIALS.
+      assertEquals(e.getResultCode(), ResultCode.INVALID_CREDENTIALS,
+          e.getMessage());
+    }
+    state.finalizeStateAfterBind();
+
+    // Run monitor which should try to connect to phost1 and fail again.
+    provider.runMonitorTasks();
+
+    // Change the configuration, fixing the password.
+    ((ConfigurationChangeListener<LDAPPassThroughAuthenticationPolicyCfg>) policy)
+        .applyConfigurationChange(cfg2);
+
+    // Run monitor which should now have nothing to do.
+    provider.runMonitorTasks();
+
+    // Perform authentication, which should now succeed.
+    final AuthenticationPolicyState state2 = policy
+        .createAuthenticationPolicyState(userEntry);
+    assertEquals(state2.getAuthenticationPolicy(), policy);
+    assertTrue(state2.passwordMatches(ByteString.valueOf(userPassword)));
+    state2.finalizeStateAfterBind();
+
+    // Run monitor which should still have nothing to do.
+    provider.runMonitorTasks();
+
+    // Cached connections should be closed when the policy is finalized.
+    provider.expectEvent(new CloseEvent(ceSearch3));
+    provider.expectEvent(new CloseEvent(ceBind1));
 
     // Tear down and check final state.
     policy.finalizeAuthenticationPolicy();
