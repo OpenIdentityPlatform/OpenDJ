@@ -101,24 +101,17 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       {
         this.startIndex = nextIndex = startIndex;
 
-        DirectoryException lastException = null;
+        DirectoryException lastException;
         do
         {
           factory = factories[nextIndex];
-          if (factory.isAvailable())
+          if (factory.isAvailable)
           {
             try
             {
-              if (factory.isAvailable)
-              {
-                connection = factory.getConnection();
-                incrementNextIndex();
-                return;
-              }
-              else if (lastException == null)
-              {
-                lastException = factory.lastException;
-              }
+              connection = factory.getConnection();
+              incrementNextIndex();
+              return;
             }
             catch (final DirectoryException e)
             {
@@ -129,6 +122,10 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
               }
               lastException = e;
             }
+          }
+          else
+          {
+            lastException = factory.lastException;
           }
           incrementNextIndex();
         }
@@ -222,16 +219,13 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         while (nextIndex != startIndex)
         {
           factory = factories[nextIndex];
-          if (factory.isAvailable())
+          if (factory.isAvailable)
           {
             try
             {
-              if (factory.isAvailable)
-              {
-                connection = factory.getConnection();
-                incrementNextIndex();
-                return;
-              }
+              connection = factory.getConnection();
+              incrementNextIndex();
+              return;
             }
             catch (final DirectoryException de)
             {
@@ -319,13 +313,6 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           throw e;
         }
       }
-
-
-
-      private boolean isAvailable()
-      {
-        return isAvailable;
-      }
     }
 
 
@@ -397,7 +384,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     {
       for (final MonitoredConnectionFactory factory : factories)
       {
-        if (!factory.isAvailable())
+        if (!factory.isAvailable)
         {
           try
           {
