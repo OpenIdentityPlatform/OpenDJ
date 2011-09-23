@@ -36,7 +36,48 @@
   
   <itemizedlist>
     <listitem>
-      <para>TODO</para>
+     <para>TODO</para>
+    </listitem>
+    <listitem>
+      <para>OpenDJ now lets you delegate authentication to another LDAP
+      directory service, such as Active Directory. The feature is called
+      <firstterm>pass through authentication</firstterm> (PTA) (OPENDJ-262).
+      With PTA, OpenDJ replays a user's simple bind operation against the remote
+      directory service. If the bind is successful, OpenDJ considers the user
+      authenticated to perform subsequent operations like searches and updates
+      in OpenDJ.</para>
+      <itemizedlist>
+       <para>For PTA to work, OpenDJ must be able to match its OpenDJ entry for
+       the user with the user's entry on the remote directory service. The two
+       entries must correspond in one of the following ways.</para>
+       <listitem>
+        <para>Both the OpenDJ entry and the remote entry have the same DN.</para>
+       </listitem>
+       <listitem>
+        <para>The OpenDJ entry has an attribute that holds the DN of the entry
+        on the remote directory service.</para>
+       </listitem>
+       <listitem>
+        <para>The OpenDJ entry and the remote entry share an attribute that
+        has exactly the same value.</para>
+       </listitem>
+      </itemizedlist>
+      <para>If user entries do not match originally, you can no doubt add an
+      attribute to users' OpenDJ entries when configuring them to use pass
+      through authentication.</para>
+      <!-- TODO: Add an olink when we have support for such things. -->
+      <para>To configure PTA, you set up an LDAP pass through authentication
+      policy in OpenDJ's configuration, and then assign the policy to users in
+      the same way you would assign a password policy. See the
+      <citetitle>Administration Guide</citetitle> for details.</para>
+    </listitem>
+    <listitem>
+     <para>OpenDJ can now synchronize Samba password attribute values with the
+     <literal>userPassword</literal> attribute value, ensuring that when users
+     change their LDAP passwords in OpenDJ or change their LanMan or NT
+     passwords in Samba, their password attribute values all stay in sync
+     (OPENDJ-233). To activate this feature, configure the OpenDJ Samba
+     Password plugin by using the <command>dsconfig</command> command.</para>
     </listitem>
     <listitem>
       <para>Collective attributes can now be applied based on the values of
