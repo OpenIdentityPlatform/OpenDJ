@@ -30,11 +30,30 @@
   <!-- Definition of Test Cases -->             
 
   <!--- Test Cases : Basic : PTA -->
-  
+
+  <!--- Test Case information
+  #@TestMarker          Basic: PTA connection-timeout
+  #@TestName            Basic: PTA connection-timeout
+  #@TestID              basic_pta_001
+  #@TestPurpose         Verify user with a LDAP PTA mapped-search policy can authenticated to remote server
+  #@TestPreamble        Setup PTA
+  #@TestStep            Configure LDAP PTA Policy using connection-timeout
+  #@TestStep            Read back the "authentication policy" object
+  #@TestStep            Add ds-pwp-password-policy-dn to users entry
+  #@TestStep            Search users entry as Directory Manager for operational attributes
+  #@TestStep            Search users entry as self
+  #@TestStep            Modify the users entry
+  #@TestPostamble       Cleanup PTA
+  #@TestResult          Test is successful if the result code is 0
+  -->
+   <function name="basic_pta_001" scope="local">
+     <message>'Not implemented.'</message>
+   </function>
+ 
   <!--- Test Case information
   #@TestMarker          Basic: PTA anon unmapped
   #@TestName            Basic: PTA anon unmapped
-  #@TestID              basic_pta_001
+  #@TestID              basic_pta_002
   #@TestPurpose         Verify user with a LDAP PTA unmapped policy can authenticated to remote server
   #@TestPreamble        Setup PTA
   #@TestStep            Enable AD backend on local server
@@ -48,7 +67,7 @@
   #@TestPostamble       Cleanup PTA
   #@TestResult          Test is successful if the result code is 0
   -->   
-  <function name="basic_pta_001" scope="local">
+  <function name="basic_pta_002" scope="local">
     <testcase name="getTestCaseName('PTA anon unmapped')">                     
       <sequence> 
         <try>
@@ -238,7 +257,7 @@
   <!--- Test Case information
   #@TestMarker          Basic: PTA anon mapped-bind
   #@TestName            Basic: PTA anon mapped-bind
-  #@TestID              basic_pta_002
+  #@TestID              basic_pta_003
   #@TestPurpose         Verify user with a LDAP PTA mapped-bind policy can authenticated to remote server
   #@TestPreamble        Setup PTA
   #@TestStep            Configure LDAP PTA Policy for mapped-bind
@@ -250,7 +269,7 @@
   #@TestPostamble       Cleanup PTA
   #@TestResult          Test is successful if the result code is 0
   -->   
-   <function name="basic_pta_002" scope="local">
+   <function name="basic_pta_003" scope="local">
     <testcase name="getTestCaseName('PTA anon mapped-bind')">                     
       <sequence> 
         <try>
@@ -416,7 +435,7 @@
   <!--- Test Case information
   #@TestMarker          Basic: PTA anon mapped-search
   #@TestName            Basic: PTA anon mapped-search
-  #@TestID              basic_pta_003
+  #@TestID              basic_pta_004
   #@TestPurpose         Verify user with a LDAP PTA mapped-search policy can authenticated to remote server
   #@TestPreamble        Setup PTA
   #@TestStep            Configure LDAP PTA Policy for mapped-search
@@ -428,7 +447,7 @@
   #@TestPostamble       Cleanup PTA
   #@TestResult          Test is successful if the result code is 0
   -->                           
-  <function name="basic_pta_003" scope="local">
+  <function name="basic_pta_004" scope="local">
     <testcase name="getTestCaseName('PTA anon mapped-search')">                     
       <sequence> 
         <try>
@@ -595,7 +614,7 @@
   <!--- Test Case information
   #@TestMarker          Basic: PTA simple mapped-search
   #@TestName            Basic: PTA simple mapped-search
-  #@TestID              basic_pta_004
+  #@TestID              basic_pta_005
   #@TestPurpose         Verify user with a LDAP PTA mapped-search policy can authenticated to remote server
   #@TestPreamble        Setup PTA
   #@TestStep            Configure LDAP PTA Policy using mapped-search-bind credentials
@@ -607,7 +626,7 @@
   #@TestPostamble       Cleanup PTA
   #@TestResult          Test is successful if the result code is 0
   -->                           
-  <function name="basic_pta_004" scope="local">
+  <function name="basic_pta_005" scope="local">
     <testcase name="getTestCaseName('PTA simple mapped-search-bind')">                     
       <sequence> 
         <try>
@@ -774,9 +793,228 @@
   </function>
 
   <!--- Test Case information
+  #@TestMarker          Basic: PTA mapped-search-bind-password-env-variable
+  #@TestName            Basic: PTA mapped-search-bind-password-env-variable
+  #@TestID              basic_pta_006
+  #@TestPurpose         Verify user with a LDAP PTA mapped-search policy can authenticated to remote server
+  #@TestPreamble        Setup PTA
+  #@TestStep            Configure LDAP PTA Policy using mapped-search-bind-password-environment-variable
+  #@TestStep            Read back the "authentication policy" object
+  #@TestStep            Add ds-pwp-password-policy-dn to users entry
+  #@TestStep            Search users entry as Directory Manager for operational attributes
+  #@TestStep            Search users entry as self
+  #@TestStep            Modify the users entry
+  #@TestPostamble       Cleanup PTA
+  #@TestResult          Test is successful if the result code is 0
+  -->
+   <function name="basic_pta_006" scope="local">
+     <message>'Not implemented.'</message>
+   </function>
+
+  <!--- Test Case information
+  #@TestMarker          Basic: PTA mapped-search-bind-password-file
+  #@TestName            Basic: PTA mapped-search-bind-password-file
+  #@TestID              basic_pta_007
+  #@TestPurpose         Verify user with a LDAP PTA mapped-search policy can authenticated to remote server
+  #@TestPreamble        Setup PTA
+  #@TestStep            Configure LDAP PTA Policy using mapped-search-bind-password-file
+  #@TestStep            Read back the "authentication policy" object
+  #@TestStep            Add ds-pwp-password-policy-dn to users entry
+  #@TestStep            Search users entry as Directory Manager for operational attributes
+  #@TestStep            Search users entry as self
+  #@TestStep            Modify the users entry
+  #@TestPostamble       Cleanup PTA
+  #@TestResult          Test is successful if the result code is 0
+  -->                           
+  <function name="basic_pta_007" scope="local">
+    <testcase name="getTestCaseName('PTA mapped-search-bind-password-file')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Configure LDAP PTA Policy using mapped-search-bind-password-file.' }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--set primary-remote-ldap-server:%s:%s' % (primaryHost,primaryPort))
+              options.append('--set mapped-attribute:cn')
+              options.append('--set mapped-search-base-dn:dc=AD,dc=com')
+              options.append('--set mapped-search-bind-dn:"cn=Directory Manager"')
+              options.append('--set mapped-search-bind-password-file:%s' % remotePTAuserPswdFile)
+              options.append('--set mapping-policy:mapped-search')
+              options.append('--set secondary-remote-ldap-server:%s:%s' % (secondaryHost,secondaryPort))
+              options.append('--type ldap-pass-through')
+              options.append('--policy-name "%s"' % ldapPtaPolicyName)
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'location'            : local_ldap_server.getHostname(),
+                'dsPath'              : '%s/%s' \
+                                         % (local_ldap_server.getDir(),OPENDSNAME),
+                'dsInstanceHost'      : local_ldap_server.getHostname(),
+                'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
+                'dsInstanceDn'        : local_ldap_server.getRootDn(),
+                'dsInstancePswd'      : local_ldap_server.getRootPwd(),
+                'subcommand'          : 'create-password-policy',
+                'optionsString'       : dsconfigOptions
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Read back the "authentication policy" object.' }
+            </call>
+
+            <script>
+              options=[]
+              options.append('--policy-name "%s"' % ldapPtaPolicyName)
+              dsconfigOptions=' '.join(options)
+            </script>
+
+            <call function="'dsconfig'">
+              { 'location'            : local_ldap_server.getHostname(),
+                'dsPath'              : '%s/%s' \
+                                         % (local_ldap_server.getDir(),OPENDSNAME),
+                'dsInstanceHost'      : local_ldap_server.getHostname(),
+                'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
+                'dsInstanceDn'        : local_ldap_server.getRootDn(),
+                'dsInstancePswd'      : local_ldap_server.getRootPwd(),
+                'subcommand'          : 'get-password-policy-prop',
+                'optionsString'       : dsconfigOptions
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Add ds-pwp-password-policy-dn to users entry.' }
+            </call>
+
+            <script>
+              remotePTAuserName='uid=jvedder, ou=People, o=example'
+              remotePTAuserPSWD='befitting'
+              ldapObject=[]
+              ldapObject.append('ds-pwp-password-policy-dn: %s' \
+                                  % ldapPtaPolicyDn)
+           </script>
+
+            <call function="'modifyAnAttribute'">
+              { 'location'        : local_ldap_server.getHostname(),
+                'dsPath'                 : '%s/%s' \
+                                           % (local_ldap_server.getDir(),OPENDSNAME),
+                'dsInstanceHost'  : local_ldap_server.getHostname() ,
+                'dsInstancePort'  : local_ldap_server.getPort(),
+                'dsInstanceDn'    : local_ldap_server.getRootDn(),
+                'dsInstancePswd'  : local_ldap_server.getRootPwd(),
+                'DNToModify'      : remotePTAuserName ,
+                'listAttributes'  : ldapObject ,
+                'changetype'      : 'add'
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Search users entry as Directory Manager for operational attributes.' }
+            </call>
+
+            <call function="'ldapSearchWithScript'">
+              { 'location'        : local_ldap_server.getHostname(),
+                'dsPath'                 : '%s/%s' \
+                                           % (local_ldap_server.getDir(),OPENDSNAME),
+                'dsInstanceHost'  : local_ldap_server.getHostname() ,
+                'dsInstancePort'  : local_ldap_server.getPort(),
+                'dsInstanceDn'    : local_ldap_server.getRootDn(),
+                'dsInstancePswd'  : local_ldap_server.getRootPwd(),
+                'dsBaseDN'        : remotePTAuserName ,
+                'dsFilter'        : 'objectclass=*' ,
+                'dsAttributes'    : '+'
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Search users entry as self.' }
+            </call>
+
+            <call function="'ldapSearchWithScript'">
+              { 'location'        : local_ldap_server.getHostname(),
+                'dsPath'                 : '%s/%s' \
+                                           % (local_ldap_server.getDir(),OPENDSNAME),
+                'dsInstanceHost'  : local_ldap_server.getHostname() ,
+                'dsInstancePort'  : local_ldap_server.getPort(),
+                'dsInstanceDn'    : remotePTAuserName,
+                'dsInstancePswd'  : remotePTAuserPSWD ,
+                'dsBaseDN'        : remotePTAuserName ,
+                'dsFilter'        : 'objectclass=*'
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Modify the users entry.' }
+            </call>
+
+            <script>
+              ldapObject=[]
+              ldapObject.append('description: i am now a remote LDAP PTA user')
+           </script>
+
+            <call function="'modifyAnAttribute'">
+              { 'location'        : local_ldap_server.getHostname(),
+                'dsPath'                 : '%s/%s' \
+                                           % (local_ldap_server.getDir(),OPENDSNAME),
+                'dsInstanceHost'  : local_ldap_server.getHostname() ,
+                'dsInstancePort'  : local_ldap_server.getPort(),
+                'dsInstanceDn'    : remotePTAuserName,
+                'dsInstancePswd'  : remotePTAuserPSWD,
+                'DNToModify'      : remotePTAuserName ,
+                'listAttributes'  : ldapObject ,
+                'changetype'      : 'replace'
+              }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'pta_postamble1'"/>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+  #@TestMarker          Basic: PTA mapped-search-bind-password-property
+  #@TestName            Basic: PTA mapped-search-bind-password-property
+  #@TestID              basic_pta_008
+  #@TestPurpose         Verify user with a LDAP PTA mapped-search policy can authenticated to remote server
+  #@TestPreamble        Setup PTA
+  #@TestStep            Configure LDAP PTA Policy using mapped-search-bind-password-property
+  #@TestStep            Read back the "authentication policy" object
+  #@TestStep            Add ds-pwp-password-policy-dn to users entry
+  #@TestStep            Search users entry as Directory Manager for operational attributes
+  #@TestStep            Search users entry as self
+  #@TestStep            Modify the users entry
+  #@TestPostamble       Cleanup PTA
+  #@TestResult          Test is successful if the result code is 0
+  -->
+   <function name="basic_pta_008" scope="local">
+     <message>'Not implemented.'</message>
+   </function>
+
+  <!--- Test Case information
   #@TestMarker          Basic: PTA anon mapped-search use-ssl
   #@TestName            Basic: PTA anon mapped-search use-ssl
-  #@TestID              basic_pta_005
+  #@TestID              basic_pta_009
   #@TestPurpose         Verify user with a LDAP PTA mapped-search policy can authenticated to remote server
   #@TestPreamble        Setup PTA
   #@TestStep            Configure LDAP PTA Policy for mapped-search
@@ -788,7 +1026,7 @@
   #@TestPostamble       Cleanup PTA
   #@TestResult          Test is successful if the result code is 0
   -->                           
-  <function name="basic_pta_005" scope="local">
+  <function name="basic_pta_009" scope="local">
     <testcase name="getTestCaseName('PTA anon mapped-search use-ssl')">                     
       <sequence> 
         <try>
@@ -957,7 +1195,7 @@
   <!--- Test Case information
   #@TestMarker          Basic: PTA simple mapped-search use-ssl
   #@TestName            Basic: PTA simple mapped-search use-ssl
-  #@TestID              basic_pta_006
+  #@TestID              basic_pta_010
   #@TestPurpose         Verify user with a LDAP PTA mapped-search policy can authenticated to remote server
   #@TestPreamble        Setup PTA
   #@TestStep            Configure LDAP PTA Policy for mapped-search
@@ -969,7 +1207,7 @@
   #@TestPostamble       Cleanup PTA
   #@TestResult          Test is successful if the result code is 0
   -->                           
-  <function name="basic_pta_006" scope="local">
+  <function name="basic_pta_010" scope="local">
     <testcase name="getTestCaseName('PTA simple mapped-search use-ssl')">                     
       <sequence> 
         <try>
@@ -1140,7 +1378,7 @@
   <!--- Test Case information
   #@TestMarker          Basic: PTA failover
   #@TestName            Basic: PTA failover
-  #@TestID              basic_pta_007
+  #@TestID              basic_pta_011
   #@TestPurpose         Verify user with a LDAP PTA policy can failover to secondary server
   #@TestPreamble        Setup PTA
   #@TestStep            Configure LDAP PTA Policy using mapped-search-bind credentials
@@ -1159,8 +1397,8 @@
   #@TestPostamble       Cleanup PTA
   #@TestResult          Test is successful if the result code is 0
   -->                           
-  <function name="basic_pta_007" scope="local">
-    <testcase name="getTestCaseName('PTA failover')">                     
+  <function name="basic_pta_011" scope="local">
+    <testcase name="getTestCaseName('PTA simple failover')">                     
       <sequence>
         <try>
           <sequence>                
@@ -1471,7 +1709,7 @@
   <!--- Test Case information
   #@TestMarker          Basic: PTA failover use-ssl
   #@TestName            Basic: PTA failover use-ssl
-  #@TestID              basic_pta_008
+  #@TestID              basic_pta_012
   #@TestPurpose         Verify user with a LDAP PTA policy can failover to secondary server
   #@TestPreamble        Setup PTA
   #@TestStep            Configure LDAP PTA Policy using mapped-search-bind credentials over ssl
@@ -1490,8 +1728,8 @@
   #@TestPostamble       Cleanup PTA
   #@TestResult          Test is successful if the result code is 0
   -->                           
-  <function name="basic_pta_008" scope="local">
-    <testcase name="getTestCaseName('PTA failover use-ssl')">                     
+  <function name="basic_pta_012" scope="local">
+    <testcase name="getTestCaseName('PTA simple failover use-ssl')">                     
       <sequence>
         <try>
           <sequence>                

@@ -89,6 +89,8 @@
 
                 remotePTAuserDict = {}
                 remotePTAuserSuffix = 'ou=People, o=example'
+                localPTAuserPswdFile = '%s/myptapasswd' % local.temp
+                remotePTAuserPswdFile = '%s/pta/mypasswd' % local_ldap_server.getTmpDir()
   
                 # List of Remote LDAP PTA Users and Passwords              
                 remotePTAuserDict['uid=jvedder,  %s' % remotePTAuserSuffix] = 'befitting'
@@ -103,6 +105,21 @@
                 remotePTAuserDict['uid=bwalker,  %s' % remotePTAuserSuffix] = 'interruptible'
               </script>
 
+              <!-- Create local PTA passwd -->
+              <script>
+                passwd_file = open(localPTAuserPswdFile,"w")
+                passwd_file.write("%s\n" % local_ldap_server.getRootPwd())
+                passwd_file.close()                
+              </script>
+              
+              <!-- Copy local PTA passwd to local ldap server -->
+              <call function="'copyFile'">
+                { 'location'   : STAF_LOCAL_HOSTNAME,
+                  'srcfile'    : localPTAuserPswdFile,
+                  'destfile'   : remotePTAuserPswdFile,
+                  'remotehost' : local_ldap_server.getHostname() }
+              </call>
+             
               <!-- Get the local server store password from keystore.pin -->
               <call function="'getFile'">
                 { 'location'    : local_ldap_server.getHostname(),
