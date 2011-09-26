@@ -3721,13 +3721,16 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
   /**
-   * Test for issue OPENDJ-292 (https://bugster.forgerock.org/jira/browse/OPENDJ-292).
+   * Test for issue OPENDJ-292
+   * (https://bugster.forgerock.org/jira/browse/OPENDJ-292). This test checks
+   * that the last exception is correctly cached in the case where initial
+   * connection attempts fail.
    *
    * @throws Exception
    *           If an unexpected exception occurred.
    */
   @Test(enabled = true)
-  public void testIssueOPENDJ292() throws Exception
+  public void testIssueOPENDJ292_1() throws Exception
   {
     // Mock configuration.
     final LDAPPassThroughAuthenticationPolicyCfg cfg = mockCfg()
@@ -3768,13 +3771,12 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // Authenticate twice, the second time was causing a NPE because none of the
     // factories were available and an attempt was made to throw a null
     // exception.
-    final AuthenticationPolicyState state = policy
-        .createAuthenticationPolicyState(userEntry);
-    assertEquals(state.getAuthenticationPolicy(), policy);
-
-    // Perform authentication.
     for (int i = 0; i < 2; i++)
     {
+      final AuthenticationPolicyState state = policy
+          .createAuthenticationPolicyState(userEntry);
+      assertEquals(state.getAuthenticationPolicy(), policy);
+
       try
       {
         state.passwordMatches(ByteString.valueOf(userPassword));
@@ -3789,6 +3791,122 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       }
       state.finalizeStateAfterBind();
     }
+
+    // Tear down and check final state.
+    policy.finalizeAuthenticationPolicy();
+    provider.assertAllExpectedEventsReceived();
+  }
+
+
+
+  /**
+   * Test for issue OPENDJ-292
+   * (https://bugster.forgerock.org/jira/browse/OPENDJ-292). This test checks
+   * that the last exception is correctly cached in the case where a usable
+   * connection fails during a search/bind.
+   *
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(enabled = true)
+  public void testIssueOPENDJ292_2() throws Exception
+  {
+    // Mock configuration.
+    final LDAPPassThroughAuthenticationPolicyCfg cfg = mockCfg()
+        .withPrimaryServer(phost1)
+        .withSecondaryServer(shost1)
+        .withMappingPolicy(MappingPolicy.MAPPED_SEARCH)
+        .withMappedAttribute("uid").withBaseDN("o=ad");
+
+    // Create all the events.
+    final MockProvider provider = new MockProvider();
+
+    // First of all the connection factories are created.
+    final GetLDAPConnectionFactoryEvent fe1 = new GetLDAPConnectionFactoryEvent(
+        phost1, cfg);
+    final GetLDAPConnectionFactoryEvent fe2 = new GetLDAPConnectionFactoryEvent(
+        shost1, cfg);
+    provider.expectEvent(fe1).expectEvent(fe2);
+
+    // Get connection for phost1, then search, then bind.
+    final GetConnectionEvent ceSearch1 = new GetConnectionEvent(fe1);
+    final GetConnectionEvent ceBind1 = new GetConnectionEvent(fe1);
+    final GetConnectionEvent ceSearch2 = new GetConnectionEvent(fe2);
+
+    provider
+        .expectEvent(ceSearch1)
+        .expectEvent(
+            new SimpleBindEvent(ceSearch1, searchBindDNString, "searchPassword"))
+        .expectEvent(
+            new SearchEvent(ceSearch1, "o=ad", SearchScope.WHOLE_SUBTREE,
+                "(uid=aduser)", adDNString))
+        .expectEvent(ceBind1)
+        .expectEvent(
+            new SimpleBindEvent(ceBind1, adDNString, userPassword,
+                ResultCode.SUCCESS));
+
+    // Repeat and fail-over to shost1.
+    provider
+        .expectEvent(
+            new SearchEvent(ceSearch1, "o=ad", SearchScope.WHOLE_SUBTREE,
+                "(uid=aduser)", ResultCode.UNAVAILABLE))
+        .expectEvent(new CloseEvent(ceSearch1))
+        .expectEvent(ceSearch2)
+        .expectEvent(
+            new SimpleBindEvent(ceSearch2, searchBindDNString, "searchPassword"))
+        .expectEvent(
+            new SearchEvent(ceSearch2, "o=ad", SearchScope.WHOLE_SUBTREE,
+                "(uid=aduser)", adDNString))
+        .expectEvent(
+            new SimpleBindEvent(ceBind1, adDNString, userPassword,
+                ResultCode.SUCCESS));
+
+    // Repeat, but fail on shost1 as well, leaving no available servers.
+    provider.expectEvent(
+        new SearchEvent(ceSearch2, "o=ad", SearchScope.WHOLE_SUBTREE,
+            "(uid=aduser)", ResultCode.UNAVAILABLE)).expectEvent(
+        new CloseEvent(ceSearch2));
+
+    // Obtain policy and state.
+    final LDAPPassThroughAuthenticationPolicyFactory factory = new LDAPPassThroughAuthenticationPolicyFactory(
+        provider);
+    assertTrue(factory.isConfigurationAcceptable(cfg, null));
+    final AuthenticationPolicy policy = factory.createAuthenticationPolicy(cfg);
+
+    // Authenticate four times, the fourth time was causing a NPE because none
+    // of the factories were available and an attempt was made to throw a null
+    // exception.
+    for (int i = 0; i < 4; i++)
+    {
+      final AuthenticationPolicyState state = policy
+          .createAuthenticationPolicyState(userEntry);
+      assertEquals(state.getAuthenticationPolicy(), policy);
+
+      // Perform authentication.
+      if (i < 2)
+      {
+        assertTrue(state.passwordMatches(ByteString.valueOf(userPassword)));
+      }
+      else
+      {
+        try
+        {
+          state.passwordMatches(ByteString.valueOf(userPassword));
+          fail("password match unexpectedly succeeded");
+        }
+        catch (final DirectoryException e)
+        {
+          // No mapping attributes so this should always fail with
+          // INVALID_CREDENTIALS.
+          assertEquals(e.getResultCode(), ResultCode.INVALID_CREDENTIALS,
+              e.getMessage());
+        }
+      }
+      state.finalizeStateAfterBind();
+    }
+
+    // Cached connections should be closed when the policy is finalized.
+    provider.expectEvent(new CloseEvent(ceBind1));
 
     // Tear down and check final state.
     policy.finalizeAuthenticationPolicy();

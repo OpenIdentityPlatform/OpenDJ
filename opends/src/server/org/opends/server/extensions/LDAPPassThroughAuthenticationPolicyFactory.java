@@ -214,7 +214,8 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         // The associated server is unavailable, so close the connection and
         // try the next connection factory.
         connection.close();
-        factory.isAvailable = false;
+        factory.lastException = e;
+        factory.isAvailable = false; // publishes lastException
 
         while (nextIndex != startIndex)
         {
@@ -309,7 +310,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
           lastException = e;
-          isAvailable = false; // publish lastException
+          isAvailable = false; // publishes lastException
           throw e;
         }
       }
