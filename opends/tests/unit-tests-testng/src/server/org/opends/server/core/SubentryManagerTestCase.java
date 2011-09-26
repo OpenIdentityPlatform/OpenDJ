@@ -58,6 +58,7 @@ public class SubentryManagerTestCase extends CoreTestCase
 
   private Entry testEntry;
   private Entry ldapSubentry;
+  private Entry legacyLdapSubentry;
   private Entry collectiveSubentry;
 
   @BeforeClass
@@ -73,6 +74,7 @@ public class SubentryManagerTestCase extends CoreTestCase
   {
     TestCaseUtils.deleteEntry(collectiveSubentry.getDN());
     TestCaseUtils.deleteEntry(ldapSubentry.getDN());
+    TestCaseUtils.deleteEntry(legacyLdapSubentry.getDN());
 
     SubentryManager manager = DirectoryServer.getSubentryManager();
     assertNotNull(manager);
@@ -99,13 +101,15 @@ public class SubentryManagerTestCase extends CoreTestCase
     assertNotNull(manager);
     List<SubEntry> subentryList = manager.getSubentries(testEntry.getDN());
     assertNotNull(subentryList);
-    assertEquals(subentryList.size(), 1);
+    assertEquals(subentryList.size(), 2);
     assertEquals(subentryList.get(0).getDN(), ldapSubentry.getDN());
+    assertEquals(subentryList.get(1).getDN(), legacyLdapSubentry.getDN());
     subentryList.clear();
     subentryList = manager.getSubentries(testEntry);
     assertNotNull(subentryList);
-    assertEquals(subentryList.size(), 1);
+    assertEquals(subentryList.size(), 2);
     assertEquals(subentryList.get(0).getEntry(), ldapSubentry);
+    assertEquals(subentryList.get(1).getEntry(), legacyLdapSubentry);
     subentryList.clear();
     subentryList = manager.getCollectiveSubentries(testEntry.getDN());
     assertNotNull(subentryList);
@@ -116,6 +120,15 @@ public class SubentryManagerTestCase extends CoreTestCase
     assertNotNull(subentryList);
     assertEquals(subentryList.size(), 1);
     assertEquals(subentryList.get(0).getEntry(), collectiveSubentry);
+    subentryList.clear();
+    subentryList = manager.getSubentries(legacyLdapSubentry.getDN().getParent());
+    assertNotNull(subentryList);
+    assertEquals(subentryList.size(), 1);
+    assertEquals(subentryList.get(0).getEntry(), legacyLdapSubentry);
+    subentryList.clear();
+    subentryList = manager.getSubentries(legacyLdapSubentry.getDN().getParent().getParent());
+    assertNotNull(subentryList);
+    assertEquals(subentryList.size(), 0);
   }
 
   @Test
@@ -571,8 +584,10 @@ public class SubentryManagerTestCase extends CoreTestCase
             "uid=rogasawara," + NEWBASE + "," + SUFFIX)));
     assertTrue(DirectoryServer.getSubentryManager().getCollectiveSubentries(
           DN.decode("uid=rogasawara," + NEWBASE + "," + SUFFIX)).isEmpty());
-    assertTrue(DirectoryServer.getSubentryManager().getSubentries(
-          DN.decode("uid=rogasawara," + NEWBASE + "," + SUFFIX)).isEmpty());
+
+    // The legacyLdapSubentry should still apply.
+    assertEquals(DirectoryServer.getSubentryManager().getSubentries(
+          DN.decode("uid=rogasawara," + NEWBASE + "," + SUFFIX)).size(), 1);
 
     // Move it back.
     String oldPath = TestCaseUtils.createTempFile(
@@ -739,6 +754,20 @@ public class SubentryManagerTestCase extends CoreTestCase
                                ldapSubentry.getOperationalAttributes());
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(DirectoryServer.getEntry(ldapSubentry.getDN()));
+
+    // Add test legacy subentry.
+    legacyLdapSubentry = TestCaseUtils.makeEntry(
+         "dn: cn=Legacy Subentry," + SUFFIX,
+         "objectClass: top",
+         "objectclass: ldapSubentry",
+         "cn: Legacy Subentry");
+    addOperation =
+         connection.processAdd(legacyLdapSubentry.getDN(),
+                               legacyLdapSubentry.getObjectClasses(),
+                               legacyLdapSubentry.getUserAttributes(),
+                               legacyLdapSubentry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    assertNotNull(DirectoryServer.getEntry(legacyLdapSubentry.getDN()));
 
     // Add test collective subentry.
     collectiveSubentry = TestCaseUtils.makeEntry(
