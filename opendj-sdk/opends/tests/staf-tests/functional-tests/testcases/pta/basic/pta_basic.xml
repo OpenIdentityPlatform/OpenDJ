@@ -57,6 +57,8 @@
                 <!-- PTA setup -->
                 <import machine="STAF_LOCAL_HOSTNAME"
                   file="'%s/testcases/pta/pta_setup.xml' % (TESTS_DIR)"/>
+                <import machine="STAF_LOCAL_HOSTNAME"
+                  file="'%s/testcases/pta/basic/pta_postamble.xml' % (TESTS_DIR)"/>
                 <call function="'pta_setup'">
                   { 'topologyFile' : '%s/3server_topology.txt' % REPLICATION_CONFIG_DIR }
                 </call>
@@ -84,6 +86,8 @@
                   testsList.append('basic_pta_004')
                   testsList.append('basic_pta_005')
                   testsList.append('basic_pta_006')
+                  testsList.append('basic_pta_007')
+                  testsList.append('basic_pta_008')
                 </script>
 
                 <!-- Execute the Tests -->
