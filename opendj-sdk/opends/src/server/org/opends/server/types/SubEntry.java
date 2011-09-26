@@ -246,9 +246,8 @@ public class SubEntry {
     {
       // There is none for some reason eg this could be
       // old Draft based ldapSubEntry so create a dummy.
-      this.subTreeSpec = new SubtreeSpecification(
-                DN.NULL_DN, null, -1, -1,
-                null, null, null);
+      this.subTreeSpec = new SubtreeSpecification(entry.getDN().getParent(),
+          null, -1, -1, null, null, null);
     }
 
     // Determine if this subentry is collective attribute subentry.
