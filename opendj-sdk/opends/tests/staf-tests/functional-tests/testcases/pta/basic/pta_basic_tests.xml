@@ -1145,21 +1145,23 @@
   #@TestPreamble        Setup PTA
   #@TestStep            Configure LDAP PTA Policy using mapped-search-bind credentials
   #@TestStep            Read back the "authentication policy" object
-  #@TestStep            Add ds-pwp-password-policy-dn to users entry
-  #@TestStep            Search users entry as Directory Manager for operational attributes
-  #@TestStep            First search users entry as self
+  #@TestStep            Add ds-pwp-password-policy-dn to users entries
+  #@TestStep            Search users entries as Directory Manager for ds-pwp-password-policy-dn
+  #@TestStep            First search users entries as self
   #@TestStep            Stop the primary remote ldap server
-  #@TestStep            Second search users entry as self.
-  #@TestStep            Modify the users entry
+  #@TestStep            Second search users entries as self.
+  #@TestStep            Modify the users entries
   #@TestStep            Restart the primary remote ldap server
-  #@TestStep            ds-pwp-password-policy-dn from users entry
-  #@TestStep            Remove LDAP PTA Authentication Policy
+  #@TestStep            Wait for monitor heartbeat to primary remote ldap server
+  #@TestStep            Third search users entries as self
+  #@TestStep            Stop the secondary remote ldap server.
+  #@TestStep            Fourth search users entries as self
   #@TestPostamble       Cleanup PTA
   #@TestResult          Test is successful if the result code is 0
   -->                           
   <function name="basic_pta_007" scope="local">
     <testcase name="getTestCaseName('PTA failover')">                     
-      <sequence> 
+      <sequence>
         <try>
           <sequence>                
             <call function="'testCase_Preamble'"/>
@@ -1222,33 +1224,56 @@
             </call>
 
             <call function="'testStep'">
-              { 'stepMessage' : 'Add ds-pwp-password-policy-dn to users entry.' }
+              { 'stepMessage' : 'Add ds-pwp-password-policy-dn to users entries.' }
             </call>
 
+            <call function="'ldapSearchWithScript'">
+              { 'location'        : local_ldap_server.getHostname(),
+                'dsPath'                 : '%s/%s' \
+                                           % (local_ldap_server.getDir(),OPENDSNAME),
+                'dsInstanceHost'  : local_ldap_server.getHostname() ,
+                'dsInstancePort'  : local_ldap_server.getPort(),
+                'dsInstanceDn'    : local_ldap_server.getRootDn(),
+                'dsInstancePswd'  : local_ldap_server.getRootPwd(),
+                'dsBaseDN'        : 'cn=PTA Remote Users,ou=groups,o=example' ,
+                'dsScope'         : 'base' ,
+                'dsFilter'        : 'objectclass=*' ,
+                'dsAttributes'    : 'uniquemember'
+              }
+            </call>
+            
+            <message>
+              'Result= %s' % STAXResult
+            </message>
+
             <script>
-              remotePTAuserName='uid=jvedder, ou=People, o=example'
-              remotePTAuserPSWD='befitting'
               ldapObject=[]
               ldapObject.append('ds-pwp-password-policy-dn: %s' \
                                   % ldapPtaPolicyDn)
            </script>
 
-            <call function="'modifyAnAttribute'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : local_ldap_server.getRootDn(),
-                'dsInstancePswd'  : local_ldap_server.getRootPwd(),
-                'DNToModify'      : remotePTAuserName ,
-                'listAttributes'  : ldapObject ,
-                'changetype'      : 'add'
-              }
-            </call>
+            <iterate var="remotePTAuserName"
+                     in="remotePTAuserDict.keys()" 
+                     indexvar="usernum">
+
+              <call function="'modifyAnAttribute'">
+                { 'location'        : local_ldap_server.getHostname(),
+                  'dsPath'                 : '%s/%s' \
+                                             % (local_ldap_server.getDir(),OPENDSNAME),
+                  'dsInstanceHost'  : local_ldap_server.getHostname() ,
+                  'dsInstancePort'  : local_ldap_server.getPort(),
+                  'dsInstanceDn'    : local_ldap_server.getRootDn(),
+                  'dsInstancePswd'  : local_ldap_server.getRootPwd(),
+                  'DNToModify'      : remotePTAuserName ,
+                  'listAttributes'  : ldapObject ,
+                  'changetype'      : 'add'
+                }
+              </call>
+
+            </iterate>
 
             <call function="'testStep'">
-              { 'stepMessage' : 'Search users entry as Directory Manager for operational attributes.' }
+              { 'stepMessage' : 'Search users entries as Directory Manager for ds-pwp-password-policy-dn.' }
             </call>
 
             <call function="'ldapSearchWithScript'">
@@ -1259,28 +1284,34 @@
                 'dsInstancePort'  : local_ldap_server.getPort(),
                 'dsInstanceDn'    : local_ldap_server.getRootDn(),
                 'dsInstancePswd'  : local_ldap_server.getRootPwd(),
-                'dsBaseDN'        : remotePTAuserName ,
+                'dsBaseDN'        : remotePTAuserSuffix ,
                 'dsFilter'        : 'objectclass=*' ,
-                'dsAttributes'    : '+'
+                'dsAttributes'    : 'ds-pwp-password-policy-dn'
               }
             </call>
 
             <call function="'testStep'">
-              { 'stepMessage' : 'First search users entry as self.' }
+              { 'stepMessage' : 'First search users entries as self.' }
             </call>
 
-            <call function="'ldapSearchWithScript'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : remotePTAuserName,
-                'dsInstancePswd'  : remotePTAuserPSWD ,
-                'dsBaseDN'        : remotePTAuserName ,
-                'dsFilter'        : 'objectclass=*'
-              }
-            </call>
+            <iterate var="remotePTAuserName"
+                     in="remotePTAuserDict.keys()" 
+                     indexvar="usernum">
+              
+              <call function="'ldapSearchWithScript'">
+                { 'location'        : local_ldap_server.getHostname(),
+                  'dsPath'                 : '%s/%s' \
+                                             % (local_ldap_server.getDir(),OPENDSNAME),
+                  'dsInstanceHost'  : local_ldap_server.getHostname() ,
+                  'dsInstancePort'  : local_ldap_server.getPort(),
+                  'dsInstanceDn'    : remotePTAuserName,
+                  'dsInstancePswd'  : remotePTAuserDict[remotePTAuserName] ,
+                  'dsBaseDN'        : remotePTAuserName ,
+                  'dsFilter'        : 'objectclass=*'
+                }
+              </call>
+
+            </iterate>
 
             <call function="'testStep'">
               { 'stepMessage' : 'Stop the primary remote ldap server.' }
@@ -1291,24 +1322,30 @@
             </call>
 
             <call function="'testStep'">
-              { 'stepMessage' : 'Second search users entry as self.' }
+              { 'stepMessage' : 'Second search users entries as self.' }
             </call>
 
-            <call function="'ldapSearchWithScript'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : remotePTAuserName,
-                'dsInstancePswd'  : remotePTAuserPSWD ,
-                'dsBaseDN'        : remotePTAuserName ,
-                'dsFilter'        : 'objectclass=*'
-              }
-            </call>
+            <iterate var="remotePTAuserName"
+                     in="remotePTAuserDict.keys()" 
+                     indexvar="usernum">
+              
+              <call function="'ldapSearchWithScript'">
+                { 'location'        : local_ldap_server.getHostname(),
+                  'dsPath'                 : '%s/%s' \
+                                             % (local_ldap_server.getDir(),OPENDSNAME),
+                  'dsInstanceHost'  : local_ldap_server.getHostname() ,
+                  'dsInstancePort'  : local_ldap_server.getPort(),
+                  'dsInstanceDn'    : remotePTAuserName,
+                  'dsInstancePswd'  : remotePTAuserDict[remotePTAuserName] ,
+                  'dsBaseDN'        : remotePTAuserName ,
+                  'dsFilter'        : 'objectclass=*'
+                }
+              </call>
+
+            </iterate>
 
             <call function="'testStep'">
-              { 'stepMessage' : 'Modify the users entry.' }
+              { 'stepMessage' : 'Modify the users entries.' }
             </call>
 
             <script>
@@ -1316,19 +1353,25 @@
               ldapObject.append('description: i am now a remote LDAP PTA user')
            </script>
 
-            <call function="'modifyAnAttribute'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : remotePTAuserName,
-                'dsInstancePswd'  : remotePTAuserPSWD,
-                'DNToModify'      : remotePTAuserName ,
-                'listAttributes'  : ldapObject ,
-                'changetype'      : 'replace'
-              }
-            </call>
+            <iterate var="remotePTAuserName"
+                     in="remotePTAuserDict.keys()" 
+                     indexvar="usernum">
+
+              <call function="'modifyAnAttribute'">
+                { 'location'        : local_ldap_server.getHostname(),
+                  'dsPath'                 : '%s/%s' \
+                                             % (local_ldap_server.getDir(),OPENDSNAME),
+                  'dsInstanceHost'  : local_ldap_server.getHostname() ,
+                  'dsInstancePort'  : local_ldap_server.getPort(),
+                  'dsInstanceDn'    : remotePTAuserName,
+                  'dsInstancePswd'  : remotePTAuserDict[remotePTAuserName],
+                  'DNToModify'      : remotePTAuserName ,
+                  'listAttributes'  : ldapObject ,
+                  'changetype'      : 'replace'
+                }
+              </call>
+
+            </iterate>
 
             <call function="'testStep'">
               { 'stepMessage' : 'Restart the primary remote ldap server.' }
@@ -1346,21 +1389,27 @@
             </call>
 
             <call function="'testStep'">
-              { 'stepMessage' : 'Third search users entry as self.' }
+              { 'stepMessage' : 'Third search users entries as self.' }
             </call>
 
-            <call function="'ldapSearchWithScript'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : remotePTAuserName,
-                'dsInstancePswd'  : remotePTAuserPSWD ,
-                'dsBaseDN'        : remotePTAuserName ,
-                'dsFilter'        : 'objectclass=*'
-              }
-            </call>
+            <iterate var="remotePTAuserName"
+                     in="remotePTAuserDict.keys()" 
+                     indexvar="usernum">
+              
+              <call function="'ldapSearchWithScript'">
+                { 'location'        : local_ldap_server.getHostname(),
+                  'dsPath'                 : '%s/%s' \
+                                             % (local_ldap_server.getDir(),OPENDSNAME),
+                  'dsInstanceHost'  : local_ldap_server.getHostname() ,
+                  'dsInstancePort'  : local_ldap_server.getPort(),
+                  'dsInstanceDn'    : remotePTAuserName,
+                  'dsInstancePswd'  : remotePTAuserDict[remotePTAuserName] ,
+                  'dsBaseDN'        : remotePTAuserName ,
+                  'dsFilter'        : 'objectclass=*'
+                }
+              </call>
+
+            </iterate>
 
             <call function="'testStep'">
               { 'stepMessage' : 'Stop the secondary remote ldap server.' }
@@ -1371,21 +1420,27 @@
             </call>
 
             <call function="'testStep'">
-              { 'stepMessage' : 'Fourth search users entry as self.' }
+              { 'stepMessage' : 'Fourth search users entries as self.' }
             </call>
 
-            <call function="'ldapSearchWithScript'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : remotePTAuserName,
-                'dsInstancePswd'  : remotePTAuserPSWD ,
-                'dsBaseDN'        : remotePTAuserName ,
-                'dsFilter'        : 'objectclass=*'
-              }
-            </call>
+            <iterate var="remotePTAuserName"
+                     in="remotePTAuserDict.keys()" 
+                     indexvar="usernum">
+              
+              <call function="'ldapSearchWithScript'">
+                { 'location'        : local_ldap_server.getHostname(),
+                  'dsPath'                 : '%s/%s' \
+                                             % (local_ldap_server.getDir(),OPENDSNAME),
+                  'dsInstanceHost'  : local_ldap_server.getHostname() ,
+                  'dsInstancePort'  : local_ldap_server.getPort(),
+                  'dsInstanceDn'    : remotePTAuserName,
+                  'dsInstancePswd'  : remotePTAuserDict[remotePTAuserName] ,
+                  'dsBaseDN'        : remotePTAuserName ,
+                  'dsFilter'        : 'objectclass=*'
+                }
+              </call>
+
+            </iterate>
 
             <call function="'testStep'">
               { 'stepMessage' : 'Start the secondary remote ldap server.' }
@@ -1404,7 +1459,7 @@
           </catch>
           <finally>
             <sequence>
-              <call function="'pta_postamble1'"/>
+              <call function="'pta_postamble3'"/>
               <call function="'testCase_Postamble'"/>
             </sequence>
           </finally>
@@ -1421,21 +1476,23 @@
   #@TestPreamble        Setup PTA
   #@TestStep            Configure LDAP PTA Policy using mapped-search-bind credentials over ssl
   #@TestStep            Read back the "authentication policy" object
-  #@TestStep            Add ds-pwp-password-policy-dn to users entry
-  #@TestStep            Search users entry as Directory Manager for operational attributes
-  #@TestStep            First search users entry as self
+  #@TestStep            Add ds-pwp-password-policy-dn to users entries
+  #@TestStep            Search users entries as Directory Manager for ds-pwp-password-policy-dn
+  #@TestStep            First search users entries as self
   #@TestStep            Stop the primary remote ldap server
-  #@TestStep            Second search users entry as self.
-  #@TestStep            Modify the users entry
+  #@TestStep            Second search users entries as self.
+  #@TestStep            Modify the users entries
   #@TestStep            Restart the primary remote ldap server
-  #@TestStep            ds-pwp-password-policy-dn from users entry
-  #@TestStep            Remove LDAP PTA Authentication Policy
+  #@TestStep            Wait for monitor heartbeat to primary remote ldap server
+  #@TestStep            Third search users entries as self
+  #@TestStep            Stop the secondary remote ldap server.
+  #@TestStep            Fourth search users entries as self
   #@TestPostamble       Cleanup PTA
   #@TestResult          Test is successful if the result code is 0
   -->                           
   <function name="basic_pta_008" scope="local">
     <testcase name="getTestCaseName('PTA failover use-ssl')">                     
-      <sequence> 
+      <sequence>
         <try>
           <sequence>                
             <call function="'testCase_Preamble'"/>
@@ -1444,7 +1501,7 @@
             </message>
 
             <call function="'testStep'">
-              { 'stepMessage' : 'Configure LDAP PTA Policy using mapped-search-bind credentials.' }
+              { 'stepMessage' : 'Configure LDAP PTA Policy using mapped-search-bind credentials over ssl.' }
             </call>
 
             <script>
@@ -1500,33 +1557,56 @@
             </call>
 
             <call function="'testStep'">
-              { 'stepMessage' : 'Add ds-pwp-password-policy-dn to users entry.' }
+              { 'stepMessage' : 'Add ds-pwp-password-policy-dn to users entries.' }
             </call>
 
+            <call function="'ldapSearchWithScript'">
+              { 'location'        : local_ldap_server.getHostname(),
+                'dsPath'                 : '%s/%s' \
+                                           % (local_ldap_server.getDir(),OPENDSNAME),
+                'dsInstanceHost'  : local_ldap_server.getHostname() ,
+                'dsInstancePort'  : local_ldap_server.getPort(),
+                'dsInstanceDn'    : local_ldap_server.getRootDn(),
+                'dsInstancePswd'  : local_ldap_server.getRootPwd(),
+                'dsBaseDN'        : 'cn=PTA Remote Users,ou=groups,o=example' ,
+                'dsScope'         : 'base' ,
+                'dsFilter'        : 'objectclass=*' ,
+                'dsAttributes'    : 'uniquemember'
+              }
+            </call>
+            
+            <message>
+              'Result= %s' % STAXResult
+            </message>
+
             <script>
-              remotePTAuserName='uid=jvedder, ou=People, o=example'
-              remotePTAuserPSWD='befitting'
               ldapObject=[]
               ldapObject.append('ds-pwp-password-policy-dn: %s' \
                                   % ldapPtaPolicyDn)
            </script>
 
-            <call function="'modifyAnAttribute'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : local_ldap_server.getRootDn(),
-                'dsInstancePswd'  : local_ldap_server.getRootPwd(),
-                'DNToModify'      : remotePTAuserName ,
-                'listAttributes'  : ldapObject ,
-                'changetype'      : 'add'
-              }
-            </call>
+            <iterate var="remotePTAuserName"
+                     in="remotePTAuserDict.keys()" 
+                     indexvar="usernum">
+
+              <call function="'modifyAnAttribute'">
+                { 'location'        : local_ldap_server.getHostname(),
+                  'dsPath'                 : '%s/%s' \
+                                             % (local_ldap_server.getDir(),OPENDSNAME),
+                  'dsInstanceHost'  : local_ldap_server.getHostname() ,
+                  'dsInstancePort'  : local_ldap_server.getPort(),
+                  'dsInstanceDn'    : local_ldap_server.getRootDn(),
+                  'dsInstancePswd'  : local_ldap_server.getRootPwd(),
+                  'DNToModify'      : remotePTAuserName ,
+                  'listAttributes'  : ldapObject ,
+                  'changetype'      : 'add'
+                }
+              </call>
+
+            </iterate>
 
             <call function="'testStep'">
-              { 'stepMessage' : 'Search users entry as Directory Manager for operational attributes.' }
+              { 'stepMessage' : 'Search users entries as Directory Manager for ds-pwp-password-policy-dn.' }
             </call>
 
             <call function="'ldapSearchWithScript'">
@@ -1537,28 +1617,34 @@
                 'dsInstancePort'  : local_ldap_server.getPort(),
                 'dsInstanceDn'    : local_ldap_server.getRootDn(),
                 'dsInstancePswd'  : local_ldap_server.getRootPwd(),
-                'dsBaseDN'        : remotePTAuserName ,
+                'dsBaseDN'        : remotePTAuserSuffix ,
                 'dsFilter'        : 'objectclass=*' ,
-                'dsAttributes'    : '+'
+                'dsAttributes'    : 'ds-pwp-password-policy-dn'
               }
             </call>
 
             <call function="'testStep'">
-              { 'stepMessage' : 'First search users entry as self.' }
+              { 'stepMessage' : 'First search users entries as self.' }
             </call>
 
-            <call function="'ldapSearchWithScript'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : remotePTAuserName,
-                'dsInstancePswd'  : remotePTAuserPSWD ,
-                'dsBaseDN'        : remotePTAuserName ,
-                'dsFilter'        : 'objectclass=*'
-              }
-            </call>
+            <iterate var="remotePTAuserName"
+                     in="remotePTAuserDict.keys()" 
+                     indexvar="usernum">
+              
+              <call function="'ldapSearchWithScript'">
+                { 'location'        : local_ldap_server.getHostname(),
+                  'dsPath'                 : '%s/%s' \
+                                             % (local_ldap_server.getDir(),OPENDSNAME),
+                  'dsInstanceHost'  : local_ldap_server.getHostname() ,
+                  'dsInstancePort'  : local_ldap_server.getPort(),
+                  'dsInstanceDn'    : remotePTAuserName,
+                  'dsInstancePswd'  : remotePTAuserDict[remotePTAuserName] ,
+                  'dsBaseDN'        : remotePTAuserName ,
+                  'dsFilter'        : 'objectclass=*'
+                }
+              </call>
+
+            </iterate>
 
             <call function="'testStep'">
               { 'stepMessage' : 'Stop the primary remote ldap server.' }
@@ -1569,24 +1655,30 @@
             </call>
 
             <call function="'testStep'">
-              { 'stepMessage' : 'Second search users entry as self.' }
+              { 'stepMessage' : 'Second search users entries as self.' }
             </call>
 
-            <call function="'ldapSearchWithScript'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : remotePTAuserName,
-                'dsInstancePswd'  : remotePTAuserPSWD ,
-                'dsBaseDN'        : remotePTAuserName ,
-                'dsFilter'        : 'objectclass=*'
-              }
-            </call>
+            <iterate var="remotePTAuserName"
+                     in="remotePTAuserDict.keys()" 
+                     indexvar="usernum">
+              
+              <call function="'ldapSearchWithScript'">
+                { 'location'        : local_ldap_server.getHostname(),
+                  'dsPath'                 : '%s/%s' \
+                                             % (local_ldap_server.getDir(),OPENDSNAME),
+                  'dsInstanceHost'  : local_ldap_server.getHostname() ,
+                  'dsInstancePort'  : local_ldap_server.getPort(),
+                  'dsInstanceDn'    : remotePTAuserName,
+                  'dsInstancePswd'  : remotePTAuserDict[remotePTAuserName] ,
+                  'dsBaseDN'        : remotePTAuserName ,
+                  'dsFilter'        : 'objectclass=*'
+                }
+              </call>
+
+            </iterate>
 
             <call function="'testStep'">
-              { 'stepMessage' : 'Modify the users entry.' }
+              { 'stepMessage' : 'Modify the users entries.' }
             </call>
 
             <script>
@@ -1594,19 +1686,25 @@
               ldapObject.append('description: i am now a remote LDAP PTA user')
            </script>
 
-            <call function="'modifyAnAttribute'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : remotePTAuserName,
-                'dsInstancePswd'  : remotePTAuserPSWD,
-                'DNToModify'      : remotePTAuserName ,
-                'listAttributes'  : ldapObject ,
-                'changetype'      : 'replace'
-              }
-            </call>
+            <iterate var="remotePTAuserName"
+                     in="remotePTAuserDict.keys()" 
+                     indexvar="usernum">
+
+              <call function="'modifyAnAttribute'">
+                { 'location'        : local_ldap_server.getHostname(),
+                  'dsPath'                 : '%s/%s' \
+                                             % (local_ldap_server.getDir(),OPENDSNAME),
+                  'dsInstanceHost'  : local_ldap_server.getHostname() ,
+                  'dsInstancePort'  : local_ldap_server.getPort(),
+                  'dsInstanceDn'    : remotePTAuserName,
+                  'dsInstancePswd'  : remotePTAuserDict[remotePTAuserName],
+                  'DNToModify'      : remotePTAuserName ,
+                  'listAttributes'  : ldapObject ,
+                  'changetype'      : 'replace'
+                }
+              </call>
+
+            </iterate>
 
             <call function="'testStep'">
               { 'stepMessage' : 'Restart the primary remote ldap server.' }
@@ -1624,21 +1722,27 @@
             </call>
 
             <call function="'testStep'">
-              { 'stepMessage' : 'Third search users entry as self.' }
+              { 'stepMessage' : 'Third search users entries as self.' }
             </call>
 
-            <call function="'ldapSearchWithScript'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : remotePTAuserName,
-                'dsInstancePswd'  : remotePTAuserPSWD ,
-                'dsBaseDN'        : remotePTAuserName ,
-                'dsFilter'        : 'objectclass=*'
-              }
-            </call>
+            <iterate var="remotePTAuserName"
+                     in="remotePTAuserDict.keys()" 
+                     indexvar="usernum">
+              
+              <call function="'ldapSearchWithScript'">
+                { 'location'        : local_ldap_server.getHostname(),
+                  'dsPath'                 : '%s/%s' \
+                                             % (local_ldap_server.getDir(),OPENDSNAME),
+                  'dsInstanceHost'  : local_ldap_server.getHostname() ,
+                  'dsInstancePort'  : local_ldap_server.getPort(),
+                  'dsInstanceDn'    : remotePTAuserName,
+                  'dsInstancePswd'  : remotePTAuserDict[remotePTAuserName] ,
+                  'dsBaseDN'        : remotePTAuserName ,
+                  'dsFilter'        : 'objectclass=*'
+                }
+              </call>
+
+            </iterate>
 
             <call function="'testStep'">
               { 'stepMessage' : 'Stop the secondary remote ldap server.' }
@@ -1649,21 +1753,27 @@
             </call>
 
             <call function="'testStep'">
-              { 'stepMessage' : 'Fourth search users entry as self.' }
+              { 'stepMessage' : 'Fourth search users entries as self.' }
             </call>
 
-            <call function="'ldapSearchWithScript'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : remotePTAuserName,
-                'dsInstancePswd'  : remotePTAuserPSWD ,
-                'dsBaseDN'        : remotePTAuserName ,
-                'dsFilter'        : 'objectclass=*'
-              }
-            </call>
+            <iterate var="remotePTAuserName"
+                     in="remotePTAuserDict.keys()" 
+                     indexvar="usernum">
+              
+              <call function="'ldapSearchWithScript'">
+                { 'location'        : local_ldap_server.getHostname(),
+                  'dsPath'                 : '%s/%s' \
+                                             % (local_ldap_server.getDir(),OPENDSNAME),
+                  'dsInstanceHost'  : local_ldap_server.getHostname() ,
+                  'dsInstancePort'  : local_ldap_server.getPort(),
+                  'dsInstanceDn'    : remotePTAuserName,
+                  'dsInstancePswd'  : remotePTAuserDict[remotePTAuserName] ,
+                  'dsBaseDN'        : remotePTAuserName ,
+                  'dsFilter'        : 'objectclass=*'
+                }
+              </call>
+
+            </iterate>
 
             <call function="'testStep'">
               { 'stepMessage' : 'Start the secondary remote ldap server.' }
@@ -1682,7 +1792,7 @@
           </catch>
           <finally>
             <sequence>
-              <call function="'pta_postamble1'"/>
+              <call function="'pta_postamble3'"/>
               <call function="'testCase_Postamble'"/>
             </sequence>
           </finally>

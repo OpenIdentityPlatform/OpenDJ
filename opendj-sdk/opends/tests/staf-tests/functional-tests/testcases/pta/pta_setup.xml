@@ -50,7 +50,7 @@
           <try>
 
             <sequence>
-              
+
               <call function="'testCase_Preamble'"/>
           
               <message>
@@ -86,6 +86,21 @@
                 secondaryHost     = secondary_remote_ldap_server.getHostname()
                 secondaryPort     = secondary_remote_ldap_server.getPort()
                 secondarySslPort  = secondary_remote_ldap_server.getSslPort()
+
+                remotePTAuserDict = {}
+                remotePTAuserSuffix = 'ou=People, o=example'
+  
+                # List of Remote LDAP PTA Users and Passwords              
+                remotePTAuserDict['uid=jvedder,  %s' % remotePTAuserSuffix] = 'befitting'
+                remotePTAuserDict['uid=tmorris,  %s' % remotePTAuserSuffix] = 'irrefutable'
+                remotePTAuserDict['uid=ealexand, %s' % remotePTAuserSuffix] = 'galactose'
+                remotePTAuserDict['uid=tjames,   %s' % remotePTAuserSuffix] = 'turtle'
+                remotePTAuserDict['uid=alangdon, %s' % remotePTAuserSuffix] = 'muzzle'
+                remotePTAuserDict['uid=pchassin, %s' % remotePTAuserSuffix] = 'barbital'
+                remotePTAuserDict['uid=aknutson, %s' % remotePTAuserSuffix] = 'maltose'
+                remotePTAuserDict['uid=pworrell, %s' % remotePTAuserSuffix] = 'solicitous'
+                remotePTAuserDict['uid=mtalbot,  %s' % remotePTAuserSuffix] = 'currant'
+                remotePTAuserDict['uid=bwalker,  %s' % remotePTAuserSuffix] = 'interruptible'
               </script>
 
               <!-- Get the local server store password from keystore.pin -->

@@ -115,5 +115,68 @@
       </call>
 
     </sequence>
-  </function> 
+  </function>
+  
+  <function name="pta_postamble3">
+    <function-prolog>
+      Performs postamble for multi-user PTA tests
+    </function-prolog>
+    <function-no-args />
+    <sequence>
+
+      <call function="'testStep'">
+        { 'stepMessage' : 'Delete ds-pwp-password-policy-dn from users entry.' }
+      </call>
+
+      <script>
+        ldapObject=[]
+        ldapObject.append('ds-pwp-password-policy-dn: %s' \
+                            % ldapPtaPolicyDn)
+      </script>
+
+      <iterate var="remotePTAuserName"
+               in="remotePTAuserDict.keys()" 
+               indexvar="usernum">
+              
+        <call function="'modifyAnAttribute'">
+          { 'location'        : local_ldap_server.getHostname(),
+            'dsPath'                 : '%s/%s' \
+                                       % (local_ldap_server.getDir(),OPENDSNAME),
+            'dsInstanceHost'  : local_ldap_server.getHostname() ,
+            'dsInstancePort'  : local_ldap_server.getPort(),
+            'dsInstanceDn'    : local_ldap_server.getRootDn(),
+            'dsInstancePswd'  : local_ldap_server.getRootPwd(),
+            'DNToModify'      : remotePTAuserName ,
+            'listAttributes'  : ldapObject ,
+            'changetype'      : 'delete'
+          }
+        </call>
+      
+      </iterate>
+
+      <call function="'testStep'">
+        { 'stepMessage' : 'Remove LDAP PTA Authentication Policy.' }
+      </call>
+
+      <script>
+        options=[]
+        options.append('--policy-name "%s"' % ldapPtaPolicyName)
+        dsconfigOptions=' '.join(options)
+      </script>
+
+      <call function="'dsconfig'">
+        { 'location'            : local_ldap_server.getHostname(),
+          'dsPath'              : '%s/%s' \
+                                   % (local_ldap_server.getDir(),OPENDSNAME),
+          'dsInstanceHost'      : local_ldap_server.getHostname(),
+          'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
+          'dsInstanceDn'        : local_ldap_server.getRootDn(),
+          'dsInstancePswd'      : local_ldap_server.getRootPwd(),
+          'subcommand'          : 'delete-password-policy',
+          'optionsString'       : dsconfigOptions
+        }
+      </call>
+    </sequence>
+  </function>
+
 </stax>
