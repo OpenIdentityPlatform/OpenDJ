@@ -74,8 +74,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
   // TODO: handle password policy response controls? AD?
   // TODO: custom aliveness pings
   // TODO: cache password
-  // TODO: handle idle timeouts (connection resets): implement retry logic in
-  // connection pools.
+  // TODO: improve debug logging and error messages.
 
   /**
    * A simplistic load-balancer connection factory implementation using
@@ -591,7 +590,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
      */
     private final class PooledConnection implements Connection
     {
-      private final Connection connection;
+      private Connection connection;
       private boolean connectionIsClosed = false;
 
 
@@ -622,6 +621,8 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           {
             connectionPool.offer(connection);
           }
+
+          connection = null;
           availableConnections.release();
         }
       }
@@ -639,11 +640,25 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         {
           return connection.search(baseDN, scope, filter);
         }
-        catch (final DirectoryException e)
+        catch (final DirectoryException e1)
         {
-          // Don't put the connection back in the pool if it has failed.
-          closeConnectionIfServiceError(e);
-          throw e;
+          // Fail immediately if the result indicates that the operation failed
+          // for a reason other than connection/server failure.
+          reconnectIfConnectionFailure(e1);
+
+          // The connection has failed, so retry the operation using the new
+          // connection.
+          try
+          {
+            return connection.search(baseDN, scope, filter);
+          }
+          catch (final DirectoryException e2)
+          {
+            // If the connection has failed again then give up: don't put the
+            // connection back in the pool.
+            closeIfConnectionFailure(e2);
+            throw e2;
+          }
         }
       }
 
@@ -660,29 +675,68 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         {
           connection.simpleBind(username, password);
         }
-        catch (final DirectoryException e)
+        catch (final DirectoryException e1)
         {
-          // Don't put the connection back in the pool if it has failed.
-          closeConnectionIfServiceError(e);
-          throw e;
-        }
-      }
+          // Fail immediately if the result indicates that the operation failed
+          // for a reason other than connection/server failure.
+          reconnectIfConnectionFailure(e1);
 
-
-
-      private void closeConnectionIfServiceError(final DirectoryException e)
-      {
-        if (isServiceError(e.getResultCode()))
-        {
-          if (!connectionIsClosed)
+          // The connection has failed, so retry the operation using the new
+          // connection.
+          try
           {
-            connectionIsClosed = true;
-            connection.close();
-            availableConnections.release();
+            connection.simpleBind(username, password);
+          }
+          catch (final DirectoryException e2)
+          {
+            // If the connection has failed again then give up: don't put the
+            // connection back in the pool.
+            closeIfConnectionFailure(e2);
+            throw e2;
           }
         }
       }
 
+
+
+      private void closeIfConnectionFailure(final DirectoryException e)
+          throws DirectoryException
+      {
+        if (isServiceError(e.getResultCode()))
+        {
+          connectionIsClosed = true;
+          connection.close();
+          connection = null;
+          availableConnections.release();
+        }
+      }
+
+
+
+      private void reconnectIfConnectionFailure(final DirectoryException e)
+          throws DirectoryException
+      {
+        if (!isServiceError(e.getResultCode()))
+        {
+          throw e;
+        }
+
+        // The connection has failed (e.g. idle timeout), so repeat the
+        // request on a new connection.
+        connection.close();
+        try
+        {
+          connection = factory.getConnection();
+        }
+        catch (final DirectoryException e2)
+        {
+          // Give up - the server is unreachable.
+          connectionIsClosed = true;
+          connection = null;
+          availableConnections.release();
+          throw e2;
+        }
+      }
     }
 
 
