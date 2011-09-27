@@ -14,20 +14,20 @@ MINOR_VERSION=5
 POINT_VERSION=0
 
 # The product reference site
-DOC_REFERENCE_HOME=http://www.forgerock.com/opendj.html
+DOC_REFERENCE_HOME=http://opendj.forgerock.org/
 
 # The product documentation set reference
 # wikis.forgerock.org/opendj
-DOC_REFERENCE_WIKI=https://wikis.forgerock.org/confluence/display/opendj/Home
+DOC_REFERENCE_WIKI=http://opendj.forgerock.org/docs.html
 
 # The setup document reference site
-DOC_REFERENCE_SETUP=https://wikis.forgerock.org/confluence/display/opendj/Home
+DOC_REFERENCE_SETUP=http://opendj.forgerock.org/doc/install-guide/OpenDJ-Install-Guide.html
 
 # The Quick reference guide documentation set reference
-DOC_QUICK_REFERENCE_GUIDE=https://wikis.forgerock.org/confluence/display/opendj/Home
+DOC_QUICK_REFERENCE_GUIDE=http://opendj.forgerock.org/doc/admin-guide/OpenDJ-Admin-Guide.html
 
 # The Administration Guide reference
-ADMINISTRATION_GUIDE_URL=https://wikis.forgerock.org/confluence/display/opendj/Home
+ADMINISTRATION_GUIDE_URL=http://opendj.forgerock.org/doc/admin-guide/OpenDJ-Admin-Guide/OpenDJ-Admin-Guide.html
 
 # The version qualifier string for the Directory Server.  It should be blank
 # for the first official release with a new major, minor, and point version
