@@ -171,6 +171,12 @@ cn: Barbara Maddox</screen>
   index according to the new configuration, using the
   <command>rebuild-index</command>.</para>
   
+  <tip>
+   <para>Indexes are per directory backend rather than per suffix. To maintain
+   separate indexes for different suffixes on the same directory server, put
+   the suffixes in different backends.</para>
+  </tip>
+  
   <section>
    <title>Configuring a Standard Index</title>
    
