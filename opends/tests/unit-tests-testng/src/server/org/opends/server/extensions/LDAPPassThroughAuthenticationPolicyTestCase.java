@@ -49,6 +49,7 @@ import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.LDAPPassThroughAuthenticationPolicyFactory.Connection;
 import org.opends.server.extensions.LDAPPassThroughAuthenticationPolicyFactory.ConnectionFactory;
+import org.opends.server.extensions.LDAPPassThroughAuthenticationPolicyFactory.ConnectionPool;
 import org.opends.server.extensions.LDAPPassThroughAuthenticationPolicyFactory.LDAPConnectionFactory;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Writer;
@@ -1612,8 +1613,10 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
                 "(uid=aduser)", searchResultCode));
     if (isServiceError(searchResultCode))
     {
-      // The connection will fail and be closed immediately.
+      // The connection will fail and be closed immediately, and the pool will
+      // retry on new connection.
       provider.expectEvent(new CloseEvent(ceSearch));
+      provider.expectEvent(new GetConnectionEvent(fe, searchResultCode));
     }
 
     // Obtain policy and state.
@@ -2006,6 +2009,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
             new SearchEvent(ceSearch1, "o=ad", SearchScope.WHOLE_SUBTREE,
                 "(uid=aduser)", ResultCode.UNAVAILABLE))
         .expectEvent(new CloseEvent(ceSearch1))
+        .expectEvent(new GetConnectionEvent(fe1, ResultCode.UNAVAILABLE)) // pool retry
         .expectEvent(ceSearch2)
         .expectEvent(
             new SimpleBindEvent(ceSearch2, searchBindDNString,
@@ -2021,10 +2025,12 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     // Now simulate shost1 going down as well.
 
     // phost1 will have been marked as failed and won't be retried.
-    provider.expectEvent(
-        new SearchEvent(ceSearch2, "o=ad", SearchScope.WHOLE_SUBTREE,
-            "(uid=aduser)", ResultCode.UNAVAILABLE)).expectEvent(
-        new CloseEvent(ceSearch2));
+    provider
+        .expectEvent(
+            new SearchEvent(ceSearch2, "o=ad", SearchScope.WHOLE_SUBTREE,
+                "(uid=aduser)", ResultCode.UNAVAILABLE))
+        .expectEvent(new CloseEvent(ceSearch2))
+        .expectEvent(new GetConnectionEvent(fe2, ResultCode.UNAVAILABLE)); // pool retry
 
     // Now simulate phost1 coming back and fail back to it.
 
@@ -2209,6 +2215,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
             new SearchEvent(ceSearch1, "o=ad", SearchScope.WHOLE_SUBTREE,
                 "(uid=aduser)", ResultCode.UNAVAILABLE))
         .expectEvent(new CloseEvent(ceSearch1))
+        .expectEvent(new GetConnectionEvent(fe1, ResultCode.UNAVAILABLE)) // pool retry
         .expectEvent(ceSearch2)
         .expectEvent(
             new SimpleBindEvent(ceSearch2, searchBindDNString,
@@ -2227,7 +2234,8 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     provider.expectEvent(
         new SearchEvent(ceSearch2, "o=ad", SearchScope.WHOLE_SUBTREE,
             "(uid=aduser)", ResultCode.UNAVAILABLE)).expectEvent(
-        new CloseEvent(ceSearch2));
+        new CloseEvent(ceSearch2))
+        .expectEvent(new GetConnectionEvent(fe2, ResultCode.UNAVAILABLE)); // pool retry
 
     // Now simulate phost1 coming back and fail back to it.
 
@@ -3325,8 +3333,10 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
                 : adDNString, userPassword, bindResultCode));
     if (isServiceError(bindResultCode))
     {
-      // The connection will fail and be closed immediately.
+      // The connection will fail and be closed immediately, and the pool will
+      // retry on new connection.
       provider.expectEvent(new CloseEvent(ceBind));
+      provider.expectEvent(new GetConnectionEvent(fe, bindResultCode));
     }
 
     // Connection should be cached until the policy is finalized or until the
@@ -3851,6 +3861,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
             new SearchEvent(ceSearch1, "o=ad", SearchScope.WHOLE_SUBTREE,
                 "(uid=aduser)", ResultCode.UNAVAILABLE))
         .expectEvent(new CloseEvent(ceSearch1))
+        .expectEvent(new GetConnectionEvent(fe1, ResultCode.UNAVAILABLE)) // pool retry
         .expectEvent(ceSearch2)
         .expectEvent(
             new SimpleBindEvent(ceSearch2, searchBindDNString, "searchPassword"))
@@ -3862,10 +3873,12 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
                 ResultCode.SUCCESS));
 
     // Repeat, but fail on shost1 as well, leaving no available servers.
-    provider.expectEvent(
-        new SearchEvent(ceSearch2, "o=ad", SearchScope.WHOLE_SUBTREE,
-            "(uid=aduser)", ResultCode.UNAVAILABLE)).expectEvent(
-        new CloseEvent(ceSearch2));
+    provider
+        .expectEvent(
+            new SearchEvent(ceSearch2, "o=ad", SearchScope.WHOLE_SUBTREE,
+                "(uid=aduser)", ResultCode.UNAVAILABLE))
+        .expectEvent(new CloseEvent(ceSearch2))
+        .expectEvent(new GetConnectionEvent(fe2, ResultCode.UNAVAILABLE)); // pool retry
 
     // Obtain policy and state.
     final LDAPPassThroughAuthenticationPolicyFactory factory = new LDAPPassThroughAuthenticationPolicyFactory(
@@ -4049,7 +4062,93 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-  // TODO: detect when servers come back online
+  /**
+   * Test for issue OPENDJ-290
+   * (https://bugster.forgerock.org/jira/browse/OPENDJ-290).
+   *
+   * @throws Exception
+   *           If an unexpected exception occurred.
+   */
+  @Test(enabled = true)
+  public void testIssueOPENDJ290() throws Exception
+  {
+    // Mock configuration.
+    final LDAPPassThroughAuthenticationPolicyCfg cfg = mockCfg()
+        .withPrimaryServer(phost1)
+        .withMappingPolicy(MappingPolicy.MAPPED_SEARCH)
+        .withMappedAttribute("uid").withBaseDN("o=ad");
+
+    // Create all the events.
+    final MockProvider provider = new MockProvider();
+
+    // First of all the connection factories are created.
+    final GetLDAPConnectionFactoryEvent fe1 = new GetLDAPConnectionFactoryEvent(
+        phost1, cfg);
+    provider.expectEvent(fe1);
+
+    // Get connection then bind twice creating two pooled connections.
+    final GetConnectionEvent ce1 = new GetConnectionEvent(fe1);
+    final GetConnectionEvent ce2 = new GetConnectionEvent(fe1);
+    provider
+        .expectEvent(ce1)
+        .expectEvent(
+            new SimpleBindEvent(ce1, searchBindDNString, "searchPassword"))
+        .expectEvent(ce2)
+        .expectEvent(
+            new SimpleBindEvent(ce2, searchBindDNString, "searchPassword"));
+
+    // Once two pooled connections are created, retry but this time simulate the
+    // first connection failing. The attempt should automatically retry on a new
+    // connection.
+    final GetConnectionEvent ce3 = new GetConnectionEvent(fe1);
+    provider
+        .expectEvent(
+            new SimpleBindEvent(ce1, searchBindDNString, "searchPassword",
+                ResultCode.UNAVAILABLE))
+        .expectEvent(new CloseEvent(ce1))
+        .expectEvent(ce3)
+        .expectEvent(
+            new SimpleBindEvent(ce3, searchBindDNString, "searchPassword"));
+
+    // Use a connection pool directly for this test.
+    ConnectionPool pool = new ConnectionPool(provider.getLDAPConnectionFactory(
+        "phost1", 11, cfg));
+
+    // Authenticate three times, the third time was failing because the pool
+    // would not retry the operation on a new connection.
+    ByteString username = ByteString.valueOf(searchBindDNString);
+    ByteString password = ByteString.valueOf("searchPassword");
+
+    Connection c1 = pool.getConnection();
+    c1.simpleBind(username, password);
+
+    // Don't release c1 because we want to force creation of a second connection.
+
+    Connection c2 = pool.getConnection();
+    c2.simpleBind(username, password);
+
+    // Release both the connections.
+    c1.close();
+    c2.close();
+
+    // This was failing because the pool would not retry with a new connection.
+    Connection c3 = pool.getConnection();
+    c3.simpleBind(username, password);
+    c3.close();
+
+    // There should be no more pending events.
+    provider.assertAllExpectedEventsReceived();
+
+    // Cached connections should be closed when the pool is closed.
+    provider.expectEvent(new CloseEvent(ce2));
+    provider.expectEvent(new CloseEvent(ce3));
+
+    // Tear down and check final state.
+    pool.close();
+    provider.assertAllExpectedEventsReceived();
+  }
+
+
 
   MockPolicyCfg mockCfg()
   {
