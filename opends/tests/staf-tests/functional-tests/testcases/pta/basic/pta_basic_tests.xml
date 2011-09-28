@@ -82,6 +82,9 @@
             </call>
 
             <script>
+              userDNsAndPswds={}
+              userDNsAndPswds['uid=jwallace, ou=People, dc=AD,dc=com'] = ['linear',ldapPtaPolicyName]
+
               options=[]
               options.append('--backend-name "AD"')
               options.append('--set enabled:true')
@@ -111,127 +114,11 @@
               options.append('--set mapping-policy:unmapped')
               options.append('--set secondary-remote-ldap-server:%s:%s' % (secondaryHost,secondaryPort))
               options.append('--type ldap-pass-through')
-              options.append('--policy-name "%s"' % ldapPtaPolicyName)
-              dsconfigOptions=' '.join(options)
             </script>
 
-            <call function="'dsconfig'">
-              { 'location'            : local_ldap_server.getHostname(),
-                'dsPath'              : '%s/%s' \
-                                         % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'      : local_ldap_server.getHostname(),
-                'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
-                'dsInstanceDn'        : local_ldap_server.getRootDn(),
-                'dsInstancePswd'      : local_ldap_server.getRootPwd(),
-                'subcommand'          : 'create-password-policy',
-                'optionsString'       : dsconfigOptions
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Read back the "authentication policy" object.' }
-            </call>
-
-            <script>
-              options=[]
-              options.append('--policy-name "%s"' % ldapPtaPolicyName)
-              dsconfigOptions=' '.join(options)
-            </script>
-
-            <call function="'dsconfig'">
-              { 'location'            : local_ldap_server.getHostname(),
-                'dsPath'              : '%s/%s' \
-                                         % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'      : local_ldap_server.getHostname(),
-                'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
-                'dsInstanceDn'        : local_ldap_server.getRootDn(),
-                'dsInstancePswd'      : local_ldap_server.getRootPwd(),
-                'subcommand'          : 'get-password-policy-prop',
-                'optionsString'       : dsconfigOptions
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Add ds-pwp-password-policy-dn to users entry.' }
-            </call>
-
-            <script>
-              remotePTAuserName='uid=jwallace, ou=People, dc=AD,dc=com'
-              remotePTAuserPSWD='linear'
-              ldapObject=[]
-              ldapObject.append('ds-pwp-password-policy-dn: %s' \
-                                  % ldapPtaPolicyDn)
-           </script>
-
-            <call function="'modifyAnAttribute'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : local_ldap_server.getRootDn(),
-                'dsInstancePswd'  : local_ldap_server.getRootPwd(),
-                'DNToModify'      : remotePTAuserName ,
-                'listAttributes'  : ldapObject ,
-                'changetype'      : 'add'
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Search users entry as Directory Manager for operational attributes.' }
-            </call>
-
-            <call function="'ldapSearchWithScript'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : local_ldap_server.getRootDn(),
-                'dsInstancePswd'  : local_ldap_server.getRootPwd(),
-                'dsBaseDN'        : remotePTAuserName ,
-                'dsFilter'        : 'objectclass=*' ,
-                'dsAttributes'    : '+'
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Search users entry as self.' }
-            </call>
-
-            <call function="'ldapSearchWithScript'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : remotePTAuserName,
-                'dsInstancePswd'  : remotePTAuserPSWD ,
-                'dsBaseDN'        : remotePTAuserName ,
-                'dsFilter'        : 'objectclass=*'
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Modify the users entry.' }
-            </call>
-
-            <script>
-              ldapObject=[]
-              ldapObject.append('description: i am now a remote LDAP PTA user')
-           </script>
-
-            <call function="'modifyAnAttribute'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : remotePTAuserName,
-                'dsInstancePswd'  : remotePTAuserPSWD,
-                'DNToModify'      : remotePTAuserName ,
-                'listAttributes'  : ldapObject ,
-                'changetype'      : 'replace'
+            <call function="'pta_test_body1'">
+              { 'userNamePswd'       : userDNsAndPswds ,
+                'dsconfigAuthPolicy' : options
               }
             </call>
                         
@@ -244,7 +131,9 @@
           </catch>
           <finally>
             <sequence>
-              <call function="'pta_postamble1'"/>
+              <call function="'pta_postamble1'">
+                { 'userNamePswd' : userDNsAndPswds }
+              </call>
               <call function="'pta_postamble2'"/>
               <call function="'testCase_Postamble'"/>
             </sequence>
@@ -280,137 +169,24 @@
             </message>
 
             <call function="'testStep'">
-              { 'stepMessage' : 'onfigure LDAP PTA Policy for mapped-bind.' }
+              { 'stepMessage' : 'Configure LDAP PTA Policy for mapped-bind.' }
             </call>
 
             <script>
+              userDNsAndPswds={}
+              userDNsAndPswds['uid=jmcFarla, ou=People, o=example'] = ['walnut',ldapPtaPolicyName]
+
               options=[]
               options.append('--set primary-remote-ldap-server:%s:%s' % (primaryHost,primaryPort))
               options.append('--set mapped-attribute:seealso')
               options.append('--set mapping-policy:mapped-bind')
               options.append('--set secondary-remote-ldap-server:%s:%s' % (secondaryHost,secondaryPort))
               options.append('--type ldap-pass-through')
-              options.append('--policy-name "%s"' % ldapPtaPolicyName)
-              dsconfigOptions=' '.join(options)
             </script>
 
-            <call function="'dsconfig'">
-              { 'location'            : local_ldap_server.getHostname(),
-                'dsPath'              : '%s/%s' \
-                                         % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'      : local_ldap_server.getHostname(),
-                'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
-                'dsInstanceDn'        : local_ldap_server.getRootDn(),
-                'dsInstancePswd'      : local_ldap_server.getRootPwd(),
-                'subcommand'          : 'create-password-policy',
-                'optionsString'       : dsconfigOptions
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Read back the "authentication policy" object.' }
-            </call>
-
-            <script>
-              options=[]
-              options.append('--policy-name "%s"' % ldapPtaPolicyName)
-              dsconfigOptions=' '.join(options)
-            </script>
-
-            <call function="'dsconfig'">
-              { 'location'            : local_ldap_server.getHostname(),
-                'dsPath'              : '%s/%s' \
-                                         % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'      : local_ldap_server.getHostname(),
-                'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
-                'dsInstanceDn'        : local_ldap_server.getRootDn(),
-                'dsInstancePswd'      : local_ldap_server.getRootPwd(),
-                'subcommand'          : 'get-password-policy-prop',
-                'optionsString'       : dsconfigOptions
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Add ds-pwp-password-policy-dn to users entry.' }
-            </call>
-
-            <script>
-              remotePTAuserName='uid=jmcFarla, ou=People, o=example'
-              remotePTAuserPSWD='walnut'
-              ldapObject=[]
-              ldapObject.append('ds-pwp-password-policy-dn: %s' \
-                                  % ldapPtaPolicyDn)
-           </script>
-
-            <call function="'modifyAnAttribute'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : local_ldap_server.getRootDn(),
-                'dsInstancePswd'  : local_ldap_server.getRootPwd(),
-                'DNToModify'      : remotePTAuserName ,
-                'listAttributes'  : ldapObject ,
-                'changetype'      : 'add'
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Search users entry as Directory Manager for operational attributes.' }
-            </call>
-
-            <call function="'ldapSearchWithScript'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : local_ldap_server.getRootDn(),
-                'dsInstancePswd'  : local_ldap_server.getRootPwd(),
-                'dsBaseDN'        : remotePTAuserName ,
-                'dsFilter'        : 'objectclass=*' ,
-                'dsAttributes'    : '+'
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Search users entry as self.' }
-            </call>
-
-            <call function="'ldapSearchWithScript'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : remotePTAuserName,
-                'dsInstancePswd'  : remotePTAuserPSWD ,
-                'dsBaseDN'        : remotePTAuserName ,
-                'dsFilter'        : 'objectclass=*'
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Modify the users entry.' }
-            </call>
-
-            <script>
-              ldapObject=[]
-              ldapObject.append('description: i am now a remote LDAP PTA user')
-           </script>
-
-            <call function="'modifyAnAttribute'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : remotePTAuserName,
-                'dsInstancePswd'  : remotePTAuserPSWD,
-                'DNToModify'      : remotePTAuserName ,
-                'listAttributes'  : ldapObject ,
-                'changetype'      : 'replace'
+            <call function="'pta_test_body1'">
+              { 'userNamePswd'       : userDNsAndPswds ,
+                'dsconfigAuthPolicy' : options
               }
             </call>
                         
@@ -423,7 +199,9 @@
           </catch>
           <finally>
             <sequence>
-              <call function="'pta_postamble1'"/>
+              <call function="'pta_postamble1'">
+                { 'userNamePswd' : userDNsAndPswds }
+              </call>
               <call function="'testCase_Postamble'"/>
             </sequence>
           </finally>
@@ -462,6 +240,9 @@
             </call>
 
             <script>
+              userDNsAndPswds={}
+              userDNsAndPswds['uid=jvedder, ou=People, o=example'] = ['befitting',ldapPtaPolicyName]
+
               options=[]
               options.append('--set primary-remote-ldap-server:%s:%s' % (primaryHost,primaryPort))
               options.append('--set mapped-attribute:cn')
@@ -469,127 +250,11 @@
               options.append('--set mapping-policy:mapped-search')
               options.append('--set secondary-remote-ldap-server:%s:%s' % (secondaryHost,secondaryPort))
               options.append('--type ldap-pass-through')
-              options.append('--policy-name "%s"' % ldapPtaPolicyName)
-              dsconfigOptions=' '.join(options)
             </script>
 
-            <call function="'dsconfig'">
-              { 'location'            : local_ldap_server.getHostname(),
-                'dsPath'              : '%s/%s' \
-                                         % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'      : local_ldap_server.getHostname(),
-                'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
-                'dsInstanceDn'        : local_ldap_server.getRootDn(),
-                'dsInstancePswd'      : local_ldap_server.getRootPwd(),
-                'subcommand'          : 'create-password-policy',
-                'optionsString'       : dsconfigOptions
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Read back the "authentication policy" object.' }
-            </call>
-
-            <script>
-              options=[]
-              options.append('--policy-name "%s"' % ldapPtaPolicyName)
-              dsconfigOptions=' '.join(options)
-            </script>
-
-            <call function="'dsconfig'">
-              { 'location'            : local_ldap_server.getHostname(),
-                'dsPath'              : '%s/%s' \
-                                         % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'      : local_ldap_server.getHostname(),
-                'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
-                'dsInstanceDn'        : local_ldap_server.getRootDn(),
-                'dsInstancePswd'      : local_ldap_server.getRootPwd(),
-                'subcommand'          : 'get-password-policy-prop',
-                'optionsString'       : dsconfigOptions
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Add ds-pwp-password-policy-dn to users entry.' }
-            </call>
-
-            <script>
-              remotePTAuserName='uid=jvedder, ou=People, o=example'
-              remotePTAuserPSWD='befitting'
-              ldapObject=[]
-              ldapObject.append('ds-pwp-password-policy-dn: %s' \
-                                  % ldapPtaPolicyDn)
-           </script>
-
-            <call function="'modifyAnAttribute'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : local_ldap_server.getRootDn(),
-                'dsInstancePswd'  : local_ldap_server.getRootPwd(),
-                'DNToModify'      : remotePTAuserName ,
-                'listAttributes'  : ldapObject ,
-                'changetype'      : 'add'
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Search users entry as Directory Manager for operational attributes.' }
-            </call>
-
-            <call function="'ldapSearchWithScript'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : local_ldap_server.getRootDn(),
-                'dsInstancePswd'  : local_ldap_server.getRootPwd(),
-                'dsBaseDN'        : remotePTAuserName ,
-                'dsFilter'        : 'objectclass=*' ,
-                'dsAttributes'    : '+'
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Search users entry as self.' }
-            </call>
-
-            <call function="'ldapSearchWithScript'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : remotePTAuserName,
-                'dsInstancePswd'  : remotePTAuserPSWD ,
-                'dsBaseDN'        : remotePTAuserName ,
-                'dsFilter'        : 'objectclass=*'
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Modify the users entry.' }
-            </call>
-
-            <script>
-              ldapObject=[]
-              ldapObject.append('description: i am now a remote LDAP PTA user')
-           </script>
-
-            <call function="'modifyAnAttribute'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : remotePTAuserName,
-                'dsInstancePswd'  : remotePTAuserPSWD,
-                'DNToModify'      : remotePTAuserName ,
-                'listAttributes'  : ldapObject ,
-                'changetype'      : 'replace'
+            <call function="'pta_test_body1'">
+              { 'userNamePswd'       : userDNsAndPswds ,
+                'dsconfigAuthPolicy' : options
               }
             </call>
    
@@ -602,7 +267,9 @@
           </catch>
           <finally>
             <sequence>
-              <call function="'pta_postamble1'"/>
+              <call function="'pta_postamble1'">
+                { 'userNamePswd' : userDNsAndPswds }
+              </call>
               <call function="'testCase_Postamble'"/>
             </sequence>
           </finally>
@@ -641,6 +308,9 @@
             </call>
 
             <script>
+              userDNsAndPswds={}
+              userDNsAndPswds['uid=jvedder, ou=People, o=example'] = ['befitting',ldapPtaPolicyName]
+
               options=[]
               options.append('--set primary-remote-ldap-server:%s:%s' % (primaryHost,primaryPort))
               options.append('--set mapped-attribute:cn')
@@ -650,127 +320,11 @@
               options.append('--set mapping-policy:mapped-search')
               options.append('--set secondary-remote-ldap-server:%s:%s' % (secondaryHost,secondaryPort))
               options.append('--type ldap-pass-through')
-              options.append('--policy-name "%s"' % ldapPtaPolicyName)
-              dsconfigOptions=' '.join(options)
             </script>
 
-            <call function="'dsconfig'">
-              { 'location'            : local_ldap_server.getHostname(),
-                'dsPath'              : '%s/%s' \
-                                         % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'      : local_ldap_server.getHostname(),
-                'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
-                'dsInstanceDn'        : local_ldap_server.getRootDn(),
-                'dsInstancePswd'      : local_ldap_server.getRootPwd(),
-                'subcommand'          : 'create-password-policy',
-                'optionsString'       : dsconfigOptions
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Read back the "authentication policy" object.' }
-            </call>
-
-            <script>
-              options=[]
-              options.append('--policy-name "%s"' % ldapPtaPolicyName)
-              dsconfigOptions=' '.join(options)
-            </script>
-
-            <call function="'dsconfig'">
-              { 'location'            : local_ldap_server.getHostname(),
-                'dsPath'              : '%s/%s' \
-                                         % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'      : local_ldap_server.getHostname(),
-                'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
-                'dsInstanceDn'        : local_ldap_server.getRootDn(),
-                'dsInstancePswd'      : local_ldap_server.getRootPwd(),
-                'subcommand'          : 'get-password-policy-prop',
-                'optionsString'       : dsconfigOptions
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Add ds-pwp-password-policy-dn to users entry.' }
-            </call>
-
-            <script>
-              remotePTAuserName='uid=jvedder, ou=People, o=example'
-              remotePTAuserPSWD='befitting'
-              ldapObject=[]
-              ldapObject.append('ds-pwp-password-policy-dn: %s' \
-                                  % ldapPtaPolicyDn)
-           </script>
-
-            <call function="'modifyAnAttribute'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : local_ldap_server.getRootDn(),
-                'dsInstancePswd'  : local_ldap_server.getRootPwd(),
-                'DNToModify'      : remotePTAuserName ,
-                'listAttributes'  : ldapObject ,
-                'changetype'      : 'add'
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Search users entry as Directory Manager for operational attributes.' }
-            </call>
-
-            <call function="'ldapSearchWithScript'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : local_ldap_server.getRootDn(),
-                'dsInstancePswd'  : local_ldap_server.getRootPwd(),
-                'dsBaseDN'        : remotePTAuserName ,
-                'dsFilter'        : 'objectclass=*' ,
-                'dsAttributes'    : '+'
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Search users entry as self.' }
-            </call>
-
-            <call function="'ldapSearchWithScript'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : remotePTAuserName,
-                'dsInstancePswd'  : remotePTAuserPSWD ,
-                'dsBaseDN'        : remotePTAuserName ,
-                'dsFilter'        : 'objectclass=*'
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Modify the users entry.' }
-            </call>
-
-            <script>
-              ldapObject=[]
-              ldapObject.append('description: i am now a remote LDAP PTA user')
-           </script>
-
-            <call function="'modifyAnAttribute'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : remotePTAuserName,
-                'dsInstancePswd'  : remotePTAuserPSWD,
-                'DNToModify'      : remotePTAuserName ,
-                'listAttributes'  : ldapObject ,
-                'changetype'      : 'replace'
+            <call function="'pta_test_body1'">
+              { 'userNamePswd'       : userDNsAndPswds ,
+                'dsconfigAuthPolicy' : options
               }
             </call>
 
@@ -783,7 +337,9 @@
           </catch>
           <finally>
             <sequence>
-              <call function="'pta_postamble1'"/>
+              <call function="'pta_postamble1'">
+                { 'userNamePswd' : userDNsAndPswds }
+              </call>
               <call function="'testCase_Postamble'"/>
             </sequence>
           </finally>
@@ -841,6 +397,9 @@
             </call>
 
             <script>
+              userDNsAndPswds={}
+              userDNsAndPswds['uid=jvedder, ou=People, o=example'] = ['befitting',ldapPtaPolicyName]
+
               options=[]
               options.append('--set primary-remote-ldap-server:%s:%s' % (primaryHost,primaryPort))
               options.append('--set mapped-attribute:cn')
@@ -850,127 +409,11 @@
               options.append('--set mapping-policy:mapped-search')
               options.append('--set secondary-remote-ldap-server:%s:%s' % (secondaryHost,secondaryPort))
               options.append('--type ldap-pass-through')
-              options.append('--policy-name "%s"' % ldapPtaPolicyName)
-              dsconfigOptions=' '.join(options)
             </script>
 
-            <call function="'dsconfig'">
-              { 'location'            : local_ldap_server.getHostname(),
-                'dsPath'              : '%s/%s' \
-                                         % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'      : local_ldap_server.getHostname(),
-                'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
-                'dsInstanceDn'        : local_ldap_server.getRootDn(),
-                'dsInstancePswd'      : local_ldap_server.getRootPwd(),
-                'subcommand'          : 'create-password-policy',
-                'optionsString'       : dsconfigOptions
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Read back the "authentication policy" object.' }
-            </call>
-
-            <script>
-              options=[]
-              options.append('--policy-name "%s"' % ldapPtaPolicyName)
-              dsconfigOptions=' '.join(options)
-            </script>
-
-            <call function="'dsconfig'">
-              { 'location'            : local_ldap_server.getHostname(),
-                'dsPath'              : '%s/%s' \
-                                         % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'      : local_ldap_server.getHostname(),
-                'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
-                'dsInstanceDn'        : local_ldap_server.getRootDn(),
-                'dsInstancePswd'      : local_ldap_server.getRootPwd(),
-                'subcommand'          : 'get-password-policy-prop',
-                'optionsString'       : dsconfigOptions
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Add ds-pwp-password-policy-dn to users entry.' }
-            </call>
-
-            <script>
-              remotePTAuserName='uid=jvedder, ou=People, o=example'
-              remotePTAuserPSWD='befitting'
-              ldapObject=[]
-              ldapObject.append('ds-pwp-password-policy-dn: %s' \
-                                  % ldapPtaPolicyDn)
-           </script>
-
-            <call function="'modifyAnAttribute'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : local_ldap_server.getRootDn(),
-                'dsInstancePswd'  : local_ldap_server.getRootPwd(),
-                'DNToModify'      : remotePTAuserName ,
-                'listAttributes'  : ldapObject ,
-                'changetype'      : 'add'
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Search users entry as Directory Manager for operational attributes.' }
-            </call>
-
-            <call function="'ldapSearchWithScript'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : local_ldap_server.getRootDn(),
-                'dsInstancePswd'  : local_ldap_server.getRootPwd(),
-                'dsBaseDN'        : remotePTAuserName ,
-                'dsFilter'        : 'objectclass=*' ,
-                'dsAttributes'    : '+'
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Search users entry as self.' }
-            </call>
-
-            <call function="'ldapSearchWithScript'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : remotePTAuserName,
-                'dsInstancePswd'  : remotePTAuserPSWD ,
-                'dsBaseDN'        : remotePTAuserName ,
-                'dsFilter'        : 'objectclass=*'
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Modify the users entry.' }
-            </call>
-
-            <script>
-              ldapObject=[]
-              ldapObject.append('description: i am now a remote LDAP PTA user')
-           </script>
-
-            <call function="'modifyAnAttribute'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : remotePTAuserName,
-                'dsInstancePswd'  : remotePTAuserPSWD,
-                'DNToModify'      : remotePTAuserName ,
-                'listAttributes'  : ldapObject ,
-                'changetype'      : 'replace'
+            <call function="'pta_test_body1'">
+              { 'userNamePswd'       : userDNsAndPswds ,
+                'dsconfigAuthPolicy' : options
               }
             </call>
 
@@ -983,7 +426,9 @@
           </catch>
           <finally>
             <sequence>
-              <call function="'pta_postamble1'"/>
+             <call function="'pta_postamble1'">
+                { 'userNamePswd' : userDNsAndPswds }
+              </call>
               <call function="'testCase_Postamble'"/>
             </sequence>
           </finally>
@@ -1040,7 +485,10 @@
               { 'stepMessage' : 'Configure LDAP PTA Policy for anon mapped-search over ssl.' }
             </call>
 
-            <script>
+            <script>              
+              userDNsAndPswds={}
+              userDNsAndPswds['uid=jvedder, ou=People, o=example'] = ['befitting',ldapPtaPolicyName]
+
               options=[]
               options.append('--set primary-remote-ldap-server:%s:%s' % (primaryHost,primarySslPort))
               options.append('--set mapped-attribute:cn')
@@ -1050,127 +498,11 @@
               options.append('--set trust-manager-provider:JKS')
               options.append('--set use-ssl:true')
               options.append('--type ldap-pass-through')
-              options.append('--policy-name "%s"' % ldapPtaPolicyName)
-              dsconfigOptions=' '.join(options)
             </script>
 
-            <call function="'dsconfig'">
-              { 'location'            : local_ldap_server.getHostname(),
-                'dsPath'              : '%s/%s' \
-                                         % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'      : local_ldap_server.getHostname(),
-                'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
-                'dsInstanceDn'        : local_ldap_server.getRootDn(),
-                'dsInstancePswd'      : local_ldap_server.getRootPwd(),
-                'subcommand'          : 'create-password-policy',
-                'optionsString'       : dsconfigOptions
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Read back the "authentication policy" object.' }
-            </call>
-
-            <script>
-              options=[]
-              options.append('--policy-name "%s"' % ldapPtaPolicyName)
-              dsconfigOptions=' '.join(options)
-            </script>
-
-            <call function="'dsconfig'">
-              { 'location'            : local_ldap_server.getHostname(),
-                'dsPath'              : '%s/%s' \
-                                         % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'      : local_ldap_server.getHostname(),
-                'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
-                'dsInstanceDn'        : local_ldap_server.getRootDn(),
-                'dsInstancePswd'      : local_ldap_server.getRootPwd(),
-                'subcommand'          : 'get-password-policy-prop',
-                'optionsString'       : dsconfigOptions
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Add ds-pwp-password-policy-dn to users entry.' }
-            </call>
-
-            <script>
-              remotePTAuserName='uid=jvedder, ou=People, o=example'
-              remotePTAuserPSWD='befitting'
-              ldapObject=[]
-              ldapObject.append('ds-pwp-password-policy-dn: %s' \
-                                  % ldapPtaPolicyDn)
-           </script>
-
-            <call function="'modifyAnAttribute'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : local_ldap_server.getRootDn(),
-                'dsInstancePswd'  : local_ldap_server.getRootPwd(),
-                'DNToModify'      : remotePTAuserName ,
-                'listAttributes'  : ldapObject ,
-                'changetype'      : 'add'
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Search users entry as Directory Manager for operational attributes.' }
-            </call>
-
-            <call function="'ldapSearchWithScript'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : local_ldap_server.getRootDn(),
-                'dsInstancePswd'  : local_ldap_server.getRootPwd(),
-                'dsBaseDN'        : remotePTAuserName ,
-                'dsFilter'        : 'objectclass=*' ,
-                'dsAttributes'    : '+'
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Search users entry as self.' }
-            </call>
-
-            <call function="'ldapSearchWithScript'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : remotePTAuserName,
-                'dsInstancePswd'  : remotePTAuserPSWD ,
-                'dsBaseDN'        : remotePTAuserName ,
-                'dsFilter'        : 'objectclass=*'
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Modify the users entry.' }
-            </call>
-
-            <script>
-              ldapObject=[]
-              ldapObject.append('description: i am now a remote LDAP PTA user')
-           </script>
-
-            <call function="'modifyAnAttribute'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : remotePTAuserName,
-                'dsInstancePswd'  : remotePTAuserPSWD,
-                'DNToModify'      : remotePTAuserName ,
-                'listAttributes'  : ldapObject ,
-                'changetype'      : 'replace'
+            <call function="'pta_test_body1'">
+              { 'userNamePswd'       : userDNsAndPswds ,
+                'dsconfigAuthPolicy' : options
               }
             </call>
    
@@ -1183,7 +515,9 @@
           </catch>
           <finally>
             <sequence>
-              <call function="'pta_postamble1'"/>
+              <call function="'pta_postamble1'">
+                { 'userNamePswd' : userDNsAndPswds }
+              </call>
               <call function="'testCase_Postamble'"/>
             </sequence>
           </finally>
@@ -1222,6 +556,9 @@
             </call>
 
             <script>
+              userDNsAndPswds={}
+              userDNsAndPswds['uid=jvedder, ou=People, o=example'] = ['befitting',ldapPtaPolicyName]
+
               options=[]
               options.append('--set primary-remote-ldap-server:%s:%s' % (primaryHost,primarySslPort))
               options.append('--set mapped-attribute:cn')
@@ -1233,127 +570,11 @@
               options.append('--set trust-manager-provider:JKS')
               options.append('--set use-ssl:true')
               options.append('--type ldap-pass-through')
-              options.append('--policy-name "%s"' % ldapPtaPolicyName)
-              dsconfigOptions=' '.join(options)
             </script>
 
-            <call function="'dsconfig'">
-              { 'location'            : local_ldap_server.getHostname(),
-                'dsPath'              : '%s/%s' \
-                                         % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'      : local_ldap_server.getHostname(),
-                'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
-                'dsInstanceDn'        : local_ldap_server.getRootDn(),
-                'dsInstancePswd'      : local_ldap_server.getRootPwd(),
-                'subcommand'          : 'create-password-policy',
-                'optionsString'       : dsconfigOptions
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Read back the "authentication policy" object.' }
-            </call>
-
-            <script>
-              options=[]
-              options.append('--policy-name "%s"' % ldapPtaPolicyName)
-              dsconfigOptions=' '.join(options)
-            </script>
-
-            <call function="'dsconfig'">
-              { 'location'            : local_ldap_server.getHostname(),
-                'dsPath'              : '%s/%s' \
-                                         % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'      : local_ldap_server.getHostname(),
-                'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
-                'dsInstanceDn'        : local_ldap_server.getRootDn(),
-                'dsInstancePswd'      : local_ldap_server.getRootPwd(),
-                'subcommand'          : 'get-password-policy-prop',
-                'optionsString'       : dsconfigOptions
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Add ds-pwp-password-policy-dn to users entry.' }
-            </call>
-
-            <script>
-              remotePTAuserName='uid=jvedder, ou=People, o=example'
-              remotePTAuserPSWD='befitting'
-              ldapObject=[]
-              ldapObject.append('ds-pwp-password-policy-dn: %s' \
-                                  % ldapPtaPolicyDn)
-           </script>
-
-            <call function="'modifyAnAttribute'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : local_ldap_server.getRootDn(),
-                'dsInstancePswd'  : local_ldap_server.getRootPwd(),
-                'DNToModify'      : remotePTAuserName ,
-                'listAttributes'  : ldapObject ,
-                'changetype'      : 'add'
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Search users entry as Directory Manager for operational attributes.' }
-            </call>
-
-            <call function="'ldapSearchWithScript'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : local_ldap_server.getRootDn(),
-                'dsInstancePswd'  : local_ldap_server.getRootPwd(),
-                'dsBaseDN'        : remotePTAuserName ,
-                'dsFilter'        : 'objectclass=*' ,
-                'dsAttributes'    : '+'
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Search users entry as self.' }
-            </call>
-
-            <call function="'ldapSearchWithScript'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : remotePTAuserName,
-                'dsInstancePswd'  : remotePTAuserPSWD ,
-                'dsBaseDN'        : remotePTAuserName ,
-                'dsFilter'        : 'objectclass=*'
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Modify the users entry.' }
-            </call>
-
-            <script>
-              ldapObject=[]
-              ldapObject.append('description: i am now a remote LDAP PTA user')
-           </script>
-
-            <call function="'modifyAnAttribute'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : remotePTAuserName,
-                'dsInstancePswd'  : remotePTAuserPSWD,
-                'DNToModify'      : remotePTAuserName ,
-                'listAttributes'  : ldapObject ,
-                'changetype'      : 'replace'
+            <call function="'pta_test_body1'">
+              { 'userNamePswd'       : userDNsAndPswds ,
+                'dsconfigAuthPolicy' : options
               }
             </call>
    
@@ -1366,7 +587,9 @@
           </catch>
           <finally>
             <sequence>
-              <call function="'pta_postamble1'"/>
+             <call function="'pta_postamble1'">
+                { 'userNamePswd' : userDNsAndPswds }
+              </call>
               <call function="'testCase_Postamble'"/>
             </sequence>
           </finally>
@@ -1376,8 +599,8 @@
   </function>
 
   <!--- Test Case information
-  #@TestMarker          Basic: PTA failover
-  #@TestName            Basic: PTA failover
+  #@TestMarker          Basic: PTA simple failover
+  #@TestName            Basic: PTA simple failover
   #@TestID              basic_pta_011
   #@TestPurpose         Verify user with a LDAP PTA policy can failover to secondary server
   #@TestPreamble        Setup PTA
@@ -1412,6 +635,9 @@
             </call>
 
             <script>
+              userDNsAndPswds={}
+              userDNsAndPswds['uid=jvedder, ou=People, o=example'] = ['befitting',ldapPtaPolicyName]
+
               options=[]
               options.append('--set primary-remote-ldap-server:%s:%s' % (primaryHost,primaryPort))
               options.append('--set mapped-attribute:cn')
@@ -1421,271 +647,16 @@
               options.append('--set mapping-policy:mapped-search')
               options.append('--set secondary-remote-ldap-server:%s:%s' % (secondaryHost,secondaryPort))
               options.append('--type ldap-pass-through')
-              options.append('--policy-name "%s"' % ldapPtaPolicyName)
-              dsconfigOptions=' '.join(options)
             </script>
 
-            <call function="'dsconfig'">
-              { 'location'            : local_ldap_server.getHostname(),
-                'dsPath'              : '%s/%s' \
-                                         % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'      : local_ldap_server.getHostname(),
-                'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
-                'dsInstanceDn'        : local_ldap_server.getRootDn(),
-                'dsInstancePswd'      : local_ldap_server.getRootPwd(),
-                'subcommand'          : 'create-password-policy',
-                'optionsString'       : dsconfigOptions
+            <call function="'pta_test_body1'">
+              { 'userNamePswd'       : userDNsAndPswds ,
+                'dsconfigAuthPolicy' : options
               }
             </call>
 
-            <call function="'testStep'">
-              { 'stepMessage' : 'Read back the "authentication policy" object.' }
-            </call>
-
-            <script>
-              options=[]
-              options.append('--policy-name "%s"' % ldapPtaPolicyName)
-              dsconfigOptions=' '.join(options)
-            </script>
-
-            <call function="'dsconfig'">
-              { 'location'            : local_ldap_server.getHostname(),
-                'dsPath'              : '%s/%s' \
-                                         % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'      : local_ldap_server.getHostname(),
-                'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
-                'dsInstanceDn'        : local_ldap_server.getRootDn(),
-                'dsInstancePswd'      : local_ldap_server.getRootPwd(),
-                'subcommand'          : 'get-password-policy-prop',
-                'optionsString'       : dsconfigOptions
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Add ds-pwp-password-policy-dn to users entries.' }
-            </call>
-
-            <call function="'ldapSearchWithScript'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : local_ldap_server.getRootDn(),
-                'dsInstancePswd'  : local_ldap_server.getRootPwd(),
-                'dsBaseDN'        : 'cn=PTA Remote Users,ou=groups,o=example' ,
-                'dsScope'         : 'base' ,
-                'dsFilter'        : 'objectclass=*' ,
-                'dsAttributes'    : 'uniquemember'
-              }
-            </call>
-            
-            <message>
-              'Result= %s' % STAXResult
-            </message>
-
-            <script>
-              ldapObject=[]
-              ldapObject.append('ds-pwp-password-policy-dn: %s' \
-                                  % ldapPtaPolicyDn)
-           </script>
-
-            <iterate var="remotePTAuserName"
-                     in="remotePTAuserDict.keys()" 
-                     indexvar="usernum">
-
-              <call function="'modifyAnAttribute'">
-                { 'location'        : local_ldap_server.getHostname(),
-                  'dsPath'                 : '%s/%s' \
-                                             % (local_ldap_server.getDir(),OPENDSNAME),
-                  'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                  'dsInstancePort'  : local_ldap_server.getPort(),
-                  'dsInstanceDn'    : local_ldap_server.getRootDn(),
-                  'dsInstancePswd'  : local_ldap_server.getRootPwd(),
-                  'DNToModify'      : remotePTAuserName ,
-                  'listAttributes'  : ldapObject ,
-                  'changetype'      : 'add'
-                }
-              </call>
-
-            </iterate>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Search users entries as Directory Manager for ds-pwp-password-policy-dn.' }
-            </call>
-
-            <call function="'ldapSearchWithScript'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : local_ldap_server.getRootDn(),
-                'dsInstancePswd'  : local_ldap_server.getRootPwd(),
-                'dsBaseDN'        : remotePTAuserSuffix ,
-                'dsFilter'        : 'objectclass=*' ,
-                'dsAttributes'    : 'ds-pwp-password-policy-dn'
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'First search users entries as self.' }
-            </call>
-
-            <iterate var="remotePTAuserName"
-                     in="remotePTAuserDict.keys()" 
-                     indexvar="usernum">
-              
-              <call function="'ldapSearchWithScript'">
-                { 'location'        : local_ldap_server.getHostname(),
-                  'dsPath'                 : '%s/%s' \
-                                             % (local_ldap_server.getDir(),OPENDSNAME),
-                  'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                  'dsInstancePort'  : local_ldap_server.getPort(),
-                  'dsInstanceDn'    : remotePTAuserName,
-                  'dsInstancePswd'  : remotePTAuserDict[remotePTAuserName] ,
-                  'dsBaseDN'        : remotePTAuserName ,
-                  'dsFilter'        : 'objectclass=*'
-                }
-              </call>
-
-            </iterate>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Stop the primary remote ldap server.' }
-            </call>
-
-            <call function="'stopServers'">
-              [[primary_remote_ldap_server]]
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Second search users entries as self.' }
-            </call>
-
-            <iterate var="remotePTAuserName"
-                     in="remotePTAuserDict.keys()" 
-                     indexvar="usernum">
-              
-              <call function="'ldapSearchWithScript'">
-                { 'location'        : local_ldap_server.getHostname(),
-                  'dsPath'                 : '%s/%s' \
-                                             % (local_ldap_server.getDir(),OPENDSNAME),
-                  'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                  'dsInstancePort'  : local_ldap_server.getPort(),
-                  'dsInstanceDn'    : remotePTAuserName,
-                  'dsInstancePswd'  : remotePTAuserDict[remotePTAuserName] ,
-                  'dsBaseDN'        : remotePTAuserName ,
-                  'dsFilter'        : 'objectclass=*'
-                }
-              </call>
-
-            </iterate>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Modify the users entries.' }
-            </call>
-
-            <script>
-              ldapObject=[]
-              ldapObject.append('description: i am now a remote LDAP PTA user')
-           </script>
-
-            <iterate var="remotePTAuserName"
-                     in="remotePTAuserDict.keys()" 
-                     indexvar="usernum">
-
-              <call function="'modifyAnAttribute'">
-                { 'location'        : local_ldap_server.getHostname(),
-                  'dsPath'                 : '%s/%s' \
-                                             % (local_ldap_server.getDir(),OPENDSNAME),
-                  'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                  'dsInstancePort'  : local_ldap_server.getPort(),
-                  'dsInstanceDn'    : remotePTAuserName,
-                  'dsInstancePswd'  : remotePTAuserDict[remotePTAuserName],
-                  'DNToModify'      : remotePTAuserName ,
-                  'listAttributes'  : ldapObject ,
-                  'changetype'      : 'replace'
-                }
-              </call>
-
-            </iterate>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Restart the primary remote ldap server.' }
-            </call>
-
-            <call function="'startServers'">
-              [[primary_remote_ldap_server]]
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Wait for monitor heartbeat to primary remote ldap server.' }
-            </call>
-            <call function="'Sleep'">
-              { 'sleepForMilliSeconds' : '5000' }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Third search users entries as self.' }
-            </call>
-
-            <iterate var="remotePTAuserName"
-                     in="remotePTAuserDict.keys()" 
-                     indexvar="usernum">
-              
-              <call function="'ldapSearchWithScript'">
-                { 'location'        : local_ldap_server.getHostname(),
-                  'dsPath'                 : '%s/%s' \
-                                             % (local_ldap_server.getDir(),OPENDSNAME),
-                  'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                  'dsInstancePort'  : local_ldap_server.getPort(),
-                  'dsInstanceDn'    : remotePTAuserName,
-                  'dsInstancePswd'  : remotePTAuserDict[remotePTAuserName] ,
-                  'dsBaseDN'        : remotePTAuserName ,
-                  'dsFilter'        : 'objectclass=*'
-                }
-              </call>
-
-            </iterate>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Stop the secondary remote ldap server.' }
-            </call>
-
-            <call function="'stopServers'">
-              [[secondary_remote_ldap_server]]
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Fourth search users entries as self.' }
-            </call>
-
-            <iterate var="remotePTAuserName"
-                     in="remotePTAuserDict.keys()" 
-                     indexvar="usernum">
-              
-              <call function="'ldapSearchWithScript'">
-                { 'location'        : local_ldap_server.getHostname(),
-                  'dsPath'                 : '%s/%s' \
-                                             % (local_ldap_server.getDir(),OPENDSNAME),
-                  'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                  'dsInstancePort'  : local_ldap_server.getPort(),
-                  'dsInstanceDn'    : remotePTAuserName,
-                  'dsInstancePswd'  : remotePTAuserDict[remotePTAuserName] ,
-                  'dsBaseDN'        : remotePTAuserName ,
-                  'dsFilter'        : 'objectclass=*'
-                }
-              </call>
-
-            </iterate>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Start the secondary remote ldap server.' }
-            </call>
-
-            <call function="'startServers'">
-              [[secondary_remote_ldap_server]]
+            <call function="'pta_test_body2'">
+              { 'userNamePswd'       : userDNsAndPswds }
             </call>
                
           </sequence>
@@ -1697,7 +668,9 @@
           </catch>
           <finally>
             <sequence>
-              <call function="'pta_postamble3'"/>
+              <call function="'pta_postamble1'">
+                { 'userNamePswd' : userDNsAndPswds }
+              </call>
               <call function="'testCase_Postamble'"/>
             </sequence>
           </finally>
@@ -1743,6 +716,9 @@
             </call>
 
             <script>
+              userDNsAndPswds={}
+              userDNsAndPswds['uid=jvedder, ou=People, o=example'] = ['befitting',ldapPtaPolicyName]
+
               options=[]
               options.append('--set primary-remote-ldap-server:%s:%s' % (primaryHost,primarySslPort))
               options.append('--set mapped-attribute:cn')
@@ -1754,135 +730,332 @@
               options.append('--set trust-manager-provider:JKS')
               options.append('--set use-ssl:true')
               options.append('--type ldap-pass-through')
-              options.append('--policy-name "%s"' % ldapPtaPolicyName)
-              dsconfigOptions=' '.join(options)
             </script>
 
-            <call function="'dsconfig'">
-              { 'location'            : local_ldap_server.getHostname(),
-                'dsPath'              : '%s/%s' \
-                                         % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'      : local_ldap_server.getHostname(),
-                'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
-                'dsInstanceDn'        : local_ldap_server.getRootDn(),
-                'dsInstancePswd'      : local_ldap_server.getRootPwd(),
-                'subcommand'          : 'create-password-policy',
-                'optionsString'       : dsconfigOptions
+            <call function="'pta_test_body1'">
+              { 'userNamePswd'       : userDNsAndPswds ,
+                'dsconfigAuthPolicy' : options
               }
             </call>
 
-            <call function="'testStep'">
-              { 'stepMessage' : 'Read back the "authentication policy" object.' }
+            <call function="'pta_test_body2'">
+              { 'userNamePswd'       : userDNsAndPswds }
             </call>
+               
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'pta_postamble1'">
+                { 'userNamePswd' : userDNsAndPswds }
+              </call>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
 
-            <script>
-              options=[]
-              options.append('--policy-name "%s"' % ldapPtaPolicyName)
-              dsconfigOptions=' '.join(options)
-            </script>
-
-            <call function="'dsconfig'">
-              { 'location'            : local_ldap_server.getHostname(),
-                'dsPath'              : '%s/%s' \
-                                         % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'      : local_ldap_server.getHostname(),
-                'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
-                'dsInstanceDn'        : local_ldap_server.getRootDn(),
-                'dsInstancePswd'      : local_ldap_server.getRootPwd(),
-                'subcommand'          : 'get-password-policy-prop',
-                'optionsString'       : dsconfigOptions
-              }
-            </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'Add ds-pwp-password-policy-dn to users entries.' }
-            </call>
-
-            <call function="'ldapSearchWithScript'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : local_ldap_server.getRootDn(),
-                'dsInstancePswd'  : local_ldap_server.getRootPwd(),
-                'dsBaseDN'        : 'cn=PTA Remote Users,ou=groups,o=example' ,
-                'dsScope'         : 'base' ,
-                'dsFilter'        : 'objectclass=*' ,
-                'dsAttributes'    : 'uniquemember'
-              }
-            </call>
-            
+  <!--- Test Case information
+  #@TestMarker          Basic: PTA multiple auth policies
+  #@TestName            Basic: PTA multiple auth policies
+  #@TestID              basic_pta_013
+  #@TestPurpose         Verify multiple LDAP PTA policies
+  #@TestPreamble        Setup PTA
+  #@TestStep            Configure n LDAP PTA policies using mapped-search-bind credentials
+  #@TestStep            Read back each "authentication policy" object
+  #@TestStep            Add ds-pwp-password-policy-dn to users entries
+  #@TestStep            Search users entries as Directory Manager for ds-pwp-password-policy-dn
+  #@TestStep            Search users entries as self
+  #@TestStep            Modify the users entries
+  #@TestPostamble       Cleanup PTA
+  #@TestResult          Test is successful if the result code is 0
+  -->                           
+  <function name="basic_pta_013" scope="local">
+    <testcase name="getTestCaseName('PTA multiple auth policies')">                     
+      <sequence>
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
             <message>
-              'Result= %s' % STAXResult
+               'Test Name = %s' % STAXCurrentTestcase
             </message>
 
-            <script>
-              ldapObject=[]
-              ldapObject.append('ds-pwp-password-policy-dn: %s' \
-                                  % ldapPtaPolicyDn)
-           </script>
-
-            <iterate var="remotePTAuserName"
-                     in="remotePTAuserDict.keys()" 
-                     indexvar="usernum">
-
-              <call function="'modifyAnAttribute'">
-                { 'location'        : local_ldap_server.getHostname(),
-                  'dsPath'                 : '%s/%s' \
-                                             % (local_ldap_server.getDir(),OPENDSNAME),
-                  'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                  'dsInstancePort'  : local_ldap_server.getPort(),
-                  'dsInstanceDn'    : local_ldap_server.getRootDn(),
-                  'dsInstancePswd'  : local_ldap_server.getRootPwd(),
-                  'DNToModify'      : remotePTAuserName ,
-                  'listAttributes'  : ldapObject ,
-                  'changetype'      : 'add'
-                }
-              </call>
-
-            </iterate>
-
             <call function="'testStep'">
-              { 'stepMessage' : 'Search users entries as Directory Manager for ds-pwp-password-policy-dn.' }
+              { 'stepMessage' : 'Configure LDAP PTA Policies using mapped-search-bind.' }
             </call>
 
-            <call function="'ldapSearchWithScript'">
-              { 'location'        : local_ldap_server.getHostname(),
-                'dsPath'                 : '%s/%s' \
-                                           % (local_ldap_server.getDir(),OPENDSNAME),
-                'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                'dsInstancePort'  : local_ldap_server.getPort(),
-                'dsInstanceDn'    : local_ldap_server.getRootDn(),
-                'dsInstancePswd'  : local_ldap_server.getRootPwd(),
-                'dsBaseDN'        : remotePTAuserSuffix ,
-                'dsFilter'        : 'objectclass=*' ,
-                'dsAttributes'    : 'ds-pwp-password-policy-dn'
+            <script>
+              userDNsAndPswds={}
+              userDNsAndPswds['uid=jvedder,  %s' % remotePTAuserSuffix] = ['befitting','LDAP PTA 0']
+              userDNsAndPswds['uid=tmorris,  %s' % remotePTAuserSuffix] = ['irrefutable','LDAP PTA 1']
+              userDNsAndPswds['uid=ealexand, %s' % remotePTAuserSuffix] = ['galactose','LDAP PTA 2']
+              userDNsAndPswds['uid=tjames,   %s' % remotePTAuserSuffix] = ['turtle','LDAP PTA 3']
+              userDNsAndPswds['uid=alangdon, %s' % remotePTAuserSuffix] = ['muzzle','LDAP PTA 4']
+              userDNsAndPswds['uid=pchassin, %s' % remotePTAuserSuffix] = ['barbital','LDAP PTA 5']
+              userDNsAndPswds['uid=aknutson, %s' % remotePTAuserSuffix] = ['maltose','LDAP PTA 6']
+              userDNsAndPswds['uid=pworrell, %s' % remotePTAuserSuffix] = ['solicitous','LDAP PTA 7']
+              userDNsAndPswds['uid=mtalbot,  %s' % remotePTAuserSuffix] = ['currant','LDAP PTA 8']
+              userDNsAndPswds['uid=bwalker,  %s' % remotePTAuserSuffix] = ['interruptible','LDAP PTA 9']
+
+              options=[]
+              options.append('--set primary-remote-ldap-server:%s:%s' % (primaryHost,primaryPort))
+              options.append('--set mapped-attribute:cn')
+              options.append('--set mapped-search-base-dn:dc=AD,dc=com')
+              options.append('--set mapped-search-bind-dn:"cn=Directory Manager"')
+              options.append('--set mapped-search-bind-password:secret12')
+              options.append('--set mapping-policy:mapped-search')
+              options.append('--set secondary-remote-ldap-server:%s:%s' % (secondaryHost,secondaryPort))
+              options.append('--type ldap-pass-through')
+            </script>
+                   
+            <call function="'pta_test_body1'">
+              { 'userNamePswd'       : userDNsAndPswds ,
+                'dsconfigAuthPolicy' : options
               }
             </call>
-
-            <call function="'testStep'">
-              { 'stepMessage' : 'First search users entries as self.' }
-            </call>
-
-            <iterate var="remotePTAuserName"
-                     in="remotePTAuserDict.keys()" 
-                     indexvar="usernum">
-              
-              <call function="'ldapSearchWithScript'">
-                { 'location'        : local_ldap_server.getHostname(),
-                  'dsPath'                 : '%s/%s' \
-                                             % (local_ldap_server.getDir(),OPENDSNAME),
-                  'dsInstanceHost'  : local_ldap_server.getHostname() ,
-                  'dsInstancePort'  : local_ldap_server.getPort(),
-                  'dsInstanceDn'    : remotePTAuserName,
-                  'dsInstancePswd'  : remotePTAuserDict[remotePTAuserName] ,
-                  'dsBaseDN'        : remotePTAuserName ,
-                  'dsFilter'        : 'objectclass=*'
-                }
+               
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'pta_postamble1'">
+                { 'userNamePswd' : userDNsAndPswds }
               </call>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
 
-            </iterate>
+  <function name="pta_test_body1">
+    <function-map-args>
+      <function-arg-def name="userNamePswd" type="required">
+        <function-arg-description>
+          Dictionary of user names (dn) and passwords.
+        </function-arg-description>
+        <function-arg-property name="type" value="Dictionary"/>
+      </function-arg-def>
+      <function-arg-def name="dsconfigAuthPolicy" type="required">
+        <function-arg-description>
+          Authentication policy in form of a dsconfig options
+        </function-arg-description>
+        <function-arg-property name="type" value="List"/>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+
+      <iterate var="remotePTAuserName"
+               in="userNamePswd.keys()" 
+               indexvar="usernum">
+              
+        <sequence>
+
+          <script>            
+            myldapPtaPolicyName = userNamePswd[remotePTAuserName][1]
+            myldapPtaPolicyDn   = 'cn=%s,cn=Password Policies,cn=config' % myldapPtaPolicyName
+
+            options = []
+            options += dsconfigAuthPolicy
+            options.append('--policy-name "%s"' % myldapPtaPolicyName)
+            dsconfigOptions=' '.join(options)
+          </script>
+                       
+          <call function="'dsconfig'">
+            { 'location'            : local_ldap_server.getHostname(),
+              'dsPath'              : '%s/%s' \
+                                       % (local_ldap_server.getDir(),OPENDSNAME),
+              'dsInstanceHost'      : local_ldap_server.getHostname(),
+              'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
+              'dsInstanceDn'        : local_ldap_server.getRootDn(),
+              'dsInstancePswd'      : local_ldap_server.getRootPwd(),
+              'subcommand'          : 'create-password-policy',
+              'optionsString'       : dsconfigOptions
+            }
+          </call>
+
+        </sequence>
+
+      </iterate>
+
+      <call function="'testStep'">
+        { 'stepMessage' : 'Read back the "authentication policy" object.' }
+      </call>
+
+      <iterate var="remotePTAuserName"
+               in="userNamePswd.keys()" 
+               indexvar="usernum">
+              
+        <sequence>
+    
+          <script>
+            myldapPtaPolicyName = userNamePswd[remotePTAuserName][1]
+            myldapPtaPolicyDn   = 'cn=%s,cn=Password Policies,cn=config' % myldapPtaPolicyName
+
+            options=[]
+            options.append('--policy-name "%s"' % myldapPtaPolicyName)
+            dsconfigOptions=' '.join(options)
+          </script>
+    
+          <call function="'dsconfig'">
+            { 'location'            : local_ldap_server.getHostname(),
+              'dsPath'              : '%s/%s' \
+                                       % (local_ldap_server.getDir(),OPENDSNAME),
+              'dsInstanceHost'      : local_ldap_server.getHostname(),
+              'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
+              'dsInstanceDn'        : local_ldap_server.getRootDn(),
+              'dsInstancePswd'      : local_ldap_server.getRootPwd(),
+              'subcommand'          : 'get-password-policy-prop',
+              'optionsString'       : dsconfigOptions
+            }
+          </call>
+                
+        </sequence>
+      
+      </iterate>
+
+      <call function="'testStep'">
+        { 'stepMessage' : 'Add ds-pwp-password-policy-dn to users entries.' }
+      </call>
+    
+      <iterate var="remotePTAuserName"
+               in="userNamePswd.keys()" 
+               indexvar="usernum">
+              
+        <sequence>              
+
+          <script>
+            myldapPtaPolicyName = userNamePswd[remotePTAuserName][1]
+            myldapPtaPolicyDn   = 'cn=%s,cn=Password Policies,cn=config' % myldapPtaPolicyName
+            
+            ldapObject=[]
+            ldapObject.append('ds-pwp-password-policy-dn: %s' \
+                                % myldapPtaPolicyDn)
+          </script>
+    
+          <call function="'modifyAnAttribute'">
+            { 'location'        : local_ldap_server.getHostname(),
+              'dsPath'                 : '%s/%s' \
+                                         % (local_ldap_server.getDir(),OPENDSNAME),
+              'dsInstanceHost'  : local_ldap_server.getHostname() ,
+              'dsInstancePort'  : local_ldap_server.getPort(),
+              'dsInstanceDn'    : local_ldap_server.getRootDn(),
+              'dsInstancePswd'  : local_ldap_server.getRootPwd(),
+              'DNToModify'      : remotePTAuserName ,
+              'listAttributes'  : ldapObject ,
+              'changetype'      : 'add'
+            }
+          </call>
+
+        </sequence>
+      
+      </iterate>
+    
+      <call function="'testStep'">
+        { 'stepMessage' : 'Search users entries as Directory Manager for ds-pwp-password-policy-dn.' }
+      </call>
+
+      <iterate var="remotePTAuserName"
+               in="userNamePswd.keys()" 
+               indexvar="usernum">
+    
+        <call function="'ldapSearchWithScript'">
+          { 'location'        : local_ldap_server.getHostname(),
+            'dsPath'                 : '%s/%s' \
+                                       % (local_ldap_server.getDir(),OPENDSNAME),
+            'dsInstanceHost'  : local_ldap_server.getHostname() ,
+            'dsInstancePort'  : local_ldap_server.getPort(),
+            'dsInstanceDn'    : local_ldap_server.getRootDn(),
+            'dsInstancePswd'  : local_ldap_server.getRootPwd(),
+            'dsBaseDN'        : remotePTAuserName ,
+            'dsScope'         : 'base' ,
+            'dsFilter'        : 'objectclass=*' ,
+            'dsAttributes'    : 'ds-pwp-password-policy-dn'
+          }
+        </call>
+
+      </iterate>
+
+      <call function="'testStep'">
+        { 'stepMessage' : 'First search users entries as self.' }
+      </call>
+
+      <iterate var="remotePTAuserName"
+               in="userNamePswd.keys()" 
+               indexvar="usernum">
+              
+        <call function="'ldapSearchWithScript'">
+          { 'location'        : local_ldap_server.getHostname(),
+            'dsPath'                 : '%s/%s' \
+                                       % (local_ldap_server.getDir(),OPENDSNAME),
+            'dsInstanceHost'  : local_ldap_server.getHostname() ,
+            'dsInstancePort'  : local_ldap_server.getPort(),
+            'dsInstanceDn'    : remotePTAuserName,
+            'dsInstancePswd'  : userNamePswd[remotePTAuserName][0] ,
+            'dsBaseDN'        : remotePTAuserName ,
+            'dsScope'         : 'base' ,
+            'dsFilter'        : 'objectclass=*'
+          }
+        </call>
+
+      </iterate>
+
+      <call function="'testStep'">
+        { 'stepMessage' : 'Modify the users entries.' }
+      </call>
+
+      <script>
+        ldapObject=[]
+        ldapObject.append('description: i am now a remote LDAP PTA user')
+      </script>
+
+      <iterate var="remotePTAuserName"
+               in="userNamePswd.keys()" 
+               indexvar="usernum">
+
+        <call function="'modifyAnAttribute'">
+          { 'location'        : local_ldap_server.getHostname(),
+            'dsPath'                 : '%s/%s' \
+                                       % (local_ldap_server.getDir(),OPENDSNAME),
+            'dsInstanceHost'  : local_ldap_server.getHostname() ,
+            'dsInstancePort'  : local_ldap_server.getPort(),
+            'dsInstanceDn'    : remotePTAuserName,
+            'dsInstancePswd'  : userNamePswd[remotePTAuserName][0] ,
+            'DNToModify'      : remotePTAuserName ,
+            'listAttributes'  : ldapObject ,
+            'changetype'      : 'replace'
+          }
+        </call>
+
+      </iterate>
+
+    </sequence>
+
+  </function>
+
+  <function name="pta_test_body2">
+    <function-map-args>
+      <function-arg-def name="userNamePswd" type="required">
+        <function-arg-description>
+          Dictionary of user names (dn) and passwords.
+        </function-arg-description>
+        <function-arg-property name="type" value="Dictionary"/>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
 
             <call function="'testStep'">
               { 'stepMessage' : 'Stop the primary remote ldap server.' }
@@ -1897,7 +1070,7 @@
             </call>
 
             <iterate var="remotePTAuserName"
-                     in="remotePTAuserDict.keys()" 
+                     in="userNamePswd.keys()" 
                      indexvar="usernum">
               
               <call function="'ldapSearchWithScript'">
@@ -1907,7 +1080,7 @@
                   'dsInstanceHost'  : local_ldap_server.getHostname() ,
                   'dsInstancePort'  : local_ldap_server.getPort(),
                   'dsInstanceDn'    : remotePTAuserName,
-                  'dsInstancePswd'  : remotePTAuserDict[remotePTAuserName] ,
+                  'dsInstancePswd'  : userNamePswd[remotePTAuserName][0] ,
                   'dsBaseDN'        : remotePTAuserName ,
                   'dsFilter'        : 'objectclass=*'
                 }
@@ -1925,7 +1098,7 @@
            </script>
 
             <iterate var="remotePTAuserName"
-                     in="remotePTAuserDict.keys()" 
+                     in="userNamePswd.keys()" 
                      indexvar="usernum">
 
               <call function="'modifyAnAttribute'">
@@ -1935,7 +1108,7 @@
                   'dsInstanceHost'  : local_ldap_server.getHostname() ,
                   'dsInstancePort'  : local_ldap_server.getPort(),
                   'dsInstanceDn'    : remotePTAuserName,
-                  'dsInstancePswd'  : remotePTAuserDict[remotePTAuserName],
+                  'dsInstancePswd'  : userNamePswd[remotePTAuserName][0],
                   'DNToModify'      : remotePTAuserName ,
                   'listAttributes'  : ldapObject ,
                   'changetype'      : 'replace'
@@ -1964,7 +1137,7 @@
             </call>
 
             <iterate var="remotePTAuserName"
-                     in="remotePTAuserDict.keys()" 
+                     in="userNamePswd.keys()" 
                      indexvar="usernum">
               
               <call function="'ldapSearchWithScript'">
@@ -1974,7 +1147,7 @@
                   'dsInstanceHost'  : local_ldap_server.getHostname() ,
                   'dsInstancePort'  : local_ldap_server.getPort(),
                   'dsInstanceDn'    : remotePTAuserName,
-                  'dsInstancePswd'  : remotePTAuserDict[remotePTAuserName] ,
+                  'dsInstancePswd'  : userNamePswd[remotePTAuserName][0] ,
                   'dsBaseDN'        : remotePTAuserName ,
                   'dsFilter'        : 'objectclass=*'
                 }
@@ -1995,7 +1168,7 @@
             </call>
 
             <iterate var="remotePTAuserName"
-                     in="remotePTAuserDict.keys()" 
+                     in="userNamePswd.keys()" 
                      indexvar="usernum">
               
               <call function="'ldapSearchWithScript'">
@@ -2005,7 +1178,7 @@
                   'dsInstanceHost'  : local_ldap_server.getHostname() ,
                   'dsInstancePort'  : local_ldap_server.getPort(),
                   'dsInstanceDn'    : remotePTAuserName,
-                  'dsInstancePswd'  : remotePTAuserDict[remotePTAuserName] ,
+                  'dsInstancePswd'  : userNamePswd[remotePTAuserName][0] ,
                   'dsBaseDN'        : remotePTAuserName ,
                   'dsFilter'        : 'objectclass=*'
                 }
@@ -2020,23 +1193,9 @@
             <call function="'startServers'">
               [[secondary_remote_ldap_server]]
             </call>
-               
-          </sequence>
-  
-          <catch exception="'STAXException'" typevar="eType" var="eInfo">
-            <message log="1" level="'fatal'">
-              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
-            </message>
-          </catch>
-          <finally>
-            <sequence>
-              <call function="'pta_postamble3'"/>
-              <call function="'testCase_Postamble'"/>
-            </sequence>
-          </finally>
-        </try>
-      </sequence>
-    </testcase>
+
+    </sequence>
+    
   </function>
-   
+  
 </stax>
