@@ -737,6 +737,56 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     {
       return mappedSearchBindPasswordProperty;
     }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public long getCachedPasswordMaxAge()
+    {
+      return 86400;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public long getCachedPasswordMinAge()
+    {
+      return 10;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public String getCachedPasswordStorageScheme()
+    {
+      return null;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public DN getCachedPasswordStorageSchemeDN()
+    {
+      return null;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isUsePasswordCaching()
+    {
+      return false;
+    }
   }
 
 
