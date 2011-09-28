@@ -43,6 +43,9 @@
    <author>
     <personname><firstname>Mark</firstname><surname>Craig</surname></personname>
    </author>
+   <author>
+    <personname><firstname>Nemanja</firstname><surname>Lukić</surname></personname>
+   </author>
   </authorgroup>
   <xinclude:include href='../legal.xml' />
   <date><?dbtimestamp format="B d, Y"?></date>
@@ -70,6 +73,7 @@
  <xinclude:include href='chap-referrals.xml' />
  <xinclude:include href='chap-virtual-attrs-collective-attrs.xml' />
  <xinclude:include href='chap-pta.xml' />
+ <xinclude:include href='chap-samba.xml' />
  <xinclude:include href='chap-load-balancing.xml' />
  <xinclude:include href='chap-failover.xml' />
  <xinclude:include href='chap-chaining.xml' />
