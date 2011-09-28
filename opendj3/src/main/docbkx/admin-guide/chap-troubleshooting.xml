@@ -204,11 +204,15 @@
  misconfigured client application connecting to this replication server.
  The error was: Remote host closed connection during handshake</screen>
  
-  <para>Replicas can become irrevocably out of sync if for example you restore
-  a replica from backup with a backup archive older than the last time
-  historical information for replication was purged from the system. If this
-  happens to you, disable the replica, and then reinitialize it with newer
-  data.</para>
+  <para>OpenDJ maintains historical information about changes in order to
+  bring replicas up to date, and to resolve replication conflicts. To prevent
+  historical information from growing without limit, OpenDJ purges historical
+  information after a configurable delay
+  (<literal>replication-purge-delay</literal>, default: 3 days). A replica
+  can become irrevocably out of sync if you restore it from a backup archive
+  older than the purge delay, or if you stop it for longer than the purge
+  delay. If this happens to you, disable the replica, and then reinitialize it
+  from a recent backup or from a server that is up to date.</para>
  </section>
  
  <section>
