@@ -91,18 +91,18 @@
                 remotePTAuserSuffix = 'ou=People, o=example'
                 localPTAuserPswdFile = '%s/myptapasswd' % local.temp
                 remotePTAuserPswdFile = '%s/pta/mypasswd' % local_ldap_server.getTmpDir()
-  
+ 
                 # List of Remote LDAP PTA Users and Passwords              
-                remotePTAuserDict['uid=jvedder,  %s' % remotePTAuserSuffix] = 'befitting'
-                remotePTAuserDict['uid=tmorris,  %s' % remotePTAuserSuffix] = 'irrefutable'
-                remotePTAuserDict['uid=ealexand, %s' % remotePTAuserSuffix] = 'galactose'
-                remotePTAuserDict['uid=tjames,   %s' % remotePTAuserSuffix] = 'turtle'
-                remotePTAuserDict['uid=alangdon, %s' % remotePTAuserSuffix] = 'muzzle'
-                remotePTAuserDict['uid=pchassin, %s' % remotePTAuserSuffix] = 'barbital'
-                remotePTAuserDict['uid=aknutson, %s' % remotePTAuserSuffix] = 'maltose'
-                remotePTAuserDict['uid=pworrell, %s' % remotePTAuserSuffix] = 'solicitous'
-                remotePTAuserDict['uid=mtalbot,  %s' % remotePTAuserSuffix] = 'currant'
-                remotePTAuserDict['uid=bwalker,  %s' % remotePTAuserSuffix] = 'interruptible'
+                remotePTAuserDict['uid=jvedder,  %s' % remotePTAuserSuffix] = ['befitting',ldapPtaPolicyName]
+                remotePTAuserDict['uid=tmorris,  %s' % remotePTAuserSuffix] = ['irrefutable',ldapPtaPolicyName]
+                remotePTAuserDict['uid=ealexand, %s' % remotePTAuserSuffix] = ['galactose',ldapPtaPolicyName]
+                remotePTAuserDict['uid=tjames,   %s' % remotePTAuserSuffix] = ['turtle',ldapPtaPolicyName]
+                remotePTAuserDict['uid=alangdon, %s' % remotePTAuserSuffix] = ['muzzle',ldapPtaPolicyName]
+                remotePTAuserDict['uid=pchassin, %s' % remotePTAuserSuffix] = ['barbital',ldapPtaPolicyName]
+                remotePTAuserDict['uid=aknutson, %s' % remotePTAuserSuffix] = ['maltose',ldapPtaPolicyName]
+                remotePTAuserDict['uid=pworrell, %s' % remotePTAuserSuffix] = ['solicitous',ldapPtaPolicyName]
+                remotePTAuserDict['uid=mtalbot,  %s' % remotePTAuserSuffix] = ['currant',ldapPtaPolicyName]
+                remotePTAuserDict['uid=bwalker,  %s' % remotePTAuserSuffix] = ['interruptible',ldapPtaPolicyName]
               </script>
 
               <!-- Create local PTA passwd -->

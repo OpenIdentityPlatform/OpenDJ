@@ -29,57 +29,88 @@
 
   <function name="pta_postamble1">
     <function-prolog>
-      Performs postamble for PTA tests
+      Performs postamble for multi-user/policy PTA tests
     </function-prolog>
-    <function-no-args />
+    <function-map-args>
+      <function-arg-def name="userNamePswd" type="required">
+        <function-arg-description>
+          Dictionary of user names (dn) and passwords.
+        </function-arg-description>
+        <function-arg-property name="type" value="Dictionary"/>
+      </function-arg-def>
+    </function-map-args>
     <sequence>
 
       <call function="'testStep'">
         { 'stepMessage' : 'Delete ds-pwp-password-policy-dn from users entry.' }
       </call>
 
-      <script>
-        ldapObject=[]
-        ldapObject.append('ds-pwp-password-policy-dn: %s' \
-                            % ldapPtaPolicyDn)
-      </script>
+      <iterate var="remotePTAuserName"
+               in="userNamePswd.keys()" 
+               indexvar="usernum">
+        <sequence>
+          
+          <script>
+            myldapPtaPolicyName = userNamePswd[remotePTAuserName][1]
+            myldapPtaPolicyDn   = 'cn=%s,cn=Password Policies,cn=config' \
+                                    % myldapPtaPolicyName
+    
+            ldapObject=[]
+            ldapObject.append('ds-pwp-password-policy-dn: %s' \
+                                % myldapPtaPolicyDn)
+          </script>
+               
+          <call function="'modifyAnAttribute'">
+            { 'location'        : local_ldap_server.getHostname(),
+              'dsPath'          : '%s/%s' \
+                                   % (local_ldap_server.getDir(),OPENDSNAME),
+              'dsInstanceHost'  : local_ldap_server.getHostname() ,
+              'dsInstancePort'  : local_ldap_server.getPort(),
+              'dsInstanceDn'    : local_ldap_server.getRootDn(),
+              'dsInstancePswd'  : local_ldap_server.getRootPwd(),
+              'DNToModify'      : remotePTAuserName ,
+              'listAttributes'  : ldapObject ,
+              'changetype'      : 'delete'
+            }
+          </call>
 
-      <call function="'modifyAnAttribute'">
-        { 'location'        : local_ldap_server.getHostname(),
-          'dsPath'                 : '%s/%s' \
-                                     % (local_ldap_server.getDir(),OPENDSNAME),
-          'dsInstanceHost'  : local_ldap_server.getHostname() ,
-          'dsInstancePort'  : local_ldap_server.getPort(),
-          'dsInstanceDn'    : local_ldap_server.getRootDn(),
-          'dsInstancePswd'  : local_ldap_server.getRootPwd(),
-          'DNToModify'      : remotePTAuserName ,
-          'listAttributes'  : ldapObject ,
-          'changetype'      : 'delete'
-        }
-      </call>
+        </sequence>
+      
+      </iterate>
 
       <call function="'testStep'">
         { 'stepMessage' : 'Remove LDAP PTA Authentication Policy.' }
       </call>
 
-      <script>
-        options=[]
-        options.append('--policy-name "%s"' % ldapPtaPolicyName)
-        dsconfigOptions=' '.join(options)
-      </script>
+      <iterate var="remotePTAuserName"
+               in="userNamePswd.keys()" 
+               indexvar="usernum">
+        <sequence>
+          
+          <script>
+            #myldapPtaPolicyName = 'LDAP PTA %s' % usernum
+            myldapPtaPolicyName = userNamePswd[remotePTAuserName][1]
+            myldapPtaPolicyDn   = 'cn=%s,cn=Password Policies,cn=config' % myldapPtaPolicyName
 
-      <call function="'dsconfig'">
-        { 'location'            : local_ldap_server.getHostname(),
-          'dsPath'              : '%s/%s' \
-                                   % (local_ldap_server.getDir(),OPENDSNAME),
-          'dsInstanceHost'      : local_ldap_server.getHostname(),
-          'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
-          'dsInstanceDn'        : local_ldap_server.getRootDn(),
-          'dsInstancePswd'      : local_ldap_server.getRootPwd(),
-          'subcommand'          : 'delete-password-policy',
-          'optionsString'       : dsconfigOptions
-        }
-      </call>
+            options=[]
+            options.append('--policy-name "%s"' % myldapPtaPolicyName)
+            dsconfigOptions=' '.join(options)
+          </script>
+    
+          <call function="'dsconfig'">
+            { 'location'            : local_ldap_server.getHostname(),
+              'dsPath'              : '%s/%s' \
+                                       % (local_ldap_server.getDir(),OPENDSNAME),
+              'dsInstanceHost'      : local_ldap_server.getHostname(),
+              'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
+              'dsInstanceDn'        : local_ldap_server.getRootDn(),
+              'dsInstancePswd'      : local_ldap_server.getRootPwd(),
+              'subcommand'          : 'delete-password-policy',
+              'optionsString'       : dsconfigOptions
+            }
+          </call>
+        </sequence>
+      </iterate>
     </sequence>
   </function>
 
@@ -114,68 +145,6 @@
         }
       </call>
 
-    </sequence>
-  </function>
-  
-  <function name="pta_postamble3">
-    <function-prolog>
-      Performs postamble for multi-user PTA tests
-    </function-prolog>
-    <function-no-args />
-    <sequence>
-
-      <call function="'testStep'">
-        { 'stepMessage' : 'Delete ds-pwp-password-policy-dn from users entry.' }
-      </call>
-
-      <script>
-        ldapObject=[]
-        ldapObject.append('ds-pwp-password-policy-dn: %s' \
-                            % ldapPtaPolicyDn)
-      </script>
-
-      <iterate var="remotePTAuserName"
-               in="remotePTAuserDict.keys()" 
-               indexvar="usernum">
-              
-        <call function="'modifyAnAttribute'">
-          { 'location'        : local_ldap_server.getHostname(),
-            'dsPath'                 : '%s/%s' \
-                                       % (local_ldap_server.getDir(),OPENDSNAME),
-            'dsInstanceHost'  : local_ldap_server.getHostname() ,
-            'dsInstancePort'  : local_ldap_server.getPort(),
-            'dsInstanceDn'    : local_ldap_server.getRootDn(),
-            'dsInstancePswd'  : local_ldap_server.getRootPwd(),
-            'DNToModify'      : remotePTAuserName ,
-            'listAttributes'  : ldapObject ,
-            'changetype'      : 'delete'
-          }
-        </call>
-      
-      </iterate>
-
-      <call function="'testStep'">
-        { 'stepMessage' : 'Remove LDAP PTA Authentication Policy.' }
-      </call>
-
-      <script>
-        options=[]
-        options.append('--policy-name "%s"' % ldapPtaPolicyName)
-        dsconfigOptions=' '.join(options)
-      </script>
-
-      <call function="'dsconfig'">
-        { 'location'            : local_ldap_server.getHostname(),
-          'dsPath'              : '%s/%s' \
-                                   % (local_ldap_server.getDir(),OPENDSNAME),
-          'dsInstanceHost'      : local_ldap_server.getHostname(),
-          'dsInstanceAdminPort' : local_ldap_server.getAdminPort(),
-          'dsInstanceDn'        : local_ldap_server.getRootDn(),
-          'dsInstancePswd'      : local_ldap_server.getRootPwd(),
-          'subcommand'          : 'delete-password-policy',
-          'optionsString'       : dsconfigOptions
-        }
-      </call>
     </sequence>
   </function>
 
