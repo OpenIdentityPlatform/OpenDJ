@@ -69,11 +69,13 @@
    </listitem>
   </itemizedlist>
   
-  <para>When you manage a local server as the user who installed OpenDJ,
-  you can start and stop the server process. Starting and stopping servers
-  requires commands to be run on the system where the server is located.
-  Other configuration can be performed through the administration
-  connector.</para>
+  <para>When you login to OpenDJ Control Panel, you authenticate over LDAP.
+  This means that if a user can run the Control Panel, she can use it to manage
+  a running server. Yet, to start and stop the server process through OpenDJ
+  Control Panel, you must start the Control Panel on the system where OpenDJ
+  runs, as the user who owns the OpenDJ server files (such as the user who
+  installed OpenDJ). In other words, the OpenDJ Control Panel does not do
+  remote process management.</para>
   
   <mediaobject>
    <imageobject>
