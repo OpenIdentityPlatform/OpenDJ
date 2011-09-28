@@ -1523,6 +1523,16 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
      *         connection factories to determine when they are online.
      */
     ScheduledExecutorService getScheduledExecutorService();
+
+
+
+    /**
+     * Returns the current time in milli-seconds in order to perform cached
+     * password expiration checks.
+     *
+     * @return The current time in milli-seconds.
+     */
+    long getCurrentTimeMillis();
   }
 
 
@@ -2123,6 +2133,13 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     public ScheduledExecutorService getScheduledExecutorService()
     {
       return scheduler;
+    }
+
+
+
+    public long getCurrentTimeMillis()
+    {
+      return System.currentTimeMillis();
     }
 
   };

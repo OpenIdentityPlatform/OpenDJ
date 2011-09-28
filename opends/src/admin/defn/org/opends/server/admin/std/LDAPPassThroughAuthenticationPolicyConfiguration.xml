@@ -630,40 +630,7 @@
     </adm:profile>
   </adm:property>
   
-  <adm:property name="cached-password-min-age">
-    <adm:synopsis>
-      Specifies the minimum length of time that a locally cached password must
-      be used for authentication.
-    </adm:synopsis>
-    <adm:description>
-      This property should be used in order to control the rate at which failed
-      authentication attempts are forwarded to the remote LDAP server and, as
-      a consequence, reduce the impact of a denial of service attack.
-      
-      An authentication attempt which fails because the provided password does
-      not match the locally cached password will be retried against the remote
-      LDAP service only if the cached password is older than the
-      minimum age.
-      
-      Increasing the minimum age increases the period a user will have to wait
-      before being able to authenticate using a new password.
-    </adm:description>
-    <adm:default-behavior>
-      <adm:defined>
-        <adm:value>10 seconds</adm:value>
-      </adm:defined>
-    </adm:default-behavior>
-    <adm:syntax>
-      <adm:duration base-unit="s"/>
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-cached-password-min-age</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
-  
-  <adm:property name="cached-password-max-age">
+  <adm:property name="cached-password-ttl">
     <adm:synopsis>
       Specifies the maximum length of time that a locally cached password may
       be used for authentication before it is refreshed from the remote LDAP
@@ -674,11 +641,10 @@
       decreases the frequency that bind operations are delegated to the
       remote LDAP service, but increases the risk of users authenticating
       using stale passwords.
-      
+
       Note that authentication attempts which fail because the provided password
       does not match the locally cached password will always be retried against
-      the remote LDAP service, unless the cached password is newer than the
-      minimum age.
+      the remote LDAP service.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
@@ -690,7 +656,7 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:name>ds-cfg-cached-password-max-age</ldap:name>
+        <ldap:name>ds-cfg-cached-password-ttl</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
