@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.config;
 
@@ -3681,6 +3682,25 @@ public final class ConfigConstants
    */
   public static final String OP_ATTR_USER_LOOKTHROUGH_LIMIT =
       NAME_PREFIX_RLIM + "lookthrough-limit";
+
+
+
+  /**
+   * The name of the operational attribute which will be put in user's entry in
+   * order to cache a copy of their password for pass through authentication.
+   */
+  public static final String OP_ATTR_PTAPOLICY_CACHED_PASSWORD =
+       "ds-pta-cached-password";
+
+
+
+  /**
+   * The name of the operational attribute which will be put in user's entry in
+   * order to record the time at which their password was cached for pass
+   * through authentication.
+   */
+  public static final String OP_ATTR_PTAPOLICY_CACHED_PASSWORD_TIME =
+       "ds-pta-cached-password-time";
 
 
 
