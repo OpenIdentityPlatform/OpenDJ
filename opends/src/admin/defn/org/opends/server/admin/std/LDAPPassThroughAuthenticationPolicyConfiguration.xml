@@ -648,7 +648,7 @@
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>1 days</adm:value>
+        <adm:value>8 hours</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
