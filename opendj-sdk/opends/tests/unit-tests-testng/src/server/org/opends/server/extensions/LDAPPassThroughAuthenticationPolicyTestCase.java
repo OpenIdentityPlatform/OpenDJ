@@ -56,10 +56,12 @@ import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.schema.GeneralizedTimeSyntax;
+import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
+import org.opends.server.util.TimeThread;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -877,7 +879,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
     private final Queue<Event<?>> expectedEvents = new LinkedList<Event<?>>();
     private final List<MockScheduledFuture> monitorRunnables = new LinkedList<MockScheduledFuture>();
-    private long currentTimeMS = System.currentTimeMillis();
+    private String currentTime = TimeThread.getGMTTime();
 
     // All methods unused excepted scheduleWithFixedDelay.
     private final ScheduledExecutorService mockScheduler = new ScheduledExecutorService()
@@ -1062,9 +1064,27 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     /**
      * {@inheritDoc}
      */
-    public long getCurrentTimeMillis()
+    public String getCurrentTime()
     {
-      return currentTimeMS;
+      return currentTime;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public long getCurrentTimeMS()
+    {
+      try
+      {
+        return GeneralizedTimeSyntax.decodeGeneralizedTimeValue(ByteString
+            .valueOf(currentTime));
+      }
+      catch (DirectoryException e)
+      {
+        throw new RuntimeException(e);
+      }
     }
 
 
@@ -1101,9 +1121,9 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
 
 
-    MockProvider withCurrentTime(final long currentTimeMS)
+    MockProvider withCurrentTime(final String currentTime)
     {
-      this.currentTimeMS = currentTimeMS;
+      this.currentTime = currentTime;
       return this;
     }
 
@@ -4271,7 +4291,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  @Test(enabled = false, dataProvider = "testPasswordCachingData")
+  @Test(enabled = true, dataProvider = "testPasswordCachingData")
   public void testPasswordCaching(String cacheState, boolean matchesCache,
       boolean matchesReal) throws Exception
   {
@@ -4279,20 +4299,23 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     TestCaseUtils.initializeTestBackend(true);
 
     // Choose arbitrary date.
-    final GregorianCalendar testTime = new GregorianCalendar(2010, 0, 1);
-    final long testTimeMS = testTime.getTimeInMillis();
+    final String testCurrentTimeGMT = "20100621120000Z";
 
-    final String testCachedPassword = "{SSHA}N8QSu9kXHkODFxFtwtwVEqM5XMCfnSaq/5gWew==";
     final boolean expectPTA;
+    final boolean expectCacheInfo;
     final boolean expectCacheUpdate;
     final boolean expectedBindResultIsSuccess;
     final Entry testUser;
+    final String testCachedPassword = "{SSHA}N8QSu9kXHkODFxFtwtwVEqM5XMCfnSaq/5gWew==";
+    final String testCachedPasswordTime;
 
     if (cacheState.equals("notPresent"))
     {
       expectPTA = true;
+      expectCacheInfo = matchesReal;
       expectCacheUpdate = matchesReal;
       expectedBindResultIsSuccess = matchesReal;
+      testCachedPasswordTime = null;
 
       testUser = TestCaseUtils.makeEntry(
           /* @formatter:off */
@@ -4306,9 +4329,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     }
     else if (cacheState.equals("presentValid"))
     {
-      expectPTA = false;
+      expectPTA = !matchesCache;
+      expectCacheInfo = true;
       expectCacheUpdate = !matchesCache && matchesReal;
-      expectedBindResultIsSuccess = matchesCache;
+      expectedBindResultIsSuccess = matchesCache | matchesReal;
+      testCachedPasswordTime = "20100621110000Z"; // 1 hour old
 
       // Create an entry whose cached password is 10s old.
       testUser = TestCaseUtils.makeEntry(
@@ -4319,7 +4344,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
           "sn: user",
           "cn: test user",
           "ds-pta-cached-password: " + testCachedPassword,
-          "ds-pta-cached-password-time: " + GeneralizedTimeSyntax.format(testTimeMS - 10000)
+          "ds-pta-cached-password-time: " + testCachedPasswordTime
           /* @formatter:on */
       );
     }
@@ -4327,8 +4352,10 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     {
       // presentExpired
       expectPTA = true;
+      expectCacheInfo = true;
       expectCacheUpdate = matchesReal;
       expectedBindResultIsSuccess = matchesReal;
+      testCachedPasswordTime = "20100620110000Z"; // 1 day + 1 hour old
 
       // Create an entry whose cached password is more than 1 day old.
       testUser = TestCaseUtils.makeEntry(
@@ -4339,7 +4366,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
           "sn: user",
           "cn: test user",
           "ds-pta-cached-password: " + testCachedPassword,
-          "ds-pta-cached-password-time: " + GeneralizedTimeSyntax.format(testTimeMS - 100000)
+          "ds-pta-cached-password-time: " + testCachedPasswordTime
           /* @formatter:on */
       );
     }
@@ -4359,24 +4386,25 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
     // Mock configuration.
     final LDAPPassThroughAuthenticationPolicyCfg cfg = mockCfg()
-        .withPrimaryServer(phost1).withMappedAttribute("uid")
-        .withBaseDN("o=ad").withUsePasswordCaching(true);
+        .withPrimaryServer(phost1).withUsePasswordCaching(true);
 
     // Create all the events.
-    final MockProvider provider = new MockProvider();
+    final GetLDAPConnectionFactoryEvent fe = new GetLDAPConnectionFactoryEvent(
+        phost1, cfg);
+
+    final MockProvider provider = new MockProvider().withCurrentTime(
+        testCurrentTimeGMT).expectEvent(fe);
 
     if (expectPTA)
     {
-      final GetLDAPConnectionFactoryEvent fe = new GetLDAPConnectionFactoryEvent(
-          phost1, cfg);
-      provider.expectEvent(fe);
-
       // Get connection then bind twice creating two pooled connections.
       final GetConnectionEvent ce = new GetConnectionEvent(fe);
       provider
           .expectEvent(ce)
           .expectEvent(
-              new SimpleBindEvent(ce, "cn=test user,o=test", presentedPassword))
+              new SimpleBindEvent(ce, "cn=test user,o=test", presentedPassword,
+                  expectedBindResultIsSuccess ? ResultCode.SUCCESS
+                      : ResultCode.INVALID_CREDENTIALS))
           .expectEvent(new CloseEvent(ce));
     }
 
@@ -4388,28 +4416,46 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
     // Perform the authentication.
     final AuthenticationPolicyState state = policy
-        .createAuthenticationPolicyState(userEntry);
+        .createAuthenticationPolicyState(testUser);
     assertEquals(state.getAuthenticationPolicy(), policy);
     assertEquals(state.passwordMatches(ByteString.valueOf(presentedPassword)),
         expectedBindResultIsSuccess);
     state.finalizeStateAfterBind();
 
     // Check that the password has been cached if needed.
-    if (expectCacheUpdate)
+    Entry updatedTestUser = DirectoryServer.getEntry(DN
+        .decode("cn=test user,o=test"));
+
+    String newCachedPassword = updatedTestUser.getAttributeValue(
+        DirectoryServer.getAttributeType("ds-pta-cached-password"),
+        DirectoryStringSyntax.DECODER);
+
+    String newCachedPasswordTime = updatedTestUser.getAttributeValue(
+        DirectoryServer.getAttributeType("ds-pta-cached-password-time"),
+        DirectoryStringSyntax.DECODER);
+
+    if (expectCacheInfo)
     {
-      Entry updatedTestUser = DirectoryServer.getEntry(DN
-          .decode("cn=test user,o=test"));
+      assertNotNull(newCachedPassword);
+      assertNotNull(newCachedPasswordTime);
 
-      String newCachedPassword = updatedTestUser.getAttributeValue(
-          DirectoryServer.getAttributeType("ds-pta-cached-password"),
-          DirectoryStringSyntax.DECODER);
-      assertFalse(newCachedPassword.equals(testCachedPassword));
-
-      String newCachedPasswordTime = updatedTestUser.getAttributeValue(
-          DirectoryServer.getAttributeType("ds-pta-cached-password-time"),
-          DirectoryStringSyntax.DECODER);
-      assertEquals(newCachedPasswordTime,
-          GeneralizedTimeSyntax.format(testTimeMS));
+      if (expectCacheUpdate)
+      {
+        assertFalse(newCachedPassword.equals(testCachedPassword));
+        assertTrue(UserPasswordSyntax.isEncoded(ByteString
+            .valueOf(newCachedPassword)));
+        assertEquals(newCachedPasswordTime, testCurrentTimeGMT);
+      }
+      else
+      {
+        assertEquals(newCachedPassword, testCachedPassword);
+        assertEquals(newCachedPasswordTime, testCachedPasswordTime);
+      }
+    }
+    else
+    {
+      assertNull(newCachedPassword);
+      assertNull(newCachedPasswordTime);
     }
 
     // Tear down and check final state.

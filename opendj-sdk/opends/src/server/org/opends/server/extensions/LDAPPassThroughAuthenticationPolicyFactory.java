@@ -30,6 +30,7 @@ package org.opends.server.extensions;
 
 
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
@@ -54,13 +55,18 @@ import org.opends.server.admin.std.server.*;
 import org.opends.server.api.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ModifyOperation;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1Exception;
+import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.*;
+import org.opends.server.schema.GeneralizedTimeSyntax;
+import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
+import org.opends.server.util.TimeThread;
 
 
 
@@ -73,7 +79,6 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
   // TODO: handle password policy response controls? AD?
   // TODO: custom aliveness pings
-  // TODO: cache password
   // TODO: improve debug logging and error messages.
 
   /**
@@ -1527,12 +1532,23 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
     /**
-     * Returns the current time in milli-seconds in order to perform cached
-     * password expiration checks.
+     * Returns the current time in order to perform cached password expiration
+     * checks. The returned string will be formatted as a a generalized time
+     * string
      *
-     * @return The current time in milli-seconds.
+     * @return The current time.
      */
-    long getCurrentTimeMillis();
+    String getCurrentTime();
+
+
+
+    /**
+     * Returns the current time in order to perform cached password expiration
+     * checks.
+     *
+     * @return The current time in MS.
+     */
+    long getCurrentTimeMS();
   }
 
 
@@ -1616,13 +1632,22 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     private final class StateImpl extends AuthenticationPolicyState
     {
 
-      private ByteString cachedPassword = null;
+      private final AttributeType cachedPasswordAttribute;
+      private final AttributeType cachedPasswordTimeAttribute;
+
+      private ByteString newCachedPassword = null;
+
 
 
 
       private StateImpl(final Entry userEntry)
       {
         super(userEntry);
+
+        this.cachedPasswordAttribute = DirectoryServer.getAttributeType(
+            OP_ATTR_PTAPOLICY_CACHED_PASSWORD, true);
+        this.cachedPasswordTimeAttribute = DirectoryServer.getAttributeType(
+            OP_ATTR_PTAPOLICY_CACHED_PASSWORD_TIME, true);
       }
 
 
@@ -1633,10 +1658,52 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       @Override
       public void finalizeStateAfterBind() throws DirectoryException
       {
-        if (cachedPassword != null)
+        sharedLock.lock();
+        try
         {
-          // TODO: persist cached password if needed.
-          cachedPassword = null;
+          if (cfg.isUsePasswordCaching() && newCachedPassword != null)
+          {
+            // Update the user's entry to contain the cached password and
+            // time stamp.
+            ByteString encodedPassword = pwdStorageScheme
+                .encodePasswordWithScheme(newCachedPassword);
+
+            List<RawModification> modifications =
+              new ArrayList<RawModification>(2);
+            modifications.add(RawModification.create(ModificationType.REPLACE,
+                OP_ATTR_PTAPOLICY_CACHED_PASSWORD, encodedPassword));
+            modifications.add(RawModification.create(ModificationType.REPLACE,
+                OP_ATTR_PTAPOLICY_CACHED_PASSWORD_TIME,
+                provider.getCurrentTime()));
+
+            InternalClientConnection conn = InternalClientConnection
+                .getRootConnection();
+            ModifyOperation internalModify = conn.processModify(userEntry
+                .getDN().toString(), modifications);
+
+            ResultCode resultCode = internalModify.getResultCode();
+            if (resultCode != ResultCode.SUCCESS)
+            {
+              // The modification failed for some reason. This should not
+              // prevent the bind from succeeded since we are only updating
+              // cache data. However, the performance of the server may be
+              // impacted, so log a debug warning message.
+              if (debugEnabled())
+              {
+                TRACER.debugWarning(
+                    "An error occurred while trying to update the LDAP PTA "
+                        + "cached password for user %s: %s", userEntry.getDN()
+                        .toString(), String.valueOf(internalModify
+                        .getErrorMessage()));
+              }
+            }
+
+            newCachedPassword = null;
+          }
+        }
+        finally
+        {
+          sharedLock.unlock();
         }
       }
 
@@ -1663,8 +1730,13 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         sharedLock.lock();
         try
         {
-          // First of determine the user name to use when binding to the remote
-          // directory.
+          // First check the cached password if enabled and available.
+          if (passwordMatchesCachedPassword(password))
+          {
+            return true;
+          }
+
+          // The cache lookup failed, so perform full PTA.
           ByteString username = null;
 
           switch (cfg.getMappingPolicy())
@@ -1820,6 +1892,11 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           {
             connection = bindFactory.getConnection();
             connection.simpleBind(username, password);
+
+            // The password matched, so cache it, it will be stored in the
+            // user's entry when the state is finalized and only if caching is
+            // enabled.
+            newCachedPassword = password;
             return true;
           }
           catch (final DirectoryException e)
@@ -1852,6 +1929,118 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           sharedLock.unlock();
         }
       }
+
+
+
+      private boolean passwordMatchesCachedPassword(ByteString password)
+      {
+        if (!cfg.isUsePasswordCaching())
+        {
+          return false;
+        }
+
+        // First determine if the cached password time is present and valid.
+        boolean foundValidCachedPasswordTime = false;
+
+        List<Attribute> cptlist = userEntry
+            .getAttribute(cachedPasswordTimeAttribute);
+        if (cptlist != null && !cptlist.isEmpty())
+        {
+          foundCachedPasswordTime:
+          {
+            for (Attribute attribute : cptlist)
+            {
+              // Ignore any attributes with options.
+              if (!attribute.hasOptions())
+              {
+                for (AttributeValue value : attribute)
+                {
+                  try
+                  {
+                    long cachedPasswordTime = GeneralizedTimeSyntax
+                        .decodeGeneralizedTimeValue(value.getNormalizedValue());
+                    long currentTime = provider.getCurrentTimeMS();
+                    long expiryTime = cachedPasswordTime
+                        + (cfg.getCachedPasswordTTL() * 1000);
+                    foundValidCachedPasswordTime = (expiryTime > currentTime);
+                  }
+                  catch (DirectoryException e)
+                  {
+                    // Fall-through and give up immediately.
+                    if (debugEnabled())
+                    {
+                      TRACER.debugCaught(DebugLogLevel.ERROR, e);
+                    }
+                  }
+
+                  break foundCachedPasswordTime;
+                }
+              }
+            }
+          }
+        }
+
+        if (!foundValidCachedPasswordTime)
+        {
+          // The cached password time was not found or it has expired, so give
+          // up immediately.
+          return false;
+        }
+
+        // Next determine if there is a cached password.
+        ByteString cachedPassword = null;
+
+        List<Attribute> cplist = userEntry
+            .getAttribute(cachedPasswordAttribute);
+        if (cplist != null && !cplist.isEmpty())
+        {
+          foundCachedPassword:
+          {
+            for (Attribute attribute : cplist)
+            {
+              // Ignore any attributes with options.
+              if (!attribute.hasOptions())
+              {
+                for (AttributeValue value : attribute)
+                {
+                  cachedPassword = value.getValue();
+                  break foundCachedPassword;
+                }
+              }
+            }
+          }
+        }
+
+        if (cachedPassword == null)
+        {
+          // The cached password was not found, so give up immediately.
+          return false;
+        }
+
+        // Decode the password and match it according to its storage scheme.
+        try
+        {
+          String[] userPwComponents = UserPasswordSyntax
+              .decodeUserPassword(cachedPassword.toString());
+          PasswordStorageScheme<?> scheme = DirectoryServer
+              .getPasswordStorageScheme(userPwComponents[0]);
+          if (scheme != null)
+          {
+            return scheme.passwordMatches(password,
+                ByteString.valueOf(userPwComponents[1]));
+          }
+        }
+        catch (DirectoryException e)
+        {
+          // Unable to decode the cached password, so give up.
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+        }
+
+        return false;
+      }
     }
 
 
@@ -1866,6 +2055,8 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
     private ConnectionFactory searchFactory = null;
     private ConnectionFactory bindFactory = null;
+
+    private PasswordStorageScheme<?> pwdStorageScheme = null;
 
 
 
@@ -2062,6 +2253,12 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         bindFactory = new FailoverLoadBalancer(primaryBindLoadBalancer,
             secondaryBindLoadBalancer, scheduler);
       }
+
+      if (cfg.isUsePasswordCaching())
+      {
+        pwdStorageScheme = DirectoryServer.getPasswordStorageScheme(cfg
+            .getCachedPasswordStorageSchemeDN());
+      }
     }
 
 
@@ -2137,9 +2334,16 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
 
-    public long getCurrentTimeMillis()
+    public String getCurrentTime()
     {
-      return System.currentTimeMillis();
+      return TimeThread.getGMTTime();
+    }
+
+
+
+    public long getCurrentTimeMS()
+    {
+      return TimeThread.getTime();
     }
 
   };
