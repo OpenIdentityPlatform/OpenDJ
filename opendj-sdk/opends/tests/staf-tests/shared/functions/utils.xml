@@ -297,18 +297,22 @@
         myReason = 'None'
       </script>
 
-      <!-- Check that returnString is really a string -->
-      <if expr='returnString.__class__ is not org.python.core.PyString'>
+      <!-- Check that returnString is really a string or unicode -->
+      <if expr='returnString.__class__ is not org.python.core.PyString 
+        and returnString.__class__ is not org.python.core.PyUnicode'>
         <sequence>
           <message log="1" level="'Error'">
-            'ERROR : Invalid returnString type (%s), requires org.python.core.PyString.' \
+            'Invalid returnString type (%s), requires str or unicode.' \
             % returnString.__class__
+          </message>
+          <message>
+            'The returnString is ("%s")' % returnString
           </message>
           <script>
             myRC = 1
             myReason = 'Python error'
           </script>
-
+          <tcstatus result="'fail'"/>
           <return>[myRC, myReason]</return>
         </sequence>
       </if>
@@ -411,10 +415,12 @@
       </script> 
 
       <!-- Check that returnString is really a string -->
-      <if expr='returnString.__class__ is not org.python.core.PyString'>
+      <if expr='returnString.__class__ is not org.python.core.PyString
+        and returnString.__class__ is not org.python.core.PyUnicode'>
         <sequence>
           <message log="1" level="'Error'">
-            'ERROR : Invalid returnString type (%s), requires org.python.core.PyString.' % returnString.__class__
+            'ERROR : Invalid returnString type (%s), requires str or unicode.' \
+              % returnString.__class__
           </message>
           <tcstatus result="'fail'"/>
         </sequence>
@@ -1022,28 +1028,34 @@
         testcaseDuration=testcaseStop-testcaseStart
         shortName=get_test_name(STAXCurrentTestcase)
 
-        xml.testcase = doc.createElement("testcase")
-        xml.createAttr(doc,xml.testcase,"name",STAXCurrentTestcase)
-        xml.createAttr(doc,xml.testcase,"duration",testcaseDuration)
-        xml.createAttr(doc,xml.testcase,"group",ThisGroupName)
-        xml.createAttr(doc,xml.testcase,"result",_result)
-        xml.createAttr(doc,xml.testcase,"shortname",shortName.lower())
-        xml.createAttr(doc,xml.testcase,"start",startTimestamp)
-        xml.createAttr(doc,xml.testcase,"stop",testcaseEndTime)
-        xml.createAttr(doc,xml.testcase,"suite",ThisSuiteName)
-        xml.createAttr(doc,xml.testcase,"info",information)
-        xml.testsuite.appendChild(xml.testcase)
+        xml.testcase = repdoc.createElement("testcase")
+        xml.createAttr(repdoc,xml.testcase,"name",STAXCurrentTestcase)
+        xml.createAttr(repdoc,xml.testcase,"duration",testcaseDuration)
+        xml.createAttr(repdoc,xml.testcase,"group",ThisGroupName)
+        xml.createAttr(repdoc,xml.testcase,"result",_result)
+        xml.createAttr(repdoc,xml.testcase,"shortname",shortName.lower())
+        xml.createAttr(repdoc,xml.testcase,"start",startTimestamp)
+        xml.createAttr(repdoc,xml.testcase,"stop",testcaseEndTime)
+        xml.createAttr(repdoc,xml.testcase,"suite",ThisSuiteName)
+        xml.createAttr(repdoc,xml.testcase,"info",information)
+        
+        #TODO: handle org.w3c.dom.DOMException: WRONG_DOCUMENT_ERR
+        import org.w3c.dom.DOMException
+        try:
+          xml.testsuite.appendChild(xml.testcase)
+        except org.w3c.dom.DOMException, e:
+          print "Caught %s." % e
 
         if len(issuesList)!=0:
-          xml.issues = doc.createElement("issues")
+          xml.issues = repdoc.createElement("issues")
           xml.testcase.appendChild(xml.issues)
 
           for issueID in issuesList:
-            xml.issue = doc.createElement("issue")
-            xml.createAttr(doc,xml.issue,"id",issueID)
+            xml.issue = repdoc.createElement("issue")
+            xml.createAttr(repdoc,xml.issue,"id",issueID)
             xml.issues.appendChild(xml.issue)
 
-        xml.writeXMLfile(doc,"%s/results_tmp.xml" % logs.reports)
+        xml.writeXMLfile(repdoc,"%s/results_tmp.xml" % logs.reports)
       </script>
 
       <call function="'queryLogs'">
@@ -1107,12 +1119,12 @@
         ThisSuiteName=CurrentTestPath['suite']
         
         #Create testsuite element
-        xml.testsuite = doc.createElement("testsuite")
-        xml.createAttr(doc,xml.testsuite,"name",ThisSuiteName)
-        xml.createAttr(doc,xml.testsuite,"shortname",ThisSuiteName)
+        xml.testsuite = repdoc.createElement("testsuite")
+        xml.createAttr(repdoc,xml.testsuite,"name",ThisSuiteName)
+        xml.createAttr(repdoc,xml.testsuite,"shortname",ThisSuiteName)
         xml.testgroup.appendChild(xml.testsuite)
         
-        xml.writeXMLfile(doc,"%s/results_tmp.xml" % logs.reports)
+        xml.writeXMLfile(repdoc,"%s/results_tmp.xml" % logs.reports)
 
       </script>
       
@@ -1196,9 +1208,9 @@
 
         xml=xmldoc_service()
 
-        doc = xml.parseXMLfile("%s/results_tmp.xml" % logs.reports)
+        repdoc = xml.parseXMLfile("%s/results_tmp.xml" % logs.reports)
         
-        qa = doc.getDocumentElement()
+        qa = repdoc.getDocumentElement()
         ft = qa.getChildNodes().item(1)
         results = ft.getChildNodes().item(3)
 
@@ -1211,27 +1223,27 @@
           bugs = xml.tempres.getChildNodes().item(7)
         else:
           # Create tempres element
-          xml.tempres = doc.createElement("tempres")
+          xml.tempres = repdoc.createElement("tempres")
           results.appendChild(xml.tempres)
-          fail = doc.createElement('fail')
+          fail = repdoc.createElement('fail')
           xml.tempres.appendChild(fail)
-          fail.appendChild(doc.createTextNode('0'))
-          known = doc.createElement('known')
+          fail.appendChild(repdoc.createTextNode('0'))
+          known = repdoc.createElement('known')
           xml.tempres.appendChild(known)
-          known.appendChild(doc.createTextNode('0'))
-          done = doc.createElement('done')
+          known.appendChild(repdoc.createTextNode('0'))
+          done = repdoc.createElement('done')
           xml.tempres.appendChild(done)
-          done.appendChild(doc.createTextNode('0'))
-          bugs = doc.createElement('bugs')
+          done.appendChild(repdoc.createTextNode('0'))
+          bugs = repdoc.createElement('bugs')
           xml.tempres.appendChild(bugs)
-          bugs.appendChild(doc.createTextNode('[]'))
+          bugs.appendChild(repdoc.createTextNode('[]'))
 
         #Create testgroup element
-        xml.testgroup = doc.createElement("testgroup")
-        xml.createAttr(doc,xml.testgroup,"name",ThisGroupName)
+        xml.testgroup = repdoc.createElement("testgroup")
+        xml.createAttr(repdoc,xml.testgroup,"name",ThisGroupName)
         results.appendChild(xml.testgroup)
         
-        xml.writeXMLfile(doc,"%s/results_tmp.xml" % logs.reports)
+        xml.writeXMLfile(repdoc,"%s/results_tmp.xml" % logs.reports)
         
       </script>
       <message>'##### %s group preamble #####' % ThisGroupName</message>
@@ -1419,14 +1431,14 @@
 
       <script>
         from xml.dom.minidom import Document
-        doc = Document()
+        logsdoc = Document()
 
         # Create the qa base element
-        qa = doc.createElement("qa")
-        doc.appendChild(qa)
+        qa = logsdoc.createElement("qa")
+        logsdoc.appendChild(qa)
         
         # Create the base element
-        logs = doc.createElement("logs")
+        logs = logsdoc.createElement("logs")
         qa.appendChild(logs)
 
         # Try to pass only the pretty print of the test suite name
@@ -1437,7 +1449,7 @@
           suite = formattedTestcase.suite(CurrentTestPath['suite'])
 
         # Create the log element
-        log = doc.createElement("log")
+        log = logsdoc.createElement("log")
         log.setAttribute("group", "%s" % CurrentTestPath['group'])
         log.setAttribute("suite", "%s" % suite)
         log.setAttribute("jobid", "%s" % STAXJobID)
@@ -1466,7 +1478,7 @@
             message=element['message']
             timestamp=element['timestamp']
 
-            line = doc.createElement("line")
+            line = logsdoc.createElement("line")
             line.setAttribute("timestamp", "%s" % timestamp)
             line.setAttribute("level", "%s" % level)
             line.setAttribute("message", "%s" % message)
@@ -1483,7 +1495,7 @@
         _message='Generated XML test case report.'
         testlogfh=open('%s' % logFile,'w')
         try:
-          testlogfh.writelines(doc.toprettyxml(indent="  "))
+          testlogfh.writelines(logsdoc.toprettyxml(indent="  "))
         except AttributeError,details:
           _message='Unable to generate XML test case report %s.' % details
         except:
