@@ -35,7 +35,7 @@
  <para>By default, OpenDJ installs with options appropriate for evaluation, not
  for production.</para>
 
- <indexterm><primary>JVM settings</primary></indexterm>
+ <indexterm><primary>Java</primary><secondary>Settings</secondary></indexterm>
 
  <variablelist>
   <para>You can change JVM options for the server in the QuickStart installer,
@@ -83,4 +83,3 @@
   </varlistentry>
  </variablelist>
 </chapter>
-

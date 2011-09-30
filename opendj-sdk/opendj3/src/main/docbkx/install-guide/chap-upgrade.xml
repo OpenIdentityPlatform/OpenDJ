@@ -30,7 +30,8 @@
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Upgrading to OpenDJ <?eval ${project.version}?></title>
-
+ <indexterm><primary>Upgrading</primary></indexterm>
+ 
  <para>You can upgrade from an earlier version of OpenDJ either directly
  from within the Java WebStart installer, or on the command-line using the
  <command>upgrade</command> command.</para>
@@ -42,7 +43,7 @@
   import your data from LDIF.</para>
  </note>
 
- <section>
+ <section xml:id="before-you-upgrade">
   <title>Before You Upgrade</title>
 
   <para>You must perform the upgrade procedure as the user who own the OpenDJ
@@ -95,13 +96,13 @@ $ sh /downloads/opendj_patch4upgrade.sh
   </orderedlist>
  </section>
 
- <section>
+ <section xml:id="upgrade-servers">
   <title>Upgrading OpenDJ Servers</title>
 
   <para>You can upgrade from the graphical installer, or from the command
   line.</para>
 
-  <procedure>
+  <procedure xml:id="upgrade-gui">
    <title>To Upgrade From the Graphical Installer</title>
    <step>
     <para>Login to a session where you can use a GUI as the user who owns the
@@ -149,7 +150,7 @@ $ sh /downloads/opendj_patch4upgrade.sh
    </step>
   </procedure>
 
-  <procedure>
+  <procedure xml:id="upgrade-cli">
    <title>To Upgrade On the Command Line</title>
 
    <step>
@@ -199,21 +200,19 @@ See /var/....log for a detailed log of this operation.</screen>
    </step>
   </procedure>
 
-  <procedure>
+  <procedure xml:id="upgrade-repl">
    <title>To Upgrade Replicated Servers</title>
    <step>
     <para>Upgrade each server sequentially, as described above.</para>
    </step>
   </procedure>
 
-  <procedure>
+  <procedure xml:id="upgrade-dsml">
    <title>To Upgrade OpenDJ DSML Gateway</title>
    <step>
-    <para>Replace the gateweay web application with the newer version,
+    <para>Replace the gateway web application with the newer version,
     as for a fresh installation.</para>
    </step>
   </procedure>
  </section>
-
 </chapter>
-

@@ -36,7 +36,7 @@
  
  <section xml:id="prerequisites-java">
   <title>Java Environment</title>
-  <indexterm><primary>Java requirements</primary></indexterm>
+  <indexterm><primary>Java</primary><secondary>Requirements</secondary></indexterm>
   
   <para>OpenDJ software consists of pure Java applications. OpenDJ servers
   and clients therefore should run on any system with full Java support.
@@ -52,13 +52,13 @@
 
  <section xml:id="prerequisites-hardware">
   <title>Hardware</title>
-  <indexterm><primary>Hardware requirements</primary></indexterm>
   
   <para>Thanks to the underlying Java platform, OpenDJ software runs well
   on a variety of processor architectures. Many directory service
   deployments meet their service-level agreements without the very latest
   or very fastest hardware.</para>
    
+  <indexterm><primary>Memory requirements</primary></indexterm>
   <para>For a server evaluation installation, you need 256 MB memory (32-bit)
   or 1 GB memory (64-bit) available to OpenDJ, with 100 MB free disk space for
   the software and a small set of sample data. For installation in production,
@@ -87,6 +87,7 @@
   slower threads get blocked waiting on resources, and thus are not optimal
   for topologies with high write throughput requirements.</para>
    
+  <indexterm><primary>Network requirements</primary></indexterm>
   <para>On systems with fast processors and enough memory to cache directory
   data completely, the network can become a bottleneck. Even if a single
   1 Gbit Ethernet interface offers plenty of bandwidth to handle your
@@ -100,6 +101,7 @@
   throughput, not counting any other operations such as writes that
   result in replication traffic.</para>
    
+  <indexterm><primary>Storage requirements</primary></indexterm>
   <para>The storage hardware you choose must allow you to house not only
   directory data including historical data for replication, but also
   logs. If you choose to retain access logs for auditing purposes on a
