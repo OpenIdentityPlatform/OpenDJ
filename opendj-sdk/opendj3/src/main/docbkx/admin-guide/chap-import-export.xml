@@ -32,7 +32,10 @@
  <title>Importing &amp; Exporting LDIF Data</title>
  <indexterm><primary>Provisioning</primary></indexterm>
  <indexterm><primary>Importing data</primary></indexterm>
- <indexterm><primary>Restoring from LDIF</primary></indexterm>
+ <indexterm>
+  <primary>Restoring</primary>
+  <secondary>From LDIF</secondary>
+ </indexterm>
  <indexterm><primary>Exporting data</primary></indexterm>
  <indexterm><primary>Backup</primary></indexterm>
   <indexterm>
