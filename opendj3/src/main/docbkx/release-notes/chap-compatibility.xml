@@ -34,13 +34,13 @@
  <para>This chapter covers both major changes to existing functionality, and
  also deprecated and removed functionality.</para>
 
- <section>
+ <section xml:id="changed-functionality">
   <title>Major Changes to Existing Functionality</title>
   
   <para>None.</para>
  </section>
 
- <section>
+ <section xml:id="deprecated-functionality">
   <title>Deprecated Functionality</title>
   
   <para>No functionality is deprecated in OpenDJ <?eval ${product.version}?>.</para>
@@ -48,7 +48,7 @@
   <para>No functionality is planned to be deprecated at this time.</para>
  </section>
  
- <section>
+ <section xml:id="removed-functionality">
   <title>Removed Functionality</title>
   
   <para>No functionality has been removed in OpenDJ <?eval ${product.version}?>.</para>

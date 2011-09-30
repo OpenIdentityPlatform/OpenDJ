@@ -48,7 +48,7 @@
   </itemizedlist>
  </section>
 
- <section>
+ <section xml:id="limitations">
   <title>Limitations</title>
 
   <para>Release <?eval ${project.version}?> has the following limitations.</para>
@@ -91,7 +91,7 @@
   </itemizedlist>
  </section>
 
- <section>
+ <section xml:id="known-issues">
   <title>Known Issues</title>
 
   <para>The following known issues remained open at the time release
@@ -112,5 +112,4 @@
   <link xlink:href='https://bugster.forgerock.org/jira/browse/OPENDJ'
   >https://bugster.forgerock.org/jira/browse/OPENDJ</link>.</para>
  </section>
-  
 </chapter>
