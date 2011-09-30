@@ -112,7 +112,10 @@ scheduled successfully</screen>
  <section xml:id="restore-data">
   <title>Restoring Directory Data From Backup</title>
   <indexterm><primary>Backup</primary></indexterm>
-  <indexterm><primary>Restore from backup</primary></indexterm>
+  <indexterm>
+   <primary>Restoring</primary>
+   <secondary>From backup</secondary>
+  </indexterm>
   
   <para>When you restore data, the procedure to follow depends on whether
   the OpenDJ directory server is replicated.</para>

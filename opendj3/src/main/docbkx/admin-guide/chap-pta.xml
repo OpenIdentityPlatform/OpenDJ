@@ -183,7 +183,10 @@ Root Password Policy    : password-policy   : -</screen>
   
   <procedure xml:id="configure-pta-to-ad">
    <title>To Configure Pass Through Authentication To Active Directory</title>
-   <indexterm><primary>Authenticate to Active Directory</primary></indexterm>
+   <indexterm>
+    <primary>Active Directory</primary>
+    <see>Pass through authentication</see>
+   </indexterm>
    
    <para>The steps below demonstrate setting up pass through authentication
    to Active Directory. Here is some background to help you make sense of the
