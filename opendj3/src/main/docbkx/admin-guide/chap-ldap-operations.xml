@@ -339,6 +339,120 @@ MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com</scre
   </example>
   </section>
 
+  <section xml:id="filter-adds-modifies">
+   <title>Filtering Add &amp; Modify Operations</title>
+   <indexterm>
+    <primary>Updating data</primary>
+    <secondary>Filtering</secondary>
+   </indexterm>
+   
+   <para>Some client applications send updates including attributes with names
+   that differ from the attribute names defined in OpenDJ. Other client
+   applications might try to update attributes they should not update, such
+   as the operational attributes <literal>creatorsName</literal>,
+   <literal>createTimestamp</literal>, <literal>modifiersName</literal>,
+   and <literal>modifyTimestamp</literal>. Ideally you would fix the client
+   application behavior, but that is not always feasible.</para>
+   
+   <para>You can configure the attribute cleanup plugin to filter add and
+   modify requests, renaming attributes in requests using incorrect names,
+   and removing attributes that applications should not change.</para>
+   
+   <example xml:id="attr-cleanup-rename">
+    <title>Renaming Incoming Attributes</title>
+    
+    <para>The following example renames incoming <literal>userid</literal>
+    attributes to <literal>uid</literal> attributes. First, configure the
+    attribute cleanup plugin to rename the inbound attribute.</para>
+    
+    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ create-plugin
+ --type attribute-cleanup
+ --plugin-name "Rename userid to uid"
+ --set enabled:true
+ --set rename-inbound-attributes:userid:uid
+ -X -n</screen>
+    
+    <para>Next, see that it works as expected.</para>
+    
+    <screen>$ cat userid.ldif 
+dn: cn=New User,ou=People,dc=example,dc=com
+userid: newuser
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: top
+cn: New User
+sn: User
+ou: People
+mail: newuser@example.com
+userPassword: changeme
+
+$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -a -f userid.ldif 
+Processing ADD request for cn=New User,ou=People,dc=example,dc=com
+ADD operation successful for DN cn=New User,ou=People,dc=example,dc=com
+$ ldapsearch -p 1389 -b dc=example,dc=com uid=newuser uid
+dn: cn=New User,ou=People,dc=example,dc=com
+uid: newuser</screen>
+   </example>
+   
+   <example xml:id="attr-cleanup-remove">
+    <title>Removing Incoming Attributes</title>
+    
+    <para>The following example prevents client applications from adding or
+    modifying <literal>creatorsName</literal>,
+    <literal>createTimestamp</literal>, <literal>modifiersName</literal>,
+    and <literal>modifyTimestamp</literal> attributes. First, set up the
+    attribute cleanup plugin.</para>
+    
+    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ create-plugin
+ --type attribute-cleanup
+ --plugin-name "Remove attrs"
+ --set enabled:true
+ --set remove-inbound-attributes:creatorsName
+ --set remove-inbound-attributes:createTimestamp
+ --set remove-inbound-attributes:modifiersName
+ --set remove-inbound-attributes:modifyTimestamp
+ -X -n</screen>
+    
+    <para>Next, see that it works as expected.</para>
+    
+    <screen>$ cat badattrs.ldif 
+dn: uid=badattr,ou=People,dc=example,dc=com
+uid: newuser
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: top
+cn: Bad Attr
+sn: Attr
+ou: People
+mail: badattr@example.com
+userPassword: changeme
+creatorsName: cn=Bad Attr
+createTimestamp: Never in a million years.
+modifiersName: cn=Directory Manager,cn=Root DNs,cn=config
+modifyTimestamp: 20110930164937Z
+
+$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -a -f badattrs.ldif
+Processing ADD request for uid=badattr,ou=People,dc=example,dc=com
+ADD operation successful for DN uid=badattr,ou=People,dc=example,dc=com
+$ ldapsearch -p 1389 -b dc=example,dc=com uid=badattr +
+dn: uid=badattr,ou=People,dc=example,dc=com
+numSubordinates: 0
+structuralObjectClass: inetOrgPerson
+pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config
+subschemaSubentry: cn=schema
+hasSubordinates: false
+entryDN: uid=badattr,ou=people,dc=example,dc=com
+entryUUID: 35e5cb0e-e929-49d8-a50f-2df036d60db9
+pwdChangedTime: 20110930165959.135Z
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+createTimestamp: 20110930165959Z</screen>
+   </example>
+  </section>
+
   <section xml:id="rename-ldap">
    <title>Renaming Entries</title>
    
