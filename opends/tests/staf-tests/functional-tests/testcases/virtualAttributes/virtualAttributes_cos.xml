@@ -720,7 +720,7 @@
                 <!-- ========================================= -->
                 <message>
                   '++++ Create user defined virtual attribute with \
-                  conflict-behavior prop set to virtual-overrides-real'
+                  conflict-behavior prop set to real-overrides-virtual'
                 </message>
                 <script>
                   arg1 = '--type user-defined --name %s' % cosName
@@ -819,7 +819,7 @@
                 <!-- ========================================= -->
                 <message>
                   '++++ Create user defined virtual attribute with \
-                  conflict-behavior prop set to virtual-overrides-real'
+                  conflict-behavior prop set to merge-real-and-virtual'
                 </message>
                 <script>
                   arg1 = '--type user-defined --name %s' % cosName
