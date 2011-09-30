@@ -30,7 +30,6 @@
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Managing Server Processes</title>
-
  <para>Using the OpenDJ Control Panel, you can start and stop local servers.
  You can also start and stop OpenDJ using command-line tools, and use the
  operating system's capabilities for starting OpenDJ at boot time.</para>
@@ -42,8 +41,9 @@
  happens during a system crash or when you kill the server process using
  system tools.</para>
   
- <section>
+ <section xml:id="start-server">
   <title>Starting a Server</title>
+  <indexterm><primary>Start server</primary></indexterm>
  
   <itemizedlist>
    <para>Use one of the following techniques.</para>
@@ -85,8 +85,9 @@ update-rc.d: see &lt;http://wiki.debian.org/LSBInitScripts&gt;
   </itemizedlist>
  </section>
  
- <section>
+ <section xml:id="stop-server">
   <title>Stopping a Server</title>
+  <indexterm><primary>Stop server</primary></indexterm>
  
   <itemizedlist>
    <para>Use one of the following techniques.</para>
@@ -109,8 +110,9 @@ $ sudo /etc/init.d/opendj stop</screen>
   </itemizedlist>
  </section>
  
- <section>
+ <section xml:id="restart-server">
   <title>Restarting a Server</title>
+  <indexterm><primary>Restart server</primary></indexterm>
  
   <itemizedlist>
    <para>Use one of the following techniques.</para>
@@ -133,8 +135,12 @@ $ /etc/init.d/opendj restart</screen>
   </itemizedlist>
  </section>
   
- <section>
+ <section xml:id="crash-recovery">
   <title>Server Recovery</title>
+  <indexterm>
+   <primary>Replication</primary>
+   <secondary>Crash recovery</secondary>
+  </indexterm>
   
   <para>OpenDJ tends to show resilience when restarting after a crash or after
   the server process is killed abruptly. OpenDJ might have to replay the last

@@ -33,7 +33,8 @@
 
  <para>OpenDJ software installs and creates the following files and
  directories. The following list is not necessarily exhaustive.</para>
- 
+ <indexterm><primary>File layout</primary></indexterm>
+ <indexterm><primary>Installed files</primary></indexterm>
  <variablelist>
   <varlistentry>
    <term><filename>QuickSetup.app</filename></term>
@@ -260,6 +261,4 @@
    </listitem>
   </varlistentry>
  </variablelist>
-
 </appendix>
-

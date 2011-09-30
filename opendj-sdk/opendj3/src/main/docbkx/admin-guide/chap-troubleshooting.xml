@@ -31,11 +31,12 @@
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Troubleshooting Server Problems</title>
-
+ <indexterm><primary>Troubleshooting</primary></indexterm>
+ 
  <para>This chapter describes how to troubleshoot common server problems,
  and how to collect information necessary when seeking support help.</para>
  
- <section>
+ <section xml:id="troubleshoot-identify-problem">
   <title>Identifying the Problem</title>
   
   <para>In order to solve your problem methodically, save time by defining the
@@ -72,7 +73,7 @@
   start looking for solutions.</para>
  </section>
  
- <section>
+ <section xml:id="troubleshoot-installation">
   <title>Troubleshooting Installation &amp; Upgrade</title>
  
   <para>Installation and upgrade procedures result in a log file tracing
@@ -82,7 +83,7 @@
   <literallayout class="monospaced">See /var/....log for a detailed log of this operation.</literallayout>
  </section>
  
- <section>
+ <section xml:id="troubleshoot-import">
   <title>Troubleshooting LDIF Import</title>
  
   <para>By default OpenDJ requires that LDIF data you import respect standards.
@@ -119,7 +120,7 @@
   default behavior to ensure automated checking.</para>
  </section>
  
- <section>
+ <section xml:id="troubleshoot-secure-connections">
   <title>Troubleshooting TLS/SSL Connections</title>
  
   <para>In order to trust the server certificate, client applications usually
@@ -147,7 +148,7 @@
   <screen>OPENDJ_JAVA_ARGS="-Djavax.net.debug=all" start-ds</screen>
  </section>
  
- <section>
+ <section xml:id="troubleshoot-connections">
   <title>Troubleshooting Client Operations</title>
  
   <para>By default OpenDJ logs information about all client operations in
@@ -178,8 +179,12 @@
   control when not using it as Directory Manager.</para>
  </section>
  
- <section>
+ <section xml:id="troubleshoot-repl">
   <title>Troubleshooting Replication</title>
+  <indexterm>
+   <primary>Replication</primary>
+   <secondary>Troubleshooting</secondary>
+  </indexterm>
   
   <para>Replication can generally recover from conflicts and transient issues.
   Replication does, however, require that update operations be copied
@@ -215,7 +220,7 @@
   from a recent backup or from a server that is up to date.</para>
  </section>
  
- <section>
+ <section xml:id="troubleshoot-get-help">
   <title>Asking For Help</title>
   
   <para>When you cannot resolve a problem yourself, and want to ask for help,
@@ -259,5 +264,4 @@ Build <replaceable>yyyymmddhhmmss</replaceable>Z</screen>
    </listitem>
   </itemizedlist>
  </section>
-
 </chapter>

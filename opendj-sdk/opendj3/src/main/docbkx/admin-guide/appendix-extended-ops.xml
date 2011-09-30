@@ -37,9 +37,13 @@
  <para>OpenDJ software supports the following LDAP extended operations.</para>
  
  <variablelist>
-  <varlistentry>
+  <varlistentry xml:id="cancel-extended-request">
    <term>Cancel Extended Request</term>
    <listitem>
+    <indexterm>
+     <primary>LDAP extended operations</primary>
+     <secondary>Cancel</secondary>
+    </indexterm>
     <para>Object Identifier: 1.3.6.1.1.8</para>
     <para>RFC: <link xlink:href='http://tools.ietf.org/html/rfc3909'>RFC 3909
     - Lightweight Directory Access Protocol (LDAP) Cancel Operation</link>
@@ -47,30 +51,39 @@
    </listitem>
   </varlistentry>
 
-
-  <varlistentry>
+  <varlistentry xml:id="password-modify-extended-request">
    <term>Password Modify Extended Request</term>
    <listitem>
+    <indexterm>
+     <primary>LDAP extended operations</primary>
+     <secondary>Password modify</secondary>
+    </indexterm>
     <para>Object Identifier: 1.3.6.1.4.1.4203.1.11.1</para>
     <para>RFC: <link xlink:href='http://tools.ietf.org/html/rfc3909'>RFC 3062
     - LDAP Password Modify Extended Operation</link></para>
    </listitem>
   </varlistentry>
 
-
-  <varlistentry>
+  <varlistentry xml:id="start-transport-layer-security-extended-request">
    <term>Start Transport Layer Security Extended Request</term>
    <listitem>
+    <indexterm>
+     <primary>LDAP extended operations</primary>
+     <secondary>StartTLS</secondary>
+    </indexterm>
     <para>Object Identifier: 1.3.6.1.4.1.1466.20037</para>
     <para>RFC: <link xlink:href='http://tools.ietf.org/html/rfc4511'>RFC 4511
     - Lightweight Directory Access Protocol (LDAP): The Protocol</link></para>
    </listitem>
   </varlistentry>
 
-
-  <varlistentry>
+  <varlistentry xml:id="who-am-i-extended-request">
    <term>Who am I? Extended Request</term>
    <listitem>
+    <indexterm>
+     <primary>LDAP extended operations</primary>
+     <secondary>Wha am I?</secondary>
+    </indexterm>
     <para>Object Identifier: 1.3.6.1.4.1.4203.1.11.3</para>
     <para>RFC: <link xlink:href='http://tools.ietf.org/html/rfc4532'>RFC 4532
     - Lightweight Directory Access Protocol (LDAP) "Who am I?" Operation</link>
@@ -78,6 +91,4 @@
    </listitem>
   </varlistentry>
  </variablelist>
- 
 </appendix>
-

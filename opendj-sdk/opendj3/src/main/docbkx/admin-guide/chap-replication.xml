@@ -38,8 +38,16 @@
  of OpenDJ installation, and in many cases let replication do its work in
  the background.</para>
 
- <section>
+ <section xml:id="repl-quick-setup">
   <title>Replication Quick Setup</title>
+  <indexterm>
+   <primary>Replication</primary>
+   <secondary>Quick setup</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>High availability</primary>
+   <see>Replication</see>
+  </indexterm>
   
   <para>The easiest way to set up replication for the first time involves
   using the setup wizard.</para>
@@ -95,8 +103,12 @@
   
  </section>
  
- <section>
+ <section xml:id="about-repl">
   <title>About Replication</title>
+  <indexterm>
+   <primary>Replication</primary>
+   <secondary>Overview</secondary>
+  </indexterm>
   
   <para>Before you take replication further than setting up replication
   in the setup wizard, read this section to learn more about how OpenDJ
@@ -145,14 +157,18 @@
   more than one replication topology.</para>
  </section>
  
- <section>
+ <section xml:id="configure-repl">
   <title>Configuring Replication</title>
+  <indexterm>
+   <primary>Replication</primary>
+   <secondary>Configuring</secondary>
+  </indexterm>
   
   <para>For some deployments you choose not to configure replication using the
   setup wizard. This section shows how to configure replication with
   command-line tools.</para>
   
-  <section>
+  <section xml:id="enable-repl">
    <title>Enabling Replication</title>
    
    <para>You can start the replication process by using the
@@ -200,7 +216,7 @@ for a detailed log of this operation.</screen>
    the new server as the second server.</para>
   </section>
   
-  <section>
+  <section xml:id="init-repl">
    <title>Initializing Replicas</title>
   
    <para>Although you can enable replication before you have user data, you
@@ -212,7 +228,7 @@ for a detailed log of this operation.</screen>
    exported from another replica when adding a server to the topology, or by
    restoring a backup from an existing replica onto a new server.</para>
    
-   <procedure>
+   <procedure xml:id="init-repl-online">
     <title>To Initialize Online</title>
     
     <step>
@@ -236,7 +252,7 @@ for a detailed log of this operation.</screen>
     </step>
    </procedure>
 
-   <procedure>
+   <procedure xml:id="init-repl-ldif">
     <title>To Initialize All Servers From the Same LDIF</title>
     
     <para>Follow these steps to prepare a replication topology starting from
@@ -265,7 +281,7 @@ for a detailed log of this operation.</screen>
     </step>
    </procedure>
    
-   <procedure>
+   <procedure xml:id="init-repl-backup">
     <title>To Create a New Replica From Existing Backup</title>
     
     <para>You can create a new replica from a backup of an existing replica.
@@ -352,13 +368,17 @@ Post initialization procedure completed successfully.</screen>
    </procedure>
   </section>
   
-  <section>
+  <section xml:id="stop-repl">
    <title>Stopping Replication</title>
-  
+   <indexterm>
+    <primary>Replication</primary>
+    <secondary>Stopping</secondary>
+   </indexterm>
+   
    <para>How you stop replication depends on whether the change is meant to
    be temporary, or meant to be permanent.</para>
    
-   <procedure>
+   <procedure xml:id="stop-repl-tmp">
     <title>To Stop Replication Temporarily For a Replica</title>
 
     <para>If you need to stop a server from replicating temporarily, you can
@@ -383,7 +403,7 @@ Post initialization procedure completed successfully.</screen>
     </step>
    </procedure>
    
-   <procedure>
+   <procedure xml:id="stop-repl-permanent">
     <title>To Stop Replication Permanently For a Replica</title>
     
     <para>If you need to stop a server from replicating permanently, for
@@ -419,9 +439,13 @@ for a detailed log of this operation.</screen>
    </procedure>
   </section>
 
-  <section>
+  <section xml:id="repl-dedicated-servers">
    <title>Stand-alone Replication Servers</title>
-  
+   <indexterm>
+    <primary>Replication</primary>
+    <secondary>Dedicated servers</secondary>
+   </indexterm>
+   
    <para>Replication in OpenDJ is designed to be both easy to implement in
    environments with a few servers, and also scalable in environments with
    many servers. You can enable the replication service on each OpenDJ
@@ -438,7 +462,7 @@ for a detailed log of this operation.</screen>
    in fully-meshed replication.</para>
    
    
-   <procedure>
+   <procedure xml:id="repl-setup-dedicated-server">
     <title>To Set Up a Stand-alone Replication Server</title>
 
     <para>This example sets up a stand-alone replication server to handle
@@ -544,15 +568,19 @@ for a detailed log of this operation.</screen>
    </procedure>
   </section>
   
-  <section>
+  <section xml:id="repl-groups">
    <title>Replication Groups</title>
-  
+   <indexterm>
+    <primary>Replication</primary>
+    <secondary>Grouping servers</secondary>
+   </indexterm>
+   
    <para>Replication lets you define groups so that replicas communicate
    first with replication servers in the group before going to replication
    servers outside the group. Groups are identified with unique numeric
    group IDs.</para>
    
-   <procedure>
+   <procedure xml:id="define-repl-groups">
     <title>To Set Up Replication Groups</title>
     
     <para>For each group, set the appropriate group ID for the topology
@@ -602,9 +630,13 @@ $ dsconfig -p 7444 -h `hostname` -D "cn=Directory Manager" -w password
    </tip>
   </section>
 
-  <section>
+  <section xml:id="read-only-repl">
    <title>Read-Only Replicas</title>
-  
+   <indexterm>
+    <primary>Replication</primary>
+    <secondary>Read-only servers</secondary>
+   </indexterm>
+   
    <para>By default all directory servers in a replication topology are
    read-write. You can however choose to make replicas take updates only
    from the replication protocol, and refuse updates from client
@@ -614,9 +646,13 @@ $ dsconfig -p 7444 -h `hostname` -D "cn=Directory Manager" -w password
  set-global-configuration-prop --set writability-mode:internal-only -X -n</screen>
   </section>
 
-  <section>
+  <section xml:id="repl-assured">
    <title>Assured Replication</title>
-  
+   <indexterm>
+    <primary>Replication</primary>
+    <secondary>Assured</secondary>
+   </indexterm>
+   
    <para>In standard replication, when a client requests an update operation
    the directory server performs the update and, if the update is successful,
    sends information about the update to the replication service, and sends
@@ -635,7 +671,7 @@ $ dsconfig -p 7444 -h `hostname` -D "cn=Directory Manager" -w password
    standard replication, yet it is also slower, potentially waiting for a
    timeout before failing when the network or other servers are down.</para>
 
-   <procedure>
+   <procedure xml:id="repl-safe-data">
     <title>To Ensure Updates Reach Replication Servers</title>
     
     <para>Safe data mode requires the update be sent to
@@ -656,9 +692,9 @@ $ dsconfig -p 5444 -h `hostname` -D "cn=Directory Manager" -w password
  --domain-name "dc=example,dc=com"
  --set assured-type:safe-data --set assured-sd-level:1 -X -n</screen>
     </step>
-   </procedure>   
-
-   <procedure>
+   </procedure>
+   
+   <procedure xml:id="repl-safe-read">
     <title>To Ensure Updates Are Replayed Everywhere</title>
     
     <para>Safe read mode requires the update be replayed on all directory
@@ -685,9 +721,13 @@ $ dsconfig -p 5444 -h `hostname` -D "cn=Directory Manager" -w password
    degraded status, assured replication ceases to have an effect.</para>
   </section>
 
-  <section>
+  <section xml:id="repl-subtree">
    <title>Subtree Replication</title>
-  
+   <indexterm>
+    <primary>Replication</primary>
+    <secondary>Subtree</secondary>
+   </indexterm>
+   
    <para>OpenDJ lets you do subtree replication, for example replicating
    <literal>ou=People,dc=example,dc=com</literal>, but not the rest of
    <literal>dc=example,dc=com</literal>, by putting the subtree in a separate
@@ -701,9 +741,13 @@ $ dsconfig -p 5444 -h `hostname` -D "cn=Directory Manager" -w password
    <literal>ou=People,dc=example,dc=com</literal> in its own topology.</para>
   </section>
 
-  <section>
+  <section xml:id="repl-fractional">
    <title>Fractional Replication</title>
-  
+   <indexterm>
+    <primary>Replication</primary>
+    <secondary>Fractional</secondary>
+   </indexterm>
+   
    <para>OpenDJ lets you do fractional replication, whereby you specify
    the attributes to include in the replication process, or alternatively
    specify the attributes to exclude.</para>
@@ -738,8 +782,15 @@ $ dsconfig -p 5444 -h `hostname` -D "cn=Directory Manager" -w password
   </section>
  </section>
  
- <section>
+ <section xml:id="repl-change-notification">
   <title>Change Notification For Your Applications</title>
+  <indexterm>
+   <primary>Replication</primary>
+   <secondary>Change notification</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>External change log</primary>
+  </indexterm>
   
   <para>Some applications require notification when directory data updates
   occur. For example, an application might need to sync directory data with
@@ -750,7 +801,7 @@ $ dsconfig -p 5444 -h `hostname` -D "cn=Directory Manager" -w password
   provides an external change log mechanism to allow applications to be
   notified of changes to directory data.</para>
   
-  <procedure>
+  <procedure xml:id="enable-ecl">
    <title>To Enable the External Change Log</title>
 
    <para>OpenDJ directory servers not using replication cannot expose an
@@ -780,7 +831,7 @@ entryDN: cn=changelog
    </step>
   </procedure>
   
-  <procedure>
+  <procedure xml:id="use-ecl">
    <title>To Use the External Change Log</title>
    
    <para>You read the external change log over protocol. In addition, when you
@@ -946,13 +997,18 @@ modifyTimestamp: 20110613071210Z
     value for the cookie.</para>
    </step>
   </procedure>
-
-   <para>The external change log can also operate in a mode compatible with the
-   <link xlink:href="http://tools.ietf.org/html/draft-good-ldap-changelog-04"
-   >Internet-Draft: Definition of an Object Class to Hold LDAP Change
-   Records</link>. Thus, you can use the change log with legacy applications
-   that require this format without using cookies that facilitate retrieving
-   updates in a multi-master replication environment.</para>
+  
+  <para xml:id="ecl-legacy-format">The external change log can also operate in
+  a mode compatible with the <link
+  xlink:href="http://tools.ietf.org/html/draft-good-ldap-changelog-04"
+  >Internet-Draft: Definition of an Object Class to Hold LDAP Change
+  Records</link>. Thus, you can use the change log with legacy applications
+  that require this format without using cookies that facilitate retrieving
+  updates in a multi-master replication environment.</para>
+   <indexterm>
+    <primary>External change log</primary>
+    <secondary>Legacy format</secondary>
+   </indexterm>
  </section>
 </chapter>
 

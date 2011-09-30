@@ -41,8 +41,9 @@
  <para>This chapter covers both access control instructions and privileges,
  demonstrating how to configure both.</para>
  
- <section>
+ <section xml:id="about-acis">
   <title>About Access Control Instructions</title>
+  <indexterm><primary>Access control</primary></indexterm>
   
   <para>OpenDJ directory server access control instructions (ACIs) exist as
   <literal>aci</literal> attribute values in the directory data. ACIs apply
@@ -113,8 +114,12 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
   specify multiple permissions-subjects pairs, at least one must match
   (<literal>OR</literal>).</para>
   
-  <section>
+  <section xml:id="aci-targets">
    <title>ACI Targets</title>
+   <indexterm>
+    <primary>Access control</primary>
+    <secondary>Targets</secondary>
+   </indexterm>
    
    <para>The seven types of ACI targets identify the objects to which the ACI
    applies.</para>
@@ -213,8 +218,12 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
    </variablelist>
   </section>
 
-  <section>
+  <section xml:id="aci-permissions">
    <title>ACI Permissions</title>
+   <indexterm>
+    <primary>Access control</primary>
+    <secondary>Permissions</secondary>
+   </indexterm>
    
    <para>ACI permission definitions take one of the following forms.</para>
    
@@ -304,8 +313,12 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
    
   </section>
 
-  <section>
+  <section xml:id="aci-subjects">
    <title>ACI Subjects</title>
+   <indexterm>
+    <primary>Access control</primary>
+    <secondary>Subjects</secondary>
+   </indexterm>
    
    <para>ACI subjects match characteristics of the client connection to the
    server. Use subjects to restrict whether the ACI applies depending on who
@@ -458,8 +471,9 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
   </section>
  </section>
  
- <section>
+ <section xml:id="about-privileges">
   <title>About Privileges</title>
+  <indexterm><primary>Privileges</primary></indexterm>
   
   <para>Privileges provide access control for server administration
   independently from access control instructions.</para>
@@ -600,7 +614,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
   <para>* = default directory root user privileges</para>
  </section>
 
- <section>
+ <section xml:id="configure-privileges">
   <title>Configuring Privileges</title>
   
   <para>For root directory administrators, by default <literal>cn=Directory
@@ -610,7 +624,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
   <para>For non-root directory administrators, you add privileges with
   the <command>ldapmodify</command> command.</para>
   
-  <procedure>
+  <procedure xml:id="change-root-dn-privileges">
    <title>To Change Root DN Privileges</title>
    
    <step>
@@ -631,7 +645,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
    </step>
   </procedure>
   
-  <procedure>
+  <procedure xml:id="change-individual-privileges">
    <title>To Add Privileges on an Individual Entry</title>
    
    <para>Privileges are specified using the <literal>ds-privilege-name</literal>
@@ -689,7 +703,7 @@ The LDAP password modify operation was successful</screen>
    </step>
   </procedure>
   
-  <procedure>
+  <procedure xml:id="change-group-privileges">
    <title>To Add Privileges For a Group of Administrators</title>
    
    <para>For deployments with more than one administrator, you no doubt use
@@ -738,8 +752,12 @@ The LDAP password modify operation was successful</screen>
   </procedure>
  </section>
 
- <section>
+ <section xml:id="configure-acis">
   <title>Configuring Access Control</title>
+  <indexterm>
+   <primary>Access control</primary>
+   <secondary>Examples</secondary>
+  </indexterm>
   
   <para>Access control instructions are defined in the data, as values for
   <literal>aci</literal> attributes. They can be imported in LDIF. They can
@@ -778,6 +796,10 @@ The LDAP password modify operation was successful</screen>
     to entry updates and entry identification.</para>
    </listitem>
    <listitem>
+   <indexterm>
+    <primary>Replication</primary>
+    <secondary>Data access</secondary>
+   </indexterm>
     <para>Access to replication data is denied.</para>
    </listitem>
   </itemizedlist>
@@ -790,7 +812,7 @@ The LDAP password modify operation was successful</screen>
   <para>This section therefore focuses on ACI examples, rather than
   demonstrating how to directory data for each example.</para>
   
-  <example>
+  <example xml:id="access-control-anonymous-reads">
    <title>ACI: Anonymous Reads &amp; Searches</title>
    
    <para>This works when the only attributes you do not want world-readable
@@ -801,7 +823,7 @@ The LDAP password modify operation was successful</screen>
  </programlisting>
   </example>
 
-  <example>
+  <example xml:id="access-control-full-access">
    <title>ACI: Full Access for Administrators</title>
    
    <para>Directory Administrators need privileges as well for full access to
@@ -818,7 +840,7 @@ The LDAP password modify operation was successful</screen>
    import and export operations.</para>
   </example>
 
-  <example>
+  <example xml:id="access-control-selfwrite-password">
    <title>ACI: Change Own Password</title>
    
    <para>By default this capability is set in a global ACI.</para>
@@ -827,7 +849,7 @@ The LDAP password modify operation was successful</screen>
  words"; allow (write)(userdn = "ldap:///self");)</programlisting>
   </example>
 
-  <example>
+  <example xml:id="access-control-selfwrite-group">
    <title>ACI: Manage Own Group Membership</title>
    
    <para>For some static groups such as carpoolers and social club members,
@@ -837,7 +859,7 @@ The LDAP password modify operation was successful</screen>
  userdn = "ldap:///uid=*,ou=People,dc=example,dc=com");)</programlisting>
   </example>
 
-  <example>
+  <example xml:id="access-control-self-service-group">
    <title>ACI: Manage Self Service Groups</title>
    
    <para>Let users create and delete self-managed groups.</para>
@@ -850,7 +872,7 @@ aci: (target ="ldap:///ou=Self Service,ou=Groups,dc=example,dc=com")(version 3
  owner#USERDN");)</programlisting>
   </example>
  
-  <example>
+  <example xml:id="access-control-loopback-only">
    <title>ACI: Permit Clear Text Access Over Loopback Only</title>
    
    <para>This ACI uses IP address and Security Strength Factor subjects.</para>
@@ -863,9 +885,13 @@ aci: (target ="ldap:///ou=Self Service,ou=Groups,dc=example,dc=com")(version 3
   </example>
  </section>
 
- <section>
+ <section xml:id="get-effective-rights">
   <title>Viewing Effective Rights</title>
- 
+  <indexterm>
+   <primary>Access control</primary>
+   <secondary>Effective rights</secondary>
+   </indexterm>
+  
   <para>Once you set up a number of ACIs, you might find it difficult to
   understand by inspection what rights a user actually has to a given entry.
   The Get Effective Rights control can help.</para>

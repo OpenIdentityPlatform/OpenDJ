@@ -30,13 +30,18 @@
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Moving Servers</title>
-
+ <indexterm><primary>Moving servers</primary></indexterm>
+ 
  <para>When you change where OpenDJ is deployed, you must take host names,
  port numbers, and certificates into account. The changes can also affect
  your replication configuration. This chapter shows what to do when moving
  a server.</para>
+ <indexterm>
+  <primary>Replication</primary>
+  <secondary>Moving servers</secondary>
+ </indexterm>
  
- <section>
+ <section xml:id="moving-servers-overview">
   <title>Overview</title>
   
   <para>From time to time you might change server hardware, file system layout,
@@ -47,6 +52,7 @@
   <itemizedlist>
    <para>Two aspects of the configuration are not portable.</para>
    <listitem>
+    <indexterm><primary>Certificates</primary></indexterm>
     <para>Server certificates contain the host name of the system. Even if you
     did not set up secure communications when you installed the server, the
     server still has a certificate used for secure communications on the
@@ -64,7 +70,7 @@
   </itemizedlist>  
  </section>
  
- <section>
+ <section xml:id="before-moving-servers">
   <title>Before You Move</title>
   
   <para>Take a moment to determine whether you find it quicker and easier to
@@ -83,7 +89,7 @@
   <command>dsconfig</command> and <command>dsreplication</command>
   commands.</para>
   
-  <procedure>
+  <procedure xml:id="remove-server">
    <title>To Take the Server Out of Service</title>
    
    <step>
@@ -131,14 +137,14 @@ Stopping Server...
   </procedure>  
  </section>
 
- <section>
+ <section xml:id="moving-servers">
   <title>Moving a Server</title>
   
   <para>Now that you have decided to move your server, and prepared for the
   move, you must not only move the files but also fix the configuration and
   the server certificates, and then enable replication.</para>
   
-  <procedure>
+  <procedure xml:id="mv-one-server">
    <title>To Move the Server</title>
    
    <step>
@@ -222,8 +228,9 @@ Post initialization procedure completed successfully.</screen>
    </step>
   </procedure>
     
-  <procedure>
+  <procedure xml:id="change-server-certificates">
    <title>To Change Server Certificates</title>
+   <indexterm><primary>Certificates</primary></indexterm>
    <note>
     <para>This procedure demonstrates using a new self-signed certificate to
     replace the existing certificate in the

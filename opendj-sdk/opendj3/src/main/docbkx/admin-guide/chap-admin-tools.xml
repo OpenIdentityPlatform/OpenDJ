@@ -48,9 +48,9 @@
  <para>This chapter takes a quick look at the tools for managing directory
  services.</para>
  
- <section>
+ <section xml:id="control-panel">
   <title>Control Panel</title>
-  
+  <indexterm><primary>Control panel</primary></indexterm>
   <para>OpenDJ Control Panel offers a graphical user interface for
   managing both local and remote servers. You choose the server to manage
   when you start the Control Panel. The Control Panel connects to the
@@ -160,8 +160,9 @@
    
  </section>
 
- <section>
+ <section xml:id="cli-overview">
   <title>Command-Line Tools</title>
+  <indexterm><primary>Commands</primary></indexterm>
   
   <para>All OpenDJ command-line tools take the --help option.</para>
   
@@ -400,9 +401,6 @@
      <para>Register OpenDJ as a Windows Service.</para>
     </listitem>
    </varlistentry>
-
   </variablelist>
  </section>
-
 </chapter>
-

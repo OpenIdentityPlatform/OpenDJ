@@ -30,7 +30,20 @@
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Importing &amp; Exporting LDIF Data</title>
-
+ <indexterm><primary>Provisioning</primary></indexterm>
+ <indexterm><primary>Importing data</primary></indexterm>
+ <indexterm><primary>Restoring from LDIF</primary></indexterm>
+ <indexterm><primary>Exporting data</primary></indexterm>
+ <indexterm><primary>Backup</primary></indexterm>
+  <indexterm>
+   <primary>LDIF</primary>
+   <secondary>Import</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>LDIF</primary>
+   <secondary>Export</secondary>
+  </indexterm>
+  
  <para>LDAP Data Interchange Format provides a mechanism for representing
  directory data in text format. LDIF data is typically used to initialize
  directory databases, but also may be used to move data between different
@@ -41,9 +54,9 @@
  This chapter also covers creating test data in LDIF format, and manipulating
  LDIF data with command-line tools.</para>
  
- <procedure>
+ <procedure xml:id="generate-ldif">
   <title>To Generate Test LDIF Data</title>
-  
+  <indexterm><primary>Importing data</primary><secondary>Test data</secondary></indexterm>
   <para>When you install OpenDJ, you have the option of importing sample
   data generated at installation time. This procedure demonstrates how to
   generate LDIF on the command line using the
@@ -92,7 +105,7 @@ LDIF processing complete.  10003 entries written</screen>
   </step>
  </procedure>
 
- <procedure>
+ <procedure xml:id="import-ldif">
   <title>To Import LDIF Data</title>
   
   <para>You can also use the OpenDJ Control Panel to import data (Directory
@@ -198,7 +211,7 @@ The Local DB Backend was created successfully</screen>
   </step>
  </procedure>
 
- <procedure>
+ <procedure xml:id="export-ldif">
   <title>To Export LDIF Data</title>
   
   <para>You can also use the OpenDJ Control Panel to export data (Directory
@@ -230,13 +243,17 @@ The Local DB Backend was created successfully</screen>
   </step>
  </procedure>
  
- <section>
+ <section xml:id="ldif-tools">
   <title>Other Tools For Working With LDIF Data</title>
+  <indexterm>
+   <primary>LDIF</primary>
+   <secondary>Tools</secondary>
+  </indexterm>
   
   <para>This section demonstrates the <command>ldifsearch</command>,
   <command>ldifmodify</command>, and <command>ldif-diff</command> tools.</para>
   
-  <section>
+  <section xml:id="ldifsearch-example">
    <title>Searching in LDIF With <command>ldifsearch</command></title>
 
    <para>The <command>ldifsearch</command> command lets you search LDIF files
@@ -245,9 +262,7 @@ The Local DB Backend was created successfully</screen>
    
    <screen>$ ldifsearch -b dc=example,dc=org -l generated.ldif "(sn=Grenier)" mobile
 dn: uid=user.4630,ou=People,dc=example,dc=org
-mobile: +1 728 983 6669
-
-</screen>
+mobile: +1 728 983 6669</screen>
 
    <para>The <option>-l <replaceable>ldif-file</replaceable></option> option
    compares to the hostname and port options used to connect to an LDAP
@@ -255,7 +270,7 @@ mobile: +1 728 983 6669
    <command>ldapsearch</command> users.</para>
   </section>
 
-  <section>
+  <section xml:id="ldifmodify-example">
    <title>Updating LDIF With <command>ldifmodify</command></title>
 
    <para>The <command>ldifmodify</command> command lets you apply changes to
@@ -276,7 +291,7 @@ $ ldifmodify -s generated.ldif -m changes.ldif -t new.ldif</screen>
    same size as the source LDIF file.</para>
   </section>
   
-  <section>
+  <section xml:id="ldif-diff-example">
    <title>Comparing LDIF With <command>ldif-diff</command></title>
 
    <para>The <command>ldif-diff</command> command reports differences between

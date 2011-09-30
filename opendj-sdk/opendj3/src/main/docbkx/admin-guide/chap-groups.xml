@@ -44,9 +44,13 @@
  
  <para>This chapter demonstrates how to work with groups.</para>
 
- <section>
+ <section xml:id="static-groups">
   <title>Creating Static Groups</title>
-
+  <indexterm>
+   <primary>Groups</primary>
+   <secondary>Static</secondary>
+  </indexterm>
+  
   <para>A <firstterm>static group</firstterm> is expressed as an entry
   that enumerates all the entries that belong to the group. Static group
   entries grow as their membership increases.</para>
@@ -103,9 +107,13 @@ uniqueMember: uid=scarter,ou=People,dc=example,dc=com
 cn: My Static Group</screen>
  </section>
 
- <section>
+ <section xml:id="dynamic-groups">
   <title>Creating Dynamic Groups</title>
-
+  <indexterm>
+   <primary>Groups</primary>
+   <secondary>Dynamic</secondary>
+  </indexterm>
+  
   <para>A <firstterm>dynamic group</firstterm> specifies members using
   LDAP URLs. Dynamic groups entries can stay small even as their
   membership increases.</para>
@@ -161,9 +169,13 @@ dn: uid=rjensen,ou=People,dc=example,dc=com
 mail: rjensen@example.com</screen>
  </section>
 
- <section>
+ <section xml:id="virtual-static-groups">
   <title>Creating Virtual Static Groups</title>
-
+  <indexterm>
+   <primary>Groups</primary>
+   <secondary>Virtual static</secondary>
+  </indexterm>
+  
   <para>OpenDJ lets you create <firstterm>virtual static groups</firstterm>,
   which let applications see dynamic groups as what appear to be static
   groups.</para>
@@ -244,8 +256,12 @@ cn: Virtual Static
 ds-target-group-dn: cn=My Dynamic Group,ou=Groups,dc=example,dc=com</screen>
  </section>
 
- <section>
+ <section xml:id="group-membership">
   <title>Looking Up Group Membership</title>
+  <indexterm>
+   <primary>Groups</primary>
+   <secondary>Membership</secondary>
+  </indexterm>
   
   <para>OpenDJ lets you look up which groups a user belongs to by using the
   <literal>isMemberOf</literal> attribute.</para>
@@ -259,9 +275,13 @@ isMemberOf: cn=My Dynamic Group,ou=Groups,dc=example,dc=com</screen>
   <para>You must request <literal>isMemberOf</literal> explicitly.</para>
  </section>
 
- <section>
+ <section xml:id="referential-integrity">
   <title>Configuring Referential Integrity</title>
-
+  <indexterm>
+   <primary>Groups</primary>
+   <secondary>Referential integrity</secondary>
+  </indexterm>
+  
   <para>When you delete or rename an entry that belongs to static groups, that
   entry's DN must be removed or changed in the list of each group to which it
   belongs. You can configure OpenDJ to resolve membership on your behalf after
@@ -303,4 +323,3 @@ uniqueMember: uid=bjensen,ou=People,dc=example,dc=com
 uniqueMember: uid=tmorris,ou=People,dc=example,dc=com</screen>
  </section>
 </chapter>
-

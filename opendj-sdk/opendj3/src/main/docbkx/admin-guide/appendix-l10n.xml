@@ -36,9 +36,9 @@
  specific locales. OpenDJ software is also itself localized for a smaller
  variety of languages.</para>
  
- <section>
+ <section xml:id="supported-languages">
   <title>OpenDJ Languages</title>
-  
+  <indexterm><primary>Languages</primary></indexterm>
   <para>OpenDJ <?eval ${product.version}?> software has been localized
   in the following languages.</para>
   
@@ -57,9 +57,9 @@
   </note>
  </section>
  
- <section>
+ <section xml:id="supported-locales">
   <title>Directory Support For Locales and Language Subtypes</title>
-  
+  <indexterm><primary>Locales</primary></indexterm>
   <para>OpenDJ software supports the following locales, with their
   associated language and country codes, and their collation order
   object identifiers. Locale support depends on the underlying Java
@@ -797,8 +797,8 @@
   </variablelist>
   
   <para>OpenDJ software supports the following language subtypes.</para>
-  
-  <itemizedlist>
+  <indexterm><primary>Language subtypes</primary></indexterm>
+  <itemizedlist xml:id="supported-language-subtypes">
    <listitem><para>Albanian, sq</para></listitem>
    <listitem><para>Arabic, ar</para></listitem>
    <listitem><para>Belarusian, be</para></listitem>
@@ -839,8 +839,5 @@
    <listitem><para>Ukranian, uk</para></listitem>
    <listitem><para>Vietnamese, vi</para></listitem>
   </itemizedlist>
-  
  </section>
-
 </appendix>
-
