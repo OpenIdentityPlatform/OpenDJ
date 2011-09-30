@@ -39,7 +39,7 @@
 
   <step xml:id="check-for-java">
    <para>Make sure you have the correct Java environment installed.</para>
-   <indexterm><primary>Java requirements</primary></indexterm>
+   <indexterm><primary>Java</primary><secondary>Requirements</secondary></indexterm>
    
    <screen>$ java -version
 java version "1.6.0_24"
@@ -56,7 +56,7 @@ Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
   </step>
 
   <step xml:id="download-opendj">
-   <indexterm><primary>Download OpenDJ</primary></indexterm>
+   <indexterm><primary>Downloading OpenDJ</primary></indexterm>
    
    <para>Get the appropriate installation packages from the <link
      xlink:href='http://www.forgerock.org/opendj.html'
@@ -84,6 +84,8 @@ Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
   </step>
 
   <step xml:id="enough-file-descriptors">
+   <indexterm><primary>File descriptor requirements</primary></indexterm>
+   
    <para>Allow OpenDJ software to use at least 64K (65536) file descriptors
    to operate properly.</para>
 
@@ -96,6 +98,8 @@ Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
   </step>
 
   <step xml:id="app-server-needed-for-dsml">
+   <indexterm><primary>DSML gateway</primary></indexterm>
+   
    <para>If you plan to install OpenDJ DSML gateway, make sure you have an
    appropriate application server installed.</para>
   </step>
@@ -374,7 +378,8 @@ Replication: Disabled</screen>
 
  <procedure xml:id="install-dsml-gateway">
   <title>To Install OpenDJ DSML gateway</title>
-  <indexterm><primary>DSML gateway installation</primary></indexterm>
+  <indexterm><primary>DSML gateway</primary></indexterm>
+  
   <para>The OpenDJ DSML gateway functions as a web application located in a
   web application container. The DSML gateway runs independently of OpenDJ
   directory server. You configure the gateway to access your directory service
@@ -398,6 +403,4 @@ Replication: Disabled</screen>
    for your application server.</para>
   </step>
  </procedure>
-
 </chapter>
-

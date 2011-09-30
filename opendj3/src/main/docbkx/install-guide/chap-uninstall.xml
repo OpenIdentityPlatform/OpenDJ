@@ -30,11 +30,12 @@
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Removing OpenDJ Servers</title>
-
+ <indexterm><primary>Uninstalling</primary></indexterm>
+ 
  <para>Remove OpenDJ directory server software with the
  <command>uninstall</command> command.</para>
  
- <procedure>
+ <procedure xml:id="uninstall-gui">
   <title>To Uninstall OpenDJ From the Graphical Uninstaller</title>
   <step>
    <para>(UNIX) Run
@@ -51,7 +52,7 @@
     <caption>
      <para>Select what to remove in the initial screen.</para>
     </caption>
-   </mediaobject>      
+   </mediaobject>
   </step>
 
   <step>
@@ -62,11 +63,11 @@
     <imageobject>
      <imagedata fileref="images/uninstall-finished.png" format="PNG" />
     </imageobject>
-   </mediaobject>      
+   </mediaobject>
   </step>
  </procedure>
 
- <procedure>
+ <procedure xml:id="uninstall-cli">
   <title>To Uninstall OpenDJ On the Command Line</title>
   
   <step>
@@ -116,4 +117,3 @@ See /var/....log for a detailed log of this operation.</screen>
   </step>
  </procedure>
 </chapter>
-
