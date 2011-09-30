@@ -168,6 +168,44 @@ sn: Jensen
 
 </screen>
   </example>
+  
+  <example xml:id="operational-attrs-search">
+   <title>Search: Return Operational Attributes</title>
+   
+   <para>Use <literal>+</literal> in the attribute list after the filter
+   to return all operational attributes. Alternatively, specify operational
+   attributes by name.</para>
+   
+   <screen>$ ldapsearch -p 1389 -b dc=example,dc=com uid=bjensen +
+dn: uid=bjensen,ou=People,dc=example,dc=com
+numSubordinates: 0
+structuralObjectClass: inetOrgPerson
+pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config
+subschemaSubentry: cn=schema
+hasSubordinates: false
+entryDN: uid=bjensen,ou=people,dc=example,dc=com
+entryUUID: fc252fd9-b982-3ed6-b42a-c76d2546312c</screen>
+  </example>
+  
+  <example xml:id="attr-desc-list-search">
+   <title>Search: Return Attributes for an Object Class</title>
+   
+   <para>Use <literal>@<replaceable>objectClass</replaceable></literal> in the
+   attribute list after the filter to return the attributes associated with
+   a particular object class.</para>
+   
+   <screen>$ ldapsearch -p 1389 -b dc=example,dc=com uid=bjensen @person
+dn: uid=bjensen,ou=People,dc=example,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+cn: Barbara Jensen
+cn: Babs Jensen
+telephoneNumber: +1 408 555 1862
+sn: Jensen</screen>
+  </example>
  </section>
  
  <section xml:id="compare-ldap">
