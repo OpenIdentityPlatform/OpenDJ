@@ -30,7 +30,8 @@
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Working With Referrals</title>
-
+ <indexterm><primary>Referrals</primary></indexterm>
+ 
  <para>Referrals point directory clients to another directory server. The
  client receiving a referral must then connect to the other server to complete
  the request. Referrals are used for example when a directory server is
@@ -42,7 +43,7 @@
  <command>ldapmodify</command> command. You can also use the Manage Entries
  window of the Control Panel to handle referrals.</para>
 
- <section>
+ <section xml:id="referrals-overview">
   <title>About Referrals</title>
  
   <para>Referrals are implemented as entries with <link
@@ -60,7 +61,7 @@
   applications must be capable of following the referral returned.</para>
  </section>
 
- <section>
+ <section xml:id="managing-referrals">
   <title>Managing Referrals</title>
  
   <para>To create an LDAP referral either you create a referral entry, or
@@ -129,4 +130,3 @@ objectClass: top</screen>
   DSAIT control with the <command>ldapmodify</command> command.</para>
  </section>
 </chapter>
-

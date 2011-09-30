@@ -30,7 +30,8 @@
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Managing Schema</title>
-
+ <indexterm><primary>Schema</primary></indexterm>
+ 
  <para>Schema definitions describe the data, and especially the object classes
  and attribute types that can be stored in the directory. By default OpenDJ
  conforms strictly to LDAPv3 standards pertaining to schema definitions and
@@ -48,7 +49,7 @@
  This chapter also identifies the standard schema definitions available when
  you install OpenDJ.</para>
  
- <section>
+ <section xml:id="about-schema">
   <title>About Directory Schema</title>
   
   <para>Directory schema, described in <link
@@ -111,9 +112,13 @@ objectClasses: ( 2.5.6.6 NAME 'person' SUP top STRUCTURAL MUST ( sn $ cn )
   installation time.</para>
  </section>
 
- <section>
+ <section xml:id="update-schema">
   <title>Updating Directory Schema</title>
-
+  <indexterm>
+   <primary>Replication</primary>
+   <secondary>Schema definitions</secondary>
+  </indexterm>
+  
   <para>OpenDJ directory server is designed to permit updating the list of
   directory schema definitions while the server is running. As a result you can
   add support for new applications that require new attributes or new kinds
@@ -196,8 +201,12 @@ myCustomAttribute: Testing 1, 2, 3...
 </screen>
  </section>
  
- <section>
+ <section xml:id="schema-legacy-support">
   <title>Relaxing Schema Checking to Import Legacy Data</title>
+  <indexterm>
+   <primary>Schema</primary>
+   <secondary>Legacy data</secondary>
+  </indexterm>
   
   <para>By default, OpenDJ accepts data that follows the standards in terms of
   what is allowed and what is rejected. You might have legacy data from a
@@ -230,8 +239,12 @@ myCustomAttribute: Testing 1, 2, 3...
  set-global-configuration-prop --set check-schema:false -X -n</screen>
  </section>
 
- <section>
+ <section xml:id="standard-schema">
   <title>Standard Schema Included With OpenDJ</title>
+  <indexterm>
+   <primary>Schema</primary>
+   <secondary>Bundled definitions</secondary>
+  </indexterm>
   
   <para>The following files under <filename>config/schema/</filename>
   contain schema definitions out of the box.</para>
@@ -371,6 +384,15 @@ myCustomAttribute: Testing 1, 2, 3...
    </varlistentry>
    <varlistentry>
     <term>
+     <filename>05-samba.ldif</filename>
+    </term>
+    <listitem>
+     <para>This file contains schema definitions required when storing Samba
+     user accounts in the directory server.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term>
      <filename>05-solaris.ldif</filename>
     </term>
     <listitem>
@@ -390,4 +412,3 @@ myCustomAttribute: Testing 1, 2, 3...
   </variablelist>
  </section>
 </chapter>
-

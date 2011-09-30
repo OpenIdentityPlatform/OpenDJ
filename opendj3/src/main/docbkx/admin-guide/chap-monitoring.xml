@@ -30,16 +30,18 @@
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Monitoring Servers</title>
-
+ 
  <para>This chapter describes the monitoring capabilities that OpenDJ
  implements, and shows how to configure them.</para>
+ 
+ <indexterm><primary>Monitoring</primary></indexterm>
  
  <para>OpenDJ Control Panel provides basic monitoring capabilities under
  Monitoring &gt; Connection Handler, Monitoring &gt; Connection Handler, and
  Monitoring &gt; Manage Tasks. This chapter covers the other options for
  monitoring OpenDJ.</para>
-
- <section>
+ 
+ <section xml:id="ldap-monitoring">
   <title>LDAP-Based Monitoring</title>
   
   <para>OpenDJ exposes monitoring information over LDAP under the entry
@@ -74,8 +76,9 @@ ds-backend-base-dn: dc=example,dc=com
   to limit read access under <literal>cn=monitor</literal>.</para>
  </section>
 
- <section>
+ <section xml:id="snmp-monitoring">
   <title>SNMP-Based Monitoring</title>
+  <indexterm><primary>SNMP</primary></indexterm>
   
   <para>OpenDJ lets you monitor the server over the Simple Network Management
   Protocol (SNMP), with support for the Management Information Base described
@@ -95,8 +98,9 @@ ds-backend-base-dn: dc=example,dc=com
  --set opendmk-jarfile:<replaceable>OpenDMK-install-dir</replaceable>/lib/jdmkrt.jar</screen>
  </section>
 
- <section>
+ <section xml:id="jmx-monitoring">
   <title>JMX-Based Monitoring</title>
+  <indexterm><primary>JMX</primary></indexterm>
   
   <para>OpenDJ provides Java Management eXtensions (JMX) based monitoring. A
   number of tools support JMX, including <command>jconsole</command> and
@@ -127,7 +131,7 @@ ds-backend-base-dn: dc=example,dc=com
 $ jvisualvm --openpid 3363 &amp;</screen>
  </section>
 
- <section>
+ <section xml:id="monitoring-status-and-tasks">
   <title>Server Operation &amp; Tasks</title>
   
   <para>OpenDJ comes with two commands for monitoring server processes and
@@ -179,8 +183,13 @@ Replication: Disabled</screen>
   example-20110623030000000  Backup  Waiting on start time</screen>
  </section>
 
- <section>
+ <section xml:id="logging">
   <title>Server Logs</title>
+  <indexterm><primary>Logs</primary></indexterm>
+  <indexterm>
+   <primary>Replication</primary>
+   <secondary>Log</secondary>
+  </indexterm>
   
   <para>By default OpenDJ stores access and errors logs as well as a
   server process ID file under the <filename>logs/</filename> directory.
@@ -273,8 +282,9 @@ Replication: Disabled</screen>
   list-retention-policies</command>.</para>
  </section>
 
- <section>
+ <section xml:id="alert-notifications">
   <title>Alert Notifications</title>
+  <indexterm><primary>Alerts</primary></indexterm>
   
   <para>OpenDJ can send alerts to provide notifications of significant server
   events. Yet alert notifications are not enabled by default. You can use
@@ -299,4 +309,3 @@ $ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
  --set sender-address:opendj@example.com -X -n</screen>
  </section>
 </chapter>
-

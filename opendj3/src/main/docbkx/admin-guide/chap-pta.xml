@@ -30,7 +30,8 @@
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Configuring Pass Through Authentication</title>
-
+ <indexterm><primary>Pass through authentication</primary></indexterm>
+ 
  <para>This chapter focuses on pass through authentication (PTA), whereby you
  configure another server to determine the response to an authentication
  request. A typical use case for pass through authentication involves

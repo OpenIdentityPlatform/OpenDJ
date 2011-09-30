@@ -30,7 +30,7 @@
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Implementing Attribute Value Uniqueness</title>
-
+ 
  <para>Some attribute values ought to remain unique. If you are using
  <literal>uid</literal> values as RDNs to distinguish between millions of
  user entries stored under <literal>ou=People</literal>, then you do not
@@ -39,6 +39,8 @@
  stored as an attribute value on your directory entry, you certainly do not
  want to share that credit card or mobile number with another customer.
  The same is true for your email address.</para>
+ 
+ <indexterm><primary>Unique attribute values</primary></indexterm>
  
  <para>The difficulty for you as directory administrator lies in
  implementing attribute value uniqueness without sacrificing the high
@@ -53,7 +55,7 @@
  <para>This chapter shows you how to set up attribute value uniqueness
  in your directory environment.</para>
 
- <procedure>
+ <procedure xml:id="enable-unique-uids">
   <title>To Enable Unique UIDs</title>
   
   <para>OpenDJ provides a unique attribute plugin that you configure by using
@@ -86,9 +88,9 @@ Additional Information:  A unique attribute conflict was detected for \
   </step>
  </procedure>
  
- <procedure>
+ <procedure xml:id="enable-unique-attributes">
   <title>To Enable Unique Values For Other Attributes</title>
- 
+  
   <para>You can also configure the unique attribute plugin for use with
   other attributes, such as <literal>mail</literal>, <literal>mobile</literal>,
   or attributes you define, for example <literal>cardNumber</literal>.</para>
@@ -128,9 +130,12 @@ Additional Information:  A unique attribute conflict was detected for
   </step>
  </procedure>
  
- <procedure>
+ <procedure xml:id="unique-attributes-repl">
   <title>To Ensure Unique Attribute Values With Replication</title>
-  
+  <indexterm>
+   <primary>Replication</primary>
+   <secondary>Unique attributes</secondary>
+  </indexterm>
   <para>The unique attribute plugin ensures unique attribute values on the
   directory server where the attribute value is updated. If client applications
   separately write the same attribute value at the same time on different
@@ -160,7 +165,6 @@ Additional Information:  A unique attribute conflict was detected for
      partition.</para>
     </step>
    </stepalternatives>
-  </step>  
+  </step>
  </procedure>
 </chapter>
-

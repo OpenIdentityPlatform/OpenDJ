@@ -30,7 +30,8 @@
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Configuring Password Policy</title>
-
+ <indexterm><primary>Password policy</primary></indexterm>
+ 
  <para>If you want to synchronize password policy across your organization
  and your applications go to the directory for authentication, then the
  directory can be a good place to enforce your password policy uniformly.
@@ -43,7 +44,7 @@
  
  <!-- TODO: A section with a larger set of examples would be nice. -->
  
- <section>
+ <section xml:id="pwp-overview">
   <title>About OpenDJ Password Policies</title>
   
   <para>OpenDJ password policies govern not only passwords, but also account
@@ -53,7 +54,7 @@
   and also subentry password policies as part of the (replicated) user
   data.</para>
   
-  <section>
+  <section xml:id="pwp-per-server">
    <title>Server Based Password Policies</title>
    
    <para>You manage the password policies in the OpenDJ configuration by using
@@ -132,13 +133,21 @@ userpassword: {SSHA}QWAtw8ch/9850HNFRRqLNMIQc1YhxCnOoGmk1g==</screen>
    passwords hashed by the client application.</para>
   </section>
   
-  <section>
+  <section xml:id="pwp-replicated">
    <title>Subentry Based Password Policies</title>
+   <indexterm>
+    <primary>Replication</primary>
+    <secondary>Password policy</secondary>
+   </indexterm>
    
    <para>You manage subentry password policies by adding the subentries
    alongside the user data. Thus OpenDJ can replicate subentry password
    policies across servers.</para>
    
+   <indexterm>
+    <primary>Password policy</primary>
+    <secondary>Behera Internet-Draft</secondary>
+   </indexterm>
    <para>Subentry password policies support the Internet-Draft <link
    xlink:href="http://tools.ietf.org/html/draft-behera-ldap-password-policy-09"
    >Password Policy for LDAP Directories</link> (version 09). A subentry
@@ -236,7 +245,7 @@ userpassword: {SSHA}QWAtw8ch/9850HNFRRqLNMIQc1YhxCnOoGmk1g==</screen>
    </itemizedlist>
   </section>
   
-  <section>
+  <section xml:id="pwp-application">
    <title>Which Password Policy Applies</title>
    
    <para>The password policy that applies to a user is identified by the
@@ -248,16 +257,20 @@ pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config</sc
   </section>
  </section>
 
- <section>
+ <section xml:id="configure-pwp">
   <title>Configuring Password Policies</title>
 
   <para>You configure password policies using the <command>dsconfig</command>
   command. Notice that password policies are part of the server configuration,
   and therefore not replicated.</para>
   
-  <procedure>
+  <procedure xml:id="default-pwp">
    <title>To Adjust the Default Password Policy</title>
-  
+   <indexterm>
+    <primary>Password policy</primary>
+    <secondary>Default</secondary>
+   </indexterm>
+   
    <para>You can reconfigure the default password policy for example to
    enforce password expiration, check that passwords do not match dictionary
    words, and prevent password reuse.</para>
@@ -312,7 +325,7 @@ require-secure-password-changes           : false</screen>
    </step>
   </procedure>
 
-  <procedure>
+  <procedure xml:id="create-per-server-pwp">
    <title>To Create a Server Based Password Policy</title>
 
    <para>You can add a password policy for example for new users who have not
@@ -366,7 +379,7 @@ require-secure-password-changes           : false</screen>
    </step>
   </procedure>
   
-  <procedure>
+  <procedure xml:id="create-repl-pwp">
    <title>To Create a Subentry Based Password Policy</title>
    <para>You can add a subentry to configure a password policy that
    applies to Directory Administrators.</para>
@@ -413,7 +426,7 @@ pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config</sc
   </procedure>
  </section>
  
- <section>
+ <section xml:id="assign-pwp">
   <title>Assigning Password Policies</title>
   
   <para>You assign subentry based password policies for a subtree of the DIT by
@@ -428,7 +441,7 @@ pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config</sc
   <para>You assign server based password policies by using the
   <literal>ds-pwp-password-policy-dn</literal> attribute.</para>
   
-  <procedure>
+  <procedure xml:id="assign-pwp-to-individual">
    <title>To Assign a Password Policy to a User</title>
    
    <step>
@@ -513,4 +526,3 @@ pwdPolicySubentry: cn=Root Password Policy,cn=Password Policies,cn=config</scree
   </procedure>
  </section>
 </chapter>
-

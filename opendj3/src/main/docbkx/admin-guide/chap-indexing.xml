@@ -30,7 +30,10 @@
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Indexing Attribute Values</title>
-
+ <indexterm>
+  <primary>Indexes</primary>
+ </indexterm>
+ 
  <para>OpenDJ provides several indexing schemes to speed up searches.</para>
  
  <para>When a client requests a directory search operation, the client sends
@@ -53,14 +56,18 @@
  index attribute values. This chapter also lists the default indexing
  configuration for OpenDJ directory server.</para>
  
- <section>
+ <section xml:id="indexes-overview">
   <title>Index Types &amp; What Each Does</title>
   
   <para>OpenDJ provides several different index types, each corresponding
   to a different type of search.</para>
   
-  <section>
+  <section xml:id="indexes-approximate">
    <title>Approximate Index</title>
+   <indexterm>
+    <primary>Indexes</primary>
+    <secondary>Approximate</secondary>
+   </indexterm>
    
    <para>An approximate index is used to match values that "sound like" those
    provided in the filter. An approximate index on <literal>cn</literal>
@@ -73,8 +80,12 @@ cn: Barbara Jensen
 cn: Babs Jensen</screen>
   </section>
   
-  <section>
+  <section xml:id="indexes-equality">
    <title>Equality Index</title>
+   <indexterm>
+    <primary>Indexes</primary>
+    <secondary>Equality</secondary>
+   </indexterm>
    
    <para>An equality index is used to match values that correspond exactly
    (though generally without case sensitivity) to the value provided in
@@ -86,8 +97,12 @@ dn: uid=bjensen,ou=People,dc=example,dc=com
 mail: bjensen@example.com</screen>
   </section>
   
-  <section>
+  <section xml:id="indexes-ordering">
    <title>Ordering Index</title>
+   <indexterm>
+    <primary>Indexes</primary>
+    <secondary>Ordering</secondary>
+   </indexterm>
    
    <para>An ordering index is used to match values for a filter that
    specifies a range. The <literal>ds-sync-hist</literal> has an ordering
@@ -110,8 +125,12 @@ dn: uid=pchassin,ou=People,dc=example,dc=com
 uid: pchassin</screen>
   </section>
   
-  <section>
+  <section xml:id="indexes-presence">
    <title>Presence Index</title>
+   <indexterm>
+    <primary>Indexes</primary>
+    <secondary>Presence</secondary>
+   </indexterm>
    
    <para>A presence index is used to match the fact that an attribute is
    present on the entry, regardless of the value. The <literal>aci</literal>
@@ -124,8 +143,12 @@ dn: dc=example,dc=com
 dn: ou=People,dc=example,dc=com</screen>
   </section>
   
-  <section>
+  <section xml:id="indexes-substring">
    <title>Substring Index</title>
+   <indexterm>
+    <primary>Indexes</primary>
+    <secondary>Substring</secondary>
+   </indexterm>
    
    <para>A substring index is used to match values specified with wildcards
    in the filter. Substring indexes can be expensive to maintain, especially
@@ -149,8 +172,12 @@ dn: uid=bmaddox,ou=People,dc=example,dc=com
 cn: Barbara Maddox</screen>
   </section>
   
-  <section>
+  <section xml:id="indexes-vlv">
    <title>Virtual List View (Browsing) Index</title>
+   <indexterm>
+    <primary>Indexes</primary>
+    <secondary>Virtual list view (browsing)</secondary>
+   </indexterm>
    
    <para>A VLV or browsing index are designed to help the server respond to
    client applications that need virtual list view results, for example to
@@ -163,8 +190,12 @@ cn: Barbara Maddox</screen>
   </section>
  </section>
  
- <section>
+ <section xml:id="configure-indexes">
   <title>Configuring &amp; Rebuilding Indexes</title>
+  <indexterm>
+   <primary>Indexes</primary>
+   <secondary>Configuring</secondary>
+  </indexterm>
   
   <para>You modify index configurations using the <command>dsconfig</command>
   command. The configuration changes then take effect after you rebuild the
@@ -177,7 +208,7 @@ cn: Barbara Maddox</screen>
    the suffixes in different backends.</para>
   </tip>
   
-  <section>
+  <section xml:id="configure-standard-index">
    <title>Configuring a Standard Index</title>
    
    <para>You can configure standard indexes from the Control Panel, and also
@@ -185,7 +216,7 @@ cn: Barbara Maddox</screen>
    you finish configuring the index, you must rebuild the index for the changes
    to take effect.</para>
    
-   <example>
+   <example xml:id="create-index-example">
     <title>Create a New Index</title>
     
     <para>The following example creates a new substring index for
@@ -196,8 +227,12 @@ cn: Barbara Maddox</screen>
  --set index-type:substring -n</screen>
    </example>
    
-   <example>
+   <example xml:id="approx-index-example">
     <title>Configure an Approximate Index</title>
+    <indexterm>
+     <primary>Indexes</primary>
+     <secondary>Approximate</secondary>
+    </indexterm>
     
     <para>The following example configures and approximate index for
     <literal>cn</literal> (common name).</para>
@@ -208,8 +243,12 @@ cn: Barbara Maddox</screen>
    </example>
   </section>
   
-  <section>
+  <section xml:id="configure-vlv">
    <title>Configuring a Virtual List View Index</title>
+   <indexterm>
+    <primary>Indexes</primary>
+    <secondary>Virtual list view (browsing)</secondary>
+   </indexterm>
    
    <para>In the OpenDJ Control Panel, select Manage Indexes &gt;
    New VLV Index..., and then set up your VLV index using the New VLV
@@ -226,15 +265,19 @@ cn: Barbara Maddox</screen>
    VLV index configuration, and then to build the index.</para>
   </section>
 
-  <section>
+  <section xml:id="rebuild-index">
    <title>Rebuilding Indexes</title>
+   <indexterm>
+    <primary>Indexes</primary>
+    <secondary>Rebuilding</secondary>
+   </indexterm>
    
    <para>After you change an index configuration, or when you find that
    an index is corrupt, you can rebuild the index. If you rebuild the index
    while the server is online, then you must schedule the rebuild process
    as a task.</para>
    
-   <example>
+   <example xml:id="rebuild-index-example">
     <title>Rebuild Index</title>
 
     <para>The following example rebuilds the <literal>cn</literal> index
@@ -246,8 +289,12 @@ Rebuild Index task 20110607171639867 scheduled to start Jun 7, 2011 5:16:39 PM</
    </example>
   </section>
 
-  <section>
+  <section xml:id="index-entry-limits">
    <title>Changing Index Entry Limits</title>
+   <indexterm>
+    <primary>Indexes</primary>
+    <secondary>Entry limits</secondary>
+   </indexterm>
    
    <para>Indexing data makes sense when maintaining the index is quicker and
    cheaper than searching through all entries.</para>
@@ -281,7 +328,7 @@ Rebuild Index task 20110607171639867 scheduled to start Jun 7, 2011 5:16:39 PM</
 
    <para>You can change the index entry limit on a per index basis.</para>
    
-   <example>
+   <example xml:id="change-index-entry-limit">
     <title>Change Index Entry Limit</title>
     
     <para>The following example changes the index entry limit for the
@@ -298,14 +345,18 @@ Rebuild Index task 20110607160349596 scheduled to start Jun 7, 2011 4:03:49 PM</
   </section>
  </section>
 
- <section>
+ <section xml:id="verify-index">
   <title>Verifying Indexes</title>
+  <indexterm>
+   <primary>Indexes</primary>
+   <secondary>Verifying</secondary>
+  </indexterm>
   
   <para>You can verify that indexes correspond to current directory data,
   and that indexes do not contain errors using the
   <command>verify-index</command> command.</para>
   
-  <example>
+  <example xml:id="verify-index-example">
    <title>Verify Index</title>
    
    <para>The following example verifies the <literal>cn</literal> (common
@@ -333,8 +384,12 @@ Rebuild Index task 20110607160349596 scheduled to start Jun 7, 2011 4:03:49 PM</
   </example>
  </section>
  
- <section>
+ <section xml:id="debug-search-indexes">
   <title>Checking Indexes For a Search</title>
+   <indexterm>
+    <primary>Indexes</primary>
+    <secondary>Debugging searches</secondary>
+   </indexterm>
   
   <para>When searching, you can improve performance by making sure your search
   is indexed as you expect. One way of checking is to request the
@@ -362,8 +417,12 @@ debugsearchindex: filter=(uid=*)[NOT-INDEXED] scope=wholeSubtree[COUNT:160]
   candidate entries goes beyond the search or look-though limit.</para>
  </section>
  
- <section>
+ <section xml:id="default-indexes">
   <title>Default Indexes</title>
+   <indexterm>
+    <primary>Indexes</primary>
+    <secondary>Default settings</secondary>
+   </indexterm>
   
   <para>When you first install OpenDJ directory server and import your
   data from LDIF, the following indexes are configured.</para>

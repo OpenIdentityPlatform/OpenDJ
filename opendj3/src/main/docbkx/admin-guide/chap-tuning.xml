@@ -30,6 +30,7 @@
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Tuning Servers For Performance</title>
+ <indexterm><primary>Performance tuning</primary></indexterm>
  
  <para>Server tuning refers to the art of adjusting server, JVM, and system
  configuration to meet the service level performance requirements of directory
@@ -43,7 +44,7 @@
  This chapter therefore aims to provide suggestions on how to measure and
  to improve directory service performance for better trade offs.</para>
  
- <section>
+ <section xml:id="perf-define-starting-points">
   <title>Defining Performance Requirements &amp; Constraints</title>
   
   <para>Your key performance requirement is most likely to satisfy your
@@ -52,7 +53,7 @@
   expect, and determine what resources you will have to satisfy their
   expectations.</para>
   
-  <section>
+  <section xml:id="perf-sla">
    <title>Service-Level Agreements</title>
    
    <para>Service-level agreement (SLA) is a formal name for what directory
@@ -80,6 +81,10 @@
     <listitem>
      <para>Directory service <firstterm>throughput</firstterm></para>
      
+     <indexterm>
+      <primary>Replication</primary>
+      <secondary>Write throughput</secondary>
+     </indexterm>
      <para>Directory service throughput can range up to many thousands of
      operations per second. In fact there is no upper limit for read operations
      such as searches, because only write operations must be replicated. To
@@ -127,7 +132,7 @@
    outcome.</para>
   </section>
   
-  <section>
+  <section xml:id="perf-constraints">
    <title>Available Resources</title>
    
    <para>With your SLA in hand, take inventory of the server, networks,
@@ -147,7 +152,7 @@
    long you expect to have them, and why you need them. Also make note of
    what is missing and why.</para>
    
-   <section>
+   <section xml:id="perf-hardware">
     <title>Server Hardware Recommendations</title>
    
     <para>Concerning server hardware, OpenDJ runs on systems with Java support,
@@ -155,7 +160,7 @@
     single-board, x86 systems due to low memory latency.</para>
    </section>
    
-   <section>
+   <section xml:id="perf-storage">
     <title>Storage Recommendations</title>
     
     <para>OpenDJ is designed to work with local storage for the database,
@@ -181,7 +186,7 @@
   </section>
  </section>
  
- <section>
+ <section xml:id="perf-testing">
   <title>Testing Performance</title>
   
   <para>Even if you do not need high availability, you still need two of
@@ -228,7 +233,7 @@
   client applications.</para>
  </section>
  
- <section>
+ <section xml:id="perf-tweaking">
   <title>Tweaking OpenDJ Performance</title>
   
   <para>When your tests show that OpenDJ performance is lacking even though
@@ -236,7 +241,7 @@
   resources in place, you can tweak OpenDJ performance in a number of ways.
   This section mentions the most common tweaks.</para>
   
-  <section>
+  <section xml:id="perf-java">
    <title>Java Settings</title>
    
    <para>Default Java settings let you evaluate OpenDJ using limited system
@@ -303,7 +308,7 @@
    </variablelist>
   </section>
   
-  <section>
+  <section xml:id="perf-data-storage">
    <title>Data Storage Settings</title>
    
    <para>By default, OpenDJ does use compact data encoding, reducing size used
@@ -323,8 +328,12 @@ $ import-ldif -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
 Import task 20110627101758486 scheduled to start Jun 27, 2011 10:17:58 AM CEST</screen>
   </section>
   
-  <section>
+  <section xml:id="perf-import">
    <title>LDIF Import Settings</title>
+   <indexterm>
+    <primary>Importing data</primary>
+    <secondary>Performance</secondary>
+   </indexterm>
    
    <para>You can tweak OpenDJ to speed up import of large LDIF files.</para>
    
@@ -348,7 +357,7 @@ Import task 20110627101758486 scheduled to start Jun 27, 2011 10:17:58 AM CEST</
    <command>import-ldif</command> command to skip validation.</para>
   </section>
   
-  <section>
+  <section xml:id="perf-db-cache">
    <title>Database Cache Settings</title>
    
    <para>Database cache size is, by default, set as a percentage of the JVM
@@ -383,7 +392,7 @@ Import task 20110627101758486 scheduled to start Jun 27, 2011 10:17:58 AM CEST</
    depends on your operating system.</para>
   </section>
   
-  <section>
+  <section xml:id="perf-entry-cache">
    <title>Entry Cache Settings</title>
    
    <para>OpenDJ implements an entry cache. The entry cache is not designed to
@@ -398,7 +407,7 @@ Import task 20110627101758486 scheduled to start Jun 27, 2011 10:17:58 AM CEST</
  --set max-entries:10 --set enabled:true -X -n</screen>
   </section>
   
-  <section>
+  <section xml:id="perf-logging">
    <title>Logging Settings</title>
    
    <para>Debug logs trace the internal workings of OpenDJ, and therefore

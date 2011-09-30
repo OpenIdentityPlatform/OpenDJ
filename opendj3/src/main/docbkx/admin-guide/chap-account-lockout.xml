@@ -56,9 +56,9 @@
  <para>This chapter shows you how to set up account lockout policies,
  and how to intervene manually to lock and unlock accounts.</para>
  
- <section>
+ <section xml:id="configure-account-lockout">
   <title>Configuring Account Lockout</title>
-  
+  <indexterm><primary>Accounts</primary><secondary>Lockout</secondary></indexterm>
   <para>Account lockout is configured as part of password policy. This section
   demonstrates configuring account lockout as part of the default password
   policy. Users are allowed three consecutive failures before being locked out
@@ -100,7 +100,7 @@ The simple bind attempt failed
 Result Code:  49 (Invalid Credentials)</screen>
  </section>
  
- <section>
+ <section xml:id="manage-accounts">
   <title>Managing Accounts Manually</title>
   
   <para>This section covers disabling and enabling accounts by using the
@@ -114,9 +114,9 @@ Result Code:  49 (Invalid Credentials)</screen>
 version 3.0;acl "Admins can run amok"; allow(all) groupdn =
 "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)</literallayout>
   
-  <procedure>
+  <procedure xml:id="disable-account">
    <title>To Disable an Account</title>
-   
+   <indexterm><primary>Accounts</primary><secondary>Disabling</secondary></indexterm>
    <step>
     <para>Set the account status to disabled with the
     <command>manage-account</command> command.</para>
@@ -128,9 +128,9 @@ Account Is Disabled:  true</screen>
    </step>
   </procedure>
   
-  <procedure>
+  <procedure xml:id="reactivate-account">
    <title>To Activate a Disabled Account</title>
-   
+   <indexterm><primary>Accounts</primary><secondary>Activating</secondary></indexterm>
    <step>
     <para>Clear the disabled status using the <command>manage-account</command>
     command.</para>
@@ -143,14 +143,17 @@ Account Is Disabled:  false</screen>
   </procedure>
  </section>
  
- <section>
+ <section xml:id="account-status-notification">
   <title>Managing Account Status Notification</title>
-  
+  <indexterm>
+   <primary>Accounts</primary>
+   <secondary>Status notifications</secondary>
+  </indexterm>
   <para>OpenDJ can send mail about account status changes. OpenDJ needs an
   SMTP server to send messages. By default, message templates are in
   English.</para>
   
-  <procedure>
+  <procedure xml:id="mail-account-status-notifications">
    <title>To Mail Users About Account Status</title>
    
    <step>

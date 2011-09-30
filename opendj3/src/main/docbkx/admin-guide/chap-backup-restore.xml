@@ -37,9 +37,9 @@
  of backup archives, as well as backing up server configuration
  information.</para>
  
- <section>
+ <section xml:id="backup">
   <title>Backing Up Directory Data</title>
-  
+  <indexterm><primary>Backup</primary></indexterm>
   <para>A <filename>bak/</filename> directory is provided when you install
   OpenDJ, as a location to save binary backups. When you create a backup,
   the <filename>bak/backup.info</filename> contains information about the
@@ -49,7 +49,7 @@
   backups only of the directory data. Backups of server configuration are
   found in <filename>config/archived-configs/</filename>.</para>
  
-  <procedure>
+  <procedure xml:id="backup-immediately">
    <title>To Back Up Data Immediately</title>
    
    <step>
@@ -91,7 +91,7 @@ Backup task 20110613143801866 scheduled to start Jun 13, 2011 2:38:01 PM CEST</s
    </step>
   </procedure>
   
-  <procedure>
+  <procedure xml:id="schedule-backup">
    <title>To Schedule Data Backup</title>
    
    <para>You can schedule data backup using <command>crontab</command>
@@ -109,13 +109,15 @@ scheduled successfully</screen>
   </procedure>
  </section>
 
- <section>
+ <section xml:id="restore-data">
   <title>Restoring Directory Data From Backup</title>
+  <indexterm><primary>Backup</primary></indexterm>
+  <indexterm><primary>Restore from backup</primary></indexterm>
   
   <para>When you restore data, the procedure to follow depends on whether
   the OpenDJ directory server is replicated.</para>
   
-  <procedure>
+  <procedure xml:id="restore-standalone-server">
    <title>To Restore a Stand-alone Server</title>
   
    <step>
@@ -155,9 +157,13 @@ Restore task 20110613155052932 scheduled to start Jun 13, 2011 3:50:52 PM CEST</
    </step>
   </procedure>
   
-  <procedure>
+  <procedure xml:id="restore-replica">
    <title>To Restore a Replica</title>
-  
+   <indexterm>
+    <primary>Replication</primary>
+    <secondary>Restoring from backup</secondary>
+   </indexterm>
+   
    <para>When you restore a replicated server from backup, make sure the
    backup is newer than the last purge of the replication change log (default:
    3 days).</para>
@@ -214,4 +220,3 @@ Post initialization procedure completed successfully.</screen>
   </procedure>
  </section>
 </chapter>
-

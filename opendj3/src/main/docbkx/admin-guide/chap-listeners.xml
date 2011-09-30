@@ -30,13 +30,13 @@
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Configuring Servers For Client Application Access</title>
-
+ <indexterm><primary>Ports</primary><secondary>Configuring</secondary></indexterm>
  <para>This chapter shows you how to configure OpenDJ directory server to
  listen for directory client requests, using connection handlers. You can view
  information about connection handlers in the OpenDJ Control Panel, and update
  the configuration using the <command>dsconfig</command> command.</para>
  
- <section>
+ <section xml:id="configure-ldap-port">
   <title>LDAP Client Access</title>
   
   <para>You configure LDAP client access by using the command-line tool
@@ -49,7 +49,7 @@
   installation time. If you install as a user who cannot use a port &lt; 1024,
   then the default port number presented at installation time is 1389.</para>
   
-  <procedure>
+  <procedure xml:id="change-ldap-port">
    <title>To Change the LDAP Port Number</title>
    
    <step>
@@ -67,14 +67,13 @@
   </procedure>
  </section>
  
- <section>
+ <section xml:id="setup-server-cert">
   <title>Preparing For Secure Communications</title>
   <subtitle>Setting Up a Self-Signed Certificate</subtitle>
-  
+  <indexterm><primary>Certificates</primary></indexterm>
   <para>You can set up a self-signed certificate as part of the OpenDJ
   installation process. You can also choose to import your own CA-signed
   certificate as part of the installation process.</para>
-  
   
   <para>Other applications recognize certificates signed by CAs whose root
   certificates are installed already. If you need your server certificate to
@@ -86,7 +85,7 @@
   after installation. With the self-signed certificate you can set up, for
   example, secure communications with StartTLS and over LDAPS.</para>
   
-  <procedure>
+  <procedure xml:id="new-self-signed-cert">
    <title>To Create &amp; Install a Self-Signed Certificate</title>
    
    <para>First you create and sign a server certificate that you place in
@@ -131,15 +130,15 @@
   </procedure>
  </section>
  
- <section>
+ <section xml:id="configure-starttls">
   <title>LDAP Client Access With Transport Layer Security</title>
-  
+  <indexterm><primary>StartTLS</primary></indexterm>
   <para>StartTLS (Transport Layer Security) negotiations start on the unsecure
   LDAP port, and then protect communication with the client. You can opt to
   configure StartTLS during installation, or later using the
   <command>dsconfig</command> command.</para>
     
-  <procedure>
+  <procedure xml:id="setup-starttls-port">
    <title>To Enable StartTLS on the LDAP Port</title>
    
    <step>
@@ -156,9 +155,9 @@
   </procedure>
  </section>
 
- <section>
+ <section xml:id="configure-ssl">
   <title>LDAP Client Access Over SSL</title>
-  
+  <indexterm><primary>SSL</primary></indexterm>
   <para>You configure LDAPS (LDAP/SSL) client access by using the command-line
   tool <command>dsconfig</command>. You can opt to configure LDAPS access
   when you install.</para>
@@ -169,7 +168,7 @@
   installation time. If you install as a user who cannot use a port &lt; 1024,
   then the default port number presented at installation time is 1636.</para>
   
-  <procedure>
+  <procedure xml:id="setup-ssl-port">
    <title>To Set Up LDAPS Access</title>
    
    <step>
@@ -184,7 +183,7 @@
    </step>
   </procedure>
 
-  <procedure>
+  <procedure xml:id="change-ssl-port">
    <title>To Change the LDAPS Port Number</title>
    
    <step>
@@ -202,11 +201,12 @@
   </procedure>
  </section>
  
-  <section>
+  <section xml:id="setup-dsml">
   <title>DSML Client Access</title>
+  <indexterm><primary>DSML</primary></indexterm>
   
-  <para>DSML client access is implemented as a servlet that runs in a
-  web application container.</para>
+  <para>Directory Services Markup Language (DSML) client access is implemented
+  as a servlet that runs in a web application container.</para>
 
   <para>You configure DSML client access by editing the
   <filename>WEB-INF/web.xml</filename> after you deploy the web
@@ -305,13 +305,14 @@
   </mediaobject>
  </section>
  
-  <section>
+  <section xml:id="jmx-access">
   <title>JMX Client Access</title>
+  <indexterm><primary>JMX</primary></indexterm>
   
-  <para>You configure JMX client access by using the command-line tool
-  <command>dsconfig</command>.</para>
+  <para>You configure Java Management Extensions (JMX) client access by using
+  the command-line tool, <command>dsconfig</command>.</para>
   
-  <procedure>
+  <procedure xml:id="setup-jmx">
    <title>To Set Up JMX Access</title>
    
    <step>
@@ -328,8 +329,12 @@
   </procedure>  
  </section>
 
-  <section>
+  <section xml:id="ldif-access">
   <title>LDIF File Access</title>
+  <indexterm>
+   <primary>LDIF</primary>
+   <secondary>File as backend</secondary>
+  </indexterm>
   
   <para>The LDIF connection handler lets you make changes to directory data
   by placing LDIF in a file system directory that OpenDJ server regularly
@@ -338,7 +343,7 @@
   <para>You configure LDIF file access by using the command-line tool
   <command>dsconfig</command>.</para>
   
-  <procedure>
+  <procedure xml:id="setup-ldif-access">
    <title>To Set Up LDIF File Access</title>
    
    <step>
@@ -357,6 +362,4 @@
    </step>
   </procedure>
  </section>
-
 </chapter>
-

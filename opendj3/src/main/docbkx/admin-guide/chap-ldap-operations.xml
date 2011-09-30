@@ -38,8 +38,9 @@
  <!-- TODO: search, compare, add, modify, modifyDN, delete, but also authrate,
  searchrate, modrate, and ldappasswordmodify, who am I?, cancel -->
  
- <section>
+ <section xml:id="search-ldap">
   <title>Searching the Directory</title>
+  <indexterm><primary>Searching data</primary></indexterm>
   
   <para>Searching the directory resembles searching for a phone number in
   a paper phone book. You can look up a phone number because you know the
@@ -83,7 +84,7 @@
   If you do not specify attributes, then the search returns all user attributes
   for the entry.</para>
  
-  <example>
+  <example xml:id="simple-filter-search">
    <title>Search: Simple Filter</title>
    
    <para>The following example searches for entries with UID containing
@@ -115,7 +116,7 @@ uid: tjensen
 Result Code:  0 (Success)</screen>
   </example>
   
-  <example>
+  <example xml:id="complex-filter-search">
    <title>Search: Complex Filter</title>
    
    <para>The following example returns entries with <literal>uid</literal>
@@ -169,13 +170,14 @@ sn: Jensen
   </example>
  </section>
  
- <section>
+ <section xml:id="compare-ldap">
   <title>Comparing Attribute Values</title>
+  <indexterm><primary>Comparing attribute values</primary></indexterm>
   
   <para>The compare operation checks whether an attribute value you specify
   matches the attribute value stored on one or more directory entries.</para>
   
-  <example>
+  <example xml:id="compare-example">
    <title>Compare: Checking <literal>authPassword</literal></title>
    
    <para>In this example, Kirsten Vaughan checks whether the hashed password
@@ -192,20 +194,21 @@ Compare operation returned true for entry
   </example>
  </section>
  
- <section>
+ <section xml:id="write-ldap">
   <title>Updating the Directory</title>
-  
+  <indexterm><primary>Updating data</primary></indexterm>
+  <indexterm><primary>LDIF</primary><secondary>Examples</secondary></indexterm>
   <para>Authorized users can change directory data using the LDAP add, modify,
   modify DN, and delete operations.</para>
   
-  <section>
+  <section xml:id="add-ldap">
    <title>Adding Entries</title>
    
    <para>With the <command>ldapmodify -a</command> command, authorized users
    can add entire entries from the same sort of LDIF file used to import
    and export data.</para>
    
-   <example>
+   <example xml:id="add-two-users">
    <title>Add: Two New Users</title>
    
    <screen>$ cat new-users.ldif 
@@ -234,14 +237,14 @@ ADD operation successful for DN
   </example> 
  </section>
 
-  <section>
+  <section xml:id="modify-ldap">
    <title>Modifying Entry Attributes</title>
    
    <para>With the <command>ldapmodify</command> command, authorized users
    can change the values of attributes in the directory using LDIF as specified
    in <link xlink:href='http://tools.ietf.org/html/rfc2849'>RFC 2849</link>.</para>
    
-  <example>
+  <example xml:id="modify-add-attribute">
    <title>Modify: Adding Attributes</title>
    
    <para>The following example adds a description and JPEG photo to Sam
@@ -262,7 +265,7 @@ Processing MODIFY request for uid=scarter,ou=people,dc=example,dc=com
 MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com</screen>
   </example>
 
-  <example>
+  <example xml:id="modify-replace-attribute">
    <title>Modify: Changing an Attribute Value</title>
    
    <para>The following example replaces the description on Sam Carter's
@@ -280,7 +283,7 @@ Processing MODIFY request for uid=scarter,ou=people,dc=example,dc=com
 MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com</screen>
   </example>
 
-  <example>
+  <example xml:id="modify-delete-attribute">
    <title>Modify: Deleting an Attribute Value</title>
    
    <para>The following example deletes the JPEG photo on Sam Carter's
@@ -298,7 +301,7 @@ MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com</scre
   </example>
   </section>
 
-  <section>
+  <section xml:id="rename-ldap">
    <title>Renaming Entries</title>
    
    <para>The Relative Distinguished Name (RDN) refers to the part of an
@@ -314,7 +317,7 @@ MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com</scre
    modifying the value of the naming attribute, but also modifying the entry's
    DN.</para>
    
-   <example>
+   <example xml:id="rename-modrdn">
     <title>Rename: Modifying the DN</title>
     
     <para>Sam Carter is changing her last name to Jensen, and changing her
@@ -351,7 +354,7 @@ MODIFY operation successful for DN uid=sjensen,ou=people,dc=example,dc=com</scre
    </example>
   </section>
 
-  <section>
+  <section xml:id="rename-moddn">
    <title>Moving Entries</title>
 
    <para>When you rename an entry with child entries, the directory has
@@ -366,7 +369,7 @@ MODIFY operation successful for DN uid=sjensen,ou=people,dc=example,dc=com</scre
    <para>With the <command>ldapmodify</command> command, authorized users
    can move entries in the directory.</para>
 
-   <example>
+   <example xml:id="move-entry-example">
     <title>Move: Merging Customer and Employees Under
     <literal>ou=People</literal></title>
     
@@ -425,13 +428,13 @@ DELETE operation successful for DN ou=Employees,dc=example,dc=com</screen>
    </example>
   </section>
 
-  <section>
+  <section xml:id="delete-ldap">
    <title>Deleting Entries</title>
    
    <para>With the <command>ldapmodify</command> command, authorized users
    can delete entries from the directory.</para>
 
-   <example>
+   <example xml:id="delete-subtree">
     <title>Delete: Removing a Subtree</title>
     
     <para>The following example uses the subtree delete option to remove
@@ -445,13 +448,14 @@ DELETE operation successful for DN ou=Special Users,dc=example,dc=com</screen>
   </section>
  </section>
 
- <section>
+ <section xml:id="change-password">
   <title>Changing Passwords</title>
+  <indexterm><primary>Passwords</primary><secondary>Changing</secondary></indexterm>
   
   <para>With the <command>ldappasswordmodify</command> command, authorized
   users can change and reset user passwords.</para>
   
-  <example>
+  <example xml:id="password-reset">
    <title>Password Reset</title>
    
    <para>The following example shows Kirsten Vaughan resetting Sam Carter's
@@ -472,7 +476,7 @@ The LDAP password modify operation was successful</screen>
 Password Is Reset:  true</screen>
   </example>
   
-  <example>
+  <example xml:id="change-own-password">
    <title>Change Own Password</title>
    
    <para>You can use the <command>ldappasswordmodify</command> command to
@@ -523,9 +527,9 @@ oe3oWikDJ/AJjKEkYBg+q3VUQ5hWgrGVf7MjfDrm5mum6yI"</screen>
   </tip>
  </section>
 
- <section>
+ <section xml:id="tools-properties">
   <title>Configuring Default Settings</title>
-
+  <indexterm><primary>Ports</primary><secondary>Settings for tools</secondary></indexterm>
   <para>You can use <filename>~/.opendj/tools.properties</filename> to set
   the defaults for bind DN, host name, and port number as in the following
   example.</para>
@@ -542,9 +546,9 @@ ldapsearch.port=1389</programlisting>
   <filename>%UserProfile%/.opendj/tools.properties</filename>.</para>
  </section>
  
- <section>
+ <section xml:id="proxied-authz">
   <title>Configuring Proxied Authorization</title>
-  
+  <indexterm><primary>Proxied authorization</primary></indexterm>
   <para>Proxied authorization provides a standard control as defined in <link
   xlink:href='http://tools.ietf.org/html/rfc4370'>RFC 4370</link> (and an
   earlier Internet-Draft) for binding with the user credentials of a proxy, who
@@ -567,7 +571,7 @@ ldapsearch.port=1389</programlisting>
   commands in the following procedure. My App uses proxied authorization to
   make a change to Babs's entry as Kirsten.</para>
   
-  <procedure>
+  <procedure xml:id="setup-proxied-authz">
    <title>To Set Up Proxied Authorization</title>
    <step>
     <para>Grant access to applications that can use proxied authorization.</para>
@@ -608,4 +612,3 @@ MODIFY operation successful for DN uid=bjensen,ou=People,dc=example,dc=com</scre
   </procedure>
  </section>
 </chapter>
-

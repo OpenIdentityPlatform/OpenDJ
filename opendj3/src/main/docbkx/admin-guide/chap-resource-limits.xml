@@ -30,11 +30,12 @@
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Setting Resource Limits</title>
-
+ <indexterm><primary>Resource limits</primary></indexterm>
+ 
  <para>This chapter shows you how to set resource limits that prevent
  directory clients from using an unfair share of system resources.</para>
  
- <section>
+ <section xml:id="limit-search-resources">
   <title>Limiting Search Resources</title>
   
   <para>Well-written directory client applications limit the scope of their
@@ -76,7 +77,7 @@
    </listitem>
   </itemizedlist>
   
-  <procedure>
+  <procedure xml:id="set-search-limits-per-user">
    <title>To Set Search Limits For a User</title>
    <step>
     <para>Change the user entry to set the limits to override.</para>
@@ -99,7 +100,7 @@ Additional Information:  This search operation has sent the maximum of
    </step>
   </procedure>
 
-  <procedure>
+  <procedure xml:id="set-search-limits-per-group">
    <title>To Set Search Limits For a Group</title>
    <step>
     <para>Create an LDAP subentry to specify the limits using collective
@@ -133,7 +134,7 @@ ds-rlim-size-limit: 0</screen>
   </procedure>
  </section>
 
- <section>
+ <section xml:id="limit-idle-time">
   <title>Limiting Idle Time</title>
  
   <para>If you have applications that leave connections open for long
@@ -149,7 +150,7 @@ ds-rlim-size-limit: 0</screen>
   <para>The example shown sets the idle time limit to 24 hours.</para>
  </section>
  
- <section>
+ <section xml:id="limit-max-request-size">
   <title>Limiting Maximum Request Size</title>
   
   <para>The default maximum request size of 5 MB, set using the advanced
@@ -167,4 +168,3 @@ ds-rlim-size-limit: 0</screen>
   handler to 20 MB.</para>
  </section>
 </chapter>
-

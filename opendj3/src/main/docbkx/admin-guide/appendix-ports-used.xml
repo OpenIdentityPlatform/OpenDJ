@@ -35,51 +35,55 @@
 
  <!-- Protocol, port number, description (what for), on by default? -->
  <variablelist>
-  <varlistentry>
+  <varlistentry xml:id="ldap-port">
    <term>LDAP: 389 (1389)</term>
    <listitem>
+    <indexterm><primary>Ports</primary><secondary>389 (1389)</secondary></indexterm>
     <para>OpenDJ directory server listens for LDAP requests from client
     applications on port 389 by default. OpenDJ directory server uses port
     1389 by default for non-root users. LDAP is enabled by default.</para>
    </listitem>
   </varlistentry>
-  <varlistentry>
+  <varlistentry xml:id="ldaps-port">
    <term>LDAPS: 636 (1636)</term>
    <listitem>
+    <indexterm><primary>Ports</primary><secondary>636 (1636)</secondary></indexterm>
     <para>OpenDJ directory server listens for LDAPS requests from client
     applications on port 636 by default. OpenDJ directory server uses port
     1636 by default for non-root users. LDAPS is not enabled by default.</para>
    </listitem>
   </varlistentry>
-  <varlistentry>
+  <varlistentry xml:id="admin-port">
    <term>Administrative connections: 4444</term>
    <listitem>
+    <indexterm><primary>Ports</primary><secondary>4444</secondary></indexterm>
     <para>OpenDJ directory server listens for administrative traffic on port
     4444 by default. The administration connector is enabled by default.</para>
    </listitem>
   </varlistentry>
-  <varlistentry>
+  <varlistentry xml:id="snmp-port">
    <term>SNMP: 161</term>
    <listitem>
+    <indexterm><primary>Ports</primary><secondary>161</secondary></indexterm>
     <para>OpenDJ directory server listens for SNMP traffic on port 161 by
     default. SNMP is not enabled by default.</para>
    </listitem>
   </varlistentry>
-  <varlistentry>
+  <varlistentry xml:id="jmx-port">
    <term>JMX: 1689</term>
    <listitem>
+    <indexterm><primary>Ports</primary><secondary>1689</secondary></indexterm>
     <para>OpenDJ directory server listens for Java Management eXtension
     traffic on port 1689 by default. JMX is not enabled by default.</para>
    </listitem>
   </varlistentry>
-  <varlistentry>
+  <varlistentry xml:id="repl-port">
    <term>Replication: 8989</term>
    <listitem>
+    <indexterm><primary>Ports</primary><secondary>8989</secondary></indexterm>
     <para>OpenDJ directory server listens for replication traffic
     on port 8989 by default. Replication is not enabled by default.</para>
    </listitem>
   </varlistentry>
  </variablelist>
-
 </appendix>
-

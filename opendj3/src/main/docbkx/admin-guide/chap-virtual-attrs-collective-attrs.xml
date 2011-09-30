@@ -40,8 +40,9 @@
  <para>This chapter demonstrates how to define virtual and collective
  attributes, showing common solutions as examples of their use.</para>
  
- <section>
+ <section xml:id="virtual-attributes">
   <title>Virtual Attributes</title>
+  <indexterm><primary>Virtual attributes</primary></indexterm>
   
   <para>OpenDJ defines a number of virtual attributes by default.</para>
   
@@ -114,7 +115,11 @@ $ ldapsearch -p 1389 -b dc=example,dc=com dc=example numSubordinates
 dn: dc=example,dc=com
 numSubordinates: 4
 </screen>
-
+  <indexterm>
+   <primary>Replication</primary>
+   <secondary>Not for virtual attributes</secondary>
+  </indexterm>
+  
   <para>You can use the existing virtual attribute types to create your
   own virtual attributes, and you can also use the
   <literal>user-defined</literal> type to create your own. The virtual
@@ -135,8 +140,9 @@ description: Served by OpenDJ.Example.com
   attributes.</para>
  </section>
 
- <section>
+ <section xml:id="collective-attributes">
   <title>Collective Attributes</title>
+  <indexterm><primary>Collective attributes</primary></indexterm>
   
   <para>Collective attributes provide a standard mechanism for defining
   attributes that appear on all the entries in a subtree potentially filtered

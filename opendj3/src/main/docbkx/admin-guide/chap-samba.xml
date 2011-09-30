@@ -30,6 +30,7 @@
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Samba Password Synchronization</title>
+ <indexterm><primary>Samba</primary></indexterm>
  
  <para>When you store Samba profiles in OpenDJ, Samba stores its own attributes
  as defined in the Samba schema. Samba does not use the LDAP standard
