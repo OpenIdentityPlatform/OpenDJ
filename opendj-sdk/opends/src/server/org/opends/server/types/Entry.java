@@ -1867,7 +1867,7 @@ public class Entry
           Message message =
               ERR_ENTRY_OC_INCREMENT_NOT_SUPPORTED.get();
           throw new DirectoryException(
-                         ResultCode.UNWILLING_TO_PERFORM, message);
+                         ResultCode.CONSTRAINT_VIOLATION, message);
 
         default:
           message = ERR_ENTRY_UNKNOWN_MODIFICATION_TYPE.get(

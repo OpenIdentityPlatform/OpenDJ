@@ -813,7 +813,7 @@ public class PasswordModifyExtendedOperation
           if (!pwPolicyState.getAuthenticationPolicy()
               .isAllowPreEncodedPasswords())
           {
-            operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+            operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
 
             operation.appendErrorMessage(
                     ERR_EXTOP_PASSMOD_PRE_ENCODED_NOT_ALLOWED.get());
@@ -862,7 +862,7 @@ public class PasswordModifyExtendedOperation
                                                        pwPolicyErrorType));
               }
 
-              operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+              operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
 
               operation.appendErrorMessage(
                       ERR_EXTOP_PASSMOD_UNACCEPTABLE_PW.get(
@@ -880,7 +880,7 @@ public class PasswordModifyExtendedOperation
               if (selfChange || (! pwPolicyState.getAuthenticationPolicy().
                                       isSkipValidationForAdministrators()))
               {
-                operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+                operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
 
                 operation.appendErrorMessage(
                         ERR_EXTOP_PASSMOD_PW_IN_HISTORY.get());

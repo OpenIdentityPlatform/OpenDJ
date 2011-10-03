@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.core;
 import org.opends.messages.MessageBuilder;
@@ -397,7 +398,7 @@ public class ExtendedOperationBasis
 
       // Get the extended operation handler for the request OID.  If there is
       // none, then fail.
-      ExtendedOperationHandler handler =
+      ExtendedOperationHandler<?> handler =
            DirectoryServer.getExtendedOperationHandler(requestOID);
       if (handler == null)
       {

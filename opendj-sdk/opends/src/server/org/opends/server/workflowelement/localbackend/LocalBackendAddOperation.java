@@ -313,7 +313,7 @@ addProcessing:
           {
             if (! (isInternalOperation() || isSynchronizationOperation()))
             {
-              setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+              setResultCode(ResultCode.CONSTRAINT_VIOLATION);
               appendErrorMessage(ERR_ADD_ATTR_IS_NO_USER_MOD.get(
                                       String.valueOf(entryDN),
                                       at.getNameOrOID()));
@@ -329,7 +329,7 @@ addProcessing:
           {
             if (! (isInternalOperation() || isSynchronizationOperation()))
             {
-              setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+              setResultCode(ResultCode.CONSTRAINT_VIOLATION);
               appendErrorMessage(ERR_ADD_ATTR_IS_NO_USER_MOD.get(
                                       String.valueOf(entryDN),
                                       at.getNameOrOID()));
@@ -877,7 +877,7 @@ addProcessing:
           }
           else
           {
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                          ERR_ADD_MISSING_RDN_ATTRIBUTE.get(
                                               String.valueOf(entryDN), n));
           }
@@ -913,7 +913,7 @@ addProcessing:
             }
             else
             {
-              throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                            ERR_ADD_MISSING_RDN_ATTRIBUTE.get(
                                                 String.valueOf(entryDN), n));
             }
@@ -934,7 +934,7 @@ addProcessing:
           }
           else
           {
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                          ERR_ADD_MISSING_RDN_ATTRIBUTE.get(
                                               String.valueOf(entryDN),n));
           }
@@ -970,7 +970,7 @@ addProcessing:
             }
             else
             {
-              throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                            ERR_ADD_MISSING_RDN_ATTRIBUTE.get(
                                                 String.valueOf(entryDN),n));
             }
@@ -1045,7 +1045,7 @@ addProcessing:
       // passwords.
       Message message = ERR_PWPOLICY_ATTRIBUTE_OPTIONS_NOT_ALLOWED.get(
           passwordAttribute.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     Attribute passwordAttr = attrList.get(0);
@@ -1053,7 +1053,7 @@ addProcessing:
     {
       Message message = ERR_PWPOLICY_ATTRIBUTE_OPTIONS_NOT_ALLOWED.get(
           passwordAttribute.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     if (passwordAttr.isEmpty())
@@ -1072,7 +1072,7 @@ addProcessing:
 
       Message message = ERR_PWPOLICY_MULTIPLE_PW_VALUES_NOT_ALLOWED
           .get(passwordAttribute.getNameOrOID());
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     List<PasswordStorageScheme<?>> defaultStorageSchemes =
@@ -1101,7 +1101,7 @@ addProcessing:
 
             Message message = ERR_PWPOLICY_PREENCODED_NOT_ALLOWED.get(
                 passwordAttribute.getNameOrOID());
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                          message);
           }
         }
@@ -1123,7 +1123,7 @@ addProcessing:
 
             Message message = ERR_PWPOLICY_PREENCODED_NOT_ALLOWED.get(
                 passwordAttribute.getNameOrOID());
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                          message);
           }
         }
@@ -1149,7 +1149,7 @@ addProcessing:
             Message message = ERR_PWPOLICY_VALIDATION_FAILED.
                 get(passwordAttribute.getNameOrOID(),
                     String.valueOf(invalidReason));
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                          message);
           }
         }
@@ -1364,7 +1364,7 @@ addProcessing:
     {
       if (at.isObsolete())
       {
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                      WARN_ADD_ATTR_IS_OBSOLETE.get(
                                           String.valueOf(entryDN),
                                           at.getNameOrOID()));
@@ -1375,7 +1375,7 @@ addProcessing:
     {
       if (at.isObsolete())
       {
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                      WARN_ADD_ATTR_IS_OBSOLETE.get(
                                           String.valueOf(entryDN),
                                           at.getNameOrOID()));
@@ -1386,7 +1386,7 @@ addProcessing:
     {
       if (oc.isObsolete())
       {
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                      WARN_ADD_OC_IS_OBSOLETE.get(
                                           String.valueOf(entryDN),
                                           oc.getNameOrOID()));
