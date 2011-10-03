@@ -672,6 +672,28 @@ class xmldoc_service:
     except:
       print "exception: %s" % traceback.format_exception(*sys.exc_info())
 
+  def printXMLfile(self,doc):
+    try:
+        from javax.xml.transform import TransformerFactory
+        from javax.xml.transform import OutputKeys
+        from javax.xml.transform.stream import StreamSource
+        from javax.xml.transform.stream import StreamResult
+        from javax.xml.transform.dom import DOMSource
+        from java.io import StringWriter
+
+        xmlInput = DOMSource(doc);
+        xmlOutput = StreamResult(StringWriter());
+
+        tranFactory = TransformerFactory.newInstance();
+        aTransformer = tranFactory.newTransformer();
+        aTransformer.setOutputProperty(OutputKeys.ENCODING, "ISO-8859-1")
+        aTransformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        aTransformer.transform(xmlInput, xmlOutput);
+
+        print xmlOutput.getWriter().toString()
+    except:
+      print "exception: %s" % traceback.format_exception(*sys.exc_info())
+
   def parseXMLfile(self,xmlfile):
     try:
       import sys, traceback
