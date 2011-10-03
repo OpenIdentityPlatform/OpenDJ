@@ -95,6 +95,7 @@ public class ConfigGuideGeneration {
   private final String WELCOME_FILE = "welcome.html";
   private final String MAINTOP_FILE = "maintop.html";
   private final String INDEX_FILE = "index.html";
+  private final String FAVICON = "http://forgerock.org/favicon.ico";
 
   private static final String CONFIG_GUIDE_DIR = "opendj_config_guide";
   private final String MAIN_FRAME = "mainFrame";
@@ -1374,6 +1375,7 @@ public class ConfigGuideGeneration {
       "<title>" + pageTitle + "</title>\n" +
       "<link rel=\"stylesheet\" type=\"text/css\"\n" +
       "href=\"" + CSS_FILE + "\">\n" +
+      "<link rel=\"shortcut icon\" href=\" + FAVICON + \">\n" +
       "</head>\n");
   }
 
