@@ -361,23 +361,23 @@ MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com</scre
    <example xml:id="attr-cleanup-rename">
     <title>Renaming Incoming Attributes</title>
     
-    <para>The following example renames incoming <literal>userid</literal>
-    attributes to <literal>uid</literal> attributes. First, configure the
+    <para>The following example renames incoming <literal>email</literal>
+    attributes to <literal>mail</literal> attributes. First, configure the
     attribute cleanup plugin to rename the inbound attribute.</para>
     
     <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
  create-plugin
  --type attribute-cleanup
- --plugin-name "Rename userid to uid"
+ --plugin-name "Rename email to mail"
  --set enabled:true
- --set rename-inbound-attributes:userid:uid
+ --set rename-inbound-attributes:email:mail
  -X -n</screen>
     
     <para>Next, see that it works as expected.</para>
     
-    <screen>$ cat userid.ldif 
-dn: cn=New User,ou=People,dc=example,dc=com
-userid: newuser
+    <screen>$ cat email.ldif 
+dn: uid=newuser,ou=People,dc=example,dc=com
+uid: newuser
 objectClass: person
 objectClass: organizationalPerson
 objectClass: inetOrgPerson
@@ -385,15 +385,15 @@ objectClass: top
 cn: New User
 sn: User
 ou: People
-mail: newuser@example.com
+email: newuser@example.com
 userPassword: changeme
 
-$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -a -f userid.ldif 
-Processing ADD request for cn=New User,ou=People,dc=example,dc=com
-ADD operation successful for DN cn=New User,ou=People,dc=example,dc=com
-$ ldapsearch -p 1389 -b dc=example,dc=com uid=newuser uid
-dn: cn=New User,ou=People,dc=example,dc=com
-uid: newuser</screen>
+$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -a -f email.ldif
+Processing ADD request for uid=newuser,ou=People,dc=example,dc=com
+ADD operation successful for DN uid=newuser,ou=People,dc=example,dc=com
+$ ldapsearch -p 1389 -b dc=example,dc=com uid=newuser mail
+dn: uid=newuser,ou=People,dc=example,dc=com
+mail: newuser@example.com</screen>
    </example>
    
    <example xml:id="attr-cleanup-remove">
