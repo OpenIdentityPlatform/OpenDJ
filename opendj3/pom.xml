@@ -342,7 +342,13 @@
                   token="target/docbkx/html/legalnotice.html"
                   value="legalnotice.html">
                   <include name="**/**/*.html" />
-                </replace>              
+                </replace>
+                <replace
+                  dir="${basedir}/target/docbkx/html/"
+                  token="&lt;/head&gt;"
+                  value='&lt;link rel="shortcut icon" href="http://forgerock.org/favicon.ico"&gt;&lt;/head&gt;'>
+                  <include name="**/**/*.html" />
+                </replace>
               </postProcess>
             </configuration>
           </execution>
@@ -397,6 +403,12 @@
                   dir="${basedir}/target/docbkx/html/"
                   token="target/docbkx/html/legalnotice.html"
                   value="legalnotice.html">
+                  <include name="**/**/**/*.html" />
+                </replace>
+                <replace
+                  dir="${basedir}/target/docbkx/html/"
+                  token="&lt;/head&gt;"
+                  value='&lt;link rel="shortcut icon" href="http://forgerock.org/favicon.ico"&gt;&lt;/head&gt;'>
                   <include name="**/**/**/*.html" />
                 </replace>
                 <replace
