@@ -361,7 +361,7 @@ modifyProcessing:
             }
           }
 
-          setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+          setResultCode(ResultCode.CONSTRAINT_VIOLATION);
           appendErrorMessage(ERR_MODIFY_MUST_CHANGE_PASSWORD.get());
           break modifyProcessing;
         }
@@ -545,7 +545,7 @@ modifyProcessing:
           {
             // The user did not attempt to change their password.
             pwpErrorType = PasswordPolicyErrorType.CHANGE_AFTER_RESET;
-            setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+            setResultCode(ResultCode.CONSTRAINT_VIOLATION);
             appendErrorMessage(ERR_MODIFY_MUST_CHANGE_PASSWORD.get());
             break modifyProcessing;
           }
@@ -952,7 +952,7 @@ modifyProcessing:
         if (! (isInternalOperation() || isSynchronizationOperation() ||
                 m.isInternal()))
         {
-          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                   ERR_MODIFY_ATTR_IS_NO_USER_MOD.get(
                           String.valueOf(entryDN), a.getName()));
         }
@@ -969,7 +969,7 @@ modifyProcessing:
           if (! (isInternalOperation() || isSynchronizationOperation() ||
                   m.isInternal()))
           {
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                     ERR_MODIFY_ATTR_IS_OBSOLETE.get(
                             String.valueOf(entryDN), a.getName()));
           }
@@ -1105,7 +1105,7 @@ modifyProcessing:
           {
             if (a.hasOptions())
             {
-              throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                   ERR_MODIFY_PASSWORDS_CANNOT_HAVE_OPTIONS.get());
             }
 
@@ -1128,7 +1128,7 @@ modifyProcessing:
                 && (!clientConnection.isSecure()))
             {
               pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
-              throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+              throw new DirectoryException(ResultCode.CONFIDENTIALITY_REQUIRED,
                   ERR_MODIFY_REQUIRE_SECURE_CHANGES.get());
             }
 
@@ -1159,7 +1159,7 @@ modifyProcessing:
             break;
 
           default:
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                 ERR_MODIFY_INVALID_MOD_TYPE_FOR_PASSWORD.get(String.valueOf(m
                     .getModificationType()), a.getName()));
           }
@@ -1224,7 +1224,7 @@ modifyProcessing:
             .isAllowMultiplePasswordValues()) && (passwordsToAdd > 1))
     {
       pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
           ERR_MODIFY_MULTIPLE_VALUES_NOT_ALLOWED.get());
     }
 
@@ -1242,7 +1242,7 @@ modifyProcessing:
                 .isAllowPreEncodedPasswords())
         {
           pwpErrorType = PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY;
-          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
               ERR_MODIFY_NO_PREENCODED_PASSWORDS.get());
         }
         else
@@ -1315,7 +1315,7 @@ modifyProcessing:
         if ((!isInternalOperation()) && selfChange)
         {
           pwpErrorType = PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY;
-          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
               ERR_MODIFY_NO_PREENCODED_PASSWORDS.get());
         }
         else
@@ -1326,7 +1326,7 @@ modifyProcessing:
               .getAttributeType());
           if ((attrList == null) || (attrList.isEmpty()))
           {
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+            throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
                 ERR_MODIFY_NO_EXISTING_VALUES.get());
           }
           boolean found = false;
@@ -1353,7 +1353,7 @@ modifyProcessing:
             .getAttributeType());
         if ((attrList == null) || (attrList.isEmpty()))
         {
-          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+          throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
               ERR_MODIFY_NO_EXISTING_VALUES.get());
         }
         boolean found = false;
@@ -1429,7 +1429,7 @@ modifyProcessing:
         }
         else
         {
-          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+          throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
               ERR_MODIFY_INVALID_PASSWORD.get());
         }
 
@@ -1579,7 +1579,7 @@ modifyProcessing:
       {
         Message message = ERR_ENTRY_ADD_OBSOLETE_OC.get(name, String
             .valueOf(entryDN));
-        throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
     }
   }
@@ -1879,7 +1879,7 @@ modifyProcessing:
             .isAllowMultiplePasswordValues()))
     {
       pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
           ERR_MODIFY_MULTIPLE_PASSWORDS_NOT_ALLOWED.get());
     }
 
@@ -1941,7 +1941,7 @@ modifyProcessing:
           {
             pwpErrorType =
                  PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY;
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                          ERR_MODIFY_PW_VALIDATION_FAILED.get(
                                               invalidReason));
           }
@@ -1963,7 +1963,7 @@ modifyProcessing:
                                       isSkipValidationForAdministrators()))
             {
               pwpErrorType = PasswordPolicyErrorType.PASSWORD_IN_HISTORY;
-              throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                            ERR_MODIFY_PW_IN_HISTORY.get());
             }
           }

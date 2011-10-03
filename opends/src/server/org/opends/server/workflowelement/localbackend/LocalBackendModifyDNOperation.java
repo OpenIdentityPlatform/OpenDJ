@@ -915,7 +915,7 @@ modifyDNProcessing:
         {
           if (! (isInternalOperation() || isSynchronizationOperation()))
           {
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                            ERR_MODDN_OLD_RDN_ATTR_IS_NO_USER_MOD.get(
                                 String.valueOf(entryDN), a.getName()));
           }
@@ -954,7 +954,7 @@ modifyDNProcessing:
         {
           if (! (isInternalOperation() || isSynchronizationOperation()))
           {
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                            ERR_MODDN_NEW_RDN_ATTR_IS_NO_USER_MOD.get(
                                 String.valueOf(entryDN), a.getName()));
           }
@@ -986,7 +986,7 @@ modifyDNProcessing:
         AttributeType at = newRDN.getAttributeType(i);
         if (at.isObsolete())
         {
-          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                        ERR_MODDN_NEWRDN_ATTR_IS_OBSOLETE.get(
                                             String.valueOf(entryDN),
                                             at.getNameOrOID()));

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.controls;
 
@@ -824,7 +825,7 @@ public class PasswordPolicyControlTestCase
       if (changeAfterReset)
       {
         assertEquals(modifyResponse.getResultCode(),
-            LDAPResultCode.UNWILLING_TO_PERFORM);
+            LDAPResultCode.CONSTRAINT_VIOLATION);
       }
       else
       {
