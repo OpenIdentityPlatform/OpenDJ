@@ -69,8 +69,14 @@
    policy settings using the <command>dsconfig</command> command as
    follows.</para>
    
-   <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
- get-password-policy-prop --policy-name "Default Password Policy" --advanced
+   <screen>$ dsconfig
+ -p 4444
+ -h `hostname`
+ -D "cn=Directory Manager"
+ -w password
+ get-password-policy-prop
+ --policy-name "Default Password Policy"
+ --advanced
 Property                                  : Value(s)
 ------------------------------------------:--------------------------
 account-status-notification-handler       : -
@@ -121,8 +127,13 @@ state-update-failure-policy               : reactive</screen>
    value. Even the directory manager cannot see the plain text value of a user's
    password.</para>
    
-   <screen>$ ldapsearch -p 1389 -D "cn=Directory Manager" -w password
- -b dc=example,dc=com uid=bjensen userpassword
+   <screen>$ ldapsearch
+ -p 1389
+ -D "cn=Directory Manager"
+ -w password
+ -b dc=example,dc=com
+ uid=bjensen
+ userpassword
 dn: uid=bjensen,ou=People,dc=example,dc=com
 userpassword: {SSHA}QWAtw8ch/9850HNFRRqLNMIQc1YhxCnOoGmk1g==</screen>
    
@@ -276,21 +287,40 @@ pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config</sc
    words, and prevent password reuse.</para>
    <step>
     <para>Enable the appropriate password validator.</para>
-    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
- set-password-validator-prop --validator-name Dictionary --set enabled:true
+    <screen>$ dsconfig
+ -p 4444
+ -h `hostname`
+ -D "cn=Directory Manager"
+ -w password
+ set-password-validator-prop
+ --validator-name Dictionary
+ --set enabled:true
  -X -n</screen>
    </step>
    <step>
     <para>Apply the changes to the default password policy.</para>
-    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
- set-password-policy-prop --policy-name "Default Password Policy"
- --set max-password-age:90d --set min-password-age:4w
- --set password-history-count:7 --set password-validator:Dictionary -X -n</screen>
+    <screen>$ dsconfig
+ -p 4444
+ -h `hostname`
+ -D "cn=Directory Manager"
+ -w password
+ set-password-policy-prop
+ --policy-name "Default Password Policy"
+ --set max-password-age:90d
+ --set min-password-age:4w
+ --set password-history-count:7
+ --set password-validator:Dictionary
+ -X -n</screen>
    </step>
    <step>
     <para>Check your work.</para>
-    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
- get-password-policy-prop --policy-name "Default Password Policy" 
+    <screen>$ dsconfig
+ -p 4444
+ -h `hostname`
+ -D "cn=Directory Manager"
+ -w password
+ get-password-policy-prop
+ --policy-name "Default Password Policy"
 Property                                  : Value(s)
 ------------------------------------------:--------------------------
 account-status-notification-handler       : -
@@ -332,15 +362,27 @@ require-secure-password-changes           : false</screen>
    yet used their credentials to bind.</para>
    <step>
     <para>Create the new password policy.</para>
-    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
- create-password-policy --policy-name "New Account Password Policy"
+    <screen>$ dsconfig
+ -p 4444
+ -h `hostname`
+ -D "cn=Directory Manager"
+ -w password
+ create-password-policy
+ --policy-name "New Account Password Policy"
  --set default-password-storage-scheme:"Salted SHA-1"
- --set force-change-on-add:true --set password-attribute:userPassword -X -n</screen>
+ --set force-change-on-add:true
+ --set password-attribute:userPassword
+ -X -n</screen>
    </step>
    <step>
     <para>Check your work.</para>
-    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
- get-password-policy-prop --policy-name "New Account Password Policy"
+    <screen>$ dsconfig
+ -p 4444
+ -h `hostname`
+ -D "cn=Directory Manager"
+ -w password
+ get-password-policy-prop
+ --policy-name "New Account Password Policy"
 Property                                  : Value(s)
 ------------------------------------------:-------------
 account-status-notification-handler       : -
@@ -404,7 +446,11 @@ subtreeSpecification: {base "ou=people", specificationFilter
    </step>
    <step>
     <para>Add the policy to the directory.</para>
-    <screen>$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -a
+    <screen>$ ldapmodify
+ -p 1389
+ -D "cn=Directory Manager"
+ -w password
+ -a
  -f /path/to/subentry-pwp.ldif 
 Processing ADD request for cn=Subentry Password Policy,dc=example,dc=com
 ADD operation successful for DN cn=Subentry Password Policy,dc=example,dc=com</screen>
@@ -455,7 +501,7 @@ aci: (target ="ldap:///uid=*,ou=People,dc=example,dc=com")(targetattr =
  "ds-pwp-password-policy-dn")(version 3.0;acl "Cannot choose own pass
  word policy";deny (write)(userdn = "ldap:///self");)
 
-$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -f protectpwp.ldif 
+$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -f protectpwp.ldif
 Processing MODIFY request for ou=People,dc=example,dc=com
 MODIFY operation successful for DN ou=People,dc=example,dc=com</screen>
    </step>
@@ -478,14 +524,19 @@ userPassword: changeme
 ds-pwp-password-policy-dn: cn=New Account Password Policy,cn=Password Policies,
  cn=config
 
-$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -a -f newuser.ldif 
+$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -a -f newuser.ldif
 Processing ADD request for uid=newuser,ou=People,dc=example,dc=com
 ADD operation successful for DN uid=newuser,ou=People,dc=example,dc=com</screen>
    </step>
    <step>
     <para>Check your work.</para>
-    <screen>$ ldapsearch -p 1389 -D "cn=Directory Manager" -w password
- -b dc=example,dc=com uid=newuser pwdPolicySubentry
+    <screen>$ ldapsearch
+ -p 1389
+ -D "cn=Directory Manager"
+ -w password
+ -b dc=example,dc=com
+ uid=newuser
+ pwdPolicySubentry
 dn: uid=newuser,ou=People,dc=example,dc=com
 pwdPolicySubentry: cn=New Account Password Policy,cn=Password Policies,cn=config</screen>
    </step>

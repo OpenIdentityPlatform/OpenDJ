@@ -69,33 +69,65 @@
   the server configuration, you must manually apply the changes to each
   replica in a replication topology.</para>
   
-  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
- set-password-policy-prop --policy-name "Default Password Policy" 
- --set lockout-failure-count:3 --set lockout-duration:5m 
- --set lockout-failure-expiration-interval:5m -X -n</screen>
+  <screen>$ dsconfig
+ -p 4444
+ -h `hostname`
+ -D "cn=Directory Manager"
+ -w password
+ set-password-policy-prop
+ --policy-name "Default Password Policy" 
+ --set lockout-failure-count:3
+ --set lockout-duration:5m 
+ --set lockout-failure-expiration-interval:5m
+ -X -n</screen>
 
   <para>Users having the default password policy are then locked out after
   three failed attempts in succession.</para>
   
-  <screen>$ ldapsearch -p 1389 -D "uid=bjensen,ou=people,dc=example,dc=com" -w hifalutin
- -b dc=example,dc=com uid=bjensen mail
+  <screen>$ ldapsearch
+ -p 1389
+ -D "uid=bjensen,ou=people,dc=example,dc=com"
+ -w hifalutin
+ -b dc=example,dc=com
+ uid=bjensen
+ mail
 dn: uid=bjensen,ou=People,dc=example,dc=com
 mail: bjensen@example.com
 
-$ ldapsearch -p 1389 -D "uid=bjensen,ou=people,dc=example,dc=com" -w fatfngrs
- -b dc=example,dc=com uid=bjensen mail
+$ ldapsearch
+ -p 1389
+ -D "uid=bjensen,ou=people,dc=example,dc=com"
+ -w fatfngrs
+ -b dc=example,dc=com
+ uid=bjensen
+ mail
 The simple bind attempt failed
 Result Code:  49 (Invalid Credentials)
-$ ldapsearch -p 1389 -D "uid=bjensen,ou=people,dc=example,dc=com" -w fatfngrs
- -b dc=example,dc=com uid=bjensen mail
+$ ldapsearch
+ -p 1389
+ -D "uid=bjensen,ou=people,dc=example,dc=com"
+ -w fatfngrs
+ -b dc=example,dc=com
+ uid=bjensen
+ mail
 The simple bind attempt failed
 Result Code:  49 (Invalid Credentials)
-$ ldapsearch -p 1389 -D "uid=bjensen,ou=people,dc=example,dc=com" -w fatfngrs
- -b dc=example,dc=com uid=bjensen mail
+$ ldapsearch
+ -p 1389
+ -D "uid=bjensen,ou=people,dc=example,dc=com"
+ -w fatfngrs
+ -b dc=example,dc=com
+ uid=bjensen
+ mail
 The simple bind attempt failed
 Result Code:  49 (Invalid Credentials)
-$ ldapsearch -p 1389 -D "uid=bjensen,ou=people,dc=example,dc=com" -w hifalutin
- -b dc=example,dc=com uid=bjensen mail
+$ ldapsearch
+ -p 1389
+ -D "uid=bjensen,ou=people,dc=example,dc=com"
+ -w hifalutin
+ -b dc=example,dc=com
+ uid=bjensen
+ mail
 The simple bind attempt failed
 Result Code:  49 (Invalid Credentials)</screen>
  </section>
@@ -121,9 +153,14 @@ version 3.0;acl "Admins can run amok"; allow(all) groupdn =
     <para>Set the account status to disabled with the
     <command>manage-account</command> command.</para>
     
-    <screen>$ manage-account -p 4444 -D "uid=kvaughan,ou=people,dc=example,dc=com"
- -w bribery set-account-is-disabled -O true
- -b uid=bjensen,ou=people,dc=example,dc=com -X
+    <screen>$ manage-account
+ -p 4444
+ -D "uid=kvaughan,ou=people,dc=example,dc=com"
+ -w bribery
+ set-account-is-disabled
+ -O true
+ -b uid=bjensen,ou=people,dc=example,dc=com
+ -X
 Account Is Disabled:  true</screen>
    </step>
   </procedure>
@@ -135,9 +172,13 @@ Account Is Disabled:  true</screen>
     <para>Clear the disabled status using the <command>manage-account</command>
     command.</para>
     
-    <screen>$ manage-account -p 4444 -D "uid=kvaughan,ou=people,dc=example,dc=com"
- -w bribery clear-account-is-disabled
- -b uid=bjensen,ou=people,dc=example,dc=com -X
+    <screen>$ manage-account
+ -p 4444
+ -D "uid=kvaughan,ou=people,dc=example,dc=com"
+ -w bribery
+ clear-account-is-disabled
+ -b uid=bjensen,ou=people,dc=example,dc=com
+ -X
 Account Is Disabled:  false</screen>
    </step>
   </procedure>
@@ -158,16 +199,28 @@ Account Is Disabled:  false</screen>
    
    <step>
     <para>Identify the SMTP server to which OpenDJ sends messages.</para>
-    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
- set-global-configuration-prop --set smtp-server:smtp.example.com -X -n</screen>
+    <screen>$ dsconfig
+ -p 4444
+ -h `hostname`
+ -D "cn=Directory Manager"
+ -w password
+ set-global-configuration-prop
+ --set smtp-server:smtp.example.com
+ -X -n</screen>
    </step>
    
    <step>
     <para>Set up OpenDJ to be able to mail users about account status.</para>
-    <screen>dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+    <screen>$ dsconfig
+ -p 4444
+ -h `hostname`
+ -D "cn=Directory Manager"
+ -w password
  set-account-status-notification-handler-prop
- --handler-name "SMTP Handler" --set enabled:true
- --set email-address-attribute-type:mail -X -n</screen>
+ --handler-name "SMTP Handler"
+ --set enabled:true
+ --set email-address-attribute-type:mail
+ -X -n</screen>
     <para>You can also configure the <literal>message-subject</literal> and
     <literal>message-template-file</literal> properties. Try interactive
     mode if you plan to do so.</para>
@@ -179,11 +232,16 @@ Account Is Disabled:  false</screen>
    <step>
     <para>Adjust applicable password policies to use the account status
     notification handler you configured.</para>
-    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
- set-password-policy-prop --policy-name "Default Password Policy"
- --set account-status-notification-handler:"SMTP Handler" -X -n</screen>
+    <screen>$ dsconfig
+ -p 4444
+ -h `hostname`
+ -D "cn=Directory Manager"
+ -w password
+ set-password-policy-prop
+ --policy-name "Default Password Policy"
+ --set account-status-notification-handler:"SMTP Handler"
+ -X -n</screen>
    </step>
   </procedure>
  </section>
 </chapter>
-

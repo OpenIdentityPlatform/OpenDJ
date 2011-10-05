@@ -100,13 +100,25 @@
    <step>
     <para>Prevent the server from accepting updates from client
     applications.</para>
-    <screen>$ dsconfig -p 5444 -h `hostname` -D "cn=Directory Manager" -w password
- set-global-configuration-prop --set writability-mode:internal-only -X -n</screen>
+    <screen>$ dsconfig
+ -p 5444
+ -h `hostname`
+ -D "cn=Directory Manager"
+ -w password
+ set-global-configuration-prop
+ --set writability-mode:internal-only
+ -X -n</screen>
    </step>
    <step>
     <para>Disable replication for the server.</para>
-    <screen>$ dsreplication disable -a -p 5444 -h `hostname` -D "cn=Directory Manager"
- -w password -X -n
+    <screen>$ dsreplication
+ disable
+ -a
+ -p 5444
+ -h `hostname`
+ -D "cn=Directory Manager"
+ -w password
+ -X -n
 Establishing connections ..... Done.
 Disabling replication on base DN dc=example,dc=com of server localhost:5444
  ..... Done.
@@ -125,7 +137,7 @@ for a detailed log of this operation.</screen>
     <para>With the server no longer receiving traffic or accepting updates
     from clients, and no longer replicating to other servers, you can shut it
     down in preparation for the move.</para>
-    <screen>$ stop-ds 
+    <screen>$ stop-ds
 Stopping Server...
 
 ... msg=The Directory Server is now stopped</screen>
@@ -167,11 +179,22 @@ Stopping Server...
    </step>
    <step>
     <para>Enable and initialize replication.</para>
-    <screen>$ dsreplication enable -I admin -w password -X -n -b dc=example,dc=com
- --host1 localhost --port1 4444 --bindDN1 "cn=Directory Manager"
- --bindPassword1 password --replicationPort1 8989
- --host2 remotehost --port2 4444 --bindDN2 "cn=Directory Manager"
- --bindPassword2 password --replicationPort2 8989
+    <screen>$ dsreplication
+ enable
+ -I admin
+ -w password
+ -X -n
+ -b dc=example,dc=com
+ --host1 localhost
+ --port1 4444
+ --bindDN1 "cn=Directory Manager"
+ --bindPassword1 password
+ --replicationPort1 8989
+ --host2 remotehost
+ --port2 4444
+ --bindDN2 "cn=Directory Manager"
+ --bindPassword2 password
+ --replicationPort2 8989
 
 Establishing connections ..... Done.
 Checking registration information ..... Done.
@@ -199,7 +222,12 @@ Replication has been successfully enabled.  Note that for replication to work
 See /tmp/opends-replication-1476402020764482023.log for a detailed log of this
 operation.
 
-$ dsreplication pre-external-initialization -I admin -w password -X -n -p 4444
+$ dsreplication
+ pre-external-initialization
+ -I admin
+ -w password
+ -X -n
+ -p 4444
  -b dc=example,dc=com
 
 Preparing base DN dc=example,dc=com to be initialized externally ..... Done.
@@ -211,8 +239,13 @@ Now you can proceed to the initialization of the contents of the base DN's on
 When the initialization is completed you must use the subcommand
  'post-external-initialization' for replication to work with the new base DN's
  contents.
-$ dsreplication post-external-initialization -I admin -w password -X -n
- -p 4444 -b dc=example,dc=com
+$ dsreplication
+ post-external-initialization
+ -I admin
+ -w password
+ -X -n
+ -p 4444
+ -b dc=example,dc=com
 
 Updating replication information on base DN dc=example,dc=com ..... Done.
 
@@ -220,8 +253,14 @@ Post initialization procedure completed successfully.</screen>
    </step>
    <step>
     <para>Accept updates from client applications.</para>
-    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
- set-global-configuration-prop --set writability-mode:enabled -X -n</screen>
+    <screen>$ dsconfig
+ -p 4444
+ -h `hostname`
+ -D "cn=Directory Manager"
+ -w password
+ set-global-configuration-prop
+ --set writability-mode:enabled
+ -X -n</screen>
    </step>
    <step>
     <para>Direct client applications to the server.</para>
@@ -301,35 +340,56 @@ $ keytool -list -v -keystore admin-keystore -storepass `cat admin-keystore.pin`<
    <step>
     <para>Remove the certificate to replace from the keystore and from the
     truststore.</para>
-    <screen>$ keytool -delete -alias admin-cert -keystore admin-keystore
+    <screen>$ keytool
+ -delete
+ -alias admin-cert
+ -keystore admin-keystore
  -storepass `cat admin-keystore.pin`
-$ keytool -delete -alias admin-cert -keystore admin-truststore
+$ keytool
+ -delete
+ -alias admin-cert
+ -keystore admin-truststore
  -storepass `cat admin-keystore.pin`</screen>
    </step>
    <step>
     <para>Generate the private key, storing it in the keystore.</para>
-    <screen>$ keytool -genkey -alias admin-cert -keyalg RSA
+    <screen>$ keytool
+ -genkey
+ -alias admin-cert
+ -keyalg RSA
  -dname "CN=<replaceable>hostname</replaceable>, O=Administration Connector Self-Signed Certificate"
- -keystore admin-keystore -storepass `cat admin-keystore.pin`
+ -keystore admin-keystore
+ -storepass `cat admin-keystore.pin`
  -keypass `cat admin-keystore.pin`</screen>
     <para>You might choose to make the key valid for two years with
     <option>-validity 730</option>.</para>
    </step>
    <step>
     <para>Self-sign what you generated.</para>
-    <screen>$ keytool -selfcert -alias admin-cert -keystore admin-keystore
+    <screen>$ keytool
+ -selfcert
+ -alias admin-cert
+ -keystore admin-keystore
  -storepass `cat admin-keystore.pin`</screen>
    </step>
    <step>
     <para>Export the certificate from the keystore.</para>
-    <screen>$ keytool -export -alias admin-cert -keystore admin-keystore
- -storepass `cat admin-keystore.pin` -file admin-cert.crt
+    <screen>$ keytool
+ -export
+ -alias admin-cert
+ -keystore admin-keystore
+ -storepass `cat admin-keystore.pin`
+ -file admin-cert.crt
 Certificate stored in file &lt;admin-cert.crt&gt;</screen>
    </step>
    <step>
     <para>Import the certificate into the truststore.</para>
-    <screen>$ keytool -import -alias admin-cert -keystore admin-truststore
- -storepass `cat admin-keystore.pin` -file admin-cert.crt
+    <screen>$ keytool
+ -import
+ -alias admin-cert
+ -keystore admin-truststore
+ -storepass `cat admin-keystore.pin`
+ -file admin-cert.crt
 Owner: CN=<replaceable>hostname</replaceable>, O=Administration Connector Self-Signed Certificate
 Issuer: CN=<replaceable>hostname</replaceable>, O=Administration Connector Self-Signed Certificate
 Serial number: 4e0321c6

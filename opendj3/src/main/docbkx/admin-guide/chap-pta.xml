@@ -102,14 +102,23 @@
     <para>How you perform this step depends on the authentication directory
     server. With OpenDJ, you can export the certificate as shown here.</para>
     <screen>$ cd /path/to/PTA-Server/config
-$ keytool -exportcert -rfc -alias server-cert -keystore keystore
- -storepass `cat keystore.pin` &gt; /tmp/pta-srv-cert.pem</screen>
+$ keytool
+ -exportcert
+ -rfc
+ -alias server-cert
+ -keystore keystore
+ -storepass `cat keystore.pin`
+ &gt; /tmp/pta-srv-cert.pem</screen>
    </step>
    <step>
     <para>Make note of the host name used in the certificate.</para>
     <para>You use the host name when configuring the SSL connection. With
     OpenDJ, you can view the certificate details as shown here.</para>
-    <screen>$ keytool -list -v -alias server-cert -keystore keystore
+    <screen>$ keytool
+ -list
+ -v
+ -alias server-cert
+ -keystore keystore
  -storepass `cat keystore.pin`
 Alias name: server-cert
 Creation date: Sep 12, 2011
@@ -130,8 +139,12 @@ Certificate fingerprints:
     <para>Import the authentication server certificate into OpenDJ's
     key store.</para>
     <screen>$ cd /path/to/OpenDJ/config
-$ keytool -importcert -alias pta-cert -keystore truststore
- -storepass `cat keystore.pin` -file /tmp/pta-srv-cert.pem
+$ keytool
+ -importcert
+ -alias pta-cert
+ -keystore truststore
+ -storepass `cat keystore.pin`
+ -file /tmp/pta-srv-cert.pem
 Owner: CN=pta-server.example.com, O=OpenDJ Self-Signed Certificate
 Issuer: CN=pta-server.example.com, O=OpenDJ Self-Signed Certificate
 Serial number: 4e6dc429
@@ -156,12 +169,21 @@ Certificate was added to keystore</screen>
    <step>
     <para>Set up an authentication policy for pass through
     authentication to the authentication server.</para>
-    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=directory manager" -w password
- create-password-policy --type ldap-pass-through --policy-name "PTA Policy"
+    <screen>$ dsconfig
+ -p 4444
+ -h `hostname`
+ -D "cn=directory manager"
+ -w password
+ create-password-policy
+ --type ldap-pass-through
+ --policy-name "PTA Policy"
  --set primary-remote-ldap-server:pta-server.example.com:636
- --set mapped-attribute:uid --set mapped-search-base-dn:"dc=PTA Server,dc=com"
- --set mapping-policy:mapped-search --set use-ssl:true
- --set trust-manager-provider:JKS -X -n</screen>
+ --set mapped-attribute:uid
+ --set mapped-search-base-dn:"dc=PTA Server,dc=com"
+ --set mapping-policy:mapped-search
+ --set use-ssl:true
+ --set trust-manager-provider:JKS
+ -X -n</screen>
     <para>The policy shown here maps identities under
     <literal>dc=example,dc=com</literal> to identities under
     <literal>dc=PTA Server,dc=com</literal>, where users have the same
@@ -170,8 +192,13 @@ Certificate was added to keystore</screen>
    </step>
    <step>
     <para>Check that your policy has been added to the list.</para>
-    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=directory manager" -w password
- list-password-policies --property use-ssl
+    <screen>$ dsconfig
+ -p 4444
+ -h `hostname`
+ -D "cn=directory manager"
+ -w password
+ list-password-policies
+ --property use-ssl
 
 Password Policy         : Type              : use-ssl
 ------------------------:-------------------:--------
@@ -258,8 +285,12 @@ cn: LDAP PTA User</screen>
    <step>
     <para>Import the server certificate into OpenDJ's key store.</para>
     <screen>$ cd /path/to/OpenDJ/config
-$ keytool -importcert -alias ad-cert -keystore truststore
- -storepass `cat keystore.pin` -file ~/Downloads/windows.cer 
+$ keytool
+ -importcert
+ -alias ad-cert
+ -keystore truststore
+ -storepass `cat keystore.pin`
+ -file ~/Downloads/windows.cer 
 Owner: CN=internal-ACTIVEDIRECTORY-CA, DC=internal, DC=forgerock, DC=com
 Issuer: CN=internal-ACTIVEDIRECTORY-CA, DC=internal, DC=forgerock, DC=com
 Serial number: 587465257200a7b14a6976cb47916b32
@@ -302,14 +333,24 @@ Certificate was added to keystore</screen>
    <step>
     <para>Set up an authentication policy for OpenDJ users to authenticate
     to Active Directory.</para>
-    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
- create-password-policy --type ldap-pass-through --policy-name "AD PTA Policy"
- --set primary-remote-ldap-server:ad.example.com:636 --set mapped-attribute:cn
+    <screen>$ dsconfig
+ -p 4444
+ -h `hostname`
+ -D "cn=Directory Manager"
+ -w password
+ create-password-policy
+ --type ldap-pass-through
+ --policy-name "AD PTA Policy"
+ --set primary-remote-ldap-server:ad.example.com:636
+ --set mapped-attribute:cn
  --set mapped-search-base-dn:"CN=Users,DC=internal,DC=forgerock,DC=com"
  --set mapped-search-bind-dn:"cn=administrator,cn=Users,DC=internal,DC=forgerock
- ,DC=com" --set mapped-search-bind-password:password
+ ,DC=com"
+ --set mapped-search-bind-password:password
  --set mapping-policy:mapped-search
- --set trust-manager-provider:JKS --set use-ssl:true -X -n</screen>
+ --set trust-manager-provider:JKS
+ --set use-ssl:true
+ -X -n</screen>
    </step>
    <step>
     <para>Assign the authentication policy to a test user.</para>
@@ -325,9 +366,14 @@ MODIFY operation successful for DN uid=ldapptauser,ou=People,dc=example,dc=com</
    <step>
     <para>Check that the user can bind using pass through authentication to
     Active Directory.</para>
-    <screen>$ ldapsearch -h opendj.example.com -p 1389 -b dc=example,dc=com
- -D uid=ldapptauser,ou=People,dc=example,dc=com -w password
- "(cn=LDAP PTA User)" userpassword cn
+    <screen>$ ldapsearch
+ -h opendj.example.com
+ -p 1389
+ -b dc=example,dc=com
+ -D uid=ldapptauser,ou=People,dc=example,dc=com
+ -w password
+ "(cn=LDAP PTA User)"
+ userpassword cn
 dn: uid=ldapptauser,ou=People,dc=example,dc=com
 cn: LDAP PTA User</screen>
     <para>Notice that to complete the search, the user authenticated with a
@@ -350,7 +396,11 @@ cn: LDAP PTA User</screen>
    not in fact a password policy. Therefore, the user with a pass through
    authentication policy does not have a value for the operational attribute
    <literal>pwdPolicySubentry</literal>.</para>
-   <screen>$ ldapsearch -p 1389 -b dc=example,dc=com uid=user.0 pwdPolicySubentry
+   <screen>$ ldapsearch
+ -p 1389
+ -b dc=example,dc=com
+ uid=user.0
+ pwdPolicySubentry
 dn: uid=user.0,ou=People,dc=example,dc=com
 </screen>
   </note>
@@ -424,8 +474,12 @@ MODIFY operation successful for DN uid=user.0,ou=People,dc=example,dc=com</scree
    <step>
     <para>Check that the user can authenticate through to the authentication
     server.</para>
-    <screen>$ ldapsearch -p 1389 -b dc=example,dc=com -D
- uid=user.0,ou=People,dc=example,dc=com -w password uid=user.0 cn sn
+    <screen>$ ldapsearch
+ -p 1389
+ -b dc=example,dc=com
+ -D uid=user.0,ou=People,dc=example,dc=com -w password
+ uid=user.0
+ cn sn
 dn: uid=user.0,ou=People,dc=example,dc=com
 cn: Aaccf Amar
 sn: Amar
@@ -468,8 +522,12 @@ ADD operation successful for DN cn=PTA Policy for Dir Admins,dc=example,dc=com</
      <step>
       <para>Make sure you can bind as the user on the authentication
       server.</para>
-      <screen>$ ldapsearch -p 2389 -D "uid=kvaughan,ou=People,dc=PTA Server,dc=com"
- -w password -b "dc=PTA Server,dc=com" uid=kvaughan
+      <screen>$ ldapsearch
+ -p 2389
+ -D "uid=kvaughan,ou=People,dc=PTA Server,dc=com"
+ -w password
+ -b "dc=PTA Server,dc=com"
+ uid=kvaughan
 dn: uid=kvaughan,ou=People,dc=PTA Server,dc=com
 objectClass: person
 objectClass: organizationalPerson
@@ -487,8 +545,13 @@ mail: jvaughan@example.com
      <step>
       <para>Check that the user can authenticate through to the authentication
       server from OpenDJ.</para>
-      <screen>$ ldapsearch -p 1389 -D "uid=kvaughan,ou=People,dc=example,dc=com" -w password
- -b dc=example,dc=com uid=kvaughan cn sn
+      <screen>$ ldapsearch
+ -p 1389
+ -D "uid=kvaughan,ou=People,dc=example,dc=com"
+ -w password
+ -b dc=example,dc=com
+ uid=kvaughan
+ cn sn
 dn: uid=kvaughan,ou=People,dc=example,dc=com
 cn: Kirsten Vaughan
 sn: Vaughan</screen>
