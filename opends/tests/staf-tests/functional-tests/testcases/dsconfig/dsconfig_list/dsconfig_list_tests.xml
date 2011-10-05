@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS.
  ! -->
 <stax>
 
@@ -46,7 +47,13 @@
       <iterate var="dummyIndex" in="componentList">  
   
         <sequence>
-    
+          
+          <script>
+            dsconfig_subcommand = componentList[componentNumber][0].strip()
+            dsconfig_component1 = componentList[componentNumber][1].strip()
+            dsconfig_component2 = componentList[componentNumber][2].strip()
+          </script>
+
           <testcase name="getTestCaseName(componentList[componentNumber][0])" >
 
             <try>        
@@ -54,7 +61,8 @@
               <sequence>
                 <call function="'testCase_Preamble'" />
                 <message>
-                    'Listing component %s, %s, %s' % (componentList[componentNumber][0], componentList[componentNumber][1], componentList[componentNumber][2])
+                    'Listing component %s, %s, %s' \
+                      % (dsconfig_subcommand, dsconfig_component1, dsconfig_component2)
                 </message>
                 
                 <if expr="componentList[componentNumber][0] == 'list-local-db-indexes'">
@@ -63,7 +71,7 @@
                     'dsInstanceHost' : server.host ,
                     'dsInstanceDn'   : server.dn ,
                     'dsInstancePswd' : server.password , 
-                    'subcommand'     : '%s' % componentList[componentNumber][0] ,
+                    'subcommand'     : '%s' % dsconfig_subcommand ,
                     'objectType'     : 'backend-name' ,
                     'objectName'     : server.backend ,
                     'expectedRC'     : 0 
@@ -75,7 +83,7 @@
                     'dsInstanceHost' : server.host ,
                     'dsInstanceDn'   : server.dn ,
                     'dsInstancePswd' : server.password , 
-                    'subcommand'     : '%s' % componentList[componentNumber][0] ,
+                    'subcommand'     : '%s' % dsconfig_subcommand ,
                     'expectedRC'     : 0 
                   }
                   </call>
@@ -88,13 +96,13 @@
             
                 <call function="'searchStringForSubstring'">
                     { 'returnString'       : returnString ,
-                      'testString'         : componentList[componentNumber][1]  ,
+                      'testString'         : dsconfig_component1  ,
                       'expectedResult'     : '1' }
                 </call>
                 
                 <call function="'checktestString'">
                     { 'returnString'       : returnString ,
-                      'expectedString'     : componentList[componentNumber][2] }
+                      'expectedString'     : dsconfig_component2 }
                 </call>
                 
               </sequence>

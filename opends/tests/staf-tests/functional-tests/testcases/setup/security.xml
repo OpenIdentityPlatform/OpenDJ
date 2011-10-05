@@ -118,13 +118,13 @@
       <script>SEC_I2_REPL_PORT = STAXResult</script>
 
       <message>
-        'Got these free ports for I1: %s, %s, %s, %s' % (SEC_I1_PORT, \
-          SEC_I1_SPORT, SEC_I1_ADMIN_PORT, SEC_I1_REPL_PORT)
-        'Got these free ports for I2: %s, %s, %s, %s' % (SEC_I2_PORT, \
-          SEC_I2_SPORT, SEC_I2_ADMIN_PORT, SEC_I2_REPL_PORT)
+        'Got these free ports for I1: %s, %s, %s, %s' \
+          % (SEC_I1_PORT, SEC_I1_SPORT, SEC_I1_ADMIN_PORT, SEC_I1_REPL_PORT)
       </message>
-      
-      
+      <message>
+        'Got these free ports for I2: %s, %s, %s, %s' \
+          % (SEC_I2_PORT, SEC_I2_SPORT, SEC_I2_ADMIN_PORT, SEC_I2_REPL_PORT)
+      </message>      
 
       <!--- Test Case information
         #@TestMarker          Setup-Uninstall Security tests

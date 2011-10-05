@@ -76,6 +76,7 @@
         import re
         import os
         import sys
+        from org.python.core import PyString,PyUnicode,PyList,PyDictionary
       </script>
 
       <!-- Load in any additional Java classes -->
