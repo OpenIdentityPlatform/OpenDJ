@@ -190,7 +190,7 @@
 
         <script>
           try:
-            if issueId.__class__ is org.python.core.PyList:
+            if issueId.__class__ is PyList:
                 for issue in issueId:
                   if int(issue) not in issuesList:
                     issuesList.append(int(issue))
@@ -298,8 +298,8 @@
       </script>
 
       <!-- Check that returnString is really a string or unicode -->
-      <if expr='returnString.__class__ is not org.python.core.PyString 
-        and returnString.__class__ is not org.python.core.PyUnicode'>
+      <if expr='returnString.__class__ is not PyString 
+        and returnString.__class__ is not PyUnicode'>
         <sequence>
           <message log="1" level="'Error'">
             'Invalid returnString type (%s), requires str or unicode.' \
@@ -415,8 +415,8 @@
       </script> 
 
       <!-- Check that returnString is really a string -->
-      <if expr='returnString.__class__ is not org.python.core.PyString
-        and returnString.__class__ is not org.python.core.PyUnicode'>
+      <if expr='returnString.__class__ is not PyString
+        and returnString.__class__ is not PyUnicode'>
         <sequence>
           <message log="1" level="'Error'">
             'ERROR : Invalid returnString type (%s), requires str or unicode.' \
@@ -826,7 +826,7 @@
         <location>STAXServiceMachine</location>
         <service>'delay'</service>
         <request>
-          'delay %i' % sleepForMilliSeconds
+          'delay %i' % int(sleepForMilliSeconds)
         </request>
       </stafcmd>
 
@@ -1028,6 +1028,16 @@
         testcaseDuration=testcaseStop-testcaseStart
         shortName=get_test_name(STAXCurrentTestcase)
 
+        xml=xmldoc_service()
+
+        repdoc = xml.parseXMLfile("%s/results_tmp.xml" % logs.reports)
+        
+        qa = repdoc.getDocumentElement()
+        ft = qa.getChildNodes().item(1)
+        results = ft.getChildNodes().item(3)
+        testgroup = results.getChildNodes().item(3)
+        testsuite = testgroup.getChildNodes().item(1)
+
         xml.testcase = repdoc.createElement("testcase")
         xml.createAttr(repdoc,xml.testcase,"name",STAXCurrentTestcase)
         xml.createAttr(repdoc,xml.testcase,"duration",testcaseDuration)
@@ -1039,12 +1049,7 @@
         xml.createAttr(repdoc,xml.testcase,"suite",ThisSuiteName)
         xml.createAttr(repdoc,xml.testcase,"info",information)
         
-        #TODO: handle org.w3c.dom.DOMException: WRONG_DOCUMENT_ERR
-        import org.w3c.dom.DOMException
-        try:
-          xml.testsuite.appendChild(xml.testcase)
-        except org.w3c.dom.DOMException, e:
-          print "Caught %s." % e
+        testsuite.appendChild(xml.testcase)
 
         if len(issuesList)!=0:
           xml.issues = repdoc.createElement("issues")
@@ -1117,12 +1122,22 @@
           
         ThisGroupName=CurrentTestPath['group']  
         ThisSuiteName=CurrentTestPath['suite']
+
+        xml=xmldoc_service()
+
+        repdoc = xml.parseXMLfile("%s/results_tmp.xml" % logs.reports)
+        
+        qa = repdoc.getDocumentElement()
+        ft = qa.getChildNodes().item(1)
+        results = ft.getChildNodes().item(3)
+        testgroup = results.getChildNodes().item(3)
         
         #Create testsuite element
         xml.testsuite = repdoc.createElement("testsuite")
         xml.createAttr(repdoc,xml.testsuite,"name",ThisSuiteName)
         xml.createAttr(repdoc,xml.testsuite,"shortname",ThisSuiteName)
-        xml.testgroup.appendChild(xml.testsuite)
+
+        testgroup.appendChild(xml.testsuite)
         
         xml.writeXMLfile(repdoc,"%s/results_tmp.xml" % logs.reports)
 
@@ -4188,6 +4203,5 @@
       </script>
     </sequence>
   </function>
-
 
 </stax>

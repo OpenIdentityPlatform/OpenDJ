@@ -236,10 +236,10 @@
                           </call>
 
                           <!-- Check the STAFResult is expected class type -->
-                          <if expr='STAFResult.__class__ is not org.python.core.PyDictionary'>
+                          <if expr='STAFResult.__class__ is not PyDictionary'>
                             <sequence>
                               <message log="1" level="'Error'">
-                                'ERROR : Invalid result type (%s), requires org.python.core.PyDictionary.' % STAFResult.__class__
+                                'ERROR : Invalid result type (%s), requires PyDictionary.' % STAFResult.__class__
                               </message>
                               <throw exception="'STAXException.Results.TestCaseException'">
                                 'Result not a PyDictionary object.'

@@ -55,7 +55,8 @@ __all__ = [ "format_testcase",
             "list_matches" ,
             "count_attr" ,
             "host_is_localhost" ,
-            "md5_hash"]
+            "md5_hash"
+            ]
 
 class format_testcase:
   'Format the Test name objects'
@@ -175,8 +176,8 @@ class compare_file:
     self.file2    = file2
     self.diffFile = diffFile
 
-  def genDiff(self):
-    from org.tmatesoft.svn.core.wc import *
+  def genDiff(self):    
+    from org.tmatesoft.svn.core.wc import DefaultSVNDiffGenerator
     from java.io import File
     from java.io import FileOutputStream
 
@@ -663,7 +664,7 @@ class xmldoc_service:
       from javax.xml.transform.dom import DOMSource
       tranFactory = TransformerFactory.newInstance();
       aTransformer = tranFactory.newTransformer();
-      aTransformer.setOutputProperty(OutputKeys.ENCODING, "ISO-8859-1")
+      aTransformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8")
       aTransformer.setOutputProperty(OutputKeys.INDENT, "yes")
 
       src = DOMSource(doc);
@@ -686,7 +687,7 @@ class xmldoc_service:
 
         tranFactory = TransformerFactory.newInstance();
         aTransformer = tranFactory.newTransformer();
-        aTransformer.setOutputProperty(OutputKeys.ENCODING, "ISO-8859-1")
+        aTransformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8")
         aTransformer.setOutputProperty(OutputKeys.INDENT, "yes");
         aTransformer.transform(xmlInput, xmlOutput);
 
@@ -845,3 +846,5 @@ def md5_hash():
     import md5
     m = md5.new()
   return m
+
+        
