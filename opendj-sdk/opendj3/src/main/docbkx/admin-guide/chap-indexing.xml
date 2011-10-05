@@ -222,9 +222,16 @@ cn: Barbara Maddox</screen>
     <para>The following example creates a new substring index for
     <literal>description</literal>.</para>
     
-    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
- create-local-db-index --backend-name userRoot --index-name description 
- --set index-type:substring -n</screen>
+    <screen>$ dsconfig
+ -p 4444
+ -h `hostname`
+ -D "cn=Directory Manager"
+ -w password
+ create-local-db-index
+ --backend-name userRoot
+ --index-name description
+ --set index-type:substring
+ -n</screen>
    </example>
    
    <example xml:id="approx-index-example">
@@ -237,9 +244,16 @@ cn: Barbara Maddox</screen>
     <para>The following example configures and approximate index for
     <literal>cn</literal> (common name).</para>
     
-    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
- set-local-db-index-prop --backend-name userRoot --index-name cn
- --set index-type:approximate -n</screen>
+    <screen>$ dsconfig
+ -p 4444
+ -h `hostname`
+ -D "cn=Directory Manager"
+ -w password
+ set-local-db-index-prop
+ --backend-name userRoot
+ --index-name cn
+ --set index-type:approximate
+ -n</screen>
    </example>
   </section>
   
@@ -283,8 +297,14 @@ cn: Barbara Maddox</screen>
     <para>The following example rebuilds the <literal>cn</literal> index
     immediately with the server online.</para>
     
-    <screen>$ rebuild-index -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
- -b dc=example,dc=com -i cn -t 0
+    <screen>$ rebuild-index
+ -p 4444
+ -h `hostname`
+ -D "cn=Directory Manager"
+ -w password
+ -b dc=example,dc=com
+ -i cn
+ -t 0
 Rebuild Index task 20110607171639867 scheduled to start Jun 7, 2011 5:16:39 PM</screen>
    </example>
   </section>
@@ -335,11 +355,24 @@ Rebuild Index task 20110607171639867 scheduled to start Jun 7, 2011 5:16:39 PM</
     <literal>objectClass</literal> index, and then rebuilds the index for the
     configuration change to take effect.</para>
     
-    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
- set-local-db-index-prop --backend-name userRoot --index-name objectClass
- --set index-entry-limit:5000 -n
-$ rebuild-index -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
- -b dc=example,dc=com -i objectclass -t 0
+    <screen>$ dsconfig
+ -p 4444
+ -h `hostname`
+ -D "cn=Directory Manager"
+ -w password
+ set-local-db-index-prop
+ --backend-name userRoot
+ --index-name objectClass
+ --set index-entry-limit:5000
+ -n
+$ rebuild-index
+ -p 4444
+ -h `hostname`
+ -D "cn=Directory Manager"
+ -w password
+ -b dc=example,dc=com
+ -i objectclass
+ -t 0
 Rebuild Index task 20110607160349596 scheduled to start Jun 7, 2011 4:03:49 PM</screen>
    </example>
   </section>

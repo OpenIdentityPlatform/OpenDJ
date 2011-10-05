@@ -100,9 +100,14 @@
   warn when entries have more than one structural object class instead of
   reject such entries being added, set the property as follows.</para>
   
-  <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
- set-global-configuration-prop 
-&gt; --set single-structural-objectclass-behavior:warn -X -n</screen>
+  <screen>$ dsconfig
+ -p 4444
+ -h `hostname`
+ -D "cn=Directory Manager"
+ -w password
+ set-global-configuration-prop
+ --set single-structural-objectclass-behavior:warn
+ -X -n</screen>
   
   <para>By default, OpenDJ also checks syntax for a number of attribute types.
   You can relax this behavior as well by using the <command>dsconfig

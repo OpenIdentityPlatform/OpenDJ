@@ -119,7 +119,11 @@ MODIFY operation successful for DN dc=example,dc=com</screen>
   </step>
   <step>
    <para>Enable the plugin.</para>
-   <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+   <screen>$ dsconfig
+ -p 4444
+ -h `hostname`
+ -D "cn=Directory Manager"
+ -w password
  create-plugin
  --plugin-name "Samba Password Synchronisation"
  --type samba-password
@@ -133,15 +137,25 @@ MODIFY operation successful for DN dc=example,dc=com</screen>
   <step performance="optional">
    <para>When troubleshooting Samba Password plugin issues, you can turn on
    debug logging as follows.</para>
-   <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+   <screen>$ dsconfig
+ -p 4444
+ -h `hostname`
+ -D "cn=Directory Manager"
+ -w password
  create-debug-target
  --publisher-name "File-Based Debug Logger"
  --target-name org.opends.server.plugins.SambaPasswordPlugin
- --set debug-level:all -X -n
-$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+ --set debug-level:all
+ -X -n
+$ dsconfig
+ -p 4444
+ -h `hostname`
+ -D "cn=Directory Manager"
+ -w password
  set-log-publisher-prop
  --publisher-name "File-Based Debug Logger"
- --set enabled:true -X -n</screen>
+ --set enabled:true
+ -X -n</screen>
   </step>
  </procedure>
 </chapter>

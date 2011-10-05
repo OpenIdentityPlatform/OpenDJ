@@ -66,9 +66,16 @@
   <step>
    <para>Set the base DN where <literal>uid</literal> should have unique
    values, and enable the plugin.</para>
-   <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
- set-plugin-prop --plugin-name "UID Unique Attribute"
- --set base-dn:ou=people,dc=example,dc=com --set enabled:true -X -n</screen>
+   <screen>$ dsconfig
+ -p 4444
+ -h `hostname`
+ -D "cn=Directory Manager"
+ -w password
+ set-plugin-prop
+ --plugin-name "UID Unique Attribute"
+ --set base-dn:ou=people,dc=example,dc=com
+ --set enabled:true
+ -X -n</screen>
   </step>
   <step>
    <para>Check that the plugin is working correctly.</para>
@@ -78,7 +85,12 @@ changetype: modify
 add: uid
 uid: bjensen
 
-$ ldapmodify -a -p 1389 -D "cn=Directory Manager" -w password -f bjensen.ldif
+$ ldapmodify
+ -a
+ -p 1389
+ -D "cn=Directory Manager"
+ -w password
+ -f bjensen.ldif
 Processing MODIFY request for uid=ajensen,ou=People,dc=example,dc=com
 MODIFY operation failed
 Result Code:  19 (Constraint Violation)
@@ -100,10 +112,18 @@ Additional Information:  A unique attribute conflict was detected for \
   </step>
   <step>
    <para>Set up the plugin configuration for your attribute.</para>
-   <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
- create-plugin --plugin-name "Unique mobile numbers"
- --type unique-attribute --set enabled:true
- --set base-dn:ou=people,dc=example,dc=com --set type:mobile -X -n</screen>
+   <screen>$ dsconfig
+ -p 4444
+ -h `hostname`
+ -D "cn=Directory Manager"
+ -w password
+ create-plugin
+ --plugin-name "Unique mobile numbers"
+ --type unique-attribute
+ --set enabled:true
+ --set base-dn:ou=people,dc=example,dc=com
+ --set type:mobile
+ -X -n</screen>
   </step>
   <step>
    <para>Check that the plugin is working correctly.</para>
@@ -118,7 +138,12 @@ changetype: modify
 add: mobile
 mobile: +1 828 555 1212
 
-$ ldapmodify -a -p 1389 -D "cn=Directory Manager" -w password -f mobile.ldif 
+$ ldapmodify
+ -a
+ -p 1389
+ -D "cn=Directory Manager"
+ -w password
+ -f mobile.ldif 
 Processing MODIFY request for uid=ajensen,ou=People,dc=example,dc=com
 MODIFY operation successful for DN uid=ajensen,ou=People,dc=example,dc=com
 Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com

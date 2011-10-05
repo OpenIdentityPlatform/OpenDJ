@@ -660,7 +660,6 @@ changetype: modify
 add: ds-privilege-name
 ds-privilege-name: config-read
 ds-privilege-name: password-reset
-
 </screen>
     <para>This example lets the user read the server configuration, and reset
     user passwords. In order for the user to be able to change a user password,
@@ -670,14 +669,22 @@ ds-privilege-name: password-reset
     <para>Prior to having the privileges, Kirsten gets messages about
     insufficent access when trying to read the server configuration, or
     reset a user password.</para>
-    <screen>$ ldapsearch -p 1389 -D "uid=kvaughan,ou=People,dc=example,dc=com"
- -w bribery -b cn=config "(objectclass=*)"
+    <screen>$ ldapsearch
+ -p 1389
+ -D "uid=kvaughan,ou=People,dc=example,dc=com"
+ -w bribery
+ -b cn=config
+ "(objectclass=*)"
 SEARCH operation failed
 Result Code:  50 (Insufficient Access Rights)
 Additional Information:  You do not have sufficient privileges to perform
  search operations in the Directory Server configuration
-$ ldappasswordmodify -p 1389 -D "uid=kvaughan,ou=People,dc=example,dc=com"
- -w bribery -a "dn:uid=scarter,ou=People,dc=example,dc=com" -n changeit
+$ ldappasswordmodify
+ -p 1389
+ -D "uid=kvaughan,ou=People,dc=example,dc=com"
+ -w bribery
+ -a "dn:uid=scarter,ou=People,dc=example,dc=com"
+ -n changeit
 The LDAP password modify operation failed with result code 50
 Error Message:  You do not have sufficient privileges to perform password
 reset operations</screen>
@@ -690,15 +697,23 @@ Processing MODIFY request for uid=kvaughan,ou=People,dc=example,dc=com
 MODIFY operation successful for DN uid=kvaughan,ou=People,dc=example,dc=com</screen>
     <para>At this point, Kirsten can perform the operations requiring
     privileges.</para>
-    <screen>$ ldapsearch -p 1389 -D "uid=kvaughan,ou=People,dc=example,dc=com"
- -w bribery -b cn=config "(objectclass=*)"
+    <screen>$ ldapsearch
+ -p 1389
+ -D "uid=kvaughan,ou=People,dc=example,dc=com"
+ -w bribery
+ -b cn=config
+ "(objectclass=*)"
 dn: cn=config
 ds-cfg-return-bind-error-messages: false
 ds-cfg-default-password-policy: cn=Default Password Policy,cn=Password Policies,
  cn=config
 ...
-$ ldappasswordmodify -p 1389 -D "uid=kvaughan,ou=People,dc=example,dc=com"
- -w bribery -a "dn:uid=scarter,ou=People,dc=example,dc=com" -n changeit
+$ ldappasswordmodify
+ -p 1389
+ -D "uid=kvaughan,ou=People,dc=example,dc=com"
+ -w bribery
+ -a "dn:uid=scarter,ou=People,dc=example,dc=com"
+ -n changeit
 The LDAP password modify operation was successful</screen>
    </step>
   </procedure>
@@ -745,8 +760,12 @@ ADD operation successful for DN cn=Administrator Privileges,dc=example,dc=com</s
    </step>
    <step>
     <para>Observe that the change takes effect immediately.</para>
-    <screen>$ ldappasswordmodify -p 1389 -D "uid=kvaughan,ou=People,dc=example,dc=com"
- -w bribery -a "dn:uid=scarter,ou=People,dc=example,dc=com" -n changeit
+    <screen>$ ldappasswordmodify
+ -p 1389
+ -D "uid=kvaughan,ou=People,dc=example,dc=com"
+ -w bribery
+ -a "dn:uid=scarter,ou=People,dc=example,dc=com"
+ -n changeit
 The LDAP password modify operation was successful</screen>    
    </step>
   </procedure>
@@ -904,8 +923,12 @@ aci: (target ="ldap:///ou=Self Service,ou=Groups,dc=example,dc=com")(version 3
   <para>In this example, Babs Jensen is the owner of a small group of people
   who are willing to carpool.</para>
   
-  <screen>$ ldapsearch -p 1389 -D "uid=bjensen,ou=people,dc=example,dc=com" -w hifalutin
- -b "ou=Self Service,ou=Groups,dc=example,dc=com" "cn=*" 
+  <screen>$ ldapsearch
+ -p 1389
+ -D "uid=bjensen,ou=people,dc=example,dc=com"
+ -w hifalutin
+ -b "ou=Self Service,ou=Groups,dc=example,dc=com"
+ "cn=*" 
 dn: cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com
 objectClass: groupOfNames
 objectClass: top
@@ -913,16 +936,20 @@ member: uid=bjensen,ou=People,dc=example,dc=com
 description: People who are willing to carpool
 owner: uid=bjensen,ou=People,dc=example,dc=com
 cn: Carpoolers
-
 </screen>
 
   <para>Performing the same search with the get effective rights control, and
   asking for the <literal>aclRights</literal> attribute, shows what rights
   Babs has on the entry.</para>
   
-  <screen>$ ldapsearch -J effectiverights -p 1389
- -D "uid=bjensen,ou=people,dc=example,dc=com" -w hifalutin
- -b "ou=Self Service,ou=Groups,dc=example,dc=com" "cn=*" aclRights
+  <screen>$ ldapsearch
+ -J effectiverights
+ -p 1389
+ -D "uid=bjensen,ou=people,dc=example,dc=com"
+ -w hifalutin
+ -b "ou=Self Service,ou=Groups,dc=example,dc=com"
+ "cn=*"
+ aclRights
 dn: cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com
 aclRights;entryLevel: add:0,delete:1,read:1,write:0,proxy:0
 </screen>
@@ -930,9 +957,14 @@ aclRights;entryLevel: add:0,delete:1,read:1,write:0,proxy:0
   <para>Requesting the <literal>aclRightsInfo</literal> attribute results in
   information about the ACIs applied to arrive at the results.</para>
   
-  <screen>$ ldapsearch -J effectiverights -p 1389
- -D "uid=bjensen,ou=people,dc=example,dc=com" -w hifalutin
- -b "ou=Self Service,ou=Groups,dc=example,dc=com" "cn=*" aclRights
+  <screen>$ ldapsearch
+ -J effectiverights
+ -p 1389
+ -D "uid=bjensen,ou=people,dc=example,dc=com"
+ -w hifalutin
+ -b "ou=Self Service,ou=Groups,dc=example,dc=com"
+ "cn=*"
+ aclRights
  aclRightsInfo
 dn: cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com
 aclRightsInfo;logs;entryLevel;read: acl_summary(main): access allowed(read) on e
@@ -956,7 +988,6 @@ aclRightsInfo;logs;entryLevel;proxy: acl_summary(main): access not allowed(proxy
  ) on entry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, NULL
  ) to (uid=bjensen,ou=People,dc=example,dc=com) (not proxied) ( reason: no acis 
  matched the subject )
-
 </screen>
  </section>
 </chapter>
