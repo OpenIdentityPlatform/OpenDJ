@@ -347,6 +347,7 @@ public class ReplicationBroker
       {
         // This RS is locally configured, mark this
         replicationServerInfo.setLocallyConfigured(true);
+        replicationServerInfo.serverURL = serverUrl;
         return;
       }
     }
@@ -462,6 +463,23 @@ public class ReplicationBroker
     private List<Integer> connectedDSs = null;
     // Is this RS locally configured ? (the RS is recognized as a usable server)
     private boolean locallyConfigured = true;
+
+    /**
+     * Create a new instance of ReplicationServerInfo wrapping the passed
+     * message.
+     * @param msg Message to wrap.
+     * @param server Override serverURL.
+     * @return The new instance wrapping the passed message.
+     * @throws IllegalArgumentException If the passed message has an unexpected
+     *                                  type.
+     */
+    public static ReplicationServerInfo newInstance(
+      ReplicationMsg msg, String server) throws IllegalArgumentException
+    {
+      ReplicationServerInfo rsInfo = newInstance(msg);
+      rsInfo.serverURL = server;
+      return rsInfo;
+    }
 
     /**
      * Create a new instance of ReplicationServerInfo wrapping the passed
@@ -1216,7 +1234,7 @@ public class ReplicationBroker
 
       // Wrap received message in a server info object
       ReplicationServerInfo replServerInfo = ReplicationServerInfo
-          .newInstance(msg);
+          .newInstance(msg, server);
 
       // Sanity check
       String repDn = replServerInfo.getBaseDn();
