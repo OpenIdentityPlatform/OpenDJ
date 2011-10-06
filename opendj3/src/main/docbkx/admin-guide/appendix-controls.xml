@@ -39,8 +39,20 @@
  <emphasis>response controls</emphasis>.</para>
 
  <para>OpenDJ software supports the following LDAP controls.</para>
- 
  <variablelist>
+  <varlistentry xml:id="account-usability-control">
+   <term>Account Usability Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>Account usability</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.3.6.1.4.1.42.2.27.9.5.8</para>
+    <para>Control originally provided by Sun Microsystems, used to determine
+    whether a user account can be used to authenticate to the directory.</para>
+   </listitem>
+  </varlistentry>
+
   <varlistentry xml:id="assertion-request-control">
    <term>Assertion Request Control</term>
    <listitem>
@@ -138,6 +150,20 @@
     <para>RFC: <link xlink:href='http://tools.ietf.org/html/rfc3876'>RFC 3876
     - Returning Matched Values with the Lightweight Directory Access Protocol
     version 3 (LDAPv3)</link></para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="noop-control">
+   <term>No-Op Control</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP controls</primary>
+     <secondary>No-op</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.3.6.1.4.1.4203.1.10.2</para>
+    <para>Internet-Draft: <link
+    xlink:href="http://tools.ietf.org/html/draft-zeilenga-ldap-noop-01"
+    >draft-zeilenga-ldap-noop - LDAP No-Op Control</link></para>
    </listitem>
   </varlistentry>
 
