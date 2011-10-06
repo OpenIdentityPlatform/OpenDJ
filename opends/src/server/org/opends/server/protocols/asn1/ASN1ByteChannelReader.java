@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.protocols.asn1;
 
@@ -330,9 +331,18 @@ public final class ASN1ByteChannelReader implements ASN1Reader
     }
 
     byteBuffer.clear();
-    int read = byteChannel.read(byteBuffer);
-    byteBuffer.flip();
-    return read;
+    try
+    {
+      int read = byteChannel.read(byteBuffer);
+      return read;
+    }
+    finally
+    {
+      // Make sure that the buffer is flipped even if the read fails in order to
+      // ensure that subsequent calls which query the remaining data return
+      // valid results.
+      byteBuffer.flip();
+    }
   }
 
   /**
@@ -359,6 +369,16 @@ public final class ASN1ByteChannelReader implements ASN1Reader
    */
   public boolean hasNextElement() throws ASN1Exception {
     return reader.hasNextElement();
+  }
+
+  /**
+   * Returns {@code true} if this ASN.1 reader contains unread data.
+   *
+   * @return {@code true} if this ASN.1 reader contains unread data.
+   */
+  public boolean hasRemainingData()
+  {
+    return (saveBufferReader.remaining() != 0) || (byteBuffer.remaining() != 0);
   }
 
   /**
