@@ -1587,9 +1587,25 @@ public class LDAPClientConnection extends ClientConnection implements
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      Message m =
-        ERR_LDAP_CLIENT_DECODE_LDAP_MESSAGE_FAILED.get(String.valueOf(e));
-      disconnect(DisconnectReason.PROTOCOL_ERROR, true, m);
+
+      if (asn1Reader.hasRemainingData())
+      {
+        // The connection failed, but there was an unread partial message so
+        // interpret this as an IO error.
+        Message m = ERR_LDAP_CLIENT_IO_ERROR_DURING_READ.get(String
+            .valueOf(e));
+        disconnect(DisconnectReason.IO_ERROR, true, m);
+      }
+      else
+      {
+        // The connection failed and there was no unread data, so interpret this
+        // as indicating that the client aborted (reset) the connection. This
+        // happens when a client configures closes a connection which has been
+        // configured with SO_LINGER set to 0.
+        Message m = ERR_LDAP_CLIENT_IO_ERROR_BEFORE_READ.get();
+        disconnect(DisconnectReason.CLIENT_DISCONNECT, true, m);
+      }
+
       return -1;
     }
   }
