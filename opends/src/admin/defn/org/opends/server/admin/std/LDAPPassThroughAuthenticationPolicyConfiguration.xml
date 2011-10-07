@@ -188,7 +188,7 @@
   <adm:property name="connection-timeout">
     <adm:synopsis>
       Specifies the timeout used when connecting to remote LDAP
-      director servers, performing SSL negotiation, and for individual search
+      directory servers, performing SSL negotiation, and for individual search
       and bind requests.
     </adm:synopsis>
     <adm:description>
