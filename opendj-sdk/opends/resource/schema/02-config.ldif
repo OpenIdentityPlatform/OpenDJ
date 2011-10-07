@@ -3609,7 +3609,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.93
   NAME 'ds-cfg-replication-synchronization-provider'
   SUP ds-cfg-synchronization-provider
   STRUCTURAL
-  MAY ( ds-cfg-num-update-replay-threads )
+  MAY ( ds-cfg-num-update-replay-threads $
+        ds-cfg-connection-timeout )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.94
   NAME 'ds-cfg-dictionary-password-validator'

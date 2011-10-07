@@ -397,8 +397,9 @@ public class AssuredReplicationPluginTest
           newSocket.setKeepAlive(true);
           // Create client session
           ReplSessionSecurity replSessionSecurity = new ReplSessionSecurity();
+          int timeoutMS = MultimasterReplication.getConnectionTimeoutMS();
           session = replSessionSecurity.createServerSession(newSocket,
-            ReplSessionSecurity.HANDSHAKE_TIMEOUT);
+              timeoutMS);
           if (session == null) // Error, go back to accept
           {
             continue;

@@ -123,6 +123,11 @@ public class MultimasterReplication
   private static boolean initializationCompleted = true;
 
   /**
+   * The configurable connection/handshake timeout.
+   */
+  private static volatile int connectionTimeoutMS = 5000;
+
+  /**
    * Finds the domain for a given DN.
    *
    * @param dn         The DN for which the domain must be returned.
@@ -285,6 +290,8 @@ public class MultimasterReplication
     configuration.addReplicationChangeListener(this);
 
     replayThreadNumber = configuration.getNumUpdateReplayThreads();
+    connectionTimeoutMS = (int) Math.min(configuration.getConnectionTimeout(),
+        Integer.MAX_VALUE);
 
     //  Create the list of domains that are already defined.
     for (String name : configuration.listReplicationDomains())
@@ -821,6 +828,9 @@ public class MultimasterReplication
       createReplayThreads();
     }
 
+    connectionTimeoutMS = (int) Math.min(configuration.getConnectionTimeout(),
+        Integer.MAX_VALUE);
+
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
 
@@ -880,6 +890,16 @@ public class MultimasterReplication
         return true;
     }
     return false;
+  }
+
+  /**
+   * Returns the connection timeout in milli-seconds.
+   *
+   * @return The connection timeout in milli-seconds.
+   */
+  public static int getConnectionTimeoutMS()
+  {
+    return connectionTimeoutMS;
   }
 
 }

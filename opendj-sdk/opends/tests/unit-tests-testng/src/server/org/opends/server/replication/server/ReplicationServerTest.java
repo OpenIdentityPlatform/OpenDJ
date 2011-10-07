@@ -1013,11 +1013,11 @@ public class ReplicationServerTest extends ReplicationTestCase
     Socket socket = new Socket();
     socket.setReceiveBufferSize(1000000);
     socket.setTcpNoDelay(true);
-    socket.connect(ServerAddr, ReplSessionSecurity.CONNECTION_TIMEOUT);
+    int timeoutMS = MultimasterReplication.getConnectionTimeoutMS();
+    socket.connect(ServerAddr, timeoutMS);
     ReplSessionSecurity replSessionSecurity = getReplSessionSecurity();
-    ProtocolSession session =
-         replSessionSecurity.createClientSession(socket,
-         ReplSessionSecurity.HANDSHAKE_TIMEOUT);
+    ProtocolSession session = replSessionSecurity.createClientSession(socket,
+        timeoutMS);
 
     boolean sslEncryption =
          DirectoryConfig.getCryptoManager().isSslEncryption();
