@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -46,7 +47,7 @@ public class MultimasterReplicationFakeConf implements
     // TODO Auto-generated method stub
 
   }
-  
+
   public void addReplicationDomainAddListener(
       ConfigurationAddListener<ReplicationDomainCfg> listener)
       throws ConfigException
@@ -180,6 +181,11 @@ public class MultimasterReplicationFakeConf implements
   {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  public long getConnectionTimeout()
+  {
+    return 5000;
   }
 
 }

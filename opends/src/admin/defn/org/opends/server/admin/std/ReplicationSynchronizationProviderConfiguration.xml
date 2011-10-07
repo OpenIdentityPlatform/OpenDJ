@@ -104,4 +104,24 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+
+  <adm:property name="connection-timeout" advanced="true">
+    <adm:synopsis>
+      Specifies the timeout used when connecting to peers and when performing
+      SSL negotiation.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>5 seconds</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:duration base-unit="ms" lower-limit="0" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-connection-timeout</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
 </adm:managed-object>

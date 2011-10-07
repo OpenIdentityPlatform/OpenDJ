@@ -60,6 +60,7 @@ import org.opends.server.core.WorkflowImpl;
 import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.*;
+import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.types.*;
 import org.opends.server.util.LDIFReader;
@@ -307,9 +308,9 @@ public final class ReplicationServer
           newSocket = listenSocket.accept();
           newSocket.setTcpNoDelay(true);
           newSocket.setKeepAlive(true);
-          session =
-            replSessionSecurity.createServerSession(newSocket,
-                ReplSessionSecurity.HANDSHAKE_TIMEOUT);
+          int timeoutMS = MultimasterReplication.getConnectionTimeoutMS();
+          session = replSessionSecurity.createServerSession(newSocket,
+              timeoutMS);
           if (session == null) // Error, go back to accept
             continue;
         }
@@ -490,10 +491,9 @@ public final class ReplicationServer
       InetSocketAddress ServerAddr = new InetSocketAddress(
           InetAddress.getByName(hostname), Integer.parseInt(port));
       socket.setTcpNoDelay(true);
-      socket.connect(ServerAddr, ReplSessionSecurity.CONNECTION_TIMEOUT);
-
-      session = replSessionSecurity.createClientSession(socket,
-          ReplSessionSecurity.HANDSHAKE_TIMEOUT);
+      int timeoutMS = MultimasterReplication.getConnectionTimeoutMS();
+      socket.connect(ServerAddr, timeoutMS);
+      session = replSessionSecurity.createClientSession(socket, timeoutMS);
 
       ReplicationServerHandler handler = new ReplicationServerHandler(
           session, queueSize, this.serverURL, serverId, this,

@@ -77,17 +77,6 @@ public final class ReplSessionSecurity
    */
   private final String sslCipherSuites[];
 
-  /**
-   * The default soTimeout value to be used at handshake phases. (DS<->RS and
-   * RS<->RS)
-   */
-  public static final int HANDSHAKE_TIMEOUT = 4000;
-
-  /**
-   * The default connection timeout.
-   */
-  public static final int CONNECTION_TIMEOUT = 4000;
-
 
 
   /**

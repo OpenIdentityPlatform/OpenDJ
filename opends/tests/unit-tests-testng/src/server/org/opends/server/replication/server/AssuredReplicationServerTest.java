@@ -54,6 +54,7 @@ import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
+import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.ProtocolSession;
 import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.ReplServerStartMsg;
@@ -953,14 +954,14 @@ public class AssuredReplicationServerTest
           new InetSocketAddress("localhost", port);
         Socket socket = new Socket();
         socket.setTcpNoDelay(true);
-        socket.connect(serverAddr, ReplSessionSecurity.CONNECTION_TIMEOUT);
+        int timeoutMS = MultimasterReplication.getConnectionTimeoutMS();
+        socket.connect(serverAddr, timeoutMS);
 
         // Create client session
         fakePort++;
         String fakeUrl = "localhost:" + fakePort;
         ReplSessionSecurity replSessionSecurity = new ReplSessionSecurity();
-        session = replSessionSecurity.createClientSession(socket,
-          ReplSessionSecurity.HANDSHAKE_TIMEOUT);
+        session = replSessionSecurity.createClientSession(socket, timeoutMS);
 
         // Send our repl server start msg
         ReplServerStartMsg replServerStartMsg = new ReplServerStartMsg(serverId,

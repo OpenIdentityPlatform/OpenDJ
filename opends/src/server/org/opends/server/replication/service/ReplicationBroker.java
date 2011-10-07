@@ -68,6 +68,7 @@ import org.opends.server.replication.common.MutableBoolean;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
+import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.ServerConstants;
@@ -1198,9 +1199,9 @@ public class ReplicationBroker
       socket = new Socket();
       socket.setReceiveBufferSize(1000000);
       socket.setTcpNoDelay(true);
-      socket.connect(serverAddr, ReplSessionSecurity.CONNECTION_TIMEOUT);
-      localSession = replSessionSecurity.createClientSession(
-          socket, ReplSessionSecurity.HANDSHAKE_TIMEOUT);
+      int timeoutMS = MultimasterReplication.getConnectionTimeoutMS();
+      socket.connect(serverAddr, timeoutMS);
+      localSession = replSessionSecurity.createClientSession(socket, timeoutMS);
       boolean isSslEncryption = replSessionSecurity
           .isSslEncryption(server);
 
