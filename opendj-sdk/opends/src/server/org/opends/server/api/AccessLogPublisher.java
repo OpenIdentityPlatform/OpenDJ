@@ -23,13 +23,13 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.api;
 
 
 
 import java.util.List;
-import java.util.Map;
 
 import org.opends.server.admin.std.server.AccessLogPublisherCfg;
 import org.opends.server.config.ConfigException;
@@ -133,30 +133,6 @@ public abstract class AccessLogPublisher
 
 
   /**
-   * Writes a message to the access logger containing additional
-   * information associated with the provided client connection.
-   * <p>
-   * The default implementation is to not log anything.
-   *
-   * @param clientConnection
-   *          The client connection that has been established.
-   * @param category
-   *          The category of the intermediate message.
-   * @param content
-   *          The content of the intermediate message. This comprises
-   *          of one or more key/value pairs which form the content of
-   *          the intermediate message.
-   */
-  public void logConnectIntermediateMessage(
-      ClientConnection clientConnection, String category,
-      Map<String, String> content)
-  {
-    // Do nothing
-  }
-
-
-
-  /**
    * Writes a message to the access logger with information about the
    * termination of an existing client connection.
    * <p>
@@ -180,30 +156,6 @@ public abstract class AccessLogPublisher
 
 
   /**
-   * Writes a message to the access logger containing additional
-   * information associated with the provided client disconnection.
-   * <p>
-   * The default implementation is to not log anything.
-   *
-   * @param clientConnection
-   *          The client connection that has been terminated.
-   * @param category
-   *          The category of the intermediate message.
-   * @param content
-   *          The content of the intermediate message. This comprises
-   *          of one or more key/value pairs which form the content of
-   *          the intermediate message.
-   */
-  public void logDisconnectIntermediateMessage(
-      ClientConnection clientConnection, String category,
-      Map<String, String> content)
-  {
-    // Do nothing
-  }
-
-
-
-  /**
    * Writes a message to the access logger with information about the
    * abandon request associated with the provided abandon operation.
    * <p>
@@ -216,35 +168,6 @@ public abstract class AccessLogPublisher
   public void logAbandonRequest(AbandonOperation abandonOperation)
   {
     // Do nothing
-  }
-
-
-
-  /**
-   * Writes a message to the access logger containing additional
-   * information associated with the provided abandon operation.
-   * <p>
-   * This method will only be called after the request has been logged
-   * and before the response. Implementations can choose to ignore
-   * intermediate responses or filter them based on their category.
-   * <p>
-   * The default implementation is to not log anything.
-   *
-   * @param abandonOperation
-   *          The abandon operation containing the information to use
-   *          to log the abandon request.
-   * @param category
-   *          The category of the intermediate message.
-   * @param content
-   *          The content of the intermediate message. This comprises
-   *          of one or more key/value pairs which form the content of
-   *          the intermediate message.
-   */
-  public void logAbandonIntermediateMessage(
-      AbandonOperation abandonOperation,
-      String category, Map<String, String> content)
-  {
-    // Do nothing.
   }
 
 
@@ -277,34 +200,6 @@ public abstract class AccessLogPublisher
    *          log the add request.
    */
   public void logAddRequest(AddOperation addOperation)
-  {
-    // Do nothing
-  }
-
-
-
-  /**
-   * Writes a message to the access logger containing additional
-   * information associated with the provided add operation.
-   * <p>
-   * This method will only be called after the request has been logged
-   * and before the response. Implementations can choose to ignore
-   * intermediate responses or filter them based on their category.
-   * <p>
-   * The default implementation is to not log anything.
-   *
-   * @param addOperation
-   *          The add operation containing the information to use to
-   *          log the add request.
-   * @param category
-   *          The category of the intermediate message.
-   * @param content
-   *          The content of the intermediate message. This comprises
-   *          of one or more key/value pairs which form the content of
-   *          the intermediate message.
-   */
-  public void logAddIntermediateMessage(AddOperation addOperation,
-      String category, Map<String, String> content)
   {
     // Do nothing
   }
@@ -346,34 +241,6 @@ public abstract class AccessLogPublisher
 
 
   /**
-   * Writes a message to the access logger containing additional
-   * information associated with the provided bind operation.
-   * <p>
-   * This method will only be called after the request has been logged
-   * and before the response. Implementations can choose to ignore
-   * intermediate responses or filter them based on their category.
-   * <p>
-   * The default implementation is to not log anything.
-   *
-   * @param bindOperation
-   *          The bind operation containing the information to use to
-   *          log the bind request.
-   * @param category
-   *          The category of the intermediate message.
-   * @param content
-   *          The content of the intermediate message. This comprises
-   *          of one or more key/value pairs which form the content of
-   *          the intermediate message.
-   */
-  public void logBindIntermediateMessage(BindOperation bindOperation,
-      String category, Map<String, String> content)
-  {
-    // Do nothing
-  }
-
-
-
-  /**
    * Writes a message to the access logger with information about the
    * bind response associated with the provided bind operation.
    * <p>
@@ -401,35 +268,6 @@ public abstract class AccessLogPublisher
    *          to log the compare request.
    */
   public void logCompareRequest(CompareOperation compareOperation)
-  {
-    // Do nothing
-  }
-
-
-
-  /**
-   * Writes a message to the access logger containing additional
-   * information associated with the provided compare operation.
-   * <p>
-   * This method will only be called after the request has been logged
-   * and before the response. Implementations can choose to ignore
-   * intermediate responses or filter them based on their category.
-   * <p>
-   * The default implementation is to not log anything.
-   *
-   * @param compareOperation
-   *          The compare operation containing the information to use
-   *          to log the abandon compare.
-   * @param category
-   *          The category of the intermediate message.
-   * @param content
-   *          The content of the intermediate message. This comprises
-   *          of one or more key/value pairs which form the content of
-   *          the intermediate message.
-   */
-  public void logCompareIntermediateMessage(
-      CompareOperation compareOperation,
-      String category, Map<String, String> content)
   {
     // Do nothing
   }
@@ -471,35 +309,6 @@ public abstract class AccessLogPublisher
 
 
   /**
-   * Writes a message to the access logger containing additional
-   * information associated with the provided delete operation.
-   * <p>
-   * This method will only be called after the request has been logged
-   * and before the response. Implementations can choose to ignore
-   * intermediate responses or filter them based on their category.
-   * <p>
-   * The default implementation is to not log anything.
-   *
-   * @param deleteOperation
-   *          The delete operation containing the information to use
-   *          to log the delete request.
-   * @param category
-   *          The category of the intermediate message.
-   * @param content
-   *          The content of the intermediate message. This comprises
-   *          of one or more key/value pairs which form the content of
-   *          the intermediate message.
-   */
-  public void logDeleteIntermediateMessage(
-      DeleteOperation deleteOperation,
-      String category, Map<String, String> content)
-  {
-    // Do nothing
-  }
-
-
-
-  /**
    * Writes a message to the access logger with information about the
    * delete response associated with the provided delete operation.
    * <p>
@@ -527,35 +336,6 @@ public abstract class AccessLogPublisher
    *          to log the extended request.
    */
   public void logExtendedRequest(ExtendedOperation extendedOperation)
-  {
-    // Do nothing
-  }
-
-
-
-  /**
-   * Writes a message to the access logger containing additional
-   * information associated with the provided extended operation.
-   * <p>
-   * This method will only be called after the request has been logged
-   * and before the response. Implementations can choose to ignore
-   * intermediate responses or filter them based on their category.
-   * <p>
-   * The default implementation is to not log anything.
-   *
-   * @param extendedOperation
-   *          The extended operation containing the information to use
-   *          to log the extended request.
-   * @param category
-   *          The category of the intermediate message.
-   * @param content
-   *          The content of the intermediate message. This comprises
-   *          of one or more key/value pairs which form the content of
-   *          the intermediate message.
-   */
-  public void logExtendedIntermediateMessage(
-      ExtendedOperation extendedOperation, String category,
-      Map<String, String> content)
   {
     // Do nothing
   }
@@ -598,35 +378,6 @@ public abstract class AccessLogPublisher
 
 
   /**
-   * Writes a message to the access logger containing additional
-   * information associated with the provided modify operation.
-   * <p>
-   * This method will only be called after the request has been logged
-   * and before the response. Implementations can choose to ignore
-   * intermediate responses or filter them based on their category.
-   * <p>
-   * The default implementation is to not log anything.
-   *
-   * @param modifyOperation
-   *          The modify operation containing the information to use
-   *          to log the modify request.
-   * @param category
-   *          The category of the intermediate message.
-   * @param content
-   *          The content of the intermediate message. This comprises
-   *          of one or more key/value pairs which form the content of
-   *          the intermediate message.
-   */
-  public void logModifyIntermediateMessage(
-      ModifyOperation modifyOperation,
-      String category, Map<String, String> content)
-  {
-    // Do nothing
-  }
-
-
-
-  /**
    * Writes a message to the access logger with information about the
    * modify response associated with the provided modify operation.
    * <p>
@@ -662,35 +413,6 @@ public abstract class AccessLogPublisher
 
 
   /**
-   * Writes a message to the access logger containing additional
-   * information associated with the provided modify DN operation.
-   * <p>
-   * This method will only be called after the request has been logged
-   * and before the response. Implementations can choose to ignore
-   * intermediate responses or filter them based on their category.
-   * <p>
-   * The default implementation is to not log anything.
-   *
-   * @param modifyDNOperation
-   *          The modify DN operation containing the information to
-   *          use to log the modify DN request.
-   * @param category
-   *          The category of the intermediate message.
-   * @param content
-   *          The content of the intermediate message. This comprises
-   *          of one or more key/value pairs which form the content of
-   *          the intermediate message.
-   */
-  public void logModifyDNIntermediateMessage(
-      ModifyDNOperation modifyDNOperation, String category,
-      Map<String, String> content)
-  {
-    // Do nothing
-  }
-
-
-
-  /**
    * Writes a message to the access logger with information about the
    * modify DN response associated with the provided modify DN
    * operation.
@@ -719,35 +441,6 @@ public abstract class AccessLogPublisher
    *          to log the search request.
    */
   public void logSearchRequest(SearchOperation searchOperation)
-  {
-    // Do nothing
-  }
-
-
-
-  /**
-   * Writes a message to the access logger containing additional
-   * information associated with the provided search operation.
-   * <p>
-   * This method will only be called after the request has been logged
-   * and before the response. Implementations can choose to ignore
-   * intermediate responses or filter them based on their category.
-   * <p>
-   * The default implementation is to not log anything.
-   *
-   * @param searchOperation
-   *          The search operation containing the information to use
-   *          to log the search request.
-   * @param category
-   *          The category of the intermediate message.
-   * @param content
-   *          The content of the intermediate message. This comprises
-   *          of one or more key/value pairs which form the content of
-   *          the intermediate message.
-   */
-  public void logSearchIntermediateMessage(
-      SearchOperation searchOperation,
-      String category, Map<String, String> content)
   {
     // Do nothing
   }

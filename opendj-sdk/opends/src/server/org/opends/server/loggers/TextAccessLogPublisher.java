@@ -38,7 +38,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -409,18 +408,6 @@ public class TextAccessLogPublisher extends
 
 
   /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void logAbandonIntermediateMessage(AbandonOperation abandonOperation,
-      String category, Map<String, String> content)
-  {
-    logIntermediateMessage(abandonOperation, "ABANDON", category, content);
-  }
-
-
-
-  /**
    * Writes a message to the access logger with information about the
    * abandon request associated with the provided abandon operation.
    *
@@ -482,18 +469,6 @@ public class TextAccessLogPublisher extends
     buffer.append(abandonOperation.getProcessingTime());
 
     writer.writeRecord(buffer.toString());
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void logAddIntermediateMessage(AddOperation addOperation,
-      String category, Map<String, String> content)
-  {
-    logIntermediateMessage(addOperation, "ADD", category, content);
   }
 
 
@@ -575,18 +550,6 @@ public class TextAccessLogPublisher extends
     buffer.append(etime);
 
     writer.writeRecord(buffer.toString());
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void logBindIntermediateMessage(BindOperation bindOperation,
-      String category, Map<String, String> content)
-  {
-    logIntermediateMessage(bindOperation, "BIND", category, content);
   }
 
 
@@ -728,18 +691,6 @@ public class TextAccessLogPublisher extends
 
 
   /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void logCompareIntermediateMessage(CompareOperation compareOperation,
-      String category, Map<String, String> content)
-  {
-    logIntermediateMessage(compareOperation, "COMPARE", category, content);
-  }
-
-
-
-  /**
    * Writes a message to the access logger with information about the
    * compare request associated with the provided compare operation.
    *
@@ -853,32 +804,6 @@ public class TextAccessLogPublisher extends
 
     writer.writeRecord(buffer.toString());
 
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void logConnectIntermediateMessage(
-      ClientConnection clientConnection, String category,
-      Map<String, String> content)
-  {
-    logIntermediateMessage(clientConnection, "CONNECT", category,
-        content);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void logDeleteIntermediateMessage(DeleteOperation deleteOperation,
-      String category, Map<String, String> content)
-  {
-    logIntermediateMessage(deleteOperation, "DELETE", category, content);
   }
 
 
@@ -1009,33 +934,6 @@ public class TextAccessLogPublisher extends
 
 
   /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void logDisconnectIntermediateMessage(
-      ClientConnection clientConnection, String category,
-      Map<String, String> content)
-  {
-    logIntermediateMessage(clientConnection, "DISCONNECT", category,
-        content);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void logExtendedIntermediateMessage(
-      ExtendedOperation extendedOperation, String category,
-      Map<String, String> content)
-  {
-    logIntermediateMessage(extendedOperation, "EXTENDED", category, content);
-  }
-
-
-
-  /**
    * Writes a message to the access logger with information about the
    * extended request associated with the provided extended operation.
    *
@@ -1143,19 +1041,6 @@ public class TextAccessLogPublisher extends
 
 
   /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void logModifyDNIntermediateMessage(
-      ModifyDNOperation modifyDNOperation, String category,
-      Map<String, String> content)
-  {
-    logIntermediateMessage(modifyDNOperation, "MODIFY", category, content);
-  }
-
-
-
-  /**
    * Writes a message to the access logger with information about the
    * modify DN request associated with the provided modify DN
    * operation.
@@ -1249,18 +1134,6 @@ public class TextAccessLogPublisher extends
 
 
   /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void logModifyIntermediateMessage(ModifyOperation modifyOperation,
-      String category, Map<String, String> content)
-  {
-    logIntermediateMessage(modifyOperation, "MODIFY", category, content);
-  }
-
-
-
-  /**
    * Writes a message to the access logger with information about the
    * modify request associated with the provided modify operation.
    *
@@ -1337,18 +1210,6 @@ public class TextAccessLogPublisher extends
     buffer.append(etime);
 
     writer.writeRecord(buffer.toString());
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void logSearchIntermediateMessage(SearchOperation searchOperation,
-      String category, Map<String, String> content)
-  {
-    logIntermediateMessage(searchOperation, "SEARCH", category, content);
   }
 
 
@@ -1541,66 +1402,5 @@ public class TextAccessLogPublisher extends
       builder.append(' ');
       item.toString(builder);
     }
-  }
-
-
-
-  // Writes an intermediate message to the log.
-  private void logIntermediateMessage(Operation operation, String opType,
-      String category, Map<String, String> content)
-  {
-    if (!isLoggable(operation))
-    {
-      return;
-    }
-
-    StringBuilder buffer = new StringBuilder(100);
-    appendHeader(operation, opType, category, buffer);
-
-    for (Map.Entry<String, String> entry : content.entrySet())
-    {
-      buffer.append(' ');
-      buffer.append(entry.getKey());
-      buffer.append('=');
-      buffer.append(entry.getValue());
-    }
-
-    writer.writeRecord(buffer.toString());
-  }
-
-
-
-  //Writes an intermediate message to the log.
-  private void logIntermediateMessage(
-      ClientConnection clientConnection, String type, String category,
-      Map<String, String> content)
-  {
-    long connectionID = clientConnection.getConnectionID();
-
-    if (connectionID < 0 && suppressInternalOperations)
-    {
-      return;
-    }
-
-    StringBuilder buffer = new StringBuilder(100);
-
-    buffer.append('[');
-    buffer.append(TimeThread.getLocalTime());
-    buffer.append("] ");
-    buffer.append(type);
-    buffer.append(' ');
-    buffer.append(category);
-    buffer.append(" conn=");
-    buffer.append(connectionID);
-
-    for (Map.Entry<String, String> entry : content.entrySet())
-    {
-      buffer.append(' ');
-      buffer.append(entry.getKey());
-      buffer.append('=');
-      buffer.append(entry.getValue());
-    }
-
-    writer.writeRecord(buffer.toString());
   }
 }
