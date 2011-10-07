@@ -65,13 +65,243 @@ import org.opends.server.util.TimeThread;
 
 
 /**
- * This class provides the implementation of the access logger used by
- * the directory server.
+ * This class provides the implementation of the access logger used by the
+ * directory server.
  */
 public class TextAccessLogPublisher extends
     AccessLogPublisher<FileBasedAccessLogPublisherCfg> implements
     ConfigurationChangeListener<FileBasedAccessLogPublisherCfg>
 {
+
+  /**
+   * Log message filter predicate.
+   */
+  static interface Filter
+  {
+    /**
+     * Returns {@code true} if the provided request should be logged.
+     *
+     * @param operation
+     *          The request.
+     * @return {@code true} if the provided request should be logged.
+     */
+    boolean isRequestLoggable(Operation operation);
+
+
+
+    /**
+     * Returns {@code true} if the provided response should be logged.
+     *
+     * @param operation
+     *          The response.
+     * @return {@code true} if the provided response should be logged.
+     */
+    boolean isResponseLoggable(Operation operation);
+  }
+
+
+
+  /**
+   * A filter which performs a logical AND over a set of sub-filters.
+   */
+  static final class AndFilter implements Filter
+  {
+    private final Filter[] subFilters;
+
+
+
+    /**
+     * Creates a new AND filter.
+     *
+     * @param subFilters
+     *          The sub-filters.
+     */
+    AndFilter(Filter[] subFilters)
+    {
+      this.subFilters = subFilters;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isRequestLoggable(Operation operation)
+    {
+      for (Filter filter : subFilters)
+      {
+        if (!filter.isRequestLoggable(operation))
+        {
+          // Fail fast.
+          return false;
+        }
+      }
+      return true;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isResponseLoggable(Operation operation)
+    {
+      for (Filter filter : subFilters)
+      {
+        if (!filter.isResponseLoggable(operation))
+        {
+          // Fail fast.
+          return false;
+        }
+      }
+      return true;
+    }
+
+  }
+
+
+
+  /**
+   * A filter which performs a logical OR over a set of sub-filters.
+   */
+  static final class OrFilter implements Filter
+  {
+    private final Filter[] subFilters;
+
+
+
+    /**
+     * Creates a new OR filter.
+     *
+     * @param subFilters
+     *          The sub-filters.
+     */
+    OrFilter(Filter[] subFilters)
+    {
+      this.subFilters = subFilters;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isRequestLoggable(Operation operation)
+    {
+      for (Filter filter : subFilters)
+      {
+        if (filter.isRequestLoggable(operation))
+        {
+          // Succeed fast.
+          return true;
+        }
+      }
+      return false;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isResponseLoggable(Operation operation)
+    {
+      for (Filter filter : subFilters)
+      {
+        if (filter.isResponseLoggable(operation))
+        {
+          // Succeed fast.
+          return true;
+        }
+      }
+      return false;
+    }
+
+  }
+
+
+
+  /**
+   * The root filter which first checks the logger configuration, delegating to
+   * a sub-filter if needed.
+   */
+  final class RootFilter implements Filter
+  {
+    private final Filter subFilter;
+
+
+
+    /**
+     * Creates a new root filter.
+     *
+     * @param subFilter
+     *          The sub-filter.
+     */
+    RootFilter(Filter subFilter)
+    {
+      this.subFilter = subFilter;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isRequestLoggable(Operation operation)
+    {
+      if (isLoggable(operation))
+      {
+        // FIXME: actual behavior determined by default filter policy.
+        return subFilter.isRequestLoggable(operation);
+      }
+      else
+      {
+        return false;
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isResponseLoggable(Operation operation)
+    {
+      if (isLoggable(operation))
+      {
+        // FIXME: actual behavior determined by default filter policy.
+        return subFilter.isResponseLoggable(operation);
+      }
+      else
+      {
+        return false;
+      }
+    }
+
+
+
+    // Determines whether the provided operation should be logged.
+    private boolean isLoggable(Operation operation)
+    {
+      long connectionID = operation.getConnectionID();
+      if (connectionID < 0)
+      {
+        // This is an internal operation.
+        if (operation.isSynchronizationOperation())
+        {
+          return !suppressSynchronizationOperations;
+        }
+        else
+        {
+          return !suppressInternalOperations;
+        }
+      }
+
+      return true;
+    }
+  }
+
+
 
   /**
    * The category to use when logging responses.
@@ -86,16 +316,16 @@ public class TextAccessLogPublisher extends
 
 
   /**
-   * Returns an instance of the text access log publisher that will
-   * print all messages to the provided writer. This is used to print
-   * the messages to the console when the server starts up.
+   * Returns an instance of the text access log publisher that will print all
+   * messages to the provided writer. This is used to print the messages to the
+   * console when the server starts up.
    *
    * @param writer
    *          The text writer where the message will be written to.
    * @param suppressInternal
    *          Indicates whether to suppress internal operations.
-   * @return The instance of the text error log publisher that will
-   *         print all messages to standard out.
+   * @return The instance of the text error log publisher that will print all
+   *         messages to standard out.
    */
   public static TextAccessLogPublisher getStartupTextAccessPublisher(
       TextWriter writer, boolean suppressInternal)
@@ -103,9 +333,11 @@ public class TextAccessLogPublisher extends
     TextAccessLogPublisher startupPublisher = new TextAccessLogPublisher();
     startupPublisher.writer = writer;
     startupPublisher.suppressInternalOperations = suppressInternal;
-
+    startupPublisher.setSubFilter(new AndFilter(new Filter[0])); // Always true.
     return startupPublisher;
   }
+
+
 
   private FileBasedAccessLogPublisherCfg currentConfig;
 
@@ -114,6 +346,8 @@ public class TextAccessLogPublisher extends
   private boolean suppressSynchronizationOperations = false;
 
   private TextWriter writer;
+
+  private Filter filter;
 
 
 
@@ -209,8 +443,7 @@ public class TextAccessLogPublisher extends
           writer = asyncWriter;
         }
 
-        if (!(writer instanceof ParallelTextWriter)
-            && config.isAsynchronous())
+        if (!(writer instanceof ParallelTextWriter) && config.isAsynchronous())
         {
           // The asynchronous setting is being turned on.
           ParallelTextWriter asyncWriter = new ParallelTextWriter(
@@ -224,6 +457,9 @@ public class TextAccessLogPublisher extends
         {
           adminActionRequired = true;
         }
+
+        // FIXME: use a dummy set of sub-filters for now.
+        setSubFilter(new AndFilter(new Filter[0])); // Always true.
 
         currentConfig = config;
       }
@@ -280,53 +516,51 @@ public class TextAccessLogPublisher extends
    * {@inheritDoc}
    */
   @Override
-  public void initializeAccessLogPublisher(
-      FileBasedAccessLogPublisherCfg config)
+  public void initializeAccessLogPublisher(FileBasedAccessLogPublisherCfg cfg)
       throws ConfigException, InitializationException
   {
-    File logFile = getFileForPath(config.getLogFile());
+    File logFile = getFileForPath(cfg.getLogFile());
     FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
 
     try
     {
-      FilePermission perm = FilePermission.decodeUNIXMode(config
+      FilePermission perm = FilePermission.decodeUNIXMode(cfg
           .getLogFilePermissions());
 
       LogPublisherErrorHandler errorHandler = new LogPublisherErrorHandler(
-          config.dn());
+          cfg.dn());
 
-      boolean writerAutoFlush = config.isAutoFlush()
-          && !config.isAsynchronous();
+      boolean writerAutoFlush = cfg.isAutoFlush()
+          && !cfg.isAsynchronous();
 
       MultifileTextWriter writer = new MultifileTextWriter(
-          "Multifile Text Writer for " + config.dn().toNormalizedString(),
-          config.getTimeInterval(), fnPolicy, perm, errorHandler, "UTF-8",
-          writerAutoFlush, config.isAppend(), (int) config.getBufferSize());
+          "Multifile Text Writer for " + cfg.dn().toNormalizedString(),
+          cfg.getTimeInterval(), fnPolicy, perm, errorHandler, "UTF-8",
+          writerAutoFlush, cfg.isAppend(), (int) cfg.getBufferSize());
 
       // Validate retention and rotation policies.
-      for (DN dn : config.getRotationPolicyDNs())
+      for (DN dn : cfg.getRotationPolicyDNs())
       {
         writer.addRotationPolicy(DirectoryServer.getRotationPolicy(dn));
       }
 
-      for (DN dn : config.getRetentionPolicyDNs())
+      for (DN dn : cfg.getRetentionPolicyDNs())
       {
         writer.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
       }
 
-      if (config.isAsynchronous())
+      if (cfg.isAsynchronous())
       {
-        if (config.getQueueSize() > 0)
+        if (cfg.getQueueSize() > 0)
         {
           this.writer = new AsyncronousTextWriter(
-            "Asyncronous Text Writer for " + config.dn().toNormalizedString(),
-            config.getQueueSize(), config.isAutoFlush(), writer);
+              "Asyncronous Text Writer for " + cfg.dn().toNormalizedString(),
+              cfg.getQueueSize(), cfg.isAutoFlush(), writer);
         }
         else
         {
-          this.writer = new ParallelTextWriter(
-            "Parallel Text Writer for " + config.dn().toNormalizedString(),
-            config.isAutoFlush(), writer);
+          this.writer = new ParallelTextWriter("Parallel Text Writer for "
+              + cfg.dn().toNormalizedString(), cfg.isAutoFlush(), writer);
         }
       }
       else
@@ -336,26 +570,28 @@ public class TextAccessLogPublisher extends
     }
     catch (DirectoryException e)
     {
-      Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(config.dn()
+      Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(cfg.dn()
           .toString(), String.valueOf(e));
       throw new InitializationException(message, e);
 
     }
     catch (IOException e)
     {
-      Message message = ERR_CONFIG_LOGGING_CANNOT_OPEN_FILE.get(logFile
-          .toString(), config.dn().toString(), String.valueOf(e));
+      Message message = ERR_CONFIG_LOGGING_CANNOT_OPEN_FILE.get(
+          logFile.toString(), cfg.dn().toString(), String.valueOf(e));
       throw new InitializationException(message, e);
 
     }
 
-    suppressInternalOperations = config.isSuppressInternalOperations();
-    suppressSynchronizationOperations = config
+    suppressInternalOperations = cfg.isSuppressInternalOperations();
+    suppressSynchronizationOperations = cfg
         .isSuppressSynchronizationOperations();
+    currentConfig = cfg;
 
-    currentConfig = config;
+    // FIXME: use a dummy set of sub-filters for now.
+    setSubFilter(new AndFilter(new Filter[0])); // Always true.
 
-    config.addFileBasedAccessChangeListener(this);
+    cfg.addFileBasedAccessChangeListener(this);
   }
 
 
@@ -364,8 +600,7 @@ public class TextAccessLogPublisher extends
    * {@inheritDoc}
    */
   @Override
-  public boolean isConfigurationAcceptable(
-      AccessLogPublisherCfg configuration,
+  public boolean isConfigurationAcceptable(AccessLogPublisherCfg configuration,
       List<Message> unacceptableReasons)
   {
     FileBasedAccessLogPublisherCfg config =
@@ -396,8 +631,8 @@ public class TextAccessLogPublisher extends
     }
     catch (DirectoryException e)
     {
-      Message message = ERR_CONFIG_LOGGING_MODE_INVALID.get(config
-          .getLogFilePermissions(), String.valueOf(e));
+      Message message = ERR_CONFIG_LOGGING_MODE_INVALID.get(
+          config.getLogFilePermissions(), String.valueOf(e));
       unacceptableReasons.add(message);
       return false;
     }
@@ -408,17 +643,17 @@ public class TextAccessLogPublisher extends
 
 
   /**
-   * Writes a message to the access logger with information about the
-   * abandon request associated with the provided abandon operation.
+   * Writes a message to the access logger with information about the abandon
+   * request associated with the provided abandon operation.
    *
    * @param abandonOperation
-   *          The abandon operation containing the information to use
-   *          to log the abandon request.
+   *          The abandon operation containing the information to use to log the
+   *          abandon request.
    */
   @Override
   public void logAbandonRequest(AbandonOperation abandonOperation)
   {
-    if (!isLoggable(abandonOperation))
+    if (!filter.isRequestLoggable(abandonOperation))
     {
       return;
     }
@@ -436,17 +671,17 @@ public class TextAccessLogPublisher extends
 
 
   /**
-   * Writes a message to the access logger with information about the
-   * result of the provided abandon operation.
+   * Writes a message to the access logger with information about the result of
+   * the provided abandon operation.
    *
    * @param abandonOperation
-   *          The abandon operation containing the information to use
-   *          to log the abandon request.
+   *          The abandon operation containing the information to use to log the
+   *          abandon request.
    */
   @Override
   public void logAbandonResult(AbandonOperation abandonOperation)
   {
-    if (!isLoggable(abandonOperation))
+    if (!filter.isResponseLoggable(abandonOperation))
     {
       return;
     }
@@ -474,17 +709,17 @@ public class TextAccessLogPublisher extends
 
 
   /**
-   * Writes a message to the access logger with information about the
-   * add request associated with the provided add operation.
+   * Writes a message to the access logger with information about the add
+   * request associated with the provided add operation.
    *
    * @param addOperation
-   *          The add operation containing the information to use to
-   *          log the add request.
+   *          The add operation containing the information to use to log the add
+   *          request.
    */
   @Override
   public void logAddRequest(AddOperation addOperation)
   {
-    if (!isLoggable(addOperation))
+    if (!filter.isRequestLoggable(addOperation))
     {
       return;
     }
@@ -503,17 +738,17 @@ public class TextAccessLogPublisher extends
 
 
   /**
-   * Writes a message to the access logger with information about the
-   * add response associated with the provided add operation.
+   * Writes a message to the access logger with information about the add
+   * response associated with the provided add operation.
    *
    * @param addOperation
-   *          The add operation containing the information to use to
-   *          log the add response.
+   *          The add operation containing the information to use to log the add
+   *          response.
    */
   @Override
   public void logAddResponse(AddOperation addOperation)
   {
-    if (!isLoggable(addOperation))
+    if (!filter.isResponseLoggable(addOperation))
     {
       return;
     }
@@ -555,17 +790,17 @@ public class TextAccessLogPublisher extends
 
 
   /**
-   * Writes a message to the access logger with information about the
-   * bind request associated with the provided bind operation.
+   * Writes a message to the access logger with information about the bind
+   * request associated with the provided bind operation.
    *
    * @param bindOperation
-   *          The bind operation with the information to use to log
-   *          the bind request.
+   *          The bind operation with the information to use to log the bind
+   *          request.
    */
   @Override
   public void logBindRequest(BindOperation bindOperation)
   {
-    if (!isLoggable(bindOperation))
+    if (!filter.isRequestLoggable(bindOperation))
     {
       return;
     }
@@ -607,17 +842,17 @@ public class TextAccessLogPublisher extends
 
 
   /**
-   * Writes a message to the access logger with information about the
-   * bind response associated with the provided bind operation.
+   * Writes a message to the access logger with information about the bind
+   * response associated with the provided bind operation.
    *
    * @param bindOperation
-   *          The bind operation containing the information to use to
-   *          log the bind response.
+   *          The bind operation containing the information to use to log the
+   *          bind response.
    */
   @Override
   public void logBindResponse(BindOperation bindOperation)
   {
-    if (!isLoggable(bindOperation))
+    if (!filter.isResponseLoggable(bindOperation))
     {
       return;
     }
@@ -691,17 +926,17 @@ public class TextAccessLogPublisher extends
 
 
   /**
-   * Writes a message to the access logger with information about the
-   * compare request associated with the provided compare operation.
+   * Writes a message to the access logger with information about the compare
+   * request associated with the provided compare operation.
    *
    * @param compareOperation
-   *          The compare operation containing the information to use
-   *          to log the compare request.
+   *          The compare operation containing the information to use to log the
+   *          compare request.
    */
   @Override
   public void logCompareRequest(CompareOperation compareOperation)
   {
-    if (!isLoggable(compareOperation))
+    if (!filter.isRequestLoggable(compareOperation))
     {
       return;
     }
@@ -721,17 +956,17 @@ public class TextAccessLogPublisher extends
 
 
   /**
-   * Writes a message to the access logger with information about the
-   * compare response associated with the provided compare operation.
+   * Writes a message to the access logger with information about the compare
+   * response associated with the provided compare operation.
    *
    * @param compareOperation
-   *          The compare operation containing the information to use
-   *          to log the compare response.
+   *          The compare operation containing the information to use to log the
+   *          compare response.
    */
   @Override
   public void logCompareResponse(CompareOperation compareOperation)
   {
-    if (!isLoggable(compareOperation))
+    if (!filter.isResponseLoggable(compareOperation))
     {
       return;
     }
@@ -773,9 +1008,9 @@ public class TextAccessLogPublisher extends
 
 
   /**
-   * Writes a message to the access logger with information about a
-   * new client connection that has been established, regardless of
-   * whether it will be immediately terminated.
+   * Writes a message to the access logger with information about a new client
+   * connection that has been established, regardless of whether it will be
+   * immediately terminated.
    *
    * @param clientConnection
    *          The client connection that has been established.
@@ -783,6 +1018,7 @@ public class TextAccessLogPublisher extends
   @Override
   public void logConnect(ClientConnection clientConnection)
   {
+    // FIXME: implement filtering.
     long connectionID = clientConnection.getConnectionID();
 
     if (connectionID < 0 && suppressInternalOperations)
@@ -809,17 +1045,17 @@ public class TextAccessLogPublisher extends
 
 
   /**
-   * Writes a message to the access logger with information about the
-   * delete request associated with the provided delete operation.
+   * Writes a message to the access logger with information about the delete
+   * request associated with the provided delete operation.
    *
    * @param deleteOperation
-   *          The delete operation with the information to use to log
-   *          the delete request.
+   *          The delete operation with the information to use to log the delete
+   *          request.
    */
   @Override
   public void logDeleteRequest(DeleteOperation deleteOperation)
   {
-    if (!isLoggable(deleteOperation))
+    if (!filter.isRequestLoggable(deleteOperation))
     {
       return;
     }
@@ -838,17 +1074,17 @@ public class TextAccessLogPublisher extends
 
 
   /**
-   * Writes a message to the access logger with information about the
-   * delete response associated with the provided delete operation.
+   * Writes a message to the access logger with information about the delete
+   * response associated with the provided delete operation.
    *
    * @param deleteOperation
-   *          The delete operation containing the information to use
-   *          to log the delete response.
+   *          The delete operation containing the information to use to log the
+   *          delete response.
    */
   @Override
   public void logDeleteResponse(DeleteOperation deleteOperation)
   {
-    if (!isLoggable(deleteOperation))
+    if (!filter.isResponseLoggable(deleteOperation))
     {
       return;
     }
@@ -896,16 +1132,16 @@ public class TextAccessLogPublisher extends
    * @param clientConnection
    *          The client connection that has been terminated.
    * @param disconnectReason
-   *          A generic disconnect reason for the connection
-   *          termination.
+   *          A generic disconnect reason for the connection termination.
    * @param message
-   *          A human-readable message that can provide additional
-   *          information about the disconnect.
+   *          A human-readable message that can provide additional information
+   *          about the disconnect.
    */
   @Override
   public void logDisconnect(ClientConnection clientConnection,
       DisconnectReason disconnectReason, Message message)
   {
+    // FIXME: implement filtering.
     long connectionID = clientConnection.getConnectionID();
     if (connectionID < 0 && suppressInternalOperations)
     {
@@ -934,17 +1170,17 @@ public class TextAccessLogPublisher extends
 
 
   /**
-   * Writes a message to the access logger with information about the
-   * extended request associated with the provided extended operation.
+   * Writes a message to the access logger with information about the extended
+   * request associated with the provided extended operation.
    *
    * @param extendedOperation
-   *          The extended operation containing the information to use
-   *          to log the extended request.
+   *          The extended operation containing the information to use to log
+   *          the extended request.
    */
   @Override
   public void logExtendedRequest(ExtendedOperation extendedOperation)
   {
-    if (!isLoggable(extendedOperation))
+    if (!filter.isRequestLoggable(extendedOperation))
     {
       return;
     }
@@ -953,11 +1189,13 @@ public class TextAccessLogPublisher extends
     String oid = extendedOperation.getRequestOID();
     StringBuilder buffer = new StringBuilder(100);
     appendHeader(extendedOperation, "EXTENDED", CATEGORY_REQUEST, buffer);
-    ExtendedOperationHandler<?> extOpHandler =
-      DirectoryServer.getExtendedOperationHandler(oid);
-    if (extOpHandler != null) {
+    ExtendedOperationHandler<?> extOpHandler = DirectoryServer
+        .getExtendedOperationHandler(oid);
+    if (extOpHandler != null)
+    {
       name = extOpHandler.getExtendedOperationName();
-      if (name != null) {
+      if (name != null)
+      {
         buffer.append(" name=\"");
         buffer.append(name);
         buffer.append("\"");
@@ -966,7 +1204,8 @@ public class TextAccessLogPublisher extends
     buffer.append(" oid=\"");
     buffer.append(oid);
     buffer.append("\"");
-    if (extendedOperation.isSynchronizationOperation()) {
+    if (extendedOperation.isSynchronizationOperation())
+    {
       buffer.append(" type=synchronization");
     }
 
@@ -976,18 +1215,17 @@ public class TextAccessLogPublisher extends
 
 
   /**
-   * Writes a message to the access logger with information about the
-   * extended response associated with the provided extended
-   * operation.
+   * Writes a message to the access logger with information about the extended
+   * response associated with the provided extended operation.
    *
    * @param extendedOperation
-   *          The extended operation containing the info to use to log
-   *          the extended response.
+   *          The extended operation containing the info to use to log the
+   *          extended response.
    */
   @Override
   public void logExtendedResponse(ExtendedOperation extendedOperation)
   {
-    if (!isLoggable(extendedOperation))
+    if (!filter.isResponseLoggable(extendedOperation))
     {
       return;
     }
@@ -999,11 +1237,13 @@ public class TextAccessLogPublisher extends
     String oid = extendedOperation.getResponseOID();
     if (oid != null)
     {
-      ExtendedOperationHandler<?> extOpHandler =
-        DirectoryServer.getExtendedOperationHandler(oid);
-      if (extOpHandler != null) {
+      ExtendedOperationHandler<?> extOpHandler = DirectoryServer
+          .getExtendedOperationHandler(oid);
+      if (extOpHandler != null)
+      {
         name = extOpHandler.getExtendedOperationName();
-        if (name != null) {
+        if (name != null)
+        {
           buffer.append(" name=\"");
           buffer.append(name);
           buffer.append("\"");
@@ -1041,18 +1281,17 @@ public class TextAccessLogPublisher extends
 
 
   /**
-   * Writes a message to the access logger with information about the
-   * modify DN request associated with the provided modify DN
-   * operation.
+   * Writes a message to the access logger with information about the modify DN
+   * request associated with the provided modify DN operation.
    *
    * @param modifyDNOperation
-   *          The modify DN operation containing the info to use to
-   *          log the modify DN request.
+   *          The modify DN operation containing the info to use to log the
+   *          modify DN request.
    */
   @Override
   public void logModifyDNRequest(ModifyDNOperation modifyDNOperation)
   {
-    if (!isLoggable(modifyDNOperation))
+    if (!filter.isRequestLoggable(modifyDNOperation))
     {
       return;
     }
@@ -1081,18 +1320,17 @@ public class TextAccessLogPublisher extends
 
 
   /**
-   * Writes a message to the access logger with information about the
-   * modify DN response associated with the provided modify DN
-   * operation.
+   * Writes a message to the access logger with information about the modify DN
+   * response associated with the provided modify DN operation.
    *
    * @param modifyDNOperation
-   *          The modify DN operation containing the information to
-   *          use to log the modify DN response.
+   *          The modify DN operation containing the information to use to log
+   *          the modify DN response.
    */
   @Override
   public void logModifyDNResponse(ModifyDNOperation modifyDNOperation)
   {
-    if (!isLoggable(modifyDNOperation))
+    if (!filter.isResponseLoggable(modifyDNOperation))
     {
       return;
     }
@@ -1134,17 +1372,17 @@ public class TextAccessLogPublisher extends
 
 
   /**
-   * Writes a message to the access logger with information about the
-   * modify request associated with the provided modify operation.
+   * Writes a message to the access logger with information about the modify
+   * request associated with the provided modify operation.
    *
    * @param modifyOperation
-   *          The modify operation containing the information to use
-   *          to log the modify request.
+   *          The modify operation containing the information to use to log the
+   *          modify request.
    */
   @Override
   public void logModifyRequest(ModifyOperation modifyOperation)
   {
-    if (!isLoggable(modifyOperation))
+    if (!filter.isRequestLoggable(modifyOperation))
     {
       return;
     }
@@ -1163,17 +1401,17 @@ public class TextAccessLogPublisher extends
 
 
   /**
-   * Writes a message to the access logger with information about the
-   * modify response associated with the provided modify operation.
+   * Writes a message to the access logger with information about the modify
+   * response associated with the provided modify operation.
    *
    * @param modifyOperation
-   *          The modify operation containing the information to use
-   *          to log the modify response.
+   *          The modify operation containing the information to use to log the
+   *          modify response.
    */
   @Override
   public void logModifyResponse(ModifyOperation modifyOperation)
   {
-    if (!isLoggable(modifyOperation))
+    if (!filter.isResponseLoggable(modifyOperation))
     {
       return;
     }
@@ -1215,17 +1453,17 @@ public class TextAccessLogPublisher extends
 
 
   /**
-   * Writes a message to the access logger with information about the
-   * search request associated with the provided search operation.
+   * Writes a message to the access logger with information about the search
+   * request associated with the provided search operation.
    *
    * @param searchOperation
-   *          The search operation containing the info to use to log
-   *          the search request.
+   *          The search operation containing the info to use to log the search
+   *          request.
    */
   @Override
   public void logSearchRequest(SearchOperation searchOperation)
   {
-    if (!isLoggable(searchOperation))
+    if (!filter.isRequestLoggable(searchOperation))
     {
       return;
     }
@@ -1267,17 +1505,17 @@ public class TextAccessLogPublisher extends
 
 
   /**
-   * Writes a message to the access logger with information about the
-   * completion of the provided search operation.
+   * Writes a message to the access logger with information about the completion
+   * of the provided search operation.
    *
    * @param searchOperation
-   *          The search operation containing the information to use
-   *          to log the search result done message.
+   *          The search operation containing the information to use to log the
+   *          search result done message.
    */
   @Override
   public void logSearchResultDone(SearchOperation searchOperation)
   {
-    if (!isLoggable(searchOperation))
+    if (!filter.isResponseLoggable(searchOperation))
     {
       return;
     }
@@ -1322,17 +1560,18 @@ public class TextAccessLogPublisher extends
 
 
   /**
-   * Writes a message to the access logger with information about the
-   * unbind request associated with the provided unbind operation.
+   * Writes a message to the access logger with information about the unbind
+   * request associated with the provided unbind operation.
    *
    * @param unbindOperation
-   *          The unbind operation containing the info to use to log
-   *          the unbind request.
+   *          The unbind operation containing the info to use to log the unbind
+   *          request.
    */
   @Override
   public void logUnbind(UnbindOperation unbindOperation)
   {
-    if (!isLoggable(unbindOperation))
+    // FIXME: ensure that these are logged in combined mode.
+    if (!filter.isRequestLoggable(unbindOperation))
     {
       return;
     }
@@ -1367,33 +1606,6 @@ public class TextAccessLogPublisher extends
 
 
 
-  // Determines whether the provided operation should be logged.
-  private boolean isLoggable(Operation operation)
-  {
-    long connectionID = operation.getConnectionID();
-    if (connectionID < 0)
-    {
-      // This is an internal operation.
-      if (operation.isSynchronizationOperation())
-      {
-        if (suppressSynchronizationOperations)
-        {
-          return false;
-        }
-      }
-      else
-      {
-        if (suppressInternalOperations)
-        {
-          return false;
-        }
-      }
-    }
-    return true;
-  }
-
-
-
   // Appends additional log items to the provided builder.
   private void logAdditionalLogItems(Operation operation, StringBuilder builder)
   {
@@ -1402,5 +1614,13 @@ public class TextAccessLogPublisher extends
       builder.append(' ');
       item.toString(builder);
     }
+  }
+
+
+
+  // Sets the sub-filter.
+  private void setSubFilter(Filter subFilter)
+  {
+    this.filter = new RootFilter(subFilter);
   }
 }
