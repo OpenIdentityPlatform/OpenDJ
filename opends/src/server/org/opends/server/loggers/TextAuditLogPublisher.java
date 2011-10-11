@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
@@ -41,7 +42,7 @@ import java.util.List;
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.AccessLogPublisherCfg;
-import org.opends.server.admin.std.server.FileBasedAccessLogPublisherCfg;
+import org.opends.server.admin.std.server.FileBasedAuditLogPublisherCfg;
 import org.opends.server.api.AccessLogPublisher;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
@@ -61,8 +62,8 @@ import org.opends.server.util.TimeThread;
  * the directory server.
  */
 public class TextAuditLogPublisher extends
-    AccessLogPublisher<FileBasedAccessLogPublisherCfg> implements
-    ConfigurationChangeListener<FileBasedAccessLogPublisherCfg>
+    AccessLogPublisher<FileBasedAuditLogPublisherCfg> implements
+    ConfigurationChangeListener<FileBasedAuditLogPublisherCfg>
 {
 
   private boolean suppressInternalOperations = true;
@@ -71,7 +72,7 @@ public class TextAuditLogPublisher extends
 
   private TextWriter writer;
 
-  private FileBasedAccessLogPublisherCfg currentConfig;
+  private FileBasedAuditLogPublisherCfg currentConfig;
 
 
 
@@ -79,7 +80,7 @@ public class TextAuditLogPublisher extends
    * {@inheritDoc}
    */
   public ConfigChangeResult applyConfigurationChange(
-      FileBasedAccessLogPublisherCfg config)
+      FileBasedAuditLogPublisherCfg config)
   {
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
@@ -186,7 +187,7 @@ public class TextAuditLogPublisher extends
   public void close()
   {
     writer.shutdown();
-    currentConfig.removeFileBasedAccessChangeListener(this);
+    currentConfig.removeFileBasedAuditChangeListener(this);
   }
 
 
@@ -214,7 +215,7 @@ public class TextAuditLogPublisher extends
    */
   @Override()
   public void initializeAccessLogPublisher(
-      FileBasedAccessLogPublisherCfg config)
+      FileBasedAuditLogPublisherCfg config)
       throws ConfigException, InitializationException
   {
     File logFile = getFileForPath(config.getLogFile());
@@ -279,7 +280,7 @@ public class TextAuditLogPublisher extends
 
     currentConfig = config;
 
-    config.addFileBasedAccessChangeListener(this);
+    config.addFileBasedAuditChangeListener(this);
   }
 
 
@@ -291,8 +292,8 @@ public class TextAuditLogPublisher extends
   public boolean isConfigurationAcceptable(AccessLogPublisherCfg configuration,
       List<Message> unacceptableReasons)
   {
-    FileBasedAccessLogPublisherCfg config =
-      (FileBasedAccessLogPublisherCfg) configuration;
+    FileBasedAuditLogPublisherCfg config =
+      (FileBasedAuditLogPublisherCfg) configuration;
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
@@ -302,7 +303,7 @@ public class TextAuditLogPublisher extends
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-      FileBasedAccessLogPublisherCfg config, List<Message> unacceptableReasons)
+      FileBasedAuditLogPublisherCfg config, List<Message> unacceptableReasons)
   {
     // Make sure the permission is valid.
     try

@@ -30,35 +30,28 @@ package org.opends.server.loggers;
 
 
 import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.StaticUtils.getFileForPath;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
+import java.util.*;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
+import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.server.ConfigurationDeleteListener;
+import org.opends.server.admin.std.meta.AccessLogFilteringCriteriaCfgDefn.*;
+import org.opends.server.admin.std.meta.FileBasedAccessLogPublisherCfgDefn.*;
+import org.opends.server.admin.std.server.AccessLogFilteringCriteriaCfg;
 import org.opends.server.admin.std.server.AccessLogPublisherCfg;
 import org.opends.server.admin.std.server.FileBasedAccessLogPublisherCfg;
 import org.opends.server.api.AccessLogPublisher;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.AbandonOperation;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.BindOperation;
-import org.opends.server.core.CompareOperation;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ExtendedOperation;
-import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.SearchOperation;
-import org.opends.server.core.UnbindOperation;
+import org.opends.server.core.*;
 import org.opends.server.types.*;
 import org.opends.server.util.TimeThread;
 
@@ -74,10 +67,183 @@ public class TextAccessLogPublisher extends
 {
 
   /**
+   * Criteria based filter.
+   */
+  static final class CriteriaFilter implements Filter
+  {
+    private final AccessLogFilteringCriteriaCfg cfg;
+    private final boolean logConnectRecords;
+    private final boolean logDisconnectRecords;
+    private final EnumSet<OperationType> logOperationRecords;
+
+
+
+    /**
+     * Creates a new criteria based filter.
+     *
+     * @param cfg
+     *          The access log filter criteria.
+     */
+    CriteriaFilter(final AccessLogFilteringCriteriaCfg cfg)
+    {
+      this.cfg = cfg;
+
+      // Pre-parse the log record types for more efficient queries.
+      if (cfg.getLogRecordType().isEmpty())
+      {
+        logConnectRecords = true;
+        logDisconnectRecords = true;
+
+        logOperationRecords = EnumSet.allOf(OperationType.class);
+      }
+      else
+      {
+        logConnectRecords =
+          cfg.getLogRecordType().contains(LogRecordType.CONNECT);
+        logDisconnectRecords =
+          cfg.getLogRecordType().contains(LogRecordType.DISCONNECT);
+
+        logOperationRecords = EnumSet.noneOf(OperationType.class);
+        for (final LogRecordType type : cfg.getLogRecordType())
+        {
+          switch (type)
+          {
+          case ABANDON:
+            logOperationRecords.add(OperationType.ABANDON);
+            break;
+          case ADD:
+            logOperationRecords.add(OperationType.ADD);
+            break;
+          case BIND:
+            logOperationRecords.add(OperationType.BIND);
+            break;
+          case COMPARE:
+            logOperationRecords.add(OperationType.COMPARE);
+            break;
+          case DELETE:
+            logOperationRecords.add(OperationType.DELETE);
+            break;
+          case EXTENDED:
+            logOperationRecords.add(OperationType.EXTENDED);
+            break;
+          case MODIFY:
+            logOperationRecords.add(OperationType.MODIFY);
+            break;
+          case RENAME:
+            logOperationRecords.add(OperationType.MODIFY_DN);
+            break;
+          case SEARCH:
+            logOperationRecords.add(OperationType.SEARCH);
+            break;
+          case UNBIND:
+            logOperationRecords.add(OperationType.UNBIND);
+            break;
+          default: // Ignore CONNECT/DISCONNECT
+            break;
+          }
+        }
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isConnectLoggable(final ClientConnection connection)
+    {
+      if (!logConnectRecords)
+      {
+        return false;
+      }
+
+      // TODO: other checks.
+
+      return true;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isDisconnectLoggable(final ClientConnection connection)
+    {
+      if (!logDisconnectRecords)
+      {
+        return false;
+      }
+
+      // TODO: other checks.
+
+      return true;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isRequestLoggable(final Operation operation)
+    {
+      if (!logOperationRecords.contains(operation.getOperationType()))
+      {
+        return false;
+      }
+
+      // TODO: other checks.
+
+      return true;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isResponseLoggable(final Operation operation)
+    {
+      if (!logOperationRecords.contains(operation.getOperationType()))
+      {
+        return false;
+      }
+
+      // TODO: other checks.
+
+      return true;
+    }
+
+  }
+
+
+
+  /**
    * Log message filter predicate.
    */
   static interface Filter
   {
+    /**
+     * Returns {@code true} if the provided client connect should be logged.
+     *
+     * @param connection
+     *          The client connection.
+     * @return {@code true} if the provided client connect should be logged.
+     */
+    boolean isConnectLoggable(ClientConnection connection);
+
+
+
+    /**
+     * Returns {@code true} if the provided client disconnect should be logged.
+     *
+     * @param connection
+     *          The client connection.
+     * @return {@code true} if the provided client disconnect should be logged.
+     */
+    boolean isDisconnectLoggable(ClientConnection connection);
+
+
+
     /**
      * Returns {@code true} if the provided request should be logged.
      *
@@ -102,66 +268,6 @@ public class TextAccessLogPublisher extends
 
 
   /**
-   * A filter which performs a logical AND over a set of sub-filters.
-   */
-  static final class AndFilter implements Filter
-  {
-    private final Filter[] subFilters;
-
-
-
-    /**
-     * Creates a new AND filter.
-     *
-     * @param subFilters
-     *          The sub-filters.
-     */
-    AndFilter(Filter[] subFilters)
-    {
-      this.subFilters = subFilters;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isRequestLoggable(Operation operation)
-    {
-      for (Filter filter : subFilters)
-      {
-        if (!filter.isRequestLoggable(operation))
-        {
-          // Fail fast.
-          return false;
-        }
-      }
-      return true;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isResponseLoggable(Operation operation)
-    {
-      for (Filter filter : subFilters)
-      {
-        if (!filter.isResponseLoggable(operation))
-        {
-          // Fail fast.
-          return false;
-        }
-      }
-      return true;
-    }
-
-  }
-
-
-
-  /**
    * A filter which performs a logical OR over a set of sub-filters.
    */
   static final class OrFilter implements Filter
@@ -176,7 +282,7 @@ public class TextAccessLogPublisher extends
      * @param subFilters
      *          The sub-filters.
      */
-    OrFilter(Filter[] subFilters)
+    OrFilter(final Filter[] subFilters)
     {
       this.subFilters = subFilters;
     }
@@ -186,9 +292,45 @@ public class TextAccessLogPublisher extends
     /**
      * {@inheritDoc}
      */
-    public boolean isRequestLoggable(Operation operation)
+    public boolean isConnectLoggable(final ClientConnection connection)
     {
-      for (Filter filter : subFilters)
+      for (final Filter filter : subFilters)
+      {
+        if (filter.isConnectLoggable(connection))
+        {
+          // Succeed fast.
+          return true;
+        }
+      }
+      return false;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isDisconnectLoggable(final ClientConnection connection)
+    {
+      for (final Filter filter : subFilters)
+      {
+        if (filter.isDisconnectLoggable(connection))
+        {
+          // Succeed fast.
+          return true;
+        }
+      }
+      return false;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isRequestLoggable(final Operation operation)
+    {
+      for (final Filter filter : subFilters)
       {
         if (filter.isRequestLoggable(operation))
         {
@@ -204,9 +346,9 @@ public class TextAccessLogPublisher extends
     /**
      * {@inheritDoc}
      */
-    public boolean isResponseLoggable(Operation operation)
+    public boolean isResponseLoggable(final Operation operation)
     {
-      for (Filter filter : subFilters)
+      for (final Filter filter : subFilters)
       {
         if (filter.isResponseLoggable(operation))
         {
@@ -225,20 +367,34 @@ public class TextAccessLogPublisher extends
    * The root filter which first checks the logger configuration, delegating to
    * a sub-filter if needed.
    */
-  final class RootFilter implements Filter
+  static final class RootFilter implements Filter
   {
     private final Filter subFilter;
+    private final boolean suppressInternalOperations;
+    private final boolean suppressSynchronizationOperations;
+    private final FilteringPolicy policy;
 
 
 
     /**
      * Creates a new root filter.
      *
+     * @param suppressInternal
+     *          Indicates whether internal operations should be suppressed.
+     * @param suppressSynchronization
+     *          Indicates whether sync operations should be suppressed.
+     * @param policy
+     *          The filtering policy.
      * @param subFilter
-     *          The sub-filter.
+     *          The sub-filters.
      */
-    RootFilter(Filter subFilter)
+    RootFilter(final boolean suppressInternal,
+        final boolean suppressSynchronization, final FilteringPolicy policy,
+        final Filter subFilter)
     {
+      this.suppressInternalOperations = suppressInternal;
+      this.suppressSynchronizationOperations = suppressSynchronization;
+      this.policy = policy;
       this.subFilter = subFilter;
     }
 
@@ -247,12 +403,20 @@ public class TextAccessLogPublisher extends
     /**
      * {@inheritDoc}
      */
-    public boolean isRequestLoggable(Operation operation)
+    public boolean isConnectLoggable(final ClientConnection connection)
     {
-      if (isLoggable(operation))
+      final long connectionID = connection.getConnectionID();
+      if (connectionID >= 0 || !suppressInternalOperations)
       {
-        // FIXME: actual behavior determined by default filter policy.
-        return subFilter.isRequestLoggable(operation);
+        switch (policy)
+        {
+        case INCLUSIVE:
+          return subFilter.isConnectLoggable(connection);
+        case EXCLUSIVE:
+          return !subFilter.isConnectLoggable(connection);
+        default: // NO_FILTERING:
+          return true;
+        }
       }
       else
       {
@@ -265,12 +429,70 @@ public class TextAccessLogPublisher extends
     /**
      * {@inheritDoc}
      */
-    public boolean isResponseLoggable(Operation operation)
+    public boolean isDisconnectLoggable(final ClientConnection connection)
+    {
+      final long connectionID = connection.getConnectionID();
+      if (connectionID >= 0 || !suppressInternalOperations)
+      {
+        switch (policy)
+        {
+        case INCLUSIVE:
+          return subFilter.isDisconnectLoggable(connection);
+        case EXCLUSIVE:
+          return !subFilter.isDisconnectLoggable(connection);
+        default: // NO_FILTERING:
+          return true;
+        }
+      }
+      else
+      {
+        return false;
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isRequestLoggable(final Operation operation)
     {
       if (isLoggable(operation))
       {
-        // FIXME: actual behavior determined by default filter policy.
-        return subFilter.isResponseLoggable(operation);
+        switch (policy)
+        {
+        case INCLUSIVE:
+          return subFilter.isRequestLoggable(operation);
+        case EXCLUSIVE:
+          return !subFilter.isRequestLoggable(operation);
+        default: // NO_FILTERING:
+          return true;
+        }
+      }
+      else
+      {
+        return false;
+      }
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isResponseLoggable(final Operation operation)
+    {
+      if (isLoggable(operation))
+      {
+        switch (policy)
+        {
+        case INCLUSIVE:
+          return subFilter.isResponseLoggable(operation);
+        case EXCLUSIVE:
+          return !subFilter.isResponseLoggable(operation);
+        default: // NO_FILTERING:
+          return true;
+        }
       }
       else
       {
@@ -281,9 +503,9 @@ public class TextAccessLogPublisher extends
 
 
     // Determines whether the provided operation should be logged.
-    private boolean isLoggable(Operation operation)
+    private boolean isLoggable(final Operation operation)
     {
-      long connectionID = operation.getConnectionID();
+      final long connectionID = operation.getConnectionID();
       if (connectionID < 0)
       {
         // This is an internal operation.
@@ -297,6 +519,92 @@ public class TextAccessLogPublisher extends
         }
       }
 
+      return true;
+    }
+  }
+
+
+
+  /**
+   * Filter criteria configuration listener.
+   */
+  private final class FilterChangeListener implements
+      ConfigurationChangeListener<AccessLogFilteringCriteriaCfg>,
+      ConfigurationAddListener<AccessLogFilteringCriteriaCfg>,
+      ConfigurationDeleteListener<AccessLogFilteringCriteriaCfg>
+  {
+
+    /**
+     * {@inheritDoc}
+     */
+    public ConfigChangeResult applyConfigurationAdd(
+        final AccessLogFilteringCriteriaCfg configuration)
+    {
+      // Rebuild the filter using the new configuration and criteria.
+      buildFilters();
+      configuration.addChangeListener(this);
+      return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public ConfigChangeResult applyConfigurationChange(
+        final AccessLogFilteringCriteriaCfg configuration)
+    {
+      // Rebuild the filter using the new configuration and criteria.
+      buildFilters();
+      return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public ConfigChangeResult applyConfigurationDelete(
+        final AccessLogFilteringCriteriaCfg configuration)
+    {
+      // Rebuild the filter using the new configuration and criteria.
+      buildFilters();
+      return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isConfigurationAddAcceptable(
+        final AccessLogFilteringCriteriaCfg configuration,
+        final List<Message> unacceptableReasons)
+    {
+      return true;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isConfigurationChangeAcceptable(
+        final AccessLogFilteringCriteriaCfg configuration,
+        final List<Message> unacceptableReasons)
+    {
+      return true;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isConfigurationDeleteAcceptable(
+        final AccessLogFilteringCriteriaCfg configuration,
+        final List<Message> unacceptableReasons)
+    {
       return true;
     }
   }
@@ -328,26 +636,22 @@ public class TextAccessLogPublisher extends
    *         messages to standard out.
    */
   public static TextAccessLogPublisher getStartupTextAccessPublisher(
-      TextWriter writer, boolean suppressInternal)
+      final TextWriter writer, final boolean suppressInternal)
   {
-    TextAccessLogPublisher startupPublisher = new TextAccessLogPublisher();
+    final TextAccessLogPublisher startupPublisher =
+      new TextAccessLogPublisher();
     startupPublisher.writer = writer;
-    startupPublisher.suppressInternalOperations = suppressInternal;
-    startupPublisher.setSubFilter(new AndFilter(new Filter[0])); // Always true.
+    startupPublisher.buildFilters(suppressInternal, false,
+        FilteringPolicy.NO_FILTERING);
     return startupPublisher;
   }
 
 
 
-  private FileBasedAccessLogPublisherCfg currentConfig;
-
-  private boolean suppressInternalOperations = true;
-
-  private boolean suppressSynchronizationOperations = false;
-
-  private TextWriter writer;
-
-  private Filter filter;
+  private FileBasedAccessLogPublisherCfg currentConfig = null;
+  private TextWriter writer = null;
+  private Filter filter = null;
+  private FilterChangeListener filterChangeListener = null;
 
 
 
@@ -355,26 +659,21 @@ public class TextAccessLogPublisher extends
    * {@inheritDoc}
    */
   public ConfigChangeResult applyConfigurationChange(
-      FileBasedAccessLogPublisherCfg config)
+      final FileBasedAccessLogPublisherCfg config)
   {
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    final ArrayList<Message> messages = new ArrayList<Message>();
 
-    suppressInternalOperations = config.isSuppressInternalOperations();
-    suppressSynchronizationOperations = config
-        .isSuppressSynchronizationOperations();
-
-    File logFile = getFileForPath(config.getLogFile());
-    FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
-
+    final File logFile = getFileForPath(config.getLogFile());
+    final FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
     try
     {
-      FilePermission perm = FilePermission.decodeUNIXMode(config
+      final FilePermission perm = FilePermission.decodeUNIXMode(config
           .getLogFilePermissions());
 
-      boolean writerAutoFlush = config.isAutoFlush()
+      final boolean writerAutoFlush = config.isAutoFlush()
           && !config.isAsynchronous();
 
       TextWriter currentWriter;
@@ -395,7 +694,8 @@ public class TextAccessLogPublisher extends
 
       if (currentWriter instanceof MultifileTextWriter)
       {
-        MultifileTextWriter mfWriter = (MultifileTextWriter) currentWriter;
+        final MultifileTextWriter mfWriter =
+          (MultifileTextWriter) currentWriter;
 
         mfWriter.setNamingPolicy(fnPolicy);
         mfWriter.setFilePermissions(perm);
@@ -407,12 +707,12 @@ public class TextAccessLogPublisher extends
         mfWriter.removeAllRetentionPolicies();
         mfWriter.removeAllRotationPolicies();
 
-        for (DN dn : config.getRotationPolicyDNs())
+        for (final DN dn : config.getRotationPolicyDNs())
         {
           mfWriter.addRotationPolicy(DirectoryServer.getRotationPolicy(dn));
         }
 
-        for (DN dn : config.getRetentionPolicyDNs())
+        for (final DN dn : config.getRetentionPolicyDNs())
         {
           mfWriter.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
         }
@@ -420,7 +720,8 @@ public class TextAccessLogPublisher extends
         if (writer instanceof AsyncronousTextWriter && !config.isAsynchronous())
         {
           // The asynchronous setting is being turned off.
-          AsyncronousTextWriter asyncWriter = ((AsyncronousTextWriter) writer);
+          final AsyncronousTextWriter asyncWriter =
+            ((AsyncronousTextWriter) writer);
           writer = mfWriter;
           asyncWriter.shutdown(false);
         }
@@ -428,7 +729,7 @@ public class TextAccessLogPublisher extends
         if (writer instanceof ParallelTextWriter && !config.isAsynchronous())
         {
           // The asynchronous setting is being turned off.
-          ParallelTextWriter asyncWriter = ((ParallelTextWriter) writer);
+          final ParallelTextWriter asyncWriter = ((ParallelTextWriter) writer);
           writer = mfWriter;
           asyncWriter.shutdown(false);
         }
@@ -437,7 +738,7 @@ public class TextAccessLogPublisher extends
             && config.isAsynchronous())
         {
           // The asynchronous setting is being turned on.
-          AsyncronousTextWriter asyncWriter = new AsyncronousTextWriter(
+          final AsyncronousTextWriter asyncWriter = new AsyncronousTextWriter(
               "Asyncronous Text Writer for " + config.dn().toNormalizedString(),
               config.getQueueSize(), config.isAutoFlush(), mfWriter);
           writer = asyncWriter;
@@ -446,7 +747,7 @@ public class TextAccessLogPublisher extends
         if (!(writer instanceof ParallelTextWriter) && config.isAsynchronous())
         {
           // The asynchronous setting is being turned on.
-          ParallelTextWriter asyncWriter = new ParallelTextWriter(
+          final ParallelTextWriter asyncWriter = new ParallelTextWriter(
               "Parallel Text Writer for " + config.dn().toNormalizedString(),
               config.isAutoFlush(), mfWriter);
           writer = asyncWriter;
@@ -458,16 +759,16 @@ public class TextAccessLogPublisher extends
           adminActionRequired = true;
         }
 
-        // FIXME: use a dummy set of sub-filters for now.
-        setSubFilter(new AndFilter(new Filter[0])); // Always true.
-
         currentConfig = config;
+
+        // Rebuild the filter using the new configuration and criteria.
+        buildFilters();
       }
     }
-    catch (Exception e)
+    catch (final Exception e)
     {
-      Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(config.dn()
-          .toString(), stackTraceToSingleLineString(e));
+      final Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
+          config.dn().toString(), stackTraceToSingleLineString(e));
       resultCode = DirectoryServer.getServerErrorResultCode();
       messages.add(message);
 
@@ -489,6 +790,24 @@ public class TextAccessLogPublisher extends
     if (currentConfig != null)
     {
       currentConfig.removeFileBasedAccessChangeListener(this);
+
+      for (final String criteriaName : currentConfig
+          .listAccessLogFilteringCriteria())
+      {
+        try
+        {
+          currentConfig.getAccessLogFilteringCriteria(criteriaName)
+              .removeChangeListener(filterChangeListener);
+        }
+        catch (final ConfigException e)
+        {
+          // Ignore.
+        }
+      }
+      currentConfig
+          .removeAccessLogFilteringCriteriaAddListener(filterChangeListener);
+      currentConfig
+          .removeAccessLogFilteringCriteriaDeleteListener(filterChangeListener);
     }
   }
 
@@ -516,35 +835,36 @@ public class TextAccessLogPublisher extends
    * {@inheritDoc}
    */
   @Override
-  public void initializeAccessLogPublisher(FileBasedAccessLogPublisherCfg cfg)
-      throws ConfigException, InitializationException
+  public void initializeAccessLogPublisher(
+      final FileBasedAccessLogPublisherCfg cfg) throws ConfigException,
+      InitializationException
   {
-    File logFile = getFileForPath(cfg.getLogFile());
-    FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
+    final File logFile = getFileForPath(cfg.getLogFile());
+    final FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
 
     try
     {
-      FilePermission perm = FilePermission.decodeUNIXMode(cfg
+      final FilePermission perm = FilePermission.decodeUNIXMode(cfg
           .getLogFilePermissions());
 
-      LogPublisherErrorHandler errorHandler = new LogPublisherErrorHandler(
-          cfg.dn());
+      final LogPublisherErrorHandler errorHandler =
+        new LogPublisherErrorHandler(cfg.dn());
 
-      boolean writerAutoFlush = cfg.isAutoFlush()
+      final boolean writerAutoFlush = cfg.isAutoFlush()
           && !cfg.isAsynchronous();
 
-      MultifileTextWriter writer = new MultifileTextWriter(
+      final MultifileTextWriter writer = new MultifileTextWriter(
           "Multifile Text Writer for " + cfg.dn().toNormalizedString(),
           cfg.getTimeInterval(), fnPolicy, perm, errorHandler, "UTF-8",
           writerAutoFlush, cfg.isAppend(), (int) cfg.getBufferSize());
 
       // Validate retention and rotation policies.
-      for (DN dn : cfg.getRotationPolicyDNs())
+      for (final DN dn : cfg.getRotationPolicyDNs())
       {
         writer.addRotationPolicy(DirectoryServer.getRotationPolicy(dn));
       }
 
-      for (DN dn : cfg.getRetentionPolicyDNs())
+      for (final DN dn : cfg.getRetentionPolicyDNs())
       {
         writer.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
       }
@@ -568,30 +888,47 @@ public class TextAccessLogPublisher extends
         this.writer = writer;
       }
     }
-    catch (DirectoryException e)
+    catch (final DirectoryException e)
     {
-      Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(cfg.dn()
-          .toString(), String.valueOf(e));
+      final Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(cfg
+          .dn().toString(), String.valueOf(e));
       throw new InitializationException(message, e);
 
     }
-    catch (IOException e)
+    catch (final IOException e)
     {
-      Message message = ERR_CONFIG_LOGGING_CANNOT_OPEN_FILE.get(
+      final Message message = ERR_CONFIG_LOGGING_CANNOT_OPEN_FILE.get(
           logFile.toString(), cfg.dn().toString(), String.valueOf(e));
       throw new InitializationException(message, e);
 
     }
 
-    suppressInternalOperations = cfg.isSuppressInternalOperations();
-    suppressSynchronizationOperations = cfg
-        .isSuppressSynchronizationOperations();
     currentConfig = cfg;
 
-    // FIXME: use a dummy set of sub-filters for now.
-    setSubFilter(new AndFilter(new Filter[0])); // Always true.
+    // Rebuild the filter using the new configuration and criteria.
+    buildFilters();
 
-    cfg.addFileBasedAccessChangeListener(this);
+    // Add change listeners.
+    filterChangeListener = new FilterChangeListener();
+    for (final String criteriaName : currentConfig
+        .listAccessLogFilteringCriteria())
+    {
+      try
+      {
+        currentConfig.getAccessLogFilteringCriteria(criteriaName)
+            .addChangeListener(filterChangeListener);
+      }
+      catch (final ConfigException e)
+      {
+        // Ignore.
+      }
+    }
+    currentConfig
+        .addAccessLogFilteringCriteriaAddListener(filterChangeListener);
+    currentConfig
+        .addAccessLogFilteringCriteriaDeleteListener(filterChangeListener);
+
+    currentConfig.addFileBasedAccessChangeListener(this);
   }
 
 
@@ -600,10 +937,11 @@ public class TextAccessLogPublisher extends
    * {@inheritDoc}
    */
   @Override
-  public boolean isConfigurationAcceptable(AccessLogPublisherCfg configuration,
-      List<Message> unacceptableReasons)
+  public boolean isConfigurationAcceptable(
+      final AccessLogPublisherCfg configuration,
+      final List<Message> unacceptableReasons)
   {
-    FileBasedAccessLogPublisherCfg config =
+    final FileBasedAccessLogPublisherCfg config =
       (FileBasedAccessLogPublisherCfg) configuration;
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
@@ -614,24 +952,25 @@ public class TextAccessLogPublisher extends
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-      FileBasedAccessLogPublisherCfg config, List<Message> unacceptableReasons)
+      final FileBasedAccessLogPublisherCfg config,
+      final List<Message> unacceptableReasons)
   {
     // Make sure the permission is valid.
     try
     {
-      FilePermission filePerm = FilePermission.decodeUNIXMode(config
+      final FilePermission filePerm = FilePermission.decodeUNIXMode(config
           .getLogFilePermissions());
       if (!filePerm.isOwnerWritable())
       {
-        Message message = ERR_CONFIG_LOGGING_INSANE_MODE.get(config
+        final Message message = ERR_CONFIG_LOGGING_INSANE_MODE.get(config
             .getLogFilePermissions());
         unacceptableReasons.add(message);
         return false;
       }
     }
-    catch (DirectoryException e)
+    catch (final DirectoryException e)
     {
-      Message message = ERR_CONFIG_LOGGING_MODE_INVALID.get(
+      final Message message = ERR_CONFIG_LOGGING_MODE_INVALID.get(
           config.getLogFilePermissions(), String.valueOf(e));
       unacceptableReasons.add(message);
       return false;
@@ -651,19 +990,21 @@ public class TextAccessLogPublisher extends
    *          abandon request.
    */
   @Override
-  public void logAbandonRequest(AbandonOperation abandonOperation)
+  public void logAbandonRequest(final AbandonOperation abandonOperation)
   {
     if (!filter.isRequestLoggable(abandonOperation))
     {
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(100);
+    final StringBuilder buffer = new StringBuilder(100);
     appendHeader(abandonOperation, "ABANDON", CATEGORY_REQUEST, buffer);
     buffer.append(" idToAbandon=");
     buffer.append(abandonOperation.getIDToAbandon());
     if (abandonOperation.isSynchronizationOperation())
+    {
       buffer.append(" type=synchronization");
+    }
 
     writer.writeRecord(buffer.toString());
   }
@@ -679,18 +1020,18 @@ public class TextAccessLogPublisher extends
    *          abandon request.
    */
   @Override
-  public void logAbandonResult(AbandonOperation abandonOperation)
+  public void logAbandonResult(final AbandonOperation abandonOperation)
   {
     if (!filter.isResponseLoggable(abandonOperation))
     {
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(100);
+    final StringBuilder buffer = new StringBuilder(100);
     appendHeader(abandonOperation, "ABANDON", CATEGORY_RESPONSE, buffer);
     buffer.append(" result=");
     buffer.append(abandonOperation.getResultCode().getIntValue());
-    MessageBuilder msg = abandonOperation.getErrorMessage();
+    final MessageBuilder msg = abandonOperation.getErrorMessage();
     if ((msg != null) && (msg.length() > 0))
     {
       buffer.append(" message=\"");
@@ -717,20 +1058,22 @@ public class TextAccessLogPublisher extends
    *          request.
    */
   @Override
-  public void logAddRequest(AddOperation addOperation)
+  public void logAddRequest(final AddOperation addOperation)
   {
     if (!filter.isRequestLoggable(addOperation))
     {
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(100);
+    final StringBuilder buffer = new StringBuilder(100);
     appendHeader(addOperation, "ADD", CATEGORY_REQUEST, buffer);
     buffer.append(" dn=\"");
     buffer.append(addOperation.getRawEntryDN().toString());
     buffer.append("\"");
     if (addOperation.isSynchronizationOperation())
+    {
       buffer.append(" type=synchronization");
+    }
 
     writer.writeRecord(buffer.toString());
   }
@@ -746,19 +1089,19 @@ public class TextAccessLogPublisher extends
    *          response.
    */
   @Override
-  public void logAddResponse(AddOperation addOperation)
+  public void logAddResponse(final AddOperation addOperation)
   {
     if (!filter.isResponseLoggable(addOperation))
     {
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(100);
+    final StringBuilder buffer = new StringBuilder(100);
     appendHeader(addOperation, "ADD", CATEGORY_RESPONSE, buffer);
     buffer.append(" result=");
     buffer.append(addOperation.getResultCode().getIntValue());
 
-    MessageBuilder msg = addOperation.getErrorMessage();
+    final MessageBuilder msg = addOperation.getErrorMessage();
     if ((msg != null) && (msg.length() > 0))
     {
       buffer.append(" message=\"");
@@ -768,7 +1111,7 @@ public class TextAccessLogPublisher extends
 
     logAdditionalLogItems(addOperation, buffer);
 
-    DN proxiedAuthDN = addOperation.getProxiedAuthorizationDN();
+    final DN proxiedAuthDN = addOperation.getProxiedAuthorizationDN();
     if (proxiedAuthDN != null)
     {
       buffer.append(" authzDN=\"");
@@ -798,14 +1141,14 @@ public class TextAccessLogPublisher extends
    *          request.
    */
   @Override
-  public void logBindRequest(BindOperation bindOperation)
+  public void logBindRequest(final BindOperation bindOperation)
   {
     if (!filter.isRequestLoggable(bindOperation))
     {
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(100);
+    final StringBuilder buffer = new StringBuilder(100);
     appendHeader(bindOperation, "BIND", CATEGORY_REQUEST, buffer);
 
     final String protocolVersion = bindOperation.getProtocolVersion();
@@ -834,7 +1177,9 @@ public class TextAccessLogPublisher extends
     buffer.append(bindOperation.getRawBindDN().toString());
     buffer.append("\"");
     if (bindOperation.isSynchronizationOperation())
+    {
       buffer.append(" type=synchronization");
+    }
 
     writer.writeRecord(buffer.toString());
   }
@@ -850,19 +1195,19 @@ public class TextAccessLogPublisher extends
    *          bind response.
    */
   @Override
-  public void logBindResponse(BindOperation bindOperation)
+  public void logBindResponse(final BindOperation bindOperation)
   {
     if (!filter.isResponseLoggable(bindOperation))
     {
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(100);
+    final StringBuilder buffer = new StringBuilder(100);
     appendHeader(bindOperation, "BIND", CATEGORY_RESPONSE, buffer);
     buffer.append(" result=");
     buffer.append(bindOperation.getResultCode().getIntValue());
 
-    MessageBuilder msg = bindOperation.getErrorMessage();
+    final MessageBuilder msg = bindOperation.getErrorMessage();
     if ((msg != null) && (msg.length() > 0))
     {
       buffer.append(" message=\"");
@@ -870,7 +1215,7 @@ public class TextAccessLogPublisher extends
       buffer.append('\"');
     }
 
-    Message failureMessage = bindOperation.getAuthFailureReason();
+    final Message failureMessage = bindOperation.getAuthFailureReason();
     if (failureMessage != null)
     {
       buffer.append(" authFailureID=");
@@ -884,17 +1229,17 @@ public class TextAccessLogPublisher extends
 
     if (bindOperation.getResultCode() == ResultCode.SUCCESS)
     {
-      AuthenticationInfo authInfo = bindOperation.getAuthenticationInfo();
+      final AuthenticationInfo authInfo = bindOperation.getAuthenticationInfo();
       if (authInfo != null)
       {
-        DN authDN = authInfo.getAuthenticationDN();
+        final DN authDN = authInfo.getAuthenticationDN();
         if (authDN != null)
         {
           buffer.append(" authDN=\"");
           authDN.toString(buffer);
           buffer.append('\"');
 
-          DN authzDN = authInfo.getAuthorizationDN();
+          final DN authzDN = authInfo.getAuthorizationDN();
           if (!authDN.equals(authzDN))
           {
             buffer.append(" authzDN=\"");
@@ -934,21 +1279,23 @@ public class TextAccessLogPublisher extends
    *          compare request.
    */
   @Override
-  public void logCompareRequest(CompareOperation compareOperation)
+  public void logCompareRequest(final CompareOperation compareOperation)
   {
     if (!filter.isRequestLoggable(compareOperation))
     {
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(100);
+    final StringBuilder buffer = new StringBuilder(100);
     appendHeader(compareOperation, "COMPARE", CATEGORY_REQUEST, buffer);
     buffer.append(" dn=\"");
     buffer.append(compareOperation.getRawEntryDN().toString());
     buffer.append("\" attr=");
     buffer.append(compareOperation.getAttributeType().getNameOrOID());
     if (compareOperation.isSynchronizationOperation())
+    {
       buffer.append(" type=synchronization");
+    }
 
     writer.writeRecord(buffer.toString());
   }
@@ -964,19 +1311,19 @@ public class TextAccessLogPublisher extends
    *          compare response.
    */
   @Override
-  public void logCompareResponse(CompareOperation compareOperation)
+  public void logCompareResponse(final CompareOperation compareOperation)
   {
     if (!filter.isResponseLoggable(compareOperation))
     {
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(100);
+    final StringBuilder buffer = new StringBuilder(100);
     appendHeader(compareOperation, "COMPARE", CATEGORY_RESPONSE, buffer);
     buffer.append(" result=");
     buffer.append(compareOperation.getResultCode().getIntValue());
 
-    MessageBuilder msg = compareOperation.getErrorMessage();
+    final MessageBuilder msg = compareOperation.getErrorMessage();
     if ((msg != null) && (msg.length() > 0))
     {
       buffer.append(" message=\"");
@@ -986,7 +1333,7 @@ public class TextAccessLogPublisher extends
 
     logAdditionalLogItems(compareOperation, buffer);
 
-    DN proxiedAuthDN = compareOperation.getProxiedAuthorizationDN();
+    final DN proxiedAuthDN = compareOperation.getProxiedAuthorizationDN();
     if (proxiedAuthDN != null)
     {
       buffer.append(" authzDN=\"");
@@ -1016,16 +1363,15 @@ public class TextAccessLogPublisher extends
    *          The client connection that has been established.
    */
   @Override
-  public void logConnect(ClientConnection clientConnection)
+  public void logConnect(final ClientConnection clientConnection)
   {
-    // FIXME: implement filtering.
-    long connectionID = clientConnection.getConnectionID();
-
-    if (connectionID < 0 && suppressInternalOperations)
+    if (!filter.isConnectLoggable(clientConnection))
     {
       return;
     }
-    StringBuilder buffer = new StringBuilder(100);
+
+    final long connectionID = clientConnection.getConnectionID();
+    final StringBuilder buffer = new StringBuilder(100);
     buffer.append("[");
     buffer.append(TimeThread.getLocalTime());
     buffer.append("]");
@@ -1053,20 +1399,22 @@ public class TextAccessLogPublisher extends
    *          request.
    */
   @Override
-  public void logDeleteRequest(DeleteOperation deleteOperation)
+  public void logDeleteRequest(final DeleteOperation deleteOperation)
   {
     if (!filter.isRequestLoggable(deleteOperation))
     {
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(100);
+    final StringBuilder buffer = new StringBuilder(100);
     appendHeader(deleteOperation, "DELETE", CATEGORY_REQUEST, buffer);
     buffer.append(" dn=\"");
     buffer.append(deleteOperation.getRawEntryDN().toString());
     buffer.append("\"");
     if (deleteOperation.isSynchronizationOperation())
+    {
       buffer.append(" type=synchronization");
+    }
 
     writer.writeRecord(buffer.toString());
   }
@@ -1082,19 +1430,19 @@ public class TextAccessLogPublisher extends
    *          delete response.
    */
   @Override
-  public void logDeleteResponse(DeleteOperation deleteOperation)
+  public void logDeleteResponse(final DeleteOperation deleteOperation)
   {
     if (!filter.isResponseLoggable(deleteOperation))
     {
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(100);
+    final StringBuilder buffer = new StringBuilder(100);
     appendHeader(deleteOperation, "DELETE", CATEGORY_RESPONSE, buffer);
     buffer.append(" result=");
     buffer.append(deleteOperation.getResultCode().getIntValue());
 
-    MessageBuilder msg = deleteOperation.getErrorMessage();
+    final MessageBuilder msg = deleteOperation.getErrorMessage();
     if ((msg != null) && (msg.length() > 0))
     {
       buffer.append(" message=\"");
@@ -1104,7 +1452,7 @@ public class TextAccessLogPublisher extends
 
     logAdditionalLogItems(deleteOperation, buffer);
 
-    DN proxiedAuthDN = deleteOperation.getProxiedAuthorizationDN();
+    final DN proxiedAuthDN = deleteOperation.getProxiedAuthorizationDN();
     if (proxiedAuthDN != null)
     {
       buffer.append(" authzDN=\"");
@@ -1138,16 +1486,16 @@ public class TextAccessLogPublisher extends
    *          about the disconnect.
    */
   @Override
-  public void logDisconnect(ClientConnection clientConnection,
-      DisconnectReason disconnectReason, Message message)
+  public void logDisconnect(final ClientConnection clientConnection,
+      final DisconnectReason disconnectReason, final Message message)
   {
-    // FIXME: implement filtering.
-    long connectionID = clientConnection.getConnectionID();
-    if (connectionID < 0 && suppressInternalOperations)
+    if (!filter.isDisconnectLoggable(clientConnection))
     {
       return;
     }
-    StringBuilder buffer = new StringBuilder(100);
+
+    final long connectionID = clientConnection.getConnectionID();
+    final StringBuilder buffer = new StringBuilder(100);
     buffer.append("[");
     buffer.append(TimeThread.getLocalTime());
     buffer.append("]");
@@ -1178,7 +1526,7 @@ public class TextAccessLogPublisher extends
    *          the extended request.
    */
   @Override
-  public void logExtendedRequest(ExtendedOperation extendedOperation)
+  public void logExtendedRequest(final ExtendedOperation extendedOperation)
   {
     if (!filter.isRequestLoggable(extendedOperation))
     {
@@ -1186,10 +1534,10 @@ public class TextAccessLogPublisher extends
     }
 
     String name = null;
-    String oid = extendedOperation.getRequestOID();
-    StringBuilder buffer = new StringBuilder(100);
+    final String oid = extendedOperation.getRequestOID();
+    final StringBuilder buffer = new StringBuilder(100);
     appendHeader(extendedOperation, "EXTENDED", CATEGORY_REQUEST, buffer);
-    ExtendedOperationHandler<?> extOpHandler = DirectoryServer
+    final ExtendedOperationHandler<?> extOpHandler = DirectoryServer
         .getExtendedOperationHandler(oid);
     if (extOpHandler != null)
     {
@@ -1223,21 +1571,21 @@ public class TextAccessLogPublisher extends
    *          extended response.
    */
   @Override
-  public void logExtendedResponse(ExtendedOperation extendedOperation)
+  public void logExtendedResponse(final ExtendedOperation extendedOperation)
   {
     if (!filter.isResponseLoggable(extendedOperation))
     {
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(100);
+    final StringBuilder buffer = new StringBuilder(100);
     appendHeader(extendedOperation, "EXTENDED", CATEGORY_RESPONSE, buffer);
 
     String name = null;
-    String oid = extendedOperation.getResponseOID();
+    final String oid = extendedOperation.getResponseOID();
     if (oid != null)
     {
-      ExtendedOperationHandler<?> extOpHandler = DirectoryServer
+      final ExtendedOperationHandler<?> extOpHandler = DirectoryServer
           .getExtendedOperationHandler(oid);
       if (extOpHandler != null)
       {
@@ -1257,7 +1605,7 @@ public class TextAccessLogPublisher extends
     buffer.append(" result=");
     buffer.append(extendedOperation.getResultCode().getIntValue());
 
-    MessageBuilder msg = extendedOperation.getErrorMessage();
+    final MessageBuilder msg = extendedOperation.getErrorMessage();
     if ((msg != null) && (msg.length() > 0))
     {
       buffer.append(" message=\"");
@@ -1289,14 +1637,14 @@ public class TextAccessLogPublisher extends
    *          modify DN request.
    */
   @Override
-  public void logModifyDNRequest(ModifyDNOperation modifyDNOperation)
+  public void logModifyDNRequest(final ModifyDNOperation modifyDNOperation)
   {
     if (!filter.isRequestLoggable(modifyDNOperation))
     {
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(100);
+    final StringBuilder buffer = new StringBuilder(100);
     appendHeader(modifyDNOperation, "MODIFYDN", CATEGORY_REQUEST, buffer);
     buffer.append(" dn=\"");
     buffer.append(modifyDNOperation.getRawEntryDN().toString());
@@ -1305,14 +1653,16 @@ public class TextAccessLogPublisher extends
     buffer.append("\" deleteOldRDN=");
     buffer.append(modifyDNOperation.deleteOldRDN());
 
-    ByteString newSuperior = modifyDNOperation.getRawNewSuperior();
+    final ByteString newSuperior = modifyDNOperation.getRawNewSuperior();
     if (newSuperior != null)
     {
       buffer.append(" newSuperior=\"");
       buffer.append(newSuperior.toString());
     }
     if (modifyDNOperation.isSynchronizationOperation())
+    {
       buffer.append(" type=synchronization");
+    }
 
     writer.writeRecord(buffer.toString());
   }
@@ -1328,19 +1678,19 @@ public class TextAccessLogPublisher extends
    *          the modify DN response.
    */
   @Override
-  public void logModifyDNResponse(ModifyDNOperation modifyDNOperation)
+  public void logModifyDNResponse(final ModifyDNOperation modifyDNOperation)
   {
     if (!filter.isResponseLoggable(modifyDNOperation))
     {
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(100);
+    final StringBuilder buffer = new StringBuilder(100);
     appendHeader(modifyDNOperation, "MODIFYDN", CATEGORY_RESPONSE, buffer);
     buffer.append(" result=");
     buffer.append(modifyDNOperation.getResultCode().getIntValue());
 
-    MessageBuilder msg = modifyDNOperation.getErrorMessage();
+    final MessageBuilder msg = modifyDNOperation.getErrorMessage();
     if ((msg != null) && (msg.length() > 0))
     {
       buffer.append(" message=\"");
@@ -1350,7 +1700,7 @@ public class TextAccessLogPublisher extends
 
     logAdditionalLogItems(modifyDNOperation, buffer);
 
-    DN proxiedAuthDN = modifyDNOperation.getProxiedAuthorizationDN();
+    final DN proxiedAuthDN = modifyDNOperation.getProxiedAuthorizationDN();
     if (proxiedAuthDN != null)
     {
       buffer.append(" authzDN=\"");
@@ -1380,20 +1730,22 @@ public class TextAccessLogPublisher extends
    *          modify request.
    */
   @Override
-  public void logModifyRequest(ModifyOperation modifyOperation)
+  public void logModifyRequest(final ModifyOperation modifyOperation)
   {
     if (!filter.isRequestLoggable(modifyOperation))
     {
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(100);
+    final StringBuilder buffer = new StringBuilder(100);
     appendHeader(modifyOperation, "MODIFY", CATEGORY_REQUEST, buffer);
     buffer.append(" dn=\"");
     buffer.append(modifyOperation.getRawEntryDN().toString());
     buffer.append("\"");
     if (modifyOperation.isSynchronizationOperation())
+    {
       buffer.append(" type=synchronization");
+    }
 
     writer.writeRecord(buffer.toString());
   }
@@ -1409,19 +1761,19 @@ public class TextAccessLogPublisher extends
    *          modify response.
    */
   @Override
-  public void logModifyResponse(ModifyOperation modifyOperation)
+  public void logModifyResponse(final ModifyOperation modifyOperation)
   {
     if (!filter.isResponseLoggable(modifyOperation))
     {
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(100);
+    final StringBuilder buffer = new StringBuilder(100);
     appendHeader(modifyOperation, "MODIFY", CATEGORY_RESPONSE, buffer);
     buffer.append(" result=");
     buffer.append(modifyOperation.getResultCode().getIntValue());
 
-    MessageBuilder msg = modifyOperation.getErrorMessage();
+    final MessageBuilder msg = modifyOperation.getErrorMessage();
     if ((msg != null) && (msg.length() > 0))
     {
       buffer.append(" message=\"");
@@ -1431,7 +1783,7 @@ public class TextAccessLogPublisher extends
 
     logAdditionalLogItems(modifyOperation, buffer);
 
-    DN proxiedAuthDN = modifyOperation.getProxiedAuthorizationDN();
+    final DN proxiedAuthDN = modifyOperation.getProxiedAuthorizationDN();
     if (proxiedAuthDN != null)
     {
       buffer.append(" authzDN=\"");
@@ -1461,14 +1813,14 @@ public class TextAccessLogPublisher extends
    *          request.
    */
   @Override
-  public void logSearchRequest(SearchOperation searchOperation)
+  public void logSearchRequest(final SearchOperation searchOperation)
   {
     if (!filter.isRequestLoggable(searchOperation))
     {
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(192);
+    final StringBuilder buffer = new StringBuilder(192);
     appendHeader(searchOperation, "SEARCH", CATEGORY_REQUEST, buffer);
     buffer.append(" base=\"");
     buffer.append(searchOperation.getRawBaseDN().toString());
@@ -1477,7 +1829,7 @@ public class TextAccessLogPublisher extends
     buffer.append(" filter=\"");
     searchOperation.getRawFilter().toString(buffer);
 
-    LinkedHashSet<String> attrs = searchOperation.getAttributes();
+    final LinkedHashSet<String> attrs = searchOperation.getAttributes();
     if ((attrs == null) || attrs.isEmpty())
     {
       buffer.append("\" attrs=\"ALL\"");
@@ -1486,7 +1838,7 @@ public class TextAccessLogPublisher extends
     {
       buffer.append("\" attrs=\"");
 
-      Iterator<String> iterator = attrs.iterator();
+      final Iterator<String> iterator = attrs.iterator();
       buffer.append(iterator.next());
       while (iterator.hasNext())
       {
@@ -1497,7 +1849,9 @@ public class TextAccessLogPublisher extends
       buffer.append("\"");
     }
     if (searchOperation.isSynchronizationOperation())
+    {
       buffer.append(" type=synchronization");
+    }
 
     writer.writeRecord(buffer.toString());
   }
@@ -1513,19 +1867,19 @@ public class TextAccessLogPublisher extends
    *          search result done message.
    */
   @Override
-  public void logSearchResultDone(SearchOperation searchOperation)
+  public void logSearchResultDone(final SearchOperation searchOperation)
   {
     if (!filter.isResponseLoggable(searchOperation))
     {
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(128);
+    final StringBuilder buffer = new StringBuilder(128);
     appendHeader(searchOperation, "SEARCH", CATEGORY_RESPONSE, buffer);
     buffer.append(" result=");
     buffer.append(searchOperation.getResultCode().getIntValue());
 
-    MessageBuilder msg = searchOperation.getErrorMessage();
+    final MessageBuilder msg = searchOperation.getErrorMessage();
     if ((msg != null) && (msg.length() > 0))
     {
       buffer.append(" message=\"");
@@ -1538,7 +1892,7 @@ public class TextAccessLogPublisher extends
 
     logAdditionalLogItems(searchOperation, buffer);
 
-    DN proxiedAuthDN = searchOperation.getProxiedAuthorizationDN();
+    final DN proxiedAuthDN = searchOperation.getProxiedAuthorizationDN();
     if (proxiedAuthDN != null)
     {
       buffer.append(" authzDN=\"");
@@ -1568,7 +1922,7 @@ public class TextAccessLogPublisher extends
    *          request.
    */
   @Override
-  public void logUnbind(UnbindOperation unbindOperation)
+  public void logUnbind(final UnbindOperation unbindOperation)
   {
     // FIXME: ensure that these are logged in combined mode.
     if (!filter.isRequestLoggable(unbindOperation))
@@ -1576,10 +1930,12 @@ public class TextAccessLogPublisher extends
       return;
     }
 
-    StringBuilder buffer = new StringBuilder(100);
+    final StringBuilder buffer = new StringBuilder(100);
     appendHeader(unbindOperation, "UNBIND", CATEGORY_REQUEST, buffer);
     if (unbindOperation.isSynchronizationOperation())
+    {
       buffer.append(" type=synchronization");
+    }
 
     writer.writeRecord(buffer.toString());
   }
@@ -1587,8 +1943,8 @@ public class TextAccessLogPublisher extends
 
 
   // Appends the common log header information to the provided buffer.
-  private void appendHeader(Operation operation, String opType,
-      String category, StringBuilder buffer)
+  private void appendHeader(final Operation operation, final String opType,
+      final String category, final StringBuilder buffer)
   {
     buffer.append('[');
     buffer.append(TimeThread.getLocalTime());
@@ -1606,21 +1962,54 @@ public class TextAccessLogPublisher extends
 
 
 
-  // Appends additional log items to the provided builder.
-  private void logAdditionalLogItems(Operation operation, StringBuilder builder)
+  // Build an appropriate set of filters based on the configuration.
+  private void buildFilters()
   {
-    for (AdditionalLogItem item : operation.getAdditionalLogItems())
+    buildFilters(currentConfig.isSuppressInternalOperations(),
+        currentConfig.isSuppressSynchronizationOperations(),
+        currentConfig.getFilteringPolicy());
+  }
+
+
+
+  private void buildFilters(final boolean suppressInternal,
+      final boolean suppressSynchronization, final FilteringPolicy policy)
+  {
+    final ArrayList<Filter> subFilters = new ArrayList<Filter>();
+    if (currentConfig != null)
+    {
+      for (final String criteriaName : currentConfig
+          .listAccessLogFilteringCriteria())
+      {
+        try
+        {
+          final AccessLogFilteringCriteriaCfg cfg = currentConfig
+              .getAccessLogFilteringCriteria(criteriaName);
+          subFilters.add(new CriteriaFilter(cfg));
+        }
+        catch (final ConfigException e)
+        {
+          // TODO: Unable to decode this access log criteria, so log a warning
+          // and continue.
+        }
+      }
+    }
+    final Filter orFilter = new OrFilter(subFilters.toArray(new Filter[0]));
+    filter = new RootFilter(suppressInternal, suppressSynchronization, policy,
+        orFilter);
+  }
+
+
+
+  // Appends additional log items to the provided builder.
+  private void logAdditionalLogItems(final Operation operation,
+      final StringBuilder builder)
+  {
+    for (final AdditionalLogItem item : operation.getAdditionalLogItems())
     {
       builder.append(' ');
       item.toString(builder);
     }
   }
 
-
-
-  // Sets the sub-filter.
-  private void setSubFilter(Filter subFilter)
-  {
-    this.filter = new RootFilter(subFilter);
-  }
 }
