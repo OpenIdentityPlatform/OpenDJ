@@ -83,6 +83,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchListener;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPAttribute;
+import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.replication.common.AssuredMode;
@@ -2649,6 +2650,11 @@ public class LDAPReplicationDomain extends ReplicationDomain
           // Try replay the operation
           op.setInternalOperation(true);
           op.setSynchronizationOperation(true);
+
+          // Always add the ManageDSAIT control so that updates to referrals
+          // are processed locally.
+          op.addRequestControl(new LDAPControl(OID_MANAGE_DSAIT_CONTROL));
+
           changeNumber = OperationContext.getChangeNumber(op);
           ((AbstractOperation) op).run();
 
