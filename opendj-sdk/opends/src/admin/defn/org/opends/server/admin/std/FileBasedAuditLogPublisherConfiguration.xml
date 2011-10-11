@@ -23,11 +23,10 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2007-2009 Sun Microsystems, Inc.
-  !      Portions copyright 2011 ForgeRock AS.
+  !      Copyright 2011 ForgeRock AS.
   ! -->
-<adm:managed-object name="file-based-access-log-publisher"
-  plural-name="file-based-access-log-publishers"
+<adm:managed-object name="file-based-audit-log-publisher"
+  plural-name="file-based-audit-log-publishers"
   package="org.opends.server.admin.std" extends="access-log-publisher"
   xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
@@ -37,24 +36,15 @@
   </adm:synopsis>
   <adm:profile name="ldap">
     <ldap:object-class>
-      <ldap:name>ds-cfg-file-based-access-log-publisher</ldap:name>
+      <ldap:name>ds-cfg-file-based-audit-log-publisher</ldap:name>
       <ldap:superior>ds-cfg-access-log-publisher</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-  <adm:relation name="access-log-filtering-criteria">
-    <adm:synopsis>
-      The set of criteria which will be used to filter log records.
-    </adm:synopsis>
-    <adm:one-to-many/>
-    <adm:profile name="ldap">
-      <ldap:rdn-sequence>cn=Filtering Criteria</ldap:rdn-sequence>
-    </adm:profile>
-  </adm:relation>
   <adm:property-override name="java-class" advanced="true">
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
-          org.opends.server.loggers.TextAccessLogPublisher
+          org.opends.server.loggers.TextAuditLogPublisher
         </adm:value>
       </adm:defined>
     </adm:default-behavior>
@@ -292,42 +282,6 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-retention-policy</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
-  <adm:property name="filtering-policy">
-    <adm:synopsis>
-      Specifies how filtering criteria should be applied to log records. 
-    </adm:synopsis>
-    <adm:default-behavior>
-      <adm:defined>
-        <adm:value>no-filtering</adm:value>
-      </adm:defined>
-    </adm:default-behavior>
-    <adm:syntax>
-      <adm:enumeration>
-        <adm:value name="no-filtering">
-          <adm:synopsis>
-            No filtering will be performed, and all records will be logged.
-          </adm:synopsis>
-        </adm:value>
-        <adm:value name="inclusive">
-          <adm:synopsis>
-            Records must match at least one of the filtering criteria in order
-            to be logged.
-          </adm:synopsis>
-        </adm:value>
-        <adm:value name="exclusive">
-          <adm:synopsis>
-            Records must not match any of the filtering criteria in order to be
-            logged.
-          </adm:synopsis>
-        </adm:value>
-      </adm:enumeration>
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-filtering-policy</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

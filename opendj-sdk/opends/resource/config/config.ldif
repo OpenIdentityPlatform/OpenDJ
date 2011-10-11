@@ -706,7 +706,7 @@ dn: cn=File-Based Audit Logger,cn=Loggers,cn=config
 objectClass: top
 objectClass: ds-cfg-log-publisher
 objectClass: ds-cfg-access-log-publisher
-objectClass: ds-cfg-file-based-access-log-publisher
+objectClass: ds-cfg-file-based-audit-log-publisher
 cn: File-Based Audit Logger
 ds-cfg-java-class: org.opends.server.loggers.TextAuditLogPublisher
 ds-cfg-enabled: false

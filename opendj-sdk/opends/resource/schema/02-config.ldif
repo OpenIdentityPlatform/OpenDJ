@@ -2668,6 +2668,14 @@ attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.29
   NAME 'ds-cfg-rename-inbound-attributes'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.30
+  NAME 'ds-cfg-filtering-policy'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.31
+  NAME 'ds-cfg-log-record-type'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -2932,7 +2940,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.25
         ds-cfg-buffer-size $
         ds-cfg-auto-flush $
         ds-cfg-append $
-        ds-cfg-queue-size )
+        ds-cfg-queue-size $
+        ds-cfg-filtering-policy )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.26
   NAME 'ds-cfg-file-based-debug-log-publisher'
@@ -4441,4 +4450,27 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.5
   STRUCTURAL
   MAY ( ds-cfg-remove-inbound-attributes $
         ds-cfg-rename-inbound-attributes )
+  X-ORIGIN 'OpenDJ Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.6
+  NAME 'ds-cfg-file-based-audit-log-publisher'
+  SUP ds-cfg-access-log-publisher
+  STRUCTURAL
+  MUST ( ds-cfg-log-file $
+         ds-cfg-asynchronous $
+         ds-cfg-log-file-permissions )
+  MAY ( ds-cfg-rotation-policy $
+        ds-cfg-rotation-action $
+        ds-cfg-retention-policy $
+        ds-cfg-time-interval $
+        ds-cfg-buffer-size $
+        ds-cfg-auto-flush $
+        ds-cfg-append $
+        ds-cfg-queue-size )
+  X-ORIGIN 'OpenDJ Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.7
+  NAME 'ds-cfg-access-log-filtering-criteria'
+  SUP top
+  STRUCTURAL
+  MUST ( cn )
+  MAY ( ds-cfg-log-record-type )
   X-ORIGIN 'OpenDJ Directory Server' )
