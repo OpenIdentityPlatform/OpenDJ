@@ -63,7 +63,7 @@ Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
      >OpenDJ download page</link>.</para>
    <variablelist>
     <varlistentry>
-     <term>OpenDJ-<?eval ${project.version}?>.zip</term>
+     <term>OpenDJ-<?eval ${docTargetVersion}?>.zip</term>
      <listitem>
       <para>Cross-platform OpenDJ directory server installation files</para>
      </listitem>
@@ -75,7 +75,7 @@ Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
      </listitem>
     </varlistentry>
     <varlistentry>
-     <term>OpenDJ-<?eval ${project.version}?>-DSML.war</term>
+     <term>OpenDJ-<?eval ${docTargetVersion}?>-DSML.war</term>
      <listitem>
       <para>Cross-platform OpenDJ DSML gateway web archive</para>
      </listitem>
@@ -124,7 +124,7 @@ Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
   <title>To Install OpenDJ Directory Server</title>
   <indexterm><primary>Command-line installation</primary></indexterm>
   <step>
-   <para>Unzip <filename>OpenDJ-<?eval ${project.version}?>.zip</filename>
+   <para>Unzip <filename>OpenDJ-<?eval ${docTargetVersion}?>.zip</filename>
    in the file system directory where you want to install the server.</para>
 
    <para>Unlike the web-based Quick Setup install, the <command>setup</command>
@@ -136,7 +136,7 @@ Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
   
   <step>
    <para>Run the <command>setup --cli</command> command found in the
-   <filename>OpenDJ-<?eval ${project.version}?></filename> directory.</para>
+   <filename>OpenDJ-<?eval ${docTargetVersion}?></filename> directory.</para>
 
    <para>This command starts the setup program in interactive mode on the
    command line, prompting you for each option. Alternatively, use
@@ -155,9 +155,9 @@ Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
    GUI installer with your local version of software, as does
    Java WebStart with a remote version of the software.</para>
 
-   <screen>$ /path/to/OpenDJ-<?eval ${project.version}?>/setup --cli
+   <screen>$ /path/to/OpenDJ-<?eval ${docTargetVersion}?>/setup --cli
 
-OpenDJ <?eval ${project.version}?>
+OpenDJ <?eval ${docTargetVersion}?>
 Please wait while the setup program initializes...
 
 What would you like to use as the initial root user DN for the Directory
@@ -221,7 +221,7 @@ Importing LDIF file /path/to/Example.ldif ........... Done.
 Starting Directory Server ........... Done.
 
 To see basic server configuration status and configuration you can launch \
-/path/to/OpenDJ-<?eval ${project.version}?>/bin/status</screen>
+/path/to/OpenDJ-<?eval ${docTargetVersion}?>/bin/status</screen>
 
    <variablelist>
     <para>Some notes on the options follow.</para>
@@ -333,7 +333,7 @@ To see basic server configuration status and configuration you can launch \
    <para>Run the <command>status</command> command to make sure your OpenDJ
    server is working as expected.</para>
 
-   <screen>$ /path/to/OpenDJ-<?eval ${project.version}?>/bin/status
+   <screen>$ /path/to/OpenDJ-<?eval ${docTargetVersion}?>/bin/status
 
 >>>> Specify OpenDJ LDAP connection parameters
 
@@ -348,8 +348,8 @@ Open Connections:         1
           --- Server Details ---
 Host Name:                opendj.example.com
 Administrative Users:     cn=Directory Manager
-Installation Path:        /path/to/OpenDJ-<?eval ${project.version}?>
-Version:                  OpenDJ <?eval ${project.version}?>
+Installation Path:        /path/to/OpenDJ-<?eval ${docTargetVersion}?>
+Version:                  OpenDJ <?eval ${docTargetVersion}?>
 Java Version:             1.6.0_24
 Administration Connector: Port 4444 (LDAPS)
 
@@ -388,7 +388,7 @@ Replication: Disabled</screen>
   file.</para>
 
   <step>
-   <para>Deploy <filename>OpenDJ-<?eval ${project.version}?>-DSML.war</filename>
+   <para>Deploy <filename>OpenDJ-<?eval ${docTargetVersion}?>-DSML.war</filename>
    according to the instructions for your application server.</para>
   </step>
 

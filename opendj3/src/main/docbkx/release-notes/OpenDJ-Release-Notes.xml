@@ -30,7 +30,7 @@
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <info>
-  <title>OpenDJ <?eval ${project.version}?> Release Notes</title>
+  <title>OpenDJ <?eval ${docTargetVersion}?> Release Notes</title>
   <abstract>
    <para>Notes covering OpenDJ hardware &amp; software requirements, fixes,
    known issues. The OpenDJ project offers open source LDAP directory services
@@ -69,7 +69,7 @@
   and modify the source code to build your own version if you prefer.</para>
    
   <para>These release notes are written for everyone working with the
-  OpenDJ <?eval ${project.version}?> release. Read these notes before you
+  OpenDJ <?eval ${docTargetVersion}?> release. Read these notes before you
   install or upgrade OpenDJ software. These notes cover hardware and software
   prerequisites for installing and upgrading OpenDJ software. These
   notes list key features added and changed in this release. They also

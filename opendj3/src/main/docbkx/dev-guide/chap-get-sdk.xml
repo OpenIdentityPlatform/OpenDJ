@@ -93,40 +93,44 @@ Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
     (javadoc).</para>
    </step>
    <step>
-    <para>Unzip the bundle, <filename>opendj-ldap-toolkit-<?eval
-    ${project.version} ?>.zip</filename>, where you want to install the
-    SDK.</para>
-    <screen>$ unzip opendj-ldap-toolkit-<?eval ${project.version} ?>.zip</screen>
+    <para>Unzip the bundle,
+    <filename>opendj-ldap-toolkit-<?eval ${currentSDKversion} ?>.zip</filename>,
+    where you want to install the SDK.</para>
+    <screen>$ unzip opendj-ldap-toolkit-<?eval ${currentSDKversion} ?>.zip</screen>
    </step>
    <step>
-    <para>Unpack the OpenDJ LDAP SDK documentation, <filename>opendj-ldap-sdk-<?eval
-    ${project.version} ?>-javadoc.jar</filename>, under the SDK install
-    directory.</para>
-    <screen>$ mkdir opendj-ldap-toolkit-<?eval ${project.version} ?>/javadoc
-$ cd opendj-ldap-toolkit-<?eval ${project.version} ?>/javadoc
-$ jar -xf /path/to/opendj-ldap-sdk-<?eval ${project.version} ?>-javadoc.jar</screen>
+    <para>Unpack the OpenDJ LDAP SDK documentation,
+    <filename>opendj-ldap-sdk-<?eval ${currentSDKversion} ?>-javadoc.jar</filename>,
+    under the SDK install directory.</para>
+    <screen>$ mkdir opendj-ldap-toolkit-<?eval ${currentSDKversion} ?>/javadoc
+$ cd opendj-ldap-toolkit-<?eval ${currentSDKversion} ?>/javadoc
+$ jar -xf /path/to/opendj-ldap-sdk-<?eval ${currentSDKversion} ?>-javadoc.jar</screen>
     </step>
     <step>
      <para>Add the tools to your PATH.</para>
      <screen>(UNIX)
-$ export PATH=/path/to/opendj-ldap-toolkit-<?eval ${project.version} ?>/bin:$PATH</screen>
+$ export PATH=/path/to/opendj-ldap-toolkit-<?eval ${currentSDKversion} ?>/bin:$PATH</screen>
         <screen>(Windows)
-C:\>set PATH=\\path\to\opendj-ldap-toolkit-<?eval ${project.version} ?>\bat:%PATH%</screen>
+C:\>set PATH=\\path\to\opendj-ldap-toolkit-<?eval ${currentSDKversion} ?>\bat:%PATH%</screen>
     </step>
     <step>
-     <para> Add the OpenDJ LDAP SDK for the APIs,the I18N core library and Grizzly framework for the
-     transport to your CLASSPATH, typically found under
-     <filename>opendj-ldap-toolkit-<?eval ${project.version}
-      ?>/lib/</filename>.</para>
+     <para> Add the OpenDJ LDAP SDK for the APIs, the I18N core library,
+     Grizzly I/O framework for the transport, and GlassFish management APIs
+     to your CLASSPATH, typically found under
+     <filename>opendj-ldap-toolkit-<?eval ${currentSDKversion} ?>/lib/</filename>.</para>
      <screen>(UNIX)
+$ export CLASSPATH=/path/to/lib/gmbal-api-only-3.0.0-b023.jar:$CLASSPATH
 $ export CLASSPATH=/path/to/lib/grizzly-framework-2.1.2.jar:$CLASSPATH
 $ export CLASSPATH=/path/to/lib/i18n-core-1.2.0.jar:$CLASSPATH
-$ export CLASSPATH=/path/to/lib/opendj-ldap-sdk-<?eval ${project.version} ?>.jar:$CLASSPATH
+$ export CLASSPATH=/path/to/lib/management-api-3.0.0-b012.jar:$CLASSPATH
+$ export CLASSPATH=/path/to/lib/opendj-ldap-sdk-<?eval ${currentSDKversion} ?>.jar:$CLASSPATH
      </screen>
      <screen>(Windows)
+C:\>set CLASSPATH=\\path\to\lib\gmbal-api-only-3.0.0-b023.jar:%CLASSPATH%
 C:\>set CLASSPATH=\\path\to\lib\grizzly-framework-2.1.2.jar:%CLASSPATH%
 C:\>set CLASSPATH=\\path\to\lib\i18n-core-1.2.0.jar:%CLASSPATH%
-C:\>set CLASSPATH=\\path\to\lib\opendj-ldap-sdk-<?eval ${project.version} ?>.jar:%CLASSPATH%</screen>
+C:\>set CLASSPATH=\\path\to\lib\management-api-3.0.0-b012.jar:%CLASSPATH%
+C:\>set CLASSPATH=\\path\to\lib\opendj-ldap-sdk-<?eval ${currentSDKversion} ?>.jar:%CLASSPATH%</screen>
     </step>
   </procedure>
 
@@ -179,21 +183,22 @@ $ mvn install
    </step>
    <step>
     <para>Unzip the tools and libraries included in the file,
-    <filename>opendj3/opendj-ldap-toolkit/target/opendj-ldap-toolkit-<?eval
-   ${project.version} ?>.zip</filename>.</para>
+    <filename>opendj3/opendj-ldap-toolkit/target/opendj-ldap-toolkit-<?eval ${currentSDKversion} ?>.zip</filename>.</para>
    </step>
    <step>
-    <para>Add the <filename>opendj-ldap-toolkit-<?eval ${project.version}?>/bin</filename>
-    (UNIX) or <filename>opendj-ldap-toolkit-<?eval
-    ${project.version} ?>\bat</filename> (Windows) directory to your
+    <para>Add the <filename>opendj-ldap-toolkit-<?eval ${currentSDKversion}?>/bin</filename>
+    (UNIX) or <filename>opendj-ldap-toolkit-<?eval ${currentSDKversion} ?>\bat</filename>
+    (Windows) directory to your
     PATH.</para>
    </step>
    <step>
     <para>Set your CLASSPATH to include the OpenDJ LDAP SDK library,
-    <filename>opendj-ldap-sdk-<?eval ${project.version} ?>.jar</filename>, 
-    the I18N core library, <filename>i18n-core-1.2.0.jar</filename>, and the Grizzly
-    framework, <filename>grizzly-framework-2.1.2.jar</filename>,
-    under <filename>opendj-ldap-toolkit-<?eval ${project.version} ?>/lib/</filename>.</para>
+    <filename>opendj-ldap-sdk-<?eval ${currentSDKversion} ?>.jar</filename>, 
+    the I18N core library, <filename>i18n-core-1.2.0.jar</filename>, the Grizzly
+    framework, <filename>grizzly-framework-2.1.2.jar</filename>, and the
+    GlassFish management APIs, <filename>gmbal-api-only-3.0.0-b023.jar</filename>
+    &amp; <filename>management-api-3.0.0-b012.jar</filename>
+    under <filename>opendj-ldap-toolkit-<?eval ${currentSDKversion} ?>/lib/</filename>.</para>
    </step>
    <step>
     <para>Find the OpenDJ LDAP SDK documentation under <link

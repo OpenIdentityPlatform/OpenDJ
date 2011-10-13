@@ -29,10 +29,11 @@
   xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
   xmlns:xlink='http://www.w3.org/1999/xlink'
   xmlns:xinclude='http://www.w3.org/2001/XInclude'>
-  <title>What's New in OpenDJ <?eval ${project.version}?></title>
+  <title>What's New in OpenDJ <?eval ${docTargetVersion}?></title>
 
-  <para>Compared to the OpenDJ 2.4, OpenDJ <?eval ${project.version}?> fixes a
-  number of issues, and provides the following additional features.</para>
+  <para>Compared to the OpenDJ <?eval ${stableServerVersion} ?>, OpenDJ
+  <?eval ${docTargetVersion}?> fixes a number of issues, and provides the
+  following additional features.</para>
   
   <itemizedlist>
     <listitem>

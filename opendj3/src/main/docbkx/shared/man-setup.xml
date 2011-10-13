@@ -327,7 +327,7 @@
  -w password -h `hostname` -p 1389
  --generateSelfSignedCertificate --enableStartTLS -n 
 
-OpenDJ <?eval ${project.version}?>
+OpenDJ <?eval ${docTargetVersion}?>
 Please wait while the setup program initializes...
 
 See /var/.../opends-setup-484...561.log for a detailed log of this operation.
