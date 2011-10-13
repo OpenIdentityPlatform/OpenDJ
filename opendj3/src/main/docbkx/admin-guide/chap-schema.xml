@@ -160,9 +160,21 @@ objectClasses: ( 2.5.6.6 NAME 'person' SUP top STRUCTURAL MUST ( sn $ cn )
   </mediaobject>
   
   <para>When you finish, the schema changes show up by default in the file
-  <filename>config/schema/99-user.ldif</filename>. You can create this file
-  in the lab using the Control Panel, and then apply the definitions in
-  production by adapting the content for use with the
+  <filename>config/schema/99-user.ldif</filename>. Notice that the file name
+  starts with a number, 99. This number is larger than the numbers prefixing
+  other schema file names. In fact, OpenDJ reads the schema files in sorted
+  order, reading schema definitions as they occur. If OpenDJ reads a schema
+  definition for an object class before it has read the definitions of the
+  attribute types mentioned in the object class definition, then it displays
+  an error. Therefore, when naming your schema file, make sure the name appears
+  in the sorted list of file names <emphasis>after</emphasis> all the schema
+  files containing definitions that your schema definitions depends on. The
+  default file name for your schema, <filename>99-user.ldif</filename>, ensures
+  that your definitions load only after all of the schema files installed by
+  default.</para>
+
+  <para>You can create this file in the lab using the Control Panel, and then
+  apply the definitions in production by adapting the content for use with the
   <command>ldapmodify</command> command, for example.</para>
   
   <screen>$ cat config/schema/99-user.ldif 
