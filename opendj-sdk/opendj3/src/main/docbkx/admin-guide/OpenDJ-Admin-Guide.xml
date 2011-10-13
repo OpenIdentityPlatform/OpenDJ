@@ -74,9 +74,9 @@
  <xinclude:include href='chap-virtual-attrs-collective-attrs.xml' />
  <xinclude:include href='chap-pta.xml' />
  <xinclude:include href='chap-samba.xml' />
- <xinclude:include href='chap-load-balancing.xml' />
- <xinclude:include href='chap-failover.xml' />
- <xinclude:include href='chap-chaining.xml' />
+<!--  <xinclude:include href='chap-load-balancing.xml' /> -->
+<!--  <xinclude:include href='chap-failover.xml' /> -->
+<!--  <xinclude:include href='chap-chaining.xml' /> -->
  <xinclude:include href='chap-monitoring.xml' />
  <xinclude:include href='chap-tuning.xml' />
  <xinclude:include href='chap-mv-servers.xml' />
