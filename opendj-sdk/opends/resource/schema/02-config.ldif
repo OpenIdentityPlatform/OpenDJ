@@ -4541,6 +4541,22 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.7
   STRUCTURAL
   MUST ( cn )
   MAY ( ds-cfg-log-record-type $
-        ds-cfg-base-dn $
-        ds-cfg-scope )
+        ds-cfg-client-address-equal-to $
+        ds-cfg-client-address-not-equal-to $
+        ds-cfg-client-protocol-equal-to $
+        ds-cfg-client-port-equal-to $
+        ds-cfg-user-dn-equal-to $
+        ds-cfg-user-dn-not-equal-to $
+        ds-cfg-user-is-member-of $
+        ds-cfg-user-is-not-member-of $
+        ds-cfg-request-target-dn-equal-to $
+        ds-cfg-request-target-dn-not-equal-to $
+        ds-cfg-response-result-code-equal-to $
+        ds-cfg-response-result-code-not-equal-to $
+        ds-cfg-response-etime-greater-than $
+        ds-cfg-response-etime-less-than $
+        ds-cfg-search-response-nentries-greater-than $
+        ds-cfg-search-response-nentries-less-than $
+        ds-cfg-search-response-is-indexed )
   X-ORIGIN 'OpenDJ Directory Server' )
+
