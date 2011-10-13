@@ -96,8 +96,7 @@ public abstract class AccessLogPublisher
    * @return {@code true} if the provided configuration is acceptable
    *         for this access log publisher, or {@code false} if not.
    */
-  public boolean isConfigurationAcceptable(
-      AccessLogPublisherCfg configuration,
+  public boolean isConfigurationAcceptable(T configuration,
       List<Message> unacceptableReasons)
   {
     // This default implementation does not perform any special

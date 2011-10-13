@@ -30,9 +30,11 @@ package org.opends.server.loggers;
 
 
 import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.types.ResultCode.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.types.ResultCode.SUCCESS;
+import static org.opends.server.util.ServerConstants.EOL;
+import static org.opends.server.util.StaticUtils.getBytes;
+import static org.opends.server.util.StaticUtils.getFileForPath;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,15 +43,9 @@ import java.util.List;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.AccessLogPublisherCfg;
 import org.opends.server.admin.std.server.FileBasedAuditLogPublisherCfg;
-import org.opends.server.api.AccessLogPublisher;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.*;
 import org.opends.server.types.*;
 import org.opends.server.util.Base64;
 import org.opends.server.util.StaticUtils;
@@ -61,18 +57,14 @@ import org.opends.server.util.TimeThread;
  * This class provides the implementation of the audit logger used by
  * the directory server.
  */
-public class TextAuditLogPublisher extends
-    AccessLogPublisher<FileBasedAuditLogPublisherCfg> implements
+public final class TextAuditLogPublisher extends
+    AbstractTextAccessLogPublisher<FileBasedAuditLogPublisherCfg> implements
     ConfigurationChangeListener<FileBasedAuditLogPublisherCfg>
 {
 
-  private boolean suppressInternalOperations = true;
-
-  private boolean suppressSynchronizationOperations = false;
-
   private TextWriter writer;
 
-  private FileBasedAuditLogPublisherCfg currentConfig;
+  private FileBasedAuditLogPublisherCfg cfg;
 
 
 
@@ -86,10 +78,6 @@ public class TextAuditLogPublisher extends
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
     ArrayList<Message> messages = new ArrayList<Message>();
-
-    suppressInternalOperations = config.isSuppressInternalOperations();
-    suppressSynchronizationOperations = config
-        .isSuppressSynchronizationOperations();
 
     File logFile = getFileForPath(config.getLogFile());
     FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
@@ -157,13 +145,13 @@ public class TextAuditLogPublisher extends
           writer = asyncWriter;
         }
 
-        if ((currentConfig.isAsynchronous() && config.isAsynchronous())
-            && (currentConfig.getQueueSize() != config.getQueueSize()))
+        if ((cfg.isAsynchronous() && config.isAsynchronous())
+            && (cfg.getQueueSize() != config.getQueueSize()))
         {
           adminActionRequired = true;
         }
 
-        currentConfig = config;
+        cfg = config;
       }
     }
     catch (Exception e)
@@ -184,28 +172,10 @@ public class TextAuditLogPublisher extends
    * {@inheritDoc}
    */
   @Override()
-  public void close()
+  protected void close0()
   {
     writer.shutdown();
-    currentConfig.removeFileBasedAuditChangeListener(this);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public DN getDN()
-  {
-    if (currentConfig != null)
-    {
-      return currentConfig.dn();
-    }
-    else
-    {
-      return null;
-    }
+    cfg.removeFileBasedAuditChangeListener(this);
   }
 
 
@@ -214,44 +184,43 @@ public class TextAuditLogPublisher extends
    * {@inheritDoc}
    */
   @Override()
-  public void initializeAccessLogPublisher(
-      FileBasedAuditLogPublisherCfg config)
+  public void initializeAccessLogPublisher(FileBasedAuditLogPublisherCfg cfg)
       throws ConfigException, InitializationException
   {
-    File logFile = getFileForPath(config.getLogFile());
+    File logFile = getFileForPath(cfg.getLogFile());
     FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
 
     try
     {
-      FilePermission perm = FilePermission.decodeUNIXMode(config
+      FilePermission perm = FilePermission.decodeUNIXMode(cfg
           .getLogFilePermissions());
 
       LogPublisherErrorHandler errorHandler = new LogPublisherErrorHandler(
-          config.dn());
+          cfg.dn());
 
-      boolean writerAutoFlush = config.isAutoFlush()
-          && !config.isAsynchronous();
+      boolean writerAutoFlush = cfg.isAutoFlush()
+          && !cfg.isAsynchronous();
 
       MultifileTextWriter writer = new MultifileTextWriter(
-          "Multifile Text Writer for " + config.dn().toNormalizedString(),
-          config.getTimeInterval(), fnPolicy, perm, errorHandler, "UTF-8",
-          writerAutoFlush, config.isAppend(), (int) config.getBufferSize());
+          "Multifile Text Writer for " + cfg.dn().toNormalizedString(),
+          cfg.getTimeInterval(), fnPolicy, perm, errorHandler, "UTF-8",
+          writerAutoFlush, cfg.isAppend(), (int) cfg.getBufferSize());
 
       // Validate retention and rotation policies.
-      for (DN dn : config.getRotationPolicyDNs())
+      for (DN dn : cfg.getRotationPolicyDNs())
       {
         writer.addRotationPolicy(DirectoryServer.getRotationPolicy(dn));
       }
 
-      for (DN dn : config.getRetentionPolicyDNs())
+      for (DN dn : cfg.getRetentionPolicyDNs())
       {
         writer.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
       }
 
-      if (config.isAsynchronous())
+      if (cfg.isAsynchronous())
       {
         this.writer = new AsyncronousTextWriter("Asyncronous Text Writer for "
-            + config.dn().toNormalizedString(), config.getQueueSize(), config
+            + cfg.dn().toNormalizedString(), cfg.getQueueSize(), cfg
             .isAutoFlush(), writer);
       }
       else
@@ -261,7 +230,7 @@ public class TextAuditLogPublisher extends
     }
     catch (DirectoryException e)
     {
-      Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(config.dn()
+      Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(cfg.dn()
           .toString(), String.valueOf(e));
       throw new InitializationException(message, e);
 
@@ -269,18 +238,14 @@ public class TextAuditLogPublisher extends
     catch (IOException e)
     {
       Message message = ERR_CONFIG_LOGGING_CANNOT_OPEN_FILE.get(logFile
-          .toString(), config.dn().toString(), String.valueOf(e));
+          .toString(), cfg.dn().toString(), String.valueOf(e));
       throw new InitializationException(message, e);
 
     }
 
-    suppressInternalOperations = config.isSuppressInternalOperations();
-    suppressSynchronizationOperations = config
-        .isSuppressSynchronizationOperations();
-
-    currentConfig = config;
-
-    config.addFileBasedAuditChangeListener(this);
+    initializeFilters(cfg);
+    this.cfg = cfg;
+    cfg.addFileBasedAuditChangeListener(this);
   }
 
 
@@ -289,12 +254,11 @@ public class TextAuditLogPublisher extends
    * {@inheritDoc}
    */
   @Override
-  public boolean isConfigurationAcceptable(AccessLogPublisherCfg configuration,
+  public boolean isConfigurationAcceptable(
+      FileBasedAuditLogPublisherCfg configuration,
       List<Message> unacceptableReasons)
   {
-    FileBasedAuditLogPublisherCfg config =
-      (FileBasedAuditLogPublisherCfg) configuration;
-    return isConfigurationChangeAcceptable(config, unacceptableReasons);
+    return isConfigurationChangeAcceptable(configuration, unacceptableReasons);
   }
 
 
@@ -605,31 +569,13 @@ public class TextAuditLogPublisher extends
   // Determines whether the provided operation should be logged.
   private boolean isLoggable(Operation operation)
   {
-    long connectionID = operation.getConnectionID();
-    if (connectionID < 0)
-    {
-      // This is an internal operation.
-      if (operation.isSynchronizationOperation())
-      {
-        if (suppressSynchronizationOperations)
-        {
-          return false;
-        }
-      }
-      else
-      {
-        if (suppressInternalOperations)
-        {
-          return false;
-        }
-      }
-    }
-
     if (operation.getResultCode() != SUCCESS)
     {
       return false;
     }
-
-    return true;
+    else
+    {
+      return isResponseLoggable(operation);
+    }
   }
 }

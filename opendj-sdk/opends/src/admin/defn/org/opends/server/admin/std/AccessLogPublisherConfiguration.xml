@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions copyright 2011 ForgeRock AS.
   ! -->
 <adm:managed-object name="access-log-publisher"
   plural-name="access-log-publishers"
@@ -49,6 +50,15 @@
   <adm:profile name="cli">
     <cli:managed-object custom="true" />
   </adm:profile>
+  <adm:relation name="access-log-filtering-criteria">
+    <adm:synopsis>
+      The set of criteria which will be used to filter log records.
+    </adm:synopsis>
+    <adm:one-to-many/>
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>cn=Filtering Criteria</ldap:rdn-sequence>
+    </adm:profile>
+  </adm:relation>
   <adm:property name="java-class" mandatory="true">
     <adm:synopsis>
       The fully-qualified name of the Java class that provides the
@@ -65,6 +75,42 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-java-class</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="filtering-policy">
+    <adm:synopsis>
+      Specifies how filtering criteria should be applied to log records. 
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>no-filtering</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="no-filtering">
+          <adm:synopsis>
+            No filtering will be performed, and all records will be logged.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="inclusive">
+          <adm:synopsis>
+            Records must match at least one of the filtering criteria in order
+            to be logged.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="exclusive">
+          <adm:synopsis>
+            Records must not match any of the filtering criteria in order to be
+            logged.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-filtering-policy</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
