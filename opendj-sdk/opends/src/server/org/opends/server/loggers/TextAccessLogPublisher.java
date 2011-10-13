@@ -30,11 +30,15 @@ package org.opends.server.loggers;
 
 
 import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.StaticUtils.getFileForPath;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.util.StaticUtils.toLowerCase;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.*;
 
 import org.opends.messages.Message;
@@ -50,8 +54,11 @@ import org.opends.server.admin.std.server.FileBasedAccessLogPublisherCfg;
 import org.opends.server.api.AccessLogPublisher;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
+import org.opends.server.api.Group;
+import org.opends.server.authorization.dseecompat.PatternDN;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.opends.server.util.TimeThread;
 
@@ -65,7 +72,6 @@ public class TextAccessLogPublisher extends
     AccessLogPublisher<FileBasedAccessLogPublisherCfg> implements
     ConfigurationChangeListener<FileBasedAccessLogPublisherCfg>
 {
-
   /**
    * Criteria based filter.
    */
@@ -75,6 +81,15 @@ public class TextAccessLogPublisher extends
     private final boolean logConnectRecords;
     private final boolean logDisconnectRecords;
     private final EnumSet<OperationType> logOperationRecords;
+    private final AddressMask[] clientAddressEqualTo;
+    private final AddressMask[] clientAddressNotEqualTo;
+    private final PatternDN[] userDNEqualTo;
+    private final PatternDN[] userDNNotEqualTo;
+    private final PatternDN[] targetDNEqualTo;
+    private final PatternDN[] targetDNNotEqualTo;
+    private final DN[] userIsMemberOf;
+    private final DN[] userIsNotMemberOf;
+    private final String attachmentName;
 
 
 
@@ -83,10 +98,17 @@ public class TextAccessLogPublisher extends
      *
      * @param cfg
      *          The access log filter criteria.
+     * @throws DirectoryException
+     *           If the configuration cannot be parsed.
      */
     CriteriaFilter(final AccessLogFilteringCriteriaCfg cfg)
+        throws DirectoryException
     {
       this.cfg = cfg;
+
+      // Generate a unique identifier for attaching partial results to
+      // operations.
+      attachmentName = this.getClass().getName() + "#" + hashCode();
 
       // Pre-parse the log record types for more efficient queries.
       if (cfg.getLogRecordType().isEmpty())
@@ -98,10 +120,10 @@ public class TextAccessLogPublisher extends
       }
       else
       {
-        logConnectRecords =
-          cfg.getLogRecordType().contains(LogRecordType.CONNECT);
-        logDisconnectRecords =
-          cfg.getLogRecordType().contains(LogRecordType.DISCONNECT);
+        logConnectRecords = cfg.getLogRecordType().contains(
+            LogRecordType.CONNECT);
+        logDisconnectRecords = cfg.getLogRecordType().contains(
+            LogRecordType.DISCONNECT);
 
         logOperationRecords = EnumSet.noneOf(OperationType.class);
         for (final LogRecordType type : cfg.getLogRecordType())
@@ -143,6 +165,43 @@ public class TextAccessLogPublisher extends
           }
         }
       }
+
+      clientAddressEqualTo = cfg.getClientAddressEqualTo().toArray(
+          new AddressMask[0]);
+      clientAddressNotEqualTo = cfg.getClientAddressNotEqualTo().toArray(
+          new AddressMask[0]);
+
+      userDNEqualTo = new PatternDN[cfg.getUserDNEqualTo().size()];
+      int i = 0;
+      for (final String s : cfg.getUserDNEqualTo())
+      {
+        userDNEqualTo[i++] = PatternDN.decode(s);
+      }
+
+      userDNNotEqualTo = new PatternDN[cfg.getUserDNNotEqualTo().size()];
+      i = 0;
+      for (final String s : cfg.getUserDNNotEqualTo())
+      {
+        userDNNotEqualTo[i++] = PatternDN.decode(s);
+      }
+
+      userIsMemberOf = cfg.getUserIsMemberOf().toArray(new DN[0]);
+      userIsNotMemberOf = cfg.getUserIsNotMemberOf().toArray(new DN[0]);
+
+      targetDNEqualTo = new PatternDN[cfg.getRequestTargetDNEqualTo().size()];
+      i = 0;
+      for (final String s : cfg.getRequestTargetDNEqualTo())
+      {
+        targetDNEqualTo[i++] = PatternDN.decode(s);
+      }
+
+      targetDNNotEqualTo = new PatternDN[cfg.getRequestTargetDNNotEqualTo()
+          .size()];
+      i = 0;
+      for (final String s : cfg.getRequestTargetDNNotEqualTo())
+      {
+        targetDNNotEqualTo[i++] = PatternDN.decode(s);
+      }
     }
 
 
@@ -157,7 +216,10 @@ public class TextAccessLogPublisher extends
         return false;
       }
 
-      // TODO: other checks.
+      if (!filterClientConnection(connection))
+      {
+        return false;
+      }
 
       return true;
     }
@@ -174,7 +236,15 @@ public class TextAccessLogPublisher extends
         return false;
       }
 
-      // TODO: other checks.
+      if (!filterClientConnection(connection))
+      {
+        return false;
+      }
+
+      if (!filterUser(connection))
+      {
+        return false;
+      }
 
       return true;
     }
@@ -186,14 +256,17 @@ public class TextAccessLogPublisher extends
      */
     public boolean isRequestLoggable(final Operation operation)
     {
-      if (!logOperationRecords.contains(operation.getOperationType()))
-      {
-        return false;
-      }
+      final ClientConnection connection = operation.getClientConnection();
+      final boolean matches = logOperationRecords.contains(operation
+          .getOperationType())
+          && filterClientConnection(connection)
+          && filterUser(connection) && filterRequest(operation);
 
-      // TODO: other checks.
+      // Cache the result so that it does not need to be recomputed for the
+      // response.
+      operation.setAttachment(attachmentName, matches);
 
-      return true;
+      return matches;
     }
 
 
@@ -203,19 +276,434 @@ public class TextAccessLogPublisher extends
      */
     public boolean isResponseLoggable(final Operation operation)
     {
-      if (!logOperationRecords.contains(operation.getOperationType()))
+      // First check the result that was computed for the initial request.
+      Boolean requestMatched = (Boolean) operation
+          .getAttachment(attachmentName);
+      if (requestMatched == null)
+      {
+        // This should not happen.
+        if (debugEnabled())
+        {
+          TRACER.debugWarning(
+              "Operation attachment %s not found while logging response",
+              attachmentName);
+        }
+        requestMatched = isRequestLoggable(operation);
+      }
+
+      if (!requestMatched)
       {
         return false;
       }
 
-      // TODO: other checks.
+      // Check the response parameters.
+      if (!filterResponse(operation))
+      {
+        return false;
+      }
 
       return true;
+    }
+
+
+
+    private boolean filterClientConnection(final ClientConnection connection)
+    {
+      // Check client address.
+      final InetAddress ipAddr = connection.getRemoteAddress();
+      if (clientAddressNotEqualTo.length > 0)
+      {
+        if (AddressMask.maskListContains(ipAddr, clientAddressNotEqualTo))
+        {
+          return false;
+        }
+      }
+      if (clientAddressEqualTo.length > 0)
+      {
+        if (!AddressMask.maskListContains(ipAddr, clientAddressEqualTo))
+        {
+          return false;
+        }
+      }
+
+      // Check server port.
+      if (!cfg.getClientPortEqualTo().isEmpty())
+      {
+        if (!cfg.getClientPortEqualTo().contains(connection.getServerPort()))
+        {
+          return false;
+        }
+      }
+
+      // Check protocol.
+      if (!cfg.getClientProtocolEqualTo().isEmpty())
+      {
+        if (!cfg.getClientProtocolEqualTo().contains(
+            toLowerCase(connection.getProtocol())))
+        {
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+
+
+    private boolean filterRequest(final Operation operation)
+    {
+      // Check target DN.
+      if (targetDNNotEqualTo.length > 0 || targetDNEqualTo.length > 0)
+      {
+        if (!filterRequestTargetDN(operation))
+        {
+          return false;
+        }
+      }
+
+      // TODO: check required controls.
+
+      return true;
+    }
+
+
+
+    private boolean filterRequestTargetDN(final Operation operation)
+    {
+      // Obtain both the parsed and unparsed target DNs. Requests are logged
+      // before parsing so usually only the raw unparsed target DN will be
+      // present, and it may even be invalid.
+      DN targetDN = null;
+      ByteString rawTargetDN = null;
+
+      switch (operation.getOperationType())
+      {
+      case ABANDON:
+      case UNBIND:
+        // These operations don't have parameters which we can filter so
+        // always match them.
+        return true;
+      case EXTENDED:
+        // These operations could have parameters which can be filtered but
+        // we'd need to decode the request in order to find out. This is
+        // beyond the scope of the access log. Therefore, treat extended
+        // operations like abandon/unbind.
+        return true;
+      case ADD:
+        targetDN = ((AddOperation) operation).getEntryDN();
+        rawTargetDN = ((AddOperation) operation).getRawEntryDN();
+        break;
+      case BIND:
+        // For SASL bind operations the bind DN, if provided, will require the
+        // SASL credentials to be decoded which is beyond the scope of the
+        // access log.
+        targetDN = ((BindOperation) operation).getBindDN();
+        rawTargetDN = ((BindOperation) operation).getRawBindDN();
+        break;
+      case COMPARE:
+        targetDN = ((CompareOperation) operation).getEntryDN();
+        rawTargetDN = ((CompareOperation) operation).getRawEntryDN();
+        break;
+      case DELETE:
+        targetDN = ((DeleteOperation) operation).getEntryDN();
+        rawTargetDN = ((DeleteOperation) operation).getRawEntryDN();
+        break;
+      case MODIFY:
+        targetDN = ((ModifyOperation) operation).getEntryDN();
+        rawTargetDN = ((ModifyOperation) operation).getRawEntryDN();
+        break;
+      case MODIFY_DN:
+        targetDN = ((ModifyDNOperation) operation).getEntryDN();
+        rawTargetDN = ((ModifyDNOperation) operation).getRawEntryDN();
+        break;
+      case SEARCH:
+        targetDN = ((SearchOperation) operation).getBaseDN();
+        rawTargetDN = ((SearchOperation) operation).getRawBaseDN();
+        break;
+      }
+
+      // Attempt to parse the raw target DN if needed.
+      if (targetDN == null)
+      {
+        try
+        {
+          targetDN = DN.decode(rawTargetDN);
+        }
+        catch (final DirectoryException e)
+        {
+          // The DN raw target DN was invalid. It will never match any
+          // not-equal-to nor equal-to patterns, so return appropriate result.
+          if (targetDNEqualTo.length != 0)
+          {
+            // Invalid DN will never match equal-to patterns.
+            return false;
+          }
+          else
+          {
+            // Invalid DN does not match any not-equal-to patterns.
+            return true;
+          }
+        }
+      }
+
+      if (targetDNNotEqualTo.length > 0)
+      {
+        for (final PatternDN pattern : targetDNNotEqualTo)
+        {
+          if (pattern.matchesDN(targetDN))
+          {
+            return false;
+          }
+        }
+      }
+
+      if (targetDNEqualTo.length > 0)
+      {
+        for (final PatternDN pattern : targetDNNotEqualTo)
+        {
+          if (pattern.matchesDN(targetDN))
+          {
+            return true;
+          }
+        }
+      }
+
+      // The target DN did not match.
+      return false;
+    }
+
+
+
+    private boolean filterResponse(final Operation operation)
+    {
+      // Check response code.
+      final Integer resultCode = operation.getResultCode().getIntValue();
+
+      if (!cfg.getResponseResultCodeNotEqualTo().isEmpty())
+      {
+        if (cfg.getResponseResultCodeNotEqualTo().contains(resultCode))
+        {
+          return false;
+        }
+      }
+
+      if (!cfg.getResponseResultCodeEqualTo().isEmpty())
+      {
+        if (!cfg.getResponseResultCodeNotEqualTo().contains(resultCode))
+        {
+          return false;
+        }
+      }
+
+      // Check etime.
+      final long etime = operation.getProcessingTime();
+
+      final Integer etimeGT = cfg.getResponseEtimeLessThan();
+      if (etimeGT != null)
+      {
+        if (etime <= ((long) etimeGT))
+        {
+          return false;
+        }
+      }
+
+      final Integer etimeLT = cfg.getResponseEtimeLessThan();
+      if (etimeLT != null)
+      {
+        if (etime >= ((long) etimeLT))
+        {
+          return false;
+        }
+      }
+
+      // Check search response fields.
+      if (operation instanceof SearchOperation)
+      {
+        final SearchOperation searchOperation = (SearchOperation) operation;
+        final Boolean isIndexed= cfg.isSearchResponseIsIndexed();
+        if (isIndexed != null)
+        {
+          boolean wasUnindexed = false;
+          for (final AdditionalLogItem item : operation.getAdditionalLogItems())
+          {
+            if (item.getKey().equals("unindexed"))
+            {
+              wasUnindexed = true;
+              break;
+            }
+          }
+
+          if (isIndexed)
+          {
+            if (wasUnindexed)
+            {
+              return false;
+            }
+          }
+          else
+          {
+            if (!wasUnindexed)
+            {
+              return false;
+            }
+          }
+        }
+
+        final int nentries = searchOperation.getEntriesSent();
+
+        final Integer nentriesGT = cfg.getSearchResponseNentriesGreaterThan();
+        if (nentriesGT != null)
+        {
+          if (nentries <= nentriesGT)
+          {
+            return false;
+          }
+        }
+
+        final Integer nentriesLT = cfg.getSearchResponseNentriesLessThan();
+        if (nentriesLT != null)
+        {
+          if (nentries >= nentriesLT)
+          {
+            return false;
+          }
+        }
+      }
+
+      return true;
+    }
+
+
+
+    private boolean filterUser(final ClientConnection connection)
+    {
+      // Check user DN.
+      if (userDNNotEqualTo.length > 0 || userDNEqualTo.length > 0)
+      {
+        if (!filterUserBindDN(connection))
+        {
+          return false;
+        }
+      }
+
+      // Check group membership.
+      if (userIsNotMemberOf.length > 0 || userIsNotMemberOf.length > 0)
+      {
+        if (!filterUserIsMemberOf(connection))
+        {
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+
+
+    private boolean filterUserBindDN(final ClientConnection connection)
+    {
+      final DN userDN = connection.getAuthenticationInfo()
+          .getAuthenticationDN();
+
+      // Fast-path for unauthenticated clients.
+      if (userDN == null)
+      {
+        return userDNEqualTo.length == 0;
+      }
+
+      if (userDNNotEqualTo.length > 0)
+      {
+        for (final PatternDN pattern : userDNNotEqualTo)
+        {
+          if (pattern.matchesDN(userDN))
+          {
+            return false;
+          }
+        }
+      }
+
+      if (userDNEqualTo.length > 0)
+      {
+        for (final PatternDN pattern : userDNNotEqualTo)
+        {
+          if (pattern.matchesDN(userDN))
+          {
+            return true;
+          }
+        }
+      }
+
+      // The user DN did not match.
+      return false;
+    }
+
+
+
+    private boolean filterUserIsMemberOf(final ClientConnection connection)
+    {
+      final Entry userEntry = connection.getAuthenticationInfo()
+          .getAuthenticationEntry();
+
+      // Fast-path for unauthenticated clients.
+      if (userEntry == null)
+      {
+        return userIsMemberOf.length == 0;
+      }
+
+      final GroupManager groupManager = DirectoryServer.getGroupManager();
+      if (userIsNotMemberOf.length > 0)
+      {
+        for (final DN groupDN : userIsNotMemberOf)
+        {
+          final Group<?> group = groupManager.getGroupInstance(groupDN);
+          try
+          {
+            if ((group != null) && group.isMember(userEntry))
+            {
+              return false;
+            }
+          }
+          catch (final DirectoryException e)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            }
+          }
+        }
+      }
+
+      if (userIsMemberOf.length > 0)
+      {
+        for (final DN groupDN : userIsMemberOf)
+        {
+          final Group<?> group = groupManager.getGroupInstance(groupDN);
+          try
+          {
+            if ((group != null) && group.isMember(userEntry))
+            {
+              return true;
+            }
+          }
+          catch (final DirectoryException e)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            }
+          }
+        }
+      }
+
+      // The user entry did not match.
+      return false;
     }
 
   }
 
 
+
+  // TODO: update assigned OIDs WIKI page when complete.
 
   /**
    * Log message filter predicate.
@@ -610,6 +1098,11 @@ public class TextAccessLogPublisher extends
   }
 
 
+
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
 
   /**
    * The category to use when logging responses.
@@ -1988,6 +2481,11 @@ public class TextAccessLogPublisher extends
           subFilters.add(new CriteriaFilter(cfg));
         }
         catch (final ConfigException e)
+        {
+          // TODO: Unable to decode this access log criteria, so log a warning
+          // and continue.
+        }
+        catch (final DirectoryException e)
         {
           // TODO: Unable to decode this access log criteria, so log a warning
           // and continue.

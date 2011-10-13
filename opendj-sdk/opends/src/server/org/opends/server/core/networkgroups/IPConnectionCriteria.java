@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.core.networkgroups;
 
@@ -77,13 +78,10 @@ final class IPConnectionCriteria implements ConnectionCriteria
   public boolean matches(ClientConnection connection)
   {
     InetAddress ipAddr = connection.getRemoteAddress();
-    byte[] address = ipAddr.getAddress();
-    String hostName = ipAddr.getHostName();
 
     if (deniedClients.length > 0)
     {
-      if (AddressMask
-          .maskListContains(address, hostName, deniedClients))
+      if (AddressMask.maskListContains(ipAddr, deniedClients))
       {
         return false;
       }
@@ -91,8 +89,7 @@ final class IPConnectionCriteria implements ConnectionCriteria
 
     if (allowedClients.length > 0)
     {
-      if (!AddressMask.maskListContains(address, hostName,
-          allowedClients))
+      if (!AddressMask.maskListContains(ipAddr, allowedClients))
       {
         return false;
       }

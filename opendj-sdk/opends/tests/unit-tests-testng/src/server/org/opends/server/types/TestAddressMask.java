@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -257,7 +258,7 @@ public class TestAddressMask extends TypesTestCase {
     for(int j = 0; j < addrs.length; j++) {
       try  {
         InetAddress addr = InetAddress.getByName(addrs[j]);
-        if(!AddressMask.maskListContains(addr.getAddress(), hostNames[j], m)) {
+        if(!AddressMask.maskListContains(addr, m)) {
           ret=false;
           break;
         }

@@ -43,10 +43,13 @@
   </adm:profile>
   <adm:property name="log-record-type" multi-valued="true">
     <adm:synopsis>
+      Filters log records based on their type.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
-        <adm:synopsis>All records</adm:synopsis>
+        <adm:synopsis>
+          The log record type will be ignored during filtering.
+        </adm:synopsis>
       </adm:alias>
     </adm:default-behavior>
     <adm:syntax>
@@ -92,6 +95,452 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-log-record-type</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="client-address-equal-to" multi-valued="true">
+    <adm:synopsis>
+      Filters log records associated with connections which match at least one
+      of the specified client host names or address masks. 
+    </adm:synopsis>
+    <adm:description>
+      Valid values include a host name, a fully qualified domain name, a 
+      domain name, an IP address, or a subnetwork with subnetwork mask.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Do not filter based on client address equality.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:ip-address-mask />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-client-address-equal-to</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="client-address-not-equal-to" multi-valued="true">
+    <adm:synopsis>
+      Filters log records associated with connections which do not match any
+      of the specified client host names or address masks. 
+    </adm:synopsis>
+    <adm:description>
+      Valid values include a host name, a fully qualified domain name, a 
+      domain name, an IP address, or a subnetwork with subnetwork mask.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Do not filter based on client address inequality.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:ip-address-mask />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-client-address-not-equal-to</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="client-protocol-equal-to" multi-valued="true">
+    <adm:synopsis>
+      Filters log records associated with connections which match any
+      of the specified protocols. 
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Do not filter based on the protocol.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="ldap">
+          <adm:synopsis>LDAP clients</adm:synopsis>
+        </adm:value>
+        <adm:value name="ldaps">
+          <adm:synopsis>LDAPS clients</adm:synopsis>
+        </adm:value>
+        <adm:value name="jmx">
+          <adm:synopsis>JMX clients</adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-client-protocol-equal-to</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="client-port-equal-to" multi-valued="true">
+    <adm:synopsis>
+      Filters log records associated with connections to any of the specified
+      listener port numbers. 
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Do not filter based on the port.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="1" upper-limit="65535" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-client-port-equal-to</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="user-dn-equal-to" multi-valued="true">
+    <adm:synopsis>
+      Filters log records associated with users matching at least one of the
+      specified DN patterns.
+    </adm:synopsis>
+    <adm:description>
+      Valid DN filters are strings composed of zero or more wildcards. A double
+      wildcard ** replaces one or more RDN components (as in
+      uid=dmiller,**,dc=example,dc=com). A simple wildcard * replaces either a
+      whole RDN, or a whole type, or a value substring (as in
+      uid=bj*,ou=people,dc=example,dc=com).
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Do not filter based on user DN equality.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-user-dn-equal-to</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="user-dn-not-equal-to" multi-valued="true">
+    <adm:synopsis>
+      Filters log records associated with users which do not match any of the
+      specified DN patterns.
+    </adm:synopsis>
+    <adm:description>
+      Valid DN filters are strings composed of zero or more wildcards. A double
+      wildcard ** replaces one or more RDN components (as in
+      uid=dmiller,**,dc=example,dc=com). A simple wildcard * replaces either a
+      whole RDN, or a whole type, or a value substring (as in
+      uid=bj*,ou=people,dc=example,dc=com).
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Do not filter based on user DN inequality.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-user-dn-not-equal-to</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="user-is-member-of" multi-valued="true">
+    <adm:synopsis>
+      Filters log records associated with users which are members of at least
+      one of the specified groups.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Do not filter based on group membership.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:dn />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-user-is-member-of</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="user-is-not-member-of" multi-valued="true">
+    <adm:synopsis>
+      Filters log records associated with users which are not members of any
+      of the specified groups.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Do not filter based on group non-membership.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:dn />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-user-is-not-member-of</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="request-target-dn-equal-to" multi-valued="true">
+    <adm:synopsis>
+      Filters operation log records associated with operations which target
+      entries matching at least one of the specified DN patterns.
+    </adm:synopsis>
+    <adm:description>
+      Valid DN filters are strings composed of zero or more wildcards. A double
+      wildcard ** replaces one or more RDN components (as in
+      uid=dmiller,**,dc=example,dc=com). A simple wildcard * replaces either a
+      whole RDN, or a whole type, or a value substring (as in
+      uid=bj*,ou=people,dc=example,dc=com).
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Do not filter based on target DN equality.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-request-target-dn-equal-to</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="request-target-dn-not-equal-to" multi-valued="true">
+    <adm:synopsis>
+      Filters operation log records associated with operations which target
+      entries matching none of the specified DN patterns.
+    </adm:synopsis>
+    <adm:description>
+      Valid DN filters are strings composed of zero or more wildcards. A double
+      wildcard ** replaces one or more RDN components (as in
+      uid=dmiller,**,dc=example,dc=com). A simple wildcard * replaces either a
+      whole RDN, or a whole type, or a value substring (as in
+      uid=bj*,ou=people,dc=example,dc=com).
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Do not filter based on target DN inequality.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-request-target-dn-not-equal-to</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="response-result-code-equal-to" multi-valued="true">
+    <adm:synopsis>
+      Filters operation response log records associated with operations which
+      include any of the specified result codes.
+    </adm:synopsis>
+    <adm:description>
+      It is recommended to only use this criteria in conjunction with the
+      "combined" output mode of the access logger, since this filter criteria
+      is only applied to response log messages.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Do not filter based on result code equality.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-response-result-code-equal-to</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="response-result-code-not-equal-to" multi-valued="true">
+    <adm:synopsis>
+      Filters operation response log records associated with operations which
+      do not include any of the specified result codes.
+    </adm:synopsis>
+    <adm:description>
+      It is recommended to only use this criteria in conjunction with the
+      "combined" output mode of the access logger, since this filter criteria
+      is only applied to response log messages.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Do not filter based on result code inequality.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-response-result-code-not-equal-to</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="response-etime-greater-than">
+    <adm:synopsis>
+      Filters operation response log records associated with operations which
+      took longer than the specified number of milli-seconds to complete.
+    </adm:synopsis>
+    <adm:description>
+      It is recommended to only use this criteria in conjunction with the
+      "combined" output mode of the access logger, since this filter criteria
+      is only applied to response log messages.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Do not filter based on the etime.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer>
+        <adm:unit-synopsis>milli-seconds</adm:unit-synopsis>
+      </adm:integer>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-response-etime-greater-than</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="response-etime-less-than">
+    <adm:synopsis>
+      Filters operation response log records associated with operations which
+      took less than the specified number of milli-seconds to complete.
+    </adm:synopsis>
+    <adm:description>
+      It is recommended to only use this criteria in conjunction with the
+      "combined" output mode of the access logger, since this filter criteria
+      is only applied to response log messages.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Do not filter based on the etime.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer>
+        <adm:unit-synopsis>milli-seconds</adm:unit-synopsis>
+      </adm:integer>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-response-etime-less-than</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="search-response-nentries-greater-than">
+    <adm:synopsis>
+      Filters search operation response log records associated with searches
+      which returned more than the specified number of entries.
+    </adm:synopsis>
+    <adm:description>
+      It is recommended to only use this criteria in conjunction with the
+      "combined" output mode of the access logger, since this filter criteria
+      is only applied to response log messages.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Do not filter based on the number of search results returned.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer>
+        <adm:unit-synopsis>entries</adm:unit-synopsis>
+      </adm:integer>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-search-response-nentries-greater-than</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="search-response-nentries-less-than">
+    <adm:synopsis>
+      Filters search operation response log records associated with searches
+      which returned less than the specified number of entries.
+    </adm:synopsis>
+    <adm:description>
+      It is recommended to only use this criteria in conjunction with the
+      "combined" output mode of the access logger, since this filter criteria
+      is only applied to response log messages.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Do not filter based on the number of search results returned.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer>
+        <adm:unit-synopsis>entries</adm:unit-synopsis>
+      </adm:integer>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-search-response-nentries-less-than</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="search-response-is-indexed">
+    <adm:synopsis>
+      Filters search operation response log records associated with searches
+      which were either indexed or unindexed.
+    </adm:synopsis>
+    <adm:description>
+      It is recommended to only use this criteria in conjunction with the
+      "combined" output mode of the access logger, since this filter criteria
+      is only applied to response log messages.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Do not filter based on whether or not a search was indexed.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-search-response-is-indexed</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

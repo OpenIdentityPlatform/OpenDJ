@@ -1112,9 +1112,7 @@ public final class LDAPConnectionHandler extends
     // Check to see if the client is on the denied list.
     // If so, then reject it immediately.
     if ((deniedClients.length > 0)
-        && AddressMask.maskListContains(clientAddr
-        .getAddress(), clientAddr.getHostName(),
-        deniedClients)) {
+        && AddressMask.maskListContains(clientAddr, deniedClients)) {
       clientConnection.disconnect(
           DisconnectReason.CONNECTION_REJECTED,
           currentConfig.isSendRejectionNotice(),
@@ -1127,9 +1125,7 @@ public final class LDAPConnectionHandler extends
     // there is whether the client is on that list. If
     // not, then reject the connection.
     if ((allowedClients.length > 0)
-        && (!AddressMask.maskListContains(clientAddr
-        .getAddress(), clientAddr.getHostName(),
-        allowedClients))) {
+        && (!AddressMask.maskListContains(clientAddr, allowedClients))) {
       clientConnection.disconnect(
           DisconnectReason.CONNECTION_REJECTED,
           currentConfig.isSendRejectionNotice(),
