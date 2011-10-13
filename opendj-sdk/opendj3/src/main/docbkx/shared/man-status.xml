@@ -216,7 +216,7 @@ Open Connections:         1
 Host Name:                localhost.localdomain
 Administrative Users:     cn=Directory Manager
 Installation Path:        /path/to/OpenDJ
-Version:                  OpenDJ <?eval ${project.version}?>
+Version:                  OpenDJ <?eval ${docTargetVersion}?>
 Java Version:             1.6.0_24
 Administration Connector: Port 4444 (LDAPS)
 

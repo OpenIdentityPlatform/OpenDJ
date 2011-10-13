@@ -148,7 +148,7 @@
  <refsect1>
   <title>Examples</title>
   <para>The following example demonstrates upgrade without interaction.</para>
-  <screen>$ ./OpenDJ/upgrade -f ~/Downloads/OpenDJ-<?eval ${project.version}?>.zip -n
+  <screen>$ ./OpenDJ/upgrade -f ~/Downloads/OpenDJ-<?eval ${docTargetVersion}?>.zip -n
 See
 /var/.../opends-upgrade-5650414945123366149.log
  for a detailed log of this operation.
@@ -165,7 +165,7 @@ Cleaning Up ..... Done.
 Recording Upgrade History ..... Done.
 See /path/to/OpenDJ/history/log for a detailed installation history.
 QuickUpgrade Completed Successfully.  The OpenDJ installation at
-/path/to/OpenDJ has now been upgraded to version OpenDJ <?eval ${project.version}?> (Build ID:
+/path/to/OpenDJ has now been upgraded to version OpenDJ <?eval ${docTargetVersion}?> (Build ID:
 YYYYMMDDhhmmssZ).
 
 See /var/.../opends-upgrade-5650414945123366149.log

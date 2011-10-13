@@ -33,7 +33,7 @@
  <refmeta>
   <refentrytitle>authrate</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
-  <refmiscinfo class="version"><?eval ${project.version}?></refmiscinfo>
+  <refmiscinfo class="version"><?eval ${currentSDKversion}?></refmiscinfo>
  </refmeta>
  <refnamediv>
   <refname>authrate</refname>

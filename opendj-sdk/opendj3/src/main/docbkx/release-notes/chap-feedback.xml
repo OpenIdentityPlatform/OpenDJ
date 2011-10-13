@@ -38,7 +38,7 @@
  likely to find an answer.</para>
 
  <para>If you have found issues or reproducible bugs within OpenDJ
- <?eval ${project.version}?>, report them in <link
+ <?eval ${docTargetVersion}?>, report them in <link
  xlink:href='https://bugster.forgerock.org'
  >https://bugster.forgerock.org</link>.</para>
 

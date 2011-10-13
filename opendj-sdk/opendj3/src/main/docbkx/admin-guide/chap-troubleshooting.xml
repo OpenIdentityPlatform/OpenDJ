@@ -234,7 +234,7 @@
   version number and also a build time stamp.</para>
   
   <screen>$ dsconfig --version
-OpenDJ <?eval ${project.version}?>
+OpenDJ <?eval ${docTargetVersion}?>
 Build <replaceable>yyyymmddhhmmss</replaceable>Z</screen>
   
   <itemizedlist>

@@ -33,7 +33,7 @@
  <refmeta>
   <refentrytitle>ldapsearch</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
-  <refmiscinfo class="version"><?eval ${project.version}?></refmiscinfo>
+  <refmiscinfo class="version"><?eval ${docTargetVersion}?></refmiscinfo>
  </refmeta>
  <refnamediv>
   <refname>ldapsearch</refname>

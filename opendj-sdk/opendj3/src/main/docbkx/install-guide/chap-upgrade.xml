@@ -29,7 +29,7 @@
  xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <title>Upgrading to OpenDJ <?eval ${project.version}?></title>
+ <title>Upgrading to OpenDJ <?eval ${docTargetVersion}?></title>
  <indexterm><primary>Upgrading</primary></indexterm>
  
  <para>You can upgrade from an earlier version of OpenDJ either directly
@@ -119,15 +119,15 @@ $ sh /downloads/opendj_patch4upgrade.sh
     <itemizedlist>
      <listitem>
       <para>(WebStart) <link>http://www.forgerock.org/downloads/opendj/<?eval
-      ${project.version}?>/install/QuickSetup.jnlp</link></para>
+      ${docTargetVersion}?>/install/QuickSetup.jnlp</link></para>
      </listitem>
      <listitem>
       <para>(UNIX) Run <command>OpenDJ-<?eval
-      ${project.version}?>/setup</command>.</para>
+      ${docTargetVersion}?>/setup</command>.</para>
      </listitem>
      <listitem>
       <para>(Windows) Double-click <filename>OpenDJ-<?eval
-      ${project.version}?>\setup.bat</filename></para>
+      ${docTargetVersion}?>\setup.bat</filename></para>
      </listitem>
     </itemizedlist>
    </step>
@@ -160,7 +160,7 @@ $ sh /downloads/opendj_patch4upgrade.sh
    <step>
     <para>Download the OpenDJ .zip file.</para>
     <screen>$ cd /tmp
-$ wget http://www.forgerock.org/downloads/opendj/<?eval ${project.version}?>/OpenDJ-<?eval ${project.version}?>.zip</screen>
+$ wget http://www.forgerock.org/downloads/opendj/<?eval ${docTargetVersion}?>/OpenDJ-<?eval ${docTargetVersion}?>.zip</screen>
    </step>
    <step>
     <para>Change to the directory at the root of the server instance.</para>
@@ -168,7 +168,7 @@ $ wget http://www.forgerock.org/downloads/opendj/<?eval ${project.version}?>/Ope
    </step>
    <step>
     <para>Pass the .zip file name to the <command>upgrade</command> command.</para>
-    <screen>$ ./upgrade -f /tmp/OpenDJ-<?eval ${project.version}?>.zip
+    <screen>$ ./upgrade -f /tmp/OpenDJ-<?eval ${docTargetVersion}?>.zip
 See /var/....log for a detailed log of this operation.
 
 Initializing Upgrade ..... Done.
@@ -185,7 +185,7 @@ Cleaning Up ..... Done.
 Recording Upgrade History ..... Done.
 See /path/to/OpenDJ/history/log for a detailed installation history.
 QuickUpgrade Completed Successfully.  The OpenDJ installation at
-/path/to/OpenDJ has now been upgraded to version OpenDJ <?eval ${project.version}?> (Build ID:
+/path/to/OpenDJ has now been upgraded to version OpenDJ <?eval ${docTargetVersion}?> (Build ID:
 <replaceable>buildId</replaceable>).
 
 See /var/....log for a detailed log of this operation.</screen>

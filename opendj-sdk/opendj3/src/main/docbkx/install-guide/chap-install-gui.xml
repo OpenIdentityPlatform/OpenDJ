@@ -59,12 +59,12 @@
   installer.</para>
 
  <screen>$ export PATH=/path/to/sun-java6/bin:$PATH
-$ javaws http://www.forgerock.org/downloads/opendj/<?eval ${project.version}?>/install/QuickSetup.jnlp</screen>
+$ javaws http://www.forgerock.org/downloads/opendj/<?eval ${docTargetVersion}?>/install/QuickSetup.jnlp</screen>
 
  <para>The WebStart installer corresponds to what you start if you download
- OpenDJ-<?eval ${project.version}?>.zip, unzip the file, and then run
- OpenDJ-<?eval ${project.version}?>/setup (UNIX), OpenDJ-<?eval
- ${project.version}?>\setup.bat (Windows), or QuickSetup.app (Mac OS X).</para>
+ OpenDJ-<?eval ${docTargetVersion}?>.zip, unzip the file, and then run
+ OpenDJ-<?eval ${docTargetVersion}?>/setup (UNIX), OpenDJ-<?eval
+ ${docTargetVersion}?>\setup.bat (Windows), or QuickSetup.app (Mac OS X).</para>
  </note>
 
  <para>Java WebStart launches the the QuickSetup wizard, and soon the
@@ -129,8 +129,8 @@ $ javaws http://www.forgerock.org/downloads/opendj/<?eval ${project.version}?>/i
    <imagedata fileref="images/QuickSetup-cpstart.png" format="PNG" />
   </imageobject>
   <caption><para>Run <command>OpenDJ-<?eval
-  ${project.version}?>/bin/control-panel</command> (UNIX), double-click
-  <command>OpenDJ-<?eval ${project.version}?>\bat\control-panel.bat</command>
+  ${docTargetVersion}?>/bin/control-panel</command> (UNIX), double-click
+  <command>OpenDJ-<?eval ${docTargetVersion}?>\bat\control-panel.bat</command>
   (Windows), or bin/Control Panel.app (Mac OS X) to launch the Control Panel
   again later.</para></caption>
  </mediaobject>

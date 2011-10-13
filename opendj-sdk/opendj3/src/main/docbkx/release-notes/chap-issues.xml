@@ -34,12 +34,13 @@
  <para>OpenDJ issues are tracked at <link
  xlink:href='https://bugster.forgerock.org/jira/browse/OPENDJ'
  >https://bugster.forgerock.org/jira/browse/OPENDJ</link>. This chapter
- covers the status of key issues at release <?eval ${project.version}?>.</para>
+ covers the status of key issues at release <?eval ${docTargetVersion}?>.</para>
 
  <section>
   <title>Fixes Since Last Release</title>
 
-  <para>The following issues were fixed since release 2.4.2.</para>
+  <para>The following issues were fixed since release
+  <?eval ${stableServerVersion} ?>.</para>
 
   <itemizedlist>
    <listitem>
@@ -51,7 +52,7 @@
  <section xml:id="limitations">
   <title>Limitations</title>
 
-  <para>Release <?eval ${project.version}?> has the following limitations.</para>
+  <para>Release <?eval ${docTargetVersion}?> has the following limitations.</para>
 
   <itemizedlist>
    <listitem>
@@ -95,7 +96,7 @@
   <title>Known Issues</title>
 
   <para>The following known issues remained open at the time release
-  <?eval ${project.version}?> became available.</para>
+  <?eval ${docTargetVersion}?> became available.</para>
 
   <itemizedlist>
    <listitem>

@@ -39,11 +39,11 @@
   <title>To Uninstall OpenDJ From the Graphical Uninstaller</title>
   <step>
    <para>(UNIX) Run
-   <command>OpenDJ-<?eval ${project.version}?>\uninstall</command>.</para>
+   <command>OpenDJ-<?eval ${docTargetVersion}?>\uninstall</command>.</para>
    <para>(Windows) Double-click
-   <filename>OpenDJ-<?eval ${project.version}?>\uninstall.bat</filename>.</para>
+   <filename>OpenDJ-<?eval ${docTargetVersion}?>\uninstall.bat</filename>.</para>
    <para>(Mac OS X) Double-click
-   <filename>OpenDJ-<?eval ${project.version}?>\Uninstall.app</filename>.</para>
+   <filename>OpenDJ-<?eval ${docTargetVersion}?>\Uninstall.app</filename>.</para>
 
    <mediaobject>
     <imageobject>
@@ -75,7 +75,7 @@
   </step>
   
   <step>
-   <para>Run the <command>OpenDJ-<?eval ${project.version}?>/uninstall
+   <para>Run the <command>OpenDJ-<?eval ${docTargetVersion}?>/uninstall
    --cli</command> command.</para>
    
    <para>This command starts the removal program in interactive mode on the
@@ -83,7 +83,7 @@
    <command>uninstall</command> options to specify choices for the options.
    See <command>uninstall --help</command> for more information.</para>
    
-   <screen>$ cd /path/to/OpenDJ-<?eval ${project.version}?>
+   <screen>$ cd /path/to/OpenDJ-<?eval ${docTargetVersion}?>
 $ ./uninstall --cli
 Do you want to remove all components of the server or select the components to
 remove?
@@ -105,7 +105,7 @@ Deleting Files under the Installation Path ..... Done.
 The Uninstall Completed Successfully.
 To complete the uninstallation, you must delete manually the following files
 and directories:
-/path/to/OpenDJ-<?eval ${project.version}?>/lib
+/path/to/OpenDJ-<?eval ${docTargetVersion}?>/lib
 See /var/....log for a detailed log of this operation.</screen>
   </step>
 
@@ -113,7 +113,7 @@ See /var/....log for a detailed log of this operation.</screen>
    <para>If the command output tells you to delete files manually, then remove
    those remaining files to complete the process.</para>
  
-   <screen>$ rm -rf /path/to/OpenDJ-<?eval ${project.version}?></screen>
+   <screen>$ rm -rf /path/to/OpenDJ-<?eval ${docTargetVersion}?></screen>
   </step>
  </procedure>
 </chapter>

@@ -39,7 +39,7 @@
  applications with the OpenDJ LDAP SDK, you need the Java SDK as the runtime
  environment has no compiler.</para>
 
- <para>That said, OpenDJ <?eval ${project.version}?> has been validated on
+ <para>That said, OpenDJ <?eval ${docTargetVersion}?> has been validated on
  the following operating systems.</para>
 
  <itemizedlist>
@@ -57,7 +57,7 @@
   </listitem>
  </itemizedlist>
 
- <para>OpenDJ <?eval ${project.version}?> DSML gateway has been validated
+ <para>OpenDJ <?eval ${docTargetVersion}?> DSML gateway has been validated
  on Apache Tomcat 6.</para>
 
 </chapter>
