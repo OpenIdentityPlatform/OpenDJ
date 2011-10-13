@@ -2973,7 +2973,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.22
   NAME 'ds-cfg-access-log-publisher'
   SUP ds-cfg-log-publisher
   STRUCTURAL
-  MAY ( ds-cfg-suppress-internal-operations $
+  MAY ( ds-cfg-filtering-policy $
+        ds-cfg-suppress-internal-operations $
         ds-cfg-suppress-synchronization-operations )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.23
@@ -3008,8 +3009,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.25
         ds-cfg-buffer-size $
         ds-cfg-auto-flush $
         ds-cfg-append $
-        ds-cfg-queue-size $
-        ds-cfg-filtering-policy )
+        ds-cfg-queue-size )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.26
   NAME 'ds-cfg-file-based-debug-log-publisher'

@@ -30,35 +30,24 @@ package org.opends.server.loggers;
 
 
 import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.StaticUtils.getFileForPath;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-import static org.opends.server.util.StaticUtils.toLowerCase;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
-import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.std.meta.AccessLogFilteringCriteriaCfgDefn.*;
-import org.opends.server.admin.std.meta.FileBasedAccessLogPublisherCfgDefn.*;
-import org.opends.server.admin.std.server.AccessLogFilteringCriteriaCfg;
-import org.opends.server.admin.std.server.AccessLogPublisherCfg;
 import org.opends.server.admin.std.server.FileBasedAccessLogPublisherCfg;
-import org.opends.server.api.AccessLogPublisher;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
-import org.opends.server.api.Group;
-import org.opends.server.authorization.dseecompat.PatternDN;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.opends.server.util.TimeThread;
 
@@ -68,1041 +57,10 @@ import org.opends.server.util.TimeThread;
  * This class provides the implementation of the access logger used by the
  * directory server.
  */
-public class TextAccessLogPublisher extends
-    AccessLogPublisher<FileBasedAccessLogPublisherCfg> implements
+public final class TextAccessLogPublisher extends
+    AbstractTextAccessLogPublisher<FileBasedAccessLogPublisherCfg> implements
     ConfigurationChangeListener<FileBasedAccessLogPublisherCfg>
 {
-  /**
-   * Criteria based filter.
-   */
-  static final class CriteriaFilter implements Filter
-  {
-    private final AccessLogFilteringCriteriaCfg cfg;
-    private final boolean logConnectRecords;
-    private final boolean logDisconnectRecords;
-    private final EnumSet<OperationType> logOperationRecords;
-    private final AddressMask[] clientAddressEqualTo;
-    private final AddressMask[] clientAddressNotEqualTo;
-    private final PatternDN[] userDNEqualTo;
-    private final PatternDN[] userDNNotEqualTo;
-    private final PatternDN[] targetDNEqualTo;
-    private final PatternDN[] targetDNNotEqualTo;
-    private final DN[] userIsMemberOf;
-    private final DN[] userIsNotMemberOf;
-    private final String attachmentName;
-
-
-
-    /**
-     * Creates a new criteria based filter.
-     *
-     * @param cfg
-     *          The access log filter criteria.
-     * @throws DirectoryException
-     *           If the configuration cannot be parsed.
-     */
-    CriteriaFilter(final AccessLogFilteringCriteriaCfg cfg)
-        throws DirectoryException
-    {
-      this.cfg = cfg;
-
-      // Generate a unique identifier for attaching partial results to
-      // operations.
-      attachmentName = this.getClass().getName() + "#" + hashCode();
-
-      // Pre-parse the log record types for more efficient queries.
-      if (cfg.getLogRecordType().isEmpty())
-      {
-        logConnectRecords = true;
-        logDisconnectRecords = true;
-
-        logOperationRecords = EnumSet.allOf(OperationType.class);
-      }
-      else
-      {
-        logConnectRecords = cfg.getLogRecordType().contains(
-            LogRecordType.CONNECT);
-        logDisconnectRecords = cfg.getLogRecordType().contains(
-            LogRecordType.DISCONNECT);
-
-        logOperationRecords = EnumSet.noneOf(OperationType.class);
-        for (final LogRecordType type : cfg.getLogRecordType())
-        {
-          switch (type)
-          {
-          case ABANDON:
-            logOperationRecords.add(OperationType.ABANDON);
-            break;
-          case ADD:
-            logOperationRecords.add(OperationType.ADD);
-            break;
-          case BIND:
-            logOperationRecords.add(OperationType.BIND);
-            break;
-          case COMPARE:
-            logOperationRecords.add(OperationType.COMPARE);
-            break;
-          case DELETE:
-            logOperationRecords.add(OperationType.DELETE);
-            break;
-          case EXTENDED:
-            logOperationRecords.add(OperationType.EXTENDED);
-            break;
-          case MODIFY:
-            logOperationRecords.add(OperationType.MODIFY);
-            break;
-          case RENAME:
-            logOperationRecords.add(OperationType.MODIFY_DN);
-            break;
-          case SEARCH:
-            logOperationRecords.add(OperationType.SEARCH);
-            break;
-          case UNBIND:
-            logOperationRecords.add(OperationType.UNBIND);
-            break;
-          default: // Ignore CONNECT/DISCONNECT
-            break;
-          }
-        }
-      }
-
-      clientAddressEqualTo = cfg.getClientAddressEqualTo().toArray(
-          new AddressMask[0]);
-      clientAddressNotEqualTo = cfg.getClientAddressNotEqualTo().toArray(
-          new AddressMask[0]);
-
-      userDNEqualTo = new PatternDN[cfg.getUserDNEqualTo().size()];
-      int i = 0;
-      for (final String s : cfg.getUserDNEqualTo())
-      {
-        userDNEqualTo[i++] = PatternDN.decode(s);
-      }
-
-      userDNNotEqualTo = new PatternDN[cfg.getUserDNNotEqualTo().size()];
-      i = 0;
-      for (final String s : cfg.getUserDNNotEqualTo())
-      {
-        userDNNotEqualTo[i++] = PatternDN.decode(s);
-      }
-
-      userIsMemberOf = cfg.getUserIsMemberOf().toArray(new DN[0]);
-      userIsNotMemberOf = cfg.getUserIsNotMemberOf().toArray(new DN[0]);
-
-      targetDNEqualTo = new PatternDN[cfg.getRequestTargetDNEqualTo().size()];
-      i = 0;
-      for (final String s : cfg.getRequestTargetDNEqualTo())
-      {
-        targetDNEqualTo[i++] = PatternDN.decode(s);
-      }
-
-      targetDNNotEqualTo = new PatternDN[cfg.getRequestTargetDNNotEqualTo()
-          .size()];
-      i = 0;
-      for (final String s : cfg.getRequestTargetDNNotEqualTo())
-      {
-        targetDNNotEqualTo[i++] = PatternDN.decode(s);
-      }
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isConnectLoggable(final ClientConnection connection)
-    {
-      if (!logConnectRecords)
-      {
-        return false;
-      }
-
-      if (!filterClientConnection(connection))
-      {
-        return false;
-      }
-
-      return true;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isDisconnectLoggable(final ClientConnection connection)
-    {
-      if (!logDisconnectRecords)
-      {
-        return false;
-      }
-
-      if (!filterClientConnection(connection))
-      {
-        return false;
-      }
-
-      if (!filterUser(connection))
-      {
-        return false;
-      }
-
-      return true;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isRequestLoggable(final Operation operation)
-    {
-      final ClientConnection connection = operation.getClientConnection();
-      final boolean matches = logOperationRecords.contains(operation
-          .getOperationType())
-          && filterClientConnection(connection)
-          && filterUser(connection) && filterRequest(operation);
-
-      // Cache the result so that it does not need to be recomputed for the
-      // response.
-      operation.setAttachment(attachmentName, matches);
-
-      return matches;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isResponseLoggable(final Operation operation)
-    {
-      // First check the result that was computed for the initial request.
-      Boolean requestMatched = (Boolean) operation
-          .getAttachment(attachmentName);
-      if (requestMatched == null)
-      {
-        // This should not happen.
-        if (debugEnabled())
-        {
-          TRACER.debugWarning(
-              "Operation attachment %s not found while logging response",
-              attachmentName);
-        }
-        requestMatched = isRequestLoggable(operation);
-      }
-
-      if (!requestMatched)
-      {
-        return false;
-      }
-
-      // Check the response parameters.
-      if (!filterResponse(operation))
-      {
-        return false;
-      }
-
-      return true;
-    }
-
-
-
-    private boolean filterClientConnection(final ClientConnection connection)
-    {
-      // Check client address.
-      final InetAddress ipAddr = connection.getRemoteAddress();
-      if (clientAddressNotEqualTo.length > 0)
-      {
-        if (AddressMask.maskListContains(ipAddr, clientAddressNotEqualTo))
-        {
-          return false;
-        }
-      }
-      if (clientAddressEqualTo.length > 0)
-      {
-        if (!AddressMask.maskListContains(ipAddr, clientAddressEqualTo))
-        {
-          return false;
-        }
-      }
-
-      // Check server port.
-      if (!cfg.getClientPortEqualTo().isEmpty())
-      {
-        if (!cfg.getClientPortEqualTo().contains(connection.getServerPort()))
-        {
-          return false;
-        }
-      }
-
-      // Check protocol.
-      if (!cfg.getClientProtocolEqualTo().isEmpty())
-      {
-        if (!cfg.getClientProtocolEqualTo().contains(
-            toLowerCase(connection.getProtocol())))
-        {
-          return false;
-        }
-      }
-
-      return true;
-    }
-
-
-
-    private boolean filterRequest(final Operation operation)
-    {
-      // Check target DN.
-      if (targetDNNotEqualTo.length > 0 || targetDNEqualTo.length > 0)
-      {
-        if (!filterRequestTargetDN(operation))
-        {
-          return false;
-        }
-      }
-
-      // TODO: check required controls.
-
-      return true;
-    }
-
-
-
-    private boolean filterRequestTargetDN(final Operation operation)
-    {
-      // Obtain both the parsed and unparsed target DNs. Requests are logged
-      // before parsing so usually only the raw unparsed target DN will be
-      // present, and it may even be invalid.
-      DN targetDN = null;
-      ByteString rawTargetDN = null;
-
-      switch (operation.getOperationType())
-      {
-      case ABANDON:
-      case UNBIND:
-        // These operations don't have parameters which we can filter so
-        // always match them.
-        return true;
-      case EXTENDED:
-        // These operations could have parameters which can be filtered but
-        // we'd need to decode the request in order to find out. This is
-        // beyond the scope of the access log. Therefore, treat extended
-        // operations like abandon/unbind.
-        return true;
-      case ADD:
-        targetDN = ((AddOperation) operation).getEntryDN();
-        rawTargetDN = ((AddOperation) operation).getRawEntryDN();
-        break;
-      case BIND:
-        // For SASL bind operations the bind DN, if provided, will require the
-        // SASL credentials to be decoded which is beyond the scope of the
-        // access log.
-        targetDN = ((BindOperation) operation).getBindDN();
-        rawTargetDN = ((BindOperation) operation).getRawBindDN();
-        break;
-      case COMPARE:
-        targetDN = ((CompareOperation) operation).getEntryDN();
-        rawTargetDN = ((CompareOperation) operation).getRawEntryDN();
-        break;
-      case DELETE:
-        targetDN = ((DeleteOperation) operation).getEntryDN();
-        rawTargetDN = ((DeleteOperation) operation).getRawEntryDN();
-        break;
-      case MODIFY:
-        targetDN = ((ModifyOperation) operation).getEntryDN();
-        rawTargetDN = ((ModifyOperation) operation).getRawEntryDN();
-        break;
-      case MODIFY_DN:
-        targetDN = ((ModifyDNOperation) operation).getEntryDN();
-        rawTargetDN = ((ModifyDNOperation) operation).getRawEntryDN();
-        break;
-      case SEARCH:
-        targetDN = ((SearchOperation) operation).getBaseDN();
-        rawTargetDN = ((SearchOperation) operation).getRawBaseDN();
-        break;
-      }
-
-      // Attempt to parse the raw target DN if needed.
-      if (targetDN == null)
-      {
-        try
-        {
-          targetDN = DN.decode(rawTargetDN);
-        }
-        catch (final DirectoryException e)
-        {
-          // The DN raw target DN was invalid. It will never match any
-          // not-equal-to nor equal-to patterns, so return appropriate result.
-          if (targetDNEqualTo.length != 0)
-          {
-            // Invalid DN will never match equal-to patterns.
-            return false;
-          }
-          else
-          {
-            // Invalid DN does not match any not-equal-to patterns.
-            return true;
-          }
-        }
-      }
-
-      if (targetDNNotEqualTo.length > 0)
-      {
-        for (final PatternDN pattern : targetDNNotEqualTo)
-        {
-          if (pattern.matchesDN(targetDN))
-          {
-            return false;
-          }
-        }
-      }
-
-      if (targetDNEqualTo.length > 0)
-      {
-        for (final PatternDN pattern : targetDNNotEqualTo)
-        {
-          if (pattern.matchesDN(targetDN))
-          {
-            return true;
-          }
-        }
-      }
-
-      // The target DN did not match.
-      return false;
-    }
-
-
-
-    private boolean filterResponse(final Operation operation)
-    {
-      // Check response code.
-      final Integer resultCode = operation.getResultCode().getIntValue();
-
-      if (!cfg.getResponseResultCodeNotEqualTo().isEmpty())
-      {
-        if (cfg.getResponseResultCodeNotEqualTo().contains(resultCode))
-        {
-          return false;
-        }
-      }
-
-      if (!cfg.getResponseResultCodeEqualTo().isEmpty())
-      {
-        if (!cfg.getResponseResultCodeNotEqualTo().contains(resultCode))
-        {
-          return false;
-        }
-      }
-
-      // Check etime.
-      final long etime = operation.getProcessingTime();
-
-      final Integer etimeGT = cfg.getResponseEtimeLessThan();
-      if (etimeGT != null)
-      {
-        if (etime <= ((long) etimeGT))
-        {
-          return false;
-        }
-      }
-
-      final Integer etimeLT = cfg.getResponseEtimeLessThan();
-      if (etimeLT != null)
-      {
-        if (etime >= ((long) etimeLT))
-        {
-          return false;
-        }
-      }
-
-      // Check search response fields.
-      if (operation instanceof SearchOperation)
-      {
-        final SearchOperation searchOperation = (SearchOperation) operation;
-        final Boolean isIndexed= cfg.isSearchResponseIsIndexed();
-        if (isIndexed != null)
-        {
-          boolean wasUnindexed = false;
-          for (final AdditionalLogItem item : operation.getAdditionalLogItems())
-          {
-            if (item.getKey().equals("unindexed"))
-            {
-              wasUnindexed = true;
-              break;
-            }
-          }
-
-          if (isIndexed)
-          {
-            if (wasUnindexed)
-            {
-              return false;
-            }
-          }
-          else
-          {
-            if (!wasUnindexed)
-            {
-              return false;
-            }
-          }
-        }
-
-        final int nentries = searchOperation.getEntriesSent();
-
-        final Integer nentriesGT = cfg.getSearchResponseNentriesGreaterThan();
-        if (nentriesGT != null)
-        {
-          if (nentries <= nentriesGT)
-          {
-            return false;
-          }
-        }
-
-        final Integer nentriesLT = cfg.getSearchResponseNentriesLessThan();
-        if (nentriesLT != null)
-        {
-          if (nentries >= nentriesLT)
-          {
-            return false;
-          }
-        }
-      }
-
-      return true;
-    }
-
-
-
-    private boolean filterUser(final ClientConnection connection)
-    {
-      // Check user DN.
-      if (userDNNotEqualTo.length > 0 || userDNEqualTo.length > 0)
-      {
-        if (!filterUserBindDN(connection))
-        {
-          return false;
-        }
-      }
-
-      // Check group membership.
-      if (userIsNotMemberOf.length > 0 || userIsNotMemberOf.length > 0)
-      {
-        if (!filterUserIsMemberOf(connection))
-        {
-          return false;
-        }
-      }
-
-      return true;
-    }
-
-
-
-    private boolean filterUserBindDN(final ClientConnection connection)
-    {
-      final DN userDN = connection.getAuthenticationInfo()
-          .getAuthenticationDN();
-
-      // Fast-path for unauthenticated clients.
-      if (userDN == null)
-      {
-        return userDNEqualTo.length == 0;
-      }
-
-      if (userDNNotEqualTo.length > 0)
-      {
-        for (final PatternDN pattern : userDNNotEqualTo)
-        {
-          if (pattern.matchesDN(userDN))
-          {
-            return false;
-          }
-        }
-      }
-
-      if (userDNEqualTo.length > 0)
-      {
-        for (final PatternDN pattern : userDNNotEqualTo)
-        {
-          if (pattern.matchesDN(userDN))
-          {
-            return true;
-          }
-        }
-      }
-
-      // The user DN did not match.
-      return false;
-    }
-
-
-
-    private boolean filterUserIsMemberOf(final ClientConnection connection)
-    {
-      final Entry userEntry = connection.getAuthenticationInfo()
-          .getAuthenticationEntry();
-
-      // Fast-path for unauthenticated clients.
-      if (userEntry == null)
-      {
-        return userIsMemberOf.length == 0;
-      }
-
-      final GroupManager groupManager = DirectoryServer.getGroupManager();
-      if (userIsNotMemberOf.length > 0)
-      {
-        for (final DN groupDN : userIsNotMemberOf)
-        {
-          final Group<?> group = groupManager.getGroupInstance(groupDN);
-          try
-          {
-            if ((group != null) && group.isMember(userEntry))
-            {
-              return false;
-            }
-          }
-          catch (final DirectoryException e)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
-          }
-        }
-      }
-
-      if (userIsMemberOf.length > 0)
-      {
-        for (final DN groupDN : userIsMemberOf)
-        {
-          final Group<?> group = groupManager.getGroupInstance(groupDN);
-          try
-          {
-            if ((group != null) && group.isMember(userEntry))
-            {
-              return true;
-            }
-          }
-          catch (final DirectoryException e)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
-          }
-        }
-      }
-
-      // The user entry did not match.
-      return false;
-    }
-
-  }
-
-
-
-  // TODO: update assigned OIDs WIKI page when complete.
-
-  /**
-   * Log message filter predicate.
-   */
-  static interface Filter
-  {
-    /**
-     * Returns {@code true} if the provided client connect should be logged.
-     *
-     * @param connection
-     *          The client connection.
-     * @return {@code true} if the provided client connect should be logged.
-     */
-    boolean isConnectLoggable(ClientConnection connection);
-
-
-
-    /**
-     * Returns {@code true} if the provided client disconnect should be logged.
-     *
-     * @param connection
-     *          The client connection.
-     * @return {@code true} if the provided client disconnect should be logged.
-     */
-    boolean isDisconnectLoggable(ClientConnection connection);
-
-
-
-    /**
-     * Returns {@code true} if the provided request should be logged.
-     *
-     * @param operation
-     *          The request.
-     * @return {@code true} if the provided request should be logged.
-     */
-    boolean isRequestLoggable(Operation operation);
-
-
-
-    /**
-     * Returns {@code true} if the provided response should be logged.
-     *
-     * @param operation
-     *          The response.
-     * @return {@code true} if the provided response should be logged.
-     */
-    boolean isResponseLoggable(Operation operation);
-  }
-
-
-
-  /**
-   * A filter which performs a logical OR over a set of sub-filters.
-   */
-  static final class OrFilter implements Filter
-  {
-    private final Filter[] subFilters;
-
-
-
-    /**
-     * Creates a new OR filter.
-     *
-     * @param subFilters
-     *          The sub-filters.
-     */
-    OrFilter(final Filter[] subFilters)
-    {
-      this.subFilters = subFilters;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isConnectLoggable(final ClientConnection connection)
-    {
-      for (final Filter filter : subFilters)
-      {
-        if (filter.isConnectLoggable(connection))
-        {
-          // Succeed fast.
-          return true;
-        }
-      }
-      return false;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isDisconnectLoggable(final ClientConnection connection)
-    {
-      for (final Filter filter : subFilters)
-      {
-        if (filter.isDisconnectLoggable(connection))
-        {
-          // Succeed fast.
-          return true;
-        }
-      }
-      return false;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isRequestLoggable(final Operation operation)
-    {
-      for (final Filter filter : subFilters)
-      {
-        if (filter.isRequestLoggable(operation))
-        {
-          // Succeed fast.
-          return true;
-        }
-      }
-      return false;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isResponseLoggable(final Operation operation)
-    {
-      for (final Filter filter : subFilters)
-      {
-        if (filter.isResponseLoggable(operation))
-        {
-          // Succeed fast.
-          return true;
-        }
-      }
-      return false;
-    }
-
-  }
-
-
-
-  /**
-   * The root filter which first checks the logger configuration, delegating to
-   * a sub-filter if needed.
-   */
-  static final class RootFilter implements Filter
-  {
-    private final Filter subFilter;
-    private final boolean suppressInternalOperations;
-    private final boolean suppressSynchronizationOperations;
-    private final FilteringPolicy policy;
-
-
-
-    /**
-     * Creates a new root filter.
-     *
-     * @param suppressInternal
-     *          Indicates whether internal operations should be suppressed.
-     * @param suppressSynchronization
-     *          Indicates whether sync operations should be suppressed.
-     * @param policy
-     *          The filtering policy.
-     * @param subFilter
-     *          The sub-filters.
-     */
-    RootFilter(final boolean suppressInternal,
-        final boolean suppressSynchronization, final FilteringPolicy policy,
-        final Filter subFilter)
-    {
-      this.suppressInternalOperations = suppressInternal;
-      this.suppressSynchronizationOperations = suppressSynchronization;
-      this.policy = policy;
-      this.subFilter = subFilter;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isConnectLoggable(final ClientConnection connection)
-    {
-      final long connectionID = connection.getConnectionID();
-      if (connectionID >= 0 || !suppressInternalOperations)
-      {
-        switch (policy)
-        {
-        case INCLUSIVE:
-          return subFilter.isConnectLoggable(connection);
-        case EXCLUSIVE:
-          return !subFilter.isConnectLoggable(connection);
-        default: // NO_FILTERING:
-          return true;
-        }
-      }
-      else
-      {
-        return false;
-      }
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isDisconnectLoggable(final ClientConnection connection)
-    {
-      final long connectionID = connection.getConnectionID();
-      if (connectionID >= 0 || !suppressInternalOperations)
-      {
-        switch (policy)
-        {
-        case INCLUSIVE:
-          return subFilter.isDisconnectLoggable(connection);
-        case EXCLUSIVE:
-          return !subFilter.isDisconnectLoggable(connection);
-        default: // NO_FILTERING:
-          return true;
-        }
-      }
-      else
-      {
-        return false;
-      }
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isRequestLoggable(final Operation operation)
-    {
-      if (isLoggable(operation))
-      {
-        switch (policy)
-        {
-        case INCLUSIVE:
-          return subFilter.isRequestLoggable(operation);
-        case EXCLUSIVE:
-          return !subFilter.isRequestLoggable(operation);
-        default: // NO_FILTERING:
-          return true;
-        }
-      }
-      else
-      {
-        return false;
-      }
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isResponseLoggable(final Operation operation)
-    {
-      if (isLoggable(operation))
-      {
-        switch (policy)
-        {
-        case INCLUSIVE:
-          return subFilter.isResponseLoggable(operation);
-        case EXCLUSIVE:
-          return !subFilter.isResponseLoggable(operation);
-        default: // NO_FILTERING:
-          return true;
-        }
-      }
-      else
-      {
-        return false;
-      }
-    }
-
-
-
-    // Determines whether the provided operation should be logged.
-    private boolean isLoggable(final Operation operation)
-    {
-      final long connectionID = operation.getConnectionID();
-      if (connectionID < 0)
-      {
-        // This is an internal operation.
-        if (operation.isSynchronizationOperation())
-        {
-          return !suppressSynchronizationOperations;
-        }
-        else
-        {
-          return !suppressInternalOperations;
-        }
-      }
-
-      return true;
-    }
-  }
-
-
-
-  /**
-   * Filter criteria configuration listener.
-   */
-  private final class FilterChangeListener implements
-      ConfigurationChangeListener<AccessLogFilteringCriteriaCfg>,
-      ConfigurationAddListener<AccessLogFilteringCriteriaCfg>,
-      ConfigurationDeleteListener<AccessLogFilteringCriteriaCfg>
-  {
-
-    /**
-     * {@inheritDoc}
-     */
-    public ConfigChangeResult applyConfigurationAdd(
-        final AccessLogFilteringCriteriaCfg configuration)
-    {
-      // Rebuild the filter using the new configuration and criteria.
-      buildFilters();
-      configuration.addChangeListener(this);
-      return new ConfigChangeResult(ResultCode.SUCCESS, false);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public ConfigChangeResult applyConfigurationChange(
-        final AccessLogFilteringCriteriaCfg configuration)
-    {
-      // Rebuild the filter using the new configuration and criteria.
-      buildFilters();
-      return new ConfigChangeResult(ResultCode.SUCCESS, false);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public ConfigChangeResult applyConfigurationDelete(
-        final AccessLogFilteringCriteriaCfg configuration)
-    {
-      // Rebuild the filter using the new configuration and criteria.
-      buildFilters();
-      return new ConfigChangeResult(ResultCode.SUCCESS, false);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isConfigurationAddAcceptable(
-        final AccessLogFilteringCriteriaCfg configuration,
-        final List<Message> unacceptableReasons)
-    {
-      return true;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isConfigurationChangeAcceptable(
-        final AccessLogFilteringCriteriaCfg configuration,
-        final List<Message> unacceptableReasons)
-    {
-      return true;
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isConfigurationDeleteAcceptable(
-        final AccessLogFilteringCriteriaCfg configuration,
-        final List<Message> unacceptableReasons)
-    {
-      return true;
-    }
-  }
-
-
-
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
 
   /**
    * The category to use when logging responses.
@@ -1134,17 +92,14 @@ public class TextAccessLogPublisher extends
     final TextAccessLogPublisher startupPublisher =
       new TextAccessLogPublisher();
     startupPublisher.writer = writer;
-    startupPublisher.buildFilters(suppressInternal, false,
-        FilteringPolicy.NO_FILTERING);
+    startupPublisher.buildFilters(suppressInternal);
     return startupPublisher;
   }
 
 
 
-  private FileBasedAccessLogPublisherCfg currentConfig = null;
   private TextWriter writer = null;
-  private Filter filter = null;
-  private FilterChangeListener filterChangeListener = null;
+  private FileBasedAccessLogPublisherCfg cfg = null;
 
 
 
@@ -1246,16 +201,13 @@ public class TextAccessLogPublisher extends
           writer = asyncWriter;
         }
 
-        if ((currentConfig.isAsynchronous() && config.isAsynchronous())
-            && (currentConfig.getQueueSize() != config.getQueueSize()))
+        if ((cfg.isAsynchronous() && config.isAsynchronous())
+            && (cfg.getQueueSize() != config.getQueueSize()))
         {
           adminActionRequired = true;
         }
 
-        currentConfig = config;
-
-        // Rebuild the filter using the new configuration and criteria.
-        buildFilters();
+        cfg = config;
       }
     }
     catch (final Exception e)
@@ -1276,49 +228,12 @@ public class TextAccessLogPublisher extends
    * {@inheritDoc}
    */
   @Override
-  public void close()
+  protected void close0()
   {
     writer.shutdown();
-
-    if (currentConfig != null)
+    if (cfg != null)
     {
-      currentConfig.removeFileBasedAccessChangeListener(this);
-
-      for (final String criteriaName : currentConfig
-          .listAccessLogFilteringCriteria())
-      {
-        try
-        {
-          currentConfig.getAccessLogFilteringCriteria(criteriaName)
-              .removeChangeListener(filterChangeListener);
-        }
-        catch (final ConfigException e)
-        {
-          // Ignore.
-        }
-      }
-      currentConfig
-          .removeAccessLogFilteringCriteriaAddListener(filterChangeListener);
-      currentConfig
-          .removeAccessLogFilteringCriteriaDeleteListener(filterChangeListener);
-    }
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public DN getDN()
-  {
-    if (currentConfig != null)
-    {
-      return currentConfig.dn();
-    }
-    else
-    {
-      return null;
+      cfg.removeFileBasedAccessChangeListener(this);
     }
   }
 
@@ -1386,7 +301,6 @@ public class TextAccessLogPublisher extends
       final Message message = ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(cfg
           .dn().toString(), String.valueOf(e));
       throw new InitializationException(message, e);
-
     }
     catch (final IOException e)
     {
@@ -1396,32 +310,9 @@ public class TextAccessLogPublisher extends
 
     }
 
-    currentConfig = cfg;
-
-    // Rebuild the filter using the new configuration and criteria.
-    buildFilters();
-
-    // Add change listeners.
-    filterChangeListener = new FilterChangeListener();
-    for (final String criteriaName : currentConfig
-        .listAccessLogFilteringCriteria())
-    {
-      try
-      {
-        currentConfig.getAccessLogFilteringCriteria(criteriaName)
-            .addChangeListener(filterChangeListener);
-      }
-      catch (final ConfigException e)
-      {
-        // Ignore.
-      }
-    }
-    currentConfig
-        .addAccessLogFilteringCriteriaAddListener(filterChangeListener);
-    currentConfig
-        .addAccessLogFilteringCriteriaDeleteListener(filterChangeListener);
-
-    currentConfig.addFileBasedAccessChangeListener(this);
+    initializeFilters(cfg);
+    this.cfg = cfg;
+    cfg.addFileBasedAccessChangeListener(this);
   }
 
 
@@ -1431,12 +322,10 @@ public class TextAccessLogPublisher extends
    */
   @Override
   public boolean isConfigurationAcceptable(
-      final AccessLogPublisherCfg configuration,
+      final FileBasedAccessLogPublisherCfg configuration,
       final List<Message> unacceptableReasons)
   {
-    final FileBasedAccessLogPublisherCfg config =
-      (FileBasedAccessLogPublisherCfg) configuration;
-    return isConfigurationChangeAcceptable(config, unacceptableReasons);
+    return isConfigurationChangeAcceptable(configuration, unacceptableReasons);
   }
 
 
@@ -1485,7 +374,7 @@ public class TextAccessLogPublisher extends
   @Override
   public void logAbandonRequest(final AbandonOperation abandonOperation)
   {
-    if (!filter.isRequestLoggable(abandonOperation))
+    if (!isRequestLoggable(abandonOperation))
     {
       return;
     }
@@ -1515,7 +404,7 @@ public class TextAccessLogPublisher extends
   @Override
   public void logAbandonResult(final AbandonOperation abandonOperation)
   {
-    if (!filter.isResponseLoggable(abandonOperation))
+    if (!isResponseLoggable(abandonOperation))
     {
       return;
     }
@@ -1553,7 +442,7 @@ public class TextAccessLogPublisher extends
   @Override
   public void logAddRequest(final AddOperation addOperation)
   {
-    if (!filter.isRequestLoggable(addOperation))
+    if (!isRequestLoggable(addOperation))
     {
       return;
     }
@@ -1584,7 +473,7 @@ public class TextAccessLogPublisher extends
   @Override
   public void logAddResponse(final AddOperation addOperation)
   {
-    if (!filter.isResponseLoggable(addOperation))
+    if (!isResponseLoggable(addOperation))
     {
       return;
     }
@@ -1636,7 +525,7 @@ public class TextAccessLogPublisher extends
   @Override
   public void logBindRequest(final BindOperation bindOperation)
   {
-    if (!filter.isRequestLoggable(bindOperation))
+    if (!isRequestLoggable(bindOperation))
     {
       return;
     }
@@ -1690,7 +579,7 @@ public class TextAccessLogPublisher extends
   @Override
   public void logBindResponse(final BindOperation bindOperation)
   {
-    if (!filter.isResponseLoggable(bindOperation))
+    if (!isResponseLoggable(bindOperation))
     {
       return;
     }
@@ -1774,7 +663,7 @@ public class TextAccessLogPublisher extends
   @Override
   public void logCompareRequest(final CompareOperation compareOperation)
   {
-    if (!filter.isRequestLoggable(compareOperation))
+    if (!isRequestLoggable(compareOperation))
     {
       return;
     }
@@ -1806,7 +695,7 @@ public class TextAccessLogPublisher extends
   @Override
   public void logCompareResponse(final CompareOperation compareOperation)
   {
-    if (!filter.isResponseLoggable(compareOperation))
+    if (!isResponseLoggable(compareOperation))
     {
       return;
     }
@@ -1858,7 +747,7 @@ public class TextAccessLogPublisher extends
   @Override
   public void logConnect(final ClientConnection clientConnection)
   {
-    if (!filter.isConnectLoggable(clientConnection))
+    if (!isConnectLoggable(clientConnection))
     {
       return;
     }
@@ -1894,7 +783,7 @@ public class TextAccessLogPublisher extends
   @Override
   public void logDeleteRequest(final DeleteOperation deleteOperation)
   {
-    if (!filter.isRequestLoggable(deleteOperation))
+    if (!isRequestLoggable(deleteOperation))
     {
       return;
     }
@@ -1925,7 +814,7 @@ public class TextAccessLogPublisher extends
   @Override
   public void logDeleteResponse(final DeleteOperation deleteOperation)
   {
-    if (!filter.isResponseLoggable(deleteOperation))
+    if (!isResponseLoggable(deleteOperation))
     {
       return;
     }
@@ -1982,7 +871,7 @@ public class TextAccessLogPublisher extends
   public void logDisconnect(final ClientConnection clientConnection,
       final DisconnectReason disconnectReason, final Message message)
   {
-    if (!filter.isDisconnectLoggable(clientConnection))
+    if (!isDisconnectLoggable(clientConnection))
     {
       return;
     }
@@ -2021,7 +910,7 @@ public class TextAccessLogPublisher extends
   @Override
   public void logExtendedRequest(final ExtendedOperation extendedOperation)
   {
-    if (!filter.isRequestLoggable(extendedOperation))
+    if (!isRequestLoggable(extendedOperation))
     {
       return;
     }
@@ -2066,7 +955,7 @@ public class TextAccessLogPublisher extends
   @Override
   public void logExtendedResponse(final ExtendedOperation extendedOperation)
   {
-    if (!filter.isResponseLoggable(extendedOperation))
+    if (!isResponseLoggable(extendedOperation))
     {
       return;
     }
@@ -2132,7 +1021,7 @@ public class TextAccessLogPublisher extends
   @Override
   public void logModifyDNRequest(final ModifyDNOperation modifyDNOperation)
   {
-    if (!filter.isRequestLoggable(modifyDNOperation))
+    if (!isRequestLoggable(modifyDNOperation))
     {
       return;
     }
@@ -2173,7 +1062,7 @@ public class TextAccessLogPublisher extends
   @Override
   public void logModifyDNResponse(final ModifyDNOperation modifyDNOperation)
   {
-    if (!filter.isResponseLoggable(modifyDNOperation))
+    if (!isResponseLoggable(modifyDNOperation))
     {
       return;
     }
@@ -2225,7 +1114,7 @@ public class TextAccessLogPublisher extends
   @Override
   public void logModifyRequest(final ModifyOperation modifyOperation)
   {
-    if (!filter.isRequestLoggable(modifyOperation))
+    if (!isRequestLoggable(modifyOperation))
     {
       return;
     }
@@ -2256,7 +1145,7 @@ public class TextAccessLogPublisher extends
   @Override
   public void logModifyResponse(final ModifyOperation modifyOperation)
   {
-    if (!filter.isResponseLoggable(modifyOperation))
+    if (!isResponseLoggable(modifyOperation))
     {
       return;
     }
@@ -2308,7 +1197,7 @@ public class TextAccessLogPublisher extends
   @Override
   public void logSearchRequest(final SearchOperation searchOperation)
   {
-    if (!filter.isRequestLoggable(searchOperation))
+    if (!isRequestLoggable(searchOperation))
     {
       return;
     }
@@ -2362,7 +1251,7 @@ public class TextAccessLogPublisher extends
   @Override
   public void logSearchResultDone(final SearchOperation searchOperation)
   {
-    if (!filter.isResponseLoggable(searchOperation))
+    if (!isResponseLoggable(searchOperation))
     {
       return;
     }
@@ -2418,7 +1307,7 @@ public class TextAccessLogPublisher extends
   public void logUnbind(final UnbindOperation unbindOperation)
   {
     // FIXME: ensure that these are logged in combined mode.
-    if (!filter.isRequestLoggable(unbindOperation))
+    if (!isRequestLoggable(unbindOperation))
     {
       return;
     }
@@ -2451,50 +1340,6 @@ public class TextAccessLogPublisher extends
     buffer.append(operation.getOperationID());
     buffer.append(" msgID=");
     buffer.append(operation.getMessageID());
-  }
-
-
-
-  // Build an appropriate set of filters based on the configuration.
-  private void buildFilters()
-  {
-    buildFilters(currentConfig.isSuppressInternalOperations(),
-        currentConfig.isSuppressSynchronizationOperations(),
-        currentConfig.getFilteringPolicy());
-  }
-
-
-
-  private void buildFilters(final boolean suppressInternal,
-      final boolean suppressSynchronization, final FilteringPolicy policy)
-  {
-    final ArrayList<Filter> subFilters = new ArrayList<Filter>();
-    if (currentConfig != null)
-    {
-      for (final String criteriaName : currentConfig
-          .listAccessLogFilteringCriteria())
-      {
-        try
-        {
-          final AccessLogFilteringCriteriaCfg cfg = currentConfig
-              .getAccessLogFilteringCriteria(criteriaName);
-          subFilters.add(new CriteriaFilter(cfg));
-        }
-        catch (final ConfigException e)
-        {
-          // TODO: Unable to decode this access log criteria, so log a warning
-          // and continue.
-        }
-        catch (final DirectoryException e)
-        {
-          // TODO: Unable to decode this access log criteria, so log a warning
-          // and continue.
-        }
-      }
-    }
-    final Filter orFilter = new OrFilter(subFilters.toArray(new Filter[0]));
-    filter = new RootFilter(suppressInternal, suppressSynchronization, policy,
-        orFilter);
   }
 
 
