@@ -257,7 +257,8 @@ public class TestAddressMask extends TypesTestCase {
     }
     for(int j = 0; j < addrs.length; j++) {
       try  {
-        InetAddress addr = InetAddress.getByName(addrs[j]);
+        InetAddress addr = InetAddress.getByAddress(hostNames[j], InetAddress
+            .getByName(addrs[j]).getAddress());
         if(!AddressMask.maskListContains(addr, m)) {
           ret=false;
           break;
