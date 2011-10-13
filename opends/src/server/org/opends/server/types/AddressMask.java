@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.types;
 import org.opends.messages.Message;
@@ -376,26 +377,27 @@ public final class AddressMask
         return new AddressMask(maskString);
     }
 
+
+
     /**
-     * Indicates whether provided address or hostname matches one of
-     * the address masks in the provided array.
+     * Indicates whether provided address matches one of the address masks in
+     * the provided array.
      *
-     * @param remoteAddr The remote address byte array.
-     * @param remoteName The remote host name string.
-     * @param masks      An array of address masks to check.
-     * @return <CODE>true</CODE> if the provided address or hostname
-     *          does match one of the given address masks, or
-     *         <CODE>false</CODE> if it does not.
+     * @param address
+     *          The address to check.
+     * @param masks
+     *          An array of address masks to check.
+     * @return <CODE>true</CODE> if the provided address matches one of the
+     *         given address masks, or <CODE>false</CODE> if it does not.
      */
-    public  static boolean maskListContains(byte[] remoteAddr,
-                                            String remoteName,
-                                            AddressMask[] masks)
+    public  static boolean maskListContains(InetAddress address,
+        AddressMask[] masks)
     {
-        for (AddressMask mask : masks) {
-            if(mask.match(remoteAddr, remoteName))
-                return true;
-        }
-        return false;
+      for (AddressMask mask : masks)
+      {
+        if (mask.match(address)) return true;
+      }
+      return false;
     }
 
     /**
@@ -412,12 +414,12 @@ public final class AddressMask
     /**
      * Main match function that determines which rule-type match
      * function to use.
-     * @param remoteAddr The remote client address byte array.
-     * @param remoteName The remote client host name.
+     * @param address
+     *          The address to check.
      * @return <CODE>true</CODE>if one of the match functions found
      *         a match or <CODE>false</CODE>if not.
      */
-    private boolean match(byte[] remoteAddr, String remoteName)
+    private boolean match(InetAddress address)
     {
         boolean ret=false;
 
@@ -425,24 +427,24 @@ public final class AddressMask
         case IPv6:
         case IPv4:
             //this Address mask is an IPv4 rule
-            ret=matchAddress(remoteAddr);
+            ret=matchAddress(address.getAddress());
             break;
 
         case HOST:
             // HOST rule use hostname
-            ret=matchHostName(remoteName);
+            ret=matchHostName(address.getHostName());
             break;
 
         case HOSTPATTERN:
             //HOSTPATTERN rule
-            ret=matchPattern(remoteName);
+            ret=matchPattern(address.getHostName());
             break;
 
         case ALLWILDCARD:
             //first try  ipv4 addr match, then hostname
-            ret=matchAddress(remoteAddr);
+            ret=matchAddress(address.getAddress());
             if(!ret)
-                ret=matchHostName(remoteName);
+                ret=matchHostName(address.getHostName());
             break;
         }
         return ret;
