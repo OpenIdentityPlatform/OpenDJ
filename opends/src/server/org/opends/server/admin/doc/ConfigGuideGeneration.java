@@ -1375,7 +1375,7 @@ public class ConfigGuideGeneration {
       "<title>" + pageTitle + "</title>\n" +
       "<link rel=\"stylesheet\" type=\"text/css\"\n" +
       "href=\"" + CSS_FILE + "\">\n" +
-      "<link rel=\"shortcut icon\" href=\" + FAVICON + \">\n" +
+      "<link rel=\"shortcut icon\" href=\"" + FAVICON + "\">\n" +
       "</head>\n");
   }
 
