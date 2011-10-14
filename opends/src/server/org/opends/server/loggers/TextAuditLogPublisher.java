@@ -258,7 +258,8 @@ public final class TextAuditLogPublisher extends
       FileBasedAuditLogPublisherCfg configuration,
       List<Message> unacceptableReasons)
   {
-    return isConfigurationChangeAcceptable(configuration, unacceptableReasons);
+    return isFilterConfigurationAcceptable(configuration, unacceptableReasons)
+        && isConfigurationChangeAcceptable(configuration, unacceptableReasons);
   }
 
 
