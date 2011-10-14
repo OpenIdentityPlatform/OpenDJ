@@ -293,8 +293,8 @@ description: This is the description for Aaccf Amar.
    <secondary>Creating</secondary>
   </indexterm>
   
-  <para>OpenDJ stores your data in a <firstterm>backend</firstterm>, which
-  server to store directory data, and permit backup and restore operations.
+  <para>OpenDJ stores your data in a <firstterm>backend</firstterm>. OpenDJ
+  stores directory data in backends. Backends are what you backup and restore.
   By default, OpenDJ stores your data in a backend named
   <literal>userRoot</literal>. You can create new backends using the
   <command>dsconfig</command> command. The following example creates a
