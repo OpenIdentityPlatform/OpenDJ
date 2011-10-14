@@ -286,4 +286,81 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="log-format">
+    <adm:synopsis>
+      Specifies how log records should be formatted and written to the access log.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>multi-line</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="combined">
+          <adm:synopsis>
+            Combine log records for operation requests and responses into a
+            single record. This format should be used when log records are to
+            be filtered based on response criteria (e.g. result code).
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="multi-line">
+          <adm:synopsis>
+            Outputs separate log records for operation requests and responses.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-log-format</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="log-record-time-format">
+    <adm:synopsis>
+      Specifies the format string that is used to generate log record
+      timestamps.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>dd/MMM/yyyy:HH:mm:ss Z</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+   <adm:syntax>
+     <adm:string>
+       <adm:pattern>
+        <adm:regex>.*</adm:regex>
+        <adm:usage>STRING</adm:usage>
+          <adm:synopsis>
+            Any valid format string that can be used with the 
+            java.text.SimpleDateFormat class.
+          </adm:synopsis>
+        </adm:pattern>
+      </adm:string>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-log-record-time-format</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="log-control-oids">
+    <adm:synopsis>
+      Specifies whether control OIDs will be included in operation log records.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>false</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-log-control-oids</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
 </adm:managed-object>

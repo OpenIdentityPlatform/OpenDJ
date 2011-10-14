@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.util;
 
@@ -34,7 +35,6 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -392,17 +392,8 @@ public final class TimeThread
   {
     checkState();
 
-    Iterator<SimpleDateFormat> iterator =
-        INSTANCE.timeInfo.userDefinedFormatters.iterator();
-    while (iterator.hasNext())
-    {
-      SimpleDateFormat format = iterator.next();
-      if (format.toPattern().equals(formatString))
-      {
-        iterator.remove();
-      }
-    }
-
+    INSTANCE.timeInfo.userDefinedFormatters.remove(new SimpleDateFormat(
+        formatString));
     INSTANCE.timeInfo.userDefinedTimeStrings.remove(formatString);
   }
 

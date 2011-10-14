@@ -2744,6 +2744,18 @@ attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.48
   NAME 'ds-cfg-search-response-is-indexed'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
   X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.49
+  NAME 'ds-cfg-log-format'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.50
+  NAME 'ds-cfg-log-record-time-format'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.51
+  NAME 'ds-cfg-log-control-oids'
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -3009,7 +3021,10 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.25
         ds-cfg-buffer-size $
         ds-cfg-auto-flush $
         ds-cfg-append $
-        ds-cfg-queue-size )
+        ds-cfg-queue-size $
+        ds-cfg-log-format $
+        ds-cfg-log-record-time-format $
+        ds-cfg-log-control-oids )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.26
   NAME 'ds-cfg-file-based-debug-log-publisher'
