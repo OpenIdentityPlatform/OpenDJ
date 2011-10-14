@@ -379,8 +379,8 @@ example-20110623030000000  Backup  Waiting on start time</screen>
  --bindPassword password
  --publisher-name "File-Based Access Logger"
  --criteria-name "Exclude LDAPS on 4444"
- --set port-equal-to:4444
- --set protocol-equal-to:ldaps
+ --set connection-port-equal-to:4444
+ --set connection-protocol-equal-to:ldaps
  --trustAll
  --no-prompt</screen>
     
