@@ -46,11 +46,7 @@
       Filters log records based on their type.
     </adm:synopsis>
     <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          The log record type will be ignored during filtering.
-        </adm:synopsis>
-      </adm:alias>
+      <adm:undefined/>
     </adm:default-behavior>
     <adm:syntax>
       <adm:enumeration>
@@ -98,7 +94,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="client-address-equal-to" multi-valued="true">
+  <adm:property name="connection-client-address-equal-to" multi-valued="true">
     <adm:synopsis>
       Filters log records associated with connections which match at least one
       of the specified client host names or address masks. 
@@ -108,22 +104,18 @@
       domain name, an IP address, or a subnetwork with subnetwork mask.
     </adm:description>
     <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          Do not filter based on client address equality.
-        </adm:synopsis>
-      </adm:alias>
+      <adm:undefined/>
     </adm:default-behavior>
     <adm:syntax>
       <adm:ip-address-mask />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:name>ds-cfg-client-address-equal-to</ldap:name>
+        <ldap:name>ds-cfg-connection-client-address-equal-to</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="client-address-not-equal-to" multi-valued="true">
+  <adm:property name="connection-client-address-not-equal-to" multi-valued="true">
     <adm:synopsis>
       Filters log records associated with connections which do not match any
       of the specified client host names or address masks. 
@@ -133,70 +125,59 @@
       domain name, an IP address, or a subnetwork with subnetwork mask.
     </adm:description>
     <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          Do not filter based on client address inequality.
-        </adm:synopsis>
-      </adm:alias>
+      <adm:undefined/>
     </adm:default-behavior>
     <adm:syntax>
       <adm:ip-address-mask />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:name>ds-cfg-client-address-not-equal-to</ldap:name>
+        <ldap:name>ds-cfg-connection-client-address-not-equal-to</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="client-protocol-equal-to" multi-valued="true">
+  <adm:property name="connection-protocol-equal-to" multi-valued="true">
     <adm:synopsis>
       Filters log records associated with connections which match any
       of the specified protocols. 
     </adm:synopsis>
+    <adm:description>
+      Typical values include "ldap", "ldaps", or "jmx".
+    </adm:description>
     <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          Do not filter based on the protocol.
-        </adm:synopsis>
-      </adm:alias>
+      <adm:undefined/>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:enumeration>
-        <adm:value name="ldap">
-          <adm:synopsis>LDAP clients</adm:synopsis>
-        </adm:value>
-        <adm:value name="ldaps">
-          <adm:synopsis>LDAPS clients</adm:synopsis>
-        </adm:value>
-        <adm:value name="jmx">
-          <adm:synopsis>JMX clients</adm:synopsis>
-        </adm:value>
-      </adm:enumeration>
+      <adm:string>
+      <adm:pattern>
+        <adm:regex>[a-zA-Z0-9]+</adm:regex>
+        <adm:usage>NAME</adm:usage>
+        <adm:synopsis>
+          The protocol name as reported in the access log.
+        </adm:synopsis>
+      </adm:pattern>
+      </adm:string>
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:name>ds-cfg-client-protocol-equal-to</ldap:name>
+        <ldap:name>ds-cfg-connection-protocol-equal-to</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="client-port-equal-to" multi-valued="true">
+  <adm:property name="connection-port-equal-to" multi-valued="true">
     <adm:synopsis>
       Filters log records associated with connections to any of the specified
       listener port numbers. 
     </adm:synopsis>
     <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          Do not filter based on the port.
-        </adm:synopsis>
-      </adm:alias>
+      <adm:undefined/>
     </adm:default-behavior>
     <adm:syntax>
       <adm:integer lower-limit="1" upper-limit="65535" />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:name>ds-cfg-client-port-equal-to</ldap:name>
+        <ldap:name>ds-cfg-connection-port-equal-to</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
@@ -213,11 +194,7 @@
       uid=bj*,ou=people,dc=example,dc=com).
     </adm:description>
     <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          Do not filter based on user DN equality.
-        </adm:synopsis>
-      </adm:alias>
+      <adm:undefined/>
     </adm:default-behavior>
     <adm:syntax>
       <adm:string />
@@ -241,11 +218,7 @@
       uid=bj*,ou=people,dc=example,dc=com).
     </adm:description>
     <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          Do not filter based on user DN inequality.
-        </adm:synopsis>
-      </adm:alias>
+      <adm:undefined/>
     </adm:default-behavior>
     <adm:syntax>
       <adm:string />
@@ -262,11 +235,7 @@
       one of the specified groups.
     </adm:synopsis>
     <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          Do not filter based on group membership.
-        </adm:synopsis>
-      </adm:alias>
+      <adm:undefined/>
     </adm:default-behavior>
     <adm:syntax>
       <adm:dn />
@@ -283,11 +252,7 @@
       of the specified groups.
     </adm:synopsis>
     <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          Do not filter based on group non-membership.
-        </adm:synopsis>
-      </adm:alias>
+      <adm:undefined/>
     </adm:default-behavior>
     <adm:syntax>
       <adm:dn />
@@ -311,11 +276,7 @@
       uid=bj*,ou=people,dc=example,dc=com).
     </adm:description>
     <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          Do not filter based on target DN equality.
-        </adm:synopsis>
-      </adm:alias>
+      <adm:undefined/>
     </adm:default-behavior>
     <adm:syntax>
       <adm:string />
@@ -339,11 +300,7 @@
       uid=bj*,ou=people,dc=example,dc=com).
     </adm:description>
     <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          Do not filter based on target DN inequality.
-        </adm:synopsis>
-      </adm:alias>
+      <adm:undefined/>
     </adm:default-behavior>
     <adm:syntax>
       <adm:string />
@@ -365,11 +322,7 @@
       is only applied to response log messages.
     </adm:description>
     <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          Do not filter based on result code equality.
-        </adm:synopsis>
-      </adm:alias>
+      <adm:undefined/>
     </adm:default-behavior>
     <adm:syntax>
       <adm:integer />
@@ -391,11 +344,7 @@
       is only applied to response log messages.
     </adm:description>
     <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          Do not filter based on result code inequality.
-        </adm:synopsis>
-      </adm:alias>
+      <adm:undefined/>
     </adm:default-behavior>
     <adm:syntax>
       <adm:integer />
@@ -417,11 +366,7 @@
       is only applied to response log messages.
     </adm:description>
     <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          Do not filter based on the etime.
-        </adm:synopsis>
-      </adm:alias>
+      <adm:undefined/>
     </adm:default-behavior>
     <adm:syntax>
       <adm:integer>
@@ -445,11 +390,7 @@
       is only applied to response log messages.
     </adm:description>
     <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          Do not filter based on the etime.
-        </adm:synopsis>
-      </adm:alias>
+      <adm:undefined/>
     </adm:default-behavior>
     <adm:syntax>
       <adm:integer>
@@ -473,11 +414,7 @@
       is only applied to response log messages.
     </adm:description>
     <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          Do not filter based on the number of search results returned.
-        </adm:synopsis>
-      </adm:alias>
+      <adm:undefined/>
     </adm:default-behavior>
     <adm:syntax>
       <adm:integer>
@@ -501,11 +438,7 @@
       is only applied to response log messages.
     </adm:description>
     <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          Do not filter based on the number of search results returned.
-        </adm:synopsis>
-      </adm:alias>
+      <adm:undefined/>
     </adm:default-behavior>
     <adm:syntax>
       <adm:integer>
@@ -529,11 +462,7 @@
       is only applied to response log messages.
     </adm:description>
     <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          Do not filter based on whether or not a search was indexed.
-        </adm:synopsis>
-      </adm:alias>
+      <adm:undefined/>
     </adm:default-behavior>
     <adm:syntax>
       <adm:boolean/>

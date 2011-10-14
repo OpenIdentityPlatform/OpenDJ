@@ -77,6 +77,8 @@ public abstract class AbstractTextAccessLogPublisher
     private final EnumSet<OperationType> logOperationRecords;
     private final AddressMask[] clientAddressEqualTo;
     private final AddressMask[] clientAddressNotEqualTo;
+    private final int[] clientPorts;
+    private final String[] clientProtocols;
     private final PatternDN[] userDNEqualTo;
     private final PatternDN[] userDNNotEqualTo;
     private final PatternDN[] targetDNEqualTo;
@@ -160,13 +162,32 @@ public abstract class AbstractTextAccessLogPublisher
         }
       }
 
-      clientAddressEqualTo = cfg.getClientAddressEqualTo().toArray(
+      // The list of ports is likely to be small and a simple array lookup will
+      // be more efficient, avoiding auto-boxing conversions as well.
+      clientPorts = new int[cfg.getConnectionPortEqualTo().size()];
+      int i = 0;
+      for (Integer port : cfg.getConnectionPortEqualTo())
+      {
+        clientPorts[i++] = port;
+      }
+
+      clientProtocols = new String[cfg.getConnectionProtocolEqualTo().size()];
+      i = 0;
+      for (String protocol : cfg.getConnectionProtocolEqualTo())
+      {
+        clientProtocols[i++] = toLowerCase(protocol);
+      }
+
+      clientAddressEqualTo = cfg.getConnectionClientAddressEqualTo().toArray(
           new AddressMask[0]);
-      clientAddressNotEqualTo = cfg.getClientAddressNotEqualTo().toArray(
-          new AddressMask[0]);
+      clientAddressNotEqualTo = cfg.getConnectionClientAddressNotEqualTo()
+          .toArray(new AddressMask[0]);
+
+
+
 
       userDNEqualTo = new PatternDN[cfg.getUserDNEqualTo().size()];
-      int i = 0;
+      i = 0;
       for (final String s : cfg.getUserDNEqualTo())
       {
         userDNEqualTo[i++] = PatternDN.decode(s);
@@ -307,6 +328,44 @@ public abstract class AbstractTextAccessLogPublisher
 
     private boolean filterClientConnection(final ClientConnection connection)
     {
+      // Check protocol.
+      if (clientProtocols.length > 0)
+      {
+        boolean found = false;
+        final String protocol = toLowerCase(connection.getProtocol());
+        for (String p : clientProtocols)
+        {
+          if (protocol.equals(p))
+          {
+            found = true;
+            break;
+          }
+        }
+        if (!found)
+        {
+          return false;
+        }
+      }
+
+      // Check server port.
+      if (clientPorts.length > 0)
+      {
+        boolean found = false;
+        final int port = connection.getServerPort();
+        for (int p : clientPorts)
+        {
+          if (port == p)
+          {
+            found = true;
+            break;
+          }
+        }
+        if (!found)
+        {
+          return false;
+        }
+      }
+
       // Check client address.
       final InetAddress ipAddr = connection.getRemoteAddress();
       if (clientAddressNotEqualTo.length > 0)
@@ -319,25 +378,6 @@ public abstract class AbstractTextAccessLogPublisher
       if (clientAddressEqualTo.length > 0)
       {
         if (!AddressMask.maskListContains(ipAddr, clientAddressEqualTo))
-        {
-          return false;
-        }
-      }
-
-      // Check server port.
-      if (!cfg.getClientPortEqualTo().isEmpty())
-      {
-        if (!cfg.getClientPortEqualTo().contains(connection.getServerPort()))
-        {
-          return false;
-        }
-      }
-
-      // Check protocol.
-      if (!cfg.getClientProtocolEqualTo().isEmpty())
-      {
-        if (!cfg.getClientProtocolEqualTo().contains(
-            toLowerCase(connection.getProtocol())))
         {
           return false;
         }
