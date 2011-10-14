@@ -346,6 +346,9 @@ example-20110623030000000  Backup  Waiting on start time</screen>
      search was indexed)</para>
     </listitem>
     <listitem>
+     <para>Target DN</para>
+    </listitem>
+    <listitem>
      <para>Type of operation (connect, bind, add, delete, modify, rename,
      search, etc.)</para>
     </listitem>
@@ -400,6 +403,16 @@ example-20110623030000000  Backup  Waiting on start time</screen>
     <para>At this point, OpenDJ filters out connections over LDAPS to port
     4444.</para>
    </example>
+   
+   <para>In addition to the filtering policy, you can also adjust how OpenDJ
+   writes log messages. By default, OpenDJ writes one log message for a
+   request, and another for a response. You can set the log publisher
+   property <literal>log-format</literal> to <literal>combined</literal>
+   to have OpenDJ write a single message per operation. This can be helpful,
+   for example, when evaluating response times. In addition, you can change
+   the log message time stamps with <literal>log-record-time-format</literal>,
+   and specify whether to log LDAP control OIDs for operations by setting
+   <literal>log-control-oids</literal> to <literal>true</literal>.</para>
   </section>
  </section>
 
