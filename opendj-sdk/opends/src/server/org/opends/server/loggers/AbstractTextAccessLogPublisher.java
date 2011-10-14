@@ -28,6 +28,7 @@ package org.opends.server.loggers;
 
 
 
+import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.StaticUtils.toLowerCase;
@@ -94,11 +95,11 @@ public abstract class AbstractTextAccessLogPublisher
      *
      * @param cfg
      *          The access log filter criteria.
-     * @throws DirectoryException
+     * @throws ConfigException
      *           If the configuration cannot be parsed.
      */
     CriteriaFilter(final AccessLogFilteringCriteriaCfg cfg)
-        throws DirectoryException
+        throws ConfigException
     {
       this.cfg = cfg;
 
@@ -166,14 +167,14 @@ public abstract class AbstractTextAccessLogPublisher
       // be more efficient, avoiding auto-boxing conversions as well.
       clientPorts = new int[cfg.getConnectionPortEqualTo().size()];
       int i = 0;
-      for (Integer port : cfg.getConnectionPortEqualTo())
+      for (final Integer port : cfg.getConnectionPortEqualTo())
       {
         clientPorts[i++] = port;
       }
 
       clientProtocols = new String[cfg.getConnectionProtocolEqualTo().size()];
       i = 0;
-      for (String protocol : cfg.getConnectionProtocolEqualTo())
+      for (final String protocol : cfg.getConnectionProtocolEqualTo())
       {
         clientProtocols[i++] = toLowerCase(protocol);
       }
@@ -183,21 +184,36 @@ public abstract class AbstractTextAccessLogPublisher
       clientAddressNotEqualTo = cfg.getConnectionClientAddressNotEqualTo()
           .toArray(new AddressMask[0]);
 
-
-
-
       userDNEqualTo = new PatternDN[cfg.getUserDNEqualTo().size()];
       i = 0;
       for (final String s : cfg.getUserDNEqualTo())
       {
-        userDNEqualTo[i++] = PatternDN.decode(s);
+        try
+        {
+          userDNEqualTo[i++] = PatternDN.decode(s);
+        }
+        catch (final DirectoryException e)
+        {
+          final Message m = ERR_CONFIG_LOGGING_INVALID_USER_DN_PATTERN.get(
+              String.valueOf(cfg.dn()), s);
+          throw new ConfigException(m);
+        }
       }
 
       userDNNotEqualTo = new PatternDN[cfg.getUserDNNotEqualTo().size()];
       i = 0;
       for (final String s : cfg.getUserDNNotEqualTo())
       {
-        userDNNotEqualTo[i++] = PatternDN.decode(s);
+        try
+        {
+          userDNNotEqualTo[i++] = PatternDN.decode(s);
+        }
+        catch (final DirectoryException e)
+        {
+          final Message m = ERR_CONFIG_LOGGING_INVALID_USER_DN_PATTERN.get(
+              String.valueOf(cfg.dn()), s);
+          throw new ConfigException(m);
+        }
       }
 
       userIsMemberOf = cfg.getUserIsMemberOf().toArray(new DN[0]);
@@ -207,7 +223,16 @@ public abstract class AbstractTextAccessLogPublisher
       i = 0;
       for (final String s : cfg.getRequestTargetDNEqualTo())
       {
-        targetDNEqualTo[i++] = PatternDN.decode(s);
+        try
+        {
+          targetDNEqualTo[i++] = PatternDN.decode(s);
+        }
+        catch (final DirectoryException e)
+        {
+          final Message m = ERR_CONFIG_LOGGING_INVALID_TARGET_DN_PATTERN.get(
+              String.valueOf(cfg.dn()), s);
+          throw new ConfigException(m);
+        }
       }
 
       targetDNNotEqualTo = new PatternDN[cfg.getRequestTargetDNNotEqualTo()
@@ -215,7 +240,16 @@ public abstract class AbstractTextAccessLogPublisher
       i = 0;
       for (final String s : cfg.getRequestTargetDNNotEqualTo())
       {
-        targetDNNotEqualTo[i++] = PatternDN.decode(s);
+        try
+        {
+          targetDNNotEqualTo[i++] = PatternDN.decode(s);
+        }
+        catch (final DirectoryException e)
+        {
+          final Message m = ERR_CONFIG_LOGGING_INVALID_TARGET_DN_PATTERN.get(
+              String.valueOf(cfg.dn()), s);
+          throw new ConfigException(m);
+        }
       }
     }
 
@@ -333,7 +367,7 @@ public abstract class AbstractTextAccessLogPublisher
       {
         boolean found = false;
         final String protocol = toLowerCase(connection.getProtocol());
-        for (String p : clientProtocols)
+        for (final String p : clientProtocols)
         {
           if (protocol.equals(p))
           {
@@ -352,7 +386,7 @@ public abstract class AbstractTextAccessLogPublisher
       {
         boolean found = false;
         final int port = connection.getServerPort();
-        for (int p : clientPorts)
+        for (final int p : clientPorts)
         {
           if (port == p)
           {
@@ -1155,7 +1189,7 @@ public abstract class AbstractTextAccessLogPublisher
         final AccessLogFilteringCriteriaCfg configuration,
         final List<Message> unacceptableReasons)
     {
-      return true;
+      return validateConfiguration(configuration, unacceptableReasons);
     }
 
 
@@ -1168,7 +1202,7 @@ public abstract class AbstractTextAccessLogPublisher
         final AccessLogFilteringCriteriaCfg configuration,
         final List<Message> unacceptableReasons)
     {
-      return true;
+      return validateConfiguration(configuration, unacceptableReasons);
     }
 
 
@@ -1181,7 +1215,26 @@ public abstract class AbstractTextAccessLogPublisher
         final AccessLogFilteringCriteriaCfg configuration,
         final List<Message> unacceptableReasons)
     {
+      // Always allow criteria to be deleted.
       return true;
+    }
+
+
+
+    private boolean validateConfiguration(
+        final AccessLogFilteringCriteriaCfg configuration,
+        final List<Message> unacceptableReasons)
+    {
+      try
+      {
+        new CriteriaFilter(configuration);
+        return true;
+      }
+      catch (final ConfigException e)
+      {
+        unacceptableReasons.add(e.getMessageObject());
+        return false;
+      }
     }
   }
 
@@ -1245,7 +1298,28 @@ public abstract class AbstractTextAccessLogPublisher
 
 
   /**
-   * Perform any initialization required by the sub-implementation.
+   * For startup access logger.
+   *
+   * @param suppressInternal
+   *          {@code true} if internal operations should be suppressed.
+   */
+  protected void buildFilters(final boolean suppressInternal)
+  {
+    buildFilters(suppressInternal, false, FilteringPolicy.NO_FILTERING);
+  }
+
+
+
+  /**
+   * Release any resources owned by the sub-implementation.
+   */
+  protected abstract void close0();
+
+
+
+  /**
+   * Initializes the filter configuration. This method must be called by
+   * sub-classes during initialization.
    *
    * @param config
    *          The access publisher configuration that contains the information
@@ -1257,8 +1331,8 @@ public abstract class AbstractTextAccessLogPublisher
    *           If a problem occurs during initialization that is not related to
    *           the server configuration.
    */
-  protected final void initializeFilters(T config) throws ConfigException,
-      InitializationException
+  protected final void initializeFilters(final T config)
+      throws ConfigException, InitializationException
   {
     // Now initialize filters and listeners.
     cfg = config;
@@ -1287,13 +1361,6 @@ public abstract class AbstractTextAccessLogPublisher
 
 
   /**
-   * Release any resources owned by the sub-implementation.
-   */
-  protected abstract void close0();
-
-
-
-  /**
    * Returns {@code true} if the provided client connect should be logged.
    *
    * @param c
@@ -1317,6 +1384,40 @@ public abstract class AbstractTextAccessLogPublisher
   protected final boolean isDisconnectLoggable(final ClientConnection c)
   {
     return filter.isDisconnectLoggable(c);
+  }
+
+
+
+  /**
+   * Perform any initialization required by the sub-implementation.
+   *
+   * @param config
+   *          The access publisher configuration that contains the information
+   *          to use to initialize this access publisher.
+   * @param unacceptableReasons
+   *          A list that may be used to hold the reasons that the provided
+   *          configuration is not acceptable.
+   * @return {@code true} if the provided configuration is acceptable for this
+   *         access log publisher, or {@code false} if not.
+   */
+  protected final boolean isFilterConfigurationAcceptable(final T config,
+      final List<Message> unacceptableReasons)
+  {
+    for (final String criteriaName : config.listAccessLogFilteringCriteria())
+    {
+      try
+      {
+        final AccessLogFilteringCriteriaCfg criteriaCfg = config
+            .getAccessLogFilteringCriteria(criteriaName);
+        new CriteriaFilter(criteriaCfg);
+      }
+      catch (final ConfigException e)
+      {
+        unacceptableReasons.add(e.getMessageObject());
+        return false;
+      }
+    }
+    return true;
   }
 
 
@@ -1358,19 +1459,6 @@ public abstract class AbstractTextAccessLogPublisher
 
 
 
-  /**
-   * For startup access logger.
-   *
-   * @param suppressInternal
-   *          {@code true} if internal operations should be suppressed.
-   */
-  protected void buildFilters(final boolean suppressInternal)
-  {
-    buildFilters(suppressInternal, false, FilteringPolicy.NO_FILTERING);
-  }
-
-
-
   private void buildFilters(final boolean suppressInternal,
       final boolean suppressSynchronization, final FilteringPolicy policy)
   {
@@ -1387,13 +1475,9 @@ public abstract class AbstractTextAccessLogPublisher
         }
         catch (final ConfigException e)
         {
-          // TODO: Unable to decode this access log criteria, so log a warning
-          // and continue.
-        }
-        catch (final DirectoryException e)
-        {
-          // TODO: Unable to decode this access log criteria, so log a warning
-          // and continue.
+          // This should not happen if the configuration has already been
+          // validated.
+          throw new RuntimeException(e);
         }
       }
     }

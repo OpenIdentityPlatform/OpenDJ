@@ -328,7 +328,8 @@ public final class TextAccessLogPublisher extends
       final FileBasedAccessLogPublisherCfg configuration,
       final List<Message> unacceptableReasons)
   {
-    return isConfigurationChangeAcceptable(configuration, unacceptableReasons);
+    return isFilterConfigurationAcceptable(configuration, unacceptableReasons)
+        && isConfigurationChangeAcceptable(configuration, unacceptableReasons);
   }
 
 
