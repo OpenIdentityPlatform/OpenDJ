@@ -34,7 +34,7 @@
     A set of rules which together determine whether a log record should be
     logged or not.
   </adm:synopsis>
-  <adm:tag name="core-server"/>
+  <adm:tag name="logging" />
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-access-log-filtering-criteria</ldap:name>
