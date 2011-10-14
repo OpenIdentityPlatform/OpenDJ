@@ -40,6 +40,11 @@
      <para>TODO</para>
     </listitem>
     <listitem>
+     <para>OpenDJ now lets you filter access and audit logs to focus on
+     messages that interest you. OpenDJ supports many criteria for flexible
+     log filtering. (OPENDJ-308)</para>
+    </listitem>
+    <listitem>
       <para>OpenDJ now lets you delegate authentication to another LDAP
       directory service, such as Active Directory. The feature is called
       <firstterm>pass through authentication</firstterm> (PTA) (OPENDJ-262).

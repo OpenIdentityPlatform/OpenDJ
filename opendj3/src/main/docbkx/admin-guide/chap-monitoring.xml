@@ -304,6 +304,103 @@ example-20110623030000000  Backup  Waiting on start time</screen>
   policies that you can list with <command>dsconfig
   list-rotation-policies</command> and <command>dsconfig
   list-retention-policies</command>.</para>
+  
+  <section xml:id="log-filtering">
+   <title>Log Filtering</title>
+   <indexterm>
+    <primary>Logs</primary>
+    <secondary>Filtering</secondary>
+   </indexterm>
+   
+   <para>Each time a client application sends a request to OpenDJ, the server
+   writes to its access log. As shown above, a simple search operation results
+   in five messages written to the access log. This volume of logging gives you
+   the information to analyze overall access patterns, or to audit access when
+   you do not know in advance what you are looking for.</para>
+   
+   <para>Yet when you do know what you are looking for, log filtering
+   lets you limit what the server logs, and focus on what you want to see.
+   You define the filter criteria, and also set the filtering policy.</para>
+   
+   <para>You can filter both access and also audit logs.</para>
+   
+   <itemizedlist>
+    <para>Log filtering lets you define rules based these criteria.</para>
+    <listitem>
+     <para>Client IP address, bind DN, group membership</para>
+    </listitem>
+    <listitem>
+     <para>Port number</para>
+    </listitem>
+    <listitem>
+     <para>Protocol used (such as LDAP, LDAPS, JMX)</para>
+    </listitem>
+    <listitem>
+     <para>Response times</para>
+    </listitem>
+    <listitem>
+     <para>Result codes (only log error results, for example)</para>
+    </listitem>
+    <listitem>
+     <para>Search response criteria (number of entries returned, whether the
+     search was indexed)</para>
+    </listitem>
+    <listitem>
+     <para>Type of operation (connect, bind, add, delete, modify, rename,
+     search, etc.)</para>
+    </listitem>
+   </itemizedlist>
+   <para>The filtering policy in the log publisher configuration specifies
+   whether to include or exclude log messages that match the criteria you
+   define. OpenDJ does not filter logs until you update the log publisher
+   configuration.</para>
+   
+   <example xml:id="log-filtering-exclude-admin">
+    <title>Example: Exclude Administration-Related Messages</title>
+    
+    <para>A common development troubleshooting technique consists of sending
+    client requests while tailing the access log:</para>
+    <screen>$ tail -f /path/to/OpenDJ/logs/access</screen>
+    <para>Trouble is, when OpenDJ Control Panel is running, or when you are
+    also adapting your configuration using the <command>dsconfig</command>
+    command, OpenDJ writes access log messages related to administration.
+    These might prevent you from noticing the messages that interest
+    you.</para>
+    
+    <para>This example demonstrates how to filter out access log messages
+    due to administrative connections over LDAPS on port 4444.</para>
+    
+    <para>Create access log filtering criteria rules.</para>
+    <screen>$ dsconfig
+ create-access-log-filtering-criteria
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --publisher-name "File-Based Access Logger"
+ --criteria-name "Exclude LDAPS on 4444"
+ --set port-equal-to:4444
+ --set protocol-equal-to:ldaps
+ --trustAll
+ --no-prompt</screen>
+    
+    <para>Activate filtering to exclude messages from the default access log
+    according to the criteria you specified.</para>
+    <screen>$ dsconfig
+ set-log-publisher-prop
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --publisher-name "File-Based Access Logger"
+ --set filtering-policy:exclusive
+ --trustAll
+ --no-prompt</screen>
+    
+    <para>At this point, OpenDJ filters out connections over LDAPS to port
+    4444.</para>
+   </example>
+  </section>
  </section>
 
  <section xml:id="alert-notifications">
