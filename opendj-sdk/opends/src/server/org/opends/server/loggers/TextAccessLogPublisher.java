@@ -35,6 +35,7 @@ import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -43,6 +44,7 @@ import java.util.List;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.meta.FileBasedAccessLogPublisherCfgDefn.*;
 import org.opends.server.admin.std.server.FileBasedAccessLogPublisherCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
@@ -100,6 +102,9 @@ public final class TextAccessLogPublisher extends
 
   private TextWriter writer = null;
   private FileBasedAccessLogPublisherCfg cfg = null;
+  private boolean isCombinedMode = false;
+  private boolean includeControlOIDs = false;
+  private String timeStampFormat = "dd/MMM/yyyy:HH:mm:ss Z";
 
 
 
@@ -207,7 +212,15 @@ public final class TextAccessLogPublisher extends
           adminActionRequired = true;
         }
 
+        if (!config.getLogRecordTimeFormat().equals(timeStampFormat))
+        {
+          TimeThread.removeUserDefinedFormatter(timeStampFormat);
+          timeStampFormat = config.getLogRecordTimeFormat();
+        }
+
         cfg = config;
+        isCombinedMode = cfg.getLogFormat() == LogFormat.COMBINED;
+        includeControlOIDs = cfg.isLogControlOids();
       }
     }
     catch (final Exception e)
@@ -220,21 +233,6 @@ public final class TextAccessLogPublisher extends
     }
 
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  protected void close0()
-  {
-    writer.shutdown();
-    if (cfg != null)
-    {
-      cfg.removeFileBasedAccessChangeListener(this);
-    }
   }
 
 
@@ -311,7 +309,12 @@ public final class TextAccessLogPublisher extends
     }
 
     initializeFilters(cfg);
+
     this.cfg = cfg;
+    isCombinedMode = cfg.getLogFormat() == LogFormat.COMBINED;
+    includeControlOIDs = cfg.isLogControlOids();
+    timeStampFormat = cfg.getLogRecordTimeFormat();
+
     cfg.addFileBasedAccessChangeListener(this);
   }
 
@@ -337,6 +340,20 @@ public final class TextAccessLogPublisher extends
       final FileBasedAccessLogPublisherCfg config,
       final List<Message> unacceptableReasons)
   {
+    // Validate the time-stamp formatter.
+    final String formatString = config.getLogRecordTimeFormat();
+    try
+    {
+      new SimpleDateFormat(formatString);
+    }
+    catch (final Exception e)
+    {
+      final Message message = ERR_CONFIG_LOGGING_INVALID_TIME_FORMAT.get(String
+          .valueOf(formatString));
+      unacceptableReasons.add(message);
+      return false;
+    }
+
     // Make sure the permission is valid.
     try
     {
@@ -374,20 +391,14 @@ public final class TextAccessLogPublisher extends
   @Override
   public void logAbandonRequest(final AbandonOperation abandonOperation)
   {
-    if (!isRequestLoggable(abandonOperation))
+    if (isCombinedMode || !isRequestLoggable(abandonOperation))
     {
       return;
     }
 
     final StringBuilder buffer = new StringBuilder(100);
     appendHeader(abandonOperation, "ABANDON", CATEGORY_REQUEST, buffer);
-    buffer.append(" idToAbandon=");
-    buffer.append(abandonOperation.getIDToAbandon());
-    if (abandonOperation.isSynchronizationOperation())
-    {
-      buffer.append(" type=synchronization");
-    }
-
+    appendAbandonRequest(abandonOperation, buffer);
     writer.writeRecord(buffer.toString());
   }
 
@@ -411,6 +422,10 @@ public final class TextAccessLogPublisher extends
 
     final StringBuilder buffer = new StringBuilder(100);
     appendHeader(abandonOperation, "ABANDON", CATEGORY_RESPONSE, buffer);
+    if (isCombinedMode)
+    {
+      appendAbandonRequest(abandonOperation, buffer);
+    }
     buffer.append(" result=");
     buffer.append(abandonOperation.getResultCode().getIntValue());
     final MessageBuilder msg = abandonOperation.getErrorMessage();
@@ -442,21 +457,14 @@ public final class TextAccessLogPublisher extends
   @Override
   public void logAddRequest(final AddOperation addOperation)
   {
-    if (!isRequestLoggable(addOperation))
+    if (isCombinedMode || !isRequestLoggable(addOperation))
     {
       return;
     }
 
     final StringBuilder buffer = new StringBuilder(100);
     appendHeader(addOperation, "ADD", CATEGORY_REQUEST, buffer);
-    buffer.append(" dn=\"");
-    buffer.append(addOperation.getRawEntryDN().toString());
-    buffer.append("\"");
-    if (addOperation.isSynchronizationOperation())
-    {
-      buffer.append(" type=synchronization");
-    }
-
+    appendAddRequest(addOperation, buffer);
     writer.writeRecord(buffer.toString());
   }
 
@@ -480,6 +488,10 @@ public final class TextAccessLogPublisher extends
 
     final StringBuilder buffer = new StringBuilder(100);
     appendHeader(addOperation, "ADD", CATEGORY_RESPONSE, buffer);
+    if (isCombinedMode)
+    {
+      appendAddRequest(addOperation, buffer);
+    }
     buffer.append(" result=");
     buffer.append(addOperation.getResultCode().getIntValue());
 
@@ -525,44 +537,14 @@ public final class TextAccessLogPublisher extends
   @Override
   public void logBindRequest(final BindOperation bindOperation)
   {
-    if (!isRequestLoggable(bindOperation))
+    if (isCombinedMode || !isRequestLoggable(bindOperation))
     {
       return;
     }
 
     final StringBuilder buffer = new StringBuilder(100);
     appendHeader(bindOperation, "BIND", CATEGORY_REQUEST, buffer);
-
-    final String protocolVersion = bindOperation.getProtocolVersion();
-    if (protocolVersion != null)
-    {
-      buffer.append(" version=");
-      buffer.append(protocolVersion);
-    }
-
-    switch (bindOperation.getAuthenticationType())
-    {
-    case SIMPLE:
-      buffer.append(" type=SIMPLE");
-      break;
-    case SASL:
-      buffer.append(" type=SASL mechanism=");
-      buffer.append(bindOperation.getSASLMechanism());
-      break;
-    default:
-      buffer.append(" type=");
-      buffer.append(bindOperation.getAuthenticationType());
-      break;
-    }
-
-    buffer.append(" dn=\"");
-    buffer.append(bindOperation.getRawBindDN().toString());
-    buffer.append("\"");
-    if (bindOperation.isSynchronizationOperation())
-    {
-      buffer.append(" type=synchronization");
-    }
-
+    appendBindRequest(bindOperation, buffer);
     writer.writeRecord(buffer.toString());
   }
 
@@ -586,6 +568,10 @@ public final class TextAccessLogPublisher extends
 
     final StringBuilder buffer = new StringBuilder(100);
     appendHeader(bindOperation, "BIND", CATEGORY_RESPONSE, buffer);
+    if (isCombinedMode)
+    {
+      appendBindRequest(bindOperation, buffer);
+    }
     buffer.append(" result=");
     buffer.append(bindOperation.getResultCode().getIntValue());
 
@@ -663,22 +649,14 @@ public final class TextAccessLogPublisher extends
   @Override
   public void logCompareRequest(final CompareOperation compareOperation)
   {
-    if (!isRequestLoggable(compareOperation))
+    if (isCombinedMode || !isRequestLoggable(compareOperation))
     {
       return;
     }
 
     final StringBuilder buffer = new StringBuilder(100);
     appendHeader(compareOperation, "COMPARE", CATEGORY_REQUEST, buffer);
-    buffer.append(" dn=\"");
-    buffer.append(compareOperation.getRawEntryDN().toString());
-    buffer.append("\" attr=");
-    buffer.append(compareOperation.getAttributeType().getNameOrOID());
-    if (compareOperation.isSynchronizationOperation())
-    {
-      buffer.append(" type=synchronization");
-    }
-
+    appendCompareRequest(compareOperation, buffer);
     writer.writeRecord(buffer.toString());
   }
 
@@ -702,6 +680,10 @@ public final class TextAccessLogPublisher extends
 
     final StringBuilder buffer = new StringBuilder(100);
     appendHeader(compareOperation, "COMPARE", CATEGORY_RESPONSE, buffer);
+    if (isCombinedMode)
+    {
+      appendCompareRequest(compareOperation, buffer);
+    }
     buffer.append(" result=");
     buffer.append(compareOperation.getResultCode().getIntValue());
 
@@ -783,21 +765,14 @@ public final class TextAccessLogPublisher extends
   @Override
   public void logDeleteRequest(final DeleteOperation deleteOperation)
   {
-    if (!isRequestLoggable(deleteOperation))
+    if (isCombinedMode || !isRequestLoggable(deleteOperation))
     {
       return;
     }
 
     final StringBuilder buffer = new StringBuilder(100);
     appendHeader(deleteOperation, "DELETE", CATEGORY_REQUEST, buffer);
-    buffer.append(" dn=\"");
-    buffer.append(deleteOperation.getRawEntryDN().toString());
-    buffer.append("\"");
-    if (deleteOperation.isSynchronizationOperation())
-    {
-      buffer.append(" type=synchronization");
-    }
-
+    appendDeleteRequest(deleteOperation, buffer);
     writer.writeRecord(buffer.toString());
   }
 
@@ -821,6 +796,10 @@ public final class TextAccessLogPublisher extends
 
     final StringBuilder buffer = new StringBuilder(100);
     appendHeader(deleteOperation, "DELETE", CATEGORY_RESPONSE, buffer);
+    if (isCombinedMode)
+    {
+      appendDeleteRequest(deleteOperation, buffer);
+    }
     buffer.append(" result=");
     buffer.append(deleteOperation.getResultCode().getIntValue());
 
@@ -910,35 +889,14 @@ public final class TextAccessLogPublisher extends
   @Override
   public void logExtendedRequest(final ExtendedOperation extendedOperation)
   {
-    if (!isRequestLoggable(extendedOperation))
+    if (isCombinedMode || !isRequestLoggable(extendedOperation))
     {
       return;
     }
 
-    String name = null;
-    final String oid = extendedOperation.getRequestOID();
     final StringBuilder buffer = new StringBuilder(100);
     appendHeader(extendedOperation, "EXTENDED", CATEGORY_REQUEST, buffer);
-    final ExtendedOperationHandler<?> extOpHandler = DirectoryServer
-        .getExtendedOperationHandler(oid);
-    if (extOpHandler != null)
-    {
-      name = extOpHandler.getExtendedOperationName();
-      if (name != null)
-      {
-        buffer.append(" name=\"");
-        buffer.append(name);
-        buffer.append("\"");
-      }
-    }
-    buffer.append(" oid=\"");
-    buffer.append(oid);
-    buffer.append("\"");
-    if (extendedOperation.isSynchronizationOperation())
-    {
-      buffer.append(" type=synchronization");
-    }
-
+    appendExtendedRequest(extendedOperation, buffer);
     writer.writeRecord(buffer.toString());
   }
 
@@ -962,6 +920,10 @@ public final class TextAccessLogPublisher extends
 
     final StringBuilder buffer = new StringBuilder(100);
     appendHeader(extendedOperation, "EXTENDED", CATEGORY_RESPONSE, buffer);
+    if (isCombinedMode)
+    {
+      appendExtendedRequest(extendedOperation, buffer);
+    }
 
     String name = null;
     final String oid = extendedOperation.getResponseOID();
@@ -1021,31 +983,14 @@ public final class TextAccessLogPublisher extends
   @Override
   public void logModifyDNRequest(final ModifyDNOperation modifyDNOperation)
   {
-    if (!isRequestLoggable(modifyDNOperation))
+    if (isCombinedMode || !isRequestLoggable(modifyDNOperation))
     {
       return;
     }
 
     final StringBuilder buffer = new StringBuilder(100);
     appendHeader(modifyDNOperation, "MODIFYDN", CATEGORY_REQUEST, buffer);
-    buffer.append(" dn=\"");
-    buffer.append(modifyDNOperation.getRawEntryDN().toString());
-    buffer.append("\" newRDN=\"");
-    buffer.append(modifyDNOperation.getRawNewRDN().toString());
-    buffer.append("\" deleteOldRDN=");
-    buffer.append(modifyDNOperation.deleteOldRDN());
-
-    final ByteString newSuperior = modifyDNOperation.getRawNewSuperior();
-    if (newSuperior != null)
-    {
-      buffer.append(" newSuperior=\"");
-      buffer.append(newSuperior.toString());
-    }
-    if (modifyDNOperation.isSynchronizationOperation())
-    {
-      buffer.append(" type=synchronization");
-    }
-
+    appendModifyDNRequest(modifyDNOperation, buffer);
     writer.writeRecord(buffer.toString());
   }
 
@@ -1069,6 +1014,10 @@ public final class TextAccessLogPublisher extends
 
     final StringBuilder buffer = new StringBuilder(100);
     appendHeader(modifyDNOperation, "MODIFYDN", CATEGORY_RESPONSE, buffer);
+    if (isCombinedMode)
+    {
+      appendModifyDNRequest(modifyDNOperation, buffer);
+    }
     buffer.append(" result=");
     buffer.append(modifyDNOperation.getResultCode().getIntValue());
 
@@ -1114,21 +1063,14 @@ public final class TextAccessLogPublisher extends
   @Override
   public void logModifyRequest(final ModifyOperation modifyOperation)
   {
-    if (!isRequestLoggable(modifyOperation))
+    if (isCombinedMode || !isRequestLoggable(modifyOperation))
     {
       return;
     }
 
     final StringBuilder buffer = new StringBuilder(100);
     appendHeader(modifyOperation, "MODIFY", CATEGORY_REQUEST, buffer);
-    buffer.append(" dn=\"");
-    buffer.append(modifyOperation.getRawEntryDN().toString());
-    buffer.append("\"");
-    if (modifyOperation.isSynchronizationOperation())
-    {
-      buffer.append(" type=synchronization");
-    }
-
+    appendModifyRequest(modifyOperation, buffer);
     writer.writeRecord(buffer.toString());
   }
 
@@ -1152,6 +1094,10 @@ public final class TextAccessLogPublisher extends
 
     final StringBuilder buffer = new StringBuilder(100);
     appendHeader(modifyOperation, "MODIFY", CATEGORY_RESPONSE, buffer);
+    if (isCombinedMode)
+    {
+      appendModifyRequest(modifyOperation, buffer);
+    }
     buffer.append(" result=");
     buffer.append(modifyOperation.getResultCode().getIntValue());
 
@@ -1197,44 +1143,14 @@ public final class TextAccessLogPublisher extends
   @Override
   public void logSearchRequest(final SearchOperation searchOperation)
   {
-    if (!isRequestLoggable(searchOperation))
+    if (isCombinedMode || !isRequestLoggable(searchOperation))
     {
       return;
     }
 
     final StringBuilder buffer = new StringBuilder(192);
     appendHeader(searchOperation, "SEARCH", CATEGORY_REQUEST, buffer);
-    buffer.append(" base=\"");
-    buffer.append(searchOperation.getRawBaseDN().toString());
-    buffer.append("\" scope=");
-    buffer.append(searchOperation.getScope());
-    buffer.append(" filter=\"");
-    searchOperation.getRawFilter().toString(buffer);
-
-    final LinkedHashSet<String> attrs = searchOperation.getAttributes();
-    if ((attrs == null) || attrs.isEmpty())
-    {
-      buffer.append("\" attrs=\"ALL\"");
-    }
-    else
-    {
-      buffer.append("\" attrs=\"");
-
-      final Iterator<String> iterator = attrs.iterator();
-      buffer.append(iterator.next());
-      while (iterator.hasNext())
-      {
-        buffer.append(",");
-        buffer.append(iterator.next());
-      }
-
-      buffer.append("\"");
-    }
-    if (searchOperation.isSynchronizationOperation())
-    {
-      buffer.append(" type=synchronization");
-    }
-
+    appendSearchRequest(searchOperation, buffer);
     writer.writeRecord(buffer.toString());
   }
 
@@ -1258,6 +1174,10 @@ public final class TextAccessLogPublisher extends
 
     final StringBuilder buffer = new StringBuilder(128);
     appendHeader(searchOperation, "SEARCH", CATEGORY_RESPONSE, buffer);
+    if (isCombinedMode)
+    {
+      appendSearchRequest(searchOperation, buffer);
+    }
     buffer.append(" result=");
     buffer.append(searchOperation.getResultCode().getIntValue());
 
@@ -1306,7 +1226,6 @@ public final class TextAccessLogPublisher extends
   @Override
   public void logUnbind(final UnbindOperation unbindOperation)
   {
-    // FIXME: ensure that these are logged in combined mode.
     if (!isRequestLoggable(unbindOperation))
     {
       return;
@@ -1324,16 +1243,160 @@ public final class TextAccessLogPublisher extends
 
 
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void close0()
+  {
+    writer.shutdown();
+    TimeThread.removeUserDefinedFormatter(timeStampFormat);
+    if (cfg != null)
+    {
+      cfg.removeFileBasedAccessChangeListener(this);
+    }
+  }
+
+
+
+  private void appendAbandonRequest(final AbandonOperation abandonOperation,
+      final StringBuilder buffer)
+  {
+    buffer.append(" idToAbandon=");
+    buffer.append(abandonOperation.getIDToAbandon());
+    appendRequestControls(abandonOperation, buffer);
+    if (abandonOperation.isSynchronizationOperation())
+    {
+      buffer.append(" type=synchronization");
+    }
+  }
+
+
+
+  private void appendAddRequest(final AddOperation addOperation,
+      final StringBuilder buffer)
+  {
+    buffer.append(" dn=\"");
+    buffer.append(addOperation.getRawEntryDN().toString());
+    buffer.append("\"");
+    appendRequestControls(addOperation, buffer);
+    if (addOperation.isSynchronizationOperation())
+    {
+      buffer.append(" type=synchronization");
+    }
+  }
+
+
+
+  private void appendBindRequest(final BindOperation bindOperation,
+      final StringBuilder buffer)
+  {
+    final String protocolVersion = bindOperation.getProtocolVersion();
+    if (protocolVersion != null)
+    {
+      buffer.append(" version=");
+      buffer.append(protocolVersion);
+    }
+
+    switch (bindOperation.getAuthenticationType())
+    {
+    case SIMPLE:
+      buffer.append(" type=SIMPLE");
+      break;
+    case SASL:
+      buffer.append(" type=SASL mechanism=");
+      buffer.append(bindOperation.getSASLMechanism());
+      break;
+    default:
+      buffer.append(" type=");
+      buffer.append(bindOperation.getAuthenticationType());
+      break;
+    }
+
+    buffer.append(" dn=\"");
+    buffer.append(bindOperation.getRawBindDN().toString());
+    buffer.append("\"");
+    appendRequestControls(bindOperation, buffer);
+    if (bindOperation.isSynchronizationOperation())
+    {
+      buffer.append(" type=synchronization");
+    }
+  }
+
+
+
+  private void appendCompareRequest(final CompareOperation compareOperation,
+      final StringBuilder buffer)
+  {
+    buffer.append(" dn=\"");
+    buffer.append(compareOperation.getRawEntryDN().toString());
+    buffer.append("\" attr=");
+    buffer.append(compareOperation.getAttributeType().getNameOrOID());
+    appendRequestControls(compareOperation, buffer);
+    if (compareOperation.isSynchronizationOperation())
+    {
+      buffer.append(" type=synchronization");
+    }
+  }
+
+
+
+  private void appendDeleteRequest(final DeleteOperation deleteOperation,
+      final StringBuilder buffer)
+  {
+    buffer.append(" dn=\"");
+    buffer.append(deleteOperation.getRawEntryDN().toString());
+    buffer.append("\"");
+    appendRequestControls(deleteOperation, buffer);
+    if (deleteOperation.isSynchronizationOperation())
+    {
+      buffer.append(" type=synchronization");
+    }
+  }
+
+
+
+  private void appendExtendedRequest(final ExtendedOperation extendedOperation,
+      final StringBuilder buffer)
+  {
+    final String oid = extendedOperation.getRequestOID();
+    final ExtendedOperationHandler<?> extOpHandler = DirectoryServer
+        .getExtendedOperationHandler(oid);
+    if (extOpHandler != null)
+    {
+      final String name = extOpHandler.getExtendedOperationName();
+      if (name != null)
+      {
+        buffer.append(" name=\"");
+        buffer.append(name);
+        buffer.append("\"");
+      }
+    }
+    buffer.append(" oid=\"");
+    buffer.append(oid);
+    buffer.append("\"");
+    appendRequestControls(extendedOperation, buffer);
+    if (extendedOperation.isSynchronizationOperation())
+    {
+      buffer.append(" type=synchronization");
+    }
+  }
+
+
+
   // Appends the common log header information to the provided buffer.
   private void appendHeader(final Operation operation, final String opType,
       final String category, final StringBuilder buffer)
   {
     buffer.append('[');
-    buffer.append(TimeThread.getLocalTime());
+    buffer.append(TimeThread.getUserDefinedTime(timeStampFormat));
     buffer.append("] ");
     buffer.append(opType);
-    buffer.append(' ');
-    buffer.append(category);
+    if (!isCombinedMode)
+    {
+      buffer.append(' ');
+      buffer.append(category);
+    }
     buffer.append(" conn=");
     buffer.append(operation.getConnectionID());
     buffer.append(" op=");
@@ -1344,10 +1407,131 @@ public final class TextAccessLogPublisher extends
 
 
 
+  private void appendModifyDNRequest(final ModifyDNOperation modifyDNOperation,
+      final StringBuilder buffer)
+  {
+    buffer.append(" dn=\"");
+    buffer.append(modifyDNOperation.getRawEntryDN().toString());
+    buffer.append("\" newRDN=\"");
+    buffer.append(modifyDNOperation.getRawNewRDN().toString());
+    buffer.append("\" deleteOldRDN=");
+    buffer.append(modifyDNOperation.deleteOldRDN());
+
+    final ByteString newSuperior = modifyDNOperation.getRawNewSuperior();
+    if (newSuperior != null)
+    {
+      buffer.append(" newSuperior=\"");
+      buffer.append(newSuperior.toString());
+    }
+    appendRequestControls(modifyDNOperation, buffer);
+    if (modifyDNOperation.isSynchronizationOperation())
+    {
+      buffer.append(" type=synchronization");
+    }
+  }
+
+
+
+  private void appendModifyRequest(final ModifyOperation modifyOperation,
+      final StringBuilder buffer)
+  {
+    buffer.append(" dn=\"");
+    buffer.append(modifyOperation.getRawEntryDN().toString());
+    buffer.append("\"");
+    appendRequestControls(modifyOperation, buffer);
+    if (modifyOperation.isSynchronizationOperation())
+    {
+      buffer.append(" type=synchronization");
+    }
+  }
+
+
+
+  private void appendRequestControls(final Operation operation,
+      final StringBuilder buffer)
+  {
+    if (includeControlOIDs && !operation.getRequestControls().isEmpty())
+    {
+      buffer.append(" requestControls=");
+      boolean isFirst = true;
+      for (final Control control : operation.getRequestControls())
+      {
+        if (!isFirst)
+        {
+          buffer.append(",");
+        }
+        buffer.append(control.getOID());
+        isFirst = false;
+      }
+    }
+  }
+
+
+
+  private void appendResponseControls(final Operation operation,
+      final StringBuilder buffer)
+  {
+    if (includeControlOIDs && !operation.getResponseControls().isEmpty())
+    {
+      buffer.append(" responseControls=");
+      boolean isFirst = true;
+      for (final Control control : operation.getResponseControls())
+      {
+        if (!isFirst)
+        {
+          buffer.append(",");
+        }
+        buffer.append(control.getOID());
+        isFirst = false;
+      }
+    }
+  }
+
+
+
+  private void appendSearchRequest(final SearchOperation searchOperation,
+      final StringBuilder buffer)
+  {
+    buffer.append(" base=\"");
+    buffer.append(searchOperation.getRawBaseDN().toString());
+    buffer.append("\" scope=");
+    buffer.append(searchOperation.getScope());
+    buffer.append(" filter=\"");
+    searchOperation.getRawFilter().toString(buffer);
+
+    final LinkedHashSet<String> attrs = searchOperation.getAttributes();
+    if ((attrs == null) || attrs.isEmpty())
+    {
+      buffer.append("\" attrs=\"ALL\"");
+    }
+    else
+    {
+      buffer.append("\" attrs=\"");
+
+      final Iterator<String> iterator = attrs.iterator();
+      buffer.append(iterator.next());
+      while (iterator.hasNext())
+      {
+        buffer.append(",");
+        buffer.append(iterator.next());
+      }
+
+      buffer.append("\"");
+    }
+    appendRequestControls(searchOperation, buffer);
+    if (searchOperation.isSynchronizationOperation())
+    {
+      buffer.append(" type=synchronization");
+    }
+  }
+
+
+
   // Appends additional log items to the provided builder.
   private void logAdditionalLogItems(final Operation operation,
       final StringBuilder builder)
   {
+    appendResponseControls(operation, builder);
     for (final AdditionalLogItem item : operation.getAdditionalLogItems())
     {
       builder.append(' ');
