@@ -34,7 +34,7 @@
  <para>Some attribute values ought to remain unique. If you are using
  <literal>uid</literal> values as RDNs to distinguish between millions of
  user entries stored under <literal>ou=People</literal>, then you do not
- want your directory too contain two or more identical
+ want your directory to contain two or more identical
  <literal>uid</literal> values. If your credit card or mobile number is
  stored as an attribute value on your directory entry, you certainly do not
  want to share that credit card or mobile number with another customer.
@@ -46,10 +46,10 @@
  implementing attribute value uniqueness without sacrificing the high
  availability that comes from using OpenDJ's loosely consistent,
  multi-master data replication. Indeed OpenDJ's replication model lets
- you maintain write access during network partitions for directory
- applications. Yet, write access during a network partition can result in the
+ you maintain write access during network outages for directory
+ applications. Yet, write access during a network outage can result in the
  same, theoretically unique attribute value getting assigned to two different
- entries at once. You do not notice the problem until the network partition
+ entries at once. You do not notice the problem until the network outage
  goes away and replication resumes.</para>
  
  <para>This chapter shows you how to set up attribute value uniqueness
@@ -76,6 +76,21 @@
  --set base-dn:ou=people,dc=example,dc=com
  --set enabled:true
  -X -n</screen>
+
+   <para>Alternatively, you can specify multiple base DNs for unique values
+   across multiple suffixes.</para>
+   <screen>$ dsconfig
+ set-plugin-prop
+ --port 4444
+ --hostname `hostname`
+ --bindDn "cn=Directory Manager"
+ --bindPassword password
+ --plugin-name "UID Unique Attribute"
+ --set enabled:true
+ --add base-dn:dc=example,dc=com
+ --add base-dn:dc=example,dc=org
+ --trustAll
+ --no-prompt</screen>
   </step>
   <step>
    <para>Check that the plugin is working correctly.</para>
@@ -96,6 +111,31 @@ MODIFY operation failed
 Result Code:  19 (Constraint Violation)
 Additional Information:  A unique attribute conflict was detected for \
  attribute uid:  value bjensen already exists in entry
+ uid=bjensen,ou=People,dc=example,dc=com</screen>
+
+   <para>If you have set up multiple suffixes, you might try something like
+   this.</para>
+   <screen>$ cat bjensen.ldif 
+dn: uid=bjensen,ou=People,dc=example,dc=org
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+cn: Babs
+sn: Jensen
+uid: bjensen
+
+$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --defaultAdd
+ --filename bjensen.ldif
+Processing ADD request for uid=bjensen,ou=People,dc=example,dc=org
+ADD operation failed
+Result Code:  19 (Constraint Violation)
+Additional Information:  A unique attribute conflict was detected for attribute
+ uid:  value bjensen already exists in entry
  uid=bjensen,ou=People,dc=example,dc=com</screen>
   </step>
  </procedure>
@@ -187,7 +227,7 @@ Additional Information:  A unique attribute conflict was detected for
      <para>The drawbacks here are the cost of safe read assured replication,
      and the likelihood that assured replication can enter degraded mode during
      a network outage, thus continuing to allow updates during the
-     partition.</para>
+     outage.</para>
     </step>
    </stepalternatives>
   </step>
