@@ -32,12 +32,20 @@
  <title>Working With Referrals</title>
  <indexterm><primary>Referrals</primary></indexterm>
  
- <para>Referrals point directory clients to another directory server. The
- client receiving a referral must then connect to the other server to complete
- the request. Referrals are used for example when a directory server is
- temporarily unavailable for maintenance. Referrals can also be used when a
- server contains only some of the directory data for a suffix and points to
- other servers for branches whose data is not available locally.</para>
+ <para><firstterm>Referrals</firstterm> point directory clients to another
+ directory container, which can be another directory server running elsewhere,
+ or another container on the same server. The client receiving a referral must
+ then connect to the other container to complete the request.</para>
+ 
+ <note>
+  <para>Some clients follow referrals on your behalf by default. The OpenDJ
+  <command>ldapsearch</command> command does not follow referrals.</para>
+ </note>
+ 
+ <para>Referrals are used for example when a some directory data are temporarily
+ unavailable due to maintenance. Referrals can also be used when a container
+ holds only some of the directory data for a suffix and points to other
+ containers for branches whose data is not available locally.</para>
  
  <para>This chapter demonstrates how to add and remove referrals with the
  <command>ldapmodify</command> command. You can also use the Manage Entries
@@ -49,16 +57,19 @@
   <para>Referrals are implemented as entries with <link
   xlink:href="http://tools.ietf.org/html/rfc4516">LDAP URL</link>
   <literal>ref</literal> attribute values that point elsewhere. The
-  <literal>ref</literal> attribute type is required by the referral object
-  class. The referral object class is structural, however, and therefore cannot
-  by default be added to an entry that already has a structural object class
-  defined. When adding a <literal>ref</literal> attribute type to an existing
-  entry, you can use the <literal>extensibleObject</literal> auxiliary
-  object class.</para>
+  <literal>ref</literal> attribute type is required by the
+  <literal>referral</literal> object class. The <literal>referral</literal>
+  object class is structural, however, and therefore cannot by default be added
+  to an entry that already has a structural object class defined. When adding
+  a <literal>ref</literal> attribute type to an existing entry, you can use
+  the <literal>extensibleObject</literal> auxiliary object class.</para>
   
   <para>When a referral is set, OpenDJ returns the referral to client
   applications requesting the entry or child entries affected. Client
-  applications must be capable of following the referral returned.</para>
+  applications must be capable of following the referral returned. When the
+  directory server responds for example to your search with referrals to one
+  or more LDAP URLs, your client then constructs new searches from the LDAP
+  URLs returned, and tries again.</para>
  </section>
 
  <section xml:id="managing-referrals">
@@ -96,12 +107,9 @@ SearchReference(referralURLs=
   <para>To access the entry instead of the referral, use the Manage DSAIT
   control.</para>
   
-  <screen>$ ldapsearch -p 1389 -b dc=example,dc=com -J ManageDSAIT ou=people
+  <screen>$ ldapsearch -p 1389 -b dc=example,dc=com -J ManageDSAIT:true ou=people ref
 dn: ou=People,dc=example,dc=com
-ou: People
-objectClass: organizationalunit
-objectClass: extensibleObject
-objectClass: top
+ref: ldap://opendj.example.com:2389/ou=People,dc=example,dc=com
 
 $ cat people.ldif 
 dn: ou=People,dc=example,dc=com
@@ -113,7 +121,7 @@ $ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -f people.ldif
 Processing MODIFY request for ou=People,dc=example,dc=com
 MODIFY operation successful for DN ou=People,dc=example,dc=com
 A referral entry ou=People,dc=example,dc=com indicates that the operation must
-be processed at a different server
+ be processed at a different server
 [ldap://opendj.example.com:2389/ou=People,dc=example,dc=com]
 $ ldapmodify
  -p 1389
