@@ -204,10 +204,18 @@ objectClass: myCustomObjClass
 add: myCustomAttribute
 myCustomAttribute: Testing 1, 2, 3...
 
-$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -f custom-attr.ldif
+$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --filename custom-attr.ldif
 Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com
 MODIFY operation successful for DN uid=bjensen,ou=People,dc=example,dc=com
-$ ldapsearch -p 1389 -b dc=example,dc=com uid=bjensen myCustomAttribute
+$ ldapsearch
+ --port 1389
+ --baseDN dc=example,dc=com
+ uid=bjensen
+ myCustomAttribute
 dn: uid=bjensen,ou=People,dc=example,dc=com
 myCustomAttribute: Testing 1, 2, 3...
 </screen>
@@ -231,25 +239,27 @@ myCustomAttribute: Testing 1, 2, 3...
   than reject entries having this issue.</para>
   
   <screen>$ dsconfig
- -h `hostname`
- -p 4444
- -D "cn=Directory Manager"
- -w password
  set-global-configuration-prop
+ --hostname `hostname`
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --set single-structural-objectclass-behavior:warn
- -X -n</screen>
+ --trustAll
+ --no-prompt</screen>
 
   <para>You can allow attribute values that do not respect the defined syntax
   with the <command>dsconfig</command> command as well.</para>
   
   <screen>$ dsconfig
-  -h `hostname`
-  -p 4444
-  -D "cn=Directory Manager"
-  -w password
  set-global-configuration-prop
+ --hostname `hostname`
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --set invalid-attribute-syntax-behavior:warn
- -X -n</screen>
+ --trustAll
+ --no-prompt</screen>
 
   <para>You can even turn off schema checking altogether, although turning
   off schema checking only really makes sense when you are absolutely sure
@@ -258,13 +268,14 @@ myCustomAttribute: Testing 1, 2, 3...
   processing.</para>
   
   <screen>$ dsconfig
- -h `hostname`
- -p 4444
- -D "cn=Directory Manager"
- -w password
  set-global-configuration-prop
+ --hostname `hostname`
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --set check-schema:false
- -X -n</screen>
+ --trustAll
+ --no-prompt</screen>
  </section>
 
  <section xml:id="standard-schema">

@@ -87,7 +87,11 @@ changetype: modify
 add: ds-rlim-size-limit
 ds-rlim-size-limit: 10
 
-$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -f limit.ldif
+$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --filename limit.ldif
 Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com
 MODIFY operation successful for DN uid=bjensen,ou=People,dc=example,dc=com</screen>
 
@@ -118,7 +122,12 @@ ds-rlim-time-limit;collective: 0
 subtreeSpecification: {base "ou=people", specificationFilter "
  (isMemberOf=cn=Directory Administrators,ou=Groups,dc=example,dc=com)" }
 
-$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -a -f grouplim.ldif
+$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --defaultAdd
+ --filename grouplim.ldif
 Processing ADD request for
  cn=Remove Administrator Search Limits,dc=example,dc=com
 ADD operation successful for DN
@@ -126,7 +135,7 @@ ADD operation successful for DN
    </step>
    <step>
     <para>Check the results.</para>
-    <screen>$ ldapsearch -p 1389 -b dc=example,dc=com uid=kvaughan + | grep ds-rlim
+    <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com uid=kvaughan +|grep ds-rlim
 ds-rlim-lookthrough-limit: 0
 ds-rlim-time-limit: 0
 ds-rlim-size-limit: 0</screen>
@@ -145,13 +154,14 @@ ds-rlim-size-limit: 0</screen>
   default, no idle time limit is set.</para>
   
   <screen>$ dsconfig
- -p 4444
- -h `hostname`
- -D "cn=Directory Manager"
- -w password
  set-global-configuration-prop
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --set idle-time-limit:24h
- -X -n</screen>
+ --trustAll
+ --no-prompt</screen>
 
   <para>The example shown sets the idle time limit to 24 hours.</para>
  </section>
@@ -167,14 +177,15 @@ ds-rlim-size-limit: 0</screen>
   the 5 MB limit.</para>
   
   <screen>$ dsconfig
- -p 4444
- -h `hostname`
- -D "cn=Directory Manager"
- -w password
  set-connection-handler-prop
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --handler-name "LDAP Connection Handler"
  --set max-request-size:20mb
- -X -n</screen>
+ --trustAll
+ --no-prompt</screen>
   
   <para>The example shown sets the maximum request size on the LDAP connection
   handler to 20 MB.</para>

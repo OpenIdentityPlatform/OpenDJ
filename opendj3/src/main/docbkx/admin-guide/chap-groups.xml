@@ -79,11 +79,11 @@ uniqueMember: uid=bjensen,ou=People,dc=example,dc=com
 uniqueMember: uid=tmorris,ou=People,dc=example,dc=com
 
 $ ldapmodify
- -p 1389
- -D "cn=Directory Manager"
- -w password
- -a
- -f static.ldif 
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --defaultAdd
+ --filename static.ldif 
 Processing ADD request for cn=My Static Group,ou=Groups,dc=example,dc=com
 ADD operation successful for DN cn=My Static Group,ou=Groups,dc=example,dc=com</screen>
   
@@ -97,16 +97,16 @@ add: uniqueMember
 uniqueMember: uid=scarter,ou=People,dc=example,dc=com
 
 $ ldapmodify
- -p 1389
- -D "cn=Directory Manager"
- -w password
- -f add2grp.ldif 
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --filename add2grp.ldif 
 Processing MODIFY request for cn=My Static Group,ou=Groups,dc=example,dc=com
 MODIFY operation successful for DN
  cn=My Static Group,ou=Groups,dc=example,dc=com
 $ ldapsearch
- -p 1389
- -b dc=example,dc=com
+ --port 1389
+ --baseDN dc=example,dc=com
  "(cn=My Static Group)"
 dn: cn=My Static Group,ou=Groups,dc=example,dc=com
 ou: Groups
@@ -146,11 +146,11 @@ ou: Groups
 memberURL: ldap:///ou=People,dc=example,dc=com??sub?l=Cupertino
 
 $ ldapmodify
- -p 1389
- -D "cn=Directory Manager"
- -w password
- -a
- -f dynamic.ldif 
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --defaultAdd
+ --filename dynamic.ldif 
 Processing ADD request for cn=My Dynamic Group,ou=Groups,dc=example,dc=com
 ADD operation successful for DN cn=My Dynamic Group,ou=Groups,dc=example,dc=com</screen>
   
@@ -158,8 +158,8 @@ ADD operation successful for DN cn=My Dynamic Group,ou=Groups,dc=example,dc=com<
   <literal>memberURL</literal> values.</para>
   
   <screen>$ ldapsearch
- -p 1389
- -b dc=example,dc=com
+ --port 1389
+ --baseDN dc=example,dc=com
  "(&amp;(uid=*jensen)(isMemberOf=cn=My Dynamic Group,ou=Groups,dc=example,dc=com))"
  mail
 dn: uid=bjensen,ou=People,dc=example,dc=com
@@ -169,9 +169,9 @@ dn: uid=rjensen,ou=People,dc=example,dc=com
 mail: rjensen@example.com
 
 $ ldapmodify
- -p 1389
- -D "cn=Directory Manager"
- -w password
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
 dn: uid=ajensen,ou=People,dc=example,dc=com
 changetype: modify
 replace: l
@@ -181,8 +181,8 @@ Processing MODIFY request for uid=ajensen,ou=People,dc=example,dc=com
 MODIFY operation successful for DN uid=ajensen,ou=People,dc=example,dc=com
 ^D
 $ ldapsearch
- -p 1389
- -b dc=example,dc=com
+ --port 1389
+ --baseDN dc=example,dc=com
  "(&amp;(uid=*jensen)(isMemberOf=cn=My Dynamic Group,ou=Groups,dc=example,dc=com))"
  mail
 dn: uid=ajensen,ou=People,dc=example,dc=com
@@ -221,14 +221,15 @@ mail: rjensen@example.com</screen>
   <literal>Virtual Static uniqueMember</literal> property.</para>
   
   <screen>$ dsconfig
- -p 4444
- -h `hostname`
- -D "cn=Directory Manager"
- -w password
  set-virtual-attribute-prop
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --name "Virtual Static member"
  --set allow-retrieving-membership:true
- -X -n</screen>
+ --trustAll
+ --no-prompt</screen>
   
   <para>The following example creates a virtual static group, and reads the
   group entry with all members.</para>
@@ -241,10 +242,10 @@ objectclass: groupOfNames
 objectclass: ds-virtual-static-group
 ds-target-group-dn: cn=My Dynamic Group,ou=Groups,dc=example,dc=com
 
-$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -a -f virtual.ldif
+$ ldapmodify --port 1389 --bindDN "cn=Directory Manager" --bindPassword password -a -f virtual.ldif
 Processing ADD request for cn=Virtual Static,ou=Groups,dc=example,dc=com
 ADD operation successful for DN cn=Virtual Static,ou=Groups,dc=example,dc=com
-$ ldapsearch -p 1389 -b dc=example,dc=com "(cn=Virtual Static)"
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(cn=Virtual Static)"
 dn: cn=Virtual Static,ou=Groups,dc=example,dc=com
 objectClass: groupOfNames
 objectClass: ds-virtual-static-group
@@ -299,8 +300,8 @@ ds-target-group-dn: cn=My Dynamic Group,ou=Groups,dc=example,dc=com</screen>
   <literal>isMemberOf</literal> attribute.</para>
   
   <screen>$ ldapsearch
- -p 1389
- -b dc=example,dc=com
+ --port 1389
+ --baseDN dc=example,dc=com
  uid=bjensen
  isMemberOf
 dn: uid=bjensen,ou=People,dc=example,dc=com
@@ -328,19 +329,19 @@ isMemberOf: cn=My Dynamic Group,ou=Groups,dc=example,dc=com</screen>
   use the <command>dsconfig</command> command.</para>
   
   <screen>$ dsconfig
- -p 4444
- -h `hostname`
- -D "cn=Directory Manager"
- -w password
  set-plugin-prop
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --plugin-name "Referential Integrity"
  --set enabled:true
- -X -n</screen>
+ --trustAll --no-prompt</screen>
 
   <para>With the plugin enabled, you can see OpenDJ referential integrity
   resolving group membership automatically.</para>
   
-  <screen>$ ldapsearch -p 1389 -b dc=example,dc=com "(cn=My Static Group)"
+  <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(cn=My Static Group)"
 dn: cn=My Static Group,ou=Groups,dc=example,dc=com
 ou: Groups
 objectClass: groupOfUniqueNames
@@ -352,13 +353,13 @@ uniqueMember: uid=scarter,ou=People,dc=example,dc=com
 cn: My Static Group
 
 $ ldapdelete
- -p 1389
- -D "cn=Directory Manager"
- -w password
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  uid=scarter,ou=People,dc=example,dc=com
 Processing DELETE request for uid=scarter,ou=People,dc=example,dc=com
 DELETE operation successful for DN uid=scarter,ou=People,dc=example,dc=com
-$ ldapsearch -p 1389 -b dc=example,dc=com "(cn=My Static Group)"
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(cn=My Static Group)"
 dn: cn=My Static Group,ou=Groups,dc=example,dc=com
 ou: Groups
 objectClass: groupOfUniqueNames

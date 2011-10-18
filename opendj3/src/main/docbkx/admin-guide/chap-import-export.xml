@@ -105,7 +105,10 @@
    <step>
     <para>Run the <command>make-ldif</command> command to generate your
     LDIF file.</para>
-    <screen>$ make-ldif --randomSeed 0 -t /path/to/my.template -o generated.ldif
+    <screen>$ make-ldif
+ --randomSeed 0
+ --templateFile /path/to/my.template
+ --ldifFile /path/to/generated.ldif
 Processed 1000 entries
 Processed 2000 entries
 ...
@@ -146,25 +149,28 @@ LDIF processing complete.  10003 entries written</screen>
       have millions of directory entries to import&#8212;first shut down the
       server, and then run the <command>import-ldif</command> command.</para>
       <screen>$ stop-ds
-$ import-ldif -b dc=example,dc=org -n userRoot -l /path/to/generated.ldif</screen>
+$ import-ldif
+ --includeBranch dc=example,dc=org
+ --backendID userRoot
+ --ldifFile /path/to/generated.ldif</screen>
      </step>
      <step>
       <para>If not, schedule a task to import the data while online.</para>
       <screen>$ import-ldif
- -X
- -p 4444
- -h `hostname`
- -D "cn=Directory Manager"
- -w password
- -b dc=example,dc=org
- -n userRoot
- -l /path/to/generated.ldif</screen>
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --includeBranch dc=example,dc=org
+ --backendID userRoot
+ --ldifFile /path/to/generated.ldif
+ --trustAll</screen>
      <para>Notice that the task is scheduled through communication over SSL on
      the administration port, by default <literal>4444</literal>. You can
      schedule the import task to start at a particular time using the
      <option>--start</option> option.</para>
-     <para>The <option>-X</option> option trusts all SSL certificates, such
-     as a default self-signed certificate used for testing.</para>
+     <para>The <option>--trustAll</option> option trusts all SSL certificates,
+     such as a default self-signed certificate used for testing.</para>
     </step>
    </stepalternatives>
   </step>
@@ -181,20 +187,23 @@ $ import-ldif -b dc=example,dc=org -n userRoot -l /path/to/generated.ldif</scree
      <para>If you want to speed up export, first shut down the server, and then
      export data using the <command>export-ldif</command> command.</para>
      <screen>$ stop-ds
-$ export-ldif -b dc=example,dc=org -n userRoot -l /path/to/backup.ldif</screen>
+$ export-ldif
+ --includeBranch dc=example,dc=org
+ --backendID userRoot
+ --ldifFile /path/to/backup.ldif</screen>
      </step>
      <step>
       <para>If not, schedule a task to export the data while online.</para>
      <screen>$ export-ldif
- -X
- -p 4444
- -h `hostname`
- -D "cn=Directory Manager"
- -w password
- -b dc=example,dc=org
- -n userRoot
- -l /path/to/backup.ldif
- --start 20111221230000</screen>
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --includeBranch dc=example,dc=org
+ --backendID userRoot
+ --ldifFile /path/to/backup.ldif
+ --start 20111221230000
+ --trustAll</screen>
       <para>The <option>--start 20111221230000</option> option tells OpenDJ to
       start the export at 11 PM on December 21, 2012.</para>
       <para>If OpenDJ is stopped at this time, then when you start OpenDJ again,
@@ -222,14 +231,18 @@ $ export-ldif -b dc=example,dc=org -n userRoot -l /path/to/backup.ldif</screen>
    in a similar way to how you search LDAP directories with the
    <command>ldapsearch</command> command.</para>
    
-   <screen>$ ldifsearch -b dc=example,dc=org -l generated.ldif "(sn=Grenier)" mobile
+   <screen>$ ldifsearch
+ --includeBranch dc=example,dc=org
+ --ldifFile generated.ldif
+ "(sn=Grenier)"
+ mobile
 dn: uid=user.4630,ou=People,dc=example,dc=org
 mobile: +1 728 983 6669</screen>
 
-   <para>The <option>-l <replaceable>ldif-file</replaceable></option> option
-   replaces the <option>--hostname</option> and <option>--port</option> options
-   used to connect to an LDAP directory. Otherwise the command syntax and LDIF
-   output is familiar to <command>ldapsearch</command> users.</para>
+   <para>The <option>--ldifFile <replaceable>ldif-file</replaceable></option>
+   option replaces the <option>--hostname</option> and <option>--port</option>
+   options used to connect to an LDAP directory. Otherwise the command syntax
+   and LDIF output is familiar to <command>ldapsearch</command> users.</para>
   </section>
 
   <section xml:id="ldifmodify-example">
@@ -247,7 +260,10 @@ description: This is the new description for Aaccf Amar.
 replace: initials
 initials: AAA
 
-$ ldifmodify -s generated.ldif -m changes.ldif -t new.ldif</screen>
+$ ldifmodify
+ --targetLDIF generated.ldif
+ --changesLDIF changes.ldif
+ --targetLDIF new.ldif</screen>
 
    <para>Notice that the resulting new LDIF file is likely to be about the
    same size as the source LDIF file.</para>
@@ -259,7 +275,7 @@ $ ldifmodify -s generated.ldif -m changes.ldif -t new.ldif</screen>
    <para>The <command>ldif-diff</command> command reports differences between
    two LDIF files in LDIF format.</para>
    
-   <screen>$ ldif-diff -s old.ldif -t new.ldif
+   <screen>$ ldif-diff --sourceLDIF old.ldif --targetLDIF new.ldif
 dn: uid=user.0,ou=People,dc=example,dc=org
 changetype: modify
 add: initials
@@ -276,8 +292,8 @@ description: This is the description for Aaccf Amar.
 
 </screen>
 
-   <para>The <option>-o <replaceable>ldif-file</replaceable></option> option
-   can be used to save the output to a file.</para>
+   <para>The <option>--outputLDIF <replaceable>ldif-file</replaceable></option>
+   option can be used to save the output to a file.</para>
    
    <para>As the <command>ldif-diff</command> command reads both files into
    memory, constructing tree maps to perform the comparison, the command

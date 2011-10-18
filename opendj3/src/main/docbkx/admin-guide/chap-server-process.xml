@@ -56,10 +56,12 @@
    <listitem>
     <para>(UNIX) Create an RC script, and then use the script to start
     the server.</para>
-    <para>Unless you run OpenDJ as root, use the -u
+    <para>Unless you run OpenDJ as root, use the --userName
     <replaceable>userName</replaceable> option to specify the user
     who installed OpenDJ.</para>
-    <screen>$ sudo OpenDJ/bin/create-rc-script -f /etc/init.d/opendj -u mark
+    <screen>$ sudo OpenDJ/bin/create-rc-script
+ --outputFile /etc/init.d/opendj
+ --userName mark
 [sudo] password for mark: 
 $ sudo /etc/init.d/opendj start</screen>
     <para>For example, on Linux if you run OpenDJ as root, you can use the
@@ -98,7 +100,9 @@ update-rc.d: see &lt;http://wiki.debian.org/LSBInitScripts&gt;
    <listitem>
     <para>(UNIX) Create an RC script, and then use the script to stop
     the server.</para>
-    <screen>$ sudo OpenDJ/bin/create-rc-script -f /etc/init.d/opendj -u mark
+    <screen>$ sudo OpenDJ/bin/create-rc-script
+ --outputFile /etc/init.d/opendj
+ --userName mark
 [sudo] password for mark: 
 $ sudo /etc/init.d/opendj stop</screen>
    </listitem>
@@ -123,7 +127,9 @@ $ sudo /etc/init.d/opendj stop</screen>
    <listitem>
     <para>(UNIX) Create an RC script, and then use the script to stop
     the server.</para>
-    <screen>$ sudo OpenDJ/bin/create-rc-script -f /etc/init.d/opendj -u mark
+    <screen>$ sudo OpenDJ/bin/create-rc-script
+ --outputFile /etc/init.d/opendj
+ --userName mark
 [sudo] password for mark: 
 $ /etc/init.d/opendj restart</screen>
    </listitem>
