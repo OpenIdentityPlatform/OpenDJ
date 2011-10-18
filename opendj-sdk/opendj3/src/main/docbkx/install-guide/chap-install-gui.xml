@@ -46,19 +46,21 @@
  installation. You can also upgrade an OpenDJ directory server through the
  WebStart installer.</para>
 
- <note><para>OpenDJ directory server relies on Java 6, so if your browser
- picks up an old installation of Java 5 for example, installation can
- fail. You might see an application error messages such as this:</para>
-
- <mediaobject>
-  <alt>Application error due to old Java version</alt>
-  <imageobject>
-   <imagedata fileref="images/missing-java6.png" format="PNG" />
-  </imageobject>
-  <textobject>
-   <para>Message showing the browser is unable to launch the application</para>
-  </textobject>
- </mediaobject>
+ <note>
+  <para>OpenDJ directory server relies on Java 6, so if your browser
+  picks up an old installation of Java 5 for example, installation can
+  fail. You might see an application error messages such as this:</para>
+ 
+  <mediaobject>
+   <alt>Application error due to old Java version</alt>
+   <imageobject>
+    <imagedata fileref="images/missing-java6.png" format="PNG" />
+   </imageobject>
+   <textobject>
+    <para>Message showing the browser is unable to launch the application</para>
+   </textobject>
+  </mediaobject>
+ </note>
 
  <para>If the WebStart installation does not work in your browser, copy
  the WebStart URL, ending in <literal>QuickSetup.jnlp</literal>, from the
@@ -74,7 +76,6 @@ $ javaws http://www.forgerock.org/downloads/opendj/<?eval ${docTargetVersion}?>/
  OpenDJ-<?eval ${docTargetVersion}?>.zip, unzip the file, and then run
  OpenDJ-<?eval ${docTargetVersion}?>/setup (UNIX), OpenDJ-<?eval
  ${docTargetVersion}?>\setup.bat (Windows), or QuickSetup.app (Mac OS X).</para>
- </note>
 
  <para>Java WebStart launches the the QuickSetup wizard, and soon the
  Welcome screen appears.</para>
