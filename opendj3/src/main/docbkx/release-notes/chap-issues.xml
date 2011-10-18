@@ -52,7 +52,8 @@
  <section xml:id="limitations">
   <title>Limitations</title>
 
-  <para>Release <?eval ${docTargetVersion}?> has the following limitations.</para>
+  <para>Release <?eval ${docTargetVersion}?> has the following limitations,
+  none of which are new since <?eval ${stableServerVersion} ?>.</para>
 
   <itemizedlist>
    <listitem>
@@ -60,8 +61,10 @@
     alias dereferencing, and limited support for LDAPv2.</para>
    </listitem>
    <listitem>
-    <!-- TODO: explain the mechanism of how lockout works. -->
-    <para>Account lockout works on a per-server basis only.</para>
+    <para>When you configure account lockout as part of password policy,
+    OpenDJ locks an account after the specified number of consecutive
+    authentication failures. Account lockout is not transactional across a
+    replication topology, however.</para>
    </listitem>
    <listitem>
     <para>OpenDJ is not fully integrated with Microsoft Windows, yet OpenDJ
@@ -74,20 +77,20 @@
     focused only on topologies of up to eight replication servers.</para>
    </listitem>
    <listitem>
-    <para>On Niagara systems such as T2000, hardware SSL crypto acceleration runs
-    more slowly than software crypto acceleration. To work around this issue take
-    the following actions.</para>
-   <orderedlist>
-    <listitem>
-     <para>Add more request handlers to LDAP (for TLS) and LDAPS (for SSL)
-     connection handlers.</para>
-    </listitem>
-    <listitem>
-     <para>Disable hardware acceleration for server's JVM by removing the
-     SunPKCS11 security provider from
-     <filename>jre/lib/security/java.security</filename>.</para>
-    </listitem>
-   </orderedlist>
+    <para>On Niagara systems such as T2000, hardware SSL crypto acceleration
+    runs more slowly than software crypto acceleration. To work around this
+    issue take the following actions.</para>
+    <orderedlist>
+     <listitem>
+      <para>Add more request handlers to LDAP (for TLS) and LDAPS (for SSL)
+      connection handlers.</para>
+     </listitem>
+     <listitem>
+      <para>Disable hardware acceleration for server's JVM by removing the
+      SunPKCS11 security provider from
+      <filename>jre/lib/security/java.security</filename>.</para>
+     </listitem>
+    </orderedlist>
    </listitem>
   </itemizedlist>
  </section>
@@ -106,8 +109,7 @@
   
   <para>Furthermore when deploying for production, make sure that you follow
   the installation instructions on allowing OpenDJ to use at least 64K (65536)
-  file descriptors, tuning the JVM appropriately, and increasing database
-  cache size from the default of 10%.</para>
+  file descriptors, and tuning the JVM appropriately.</para>
 
   <para>For the latest status, query the OpenDJ bug database online at
   <link xlink:href='https://bugster.forgerock.org/jira/browse/OPENDJ'

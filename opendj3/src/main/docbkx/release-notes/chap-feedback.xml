@@ -44,7 +44,7 @@
 
  <para>When requesting help with a problem, please include the following
  information:</para>
- 
+
  <itemizedlist>
   <listitem>
    <para>Description of the problem, including when the problem occurs and
@@ -52,16 +52,14 @@
   </listitem>
   <listitem>
    <para>Machine type, operating system version, web container and version,
-   JDK version, and OpenDJ release version, including any patches or other
+   Java version, and OpenDJ release version, including any patches or other
    software that might be affecting the problem</para>
   </listitem>
   <listitem>
    <para>Steps to reproduce the problem</para>
   </listitem>
   <listitem>
-   <para>Any relevant access and error logs or core dumps</para>
+   <para>Any relevant access and error logs, stack traces, or core dumps</para>
   </listitem>
  </itemizedlist>
-
 </chapter>
-
