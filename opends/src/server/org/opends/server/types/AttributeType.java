@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -521,7 +522,7 @@ public final class AttributeType
 
 
   /**
-   * Indicates whether this attribute sytax is a binary one.
+   * Indicates whether this attribute syntax is a binary one.
    * @return  {@code true} if it is a binary syntax rule
    *          , or {@code false} if not.
    */
