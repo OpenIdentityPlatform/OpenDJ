@@ -49,7 +49,7 @@
  <note>
   <para>OpenDJ directory server relies on Java 6, so if your browser
   picks up an old installation of Java 5 for example, installation can
-  fail. You might see an application error messages such as this:</para>
+  fail. You might see an application error message such as this:</para>
  
   <mediaobject>
    <alt>Application error due to old Java version</alt>
