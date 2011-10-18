@@ -32,17 +32,22 @@
   <title>What's New in OpenDJ <?eval ${docTargetVersion}?></title>
 
   <para>Compared to the OpenDJ <?eval ${stableServerVersion} ?>, OpenDJ
-  <?eval ${docTargetVersion}?> fixes a number of issues, and provides the
-  following additional features.</para>
+  <?eval ${docTargetVersion}?> fixes a number of issues. OpenDJ
+  <?eval ${docTargetVersion}?> provides the following new features.</para>
   
   <itemizedlist>
-    <listitem>
-     <para>TODO</para>
-    </listitem>
     <listitem>
      <para>OpenDJ now lets you filter access and audit logs to focus on
      messages that interest you. OpenDJ supports many criteria for flexible
      log filtering. (OPENDJ-308)</para>
+    </listitem>
+    <listitem>
+     <para>OpenDJ now logs use of the proxied authorization V1 control with
+     <literal>obsoleteProxiedAuthzV1Control</literal> (OPENDJ-283).</para>
+    </listitem>
+    <listitem>
+     <para>OpenDJ DSML gateway can now connect over SSL to the LDAP
+     server (OPENDJ-269).</para>
     </listitem>
     <listitem>
       <para>OpenDJ now lets you delegate authentication to another LDAP
@@ -57,7 +62,8 @@
        the user with the user's entry on the remote directory service. The two
        entries must correspond in one of the following ways.</para>
        <listitem>
-        <para>Both the OpenDJ entry and the remote entry have the same DN.</para>
+        <para>Both the OpenDJ entry and the remote entry have the same
+        DN.</para>
        </listitem>
        <listitem>
         <para>The OpenDJ entry has an attribute that holds the DN of the entry
@@ -78,6 +84,20 @@
       <citetitle>Administration Guide</citetitle> for details.</para>
     </listitem>
     <listitem>
+     <para>OpenDJ now lets you configure attributes to be removed or renamed
+     on update (OPENDJ-258).</para>
+    </listitem>
+    <listitem>
+     <para>OpenDJ now calls Account Status Notification Handlers when an
+     account in enabled or disabled by the <command>manage-account</command>
+     (OPENDJ-248).</para>
+    </listitem>
+    <listitem>
+     <para>OpenDJ now adds <literal>Unindexed</literal> to access log response
+     messages for unindexed searches, making it easier to identify searches
+     rejected by default (OPENDJ-246).</para>
+    </listitem>
+    <listitem>
      <para>OpenDJ can now synchronize Samba password attribute values with the
      <literal>userPassword</literal> attribute value, ensuring that when users
      change their LDAP passwords in OpenDJ or change their LanMan or NT
@@ -86,18 +106,33 @@
      Password plugin by using the <command>dsconfig</command> command.</para>
     </listitem>
     <listitem>
-      <para>Collective attributes can now be applied based on the values of
-      virtual attributes (OPENDJ-76).</para>
+     <para>OpenDJ now better supports more, and larger static groups
+     (OPENDJ-197).</para>
     </listitem>
     <listitem>
-      <para>OpenDJ now generates <literal>modifiersName</literal> and
-      <literal>modifyTimestamp</literal> for add operations (OPENDJ-84).</para>
+     <para>Change log content and configuration has been improved in this
+     release (OPENDJ-194).</para>
     </listitem>
     <listitem>
-      <para>OpenDJ now permits backup of administrative backend types
-      such as LDIF and trust stores (OPENDJ-89).</para>
+     <para>Default database cache size, request handler counts, and replication
+     purge delay are now set more sensibly for default installations
+     (OPENDJ-116, OPENDJ-186).</para>
+    </listitem>
+    <listitem>
+     <para>The character set password validator now supports optional character
+     sets (OPENDJ-168).</para>
+    </listitem>
+    <listitem>
+     <para>Collective attributes can now be applied based on the values of
+     virtual attributes (OPENDJ-76).</para>
+    </listitem>
+    <listitem>
+     <para>OpenDJ now lets you configure the access log to display LDAP
+     controls (OPENDJ-60).</para>
+    </listitem>
+    <listitem>
+     <para>OpenDJ now lets you execute control-panel as any user, not only the
+     user who installed OpenDJ (OPENDJ-19).</para>
     </listitem>
   </itemizedlist>
-  
 </chapter>
-
