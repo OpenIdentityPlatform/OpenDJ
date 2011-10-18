@@ -168,7 +168,7 @@ $ wget http://www.forgerock.org/downloads/opendj/<?eval ${docTargetVersion}?>/Op
    </step>
    <step>
     <para>Pass the .zip file name to the <command>upgrade</command> command.</para>
-    <screen>$ ./upgrade -f /tmp/OpenDJ-<?eval ${docTargetVersion}?>.zip
+    <screen>$ ./upgrade --file /tmp/OpenDJ-<?eval ${docTargetVersion}?>.zip
 See /var/....log for a detailed log of this operation.
 
 Initializing Upgrade ..... Done.
@@ -195,7 +195,7 @@ See /var/....log for a detailed log of this operation.</screen>
     <command>rebuild-index</command> command to rebuild the
     <literal>dn2id</literal> index for your suffixes.</para>
 
-    <screen>$ ./bin/rebuild-index -i dn2id -b "dc=example,dc=com"
+    <screen>$ ./bin/rebuild-index --index dn2id --baseDN "dc=example,dc=com"
 ...Rebuild complete. Processed 160 entries in 0 seconds (average rate 401.0/sec)</screen>
    </step>
   </procedure>
