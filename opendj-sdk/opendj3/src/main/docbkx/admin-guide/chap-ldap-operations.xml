@@ -69,7 +69,7 @@
   visiting the <literal>GNB00</literal> office and are looking for a
   printer.</para>
   
-  <screen>$ ldapsearch -b ou=Printers,dc=example,dc=com "(printerLocation=GNB00)"</screen>
+  <screen>$ ldapsearch --baseDN ou=Printers,dc=example,dc=com "(printerLocation=GNB00)"</screen>
   
   <para>In the example, the LDAP filter indicates to the directory that you
   want to lookup printer entries where the <literal>printerLocation</literal>
@@ -90,7 +90,7 @@
    <para>The following example searches for entries with UID containing
    <literal>jensen</literal>, returning only DNs and uid values.</para>
    
-   <screen>$ ldapsearch -p 1389 -b dc=example,dc=com "(uid=*jensen*)" uid
+   <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(uid=*jensen*)" uid
 dn: uid=ajensen,ou=People,dc=example,dc=com
 uid: ajensen
 
@@ -124,8 +124,11 @@ Result Code:  0 (Success)</screen>
    command returns the attributes associated with the <literal>person</literal>
    object class.</para>
    
-   <screen>$ ldapsearch -p 1389 -b ou=people,dc=example,dc=com
- "(&amp;(uid=*jensen*)(l=Santa Clara))" @person
+   <screen>$ ldapsearch
+ --port 1389
+ --baseDN ou=people,dc=example,dc=com
+ "(&amp;(uid=*jensen*)(l=Santa Clara))"
+ @person
 dn: uid=ajensen,ou=People,dc=example,dc=com
 objectClass: person
 objectClass: organizationalPerson
@@ -176,7 +179,7 @@ sn: Jensen
    to return all operational attributes. Alternatively, specify operational
    attributes by name.</para>
    
-   <screen>$ ldapsearch -p 1389 -b dc=example,dc=com uid=bjensen +
+   <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com uid=bjensen +
 dn: uid=bjensen,ou=People,dc=example,dc=com
 numSubordinates: 0
 structuralObjectClass: inetOrgPerson
@@ -194,7 +197,7 @@ entryUUID: fc252fd9-b982-3ed6-b42a-c76d2546312c</screen>
    attribute list after the filter to return the attributes associated with
    a particular object class.</para>
    
-   <screen>$ ldapsearch -p 1389 -b dc=example,dc=com uid=bjensen @person
+   <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com uid=bjensen @person
 dn: uid=bjensen,ou=People,dc=example,dc=com
 objectClass: person
 objectClass: organizationalPerson
@@ -221,8 +224,11 @@ sn: Jensen</screen>
    <para>In this example, Kirsten Vaughan checks whether the hashed password
    value matches the stored value on <literal>authPassword</literal>.</para>
 
-   <screen>$ ldapcompare -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com"
- -w bribery 'authPassword:MD5$dFHgpDxXUT8=$qlC4xMXvmVlusJLz9/WJ5Q=='
+   <screen>$ ldapcompare
+ --port 1389
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com"
+ --bindPassword bribery
+ 'authPassword:MD5$dFHgpDxXUT8=$qlC4xMXvmVlusJLz9/WJ5Q=='
  uid=kvaughan,ou=people,dc=example,dc=com
 Comparing type authPassword with value
  MD5$dFHgpDxXUT8=$qlC4xMXvmVlusJLz9/WJ5Q== in entry
@@ -264,8 +270,12 @@ cn: Horace Velmont
 telephoneNumber: +33 1 12 23 34 45
 sn: Velmont
 
-$ ldapmodify -a -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com"
- -w bribery -f new-users.ldif
+$ ldapmodify
+ --defaultAdd
+ --port 1389
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com"
+ --bindPassword bribery
+ --filename new-users.ldif
 Processing ADD request for cn=Arsene Lupin,ou=Special Users,dc=example,dc=com
 ADD operation successful for DN
  cn=Arsene Lupin,ou=Special Users,dc=example,dc=com
@@ -297,8 +307,11 @@ description: Accounting Manager
 add: jpegphoto
 jpegphoto: /tmp/Samantha-Carter.jpg
 
-$ ldapmodify -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com"
- -w bribery -f scarter-mods.ldif 
+$ ldapmodify
+ --port 1389
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com"
+ --bindPassword bribery
+ --filename scarter-mods.ldif
 Processing MODIFY request for uid=scarter,ou=people,dc=example,dc=com
 MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com</screen>
   </example>
@@ -315,8 +328,11 @@ changetype: modify
 replace: description
 description: Accounting Director
 
-$ ldapmodify -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com"
- -w bribery -f scarter-newdesc.ldif 
+$ ldapmodify
+ --port 1389
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com"
+ --bindPassword bribery
+ --filename scarter-newdesc.ldif 
 Processing MODIFY request for uid=scarter,ou=people,dc=example,dc=com
 MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com</screen>
   </example>
@@ -332,8 +348,11 @@ dn: uid=scarter,ou=people,dc=example,dc=com
 changetype: modify
 delete: jpegphoto
 
-$ ldapmodify -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com"
- -w bribery -f scarter-deljpeg.ldif 
+$ ldapmodify
+ --port 1389
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com"
+ --bindPassword bribery
+ --filename scarter-deljpeg.ldif 
 Processing MODIFY request for uid=scarter,ou=people,dc=example,dc=com
 MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com</screen>
   </example>
@@ -365,13 +384,18 @@ MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com</scre
     attributes to <literal>mail</literal> attributes. First, configure the
     attribute cleanup plugin to rename the inbound attribute.</para>
     
-    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+    <screen>$ dsconfig
  create-plugin
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --type attribute-cleanup
  --plugin-name "Rename email to mail"
  --set enabled:true
  --set rename-inbound-attributes:email:mail
- -X -n</screen>
+ --trustAll
+ --no-prompt</screen>
     
     <para>Next, see that it works as expected.</para>
     
@@ -388,10 +412,15 @@ ou: People
 email: newuser@example.com
 userPassword: changeme
 
-$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -a -f email.ldif
+$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --defaultAdd
+ --filename email.ldif
 Processing ADD request for uid=newuser,ou=People,dc=example,dc=com
 ADD operation successful for DN uid=newuser,ou=People,dc=example,dc=com
-$ ldapsearch -p 1389 -b dc=example,dc=com uid=newuser mail
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com uid=newuser mail
 dn: uid=newuser,ou=People,dc=example,dc=com
 mail: newuser@example.com</screen>
    </example>
@@ -405,8 +434,12 @@ mail: newuser@example.com</screen>
     and <literal>modifyTimestamp</literal> attributes. First, set up the
     attribute cleanup plugin.</para>
     
-    <screen>$ dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+    <screen>$ dsconfig
  create-plugin
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --type attribute-cleanup
  --plugin-name "Remove attrs"
  --set enabled:true
@@ -414,7 +447,8 @@ mail: newuser@example.com</screen>
  --set remove-inbound-attributes:createTimestamp
  --set remove-inbound-attributes:modifiersName
  --set remove-inbound-attributes:modifyTimestamp
- -X -n</screen>
+ --trustAll
+ --no-prompt</screen>
     
     <para>Next, see that it works as expected.</para>
     
@@ -435,10 +469,15 @@ createTimestamp: Never in a million years.
 modifiersName: cn=Directory Manager,cn=Root DNs,cn=config
 modifyTimestamp: 20110930164937Z
 
-$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -a -f badattrs.ldif
+$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --defaultAdd
+ --filename badattrs.ldif
 Processing ADD request for uid=badattr,ou=People,dc=example,dc=com
 ADD operation successful for DN uid=badattr,ou=People,dc=example,dc=com
-$ ldapsearch -p 1389 -b dc=example,dc=com uid=badattr +
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com uid=badattr +
 dn: uid=badattr,ou=People,dc=example,dc=com
 numSubordinates: 0
 structuralObjectClass: inetOrgPerson
@@ -497,8 +536,11 @@ homeDirectory: /home/sjensen
 replace: mail
 mail: sjensen@example.com
 
-$ ldapmodify -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com"
- -w bribery -f /path/to/scarter-sjensen.ldif 
+$ ldapmodify
+ --port 1389
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com"
+ --bindPassword bribery
+ --filename /path/to/scarter-sjensen.ldif 
 Processing MODIFY DN request for uid=scarter,ou=people,dc=example,dc=com
 MODIFY DN operation successful for DN uid=scarter,ou=people,dc=example,dc=com
 Processing MODIFY request for uid=sjensen,ou=people,dc=example,dc=com
@@ -540,8 +582,11 @@ newrdn: ou=People
 deleteoldrdn: 1
 newsuperior: dc=example,dc=com
 
-$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password
- -f move-customers.ldif 
+$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --filename move-customers.ldif 
 Processing MODIFY DN request for ou=Customers,dc=example,dc=com
 MODIFY DN operation successful for DN ou=Customers,dc=example,dc=com
 $ cat move-employees.pl 
@@ -555,7 +600,7 @@ while (&lt;&gt;)
      deleteoldrdn: 0\nnewsuperior: ou=People,dc=example,dc=com/;
     print;
 }
-$ ldapsearch -p 1389 -b ou=Employees,dc=example,dc=com uid=* - |
+$ ldapsearch --port 1389 --baseDN ou=Employees,dc=example,dc=com uid=* - |
  move-employees.pl > /tmp/move-employees.ldif
 $ head -n 6 /tmp/move-employees.ldif 
 dn: uid=abarnes,ou=Employees,dc=example,dc=com
@@ -564,8 +609,11 @@ newrdn: uid=abarnes
 deleteoldrdn: 0
 newsuperior: ou=People,dc=example,dc=com
 
-$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password
- -f /tmp/move-employees.ldif 
+$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --filename /tmp/move-employees.ldif
 Processing MODIFY DN request for uid=abarnes,ou=Employees,dc=example,dc=com
 MODIFY DN operation successful for DN uid=abarnes,ou=Employees,dc=example,dc=com
 Processing MODIFY DN request for uid=abergin,ou=Employees,dc=example,dc=com
@@ -573,7 +621,10 @@ MODIFY DN operation successful for DN uid=abergin,ou=Employees,dc=example,dc=com
 ...
 Processing MODIFY DN request for uid=wlutz,ou=Employees,dc=example,dc=com
 MODIFY DN operation successful for DN uid=wlutz,ou=Employees,dc=example,dc=com
-$ ldapdelete -p 1389 -D "cn=Directory Manager" -w password
+$ ldapdelete
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  ou=Employees,dc=example,dc=com
 Processing DELETE request for ou=Employees,dc=example,dc=com
 DELETE operation successful for DN ou=Employees,dc=example,dc=com</screen>
@@ -592,8 +643,11 @@ DELETE operation successful for DN ou=Employees,dc=example,dc=com</screen>
     <para>The following example uses the subtree delete option to remove
     all Special Users from the directory.</para>
     
-    <screen>$ ldapdelete -p 1389 -D "cn=Directory Manager" -w password
- -x "ou=Special Users,dc=example,dc=com"
+    <screen>$ ldapdelete
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --deleteSubtree "ou=Special Users,dc=example,dc=com"
 Processing DELETE request for ou=Special Users,dc=example,dc=com
 DELETE operation successful for DN ou=Special Users,dc=example,dc=com</screen>
    </example>
@@ -612,19 +666,27 @@ DELETE operation successful for DN ou=Special Users,dc=example,dc=com</screen>
    
    <para>The following example shows Kirsten Vaughan resetting Sam Carter's
    password. Kirsten has the appropriate privilege to reset Sam's
-   password. The <option>-q</option> option means the same thing as
-   <option>--useStartTLS</option>.</para>
+   password.</para>
    
-   <screen>$ ldappasswordmodify -q -p 1389 -D "uid=kvaughan,ou=people,dc=example,dc=com"
- -w bribery -a "dn:uid=scarter,ou=people,dc=example,dc=com" -n ChangeMe
+   <screen>$ ldappasswordmodify
+ --useStartTLS
+ --port 1389
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com"
+ --bindPassword bribery
+ --authzID "dn:uid=scarter,ou=people,dc=example,dc=com"
+ --newPassword ChangeMe
 The LDAP password modify operation was successful</screen>
 
    <para>You could also accomplish password reset with the following command,
    but <command>set-password-is-reset</command> is a hidden option, supported
    only for testing.</para>
    
-   <screen>$ manage-account -D "cn=Directory Manager" -w password
- set-password-is-reset -b uid=scarter,ou=people,dc=example,dc=com -O true
+   <screen>$ manage-account
+ set-password-is-reset
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --targetDN uid=scarter,ou=people,dc=example,dc=com
+ --operationValue true
 Password Is Reset:  true</screen>
   </example>
   
@@ -634,15 +696,21 @@ Password Is Reset:  true</screen>
    <para>You can use the <command>ldappasswordmodify</command> command to
    change your password, as long as you know your current password.</para>
    
-   <screen>$ ldappasswordmodify -p 1389 -a "dn:uid=bjensen,ou=people,dc=example,dc=com"
- --currentPassword hifalutin --newPassword secret12
+   <screen>$ ldappasswordmodify
+ --port 1389
+ --authzID "dn:uid=bjensen,ou=people,dc=example,dc=com"
+ --currentPassword hifalutin
+ --newPassword secret12
 The LDAP password modify operation was successful</screen>
    
    <para>The same operation works for <literal>cn=Directory
    Manager</literal>.</para>
    
-   <screen>$ ldappasswordmodify -p 1389 -a "dn:cn=Directory Manager"
- --currentPassword password --newPassword secret12
+   <screen>$ ldappasswordmodify
+ --port 1389
+ --authzID "dn:cn=Directory Manager"
+ --currentPassword password
+ --newPassword secret12
 The LDAP password modify operation was successful</screen>
   </example>
   
@@ -656,7 +724,7 @@ The LDAP password modify operation was successful</screen>
       <para>By default, the password for Directory Manager uses the SSHA512
       password storage scheme. In the following example, the encoded password
       is wrapped to fit on a printed page.</para>
-      <screen>$ encode-password -s SSHA512 -i
+      <screen>$ encode-password --storageScheme SSHA512 --interactivePassword
 Please enter the password :
 Please renter the password:
 Encoded Password:  "{SSHA512}U7Kx5oYcLxdsqSrpSkBk425LwL0Z61loNfS0dBVCcEKVhMyTT
@@ -727,7 +795,10 @@ ldapsearch.port=1389</programlisting>
    <title>To Set Up Proxied Authorization</title>
    <step>
     <para>Grant access to applications that can use proxied authorization.</para>
-    <screen>$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password
+    <screen>$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
 dn: dc=example,dc=com
 changetype: modify
 add: aci
@@ -740,7 +811,10 @@ MODIFY operation successful for DN dc=example,dc=com</screen>
    </step>
    <step>
     <para>Grant the privilege to use proxied authorization to My App.</para>
-    <screen>$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password
+    <screen>$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
 dn: cn=My App,ou=Apps,dc=example,dc=com
 changetype: modify
 add: ds-privilege-name
@@ -751,8 +825,11 @@ MODIFY operation successful for DN cn=My App,ou=Apps,dc=example,dc=com</screen>
    </step>
    <step>
     <para>Test that My App can use proxied authorization.</para>
-    <screen>$ ldapmodify -p 1389 -D "cn=My App,ou=Apps,dc=example,dc=com" -w password
- -Y "dn:uid=kvaughan,ou=People,dc=example,dc=com"
+    <screen>$ ldapmodify
+ --port 1389
+ --bindDN "cn=My App,ou=Apps,dc=example,dc=com"
+ --bindPassword password
+ --proxyAs "dn:uid=kvaughan,ou=People,dc=example,dc=com"
 dn: uid=bjensen,ou=People,dc=example,dc=com
 changetype: modify
 replace: description

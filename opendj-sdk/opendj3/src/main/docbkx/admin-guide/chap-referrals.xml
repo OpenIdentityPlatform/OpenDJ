@@ -89,7 +89,11 @@ objectClass: extensibleObject
 add: ref
 ref: ldap://opendj.example.com:2389/ou=People,dc=example,dc=com
 
-$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -f referral.ldif
+$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --filename referral.ldif
 Processing MODIFY request for ou=People,dc=example,dc=com
 MODIFY operation successful for DN ou=People,dc=example,dc=com</screen>
 
@@ -97,17 +101,22 @@ MODIFY operation successful for DN ou=People,dc=example,dc=com</screen>
   <literal>ou=People,dc=example,dc=com</literal>. OpenDJ can now return
   a referral for operations under the People organizational unit.</para>
   
-  <screen>$ ldapsearch -p 1389 -b dc=example,dc=com uid=bjensen description
+  <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com uid=bjensen description
 SearchReference(referralURLs=
  {ldap://opendj.example.com:2389/ou=People,dc=example,dc=com??sub?})
-$ ldapsearch -p 1389 -b dc=example,dc=com ou=people
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com ou=people
 SearchReference(referralURLs=
  {ldap://opendj.example.com:2389/ou=People,dc=example,dc=com??sub?})</screen>
  
   <para>To access the entry instead of the referral, use the Manage DSAIT
   control.</para>
   
-  <screen>$ ldapsearch -p 1389 -b dc=example,dc=com -J ManageDSAIT:true ou=people ref
+  <screen>$ ldapsearch
+ --port 1389
+ --baseDN dc=example,dc=com
+ --control ManageDSAIT:true
+ ou=people
+ ref
 dn: ou=People,dc=example,dc=com
 ref: ldap://opendj.example.com:2389/ou=People,dc=example,dc=com
 
@@ -117,21 +126,25 @@ changetype: modify
 delete: ref
 ref: ldap://opendj.example.com:2389/ou=People,dc=example,dc=com
 
-$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -f people.ldif 
+$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --filename people.ldif 
 Processing MODIFY request for ou=People,dc=example,dc=com
 MODIFY operation successful for DN ou=People,dc=example,dc=com
 A referral entry ou=People,dc=example,dc=com indicates that the operation must
  be processed at a different server
 [ldap://opendj.example.com:2389/ou=People,dc=example,dc=com]
 $ ldapmodify
- -p 1389
- -D "cn=Directory Manager"
- -w password
- -J ManageDSAIT
- -f people.ldif 
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --control ManageDSAIT
+ --filename people.ldif
 Processing MODIFY request for ou=People,dc=example,dc=com
 MODIFY operation successful for DN ou=People,dc=example,dc=com
-$ ldapsearch -p 1389 -b dc=example,dc=com ou=people
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com ou=people
 dn: ou=People,dc=example,dc=com
 ou: People
 objectClass: organizationalunit

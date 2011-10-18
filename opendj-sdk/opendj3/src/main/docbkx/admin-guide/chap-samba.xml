@@ -80,7 +80,12 @@ sn: Administrator
 uid: samba-admin
 userPassword: password
 
-$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -a -f samba.ldif
+$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --defaultAdd
+ --filename samba.ldif
 Processing ADD request for uid=samba-admin,ou=Special Users,dc=example,dc=com
 ADD operation successful for DN uid=samba-admin,ou=Special Users,
  dc=example,dc=com</screen>
@@ -100,7 +105,11 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr ="*")(version 3.0; acl "
  Samba Admin user rights"; allow(all) groupdn ="ldap:///uid=samba-user,ou=
  Special Users,dc=example,dc=com";)
 
-$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -f samba-rights.ldif
+$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --filename samba-rights.ldif
 Processing MODIFY request for uid=samba-admin,ou=Special Users,dc=example,dc=com
 MODIFY operation successful for DN uid=samba-admin,ou=Special Users,dc=example,dc=com
 Processing MODIFY request for dc=example,dc=com
@@ -120,42 +129,45 @@ MODIFY operation successful for DN dc=example,dc=com</screen>
   <step>
    <para>Enable the plugin.</para>
    <screen>$ dsconfig
- -p 4444
- -h `hostname`
- -D "cn=Directory Manager"
- -w password
  create-plugin
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --plugin-name "Samba Password Synchronisation"
  --type samba-password
  --set enabled:true
  --set pwd-sync-policy:sync-nt-password
  --set
  samba-administrator-dn:"uid=samba-admin,ou=Special Users,dc=example,dc=com"
- -X -n</screen>
+ --trustAll
+ --no-prompt</screen>
    <para>At this point the Samba Password plugin is active.</para>
   </step>
   <step performance="optional">
    <para>When troubleshooting Samba Password plugin issues, you can turn on
    debug logging as follows.</para>
    <screen>$ dsconfig
- -p 4444
- -h `hostname`
- -D "cn=Directory Manager"
- -w password
  create-debug-target
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --publisher-name "File-Based Debug Logger"
  --target-name org.opends.server.plugins.SambaPasswordPlugin
  --set debug-level:all
- -X -n
+ --trustAll
+ --no-prompt
 $ dsconfig
- -p 4444
- -h `hostname`
- -D "cn=Directory Manager"
- -w password
  set-log-publisher-prop
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --publisher-name "File-Based Debug Logger"
  --set enabled:true
- -X -n</screen>
+ --trustAll
+ --no-prompt</screen>
   </step>
  </procedure>
 </chapter>

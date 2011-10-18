@@ -70,11 +70,11 @@
    follows.</para>
    
    <screen>$ dsconfig
- -p 4444
- -h `hostname`
- -D "cn=Directory Manager"
- -w password
  get-password-policy-prop
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --policy-name "Default Password Policy"
  --advanced
 Property                                  : Value(s)
@@ -128,10 +128,10 @@ state-update-failure-policy               : reactive</screen>
    password.</para>
    
    <screen>$ ldapsearch
- -p 1389
- -D "cn=Directory Manager"
- -w password
- -b dc=example,dc=com
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --baseDN dc=example,dc=com
  uid=bjensen
  userpassword
 dn: uid=bjensen,ou=People,dc=example,dc=com
@@ -262,7 +262,7 @@ userpassword: {SSHA}QWAtw8ch/9850HNFRRqLNMIQc1YhxCnOoGmk1g==</screen>
    <para>The password policy that applies to a user is identified by the
    operational attribute, <literal>pwdPolicySubentry</literal>.</para>
    
-   <screen>$ ldapsearch -p 1389 -b dc=example,dc=com uid=bjensen pwdPolicySubentry
+   <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com uid=bjensen pwdPolicySubentry
 dn: uid=bjensen,ou=People,dc=example,dc=com
 pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config</screen>
   </section>
@@ -288,38 +288,40 @@ pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config</sc
    <step>
     <para>Enable the appropriate password validator.</para>
     <screen>$ dsconfig
- -p 4444
- -h `hostname`
- -D "cn=Directory Manager"
- -w password
  set-password-validator-prop
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --validator-name Dictionary
  --set enabled:true
- -X -n</screen>
+ --trustAll
+ --no-prompt</screen>
    </step>
    <step>
     <para>Apply the changes to the default password policy.</para>
     <screen>$ dsconfig
- -p 4444
- -h `hostname`
- -D "cn=Directory Manager"
- -w password
  set-password-policy-prop
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --policy-name "Default Password Policy"
  --set max-password-age:90d
  --set min-password-age:4w
  --set password-history-count:7
  --set password-validator:Dictionary
- -X -n</screen>
+ --trustAll
+ --no-prompt</screen>
    </step>
    <step>
     <para>Check your work.</para>
     <screen>$ dsconfig
- -p 4444
- -h `hostname`
- -D "cn=Directory Manager"
- -w password
  get-password-policy-prop
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --policy-name "Default Password Policy"
 Property                                  : Value(s)
 ------------------------------------------:--------------------------
@@ -363,25 +365,26 @@ require-secure-password-changes           : false</screen>
    <step>
     <para>Create the new password policy.</para>
     <screen>$ dsconfig
- -p 4444
- -h `hostname`
- -D "cn=Directory Manager"
- -w password
  create-password-policy
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --policy-name "New Account Password Policy"
  --set default-password-storage-scheme:"Salted SHA-1"
  --set force-change-on-add:true
  --set password-attribute:userPassword
- -X -n</screen>
+ --trustAll
+ --no-prompt</screen>
    </step>
    <step>
     <para>Check your work.</para>
     <screen>$ dsconfig
- -p 4444
- -h `hostname`
- -D "cn=Directory Manager"
- -w password
  get-password-policy-prop
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --policy-name "New Account Password Policy"
 Property                                  : Value(s)
 ------------------------------------------:-------------
@@ -447,11 +450,11 @@ subtreeSpecification: {base "ou=people", specificationFilter
    <step>
     <para>Add the policy to the directory.</para>
     <screen>$ ldapmodify
- -p 1389
- -D "cn=Directory Manager"
- -w password
- -a
- -f /path/to/subentry-pwp.ldif 
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --defaultAdd
+ --filename /path/to/subentry-pwp.ldif 
 Processing ADD request for cn=Subentry Password Policy,dc=example,dc=com
 ADD operation successful for DN cn=Subentry Password Policy,dc=example,dc=com</screen>
    </step>
@@ -461,11 +464,19 @@ ADD operation successful for DN cn=Subentry Password Policy,dc=example,dc=com</s
     while a normal user has the default password policy. Here, Kirsten Vaughan
     is a member of the Directory Administrators group, and Babs Jensen is not
     a member.</para>
-    <screen>$ ldapsearch -p 1389 -b dc=example,dc=com uid=kvaughan pwdPolicySubentry
+    <screen>$ ldapsearch
+ --port 1389
+ --baseDN dc=example,dc=com
+ uid=kvaughan
+ pwdPolicySubentry
 dn: uid=kvaughan,ou=People,dc=example,dc=com
 pwdPolicySubentry: cn=Subentry Password Policy,dc=example,dc=com
 
-$ ldapsearch -p 1389 -b dc=example,dc=com uid=bjensen pwdPolicySubentry
+$ ldapsearch
+ --port 1389
+ --baseDN dc=example,dc=com
+ uid=bjensen
+ pwdPolicySubentry
 dn: uid=bjensen,ou=People,dc=example,dc=com
 pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config</screen>
    </step>
@@ -501,7 +512,11 @@ aci: (target ="ldap:///uid=*,ou=People,dc=example,dc=com")(targetattr =
  "ds-pwp-password-policy-dn")(version 3.0;acl "Cannot choose own pass
  word policy";deny (write)(userdn = "ldap:///self");)
 
-$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -f protectpwp.ldif
+$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --filename protectpwp.ldif
 Processing MODIFY request for ou=People,dc=example,dc=com
 MODIFY operation successful for DN ou=People,dc=example,dc=com</screen>
    </step>
@@ -524,17 +539,22 @@ userPassword: changeme
 ds-pwp-password-policy-dn: cn=New Account Password Policy,cn=Password Policies,
  cn=config
 
-$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -a -f newuser.ldif
+$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --defaultAdd
+ --filename newuser.ldif
 Processing ADD request for uid=newuser,ou=People,dc=example,dc=com
 ADD operation successful for DN uid=newuser,ou=People,dc=example,dc=com</screen>
    </step>
    <step>
     <para>Check your work.</para>
     <screen>$ ldapsearch
- -p 1389
- -D "cn=Directory Manager"
- -w password
- -b dc=example,dc=com
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --baseDN dc=example,dc=com
  uid=newuser
  pwdPolicySubentry
 dn: uid=newuser,ou=People,dc=example,dc=com
@@ -562,7 +582,12 @@ ds-pwp-password-policy-dn;collective: cn=Root Password Policy,cn=Pass
 subtreeSpecification: { base "ou=People", specificationFilter "(isMemberOf=
  cn=Directory Administrators,ou=Groups,dc=example,dc=com)"}
 
-$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -a -f pwp-coll.ldif
+$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --defaultAdd
+ --filename pwp-coll.ldif
 Processing ADD request for cn=Password Policy for Dir Admins,dc=example,dc=com
 ADD operation successful for DN cn=Password Policy for Dir
  Admins,dc=example,dc=com</screen>
@@ -570,7 +595,11 @@ ADD operation successful for DN cn=Password Policy for Dir
    <step>
     <para>Check your work.</para>
     
-    <screen>$ ldapsearch -p 1389 -b dc=example,dc=com uid=kvaughan pwdPolicySubentry
+    <screen>$ ldapsearch
+ --port 1389
+ --baseDN dc=example,dc=com
+ uid=kvaughan
+ pwdPolicySubentry
 dn: uid=kvaughan,ou=People,dc=example,dc=com
 pwdPolicySubentry: cn=Root Password Policy,cn=Password Policies,cn=config</screen>
    </step>

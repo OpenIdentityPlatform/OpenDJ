@@ -105,13 +105,13 @@
   <para>These virtual attributes are typically operational, so you get them
   back from a search only when you request them.</para>
   
-  <screen>$ ldapsearch -p 1389 -b dc=example,dc=com dc=example
+  <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com dc=example
 dn: dc=example,dc=com
 dc: example
 objectClass: domain
 objectClass: top
 
-$ ldapsearch -p 1389 -b dc=example,dc=com dc=example numSubordinates
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com dc=example numSubordinates
 dn: dc=example,dc=com
 numSubordinates: 4
 </screen>
@@ -127,19 +127,20 @@ numSubordinates: 4
   replicated.</para>
   
   <screen>$ dsconfig
- -h `hostname`
- -p 4444 -D
- "cn=Directory Manager"
- -w password
  create-virtual-attribute
+ --hostname `hostname`
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --name "Served By Description"
  --type user-defined
  --set enabled:true
  --set attribute-type:description
  --set base-dn:dc=example,dc=com
  --set value:"Served by OpenDJ.Example.com"
- -X -n
-$ ldapsearch -p 1389 -b dc=example,dc=com uid=bjensen description
+ --trustAll
+ --no-prompt
+$ ldapsearch --port 1389 --baseDN dc=example,dc=com uid=bjensen description
 dn: uid=bjensen,ou=People,dc=example,dc=com
 description: Served by OpenDJ.Example.com
 </screen>
@@ -233,7 +234,11 @@ objectClasses: ( example-class-of-service-object-class NAME 'cos' SUP top AUX
  ILIARY MAY ( classOfService $ diskQuota $ mailQuota ) X-ORIGIN 'OpenDJ Doc
  umentation Examples' )
 
-$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -f quotas.ldif
+$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --filename quotas.ldif
 Processing MODIFY request for cn=schema
 MODIFY operation successful for DN cn=schema</screen>
 
@@ -278,7 +283,12 @@ subtreeSpecification: { base "ou=People", specificationFilter "(classOfService=
    <para>You can add the collective attribute subentries by using the
    <command>ldapmodify</command> command.</para>
    
-   <screen>$ ldapmodify -p 1389 -D "cn=Directory Manager" -w password -a -f cos.ldif
+   <screen>$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --defaultAdd
+ --filename cos.ldif
 Processing ADD request for cn=Bronze Class of Service,dc=example,dc=com
 ADD operation successful for DN cn=Bronze Class of Service,dc=example,dc=com
 Processing ADD request for cn=Silver Class of Service,dc=example,dc=com
@@ -290,8 +300,8 @@ ADD operation successful for DN cn=Gold Class of Service,dc=example,dc=com</scre
    user entries.</para>
    
    <screen>$ ldapsearch
- -p 1389
- -b dc=example,dc=com
+ --port 1389
+ --baseDN dc=example,dc=com
  uid=bjensen
  classOfService mailQuota diskQuota
 dn: uid=bjensen,ou=People,dc=example,dc=com
@@ -300,8 +310,8 @@ classOfService: bronze
 diskQuota: 10 GB
 
 $ ldapsearch
- -p 1389
- -b dc=example,dc=com
+ --port 1389
+ --baseDN dc=example,dc=com
  uid=kvaughan
  classOfService mailQuota diskQuota
 dn: uid=kvaughan,ou=People,dc=example,dc=com
@@ -310,8 +320,8 @@ classOfService: silver
 diskQuota: 50 GB
 
 $ ldapsearch
- -p 1389
- -b dc=example,dc=com
+ --port 1389
+ --baseDN dc=example,dc=com
  uid=scarter
  classOfService mailQuota diskQuota
 dn: uid=scarter,ou=People,dc=example,dc=com

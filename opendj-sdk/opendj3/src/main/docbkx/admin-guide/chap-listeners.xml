@@ -56,14 +56,15 @@
     <para>Change the port number using the <command>dsconfig</command>
     command.</para>
     <screen>$ dsconfig
- -h `hostname`
- -p 4444
- -D "cn=Directory Manager"
- -w password
  set-connection-handler-prop
+ --hostname `hostname`
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --handler-name "LDAP Connection Handler"
  --set listen-port:11389
- -n</screen>
+ --trustAll
+ --no-prompt</screen>
     <para>This example changes the port number to 11389 in the configuration.</para>
    </step>
    <step>
@@ -127,33 +128,33 @@
     filename and key store PIN that you set up with the
     <command>keytool</command> command.</para>
     <screen>$ dsconfig
- -h `hostname`
- -p 4444
- -D "cn=Directory Manager"
- -w password
- -X
  set-key-manager-provider-prop
+ --hostname `hostname`
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --provider-name JKS
  --set enabled:true
  --set key-store-pin:changeit
  --remove key-store-pin-file:config/keystore.pin
- -n</screen>
+ --trustAll
+ --no-prompt</screen>
    </step>
    <step>
     <para>Configure the File Based Trust Manager Provider for JKS to use the
     key store and PIN as well.</para>
     <screen>$ dsconfig
- -h `hostname`
- -p 4444
- -D "cn=Directory Manager"
- -w password
- -X
  set-trust-manager-provider-prop
+ --hostname `hostname`
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --provider-name JKS
  --set enabled:true
  --set trust-store-file:config/keystore
  --set trust-store-pin:changeit
- -n</screen>
+ --trustAll
+ --no-prompt</screen>
     <para>At this point, OpenDJ directory server can use your new self-signed
     certificate, for example for StartTLS and LDAPS connection handlers.</para>
    </step>
@@ -177,16 +178,17 @@
    <step>
     <para>Activate StartTLS on the current LDAP port.</para>
     <screen>$ dsconfig
- -h `hostname`
- -p 4444
- -D "cn=Directory Manager"
- -w password
  set-connection-handler-prop
+ --hostname `hostname`
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --handler-name "LDAP Connection Handler"
  --set allow-start-tls:true
  --set key-manager-provider:JKS
  --set trust-manager-provider:JKS
- -n</screen>
+ --trustAll
+ --no-prompt</screen>
     <para>The change takes effect. No need to restart the server.</para>
    </step>
   </procedure>
@@ -214,16 +216,17 @@
    <step>
     <para>Configure the server to activate LDAPS access.</para>
     <screen>$ dsconfig
- -h `hostname`
- -p 4444
- -D "cn=Directory Manager"
- -w password
  set-connection-handler-prop
+ --hostname `hostname`
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --handler-name "LDAPS Connection Handler"
  --set listen-port:1636
  --set enabled:true
  --set use-ssl:true
- -n</screen>
+ --trustAll
+ --no-prompt</screen>
     <para>This example changes the port number to 1636 in the configuration.</para>
    </step>
   </procedure>
@@ -235,14 +238,15 @@
     <para>Change the port number using the <command>dsconfig</command>
     command.</para>
     <screen>$ dsconfig
- -h `hostname`
- -p 4444
- -D "cn=Directory Manager"
- -w password
  set-connection-handler-prop
+ --hostname `hostname`
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --handler-name "LDAPS Connection Handler"
  --set listen-port:11636
- -n</screen>
+ --trustAll
+ --no-prompt</screen>
     <para>This example changes the port number to 11636 in the configuration.</para>
    </step>
    <step>
@@ -369,24 +373,25 @@
    <step>
     <para>Configure the server to activate JMX access.</para>
     <screen>$ dsconfig
- -h `hostname`
- -p 4444
- -D "cn=Directory Manager"
- -w password
  set-connection-handler-prop
+ --hostname `hostname`
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --handler-name "JMX Connection Handler"
  --set enabled:true
- -n</screen>
+ --trustAll
+ --no-prompt</screen>
     <para>This example uses the default port number, 1689.</para>
    </step>
    <step>
     <para>Restart the server so the change takes effect.</para>
     <screen>$ stop-ds --restart</screen>
    </step>
-  </procedure>  
+  </procedure>
  </section>
 
-  <section xml:id="ldif-access">
+ <section xml:id="ldif-access">
   <title>LDIF File Access</title>
   <indexterm>
    <primary>LDIF</primary>
@@ -406,14 +411,15 @@
    <step>
     <para>Activate LDIF file access.</para>
     <screen>$ dsconfig
- -h `hostname`
- -p 4444
- -D "cn=Directory Manager"
- -w password
  set-connection-handler-prop
+ --hostname `hostname`
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --handler-name "LDIF Connection Handler"
  --set enabled:true
- -n</screen>
+ --trustAll
+ --no-prompt</screen>
     <para>The change takes effect immediately.</para>
    </step>
    <step>

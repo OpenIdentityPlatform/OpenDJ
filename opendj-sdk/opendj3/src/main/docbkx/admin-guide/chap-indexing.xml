@@ -74,7 +74,7 @@
    allows clients to find people even when they misspell names as in the
    following example.</para>
    
-   <screen>$ ldapsearch -b dc=example,dc=com "(cn~=Babs Jansen)" cn
+   <screen>$ ldapsearch --baseDN dc=example,dc=com "(cn~=Babs Jansen)" cn
 dn: uid=bjensen,ou=People,dc=example,dc=com
 cn: Barbara Jensen
 cn: Babs Jensen</screen>
@@ -92,7 +92,7 @@ cn: Babs Jensen</screen>
    the search filter. An equality index requires clients to match values
    without wildcards or misspellings.</para>
    
-   <screen>$ ldapsearch -b dc=example,dc=com "(uid=bjensen)" mail
+   <screen>$ ldapsearch --baseDN dc=example,dc=com "(uid=bjensen)" mail
 dn: uid=bjensen,ou=People,dc=example,dc=com
 mail: bjensen@example.com</screen>
   </section>
@@ -111,7 +111,10 @@ mail: bjensen@example.com</screen>
    
    <para>The following example shows a search that specifies ranges.</para>
    
-   <screen>$ ldapsearch -b dc=example,dc=com "(&amp;(uidNumber&gt;=1120)(roomNumber&gt;=4500))" uid
+   <screen>$ ldapsearch
+ --baseDN dc=example,dc=com
+ "(&amp;(uidNumber&gt;=1120)(roomNumber&gt;=4500))"
+ uid
 dn: uid=charvey,ou=People,dc=example,dc=com
 uid: charvey
 
@@ -137,7 +140,7 @@ uid: pchassin</screen>
    attribute is indexed for presence by default to allow quick retrieval
    of entries with ACIs.</para>
    
-   <screen>$ ldapsearch -b dc=example,dc=com "(aci=*)" -
+   <screen>$ ldapsearch --baseDN dc=example,dc=com "(aci=*)" -
 dn: dc=example,dc=com
 
 dn: ou=People,dc=example,dc=com</screen>
@@ -154,7 +157,7 @@ dn: ou=People,dc=example,dc=com</screen>
    in the filter. Substring indexes can be expensive to maintain, especially
    for large attribute values.</para>
    
-   <screen>$ ldapsearch -b dc=example,dc=com "(cn=Barb*)" cn
+   <screen>$ ldapsearch --baseDN dc=example,dc=com "(cn=Barb*)" cn
 dn: uid=bfrancis,ou=People,dc=example,dc=com
 cn: Barbara Francis
 
@@ -225,15 +228,16 @@ cn: Barbara Maddox</screen>
     <literal>description</literal>.</para>
     
     <screen>$ dsconfig
- -p 4444
- -h `hostname`
- -D "cn=Directory Manager"
- -w password
  create-local-db-index
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --backend-name userRoot
  --index-name description
  --set index-type:substring
- -n</screen>
+ --trustAll
+ --no-prompt</screen>
    </example>
    
    <example xml:id="approx-index-example">
@@ -247,15 +251,16 @@ cn: Barbara Maddox</screen>
     <literal>cn</literal> (common name).</para>
     
     <screen>$ dsconfig
- -p 4444
- -h `hostname`
- -D "cn=Directory Manager"
- -w password
  set-local-db-index-prop
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --backend-name userRoot
  --index-name cn
  --set index-type:approximate
- -n</screen>
+ --trustAll
+ --no-prompt</screen>
    </example>
   </section>
   
@@ -321,13 +326,13 @@ cn: Barbara Maddox</screen>
     immediately with the server online.</para>
     
     <screen>$ rebuild-index
- -p 4444
- -h `hostname`
- -D "cn=Directory Manager"
- -w password
- -b dc=example,dc=com
- -i cn
- -t 0
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --baseDN dc=example,dc=com
+ --index cn
+ --start 0
 Rebuild Index task 20110607171639867 scheduled to start Jun 7, 2011 5:16:39 PM</screen>
    </example>
   </section>
@@ -376,23 +381,24 @@ Rebuild Index task 20110607171639867 scheduled to start Jun 7, 2011 5:16:39 PM</
     configuration change to take effect.</para>
     
     <screen>$ dsconfig
- -p 4444
- -h `hostname`
- -D "cn=Directory Manager"
- -w password
  set-local-db-index-prop
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --backend-name userRoot
  --index-name objectClass
  --set index-entry-limit:5000
- -n
+ --trustAll
+ --no-prompt
 $ rebuild-index
- -p 4444
- -h `hostname`
- -D "cn=Directory Manager"
- -w password
- -b dc=example,dc=com
- -i objectclass
- -t 0
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --baseDN dc=example,dc=com
+ --index objectclass
+ --start 0
 Rebuild Index task 20110607160349596 scheduled to start Jun 7, 2011 4:03:49 PM</screen>
    </example>
    
@@ -422,7 +428,11 @@ Rebuild Index task 20110607160349596 scheduled to start Jun 7, 2011 4:03:49 PM</
    <para>The following example verifies the <literal>cn</literal> (common
    name) index for completeness and for errors.</para>
 
-   <screen>$ verify-index -b dc=example,dc=com -i cn --clean --countErrors
+   <screen>$ verify-index
+ --baseDN dc=example,dc=com
+ --index cn
+ --clean
+ --countErrors
 [07/Jun/2011:16:06:50 +0200] category=BACKEND severity=INFORMATION
  msgID=9437595 msg=Local DB backend userRoot does not specify the number of
  lock tables: defaulting to 97
@@ -458,7 +468,11 @@ Rebuild Index task 20110607160349596 scheduled to start Jun 7, 2011 4:03:49 PM</
   is indexed as you expect. One way of checking is to request the
   <literal>debugsearchindex</literal> attribute in your results.</para>
   
-  <screen>$ ldapsearch -p 1389 -b dc=example,dc=com "(uid=bjensen)" debugsearchindex
+  <screen>$ ldapsearch
+ --port 1389
+ --baseDN dc=example,dc=com
+ "(uid=bjensen)"
+ debugsearchindex
 dn: cn=debugsearch
 debugsearchindex: filter=(uid=bjensen)[INDEX:uid.equality][COUNT:1]
  final=[COUNT:1]</screen>
@@ -471,7 +485,11 @@ debugsearchindex: filter=(uid=bjensen)[INDEX:uid.equality][COUNT:1]
   <para>A less exact search requires more work from OpenDJ. In the following
   example OpenDJ would have to return 160 entries.</para>
   
-  <screen>$ ldapsearch -p 1389 -b dc=example,dc=com "(uid=*)" debugsearchindex
+  <screen>$ ldapsearch
+ --port 1389
+ --baseDN dc=example,dc=com
+ "(uid=*)"
+ debugsearchindex
 dn: cn=debugsearch
 debugsearchindex: filter=(uid=*)[NOT-INDEXED] scope=wholeSubtree[COUNT:160]
  final=[COUNT:160]</screen>

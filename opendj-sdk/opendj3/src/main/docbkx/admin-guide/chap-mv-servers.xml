@@ -101,24 +101,26 @@
     <para>Prevent the server from accepting updates from client
     applications.</para>
     <screen>$ dsconfig
- -p 5444
- -h `hostname`
- -D "cn=Directory Manager"
- -w password
  set-global-configuration-prop
+ --port 5444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --set writability-mode:internal-only
- -X -n</screen>
+ --trustAll
+ --no-prompt</screen>
    </step>
    <step>
     <para>Disable replication for the server.</para>
     <screen>$ dsreplication
  disable
- -a
- -p 5444
- -h `hostname`
- -D "cn=Directory Manager"
- -w password
- -X -n
+ --disableAll
+ --port 5444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --trustAll
+ --no-prompt
 Establishing connections ..... Done.
 Disabling replication on base DN dc=example,dc=com of server localhost:5444
  ..... Done.
@@ -181,10 +183,9 @@ Stopping Server...
     <para>Enable and initialize replication.</para>
     <screen>$ dsreplication
  enable
- -I admin
- -w password
- -X -n
- -b dc=example,dc=com
+ --adminUID admin
+ --bindPassword password
+ --baseDN dc=example,dc=com
  --host1 localhost
  --port1 4444
  --bindDN1 "cn=Directory Manager"
@@ -195,6 +196,8 @@ Stopping Server...
  --bindDN2 "cn=Directory Manager"
  --bindPassword2 password
  --replicationPort2 8989
+ --trustAll
+ --no-prompt
 
 Establishing connections ..... Done.
 Checking registration information ..... Done.
@@ -224,11 +227,12 @@ operation.
 
 $ dsreplication
  pre-external-initialization
- -I admin
- -w password
- -X -n
- -p 4444
- -b dc=example,dc=com
+ --adminUID admin
+ --bindPassword password
+ --port 4444
+ --baseDN dc=example,dc=com
+ --trustAll
+ --no-prompt
 
 Preparing base DN dc=example,dc=com to be initialized externally ..... Done.
 
@@ -241,11 +245,12 @@ When the initialization is completed you must use the subcommand
  contents.
 $ dsreplication
  post-external-initialization
- -I admin
- -w password
- -X -n
- -p 4444
- -b dc=example,dc=com
+ --adminUID admin
+ --bindPassword password
+ --port 4444
+ --baseDN dc=example,dc=com
+ --trustAll
+ --no-prompt
 
 Updating replication information on base DN dc=example,dc=com ..... Done.
 
@@ -254,13 +259,14 @@ Post initialization procedure completed successfully.</screen>
    <step>
     <para>Accept updates from client applications.</para>
     <screen>$ dsconfig
- -p 4444
- -h `hostname`
- -D "cn=Directory Manager"
- -w password
  set-global-configuration-prop
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
  --set writability-mode:enabled
- -X -n</screen>
+ --trustAll
+ --no-prompt</screen>
    </step>
    <step>
     <para>Direct client applications to the server.</para>
