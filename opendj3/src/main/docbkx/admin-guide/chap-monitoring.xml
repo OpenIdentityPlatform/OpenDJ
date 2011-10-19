@@ -362,8 +362,8 @@ example-20110623030000000  Backup  Waiting on start time</screen>
    define. OpenDJ does not filter logs until you update the log publisher
    configuration.</para>
    
-   <example xml:id="log-filtering-exclude-admin">
-    <title>Example: Exclude Administration-Related Messages</title>
+   <example xml:id="log-filtering-exclude-control-panel">
+    <title>Example: Exclude Control Panel-Related Messages</title>
     
     <para>A common development troubleshooting technique consists of sending
     client requests while tailing the access log:</para>
@@ -375,7 +375,7 @@ example-20110623030000000  Backup  Waiting on start time</screen>
     you.</para>
     
     <para>This example demonstrates how to filter out access log messages
-    due to administrative connections over LDAPS on port 4444.</para>
+    due to administrative connections over LDAPS on ports 1636 and 4444.</para>
     
     <para>Create access log filtering criteria rules.</para>
     <screen>$ dsconfig
@@ -385,8 +385,9 @@ example-20110623030000000  Backup  Waiting on start time</screen>
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --publisher-name "File-Based Access Logger"
- --criteria-name "Exclude LDAPS on 4444"
- --set connection-port-equal-to:4444
+ --criteria-name "Exclude LDAPS on 1636 and 4444"
+ --add connection-port-equal-to:1636
+ --add connection-port-equal-to:4444
  --set connection-protocol-equal-to:ldaps
  --trustAll
  --no-prompt</screen>
@@ -404,8 +405,20 @@ example-20110623030000000  Backup  Waiting on start time</screen>
  --trustAll
  --no-prompt</screen>
     
-    <para>At this point, OpenDJ filters out connections over LDAPS to port
-    4444.</para>
+    <para>At this point, OpenDJ filters out connections over LDAPS to ports
+    1636 and 4444. While performing operations in OpenDJ Control Panel, if
+    you perform a simple <command>ldapsearch --port 1389 --baseDN
+    dc=example,dc=com uid=bjensen cn</command>, then all you see in the access
+    log is the effect of the <command>ldapsearch</command> command.</para>
+    <screen>$ tail -f /path/to/OpenDJ/logs/access
+[19/Oct/2011:16:37:16 +0200] CONNECT conn=8 from=127.0.0.1:54165
+ to=127.0.0.1:1389 protocol=LDAP
+[19/Oct/2011:16:37:16 +0200] SEARCH REQ conn=8 op=0 msgID=1
+ base="dc=example,dc=com" scope=wholeSubtree filter="(uid=bjensen)" attrs="cn"
+[19/Oct/2011:16:37:16 +0200] SEARCH RES conn=8 op=0 msgID=1 result=0 nentries=1
+ etime=14
+[19/Oct/2011:16:37:16 +0200] UNBIND REQ conn=8 op=1 msgID=2
+[19/Oct/2011:16:37:16 +0200] DISCONNECT conn=8 reason="Client Unbind"</screen>
    </example>
    
    <para>In addition to the filtering policy, you can also adjust how OpenDJ
