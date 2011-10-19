@@ -355,15 +355,18 @@
                   <replacevalue>
 &lt;script  src="http://code.jquery.com/jquery-1.6.4.min.js"&gt;&lt;/script&gt;
 &lt;script type="text/javascript"&gt;
-// On click, reformat &lt;screen&gt; commands for easier copying.
-$(document).ready(function(){
-  $(".screen").click(function(event){
-    $(this).replaceWith(
-      "&lt;pre class=\"screen\"&gt;" +
-      $(this).text().replace(/\n /g," ") +
-      "&lt;/pre&gt;");
-  });
+// On click, reformat &lt;pre class="screen"&gt; for easy copying.
+$(".screen").live("click", function() {
+  $(this).replaceWith(
+    "&lt;pre class=\"flat\"&gt;" +
+    $(this).text().replace(/\n /g," ") + "\n&lt;!--" + $(this).text() + "--&gt;" +
+    "&lt;/pre&gt;");
 });
+$(".flat").live("click", function() {
+  $(this).replaceWith(
+    "&lt;pre class=\"screen\"&gt;" +
+    $(this).html().replace(/(.|\n)+&lt;!\-\-/m,"").replace(/\-\-\&gt;/,"") +
+    "&lt;/pre&gt;");
 &lt;/script&gt;
 &lt;link rel="shortcut icon" href="http://forgerock.org/favicon.ico"&gt;
 &lt;/head&gt;</replacevalue>
@@ -431,16 +434,19 @@ $(document).ready(function(){
                   <replacevalue>
 &lt;script  src="http://code.jquery.com/jquery-1.6.4.min.js"&gt;&lt;/script&gt;
 &lt;script type="text/javascript"&gt;
-// On click, reformat &lt;screen&gt; commands for easier copying.
-$(document).ready(function(){
-  $(".screen").click(function(event){
-    $(this).replaceWith(
-      "&lt;pre class=\"screen\"&gt;" +
-      $(this).text().replace(/\n /g," ") +
-      "&lt;/pre&gt;");
-  });
+// On click, reformat &lt;pre class="screen"&gt; for easy copying.
+$(".screen").live("click", function() {
+  $(this).replaceWith(
+    "&lt;pre class=\"flat\"&gt;" +
+    $(this).text().replace(/\n /g," ") + "\n&lt;!--" + $(this).text() + "--&gt;" +
+    "&lt;/pre&gt;");
 });
-&lt;/script&gt;
+$(".flat").live("click", function() {
+  $(this).replaceWith(
+    "&lt;pre class=\"screen\"&gt;" +
+    $(this).html().replace(/(.|\n)+&lt;!\-\-/m,"").replace(/\-\-\&gt;/,"") +
+    "&lt;/pre&gt;");
+});&lt;/script&gt;
 &lt;link rel="shortcut icon" href="http://forgerock.org/favicon.ico"&gt;
 &lt;/head&gt;</replacevalue>
                 </replace>

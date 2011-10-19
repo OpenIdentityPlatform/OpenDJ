@@ -152,7 +152,7 @@ div.navfooter,div.navheader,div.nukefooter
 /*
  * Block elements
  */
-pre.programlisting,pre.screen
+pre.programlisting,pre.screen,pre.flat
 {
     font-family: monospace;
     white-space: pre;
