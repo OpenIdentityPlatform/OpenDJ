@@ -57,10 +57,10 @@
   <section xml:id="pwp-per-server">
    <title>Server Based Password Policies</title>
    
-   <para>You manage the password policies in the OpenDJ configuration by using
-   the <command>dsconfig</command> command. As they are part of the server
-   configuration, such password policies are not replicated. You must instead
-   apply password policy configuration updates to each replica in your
+   <para>You manage server based password policies in the OpenDJ configuration
+   by using the <command>dsconfig</command> command. As they are part of the
+   server configuration, such password policies are not replicated. You must
+   instead apply password policy configuration updates to each replica in your
    deployment.</para>
    
    <para>By default, OpenDJ includes two password policy configurations, one
@@ -271,9 +271,13 @@ pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config</sc
  <section xml:id="configure-pwp">
   <title>Configuring Password Policies</title>
 
-  <para>You configure password policies using the <command>dsconfig</command>
-  command. Notice that password policies are part of the server configuration,
-  and therefore not replicated.</para>
+  <para>You configure server based password policies using the
+  <command>dsconfig</command> command. Notice that server based password
+  policies are part of the server configuration, and therefore not replicated.
+  Alternatively, you can configure a subset of password policy features using
+  subentry based password policies that are stored with the replicated
+  server data. This section covers both server based and subentry based
+  password policies.</para>
   
   <procedure xml:id="default-pwp">
    <title>To Adjust the Default Password Policy</title>
@@ -284,7 +288,8 @@ pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config</sc
    
    <para>You can reconfigure the default password policy for example to
    enforce password expiration, check that passwords do not match dictionary
-   words, and prevent password reuse.</para>
+   words, and prevent password reuse. This default policy is a server based
+   password policy.</para>
    <step>
     <para>Enable the appropriate password validator.</para>
     <screen>$ dsconfig
