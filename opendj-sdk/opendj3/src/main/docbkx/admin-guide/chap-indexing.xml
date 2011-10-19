@@ -302,6 +302,15 @@ cn: Barbara Maddox</screen>
  --set sort-order:"+sn +givenName"
  --trustAll
  --no-prompt</screen>
+
+   <note>
+    <para>When referring to a virtual list view (VLV) index after creation, you
+    must add <literal>vlv.</literal> as a prefix. In other words, if you named
+    the VLV index <literal>people-by-last-name</literal>, you refer to it as
+    <literal>vlv.people-by-last-name</literal> when rebuilding indexes,
+    changing index properties such as the index entry limit, or verifying
+    indexes.</para>
+   </note>
   </section>
 
   <section xml:id="rebuild-index">
