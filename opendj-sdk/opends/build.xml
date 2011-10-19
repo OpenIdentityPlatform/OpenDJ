@@ -165,23 +165,6 @@
   <property name="snmp.classes.dir"
             location="${classes.dir}/org/opends/server/snmp" />
 
-  <!-- Condition properties for NDB Backend build. -->
-  <condition property="ismysqldirpresent">
-    <available file="${mysql.lib.dir}" type="dir" />
-  </condition>
-  <condition property="exclude.ndb.xml" value=""
-             else="**/Ndb*">
-             <available file="${mysql.lib.dir}" type="dir" />
-  </condition>
-  <condition property="exclude.ndb.src" value=""
-             else="org/opends/server/backends/ndb/**,
-                   org/opends/server/workflowelement/ndb/**">
-             <available file="${mysql.lib.dir}" type="dir" />
-  </condition>
-
-  <!-- Property for excluding NDB Backend config. -->
-  <property name="exclude.ndb.config" value="ndbconfig.ldif" />
-
   <!-- Create a package bundle containing the DSML library. -->
   <target name="dsml" depends="predsml,package"
        description="Build a Directory Server package bundle with DSML.">
@@ -309,23 +292,6 @@
             destJava="${msg.javagen.dir}/org/opends/messages/ServiceTagMessages.java">
     </genmsg>
 
-    <antcall target="generatendbmessages" />
-
-  </target>
-
-  <!-- Generate NDB Backend messages if needed -->
-  <target name="generatendbmessages" if="ismysqldirpresent">
-    <typedef name="genmsg"
-             classname="org.opends.build.tools.GenerateMessageFile" >
-      <classpath>
-        <fileset dir="${build.dir}/build-tools">
-          <include name="*.jar" />
-        </fileset>
-      </classpath>
-    </typedef>
-    <genmsg sourceProps="${msg.prop.dir}/ndb.properties"
-            destJava="${msg.javagen.dir}/org/opends/messages/NdbMessages.java">
-    </genmsg>
   </target>
 
   <!-- Remove all dynamically-generated build files. -->
@@ -624,11 +590,8 @@
     <mkdir dir="${classes.dir}" />
     <mkdir dir="${build.lib.dir}" />
 
-    <!-- Copy NDB Backend dependencies if necessary -->
-    <antcall target="copyndbdeps" />
-
     <javac srcdir="${src.dir}:${admin.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
-         destdir="${classes.dir}" excludes="${exclude.ndb.src}" debug="on" debuglevel="${build.debuglevel}"
+         destdir="${classes.dir}" debug="on" debuglevel="${build.debuglevel}"
          deprecation="true" fork="true"
          memoryInitialSize="${MEM}" memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
@@ -794,13 +757,10 @@
     <!-- Regenerate configuration files if necessary -->
     <antcall target="compileadmin" />
 
-    <!-- Copy NDB Backend dependencies if necessary -->
-    <antcall target="copyndbdeps" />
-
     <!-- Recreate the classes directory and recompile into it. -->
     <mkdir dir="${classes.dir}" />
     <javac srcdir="${src.dir}:${msg.src.dir}:${msg.javagen.dir}:${admin.src.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
-         destdir="${classes.dir}" excludes="${exclude.ndb.src}"
+         destdir="${classes.dir}"
          debug="on" debuglevel="${build.debuglevel}"
          deprecation="true" fork="true" memoryInitialSize="${MEM}"
          memoryMaximumSize="${MEM}">
@@ -1077,12 +1037,10 @@
     <fixcrlf srcDir="${scripts.dir}" destDir="${pdir}/lib" includes="_client-script.bat,_server-script.bat,_mixed-script.bat,_script-util.bat,setcp.bat" eol="crlf" />
 
     <copy todir="${pdir}/config">
-      <fileset file="${config.dir}/*" excludes="${exclude.ndb.config}" />
+      <fileset file="${config.dir}/*" />
     </copy>
 
     <antcall target="package-snmp" />
-
-    <antcall target="packagendb" />
 
     <copy file="${pdir}/config/config.ldif"
          tofile="${pdir}/config/upgrade/config.ldif.${REVISION_NUMBER}" />
@@ -1399,7 +1357,7 @@
         <dirset dir="${quicksetup.classes.dir}" />
       </classpath>
 
-      <packageset dir="${src.dir}" excludes="${exclude.ndb.src}" />
+      <packageset dir="${src.dir}" />
       <packageset dir="${admin.src.dir}" />
       <packageset dir="${ads.src.dir}" />
       <packageset dir="${dsml.src.dir}" />
@@ -1565,11 +1523,8 @@
     <echo message="Performing partial rebuild (OpenDS zip package found)"/>
     <mkdir dir="${classes.dir}" />
 
-    <!-- Copy NDB Backend dependencies if necessary -->
-    <antcall target="copyndbdeps" />
-
     <javac srcdir="${src.dir}:${admin.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
-        destdir="${classes.dir}" excludes="${exclude.ndb.src}" debug="on" debuglevel="${build.debuglevel}"
+        destdir="${classes.dir}" debug="on" debuglevel="${build.debuglevel}"
         deprecation="true" fork="true"
         memoryInitialSize="${MEM}" memoryMaximumSize="${MEM}">
       <compilerarg value="-Xlint:all" />
@@ -2271,7 +2226,6 @@
       <arg value="${ant.file}" />
       <arg value="-Dbuild.dir=${build.dir}" />
       <arg value="-quiet" />
-      <arg value="-Dexclude.ndb.xml=${exclude.ndb.xml}" />
       <arg value="compileadminsubtask" />
       <env key="ANT_OPTS" value="-Xmx${MEM}" />
       <!-- Set classpath to workaround Apple JDK Xalan conflict -->
@@ -2291,7 +2245,7 @@
 
     <!-- Generate introspection API for core administration components. -->
     <xslt basedir="${admin.defn.dir}" destdir="${admin.src.dir}" includes="**/*Configuration.xml"
-          excludes="${exclude.ndb.xml}" style="${admin.rules.dir}/metaMO.xsl">
+          style="${admin.rules.dir}/metaMO.xsl">
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/meta/\2CfgDefn.java" />
       <param name="base-dir" expression="${admin.defn.dir}" />
       <classpath refid="xalan.class.path" />
@@ -2305,7 +2259,7 @@
 
     <!-- Generate client API for core administration components. -->
     <xslt basedir="${admin.defn.dir}" destdir="${admin.src.dir}" includes="**/*Configuration.xml"
-          excludes="${exclude.ndb.xml}" style="${admin.rules.dir}/clientMO.xsl">
+          style="${admin.rules.dir}/clientMO.xsl">
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/client/\2CfgClient.java" />
       <param name="base-dir" expression="${admin.defn.dir}" />
       <classpath refid="xalan.class.path" />
@@ -2319,7 +2273,7 @@
 
     <!-- Generate server API for core administration components. -->
     <xslt basedir="${admin.defn.dir}" destdir="${admin.src.dir}" includes="**/*Configuration.xml"
-          excludes="${exclude.ndb.xml}" style="${admin.rules.dir}/serverMO.xsl">
+          style="${admin.rules.dir}/serverMO.xsl">
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/server/\2Cfg.java" />
       <param name="base-dir" expression="${admin.defn.dir}" />
       <classpath refid="xalan.class.path" />
@@ -2334,7 +2288,7 @@
     <!-- Generate LDAP profile for core administration components. -->
     <mkdir dir="${classes.dir}" />
     <xslt basedir="${admin.defn.dir}" destdir="${classes.dir}/admin/profiles/ldap" includes="**/*Configuration.xml"
-          excludes="${exclude.ndb.xml}" style="${admin.rules.dir}/ldapMOProfile.xsl">
+          style="${admin.rules.dir}/ldapMOProfile.xsl">
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/meta/\2CfgDefn.properties" />
       <param name="base-dir" expression="${admin.defn.dir}" />
       <classpath refid="xalan.class.path" />
@@ -2342,7 +2296,7 @@
 
     <!-- Generate CLI profile for core administration components. -->
     <xslt basedir="${admin.defn.dir}" destdir="${classes.dir}/admin/profiles/cli" includes="**/*Configuration.xml"
-          excludes="${exclude.ndb.xml}" style="${admin.rules.dir}/cliMOProfile.xsl">
+          style="${admin.rules.dir}/cliMOProfile.xsl">
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/meta/\2CfgDefn.properties" />
       <param name="base-dir" expression="${admin.defn.dir}" />
       <classpath refid="xalan.class.path" />
@@ -2350,7 +2304,7 @@
 
     <!-- Generate I18N messages for core administration components. -->
     <xslt basedir="${admin.defn.dir}" destdir="${classes.dir}/admin/messages" includes="**/*Configuration.xml"
-          excludes="${exclude.ndb.xml}" style="${admin.rules.dir}/messagesMO.xsl">
+          style="${admin.rules.dir}/messagesMO.xsl">
       <regexpmapper handledirsep="true" from="^(.*)/([^/]+)Configuration\.xml$$" to="\1/meta/\2CfgDefn.properties" />
       <param name="base-dir" expression="${admin.defn.dir}" />
       <classpath refid="xalan.class.path" />
@@ -2360,7 +2314,7 @@
     <tempfile property="admin.temp.dir" destDir="${build.dir}" prefix="tmp" />
     <mkdir dir="${admin.temp.dir}" />
     <xslt basedir="${admin.defn.dir}" destdir="${admin.temp.dir}" extension=".manifest" includes="**/*Configuration.xml"
-          excludes="${exclude.ndb.xml}" style="${admin.rules.dir}/manifestMO.xsl">
+          style="${admin.rules.dir}/manifestMO.xsl">
       <classpath refid="xalan.class.path" />
     </xslt>
     <concat destfile="${classes.dir}/admin/core.manifest">
@@ -2595,28 +2549,5 @@
   </target>
 
   <import file="build-svr4.xml"/>
-
-  <!-- Copy NDB Backend dependencies to build lib directory -->
-  <target name="copyndbdeps" if="ismysqldirpresent"
-    description="Internal target to copy NDB Backend dependencies">
-    <!-- Blanket copy of all jars found at mysql.lib location -->
-    <copy todir="${build.lib.dir}">
-      <fileset file="${mysql.lib.dir}/*.jar" />
-    </copy>
-  </target>
-
-  <!-- Package NDB Backend with Directory Server distribution -->
-  <target name="packagendb" if="ismysqldirpresent"
-    description="Internal target to package NDB Backend dependencies">
-    <echo message="Packaging with NDB Backend dependencies"/>
-    <copy todir="${pdir}/lib">
-      <fileset file="${mysql.lib.dir}/*.jar" />
-    </copy>
-    <!-- Concat NDB Backend config entry to default config -->
-    <concat destfile="${pdir}/config/config.ldif" append="true">
-        <filelist dir="${config.dir}" files="ndbconfig.ldif"/>
-    </concat>
-  </target>
-
   <import file="build-pkg.xml"/>
 </project>
