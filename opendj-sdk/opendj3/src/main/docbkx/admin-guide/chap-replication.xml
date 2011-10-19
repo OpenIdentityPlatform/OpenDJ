@@ -49,8 +49,8 @@
    <see>Replication</see>
   </indexterm>
   
-  <para>The easiest way to set up replication for the first time involves
-  using the setup wizard.</para>
+  <para>You can set up replication during installation by choosing to
+  configure replication through the setup wizard.</para>
   
   <para>In the Topology Options screen for the first server you set up, select
   This server will be part of a replication topology. If you also choose
@@ -133,8 +133,8 @@
   a user entry to change the phone number, replication can work out which
   was the latest change, and apply that change across servers. The historical
   information needed to resolve these issues is periodically purged to avoid
-  growing larger and larger forever. As a directory administrator, you make
-  sure that you do not purge the historical information more often than you
+  growing larger and larger forever. As a directory administrator, you must
+  ensure that you do not purge the historical information more often than you
   backup your directory data.</para>
   
   <para>The primary unit of replication is the suffix, specified by a
@@ -164,9 +164,8 @@
    <secondary>Configuring</secondary>
   </indexterm>
   
-  <para>For some deployments you choose not to configure replication using the
-  setup wizard. This section shows how to configure replication with
-  command-line tools.</para>
+  <para>This section shows how to configure replication with command-line
+  tools.</para>
   
   <section xml:id="enable-repl">
    <title>Enabling Replication</title>
@@ -177,7 +176,7 @@
    <screen>$ dsreplication
  enable
  --adminUID admin
- --bindPassword password
+ --adminPassword password
  --baseDN dc=example,dc=com
  --host1 `hostname`
  --port1 4444
@@ -219,9 +218,13 @@ See
 /var/.../opends-replication-7958637258600693490.log
 for a detailed log of this operation.</screen>
    
+   <para>To enable secure connections for replication use the
+   <option>--secureReplication1</option> and
+   <option>--secureReplication2</option> options.</para>
+   
    <para>As you see in the command output, replication is set up to function
    once enabled. You must however initialize replication in order to start
-   the process, however.</para>
+   the process.</para>
    
    <para>If you need to add another OpenDJ directory server to participate
    in replication, use the <command>dsreplication enable</command> with
@@ -232,7 +235,7 @@ for a detailed log of this operation.</screen>
    <title>Initializing Replicas</title>
   
    <para>Although you can enable replication before you have user data, you
-   must initialize replication after you enable it for the first time.</para>
+   must initialize each replica to activate the replication process.</para>
    
    <para>You can perform initialization either over the replication protocol,
    by importing the same LDIF data on all server before performing
@@ -242,6 +245,10 @@ for a detailed log of this operation.</screen>
    
    <procedure xml:id="init-repl-online">
     <title>To Initialize Online</title>
+    
+    <para>Online initialization is straightforward, and works well if
+    your network bandwidth is large compared to the amount of data to
+    replicate.</para>
     
     <step>
      <para>Make sure you have enabled servers you want to participate in
@@ -254,7 +261,7 @@ for a detailed log of this operation.</screen>
      <screen>$ dsreplication
  initialize-all
  --adminUID admin
- --bindPassword password
+ --adminPassword password
  --baseDN dc=example,dc=com
  --hostname `hostname`
  --port 4444
@@ -277,6 +284,11 @@ for a detailed log of this operation.</screen>
     <para>Follow these steps to prepare a replication topology starting from
     directory data in LDIF.</para>
     
+    <para>Depending on the size of the data and your network bandwidth, you
+    might find it quicker to initialize all replica as described in
+    <xref linkend="init-repl-online" />, and then import the LDIF on a single
+    replica.</para>
+    
     <step>
      <para>Import the same LDIF on all servers you want to participate in
      replication.</para>
@@ -291,7 +303,7 @@ for a detailed log of this operation.</screen>
      <screen>$ dsreplication
  initialize-all
  --adminUID admin
- --bindPassword password
+ --adminPassword password
  --baseDN dc=example,dc=com
  --hostname `hostname`
  --port 4444
@@ -310,25 +322,24 @@ for a detailed log of this operation.</screen>
    <procedure xml:id="init-repl-backup">
     <title>To Create a New Replica From Existing Backup</title>
     
-    <para>You can create a new replica from a backup of an existing replica.
-    The <command>dsreplication</command> commands use differ slightly from
-    the other cases, as you must reset the generation ID on the new replica,
-    such that replication can proceed from the proper starting point.
-    Follow these steps to add another server to the topology by restoring
-    from a backup copy of an existing server.</para>
+    <para>You can create a new replica from a backup of a server in the existing
+    topology. The <command>dsreplication</command> commands use differ slightly
+    from the other cases, as you must reset the generation ID on the new
+    replica, such that replication can proceed from the proper starting point.
+    Follow these steps to add another server to the topology.</para>
     
     <step>
      <para>Install a new server to serve as the new replica.</para>
     </step>
     <step>
-     <para>Backup the database to replica on an existing server.</para>
+     <para>Backup the database to replicate from an existing server.</para>
     </step>
     <step>
      <para>Enable replication on the new replica.</para>
      <screen>$ dsreplication
  enable
  --adminUID admin
- --bindPassword password
+ --adminPassword password
  --baseDN dc=example,dc=com
  --host1 `hostname`
  --port1 4444
@@ -379,7 +390,7 @@ for a detailed log of this operation.</screen>
      <screen>$ dsreplication
  pre-external-initialization
  --adminUID admin
- --bindPassword password
+ --adminPassword password
  --port 6444
  --baseDN dc=example,dc=com
  --trustAll
@@ -397,14 +408,15 @@ When the initialization is completed you must use the subcommand
  new base DN's contents.</screen>
     </step>
     <step>
-     <para>Restore the new server database from the backup archive.</para>
+     <para>On the new server, restore the database from the backup
+     archive.</para>
     </step>
     <step>
      <para>Initialize replication on the new replica.</para>
      <screen>$ dsreplication
  post-external-initialization
  --adminUID admin
- --bindPassword password
+ --adminPassword password
  --port 6444
  --baseDN dc=example,dc=com
  --trustAll
@@ -425,14 +437,19 @@ Post initialization procedure completed successfully.</screen>
    </indexterm>
    
    <para>How you stop replication depends on whether the change is meant to
-   be temporary, or meant to be permanent.</para>
+   be temporary or permanent.</para>
    
    <procedure xml:id="stop-repl-tmp">
     <title>To Stop Replication Temporarily For a Replica</title>
 
     <para>If you need to stop a server from replicating temporarily, you can
-    do so using <command>dsconfig</command> command. Do NOT update directory
-    data on the server while replication is interrupted.</para>
+    do so using <command>dsconfig</command> command.</para>
+    
+    <warning>
+     <para>Do not allow modifications on the replica for which replication is
+     disabled, as no record of such changes is kept, and the changes cause
+     replication to diverge.</para>
+    </warning>
 
     <step>
      <para>Disable the multimaster synchronization provider.</para>
@@ -446,9 +463,6 @@ Post initialization procedure completed successfully.</screen>
  --set enabled:false
  --trustAll
  --no-prompt</screen>
-     <para>Do NOT allow modifications on the replica for which replication is
-     paused, as no record of such changes is kept, and the changes cause
-     replication to diverge.</para>
     </step>
     <step performance="optional">
      <para>When you are ready to resume replication, enable the multimaster
@@ -482,7 +496,7 @@ Post initialization procedure completed successfully.</screen>
  --port 5444
  --hostname `hostname`
  --bindDN "cn=Directory Manager"
- --bindPassword password
+ --adminPassword password
  --trustAll
  --no-prompt
 Establishing connections ..... Done.
@@ -498,12 +512,12 @@ Removing truststore information ..... Done.
 See
 /var/.../opends-replication-125248191132797765.log
 for a detailed log of this operation.</screen>
-     <para>The <command>dsreplication disable</command> as shown removes the
-     replication configuration information.</para>
+     <para>The <command>dsreplication disable</command> as shown completely
+     removes the replication configuration information from the server.</para>
     </step>
     <step performance="optional">
-     <para>If you want to restart replication for the server, you use the
-     <command>dsreplication enable</command> and <command>dsreplication
+     <para>If you want to restart replication for the server, you need to run
+     the <command>dsreplication enable</command> and <command>dsreplication
      initialize</command> commands again.</para>
     </step>
    </procedure>
@@ -531,6 +545,16 @@ for a detailed log of this operation.</screen>
    in your topology. Yet only the stand-alone replication servers participate
    in fully-meshed replication.</para>
    
+
+   <tip>
+    <para>If you set up OpenDJ directory server to replicate by using the
+    Quick Setup wizard, then the wizard activated the replication service for
+    that server. You can turn off the replication service on OpenDJ directory
+    server, and then configure the server to work with a separate, stand-alone
+    replication server instead. Start by using the <command>dsreplication
+    disable --disableReplicationServer</command> command to turn off the
+    replication service on the server.</para>
+   </tip>
    
    <procedure xml:id="repl-setup-dedicated-server">
     <title>To Set Up a Stand-alone Replication Server</title>
@@ -559,7 +583,7 @@ for a detailed log of this operation.</screen>
      <screen>$ dsreplication
  enable
  --adminUID admin
- --bindPassword password
+ --adminPassword password
  --baseDN dc=example,dc=com
  --host1 `hostname`
  --port1 4444
@@ -602,7 +626,7 @@ for a detailed log of this operation.
 $ dsreplication
  enable
  --adminUID admin
- --bindPassword password
+ --adminPassword password
  --baseDN dc=example,dc=com
  --host1 `hostname`
  --port1 5444
@@ -653,7 +677,7 @@ for a detailed log of this operation.</screen>
      <screen>$ dsreplication
  initialize-all
  --adminUID admin
- --bindPassword password
+ --adminPassword password
  --baseDN dc=example,dc=com
  --hostname `hostname`
  --port 4444
@@ -682,6 +706,11 @@ for a detailed log of this operation.</screen>
    first with replication servers in the group before going to replication
    servers outside the group. Groups are identified with unique numeric
    group IDs.</para>
+   
+   <para>Replication groups are designed for deployments across multiple data
+   centers, where you aim to focus replication traffic on the LAN rather than
+   the WAN. In multi-data center deployments, group nearby servers
+   together.</para>
    
    <procedure xml:id="define-repl-groups">
     <title>To Set Up Replication Groups</title>
@@ -751,16 +780,6 @@ $ dsconfig
  --no-prompt</screen>
     </step>
    </procedure>
-
-   <tip>
-    <para>If you set up OpenDJ directory server to replicate by using the
-    Quick Setup wizard, then the wizard activated the replication service for
-    that server. You can turn off the replication service on OpenDJ directory
-    server, and then configure the server to work with a separate, stand-alone
-    replication server instead. Start by using the <command>dsreplication
-    disable --disableReplicationServer</command> command to turn off the
-    replication service on the server.</para>   
-   </tip>
   </section>
 
   <section xml:id="read-only-repl">
@@ -900,7 +919,7 @@ $ dsconfig
     <secondary>Subtree</secondary>
    </indexterm>
    
-   <para>OpenDJ lets you do subtree replication, for example replicating
+   <para>OpenDJ can perform subtree replication, for example replicating
    <literal>ou=People,dc=example,dc=com</literal>, but not the rest of
    <literal>dc=example,dc=com</literal>, by putting the subtree in a separate
    backend from the rest of the suffix.</para>
@@ -920,18 +939,26 @@ $ dsconfig
     <secondary>Fractional</secondary>
    </indexterm>
    
-   <para>OpenDJ lets you do fractional replication, whereby you specify
-   the attributes to include in the replication process, or alternatively
-   specify the attributes to exclude.</para>
+   <para>OpenDJ can perform fractional replication, whereby you specify
+   the attributes to include in or to exclude from the replication
+   process.</para>
    
    <para>You set fractional replication configuration as
    <literal>fractional-include</literal> or
    <literal>fractional-exclude</literal> properties for a replication
-   domain. When you include attributes, the attributes that must be kept on
+   domain. When you include attributes, the attributes that are required on
    the relevant object classes are also included, whether you specify them
    or not. When you exclude attributes, the excluded attributes must be
    optional attributes for the relevant object classes. Fractional
-   replica still respect schema definitions.</para>
+   replicas still respect schema definitions.</para>
+   
+   <para>Fractional replication works by filtering objects at the replication
+   server. Initialize replication as you would normally. Of course you cannot
+   create a full replica from a replica with only a subset of the data. If you
+   must prevent data from being replicated across a national boundary, split
+   the replication server handling the updates from the directory servers
+   receiving the updates as described in
+   <xref linkend="repl-setup-dedicated-server" />.</para>
    
    <para>For example, you might configure an externally facing
    fractional replica to include only some <literal>inetOrgPerson</literal>
@@ -986,14 +1013,14 @@ $ dsconfig
   another database, or the application might need to kick off other processing
   when certain updates occur.</para>
   
-  <para>In addition to supporting peristent search operations, OpenDJ
+  <para>In addition to supporting persistent search operations, OpenDJ
   provides an external change log mechanism to allow applications to be
   notified of changes to directory data.</para>
   
   <procedure xml:id="enable-ecl">
    <title>To Enable the External Change Log</title>
 
-   <para>OpenDJ directory servers not using replication cannot expose an
+   <para>OpenDJ directory servers without replication cannot expose an
    external change log. The OpenDJ server that exposes the change log must
    function both as a directory server, and also as a replication server for
    the suffix whose changes you want logged.</para>
@@ -1023,7 +1050,7 @@ entryDN: cn=changelog
   <procedure xml:id="use-ecl">
    <title>To Use the External Change Log</title>
    
-   <para>You read the external change log over protocol. In addition, when you
+   <para>You read the external change log over LDAP. In addition, when you
    poll the change log periodically, you can get the list of updates that
    happened since your last request.</para>
    
