@@ -30,21 +30,21 @@
   plural-name="attribute-cleanup-plugins" package="org.opends.server.admin.std"
   extends="plugin" xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap">
-  
+
   <adm:synopsis>
     A pre-parse plugin which can be used to remove and rename
     attributes in ADD and MODIFY requests before being processed.
   </adm:synopsis>
-  
+
   <adm:description>
     This plugin should be used in order maintain interoperability with client
     applications which attempt to update attributes in a way which is
-    incompatible with LDAPv3 or OpenDJ. For example, this plugin may be used
+    incompatible with LDAPv3 or <adm:product-name />. For example, this plugin may be used
     in order to remove changes to operational attributes such as modifiersName,
     creatorsName, modifyTimestamp, and createTimestamp (Sun DSEE chaining does
     this).
   </adm:description>
-  
+
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-attribute-cleanup-plugin</ldap:name>
