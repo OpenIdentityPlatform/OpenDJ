@@ -38,9 +38,7 @@
     The
     <adm:user-friendly-name />
     contains properties that affect the overall
-    operation of the
-    <adm:product-name />
-    .
+    operation of the <adm:product-name />.
   </adm:synopsis>
   <adm:tag name="core-server" />
   <adm:profile name="ldap">

@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2011 ForgeRock AS
   ! -->
 <adm:managed-object name="file-system-entry-cache"
   plural-name="file-system-entry-caches"
@@ -161,7 +162,7 @@
     </adm:requires-admin-action>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>/tmp/OpenDS.FSCache</adm:value>
+        <adm:value>/tmp/OpenDJ.FSCache</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -269,11 +270,11 @@
     </adm:synopsis>
     <adm:description>
       Any Berkeley DB Java Edition property can be specified using the
-      following form: property-name=property-value. Refer to the OpenDS
-      documentation for further information on related properties, their
-      implications and range values. The definitive identification of
-      all the property parameters available in the example.properties
-      file in the Berkeley DB Java Edition distribution.
+      following form: property-name=property-value. Refer to the
+      <adm:product-name /> documentation for further information on related
+      properties, their implications and range values. The definitive
+      identification of all the property parameters available in the
+      example.properties file in the Berkeley DB Java Edition distribution.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
