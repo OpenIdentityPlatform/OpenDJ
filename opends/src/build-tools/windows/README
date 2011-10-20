@@ -23,8 +23,9 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *     Portions Copyright 2011 ForgeRock AS
  */
- 
+
  WHAT is winlauncher.exe
  ========================
 winlauncher.exe is a small windows executable that is intended to be used by
@@ -34,10 +35,10 @@ the lib subdirectory.
 
 See the comments in winlauncher.c file and common.c for more information.
 
- WHAT is opends_service.exe
+ WHAT is opendj_service.exe
  ========================
-opends_service.exe is a small windows executable that is intended to be used by
-the command line files to be able to run OpenDS as a windows service (or not
+opendj_service.exe is a small windows executable that is intended to be used by
+the command line files to be able to run OpenDJ as a windows service (or not
 to configure it as windows service).  It is not intended to be a final user
 interface and that is one of the reasons why is placed under the lib
 subdirectory.
@@ -100,12 +101,12 @@ and launch the following command:
 This will generate the binary winlauncher.exe.
 
 
- INSTRUCTIONS TO COMPILE opends_service.exe and administrator_launcher.exe
+ INSTRUCTIONS TO COMPILE opendj_service.exe and administrator_launcher.exe
  ========================
-service.c (the main code file for opends_service.exe) uses windows resources and
+service.c (the main code file for opendj_service.exe) uses windows resources and
 so it requires Windows libraries to be compiled.
 
-The fastest way of generating opends_service.exe is to do it using the command
+The fastest way of generating opendj_service.exe is to do it using the command
 line.
 Using Visual C++ and the command line  you must set your environment
 variables to point to your Visual Studio install.  You can set the environment
@@ -117,6 +118,6 @@ command:
 
 > nmake all
 
-This command will generate both opends_service.exe and winlauncher.exe.
+This command will generate both opendj_service.exe and winlauncher.exe.
 
 See the comments in the file Makefile for more information.

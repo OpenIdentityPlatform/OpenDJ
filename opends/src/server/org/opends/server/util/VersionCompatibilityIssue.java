@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.util;
@@ -214,7 +215,7 @@ public final class VersionCompatibilityIssue {
 
   /**
    * Unique descriptor of an event that created a flag day for one
-   * or more versions of the OpenDS codebase.
+   * or more versions of the OpenDJ codebase.
    */
   public enum Cause {
     /**
@@ -360,7 +361,7 @@ public final class VersionCompatibilityIssue {
      *
      *        <ol>
      *        <li>IDs must be unique among different causes in all branches
-     *        of the OpenDS code.</li>
+     *        of the OpenDJ code.</li>
      *
      *        <li>Causes in different branches representing the same issue
      *        must have identical IDs.</li>

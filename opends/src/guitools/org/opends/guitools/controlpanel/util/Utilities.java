@@ -1882,7 +1882,7 @@ public class Utilities
   {
     if (rootDirectory == null)
     {
-      // This allows testing of configuration components when the OpenDS.jar
+      // This allows testing of configuration components when the OpenDJ.jar
       // in the classpath does not necessarily point to the server's
       String installRoot = System.getProperty("org.opends.quicksetup.Root");
 

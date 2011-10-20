@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.build.tools;
 
@@ -138,7 +139,7 @@ public class GenerateMessageFile extends Task {
 
   static {
     KEY_FORM_MSG = new StringBuilder()
-            .append(".\n\nOpenDS message property keys must be of the form\n\n")
+            .append(".\n\nOpenDJ message property keys must be of the form\n\n")
             .append("\t\'[CATEGORY]_[SEVERITY]_[DESCRIPTION]_[ORDINAL]\'\n\n")
             .append("where\n\n")
             .append("CATEGORY is one of ")
@@ -205,7 +206,7 @@ public class GenerateMessageFile extends Task {
     }
 
     /**
-     * Indicates whether or not the specifier uses arguement
+     * Indicates whether or not the specifier uses argument
      * indexes (for example 2$).
      * @return boolean true if this specifier uses indexing
      */
@@ -216,7 +217,7 @@ public class GenerateMessageFile extends Task {
     /**
      * Returns a java class associated with a particular formatter
      * based on the conversion type of the specifier.
-     * @return Class for representing the type of arguement used
+     * @return Class for representing the type of argument used
      *         as a replacement for this specifier.
      */
     public Class<?> getSimpleConversionClass() {

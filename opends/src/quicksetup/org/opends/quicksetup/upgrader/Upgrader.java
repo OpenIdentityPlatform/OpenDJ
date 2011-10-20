@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.quicksetup.upgrader;
@@ -97,7 +98,7 @@ import org.opends.server.util.DynamicConstants;
 
 /**
  * QuickSetup application of upgrading the bits of an installation of
- * OpenDS.
+ * OpenDJ.
  */
 public class Upgrader extends GuiApplication implements CliApplication {
 
@@ -220,7 +221,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
   private BuildInformation stagedVersion = null;
 
   /**
-   * New OpenDS bits.
+   * New OpenDJ bits.
    */
   private Installation stagedInstallation = null;
 
@@ -706,7 +707,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
             qs.displayFieldInvalid(FieldName.SERVER_TO_UPGRADE_LOCATION, false);
           } catch (IllegalArgumentException iae) {
             LOG.log(Level.INFO,
-                    "illegal OpenDS installation directory selected", iae);
+                    "illegal OpenDJ installation directory selected", iae);
             errorMsgs.add(INFO_ERROR_INVALID_SERVER_LOCATION.get(
                     serverLocationString));
             qs.displayFieldInvalid(FieldName.SERVER_TO_UPGRADE_LOCATION, true);
@@ -1934,8 +1935,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
   }
 
   /**
-   * Returns the path of the new OpenDS bits.
-   * @return the path of the new OpenDS bits.
+   * Returns the path of the new OpenDJ bits.
+   * @return the path of the new OpenDJ bits.
    * @throws java.io.IOException if an error occurs while accessing the
    *         new bits
    * @throws org.opends.quicksetup.ApplicationException if upgradability
@@ -2070,8 +2071,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
   }
 
   /**
-   * Returns the path of the new OpenDS bits.
-   * @return the path of the new OpenDS bits.
+   * Returns the path of the new OpenDJ bits.
+   * @return the path of the new OpenDJ bits.
    * @throws org.opends.quicksetup.ApplicationException
    *         if retrieval of stage files path fails
    * @throws java.io.IOException if errors occurs while accessing stage files
@@ -2178,8 +2179,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
   }
 
   /**
-   * Returns the BuildInformation of the current OpenDS bits.
-   * @return the BuildInformation of the current OpenDS bits.
+   * Returns the BuildInformation of the current OpenDJ bits.
+   * @return the BuildInformation of the current OpenDJ bits.
    */
   private BuildInformation getCurrentBuildInformation() {
     if (this.currentVersion == null) {
@@ -2193,8 +2194,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
   }
 
  /**
-   * Returns the BuildInformation of the OpenDS instance.
-   * @return the BuildInformation of the OpenDS instance.
+   * Returns the BuildInformation of the OpenDJ instance.
+   * @return the BuildInformation of the OpenDJ instance.
    */
   private BuildInformation getCurrentInstanceBuildInformation() {
     if (this.currentInstanceVersion == null) {

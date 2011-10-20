@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.servicetag;
 
@@ -471,11 +472,11 @@ public class ServiceTagRegistration {
         System.out.println("Usage:");
         System.out.print("    " + ServiceTagRegistration.class.getName());
         System.out.println(" [-delete|-register|-help]");
-        System.out.println("       to delete/register a OpenDS ServiceTags");
+        System.out.println("       to delete/register a OpenDJ ServiceTags");
         System.out.println("");
         System.out.println("Options:");
-        System.out.println("    -delete  : to delete the OpenDS ServiceTags");
-        System.out.println("    -register: to register the OpenDS ServiceTags");
+        System.out.println("    -delete  : to delete the OpenDJ ServiceTags");
+        System.out.println("    -register: to register the OpenDJ ServiceTags");
         System.out.println("    -help    : to print this help message");
     }
 }

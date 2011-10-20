@@ -1768,7 +1768,7 @@ public class TrustStoreBackend
   {
     String hostName =
       SetupUtils.getHostNameForCertificate(DirectoryServer.getServerRoot());
-    return "cn=" + Rdn.escapeValue(hostName) + ",O=OpenDS Certificate";
+    return "cn=" + Rdn.escapeValue(hostName) + ",O=OpenDJ Certificate";
   }
 
   /**

@@ -49,7 +49,7 @@ import static org.opends.server.util.StaticUtils.*;
 
 
 /**
- * This class provides an OpenDS password validator that may be used to ensure
+ * This class provides an OpenDJ password validator that may be used to ensure
  * that proposed passwords contain at least a specified number of characters
  * from one or more user-defined character sets.
  */
