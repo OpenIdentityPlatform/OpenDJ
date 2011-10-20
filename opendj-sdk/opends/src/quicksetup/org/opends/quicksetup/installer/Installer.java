@@ -2358,7 +2358,7 @@ public abstract class Installer extends GuiApplication {
       InstallerHelper helper = new InstallerHelper();
       helper.writeSetOpenDSJavaHome(getUserData(), getInstallationPath());
     } catch (Exception e) {
-      LOG.log(Level.WARNING, "Error writing OpenDS Java Home file: "+e, e);
+      LOG.log(Level.WARNING, "Error writing OpenDJ Java Home file: "+e, e);
     }
   }
 

@@ -54,7 +54,7 @@ import org.opends.server.protocols.ldap.LDAPControl;
  * functionality appropriate for the type of operation.
  * <BR><BR>
  * Note that this class is not intended to be subclassed by any
- * third-party code outside of the OpenDS project.  It should only be
+ * third-party code outside of the OpenDJ project.  It should only be
  * extended by the operation types included in the
  * {@code org.opends.server.core} package.
  */

@@ -44,7 +44,7 @@ import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.SetupUtils;
 
 /**
- * This class represents the physical state of an OpenDS installation.
+ * This class represents the physical state of an OpenDJ installation.
  * All the operations are dependent upon the root directory that is
  * specified in the constructor.
  */
@@ -382,12 +382,12 @@ public final class Installation {
 
   /**
    * Performs validation on the specified file to make sure that it is
-   * an actual OpenDS installation.
+   * an actual OpenDJ installation.
    * @param rootDirectory File directory candidate
    * @throws IllegalArgumentException if root directory does not appear to
-   *         be an OpenDS installation root.  The thrown exception contains
+   *         be an OpenDJ installation root.  The thrown exception contains
    *         a localized message indicating the reason why
-   *         <code>rootDirectory</code> is not a valid OpenDS install root.
+   *         <code>rootDirectory</code> is not a valid OpenDJ install root.
    */
   static public void validateRootDirectory(File rootDirectory)
           throws IllegalArgumentException {
@@ -431,7 +431,7 @@ public final class Installation {
   static public Installation getLocal() {
     if (local == null) {
 
-      // This allows testing of configuration components when the OpenDS.jar
+      // This allows testing of configuration components when the OpenDJ.jar
       // in the classpath does not necessarily point to the server's
       String installRoot = System.getProperty("org.opends.quicksetup.Root");
       String instanceRoot = System
@@ -527,30 +527,30 @@ public final class Installation {
   }
 
   /**
-   * Gets the top level directory of an OpenDS installation.
+   * Gets the top level directory of an OpenDJ installation.
    *
    * @return File object representing the top level directory of
-   *         and OpenDS installation
+   *         and OpenDJ installation
    */
   public File getRootDirectory() {
     return this.rootDirectory;
   }
 
   /**
-   * Gets the top level directory of an OpenDS instance.
+   * Gets the top level directory of an OpenDJ instance.
    *
    * @return File object representing the top level directory of
-   *         and OpenDS installation
+   *         and OpenDK installation
    */
   public File getInstanceDirectory() {
     return this.instanceDirectory;
   }
 
   /**
-   * Gets the directory of the OpenDS template instance.
+   * Gets the directory of the OpenDJ template instance.
    *
    * @return File object representing the top level directory of
-   *         and OpenDS installation
+   *         and OpenDJ installation
    */
   public File getTmplInstanceDirectory() {
     File f = new File(getRootDirectory().getAbsolutePath() +
@@ -613,10 +613,10 @@ public final class Installation {
 
   /**
    * Indicates whether or not this installation appears to be an actual
-   * OpenDS installation.
+   * OpenDJ installation.
    * @param file The root directory
    * @return boolean where true indicates that this does indeed appear to be
-   * a valid OpenDS installation; false otherwise
+   * a valid OpenDJ installation; false otherwise
    */
   public boolean isValid(File file) {
     boolean valid = true;
@@ -629,10 +629,10 @@ public final class Installation {
   }
 
   /**
-   * Creates a string explaining why this is not a legitimate OpenDS
+   * Creates a string explaining why this is not a legitimate OpenDJ
    * installation.  Null if this is in fact a vaild installation.
    * @return localized message indicating the reason this is not an
-   * OpenDS installation
+   * OpenDJ installation
    */
   public String getInvalidityReason() {
     String reason = null;
@@ -1056,7 +1056,7 @@ public final class Installation {
    * @return the path to the opends jar file.
    */
   public File getOpenDSJarFile() {
-    return new File(getLibrariesDirectory(), "OpenDS.jar");
+    return new File(getLibrariesDirectory(), "OpenDJ.jar");
   }
 
   /**

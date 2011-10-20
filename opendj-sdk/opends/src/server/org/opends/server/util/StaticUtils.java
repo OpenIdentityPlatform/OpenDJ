@@ -1570,7 +1570,7 @@ public final class StaticUtils
 
   /**
    * Retrieves the best human-readable message for the provided exception.  For
-   * exceptions defined in the OpenDS project, it will attempt to use the
+   * exceptions defined in the OpenDJ project, it will attempt to use the
    * message (combining it with the message ID if available).  For some
    * exceptions that use encapsulation (e.g., InvocationTargetException), it
    * will be unwrapped and the cause will be treated.  For all others, the

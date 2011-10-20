@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -185,7 +186,7 @@ public class SetupUtils
       int numEntries)
          throws IOException
   {
-    File templateFile = File.createTempFile("opends-install", ".template");
+    File templateFile = File.createTempFile("opendj-install", ".template");
     templateFile.deleteOnExit();
 
     LinkedList<String> lines = new LinkedList<String>();
@@ -655,7 +656,7 @@ public class SetupUtils
   /**
    * Returns the host name to be used to create self-signed certificates. <br>
    * The method will first try to read the host name file written by the setup
-   * where the user provided the host name where OpenDS has been installed. If
+   * where the user provided the host name where OpenDJ has been installed. If
    * the file cannot be read, the class {@link java.net.InetAddress} is used.
    *
    * @param installationRoot the path where the server is installed.

@@ -51,8 +51,8 @@ import org.opends.server.types.*;
 /**
  * This class represents subentry password policy based on Password Policy for
  * LDAP Directories Internet-Draft. In order to represent subentry password
- * policies as OpenDS password policies it performs a mapping of Draft defined
- * attributes to OpenDS implementation specific attributes. Any missing
+ * policies as OpenDJ password policies it performs a mapping of Draft defined
+ * attributes to OpenDJ implementation specific attributes. Any missing
  * attributes are inherited from server default password policy. This class is
  * also reponsible for any Draft attributes validation ie making sure that
  * provided values are acceptable and within the predefined range.
