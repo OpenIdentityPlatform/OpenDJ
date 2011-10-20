@@ -88,7 +88,7 @@
   <property name="ads.src.dir" location="src/ads"       />
   <property name="ads.classes.dir" location="${classes.dir}/org/opends/admin/ads"/>
 
-  <!-- Properties for use with the GUI Tools that go in OpenDS jar.                      -->
+  <!-- Properties for use with the GUI Tools that go in OpenDJ jar.                      -->
   <property name="guitools.src.dir" location="src/guitools"       />
 
   <!-- Properties for coverage diff reports                        -->
@@ -1515,12 +1515,12 @@
   </target>
 
   <target name="testinit-package" depends="test.OpenDS.package.required" unless="test.OpenDS.package.required">
-    <echo message="Performing full rebuild (no OpenDS zip package found)"/>
+    <echo message="Performing full rebuild (no OpenDJ zip package found)"/>
     <antcall target="package"/>
   </target>
 
   <target name="testinit-recompile" depends="test.OpenDS.package.required" if="test.OpenDS.package.required">
-    <echo message="Performing partial rebuild (OpenDS zip package found)"/>
+    <echo message="Performing partial rebuild (OpenDJ zip package found)"/>
     <mkdir dir="${classes.dir}" />
 
     <javac srcdir="${src.dir}:${admin.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
@@ -2398,7 +2398,7 @@
     <copy todir="${plugin.temp.dir}/example-plugin/lib" file="${build.dir}/build-tools/build-tools.jar" />
     <copy todir="${plugin.temp.dir}/example-plugin/resource/messages/com/example/opends/messages" file="${admin.rules.dir}/example-plugin/example_plugin.properties" />
     <copy todir="${plugin.temp.dir}/example-plugin/resource/messages/com/example/opends/messages" file="${admin.rules.dir}/example-plugin/example_plugin_fr.properties" />
-    <!-- Package up the plugin in the OpenDS package folder. -->
+    <!-- Package up the plugin in the OpenDJ package folder. -->
     <zip destfile="${pdir}/example-plugin.zip">
       <zipfileset dir="${plugin.temp.dir}" filemode="644" dirmode="755" />
     </zip>

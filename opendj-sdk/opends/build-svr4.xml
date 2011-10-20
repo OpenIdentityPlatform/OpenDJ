@@ -28,12 +28,12 @@
 
 <project name="SVR4 Packaging" basedir="." default="package-svr4">
   <description>
-    This is a build script that extends the OpenDS build script by adding
+    This is a build script that extends the OpenDJ build script by adding
     SVR4 packaging functions.
   </description>
-  
 
-  <!-- By default will build OpenDS package -->
+
+  <!-- By default will build OpenDJ package -->
   <property name="product"           value="${SHORT_NAME}" />
 
 
@@ -77,23 +77,23 @@
 
 
   <!-- Construct SVR4 package -->
-  <target name="svr4" depends="checkos,wrongos,cleansvr4,pkgversion,layout,metadata,pkgmk,zipsvr4" if="isSunOS" 
+  <target name="svr4" depends="checkos,wrongos,cleansvr4,pkgversion,layout,metadata,pkgmk,zipsvr4" if="isSunOS"
 	  	description="Construct ${svr4.name} package for product ${product}.">
     <echo message="Package ${svr4.name} for product ${product} built in ${svr4.dir}" />
   </target>
-  
+
   <!-- Cleanup target -->
-  <target name="cleansvr4" if="isSunOS" 
+  <target name="cleansvr4" if="isSunOS"
 	  	description="Cleanup SVR4 files.">
 	<delete dir="${svr4.build.dir}" />
 	<delete dir="${svr4.dir}/${svr4.name}" />
   </target>
-  
+
   <!-- Construct metadata data -->
-  <target name="metadata" depends="pkginfo,prototype,copyright,depend" if="isSunOS" 
+  <target name="metadata" depends="pkginfo,prototype,copyright,depend" if="isSunOS"
 	  	description="Construct metadata for ${svr4.name}.">
   </target>
-  
+
   <!-- Construct pkginfo file -->
   <target name="pkginfo"  if="isSunOS" depends="pkgversion"
 		description="Create pkginfo file based on ${svr4.src.dir}/info.properties" >
@@ -123,7 +123,7 @@ EMAIL=
   </target>
 
   <!-- Construct prototype file -->
-  <target name="prototype" depends="layout" if="isSunOS" 
+  <target name="prototype" depends="layout" if="isSunOS"
 		description="Create prototype file based on ${svr4.layout.dir}" >
 	<echo message="Building prototype for ${svr4.name} pkg" />
 	<exec executable="pkgproto" dir="${svr4.layout.dir}" output="${svr4.meta.dir}/prototype">
@@ -144,7 +144,7 @@ i copyright</echo>
   </target>
 
   <!-- Construct copyright file -->
-  <target name="copyright"  if="isSunOS" 
+  <target name="copyright"  if="isSunOS"
 		description="Create copyright file based on ${svr4.src.dir}/copyright" >
 	<echo message="Building copyright for ${svr4.name} pkg" />
 	<copy file="${svr4.src.dir}/copyright" todir="${svr4.meta.dir}"/>
@@ -162,7 +162,7 @@ i copyright</echo>
   </target>
 
   <!-- Make package -->
-  <target name="pkgmk" if="isSunOS" 
+  <target name="pkgmk" if="isSunOS"
 		description="Build ${svr4.name} package" >
 	<echo message="Building ${svr4.name} pkg" />
 	<echo message="Executing pkgmk -o -d ${svr4.dir} -r ${svr4.layout.dir} -f ${svr4.meta.dir}/prototype in ${svr4.layout.dir}" />
@@ -176,9 +176,9 @@ i copyright</echo>
 	    <arg value="${svr4.meta.dir}/prototype"/>
 	</exec>
   </target>
-  
+
   <!-- ZIP package -->
-  <target name="zipsvr4" if="isSunOS" 
+  <target name="zipsvr4" if="isSunOS"
 		description="ZIP ${svr4.name} package" >
     <echo message="Zipping ${svr4.name} pkg" />
     <zip destfile="${svr4.dir}/${svr4.name}.zip">
