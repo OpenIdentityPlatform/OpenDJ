@@ -3,7 +3,7 @@
 GREP="/usr/bin/grep"
 
 # Determine the location to this script so that we know where we are in the
-# OpenDS source tree.
+# OpenDJ source tree.
 cd "`dirname $0`"
 SCRIPT_DIR=`pwd`
 cd ../..
@@ -12,7 +12,7 @@ cd "${SCRIPT_DIR}"
 echo "ROOT_DIR:       ${ROOT_DIR}"
 
 if test -z "${PRODUCT_FILE}"
-then 
+then
   PRODUCT_FILE="${ROOT_DIR}/PRODUCT"
 fi
 echo "PRODUCT_FILE:   ${PRODUCT_FILE}"
@@ -92,7 +92,7 @@ then
   exit 1
 fi
 
-# Make sure that the OpenDS build directory exists.  If not, then create it.
+# Make sure that the OpenDJ build directory exists.  If not, then create it.
 
 if test -z "${BUILD_DIR}"
 then
@@ -115,7 +115,7 @@ then
 fi
 
 
-# Determine what the name should be for the OpenDS zip file name, but without
+# Determine what the name should be for the OpenDJ zip file name, but without
 # the ".zip" extension.
 ZIP_FILEPATH=`ls ${BUILD_DIR}/package/${PRODUCT_NAME}*.zip`
 ZIP_FILENAME=`basename ${ZIP_FILEPATH}`
@@ -137,12 +137,12 @@ cp -Rp "${SCRIPT_DIR}/images" "${INSTALL_DIR}"
 find "${INSTALL_DIR}/images" -type d -name '.svn' -exec rm -rf {} \;
 
 
-# Copy the appropriate OpenDS library files and make sure they are signed.
+# Copy the appropriate OpenDJ library files and make sure they are signed.
 PKG_LIB_DIR="${BUILD_DIR}/package/${ZIP_FILENAME_BASE}/lib"
 CERT_KEYSTORE="${ROOT_DIR}/tests/unit-tests-testng/resource/server.keystore"
 CERT_KEYSTORE_PIN="password"
 CERT_ALIAS="server-cert"
-for LIBFILE in ${PRODUCT_NAME}.jar je.jar quicksetup.jar 
+for LIBFILE in ${PRODUCT_NAME}.jar je.jar quicksetup.jar
 do
   echo "Signing ${LIBFILE} ..."
   cp "${PKG_LIB_DIR}/${LIBFILE}" "${INSTALL_DIR}/lib"
@@ -195,11 +195,11 @@ cat > "${INSTALL_JNLP_FILENAME}" <<ENDOFINSTALLJNLP
     <property name="org.opends.quicksetup.lazyjarurls" value="${INSTALLER_URI}/lib/${PRODUCT_NAME}.jar ${INSTALLER_URI}/lib/zipped.jar ${INSTALLER_URI}/lib/je.jar" />
     <property name="org.opends.quicksetup.zipfilename" value="${ZIP_FILENAME_BASE}.zip"/>
   </resources>
-  
+
   <resources os="AIX">
     <j2se version="1.6+"/>
   </resources>
-  
+
   <application-desc main-class="org.opends.quicksetup.SplashScreen"/>
 </jnlp>
 ENDOFINSTALLJNLP

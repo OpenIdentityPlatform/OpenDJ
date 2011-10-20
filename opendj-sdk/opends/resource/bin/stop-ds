@@ -62,7 +62,7 @@ export SCRIPT_NAME
 
 # check for presence of lib/_svc-opendj.sh file
 # If present, we should be on Solaris/OpenSolaris and use SMF to start
-# OpenDJ. 
+# OpenDJ.
 # Check --exec. If not present, start OpenDJ from SMF
 if test -f "${INSTALL_ROOT}/lib/_svc-opendj.sh"
 then
@@ -176,7 +176,7 @@ then
     fi
   else
     echo "ERROR:  Unable to find the server.pid file to determine the process"
-    echo "        ID of the OpenDS process to terminate."
+    echo "        ID of the OpenDJ process to terminate."
     exit 1
   fi
 fi
@@ -190,7 +190,7 @@ then
     rm "${INSTANCE_ROOT}/logs/server.pid"
   fi
 fi
-  
+
 # Now if the user wants to restart the server, try to restart it if the server
 # is stopped.
 if test ${MUST_START_USING_SYSTEM_CALL} -eq 0

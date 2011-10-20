@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -296,7 +297,7 @@ public final class DynamicConstants
         catch (Exception ex) {}
         try{
          RELEASE_VERSION_STRING = VERSION_NUMBER_STRING
-                 + " (OpenDS version = "
+                 + " (OpenDJ version = "
                  + OPENDS_NUMBER_STRING + ")" ;
         }
         catch (Exception ex) {}

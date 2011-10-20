@@ -1,5 +1,5 @@
 '\" t
-.\"     Title: control-panel
+.\"     Title: verify-index
 .\"    Author: Mark Craig
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
 .\"      Date: October\ \&20,\ \&2011
@@ -7,7 +7,7 @@
 .\"    Source: OpenDJ 2.5.0
 .\"  Language: English
 .\"
-.TH "CONTROL\-PANEL" "1" "October\ \&20,\ \&2011" "OpenDJ 2.5.0" "Tools Reference"
+.TH "VERIFY\-INDEX" "1" "October\ \&20,\ \&2011" "OpenDJ 2.5.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -28,68 +28,39 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-control-panel \- start the OpenDJ graphical admin interface
+verify-index \- check index for consistency or errors
 .SH "SYNOPSIS"
-.HP \w'\fBcontrol\-panel\fR\ 'u
-\fBcontrol\-panel\fR {options}
+.HP \w'\fBverify\-index\fR\ 'u
+\fBverify\-index\fR {options}
 .SH "DESCRIPTION"
 .PP
-This utility can be used to display the Control Panel window which displays basic server information and allows to do some basic administration tasks on the server\&.
+This utility can be used to ensure that index data is consistent within a backend based on the Berkeley DB Java Edition\&.
 .SH "OPTIONS"
 .PP
 The following options are supported\&.
 .PP
-\fB\-r, \-\-remote\fR
+\fB\-b, \-\-baseDN {baseDN}\fR
 .RS 4
-Connect to a remote server
-.RE
-.SS "LDAP Connection Options"
-.PP
-\fB\-\-connectTimeout {timeout}\fR
-.RS 4
-Maximum length of time (in milliseconds) that can be taken to establish a connection\&. Use \*(Aq0\*(Aq to specify no time out\&.
-.sp
-Default value: 30000
+Base DN of a backend supporting indexing\&. Verification is performed on indexes within the scope of the given base DN\&.
 .RE
 .PP
-\fB\-D, \-\-bindDN {bindDN}\fR
+\fB\-c, \-\-clean\fR
 .RS 4
-DN to use to bind to the server
-.sp
-Default value: cn=Directory Manager
+Specifies that a single index should be verified to ensure it is clean\&. An index is clean if each index value references only entries containing that value\&. Only one index at a time may be verified in this way\&.
 .RE
 .PP
-\fB\-h, \-\-hostname {host}\fR
+\fB\-\-countErrors\fR
 .RS 4
-Directory server hostname or IP address
-.sp
-Default value: localhost\&.localdomain
+Count the number of errors found during the verification and return that value as the exit code (values > 255 will be reduced to 255 due to exit code restrictions)\&.
 .RE
 .PP
-\fB\-j, \-\-adminPasswordFile {bindPasswordFile}\fR
+\fB\-i, \-\-index {index}\fR
 .RS 4
-Global administrator password file
-.RE
-.PP
-\fB\-p, \-\-port {port}\fR
-.RS 4
-Directory server administration port number
-.sp
-Default value: 4444
-.RE
-.PP
-\fB\-w, \-\-adminPassword {bindPassword}\fR
-.RS 4
-Password for the global administrator
-.RE
-.PP
-\fB\-X, \-\-trustAll\fR
-.RS 4
-Trust all server SSL certificates
+Name of an index to be verified\&. For an attribute index this is simply an attribute name\&. Multiple indexes may be verified for completeness, or all indexes if no indexes are specified\&. An index is complete if each index value references all entries containing that value\&.
 .RE
 .SS "General Options"
 .PP
-\fB\-\-version\fR
+\fB\-V, \-\-version\fR
 .RS 4
 Display version information
 .RE
@@ -105,19 +76,46 @@ Display usage information
 The command completed successfully\&.
 .RE
 .PP
-> 0
+1
 .RS 4
-An error occurred\&.
+An error occurred while parsing the command\-line arguments\&.
+.RE
+.PP
+0\-255
+.RS 4
+The number of errors in the index, as indicated for the
+\fB\-\-countErrors\fR
+option\&.
 .RE
 .SH "EXAMPLES"
 .PP
-The following example starts the Control Panel on a remote host\&.
+The following example verifies the
+cn
+(common name) index for completeness and for errors\&.
 .sp
 .if n \{\
 .RS 4
 .\}
 .nf
-$ control\-panel \-r \-h opendj\&.example\&.com \-p 4444 &
+$ verify\-index \-b dc=example,dc=com \-i cn \-\-clean \-\-countErrors
+[07/Jun/2011:16:06:50 +0200] category=BACKEND severity=INFORMATION
+ msgID=9437595 msg=Local DB backend userRoot does not specify the number of
+ lock tables: defaulting to 97
+[07/Jun/2011:16:06:50 +0200] category=BACKEND severity=INFORMATION
+ msgID=9437594 msg=Local DB backend userRoot does not specify the number of
+ cleaner threads: defaulting to 24 threads
+[07/Jun/2011:16:06:51 +0200] category=JEB severity=NOTICE msgID=8847461
+ msg=Checked 1316 records and found 0 error(s) in 0 seconds
+ (average rate 2506\&.7/sec)
+[07/Jun/2011:16:06:51 +0200] category=JEB severity=INFORMATION
+ msgID=8388710 msg=Number of records referencing more than one entry: 315
+[07/Jun/2011:16:06:51 +0200] category=JEB severity=INFORMATION
+ msgID=8388711 msg=Number of records that exceed the entry limit: 0
+[07/Jun/2011:16:06:51 +0200] category=JEB severity=INFORMATION
+ msgID=8388712 msg=Average number of entries referenced is 1\&.58/record
+[07/Jun/2011:16:06:51 +0200] category=JEB severity=INFORMATION
+ msgID=8388713 msg=Maximum number of entries referenced by any
+ record is 32
 .fi
 .if n \{\
 .RE

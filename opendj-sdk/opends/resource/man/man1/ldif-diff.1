@@ -1,5 +1,5 @@
 '\" t
-.\"     Title: control-panel
+.\"     Title: ldif-diff
 .\"    Author: Mark Craig
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
 .\"      Date: October\ \&20,\ \&2011
@@ -7,7 +7,7 @@
 .\"    Source: OpenDJ 2.5.0
 .\"  Language: English
 .\"
-.TH "CONTROL\-PANEL" "1" "October\ \&20,\ \&2011" "OpenDJ 2.5.0" "Tools Reference"
+.TH "LDIF\-DIFF" "1" "October\ \&20,\ \&2011" "OpenDJ 2.5.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -28,75 +28,65 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-control-panel \- start the OpenDJ graphical admin interface
+ldif-diff \- compare small LDIF files
 .SH "SYNOPSIS"
-.HP \w'\fBcontrol\-panel\fR\ 'u
-\fBcontrol\-panel\fR {options}
+.HP \w'\fBldif\-diff\fR\ 'u
+\fBldif\-diff\fR {options}
 .SH "DESCRIPTION"
 .PP
-This utility can be used to display the Control Panel window which displays basic server information and allows to do some basic administration tasks on the server\&.
+This utility can be used to compare two LDIF files and report the differences in LDIF format\&.
 .SH "OPTIONS"
 .PP
 The following options are supported\&.
 .PP
-\fB\-r, \-\-remote\fR
+\fB\-a, \-\-ignoreAttrs {file}\fR
 .RS 4
-Connect to a remote server
-.RE
-.SS "LDAP Connection Options"
-.PP
-\fB\-\-connectTimeout {timeout}\fR
-.RS 4
-Maximum length of time (in milliseconds) that can be taken to establish a connection\&. Use \*(Aq0\*(Aq to specify no time out\&.
-.sp
-Default value: 30000
+File containing a list of attributes to ignore when computing the difference\&.
 .RE
 .PP
-\fB\-D, \-\-bindDN {bindDN}\fR
+\fB\-\-checkSchema\fR
 .RS 4
-DN to use to bind to the server
-.sp
-Default value: cn=Directory Manager
+Takes into account the syntax of the attributes as defined in the schema to make the value comparison\&. The provided LDIF files must conform to the server schema\&.
 .RE
 .PP
-\fB\-h, \-\-hostname {host}\fR
+\fB\-e, \-\-ignoreEntries {file}\fR
 .RS 4
-Directory server hostname or IP address
-.sp
-Default value: localhost\&.localdomain
+File containing a list of entries (DN) to ignore when computing the difference\&.
 .RE
 .PP
-\fB\-j, \-\-adminPasswordFile {bindPasswordFile}\fR
+\fB\-o, \-\-outputLDIF {file}\fR
 .RS 4
-Global administrator password file
+File to which the output should be written\&.
 .RE
 .PP
-\fB\-p, \-\-port {port}\fR
+\fB\-O, \-\-overwriteExisting\fR
 .RS 4
-Directory server administration port number
-.sp
-Default value: 4444
+Any existing output file should be overwritten rather than appending to it\&.
 .RE
 .PP
-\fB\-w, \-\-adminPassword {bindPassword}\fR
+\fB\-s, \-\-sourceLDIF {file}\fR
 .RS 4
-Password for the global administrator
+LDIF file to use as the source data\&.
 .RE
 .PP
-\fB\-X, \-\-trustAll\fR
+\fB\-S, \-\-singleValueChanges\fR
 .RS 4
-Trust all server SSL certificates
+Each attribute\-level change should be written as a separate modification per attribute value rather than one modification per entry\&.
 .RE
-.SS "General Options"
 .PP
-\fB\-\-version\fR
+\fB\-t, \-\-targetLDIF {file}\fR
 .RS 4
-Display version information
+LDIF file to use as the target data\&.
+.RE
+.PP
+\fB\-V, \-\-version\fR
+.RS 4
+Display version information\&.
 .RE
 .PP
 \fB\-?, \-H, \-\-help\fR
 .RS 4
-Display usage information
+Display usage information\&.
 .RE
 .SH "EXIT CODES"
 .PP
@@ -111,13 +101,50 @@ An error occurred\&.
 .RE
 .SH "EXAMPLES"
 .PP
-The following example starts the Control Panel on a remote host\&.
+The following example demonstrates use of the command with two small LDIF files\&.
 .sp
 .if n \{\
 .RS 4
 .\}
 .nf
-$ control\-panel \-r \-h opendj\&.example\&.com \-p 4444 &
+$ cat /path/to/newuser\&.ldif 
+dn: uid=newuser,ou=People,dc=example,dc=com
+uid: newuser
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: top
+cn: New User
+sn: User
+ou: People
+mail: newuser@example\&.com
+userPassword: changeme
+
+$ cat /path/to/neweruser\&.ldif 
+dn: uid=newuser,ou=People,dc=example,dc=com
+uid: newuser
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: top
+cn: New User
+sn: User
+ou: People
+mail: newuser@example\&.com
+userPassword: secret12
+description: A new description\&.
+
+$ ldif\-diff \-s /path/to/newuser\&.ldif \-t /path/to/neweruser\&.ldif
+dn: uid=newuser,ou=People,dc=example,dc=com
+changetype: modify
+add: userPassword
+userPassword: secret12
+\-
+delete: userPassword
+userPassword: changeme
+\-
+add: description
+description: A new description\&.
 .fi
 .if n \{\
 .RE

@@ -1,5 +1,5 @@
 '\" t
-.\"     Title: control-panel
+.\"     Title: status
 .\"    Author: Mark Craig
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
 .\"      Date: October\ \&20,\ \&2011
@@ -7,7 +7,7 @@
 .\"    Source: OpenDJ 2.5.0
 .\"  Language: English
 .\"
-.TH "CONTROL\-PANEL" "1" "October\ \&20,\ \&2011" "OpenDJ 2.5.0" "Tools Reference"
+.TH "STATUS" "1" "October\ \&20,\ \&2011" "OpenDJ 2.5.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -28,21 +28,16 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-control-panel \- start the OpenDJ graphical admin interface
+status \- display basic OpenDJ server information
 .SH "SYNOPSIS"
-.HP \w'\fBcontrol\-panel\fR\ 'u
-\fBcontrol\-panel\fR {options}
+.HP \w'\fBstatus\fR\ 'u
+\fBstatus\fR [options]
 .SH "DESCRIPTION"
 .PP
-This utility can be used to display the Control Panel window which displays basic server information and allows to do some basic administration tasks on the server\&.
+This utility can be used to display basic server information\&.
 .SH "OPTIONS"
 .PP
 The following options are supported\&.
-.PP
-\fB\-r, \-\-remote\fR
-.RS 4
-Connect to a remote server
-.RE
 .SS "LDAP Connection Options"
 .PP
 \fB\-\-connectTimeout {timeout}\fR
@@ -59,37 +54,84 @@ DN to use to bind to the server
 Default value: cn=Directory Manager
 .RE
 .PP
-\fB\-h, \-\-hostname {host}\fR
+\fB\-j, \-\-bindPasswordFile {bindPasswordFile}\fR
 .RS 4
-Directory server hostname or IP address
-.sp
-Default value: localhost\&.localdomain
+Bind password file
 .RE
 .PP
-\fB\-j, \-\-adminPasswordFile {bindPasswordFile}\fR
+\fB\-K, \-\-keyStorePath {keyStorePath}\fR
 .RS 4
-Global administrator password file
+Certificate key store path
 .RE
 .PP
-\fB\-p, \-\-port {port}\fR
+\fB\-N, \-\-certNickname {nickname}\fR
 .RS 4
-Directory server administration port number
-.sp
-Default value: 4444
+Nickname of certificate for SSL client authentication
 .RE
 .PP
-\fB\-w, \-\-adminPassword {bindPassword}\fR
+\fB\-o, \-\-saslOption {name=value}\fR
 .RS 4
-Password for the global administrator
+SASL bind options
+.RE
+.PP
+\fB\-P, \-\-trustStorePath {trustStorePath}\fR
+.RS 4
+Certificate trust store path
+.RE
+.PP
+\fB\-T, \-\-trustStorePassword {trustStorePassword}\fR
+.RS 4
+Certificate trust store PIN
+.RE
+.PP
+\fB\-u, \-\-keyStorePasswordFile {keyStorePasswordFile}\fR
+.RS 4
+Certificate key store PIN file
+.RE
+.PP
+\fB\-U, \-\-trustStorePasswordFile {path}\fR
+.RS 4
+Certificate trust store PIN file
+.RE
+.PP
+\fB\-w, \-\-bindPassword {bindPassword}\fR
+.RS 4
+Password to use to bind to the server
+.RE
+.PP
+\fB\-W, \-\-keyStorePassword {keyStorePassword}\fR
+.RS 4
+Certificate key store PIN
 .RE
 .PP
 \fB\-X, \-\-trustAll\fR
 .RS 4
 Trust all server SSL certificates
 .RE
+.SS "Utility Input/Output Options"
+.PP
+\fB\-n, \-\-no\-prompt\fR
+.RS 4
+Use non\-interactive mode\&. If data in the command is missing, the user is not prompted and the tool will fail
+.RE
+.PP
+\fB\-\-noPropertiesFile\fR
+.RS 4
+No properties file will be used to get default command line argument values
+.RE
+.PP
+\fB\-r, \-\-refresh {period}\fR
+.RS 4
+When this argument is specified, the status command will display its contents periodically\&. Used to specify the period (in seconds) between two status displays
+.RE
+.PP
+\fB\-s, \-\-script\-friendly\fR
+.RS 4
+Use script\-friendly mode
+.RE
 .SS "General Options"
 .PP
-\fB\-\-version\fR
+\fB\-V, \-\-version\fR
 .RS 4
 Display version information
 .RE
@@ -110,14 +152,52 @@ The command completed successfully\&.
 An error occurred\&.
 .RE
 .SH "EXAMPLES"
-.PP
-The following example starts the Control Panel on a remote host\&.
 .sp
 .if n \{\
 .RS 4
 .\}
 .nf
-$ control\-panel \-r \-h opendj\&.example\&.com \-p 4444 &
+$ status \-D "cn=Directory Manager" \-w password
+
+          \-\-\- Server Status \-\-\-
+Server Run Status:        Started
+Open Connections:         1
+
+          \-\-\- Server Details \-\-\-
+Host Name:                localhost\&.localdomain
+Administrative Users:     cn=Directory Manager
+Installation Path:        /path/to/OpenDJ
+Version:                  OpenDJ 2\&.5\&.0
+Java Version:             1\&.6\&.0_24
+Administration Connector: Port 4444 (LDAPS)
+
+          \-\-\- Connection Handlers \-\-\-
+Address:Port : Protocol    : State
+\-\-\-\-\-\-\-\-\-\-\-\-\-:\-\-\-\-\-\-\-\-\-\-\-\-\-:\-\-\-\-\-\-\-\-\-
+\-\-           : LDIF        : Disabled
+9989         : Replication : Enabled
+0\&.0\&.0\&.0:161  : SNMP        : Disabled
+0\&.0\&.0\&.0:636  : LDAPS       : Disabled
+0\&.0\&.0\&.0:1389 : LDAP        : Enabled
+0\&.0\&.0\&.0:1689 : JMX         : Disabled
+
+          \-\-\- Data Sources \-\-\-
+Base DN:                      dc=example,dc=com
+Backend ID:                   userRoot
+Entries:                      160
+Replication:                  Enabled
+Missing Changes:              0
+Age of Oldest Missing Change: <not available>
+
+Base DN:     dc=myCompany,dc=com
+Backend ID:  myCompanyRoot
+Entries:     3
+Replication: Disabled
+
+Base DN:     o=myOrg
+Backend ID:  myOrgRoot
+Entries:     3
+Replication: Disabled
 .fi
 .if n \{\
 .RE

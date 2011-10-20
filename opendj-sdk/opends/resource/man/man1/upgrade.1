@@ -1,5 +1,5 @@
 '\" t
-.\"     Title: control-panel
+.\"     Title: upgrade
 .\"    Author: Mark Craig
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
 .\"      Date: October\ \&20,\ \&2011
@@ -7,7 +7,7 @@
 .\"    Source: OpenDJ 2.5.0
 .\"  Language: English
 .\"
-.TH "CONTROL\-PANEL" "1" "October\ \&20,\ \&2011" "OpenDJ 2.5.0" "Tools Reference"
+.TH "UPGRADE" "1" "October\ \&20,\ \&2011" "OpenDJ 2.5.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -28,68 +28,54 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-control-panel \- start the OpenDJ graphical admin interface
+upgrade \- upgrade OpenDJ directory server
 .SH "SYNOPSIS"
-.HP \w'\fBcontrol\-panel\fR\ 'u
-\fBcontrol\-panel\fR {options}
+.HP \w'\fBupgrade\fR\ 'u
+\fBupgrade\fR {options}
 .SH "DESCRIPTION"
 .PP
-This utility can be used to display the Control Panel window which displays basic server information and allows to do some basic administration tasks on the server\&.
+This utility can be used to upgrade the directory server to a newer version or revert to a previous version\&.
+.PP
+When using this tool to upgrade the server you should first downloaded an OpenDJ install package (\&.zip) file and specify its location using the \-f/\-\-file option\&. You can also upgrade your server using the Java Web Start version of this tool by visiting the OpenDJ web site at www\&.forgerock\&.org/opendj\&.html\&.
+.PP
+When using the tool to revert to a previous version you must either indicate that you want to revert to the version before the most recent upgrade using the \-r/\-\-revertMostRecent option or specify the location of a reversion archive using the \-a/\-\-reversionArchive option\&.
 .SH "OPTIONS"
 .PP
 The following options are supported\&.
 .PP
-\fB\-r, \-\-remote\fR
+\fB\-a, \-\-reversionArchive {directory}\fR
 .RS 4
-Connect to a remote server
-.RE
-.SS "LDAP Connection Options"
-.PP
-\fB\-\-connectTimeout {timeout}\fR
-.RS 4
-Maximum length of time (in milliseconds) that can be taken to establish a connection\&. Use \*(Aq0\*(Aq to specify no time out\&.
-.sp
-Default value: 30000
+Directory where reversion files are stored\&. This should be one of the child directories of the \*(Aqhistory\*(Aq directory that is created when the upgrade tool is run\&.
 .RE
 .PP
-\fB\-D, \-\-bindDN {bindDN}\fR
+\fB\-f, \-\-file {file}\fR
 .RS 4
-DN to use to bind to the server
-.sp
-Default value: cn=Directory Manager
+Specifies an existing server package (\&.zip) file to which the current build will be upgraded using the command line version of this tool
 .RE
 .PP
-\fB\-h, \-\-hostname {host}\fR
+\fB\-r, \-\-revertMostRecent\fR
 .RS 4
-Directory server hostname or IP address
-.sp
-Default value: localhost\&.localdomain
+The installation will be reverted to the state before the most recent upgrade
+.RE
+.SS "Utility Input/Output Options"
+.PP
+\fB\-n, \-\-no\-prompt\fR
+.RS 4
+Use non\-interactive mode\&. If data in the command is missing, the user is not prompted and the tool will fail
 .RE
 .PP
-\fB\-j, \-\-adminPasswordFile {bindPasswordFile}\fR
+\fB\-Q, \-\-quiet\fR
 .RS 4
-Global administrator password file
+Run setup in quiet mode\&. Quiet mode will not output progress information to standard output
 .RE
 .PP
-\fB\-p, \-\-port {port}\fR
+\fB\-v, \-\-verbose\fR
 .RS 4
-Directory server administration port number
-.sp
-Default value: 4444
-.RE
-.PP
-\fB\-w, \-\-adminPassword {bindPassword}\fR
-.RS 4
-Password for the global administrator
-.RE
-.PP
-\fB\-X, \-\-trustAll\fR
-.RS 4
-Trust all server SSL certificates
+Use verbose mode
 .RE
 .SS "General Options"
 .PP
-\fB\-\-version\fR
+\fB\-V, \-\-version\fR
 .RS 4
 Display version information
 .RE
@@ -111,13 +97,34 @@ An error occurred\&.
 .RE
 .SH "EXAMPLES"
 .PP
-The following example starts the Control Panel on a remote host\&.
+The following example demonstrates upgrade without interaction\&.
 .sp
 .if n \{\
 .RS 4
 .\}
 .nf
-$ control\-panel \-r \-h opendj\&.example\&.com \-p 4444 &
+$ \&./OpenDJ/upgrade \-f ~/Downloads/OpenDJ\-2\&.5\&.0\&.zip \-n
+See
+/var/\&.\&.\&./opends\-upgrade\-5650414945123366149\&.log
+ for a detailed log of this operation\&.
+
+Initializing Upgrade \&.\&.\&.\&.\&. Done\&.
+Calculating Schema Customizations \&.\&.\&.\&.\&. Done\&.
+Calculating Configuration Customizations \&.\&.\&.\&.\&. Done\&.
+Backing Up Files \&.\&.\&.\&.\&. Done\&.
+Upgrading Components \&.\&.\&.\&.\&. Done\&.
+Preparing Customizations \&.\&.\&.\&.\&. Done\&.
+Applying Configuration Customizations \&.\&.\&.\&.\&. Done\&.
+Verifying Upgrade \&.\&.\&.\&.\&. Done\&.
+Cleaning Up \&.\&.\&.\&.\&. Done\&.
+Recording Upgrade History \&.\&.\&.\&.\&. Done\&.
+See /path/to/OpenDJ/history/log for a detailed installation history\&.
+QuickUpgrade Completed Successfully\&.  The OpenDJ installation at
+/path/to/OpenDJ has now been upgraded to version OpenDJ 2\&.5\&.0 (Build ID:
+YYYYMMDDhhmmssZ)\&.
+
+See /var/\&.\&.\&./opends\-upgrade\-5650414945123366149\&.log
+ for a detailed log of this operation\&.
 .fi
 .if n \{\
 .RE
