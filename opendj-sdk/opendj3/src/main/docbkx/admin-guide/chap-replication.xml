@@ -220,7 +220,9 @@ for a detailed log of this operation.</screen>
    
    <para>To enable secure connections for replication use the
    <option>--secureReplication1</option> and
-   <option>--secureReplication2</option> options.</para>
+   <option>--secureReplication2</option> options, which are equivalent to
+   selecting Configure as Secure in the replication topology options screen of
+   the setup wizard.</para>
    
    <para>As you see in the command output, replication is set up to function
    once enabled. You must however initialize replication in order to start
@@ -545,6 +547,41 @@ for a detailed log of this operation.</screen>
    in your topology. Yet only the stand-alone replication servers participate
    in fully-meshed replication.</para>
    
+
+   <para>All replication servers in a topology are connected to all other
+   replication servers. Directory servers are connected only to one replication
+   server at a time, and their connections should be to replication servers on
+   the same LAN. Therefore the total number of replication connections,
+   Total<subscript>conn</subscript> is expressed as follows.</para>
+   
+   <equation>
+    <mathphrase>Total<subscript>conn</subscript> = N<subscript>RS</subscript> *
+    (N<subscript>RS</subscript>-1)/2 + N<subscript>DS</subscript></mathphrase>
+   </equation>
+   
+   <para>Here, N<subscript>RS</subscript> is the number of replication servers,
+   and N<subscript>DS</subscript> is the number of stand-alone directory
+   servers. In other words, if you have only three servers, then
+   Total<subscript>conn</subscript> is three with no stand-alone servers.
+   However, if you have two data centers, and need 12 directory servers, then
+   with no stand-alone directory servers Total<subscript>conn</subscript> is
+   (12 * 11)/2 or 66. Yet, with four stand-alone replication servers, and 12
+   stand-alone directory servers, Total<subscript>conn</subscript> is
+   (4 * 3)/2 + 12, or 18, with only four of those connections needing to go
+   over the WAN. (By running four directory servers that also run replication
+   servers and eight stand-alone directory servers, you reduce the number of
+   replication connections to 14 for 12 replicas.)</para>
+   
+   <mediaobject>
+    <alt>Dedicated servers versus consolidated instances</alt>
+    <imageobject>
+     <imagedata fileref="images/standalone-repl.png" format="PNG"/>
+    </imageobject>
+    <textobject>
+     <para>Dedicated servers are suited to environments with large numbers
+     of replicas.</para>
+    </textobject>
+   </mediaobject>
 
    <tip>
     <para>If you set up OpenDJ directory server to replicate by using the
@@ -1226,13 +1263,81 @@ modifyTimestamp: 20110613071210Z
    </step>
   </procedure>
   
-  <para xml:id="ecl-legacy-format">The external change log can also operate in
-  a mode compatible with the <link
+  <procedure xml:id="ecl-add-attributes">
+   <title>To Include Unchanged Attributes in the External Change Log</title>
+   
+   <para>As shown above, the changes returned from a search on the external
+   change log include only what was actually changed. If you have applications
+   that need additional attributes published with every change log entry,
+   regardless of whether or not the attribute itself has changed, then specify
+   those using <literal>ecl-include</literal> and
+   <literal>ecl-include-for-deletes</literal>.</para>
+   
+   <step>
+    <para>Set the attributes to include for all update operations with
+    <literal>ecl-include</literal>.</para>
+    <screen>$ dsconfig
+ set-external-changelog-domain-prop
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --provider-name "Multimaster Synchronization"
+ --domain-name dc=example,dc=com
+ --set ecl-include:"@person"
+ --trustAll
+ --no-prompt</screen>
+   </step>
+   <step>
+    <para>Set the attributes to include for deletes with
+    <literal>ecl-include-for-deletes</literal>.</para>
+    <screen>$ dsconfig
+ set-external-changelog-domain-prop
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --provider-name "Multimaster Synchronization"
+ --domain-name dc=example,dc=com
+ --add ecl-include-for-deletes:"*"
+ --add ecl-include-for-deletes:"+"
+ --trustAll
+ --no-prompt</screen>
+   </step>
+  </procedure>
+  
+  <procedure xml:id="ecl-limit-content">
+   <title>To Limit External Change Log Content</title>
+   
+   <para>You can limit external change log content by disabling the domain
+   for a base DN. By default, <literal>cn=schema</literal> and
+   <literal>cn=admin data</literal> are not enabled.</para>
+   
+   <step>
+    <para>Prevent OpenDJ from logging changes by disabling the domain.</para>
+    <screen>$ dsconfig
+ set-external-changelog-domain-prop
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --provider-name "Multimaster Synchronization"
+ --domain-name dc=example,dc=com
+ --set enabled:false
+ --trustAll
+ --no-prompt</screen>
+   </step>
+  </procedure>
+  
+  <para xml:id="ecl-legacy-format">The external change log can also work for
+  applications that follow the <link
   xlink:href="http://tools.ietf.org/html/draft-good-ldap-changelog-04"
   >Internet-Draft: Definition of an Object Class to Hold LDAP Change
-  Records</link>. Thus, you can use the change log with legacy applications
-  that require this format without using cookies that facilitate retrieving
-  updates in a multi-master replication environment.</para>
+  Records</link>. Nothing special is required to get the objects specified for
+  this legacy format. Such applications cannot however use the change log
+  cookies that are shared across the replication topology, and therefore
+  can continue to be used after failover to another replica in a multi-master
+  replication environment.</para>
    <indexterm>
     <primary>External change log</primary>
     <secondary>Legacy format</secondary>
