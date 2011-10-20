@@ -1,5 +1,5 @@
 '\" t
-.\"     Title: control-panel
+.\"     Title: ldifsearch
 .\"    Author: Mark Craig
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
 .\"      Date: October\ \&20,\ \&2011
@@ -7,7 +7,7 @@
 .\"    Source: OpenDJ 2.5.0
 .\"  Language: English
 .\"
-.TH "CONTROL\-PANEL" "1" "October\ \&20,\ \&2011" "OpenDJ 2.5.0" "Tools Reference"
+.TH "LDIFSEARCH" "1" "October\ \&20,\ \&2011" "OpenDJ 2.5.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -28,75 +28,74 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-control-panel \- start the OpenDJ graphical admin interface
+ldifsearch \- search LDIF with LDAP filters
 .SH "SYNOPSIS"
-.HP \w'\fBcontrol\-panel\fR\ 'u
-\fBcontrol\-panel\fR {options}
+.HP \w'\fBldifsearch\fR\ 'u
+\fBldifsearch\fR {options} [filter] [attribute...]
 .SH "DESCRIPTION"
 .PP
-This utility can be used to display the Control Panel window which displays basic server information and allows to do some basic administration tasks on the server\&.
+This utility can be used to perform search operations against data in an LDIF file\&.
 .SH "OPTIONS"
 .PP
 The following options are supported\&.
 .PP
-\fB\-r, \-\-remote\fR
+\fB\-b, \-\-baseDN {baseDN}\fR
 .RS 4
-Connect to a remote server
+The base DN for the search\&. Multiple base DNs may be specified by providing the option multiple times\&. If no base DN is provided, then the root DSE will be used\&.
 .RE
-.SS "LDAP Connection Options"
 .PP
-\fB\-\-connectTimeout {timeout}\fR
+\fB\-f, \-\-filterFile {filterFile}\fR
 .RS 4
-Maximum length of time (in milliseconds) that can be taken to establish a connection\&. Use \*(Aq0\*(Aq to specify no time out\&.
+The path to the file containing the search filter(s) to use\&. If this is not provided, then the filter must be provided on the command line after all configuration options\&.
+.RE
+.PP
+\fB\-l, \-\-ldifFile {ldifFile}\fR
+.RS 4
+LDIF file containing the data to search\&. Multiple files may be specified by providing the option multiple times\&. If no files are provided, the data will be read from standard input\&.
+.RE
+.PP
+\fB\-o, \-\-outputFile {outputFile}\fR
+.RS 4
+The path to the output file to which the matching entries should be written\&. If this is not provided, then the data will be written to standard output\&.
+.RE
+.PP
+\fB\-O, \-\-overwriteExisting\fR
+.RS 4
+Any existing output file should be overwritten rather than appending to it\&.
+.RE
+.PP
+\fB\-s, \-\-searchScope {scope}\fR
+.RS 4
+The scope for the search\&. It must be one of \*(Aqbase\*(Aq, \*(Aqone\*(Aq, \*(Aqsub\*(Aq, or \*(Aqsubordinate\*(Aq\&. If it is not provided, then \*(Aqsub\*(Aq will be used\&.
+.RE
+.PP
+\fB\-t, \-\-timeLimit {timeLimit}\fR
+.RS 4
+Maximum length of time (in seconds) to spend processing\&.
 .sp
-Default value: 30000
+Default value: 0
 .RE
 .PP
-\fB\-D, \-\-bindDN {bindDN}\fR
+\fB\-T, \-\-dontWrap\fR
 .RS 4
-DN to use to bind to the server
+Long lines should not be wrapped\&.
+.RE
+.PP
+\fB\-V, \-\-version\fR
+.RS 4
+Display version information\&.
+.RE
+.PP
+\fB\-z, \-\-sizeLimit {sizeLimit}\fR
+.RS 4
+Maximum number of matching entries to return\&.
 .sp
-Default value: cn=Directory Manager
-.RE
-.PP
-\fB\-h, \-\-hostname {host}\fR
-.RS 4
-Directory server hostname or IP address
-.sp
-Default value: localhost\&.localdomain
-.RE
-.PP
-\fB\-j, \-\-adminPasswordFile {bindPasswordFile}\fR
-.RS 4
-Global administrator password file
-.RE
-.PP
-\fB\-p, \-\-port {port}\fR
-.RS 4
-Directory server administration port number
-.sp
-Default value: 4444
-.RE
-.PP
-\fB\-w, \-\-adminPassword {bindPassword}\fR
-.RS 4
-Password for the global administrator
-.RE
-.PP
-\fB\-X, \-\-trustAll\fR
-.RS 4
-Trust all server SSL certificates
-.RE
-.SS "General Options"
-.PP
-\fB\-\-version\fR
-.RS 4
-Display version information
+Default value: 0
 .RE
 .PP
 \fB\-?, \-H, \-\-help\fR
 .RS 4
-Display usage information
+Display usage information\&.
 .RE
 .SH "EXIT CODES"
 .PP
@@ -111,13 +110,36 @@ An error occurred\&.
 .RE
 .SH "EXAMPLES"
 .PP
-The following example starts the Control Panel on a remote host\&.
+The following example demonstrates use of the command\&.
 .sp
 .if n \{\
 .RS 4
 .\}
 .nf
-$ control\-panel \-r \-h opendj\&.example\&.com \-p 4444 &
+$ ldifsearch \-l /path/to/Example\&.ldif \-b dc=example,dc=com uid=bjensen
+dn: uid=bjensen,ou=People,dc=example,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+uid: bjensen
+userpassword: hifalutin
+facsimiletelephonenumber: +1 408 555 1992
+givenname: Barbara
+cn: Barbara Jensen
+cn: Babs Jensen
+telephonenumber: +1 408 555 1862
+sn: Jensen
+roomnumber: 0209
+homeDirectory: /home/bjensen
+mail: bjensen@example\&.com
+l: Cupertino
+ou: Product Development
+ou: People
+uidNumber: 1076
+gidNumber: 1000
+
 .fi
 .if n \{\
 .RE

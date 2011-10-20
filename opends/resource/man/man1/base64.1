@@ -1,5 +1,5 @@
 '\" t
-.\"     Title: setup
+.\"     Title: base64
 .\"    Author: Mark Craig
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
 .\"      Date: October\ \&20,\ \&2011
@@ -7,7 +7,7 @@
 .\"    Source: OpenDJ 2.5.0
 .\"  Language: English
 .\"
-.TH "unconfigure" "1" "October\ \&20,\ \&2011" "OpenDJ 2.5.0" "Tools Reference"
+.TH "BASE64" "1" "October\ \&20,\ \&2011" "OpenDJ 2.5.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -27,85 +27,85 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
-.SH NAME
-unconfigure \- unconfigures an OpenDJ instance that was  installed by using the package installation
-.SH SYNOPSIS
-.LP
-.nf
-\fBunconfigure\fR \fIoptions\fR
-.fi
-
-.SH DESCRIPTION
-.sp
-.LP
-The \fBunconfigure\fR command ensures that the removal of an OpenDJ package does not leave the host in an inconsistent state. The command stops the  directory server instance, removes the SMF registration, and resets the instance  location. The command does not remove the server instance files themselves.
-.sp
-.LP
-Run the \fBunconfigure\fR command as root before removing the OpenDJ package. Do not run this command if you intend to upgrade the directory server.
-.sp
-.LP
-This command is available in the OpenSolaris\u\s-2TM\s+2\d package installation only.
-.sp
-.LP
-Run \fBunconfigure --help\fR for more information.
-.SH OPTIONS
-.sp
-.LP
-The following options are supported:
-.sp
-.ne 2
-.mk
-.na
-\fB\fB-?\fR, \fB-H\fR, \fB--help\fR\fR
-.ad
-.RS 18n
-.rt
-Displays usage information.
+.SH "NAME"
+base64 \- encode and decode base64 strings
+.SH "SYNOPSIS"
+.HP \w'\fBbase64\fR\fB\fIsubcommand\fR\fR\ 'u
+\fBbase64\fR\fB\fIsubcommand\fR\fR {options}
+.SH "DESCRIPTION"
+.PP
+This utility can be used to encode and decode information using base64\&.
+.SH "SUBCOMMANDS"
+.PP
+The following subcommands are supported\&.
+.PP
+\fBbase64 decode\fR
+.RS 4
+Decode base64\-encoded information into raw data
 .RE
-
-.sp
-.ne 2
-.mk
-.na
-\fB\fB-V\fR, \fB--version\fR\fR
-.ad
-.RS 18n
-.rt
-Displays directory server version information.
+.PP
+\fBbase64 encode\fR
+.RS 4
+Encode raw data using base64
 .RE
-
-.SH EXAMPLES
-.LP
-\fBExample 1 \fRRemoving a Directory Server Package Installation
+.SH "GENERAL OPTIONS"
+.PP
+\fB\-V, \-\-version\fR
+.RS 4
+Display version information
+.RE
+.PP
+\fB\-?, \-H, \-\-help\fR
+.RS 4
+Display usage information
+.RE
+.SH "EXIT CODES"
+.PP
+0
+.RS 4
+The command completed successfully\&.
+.RE
+.PP
+> 0
+.RS 4
+An error occurred\&.
+.RE
+.SH "EXAMPLES"
+.PP
+The following command shows the changes from the external change log in human\-readable format\&.
 .sp
-.LP
-The following commands unset the instance path for a directory server package  installation, and then remove the package:
-
-.sp
-.in +2
+.if n \{\
+.RS 4
+.\}
 .nf
-# /usr/opendj/unconfigure
-# pkgrm opendj
+$ base64 decode \-d YWRkOiBkZXNjcmlwdGlvbgpkZXNjcmlwdGlvbjogQSB0aGlyZCBjaGFuZ2UK
+LQpyZXBsYWNlOiBtb2RpZmllcnNOYW1lCm1vZGlmaWVyc05hbWU6IGNuPURpcmVjdG9yeSBNYW5hZ2V
+yLGNuPVJvb3QgRE5zLGNuPWNvbmZpZwotCnJlcGxhY2U6IG1vZGlmeVRpbWVzdGFtcAptb2RpZnlUaW
+1lc3RhbXA6IDIwMTEwNjEzMDcxMjEwWgotCg==
+add: description
+description: A third change
+\-
+replace: modifiersName
+modifiersName: cn=Directory Manager,cn=Root DNs,cn=config
+\-
+replace: modifyTimestamp
+modifyTimestamp: 20110613071210Z
+\-
 .fi
-.in -2
-.sp
-
-.SH ATTRIBUTES
-.sp
-.LP
-See \fBattributes\fR(5) for descriptions of the following attributes:
-.sp
-
-.sp
-.TS
-tab() box;
-cw(2.75i) |cw(2.75i)
-lw(2.75i) |lw(2.75i)
-.
-ATTRIBUTE TYPEATTRIBUTE VALUE
-_
-Interface StabilityUncommitted
-.TE
+.if n \{\
+.RE
+.\}
+.SH "AUTHORS"
+.PP
+\fBMark Craig\fR
+.RS 4
+Author.
+.RE
+.PP
+\fBNemanja Lukić\fR
+.RS 4
+Author.
+.RE
 .SH "COPYRIGHT"
 .br
 Copyright \(co 2011 ForgeRock AS
@@ -128,5 +128,3 @@ UNLESS OTHERWISE MUTUALLY AGREED BY THE PARTIES IN WRITING, LICENSOR OFFERS THE 
 .PP
 EXCEPT TO THE EXTENT REQUIRED BY APPLICABLE LAW, IN NO EVENT WILL LICENSOR BE LIABLE TO YOU ON ANY LEGAL THEORY FOR ANY SPECIAL, INCIDENTAL, CONSEQUENTIAL, PUNITIVE OR EXEMPLARY DAMAGES ARISING OUT OF THIS LICENSE OR THE USE OF THE WORK, EVEN IF LICENSOR HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 .sp
-
-

@@ -1,5 +1,5 @@
 '\" t
-.\"     Title: setup
+.\"     Title: list-backends
 .\"    Author: Mark Craig
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
 .\"      Date: October\ \&20,\ \&2011
@@ -7,7 +7,7 @@
 .\"    Source: OpenDJ 2.5.0
 .\"  Language: English
 .\"
-.TH "unconfigure" "1" "October\ \&20,\ \&2011" "OpenDJ 2.5.0" "Tools Reference"
+.TH "LIST\-BACKENDS" "1" "October\ \&20,\ \&2011" "OpenDJ 2.5.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -27,85 +27,83 @@
 .\" -----------------------------------------------------------------
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
-.SH NAME
-unconfigure \- unconfigures an OpenDJ instance that was  installed by using the package installation
-.SH SYNOPSIS
-.LP
-.nf
-\fBunconfigure\fR \fIoptions\fR
-.fi
-
-.SH DESCRIPTION
-.sp
-.LP
-The \fBunconfigure\fR command ensures that the removal of an OpenDJ package does not leave the host in an inconsistent state. The command stops the  directory server instance, removes the SMF registration, and resets the instance  location. The command does not remove the server instance files themselves.
-.sp
-.LP
-Run the \fBunconfigure\fR command as root before removing the OpenDJ package. Do not run this command if you intend to upgrade the directory server.
-.sp
-.LP
-This command is available in the OpenSolaris\u\s-2TM\s+2\d package installation only.
-.sp
-.LP
-Run \fBunconfigure --help\fR for more information.
-.SH OPTIONS
-.sp
-.LP
-The following options are supported:
-.sp
-.ne 2
-.mk
-.na
-\fB\fB-?\fR, \fB-H\fR, \fB--help\fR\fR
-.ad
-.RS 18n
-.rt
-Displays usage information.
+.SH "NAME"
+list-backends \- list OpenDJ backends and base DNs
+.SH "SYNOPSIS"
+.HP \w'\fBlist\-backends\fR\ 'u
+\fBlist\-backends\fR [options]
+.SH "DESCRIPTION"
+.PP
+This utility can be used to list the backends and base DNs configured in the Directory Server\&.
+.SH "OPTIONS"
+.PP
+The following options are supported\&.
+.PP
+\fB\-b, \-\-baseDN {baseDN}\fR
+.RS 4
+Base DN for which to list the backend ID\&.
 .RE
-
-.sp
-.ne 2
-.mk
-.na
-\fB\fB-V\fR, \fB--version\fR\fR
-.ad
-.RS 18n
-.rt
-Displays directory server version information.
+.PP
+\fB\-n, \-\-backendID {backendName}\fR
+.RS 4
+Backend ID of the backend for which to list the base DNs\&.
 .RE
-
-.SH EXAMPLES
-.LP
-\fBExample 1 \fRRemoving a Directory Server Package Installation
+.PP
+\fB\-V, \-\-version\fR
+.RS 4
+Display version information\&.
+.RE
+.PP
+\fB\-?, \-H, \-\-help\fR
+.RS 4
+Display usage information\&.
+.RE
+.SH "EXIT CODES"
+.PP
+0
+.RS 4
+The command completed successfully\&.
+.RE
+.PP
+> 0
+.RS 4
+An error occurred\&.
+.RE
+.SH "EXAMPLES"
 .sp
-.LP
-The following commands unset the instance path for a directory server package  installation, and then remove the package:
-
-.sp
-.in +2
+.if n \{\
+.RS 4
+.\}
 .nf
-# /usr/opendj/unconfigure
-# pkgrm opendj
+$ list\-backends 
+Backend ID         : Base DN
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-:\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+adminRoot          : cn=admin data
+ads\-truststore     : cn=ads\-truststore
+backup             : cn=backups
+config             : cn=config
+monitor            : cn=monitor
+myCompanyRoot      : "dc=myCompany,dc=com"
+myOrgRoot          : o=myOrg
+replicationChanges : dc=replicationChanges
+schema             : cn=schema
+tasks              : cn=tasks
+userRoot           : "dc=example,dc=com"
 .fi
-.in -2
-.sp
-
-.SH ATTRIBUTES
-.sp
-.LP
-See \fBattributes\fR(5) for descriptions of the following attributes:
-.sp
-
-.sp
-.TS
-tab() box;
-cw(2.75i) |cw(2.75i)
-lw(2.75i) |lw(2.75i)
-.
-ATTRIBUTE TYPEATTRIBUTE VALUE
-_
-Interface StabilityUncommitted
-.TE
+.if n \{\
+.RE
+.\}
+.SH "AUTHORS"
+.PP
+\fBMark Craig\fR
+.RS 4
+Author.
+.RE
+.PP
+\fBNemanja Lukić\fR
+.RS 4
+Author.
+.RE
 .SH "COPYRIGHT"
 .br
 Copyright \(co 2011 ForgeRock AS
@@ -128,5 +126,3 @@ UNLESS OTHERWISE MUTUALLY AGREED BY THE PARTIES IN WRITING, LICENSOR OFFERS THE 
 .PP
 EXCEPT TO THE EXTENT REQUIRED BY APPLICABLE LAW, IN NO EVENT WILL LICENSOR BE LIABLE TO YOU ON ANY LEGAL THEORY FOR ANY SPECIAL, INCIDENTAL, CONSEQUENTIAL, PUNITIVE OR EXEMPLARY DAMAGES ARISING OUT OF THIS LICENSE OR THE USE OF THE WORK, EVEN IF LICENSOR HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 .sp
-
-

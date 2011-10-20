@@ -5,13 +5,13 @@
          version="2.4">
 
   <context-param>
-    <description>The hostname or IP address of the OpenDS server; e.g., localhost</description>
+    <description>The hostname or IP address of the OpenDJ server; e.g., localhost</description>
     <param-name>ldap.host</param-name>
     <param-value>localhost</param-value>
   </context-param>
 
   <context-param>
-    <description>The port number of the OpenDS server; e.g., 389</description>
+    <description>The port number of the OpenDJ server; e.g., 389</description>
     <param-name>ldap.port</param-name>
     <param-value>389</param-value>
   </context-param>

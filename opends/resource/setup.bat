@@ -24,6 +24,7 @@ rem CDDL HEADER END
 rem
 rem
 rem      Copyright 2006-2010 Sun Microsystems, Inc.
+rem      Portions Copyright 2011 ForgeRock AS
 
 setlocal
 
@@ -59,7 +60,7 @@ if "%~1" == "" goto callLaunch
 goto callJava
 
 :invalidPath
-echo Error: The current path contains a %% character.  OpenDS cannot
+echo Error: The current path contains a %% character.  OpenDJ cannot
 echo        be installed on a path containing this character.
 pause
 goto end
