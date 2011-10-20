@@ -864,7 +864,7 @@
     </sequence>
   </function>
 
-  <function name="testCase_StartBanner">
+  <function name="testCase_StartBanner" scope="local">
     <function-prolog>
       Pretty prints a banner at the start of a test.
     </function-prolog>
@@ -877,7 +877,7 @@
     </sequence>
   </function>
 
-  <function name="testCase_EndBanner">
+  <function name="testCase_EndBanner" scope="local">
     <function-prolog>
       Pretty prints a banner at the end of a test.
     </function-prolog>
@@ -900,12 +900,7 @@
           import time
           testcaseStart=int(time.time())
           testcaseStartTime=strftime("%Y%m%d-%H:%M:%S",localtime())
-          for logType in ['errors','access']:
-            if os.path.exists('%s/%s/logs/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,logType)):
-              logfile=open('%s/%s/logs/%s' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME,logType),'a')
-              logfile.seek(0,2)
-              logfile.write('Begin testcase %s\n' % STAXCurrentTestcase)
-              logfile.close()
+
           stepNumber=1
         </script>
         <call function="'SetVar'">
@@ -919,7 +914,7 @@
     </sequence>
   </function>
 
-  <function name="testCase_Postamble">
+  <function name="testCase_Postamble" scope="local">
     <function-prolog>
       Performs all the post operations for a test suite
     </function-prolog>
@@ -976,6 +971,20 @@
           information=STAFResult['information']
         else:
           information=''
+
+        xml=xmldoc_service()
+
+        repdoc = xml.parseXMLfile("%s/results_tmp.xml" % logs.reports)
+        
+        qa = repdoc.getDocumentElement()
+        ft = qa.getChildNodes().item(1)
+        results = ft.getChildNodes().item(3)
+
+        xml.tempres = results.getChildNodes().item(1)
+        fail = xml.tempres.getChildNodes().item(1)
+        known = xml.tempres.getChildNodes().item(3)
+        done = xml.tempres.getChildNodes().item(5)
+        bugs = xml.tempres.getChildNodes().item(7)
         
         nvDone = 0
         nbFail = 0
@@ -1022,19 +1031,15 @@
       <call function="'testCase_EndBanner'" />
 
       <script>
+        ThisGroupName=CurrentTestPath['group']
+        ThisSuiteName=CurrentTestPath['suite']
+
         testcaseEndTime = strftime("%Y%m%d-%H:%M:%S",localtime())
 
         testcaseStop=int(time.time())        
         testcaseDuration=testcaseStop-testcaseStart
         shortName=get_test_name(STAXCurrentTestcase)
 
-        xml=xmldoc_service()
-
-        repdoc = xml.parseXMLfile("%s/results_tmp.xml" % logs.reports)
-        
-        qa = repdoc.getDocumentElement()
-        ft = qa.getChildNodes().item(1)
-        results = ft.getChildNodes().item(3)
         testgroup = results.getChildNodes().item(3)
         testsuite = testgroup.getChildNodes().item(1)
 
@@ -1061,6 +1066,7 @@
             xml.issues.appendChild(xml.issue)
 
         xml.writeXMLfile(repdoc,"%s/results_tmp.xml" % logs.reports)
+
       </script>
 
       <call function="'queryLogs'">
@@ -1073,8 +1079,9 @@
       <script>
         # Update the report.cfg file
         nbDone = int(done.getTextContent())
-        nbFail = int(fail.getTextContent())
+        nbFail = int(fail.getTextContent())        
         nbKnown = int(known.getTextContent())
+
         percentage = (nbDone - nbFail - nbKnown) * 100 / nbDone
 
         starttime = time.strftime("%Y/%m/%d %H:%M:%S", time.gmtime(TESTS_TIMESTAMP))
@@ -1105,7 +1112,7 @@
     </sequence>
   </function>
 
-  <function name="testSuite_Preamble">
+  <function name="testSuite_Preamble" scope="local">
     <function-prolog>
       Performs all the pre operations for a test suite
     </function-prolog>
@@ -1145,7 +1152,7 @@
       
       <!-- Start time of test suite -->      
       <script>
-        TestSuiteStartTime=strftime("%Y%m%d-%H:%M:%S",localtime())
+        TestSuiteStartTime.set(strftime("%Y%m%d-%H:%M:%S",localtime()))
       </script>
           
       <message>
@@ -1155,7 +1162,7 @@
     </sequence>
   </function>
 
-  <function name="testSuite_Postamble">
+  <function name="testSuite_Postamble" scope="local">
     <function-prolog>
       Performs all the post operations for a test suite
     </function-prolog>
@@ -1195,7 +1202,7 @@
       </script>
                   
       <call function="'WriteLogsForTestCase'">
-        { 'starttime' : TestSuiteStartTime,
+        { 'starttime' : TestSuiteStartTime.get(),
           'endtime'   : TestSuiteEndTime,
           'logFile' : TestLogFile }
       </call>
@@ -1208,7 +1215,7 @@
     </sequence>
   </function>
 
-  <function name="testGroup_Preamble">
+  <function name="testGroup_Preamble" scope="local">
     <function-prolog>
       Performs all the pre operations for a test group
     </function-prolog>
@@ -1259,7 +1266,7 @@
         results.appendChild(xml.testgroup)
         
         xml.writeXMLfile(repdoc,"%s/results_tmp.xml" % logs.reports)
-        
+
       </script>
       <message>'##### %s group preamble #####' % ThisGroupName</message>
     </sequence>
@@ -2616,7 +2623,7 @@
             { 
             'name'       : 'Compile Java files' ,
             'command'    : cmd ,
-            'arguments'  : '-target 1.6 %s %s' % (cmdOptions,list) ,
+            'arguments'  : '%s %s' % (cmdOptions,list) ,
             'location'   : location ,
             'path'       : foldername ,
             'envCmd'     : env ,
