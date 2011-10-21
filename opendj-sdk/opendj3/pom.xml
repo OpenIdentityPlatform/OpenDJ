@@ -355,14 +355,14 @@
                   <replacevalue>
 &lt;script  src="http://code.jquery.com/jquery-1.6.4.min.js"&gt;&lt;/script&gt;
 &lt;script type="text/javascript"&gt;
-// On click, reformat &lt;pre class="screen"&gt; for easy copying.
-$(".screen").live("click", function() {
+// On double-click, reformat &lt;pre class="screen"&gt; for easy copying.
+$(".screen").live("dblclick", function() {
   $(this).replaceWith(
     "&lt;pre class=\"flat\"&gt;" +
     $(this).text().replace(/\n /g," ") + "\n&lt;!--" + $(this).text() + "--&gt;" +
     "&lt;/pre&gt;");
 });
-$(".flat").live("click", function() {
+$(".flat").live("dblclick", function() {
   $(this).replaceWith(
     "&lt;pre class=\"screen\"&gt;" +
     $(this).html().replace(/(.|\n)+&lt;!\-\-/m,"").replace(/\-\-\&gt;/,"") +
@@ -434,14 +434,14 @@ $(".flat").live("click", function() {
                   <replacevalue>
 &lt;script  src="http://code.jquery.com/jquery-1.6.4.min.js"&gt;&lt;/script&gt;
 &lt;script type="text/javascript"&gt;
-// On click, reformat &lt;pre class="screen"&gt; for easy copying.
-$(".screen").live("click", function() {
+// On double-click, reformat &lt;pre class="screen"&gt; for easy copying.
+$(".screen").live("dblclick", function() {
   $(this).replaceWith(
     "&lt;pre class=\"flat\"&gt;" +
     $(this).text().replace(/\n /g," ") + "\n&lt;!--" + $(this).text() + "--&gt;" +
     "&lt;/pre&gt;");
 });
-$(".flat").live("click", function() {
+$(".flat").live("dblclick", function() {
   $(this).replaceWith(
     "&lt;pre class=\"screen\"&gt;" +
     $(this).html().replace(/(.|\n)+&lt;!\-\-/m,"").replace(/\-\-\&gt;/,"") +
