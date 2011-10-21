@@ -43,10 +43,10 @@
  <section xml:id="deprecated-functionality">
   <title>Deprecated Functionality</title>
   
-  <para>No functionality is deprecated in OpenDJ
-  <?eval ${docTargetVersion}?>.</para>
-  
-  <para>No functionality is planned to be deprecated at this time.</para>
+  <para>OpenDJ <?eval ${docTargetVersion}?> makes use of new environment
+  variables aligned with the project name. Use of the old variables is
+  deprecated. The old variables are likely to be removed in a future
+  release.</para>
  </section>
  
  <section xml:id="removed-functionality">
