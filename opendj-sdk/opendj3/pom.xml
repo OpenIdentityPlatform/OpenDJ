@@ -356,15 +356,18 @@
 &lt;script  src="http://code.jquery.com/jquery-1.6.4.min.js"&gt;&lt;/script&gt;
 &lt;script type="text/javascript"&gt;
 // On double-click, reformat &lt;pre class="screen"&gt; for easy copying.
+$(document).ready(function() {
+  $(".screen").attr("title", "Double-click to unwrap lines.");
+});
 $(".screen").live("dblclick", function() {
   $(this).replaceWith(
-    "&lt;pre class=\"flat\"&gt;" +
+    "&lt;pre class=\"flat\" title=\"Double-click to wrap long lines.\"&gt;" +
     $(this).text().replace(/\n /g," ") + "\n&lt;!--" + $(this).text() + "--&gt;" +
     "&lt;/pre&gt;");
 });
 $(".flat").live("dblclick", function() {
   $(this).replaceWith(
-    "&lt;pre class=\"screen\"&gt;" +
+    "&lt;pre class=\"screen\" title=\"Double-click to unwrap lines.\"&gt;" +
     $(this).html().replace(/(.|\n)+&lt;!\-\-/m,"").replace(/\-\-\&gt;/,"") +
     "&lt;/pre&gt;");
 &lt;/script&gt;
@@ -435,18 +438,21 @@ $(".flat").live("dblclick", function() {
 &lt;script  src="http://code.jquery.com/jquery-1.6.4.min.js"&gt;&lt;/script&gt;
 &lt;script type="text/javascript"&gt;
 // On double-click, reformat &lt;pre class="screen"&gt; for easy copying.
+$(document).ready(function() {
+  $(".screen").attr("title", "Double-click to unwrap lines.");
+});
 $(".screen").live("dblclick", function() {
   $(this).replaceWith(
-    "&lt;pre class=\"flat\"&gt;" +
+    "&lt;pre class=\"flat\" title=\"Double-click to wrap long lines.\"&gt;" +
     $(this).text().replace(/\n /g," ") + "\n&lt;!--" + $(this).text() + "--&gt;" +
     "&lt;/pre&gt;");
 });
 $(".flat").live("dblclick", function() {
   $(this).replaceWith(
-    "&lt;pre class=\"screen\"&gt;" +
+    "&lt;pre class=\"screen\" title=\"Double-click to unwrap lines.\"&gt;" +
     $(this).html().replace(/(.|\n)+&lt;!\-\-/m,"").replace(/\-\-\&gt;/,"") +
     "&lt;/pre&gt;");
-});&lt;/script&gt;
+&lt;/script&gt;
 &lt;link rel="shortcut icon" href="http://forgerock.org/favicon.ico"&gt;
 &lt;/head&gt;</replacevalue>
                 </replace>
