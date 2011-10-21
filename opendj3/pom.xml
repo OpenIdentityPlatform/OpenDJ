@@ -370,6 +370,7 @@ $(".flat").live("dblclick", function() {
     "&lt;pre class=\"screen\" title=\"Double-click to unwrap lines.\"&gt;" +
     $(this).html().replace(/(.|\n)+&lt;!\-\-/m,"").replace(/\-\-\&gt;/,"") +
     "&lt;/pre&gt;");
+});
 &lt;/script&gt;
 &lt;link rel="shortcut icon" href="http://forgerock.org/favicon.ico"&gt;
 &lt;/head&gt;</replacevalue>
@@ -452,6 +453,7 @@ $(".flat").live("dblclick", function() {
     "&lt;pre class=\"screen\" title=\"Double-click to unwrap lines.\"&gt;" +
     $(this).html().replace(/(.|\n)+&lt;!\-\-/m,"").replace(/\-\-\&gt;/,"") +
     "&lt;/pre&gt;");
+});
 &lt;/script&gt;
 &lt;link rel="shortcut icon" href="http://forgerock.org/favicon.ico"&gt;
 &lt;/head&gt;</replacevalue>
