@@ -715,7 +715,17 @@ class xmldoc_service:
       tag.setAttributeNode(newAttribute)
     except:
       print "exception: %s" % traceback.format_exception(*sys.exc_info())
+
+  def getElementByAttributeName(self,root,tag,attr,val):
   
+    element = root.getElementsByTagName(tag)
+  
+    i=0
+    while i < element.getLength():
+      if element.item(i).getAttribute(val) == attr:
+        return element.item(i)
+      i += 1
+
 def xml_add_text_node(doc,parent,name,ntext):
 
   node = doc.createElement(name)
@@ -846,5 +856,3 @@ def md5_hash():
     import md5
     m = md5.new()
   return m
-
-        

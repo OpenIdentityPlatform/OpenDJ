@@ -125,6 +125,8 @@
         server.password   = DIRECTORY_INSTANCE_PSWD
         server.suffix     = DIRECTORY_INSTANCE_SFX
         server.backend    = DIRECTORY_INSTANCE_BE
+        
+        TestSuiteStartTime = STAXGlobal([])
       </script>
 
       <!-- Set the signal handlers -->

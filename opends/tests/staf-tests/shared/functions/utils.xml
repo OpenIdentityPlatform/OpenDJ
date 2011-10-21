@@ -1039,9 +1039,8 @@
         testcaseStop=int(time.time())        
         testcaseDuration=testcaseStop-testcaseStart
         shortName=get_test_name(STAXCurrentTestcase)
-
-        testgroup = results.getChildNodes().item(3)
-        testsuite = testgroup.getChildNodes().item(1)
+        
+        testsuite = xml.getElementByAttributeName(qa,'testsuite',ThisSuiteName,'name')
 
         xml.testcase = repdoc.createElement("testcase")
         xml.createAttr(repdoc,xml.testcase,"name",STAXCurrentTestcase)
@@ -1135,9 +1134,8 @@
         repdoc = xml.parseXMLfile("%s/results_tmp.xml" % logs.reports)
         
         qa = repdoc.getDocumentElement()
-        ft = qa.getChildNodes().item(1)
-        results = ft.getChildNodes().item(3)
-        testgroup = results.getChildNodes().item(3)
+        
+        testgroup = xml.getElementByAttributeName(qa,'testgroup',ThisGroupName,'name')
         
         #Create testsuite element
         xml.testsuite = repdoc.createElement("testsuite")
