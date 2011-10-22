@@ -877,7 +877,7 @@
             else:
               return 'INDEX:%s' % (self.attribute)
             
-          def pass(self):
+          def setPass(self):
             self.status='pass'
             
           def getStatus(self):
@@ -950,7 +950,7 @@
                     srt=searchResultString.split('[')[1]
                     if (str(searchReturnCode) == str(test.getRC())) and \
                         srt.startswith(test.getSearchString()):
-                      test.pass()
+                      test.setPass()
                   </script>
                   <message level="'trace'">
                     '%s\nsearchReturnCode=[%s]\nldapsearch return \
