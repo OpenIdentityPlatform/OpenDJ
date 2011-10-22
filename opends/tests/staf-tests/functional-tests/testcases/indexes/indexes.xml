@@ -738,7 +738,7 @@
         <try>
           <sequence>
             <call function="'loopThroughFilters'">
-              { 'filters' : 'before-entry-limit' }
+              { 'filters' : 'before-modify' }
             </call>
 
             <testcase name="getTestCaseName('Modify uid index')">
@@ -762,7 +762,7 @@
             </testcase>
 
             <call function="'loopThroughFilters'">
-              { 'filters' : 'after-entry-limit' }
+              { 'filters' : 'before-modify' }
             </call>
           </sequence>
           <catch exception="'STAXException.LDAP.RemoveIndexException'">
@@ -802,7 +802,7 @@
         <try>
           <sequence>
             <call function="'loopThroughFilters'">
-              { 'filters' : 'before-entry-limit' }
+              { 'filters' : 'before-modify' }
             </call>
 
             <testcase name="getTestCaseName('Modify uid index')">
@@ -826,7 +826,7 @@
             </testcase>
 
             <call function="'loopThroughFilters'">
-              { 'filters' : 'after-entry-limit' }
+              { 'filters' : 'before-modify' }
             </call>
           </sequence>
           <catch exception="'STAXException.LDAP.RemoveIndexException'">
