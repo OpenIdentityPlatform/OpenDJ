@@ -355,6 +355,39 @@ public final class Entries
 
 
 
+  private static final Comparator<Entry> COMPARATOR = new Comparator<Entry>()
+  {
+    public int compare(Entry o1, Entry o2)
+    {
+      return o1.getName().compareTo(o2.getName());
+    }
+  };
+
+
+
+  /**
+   * Returns a {@code Comparator} which can be used to compare entries by name
+   * using the natural order for DN comparisons (parent before children).
+   * <p>
+   * In order to sort entries in reverse order (children first) use the
+   * following code:
+   *
+   * <pre>
+   * Collections.reverseOrder(Entries.compareByName());
+   * </pre>
+   *
+   * For more complex sort orders involving one or more attributes refer to the
+   * {@link SortKey} class.
+   *
+   * @return The {@code Comparator}.
+   */
+  public static Comparator<Entry> compareByName()
+  {
+    return COMPARATOR;
+  }
+
+
+
   /**
    * Returns {@code true} if the provided entry is valid according to the
    * specified schema and schema validation policy.
