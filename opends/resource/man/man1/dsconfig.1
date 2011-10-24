@@ -548,24 +548,6 @@ Assigns a value to a property where PROP is the name of the property and VALUE i
 .RS 4
 The type of Extended Operation Handler which should be created\&. The value for TYPE can be one of: cancel | custom | get\-connection\-id | get\-symmetric\-key | password\-modify | password\-policy\-state | start\-tls | who\-am\-i
 .RE
-.SS "dsconfig create\-extension"
-.PP
-Creates Extensions
-.PP
-\fB\-\-extension\-name {name}\fR
-.RS 4
-The name of the new Extension
-.RE
-.PP
-\fB\-\-set {PROP:VALUE}\fR
-.RS 4
-Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
-.RE
-.PP
-\fB\-t | \-\-type {type}\fR
-.RS 4
-The type of Extension which should be created\&. The value for TYPE can be one of: custom
-.RE
 .SS "dsconfig create\-group\-implementation"
 .PP
 Creates Group Implementations
@@ -756,42 +738,6 @@ Assigns a value to a property where PROP is the name of the property and VALUE i
 .RS 4
 The type of Monitor Provider which should be created\&. The value for TYPE can be one of: client\-connection | custom | entry\-cache | memory\-usage | stack\-trace | system\-info | version
 .RE
-.SS "dsconfig create\-network\-group"
-.PP
-Creates Network Groups
-.PP
-\fB\-\-group\-name {name}\fR
-.RS 4
-The name of the new Network Group
-.RE
-.PP
-\fB\-\-set {PROP:VALUE}\fR
-.RS 4
-Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
-.RE
-.PP
-\fB\-t | \-\-type {type}\fR
-.RS 4
-The type of Network Group which should be created (Default: generic)\&. The value for TYPE can be one of: generic
-.RE
-.SS "dsconfig create\-network\-group\-qos\-policy"
-.PP
-Creates QOS Policies
-.PP
-\fB\-\-group\-name {name}\fR
-.RS 4
-The name of the Network Group
-.RE
-.PP
-\fB\-\-set {PROP:VALUE}\fR
-.RS 4
-Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
-.RE
-.PP
-\fB\-t | \-\-type {type}\fR
-.RS 4
-The type of QOS Policy which should be created\&. The value for TYPE can be one of: request\-filtering | resource\-limits
-.RE
 .SS "dsconfig create\-password\-generator"
 .PP
 Creates Password Generators
@@ -880,7 +826,7 @@ Assigns a value to a property where PROP is the name of the property and VALUE i
 .PP
 \fB\-t | \-\-type {type}\fR
 .RS 4
-The type of Plugin which should be created\&. The value for TYPE can be one of: attribute\-cleanup | change\-number\-control | custom | entry\-uuid | fractional\-ldif\-import | last\-mod | ldap\-attribute\-description\-list | network\-group | password\-policy\-import | profiler | referential\-integrity | samba\-password | seven\-bit\-clean | unique\-attribute
+The type of Plugin which should be created\&. The value for TYPE can be one of: attribute\-cleanup | change\-number\-control | custom | entry\-uuid | fractional\-ldif\-import | last\-mod | ldap\-attribute\-description\-list | password\-policy\-import | profiler | referential\-integrity | samba\-password | seven\-bit\-clean | unique\-attribute
 .RE
 .SS "dsconfig create\-replication\-domain"
 .PP
@@ -994,42 +940,6 @@ Assigns a value to a property where PROP is the name of the property and VALUE i
 \fB\-t | \-\-type {type}\fR
 .RS 4
 The type of Virtual Attribute which should be created\&. The value for TYPE can be one of: collective\-attribute\-subentries | custom | entry\-dn | entry\-uuid | governing\-structure\-rule | has\-subordinates | is\-member\-of | member | num\-subordinates | password\-policy\-subentry | structural\-object\-class | subschema\-subentry | user\-defined
-.RE
-.SS "dsconfig create\-workflow"
-.PP
-Creates Workflows
-.PP
-\fB\-\-workflow\-name {name}\fR
-.RS 4
-The name of the new Workflow
-.RE
-.PP
-\fB\-\-set {PROP:VALUE}\fR
-.RS 4
-Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
-.RE
-.PP
-\fB\-t | \-\-type {type}\fR
-.RS 4
-The type of Workflow which should be created (Default: generic)\&. The value for TYPE can be one of: generic
-.RE
-.SS "dsconfig create\-workflow\-element"
-.PP
-Creates Workflow Elements
-.PP
-\fB\-\-element\-name {name}\fR
-.RS 4
-The name of the new Workflow Element
-.RE
-.PP
-\fB\-\-set {PROP:VALUE}\fR
-.RS 4
-Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
-.RE
-.PP
-\fB\-t | \-\-type {type}\fR
-.RS 4
-The type of Workflow Element which should be created (Default: generic)\&. The value for TYPE can be one of: generic | local\-backend
 .RE
 .SS "dsconfig delete\-access\-log\-filtering\-criteria"
 .PP
@@ -1171,19 +1081,6 @@ The name of the Extended Operation Handler
 .RS 4
 Ignore non\-existent Extended Operation Handlers
 .RE
-.SS "dsconfig delete\-extension"
-.PP
-Deletes Extensions
-.PP
-\fB\-\-extension\-name {name}\fR
-.RS 4
-The name of the Extension
-.RE
-.PP
-\fB\-f | \-\-force\fR
-.RS 4
-Ignore non\-existent Extensions
-.RE
 .SS "dsconfig delete\-group\-implementation"
 .PP
 Deletes Group Implementations
@@ -1323,37 +1220,6 @@ The name of the Monitor Provider
 \fB\-f | \-\-force\fR
 .RS 4
 Ignore non\-existent Monitor Providers
-.RE
-.SS "dsconfig delete\-network\-group"
-.PP
-Deletes Network Groups
-.PP
-\fB\-\-group\-name {name}\fR
-.RS 4
-The name of the Network Group
-.RE
-.PP
-\fB\-f | \-\-force\fR
-.RS 4
-Ignore non\-existent Network Groups
-.RE
-.SS "dsconfig delete\-network\-group\-qos\-policy"
-.PP
-Deletes QOS Policies
-.PP
-\fB\-\-group\-name {name}\fR
-.RS 4
-The name of the Network Group
-.RE
-.PP
-\fB\-\-policy\-type {name}\fR
-.RS 4
-The name of the QOS Policy
-.RE
-.PP
-\fB\-f | \-\-force\fR
-.RS 4
-Ignore non\-existent QOS Policies
 .RE
 .SS "dsconfig delete\-password\-generator"
 .PP
@@ -1502,32 +1368,6 @@ The name of the Virtual Attribute
 \fB\-f | \-\-force\fR
 .RS 4
 Ignore non\-existent Virtual Attributes
-.RE
-.SS "dsconfig delete\-workflow"
-.PP
-Deletes Workflows
-.PP
-\fB\-\-workflow\-name {name}\fR
-.RS 4
-The name of the Workflow
-.RE
-.PP
-\fB\-f | \-\-force\fR
-.RS 4
-Ignore non\-existent Workflows
-.RE
-.SS "dsconfig delete\-workflow\-element"
-.PP
-Deletes Workflow Elements
-.PP
-\fB\-\-element\-name {name}\fR
-.RS 4
-The name of the Workflow Element
-.RE
-.PP
-\fB\-f | \-\-force\fR
-.RS 4
-Ignore non\-existent Workflow Elements
 .RE
 .SS "dsconfig get\-access\-control\-handler\-prop"
 .PP
@@ -1888,34 +1728,6 @@ Display size data using the specified unit\&. The value for UNIT can be one of b
 .RS 4
 Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
 .RE
-.SS "dsconfig get\-extension\-prop"
-.PP
-Shows Extension properties
-.PP
-\fB\-\-extension\-name {name}\fR
-.RS 4
-The name of the Extension
-.RE
-.PP
-\fB\-\-property {property}\fR
-.RS 4
-The name of a property to be displayed
-.RE
-.PP
-\fB\-E | \-\-record\fR
-.RS 4
-Modifies the display output to show one property value per line
-.RE
-.PP
-\fB\-z | \-\-unit\-size {unit}\fR
-.RS 4
-Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
-.RE
-.PP
-\fB\-m | \-\-unit\-time {unit}\fR
-.RS 4
-Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
-.RE
 .SS "dsconfig get\-external\-changelog\-domain\-prop"
 .PP
 Shows External Changelog Domain properties
@@ -2241,67 +2053,6 @@ Shows Monitor Provider properties
 \fB\-\-provider\-name {name}\fR
 .RS 4
 The name of the Monitor Provider
-.RE
-.PP
-\fB\-\-property {property}\fR
-.RS 4
-The name of a property to be displayed
-.RE
-.PP
-\fB\-E | \-\-record\fR
-.RS 4
-Modifies the display output to show one property value per line
-.RE
-.PP
-\fB\-z | \-\-unit\-size {unit}\fR
-.RS 4
-Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
-.RE
-.PP
-\fB\-m | \-\-unit\-time {unit}\fR
-.RS 4
-Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
-.RE
-.SS "dsconfig get\-network\-group\-prop"
-.PP
-Shows Network Group properties
-.PP
-\fB\-\-group\-name {name}\fR
-.RS 4
-The name of the Network Group
-.RE
-.PP
-\fB\-\-property {property}\fR
-.RS 4
-The name of a property to be displayed
-.RE
-.PP
-\fB\-E | \-\-record\fR
-.RS 4
-Modifies the display output to show one property value per line
-.RE
-.PP
-\fB\-z | \-\-unit\-size {unit}\fR
-.RS 4
-Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
-.RE
-.PP
-\fB\-m | \-\-unit\-time {unit}\fR
-.RS 4
-Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
-.RE
-.SS "dsconfig get\-network\-group\-qos\-policy\-prop"
-.PP
-Shows QOS Policy properties
-.PP
-\fB\-\-group\-name {name}\fR
-.RS 4
-The name of the Network Group
-.RE
-.PP
-\fB\-\-policy\-type {name}\fR
-.RS 4
-The name of the QOS Policy
 .RE
 .PP
 \fB\-\-property {property}\fR
@@ -2728,62 +2479,6 @@ Display size data using the specified unit\&. The value for UNIT can be one of b
 .RS 4
 Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
 .RE
-.SS "dsconfig get\-workflow\-element\-prop"
-.PP
-Shows Workflow Element properties
-.PP
-\fB\-\-element\-name {name}\fR
-.RS 4
-The name of the Workflow Element
-.RE
-.PP
-\fB\-\-property {property}\fR
-.RS 4
-The name of a property to be displayed
-.RE
-.PP
-\fB\-E | \-\-record\fR
-.RS 4
-Modifies the display output to show one property value per line
-.RE
-.PP
-\fB\-z | \-\-unit\-size {unit}\fR
-.RS 4
-Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
-.RE
-.PP
-\fB\-m | \-\-unit\-time {unit}\fR
-.RS 4
-Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
-.RE
-.SS "dsconfig get\-workflow\-prop"
-.PP
-Shows Workflow properties
-.PP
-\fB\-\-workflow\-name {name}\fR
-.RS 4
-The name of the Workflow
-.RE
-.PP
-\fB\-\-property {property}\fR
-.RS 4
-The name of a property to be displayed
-.RE
-.PP
-\fB\-E | \-\-record\fR
-.RS 4
-Modifies the display output to show one property value per line
-.RE
-.PP
-\fB\-z | \-\-unit\-size {unit}\fR
-.RS 4
-Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
-.RE
-.PP
-\fB\-m | \-\-unit\-time {unit}\fR
-.RS 4
-Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
-.RE
 .SS "dsconfig list\-access\-log\-filtering\-criteria"
 .PP
 Lists existing Access Log Filtering Criteria
@@ -2974,24 +2669,6 @@ Display size data using the specified unit\&. The value for UNIT can be one of b
 .RS 4
 Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
 .RE
-.SS "dsconfig list\-extensions"
-.PP
-Lists existing Extensions
-.PP
-\fB\-\-property {property}\fR
-.RS 4
-The name of a property to be displayed
-.RE
-.PP
-\fB\-z | \-\-unit\-size {unit}\fR
-.RS 4
-Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
-.RE
-.PP
-\fB\-m | \-\-unit\-time {unit}\fR
-.RS 4
-Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
-.RE
 .SS "dsconfig list\-group\-implementations"
 .PP
 Lists existing Group Implementations
@@ -3167,47 +2844,6 @@ Display time data using the specified unit\&. The value for UNIT can be one of m
 .SS "dsconfig list\-monitor\-providers"
 .PP
 Lists existing Monitor Providers
-.PP
-\fB\-\-property {property}\fR
-.RS 4
-The name of a property to be displayed
-.RE
-.PP
-\fB\-z | \-\-unit\-size {unit}\fR
-.RS 4
-Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
-.RE
-.PP
-\fB\-m | \-\-unit\-time {unit}\fR
-.RS 4
-Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
-.RE
-.SS "dsconfig list\-network\-group\-qos\-policies"
-.PP
-Lists existing Network Group QOS Policies
-.PP
-\fB\-\-group\-name {name}\fR
-.RS 4
-The name of the Network Group
-.RE
-.PP
-\fB\-\-property {property}\fR
-.RS 4
-The name of a property to be displayed
-.RE
-.PP
-\fB\-z | \-\-unit\-size {unit}\fR
-.RS 4
-Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
-.RE
-.PP
-\fB\-m | \-\-unit\-time {unit}\fR
-.RS 4
-Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
-.RE
-.SS "dsconfig list\-network\-groups"
-.PP
-Lists existing Network Groups
 .PP
 \fB\-\-property {property}\fR
 .RS 4
@@ -3439,42 +3075,6 @@ Display time data using the specified unit\&. The value for UNIT can be one of m
 .SS "dsconfig list\-virtual\-attributes"
 .PP
 Lists existing Virtual Attributes
-.PP
-\fB\-\-property {property}\fR
-.RS 4
-The name of a property to be displayed
-.RE
-.PP
-\fB\-z | \-\-unit\-size {unit}\fR
-.RS 4
-Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
-.RE
-.PP
-\fB\-m | \-\-unit\-time {unit}\fR
-.RS 4
-Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
-.RE
-.SS "dsconfig list\-workflow\-elements"
-.PP
-Lists existing Workflow Elements
-.PP
-\fB\-\-property {property}\fR
-.RS 4
-The name of a property to be displayed
-.RE
-.PP
-\fB\-z | \-\-unit\-size {unit}\fR
-.RS 4
-Display size data using the specified unit\&. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)
-.RE
-.PP
-\fB\-m | \-\-unit\-time {unit}\fR
-.RS 4
-Display time data using the specified unit\&. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)
-.RE
-.SS "dsconfig list\-workflows"
-.PP
-Lists existing Workflows
 .PP
 \fB\-\-property {property}\fR
 .RS 4
@@ -3849,34 +3449,6 @@ Adds a single value to a property where PROP is the name of the property and VAL
 .RS 4
 Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
 .RE
-.SS "dsconfig set\-extension\-prop"
-.PP
-Modifies Extension properties
-.PP
-\fB\-\-extension\-name {name}\fR
-.RS 4
-The name of the Extension
-.RE
-.PP
-\fB\-\-set {PROP:VALUE}\fR
-.RS 4
-Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
-.RE
-.PP
-\fB\-\-reset {property}\fR
-.RS 4
-Resets a property back to its default values where PROP is the name of the property to be reset
-.RE
-.PP
-\fB\-\-add {PROP:VALUE}\fR
-.RS 4
-Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
-.RE
-.PP
-\fB\-\-remove {PROP:VALUE}\fR
-.RS 4
-Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
-.RE
 .SS "dsconfig set\-external\-changelog\-domain\-prop"
 .PP
 Modifies External Changelog Domain properties
@@ -4202,67 +3774,6 @@ Modifies Monitor Provider properties
 \fB\-\-provider\-name {name}\fR
 .RS 4
 The name of the Monitor Provider
-.RE
-.PP
-\fB\-\-set {PROP:VALUE}\fR
-.RS 4
-Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
-.RE
-.PP
-\fB\-\-reset {property}\fR
-.RS 4
-Resets a property back to its default values where PROP is the name of the property to be reset
-.RE
-.PP
-\fB\-\-add {PROP:VALUE}\fR
-.RS 4
-Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
-.RE
-.PP
-\fB\-\-remove {PROP:VALUE}\fR
-.RS 4
-Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
-.RE
-.SS "dsconfig set\-network\-group\-prop"
-.PP
-Modifies Network Group properties
-.PP
-\fB\-\-group\-name {name}\fR
-.RS 4
-The name of the Network Group
-.RE
-.PP
-\fB\-\-set {PROP:VALUE}\fR
-.RS 4
-Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
-.RE
-.PP
-\fB\-\-reset {property}\fR
-.RS 4
-Resets a property back to its default values where PROP is the name of the property to be reset
-.RE
-.PP
-\fB\-\-add {PROP:VALUE}\fR
-.RS 4
-Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
-.RE
-.PP
-\fB\-\-remove {PROP:VALUE}\fR
-.RS 4
-Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
-.RE
-.SS "dsconfig set\-network\-group\-qos\-policy\-prop"
-.PP
-Modifies QOS Policy properties
-.PP
-\fB\-\-group\-name {name}\fR
-.RS 4
-The name of the Network Group
-.RE
-.PP
-\fB\-\-policy\-type {name}\fR
-.RS 4
-The name of the QOS Policy
 .RE
 .PP
 \fB\-\-set {PROP:VALUE}\fR
@@ -4689,62 +4200,6 @@ Adds a single value to a property where PROP is the name of the property and VAL
 .RS 4
 Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
 .RE
-.SS "dsconfig set\-workflow\-element\-prop"
-.PP
-Modifies Workflow Element properties
-.PP
-\fB\-\-element\-name {name}\fR
-.RS 4
-The name of the Workflow Element
-.RE
-.PP
-\fB\-\-set {PROP:VALUE}\fR
-.RS 4
-Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
-.RE
-.PP
-\fB\-\-reset {property}\fR
-.RS 4
-Resets a property back to its default values where PROP is the name of the property to be reset
-.RE
-.PP
-\fB\-\-add {PROP:VALUE}\fR
-.RS 4
-Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
-.RE
-.PP
-\fB\-\-remove {PROP:VALUE}\fR
-.RS 4
-Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
-.RE
-.SS "dsconfig set\-workflow\-prop"
-.PP
-Modifies Workflow properties
-.PP
-\fB\-\-workflow\-name {name}\fR
-.RS 4
-The name of the Workflow
-.RE
-.PP
-\fB\-\-set {PROP:VALUE}\fR
-.RS 4
-Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned\&. Specify the same property multiple times in order to assign more than one value to it
-.RE
-.PP
-\fB\-\-reset {property}\fR
-.RS 4
-Resets a property back to its default values where PROP is the name of the property to be reset
-.RE
-.PP
-\fB\-\-add {PROP:VALUE}\fR
-.RS 4
-Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added
-.RE
-.PP
-\fB\-\-remove {PROP:VALUE}\fR
-.RS 4
-Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed
-.RE
 .SH "EXIT CODES"
 .PP
 0
@@ -4778,28 +4233,26 @@ $ dsconfig \-h `hostname` \-p 4444 \-D "cn=Directory Manager" \-w password
 
 What do you want to configure?
 
-    1)   Access Control Handler               23)  Log Rotation Policy
-    2)   Account Status Notification Handler  24)  Matching Rule
-    3)   Administration Connector             25)  Monitor Provider
-    4)   Alert Handler                        26)  Network Group
-    5)   Attribute Syntax                     27)  Network Group QOS Policy
-    6)   Backend                              28)  Password Generator
-    7)   Certificate Mapper                   29)  Password Policy
-    8)   Connection Handler                   30)  Password Storage Scheme
-    9)   Crypto Manager                       31)  Password Validator
-    10)  Debug Target                         32)  Plugin
-    11)  Entry Cache                          33)  Plugin Root
-    12)  Extended Operation Handler           34)  Replication Domain
-    13)  Extension                            35)  Replication Server
-    14)  External Changelog Domain            36)  Root DN
-    15)  Global Configuration                 37)  Root DSE Backend
-    16)  Group Implementation                 38)  SASL Mechanism Handler
-    17)  Identity Mapper                      39)  Synchronization Provider
-    18)  Key Manager Provider                 40)  Trust Manager Provider
-    19)  Local DB Index                       41)  Virtual Attribute
-    20)  Local DB VLV Index                   42)  Work Queue
-    21)  Log Publisher                        43)  Workflow
-    22)  Log Retention Policy                 44)  Workflow Element
+    1)   Access Control Handler               21)  Log Publisher
+    2)   Access Log Filtering Criteria        22)  Log Retention Policy
+    3)   Account Status Notification Handler  23)  Log Rotation Policy
+    4)   Administration Connector             24)  Matching Rule
+    5)   Alert Handler                        25)  Monitor Provider
+    6)   Attribute Syntax                     26)  Password Generator
+    7)   Backend                              27)  Password Policy
+    8)   Certificate Mapper                   28)  Password Storage Scheme
+    9)   Connection Handler                   29)  Password Validator
+    10)  Crypto Manager                       30)  Plugin
+    11)  Debug Target                         31)  Plugin Root
+    12)  Entry Cache                          32)  Replication Domain
+    13)  Extended Operation Handler           33)  Replication Server
+    14)  External Changelog Domain            34)  Root DN
+    15)  Global Configuration                 35)  Root DSE Backend
+    16)  Group Implementation                 36)  SASL Mechanism Handler
+    17)  Identity Mapper                      37)  Synchronization Provider
+    18)  Key Manager Provider                 38)  Trust Manager Provider
+    19)  Local DB Index                       39)  Virtual Attribute
+    20)  Local DB VLV Index                   40)  Work Queue
 
     q)   quit
 
