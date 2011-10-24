@@ -994,7 +994,7 @@
     <varlistentry>
      <term><option>-t | --type {type}</option></term>
      <listitem>
-      <para>The type of Plugin which should be created. The value for TYPE can be one of: attribute-cleanup | change-number-control | custom | entry-uuid | fractional-ldif-import | last-mod | ldap-attribute-description-list | network-group | password-policy-import | profiler | referential-integrity | samba-password | seven-bit-clean | unique-attribute</para>
+      <para>The type of Plugin which should be created. The value for TYPE can be one of: attribute-cleanup | change-number-control | custom | entry-uuid | fractional-ldif-import | last-mod | ldap-attribute-description-list | password-policy-import | profiler | referential-integrity | samba-password | seven-bit-clean | unique-attribute</para>
      </listitem>
     </varlistentry>
    </variablelist>
@@ -5435,28 +5435,26 @@
 
 What do you want to configure?
 
-    1)   Access Control Handler               23)  Log Rotation Policy
-    2)   Account Status Notification Handler  24)  Matching Rule
-    3)   Administration Connector             25)  Monitor Provider
-    4)   Alert Handler                        26)  Network Group
-    5)   Attribute Syntax                     27)  Network Group QOS Policy
-    6)   Backend                              28)  Password Generator
-    7)   Certificate Mapper                   29)  Password Policy
-    8)   Connection Handler                   30)  Password Storage Scheme
-    9)   Crypto Manager                       31)  Password Validator
-    10)  Debug Target                         32)  Plugin
-    11)  Entry Cache                          33)  Plugin Root
-    12)  Extended Operation Handler           34)  Replication Domain
-    13)  Extension                            35)  Replication Server
-    14)  External Changelog Domain            36)  Root DN
-    15)  Global Configuration                 37)  Root DSE Backend
-    16)  Group Implementation                 38)  SASL Mechanism Handler
-    17)  Identity Mapper                      39)  Synchronization Provider
-    18)  Key Manager Provider                 40)  Trust Manager Provider
-    19)  Local DB Index                       41)  Virtual Attribute
-    20)  Local DB VLV Index                   42)  Work Queue
-    21)  Log Publisher                        43)  Workflow
-    22)  Log Retention Policy                 44)  Workflow Element
+    1)   Access Control Handler               21)  Log Publisher
+    2)   Access Log Filtering Criteria        22)  Log Retention Policy
+    3)   Account Status Notification Handler  23)  Log Rotation Policy
+    4)   Administration Connector             24)  Matching Rule
+    5)   Alert Handler                        25)  Monitor Provider
+    6)   Attribute Syntax                     26)  Password Generator
+    7)   Backend                              27)  Password Policy
+    8)   Certificate Mapper                   28)  Password Storage Scheme
+    9)   Connection Handler                   29)  Password Validator
+    10)  Crypto Manager                       30)  Plugin
+    11)  Debug Target                         31)  Plugin Root
+    12)  Entry Cache                          32)  Replication Domain
+    13)  Extended Operation Handler           33)  Replication Server
+    14)  External Changelog Domain            34)  Root DN
+    15)  Global Configuration                 35)  Root DSE Backend
+    16)  Group Implementation                 36)  SASL Mechanism Handler
+    17)  Identity Mapper                      37)  Synchronization Provider
+    18)  Key Manager Provider                 38)  Trust Manager Provider
+    19)  Local DB Index                       39)  Virtual Attribute
+    20)  Local DB VLV Index                   40)  Work Queue
 
     q)   quit
 
