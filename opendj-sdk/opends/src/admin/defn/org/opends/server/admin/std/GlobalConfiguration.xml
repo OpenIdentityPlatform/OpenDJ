@@ -762,7 +762,7 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="workflow-configuration-mode">
+  <adm:property name="workflow-configuration-mode" hidden="true">
     <adm:synopsis>
       Specifies the workflow configuration mode (auto vs. manual).
     </adm:synopsis>
