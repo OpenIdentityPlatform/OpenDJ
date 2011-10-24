@@ -23,6 +23,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS.
  ! -->
 <html>
 <head>
@@ -57,7 +58,7 @@ with HOST1.<br>
 - check the control-panel for both servers: replication enabled, restart
 both servers<br>
 - export the data<br>
-$ ./export-ldif -b "o=testrepl" -h HOST -p LDAPPORT1 -D "cn=directory
+$ ./export-ldif -b "o=testrepl" -h HOST -p ADMINPORT1 -D "cn=directory
 manager" -w password -n userRoot -l ../ldif/testrepl.ldif<br>
       <br>
 check replication works:<br>
@@ -67,9 +68,7 @@ $ ./ldapmodify -p LDAPPORT1 -D "cn=Directory Manager" -w password
 --filename {yourpath}/modify-user.ldif (see below)<br>
       <br>
 - delete an entry on HOST1<br>
-$ ./ldapmodify -p LDAPPORT1 -D "cn=Directory Manager" -w password<br>
-dn: uid=user.6,ou=People,o=testrepl<br>
-changetype: delete<br>
+$ ./ldapdelete -p LDAPPORT1 -D "cn=Directory Manager" -w password "uid=user.6,ou=People,o=testrepl"
       <br>
 =&gt; verify those 2 changes have been applied on HOST2<br>
       <br>

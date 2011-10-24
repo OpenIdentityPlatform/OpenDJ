@@ -25,6 +25,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2011 ForgeRock AS.
  ! -->
   <meta content="text/html; charset=ISO-8859-1"
  http-equiv="content-type">
@@ -71,7 +72,7 @@ Click Finish<br>
       <br>
       <small><big>- verify SSL
 connection</big><br>
-./ldapsearch -Z -p SSLPORT -D "cn=directory manager" -w password -b
+./ldapsearch -X -Z -p SSLPORT -D "cn=directory manager" -w password -b
 "cn=config" -v "(objectclass=*)"</small> <br>
       <br>
 - run uninstall command to uninstall in GUI<br>
