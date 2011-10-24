@@ -1461,7 +1461,6 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
    * @return A mapping of managed object type argument values to their
    *         corresponding managed object definitions.
    */
-  @SuppressWarnings("unchecked")
   protected static <C extends ConfigurationClient, S extends Configuration>
   SortedMap<String, ManagedObjectDefinition<? extends C, ? extends S>>
       getSubTypes(AbstractManagedObjectDefinition<C, S> d) {
@@ -1482,7 +1481,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
     // Process its sub-definitions.
     for (AbstractManagedObjectDefinition<? extends C, ? extends S> c : d
         .getAllChildren()) {
-      if (d.hasOption(ManagedObjectOption.HIDDEN)) {
+      if (c.hasOption(ManagedObjectOption.HIDDEN)) {
         continue;
       }
 
