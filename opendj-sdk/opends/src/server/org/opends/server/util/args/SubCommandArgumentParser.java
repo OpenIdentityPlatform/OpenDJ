@@ -41,6 +41,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.SortedMap;
@@ -69,47 +70,47 @@ public class SubCommandArgumentParser extends ArgumentParser
 
   // The arguments that will be used to trigger the display of usage
   // information for groups of sub-commands.
-  private Map<Argument, Collection<SubCommand>> usageGroupArguments;
+  private final Map<Argument, Collection<SubCommand>> usageGroupArguments;
 
   // The set of unnamed trailing arguments that were provided for this parser.
   private ArrayList<String> trailingArguments;
 
   // Indicates whether subcommand and long argument names should be treated in a
   // case-sensitive manner.
-  private boolean longArgumentsCaseSensitive;
+  private final boolean longArgumentsCaseSensitive;
 
   // Indicates whether the usage information has been displayed.
   private boolean usageOrVersionDisplayed;
 
   // The set of global arguments defined for this parser, referenced by short
   // ID.
-  private HashMap<Character,Argument> globalShortIDMap;
+  private final HashMap<Character,Argument> globalShortIDMap;
 
   //  The set of global arguments defined for this parser, referenced by
   // argument name.
-  private HashMap<String,Argument> globalArgumentMap;
+  private final HashMap<String,Argument> globalArgumentMap;
 
   //  The set of global arguments defined for this parser, referenced by long
   // ID.
-  private HashMap<String,Argument> globalLongIDMap;
+  private final HashMap<String,Argument> globalLongIDMap;
 
   // The set of subcommands defined for this parser, referenced by subcommand
   // name.
-  private SortedMap<String,SubCommand> subCommands;
+  private final SortedMap<String,SubCommand> subCommands;
 
   // The total set of global arguments defined for this parser.
-  private LinkedList<Argument> globalArgumentList;
+  private final LinkedList<Argument> globalArgumentList;
 
   // The output stream to which usage information should be printed.
   private OutputStream usageOutputStream;
 
   // The fully-qualified name of the Java class that should be invoked to launch
   // the program with which this argument parser is associated.
-  private String mainClassName;
+  private final String mainClassName;
 
   // A human-readable description for the tool, which will be included when
   // displaying usage information.
-  private Message toolDescription;
+  private final Message toolDescription;
 
   // The raw set of command-line arguments that were provided.
   private String[] rawArguments;
@@ -171,6 +172,7 @@ public class SubCommandArgumentParser extends ArgumentParser
    *          to launch the program with which this argument parser is
    *          associated.
    */
+  @Override
   public String getMainClassName()
   {
     return mainClassName;
@@ -185,6 +187,7 @@ public class SubCommandArgumentParser extends ArgumentParser
    * @return  A human-readable description for this tool, or {@code null} if
    *          none is available.
    */
+  @Override
   public Message getToolDescription()
   {
     return toolDescription;
@@ -410,6 +413,7 @@ public class SubCommandArgumentParser extends ArgumentParser
    * @return  The raw set of arguments that were provided, or <CODE>null</CODE>
    *          if the argument list has not yet been parsed.
    */
+  @Override
   public String[] getRawArguments()
   {
     return rawArguments;
@@ -602,6 +606,7 @@ public class SubCommandArgumentParser extends ArgumentParser
    *          The output stream to which the usage information should
    *          be written.
    */
+  @Override
   public void setUsageArgument(Argument argument, OutputStream outputStream) {
     usageArgument = argument;
     usageOutputStream = outputStream;
@@ -650,6 +655,7 @@ public class SubCommandArgumentParser extends ArgumentParser
    * @throws  ArgumentException  If a problem was encountered while parsing the
    *                             provided arguments.
    */
+  @Override
   public void parseArguments(String[] rawArguments)
          throws ArgumentException
   {
@@ -675,6 +681,7 @@ public class SubCommandArgumentParser extends ArgumentParser
    *                             provided arguments or interacting with the
    *                             properties file.
    */
+  @Override
   public void parseArguments(String[] rawArguments, String propertiesFile,
                              boolean requirePropertiesFile)
          throws ArgumentException
@@ -719,6 +726,7 @@ public class SubCommandArgumentParser extends ArgumentParser
    * @throws  ArgumentException  If a problem was encountered while parsing the
    *                             provided arguments.
    */
+  @Override
   public void parseArguments(String[] rawArguments,
                              Properties argumentProperties)
          throws ArgumentException
@@ -1578,12 +1586,18 @@ public class SubCommandArgumentParser extends ArgumentParser
    * @return  A string containing usage information based on the defined
    *          arguments.
    */
+  @Override
   public String getUsage()
   {
     MessageBuilder buffer = new MessageBuilder();
 
     if (subCommand == null) {
-      if (usageGroupArguments.size() > 1) {
+      if (System.getProperty("org.forgerock.opendj.gendoc") != null) {
+        // Generate reference documentation for dsconfig subcommands
+        for (SubCommand s : subCommands.values()) {
+          buffer.append(toRefSect2(s));
+        }
+      } else if (usageGroupArguments.size() > 1) {
         // We have sub-command groups, so don't display any
         // sub-commands by default.
         getFullUsage(Collections.<SubCommand> emptySet(), true, buffer);
@@ -1629,6 +1643,7 @@ public class SubCommandArgumentParser extends ArgumentParser
    * @return The set of unnamed trailing arguments that were provided
    *         on the command line.
    */
+  @Override
   public ArrayList<String> getTrailingArguments()
   {
     return trailingArguments;
@@ -1644,6 +1659,7 @@ public class SubCommandArgumentParser extends ArgumentParser
    * @return  {@code true} if the usage information has been displayed, or
    *          {@code false} if not.
    */
+  @Override
   public boolean usageOrVersionDisplayed()
   {
     return usageOrVersionDisplayed;
@@ -1692,6 +1708,7 @@ public class SubCommandArgumentParser extends ArgumentParser
   /**
    * {@inheritDoc}
    */
+  @Override
   public void getUsage(OutputStream outputStream)
       throws IOException {
     outputStream.write(getUsage().getBytes());
@@ -1971,6 +1988,7 @@ public class SubCommandArgumentParser extends ArgumentParser
    * @return <CODE>true</CODE> if the usage argument was provided and
    * <CODE>false</CODE> otherwise.
    */
+  @Override
   public boolean isUsageArgumentPresent()
   {
     boolean isUsageArgumentPresent = false;
@@ -1987,6 +2005,7 @@ public class SubCommandArgumentParser extends ArgumentParser
    * @return <CODE>true</CODE> if the version argument was provided and
    * <CODE>false</CODE> otherwise.
    */
+  @Override
   public boolean isVersionArgumentPresent()
   {
     boolean isPresent;
@@ -1999,6 +2018,94 @@ public class SubCommandArgumentParser extends ArgumentParser
       isPresent = true;
     }
     return isPresent;
+  }
+
+  /**
+   * Generate reference documentation for dsconfig subcommands in DocBook 5 XML
+   * format. As the number of categories is large, the subcommand entries are
+   * sorted here by name for inclusion in a &lt;refsect1&gt; covering all
+   * dsconfig Subcommands as part of the &lt;refentry&gt; for dsconfig (in
+   * man-dsconfig.xml).
+   * <p>
+   * Although it would be possible to categorize subcommands in the same way as
+   * they are categorized in dsconfig interactive mode, this generator does not
+   * use the categories.
+   * <p>
+   * It would also be possible to generate the sort of information provided by
+   * the configuration reference, such that this reference would not stop at
+   * simply listing an option like --set {PROP:VAL}, but instead would also
+   * provide the list of PROPs and their possible VALs. A future improvement
+   * could no doubt merge the configuration reference with this content, though
+   * perhaps the problem calls for hypertext rather than the linear structure
+   * of a &lt;refentry&gt;.
+   * <p>
+   * Each individual subcommand results in a &lt;refsect2&gt; element similar
+   * to the following.
+   * <pre>
+    &lt;refsect2 xml:id=&quot;dsconfig-create-local-db-index&quot;&gt;
+     &lt;title&gt;dsconfig create-local-db-index&lt;/title&gt;
+     &lt;para&gt;Creates Local DB Indexes&lt;/para&gt;
+     &lt;variablelist&gt;
+      &lt;varlistentry&gt;
+       &lt;term&gt;&lt;option&gt;--backend-name {name}&lt;/option&gt;&lt;/term&gt;
+       &lt;listitem&gt;
+        &lt;para&gt;The name of the Local DB Backend&lt;/para&gt;
+       &lt;/listitem&gt;
+      &lt;/varlistentry&gt;
+      &lt;varlistentry&gt;
+       &lt;term&gt;&lt;option&gt;--index-name {OID}&lt;/option&gt;&lt;/term&gt;
+       &lt;listitem&gt;
+        &lt;para&gt;The name of the new Local DB Index which will also be used as the
+        value of the &quot;attribute&quot; property: Specifies the name of the attribute
+        for which the index is to be maintained.&lt;/para&gt;
+       &lt;/listitem&gt;
+      &lt;/varlistentry&gt;
+      &lt;varlistentry&gt;
+       &lt;term&gt;&lt;option&gt;--set {PROP:VALUE}&lt;/option&gt;&lt;/term&gt;
+       &lt;listitem&gt;
+        &lt;para&gt;Assigns a value to a property where PROP is the name of the
+        property and VALUE is the single value to be assigned. Specify the same
+        property multiple times in order to assign more than one value to
+        it&lt;/para&gt;
+       &lt;/listitem&gt;
+      &lt;/varlistentry&gt;
+     &lt;/variablelist&gt;
+     &lt;/refsect2&gt;
+   * @param sc The SubCommand containing reference information.
+   * @return Refsect2 representation of the subcommand.
+   */
+  private String toRefSect2(SubCommand sc)
+  {
+    String options = "";
+    if (!sc.getArguments().isEmpty())
+    {
+      options += " <variablelist>" + EOL;
+      for (Argument a : sc.getArguments())
+      {
+        options += "  <varlistentry>" + EOL;
+        options += "   <term><option>";
+        Character shortID = a.getShortIdentifier();
+        if (shortID != null) options += "-" + shortID.charValue();
+        String longID = a.getLongIdentifier();
+        if (shortID != null && longID != null) options += " | ";
+        if (longID != null) options += "--" + longID;
+        if (a.needsValue()) options += " " + a.getValuePlaceholder();
+        options += "</option></term>" + EOL;
+        options += "   <listitem>"  + EOL;
+        options += "    <para>";
+        options += a.getDescription().toString();
+        options += "</para>" + EOL;
+        options += "   </listitem>" + EOL;
+        options += "  </varlistentry>" + EOL;
+      }
+      options += " </variablelist>" + EOL;
+    }
+
+    return "<refsect2 xml:id=\"dsconfig-" + sc.getName() + "\">" + EOL +
+      " <title>dsconfig " + sc.getName() + "</title>" + EOL +
+      " <para>" + sc.getDescription().toString() + "</para>" + EOL +
+      options +
+      "</refsect2>" + EOL;
   }
 }
 
