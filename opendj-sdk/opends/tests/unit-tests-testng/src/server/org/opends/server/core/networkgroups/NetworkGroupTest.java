@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.core.networkgroups;
 
@@ -751,13 +752,15 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
   /**
    * Tests that routing mode changes cause the network group config
    * manager to be initialized, shutdown, and reinitialized correctly.
+   * <p>
+   * Disabled because NGs are not supported (issue OPENDJ-335).
    *
    * @see <a
    *      href="https://opends.dev.java.net/issues/show_bug.cgi?id=3775">Issue 3775</a>
    * @throws Exception
    *           If an unexpected error occurred.
    */
-  @Test
+  @Test(enabled=false)
   public void testIssue3775() throws Exception
   {
     // Switch to and from manual mode twice in order to ensure that the
@@ -820,12 +823,14 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
 
   /**
    * Tests the network group resource limits
+   * <p>
+   * Disabled because NGs are not supported (issue OPENDJ-335).
    *
    * @param networkGroupID   the ID of the network group to register
    * @param workflowBaseDN1  the base DN of the first workflow node to register
    *                         in the network group
    */
-  @Test (dataProvider = "DNSet_3", groups = "virtual")
+  @Test (dataProvider = "DNSet_3", groups = "virtual", enabled=false)
   public void testNetworkGroupResourceLimits(
       String networkGroupID,
       DN     workflowBaseDN,
@@ -1180,7 +1185,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
         "set-root-dse-backend-prop",
         "--reset", "subordinate-base-dn");
     searchPublicNamingContexts(connection, true, 2);
-    
+
     // Clean the test backends. There is no more naming context.
     TestCaseUtils.clearMemoryBackend(backendID1);
     TestCaseUtils.clearMemoryBackend(backendID2);
