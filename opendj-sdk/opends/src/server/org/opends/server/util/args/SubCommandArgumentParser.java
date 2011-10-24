@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.util.args;
 import org.opends.messages.Message;
@@ -41,7 +42,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.SortedMap;
@@ -2047,7 +2047,8 @@ public class SubCommandArgumentParser extends ArgumentParser
      &lt;para&gt;Creates Local DB Indexes&lt;/para&gt;
      &lt;variablelist&gt;
       &lt;varlistentry&gt;
-       &lt;term&gt;&lt;option&gt;--backend-name {name}&lt;/option&gt;&lt;/term&gt;
+       &lt;term&gt;&lt;option&gt;--backend-name {name}
+        &lt;/option&gt;&lt;/term&gt;
        &lt;listitem&gt;
         &lt;para&gt;The name of the Local DB Backend&lt;/para&gt;
        &lt;/listitem&gt;
@@ -2055,9 +2056,9 @@ public class SubCommandArgumentParser extends ArgumentParser
       &lt;varlistentry&gt;
        &lt;term&gt;&lt;option&gt;--index-name {OID}&lt;/option&gt;&lt;/term&gt;
        &lt;listitem&gt;
-        &lt;para&gt;The name of the new Local DB Index which will also be used as the
-        value of the &quot;attribute&quot; property: Specifies the name of the attribute
-        for which the index is to be maintained.&lt;/para&gt;
+        &lt;para&gt;The name of the new Local DB Index which will also be used
+        as the value of the &quot;attribute&quot; property: Specifies the name
+        of the attribute for which the index is to be maintained.&lt;/para&gt;
        &lt;/listitem&gt;
       &lt;/varlistentry&gt;
       &lt;varlistentry&gt;
@@ -2071,6 +2072,7 @@ public class SubCommandArgumentParser extends ArgumentParser
       &lt;/varlistentry&gt;
      &lt;/variablelist&gt;
      &lt;/refsect2&gt;
+   * </pre>
    * @param sc The SubCommand containing reference information.
    * @return Refsect2 representation of the subcommand.
    */
@@ -2108,4 +2110,3 @@ public class SubCommandArgumentParser extends ArgumentParser
       "</refsect2>" + EOL;
   }
 }
-
