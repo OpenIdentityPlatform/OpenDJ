@@ -375,7 +375,7 @@
        $ export OPENDS_JAVA_ARGS="-Dorg.forgerock.opendj.gendoc=true"
        $ /path/to/OpenDJ/bin/dsconfig -?
   -->
-    <refsect2 xml:id="dsconfig-create-access-log-filtering-criteria">
+  <refsect2 xml:id="dsconfig-create-access-log-filtering-criteria">
    <title>dsconfig create-access-log-filtering-criteria</title>
    <para>Creates Access Log Filtering Criteria</para>
    <variablelist>
@@ -623,30 +623,6 @@
      <term><option>-t | --type {type}</option></term>
      <listitem>
       <para>The type of Extended Operation Handler which should be created. The value for TYPE can be one of: cancel | custom | get-connection-id | get-symmetric-key | password-modify | password-policy-state | start-tls | who-am-i</para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
-  </refsect2>
-  <refsect2 xml:id="dsconfig-create-extension">
-   <title>dsconfig create-extension</title>
-   <para>Creates Extensions</para>
-   <variablelist>
-    <varlistentry>
-     <term><option>--extension-name {name}</option></term>
-     <listitem>
-      <para>The name of the new Extension</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--set {PROP:VALUE}</option></term>
-     <listitem>
-      <para>Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned. Specify the same property multiple times in order to assign more than one value to it</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-t | --type {type}</option></term>
-     <listitem>
-      <para>The type of Extension which should be created. The value for TYPE can be one of: custom</para>
      </listitem>
     </varlistentry>
    </variablelist>
@@ -899,54 +875,6 @@
      <term><option>-t | --type {type}</option></term>
      <listitem>
       <para>The type of Monitor Provider which should be created. The value for TYPE can be one of: client-connection | custom | entry-cache | memory-usage | stack-trace | system-info | version</para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
-  </refsect2>
-  <refsect2 xml:id="dsconfig-create-network-group">
-   <title>dsconfig create-network-group</title>
-   <para>Creates Network Groups</para>
-   <variablelist>
-    <varlistentry>
-     <term><option>--group-name {name}</option></term>
-     <listitem>
-      <para>The name of the new Network Group</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--set {PROP:VALUE}</option></term>
-     <listitem>
-      <para>Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned. Specify the same property multiple times in order to assign more than one value to it</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-t | --type {type}</option></term>
-     <listitem>
-      <para>The type of Network Group which should be created (Default: generic). The value for TYPE can be one of: generic</para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
-  </refsect2>
-  <refsect2 xml:id="dsconfig-create-network-group-qos-policy">
-   <title>dsconfig create-network-group-qos-policy</title>
-   <para>Creates QOS Policies</para>
-   <variablelist>
-    <varlistentry>
-     <term><option>--group-name {name}</option></term>
-     <listitem>
-      <para>The name of the Network Group</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--set {PROP:VALUE}</option></term>
-     <listitem>
-      <para>Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned. Specify the same property multiple times in order to assign more than one value to it</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-t | --type {type}</option></term>
-     <listitem>
-      <para>The type of QOS Policy which should be created. The value for TYPE can be one of: request-filtering | resource-limits</para>
      </listitem>
     </varlistentry>
    </variablelist>
@@ -1221,54 +1149,6 @@
     </varlistentry>
    </variablelist>
   </refsect2>
-  <refsect2 xml:id="dsconfig-create-workflow">
-   <title>dsconfig create-workflow</title>
-   <para>Creates Workflows</para>
-   <variablelist>
-    <varlistentry>
-     <term><option>--workflow-name {name}</option></term>
-     <listitem>
-      <para>The name of the new Workflow</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--set {PROP:VALUE}</option></term>
-     <listitem>
-      <para>Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned. Specify the same property multiple times in order to assign more than one value to it</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-t | --type {type}</option></term>
-     <listitem>
-      <para>The type of Workflow which should be created (Default: generic). The value for TYPE can be one of: generic</para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
-  </refsect2>
-  <refsect2 xml:id="dsconfig-create-workflow-element">
-   <title>dsconfig create-workflow-element</title>
-   <para>Creates Workflow Elements</para>
-   <variablelist>
-    <varlistentry>
-     <term><option>--element-name {name}</option></term>
-     <listitem>
-      <para>The name of the new Workflow Element</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--set {PROP:VALUE}</option></term>
-     <listitem>
-      <para>Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned. Specify the same property multiple times in order to assign more than one value to it</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-t | --type {type}</option></term>
-     <listitem>
-      <para>The type of Workflow Element which should be created (Default: generic). The value for TYPE can be one of: generic | local-backend</para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
-  </refsect2>
   <refsect2 xml:id="dsconfig-delete-access-log-filtering-criteria">
    <title>dsconfig delete-access-log-filtering-criteria</title>
    <para>Deletes Access Log Filtering Criteria</para>
@@ -1461,24 +1341,6 @@
     </varlistentry>
    </variablelist>
   </refsect2>
-  <refsect2 xml:id="dsconfig-delete-extension">
-   <title>dsconfig delete-extension</title>
-   <para>Deletes Extensions</para>
-   <variablelist>
-    <varlistentry>
-     <term><option>--extension-name {name}</option></term>
-     <listitem>
-      <para>The name of the Extension</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-f | --force</option></term>
-     <listitem>
-      <para>Ignore non-existent Extensions</para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
-  </refsect2>
   <refsect2 xml:id="dsconfig-delete-group-implementation">
    <title>dsconfig delete-group-implementation</title>
    <para>Deletes Group Implementations</para>
@@ -1667,48 +1529,6 @@
      <term><option>-f | --force</option></term>
      <listitem>
       <para>Ignore non-existent Monitor Providers</para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
-  </refsect2>
-  <refsect2 xml:id="dsconfig-delete-network-group">
-   <title>dsconfig delete-network-group</title>
-   <para>Deletes Network Groups</para>
-   <variablelist>
-    <varlistentry>
-     <term><option>--group-name {name}</option></term>
-     <listitem>
-      <para>The name of the Network Group</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-f | --force</option></term>
-     <listitem>
-      <para>Ignore non-existent Network Groups</para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
-  </refsect2>
-  <refsect2 xml:id="dsconfig-delete-network-group-qos-policy">
-   <title>dsconfig delete-network-group-qos-policy</title>
-   <para>Deletes QOS Policies</para>
-   <variablelist>
-    <varlistentry>
-     <term><option>--group-name {name}</option></term>
-     <listitem>
-      <para>The name of the Network Group</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--policy-type {name}</option></term>
-     <listitem>
-      <para>The name of the QOS Policy</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-f | --force</option></term>
-     <listitem>
-      <para>Ignore non-existent QOS Policies</para>
      </listitem>
     </varlistentry>
    </variablelist>
@@ -1913,42 +1733,6 @@
      <term><option>-f | --force</option></term>
      <listitem>
       <para>Ignore non-existent Virtual Attributes</para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
-  </refsect2>
-  <refsect2 xml:id="dsconfig-delete-workflow">
-   <title>dsconfig delete-workflow</title>
-   <para>Deletes Workflows</para>
-   <variablelist>
-    <varlistentry>
-     <term><option>--workflow-name {name}</option></term>
-     <listitem>
-      <para>The name of the Workflow</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-f | --force</option></term>
-     <listitem>
-      <para>Ignore non-existent Workflows</para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
-  </refsect2>
-  <refsect2 xml:id="dsconfig-delete-workflow-element">
-   <title>dsconfig delete-workflow-element</title>
-   <para>Deletes Workflow Elements</para>
-   <variablelist>
-    <varlistentry>
-     <term><option>--element-name {name}</option></term>
-     <listitem>
-      <para>The name of the Workflow Element</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-f | --force</option></term>
-     <listitem>
-      <para>Ignore non-existent Workflow Elements</para>
      </listitem>
     </varlistentry>
    </variablelist>
@@ -2415,42 +2199,6 @@
     </varlistentry>
    </variablelist>
   </refsect2>
-  <refsect2 xml:id="dsconfig-get-extension-prop">
-   <title>dsconfig get-extension-prop</title>
-   <para>Shows Extension properties</para>
-   <variablelist>
-    <varlistentry>
-     <term><option>--extension-name {name}</option></term>
-     <listitem>
-      <para>The name of the Extension</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--property {property}</option></term>
-     <listitem>
-      <para>The name of a property to be displayed</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-E | --record</option></term>
-     <listitem>
-      <para>Modifies the display output to show one property value per line</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-z | --unit-size {unit}</option></term>
-     <listitem>
-      <para>Display size data using the specified unit. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-m | --unit-time {unit}</option></term>
-     <listitem>
-      <para>Display time data using the specified unit. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)</para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
-  </refsect2>
   <refsect2 xml:id="dsconfig-get-external-changelog-domain-prop">
    <title>dsconfig get-external-changelog-domain-prop</title>
    <para>Shows External Changelog Domain properties</para>
@@ -2867,84 +2615,6 @@
      <term><option>--provider-name {name}</option></term>
      <listitem>
       <para>The name of the Monitor Provider</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--property {property}</option></term>
-     <listitem>
-      <para>The name of a property to be displayed</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-E | --record</option></term>
-     <listitem>
-      <para>Modifies the display output to show one property value per line</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-z | --unit-size {unit}</option></term>
-     <listitem>
-      <para>Display size data using the specified unit. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-m | --unit-time {unit}</option></term>
-     <listitem>
-      <para>Display time data using the specified unit. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)</para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
-  </refsect2>
-  <refsect2 xml:id="dsconfig-get-network-group-prop">
-   <title>dsconfig get-network-group-prop</title>
-   <para>Shows Network Group properties</para>
-   <variablelist>
-    <varlistentry>
-     <term><option>--group-name {name}</option></term>
-     <listitem>
-      <para>The name of the Network Group</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--property {property}</option></term>
-     <listitem>
-      <para>The name of a property to be displayed</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-E | --record</option></term>
-     <listitem>
-      <para>Modifies the display output to show one property value per line</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-z | --unit-size {unit}</option></term>
-     <listitem>
-      <para>Display size data using the specified unit. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-m | --unit-time {unit}</option></term>
-     <listitem>
-      <para>Display time data using the specified unit. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)</para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
-  </refsect2>
-  <refsect2 xml:id="dsconfig-get-network-group-qos-policy-prop">
-   <title>dsconfig get-network-group-qos-policy-prop</title>
-   <para>Shows QOS Policy properties</para>
-   <variablelist>
-    <varlistentry>
-     <term><option>--group-name {name}</option></term>
-     <listitem>
-      <para>The name of the Network Group</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--policy-type {name}</option></term>
-     <listitem>
-      <para>The name of the QOS Policy</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -3495,78 +3165,6 @@
     </varlistentry>
    </variablelist>
   </refsect2>
-  <refsect2 xml:id="dsconfig-get-workflow-element-prop">
-   <title>dsconfig get-workflow-element-prop</title>
-   <para>Shows Workflow Element properties</para>
-   <variablelist>
-    <varlistentry>
-     <term><option>--element-name {name}</option></term>
-     <listitem>
-      <para>The name of the Workflow Element</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--property {property}</option></term>
-     <listitem>
-      <para>The name of a property to be displayed</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-E | --record</option></term>
-     <listitem>
-      <para>Modifies the display output to show one property value per line</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-z | --unit-size {unit}</option></term>
-     <listitem>
-      <para>Display size data using the specified unit. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-m | --unit-time {unit}</option></term>
-     <listitem>
-      <para>Display time data using the specified unit. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)</para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
-  </refsect2>
-  <refsect2 xml:id="dsconfig-get-workflow-prop">
-   <title>dsconfig get-workflow-prop</title>
-   <para>Shows Workflow properties</para>
-   <variablelist>
-    <varlistentry>
-     <term><option>--workflow-name {name}</option></term>
-     <listitem>
-      <para>The name of the Workflow</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--property {property}</option></term>
-     <listitem>
-      <para>The name of a property to be displayed</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-E | --record</option></term>
-     <listitem>
-      <para>Modifies the display output to show one property value per line</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-z | --unit-size {unit}</option></term>
-     <listitem>
-      <para>Display size data using the specified unit. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-m | --unit-time {unit}</option></term>
-     <listitem>
-      <para>Display time data using the specified unit. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)</para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
-  </refsect2>
   <refsect2 xml:id="dsconfig-list-access-log-filtering-criteria">
    <title>dsconfig list-access-log-filtering-criteria</title>
    <para>Lists existing Access Log Filtering Criteria</para>
@@ -3819,30 +3417,6 @@
     </varlistentry>
    </variablelist>
   </refsect2>
-  <refsect2 xml:id="dsconfig-list-extensions">
-   <title>dsconfig list-extensions</title>
-   <para>Lists existing Extensions</para>
-   <variablelist>
-    <varlistentry>
-     <term><option>--property {property}</option></term>
-     <listitem>
-      <para>The name of a property to be displayed</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-z | --unit-size {unit}</option></term>
-     <listitem>
-      <para>Display size data using the specified unit. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-m | --unit-time {unit}</option></term>
-     <listitem>
-      <para>Display time data using the specified unit. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)</para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
-  </refsect2>
   <refsect2 xml:id="dsconfig-list-group-implementations">
    <title>dsconfig list-group-implementations</title>
    <para>Lists existing Group Implementations</para>
@@ -4074,60 +3648,6 @@
   <refsect2 xml:id="dsconfig-list-monitor-providers">
    <title>dsconfig list-monitor-providers</title>
    <para>Lists existing Monitor Providers</para>
-   <variablelist>
-    <varlistentry>
-     <term><option>--property {property}</option></term>
-     <listitem>
-      <para>The name of a property to be displayed</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-z | --unit-size {unit}</option></term>
-     <listitem>
-      <para>Display size data using the specified unit. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-m | --unit-time {unit}</option></term>
-     <listitem>
-      <para>Display time data using the specified unit. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)</para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
-  </refsect2>
-  <refsect2 xml:id="dsconfig-list-network-group-qos-policies">
-   <title>dsconfig list-network-group-qos-policies</title>
-   <para>Lists existing Network Group QOS Policies</para>
-   <variablelist>
-    <varlistentry>
-     <term><option>--group-name {name}</option></term>
-     <listitem>
-      <para>The name of the Network Group</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--property {property}</option></term>
-     <listitem>
-      <para>The name of a property to be displayed</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-z | --unit-size {unit}</option></term>
-     <listitem>
-      <para>Display size data using the specified unit. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-m | --unit-time {unit}</option></term>
-     <listitem>
-      <para>Display time data using the specified unit. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)</para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
-  </refsect2>
-  <refsect2 xml:id="dsconfig-list-network-groups">
-   <title>dsconfig list-network-groups</title>
-   <para>Lists existing Network Groups</para>
    <variablelist>
     <varlistentry>
      <term><option>--property {property}</option></term>
@@ -4434,54 +3954,6 @@
   <refsect2 xml:id="dsconfig-list-virtual-attributes">
    <title>dsconfig list-virtual-attributes</title>
    <para>Lists existing Virtual Attributes</para>
-   <variablelist>
-    <varlistentry>
-     <term><option>--property {property}</option></term>
-     <listitem>
-      <para>The name of a property to be displayed</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-z | --unit-size {unit}</option></term>
-     <listitem>
-      <para>Display size data using the specified unit. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-m | --unit-time {unit}</option></term>
-     <listitem>
-      <para>Display time data using the specified unit. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)</para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
-  </refsect2>
-  <refsect2 xml:id="dsconfig-list-workflow-elements">
-   <title>dsconfig list-workflow-elements</title>
-   <para>Lists existing Workflow Elements</para>
-   <variablelist>
-    <varlistentry>
-     <term><option>--property {property}</option></term>
-     <listitem>
-      <para>The name of a property to be displayed</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-z | --unit-size {unit}</option></term>
-     <listitem>
-      <para>Display size data using the specified unit. The value for UNIT can be one of b, kb, mb, gb, or tb (bytes, kilobytes, megabytes, gigabytes, or terabytes)</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>-m | --unit-time {unit}</option></term>
-     <listitem>
-      <para>Display time data using the specified unit. The value for UNIT can be one of ms, s, m, h, d, or w (milliseconds, seconds, minutes, hours, days, or weeks)</para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
-  </refsect2>
-  <refsect2 xml:id="dsconfig-list-workflows">
-   <title>dsconfig list-workflows</title>
-   <para>Lists existing Workflows</para>
    <variablelist>
     <varlistentry>
      <term><option>--property {property}</option></term>
@@ -4965,42 +4437,6 @@
     </varlistentry>
    </variablelist>
   </refsect2>
-  <refsect2 xml:id="dsconfig-set-extension-prop">
-   <title>dsconfig set-extension-prop</title>
-   <para>Modifies Extension properties</para>
-   <variablelist>
-    <varlistentry>
-     <term><option>--extension-name {name}</option></term>
-     <listitem>
-      <para>The name of the Extension</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--set {PROP:VALUE}</option></term>
-     <listitem>
-      <para>Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned. Specify the same property multiple times in order to assign more than one value to it</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--reset {property}</option></term>
-     <listitem>
-      <para>Resets a property back to its default values where PROP is the name of the property to be reset</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--add {PROP:VALUE}</option></term>
-     <listitem>
-      <para>Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--remove {PROP:VALUE}</option></term>
-     <listitem>
-      <para>Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed</para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
-  </refsect2>
   <refsect2 xml:id="dsconfig-set-external-changelog-domain-prop">
    <title>dsconfig set-external-changelog-domain-prop</title>
    <para>Modifies External Changelog Domain properties</para>
@@ -5417,84 +4853,6 @@
      <term><option>--provider-name {name}</option></term>
      <listitem>
       <para>The name of the Monitor Provider</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--set {PROP:VALUE}</option></term>
-     <listitem>
-      <para>Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned. Specify the same property multiple times in order to assign more than one value to it</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--reset {property}</option></term>
-     <listitem>
-      <para>Resets a property back to its default values where PROP is the name of the property to be reset</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--add {PROP:VALUE}</option></term>
-     <listitem>
-      <para>Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--remove {PROP:VALUE}</option></term>
-     <listitem>
-      <para>Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed</para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
-  </refsect2>
-  <refsect2 xml:id="dsconfig-set-network-group-prop">
-   <title>dsconfig set-network-group-prop</title>
-   <para>Modifies Network Group properties</para>
-   <variablelist>
-    <varlistentry>
-     <term><option>--group-name {name}</option></term>
-     <listitem>
-      <para>The name of the Network Group</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--set {PROP:VALUE}</option></term>
-     <listitem>
-      <para>Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned. Specify the same property multiple times in order to assign more than one value to it</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--reset {property}</option></term>
-     <listitem>
-      <para>Resets a property back to its default values where PROP is the name of the property to be reset</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--add {PROP:VALUE}</option></term>
-     <listitem>
-      <para>Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--remove {PROP:VALUE}</option></term>
-     <listitem>
-      <para>Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed</para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
-  </refsect2>
-  <refsect2 xml:id="dsconfig-set-network-group-qos-policy-prop">
-   <title>dsconfig set-network-group-qos-policy-prop</title>
-   <para>Modifies QOS Policy properties</para>
-   <variablelist>
-    <varlistentry>
-     <term><option>--group-name {name}</option></term>
-     <listitem>
-      <para>The name of the Network Group</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--policy-type {name}</option></term>
-     <listitem>
-      <para>The name of the QOS Policy</para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -6019,78 +5377,6 @@
    <title>dsconfig set-work-queue-prop</title>
    <para>Modifies Work Queue properties</para>
    <variablelist>
-    <varlistentry>
-     <term><option>--set {PROP:VALUE}</option></term>
-     <listitem>
-      <para>Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned. Specify the same property multiple times in order to assign more than one value to it</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--reset {property}</option></term>
-     <listitem>
-      <para>Resets a property back to its default values where PROP is the name of the property to be reset</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--add {PROP:VALUE}</option></term>
-     <listitem>
-      <para>Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--remove {PROP:VALUE}</option></term>
-     <listitem>
-      <para>Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed</para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
-  </refsect2>
-  <refsect2 xml:id="dsconfig-set-workflow-element-prop">
-   <title>dsconfig set-workflow-element-prop</title>
-   <para>Modifies Workflow Element properties</para>
-   <variablelist>
-    <varlistentry>
-     <term><option>--element-name {name}</option></term>
-     <listitem>
-      <para>The name of the Workflow Element</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--set {PROP:VALUE}</option></term>
-     <listitem>
-      <para>Assigns a value to a property where PROP is the name of the property and VALUE is the single value to be assigned. Specify the same property multiple times in order to assign more than one value to it</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--reset {property}</option></term>
-     <listitem>
-      <para>Resets a property back to its default values where PROP is the name of the property to be reset</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--add {PROP:VALUE}</option></term>
-     <listitem>
-      <para>Adds a single value to a property where PROP is the name of the property and VALUE is the single value to be added</para>
-     </listitem>
-    </varlistentry>
-    <varlistentry>
-     <term><option>--remove {PROP:VALUE}</option></term>
-     <listitem>
-      <para>Removes a single value from a property where PROP is the name of the property and VALUE is the single value to be removed</para>
-     </listitem>
-    </varlistentry>
-   </variablelist>
-  </refsect2>
-  <refsect2 xml:id="dsconfig-set-workflow-prop">
-   <title>dsconfig set-workflow-prop</title>
-   <para>Modifies Workflow properties</para>
-   <variablelist>
-    <varlistentry>
-     <term><option>--workflow-name {name}</option></term>
-     <listitem>
-      <para>The name of the Workflow</para>
-     </listitem>
-    </varlistentry>
     <varlistentry>
      <term><option>--set {PROP:VALUE}</option></term>
      <listitem>
