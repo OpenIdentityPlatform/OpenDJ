@@ -141,7 +141,6 @@ public class UniqueAttributePlugin
   {
     configuration.addUniqueAttributeChangeListener(this);
     currentConfiguration = configuration;
-    DirectoryServer.registerAlertGenerator(this);
 
     for (PluginType t : pluginTypes)
     {
@@ -189,6 +188,7 @@ public class UniqueAttributePlugin
     }
 
     uniqueAttrValue2Dn  = new ConcurrentHashMap<AttributeValue,DN>();
+    DirectoryServer.registerAlertGenerator(this);
   }
 
 
