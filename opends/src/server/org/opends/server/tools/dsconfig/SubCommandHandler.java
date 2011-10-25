@@ -1486,6 +1486,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
       }
 
       if (c instanceof ManagedObjectDefinition) {
+        @SuppressWarnings("unchecked")
         ManagedObjectDefinition<? extends C, ? extends S> mod =
           (ManagedObjectDefinition<? extends C, ? extends S>) c;
         map.put(getShortTypeName(d, mod), mod);
