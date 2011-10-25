@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.plugins;
 
@@ -330,10 +331,6 @@ public class ReferentialIntegrityPlugin
     if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
     {
       cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
-    }
-    else
-    {
-      baseDNs.addAll(cfgBaseDNs);
     }
 
     //Iterate through attributes and check that each has a valid syntax
