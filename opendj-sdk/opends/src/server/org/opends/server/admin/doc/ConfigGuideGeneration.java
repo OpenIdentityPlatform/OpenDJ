@@ -30,6 +30,7 @@ package org.opends.server.admin.doc;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.TreeMap;
@@ -1367,6 +1368,7 @@ public class ConfigGuideGeneration {
 
   }
 
+  private final String Now = new Date().toString();
   private String getHtmlHeader(String pageTitle) {
     return ("<html>\n" +
       "<head>\n" +
@@ -1376,6 +1378,7 @@ public class ConfigGuideGeneration {
       "<link rel=\"stylesheet\" type=\"text/css\"\n" +
       "href=\"" + CSS_FILE + "\">\n" +
       "<link rel=\"shortcut icon\" href=\"" + FAVICON + "\">\n" +
+      "<meta name=\"date generated\" content=\"" + Now + "\">\n" +
       "</head>\n");
   }
 
