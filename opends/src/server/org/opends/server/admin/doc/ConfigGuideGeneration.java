@@ -41,32 +41,7 @@ import org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.AdministratorAction.Type;
 import org.opends.server.admin.std.meta.RootCfgDefn;
-import org.opends.server.admin.AggregationPropertyDefinition;
-import org.opends.server.admin.AliasDefaultBehaviorProvider;
-import org.opends.server.admin.AttributeTypePropertyDefinition;
-import org.opends.server.admin.BooleanPropertyDefinition;
-import org.opends.server.admin.ClassLoaderProvider;
-import org.opends.server.admin.ClassPropertyDefinition;
-import org.opends.server.admin.DNPropertyDefinition;
-import org.opends.server.admin.DefaultBehaviorProvider;
-import org.opends.server.admin.DefinedDefaultBehaviorProvider;
-import org.opends.server.admin.DurationPropertyDefinition;
-import org.opends.server.admin.EnumPropertyDefinition;
-import org.opends.server.admin.IPAddressMaskPropertyDefinition;
-import org.opends.server.admin.IPAddressPropertyDefinition;
-import org.opends.server.admin.IntegerPropertyDefinition;
-import org.opends.server.admin.LDAPProfile;
-import org.opends.server.admin.PropertyDefinition;
-import org.opends.server.admin.PropertyDefinitionVisitor;
-import org.opends.server.admin.PropertyOption;
-import org.opends.server.admin.RelationDefinition;
-import org.opends.server.admin.RelationOption;
-import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
-import org.opends.server.admin.SizePropertyDefinition;
-import org.opends.server.admin.StringPropertyDefinition;
-import org.opends.server.admin.Tag;
-import org.opends.server.admin.TopCfgDefn;
-import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
+import org.opends.server.admin.*;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.DynamicConstants;
@@ -216,6 +191,10 @@ public class ConfigGuideGeneration {
     for (AbstractManagedObjectDefinition topObject : topObjects) {
       if (topObject.getName().equals("")) {
         // root
+        continue;
+      }
+      if (topObject.hasOption(ManagedObjectOption.HIDDEN))
+      {
         continue;
       }
       topMoList.put(topObject.getName(), topObject);
@@ -378,6 +357,10 @@ public class ConfigGuideGeneration {
           childMo.getChildren().iterator(); it.hasNext();) {
 
           AbstractManagedObjectDefinition mo = it.next();
+          if (mo.hasOption(ManagedObjectOption.HIDDEN))
+          {
+            continue;
+          }
           genMORelationSubTree(makeRelTreeMap(mo.getAllRelationDefinitions()));
         }
       }
@@ -1281,6 +1264,10 @@ public class ConfigGuideGeneration {
     TreeMap<String, AbstractManagedObjectDefinition> map =
       new TreeMap<String, AbstractManagedObjectDefinition>();
     for (AbstractManagedObjectDefinition mo : coll) {
+      if (mo.hasOption(ManagedObjectOption.HIDDEN))
+      {
+        continue;
+      }
       map.put(mo.getName(), mo);
     }
     return map;
