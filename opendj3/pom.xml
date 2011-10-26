@@ -546,6 +546,12 @@ $(".flat").live("dblclick", function() {
                     <include>**/*.rtf</include>
                   </includes>
                 </resource>
+                <resource>
+                  <directory>${basedir}/src/main/resources/docs-redirect</directory>
+                  <includes>
+                    <include>**/index.html</include>
+                  </includes>
+                </resource>
               </resources>
             </configuration>
           </execution>
