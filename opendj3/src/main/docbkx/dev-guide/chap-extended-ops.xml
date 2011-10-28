@@ -33,38 +33,38 @@
 
  <para>This chapter demonstrates how to use LDAP extended operations.</para>
 
- <section>
+ <section xml:id="about-ldap-extended-operations">
   <title>About LDAP Extended Operations</title>
   <para>Extended operations allow additional operations to be defined for
   services not already available in the protocol</para>
  </section>
  
- <section>
+ <section xml:id="get-supported-extended-operations">
   <title>Determining Supported Extended Operations</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="use-cancel-extended-operation">
   <title>Cancel Extended Operation</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="use-password-modify-extended-operation">
   <title>Password Modify Extended Operation</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="use-starttls-extended-operation">
   <title>Start TLS Extended Operation</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="use-who-am-i-extended-operation">
   <title>Who am I? Extended Operation</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="custom-extended-operation">
   <title>Custom Extended Operations</title>
   <para>TODO</para>
  </section>

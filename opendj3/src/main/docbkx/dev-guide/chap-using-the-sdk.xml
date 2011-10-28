@@ -33,23 +33,18 @@
 
  <para>TODO</para>
 
- <section>
+ <section xml:id="sync-vs-async">
   <title>Synchronous &amp; Asynchronous Operations</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="error-handling">
   <title>Managing Errors</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="referral-handling">
   <title>Managing Referrals</title>
-  <para>TODO</para>
- </section>
- 
- <section>
-  <title>Managing Failover</title>
   <para>TODO</para>
  </section>
 </chapter>

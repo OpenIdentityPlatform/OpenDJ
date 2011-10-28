@@ -33,12 +33,12 @@
 
  <para>TODO</para>
 
- <section>
+ <section xml:id="async-operations">
   <title>Asynchronous Operations</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="connection-pooling">
   <title>Connection Pooling</title>
   <para>TODO</para>
  </section>

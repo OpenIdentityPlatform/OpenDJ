@@ -37,42 +37,42 @@
  <link xlink:href="http://mcraig.org/ldif/Example.ldif">available
  online</link>.</para>
 
- <section>
+ <section xml:id="about-searching">
   <title>Search Objects &amp; Methods</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="about-filters">
   <title>Working With Search Filters</title>
   <para>TODO</para>
  </section>
 
- <section>
+ <section xml:id="send-search-request">
   <title>Sending a Search Request</title>
   <para>TODO</para>
  </section>
 
- <section>
+ <section xml:id="get-search-results">
   <title>Getting Search Results</title>
   <para>TODO</para>
  </section>
 
- <section>
+ <section xml:id="abandon-search">
   <title>Abandoning an Incomplete Search</title>
   <para>TODO</para>
  </section>
 
- <section>
+ <section xml:id="handle-ldap-urls">
   <title>Working With LDAP URLs</title>
   <para>TODO</para>
  </section>
 
- <section>
+ <section xml:id="sort-search-results">
   <title>Sorting Search Results</title>
   <para>TODO</para>
  </section>
 
- <section>
+ <section xml:id="about-comparisons">
   <title>Compare Objects &amp; Methods</title>
   <para>TODO</para>
  </section>

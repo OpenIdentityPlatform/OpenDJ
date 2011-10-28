@@ -47,7 +47,7 @@
  entry belongs to, but also by her user identifier, her email address, or
  her telephone number, for example.</para>
 
- <section>
+ <section xml:id="ldap-directory-history">
   <title>How Directories &amp; LDAP Evolved</title>
   
   <para>Phone companies have been managing directories for many decades. The
@@ -91,7 +91,7 @@
   technology.</para>
  </section>
 
- <section>
+ <section xml:id="directory-data">
   <title>Data In LDAP Directories</title>
   <para>LDAP directory data is organized into entries, similar to the entries
   for words in the dictionary, or for subscriber names in the phone book.
@@ -105,14 +105,14 @@ facsimileTelephoneNumber: +1 408 555 1992
 gidNumber: 1000
 givenName: Barbara
 homeDirectory: /home/bjensen
-l: Cupertino 
+l: Cupertino
 mail: bjensen@example.com
 objectClass: inetOrgPerson
 objectClass: organizationalPerson
 objectClass: person
 objectClass: posixAccount
 objectClass: top
-ou: People 
+ou: People
 ou: Product Development
 roomNumber: 0209
 sn: Jensen
@@ -152,11 +152,14 @@ uidNumber: 1076
   reflect the hierarchy of directory entries.</para>
   
   <mediaobject>
+   <alt>Directory data hierarchy as seen in OpenDJ Control Panel.</alt>
    <imageobject>
     <imagedata fileref="images/data-organization.png" format="PNG" />
    </imageobject>
-   <caption><para>Hierarchy of directory data shown in the left pane of
-   the Manage Entries browser</para></caption>
+   <textobject>
+    <para>You can see the hierarchy of directory data in the left pane of
+    the Manage Entries browser.</para>
+   </textobject>
   </mediaobject>
   
   <para>Barbara Jensen's entry is located under an entry with DN
@@ -177,7 +180,7 @@ uidNumber: 1076
   root entries it serves.</para></footnote></para>
  </section>
  
- <section>
+ <section xml:id="ldap-client-server-communication">
   <title>LDAP Client &amp; Server Communication</title>
   <para>You may be used to web service client server communication, where
   each time the web client has something to request of the web server, a
@@ -187,13 +190,16 @@ uidNumber: 1076
   requests, and finally disconnects when done.</para>
 
   <mediaobject>
+   <alt>Schematic of LDAP client-server session</alt>
    <imageobject>
     <imagedata fileref="images/ldap-lifecycle.png" format="PNG" />
    </imageobject>
-   <caption><para>Schematic of LDAP client-server session</para></caption>
+   <textobject>
+    <para>An LDAP client binds, performs operations, and then unbinds.</para>
+   </textobject>
   </mediaobject>
   
-  <itemizedlist>
+  <itemizedlist xml:id="standard-ldap-operations">
    <para>The standard operations are as follows.</para>
    <listitem>
     <para>Bind (authenticate). The first operation in an LDAP session involves
@@ -259,7 +265,7 @@ uidNumber: 1076
   </itemizedlist>
  </section>
  
- <section>
+ <section xml:id="standard-ldapv3-extensions">
   <title>Standard LDAPv3 &amp; Extensions</title>
   <para>LDAP has standardized two mechanisms for extending the kinds of
   operations that directory servers can perform. One mechanism involves using
@@ -271,7 +277,7 @@ uidNumber: 1076
   Server Side Sort Request Control modifies a search to request that the
   directory server return entries to the client in sorted order. The Subtree
   Delete Request Control modifies a delete to request that the server
-  also remove child entries of the entry targetted for deletion.</para>
+  also remove child entries of the entry targeted for deletion.</para>
   
   <para>LDAP extended operations are additional LDAP operations not included
   in the original standard list. For example, the Cancel Extended Operation

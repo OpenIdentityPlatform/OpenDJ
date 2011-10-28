@@ -34,92 +34,92 @@
  <para>Follow the advice in this chapter to write effective, maintainable,
  high performance directory client applications.</para>
 
- <section>
+ <section xml:id="specify-ldapv3">
   <title>Specify LDAPv3</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="authenticate-correctly">
   <title>Authenticate Correctly</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="limit-connection-overhead">
   <title>Limit Connection Overhead</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="handle-inactivity-timeouts">
   <title>Handle Potential Inactivity Timeouts</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="retrieve-entries-intelligently">
   <title>Retrieve Entries Intelligently</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="write-simple-conforming-filters">
   <title>Write Simple, Conforming LDAP Filters</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="make-modifications-specific">
   <title>Make Modifications Specific</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="trust-result-codes">
   <title>Trust Result Codes</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="limit-dealings-with-groups">
   <title>Limit Dealings With Groups</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="read-the-dse">
   <title>Read the DSE</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="limit-resource-use">
   <title>Use Resource-intensive Features Sparingly</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="avoid-hard-coding">
   <title>Avoid Hard-coding Certain Information</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="reuse-schemas">
   <title>Reuse Schemas Where Possible</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="handle-referrals">
   <title>Handle Referrals</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="directory-not-relational-db">
   <title>Treat a Directory as a Directory</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="check-result-codes">
   <title>Troubleshooting: Check Result Codes</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="check-log-files">
   <title>Troubleshooting: Check Server Log Files</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="inspect-network-packets">
   <title>Troubleshooting: Inspect Network Packets</title>
   <para>TODO</para>
  </section>
