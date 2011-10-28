@@ -33,27 +33,27 @@
 
  <para>TODO</para>
 
- <section>
+ <section xml:id="about-writes">
   <title>Objects &amp; Methods For Updating Directory Data</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="adding-entries">
   <title>Adding Directory Entries</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="modifying-attr-values">
    <title>Modifying Directory Entry Attribute Values</title>
    <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="renaming-entries">
    <title>Renaming Directory Entries</title>
    <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="deleting-entries">
    <title>Deleting Directory Entries</title>
    <para>TODO</para>
  </section>

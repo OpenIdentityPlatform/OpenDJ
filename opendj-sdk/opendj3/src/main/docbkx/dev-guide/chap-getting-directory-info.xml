@@ -36,17 +36,17 @@
  entries and attributes can be stored in a directory, over protocol. OpenDJ
  SDK allows you to look up that information in your client application.</para>
 
- <section>
+ <section xml:id="read-root-dse">
   <title>Reading Root DSEs</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="check-ldapv3-support">
   <title>Checking For LDAPv3 Support</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="get-schema-information">
   <title>Getting Schema Information</title>
   <para>TODO</para>
  </section>

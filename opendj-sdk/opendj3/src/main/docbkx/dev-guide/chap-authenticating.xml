@@ -35,7 +35,7 @@
  operation to perform is a bind operation. The bind operation authenticates
  the client to the directory.</para>
 
- <section>
+ <section xml:id="simple-auth">
   <title>Simple Authentication</title>
   
   <para>You perform simple authentication by binding with the distinguished
@@ -98,13 +98,13 @@ finally
   than an administrator.</para>
  </section>
  
- <section>
+ <section xml:id="simple-auth-with-starttls-or-ssl">
   <title>Start TLS and SSL Authentication</title>
   
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="sasl-auth">
   <title>SASL Authentication</title>
   
   <para>TODO</para>

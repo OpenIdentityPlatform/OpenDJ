@@ -33,7 +33,7 @@
 
  <para>This chapter demonstrates how to use LDAP controls.</para>
 
- <section>
+ <section xml:id="about-ldap-controls">
   <title>About LDAP Controls</title>
   <para>Controls provide a mechanism whereby the semantics and arguments of
   existing LDAP operations may be extended. One or more controls may be
@@ -43,107 +43,107 @@
   <emphasis>response controls</emphasis>.</para>
  </section>
  
- <section>
+ <section xml:id="get-supported-controls">
   <title>Determining Supported Controls</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="use-assertion-request-control">
   <title>Assertion Request Control</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="use-authorization-identity-control">
   <title>Authorization Identity Controls</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="use-entry-change-notification-control">
   <title>Entry Change Notification Response Controls</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="use-get-effective-rights-control">
   <title>Get Effective Rights Request Control</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="use-manage-dsait-control-control">
   <title>Manage DSAIT Request Control</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="use-matched-values-request-control">
   <title>Matched Values Request Control</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="use-password-expired-control">
   <title>Password Expired Response Control</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="use-password-expiring-control">
   <title>Password Expiring Response Control</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="use-password-policy-controls">
   <title>Password Policy Controls</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="use-permissive-modify-request-control">
   <title>Permissive Modify Request Control</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="use-persistent-search-request-control">
   <title>Persistent Search Request Control</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="use-post-read-control">
   <title>Post-Read Controls</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="use-pre-read-control">
   <title>Pre-Read Controls</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="use-proxy-authz-control">
   <title>Proxied Authorization Request Controls</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="use-server-side-sort-control">
   <title>Server-Side Sort Controls</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="use-simple-paged-results-control">
   <title>Simple Paged Results Control</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="use-subentry-request-control">
   <title>Sub-entries Request Control</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="use-subtree-delete-control">
   <title>Subtree Delete Request Control</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="use-vlv-control">
   <title>Virtual List View Controls</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="custom-control">
   <title>Custom Controls</title>
   <para>TODO</para>
  </section>

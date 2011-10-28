@@ -34,7 +34,7 @@
  <para>OpenDJ SDK provides capabilities for working with LDAP Data Interchange
  Format content. This chapter demonstrates how to use those capabilities.</para>
 
- <section>
+ <section xml:id="about-ldif">
   <title>About LDIF</title>
   <para>LDAP Data Interchange Format provides a mechanism for representing
   directory data in text format. LDIF data is typically used to initialize
@@ -43,12 +43,12 @@
   backup format.</para>
  </section>
  
- <section>
+ <section xml:id="writing-ldif">
   <title>Writing LDIF</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="reading-ldif">
   <title>Reading LDIF</title>
   <para>TODO</para>
  </section>

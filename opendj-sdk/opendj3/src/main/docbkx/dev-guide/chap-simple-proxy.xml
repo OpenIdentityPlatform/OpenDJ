@@ -33,17 +33,17 @@
 
  <para>TODO</para>
 
- <section>
+ <section xml:id="load-balancing">
   <title>Load Balancing</title>
   <para>TODO</para>
  </section>
  
- <section>
-  <title>Managing Railover</title>
+ <section xml:id="managing-failover">
+  <title>Performing Failover</title>
   <para>TODO</para>
  </section>
  
- <section>
+ <section xml:id="dn-attr-rewriting">
   <title>DN &amp; Attribute Rewriting</title>
   <para>TODO</para>
  </section>
