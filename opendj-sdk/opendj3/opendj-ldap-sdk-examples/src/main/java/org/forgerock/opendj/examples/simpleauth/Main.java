@@ -179,4 +179,11 @@ public final class Main
     System.err.println(
       "\tuse-starttls and use-ssl are optional and mutually exclusive.");
   }
+
+
+
+  private Main()
+  {
+    // Not used.
+  }
 }
