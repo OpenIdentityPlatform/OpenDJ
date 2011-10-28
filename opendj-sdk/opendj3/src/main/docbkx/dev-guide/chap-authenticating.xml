@@ -65,31 +65,38 @@
   the directory determines authorization for operations on the connection
   based on the users identity.</para>
   
-  <programlisting language="java">// LDAP simple authentication
-
-final LDAPConnectionFactory factory = new LDAPConnectionFactory(
-    hostName, port);
-Connection connection = null;
-
-try
-{
-  connection = factory.getConnection();
-  connection.bind(userName, password.toCharArray());
-
-  System.out.println("Authenticated as " + userName + ".");
-  
-  // Perform LDAP operations here.
-}
-
-// Catch any exceptions here, and then close the connection.
-
-finally
-{
-  if (connection != null)
+  <programlisting language="java">  /**
+   * Authenticate over LDAP.
+   */
+  private static void connect()
   {
-    connection.close();
-  }
-}</programlisting>
+    final LDAPConnectionFactory factory = new LDAPConnectionFactory(
+      host, port);
+    Connection connection = null;
+
+    try
+    {
+      connection = factory.getConnection();
+      connection.bind(bindDN, bindPassword.toCharArray());
+      System.out.println("Authenticated as " + bindDN + ".");
+    }
+    catch (final ErrorResultException e)
+    {
+      System.err.println(e.getMessage());
+      System.exit(e.getResult().getResultCode().intValue());
+      return;
+    }
+    catch (final InterruptedException e)
+    {
+      System.err.println(e.getMessage());
+      System.exit(ResultCode.CLIENT_SIDE_USER_CANCELLED.intValue());
+      return;
+    }
+    finally
+    {
+      if (connection != null) connection.close();
+    }
+  }</programlisting>
   
   <para>If the password values do not match, a directory might nevertheless
   authenticate the client application. The LDAP specifications say that in this
