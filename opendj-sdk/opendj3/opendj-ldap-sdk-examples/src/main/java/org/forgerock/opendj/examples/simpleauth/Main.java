@@ -29,7 +29,17 @@ package org.forgerock.opendj.examples.simpleauth;
 
 
 
-import org.forgerock.opendj.ldap.*;
+import java.security.GeneralSecurityException;
+
+import javax.net.ssl.SSLContext;
+
+import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.LDAPOptions;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SSLContextBuilder;
+import org.forgerock.opendj.ldap.TrustManagers;
 
 
 
@@ -103,11 +113,76 @@ public final class Main
 
 
   /**
+   * For StartTLS and SSL the connection factory needs SSL context options.
+   * In the general case, a trust manager in the SSL context serves to check
+   * server certificates, and a key manager handles client keys when the server
+   * checks certificates from our client.
+   *
+   * OpenDJ directory server lets you install by default with a self-signed
+   * certificate that is not in the system trust store. To simplify this
+   * implementation trusts all server certificates.
+   */
+  private static LDAPOptions getTrustAllOptions()
+    throws GeneralSecurityException
+  {
+    LDAPOptions lo = new LDAPOptions();
+    SSLContext sslContext = new SSLContextBuilder()
+      .setTrustManager(TrustManagers.trustAll()).getSSLContext();
+    lo.setSSLContext(sslContext);
+    lo.setUseStartTLS(useStartTLS);
+    return lo;
+  }
+
+
+
+  /**
+   * Perform authentication over a secure connection, trusting all server
+   * certificates.
+   */
+  private static void trustAllConnect()
+  {
+    Connection connection = null;
+
+    try
+    {
+      final LDAPConnectionFactory factory =
+          new LDAPConnectionFactory(host, port, getTrustAllOptions());
+      connection = factory.getConnection();
+      connection.bind(bindDN, bindPassword.toCharArray());
+      System.out.println("Authenticated as " + bindDN + ".");
+    }
+    catch (final ErrorResultException e)
+    {
+      System.err.println(e.getMessage());
+      System.exit(e.getResult().getResultCode().intValue());
+      return;
+    }
+    catch (final InterruptedException e)
+    {
+      System.err.println(e.getMessage());
+      System.exit(ResultCode.CLIENT_SIDE_USER_CANCELLED.intValue());
+      return;
+    }
+    catch (final GeneralSecurityException e)
+    {
+      System.err.println(e.getMessage());
+      System.exit(ResultCode.CLIENT_SIDE_CONNECT_ERROR.intValue());
+    }
+    finally
+    {
+      if (connection != null)
+        connection.close();
+    }
+  }
+
+
+
+  /**
    * Authenticate using StartTLS.
    */
   private static void connectStartTLS()
   {
-    connect(); // Not implemented yet.
+    trustAllConnect();
   }
 
 
@@ -117,7 +192,7 @@ public final class Main
    */
   private static void connectSSL()
   {
-    connect(); // Not implemented yet.
+    trustAllConnect();
   }
 
 

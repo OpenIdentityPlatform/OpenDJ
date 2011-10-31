@@ -48,7 +48,9 @@
   <para>To bind using Barbara Jensen's identity and simple authentication,
   for example, your application would provide the DN
   <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> with the
-  password <literal>hifalutin</literal>.</para>
+  password <literal>hifalutin</literal>. An example is provided with the
+  OpenDJ LDAP SDK examples in
+  <filename>org.forgerock.opendj.examples.simpleauth.Main.java</filename>.</para>
   
   <para>The directory stores the password value used for simple authentication
   in binary form on the <literal>userPassword</literal> attribute of the entry.
@@ -108,7 +110,81 @@
  <section xml:id="simple-auth-with-starttls-or-ssl">
   <title>Start TLS and SSL Authentication</title>
   
-  <para>TODO</para>
+  <para>Simple authentication involves sending a user name and password to
+  the directory server. To avoid sending the user name and password in
+  the clear, you can use SSL or Start TLS.</para>
+  
+  <para>For both SSL and Start TLS, you pass LDAP options to the connection
+  factory in order to set an SSL context, and set whether to use Start TLS.
+  The SSL context lets you set a trust manager to check server certificates,
+  and also set a key manager to provide keys when the server needs to check
+  your client certificates. In the simplest, not-so-secure case, you can
+  set up a trust manager that trusts all certificates.</para>
+  
+  <para>The following example is an excerpt from the OpenDJ LDAP SDK example,
+  <filename>org.forgerock.opendj.examples.simpleauth.Main.java</filename>.</para>
+  
+  <programlisting language="java">  private static LDAPOptions getTrustAllOptions()
+    throws GeneralSecurityException
+  {
+    LDAPOptions lo = new LDAPOptions();
+    SSLContext sslContext = new SSLContextBuilder()
+      .setTrustManager(TrustManagers.trustAll()).getSSLContext();
+    lo.setSSLContext(sslContext);
+    lo.setUseStartTLS(useStartTLS);
+    return lo;
+  }</programlisting>
+  
+  <para>A more secure and extensive SSL context would include a trust manager
+  using a trust store and trust manager methods to check server certificates.
+  If you also want to be able to authenticate to the server using your client
+  certificate, you would need a key manager.</para>
+  
+  <para>The authentication over SSL or using Start TLS in the trust-all case is
+  much like simple authentication over LDAP without connection-level security.
+  The primary differences are that you pass the <literal>LDAPOptions</literal>
+  to the LDAP connection factory, and that you handle the potential security
+  exception involved in setting up the SSL context.</para>
+  
+  <programlisting language="java">  /**
+   * Perform authentication over a secure connection, trusting all server
+   * certificates.
+   */
+  private static void trustAllConnect()
+  {
+    Connection connection = null;
+
+    try
+    {
+      final LDAPConnectionFactory factory =
+          new LDAPConnectionFactory(host, port, getTrustAllOptions());
+      connection = factory.getConnection();
+      connection.bind(bindDN, bindPassword.toCharArray());
+      System.out.println("Authenticated as " + bindDN + ".");
+    }
+    catch (final ErrorResultException e)
+    {
+      System.err.println(e.getMessage());
+      System.exit(e.getResult().getResultCode().intValue());
+      return;
+    }
+    catch (final InterruptedException e)
+    {
+      System.err.println(e.getMessage());
+      System.exit(ResultCode.CLIENT_SIDE_USER_CANCELLED.intValue());
+      return;
+    }
+    catch (final GeneralSecurityException e)
+    {
+      System.err.println(e.getMessage());
+      System.exit(ResultCode.CLIENT_SIDE_CONNECT_ERROR.intValue());
+    }
+    finally
+    {
+      if (connection != null)
+        connection.close();
+    }
+  }</programlisting>
  </section>
  
  <section xml:id="sasl-auth">
