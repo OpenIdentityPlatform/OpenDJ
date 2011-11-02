@@ -2,12 +2,12 @@
 .\"     Title: dsconfig
 .\"    Author: Mark Craig
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: October\ \&24,\ \&2011
+.\"      Date: November\ \&02,\ \&2011
 .\"    Manual: Tools Reference
 .\"    Source: OpenDJ 2.5.0
 .\"  Language: English
 .\"
-.TH "DSCONFIG" "1" "October\ \&24,\ \&2011" "OpenDJ 2.5.0" "Tools Reference"
+.TH "DSCONFIG" "1" "November\ \&02,\ \&2011" "OpenDJ 2.5.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -358,6 +358,19 @@ get\-\fIcomponent\fR\-prop
 .\}
 set\-\fIcomponent\fR\-prop
 .RE
+.PP
+Component properties for the
+\fBdsconfig\fR
+command are covered in the
+OpenDJ Configuration Reference\&.
+.PP
+Many subcommands let you set property values\&. Notice in the reference for the subcommands below that specific options are available for handling multi\-valued properties\&. Whereas you can assign a single property value using the
+\fB\-\-set\fR
+option, you assign multiple values to a multi\-valued property using the
+\fB\-\-add\fR
+option\&. You can reset the values of the multi\-valued property using the
+\fB\-\-reset\fR
+option\&.
 .SS "dsconfig create\-access\-log\-filtering\-criteria"
 .PP
 Creates Access Log Filtering Criteria
