@@ -622,6 +622,8 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
    */
   public boolean isForceChangeOnAdd()
   {
+    // Don't use pwdMustChange since the password provided when the entry was
+    // added may have been provided by the user. See OPENDJ-341.
     return getDefaultPasswordPolicy().isForceChangeOnAdd();
   }
 
