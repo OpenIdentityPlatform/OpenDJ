@@ -42,6 +42,7 @@ import org.testng.annotations.Test;
 /**
  * Regex syntax tests.
  */
+@SuppressWarnings("javadoc")
 public class RegexSyntaxTestCase extends SyntaxTestCase
 {
   /**

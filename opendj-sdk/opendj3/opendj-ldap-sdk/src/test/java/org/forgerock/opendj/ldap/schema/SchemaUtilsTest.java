@@ -42,6 +42,7 @@ import com.forgerock.opendj.util.SubstringReader;
 /**
  * Test schema utilities.
  */
+@SuppressWarnings("javadoc")
 public class SchemaUtilsTest extends SchemaTestCase
 {
 

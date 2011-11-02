@@ -39,6 +39,7 @@ import org.testng.annotations.DataProvider;
 /**
  * Tests ADD requests.
  */
+@SuppressWarnings("javadoc")
 public class AddRequestTestCase extends RequestTestCase
 {
   @DataProvider(name = "addRequests")

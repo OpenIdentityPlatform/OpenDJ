@@ -40,6 +40,7 @@ import org.testng.annotations.Test;
 /**
  * Tests various extended requests.
  */
+@SuppressWarnings("javadoc")
 public abstract class ExtendedRequestTestCase extends RequestTestCase
 {
   @Test(dataProvider = "testRequests")

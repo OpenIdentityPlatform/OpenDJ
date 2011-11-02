@@ -38,6 +38,7 @@ import org.testng.annotations.DataProvider;
 /**
  * Tests the unbind requests.
  */
+@SuppressWarnings("javadoc")
 public class UnbindRequestTestCase extends RequestTestCase
 {
   @DataProvider(name = "UnbindRequests")

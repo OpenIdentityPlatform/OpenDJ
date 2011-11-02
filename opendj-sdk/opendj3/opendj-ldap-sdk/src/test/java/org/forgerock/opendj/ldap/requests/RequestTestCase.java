@@ -49,6 +49,7 @@ import org.testng.annotations.Test;
 /**
  * Tests the Request class.
  */
+@SuppressWarnings("javadoc")
 public abstract class RequestTestCase extends RequestsTestCase
 {
   // Dummy decoder which does nothing.

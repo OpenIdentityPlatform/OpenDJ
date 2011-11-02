@@ -38,6 +38,7 @@ import org.testng.annotations.DataProvider;
 /**
  * Tests anonymous SASL bind requests.
  */
+@SuppressWarnings("javadoc")
 public class AnonymousSASLBindRequestTestCase extends BindRequestTestCase
 {
   @DataProvider(name = "anonymousSASLBindRequests")

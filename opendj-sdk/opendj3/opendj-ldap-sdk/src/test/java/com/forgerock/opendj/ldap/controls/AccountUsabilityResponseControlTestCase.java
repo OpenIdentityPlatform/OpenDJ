@@ -51,6 +51,7 @@ import com.forgerock.opendj.ldap.controls.AccountUsabilityResponseControl;
 /**
  * Tests the account usability response control.
  */
+@SuppressWarnings("javadoc")
 public class AccountUsabilityResponseControlTestCase extends ControlsTestCase
 {
   @Test()

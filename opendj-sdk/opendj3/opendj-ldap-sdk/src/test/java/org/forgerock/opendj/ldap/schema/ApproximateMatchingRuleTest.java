@@ -43,6 +43,7 @@ import org.testng.annotations.Test;
 /**
  * Approximate matching rule tests.
  */
+@SuppressWarnings("javadoc")
 public class ApproximateMatchingRuleTest extends SchemaTestCase
 {
   MatchingRule metaphone = Schema.getCoreSchema().getMatchingRule(

@@ -44,6 +44,7 @@ import org.testng.annotations.Test;
 /**
  * Abstract test case for the ByteSequence interface.
  */
+@SuppressWarnings("javadoc")
 public abstract class ByteSequenceTestCase extends SdkTestCase
 {
   @Test(dataProvider = "byteSequenceProvider")

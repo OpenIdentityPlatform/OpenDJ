@@ -43,6 +43,7 @@ import org.testng.annotations.Test;
 /**
  * Syntax tests.
  */
+@SuppressWarnings("javadoc")
 public abstract class SyntaxTestCase extends SchemaTestCase
 {
   /**

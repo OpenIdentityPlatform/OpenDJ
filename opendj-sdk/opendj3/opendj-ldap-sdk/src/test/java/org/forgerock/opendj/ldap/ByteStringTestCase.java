@@ -42,6 +42,7 @@ import org.testng.annotations.Test;
 /**
  * This class defines a set of tests for the ByteString class.
  */
+@SuppressWarnings("javadoc")
 public class ByteStringTestCase extends ByteSequenceTestCase
 {
   /**

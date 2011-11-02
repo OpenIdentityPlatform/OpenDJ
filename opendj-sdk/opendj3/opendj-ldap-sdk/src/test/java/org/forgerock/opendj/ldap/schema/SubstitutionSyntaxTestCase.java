@@ -43,6 +43,7 @@ import org.testng.annotations.Test;
 /**
  * Substitution syntax tests.
  */
+@SuppressWarnings("javadoc")
 public class SubstitutionSyntaxTestCase extends SyntaxTestCase
 {
   /**

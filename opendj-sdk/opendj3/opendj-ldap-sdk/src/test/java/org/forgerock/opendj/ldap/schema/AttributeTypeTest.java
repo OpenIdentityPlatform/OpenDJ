@@ -43,6 +43,7 @@ import org.testng.annotations.Test;
 /**
  * Attribute type tests.
  */
+@SuppressWarnings("javadoc")
 public class AttributeTypeTest extends AbstractSchemaElementTestCase
 {
   private final Schema schema;

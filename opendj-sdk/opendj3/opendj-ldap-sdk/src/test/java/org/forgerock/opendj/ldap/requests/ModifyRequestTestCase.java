@@ -40,6 +40,7 @@ import org.testng.annotations.DataProvider;
 /**
  * Tests the modify request.
  */
+@SuppressWarnings("javadoc")
 public class ModifyRequestTestCase extends RequestTestCase
 {
   @DataProvider(name = "ModifyRequests")

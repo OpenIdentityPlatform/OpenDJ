@@ -46,6 +46,7 @@ import org.testng.annotations.Test;
 /**
  * This class defines a set of tests for the org.forgerock.opendj.ldap.DN class.
  */
+@SuppressWarnings("javadoc")
 public class DNTestCase extends SdkTestCase
 {
   /**
