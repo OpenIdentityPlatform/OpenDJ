@@ -370,6 +370,18 @@
    <listitem><para>set-<replaceable>component</replaceable>-prop</para></listitem>
   </itemizedlist>
   
+  <para>Component properties for the <command>dsconfig</command> command are
+  covered in the <citetitle>OpenDJ Configuration Reference</citetitle>.</para>
+  <!-- TODO: olink to configref -->
+  
+  <para>Many subcommands let you set property values. Notice in the reference
+  for the subcommands below that specific options are available for handling
+  multi-valued properties. Whereas you can assign a single property value using
+  the <option>--set</option> option, you assign multiple values to a
+  multi-valued property using the <option>--add</option> option. You can reset
+  the values of the multi-valued property using the <option>--reset</option>
+  option.</para>
+  
   <!-- TODO: Automate generation of the following list of subcommands.
        Currently, there's a secret setting in dsconfig to produce the content.
        $ export OPENDS_JAVA_ARGS="-Dorg.forgerock.opendj.gendoc=true"
