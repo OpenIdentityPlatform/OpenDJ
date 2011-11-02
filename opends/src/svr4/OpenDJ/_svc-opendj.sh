@@ -34,8 +34,8 @@ TEST="/usr/bin/test"
 
 case "$1" in
 'start')
-    OPENDS_JAVA_HOME="${OPENDS_JAVA_HOME}" \
-    OPENDS_JAVA_ARGS="${OPENDS_JAVA_ARGS}" ${STARTDS}
+    OPENDJ_JAVA_HOME="${OPENDJ_JAVA_HOME}" \
+    OPENDJ_JAVA_ARGS="${OPENDJ_JAVA_ARGS}" ${STARTDS}
     RES=$?
     if ${TEST} ${RES} -ne 0
     then
@@ -50,7 +50,7 @@ case "$1" in
     ;;
 
 'stop')
-    OPENDS_JAVA_HOME="${OPENDS_JAVA_HOME}" ${STOPDS}
+    OPENDJ_JAVA_HOME="${OPENDJ_JAVA_HOME}" ${STOPDS}
     if ${TEST} $? -ne 0
     then
         exit ${SMF_EXIT_ERR_FATAL}

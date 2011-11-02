@@ -24,6 +24,7 @@ rem CDDL HEADER END
 rem
 rem
 rem      Copyright 2006-2008 Sun Microsystems, Inc.
+rem      Portions Copyright 2011 ForgeRock AS
 
 setlocal
 for %%i in (%~sf0) do set DIR_HOME=%%~dPsi.
@@ -54,7 +55,7 @@ if EXIST "%INSTANCE_ROOT%\tmp\upgrade" rd "%INSTANCE_ROOT%\tmp\upgrade" /s /q
 set CLASSPATH=""
 FOR %%x in ("%INSTALL_ROOT%\lib\*.jar") DO call "%INSTALL_ROOT%\lib\setcp.bat" %%x
 set CLASSPATH=%INSTANCE_ROOT%\classes;%CLASSPATH%
-"%OPENDS_JAVA_BIN%" %SCRIPT_NAME_ARG% org.opends.quicksetup.upgrader.BuildExtractor %*
+"%OPENDJ_JAVA_BIN%" %SCRIPT_NAME_ARG% org.opends.quicksetup.upgrader.BuildExtractor %*
 if %errorlevel% == 99 goto upgrader
 if %errorlevel% == 98 goto reverter
 if %errorlevel% == 50 goto version
@@ -70,7 +71,7 @@ goto end
 :upgrader
 set CLASSPATH=""
 FOR %%x in ("%INSTANCE_ROOT%\tmp\upgrade\lib\*.jar") DO call "%INSTALL_ROOT%\lib\setcp.bat" %%x
-"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% -DINSTALL_ROOT=%INSTALL_ROOT% org.opends.quicksetup.upgrader.UpgradeLauncher %*
+"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% %SCRIPT_NAME_ARG% -DINSTALL_ROOT=%INSTALL_ROOT% org.opends.quicksetup.upgrader.UpgradeLauncher %*
 goto end
 
 :reverter
@@ -78,7 +79,7 @@ if EXIST "%INSTANCE_ROOT%\tmp\revert" rd "%INSTANCE_ROOT%\tmp\revert" /s /q
 xcopy "%INSTALL_ROOT%\lib\*.*" "%INSTANCE_ROOT%\tmp\revert\lib\" /E /Q /Y
 set CLASSPATH=""
 FOR %%x in ("%INSTANCE_ROOT%\tmp\revert\lib\*.jar") DO call "%INSTALL_ROOT%\lib\setcp.bat" %%x
-"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% -DINSTALL_ROOT=%INSTALL_ROOT% org.opends.quicksetup.upgrader.ReversionLauncher %*
+"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% %SCRIPT_NAME_ARG% -DINSTALL_ROOT=%INSTALL_ROOT% org.opends.quicksetup.upgrader.ReversionLauncher %*
 goto end
 
 :version

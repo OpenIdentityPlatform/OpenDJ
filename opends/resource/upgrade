@@ -24,6 +24,7 @@
 #
 #
 #      Copyright 2006-2008 Sun Microsystems, Inc.
+#      Portions Copyright 2011 ForgeRock AS
 
 # Capture the current working directory so that we can change to it later.
 # Then capture the location of this script and the Directory Server instance
@@ -105,7 +106,7 @@ export CLASSPATH
 # operation is a reversion.  An exit code of 50 means that the usage
 # statement was printed and there is nothing else to do
 
-"${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} org.opends.quicksetup.upgrader.BuildExtractor "${@}"
+"${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} org.opends.quicksetup.upgrader.BuildExtractor "${@}"
 RETURN_CODE=$?
 if test ${RETURN_CODE} -eq 99
 then
@@ -118,7 +119,7 @@ then
     CLASSPATH=${JAR}:${CLASSPATH}
   done
   # Launch the upgrade process.
-  "${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} -DINSTALL_ROOT=${INSTALL_ROOT} org.opends.quicksetup.upgrader.UpgradeLauncher "${@}"
+  "${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} -DINSTALL_ROOT=${INSTALL_ROOT} org.opends.quicksetup.upgrader.UpgradeLauncher "${@}"
 elif test ${RETURN_CODE} -eq 98
 then
   # Copy jars to a temporary place from which to run the reverter
@@ -136,7 +137,7 @@ then
       CLASSPATH=${JAR}:${CLASSPATH}
     done
     # Launch the upgrade process.
-    "${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} -DINSTALL_ROOT=${INSTALL_ROOT} org.opends.quicksetup.upgrader.ReversionLauncher "${@}"
+    "${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} -DINSTALL_ROOT=${INSTALL_ROOT} org.opends.quicksetup.upgrader.ReversionLauncher "${@}"
   fi
 elif test ${RETURN_CODE} -eq 50
 then

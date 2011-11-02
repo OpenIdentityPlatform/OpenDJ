@@ -166,14 +166,14 @@ public final class DynamicConstants
   /**
    * A string representation of the version number.
    */
-  public static String OPENDS_NUMBER_STRING =
+  public static String OPENDJ_NUMBER_STRING =
        "${VERSION_NUMBER_STRING}";
 
   /**
    * A string representation of the release version.
    */
   public static String RELEASE_VERSION_STRING =
-       OPENDS_NUMBER_STRING;
+       OPENDJ_NUMBER_STRING;
 
 
   /**
@@ -298,7 +298,7 @@ public final class DynamicConstants
         try{
          RELEASE_VERSION_STRING = VERSION_NUMBER_STRING
                  + " (OpenDJ version = "
-                 + OPENDS_NUMBER_STRING + ")" ;
+                 + OPENDJ_NUMBER_STRING + ")" ;
         }
         catch (Exception ex) {}
       } catch (Exception ex) {

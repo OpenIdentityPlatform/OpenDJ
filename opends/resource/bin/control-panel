@@ -28,15 +28,15 @@
 
 
 # This script may be used to display the control panel.
-OPENDS_INVOKE_CLASS="org.opends.guitools.controlpanel.ControlPanelLauncher"
-export OPENDS_INVOKE_CLASS
+OPENDJ_INVOKE_CLASS="org.opends.guitools.controlpanel.ControlPanelLauncher"
+export OPENDJ_INVOKE_CLASS
 
 SCRIPT_NAME="control-panel"
 export SCRIPT_NAME
 
 NO_CHECK=0
 for i in $*
-do 
+do
   if [ "$i" == "-r" ] || [ "$i" == "--remote" ]
   then
     NO_CHECK=1

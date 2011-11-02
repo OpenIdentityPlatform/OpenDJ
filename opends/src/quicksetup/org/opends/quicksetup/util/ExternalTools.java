@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.quicksetup.util;
@@ -115,7 +116,7 @@ public class ExternalTools {
 
     ProcessBuilder pb = new ProcessBuilder(args);
     Map<String, String> env = pb.environment();
-    env.put(SetupUtils.OPENDS_JAVA_HOME, System.getProperty("java.home"));
+    env.put(SetupUtils.OPENDJ_JAVA_HOME, System.getProperty("java.home"));
 
     Process p = pb.start();
 

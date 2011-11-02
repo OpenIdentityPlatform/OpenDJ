@@ -24,6 +24,7 @@
 #
 #
 #      Copyright 2006-2008 Sun Microsystems, Inc.
+#      Portions Copyright 2011 ForgeRock AS
 
 # Capture the current working directory so that we can change to it later.
 # Then capture the location of this script and the Directory Server instance
@@ -89,4 +90,4 @@ then
 fi
 
 # Launch the upgrade process.
-"${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} -DINSTALL_ROOT=${INSTALL_ROOT} org.opends.quicksetup.upgrader.UpgradeSvr4Launcher "${@}"
+"${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} -DINSTALL_ROOT=${INSTALL_ROOT} org.opends.quicksetup.upgrader.UpgradeSvr4Launcher "${@}"

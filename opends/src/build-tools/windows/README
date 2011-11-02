@@ -79,7 +79,7 @@ Makefile by running:
 
 > nmake all
 
-(See INSTRUCTIONS TO COMPILE opends_service.exe for more information).
+(See INSTRUCTIONS TO COMPILE opendj_service.exe for more information).
 
 ************************
 

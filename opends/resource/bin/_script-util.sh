@@ -30,7 +30,7 @@
 # Display an error message
 #
 display_java_not_found_error() {
-  echo "Please set OPENDS_JAVA_HOME to the root of a Java 6 update 10 (or higher) installation"
+  echo "Please set OPENDJ_JAVA_HOME to the root of a Java 6 update 10 (or higher) installation"
   echo "or edit the java.properties file and then run the dsjavaproperties script to"
   echo "specify the Java version to be used"
 }
@@ -44,10 +44,10 @@ test_java_home() {
     display_java_not_found_error
     exit 1
   else
-    OPENDS_JAVA_BIN="${JAVA_HOME}/bin/java"
-    if test -f "${OPENDS_JAVA_BIN}"
+    OPENDJ_JAVA_BIN="${JAVA_HOME}/bin/java"
+    if test -f "${OPENDJ_JAVA_BIN}"
     then
-      export OPENDS_JAVA_BIN
+      export OPENDJ_JAVA_BIN
     else
       display_java_not_found_error
       exit 1
@@ -63,10 +63,10 @@ test_java_bin() {
   then
     test_java_home
   else
-    OPENDS_JAVA_BIN="${JAVA_BIN}"
-    if test -f "${OPENDS_JAVA_BIN}"
+    OPENDJ_JAVA_BIN="${JAVA_BIN}"
+    if test -f "${OPENDJ_JAVA_BIN}"
     then
-      export OPENDS_JAVA_BIN
+      export OPENDJ_JAVA_BIN
     else
       test_java_home
     fi
@@ -77,27 +77,27 @@ test_java_bin() {
 # function that tests the java executable in the PATH env variable.
 #
 test_java_path() {
-  OPENDS_JAVA_BIN=`which java 2> /dev/null`
-  if test -f "${OPENDS_JAVA_BIN}"
+  OPENDJ_JAVA_BIN=`which java 2> /dev/null`
+  if test -f "${OPENDJ_JAVA_BIN}"
   then
-    export OPENDS_JAVA_BIN
+    export OPENDJ_JAVA_BIN
   else
     test_java_bin
   fi
 }
 
 #
-# function that tests the OPENDS_JAVA_HOME env variable.
+# function that tests legacy OPENDS_JAVA_HOME env variable.
 #
 test_opends_java_home() {
   if test -z "${OPENDS_JAVA_HOME}"
   then
     test_java_path
   else
-    OPENDS_JAVA_BIN="${OPENDS_JAVA_HOME}/bin/java"
-    if test -f "${OPENDS_JAVA_BIN}"
+    OPENDJ_JAVA_BIN="${OPENDS_JAVA_HOME}/bin/java"
+    if test -f "${OPENDJ_JAVA_BIN}"
     then
-      export OPENDS_JAVA_BIN
+      export OPENDJ_JAVA_BIN
     else
       test_java_path
     fi
@@ -105,16 +105,46 @@ test_opends_java_home() {
 }
 
 #
-# function that tests the OPENDS_JAVA_BIN env variable.
+# function that tests the OPENDJ_JAVA_HOME env variable.
 #
-test_opends_java_bin() {
-  if test -z "${OPENDS_JAVA_BIN}"
+test_opendj_java_home() {
+  if test -z "${OPENDJ_JAVA_HOME}"
   then
     test_opends_java_home
   else
-    if test -f "${OPENDS_JAVA_BIN}"
+    OPENDJ_JAVA_BIN="${OPENDJ_JAVA_HOME}/bin/java"
+    if test -f "${OPENDJ_JAVA_BIN}"
     then
-      export OPENDS_JAVA_BIN
+      export OPENDJ_JAVA_BIN
+    else
+      test_java_path
+    fi
+  fi
+}
+
+#
+# function that tests the OPENDJ_JAVA_BIN env variable.
+#
+test_opendj_java_bin() {
+  if test -z "${OPENDJ_JAVA_BIN}"
+  then
+    # Check for legacy OPENDS_JAVA_BIN
+    if test -z "${OPENDS_JAVA_BIN}"
+    then
+      test_opendj_java_home
+    else
+      if test -f "${OPENDS_JAVA_BIN}"
+      then
+        OPENDJ_JAVA_BIN="${OPENDS_JAVA_BIN}"
+        export OPENDJ_JAVA_BIN
+      else
+        test_opendj_java_home
+      fi
+    fi
+  else
+    if test -f "${OPENDJ_JAVA_BIN}"
+    then
+      export OPENDJ_JAVA_BIN
     else
       test_opends_java_home
     fi
@@ -129,31 +159,42 @@ set_java_home_and_args() {
   then
     . "${INSTANCE_ROOT}/lib/set-java-home"
   fi
-  test_opends_java_bin
+  test_opendj_java_bin
 }
 
+# Function that sets OPENDJ_JAVA_ARGS if not yet set but OPENDS_JAVA_ARGS is.
+test_java_args() {
+  if test -z "${OPENDJ_JAVA_ARGS}"
+  then
+    if test -n "${OPENDS_JAVA_ARGS}"
+    then
+      OPENDJ_JAVA_ARGS="${OPENDS_JAVA_ARGS}"
+      export OPENDJ_JAVA_ARGS
+    fi
+  fi
+}
 
 # Determine whether the detected Java environment is acceptable for use.
 test_java() {
-  if test -z "${OPENDS_JAVA_ARGS}"
+  if test -z "${OPENDJ_JAVA_ARGS}"
   then
-    "${OPENDS_JAVA_BIN}" org.opends.server.tools.InstallDS -t 2> /dev/null
+    "${OPENDJ_JAVA_BIN}" org.opends.server.tools.InstallDS -t 2> /dev/null
     RESULT_CODE=${?}
     if test ${RESULT_CODE} -eq 13
     then
       # This is a particular error code that means that the Java version is 6
       # but not supported.  Let InstallDS to display the localized error message
-      "${OPENDS_JAVA_BIN}" org.opends.server.tools.InstallDS -t
+      "${OPENDJ_JAVA_BIN}" org.opends.server.tools.InstallDS -t
       exit 1
     elif test ${RESULT_CODE} -ne 0
     then
       echo "ERROR:  The detected Java version could not be used.  The detected"
       echo "Java binary is:"
-      echo "${OPENDS_JAVA_BIN}"
+      echo "${OPENDJ_JAVA_BIN}"
       echo "You must specify the path to a valid Java 6.0 update 10 or higher version."
       echo "The procedure to follow is:"
       echo "1. Delete the file ${INSTANCE_ROOT}/lib/set-java-home" if it exists.
-      echo "2. Set the environment variable OPENDS_JAVA_HOME to the root of a valid "
+      echo "2. Set the environment variable OPENDJ_JAVA_HOME to the root of a valid "
       echo "Java 6.0 installation."
       echo "If you want to have specific Java settings for each command line you must"
       echo "follow the steps 3 and 4."
@@ -164,24 +205,24 @@ test_java() {
       exit 1
     fi
   else
-    "${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} org.opends.server.tools.InstallDS -t 2> /dev/null
+    "${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} org.opends.server.tools.InstallDS -t 2> /dev/null
     RESULT_CODE=${?}
     if test ${RESULT_CODE} -eq 13
     then
       # This is a particular error code that means that the Java version is 6
       # but not supported.  Let InstallDS to display the localized error message
-      "${OPENDS_JAVA_BIN}" org.opends.server.tools.InstallDS -t
+      "${OPENDJ_JAVA_BIN}" org.opends.server.tools.InstallDS -t
       exit 1
     elif test ${RESULT_CODE} -ne 0
     then
       echo "ERROR:  The detected Java version could not be used with the set of Java"
-      echo "arguments ${OPENDS_JAVA_ARGS}."
+      echo "arguments ${OPENDJ_JAVA_ARGS}."
       echo "The detected Java binary is:"
-      echo "${OPENDS_JAVA_BIN}"
+      echo "${OPENDJ_JAVA_BIN}"
       echo "You must specify the path to a valid Java 6.0 update 10 or higher version."
       echo "The procedure to follow is:"
       echo "1. Delete the file ${INSTANCE_ROOT}/lib/set-java-home" if it exists.
-      echo "2. Set the environment variable OPENDS_JAVA_HOME to the root of a valid "
+      echo "2. Set the environment variable OPENDJ_JAVA_HOME to the root of a valid "
       echo "Java 6.0 installation."
       echo "If you want to have specific Java settings for each command line you must"
       echo "follow the steps 3 and 4."
@@ -315,6 +356,7 @@ then
   set_java_home_and_args
   set_environment_vars
   set_classpath
+  test_java_args
   test_java
 elif test "${SCRIPT_UTIL_CMD}" = "set-full-environment"
 then
@@ -373,7 +415,7 @@ then
 	  OPT_CHECK_VERSION=""
       fi
   # Launch the CheckInstance process.
-      "${OPENDS_JAVA_BIN}" ${SCRIPT_NAME_ARG} "-DINSTALL_ROOT=${INSTALL_ROOT}" "-DINSTANCE_ROOT=${INSTANCE_ROOT}" org.opends.server.tools.configurator.CheckInstance --currentUser ${CURRENT_USER} ${OPT_CHECK_VERSION}
+      "${OPENDJ_JAVA_BIN}" ${SCRIPT_NAME_ARG} "-DINSTALL_ROOT=${INSTALL_ROOT}" "-DINSTANCE_ROOT=${INSTANCE_ROOT}" org.opends.server.tools.configurator.CheckInstance --currentUser ${CURRENT_USER} ${OPT_CHECK_VERSION}
   # return part
       RETURN_CODE=$?
       if [ ${RETURN_CODE} -ne 0 ]

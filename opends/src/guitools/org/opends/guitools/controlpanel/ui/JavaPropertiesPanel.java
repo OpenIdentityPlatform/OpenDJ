@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -817,7 +818,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
           String userJVM = javaHome.getText();
           ArrayList<Message> errorMessages = new ArrayList<Message>();
           ArrayList<Message> confirmationMessages = new ArrayList<Message>();
-          String defaultJVM = System.getenv(SetupUtils.OPENDS_JAVA_HOME);
+          String defaultJVM = System.getenv(SetupUtils.OPENDJ_JAVA_HOME);
           if (defaultJVM == null)
           {
             defaultJVM = System.getProperty("java.home");

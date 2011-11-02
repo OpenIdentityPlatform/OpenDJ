@@ -24,10 +24,11 @@ rem CDDL HEADER END
 rem
 rem
 rem      Copyright 2008-2009 Sun Microsystems, Inc.
+rem      Portions Copyright 2011 ForgeRock AS
 
 setlocal
 
-set OPENDS_INVOKE_CLASS="org.opends.server.tools.JavaPropertiesTool"
+set OPENDJ_INVOKE_CLASS="org.opends.server.tools.JavaPropertiesTool"
 set SCRIPT_NAME=dsjavaproperties
 set NO_CHECK=false
 for %%i in (%~sf0) do call "%%~dPsi\..\lib\_client-script.bat" %*

@@ -24,19 +24,20 @@ rem CDDL HEADER END
 rem
 rem
 rem      Copyright 2006-2010 Sun Microsystems, Inc.
+rem      Portions Copyright 2011 ForgeRock AS
 
 setlocal
 
 set PATH=%SystemRoot%
 
-set OPENDS_INVOKE_CLASS="org.opends.server.tools.StopDS"
+set OPENDJ_INVOKE_CLASS="org.opends.server.tools.StopDS"
 set SCRIPT_NAME=stop-ds
 for %%i in (%~sf0) do set DIR_HOME=%%~dPsi..
 
 rem We keep this values to reset the environment before calling start-ds.
-set ORIGINAL_JAVA_ARGS=%OPENDS_JAVA_ARGS%
-set ORIGINAL_JAVA_HOME=%OPENDS_JAVA_HOME%
-set ORIGINAL_JAVA_BIN=%OPENDS_JAVA_BIN%
+set ORIGINAL_JAVA_ARGS=%OPENDJ_JAVA_ARGS%
+set ORIGINAL_JAVA_HOME=%OPENDJ_JAVA_HOME%
+set ORIGINAL_JAVA_BIN=%OPENDJ_JAVA_BIN%
 
 set INSTALL_ROOT=%DIR_HOME%
 
@@ -64,7 +65,7 @@ if NOT %errorlevel% == 0 exit /B %errorlevel%
 
 echo %SCRIPT%: CLASSPATH=%CLASSPATH% >> %LOG%
 
-"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG%  org.opends.server.tools.StopDS --checkStoppability %*
+"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% %SCRIPT_NAME_ARG%  org.opends.server.tools.StopDS --checkStoppability %*
 
 if %errorlevel% == 98 goto serverAlreadyStopped
 if %errorlevel% == 99 goto startUsingSystemCall
@@ -86,9 +87,9 @@ echo %SCRIPT%: start using system call >> %LOG%
 rem Set the original values that the user had on the environment in order to be
 rem sure that the start-ds script works with the proper arguments (in particular
 rem if the user specified not to overwrite the environment).
-set OPENDS_JAVA_ARGS=%ORIGINAL_JAVA_ARGS%
-set OPENDS_JAVA_HOME=%ORIGINAL_JAVA_HOME%
-set OPENDS_JAVA_BIN=%ORIGINAL_JAVA_BIN%
+set OPENDJ_JAVA_ARGS=%ORIGINAL_JAVA_ARGS%
+set OPENDJ_JAVA_HOME=%ORIGINAL_JAVA_HOME%
+set OPENDJ_JAVA_BIN=%ORIGINAL_JAVA_BIN%
 "%INSTALL_ROOT%\bat\start-ds.bat"
 goto writeLastLine
 
@@ -110,16 +111,16 @@ goto end
 
 :stopAsWindowsService
 echo %SCRIPT%: stop as windows service >> %LOG%
-"%OPENDS_JAVA_BIN%" -client org.opends.server.tools.StopWindowsService
+"%OPENDJ_JAVA_BIN%" -client org.opends.server.tools.StopWindowsService
 goto end
 
 :restartAsWindowsService
 echo %SCRIPT%: restart as windows service, stopping >> %LOG%
-"%OPENDS_JAVA_BIN%" -client org.opends.server.tools.StopWindowsService
+"%OPENDJ_JAVA_BIN%" -client org.opends.server.tools.StopWindowsService
 if not %errorlevel% == 0 goto end
 echo %SCRIPT%: restart as windows service, starting >> %LOG%
-"%OPENDS_JAVA_BIN%" -client org.opends.server.tools.StartWindowsService
-"%OPENDS_JAVA_BIN%" -client org.opends.server.tools.WaitForFileDelete --targetFile "%INSTANCE_ROOT%\logs\server.startingservice"
+"%OPENDJ_JAVA_BIN%" -client org.opends.server.tools.StartWindowsService
+"%OPENDJ_JAVA_BIN%" -client org.opends.server.tools.WaitForFileDelete --targetFile "%INSTANCE_ROOT%\logs\server.startingservice"
 rem Type the contents the winwervice.out file and delete it.
 if exist "%INSTANCE_ROOT%\logs\winservice.out" type "%INSTANCE_ROOT%\logs\winservice.out"
 if exist "%INSTANCE_ROOT%\logs\winservice.out" erase "%INSTANCE_ROOT%\logs\winservice.out"

@@ -24,10 +24,11 @@ rem CDDL HEADER END
 rem
 rem
 rem      Copyright 2006-2009 Sun Microsystems, Inc.
+rem      Portions Copyright 2011 ForgeRock AS
 
 setlocal
 
-set OPENDS_INVOKE_CLASS="org.opends.server.tools.LDIFDiff"
+set OPENDJ_INVOKE_CLASS="org.opends.server.tools.LDIFDiff"
 set SCRIPT_NAME=ldif-diff
 for %%i in (%~sf0) do call "%%~dPsi\..\lib\_server-script.bat" %*
 

@@ -24,6 +24,7 @@ rem CDDL HEADER END
 rem
 rem
 rem      Copyright 2006-2010 Sun Microsystems, Inc.
+rem      Portions Copyright 2011 ForgeRock AS
 
 rem This script is used to invoke various server-side processes.  It should not
 rem be invoked directly by end users.
@@ -42,15 +43,15 @@ cd /d %INSTANCE_DIR%
 set INSTANCE_ROOT=%CD%
 cd /d %CUR_DIR%
 
-if "%OPENDS_INVOKE_CLASS%" == "" goto noInvokeClass
+if "%OPENDJ_INVOKE_CLASS%" == "" goto noInvokeClass
 
 set OLD_SCRIPT_NAME=%SCRIPT_NAME%
 set SCRIPT_NAME=%OLD_SCRIPT_NAME%.online
 
 rem We keep this values to reset the environment before calling _script-util.bat.
-set ORIGINAL_JAVA_ARGS=%OPENDS_JAVA_ARGS%
-set ORIGINAL_JAVA_HOME=%OPENDS_JAVA_HOME%
-set ORIGINAL_JAVA_BIN=%OPENDS_JAVA_BIN%
+set ORIGINAL_JAVA_ARGS=%OPENDJ_JAVA_ARGS%
+set ORIGINAL_JAVA_HOME=%OPENDJ_JAVA_HOME%
+set ORIGINAL_JAVA_BIN=%OPENDJ_JAVA_BIN%
 
 set SCRIPT_UTIL_CMD=set-full-environment
 call "%INSTALL_ROOT%\lib\_script-util.bat" %*
@@ -59,19 +60,19 @@ if NOT %errorlevel% == 0 exit /B %errorlevel%
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=%OLD_SCRIPT_NAME%"
 
 rem Check whether is local or remote
-"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% %OPENDS_INVOKE_CLASS% --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%INSTANCE_ROOT%\config\config.ldif" --testIfOffline %*  
+"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% %SCRIPT_NAME_ARG% %OPENDJ_INVOKE_CLASS% --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%INSTANCE_ROOT%\config\config.ldif" --testIfOffline %*
 if %errorlevel% == 51 goto launchoffline
 if %errorlevel% == 52 goto launchonline
 exit /B %errorlevel%
 
 :noInvokeClass
-echo Error:  OPENDS_INVOKE_CLASS environment variable is not set.
+echo Error:  OPENDJ_INVOKE_CLASS environment variable is not set.
 pause
 goto end
 
 :launchonline
 
-"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% %OPENDS_INVOKE_CLASS% --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%INSTANCE_ROOT%\config\config.ldif" %*
+"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% %SCRIPT_NAME_ARG% %OPENDJ_INVOKE_CLASS% --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%INSTANCE_ROOT%\config\config.ldif" %*
 
 goto end
 
@@ -81,16 +82,16 @@ set SCRIPT_NAME=%OLD_SCRIPT_NAME%.offline
 rem Set the original values that the user had on the environment in order to be
 rem sure that the script works with the proper arguments (in particular
 rem if the user specified not to overwrite the environment).
-set OPENDS_JAVA_ARGS=%ORIGINAL_JAVA_ARGS%
-set OPENDS_JAVA_HOME=%ORIGINAL_JAVA_HOME%
-set OPENDS_JAVA_BIN=%ORIGINAL_JAVA_BIN%
+set OPENDJ_JAVA_ARGS=%ORIGINAL_JAVA_ARGS%
+set OPENDJ_JAVA_HOME=%ORIGINAL_JAVA_HOME%
+set OPENDJ_JAVA_BIN=%ORIGINAL_JAVA_BIN%
 
 set SCRIPT_UTIL_CMD=set-full-environment
 call "%INSTALL_ROOT%\lib\_script-util.bat" %*
 if NOT %errorlevel% == 0 exit /B %errorlevel%
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=%OLD_SCRIPT_NAME%"
 
-"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_ARGS% %SCRIPT_NAME_ARG% %OPENDS_INVOKE_CLASS% --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%INSTANCE_ROOT%\config\config.ldif" %*
+"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% %SCRIPT_ARGS% %SCRIPT_NAME_ARG% %OPENDJ_INVOKE_CLASS% --configClass org.opends.server.extensions.ConfigFileHandler --configFile "%INSTANCE_ROOT%\config\config.ldif" %*
 
 goto end
 

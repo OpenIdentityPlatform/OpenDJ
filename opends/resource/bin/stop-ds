@@ -51,9 +51,9 @@ export INSTALL_ROOT
 cd "${WORKING_DIR}"
 
 # We keep this values to reset the environment before calling start-ds.
-ORIGINAL_JAVA_ARGS=${OPENDS_JAVA_ARGS}
-ORIGINAL_JAVA_HOME=${OPENDS_JAVA_HOME}
-ORIGINAL_JAVA_BIN=${OPENDS_JAVA_BIN}
+ORIGINAL_JAVA_ARGS=${OPENDJ_JAVA_ARGS}
+ORIGINAL_JAVA_HOME=${OPENDJ_JAVA_HOME}
+ORIGINAL_JAVA_BIN=${OPENDJ_JAVA_BIN}
 
 
 # Specify the script name so that we can use the specified java properties.
@@ -99,7 +99,7 @@ then
 fi
 
 
-"${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} \
+"${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} ${SCRIPT_NAME_ARG} \
   org.opends.server.tools.StopDS --checkStoppability "${@}"
 EC=${?}
 
@@ -165,7 +165,7 @@ then
     EXIT_CODE=${?}
     if test ${EXIT_CODE} -eq 0
     then
-      "${OPENDS_JAVA_BIN}" -client org.opends.server.tools.WaitForFileDelete \
+      "${OPENDJ_JAVA_BIN}" -client org.opends.server.tools.WaitForFileDelete \
         --targetFile "${INSTANCE_ROOT}/logs/server.pid" \
         --logFile "${INSTANCE_ROOT}/logs/errors"
       EXIT_CODE=${?}
@@ -200,9 +200,9 @@ then
 # Set the original values that the user had on the environment in order to be
 # sure that the start-ds script works with the proper arguments (in particular
 # if the user specified not to overwrite the environment).
-    OPENDS_JAVA_ARGS=${ORIGINAL_JAVA_ARGS}
-    OPENDS_JAVA_HOME=${ORIGINAL_JAVA_HOME}
-    OPENDS_JAVA_BIN=${ORIGINAL_JAVA_BIN}
+    OPENDJ_JAVA_ARGS=${ORIGINAL_JAVA_ARGS}
+    OPENDJ_JAVA_HOME=${ORIGINAL_JAVA_HOME}
+    OPENDJ_JAVA_BIN=${ORIGINAL_JAVA_BIN}
     if test ${QUIET_MODE} -eq 0
     then
       "${INSTALL_ROOT}/bin/start-ds" --quiet
@@ -226,5 +226,5 @@ else
 fi
 
 # If we've gotten here, then we should try to stop the server over LDAP.
-"${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} \
+"${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} ${SCRIPT_NAME_ARG} \
   org.opends.server.tools.StopDS "${@}"
