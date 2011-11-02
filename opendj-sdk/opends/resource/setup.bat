@@ -66,11 +66,11 @@ pause
 goto end
 
 :callLaunch
-"%INSTALL_ROOT%\lib\winlauncher.exe" launch "%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.quicksetup.installer.SetupLauncher
+"%INSTALL_ROOT%\lib\winlauncher.exe" launch "%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.quicksetup.installer.SetupLauncher
 goto end
 
 :callJava
-"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.quicksetup.installer.SetupLauncher %*
+"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.quicksetup.installer.SetupLauncher %*
 
 rem return part
 if %errorlevel% == 50 goto version

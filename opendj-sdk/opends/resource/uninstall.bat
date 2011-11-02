@@ -24,6 +24,7 @@ rem CDDL HEADER END
 rem
 rem
 rem      Copyright 2006-2010 Sun Microsystems, Inc.
+rem      Portions Copyright 2011 ForgeRock AS
 
 setlocal
 for %%i in (%~sf0) do set DIR_HOME=%%~dPsi.
@@ -50,12 +51,12 @@ if "%~1" == "" goto callLaunch
 goto callJava
 
 :callLaunch
-"%INSTALL_ROOT%\lib\winlauncher.exe" launch "%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.guitools.uninstaller.UninstallLauncher
+"%INSTALL_ROOT%\lib\winlauncher.exe" launch "%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.guitools.uninstaller.UninstallLauncher
 goto end
 
 :callJava
 set SCRIPT_NAME_ARG="-Dorg.opends.server.scriptName=uninstall"
-"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.guitools.uninstaller.UninstallLauncher %*
+"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% %SCRIPT_NAME_ARG% org.opends.guitools.uninstaller.UninstallLauncher %*
 
 rem return part
 if %errorlevel% == 50 goto version

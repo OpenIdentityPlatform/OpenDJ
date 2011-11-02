@@ -160,8 +160,8 @@ public class InstallerHelper {
     LOG.log(Level.INFO, "import-ldif arg list: "+argList);
     ProcessBuilder pb = new ProcessBuilder(allArgs);
     Map<String, String> env = pb.environment();
-    env.remove(SetupUtils.OPENDS_JAVA_HOME);
-    env.remove(SetupUtils.OPENDS_JAVA_ARGS);
+    env.remove(SetupUtils.OPENDJ_JAVA_HOME);
+    env.remove(SetupUtils.OPENDJ_JAVA_ARGS);
     env.remove("CLASSPATH");
     pb.directory(installPath);
     Process process = null;
@@ -908,7 +908,7 @@ public class InstallerHelper {
     String javaHome = System.getProperty("java.home");
     if ((javaHome == null) || (javaHome.length() == 0))
     {
-      javaHome = System.getenv(SetupUtils.OPENDS_JAVA_HOME);
+      javaHome = System.getenv(SetupUtils.OPENDJ_JAVA_HOME);
     }
 
     // Try to transform things if necessary.  The following map has as key

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.quicksetup;
@@ -80,9 +81,9 @@ public class BuildInformation implements Comparable<BuildInformation> {
     final boolean[] done = {false};
     try {
       Map<String, String> env = pb.environment();
-      env.put(SetupUtils.OPENDS_JAVA_HOME, System.getProperty("java.home"));
+      env.put(SetupUtils.OPENDJ_JAVA_HOME, System.getProperty("java.home"));
       // This is required in order the return code to be valid.
-      env.put("OPENDS_EXIT_NO_BACKGROUND", "true");
+      env.put("OPENDJ_EXIT_NO_BACKGROUND", "true");
       final Process process = pb.start();
       is = process.getInputStream();
       out = process.getOutputStream();

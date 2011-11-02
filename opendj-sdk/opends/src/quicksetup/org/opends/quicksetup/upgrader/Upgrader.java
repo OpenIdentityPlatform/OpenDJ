@@ -680,10 +680,10 @@ public class Upgrader extends GuiApplication implements CliApplication {
                   // This is the message thrown when there was a problem with
                   // the binary.  The details content is on the scripts and not
                   // localized, we can assume that if there is a mention to
-                  // OPENDS_JAVA_HOME in the message there is an error with the
+                  // OPENDJ_JAVA_HOME in the message there is an error with the
                   // script.
                   if (ae.getMessageObject().toString().indexOf(
-                      "OPENDS_JAVA_HOME") != -1)
+                      "OPENDJ_JAVA_HOME") != -1)
                   {
                     String javaBin = System.getProperty("java.home")+
                     File.separator+

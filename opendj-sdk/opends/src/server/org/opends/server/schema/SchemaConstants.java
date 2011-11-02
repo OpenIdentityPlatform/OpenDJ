@@ -38,8 +38,12 @@ public class SchemaConstants
   /**
    * The IANA-assigned base OID for all things under the OpenDS umbrella.
    */
-  public static final String OID_OPENDS_BASE = "1.3.6.1.4.1.26027";
+  private static final String OID_OPENDS_BASE = "1.3.6.1.4.1.26027";
 
+  /**
+   * The IANA-assigned base OID for all things under the OpenDS umbrella.
+   */
+  private static final String OID_OPENDJ_BASE = "1.3.6.1.4.1.36733.2.1";
 
 
   /**

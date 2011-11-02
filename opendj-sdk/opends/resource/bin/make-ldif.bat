@@ -24,6 +24,7 @@ rem CDDL HEADER END
 rem
 rem
 rem      Copyright 2006-2009 Sun Microsystems, Inc.
+rem      Portions Copyright 2011 ForgeRock AS
 
 setlocal
 
@@ -50,7 +51,7 @@ cd /d %INSTANCE_DIR%
 set INSTANCE_ROOT=%CD%
 cd /d %CUR_DIR%
 
-set OPENDS_INVOKE_CLASS="org.opends.server.tools.makeldif.MakeLDIF"
+set OPENDJ_INVOKE_CLASS="org.opends.server.tools.makeldif.MakeLDIF"
 set SCRIPT_NAME=make-ldif
 "%INSTALL_ROOT%\lib\_server-script.bat" --resourcePath "%INSTANCE_ROOT%\config\MakeLDIF" %*
 

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.quicksetup.ui;
@@ -414,7 +415,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
             pb = new ProcessBuilder(cmd);
           }
           Map<String, String> env = pb.environment();
-          env.put(SetupUtils.OPENDS_JAVA_HOME, System.getProperty("java.home"));
+          env.put(SetupUtils.OPENDJ_JAVA_HOME, System.getProperty("java.home"));
           Process process = pb.start();
           /**
            * Wait for 3 seconds.  Assume that if the process has not exited

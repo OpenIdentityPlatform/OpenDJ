@@ -48,7 +48,7 @@ export SCRIPT_NAME
 
 # check for presence of lib/_svc-opendj.sh file
 # If present, we should be on Solaris/OpenSolaris and use SMF to start
-# OpenDJ. 
+# OpenDJ.
 # Check --exec. If not present, start OpenDJ from SMF
 
 if test -f "${INSTALL_ROOT}/lib/_svc-opendj.sh"
@@ -92,7 +92,7 @@ STARTING_FILE=${INSTANCE_ROOT}/logs/server.starting
 # means that the server is already running and we shouldn't try to start it.
 # An exit code of anything else means that we're not trying to start the server
 # and we can just exit with that exit code.
-${OPENDS_JAVA_BIN} -client ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
+${OPENDJ_JAVA_BIN} -client ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
             --configClass org.opends.server.extensions.ConfigFileHandler \
             --configFile "${CONFIG_FILE}" --checkStartability "${@}"
 EC=${?}
@@ -102,24 +102,24 @@ then
   # run detach
   #
   touch "${STARTING_FILE}"
-  nohup "${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} \
+  nohup "${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} ${SCRIPT_NAME_ARG} \
        org.opends.server.core.DirectoryServer \
        --configClass org.opends.server.extensions.ConfigFileHandler \
        --configFile "${CONFIG_FILE}" "${@}" > "${LOG_FILE}" 2>&1 &
   echo $! > "${PID_FILE}"
   if test ${EC} -eq 99
   then
-    "${OPENDS_JAVA_BIN}" -client org.opends.server.tools.WaitForFileDelete \
+    "${OPENDJ_JAVA_BIN}" -client org.opends.server.tools.WaitForFileDelete \
          --targetFile "${STARTING_FILE}" --logFile "${LOG_FILE}" "${@}"
   else
-    "${OPENDS_JAVA_BIN}" -client org.opends.server.tools.WaitForFileDelete \
+    "${OPENDJ_JAVA_BIN}" -client org.opends.server.tools.WaitForFileDelete \
          --targetFile "${STARTING_FILE}" "${@}"
   fi
   EC=${?}
   if test ${EC} -eq 0
   then
     # An exit code of 98 means that the server is already running.
-  	${OPENDS_JAVA_BIN} -client ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
+  	${OPENDJ_JAVA_BIN} -client ${SCRIPT_NAME_ARG} org.opends.server.core.DirectoryServer \
             --configClass org.opends.server.extensions.ConfigFileHandler \
             --configFile "${CONFIG_FILE}" --checkStartability > /dev/null 2>&1
     EC=${?}
@@ -140,7 +140,7 @@ else
     #
     echo $$ > "${PID_FILE}"
     rm -f "${LOG_FILE}"
-    exec "${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} \
+    exec "${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} ${SCRIPT_NAME_ARG} \
       org.opends.server.core.DirectoryServer \
       --configClass org.opends.server.extensions.ConfigFileHandler \
       --configFile "${CONFIG_FILE}" "${@}"
@@ -151,7 +151,7 @@ else
     #
     echo $$ > "${PID_FILE}"
     rm -f "${LOG_FILE}"
-    exec "${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} \
+    exec "${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} ${SCRIPT_NAME_ARG} \
       org.opends.server.core.DirectoryServer \
       --configClass org.opends.server.extensions.ConfigFileHandler \
       --configFile "${CONFIG_FILE}" "${@}" > /dev/null

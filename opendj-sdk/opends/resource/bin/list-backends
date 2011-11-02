@@ -24,11 +24,12 @@
 #
 #
 #      Copyright 2006-2008 Sun Microsystems, Inc.
+#      Portions Copyright 2011 ForgeRock AS
 
 
 # This script may be used to perform a restore of a Directory Server backend.
-OPENDS_INVOKE_CLASS="org.opends.server.tools.ListBackends"
-export OPENDS_INVOKE_CLASS
+OPENDJ_INVOKE_CLASS="org.opends.server.tools.ListBackends"
+export OPENDJ_INVOKE_CLASS
 
 SCRIPT_NAME="list-backends"
 export SCRIPT_NAME

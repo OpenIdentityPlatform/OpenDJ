@@ -24,10 +24,11 @@ rem CDDL HEADER END
 rem
 rem
 rem      Copyright 2008-2010 Sun Microsystems, Inc.
+rem      Portions Copyright 2011 ForgeRock AS
 
 setlocal
 
-set OPENDS_INVOKE_CLASS="org.opends.server.tools.dsreplication.ReplicationCliMain"
+set OPENDJ_INVOKE_CLASS="org.opends.server.tools.dsreplication.ReplicationCliMain"
 if "%RECURSIVE_LOCAL_CALL%" == "true" goto callOffline
 goto callOnline
 

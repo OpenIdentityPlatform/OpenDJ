@@ -24,11 +24,12 @@ rem CDDL HEADER END
 rem
 rem
 rem      Copyright 2006-2008 Sun Microsystems, Inc.
+rem      Portions Copyright 2011 ForgeRock AS
 
 setlocal
 
-set OPENDS_INVOKE_CLASS="org.opends.server.tools.ManageAccount"
+set OPENDJ_INVOKE_CLASS="org.opends.server.tools.ManageAccount"
 set SCRIPT_NAME=manage-account
-for %%i in (%~sf0) do call "%%~dPsi\..\lib\_client-script.bat" %* 
+for %%i in (%~sf0) do call "%%~dPsi\..\lib\_client-script.bat" %*
 
 

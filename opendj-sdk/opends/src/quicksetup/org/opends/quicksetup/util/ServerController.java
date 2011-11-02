@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.quicksetup.util;
@@ -164,8 +165,8 @@ public class ServerController {
       }
       ProcessBuilder pb = new ProcessBuilder(args);
       Map<String, String> env = pb.environment();
-      env.put(SetupUtils.OPENDS_JAVA_HOME, System.getProperty("java.home"));
-      env.remove(SetupUtils.OPENDS_JAVA_ARGS);
+      env.put(SetupUtils.OPENDJ_JAVA_HOME, System.getProperty("java.home"));
+      env.remove(SetupUtils.OPENDJ_JAVA_ARGS);
       env.remove("CLASSPATH");
 
       LOG.log(Level.INFO, "Before calling stop-ds.  Is server running? "+
@@ -361,8 +362,8 @@ public class ServerController {
       ProcessBuilder pb = new ProcessBuilder(args);
       pb.directory(installation.getBinariesDirectory());
       Map<String, String> env = pb.environment();
-      env.put(SetupUtils.OPENDS_JAVA_HOME, System.getProperty("java.home"));
-      env.remove(SetupUtils.OPENDS_JAVA_ARGS);
+      env.put(SetupUtils.OPENDJ_JAVA_HOME, System.getProperty("java.home"));
+      env.remove(SetupUtils.OPENDJ_JAVA_ARGS);
 
       // Upgrader's classpath contains jars located in the temporary
       // directory that we don't want locked by the directory server

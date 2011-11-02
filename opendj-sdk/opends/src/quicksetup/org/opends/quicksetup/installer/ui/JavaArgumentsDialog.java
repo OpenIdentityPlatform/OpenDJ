@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -763,7 +764,7 @@ public class JavaArgumentsDialog extends JDialog
       String javaHome = System.getProperty("java.home");
       if ((javaHome == null) || (javaHome.length() == 0))
       {
-        javaHome = System.getenv(SetupUtils.OPENDS_JAVA_HOME);
+        javaHome = System.getenv(SetupUtils.OPENDJ_JAVA_HOME);
       }
       if (!Utils.supportsOption(options, javaHome, INSTALL_PATH))
       {

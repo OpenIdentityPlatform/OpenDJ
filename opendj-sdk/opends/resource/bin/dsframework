@@ -24,12 +24,13 @@
 #
 #
 #      Copyright 2006-2008 Sun Microsystems, Inc.
+#      Portions Copyright 2011 ForgeRock AS
 
 
 # This script may be used to perform operations with the global administration
 # framework
-OPENDS_INVOKE_CLASS="org.opends.server.admin.client.cli.DsFrameworkCliMain"
-export OPENDS_INVOKE_CLASS
+OPENDJ_INVOKE_CLASS="org.opends.server.admin.client.cli.DsFrameworkCliMain"
+export OPENDJ_INVOKE_CLASS
 
 SCRIPT_NAME="dsframework"
 export SCRIPT_NAME

@@ -24,11 +24,12 @@
 #
 #
 #      Copyright 2006-2008 Sun Microsystems, Inc.
+#      Portions Copyright 2011 ForgeRock AS
 
 
 # This script may be used to debug JE backends in the Directory Server.
-OPENDS_INVOKE_CLASS="org.opends.server.tools.DBTest"
-export OPENDS_INVOKE_CLASS
+OPENDJ_INVOKE_CLASS="org.opends.server.tools.DBTest"
+export OPENDJ_INVOKE_CLASS
 
 SCRIPT_NAME="dbtest"
 export SCRIPT_NAME

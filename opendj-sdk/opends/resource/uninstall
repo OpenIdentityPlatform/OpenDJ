@@ -24,6 +24,7 @@
 #
 #
 #      Copyright 2006-2008 Sun Microsystems, Inc.
+#      Portions Copyright 2011 ForgeRock AS
 
 
 # This script may be used to uninstall the server.
@@ -55,7 +56,7 @@ then
 fi
 
 # Launch the uninstall process.
-"${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} org.opends.guitools.uninstaller.UninstallLauncher "${@}"
+"${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} ${SCRIPT_NAME_ARG} org.opends.guitools.uninstaller.UninstallLauncher "${@}"
 
 # return part
 RETURN_CODE=$?

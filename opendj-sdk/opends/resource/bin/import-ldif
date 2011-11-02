@@ -24,11 +24,12 @@
 #
 #
 #      Copyright 2006-2008 Sun Microsystems, Inc.
+#      Portions Copyright 2011 ForgeRock AS
 
 
 # This script may be used to import LDIF data into a Directory Server backend.
-OPENDS_INVOKE_CLASS="org.opends.server.tools.ImportLDIF"
-export OPENDS_INVOKE_CLASS
+OPENDJ_INVOKE_CLASS="org.opends.server.tools.ImportLDIF"
+export OPENDJ_INVOKE_CLASS
 
 SCRIPT_NAME="import-ldif"
 export SCRIPT_NAME

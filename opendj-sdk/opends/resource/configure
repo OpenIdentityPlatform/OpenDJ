@@ -62,7 +62,7 @@ then
 fi
 
 # Launch the configure process.
-"${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_NAME_ARG} -DINSTALL_ROOT=${INSTALL_ROOT} org.opends.server.tools.configurator.Configurator "${@}"
+"${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} ${SCRIPT_NAME_ARG} -DINSTALL_ROOT=${INSTALL_ROOT} org.opends.server.tools.configurator.Configurator "${@}"
 
 # return part
 RETURN_CODE=$?

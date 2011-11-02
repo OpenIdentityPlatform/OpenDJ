@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -562,8 +563,8 @@ public abstract class Task
     ProcessBuilder pb = new ProcessBuilder(cmd);
     // Use the java args in the script.
     Map<String, String> env = pb.environment();
-    //env.put(SetupUtils.OPENDS_JAVA_ARGS, "");
-    env.remove(SetupUtils.OPENDS_JAVA_ARGS);
+    //env.put(SetupUtils.OPENDJ_JAVA_ARGS, "");
+    env.remove(SetupUtils.OPENDJ_JAVA_ARGS);
     env.remove("CLASSPATH");
     ProcessReader outReader = null;
     ProcessReader errReader = null;

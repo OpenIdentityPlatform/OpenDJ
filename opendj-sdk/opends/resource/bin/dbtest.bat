@@ -24,10 +24,11 @@ rem CDDL HEADER END
 rem
 rem
 rem      Copyright 2006-2008 Sun Microsystems, Inc.
+rem      Portions Copyright 2011 ForgeRock AS
 
 setlocal
 
-set OPENDS_INVOKE_CLASS="org.opends.server.tools.DBTest"
+set OPENDJ_INVOKE_CLASS="org.opends.server.tools.DBTest"
 set SCRIPT_NAME=dbtest
 for %%i in (%~sf0) do call "%%~dPsi\..\lib\_server-script.bat" %*
 

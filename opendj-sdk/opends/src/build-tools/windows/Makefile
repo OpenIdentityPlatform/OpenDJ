@@ -27,11 +27,11 @@
 
 #
 # This is the Makefile than can be used to generate the executables
-# winlauncher.exe and opends_service.exe that are used by OpenDS in
+# winlauncher.exe and opendj_service.exe that are used by OpenDS in
 # windows.
 #
 # The compilation of winlauncher.exe is straightforward but in the case of
-# opends_service.exe uses a Message File called EventLogMsg.mc which
+# opendj_service.exe uses a Message File called EventLogMsg.mc which
 # makes the compilation a little bit more complex.
 # During compilation the first step is to generate EventLogMsg.h and
 # EventLogMsg.res using the rc.exe and mc.exe utilities.
@@ -40,7 +40,7 @@
 # the Windows Event Log and is required in order service.c to be compiled.
 # Once the EvenLogMsg.h file is generated we can compile the service.c and
 # common.c and finally we link the service.obj, common.obj and
-# EventLogMsg.res files and we generate the opends_service.exe executable.
+# EventLogMsg.res files and we generate the opendj_service.exe executable.
 #
 
 CC=cl
@@ -55,7 +55,7 @@ RC=rc
 MC=mc
 MT=mt
 
-SRCS = common.c winlauncher.c service.c 
+SRCS = common.c winlauncher.c service.c
 
 SERVICE_OBJS = common.obj service.obj
 WINLAUNCHER_OBJS = common.obj winlauncher.obj
@@ -73,25 +73,25 @@ LAUNCHER_ADMINISTRATOR_MANIFEST_FILE = launcher_administrator.exe.manifest
 
 .c.obj:
   $(CC) $(CFLAGS) -c $< -Fo$@
-  
+
 $(RES_FILE):
   $(MC) $(MC_FILE)
   $(RC) /fo $(RES_FILE) $(RC_FILE)
 
 
-all: $(SERVICE_PROGNAME) $(WINLAUNCHER_PROGNAME) $(LAUNCHER_ADMINISTRATOR_PROGNAME) 
+all: $(SERVICE_PROGNAME) $(WINLAUNCHER_PROGNAME) $(LAUNCHER_ADMINISTRATOR_PROGNAME)
 
 $(SERVICE_PROGNAME) : $(RES_FILE) $(SERVICE_OBJS)
   $(LINKER) /OUT:$(SERVICE_PROGNAME) $(RES_FILE) $(SERVICE_OBJS) $(LIBS)
   $(MT) -manifest "$(SERVICE_MANIFEST_FILE)" -outputresource:"$(SERVICE_PROGNAME)";#1
-  
+
 $(WINLAUNCHER_PROGNAME) : $(WINLAUNCHER_OBJS)
   $(LINKER) $(WINLAUNCHER_OBJS) /OUT:$(WINLAUNCHER_PROGNAME)
 
 $(LAUNCHER_ADMINISTRATOR_PROGNAME) : $(WINLAUNCHER_OBJS)
   $(LINKER) $(WINLAUNCHER_OBJS) /OUT:$(LAUNCHER_ADMINISTRATOR_PROGNAME)
   $(MT) -manifest "$(LAUNCHER_ADMINISTRATOR_MANIFEST_FILE)" -outputresource:"$(LAUNCHER_ADMINISTRATOR_PROGNAME)";#1
-  
+
 clean:
   del $(SERVICE_OBJS) $(EVENTLOG_H) $(WINLAUNCHER_OBJS) $(RC_FILE) $(RES_FILE) $(SERVICE_PROGNAME) $(WINLAUNCHER_PROGNAME) $(LAUNCHER_ADMINISTRATOR_PROGNAME) core
 

@@ -23,6 +23,7 @@ rem CDDL HEADER END
 rem
 rem
 rem      Copyright 2008-2010 Sun Microsystems, Inc.
+rem      Portions Copyright 2011 ForgeRock AS
 
 set SET_JAVA_HOME_AND_ARGS_DONE=false
 set SET_ENVIRONMENT_VARS_DONE=false
@@ -83,38 +84,51 @@ goto testJava
 if "%SET_JAVA_HOME_AND_ARGS_DONE%" == "true" goto prepareCheck
 if not exist "%INSTANCE_ROOT%\lib\set-java-home.bat" goto checkEnvJavaHome
 call "%INSTANCE_ROOT%\lib\set-java-home.bat"
-if "%OPENDS_JAVA_BIN%" == "" goto checkEnvJavaHome
+if "%OPENDJ_JAVA_BIN%" == "" goto checkEnvJavaHome
 :endJavaHomeAndArgs
 set SET_JAVA_HOME_AND_ARGS_DONE=true
 goto scriptBegin
 
 :checkEnvJavaHome
-if "%OPENDS_JAVA_BIN%" == "" goto checkOpenDSJavaHome
-if not exist "%OPENDS_JAVA_BIN%" goto checkOpenDSJavaHome
+if "%OPENDJ_JAVA_BIN%" == "" goto checkEnvLegacyJavaHome
+if not exist "%OPENDJ_JAVA_BIN%" goto checkEnvLegacyJavaHome
 goto endJavaHomeAndArgs
 
-:checkOpenDSJavaHome
+:checkEnvLegacyJavaHome
+if "%OPENDS_JAVA_BIN%" == "" goto checkOpenDJJavaHome
+if not exist "%OPENDS_JAVA_BIN%" goto checkOpenDJJavaHome
+set OPENDJ_JAVA_BIN=%OPENDS_JAVA_BIN%
+goto endJavaHomeAndArgs
+
+
+:checkOpenDJJavaHome
+if "%OPENDJ_JAVA_HOME%" == "" goto checkLegacyOpenDSJavaHome
+if not exist "%OPENDJ_JAVA_HOME%\bin\java.exe" goto checkLegacyOpenDSJavaHome
+set OPENDJ_JAVA_BIN=%OPENDJ_JAVA_HOME%\bin\java.exe
+goto endJavaHomeAndArgs
+
+:checkLegacyOpenDSJavaHome
 if "%OPENDS_JAVA_HOME%" == "" goto checkJavaPath
 if not exist "%OPENDS_JAVA_HOME%\bin\java.exe" goto checkJavaPath
-set OPENDS_JAVA_BIN=%OPENDS_JAVA_HOME%\bin\java.exe
+set OPENDJ_JAVA_BIN=%OPENDS_JAVA_HOME%\bin\java.exe
 goto endJavaHomeAndArgs
 
 :checkJavaPath
 java.exe -version > NUL 2>&1
 if not %errorlevel% == 0 goto checkJavaBin
-set OPENDS_JAVA_BIN=java.exe
+set OPENDJ_JAVA_BIN=java.exe
 goto endJavaHomeAndArgs
 
 :checkJavaBin
 if "%JAVA_BIN%" == "" goto checkJavaHome
 if not exist "%JAVA_BIN%" goto checkJavaHome
-set OPENDS_JAVA_BIN=%JAVA_BIN%
+set OPENDJ_JAVA_BIN=%JAVA_BIN%
 goto endJavaHomeAndArgs
 
 :checkJavaHome
 if "%JAVA_HOME%" == "" goto noJavaFound
 if not exist "%JAVA_HOME%\bin\java.exe" goto noJavaFound
-set OPENDS_JAVA_BIN=%JAVA_HOME%\bin\java.exe
+set OPENDJ_JAVA_BIN=%JAVA_HOME%\bin\java.exe
 goto endJavaHomeAndArgs
 
 :noJavaFound
@@ -122,7 +136,7 @@ echo ERROR:  Could not find a valid Java binary to be used.
 echo You must specify the path to a valid Java 6.0 update 10 or higher version.
 echo The procedure to follow is:
 echo 1. Delete the file %INSTANCE_ROOT%\lib\set-java-home.bat if it exists.
-echo 2. Set the environment variable OPENDS_JAVA_HOME to the root of a valid
+echo 2. Set the environment variable OPENDJ_JAVA_HOME to the root of a valid
 echo Java 6.0 installation.
 echo If you want to have specific Java settings for each command line you must
 echo follow the steps 3 and 4.
@@ -141,21 +155,28 @@ set SET_ENVIRONMENT_VARS_DONE=true
 goto scriptBegin
 
 :testJava
-"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% org.opends.server.tools.InstallDS -t > NUL 2>&1
+if "%OPENDJ_JAVA_ARGS%" == "" goto checkLegacyArgs
+:continueTestJava
+"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% org.opends.server.tools.InstallDS -t > NUL 2>&1
 set RESULT_CODE=%errorlevel%
 if %RESULT_CODE% == 13 goto notSupportedJavaHome
 if not %RESULT_CODE% == 0 goto noValidJavaHome
 goto prepareCheck
 
+:checkLegacyArgs
+if "%OPENDS_JAVA_ARGS%" == "" goto continueTestJava
+set OPENDJ_JAVA_ARGS=%OPENDS_JAVA_ARGS%
+goto continueTestJava
+
 :noValidJavaHome
-if NOT "%OPENDS_JAVA_ARGS%" == "" goto noValidHomeWithArgs
+if NOT "%OPENDJ_JAVA_ARGS%" == "" goto noValidHomeWithArgs
 echo ERROR:  The detected Java version could not be used.  The detected
 echo Java binary is:
-echo %OPENDS_JAVA_BIN%
+echo %OPENDJ_JAVA_BIN%
 echo You must specify the path to a valid Java 6.0 update 10 or higher version.
 echo The procedure to follow is:
 echo 1. Delete the file %INSTANCE_ROOT%\lib\set-java-home.bat if it exists.
-echo 2. Set the environment variable OPENDS_JAVA_HOME to the root of a valid
+echo 2. Set the environment variable OPENDJ_JAVA_HOME to the root of a valid
 echo Java 6.0 installation.
 echo If you want to have specific Java settings for each command line you must
 echo follow the steps 3 and 4.
@@ -169,19 +190,19 @@ exit /B 1
 :notSupportedJavaHome
 rem We get here when the java version is 6 (or up) but not supported.  We run
 rem InstallDS again to see a localized message.
-"%OPENDS_JAVA_BIN%" %OPENDS_JAVA_ARGS% org.opends.server.tools.InstallDS -t
+"%OPENDJ_JAVA_BIN%" %OPENDJ_JAVA_ARGS% org.opends.server.tools.InstallDS -t
 pause
 exit /B 1
 
 :noValidHomeWithArgs
 echo ERROR:  The detected Java version could not be used with the set of Java
-echo arguments %OPENDS_JAVA_ARGS%.
+echo arguments %OPENDJ_JAVA_ARGS%.
 echo The detected Java binary is:
-echo %OPENDS_JAVA_BIN%
+echo %OPENDJ_JAVA_BIN%
 echo You must specify the path to a valid Java 6.0 update 10 or higher version.
 echo The procedure to follow is:
 echo 1. Delete the file %INSTANCE_ROOT%\lib\set-java-home.bat if it exists.
-echo 2. Set the environment variable OPENDS_JAVA_HOME to the root of a valid
+echo 2. Set the environment variable OPENDJ_JAVA_HOME to the root of a valid
 echo Java 6.0 installation.
 echo If you want to have specific Java settings for each command line you must
 echo follow the steps 3 and 4.
@@ -211,7 +232,7 @@ goto isVersionOrHelp
 :check
 if "%NO_CHECK%" == "true" goto end
 if "%CHECK_VERSION%" == "true" set OPT_CHECK_VERSION=--checkVersion
-"%OPENDS_JAVA_BIN%" %SCRIPT_NAME_ARG% -DINSTALL_ROOT="%INSTALL_ROOT%" -DINSTANCE_ROOT="%INSTANCE_ROOT%" org.opends.server.tools.configurator.CheckInstance %OPT_CHECK_VERSION%
+"%OPENDJ_JAVA_BIN%" %SCRIPT_NAME_ARG% -DINSTALL_ROOT="%INSTALL_ROOT%" -DINSTANCE_ROOT="%INSTANCE_ROOT%" org.opends.server.tools.configurator.CheckInstance %OPT_CHECK_VERSION%
 set RESULT_CODE=%errorlevel%
 if "%RESULT_CODE%" == "0" goto end
 exit /B 1

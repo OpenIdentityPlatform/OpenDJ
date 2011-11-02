@@ -191,10 +191,10 @@ public class Utils
       args.add(script);
       ProcessBuilder pb = new ProcessBuilder(args);
       Map<String, String> env = pb.environment();
-      env.put(SetupUtils.OPENDS_JAVA_HOME, javaHome);
-      env.put("OPENDS_JAVA_ARGS", option);
+      env.put(SetupUtils.OPENDJ_JAVA_HOME, javaHome);
+      env.put("OPENDJ_JAVA_ARGS", option);
       env.put("SCRIPT_UTIL_CMD", "set-full-environment-and-test-java");
-      env.remove("OPENDS_JAVA_BIN");
+      env.remove("OPENDJ_JAVA_BIN");
       // In windows by default the scripts ask the user to click on enter when
       // they fail.  Set this environment variable to avoid it.
       if (Utils.isWindows())

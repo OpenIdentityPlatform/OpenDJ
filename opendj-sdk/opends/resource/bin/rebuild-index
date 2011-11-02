@@ -24,12 +24,13 @@
 #
 #
 #      Copyright 2006-2008 Sun Microsystems, Inc.
+#      Portions Copyright 2011 ForgeRock AS
 
 
 # This script may be used to rebuild the contents of a Directory
 # Server backend storing its data in the Berkeley DB Java Edition.
-OPENDS_INVOKE_CLASS="org.opends.server.tools.RebuildIndex"
-export OPENDS_INVOKE_CLASS
+OPENDJ_INVOKE_CLASS="org.opends.server.tools.RebuildIndex"
+export OPENDJ_INVOKE_CLASS
 
 SCRIPT_NAME="rebuild-index"
 export SCRIPT_NAME

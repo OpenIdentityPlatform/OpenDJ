@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.util;
 
@@ -116,7 +117,7 @@ public class ControlPanelLog
 
   private static boolean disableLoggingToConsole()
   {
-    return !"true".equals(System.getenv("OPENDS_LOG_TO_STDOUT"));
+    return !"true".equals(System.getenv("OPENDJ_LOG_TO_STDOUT"));
   }
 }
 

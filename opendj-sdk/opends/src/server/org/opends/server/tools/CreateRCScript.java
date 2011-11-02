@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2010 ForgeRock AS
+ *      Portions Copyright 2010-2011 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -219,7 +219,7 @@ public class CreateRCScript
     }
     else
     {
-      javaHomeDir = System.getenv(SetupUtils.OPENDS_JAVA_HOME);
+      javaHomeDir = System.getenv(SetupUtils.OPENDJ_JAVA_HOME);
     }
 
 
@@ -277,16 +277,16 @@ public class CreateRCScript
       if (javaHomeDir != null)
       {
         w.println("# Specify the path to the Java installation to use");
-        w.println("OPENDS_JAVA_HOME=\"" + javaHomeDir + "\"");
-        w.println("export OPENDS_JAVA_HOME");
+        w.println("OPENDJ_JAVA_HOME=\"" + javaHomeDir + "\"");
+        w.println("export OPENDJ_JAVA_HOME");
         w.println();
       }
 
       if (javaArgs.isPresent())
       {
         w.println("# Specify arguments that should be provided to the JVM");
-        w.println("OPENDS_JAVA_ARGS=\"" + javaArgs.getValue() + "\"");
-        w.println("export OPENDS_JAVA_ARGS");
+        w.println("OPENDJ_JAVA_ARGS=\"" + javaArgs.getValue() + "\"");
+        w.println("export OPENDJ_JAVA_ARGS");
         w.println();
       }
 

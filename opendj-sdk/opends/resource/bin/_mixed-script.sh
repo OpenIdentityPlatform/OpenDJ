@@ -24,14 +24,15 @@
 #
 #
 #      Copyright 2008-2010 Sun Microsystems, Inc.
+#      Portions Copyright 2011 ForgeRock AS
 
 
 # This script is used to invoke processes that might be run on server or
 # in client mode (depending on the state of the server and the arguments
 # passed).  It should not be invoked directly by end users.
-if test -z "${OPENDS_INVOKE_CLASS}"
+if test -z "${OPENDJ_INVOKE_CLASS}"
 then
-  echo "ERROR:  OPENDS_INVOKE_CLASS environment variable is not set."
+  echo "ERROR:  OPENDJ_INVOKE_CLASS environment variable is not set."
   exit 1
 fi
 
@@ -56,9 +57,9 @@ export SCRIPT_NAME
 
 # We keep this values to reset the environment before calling _script-util.sh
 # for the second time.
-ORIGINAL_JAVA_ARGS=${OPENDS_JAVA_ARGS}
-ORIGINAL_JAVA_HOME=${OPENDS_JAVA_HOME}
-ORIGINAL_JAVA_BIN=${OPENDS_JAVA_BIN}
+ORIGINAL_JAVA_ARGS=${OPENDJ_JAVA_ARGS}
+ORIGINAL_JAVA_HOME=${OPENDJ_JAVA_HOME}
+ORIGINAL_JAVA_BIN=${OPENDJ_JAVA_BIN}
 
 # Set environment variables
 SCRIPT_UTIL_CMD=set-full-environment
@@ -78,18 +79,18 @@ SCRIPT_NAME_ARG=-Dorg.opends.server.scriptName=${OLD_SCRIPT_NAME}
 export SCRIPT_NAME_ARG
 
 # Check whether is local or remote
-"${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_ARGS}  ${SCRIPT_NAME_ARG} "${OPENDS_INVOKE_CLASS}" \
+"${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} ${SCRIPT_ARGS}  ${SCRIPT_NAME_ARG} "${OPENDJ_INVOKE_CLASS}" \
      --configClass org.opends.server.extensions.ConfigFileHandler \
-     --configFile "${INSTANCE_ROOT}/config/config.ldif" --testIfOffline "${@}"  
+     --configFile "${INSTANCE_ROOT}/config/config.ldif" --testIfOffline "${@}"
 EC=${?}
 if test ${EC} -eq 51
 then
   # Set the original values that the user had on the environment in order to be
   # sure that the script works with the proper arguments (in particular
   # if the user specified not to overwrite the environment).
-  OPENDS_JAVA_ARGS=${ORIGINAL_JAVA_ARGS}
-  OPENDS_JAVA_HOME=${ORIGINAL_JAVA_HOME}
-  OPENDS_JAVA_BIN=${ORIGINAL_JAVA_BIN}
+  OPENDJ_JAVA_ARGS=${ORIGINAL_JAVA_ARGS}
+  OPENDJ_JAVA_HOME=${ORIGINAL_JAVA_HOME}
+  OPENDJ_JAVA_BIN=${ORIGINAL_JAVA_BIN}
 
   # Set the environment to use the offline properties
   SCRIPT_NAME=${OLD_SCRIPT_NAME}.offline
@@ -117,9 +118,9 @@ if test ${MUST_CALL_AGAIN} = "true"
 then
   SCRIPT_NAME_ARG=-Dorg.opends.server.scriptName=${OLD_SCRIPT_NAME}
   export SCRIPT_NAME_ARG
-  
+
   # Launch the server utility.
-  "${OPENDS_JAVA_BIN}" ${OPENDS_JAVA_ARGS} ${SCRIPT_ARGS} ${SCRIPT_NAME_ARG} "${OPENDS_INVOKE_CLASS}" \
+  "${OPENDJ_JAVA_BIN}" ${OPENDJ_JAVA_ARGS} ${SCRIPT_ARGS} ${SCRIPT_NAME_ARG} "${OPENDJ_INVOKE_CLASS}" \
        --configClass org.opends.server.extensions.ConfigFileHandler \
        --configFile "${INSTANCE_ROOT}/config/config.ldif" "${@}"
 fi
