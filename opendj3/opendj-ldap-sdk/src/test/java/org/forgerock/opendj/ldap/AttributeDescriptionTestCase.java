@@ -44,6 +44,7 @@ import org.testng.annotations.Test;
 /**
  * Test {@code AttributeDescription}.
  */
+@SuppressWarnings("javadoc")
 public final class AttributeDescriptionTestCase extends OpenDJTestCase
 {
   @DataProvider(name = "dataForCompareCoreSchema")

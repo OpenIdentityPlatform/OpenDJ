@@ -44,6 +44,7 @@ import com.forgerock.opendj.ldap.LDAPConstants;
 /**
  * Tests Generic Bind requests.
  */
+@SuppressWarnings("javadoc")
 public class GenericBindRequestTestCase extends BindRequestTestCase
 {
   @DataProvider(name = "GenericBindRequests")

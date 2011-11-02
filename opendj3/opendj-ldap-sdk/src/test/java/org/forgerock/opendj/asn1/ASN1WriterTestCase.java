@@ -52,6 +52,7 @@ import com.forgerock.opendj.util.StaticUtils;
  * An abstract base class for all ASN1Writer test cases.
  */
 @Test(groups = { "precommit", "asn1", "sdk" })
+@SuppressWarnings("javadoc")
 public abstract class ASN1WriterTestCase extends OpenDJTestCase
 {
 

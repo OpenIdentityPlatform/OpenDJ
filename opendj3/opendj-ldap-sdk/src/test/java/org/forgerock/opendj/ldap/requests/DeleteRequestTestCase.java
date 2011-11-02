@@ -39,6 +39,7 @@ import org.testng.annotations.DataProvider;
 /**
  * Tests the delete request.
  */
+@SuppressWarnings("javadoc")
 public class DeleteRequestTestCase extends RequestTestCase
 {
   @DataProvider(name = "DeleteRequests")

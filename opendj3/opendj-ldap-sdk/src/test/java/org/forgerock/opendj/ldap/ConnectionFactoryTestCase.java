@@ -66,6 +66,7 @@ import com.forgerock.opendj.util.StaticUtils;
 /**
  * Tests the {@code ConnectionFactory} classes.
  */
+@SuppressWarnings("javadoc")
 public class ConnectionFactoryTestCase extends SdkTestCase
 {
   class MyResultHandler implements ResultHandler<AsynchronousConnection>

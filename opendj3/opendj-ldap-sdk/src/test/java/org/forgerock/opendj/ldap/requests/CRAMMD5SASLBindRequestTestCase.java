@@ -42,6 +42,7 @@ import org.testng.annotations.DataProvider;
 /**
  * Tests CRAM MD5 SASL bind requests.
  */
+@SuppressWarnings("javadoc")
 public class CRAMMD5SASLBindRequestTestCase extends BindRequestTestCase
 {
   @DataProvider(name = "CRAMMD5SASLBindRequests")

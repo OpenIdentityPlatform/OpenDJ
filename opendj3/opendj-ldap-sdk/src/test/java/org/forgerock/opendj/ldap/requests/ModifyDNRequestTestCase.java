@@ -38,6 +38,7 @@ import org.testng.annotations.DataProvider;
 /**
  * Tests the Modify DN requests.
  */
+@SuppressWarnings("javadoc")
 public class ModifyDNRequestTestCase extends RequestTestCase
 {
   @DataProvider(name = "ModifyDNRequests")

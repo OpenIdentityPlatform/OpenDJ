@@ -38,6 +38,7 @@ import org.testng.annotations.DataProvider;
 /**
  * Tests the external SASL Bind requests.
  */
+@SuppressWarnings("javadoc")
 public class ExternalSASLBindRequestTestCase extends BindRequestTestCase
 {
   @DataProvider(name = "ExternalSASLBindRequests")

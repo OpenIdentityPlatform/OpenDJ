@@ -47,6 +47,7 @@ import org.testng.annotations.Test;
 /**
  * Test case for ByteStringBuilder.
  */
+@SuppressWarnings("javadoc")
 public class ByteStringBuilderTestCase extends ByteSequenceTestCase
 {
   private static final byte[] eightBytes = new byte[] { (byte) 0x01,

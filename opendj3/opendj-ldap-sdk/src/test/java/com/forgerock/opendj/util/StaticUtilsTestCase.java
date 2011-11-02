@@ -45,6 +45,7 @@ import com.forgerock.opendj.util.StaticUtils;
 /**
  * Test {@code StaticUtils}.
  */
+@SuppressWarnings("javadoc")
 public final class StaticUtilsTestCase extends UtilTestCase
 {
   /**

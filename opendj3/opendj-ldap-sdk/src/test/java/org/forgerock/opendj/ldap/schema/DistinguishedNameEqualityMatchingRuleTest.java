@@ -43,6 +43,7 @@ import org.testng.annotations.Test;
 /**
  * Test the DistinguishedNameEqualityMatchingRule
  */
+@SuppressWarnings("javadoc")
 public class DistinguishedNameEqualityMatchingRuleTest extends MatchingRuleTest
 {
   @DataProvider(name = "matchingRuleInvalidAttributeValues")

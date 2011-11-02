@@ -44,6 +44,7 @@ import org.testng.annotations.Test;
  * Test {@code BasicAttribute}.
  */
 
+@SuppressWarnings("javadoc")
 public final class LinkedAttributeTestCase extends SdkTestCase
 {
   @Test

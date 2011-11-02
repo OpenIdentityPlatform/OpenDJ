@@ -42,6 +42,7 @@ import org.testng.annotations.DataProvider;
 /**
  * Tests Plain SASL Bind requests.
  */
+@SuppressWarnings("javadoc")
 public class PlainSASLBindRequestTestCase extends BindRequestTestCase
 {
   @DataProvider(name = "plainSASLBindRequests")

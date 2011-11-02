@@ -37,6 +37,7 @@ import org.testng.annotations.Test;
 /**
  * Core schema tests
  */
+@SuppressWarnings("javadoc")
 public class CoreSchemaTest extends SchemaTestCase
 {
   @Test

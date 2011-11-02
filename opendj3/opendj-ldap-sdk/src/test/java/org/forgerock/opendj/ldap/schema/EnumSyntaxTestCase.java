@@ -42,6 +42,7 @@ import org.testng.annotations.Test;
 /**
  * Enum syntax tests.
  */
+@SuppressWarnings("javadoc")
 public class EnumSyntaxTestCase extends SyntaxTestCase
 {
   /**

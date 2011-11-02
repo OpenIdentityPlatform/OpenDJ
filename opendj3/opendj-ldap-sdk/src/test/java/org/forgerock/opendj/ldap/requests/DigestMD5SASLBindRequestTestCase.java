@@ -46,6 +46,7 @@ import org.testng.annotations.Test;
 /**
  * Tests Digest MD5 SASL requests.
  */
+@SuppressWarnings("javadoc")
 public class DigestMD5SASLBindRequestTestCase extends BindRequestTestCase
 {
   @DataProvider(name = "DigestMD5SASLBindRequests")

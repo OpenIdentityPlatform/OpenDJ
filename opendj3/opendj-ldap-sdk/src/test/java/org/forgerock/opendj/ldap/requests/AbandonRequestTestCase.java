@@ -38,6 +38,7 @@ import org.testng.annotations.DataProvider;
 /**
  * Tests Abandon requests.
  */
+@SuppressWarnings("javadoc")
 public class AbandonRequestTestCase extends RequestTestCase
 {
   @DataProvider(name = "abandonRequests")

@@ -45,6 +45,7 @@ import org.testng.annotations.Test;
  * This Test Class tests various matching rules for their compability against
  * RFC 4517,4518 and 3454.
  */
+@SuppressWarnings("javadoc")
 public class StringPrepProfileTestCase extends UtilTestCase
 {
   /**

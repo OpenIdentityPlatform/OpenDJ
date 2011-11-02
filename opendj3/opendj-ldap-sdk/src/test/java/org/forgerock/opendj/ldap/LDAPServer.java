@@ -57,6 +57,7 @@ import com.forgerock.opendj.ldap.controls.AccountUsabilityResponseControl;
  * A simple ldap server that manages 1000 entries and used for running
  * testcases. //FIXME: make it MT-safe.
  */
+@SuppressWarnings("javadoc")
 public class LDAPServer implements
     ServerConnectionFactory<LDAPClientContext, Integer>
 {

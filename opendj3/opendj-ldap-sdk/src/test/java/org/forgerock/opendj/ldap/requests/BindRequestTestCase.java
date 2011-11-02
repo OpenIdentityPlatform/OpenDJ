@@ -42,6 +42,7 @@ import com.forgerock.opendj.ldap.LDAPConstants;
 /**
  * Tests the BIND requests.
  */
+@SuppressWarnings("javadoc")
 public abstract class BindRequestTestCase extends RequestTestCase
 {
   @Test(dataProvider = "testRequests")

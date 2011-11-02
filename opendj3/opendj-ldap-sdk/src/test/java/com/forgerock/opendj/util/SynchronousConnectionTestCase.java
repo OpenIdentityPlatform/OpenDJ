@@ -53,6 +53,7 @@ import com.forgerock.opendj.util.SynchronousConnection;
 /**
  * This class tests the Synchronous Connection API.
  */
+@SuppressWarnings("javadoc")
 public class SynchronousConnectionTestCase extends TypesTestCase
 {
   private AsynchronousConnection asyncCon;

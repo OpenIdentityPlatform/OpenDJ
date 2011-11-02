@@ -42,6 +42,7 @@ import org.testng.annotations.Test;
 /**
  * Ordering matching rule tests.
  */
+@SuppressWarnings("javadoc")
 public abstract class OrderingMatchingRuleTest extends SchemaTestCase
 {
   /**

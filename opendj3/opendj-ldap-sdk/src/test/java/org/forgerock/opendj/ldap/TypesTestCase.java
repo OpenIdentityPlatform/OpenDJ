@@ -42,6 +42,7 @@ import org.testng.annotations.Test;
  */
 
 @Test(groups = { "precommit", "types", "sdk" })
+@SuppressWarnings("javadoc")
 public class TypesTestCase extends SdkTestCase
 {
   /**

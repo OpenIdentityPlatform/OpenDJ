@@ -41,6 +41,7 @@ import org.testng.annotations.Test;
 
 
 
+@SuppressWarnings("javadoc")
 public class FilterTestCase extends SdkTestCase
 {
   @DataProvider(name = "badfilterstrings")

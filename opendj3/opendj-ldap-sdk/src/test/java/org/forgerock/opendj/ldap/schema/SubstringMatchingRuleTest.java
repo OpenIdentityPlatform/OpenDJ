@@ -47,6 +47,7 @@ import org.testng.annotations.Test;
  * Abstract class for building test for the substring matching rules. This class
  * is intended to be extended by one class for each substring matching rules.
  */
+@SuppressWarnings("javadoc")
 public abstract class SubstringMatchingRuleTest extends SchemaTestCase
 {
   /**

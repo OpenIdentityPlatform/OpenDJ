@@ -45,6 +45,7 @@ import org.testng.annotations.Test;
 /**
  * Tests GSSAPI SASL Bind requests.
  */
+@SuppressWarnings("javadoc")
 public class GSSAPISASLBindRequestTestCase extends BindRequestTestCase
 {
   @DataProvider(name = "GSSAPISASLBindRequests")

@@ -38,6 +38,7 @@ import org.testng.annotations.DataProvider;
 /**
  * @author sin
  */
+@SuppressWarnings("javadoc")
 public class CompareRequestTestCase extends RequestTestCase
 {
   @DataProvider(name = "CompareRequests")

@@ -38,6 +38,7 @@ import org.testng.annotations.DataProvider;
 /**
  * Tests Simple Bind requests.
  */
+@SuppressWarnings("javadoc")
 public class SimpleBindRequestTestCase extends BindRequestTestCase
 {
   @DataProvider(name = "simpleBindRequests")

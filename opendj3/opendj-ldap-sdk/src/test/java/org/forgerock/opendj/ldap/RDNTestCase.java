@@ -51,6 +51,7 @@ import org.testng.annotations.Test;
 /**
  * This class defines a set of tests for the {@link org.forgerock.opendj.ldap.RDN} class.
  */
+@SuppressWarnings("javadoc")
 public final class RDNTestCase extends TypesTestCase
 {
 
