@@ -681,8 +681,8 @@ $(".flat").live("dblclick", function() {
                   </pluginExecutionFilter>
                   <action>
                     <execute>
-                      <runOnIncremental>see below</runOnIncremental>
-                      <runOnConfiguration>see below</runOnConfiguration>
+                      <runOnIncremental>true</runOnIncremental>
+                      <runOnConfiguration>true</runOnConfiguration>
                     </execute>
                   </action>
                 </pluginExecution>
