@@ -85,10 +85,14 @@ ds-backend-base-dn: dc=example,dc=com
   in <link xlink:href="http://tools.ietf.org/html/rfc2605">RFC 2605: Directory
   Server Monitoring MIB</link>.</para>
   
-  <para>OpenDJ SNMP-based monitoring depends on OpenDMK, installed with
-  OpenDJ that you download from ForgeRock, but not enabled by default. You can
+  <para>OpenDJ SNMP-based monitoring depends on OpenDMK, which you must
+  <link xlink:href="http://opendmk.java.net/download/">download
+  separately</link>. Install the Full Binary Bundle alongside OpenDJ. OpenDJ
+  that you download from ForgeRock is built with OpenDMK, but OpenDMK is not
+  part of OpenDJ, and SNMP is therefore not enabled by default. You can
   set up a connection handler for SNMP by enabling the connection
-  handler.</para>
+  handler, and pointing OpenDJ to your installation of the OpenDMK
+  libraries.</para>
   
   <screen>$ dsconfig
  set-connection-handler-prop
@@ -98,11 +102,28 @@ ds-backend-base-dn: dc=example,dc=com
  --bindPassword password
  --handler-name "SNMP Connection Handler"
  --set enabled:true
+ --set opendmk-jarfile:/path/to/OpenDMK-bin/lib/jdmkrt.jar
  --trustAll
  --no-prompt</screen>
   
   <para>By default, the SNMP Connection Handler listens on port 161 and uses
-  port 162 for traps.</para>
+  port 162 for traps. On UNIX and Linux systems, only root can normally open
+  these ports. Therefore if you install as a normal user, you might want
+  to change the listen and trap ports.</para>
+  
+  <screen>$ dsconfig
+ set-connection-handler-prop
+ --port 4444
+ --hostname `hostname`
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "SNMP Connection Handler"
+ --set listen-port:11161
+ --set trap-port:11162
+ --trustAll
+ --no-prompt
+$ snmpwalk -v 2c -c OpenDJ@OpenDJ localhost:11161 mib-2.66.1.1.2.1
+SNMPv2-SMI::mib-2.66.1.1.2.1 = STRING: "/path/to/OpenDJ"</screen>
  </section>
 
  <section xml:id="jmx-monitoring">
