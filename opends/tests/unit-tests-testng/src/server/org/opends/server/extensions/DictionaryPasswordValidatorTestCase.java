@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 profiq, s.r.o.
  */
 package org.opends.server.extensions;
 
@@ -127,6 +128,8 @@ public class DictionaryPasswordValidatorTestCase
          "ds-cfg-dictionary-file: " + dictionaryFile,
          "ds-cfg-case-sensitive-validation: false",
          "ds-cfg-test-reversed-password: true",
+         "ds-cfg-check-substrings: true",
+         "ds-cfg-min-substring-length: 3",
          "",
          "dn: cn=Dictionary,cn=Password Validators,cn=config",
          "objectClass: top",
@@ -139,6 +142,7 @@ public class DictionaryPasswordValidatorTestCase
          "ds-cfg-dictionary-file: " + dictionaryFile,
          "ds-cfg-case-sensitive-validation: true",
          "ds-cfg-test-reversed-password: true",
+         "ds-cfg-check-substrings: false",
          "",
          "dn: cn=Dictionary,cn=Password Validators,cn=config",
          "objectClass: top",
@@ -150,7 +154,8 @@ public class DictionaryPasswordValidatorTestCase
          "ds-cfg-enabled: true",
          "ds-cfg-dictionary-file: " + dictionaryFile,
          "ds-cfg-case-sensitive-validation: false",
-         "ds-cfg-test-reversed-password: true");
+         "ds-cfg-test-reversed-password: true",
+         "ds-cfg-check-substrings: true");
 
     Object[][] array = new Object[entries.size()][1];
     for (int i=0; i < array.length; i++)
@@ -208,6 +213,7 @@ public class DictionaryPasswordValidatorTestCase
          "ds-cfg-dictionary-file: invalid",
          "ds-cfg-case-sensitive-validation: false",
          "ds-cfg-test-reversed-password: true",
+         "ds-cfg-check-substrings: false",
          "",
          // Dictionary file not a file.
          "dn: cn=Dictionary,cn=Password Validators,cn=config",
@@ -221,6 +227,7 @@ public class DictionaryPasswordValidatorTestCase
          "ds-cfg-dictionary-file: config",
          "ds-cfg-case-sensitive-validation: false",
          "ds-cfg-test-reversed-password: true",
+         "ds-cfg-check-substrings: false",
          "",
          // Invalid case-sensitive-validation
          "dn: cn=Dictionary,cn=Password Validators,cn=config",
@@ -234,6 +241,7 @@ public class DictionaryPasswordValidatorTestCase
          "ds-cfg-dictionary-file: " + dictionaryFile,
          "ds-cfg-case-sensitive-validation: invalid",
          "ds-cfg-test-reversed-password: true",
+         "ds-cfg-check-substrings: false",
          "",
          // Invalid test-reversed-password
          "dn: cn=Dictionary,cn=Password Validators,cn=config",
@@ -246,7 +254,37 @@ public class DictionaryPasswordValidatorTestCase
          "ds-cfg-enabled: true",
          "ds-cfg-dictionary-file: " + dictionaryFile,
          "ds-cfg-case-sensitive-validation: false",
-         "ds-cfg-test-reversed-password: invalid");
+         "ds-cfg-test-reversed-password: invalid",
+         "ds-cfg-check-substrings: false",
+         "",
+         // Invalid check-substrings
+         "dn: cn=Dictionary,cn=Password Validators,cn=config",
+         "objectClass: top",
+         "objectClass: ds-cfg-password-validator",
+         "objectClass: ds-cfg-dictionary-password-validator",
+         "cn: Dictionary",
+         "ds-cfg-java-class: org.opends.server.extensions." +
+              "DictionaryPasswordValidator",
+         "ds-cfg-enabled: true",
+         "ds-cfg-dictionary-file: " + dictionaryFile,
+         "ds-cfg-case-sensitive-validation: false",
+         "ds-cfg-test-reversed-password: invalid",
+         "ds-cfg-check-substrings: invalid",
+         "",
+         // Invalid min-substring-length
+         "dn: cn=Dictionary,cn=Password Validators,cn=config",
+         "objectClass: top",
+         "objectClass: ds-cfg-password-validator",
+         "objectClass: ds-cfg-dictionary-password-validator",
+         "cn: Dictionary",
+         "ds-cfg-java-class: org.opends.server.extensions." +
+              "DictionaryPasswordValidator",
+         "ds-cfg-enabled: true",
+         "ds-cfg-dictionary-file: " + dictionaryFile,
+         "ds-cfg-case-sensitive-validation: false",
+         "ds-cfg-test-reversed-password: invalid",
+         "ds-cfg-check-substrings: true",
+         "ds-cfg-min-substring-length: invalid");
 
     Object[][] array = new Object[entries.size()][1];
     for (int i=0; i < array.length; i++)
@@ -311,6 +349,7 @@ public class DictionaryPasswordValidatorTestCase
              "ds-cfg-enabled: true",
              "ds-cfg-dictionary-file: " + dictionaryFile,
              "ds-cfg-case-sensitive-validation: false",
+             "ds-cfg-check-substrings: false",
              "ds-cfg-test-reversed-password: true"),
         "notindictionary",
         true
@@ -330,6 +369,7 @@ public class DictionaryPasswordValidatorTestCase
              "ds-cfg-enabled: true",
              "ds-cfg-dictionary-file: " + dictionaryFile,
              "ds-cfg-case-sensitive-validation: false",
+             "ds-cfg-check-substrings: false",
              "ds-cfg-test-reversed-password: true"),
         "password",
         false
@@ -350,6 +390,7 @@ public class DictionaryPasswordValidatorTestCase
              "ds-cfg-enabled: true",
              "ds-cfg-dictionary-file: " + dictionaryFile,
              "ds-cfg-case-sensitive-validation: false",
+             "ds-cfg-check-substrings: false",
              "ds-cfg-test-reversed-password: true"),
         "PaSsWoRd",
         false
@@ -370,6 +411,7 @@ public class DictionaryPasswordValidatorTestCase
              "ds-cfg-enabled: true",
              "ds-cfg-dictionary-file: " + dictionaryFile,
              "ds-cfg-case-sensitive-validation: true",
+             "ds-cfg-check-substrings: false",
              "ds-cfg-test-reversed-password: true"),
         "PaSsWoRd",
         true
@@ -453,6 +495,140 @@ public class DictionaryPasswordValidatorTestCase
              "ds-cfg-test-reversed-password: true"),
         "dRoWsSaP",
         true
+      },
+   
+      // Substrings checking configuration with a word in the dictionary,
+      // case-sensitive matching enabled
+      new Object[]
+      {
+        TestCaseUtils.makeEntry(
+             "dn: cn=Dictionary,cn=Password Validators,cn=config",
+             "objectClass: top",
+             "objectClass: ds-cfg-password-validator",
+             "objectClass: ds-cfg-dictionary-password-validator",
+             "cn: Dictionary",
+             "ds-cfg-java-class: org.opends.server.extensions." +
+                  "DictionaryPasswordValidator",
+             "ds-cfg-enabled: true",
+             "ds-cfg-dictionary-file: " + dictionaryFile,
+             "ds-cfg-case-sensitive-validation: true",
+             "ds-cfg-check-substrings: true",
+             "ds-cfg-min-substring-length: 3",
+             "ds-cfg-test-reversed-password: true"),
+        "oldpassword",
+        false
+      },
+      
+      // Substrings checking configuration with a word in the dictionary,
+      // case-sensitive matching disabled
+      new Object[]
+      {
+        TestCaseUtils.makeEntry(
+             "dn: cn=Dictionary,cn=Password Validators,cn=config",
+             "objectClass: top",
+             "objectClass: ds-cfg-password-validator",
+             "objectClass: ds-cfg-dictionary-password-validator",
+             "cn: Dictionary",
+             "ds-cfg-java-class: org.opends.server.extensions." +
+                  "DictionaryPasswordValidator",
+             "ds-cfg-enabled: true",
+             "ds-cfg-dictionary-file: " + dictionaryFile,
+             "ds-cfg-case-sensitive-validation: false",
+             "ds-cfg-check-substrings: true",
+             "ds-cfg-min-substring-length: 3",
+             "ds-cfg-test-reversed-password: true"),
+        "NewPassword",
+        false
+      },
+      
+      // Substrings checking configuration with a word in the dictionary,
+      // case-sensitive matching enabled (dictionary word is lower case)
+      new Object[]
+      {
+        TestCaseUtils.makeEntry(
+             "dn: cn=Dictionary,cn=Password Validators,cn=config",
+             "objectClass: top",
+             "objectClass: ds-cfg-password-validator",
+             "objectClass: ds-cfg-dictionary-password-validator",
+             "cn: Dictionary",
+             "ds-cfg-java-class: org.opends.server.extensions." +
+                  "DictionaryPasswordValidator",
+             "ds-cfg-enabled: true",
+             "ds-cfg-dictionary-file: " + dictionaryFile,
+             "ds-cfg-case-sensitive-validation: true",
+             "ds-cfg-check-substrings: true",
+             "ds-cfg-min-substring-length: 3",
+             "ds-cfg-test-reversed-password: true"),
+        "NewPassword",
+        true
+      },
+      
+      // Substrings checking configuration with a word in the dictionary,
+      // case-sensitive matching disabled, and minimal substring length
+      // of 5 while the password is only 3 characters
+      new Object[]
+      {
+        TestCaseUtils.makeEntry(
+             "dn: cn=Dictionary,cn=Password Validators,cn=config",
+             "objectClass: top",
+             "objectClass: ds-cfg-password-validator",
+             "objectClass: ds-cfg-dictionary-password-validator",
+             "cn: Dictionary",
+             "ds-cfg-java-class: org.opends.server.extensions." +
+                  "DictionaryPasswordValidator",
+             "ds-cfg-enabled: true",
+             "ds-cfg-dictionary-file: " + dictionaryFile,
+             "ds-cfg-case-sensitive-validation: false",
+             "ds-cfg-check-substrings: true",
+             "ds-cfg-min-substring-length: 5",
+             "ds-cfg-test-reversed-password: true"),
+        "god",
+        false
+      },
+      
+      // Substrings checking configuration with a word in the dictionary,
+      // case-sensitive matching disabled, and minimal substring length
+      // of 5 while the word in the dictionary is only 3 characters
+      new Object[]
+      {
+        TestCaseUtils.makeEntry(
+             "dn: cn=Dictionary,cn=Password Validators,cn=config",
+             "objectClass: top",
+             "objectClass: ds-cfg-password-validator",
+             "objectClass: ds-cfg-dictionary-password-validator",
+             "cn: Dictionary",
+             "ds-cfg-java-class: org.opends.server.extensions." +
+                  "DictionaryPasswordValidator",
+             "ds-cfg-enabled: true",
+             "ds-cfg-dictionary-file: " + dictionaryFile,
+             "ds-cfg-case-sensitive-validation: false",
+             "ds-cfg-check-substrings: true",
+             "ds-cfg-min-substring-length: 5",
+             "ds-cfg-test-reversed-password: true"),
+        "godblessus",
+        true
+      },
+      
+      // Substring checking configuration with a reverse of a word in the 
+      // dictionary, reversed matching enabled and case-insensitive 
+      // matching enabled
+      new Object[]
+      {
+        TestCaseUtils.makeEntry(
+             "dn: cn=Dictionary,cn=Password Validators,cn=config",
+             "objectClass: top",
+             "objectClass: ds-cfg-password-validator",
+             "objectClass: ds-cfg-dictionary-password-validator",
+             "cn: Dictionary",
+             "ds-cfg-java-class: org.opends.server.extensions." +
+                  "DictionaryPasswordValidator",
+             "ds-cfg-enabled: true",
+             "ds-cfg-dictionary-file: " + dictionaryFile,
+             "ds-cfg-case-sensitive-validation: false",
+             "ds-cfg-test-reversed-password: true",
+             "ds-cfg-check-substrings: true"),
+        "sdfdRoWsSaPqwerty",
+        false
       },
     };
   }

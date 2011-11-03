@@ -1666,6 +1666,7 @@ ds-cfg-enabled: false
 ds-cfg-dictionary-file: config/wordlist.txt
 ds-cfg-case-sensitive-validation: false
 ds-cfg-test-reversed-password: true
+ds-cfg-check-substrings: false
 
 dn: cn=Length-Based Password Validator,cn=Password Validators,cn=config
 objectClass: top

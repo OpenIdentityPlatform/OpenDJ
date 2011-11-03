@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 profiq, s.r.o.
  */
 package org.opends.server.extensions;
 import org.opends.messages.Message;
@@ -124,9 +125,7 @@ public class DictionaryPasswordValidator
   {
     // Get a handle to the current configuration.
     DictionaryPasswordValidatorCfg config = currentConfig;
-    HashSet<String> dictionary = this.dictionary;
-
-
+    
     // Check to see if the provided password is in the dictionary in the order
     // that it was provided.
     String password = newPassword.toString();
@@ -135,26 +134,43 @@ public class DictionaryPasswordValidator
       password = toLowerCase(password);
     }
 
-    if (dictionary.contains(password))
+    // Check to see if we should verify the whole password or the substrings.
+    // Either way, we initialise the minSubstringLength to the length of
+    // the password which is the default behaviour ('check-substrings: false')
+    int minSubstringLength = password.length();
+
+    if (config.isCheckSubstrings())
+    {
+      // We apply the minimal substring length only if the provided value
+      // is smaller then the actual password length
+      if (config.getMinSubstringLength() < password.length())
+      {
+        minSubstringLength = config.getMinSubstringLength();
+      }
+    }
+  
+    // Verify if the dictionary contains the word(s) in the password
+    if (isDictionaryBased(password, minSubstringLength))
     {
       invalidReason.append(
-              ERR_DICTIONARY_VALIDATOR_PASSWORD_IN_DICTIONARY.get());
+        ERR_DICTIONARY_VALIDATOR_PASSWORD_IN_DICTIONARY.get());
       return false;
     }
-
-
-    // If we should try the reversed value, then do that as well.
+    
+    // If the reverse password checking is enabled, then verify if the
+    // reverse value of the password is in the dictionary.
     if (config.isTestReversedPassword())
     {
-      if (dictionary.contains(new StringBuilder(password).reverse().toString()))
+      if (isDictionaryBased(
+        new StringBuilder(password).reverse().toString(), minSubstringLength))
       {
         invalidReason.append(
-                ERR_DICTIONARY_VALIDATOR_PASSWORD_IN_DICTIONARY.get());
+          ERR_DICTIONARY_VALIDATOR_PASSWORD_IN_DICTIONARY.get());
         return false;
       }
     }
 
-
+    
     // If we've gotten here, then the password is acceptable.
     return true;
   }
@@ -306,5 +322,25 @@ public class DictionaryPasswordValidator
 
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
-}
 
+  private boolean isDictionaryBased(String password,
+                                    int minSubstringLength)
+  {
+    HashSet<String> dictionary = this.dictionary;
+    final int passwordLength = password.length();
+
+    for (int i = 0; i < passwordLength; i++)
+    {
+      for (int j = i + minSubstringLength; j <= passwordLength; j++)
+      {
+        String substring = password.substring(i, j);
+        if (dictionary.contains(substring))
+        {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+}
