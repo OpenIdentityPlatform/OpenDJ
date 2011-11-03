@@ -62,11 +62,12 @@
    </listitem>
   </varlistentry>
   <varlistentry xml:id="snmp-port">
-   <term>SNMP: 161</term>
+   <term>SNMP: 161, 162</term>
    <listitem>
     <indexterm><primary>Ports</primary><secondary>161</secondary></indexterm>
+    <indexterm><primary>Ports</primary><secondary>162</secondary></indexterm>
     <para>OpenDJ directory server listens for SNMP traffic on port 161 by
-    default. SNMP is not enabled by default.</para>
+    default, and uses port 162 for traps. SNMP is not enabled by default.</para>
    </listitem>
   </varlistentry>
   <varlistentry xml:id="jmx-port">

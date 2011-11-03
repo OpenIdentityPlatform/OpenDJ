@@ -85,26 +85,24 @@ ds-backend-base-dn: dc=example,dc=com
   in <link xlink:href="http://tools.ietf.org/html/rfc2605">RFC 2605: Directory
   Server Monitoring MIB</link>.</para>
   
-  <para>OpenDJ SNMP-based monitoring depends on OpenDMK, not currently
-  installed by default. Before using SNMP-based monitoring, first <link
-  xlink:href="http://opendmk.java.net/download/">download</link>, and install
-  OpenDMK, provided separately due to licensing restrictions. Once you have
-  installed OpenDMK, you can set up a connection handler for SNMP.</para>
+  <para>OpenDJ SNMP-based monitoring depends on OpenDMK, installed with
+  OpenDJ that you download from ForgeRock, but not enabled by default. You can
+  set up a connection handler for SNMP by enabling the connection
+  handler.</para>
   
   <screen>$ dsconfig
- create-connection-handler
+ set-connection-handler-prop
  --port 4444
  --hostname `hostname`
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --handler-name "SNMP Connection Handler"
- --type snmp
  --set enabled:true
- --set listen-port:11161
- --set trap-port:11162
- --set opendmk-jarfile:<replaceable>OpenDMK-install-dir</replaceable>/lib/jdmkrt.jar
  --trustAll
  --no-prompt</screen>
+  
+  <para>By default, the SNMP Connection Handler listens on port 161 and uses
+  port 162 for traps.</para>
  </section>
 
  <section xml:id="jmx-monitoring">
