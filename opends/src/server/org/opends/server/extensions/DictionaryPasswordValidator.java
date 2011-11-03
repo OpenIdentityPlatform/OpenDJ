@@ -125,7 +125,7 @@ public class DictionaryPasswordValidator
   {
     // Get a handle to the current configuration.
     DictionaryPasswordValidatorCfg config = currentConfig;
-    
+
     // Check to see if the provided password is in the dictionary in the order
     // that it was provided.
     String password = newPassword.toString();
@@ -148,7 +148,7 @@ public class DictionaryPasswordValidator
         minSubstringLength = config.getMinSubstringLength();
       }
     }
-  
+
     // Verify if the dictionary contains the word(s) in the password
     if (isDictionaryBased(password, minSubstringLength))
     {
@@ -156,7 +156,7 @@ public class DictionaryPasswordValidator
         ERR_DICTIONARY_VALIDATOR_PASSWORD_IN_DICTIONARY.get());
       return false;
     }
-    
+
     // If the reverse password checking is enabled, then verify if the
     // reverse value of the password is in the dictionary.
     if (config.isTestReversedPassword())
@@ -170,7 +170,7 @@ public class DictionaryPasswordValidator
       }
     }
 
-    
+
     // If we've gotten here, then the password is acceptable.
     return true;
   }
