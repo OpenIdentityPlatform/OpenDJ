@@ -300,6 +300,8 @@ pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config</sc
  --bindPassword password
  --validator-name Dictionary
  --set enabled:true
+ --set check-substrings:true
+ --set min-substring-length:4
  --trustAll
  --no-prompt</screen>
    </step>
