@@ -92,7 +92,7 @@ ds-backend-base-dn: dc=example,dc=com
   part of OpenDJ, and SNMP is therefore not enabled by default. You can
   set up a connection handler for SNMP by enabling the connection
   handler, and pointing OpenDJ to your installation of the OpenDMK
-  libraries.</para>
+  <filename>jdmkrt.jar</filename> library.</para>
   
   <screen>$ dsconfig
  set-connection-handler-prop
