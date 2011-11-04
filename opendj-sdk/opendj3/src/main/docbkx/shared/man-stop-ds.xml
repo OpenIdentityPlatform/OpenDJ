@@ -47,6 +47,10 @@
   <title>Description</title>
   <para>This utility can be used to request that the directory server stop
   running or perform a restart.</para>
+  <para>When run without connection options, <command>stop-ds</command>
+  sends a signal to the OpenDJ process to stop the server. When run with
+  connection options, the <command>stop-ds</command> connects to the OpenDJ
+  administration port and creates a shutdown task to stop the server.</para>
  </refsect1>
  <refsect1>
   <title>Options</title>
