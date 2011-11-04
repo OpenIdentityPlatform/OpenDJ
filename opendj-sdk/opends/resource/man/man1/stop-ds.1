@@ -2,12 +2,12 @@
 .\"     Title: stop-ds
 .\"    Author: Mark Craig
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: October\ \&20,\ \&2011
+.\"      Date: November\ \&04,\ \&2011
 .\"    Manual: Tools Reference
 .\"    Source: OpenDJ 2.5.0
 .\"  Language: English
 .\"
-.TH "STOP\-DS" "1" "October\ \&20,\ \&2011" "OpenDJ 2.5.0" "Tools Reference"
+.TH "STOP\-DS" "1" "November\ \&04,\ \&2011" "OpenDJ 2.5.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -35,6 +35,12 @@ stop-ds \- stop OpenDJ directory server
 .SH "DESCRIPTION"
 .PP
 This utility can be used to request that the directory server stop running or perform a restart\&.
+.PP
+When run without connection options,
+\fBstop\-ds\fR
+sends a signal to the OpenDJ process to stop the server\&. When run with connection options, the
+\fBstop\-ds\fR
+connects to the OpenDJ administration port and creates a shutdown task to stop the server\&.
 .SH "OPTIONS"
 .PP
 The following options are supported\&.
