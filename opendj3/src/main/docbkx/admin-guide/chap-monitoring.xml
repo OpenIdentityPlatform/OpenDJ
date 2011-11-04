@@ -493,7 +493,7 @@ $ dsconfig
  --handler-name "SMTP Alert Handler"
  --type smtp
  --set enabled:true
- --set message-subject: "OpenDJ Alert, Type: %%alert-type%%, ID: %%alert-id%%"
+ --set message-subject:"OpenDJ Alert, Type: %%alert-type%%, ID: %%alert-id%%"
  --set message-body:"%%alert-message%%"
  --set recipient-address:kvaughan@example.com
  --set sender-address:opendj@example.com
