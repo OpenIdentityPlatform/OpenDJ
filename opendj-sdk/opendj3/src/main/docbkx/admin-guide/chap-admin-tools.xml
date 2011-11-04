@@ -114,9 +114,9 @@
     <term>Schema</term>
     <listitem>
      <para>The Manage Schema window lets you browse and modify the rules
-     that define how data is stored in the directory. You can modify the
-     schema while the server is running, and the changes you make take effect
-     immediately.</para>
+     that define how data is stored in the directory. You can add new schema
+     definitions such as new attribute types and new object classes while the
+     server is running, and the changes you make take effect immediately.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
@@ -170,8 +170,9 @@
   JVM.</para>
   
   <itemizedlist>
-   <para>Setup, upgrade, and uninstall tools are located in the OpenDJ
-   directory. Find the additional command-line tools for your platform.</para>
+   <para>Setup, upgrade, and uninstall tools are located in the directory where
+   you unpacked OpenDJ, such as <filename>/path/to/OpenDJ</filename>. Find the
+   additional command-line tools for your platform.</para>
    <listitem>
     <para>(UNIX) In OpenDJ/bin.</para>
    </listitem>
@@ -183,6 +184,10 @@
   <para>The following list uses the UNIX names for the tools. On Windows
   all command-line tools have the extension .bat.</para>
   
+  <!-- TODO: Add olinks for all tools at least to the reference documentation
+       and perhaps also to the Admin Guide chapters that show how the tools
+       are used. For example, the ldap* tools could have links into
+       chap-ldap-operations. -->
   <variablelist>
    <varlistentry>
     <term>backup</term>

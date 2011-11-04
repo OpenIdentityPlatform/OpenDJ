@@ -83,7 +83,16 @@
   certificate. Finally, you can specify a list of attributes to return.
   If you do not specify attributes, then the search returns all user attributes
   for the entry.</para>
- 
+  
+  <itemizedlist>
+   <para>Review the following examples in this section to get a sense of how
+   searches work.</para>
+   <listitem><para><xref linkend="simple-filter-search"/></para></listitem>
+   <listitem><para><xref linkend="complex-filter-search"/></para></listitem>
+   <listitem><para><xref linkend="operational-attrs-search"/></para></listitem>
+   <listitem><para><xref linkend="attr-desc-list-search"/></para></listitem>
+  </itemizedlist>
+  
   <example xml:id="simple-filter-search">
    <title>Search: Simple Filter</title>
    
@@ -170,6 +179,11 @@ telephoneNumber: +1 408 555 8622
 sn: Jensen
 
 </screen>
+   
+   <para>Complex filters can use both "and" syntax,
+   <literal>(&amp;(<replaceable>filtercomp</replaceable>)(<replaceable>filtercomp</replaceable>))</literal>,
+   and "or" syntax,
+   <literal>(|(<replaceable>filtercomp</replaceable>)(<replaceable>filtercomp</replaceable>))</literal>.</para>
   </example>
   
   <example xml:id="operational-attrs-search">
@@ -224,12 +238,12 @@ sn: Jensen</screen>
    <para>In this example, Kirsten Vaughan checks whether the hashed password
    value matches the stored value on <literal>authPassword</literal>.</para>
 
-   <screen>$ ldapcompare
+   <screen>$ <userinput>ldapcompare
  --port 1389
  --bindDN "uid=kvaughan,ou=people,dc=example,dc=com"
  --bindPassword bribery
  'authPassword:MD5$dFHgpDxXUT8=$qlC4xMXvmVlusJLz9/WJ5Q=='
- uid=kvaughan,ou=people,dc=example,dc=com
+ uid=kvaughan,ou=people,dc=example,dc=com</userinput>
 Comparing type authPassword with value
  MD5$dFHgpDxXUT8=$qlC4xMXvmVlusJLz9/WJ5Q== in entry
  uid=kvaughan,ou=people,dc=example,dc=com
@@ -513,8 +527,11 @@ createTimestamp: 20110930165959Z</screen>
     
     <para>Sam Carter is changing her last name to Jensen, and changing her
     login from <literal>scarter</literal> to <literal>sjensen</literal>.
-    The following example renames and changes Sam Carter's entry
-    accordingly.</para>
+    The following example renames and changes Sam Carter's entry accordingly.
+    Notice the boolean field, <literal>deleteoldrdn: 1</literal>, which
+    indicates that the previous RDN, <literal>uid: scarter</literal>, should
+    be removed. (Setting <literal>deleteoldrdn: 0</literal> instead would
+    preserve <literal>uid: scarter</literal> on the entry.)</para>
     
     <screen>$ cat /path/to/scarter-sjensen.ldif
 dn: uid=scarter,ou=people,dc=example,dc=com
@@ -573,7 +590,11 @@ MODIFY operation successful for DN uid=sjensen,ou=people,dc=example,dc=com</scre
     employee under <literal>ou=Employees,dc=example,dc=com</literal>
     under <literal>ou=People,dc=example,dc=com</literal> as well, finally
     removing the empty <literal>ou=Employees,dc=example,dc=com</literal>
-    container.</para>
+    container. Here, <literal>deleteoldrdn: 1</literal> indicates that the
+    old RDN, <literal>ou: Customers</literal>, should be removed from the
+    entry. For employees, <literal>deleteoldrdn: 0</literal> indicates that
+    old RDNs, in this case <literal>uid</literal> attribute values, should
+    be preserved.</para>
     
     <screen>$ cat move-customers.ldif 
 dn: ou=Customers,dc=example,dc=com

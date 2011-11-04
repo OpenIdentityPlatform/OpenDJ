@@ -153,8 +153,25 @@ $ /etc/init.d/opendj restart</screen>
   few entries in a transaction log. Generally OpenDJ returns to service
   quickly.</para>
   
+  <para>You can find Berkeley Java Edition database recovery messages in the
+  database log file, such as
+  <filename>/path/to/OpenDJ/db/userRoot/je.info.0</filename>. The following
+  shows two example messages from that log, the first written at the beginning
+  of the recovery process, the second written at the end of the process.</para>
+  
+  <screen>111104 10:23:48:967 CONFIG [/path/to/OpenDJ/db/userRoot]Recovery
+ underway, found end of log
+...
+111104 10:23:49:015 CONFIG [/path/to/OpenDJ/db/userRoot]Recovery finished:
+ Recovery Info ...</screen>
+  
   <para>What can take some time during server startup is preloading database
   content into memory when the server starts. Objects cached in memory do not
-  survive a crash.</para>
+  survive a crash. By default, OpenDJ does not cache objects in memory before
+  starting to accept client requests. You can however set a
+  <literal>preload-time-limit</literal> for the database cache of your
+  backend if you do want to load objects into the database cache before
+  OpenDJ begins accepting client connections.</para>
+  <!-- TODO: Add olink to preload-time-limit in config ref. -->
  </section>
 </chapter>
