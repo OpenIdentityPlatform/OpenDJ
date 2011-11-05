@@ -2717,10 +2717,6 @@ attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.52
   NAME 'ds-cfg-check-substrings'
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
   X-ORIGIN 'OpenDJ Directory Server' )
-attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.53
-  NAME 'ds-cfg-min-substring-length'
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
-  X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
