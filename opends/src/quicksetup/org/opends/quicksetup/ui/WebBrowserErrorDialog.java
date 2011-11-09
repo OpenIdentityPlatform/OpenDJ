@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.quicksetup.ui;
@@ -190,7 +191,7 @@ public class WebBrowserErrorDialog extends JDialog
       // UIFactory.initialize();
       WebBrowserErrorDialog dlg =
           new WebBrowserErrorDialog(new JFrame(),
-              new WebBrowserException("http://opends.org",
+              new WebBrowserException("http://opendj.org",
                       Message.raw("toto"), null));
       dlg.packAndShow();
     } catch (Exception ex)

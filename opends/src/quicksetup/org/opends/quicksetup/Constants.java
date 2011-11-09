@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.quicksetup;
@@ -98,7 +99,7 @@ public class Constants {
   public static final int MAX_CHARS_PER_LINE_IN_DIALOG = 100;
 
   /** Prefix for log files. */
-  public static final String LOG_FILE_PREFIX = "opends-setup-";
+  public static final String LOG_FILE_PREFIX = "opendj-setup-";
 
   /** Suffix for log files. */
   public static final String LOG_FILE_SUFFIX = ".log";

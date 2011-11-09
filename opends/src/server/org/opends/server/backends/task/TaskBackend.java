@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.backends.task;
 
@@ -267,12 +268,12 @@ public class TaskBackend
     {
       try
       {
-        notificationSenderAddress = "opends-task-notification@" +
+        notificationSenderAddress = "opendj-task-notification@" +
              InetAddress.getLocalHost().getCanonicalHostName();
       }
       catch (Exception e)
       {
-        notificationSenderAddress = "opends-task-notification@opends.org";
+        notificationSenderAddress = "opendj-task-notification@opendj.org";
       }
     }
 
@@ -2231,12 +2232,12 @@ public class TaskBackend
     {
       try
       {
-        tmpNotificationAddress = "opends-task-notification@" +
+        tmpNotificationAddress = "opendj-task-notification@" +
              InetAddress.getLocalHost().getCanonicalHostName();
       }
       catch (Exception e)
       {
-        tmpNotificationAddress = "opends-task-notification@opends.org";
+        tmpNotificationAddress = "opendj-task-notification@opendj.org";
       }
     }
     notificationSenderAddress = tmpNotificationAddress;

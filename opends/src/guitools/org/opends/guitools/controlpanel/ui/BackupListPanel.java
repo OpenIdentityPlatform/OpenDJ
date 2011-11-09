@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -503,7 +504,7 @@ public abstract class BackupListPanel extends StatusGenericPanel
     worker.startBackgroundTask();
   }
 
-  private final String DUMMY_PARENT_PATH = "/local/OpenDS-X.X.X/bak";
+  private final String DUMMY_PARENT_PATH = "/local/OpenDJ-X.X.X/bak";
   /**
    * Creates a list with backup descriptor.  This is done simply to have a good
    * initial size for the table.

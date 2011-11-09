@@ -288,7 +288,7 @@
         <adm:default-behavior>
             <adm:defined>
                 <adm:value>
-                    config/snmp/security/opends-snmp.security
+                    config/snmp/security/opendj-snmp.security
                 </adm:value>
             </adm:defined>
         </adm:default-behavior>

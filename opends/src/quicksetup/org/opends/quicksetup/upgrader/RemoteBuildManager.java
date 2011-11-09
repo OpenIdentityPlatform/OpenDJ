@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.quicksetup.upgrader;
@@ -45,7 +46,7 @@ import java.io.*;
 import java.awt.*;
 
 /**
- * Manages listing and retreival of build packages on a remote host.
+ * Manages listing and retrieval of build packages on a remote host.
  */
 public class RemoteBuildManager {
 
@@ -69,7 +70,7 @@ public class RemoteBuildManager {
   /**
    * Creates an instance.
    * @param app using this tool
-   * @param url base context for an OpenDS build list
+   * @param url base context for an OpenDJ build list
    * @param proxy Proxy to use for connections; can be null if not proxy is
    * to be used
    */

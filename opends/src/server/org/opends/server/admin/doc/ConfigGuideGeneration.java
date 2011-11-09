@@ -60,7 +60,7 @@ public class ConfigGuideGeneration {
     "/doc/admin-guide/OpenDJ-Admin-Guide.html#chap-privileges-acis";
   private final static String DURATION_SYNTAX_REL_URL =
     "duration-syntax.html";
-  private final String CSS_FILE = "opends-config.css";
+  private final String CSS_FILE = "opendj-config.css";
 
   private final String MAIN_FILE = "index.html";
   private final String INHERITANCE_TREE_FILE =

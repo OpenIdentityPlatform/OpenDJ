@@ -169,7 +169,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private static final String CLASS_NAME = ReplicationCliMain.class.getName();
 
   /** Prefix for log files. */
-  static public final String LOG_FILE_PREFIX = "opends-replication-";
+  static public final String LOG_FILE_PREFIX = "opendj-replication-";
 
   /** Suffix for log files. */
   static public final String LOG_FILE_SUFFIX = ".log";

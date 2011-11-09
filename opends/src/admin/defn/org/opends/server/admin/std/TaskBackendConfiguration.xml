@@ -37,10 +37,10 @@
     be convenient to perform remotely.
   </adm:synopsis>
   <adm:description>
-    <adm:product-name /> supports tasks to backup and restore backends, to import and export LDIF 
+    <adm:product-name /> supports tasks to backup and restore backends, to import and export LDIF
     files, and to stop and restart the server. The details of a task are
-    in an entry that is below the root of the Task Backend. The Task Backend 
-    is responsible for decoding that task entry and ensuring that it is processed 
+    in an entry that is below the root of the Task Backend. The Task Backend
+    is responsible for decoding that task entry and ensuring that it is processed
     as requested. Tasks may be invoked immediately, but they may also be scheduled for execution at
     some future time. The task backend can also process recurring tasks to
     ensure that maintenance operations (for example, backups) are
@@ -109,14 +109,14 @@
   <adm:property name="notification-sender-address">
     <adm:synopsis>
       Specifies the email address to use as the sender (that is,
-      the "From:" address) address for notification mail messages generated 
+      the "From:" address) address for notification mail messages generated
       when a task completes execution.
     </adm:synopsis>
     <adm:default-behavior>
       <adm:alias>
         <adm:synopsis>
           The default sender address used is
-          "opends-task-notification@" followed by the canonical address
+          "opendj-task-notification@" followed by the canonical address
           of the system on which the server is running.
         </adm:synopsis>
       </adm:alias>
