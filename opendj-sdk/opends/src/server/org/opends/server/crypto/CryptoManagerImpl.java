@@ -24,6 +24,7 @@
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2009 Parametric Technology Corporation (PTC)
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.crypto;
 
@@ -92,7 +93,7 @@ import org.opends.server.types.*;
  which is described in the
  <a href="https://www.opends.org/wiki//page/TheCryptoManager">
  CrytpoManager design document</a>.  {@code CryptoManager} implements
- inter-OpenDS-instance authentication and authorization using the
+ inter-OpenDJ-instance authentication and authorization using the
  ADS-based truststore, and secret key distribution. The interface also
  provides methods for hashing, encryption, and other kinds of
  cryptographic operations.

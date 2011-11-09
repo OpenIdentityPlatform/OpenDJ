@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.tools;
@@ -98,7 +99,7 @@ public class InstallDS extends ConsoleApplication
   private final PlainTextProgressMessageFormatter formatter =
     new PlainTextProgressMessageFormatter();
   /** Prefix for log files. */
-  static public final String LOG_FILE_PREFIX = "opends-setup-";
+  static public final String LOG_FILE_PREFIX = "opendj-setup-";
 
   /** Suffix for log files. */
   static public final String LOG_FILE_SUFFIX = ".log";

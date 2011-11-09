@@ -275,7 +275,7 @@ public class InstallerHelper {
     File ldifFile;
     try
     {
-      ldifFile = File.createTempFile("opends-base-entry", ".ldif");
+      ldifFile = File.createTempFile("opendj-base-entry", ".ldif");
       ldifFile.deleteOnExit();
     } catch (IOException ioe)
     {

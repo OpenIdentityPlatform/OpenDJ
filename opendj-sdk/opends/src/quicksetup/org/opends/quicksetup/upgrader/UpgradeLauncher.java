@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.quicksetup.upgrader;
@@ -56,7 +57,7 @@ import org.opends.server.util.DynamicConstants;
 public class UpgradeLauncher extends Launcher {
 
   /** Prefix for log files. */
-  static public final String LOG_FILE_PREFIX = "opends-upgrade-";
+  static public final String LOG_FILE_PREFIX = "opendj-upgrade-";
 
   /** Short form of the option for specifying the installation package file. */
   static public final Character FILE_OPTION_SHORT = 'f';

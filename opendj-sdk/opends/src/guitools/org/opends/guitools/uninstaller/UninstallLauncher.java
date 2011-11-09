@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.guitools.uninstaller;
@@ -54,7 +55,7 @@ import org.opends.server.util.args.ArgumentParser;
 public class UninstallLauncher extends Launcher {
 
   /** Prefix for log files. */
-  static public final String LOG_FILE_PREFIX = "opends-uninstall-";
+  static public final String LOG_FILE_PREFIX = "opendj-uninstall-";
 
   /** Suffix for log files. */
   static public final String LOG_FILE_SUFFIX = ".log";

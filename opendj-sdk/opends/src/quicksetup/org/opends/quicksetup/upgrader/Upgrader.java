@@ -200,7 +200,7 @@ public class Upgrader extends GuiApplication implements CliApplication {
   private File backupDirectory = null;
 
   /**
-   * ID that uniquely identifieds this invocation of the Upgrader in the
+   * ID that uniquely identifies this invocation of the Upgrader in the
    * historical logs.
    */
   private Long historicalOperationId;
@@ -327,7 +327,8 @@ public class Upgrader extends GuiApplication implements CliApplication {
         String listUrlString =
                 System.getProperty("org.opends.quicksetup.upgrader.BuildList");
         if (listUrlString == null) {
-          listUrlString = "http://www.opends.org/upgrade-builds";
+          listUrlString =
+              "http://www.forgerock.org/downloads/opendj/upgrade-builds";
         }
         URL buildRepo = new URL(listUrlString);
 

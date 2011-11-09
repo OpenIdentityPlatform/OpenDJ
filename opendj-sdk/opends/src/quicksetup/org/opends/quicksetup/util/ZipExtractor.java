@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.quicksetup.util;
@@ -158,7 +159,7 @@ public class ZipExtractor {
    * be extracted
    * @param removeFirstPath when true removes each zip entry's initial path
    * when copied to the destination folder.  So for instance if the zip entry's
-   * name was /OpenDS-0.8/some_file the file would appear in the destination
+   * name was /OpenDJ-2.4.x/some_file the file would appear in the destination
    * directory as 'some_file'.
    * @throws ApplicationException if something goes wrong
    */

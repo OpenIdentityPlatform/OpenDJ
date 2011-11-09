@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -1062,7 +1063,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
               Integer.parseInt(nEntries));
           if (!isLocal())
           {
-            File tempFile = File.createTempFile("opends-control-panel",
+            File tempFile = File.createTempFile("opendj-control-panel",
                 ".ldif");
             tempFile.deleteOnExit();
             ldifFile = tempFile.getAbsolutePath();

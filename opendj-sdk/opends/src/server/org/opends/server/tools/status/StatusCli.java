@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.tools.status;
@@ -97,7 +98,7 @@ class StatusCli extends ConsoleApplication
   private boolean displayMustStartLegend;
 
   /** Prefix for log files. */
-  static public final String LOG_FILE_PREFIX = "opends-status-";
+  static public final String LOG_FILE_PREFIX = "opendj-status-";
 
   /** Suffix for log files. */
   static public final String LOG_FILE_SUFFIX = ".log";

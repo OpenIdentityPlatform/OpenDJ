@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel;
@@ -58,7 +59,7 @@ public class ControlPanelLauncher
   static private ControlPanelArgumentParser argParser;
 
   /** Prefix for log files. */
-  static public final String LOG_FILE_PREFIX = "opends-control-panel-";
+  static public final String LOG_FILE_PREFIX = "opendj-control-panel-";
 
   /** Suffix for log files. */
   static public final String LOG_FILE_SUFFIX = ".log";
