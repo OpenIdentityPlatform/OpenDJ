@@ -1425,6 +1425,9 @@ public abstract class Installer extends GuiApplication {
       argList.add("--skipFile");
       argList.add(skippedFile);
     }
+
+    argList.add("--noPropertiesFile");
+
     final String[] args = new String[argList.size()];
     argList.toArray(args);
 
@@ -1540,6 +1543,8 @@ public abstract class Installer extends GuiApplication {
     argList.add("0");
 
     argList.add("-F");
+
+    argList.add("--noPropertiesFile");
 
     final String[] args = new String[argList.size()];
     argList.toArray(args);
