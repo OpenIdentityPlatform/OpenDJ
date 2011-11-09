@@ -1148,7 +1148,7 @@ public class PasswordPolicyStateExtendedOperation
         {
           long lockoutTime = lastLoginTime + (lockoutInterval*1000);
           long currentTime = pwpState.getCurrentTime();
-          int secondsUntilLockout = (int) ((lockoutTime - currentTime) / 1000);
+          int secondsUntilLockout = (int) ((lockoutTime - currentTime) / 1000L);
           if (secondsUntilLockout <= 0)
           {
             secondsStr = "0";
@@ -1184,7 +1184,7 @@ public class PasswordPolicyStateExtendedOperation
         {
           long currentTime = pwpState.getCurrentTime();
           long changedTime = pwpState.getPasswordChangedTime();
-          int changeAge = (int) ((currentTime - changedTime) / 1000);
+          int changeAge = (int) ((currentTime - changedTime) / 1000L);
           long timeToLockout = maxAge - changeAge;
           if (timeToLockout <= 0)
           {
