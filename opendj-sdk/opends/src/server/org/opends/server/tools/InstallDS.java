@@ -24,6 +24,7 @@
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011 profiq s.r.o.
  */
 
 package org.opends.server.tools;
@@ -542,6 +543,7 @@ public class InstallDS extends ConsoleApplication
           try
           {
             resetArguments(uData);
+            argParser.parseArguments(args);
           }
           catch (Throwable t)
           {
