@@ -140,7 +140,7 @@ final class LDAPClientFilter extends BaseFilter
                 }
                 finally
                 {
-                  asn1Writer.close();
+                  asn1Writer.recycle();
                 }
                 return;
               }
