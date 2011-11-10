@@ -31,7 +31,7 @@
   <parent>
     <groupId>org.forgerock</groupId>
     <artifactId>forgerock-parent</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.1.0-SNAPSHOT</version>
   </parent>
   <groupId>org.forgerock.opendj</groupId>
   <artifactId>opendj-project</artifactId>
@@ -703,6 +703,11 @@ $(".flat").live("dblclick", function() {
             </lifecycleMappingMetadata>
           </configuration>
         </plugin>
+        <plugin>
+          <groupId>org.forgerock.commons</groupId>
+          <artifactId>i18n-maven-plugin</artifactId>
+          <version>1.2.0</version>
+        </plugin>
       </plugins>
     </pluginManagement>
   </build>
@@ -742,6 +747,16 @@ $(".flat").live("dblclick", function() {
       <releases>
         <enabled>false</enabled>
       </releases>
+    </repository>
+    <repository>
+      <id>jvnet-nexus-snapshots</id>
+      <url>https://maven.java.net/content/repositories/snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
     </repository>
   </repositories>
   <dependencies>
