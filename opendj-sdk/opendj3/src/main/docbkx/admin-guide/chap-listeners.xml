@@ -302,6 +302,27 @@
     </listitem>
    </varlistentry>
    <varlistentry>
+    <term><literal>ldap.authzidtypeisid</literal></term>
+    <listitem>
+     <para>This parameter can help you set up the DSML gateway to do HTTP
+     Basic Access Authentication, given the appropriate mapping between the
+     user ID, and the user's entry in the directory.</para>
+     <para>Required boolean parameter specifying whether the HTTP Authorization
+     header field's Basic credentials in the request hold a plain ID, rather
+     than a DN. If set to <literal>true</literal>, then the gateway performs an
+     LDAP SASL bind using SASL plain, enabled by default in OpenDJ to look for
+     an exact match between a <literal>uid</literal> value and the plain ID
+     value from the header. In other words, if the plain ID is
+     <literal>bjensen</literal>, and that corresponds in the directory server
+     to Babs Jensen's entry with DN
+     <literal>uid=bjensen,ou=people,dc=example,dc=com</literal>, then the bind
+     happens as Babs Jensen. Note also that you can configure OpenDJ identity
+     mappers for scenarios that do not work with an exact match on the
+     <literal>uid</literal> attribute.</para>
+     <para>Default: <literal>false</literal></para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
     <term><literal>ldap.usessl</literal></term>
     <listitem>
      <para>Required parameter indicating whether <literal>ldap.port</literal>
