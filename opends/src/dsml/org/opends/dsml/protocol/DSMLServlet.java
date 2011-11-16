@@ -28,51 +28,55 @@
 package org.opends.dsml.protocol;
 
 
+import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
+import static org.opends.server.util.ServerConstants.SASL_MECHANISM_PLAIN;
+
 import java.io.BufferedInputStream;
 import java.io.InputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.URL;
 import java.text.ParseException;
-import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
-import javax.xml.bind.JAXBException;
-import org.opends.messages.Message;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.tools.LDAPConnection;
-import org.opends.server.tools.LDAPConnectionOptions;
-import org.opends.server.util.Base64;
-import org.w3c.dom.Document;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.List;
+import java.util.StringTokenizer;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.soap.*;
 import javax.xml.validation.Schema;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.URL;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.List;
-import java.util.StringTokenizer;
-import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.validation.SchemaFactory;
+
+import org.opends.messages.Message;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.tools.LDAPConnection;
 import org.opends.server.tools.LDAPConnectionException;
+import org.opends.server.tools.LDAPConnectionOptions;
 import org.opends.server.tools.SSLConnectionException;
 import org.opends.server.tools.SSLConnectionFactory;
 import org.opends.server.types.LDAPException;
+import org.opends.server.util.Base64;
+
+import org.w3c.dom.Document;
 import org.xml.sax.Attributes;
+import org.xml.sax.helpers.DefaultHandler;
+import org.xml.sax.helpers.XMLReaderFactory;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.DefaultHandler;
-import org.xml.sax.helpers.XMLReaderFactory;
 
 
 /**
@@ -92,6 +96,7 @@ public class DSMLServlet extends HttpServlet {
   private static final String TRUSTSTOREPATH = "ldap.truststore.path";
   private static final String TRUSTSTOREPASSWORD = "ldap.truststore.password";
   private static final String TRUSTALLCERTS = "ldap.trustall";
+  private static final String USEHTTPAUTHZID = "ldap.authzidtypeisid";
   private static final long serialVersionUID = -3748022009593442973L;
   private static final AtomicInteger nextMessageID = new AtomicInteger(1);
 
@@ -128,7 +133,7 @@ public class DSMLServlet extends HttpServlet {
   private String trustStorePathValue;
   private String trustStorePasswordValue;
   private Boolean trustAll;
-
+  private Boolean useHTTPAuthzID;
   /**
    * This method will be called by the Servlet Container when
    * this servlet is being placed into service.
@@ -137,6 +142,7 @@ public class DSMLServlet extends HttpServlet {
    *               contains configuration information for this servlet.
    * @throws ServletException If an error occurs during processing.
    */
+  @Override
   public void init(ServletConfig config) throws ServletException {
 
     try {
@@ -162,6 +168,9 @@ public class DSMLServlet extends HttpServlet {
 
       trustAll = Boolean.valueOf(
           config.getServletContext().getInitParameter(TRUSTALLCERTS));
+
+      useHTTPAuthzID = Boolean.valueOf(
+          config.getServletContext().getInitParameter(USEHTTPAUTHZID));
 
       if(jaxbContext==null)
         jaxbContext = JAXBContext.newInstance(PKG_NAME,
@@ -250,6 +259,7 @@ public class DSMLServlet extends HttpServlet {
     String bindDN = null;
     String bindPassword = null;
     boolean authorizationInHeader = false;
+    boolean authorizationIsID = false;
     while (en.hasMoreElements()) {
       String headerName = (String) en.nextElement();
       String headerVal = req.getHeader(headerName);
@@ -261,7 +271,17 @@ public class DSMLServlet extends HttpServlet {
             String unencoded = new String(Base64.decode(authorization));
             int colon = unencoded.indexOf(':');
             if (colon > 0) {
-              bindDN = unencoded.substring(0, colon).trim();
+              if (useHTTPAuthzID)
+              {
+                connOptions.setSASLMechanism("mech=" + SASL_MECHANISM_PLAIN);
+                connOptions.addSASLProperty(
+                    "authid=u:" + unencoded.substring(0, colon).trim());
+                authorizationIsID = true;
+              }
+              else
+              {
+                bindDN = unencoded.substring(0, colon).trim();
+              }
               bindPassword = unencoded.substring(colon + 1);
             }
           } catch (ParseException ex) {
@@ -304,8 +324,8 @@ public class DSMLServlet extends HttpServlet {
       }
     } else {
       // otherwise if DN or password is null, send back an error
-      if ( (bindDN == null || bindPassword == null)
-         && batchResponses.size()==0) {
+      if (((!authorizationIsID && (bindDN == null)) || bindPassword == null)
+         && batchResponses.isEmpty()) {
         batchResponses.add(
               createErrorResponse(
                     new LDAPException(LDAPResultCode.INVALID_CREDENTIALS,
@@ -314,7 +334,7 @@ public class DSMLServlet extends HttpServlet {
     }
 
     // if an error already occured, the list is not empty
-    if ( batchResponses.size() == 0 ) {
+    if ( batchResponses.isEmpty() ) {
       try {
         SOAPMessage message = messageFactory.createMessage(mimeHeaders, is);
         soapBody = message.getSOAPBody();

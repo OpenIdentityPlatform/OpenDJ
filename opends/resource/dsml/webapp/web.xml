@@ -32,6 +32,13 @@
 -->
 
   <context-param>
+    <description>A flag to specify if the HTTP Authorization header field's
+    Basic credentials is built with a plain ID (if false, it's a DN)</description>
+    <param-name>ldap.authzidtypeisid</param-name>
+    <param-value>false</param-value>
+  </context-param>
+
+  <context-param>
     <description>A flag to specify if the ldap.port is the SSL secured port</description>
     <param-name>ldap.usessl</param-name>
     <param-value>false</param-value>
@@ -44,7 +51,7 @@
   </context-param>
 
   <context-param>
-    <description>A flag to specify is all certificates should be blindly trusted</description>
+    <description>A flag to specify if all certificates should be blindly trusted</description>
     <param-name>ldap.trustall</param-name>
     <param-value>false</param-value>
   </context-param>
