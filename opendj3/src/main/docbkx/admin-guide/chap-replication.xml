@@ -228,6 +228,16 @@ for a detailed log of this operation.</screen>
    once enabled. You must however initialize replication in order to start
    the process.</para>
    
+   <tip>
+    <para>When scripting the configuration to set up multiple replicas in quick
+    succession, use the same initial replication server each time you run the
+    command. In other words, pass the same <option>--host1</option>,
+    <option>--port1</option>, <option>--bindDN1</option>,
+    <option>--bindPassword1</option>, and <option>--replicationPort1</option>
+    options for each of the other replicas that you set up in your
+    script.</para>
+   </tip>
+   
    <para>If you need to add another OpenDJ directory server to participate
    in replication, use the <command>dsreplication enable</command> with
    the new server as the second server.</para>
