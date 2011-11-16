@@ -317,8 +317,9 @@
      to Babs Jensen's entry with DN
      <literal>uid=bjensen,ou=people,dc=example,dc=com</literal>, then the bind
      happens as Babs Jensen. Note also that you can configure OpenDJ identity
-     mappers for scenarios that do not work with an exact match on the
-     <literal>uid</literal> attribute.</para>
+     mappers for scenarios that use a different attribute than
+     <literal>uid</literal>, such as the <literal>mail</literal>
+     attribute.</para>
      <para>Default: <literal>false</literal></para>
     </listitem>
    </varlistentry>
