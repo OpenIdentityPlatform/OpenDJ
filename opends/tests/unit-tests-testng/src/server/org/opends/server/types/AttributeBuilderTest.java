@@ -23,19 +23,13 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.types;
 
 
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Set;
+import java.util.*;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
@@ -2022,26 +2016,25 @@ public class AttributeBuilderTest extends TypesTestCase
       throws Exception
   {
     // Determine the value set implementation class.
-    String iteratorName = a.iterator().getClass().getName();
-    int i = iteratorName.lastIndexOf('$');
-    String className = iteratorName.substring(0, i);
-
+    Class<?> actualClass = a.iterator().getClass();
+    Class<?> expectedClass = null;
     switch (values.length)
     {
     case 0:
       // Attribute must be optimized for zero values.
-      Assert.assertEquals(className, "java.util.Collections$EmptySet");
+      expectedClass = Collections.emptySet().iterator().getClass();
       break;
     case 1:
       // Attribute must be optimized for single value.
-      Assert.assertEquals(className, "java.util.Collections$SingletonSet");
+      expectedClass = Collections.singleton(0).iterator().getClass();
       break;
     default:
       // Attribute must be optimized for many values.
-      Assert.assertEquals(className,
-          "java.util.Collections$UnmodifiableCollection");
+      expectedClass = Collections.unmodifiableCollection(new HashSet<Object>())
+          .iterator().getClass();
       break;
     }
+    Assert.assertEquals(actualClass, expectedClass);
   }
 
 
