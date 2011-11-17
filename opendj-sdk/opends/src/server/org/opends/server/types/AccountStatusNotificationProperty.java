@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -107,7 +108,7 @@ public enum AccountStatusNotificationProperty
    * expires.  This will be available for the
    * {@code PASSWORD_EXPIRING} notification type.
    */
-  TIME_UNTIL_EXPIRATION("time-unti-expiration"),
+  TIME_UNTIL_EXPIRATION("time-until-expiration"),
 
 
 
