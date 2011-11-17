@@ -29,7 +29,7 @@
  xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <title>Implementing Account Lockout</title>
+ <title>Implementing Account Lockout &amp; Notification</title>
  
  <para>OpenDJ directory server supports automatic account lockout.
  The aim of account lockout is not to punish users who mistype their
@@ -272,5 +272,69 @@ Account Is Disabled:  false</screen>
  --no-prompt</screen>
    </step>
   </procedure>
+  
+  <variablelist xml:id="about-message-templates">
+   <title>About Notification Message Templates</title>
+   <indexterm>
+    <primary>Accounts</primary>
+    <secondary>Customizing notification messages</secondary>
+   </indexterm>
+   <para>When editing the <filename>config/messages</filename> templates
+   to suit your purposes, you can use the following tokens to have OpenDJ
+   update the message text dynamically.</para>
+   <varlistentry>
+    <term><literal>%%notification-type%%</literal></term>
+    <listitem>
+     <para>This token is replaced with the name of the account status
+     notification type for the notification.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>%%notification-message%%</literal></term>
+    <listitem>
+     <para>This token is replaced with the message for the account status
+     notification.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>%%notification-user-dn%%</literal></term>
+    <listitem>
+     <para>This token is replaced with the string representation of the DN for
+     the user that is the target of the account status notification.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>%%notification-user-attr:<replaceable>attrname</replaceable>%%</literal></term>
+    <listitem>
+     <para>This token is replaced with the value of the attribute specified by
+     <replaceable>attrname</replaceable> from the user's entry. If the
+     specified attribute has multiple values, then OpenDJ uses the first value
+     encountered. If the specified attribute does not have any values, then
+     OpenDJ replaces it with an emtpy string.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>%%notification-property:<replaceable>propname</replaceable>%%</literal></term>
+    <listitem>
+     <para>This token is replaced with the value of the specified notification
+     property from the account status notification. If the specified property
+     has multiple values, then OpenDJ uses the first value encountered. If the
+     specified property does not have any values, then OpenDJ replaces it with
+     an emtpy string. Valid <replaceable>propname</replaceable> values include
+     the following.</para>
+     <itemizedlist>
+      <listitem><para><literal>account-unlock-time</literal></para></listitem>
+      <listitem><para><literal>new-password</literal></para></listitem>
+      <listitem><para><literal>old-password</literal></para></listitem>
+      <listitem><para><literal>password-expiration-time</literal></para></listitem>
+      <listitem><para><literal>password-policy-dn</literal></para></listitem>
+      <listitem><para><literal>seconds-until-expiration</literal></para></listitem>
+      <listitem><para><literal>seconds-until-unlock</literal></para></listitem>
+      <listitem><para><literal>time-until-expiration</literal></para></listitem>
+      <listitem><para><literal>time-until-unlock</literal></para></listitem>
+     </itemizedlist>
+    </listitem>
+   </varlistentry>
+  </variablelist>
  </section>
 </chapter>
