@@ -197,6 +197,8 @@
      <term><option>-w, --bindPassword {bindPassword}</option></term>
      <listitem>
       <para>Password to use to bind to the server</para>
+      <para>Use <option>-w -</option> to have the command prompt for the
+      password, rather than enter the password on the command line.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
