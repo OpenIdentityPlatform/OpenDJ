@@ -24,6 +24,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -1361,7 +1362,8 @@ public class ManageAccount
       connection = new LDAPConnection(host.getValue(), port.getIntValue(),
                                       connectionOptions, out, err);
       connection.connectToHost(bindDN.getValue(),
-          LDAPConnectionArgumentParser.getPasswordValue(bindPW, bindPWFile),
+          LDAPConnectionArgumentParser.getPasswordValue(bindPW, bindPWFile,
+                                                        bindDN, out, err),
                                nextMessageID);
     }
     catch (ArgumentException ae)
