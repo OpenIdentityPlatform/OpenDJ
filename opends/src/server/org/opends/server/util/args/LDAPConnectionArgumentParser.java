@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.util.args;
@@ -45,6 +46,7 @@ import java.util.LinkedHashSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.io.PrintStream;
 import javax.net.ssl.SSLException;
+import org.opends.server.util.PasswordReader;
 
 /**
  * Creates an argument parser pre-populated with arguments for specifying
@@ -151,7 +153,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
    * by the user.
    *
    * @param out stream to write messages
-   * @param err stream to write messages
+   * @param err stream to write error messages
    * @return LDAPConnection created by this class from parsed arguments
    * @throws LDAPConnectionException if there was a problem connecting
    *         to the server indicated by the input arguments
@@ -172,7 +174,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
    *
    * @param args with which to connect
    * @param out stream to write messages
-   * @param err stream to write messages
+   * @param err stream to write error messages
    * @return LDAPConnection created by this class from parsed arguments
    * @throws LDAPConnectionException if there was a problem connecting
    *         to the server indicated by the input arguments
@@ -337,7 +339,9 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
             args.hostNameArg.getValue(),
             args.portArg.getIntValue(),
             args.bindDnArg.getValue(),
-            getPasswordValue(args.bindPasswordArg, args.bindPasswordFileArg),
+            getPasswordValue(args.bindPasswordArg,
+                             args.bindPasswordFileArg,
+                             args.bindDnArg, out, err),
             connectionOptions, timeout, out, err);
   }
 
@@ -348,7 +352,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
    *
    * @param ui user interaction for prompting the user
    * @param out stream to write messages
-   * @param err stream to write messages
+   * @param err stream to write error messages
    * @return LDAPConnection created by this class from parsed arguments
    * @throws LDAPConnectionException if there was a problem connecting
    *         to the server indicated by the input arguments
@@ -392,7 +396,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
    * @param bindPw with which to connect
    * @param options with which to connect
    * @param out stream to write messages
-   * @param err stream to write messages
+   * @param err stream to write error messages
    * @return LDAPConnection created by this class from parsed arguments
    * @throws LDAPConnectionException if there was a problem connecting
    *         to the server indicated by the input arguments
@@ -419,7 +423,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
    * @param timeout the timeout to establish the connection in milliseconds.
    *        Use {@code 0} to express no timeout
    * @param out stream to write messages
-   * @param err stream to write messages
+   * @param err stream to write error messages
    * @return LDAPConnection created by this class from parsed arguments
    * @throws LDAPConnectionException if there was a problem connecting
    *         to the server indicated by the input arguments
@@ -456,16 +460,52 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
    * Commodity method that retrieves the password value analyzing the contents
    * of a string argument and of a file based argument.  It assumes that the
    * arguments have already been parsed and validated.
-   * @param bindPwdArg the string argument.
-   * @param bindPwdFileArg the file based argument.
+   * If the string is a dash, or no password is available, it will prompt for
+   * it on the command line.
+   *
+   * @param bindPwdArg the string argument for the password.
+   * @param bindPwdFileArg the file based argument for the password.
+   * @param bindDnArg the string argument for the bindDN.
+   * @param out stream to write message.
+   * @param err stream to write error message.
    * @return the password value.
    */
   public static String getPasswordValue(StringArgument bindPwdArg,
-      FileBasedArgument bindPwdFileArg)
+                                        FileBasedArgument bindPwdFileArg,
+                                        StringArgument bindDnArg,
+                                        PrintStream out,
+                                        PrintStream err)
   {
     String pwd = bindPwdArg.getValue();
-    if ((pwd == null) && bindPwdFileArg.isPresent())
+    String bindDN = bindDnArg.getValue();
+    if(pwd != null && pwd.equals("-")  ||
+      (!bindPwdFileArg.isPresent()  &&
+      (bindDN != null && pwd == null)))
     {
+      // read the password from the stdin.
+      try
+      {
+        out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDN));
+        char[] pwChars = PasswordReader.readPassword();
+        pwd = new String(pwChars);
+        //As per rfc 4513(section-5.1.2) a client should avoid sending
+        //an empty password to the server.
+        while(pwChars.length ==0)
+        {
+          err.println(wrapText(
+                  INFO_LDAPAUTH_NON_EMPTY_PASSWORD.get(),
+                  MAX_LINE_WIDTH));
+          out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDN));
+          pwChars = PasswordReader.readPassword();
+        }
+        pwd = new String(pwChars);
+      } catch(Exception ex)
+      {
+        err.println(wrapText(ex.getMessage(), MAX_LINE_WIDTH));
+        return null;
+      }
+    }
+    else if (pwd == null)    {
       pwd = bindPwdFileArg.getValue();
     }
     return pwd;
