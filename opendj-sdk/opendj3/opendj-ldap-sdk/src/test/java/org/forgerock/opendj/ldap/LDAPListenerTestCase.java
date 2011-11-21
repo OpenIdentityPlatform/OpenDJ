@@ -48,6 +48,7 @@ import com.forgerock.opendj.util.StaticUtils;
 /**
  * Tests the LDAPListener class.
  */
+@Test(enabled=false)
 public class LDAPListenerTestCase extends SdkTestCase
 {
 
