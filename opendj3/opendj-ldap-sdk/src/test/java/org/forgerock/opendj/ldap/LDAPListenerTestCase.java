@@ -48,7 +48,6 @@ import com.forgerock.opendj.util.StaticUtils;
 /**
  * Tests the LDAPListener class.
  */
-@Test(enabled=false)
 public class LDAPListenerTestCase extends SdkTestCase
 {
 
@@ -383,7 +382,7 @@ public class LDAPListenerTestCase extends SdkTestCase
    * @throws Exception
    *           If an unexpected error occurred.
    */
-  @Test
+  @Test(enabled=false)
   public void testConnectionEventListenerDisconnect() throws Exception
   {
     final MockServerConnection onlineServerConnection = new MockServerConnection();
