@@ -297,7 +297,9 @@
             <goals>
               <goal>generate-manpages</goal>
             </goals>
-            <configuration><!-- Nothing specific, yet. --></configuration>
+            <configuration>
+             <manpagesCustomization>${dbstyle-dir}/man/manpages.xsl</manpagesCustomization>
+            </configuration>
           </execution>
           <execution>
             <id>doc-single-html</id>
