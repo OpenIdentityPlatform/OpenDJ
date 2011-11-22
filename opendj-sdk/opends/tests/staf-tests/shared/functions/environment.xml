@@ -56,7 +56,7 @@
       
       <iterate var="sharedLib" in="sharedLibs">
         <import machine="STAF_LOCAL_HOSTNAME"
-          file="'%s/%s' % (TESTS_FUNCTIONS_DIR,sharedLib)" />
+          file="'%s/%s' % (TESTS_FUNCTIONS_DIR,sharedLib)"/>
       </iterate>
         
   </sequence>  
@@ -66,7 +66,7 @@
   <function name="importPythonLibraries">
     <function-prolog>
     This function imports the Python libraries and objects, 
-    both starndard and local shared ones.
+    both standard and local shared ones.
   </function-prolog>    
    
     <sequence>
@@ -76,7 +76,7 @@
         import re
         import os
         import sys
-        from org.python.core import PyString,PyUnicode,PyList,PyDictionary
+        from org.python.core import PyString,PyList,PyDictionary
       </script>
 
       <!-- Load in any additional Java classes -->
@@ -560,9 +560,9 @@
       <script>
         STAXLogMessage = 1
       </script>
-  
+
       <call function="'importSharedLibraries'"/>
-      
+  
       <call function="'importPythonLibraries'"/>
       
       <call function="'initialiseGlobalVariables'"/>

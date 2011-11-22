@@ -298,8 +298,7 @@
       </script>
 
       <!-- Check that returnString is really a string or unicode -->
-      <if expr='returnString.__class__ is not PyString 
-        and returnString.__class__ is not PyUnicode'>
+      <if expr='value_not_string(returnString)'>
         <sequence>
           <message log="1" level="'Error'">
             'Invalid returnString type (%s), requires str or unicode.' \
@@ -415,8 +414,7 @@
       </script> 
 
       <!-- Check that returnString is really a string -->
-      <if expr='returnString.__class__ is not PyString
-        and returnString.__class__ is not PyUnicode'>
+      <if expr='value_not_string(returnString)'>
         <sequence>
           <message log="1" level="'Error'">
             'ERROR : Invalid returnString type (%s), requires str or unicode.' \
