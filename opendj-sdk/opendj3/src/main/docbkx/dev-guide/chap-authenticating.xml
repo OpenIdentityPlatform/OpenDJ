@@ -190,6 +190,66 @@
  <section xml:id="sasl-auth">
   <title>SASL Authentication</title>
   
-  <para>TODO</para>
+  <para>Simple Authentication and Security Layer (SASL) provides a way to
+  use other mechanisms for authentication such as Kerberos or Digest
+  authentication, or even to define your own authentication mechanism. The
+  directory server likely advertises supported SASL mechanisms in the root
+  DSE. The follow example shows how to search OpenDJ for supported SASL
+  mechanisms.</para>
+  
+  <screen>$ ldapsearch
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --baseDN ""
+ --searchScope base
+ "(objectclass=*)" supportedSASLMechanisms
+dn: 
+supportedSASLMechanisms: PLAIN
+supportedSASLMechanisms: EXTERNAL
+supportedSASLMechanisms: DIGEST-MD5
+supportedSASLMechanisms: CRAM-MD5</screen>
+
+  <para>Notice that neither the Kerberos (GSSAPI SASL) nor the Anonymous
+  mechanism is enabled by default, though OpenDJ implements both.</para>
+  
+  <para>In order to use a SASL mechanism to bind, your program must set up
+  a <literal>SASLBindRequest</literal> and pass that to the
+  <literal>bind()</literal> method of the <literal>Connection</literal>.</para>
+  
+  <para>This section shows an example using the SASL PLAIN mechanism, which
+  takes either a DN or a user ID to authenticate, with an optional DN or user
+  ID as the authorization ID that identifies the user who performs operations.
+  The SASL PLAIN mechanism itself does not secure the connection, so the
+  example uses StartTLS. The example is provided with the OpenDJ LDAP SDK
+  examples in
+  <filename>org.forgerock.opendj.examples.saslauth.Main.java</filename>.
+  The following excerpt shows the core of the bind process.</para>
+  
+  <programlisting language="java">try
+{
+  final LDAPConnectionFactory factory =
+      new LDAPConnectionFactory(host, port, getTrustAllOptions());
+  connection = factory.getConnection();
+  PlainSASLBindRequest request = Requests.newPlainSASLBindRequest(
+      authcid, passwd.toCharArray());
+  if (authzid != null) request.setAuthorizationID(authzid);
+  connection.bind(request);
+  System.out.println("Authenticated as " + authcid + ".");
+}</programlisting>
+
+  <para>The implementation for <literal>getTrustAllOptions()</literal>, the
+  same as in the example above, sets up Start TLS. When you run this example
+  with both authorization and authentication IDs, <literal>authzid</literal>
+  and <literal>authcid</literal>, set to <literal>u:bjensen</literal> and
+  password <literal>hifalutin</literal>, the bind is successful, and the
+  program reaches the final line of the <literal>try</literal> block.</para>
+  
+  <screen>Authenticated as u:bjensen.</screen>
+  
+  <para>Behind the scenes, OpenDJ has the SASL PLAIN mechanism configured by
+  default to use the Exact Match Identity Mapper to look up user IDs as
+  <literal>uid</literal> values. If you use another directory server, you might
+  have to configure how it maps user IDs to user entries.</para>
  </section>
 </chapter>
