@@ -31,7 +31,7 @@
   </properties>
   <body>
     <section name="About OpenDJ LDAP SDK Examples">
-      <p>This module contains 5 example LDAP applications implemented using the
+      <p>This module contains example LDAP applications implemented using the
         OpenDJ LDAP SDK:</p>
       <ul>
         <li>
@@ -56,6 +56,14 @@
         <li>
           <a href="xref/org/forgerock/opendj/examples/proxy/Main.html">LDAP proxy</a>
           - illustrates how to implement a very simple LDAP proxy
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/simpleauth/Main.html">LDAP bind</a>
+          - illustrates how to bind to an LDAP server
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/saslauth/Main.html">LDAP proxy</a>
+          - illustrates how to implement a SASL PLAIN bind to an LDAP server
         </li>
       </ul>
     </section>
