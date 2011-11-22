@@ -62,7 +62,7 @@
           - illustrates how to bind to an LDAP server
         </li>
         <li>
-          <a href="xref/org/forgerock/opendj/examples/saslauth/Main.html">LDAP proxy</a>
+          <a href="xref/org/forgerock/opendj/examples/saslauth/Main.html">LDAP SASL bind</a>
           - illustrates how to implement a SASL PLAIN bind to an LDAP server
         </li>
       </ul>
