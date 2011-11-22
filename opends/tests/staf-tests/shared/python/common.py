@@ -55,7 +55,8 @@ __all__ = [ "format_testcase",
             "list_matches" ,
             "count_attr" ,
             "host_is_localhost" ,
-            "md5_hash"
+            "md5_hash" ,
+            "value_not_string"
             ]
 
 class format_testcase:
@@ -856,3 +857,22 @@ def md5_hash():
     import md5
     m = md5.new()
   return m
+  
+def value_not_string(value):
+  from org.python.core import PyString,PyList,PyDictionary
+  try:
+    from org.python.core import PyUnicode
+  except ImportError:
+    # Unicode is NOT supported in this version of Jython
+    print "WARNING: Jython version does not support Unicode."
+    if value.__class__ is not PyString:
+      return 1
+    else:
+      return 0
+
+  # Unicode is supported in this version of Jython  
+  if value.__class__ is not PyString and value.__class__ is not PyUnicode:
+    return 1
+  else:
+    return 0
+
