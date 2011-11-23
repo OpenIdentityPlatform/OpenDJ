@@ -140,7 +140,20 @@ uidNumber: 1076
   <para>The entry also has a unique identifier, show at the top of the entry, 
   <literal>dn: uid=bjensen,ou=People,dc=example,dc=com</literal>. DN stands
   for distinguished name. No two entries in the directory have the same
-  distinguished name.</para>
+  distinguished name.<footnote><para>Sometimes your distinguished names
+  include characters that you must escape. The following example shows an entry
+  that includes escaped characters in the DN.</para>
+  <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(uid=escape)"
+dn: cn=\" # \+ \, \; \&lt; = \&gt; \\ DN Escape Characters,dc=example,dc=com
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: top
+givenName: " # + , ; &lt; = &gt; \
+uid: escape
+cn: " # + , ; &lt; = &gt; \ DN Escape Characters
+sn: DN Escape Characters
+mail: escape@example.com</screen></footnote></para>
   
   <para>LDAP entries are arranged hierarchically in the directory. The
   hierarchical organization resembles a file system on a PC or a web server,
