@@ -38,8 +38,73 @@
  online</link>.</para>
 
  <section xml:id="about-searching">
-  <title>Search Objects &amp; Methods</title>
-  <para>TODO</para>
+  <title>About Searching</title>
+  <itemizedlist>
+   <para>An LDAP search looks up entries based on the following
+   parameters.</para>
+   <listitem>
+    <para>A <firstterm>filter</firstterm> that indicates which attribute values
+    to match</para>
+   </listitem>
+   <listitem>
+    <para>A <firstterm>base DN</firstterm> that specifies where in the
+    directory information tree to look for matches</para>
+   </listitem>
+   <listitem>
+    <para>A <firstterm>scope</firstterm> that defines how far to go under
+    the base DN</para>
+   </listitem>
+   <listitem>
+    <para>A list of attributes to fetch for an entry when a match is
+    found</para>
+   </listitem>
+  </itemizedlist>
+  
+  <para>For example, imagine you must write an application where users login
+  using their email address and a password. After the user logs in, your
+  application displays the user's full name so it is obvious who is logged in.
+  Your application is supposed to go to the user directory both for
+  authentication, and also to read user profile information. You are told the
+  user directory stores user profile entries under base DN
+  <literal>ou=People,dc=example,dc=com</literal>, that email addresses are
+  stored on the standard <literal>mail</literal> attribute, and full names are
+  store on the standard <literal>cn</literal> attribute.</para>
+  
+  <para>You figure out how to authenticate from the chapter on authentication,
+  in which you learn you need a bind DN and a password to do simple
+  authentication. But how do you find the bind DN given the email? How do you
+  get the full name?</para>
+  
+  <para>The answer to both questions is that you do an LDAP search for the
+  user's entry, which has the DN that you use to bind, and you have the server
+  fetch the <literal>cn</literal> attribute in the results. Your search uses
+  the following parameters.</para>
+  <itemizedlist>
+   <listitem>
+    <para>The filter is
+    <literal>(mail=<replaceable>emailAddress</replaceable>)</literal>, where
+    <replaceable>emailAddress</replaceable> is the email address the user
+    provided.</para>
+   </listitem>
+   <listitem>
+    <para>The base DN is the one given to you,
+    <literal>ou=People,dc=example,dc=com</literal>.</para>
+   </listitem>
+   <listitem>
+    <para>For the scope, you figure the user entry is somewhere under the base
+    DN, so you opt to search the whole subtree.</para>
+   </listitem>
+   <listitem>
+    <para>The attribute to fetch is <literal>cn</literal>.</para>
+   </listitem>
+  </itemizedlist>
+  
+  <para>TODO: Explain how to do this, either with code from
+  http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/search/Main.html
+  or writing some more directly relevant sample code. The other sections
+  in this chapter can expand more on filters, building search requests,
+  iterating through results, potentially abandoning, but this section should
+  stay focused on the basic example to make the idea clear.</para>
  </section>
  
  <section xml:id="about-filters">
@@ -73,7 +138,7 @@
  </section>
 
  <section xml:id="about-comparisons">
-  <title>Compare Objects &amp; Methods</title>
+  <title>About Comparing</title>
   <para>TODO</para>
  </section>
 </chapter>
