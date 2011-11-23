@@ -76,7 +76,7 @@ $ javaws <replaceable>URL-to-QuickSetup-Installer</replaceable></screen>
  version of OpenDJ. For example,
  <replaceable>URL-to-QuickSetup-Installer</replaceable> for version
  <?eval ${docTargetVersion}?> is
- <literal>http://www.forgerock.org/downloads/opendj/<?eval ${docTargetVersion}?>/install/QuickSetup.jnlp</literal>.</para>
+ <literal>http://download.forgerock.org/downloads/opendj/<?eval ${docTargetVersion}?>/install/QuickSetup.jnlp</literal>.</para>
 
  <para>The WebStart installer corresponds to what you start if you download
  OpenDJ-<?eval ${docTargetVersion}?>.zip, unzip the file, and then run
