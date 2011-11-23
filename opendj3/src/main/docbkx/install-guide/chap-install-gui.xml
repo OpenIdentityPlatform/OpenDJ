@@ -70,11 +70,11 @@
  installer.</para>
 
  <screen>$ export PATH=/path/to/java6/bin:$PATH
-$ javaws <replaceable>URL-to-QuickStart-Installer</replaceable></screen>
+$ javaws <replaceable>URL-to-QuickSetup-Installer</replaceable></screen>
 
- <para>The <replaceable>URL-to-QuickStart-Installer</replaceable> includes the
+ <para>The <replaceable>URL-to-QuickSetup-Installer</replaceable> includes the
  version of OpenDJ. For example,
- <replaceable>URL-to-QuickStart-Installer</replaceable> for version
+ <replaceable>URL-to-QuickSetup-Installer</replaceable> for version
  <?eval ${docTargetVersion}?> is
  <literal>http://www.forgerock.org/downloads/opendj/<?eval ${docTargetVersion}?>/install/QuickSetup.jnlp</literal>.</para>
 
