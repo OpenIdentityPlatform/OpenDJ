@@ -398,11 +398,11 @@
               <!-- Copy the replication_mod ldif to client host -->
               <message>
                 'Copy %s file from %s to %s' % (filename,local.temp,
-                                                clientDataDir)
+                                                client.getTmpDir())
               </message>
               <call function="'copyFile'">
                 { 'srcfile'    : filePath,
-                  'destfile'   : '%s/%s' % (clientDataDir,filename),
+                  'destfile'   : '%s/%s' % (client.getTmpDir(),filename),
                   'remotehost' : client.getHostname() }
               </call>                    
 
@@ -414,7 +414,7 @@
                   'dsInstancePort' : master.getPort() ,
                   'dsInstanceDn'   : master.getRootDn() ,
                   'dsInstancePswd' : master.getRootPwd() ,
-                  'dsFilename'     : '%s/%s' % (clientDataDir, filename)
+                  'dsFilename'     : '%s/%s' % (client.getTmpDir(), filename)
                 }
               </call>                            
         
@@ -502,11 +502,11 @@
               <!-- Copy the replication_mod ldif to client host -->
               <message>
                 'Copy %s file from %s to %s' % (filename,local.temp,
-                                                clientDataDir)
+                                                client.getTmpDir())
               </message>
               <call function="'copyFile'">
                 { 'srcfile'    : filePath,
-                  'destfile'   : '%s/%s' % (clientDataDir,filename),
+                  'destfile'   : '%s/%s' % (client.getTmpDir(),filename),
                   'remotehost' : client.getHostname()
                 }
               </call>                    
@@ -519,7 +519,7 @@
                   'dsInstancePort' : master.getPort() ,
                   'dsInstanceDn'   : master.getRootDn() ,
                   'dsInstancePswd' : master.getRootPwd() ,
-                  'dsFilename'     : '%s/%s' % (clientDataDir, filename)
+                  'dsFilename'     : '%s/%s' % (client.getTmpDir(), filename)
                 }
               </call>                            
         
@@ -607,11 +607,11 @@
               <!-- Copy the replication_mod ldif to client host -->
               <message>
                 'Copy %s file from %s to %s' % (filename,local.temp,
-                                                clientDataDir)
+                                                client.getTmpDir())
               </message>
               <call function="'copyFile'">
                 { 'srcfile'    : filePath,
-                  'destfile'   : '%s/%s' % (clientDataDir,filename),
+                  'destfile'   : '%s/%s' % (client.getTmpDir(),filename),
                   'remotehost' : client.getHostname() }
               </call>                    
 
@@ -623,7 +623,7 @@
                   'dsInstancePort' : master.getPort() ,
                   'dsInstanceDn'   : master.getRootDn() ,
                   'dsInstancePswd' : master.getRootPwd() ,
-                  'dsFilename'     : '%s/%s' % (clientDataDir, filename)
+                  'dsFilename'     : '%s/%s' % (client.getTmpDir(), filename)
                 }
               </call>        
                 
@@ -705,11 +705,11 @@
               <!-- Copy the replication_mod ldif to client host -->
               <message>
                 'Copy %s file from %s to %s' % (filename,local.temp,
-                                                clientDataDir)
+                                                client.getTmpDir())
               </message>
               <call function="'copyFile'">
                 { 'srcfile'    : filePath,
-                  'destfile'   : '%s/%s' % (clientDataDir,filename),
+                  'destfile'   : '%s/%s' % (client.getTmpDir(),filename),
                   'remotehost' : client.getHostname()
                 }
               </call>                    
@@ -722,7 +722,7 @@
                   'dsInstancePort' : master.getPort() ,
                   'dsInstanceDn'   : master.getRootDn() ,
                   'dsInstancePswd' : master.getRootPwd() ,
-                  'dsFilename'     : '%s/%s' % (clientDataDir, filename)
+                  'dsFilename'     : '%s/%s' % (client.getTmpDir(), filename)
                 }
               </call>                            
         
@@ -815,11 +815,11 @@
               <!-- Copy the replication_mod ldif to client host -->
               <message>
                 'Copy %s file from %s to %s' % (filename,local.temp,
-                                                clientDataDir)
+                                                client.getTmpDir())
               </message>
               <call function="'copyFile'">
                 { 'srcfile'    : filePath,
-                  'destfile'   : '%s/%s' % (clientDataDir,filename),
+                  'destfile'   : '%s/%s' % (client.getTmpDir(),filename),
                   'remotehost' : client.getHostname()
                 }
               </call>                    
@@ -832,7 +832,7 @@
                   'dsInstancePort' : master.getPort() ,
                   'dsInstanceDn'   : master.getRootDn() ,
                   'dsInstancePswd' : master.getRootPwd() ,
-                  'dsFilename'     : '%s/%s' % (clientDataDir, filename)
+                  'dsFilename'     : '%s/%s' % (client.getTmpDir(), filename)
                 }
               </call>                            
         
@@ -933,11 +933,11 @@
               <!-- Copy the replication_mod ldif to client host -->
               <message>
                 'Copy %s file from %s to %s' % (filename,local.temp,
-                                                clientDataDir)
+                                                client.getTmpDir())
               </message>
               <call function="'copyFile'">
                 { 'srcfile'    : filePath,
-                  'destfile'   : '%s/%s' % (clientDataDir,filename),
+                  'destfile'   : '%s/%s' % (client.getTmpDir(),filename),
                   'remotehost' : client.getHostname() }
               </call>                    
 
@@ -949,7 +949,7 @@
                   'dsInstancePort' : master.getPort() ,
                   'dsInstanceDn'   : master.getRootDn() ,
                   'dsInstancePswd' : master.getRootPwd() ,
-                  'dsFilename'     : '%s/%s' % (clientDataDir, filename)
+                  'dsFilename'     : '%s/%s' % (client.getTmpDir(), filename)
                 }
               </call>                            
         
