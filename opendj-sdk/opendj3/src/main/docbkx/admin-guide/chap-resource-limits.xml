@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ! CCPL HEADER START
   !
@@ -52,24 +51,27 @@
     search.</para>
     <para>The default lookthrough limit, set by using the global server
     property <literal>lookthrough-limit</literal>, is 5000.</para>
-    <para>The equivalent attribute for user entries is
-    <literal>ds-rlim-lookthrough-limit</literal>.</para>
+    <para>You can override the limit for a particular user by changing the
+    operational attribute, <literal>ds-rlim-lookthrough-limit</literal>, on
+    the user's entry.</para>
    </listitem>
    <listitem>
     <para>The <firstterm>size limit</firstterm> sets the maximum number of
     entries returned for a search.</para>
     <para>The default size limit, set by using the global server property
     <literal>size-limit</literal>, is 1000.</para>
-    <para>The equivalent attribute for user entries is
-    <literal>ds-rlim-size-limit</literal>.</para>
+    <para>You can override the limit for a particular user by changing the
+    operational attribute, <literal>ds-rlim-size-limit</literal>, on
+    the user's entry.</para>
    </listitem>
    <listitem>
     <para>The <firstterm>time limit</firstterm> defines the maximum processing
     time OpenDJ devotes to a search operation.</para>
     <para>The default time limit, set by using the global server property
     <literal>time-limit</literal>, is 1 minute.</para>
-    <para>The equivalent attribute for user entries is
-    <literal>ds-rlim-time-limit</literal>.</para>
+    <para>You can override the limit for a particular user by changing the
+    operational attribute, <literal>ds-rlim-time-limit</literal>, on
+    the user's entry.</para>
    </listitem>
    <listitem>
     <para>The maximum number of persistent searches can be set using the
@@ -81,7 +83,7 @@
    <title>To Set Search Limits For a User</title>
    <step>
     <para>Change the user entry to set the limits to override.</para>
-    <screen>$ cat limit.ldif 
+    <screen>$ cat limit.ldif
 dn: uid=bjensen,ou=People,dc=example,dc=com
 changetype: modify
 add: ds-rlim-size-limit

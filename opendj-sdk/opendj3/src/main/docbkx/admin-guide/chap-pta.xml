@@ -185,11 +185,10 @@ Certificate was added to keystore</screen>
  --set trust-manager-provider:JKS
  --trustAll
  --no-prompt</screen>
-    <para>The policy shown here maps identities under
-    <literal>dc=example,dc=com</literal> to identities under
-    <literal>dc=PTA Server,dc=com</literal>, where users have the same
-    <literal>uid</literal> values on both servers. The policy here also
-    uses SSL between OpenDJ and the authentication server.</para>
+    <para>The policy shown here maps identities having this password policy
+    to identities under <literal>dc=PTA Server,dc=com</literal>. Users must
+    have the same <literal>uid</literal> values on both servers. The policy
+    here also uses SSL between OpenDJ and the authentication server.</para>
    </step>
    <step>
     <para>Check that your policy has been added to the list.</para>
