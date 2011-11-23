@@ -21,7 +21,7 @@
   ! CCPL HEADER END
   !
   !      Copyright 2011 ForgeRock AS
-  !    
+  !
 -->
 <appendix xml:id='appendix-standards'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
@@ -71,6 +71,7 @@
     </indexterm>
     <para>Provide access to the X.500 Directory while not incurring the
     resource requirements of the Directory Access Protocol.</para>
+    <para>Classified as an Historic document.</para>
    </listitem>
   </varlistentry>
   <varlistentry xml:id="rfc1778">
@@ -85,6 +86,7 @@
     rules used to render X.500 Directory attribute syntaxes into a form
     suitable for use in the LDAP, then defines the encoding rules for the
     standard set of attribute syntaxes.</para>
+    <para>Classified as an Historic document.</para>
    </listitem>
   </varlistentry>
   <varlistentry xml:id="rfc1779">
@@ -98,6 +100,7 @@
     <para>Defines a string format for representing names, which is designed
     to give a clean representation of commonly used names, whilst being
     able to represent any distinguished name.</para>
+    <para>Classified as an Historic document.</para>
    </listitem>
   </varlistentry>
   <varlistentry xml:id="rfc2079">
@@ -727,6 +730,19 @@
     defining attributes for LDAP directories.</para>
    </listitem>
   </varlistentry>
+  <varlistentry xml:id="rfc4518">
+   <term><link xlink:href='http://tools.ietf.org/html/rfc4518'>RFC 4518:
+   Lightweight Directory Access Protocol (LDAP): Internationalized
+   String Preparation</link></term>
+   <listitem>
+    <indexterm>
+     <primary>Supported standards</primary>
+     <secondary>RFC 4518</secondary>
+    </indexterm>
+    <para>Defines string preparation algorithms for character-based matching
+    rules defined for use in LDAP.</para>
+   </listitem>
+  </varlistentry>
   <varlistentry xml:id="rfc4519">
    <term><link xlink:href='http://tools.ietf.org/html/rfc4519'>RFC 4519:
    Lightweight Directory Access Protocol (LDAP): Schema for User
@@ -861,6 +877,60 @@
     </indexterm>
     <para>Defines a simple clear-text user/password Simple Authentication
     and Security Layer mechanism called the PLAIN mechanism.</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry xml:id="rfc4634">
+   <term><link xlink:href='http://tools.ietf.org/html/rfc4634'>RFC 4634:
+   US Secure Hash Algorithms (SHA and HMAC-SHA)</link></term>
+   <listitem>
+    <indexterm>
+     <primary>Supported standards</primary>
+     <secondary>RFC 4634</secondary>
+    </indexterm>
+    <para>Specifies Secure Hash Algorithms, SHA-256, SHA-384, and SHA-512,
+    for computing a condensed representation of a message or a data file.</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry xml:id="rfc4752">
+   <term><link xlink:href='http://tools.ietf.org/html/rfc4752'>RFC 4752:
+   The Kerberos V5 ("GSSAPI") Simple Authentication and Security Layer
+   (SASL) Mechanism</link></term>
+   <listitem>
+    <indexterm>
+     <primary>Supported standards</primary>
+     <secondary>RFC 4752</secondary>
+    </indexterm>
+    <para>Describes the method for using the Generic Security
+   Service Application Program Interface (GSS-API) Kerberos V5 in the
+   Simple Authentication and Security Layer, called the GSSAPI mechanism.</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry xml:id="rfc4876">
+   <term><link xlink:href='http://tools.ietf.org/html/rfc4876'>RFC 4876:
+   A Configuration Profile Schema for Lightweight Directory Access Protocol
+   (LDAP)-Based Agents</link></term>
+   <listitem>
+    <indexterm>
+     <primary>Supported standards</primary>
+     <secondary>RFC 4876</secondary>
+    </indexterm>
+    <para>Defines a schema for storing a profile for agents that make use
+    of the Lightweight Directory Access protocol (LDAP).</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry xml:id="rfc5020">
+   <term><link xlink:href='http://tools.ietf.org/html/rfc5020'>RFC 5020:
+   The Lightweight Directory Access Protocol (LDAP) entryDN Operational
+   Attribute</link></term>
+   <listitem>
+    <indexterm>
+     <primary>Supported standards</primary>
+     <secondary>RFC 5020</secondary>
+    </indexterm>
+    <para>Describes the Lightweight Directory Access Protocol
+   (LDAP) / X.500 'entryDN' operational attribute, that
+   provides a copy of the entry's distinguished name for use in
+   attribute value assertions.</para>
    </listitem>
   </varlistentry>
   <varlistentry xml:id="fips180-1">

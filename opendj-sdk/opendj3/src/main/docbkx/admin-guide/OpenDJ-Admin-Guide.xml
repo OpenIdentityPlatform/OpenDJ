@@ -21,7 +21,7 @@
   ! CCPL HEADER END
   !
   !      Copyright 2011 ForgeRock AS
-  !    
+  !
 -->
 <book xml:id='admin-guide'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
@@ -46,13 +46,16 @@
    <author>
     <personname><firstname>Nemanja</firstname><surname>Lukić</surname></personname>
    </author>
+   <author>
+    <personname><firstname>Ludovic</firstname><surname>Poitou</surname></personname>
+   </author>
   </authorgroup>
   <xinclude:include href='../legal.xml' />
   <date><?dbtimestamp format="B d, Y"?></date>
  </info>
 
  <toc />
- 
+
  <xinclude:include href="preface.xml" />
 
  <xinclude:include href='chap-admin-tools.xml' />
@@ -81,7 +84,7 @@
  <xinclude:include href='chap-tuning.xml' />
  <xinclude:include href='chap-mv-servers.xml' />
  <xinclude:include href='chap-troubleshooting.xml' />
- 
+
  <reference xml:id="admin-tools-ref">
   <title>Tools Reference</title>
    <xinclude:include href='../shared/man-backup.xml' />
@@ -118,7 +121,7 @@
    <xinclude:include href='../shared/man-upgrade.xml' />
    <xinclude:include href='../shared/man-verify-index.xml' />
  </reference>
- 
+
  <xinclude:include href='appendix-file-layout.xml' />
  <xinclude:include href='appendix-ports-used.xml' />
  <xinclude:include href='appendix-standards.xml' />
