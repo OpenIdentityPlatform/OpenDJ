@@ -377,8 +377,8 @@ uniqueMember: uid=tmorris,ou=People,dc=example,dc=com</screen>
  <literal>check-references-filter-criteria</literal> to identify the attribute
  and the filter. For example, you can specify that group members must be person
  entries by setting <literal>check-references-filter-criteria</literal> to
- <literal>member:(objectclass=person)</literal>. To ensure that entries must
- be located in the same naming context, set
+ <literal>uniqueMember:(objectclass=person)</literal>. To ensure that entries
+ must be located in the same naming context, set
  <literal>check-references-scope-criteria</literal> to
  <literal>naming-context</literal>.</para>
  </section>
