@@ -117,8 +117,8 @@
  --disableAll
  --port 5444
  --hostname `hostname`
- --bindDN "cn=Directory Manager"
- --bindPassword password
+ --adminUID admin
+ --adminPassword password
  --trustAll
  --no-prompt
 Establishing connections ..... Done.
