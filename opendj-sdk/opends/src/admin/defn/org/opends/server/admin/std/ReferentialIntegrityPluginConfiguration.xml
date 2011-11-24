@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2010 Sun Microsystems, Inc.
+  !      Portions copyright 2011 profiq s.r.o.
   ! -->
 <adm:managed-object name="referential-integrity-plugin"
   plural-name="referential-integrity-plugins"
@@ -68,6 +69,8 @@
         <adm:value>postoperationmodifydn</adm:value>
         <adm:value>subordinatemodifydn</adm:value>
         <adm:value>subordinatedelete</adm:value>
+        <adm:value>preoperationadd</adm:value>
+        <adm:value>preoperationmodify</adm:value>
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
@@ -165,6 +168,96 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-update-interval</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="check-references">
+    <adm:synopsis>
+      Specifies whether or not reference attributes must refer to existing
+      entries.
+    </adm:synopsis>
+    <adm:description>
+      When this property is set to true, this plugin will ensure that any new
+      references added as part of an add or modify operation point to existing
+      entries, and that the referenced entries match the filter criteria for the
+      referencing attribute, if specified.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>false</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:boolean />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-check-references</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="check-references-filter-criteria"
+    multi-valued="true" mandatory="false">
+    <adm:synopsis>
+      Specifies additional filter criteria which will be enforced when checking
+      references.
+    </adm:synopsis>
+    <adm:description>
+      If a reference attribute has filter criteria defined then this plugin
+      will ensure that any new references added as part of an add or modify
+      operation refer to an existing entry which matches the specified filter.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:undefined />
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:string>
+        <adm:pattern>
+          <adm:regex>^[^:]+:\\(.+\\)$</adm:regex>
+          <adm:usage>ATTRIBUTE:FILTER</adm:usage>
+          <adm:synopsis>An attribute-filter mapping.</adm:synopsis>
+        </adm:pattern>
+      </adm:string>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-check-references-filter-criteria</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="check-references-scope-criteria">
+    <adm:synopsis>
+      Specifies whether or not referenced entries must reside within the same
+      naming context as the entry containing the reference.
+    </adm:synopsis>
+    <adm:description>
+      The reference scope will only be enforced when reference checking is
+      enabled.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>global</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="global">
+          <adm:synopsis>
+            References may refer to existing entries located anywhere in the
+            Directory.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="naming-context">
+          <adm:synopsis>
+            References must refer to existing entries located within the same
+            naming context.
+          </adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-check-references-scope-criteria</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

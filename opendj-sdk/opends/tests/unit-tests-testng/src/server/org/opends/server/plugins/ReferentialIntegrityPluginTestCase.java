@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 profiq s.r.o.
  */
 
 package org.opends.server.plugins;
@@ -59,6 +60,10 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
   private String dsConfigBaseDN="ds-cfg-base-dn";
   private String dsConfigUpdateInterval=
                                "ds-cfg-update-interval";
+  private String dsConfigEnforceIntegrity = "ds-cfg-check-references";
+  private String dsConfigAttrFiltMapping =
+    "ds-cfg-check-references-filter-criteria";
+  private String dsConfigPluginType = "ds-cfg-plugin-type";
 
   //Suffixes to use for non-public naming context tests.
   private String exSuffix="dc=example,dc=com";
@@ -427,7 +432,77 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
             "ds-cfg-base-dn: ou=dept, dc=example,dc=com",
             "ds-cfg-base-dn: ou=people, o=test",
             "ds-cfg-update-interval: 300 seconds",
-            "ds-cfg-log-file: logs/test"
+            "ds-cfg-log-file: logs/test",
+            "",
+            // check-references, default
+            "dn: cn=Referential Integrity,cn=Plugins,cn=config",
+            "objectClass: top",
+            "objectClass: ds-cfg-plugin",
+            "objectClass: ds-cfg-referential-integrity-plugin",
+            "cn: Referential Integrity",
+            "ds-cfg-java-class: org.opends.server.plugins.ReferentialIntegrityPlugin",
+            "ds-cfg-enabled: true",
+            "ds-cfg-plugin-type: postOperationDelete",
+            "ds-cfg-plugin-type: postOperationModifyDN",
+            "ds-cfg-plugin-type: subordinateModifyDN",
+            "ds-cfg-plugin-type: preOperationAdd",
+            "ds-cfg-plugin-type: preOperationModify",
+            "ds-cfg-attribute-type: member",
+            "ds-cfg-check-references: false",
+            "",
+            // check-references enabled
+            "dn: cn=Referential Integrity,cn=Plugins,cn=config",
+            "objectClass: top",
+            "objectClass: ds-cfg-plugin",
+            "objectClass: ds-cfg-referential-integrity-plugin",
+            "cn: Referential Integrity",
+            "ds-cfg-java-class: org.opends.server.plugins.ReferentialIntegrityPlugin",
+            "ds-cfg-enabled: true",
+            "ds-cfg-plugin-type: postOperationDelete",
+            "ds-cfg-plugin-type: postOperationModifyDN",
+            "ds-cfg-plugin-type: subordinateModifyDN",
+            "ds-cfg-plugin-type: preOperationAdd",
+            "ds-cfg-plugin-type: preOperationModify",
+            "ds-cfg-attribute-type: member",
+            "ds-cfg-base-dn: o=test",
+            "ds-cfg-base-dn: dc=example, dc=com",
+            "ds-cfg-check-references: true",
+            "",
+            // check-references enabled, check-references-filter-criteria set
+            "dn: cn=Referential Integrity,cn=Plugins,cn=config",
+            "objectClass: top",
+            "objectClass: ds-cfg-plugin",
+            "objectClass: ds-cfg-referential-integrity-plugin",
+            "cn: Referential Integrity",
+            "ds-cfg-java-class: org.opends.server.plugins.ReferentialIntegrityPlugin",
+            "ds-cfg-enabled: true",
+            "ds-cfg-plugin-type: postOperationDelete",
+            "ds-cfg-plugin-type: postOperationModifyDN",
+            "ds-cfg-plugin-type: subordinateModifyDN",
+            "ds-cfg-plugin-type: preOperationAdd",
+            "ds-cfg-plugin-type: preOperationModify",
+            "ds-cfg-attribute-type: member",
+            "ds-cfg-base-dn: o=test",
+            "ds-cfg-base-dn: dc=example, dc=com",
+            "ds-cfg-check-references: true",
+            "ds-cfg-check-references-filter-criteria: member:(objectclass=person)",
+            "",
+            // check-references disabled, check-references-filter-criteria set
+            "dn: cn=Referential Integrity,cn=Plugins,cn=config",
+            "objectClass: top",
+            "objectClass: ds-cfg-plugin",
+            "objectClass: ds-cfg-referential-integrity-plugin",
+            "cn: Referential Integrity",
+            "ds-cfg-java-class: org.opends.server.plugins.ReferentialIntegrityPlugin",
+            "ds-cfg-enabled: true",
+            "ds-cfg-plugin-type: postOperationDelete",
+            "ds-cfg-plugin-type: postOperationModifyDN",
+            "ds-cfg-plugin-type: subordinateModifyDN",
+            "ds-cfg-plugin-type: preOperationAdd",
+            "ds-cfg-plugin-type: preOperationModify",
+            "ds-cfg-attribute-type: member",
+            "ds-cfg-check-references: false",
+            "ds-cfg-check-references-filter-criteria: member:(objectclass=person)"
     );
     Object[][] array = new Object[entries.size()][1];
     for (int i=0; i < array.length; i++)
@@ -576,7 +651,121 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
             "ds-cfg-base-dn: ou=dept, dc=example,dc=com",
             "ds-cfg-base-dn: ou=people, o=test",
             "ds-cfg-update-interval: 300 seconds",
-            "ds-cfg-log-file: /hopefully/doesn't/file/exist"
+            "ds-cfg-log-file: /hopefully/doesn't/file/exist",
+            "",
+            // check-references bad value
+            "dn: cn=Referential Integrity,cn=Plugins,cn=config",
+            "objectClass: top",
+            "objectClass: ds-cfg-plugin",
+            "objectClass: ds-cfg-referential-integrity-plugin",
+            "cn: Referential Integrity",
+            "ds-cfg-java-class: org.opends.server.plugins.ReferentialIntegrityPlugin",
+            "ds-cfg-enabled: true",
+            "ds-cfg-plugin-type: postOperationDelete",
+            "ds-cfg-plugin-type: postOperationModifyDN",
+            "ds-cfg-plugin-type: subordinateModifyDN",
+            "ds-cfg-plugin-type: preOperationAdd",
+            "ds-cfg-plugin-type: preOperationModify",
+            "ds-cfg-attribute-type: member",
+            "ds-cfg-base-dn: o=test",
+            "ds-cfg-base-dn: dc=example, dc=com",
+            "ds-cfg-check-references: bad",
+            "ds-cfg-check-references-filter-criteria: member:(objectclass=person)",
+            "",
+            // check-references enabled, attrbute not on the list
+            "dn: cn=Referential Integrity,cn=Plugins,cn=config",
+            "objectClass: top",
+            "objectClass: ds-cfg-plugin",
+            "objectClass: ds-cfg-referential-integrity-plugin",
+            "cn: Referential Integrity",
+            "ds-cfg-java-class: org.opends.server.plugins.ReferentialIntegrityPlugin",
+            "ds-cfg-enabled: true",
+            "ds-cfg-plugin-type: postOperationDelete",
+            "ds-cfg-plugin-type: postOperationModifyDN",
+            "ds-cfg-plugin-type: subordinateModifyDN",
+            "ds-cfg-plugin-type: preOperationAdd",
+            "ds-cfg-plugin-type: preOperationModify",
+            "ds-cfg-attribute-type: member",
+            "ds-cfg-base-dn: o=test",
+            "ds-cfg-base-dn: dc=example, dc=com",
+            "ds-cfg-check-references: true",
+            "ds-cfg-check-references-filter-criteria: manager:(objectclass=person)",
+            "",
+            // check-references true, bad filter
+            "dn: cn=Referential Integrity,cn=Plugins,cn=config",
+            "objectClass: top",
+            "objectClass: ds-cfg-plugin",
+            "objectClass: ds-cfg-referential-integrity-plugin",
+            "cn: Referential Integrity",
+            "ds-cfg-java-class: org.opends.server.plugins.ReferentialIntegrityPlugin",
+            "ds-cfg-enabled: true",
+            "ds-cfg-plugin-type: postOperationDelete",
+            "ds-cfg-plugin-type: postOperationModifyDN",
+            "ds-cfg-plugin-type: subordinateModifyDN",
+            "ds-cfg-plugin-type: preOperationAdd",
+            "ds-cfg-plugin-type: preOperationModify",
+            "ds-cfg-attribute-type: member",
+            "ds-cfg-base-dn: o=test",
+            "ds-cfg-base-dn: dc=example, dc=com",
+            "ds-cfg-check-references: true",
+            "ds-cfg-check-references-filter-criteria: member:bad",
+            "",
+            // check-references true, attr-filt bad format
+            "dn: cn=Referential Integrity,cn=Plugins,cn=config",
+            "objectClass: top",
+            "objectClass: ds-cfg-plugin",
+            "objectClass: ds-cfg-referential-integrity-plugin",
+            "cn: Referential Integrity",
+            "ds-cfg-java-class: org.opends.server.plugins.ReferentialIntegrityPlugin",
+            "ds-cfg-enabled: true",
+            "ds-cfg-plugin-type: postOperationDelete",
+            "ds-cfg-plugin-type: postOperationModifyDN",
+            "ds-cfg-plugin-type: subordinateModifyDN",
+            "ds-cfg-plugin-type: preOperationAdd",
+            "ds-cfg-plugin-type: preOperationModify",
+            "ds-cfg-attribute-type: member",
+            "ds-cfg-base-dn: o=test",
+            "ds-cfg-base-dn: dc=example, dc=com",
+            "ds-cfg-check-references: true",
+            "ds-cfg-check-references-filter-criteria: bad",
+            "",
+            // check-references true, no filter
+            "dn: cn=Referential Integrity,cn=Plugins,cn=config",
+            "objectClass: top",
+            "objectClass: ds-cfg-plugin",
+            "objectClass: ds-cfg-referential-integrity-plugin",
+            "cn: Referential Integrity",
+            "ds-cfg-java-class: org.opends.server.plugins.ReferentialIntegrityPlugin",
+            "ds-cfg-enabled: true",
+            "ds-cfg-plugin-type: postOperationDelete",
+            "ds-cfg-plugin-type: postOperationModifyDN",
+            "ds-cfg-plugin-type: subordinateModifyDN",
+            "ds-cfg-plugin-type: preOperationAdd",
+            "ds-cfg-plugin-type: preOperationModify",
+            "ds-cfg-attribute-type: member",
+            "ds-cfg-base-dn: o=test",
+            "ds-cfg-base-dn: dc=example, dc=com",
+            "ds-cfg-check-references: true",
+            "ds-cfg-check-references-filter-criteria: member:",
+            "",
+            // check-references true, null:null
+            "dn: cn=Referential Integrity,cn=Plugins,cn=config",
+            "objectClass: top",
+            "objectClass: ds-cfg-plugin",
+            "objectClass: ds-cfg-referential-integrity-plugin",
+            "cn: Referential Integrity",
+            "ds-cfg-java-class: org.opends.server.plugins.ReferentialIntegrityPlugin",
+            "ds-cfg-enabled: true",
+            "ds-cfg-plugin-type: postOperationDelete",
+            "ds-cfg-plugin-type: postOperationModifyDN",
+            "ds-cfg-plugin-type: subordinateModifyDN",
+            "ds-cfg-plugin-type: preOperationAdd",
+            "ds-cfg-plugin-type: preOperationModify",
+            "ds-cfg-attribute-type: member",
+            "ds-cfg-base-dn: o=test",
+            "ds-cfg-base-dn: dc=example, dc=com",
+            "ds-cfg-check-references: true",
+            "ds-cfg-check-references-filter-criteria: :"
     );
     Object[][] array = new Object[entries.size()][1];
     for (int i=0; i < array.length; i++)
@@ -640,6 +829,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
   @BeforeMethod
   public void clearConfigEntries() throws Exception {
     deleteAttrsEntry(configDN, dsConfigBaseDN);
+    deleteAttrsEntry(configDN, dsConfigEnforceIntegrity);
+    deleteAttrsEntry(configDN, dsConfigAttrFiltMapping);
     //Hopefully put an attribute type there that won't impact the rest of the
     //unit tests.
     replaceAttrEntry(configDN, dsConfigAttrType,"seeAlso");
@@ -847,7 +1038,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * @param attrValStrings The values to add to the entry.
    *
    */
-  private void
+  private ModifyOperation
   addAttrEntry(DN dn, String attrTypeString, String... attrValStrings) {
     LinkedList<Modification> mods = new LinkedList<Modification>();
     AttributeType attrType = getAttrType(attrTypeString);
@@ -858,7 +1049,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     mods.add(new Modification(ModificationType.ADD, builder.toAttribute()));
     InternalClientConnection conn =
             InternalClientConnection.getRootConnection();
-    conn.processModify(dn, mods);
+    return conn.processModify(dn, mods);
   }
 
 /**
@@ -871,7 +1062,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * @param attrValStrings The values to replace in the the entry.
  *
    */
-  private void
+  private ModifyOperation
   replaceAttrEntry(DN dn, String attrTypeString, String... attrValStrings) {
     LinkedList<Modification> mods = new LinkedList<Modification>();
     AttributeType attrType = getAttrType(attrTypeString);
@@ -882,7 +1073,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     mods.add(new Modification(ModificationType.REPLACE, builder.toAttribute()));
     InternalClientConnection conn =
             InternalClientConnection.getRootConnection();
-    conn.processModify(dn, mods);
+    return conn.processModify(dn, mods);
   }
 
 
@@ -1061,5 +1252,795 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
         modDNop = conn.processModifyDN(DN.decode(dn), RDN.decode(rdn),
                                        false, null);
     assertEquals(modDNop.getResultCode(), ResultCode.SUCCESS);
+  }
+
+    /**
+   * Test case:
+   * - integrity is enforced on the attribute 'manager'
+   * - value of the 'manager' attribute should match the filter:
+   *  (objectclass=person)
+   * - add a user 'manager' to the 'dc=example,dc=com'
+   * - add a user 'employee' with the attribute manager which points to the
+   *   entry 'manager'
+   * - SUCCESS
+   * @throws Exception
+   */
+  @Test()
+  public void testEnforceIntegrityAddUserWitManagerFilterNoNC()
+    throws Exception
+  {
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
+    replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete",
+                               "preoperationadd",
+                               "preoperationmodify");
+    deleteAttrsEntry(configDN, dsConfigBaseDN);
+    replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true");
+    replaceAttrEntry(configDN, dsConfigAttrType, "manager");
+    addAttrEntry(configDN, dsConfigAttrFiltMapping,
+                           "manager:(objectclass=person)");
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
+
+    Entry entry = null;
+    AddOperation addOperation = null;
+
+    InternalClientConnection conn =
+      InternalClientConnection.getRootConnection();
+
+    entry = makeEntry("uid=manager,ou=people,ou=dept,o=test");
+
+    addOperation = conn.processAdd(entry);
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+    entry = TestCaseUtils.makeEntry(
+      "dn: uid=employee,ou=people,ou=dept,dc=example,dc=com",
+      "objectclass: top",
+      "objectclass: person",
+      "objectclass: organizationalperson",
+      "objectclass: inetorgperson",
+      "uid: employee",
+      "cn: employee",
+      "sn: employee",
+      "givenname: employee",
+      "manager: uid=manager,ou=people,ou=dept,o=test");
+
+    addOperation = conn.processAdd(entry);
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+
+  /**
+   * Test case:
+   * - integrity is enforced on the attribute 'manager'
+   * - value of the 'manager' attribute should match the filter:
+   *  (objectclass=person)
+   * - add a user 'manager' to the 'dc=example,dc=com'
+   * - add a user 'employee' with the attribute manager which points to the
+   *   entry 'manager'
+   * - SUCCESS
+   * @throws Exception
+   */
+  @Test()
+  public void testEnforceIntegrityAddUserWitManagerFilter()
+    throws Exception
+  {
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
+    replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete",
+                               "preoperationadd",
+                               "preoperationmodify");
+    addAttrEntry(configDN, dsConfigBaseDN, "dc=example,dc=com");
+    replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true");
+    replaceAttrEntry(configDN, dsConfigAttrType, "manager");
+    addAttrEntry(configDN, dsConfigAttrFiltMapping,
+                           "manager:(objectclass=person)");
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
+
+    Entry entry = null;
+    AddOperation addOperation = null;
+
+    InternalClientConnection conn =
+      InternalClientConnection.getRootConnection();
+
+    entry = makeEntry("uid=manager,ou=people,ou=dept,dc=example,dc=com");
+
+    addOperation = conn.processAdd(entry);
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+    entry = TestCaseUtils.makeEntry(
+      "dn: uid=employee,ou=people,ou=dept,dc=example,dc=com",
+      "objectclass: top",
+      "objectclass: person",
+      "objectclass: organizationalperson",
+      "objectclass: inetorgperson",
+      "uid: employee",
+      "cn: employee",
+      "sn: employee",
+      "givenname: employee",
+      "manager: uid=manager,ou=people,ou=dept,dc=example,dc=com");
+
+    addOperation = conn.processAdd(entry);
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+
+    /**
+   * Test case:
+   * - integrity is enforced on the attribute 'manager'
+   * - value of the 'manager' attribute should match the filter:
+   *  (objectclass=person)
+   * - add a user 'employee' with the attribute manager which points to the
+   *   entry 'manager' which doesn't exist
+   * - CONSTRAINT VIOLATION
+   * @throws Exception
+   */
+  @Test()
+  public void testEnforceIntegrityAddUserWithMissingManagerEntry()
+    throws Exception
+  {
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
+    replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete",
+                               "preoperationadd",
+                               "preoperationmodify");
+    addAttrEntry(configDN, dsConfigBaseDN, "dc=example,dc=com");
+    replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true");
+    replaceAttrEntry(configDN, dsConfigAttrType, "manager");
+    addAttrEntry(configDN, dsConfigAttrFiltMapping,
+                           "manager:(objectclass=person)");
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
+
+    Entry entry = null;
+    AddOperation addOperation = null;
+    
+    InternalClientConnection conn =
+      InternalClientConnection.getRootConnection();
+
+    entry = TestCaseUtils.makeEntry(
+      "dn: uid=employee,ou=people,ou=dept,dc=example,dc=com",
+      "objectclass: top",
+      "objectclass: person",
+      "objectclass: organizationalperson",
+      "objectclass: inetorgperson",
+      "uid: employee",
+      "cn: employee",
+      "sn: employee",
+      "givenname: employee",
+      "manager: uid=bad,ou=people,ou=dept,dc=example,dc=com");
+
+    addOperation = conn.processAdd(entry);
+    assertEquals(addOperation.getResultCode(),
+                 ResultCode.CONSTRAINT_VIOLATION);
+  }
+
+    /**
+   * Test case:
+   * - integrity is enforced on the attribute 'manager'
+   * - value of the 'manager' attribute should match the filter:
+   *  (objectclass=groupOfNames)
+   * - add a user 'manager' with the object class 'person' to the
+   *   'dc=example,dc=com'
+   * - add a user 'employee' with the attribute manager which points to the
+   *   entry 'manager'
+   * - CONSTRAINT VIOLATION
+   * @throws Exception
+   */
+  @Test()
+  public void testEnforceIntegrityAddUserWitManagerFilterMismatch()
+    throws Exception
+  {
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
+    replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete",
+                               "preoperationadd",
+                               "preoperationmodify");
+    addAttrEntry(configDN, dsConfigBaseDN, "dc=example,dc=com");
+    replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true");
+    replaceAttrEntry(configDN, dsConfigAttrType, "manager");
+    addAttrEntry(configDN, dsConfigAttrFiltMapping,
+                           "manager:(objectclass=gropuOfNames)");
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
+
+    Entry entry = null;
+    AddOperation addOperation = null;
+    
+    InternalClientConnection conn =
+      InternalClientConnection.getRootConnection();
+
+    entry = makeEntry("uid=manager,ou=people,ou=dept,dc=example,dc=com");
+
+    addOperation = conn.processAdd(entry);
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+    entry = TestCaseUtils.makeEntry(
+      "dn: uid=employee,ou=people,ou=dept,dc=example,dc=com",
+      "objectclass: top",
+      "objectclass: person",
+      "objectclass: organizationalperson",
+      "objectclass: inetorgperson",
+      "uid: employee",
+      "cn: employee",
+      "sn: employee",
+      "givenname: employee",
+      "manager: uid=manager,ou=people,ou=dept,dc=example,dc=com");
+
+    addOperation = conn.processAdd(entry);
+    assertEquals(addOperation.getResultCode(),
+                 ResultCode.CONSTRAINT_VIOLATION);
+  }
+
+    /**
+   * Test case:
+   * - integrity is enforced on the attribute 'manager'
+   * - value of the 'manager' attribute should match the filter:
+   *  (objectclass=person)
+   * - add a user 'manager' to the 'o=test'
+   * - add a user 'employee' with the attribute manager which points to the
+   *   entry 'manager'
+   * - SUCCESS
+   * @throws Exception
+   */
+  @Test()
+  public void testEnforceIntegrityAddUserWithManagerNC()
+    throws Exception
+  {
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
+    replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete",
+                               "preoperationadd",
+                               "preoperationmodify");
+    addAttrEntry(configDN, dsConfigBaseDN,
+                           "dc=example,dc=com",
+                           "o=test");
+    replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true");
+    replaceAttrEntry(configDN, dsConfigAttrType, "manager");
+    addAttrEntry(configDN, dsConfigAttrFiltMapping,
+                           "manager:(objectclass=person)");
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
+
+    Entry entry = null;
+    AddOperation addOperation = null;
+
+    InternalClientConnection conn =
+      InternalClientConnection.getRootConnection();
+
+    entry = makeEntry("uid=manager,ou=people,ou=dept,o=test");
+
+    addOperation = conn.processAdd(entry);
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+    entry = TestCaseUtils.makeEntry(
+      "dn: uid=employee,ou=people,ou=dept,dc=example,dc=com",
+      "objectclass: top",
+      "objectclass: person",
+      "objectclass: organizationalperson",
+      "objectclass: inetorgperson",
+      "uid: employee",
+      "cn: employee",
+      "sn: employee",
+      "givenname: employee",
+      "manager: uid=manager,ou=people,ou=dept,o=test");
+
+    addOperation = conn.processAdd(entry);
+    assertEquals(addOperation.getResultCode(),
+                 ResultCode.SUCCESS);
+  }
+
+  /**
+   * Test case:
+   * - integrity is enforced on the attribute 'member'
+   * - value of the 'manager' attribute should match the filter:
+   *  (objectclass=person)
+   * - add a group 'referent group' to the 'dc=example,dc=com' with the
+   *   'member' attribute pointing to the existing user entries
+   * - SUCCESS
+   * @throws Exception
+   */
+  @Test()
+  public void testEnforceIntegrityAddGroupWithFilter()
+    throws Exception
+  {
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
+    replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete",
+                               "preoperationadd",
+                               "preoperationmodify");
+    addAttrEntry(configDN, dsConfigBaseDN, "dc=example,dc=com");
+    replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true");
+    replaceAttrEntry(configDN, dsConfigAttrType, "member");
+    addAttrEntry(configDN, dsConfigAttrFiltMapping,
+                           "member:(objectclass=person)");
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
+
+    InternalClientConnection conn =
+      InternalClientConnection.getRootConnection();
+
+    Entry entry = TestCaseUtils.makeEntry(
+      "dn: cn=referent group,ou=groups,dc=example,dc=com",
+      "objectclass: top",
+      "objectclass: groupofnames",
+      "cn: refetent group",
+      "member: uid=user.1,ou=people,ou=dept,dc=example,dc=com",
+      "member: uid=user.2,ou=people,ou=dept,dc=example,dc=com",
+      "member: uid=user.3,ou=people,ou=dept,dc=example,dc=com",
+      "member: uid=user.4,ou=people,ou=dept,dc=example,dc=com",
+      "member: uid=user.5,ou=people,ou=dept,dc=example,dc=com"
+      );
+
+    AddOperation addOperation = conn.processAdd(entry);
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+
+  /**
+   * Test case:
+   * - integrity is enforced on the attribute 'member'
+   * - value of the 'manager' attribute should match the filter:
+   *  (objectclass=person)
+   * - add a group 'referent group' to the 'dc=example,dc=com' with the
+   *   'member' attribute pointing to the existing user entries and one missing
+   * - CONSTRAINT VIOLATION
+   * @throws Exception
+   */
+  @Test()
+  public void testEnforceIntegrityAddGroupWithMissingMember()
+    throws Exception
+  {
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
+    replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete",
+                               "preoperationadd",
+                               "preoperationmodify");
+    addAttrEntry(configDN, dsConfigBaseDN, "dc=example,dc=com");
+    replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true");
+    replaceAttrEntry(configDN, dsConfigAttrType, "member");
+    addAttrEntry(configDN, dsConfigAttrFiltMapping,
+                           "member:(objectclass=person)");
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
+
+    
+    InternalClientConnection conn =
+      InternalClientConnection.getRootConnection();
+
+    Entry entry = TestCaseUtils.makeEntry(
+      "dn: cn=referent group,ou=groups,dc=example,dc=com",
+      "objectclass: top",
+      "objectclass: groupofnames",
+      "cn: refetent group",
+      "member: uid=user.1,ou=people,ou=dept,dc=example,dc=com",
+      "member: uid=user.2,ou=people,ou=dept,dc=example,dc=com",
+      "member: uid=bad,ou=people,ou=dept,dc=example,dc=com",
+      "member: uid=user.4,ou=people,ou=dept,dc=example,dc=com",
+      "member: uid=user.5,ou=people,ou=dept,dc=example,dc=com"
+      );
+
+    AddOperation addOperation = conn.processAdd(entry);
+    assertEquals(addOperation.getResultCode(), 
+                 ResultCode.CONSTRAINT_VIOLATION);
+  }
+
+  /**
+   * Test case:
+   * - integrity is enforced on the attribute 'member'
+   * - value of the 'manager' attribute should match the filter:
+   *  (objectclass=person)
+   * - add a group 'referent group' to the 'dc=example,dc=com' with the
+   *   'member' attribute pointing to the existing user entries and one entry
+   *   being of object class groupOfNames
+   * - CONSTRAINT VIOLATION
+   * @throws Exception
+   */
+  @Test()
+  public void testEnforceIntegrityAddGroupMemberFilterMismatch()
+    throws Exception
+  {
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
+    replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete",
+                               "preoperationadd",
+                               "preoperationmodify");
+    addAttrEntry(configDN, dsConfigBaseDN, "dc=example,dc=com");
+    replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true");
+    replaceAttrEntry(configDN, dsConfigAttrType, "member");
+    addAttrEntry(configDN, dsConfigAttrFiltMapping,
+                           "member:(objectclass=person)");
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
+
+    InternalClientConnection conn =
+      InternalClientConnection.getRootConnection();
+
+    Entry entry = TestCaseUtils.makeEntry(
+      "dn: cn=referent group,ou=groups,dc=example,dc=com",
+      "objectclass: top",
+      "objectclass: groupofnames",
+      "cn: refetent group",
+      "member: uid=user.1,ou=people,ou=dept,dc=example,dc=com",
+      "member: uid=user.2,ou=people,ou=dept,dc=example,dc=com",
+      "member: cn=group,ou=groups,dc=example,dc=com",
+      "member: uid=user.4,ou=people,ou=dept,dc=example,dc=com",
+      "member: uid=user.5,ou=people,ou=dept,dc=example,dc=com"
+      );
+
+    AddOperation addOperation = conn.processAdd(entry);
+    assertEquals(addOperation.getResultCode(),
+                 ResultCode.CONSTRAINT_VIOLATION);
+  }
+
+  /**
+   * Test case:
+   * - integrity is enforced on the attribute 'member'
+   * - value of the 'manager' attribute should match the filter:
+   *  (objectclass=person)
+   * - add a group 'referent group' to the 'dc=example,dc=com' with the
+   *   'member' attribute pointing to the existing user entries with one memeber
+   *   belonging to 'o=test' naming context
+   * - SUCCESS
+   * @throws Exception
+   */
+  @Test()
+  public void testEnforceIntegrityAddGroupMemberNC()
+    throws Exception
+  {
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
+    replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete",
+                               "preoperationadd",
+                               "preoperationmodify");
+    addAttrEntry(configDN, dsConfigBaseDN,
+                           "dc=example,dc=com",
+                           "o=test");
+    replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true");
+    replaceAttrEntry(configDN, dsConfigAttrType, "member");
+    addAttrEntry(configDN, dsConfigAttrFiltMapping,
+                           "member:(objectclass=person)");
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
+
+    InternalClientConnection conn =
+      InternalClientConnection.getRootConnection();
+
+    Entry entry = TestCaseUtils.makeEntry(
+      "dn: cn=referent group,ou=groups,dc=example,dc=com",
+      "objectclass: top",
+      "objectclass: groupofnames",
+      "cn: refetent group",
+      "member: uid=user.1,ou=people,ou=dept,dc=example,dc=com",
+      "member: uid=user.2,ou=people,ou=dept,dc=example,dc=com",
+      "member: uid=user.3,ou=people,ou=dept,o=test",
+      "member: uid=user.4,ou=people,ou=dept,dc=example,dc=com",
+      "member: uid=user.5,ou=people,ou=dept,dc=example,dc=com"
+      );
+
+    AddOperation addOperation = conn.processAdd(entry);
+    assertEquals(addOperation.getResultCode(),
+                 ResultCode.SUCCESS);
+  }
+
+  /**
+   * Test case:
+   * - employee entry exists
+   * - manager entry exists
+   * - add 'manager' attribute to the manager entry
+   * @throws Exception
+   */
+  @Test()
+  public void testEnforceIntegrityModifyUserAddManagerFilter()
+    throws Exception
+  {
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
+    replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete",
+                               "preoperationadd",
+                               "preoperationmodify");
+    addAttrEntry(configDN, dsConfigBaseDN, "dc=example,dc=com");
+    replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true");
+    replaceAttrEntry(configDN, dsConfigAttrType, "manager");
+    addAttrEntry(configDN, dsConfigAttrFiltMapping,
+                           "manager:(objectclass=person)");
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
+
+    InternalClientConnection conn =
+      InternalClientConnection.getRootConnection();
+
+    Entry entry = makeEntry("uid=manager,ou=people,ou=dept,dc=example,dc=com");
+
+    AddOperation addOperation = conn.processAdd(entry);
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+    ModifyOperation modOperation = addAttrEntry(DN.decode(user1),
+     "manager", "uid=manager,ou=people,ou=dept,dc=example,dc=com");
+    assertEquals(modOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+
+  /**
+   * Test case:
+   * - employee entry exists with 'manager' attribute pointing to the
+   *   manager entry
+   * - manager entry exists
+   * - user.2 entry exists
+   * - modify 'manager' attribute to the 'user.2' entry
+   * @throws Exception
+   */
+  @Test()
+  public void testEnforceIntegrityModifyUserModifyManagerFilter()
+    throws Exception
+  {
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
+    replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete",
+                               "preoperationadd",
+                               "preoperationmodify");
+    addAttrEntry(configDN, dsConfigBaseDN, "dc=example,dc=com");
+    replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true");
+    replaceAttrEntry(configDN, dsConfigAttrType, "manager");
+    addAttrEntry(configDN, dsConfigAttrFiltMapping,
+                           "manager:(objectclass=person)");
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
+
+    InternalClientConnection conn =
+      InternalClientConnection.getRootConnection();
+
+    Entry entry = makeEntry("uid=manager,ou=people,ou=dept,dc=example,dc=com");
+
+    AddOperation addOperation = conn.processAdd(entry);
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+    ModifyOperation modOperation = addAttrEntry(DN.decode(user1),
+     "manager", "uid=manager,ou=people,ou=dept,dc=example,dc=com");
+    assertEquals(modOperation.getResultCode(), ResultCode.SUCCESS);
+
+    modOperation = replaceAttrEntry(DN.decode(user1),
+                                    "manager", user2);
+    assertEquals(modOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+
+  /**
+   * Test case:
+   * - filter is set to posixAccount
+   * - employee entry exists
+   * - manager entry exists with objectclass person
+   * - add 'manager' attribute to the manager entry
+   * - constraint violation
+   * @throws Exception
+   */
+  @Test()
+  public void testEnforceIntegrityModifyUserAddManagerFilterMismatch()
+    throws Exception
+  {
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
+    replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete",
+                               "preoperationadd",
+                               "preoperationmodify");
+    addAttrEntry(configDN, dsConfigBaseDN, "dc=example,dc=com");
+    replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true");
+    replaceAttrEntry(configDN, dsConfigAttrType, "manager");
+    addAttrEntry(configDN, dsConfigAttrFiltMapping,
+                           "manager:(objectclass=posixAccount)");
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
+
+    InternalClientConnection conn =
+      InternalClientConnection.getRootConnection();
+
+    Entry entry = makeEntry("uid=manager,ou=people,ou=dept,dc=example,dc=com");
+
+    AddOperation addOperation = conn.processAdd(entry);
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+    ModifyOperation modOperation = addAttrEntry(DN.decode(user1),
+     "manager", "uid=manager,ou=people,ou=dept,dc=example,dc=com");
+    assertEquals(modOperation.getResultCode(),
+                 ResultCode.CONSTRAINT_VIOLATION);
+  }
+
+  /**
+   * Test case:
+   * - employee entry exists in dc=example,dc=com
+   * - manager entry exists in o=other
+   * - add 'manager' attribute to the employee poiting to the manager
+   *   entry
+   * - SUCCESS
+   * @throws Exception
+   */
+  @Test()
+  public void testEnforceIntegrityModifyUserAddManagerNC()
+    throws Exception
+  {
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
+    replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete",
+                               "preoperationadd",
+                               "preoperationmodify");
+    addAttrEntry(configDN, dsConfigBaseDN,
+                           "dc=example,dc=com",
+                           "o=test");
+    replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true");
+    replaceAttrEntry(configDN, dsConfigAttrType, "manager");
+    addAttrEntry(configDN, dsConfigAttrFiltMapping,
+                           "manager:(objectclass=person)");
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
+
+    InternalClientConnection conn =
+      InternalClientConnection.getRootConnection();
+
+    Entry entry = makeEntry("uid=manager,ou=people,ou=dept,o=test");
+
+    AddOperation addOperation = conn.processAdd(entry);
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+
+    ModifyOperation modOperation = addAttrEntry(DN.decode(user1),
+     "manager", "uid=manager,ou=people,ou=dept,o=test");
+    assertEquals(modOperation.getResultCode(),
+                 ResultCode.SUCCESS);
+  }
+
+  /**
+   * Test case:
+   * - employee entry exists
+   * - manager entry does not exist
+   * - add 'manager' attribute to the employee
+   * - constraint violation
+   * @throws Exception
+   */
+  @Test()
+  public void testEnforceIntegrityModifyUserAddManagerMissing()
+    throws Exception
+  {
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
+    replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete",
+                               "preoperationadd",
+                               "preoperationmodify");
+    addAttrEntry(configDN, dsConfigBaseDN, "dc=example,dc=com");
+    replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true");
+    replaceAttrEntry(configDN, dsConfigAttrType, "manager");
+    addAttrEntry(configDN, dsConfigAttrFiltMapping,
+                           "manager:(objectclass=person)");
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
+
+    ModifyOperation modOperation = addAttrEntry(DN.decode(user1),
+     "manager", "uid=manager,ou=people,ou=dept,dc=example,dc=com");
+    assertEquals(modOperation.getResultCode(),
+                 ResultCode.CONSTRAINT_VIOLATION);
+  }
+
+  @Test()
+  public void testEnforceIntegrityModifyGroupAddMember()
+    throws Exception
+  {
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
+    replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete",
+                               "preoperationadd",
+                               "preoperationmodify");
+    addAttrEntry(configDN, dsConfigBaseDN, "dc=example,dc=com");
+    replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true");
+    replaceAttrEntry(configDN, dsConfigAttrType, "member");
+    addAttrEntry(configDN, dsConfigAttrFiltMapping,
+                           "member:(objectclass=person)");
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
+
+    ModifyOperation modOperation = addAttrEntry(DN.decode(group),
+                                                "member",
+                                                user1);
+    assertEquals(modOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+
+  @Test()
+  public void testEnforceIntegrityModifyGroupAddMissingMember()
+    throws Exception
+  {
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
+    replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete",
+                               "preoperationadd",
+                               "preoperationmodify");
+    addAttrEntry(configDN, dsConfigBaseDN, "dc=example,dc=com");
+    replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true");
+    replaceAttrEntry(configDN, dsConfigAttrType, "member");
+    addAttrEntry(configDN, dsConfigAttrFiltMapping,
+                           "member:(objectclass=person)");
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
+
+    ModifyOperation modOperation = addAttrEntry(DN.decode(group),
+      "member", "uid=user.100,ou=people,ou=dept,dc=example,dc=com");
+    assertEquals(modOperation.getResultCode(),
+                 ResultCode.CONSTRAINT_VIOLATION);
+  }
+
+  @Test()
+  public void testEnforceIntegrityModifyGroupAddMemberFilterMismatch()
+    throws Exception
+  {
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
+    replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete",
+                               "preoperationadd",
+                               "preoperationmodify");
+    addAttrEntry(configDN, dsConfigBaseDN, "dc=example,dc=com");
+    replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true");
+    replaceAttrEntry(configDN, dsConfigAttrType, "member");
+    addAttrEntry(configDN, dsConfigAttrFiltMapping,
+                           "member:(objectclass=posixaccount)");
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
+
+    ModifyOperation modOperation = addAttrEntry(DN.decode(group),
+      "member", "uid=user.100,ou=people,ou=dept,dc=example,dc=com");
+    assertEquals(modOperation.getResultCode(),
+                 ResultCode.CONSTRAINT_VIOLATION);
+  }
+
+  @Test()
+  public void testEnforceIntegrityModifyGroupAddMemberNC()
+    throws Exception
+  {
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
+    replaceAttrEntry(configDN, dsConfigPluginType,
+                               "postoperationdelete",
+                               "postoperationmodifydn",
+                               "subordinatemodifydn",
+                               "subordinatedelete",
+                               "preoperationadd",
+                               "preoperationmodify");
+    addAttrEntry(configDN, dsConfigBaseDN, 
+                           "dc=example,dc=com",
+                           "o=test");
+    replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true");
+    replaceAttrEntry(configDN, dsConfigAttrType, "member");
+    addAttrEntry(configDN, dsConfigAttrFiltMapping,
+                           "member:(objectclass=person)");
+    replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
+
+    ModifyOperation modOperation = addAttrEntry(DN.decode(group),
+      "member", "uid=user.1,ou=people,ou=dept,o=test");
+    assertEquals(modOperation.getResultCode(),
+                 ResultCode.SUCCESS);
   }
 }
