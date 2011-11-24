@@ -71,12 +71,12 @@
   <screen>$ cat static.ldif 
 dn: cn=My Static Group,ou=Groups,dc=example,dc=com
 cn: My Static Group
-objectClass: groupOfUniqueNames
+objectClass: groupOfNames
 objectClass: top
 ou: Groups
-uniqueMember: uid=ahunter,ou=People,dc=example,dc=com
-uniqueMember: uid=bjensen,ou=People,dc=example,dc=com
-uniqueMember: uid=tmorris,ou=People,dc=example,dc=com
+member: uid=ahunter,ou=People,dc=example,dc=com
+member: uid=bjensen,ou=People,dc=example,dc=com
+member: uid=tmorris,ou=People,dc=example,dc=com
 
 $ ldapmodify
  --port 1389
@@ -93,8 +93,8 @@ ADD operation successful for DN cn=My Static Group,ou=Groups,dc=example,dc=com</
   <screen>$ cat add2grp.ldif 
 dn: cn=My Static Group,ou=Groups,dc=example,dc=com
 changetype: modify
-add: uniqueMember
-uniqueMember: uid=scarter,ou=People,dc=example,dc=com
+add: member
+member: uid=scarter,ou=People,dc=example,dc=com
 
 $ ldapmodify
  --port 1389
@@ -110,12 +110,12 @@ $ ldapsearch
  "(cn=My Static Group)"
 dn: cn=My Static Group,ou=Groups,dc=example,dc=com
 ou: Groups
-objectClass: groupOfUniqueNames
+objectClass: groupOfNames
 objectClass: top
-uniqueMember: uid=ahunter,ou=People,dc=example,dc=com
-uniqueMember: uid=bjensen,ou=People,dc=example,dc=com
-uniqueMember: uid=tmorris,ou=People,dc=example,dc=com
-uniqueMember: uid=scarter,ou=People,dc=example,dc=com
+member: uid=ahunter,ou=People,dc=example,dc=com
+member: uid=bjensen,ou=People,dc=example,dc=com
+member: uid=tmorris,ou=People,dc=example,dc=com
+member: uid=scarter,ou=People,dc=example,dc=com
 cn: My Static Group</screen>
  </section>
 
@@ -344,12 +344,12 @@ isMemberOf: cn=My Dynamic Group,ou=Groups,dc=example,dc=com</screen>
   <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(cn=My Static Group)"
 dn: cn=My Static Group,ou=Groups,dc=example,dc=com
 ou: Groups
-objectClass: groupOfUniqueNames
+objectClass: groupOfNames
 objectClass: top
-uniqueMember: uid=ahunter,ou=People,dc=example,dc=com
-uniqueMember: uid=bjensen,ou=People,dc=example,dc=com
-uniqueMember: uid=tmorris,ou=People,dc=example,dc=com
-uniqueMember: uid=scarter,ou=People,dc=example,dc=com
+member: uid=ahunter,ou=People,dc=example,dc=com
+member: uid=bjensen,ou=People,dc=example,dc=com
+member: uid=tmorris,ou=People,dc=example,dc=com
+member: uid=scarter,ou=People,dc=example,dc=com
 cn: My Static Group
 
 $ ldapdelete
@@ -362,12 +362,12 @@ DELETE operation successful for DN uid=scarter,ou=People,dc=example,dc=com
 $ ldapsearch --port 1389 --baseDN dc=example,dc=com "(cn=My Static Group)"
 dn: cn=My Static Group,ou=Groups,dc=example,dc=com
 ou: Groups
-objectClass: groupOfUniqueNames
+objectClass: groupOfNames
 objectClass: top
 cn: My Static Group
-uniqueMember: uid=ahunter,ou=People,dc=example,dc=com
-uniqueMember: uid=bjensen,ou=People,dc=example,dc=com
-uniqueMember: uid=tmorris,ou=People,dc=example,dc=com</screen>
+member: uid=ahunter,ou=People,dc=example,dc=com
+member: uid=bjensen,ou=People,dc=example,dc=com
+member: uid=tmorris,ou=People,dc=example,dc=com</screen>
 
  <para>You can also configure the referential integrity plugin to check that
  new entries added to groups actually exist in the directory by setting the
@@ -377,8 +377,8 @@ uniqueMember: uid=tmorris,ou=People,dc=example,dc=com</screen>
  <literal>check-references-filter-criteria</literal> to identify the attribute
  and the filter. For example, you can specify that group members must be person
  entries by setting <literal>check-references-filter-criteria</literal> to
- <literal>uniqueMember:(objectclass=person)</literal>. To ensure that entries
- must be located in the same naming context, set
+ <literal>member:(objectclass=person)</literal>. To ensure that entries must be
+ located in the same naming context, set
  <literal>check-references-scope-criteria</literal> to
  <literal>naming-context</literal>.</para>
  </section>
