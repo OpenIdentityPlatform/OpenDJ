@@ -312,9 +312,10 @@ Post initialization procedure completed successfully.</screen>
     <varlistentry>
      <term><filename>ads-truststore</filename></term>
      <listitem>
-      <para>This Java Key Store holds public certificates from other servers
-      participating in the same replication topology. The password is stored in
-      <filename>ads-truststore.pin</filename>.</para>
+      <para>This Java Key Store holds public keys of all servers
+      participating in the replication topology including the current server,
+      and also holds the private key of the current server. The password is
+      stored in <filename>ads-truststore.pin</filename>.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
