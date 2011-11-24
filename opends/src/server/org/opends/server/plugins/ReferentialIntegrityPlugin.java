@@ -24,11 +24,15 @@
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011 profiq s.r.o.
  */
 package org.opends.server.plugins;
 
 
 
+import java.util.Iterator;
+import org.opends.server.types.operation.PreOperationAddOperation;
+import org.opends.server.types.operation.PreOperationModifyOperation;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -50,6 +54,8 @@ import org.opends.server.admin.std.server.ReferentialIntegrityPluginCfg;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.meta.ReferentialIntegrityPluginCfgDefn
+  .CheckReferencesScopeCriteria;
 import org.opends.server.api.Backend;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ServerShutdownListener;
@@ -153,6 +159,12 @@ public class ReferentialIntegrityPlugin
   //when the plugin is in background processing mode.
   private BufferedWriter writer;
 
+  /* Specifies the mapping between the attribute type (specified in the
+   * attributeTypes list) and the filter which the plugin should use
+   * to verify the integrity of the value of the given attribute.
+   */
+  private LinkedHashMap<AttributeType, SearchFilter> attrFiltMap =
+    new LinkedHashMap<AttributeType, SearchFilter>();
 
 
   /**
@@ -163,64 +175,14 @@ public class ReferentialIntegrityPlugin
          throws ConfigException
   {
     pluginCfg.addReferentialIntegrityChangeListener(this);
-    currentConfiguration = pluginCfg;
+    LinkedList<Message> unacceptableReasons = new LinkedList<Message>();
 
-    for (PluginType t : pluginTypes)
+    if (!isConfigurationAcceptable(pluginCfg, unacceptableReasons))
     {
-      switch (t)
-      {
-        case POST_OPERATION_DELETE:
-        case POST_OPERATION_MODIFY_DN:
-        case SUBORDINATE_MODIFY_DN:
-        case SUBORDINATE_DELETE:
-          // These are acceptable.
-          break;
-
-        default:
-          throw new
-             ConfigException(ERR_PLUGIN_REFERENT_INVALID_PLUGIN_TYPE.get(
-                                  t.toString()));
-      }
+      throw new ConfigException(unacceptableReasons.getFirst());
     }
 
-    Set<DN> cfgBaseDNs = pluginCfg.getBaseDN();
-    if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
-    {
-      cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
-    }
-    else
-    {
-      baseDNs.addAll(cfgBaseDNs);
-    }
-
-    // Iterate through all of the defined attribute types and ensure that they
-    // have acceptable syntaxes and that they are indexed for equality below all
-    // base DNs.
-    for (AttributeType type : pluginCfg.getAttributeType())
-    {
-      if (! isAttributeSyntaxValid(type))
-      {
-        throw new ConfigException(
-                       ERR_PLUGIN_REFERENT_INVALID_ATTRIBUTE_SYNTAX.get(
-                            type.getNameOrOID(),
-                             type.getSyntax().getSyntaxName()));
-      }
-
-      for (DN baseDN : cfgBaseDNs)
-      {
-        Backend b = DirectoryServer.getBackend(baseDN);
-        if ((b != null) && (! b.isIndexed(type, IndexType.EQUALITY)))
-        {
-          throw new ConfigException(ERR_PLUGIN_REFERENT_ATTR_UNINDEXED.get(
-                                         pluginCfg.dn().toString(),
-                                         type.getNameOrOID(),
-                                         b.getBackendID()));
-        }
-      }
-
-      attributeTypes.add(type);
-    }
-
+    applyConfigurationChange(pluginCfg);
 
     // Set up log file. Note: it is not allowed to change once the plugin is
     // active.
@@ -261,10 +223,42 @@ public class ReferentialIntegrityPlugin
       newAttributeTypes.add(type);
     }
 
+    // Load the attribute-filter mapping
+
+    LinkedHashMap<AttributeType, SearchFilter> newAttrFiltMap =
+      new LinkedHashMap<AttributeType, SearchFilter>();
+
+    for (String attrFilt : newConfiguration.getCheckReferencesFilterCriteria())
+    {
+      int sepInd = attrFilt.lastIndexOf(":");
+      String attr = attrFilt.substring(0, sepInd);
+      String filtStr = attrFilt.substring(sepInd + 1);
+
+      AttributeType attrType =
+        DirectoryServer.getAttributeType(attr.toLowerCase());
+
+      try
+      {
+        SearchFilter filter =
+          SearchFilter.createFilterFromString(filtStr);
+        newAttrFiltMap.put(attrType, filter);
+      }
+      catch (DirectoryException de)
+      {
+        /* This should never happen because the filter has already
+         * been verified.
+         */
+        logError(de.getMessageObject());
+      }
+    }
+
     //User is not allowed to change the logfile name, append a message that the
     //server needs restarting for change to take effect.
+    // The first time the plugin is initialised the 'logFileName' is
+    // not initialised, so in order to verify if it is equal to the new
+    // log file name, we have to make sure the variable is not null.
     String newLogFileName=newConfiguration.getLogFile();
-    if(!logFileName.equals(newLogFileName))
+    if(logFileName != null && !logFileName.equals(newLogFileName))
     {
       adminActionRequired=true;
       messages.add(
@@ -275,6 +269,7 @@ public class ReferentialIntegrityPlugin
     //Switch to the new lists.
     baseDNs = newConfiguredBaseDNs;
     attributeTypes = newAttributeTypes;
+    attrFiltMap = newAttrFiltMap;
 
     //If the plugin is enabled and the interval has changed, process that
     //change. The change might start or stop the background processing thread.
@@ -294,9 +289,109 @@ public class ReferentialIntegrityPlugin
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<Message> unacceptableReasons)
   {
-    ReferentialIntegrityPluginCfg cfg =
+    boolean isAcceptable = true;
+    ReferentialIntegrityPluginCfg pluginCfg =
          (ReferentialIntegrityPluginCfg) configuration;
-    return isConfigurationChangeAcceptable(cfg, unacceptableReasons);
+
+    for (PluginCfgDefn.PluginType t : pluginCfg.getPluginType())
+    {
+      switch (t)
+      {
+        case POSTOPERATIONDELETE:
+        case POSTOPERATIONMODIFYDN:
+        case SUBORDINATEMODIFYDN:
+        case SUBORDINATEDELETE:
+        case PREOPERATIONMODIFY:
+        case PREOPERATIONADD:
+          // These are acceptable.
+          break;
+
+        default:
+          isAcceptable = false;
+          unacceptableReasons.add(ERR_PLUGIN_REFERENT_INVALID_PLUGIN_TYPE.get(
+                                  t.toString()));
+      }
+    }
+
+    Set<DN> cfgBaseDNs = pluginCfg.getBaseDN();
+    if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
+    {
+      cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
+    }
+
+    // Iterate through all of the defined attribute types and ensure that they
+    // have acceptable syntaxes and that they are indexed for equality below all
+    // base DNs.
+    Set<AttributeType> attributeTypes = pluginCfg.getAttributeType();
+    for (AttributeType type : attributeTypes)
+    {
+      if (! isAttributeSyntaxValid(type))
+      {
+        isAcceptable = false;
+        unacceptableReasons.add(
+                       ERR_PLUGIN_REFERENT_INVALID_ATTRIBUTE_SYNTAX.get(
+                            type.getNameOrOID(),
+                             type.getSyntax().getSyntaxName()));
+      }
+
+      for (DN baseDN : cfgBaseDNs)
+      {
+        Backend b = DirectoryServer.getBackend(baseDN);
+        if ((b != null) && (!b.isIndexed(type, IndexType.EQUALITY)))
+        {
+          isAcceptable = false;
+          unacceptableReasons.add(ERR_PLUGIN_REFERENT_ATTR_UNINDEXED.get(
+                                         pluginCfg.dn().toString(),
+                                         type.getNameOrOID(),
+                                         b.getBackendID()));
+        }
+      }
+    }
+
+    /* Iterate through the attribute-filter mapping and verify that the
+     * map contains attributes listed in the attribute-type parameter
+     * and that the filter is valid.
+     */
+
+    for (String attrFilt : pluginCfg.getCheckReferencesFilterCriteria())
+    {
+      int sepInd = attrFilt.lastIndexOf(":");
+      String attr = attrFilt.substring(0, sepInd).trim();
+      String filtStr = attrFilt.substring(sepInd + 1).trim();
+
+      /* TODO: strip the ;options part? */
+
+      /* Get the attribute type for the given attribute. The attribute
+       * type has to be present in the attributeType list.
+       */
+
+      AttributeType attrType =
+        DirectoryServer.getAttributeType(attr.toLowerCase());
+
+      if (attrType == null || !attributeTypes.contains(attrType))
+      {
+        isAcceptable = false;
+        unacceptableReasons.add(
+          ERR_PLUGIN_REFERENT_ATTR_NOT_LISTED.get(attr));
+      }
+
+      /* Verify the filter.
+       */
+
+      try
+      {
+        SearchFilter.createFilterFromString(filtStr);
+      }
+      catch (DirectoryException de)
+      {
+        isAcceptable = false;
+        unacceptableReasons.add(
+          ERR_PLUGIN_REFERENT_BAD_FILTER.get(filtStr, de.getMessage()));
+      }
+
+    }
+
+    return isAcceptable;
   }
 
 
@@ -307,59 +402,8 @@ public class ReferentialIntegrityPlugin
           ReferentialIntegrityPluginCfg configuration,
           List<Message> unacceptableReasons)
   {
-    boolean configAcceptable = true;
-    for (PluginCfgDefn.PluginType pluginType : configuration.getPluginType())
-    {
-      switch (pluginType)
-      {
-        case POSTOPERATIONDELETE:
-        case POSTOPERATIONMODIFYDN:
-        case SUBORDINATEMODIFYDN:
-        case SUBORDINATEDELETE:
-          // These are acceptable.
-          break;
-        default:
-          unacceptableReasons.add(ERR_PLUGIN_REFERENT_INVALID_PLUGIN_TYPE.
-                                  get(pluginType.toString()));
-          configAcceptable = false;
-      }
-    }
-
-    // Iterate through the set of base DNs that we will check and ensure that
-    // the corresponding backend is indexed appropriately.
-    Set<DN> cfgBaseDNs = configuration.getBaseDN();
-    if ((cfgBaseDNs == null) || cfgBaseDNs.isEmpty())
-    {
-      cfgBaseDNs = DirectoryServer.getPublicNamingContexts().keySet();
-    }
-
-    //Iterate through attributes and check that each has a valid syntax
-    for (AttributeType type : configuration.getAttributeType())
-    {
-      if (!isAttributeSyntaxValid(type))
-      {
-        unacceptableReasons.add(
-             ERR_PLUGIN_REFERENT_INVALID_ATTRIBUTE_SYNTAX.get(
-                  type.getNameOrOID(), type.getSyntax().getSyntaxName()));
-        configAcceptable = false;
-      }
-
-      for (DN baseDN : cfgBaseDNs)
-      {
-        Backend b = DirectoryServer.getBackend(baseDN);
-        if ((b != null) && (! b.isIndexed(type, IndexType.EQUALITY)))
-        {
-          unacceptableReasons.add(ERR_PLUGIN_REFERENT_ATTR_UNINDEXED.get(
-                                       configuration.dn().toString(),
-                                       type.getNameOrOID(), b.getBackendID()));
-          configAcceptable = false;
-        }
-      }
-    }
-
-    return configAcceptable;
+    return isConfigurationAcceptable(configuration, unacceptableReasons);
   }
-
 
 
   /**
@@ -1056,5 +1100,248 @@ public class ReferentialIntegrityPlugin
         processLog();
       }
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+    public PluginResult.PreOperation doPreOperation(
+    PreOperationModifyOperation modifyOperation)
+  {
+    /* Skip the integrity checks if the enforcing is not enabled
+     */
+
+    if (!currentConfiguration.isCheckReferences())
+    {
+      return PluginResult.PreOperation.continueOperationProcessing();
+    }
+
+    final List<Modification> mods = modifyOperation.getModifications();
+    final Entry entry = modifyOperation.getModifiedEntry();
+
+    for (Modification mod : mods)
+    {
+      final ModificationType modType = mod.getModificationType();
+
+      /* Process only ADD and REPLACE modification types.
+       */
+      if ((modType != ModificationType.ADD)
+          && (modType != ModificationType.REPLACE))
+      {
+        break;
+      }
+
+      AttributeType attrType      = mod.getAttribute().getAttributeType();
+      Set<String> attrOptions     = mod.getAttribute().getOptions();
+      Attribute modifiedAttribute = entry.getExactAttribute(attrType,
+                                                            attrOptions);
+      if (modifiedAttribute != null)
+      {
+        PluginResult.PreOperation result =
+        isIntegrityMaintained(modifiedAttribute, entry.getDN());
+        if (result.getResultCode() != ResultCode.SUCCESS)
+        {
+          return result;
+        }
+      }
+    }
+
+    /* At this point, everything is fine.
+     */
+    return PluginResult.PreOperation.continueOperationProcessing();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public PluginResult.PreOperation doPreOperation(
+    PreOperationAddOperation addOperation)
+  {
+    /* Skip the integrity checks if the enforcing is not enabled.
+     */
+
+    if (!currentConfiguration.isCheckReferences())
+    {
+      return PluginResult.PreOperation.continueOperationProcessing();
+    }
+
+    final Entry entry = addOperation.getEntryToAdd();
+
+    for (AttributeType attrType : attributeTypes)
+    {
+      final List<Attribute> attrs = entry.getAttribute(attrType, false);
+
+      if (attrs != null)
+      {
+        PluginResult.PreOperation result =
+        isIntegrityMaintained(attrs, entry.getDN());
+        if (result.getResultCode() != ResultCode.SUCCESS)
+        {
+          return result;
+        }
+      }
+    }
+
+    /* If we reahed this point, everything is fine.
+     */
+    return PluginResult.PreOperation.continueOperationProcessing();
+  }
+
+  /**
+   * Verifies that the integrity of values is maintained.
+   * @param attrs   Attribute list which refers to another entry in the
+   *                directory.
+   * @param entryDN DN of the entry which contains the <CODE>attr</CODE>
+   *                attribute.
+   * @return        The SUCCESS if the integrity is maintained or
+   *                CONSTRAINT_VIOLATION oherwise
+   */
+  private PluginResult.PreOperation
+    isIntegrityMaintained(List<Attribute> attrs, DN entryDN)
+  {
+    PluginResult.PreOperation result = null;
+    for(Attribute attr : attrs)
+    {
+      result = isIntegrityMaintained(attr, entryDN);
+      if (result != PluginResult.PreOperation.continueOperationProcessing())
+      {
+        return result;
+      }
+    }
+
+    return PluginResult.PreOperation.continueOperationProcessing();
+  }
+
+  /**
+   * Verifies that the integrity of values is maintained.
+   * @param attr    Attribute which refers to another entry in the
+   *                directory.
+   * @param entryDN DN of the entry which contains the <CODE>attr</CODE>
+   *                attribute.
+   * @return        The SUCCESS if the integrity is maintained or
+   *                CONSTRAINT_VIOLATION oherwise
+   */
+  private PluginResult.PreOperation isIntegrityMaintained(Attribute attr,
+                                                          DN entryDN)
+  {
+    /* Verify that the entry belongs to one of the configured naming
+     * contexts.
+     */
+
+    boolean isLocal = false;
+
+    if (baseDNs.isEmpty())
+    {
+      baseDNs = DirectoryServer.getPublicNamingContexts().keySet();
+    }
+
+    for (DN baseDN : baseDNs)
+    {
+      if (entryDN.matchesBaseAndScope(baseDN, SearchScope.SUBORDINATE_SUBTREE))
+      {
+        isLocal = true;
+        break;
+      }
+    }
+
+    /* If the entry does not belong to any of the configured naming
+     * contexts continue further operation processing without checking
+     * the integrity.
+     */
+
+    if (!isLocal)
+    {
+      return PluginResult.PreOperation.continueOperationProcessing();
+    }
+
+    /* Iterate over the list of attributes */
+
+    Iterator<AttributeValue> attrValIt = attr.iterator();
+
+    try
+    {
+      while (attrValIt.hasNext())
+      {
+        AttributeValue attrVal = attrValIt.next();
+        DN valueEntryDN = null;
+        Entry valueEntry = null;
+
+        valueEntryDN = DN.decode(attrVal.getNormalizedValue());
+
+        if (currentConfiguration.getCheckReferencesScopeCriteria()
+          == CheckReferencesScopeCriteria.NAMING_CONTEXT)
+        {
+          boolean matches = false;
+
+          for (DN baseDN : baseDNs)
+          {
+            if (entryDN.matchesBaseAndScope(baseDN,
+              SearchScope.SUBORDINATE_SUBTREE))
+            {
+              matches = true;
+              break;
+            }
+          }
+
+          if (!matches)
+          {
+            return PluginResult.PreOperation.stopProcessing(
+                  ResultCode.CONSTRAINT_VIOLATION,
+                  ERR_PLUGIN_REFERENT_NAMINGCONTEXT_MISMATCH.get(
+                    valueEntryDN.toString(),
+                    attr.getName(),
+                    entryDN.toString()
+                  )
+                );
+          }
+
+          valueEntry = DirectoryServer.getEntry(valueEntryDN);
+        }
+        else
+        {
+          valueEntry = DirectoryServer.getEntry(valueEntryDN);
+        }
+
+        /* Verify that the value entry exists in the backend.
+         */
+
+        if (valueEntry == null)
+        {
+          return PluginResult.PreOperation.stopProcessing(
+            ResultCode.CONSTRAINT_VIOLATION,
+            ERR_PLUGIN_REFERENT_ENTRY_MISSING.get(
+            valueEntryDN.toString(),
+            attr.getName(),
+            entryDN.toString()
+            ));
+        }
+
+        /* Verify that the value entry conforms to the filter.
+         */
+
+        SearchFilter filter = attrFiltMap.get(attr.getAttributeType());
+        if (filter != null && !filter.matchesEntry(valueEntry))
+        {
+          return PluginResult.PreOperation.stopProcessing(
+            ResultCode.CONSTRAINT_VIOLATION,
+            ERR_PLUGIN_REFERENT_FILTER_MISMATCH.get(
+              valueEntry.getDN().toString(),
+              attr.getName(),
+              entryDN.toString(),
+              filter.toString())
+            );
+        }
+      }
+    }
+    catch (DirectoryException de)
+    {
+      return PluginResult.PreOperation.stopProcessing(
+        ResultCode.OTHER,
+        ERR_PLUGIN_REFERENT_EXCEPTION.get(de.getLocalizedMessage()));
+    }
+
+    return PluginResult.PreOperation.continueOperationProcessing();
   }
 }
