@@ -106,6 +106,10 @@
      Password plugin by using the <command>dsconfig</command> command.</para>
     </listitem>
     <listitem>
+     <para>OpenDJ now supports checking that entries of new group members
+     exist (OPENDJ-221).</para>
+    </listitem>
+    <listitem>
      <para>OpenDJ now better supports more, and larger static groups
      (OPENDJ-197).</para>
     </listitem>
