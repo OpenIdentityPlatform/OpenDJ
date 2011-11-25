@@ -152,6 +152,181 @@
   <filename>logs/server.out</filename> file.</para>
   
   <screen>OPENDJ_JAVA_ARGS="-Djavax.net.debug=all" start-ds</screen>
+  
+  <section xml:id="troubleshoot-certificate-authentication">
+   <title>Troubleshooting Certificates &amp; SSL Authentication</title>
+   
+   <para>Replication uses SSL to protect directory data on the network.
+   In some configurations, replica can fail to connect to each other due
+   to SSL handshake errors. This leads to error log messages such as the
+   following.</para>
+   
+   <screen>[21/Nov/2011:13:03:20 -0600] category=SYNC severity=NOTICE
+ msgID=15138921 msg=SSL connection attempt from myserver (123.456.789.012)
+ failed: Remote host closed connection during handshake</screen>
+  
+  <itemizedlist>
+   <para>Notice these problem characteristics in the message above.</para>
+   <listitem>
+    <para>The host name, <literal>myserver</literal>, is not fully
+    qualified.</para>
+    <para>You should not see non fully qualified host names in the error logs.
+    Non fully qualified host names are a sign that an OpenDJ server has not
+    been configured properly.</para>
+    <para>Always install and configure OpenDJ using fully-qualified host names.
+    The OpenDJ administration connector, which is used by the
+    <command>dsconfig</command> command, and also replication depend upon SSL
+    and, more specifically, self-signed certificates for establishing SSL
+    connections. If the host name used for connection establishment does not
+    correspond to the host name stored in the SSL certificate then the SSL
+    handshake can fail. For the purposes of establishing the SSL connection,
+    a host name like <literal>myserver</literal> does not match
+    <literal>myserver.example.com</literal>, and vice versa.</para>
+   </listitem>
+   <listitem>
+    <para>The connection succeeded, but the SSL handshake failed, suggesting
+    a problem with authentication or with the cipher or protocol negotiation.
+    As most deployments use the same Java Virtual Machine, and the same JVM
+    configuration for each replica, the problem is likely not related to SSL
+    cipher or protocol negotiation, but instead lies with authentication.</para>
+   </listitem>
+  </itemizedlist>
+  
+  <orderedlist>
+   <para>Follow these steps on each OpenDJ server to check whether the problem
+   lies with the host name configuration.</para>
+   <listitem>
+    <para>Make sure each OpenDJ server uses only fully qualified host names in
+    the replication configuration. You can obtain a quick summary by running
+    the following command against each server's configuration.</para>
+    <screen>$ grep ds-cfg-replication-server: config/config.ldif | sort | uniq</screen>
+   </listitem>
+   <listitem>
+    <para>Make sure that the host names in OpenDJ certificates also contain
+    fully qualified host names, and correspond to the host names found in the
+    previous step.</para>
+    <screen># Examine the certificates used for the administration connector.
+$ keytool -list -v -keystore config/admin-truststore
+ -storepass `cat config/admin-keystore.pin` |grep "^Owner:"
+
+# Examine the certificates used for replication.
+$ keytool -list -v -keystore config/ads-truststore
+ -storepass `cat config/ads-truststore.pin`| grep "^Owner:"
+    </screen>
+   </listitem>
+  </orderedlist>
+  
+  <para>Sample output for a server on host <literal>opendj.example.com</literal>
+  follows.</para>
+  <screen>$ grep ds-cfg-replication-server: config/config.ldif |sort | uniq
+ds-cfg-replication-server: opendj.example.com:8989
+ds-cfg-replication-server: opendj.example.com:9989
+
+$ keytool -list -v -keystore config/admin-truststore
+-storepass `cat config/admin-keystore.pin` | grep "^Owner:"
+Owner: CN=opendj.example.com, O=Administration Connector Self-Signed Certificate
+
+$ keytool -list -v -keystore config/ads-truststore
+ -storepass `cat config/ads-truststore.pin`| grep "^Owner:"
+Owner: CN=opendj.example.com, O=OpenDJ Certificate
+Owner: CN=opendj.example.com, O=OpenDJ Certificate
+Owner: CN=opendj.example.com, O=OpenDJ Certificate</screen>
+
+   <itemizedlist>
+    <para>Unfortunately there is no easy solution to badly configured host
+    names. It is often easier and quicker simply to reinstall your OpenDJ
+    servers remembering to use fully qualified host names everywhere.</para>
+    <listitem>
+     <para>When using the <command>setup</command> tool to install and
+     configure a server ensure that the <option>-h</option> option is
+     included, and that it specifies the fully qualified host name. Make sure
+     you include this option even if you are not enabling SSL/StartTLS LDAP
+     connections (see <link
+     xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-363"
+     >OPENDJ-363</link>).</para>
+     <para>If you are using the GUI installer, then make sure you specify the
+     fully qualified host name on the first page of the wizard.</para>
+    </listitem>
+    <listitem>
+     <para>When using the <command>dsreplication</command> tool to enable
+     replication make sure that any <option>--host</option> options include the
+     fully qualified host name.</para>
+    </listitem>
+   </itemizedlist>
+   
+   <orderedlist>
+    <para>If you cannot reinstall the server, follow these steps.</para>
+    <listitem>
+     <para>Disable replication in each replica.</para>
+     <screen>$ dsreplication
+ disable
+ --disableAll
+ --port <replaceable>adminPort</replaceable>
+ --hostname <replaceable>hostName</replaceable>
+ --bindDN "cn=Directory Manager"
+ --adminPassword <replaceable>password</replaceable>
+ --trustAll
+ --no-prompt</screen>
+    </listitem>
+    <listitem>
+     <para>Stop and restart each server in order to clear the in-memory ADS
+     trust store backend.</para>
+    </listitem>
+    <listitem>
+     <para>Enable replication making certain that fully qualified host names
+     are used throughout</para>
+     <screen>$ dsreplication
+ enable
+ --adminUID admin
+ --adminPassword <replaceable>password</replaceable>
+ --baseDN dc=example,dc=com
+ --host1 <replaceable>hostName1</replaceable>
+ --port1 <replaceable>adminPort1</replaceable>
+ --bindDN1 "cn=Directory Manager"
+ --bindPassword1 <replaceable>password</replaceable>
+ --replicationPort1 <replaceable>replPort1</replaceable>
+ --host2 <replaceable>hostName2</replaceable>
+ --port2 <replaceable>adminPort2</replaceable>
+ --bindDN2 "cn=Directory Manager"
+ --bindPassword2 <replaceable>password</replaceable>
+ --replicationPort2 <replaceable>replPort2</replaceable>
+ --trustAll
+ --no-prompt</screen>
+    </listitem>
+    <listitem>
+     <para>Repeat the previous step for each remaining replica. In other words,
+     host1 with host2, host1 with host3, host1 with host4, ..., host1 with
+     hostN.</para>
+    </listitem>
+    <listitem>
+     <para>Initialize all remaining replica with the data from host1.</para>
+     <screen>$ dsreplication
+ initialize-all
+ --adminUID admin
+ --adminPassword password
+ --baseDN dc=example,dc=com
+ --hostname <replaceable>hostName1</replaceable>
+ --port 4444
+ --trustAll
+ --no-prompt</screen>
+    </listitem>
+    <listitem>
+     <para>Check that the host names are correct in the configuration and in
+     the key stores by following the steps you used to check for host name
+     problems. The only broken host name remaining should be in the key and
+     trust stores for the administration connector.</para>
+     <screen>$ keytool -list -v -keystore config/admin-truststore
+ -storepass `cat config/admin-keystore.pin` |grep "^Owner:"</screen>
+    </listitem>
+    <listitem>
+     <para>Stop each server, and then fix the remaining admin connector
+     certificate as described here in the procedure about <link
+     xlink:href="admin-guide#change-server-certificates"
+     xlink:role="http://docbook.org/xlink/role/olink">changing server
+     certificates</link>.</para>
+    </listitem>
+   </orderedlist>
+  </section>
  </section>
  
  <section xml:id="troubleshoot-connections">
