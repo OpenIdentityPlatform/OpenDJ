@@ -1120,6 +1120,16 @@ public class ReferentialIntegrityPlugin
     final List<Modification> mods = modifyOperation.getModifications();
     final Entry entry = modifyOperation.getModifiedEntry();
 
+    /* Make sure the entry belongs to one of the configured naming
+     * contexts.
+     */
+    DN entryDN = entry.getDN();
+    DN entryBaseDN = getEntryBaseDN(entryDN);
+    if (entryBaseDN == null)
+    {
+      return PluginResult.PreOperation.continueOperationProcessing();
+    }
+
     for (Modification mod : mods)
     {
       final ModificationType modType = mod.getModificationType();
@@ -1139,7 +1149,7 @@ public class ReferentialIntegrityPlugin
       if (modifiedAttribute != null)
       {
         PluginResult.PreOperation result =
-        isIntegrityMaintained(modifiedAttribute, entry.getDN());
+        isIntegrityMaintained(modifiedAttribute, entryDN, entryBaseDN);
         if (result.getResultCode() != ResultCode.SUCCESS)
         {
           return result;
@@ -1169,6 +1179,16 @@ public class ReferentialIntegrityPlugin
 
     final Entry entry = addOperation.getEntryToAdd();
 
+    /* Make sure the entry belongs to one of the configured naming
+     * contexts.
+     */
+    DN entryDN = entry.getDN();
+    DN entryBaseDN = getEntryBaseDN(entryDN);
+    if (entryBaseDN == null)
+    {
+      return PluginResult.PreOperation.continueOperationProcessing();
+    }
+
     for (AttributeType attrType : attributeTypes)
     {
       final List<Attribute> attrs = entry.getAttribute(attrType, false);
@@ -1176,7 +1196,7 @@ public class ReferentialIntegrityPlugin
       if (attrs != null)
       {
         PluginResult.PreOperation result =
-        isIntegrityMaintained(attrs, entry.getDN());
+        isIntegrityMaintained(attrs, entryDN, entryBaseDN);
         if (result.getResultCode() != ResultCode.SUCCESS)
         {
           return result;
@@ -1199,12 +1219,12 @@ public class ReferentialIntegrityPlugin
    *                CONSTRAINT_VIOLATION oherwise
    */
   private PluginResult.PreOperation
-    isIntegrityMaintained(List<Attribute> attrs, DN entryDN)
+    isIntegrityMaintained(List<Attribute> attrs, DN entryDN, DN entryBaseDN)
   {
     PluginResult.PreOperation result = null;
     for(Attribute attr : attrs)
     {
-      result = isIntegrityMaintained(attr, entryDN);
+      result = isIntegrityMaintained(attr, entryDN, entryBaseDN);
       if (result != PluginResult.PreOperation.continueOperationProcessing())
       {
         return result;
@@ -1224,38 +1244,9 @@ public class ReferentialIntegrityPlugin
    *                CONSTRAINT_VIOLATION oherwise
    */
   private PluginResult.PreOperation isIntegrityMaintained(Attribute attr,
-                                                          DN entryDN)
+                                                          DN entryDN,
+                                                          DN entryBaseDN)
   {
-    /* Verify that the entry belongs to one of the configured naming
-     * contexts.
-     */
-
-    boolean isLocal = false;
-
-    if (baseDNs.isEmpty())
-    {
-      baseDNs = DirectoryServer.getPublicNamingContexts().keySet();
-    }
-
-    for (DN baseDN : baseDNs)
-    {
-      if (entryDN.matchesBaseAndScope(baseDN, SearchScope.SUBORDINATE_SUBTREE))
-      {
-        isLocal = true;
-        break;
-      }
-    }
-
-    /* If the entry does not belong to any of the configured naming
-     * contexts continue further operation processing without checking
-     * the integrity.
-     */
-
-    if (!isLocal)
-    {
-      return PluginResult.PreOperation.continueOperationProcessing();
-    }
-
     /* Iterate over the list of attributes */
 
     Iterator<AttributeValue> attrValIt = attr.iterator();
@@ -1273,19 +1264,8 @@ public class ReferentialIntegrityPlugin
         if (currentConfiguration.getCheckReferencesScopeCriteria()
           == CheckReferencesScopeCriteria.NAMING_CONTEXT)
         {
-          boolean matches = false;
-
-          for (DN baseDN : baseDNs)
-          {
-            if (entryDN.matchesBaseAndScope(baseDN,
-              SearchScope.SUBORDINATE_SUBTREE))
-            {
-              matches = true;
-              break;
-            }
-          }
-
-          if (!matches)
+          if (valueEntryDN.matchesBaseAndScope(entryBaseDN,
+            SearchScope.SUBORDINATE_SUBTREE))
           {
             return PluginResult.PreOperation.stopProcessing(
                   ResultCode.CONSTRAINT_VIOLATION,
@@ -1343,5 +1323,37 @@ public class ReferentialIntegrityPlugin
     }
 
     return PluginResult.PreOperation.continueOperationProcessing();
+  }
+
+  /**
+   * Verifies if the entry with the specified DN belongs to the
+   * configured naming contexts.
+   * @param dn DN of the entry.
+   * @return Returns <code>true</code> if the entry matches any of the
+   *         configured base DNs, and <code>false</code> if not.
+   */
+  private DN getEntryBaseDN(DN dn)
+  {
+    /* Verify that the entry belongs to one of the configured naming
+     * contexts.
+     */
+
+    DN namingContext = null;
+
+    if (baseDNs.isEmpty())
+    {
+      baseDNs = DirectoryServer.getPublicNamingContexts().keySet();
+    }
+
+    for (DN baseDN : baseDNs)
+    {
+      if (dn.matchesBaseAndScope(baseDN, SearchScope.SUBORDINATE_SUBTREE))
+      {
+        namingContext = baseDN;
+        break;
+      }
+    }
+
+    return namingContext;
   }
 }
