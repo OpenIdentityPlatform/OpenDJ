@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE targetset SYSTEM "./targetdatabase.dtd"[
+<!ENTITY admin-guide SYSTEM "../../../target/admin-guide.target.db">
+<!ENTITY dev-guide SYSTEM "../../../target/dev-guide.target.db">
+<!ENTITY install-guide SYSTEM "../../../target/install-guide.target.db">
+<!ENTITY release-notes SYSTEM "../../../target/release-notes.target.db">
+]>
+<targetset>
+ <targetsetinfo>Target DB for OpenDJ DocBook content, for use with single
+ HTML pages (non-chunked) only.</targetsetinfo>
+ <sitemap>
+  <dir name="doc">
+   <dir name="admin-guide">
+    <dir name="OpenDJ-Admin-Guide">
+     <document targetdoc="admin-guide"
+               baseuri="../admin-guide/OpenDJ-Admin-Guide.html">
+      &admin-guide;
+     </document>
+    </dir>
+   </dir>
+   <dir name="dev-guide">
+    <dir name="OpenDJ-Dev-Guide">
+     <document targetdoc="dev-guide"
+               baseuri="../dev-guide/OpenDJ-Dev-Guide.html">
+      &dev-guide;
+     </document>
+    </dir>
+   </dir>
+   <dir name="install-guide">
+    <dir name="OpenDJ-Install-Guide">
+     <document targetdoc="install-guide"
+               baseuri="../install-guide/OpenDJ-Install-Guide.html">
+      &install-guide;
+     </document>
+    </dir>
+   </dir>
+   <dir name="release-notes">
+    <dir name="OpenDJ-Release-Notes">
+     <document targetdoc="release-notes"
+               baseuri="../release-notes/OpenDJ-Release-Notes.html">
+      &release-notes;
+     </document>
+    </dir>
+   </dir>
+  </dir>
+ </sitemap>
+</targetset>

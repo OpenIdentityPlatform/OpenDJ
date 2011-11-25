@@ -116,7 +116,10 @@ Java HotSpot(TM) 64-Bit Server VM (build 19.1-b02-334, mixed mode)</screen>
    or on a PKCS#11 token. To import a signed certificate into a key store,
    you can use the Java <command>keytool</command> command.</para>
 
-   <!-- TODO: Add an olink when the functionality becomes available. -->
+   <para>See <link xlink:href="admin-guide#setup-server-cert"
+   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Preparing For
+   Secure Communications</citetitle></link> in the <citetitle>Administration
+   Guide</citetitle> for examples.</para>
   </step>
  </procedure>
 

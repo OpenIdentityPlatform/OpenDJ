@@ -203,15 +203,16 @@ Account Is Disabled:  false</screen>
   to the entry. OpenDJ generates password expiration notifications when a
   user tries to bind.</para>
   
-  <!-- TODO: olink to the controls appendix. -->
   <para>For example, if you set up OpenDJ to send a notification about password
   expiration, that notification gets triggered when the user authenticates
   during the password expiration warning interval. OpenDJ does not
   automatically scan entries to send password expiry notifications. OpenDJ does
   implement controls that you can pass in an LDAP search to determine whether a
   user's password is about to expire. See the appendix on
-  <citetitle>LDAP Controls</citetitle> for a list. You can send notifications
-  then based on the results of your search.</para>
+  <link xlink:href="admin-guide#appendix-controls"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>LDAP
+  Controls</citetitle></link> for a list. You can send notifications then
+  based on the results of your search.</para>
   
   <procedure xml:id="mail-account-status-notifications">
    <title>To Mail Users About Account Status</title>

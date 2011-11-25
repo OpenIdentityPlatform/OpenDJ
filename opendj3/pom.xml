@@ -302,6 +302,66 @@
             </configuration>
           </execution>
           <execution>
+           <id>olinkdb-admin-guide</id>
+           <phase>process-resources</phase>
+           <configuration>
+            <includes>*/OpenDJ-Admin-Guide.xml</includes>
+            <collectXrefTargets>only</collectXrefTargets>
+            <targetsFilename>${basedir}/target/admin-guide.target.db</targetsFilename>
+            <postProcess>
+             <delete dir="${docbkx-out}/html/admin-guide"/>
+            </postProcess>
+           </configuration>
+           <goals>
+            <goal>generate-html</goal>
+           </goals>
+          </execution>
+          <execution>
+           <id>olinkdb-dev-guide</id>
+           <phase>process-resources</phase>
+           <configuration>
+            <includes>*/OpenDJ-Dev-Guide.xml</includes>
+            <collectXrefTargets>only</collectXrefTargets>
+            <targetsFilename>${basedir}/target/dev-guide.target.db</targetsFilename>
+            <postProcess>
+             <delete dir="${docbkx-out}/html/dev-guide"/>
+            </postProcess>
+           </configuration>
+           <goals>
+            <goal>generate-html</goal>
+           </goals>
+          </execution>
+          <execution>
+           <id>olinkdb-install-guide</id>
+           <phase>process-resources</phase>
+           <configuration>
+            <includes>*/OpenDJ-Install-Guide.xml</includes>
+            <collectXrefTargets>only</collectXrefTargets>
+            <targetsFilename>${basedir}/target/install-guide.target.db</targetsFilename>
+            <postProcess>
+             <delete dir="${docbkx-out}/html/install-guide"/>
+            </postProcess>
+           </configuration>
+           <goals>
+            <goal>generate-html</goal>
+           </goals>
+          </execution>
+          <execution>
+           <id>olinkdb-release-notes</id>
+           <phase>process-resources</phase>
+           <configuration>
+            <includes>*/OpenDJ-Release-Notes.xml</includes>
+            <collectXrefTargets>only</collectXrefTargets>
+            <targetsFilename>${basedir}/target/release-notes.target.db</targetsFilename>
+            <postProcess>
+             <delete dir="${docbkx-out}/html/release-notes"/>
+            </postProcess>
+           </configuration>
+           <goals>
+            <goal>generate-html</goal>
+           </goals>
+          </execution>
+          <execution>
             <id>doc-single-html</id>
             <phase>pre-site</phase>
             <goals>
@@ -311,6 +371,7 @@
               <chunkedOutput>false</chunkedOutput>
               <htmlCustomization>${dbstyle-dir}/html/coredoc.xsl</htmlCustomization>
 
+              <targetDatabaseDocument>${docbkx-src}/olinkdb-single-html-pages.xml</targetDatabaseDocument>
               <!-- Resources required but not copied by DocBook.xsl. -->
               <preProcess>
                 <copy todir='${docbkx-out}/html/admin-guide/images'>

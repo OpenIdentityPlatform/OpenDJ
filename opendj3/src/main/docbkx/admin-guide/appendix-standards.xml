@@ -31,7 +31,7 @@
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Standards, RFCs, &amp; Internet-Drafts</title>
 
- <para>OpenDJ <?eval ${product.version}?> software implements the following
+ <para>OpenDJ <?eval ${docTargetVersion}?> software implements the following
  RFCs, Internet-Drafts, and standards.</para>
 
  <!-- Document [link], description -->

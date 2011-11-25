@@ -169,9 +169,9 @@ $ /etc/init.d/opendj restart</screen>
   content into memory when the server starts. Objects cached in memory do not
   survive a crash. By default, OpenDJ does not cache objects in memory before
   starting to accept client requests. You can however set a
-  <literal>preload-time-limit</literal> for the database cache of your
+  <link xlink:href="http://opendj.forgerock.org/opendj-server/configref/local-db-backend.html#preload-time-limit"
+  ><literal>preload-time-limit</literal></link> for the database cache of your
   backend if you do want to load objects into the database cache before
   OpenDJ begins accepting client connections.</para>
-  <!-- TODO: Add olink to preload-time-limit in config ref. -->
  </section>
 </chapter>
