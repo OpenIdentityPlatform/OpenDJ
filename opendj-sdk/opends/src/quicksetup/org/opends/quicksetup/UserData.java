@@ -23,15 +23,15 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Set;
+import java.net.*;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
@@ -702,13 +702,118 @@ public class UserData
   {
     if (defaultHostName == null)
     {
+      // Run a thread in the background in order to avoid blocking the
+      // application if reverse DNS lookups take a long time.
+      final CountDownLatch latch = new CountDownLatch(1);
+      Thread t = new Thread(new Runnable()
+      {
+        // Search for a host name of the form host.example.com on each
+        // interface, except the loop back. Prefer interfaces of the form ethX.
+        public void run()
+        {
+          try
+          {
+            SortedMap<String, String> hostNames = new TreeMap<String, String>();
+            Enumeration<NetworkInterface> i = NetworkInterface
+                .getNetworkInterfaces();
+            while (i.hasMoreElements())
+            {
+              NetworkInterface n = i.nextElement();
+
+              // Skip loop back interface.
+              if (n.isLoopback())
+              {
+                continue;
+              }
+
+              // Check each interface address (IPv4 and IPv6).
+              String ipv4HostName = null;
+              String ipv6HostName = null;
+              Enumeration<InetAddress> j = n.getInetAddresses();
+              while (j.hasMoreElements())
+              {
+                InetAddress address = j.nextElement();
+                String hostAddress = address.getHostAddress();
+                String hostName = address.getCanonicalHostName();
+
+                // Ignore hostnames which are IP addresses.
+                if (!hostAddress.equals(hostName))
+                {
+                  if (address instanceof Inet4Address)
+                  {
+                    ipv4HostName = hostName;
+                  }
+                  else if (address instanceof Inet6Address)
+                  {
+                    ipv6HostName = hostName;
+                  }
+                }
+              }
+
+              // Remember the host name if it looks fully qualified.
+              String fqHostName = null;
+              if (ipv4HostName != null && ipv4HostName.contains("."))
+              {
+                fqHostName = ipv4HostName;
+              }
+              else if (ipv6HostName != null && ipv6HostName.contains("."))
+              {
+                fqHostName = ipv6HostName;
+              }
+
+              if (fqHostName != null)
+              {
+                hostNames.put(n.getName(), fqHostName);
+
+                // This looks like a fully qualified name on a ethX interface,
+                // so
+                // use that and break out.
+                if (n.getName().startsWith("eth"))
+                {
+                  defaultHostName = fqHostName;
+                  break;
+                }
+              }
+            }
+
+            if (defaultHostName == null && !hostNames.isEmpty())
+            {
+              // No ethX host name, so try any other host name that was found.
+              defaultHostName = hostNames.values().iterator().next();
+            }
+          }
+          catch (Exception e)
+          {
+            // Ignore - we'll default to the loopback address later.
+          }
+
+          latch.countDown();
+        }
+      });
+
       try
       {
-        defaultHostName = java.net.InetAddress.getLocalHost().getHostName();
+        t.setDaemon(true);
+        t.start();
+        latch.await(1, TimeUnit.SECONDS);
       }
-      catch (Throwable t)
+      catch (Exception e)
       {
-        defaultHostName = "localhost";
+        // Ignore - we'll default to the loopback address later.
+      }
+
+      if (defaultHostName == null)
+      {
+        // No host names found, so use the loop back.
+        try
+        {
+          defaultHostName = InetAddress.getLocalHost().getHostName();
+        }
+        catch (Exception e)
+        {
+          // Not much we can do here.
+          defaultHostName = "localhost";
+        }
       }
     }
     return defaultHostName;

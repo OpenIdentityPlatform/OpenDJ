@@ -1218,6 +1218,9 @@ public class InstallDS extends ConsoleApplication
    */
   private void promptIfRequiredForPortData(UserData uData)
   {
+    String hostName = promptForHostNameIfRequired();
+    uData.setHostName(hostName);
+
     LinkedList<Integer> usedPorts = new LinkedList<Integer>();
     //  Determine the LDAP port number.
     int ldapPort = promptIfRequiredForPortData(argParser.ldapPortArg,
@@ -1365,6 +1368,7 @@ public class InstallDS extends ConsoleApplication
     boolean prompt = true;
     if (!argParser.baseDNArg.isPresent())
     {
+      println();
       try
       {
         prompt = confirmAction(INFO_INSTALLDS_PROVIDE_BASE_DN_PROMPT.get(),
@@ -1765,8 +1769,6 @@ public class InstallDS extends ConsoleApplication
     {
       securityOptions = SecurityOptions.createSelfSignedCertificateOptions(
           enableSSL, enableStartTLS, ldapsPort);
-      String hostName = promptForHostNameIfRequired();
-      uData.setHostName(hostName);
     }
     else if (argParser.useJavaKeyStoreArg.isPresent())
     {
@@ -1878,8 +1880,6 @@ public class InstallDS extends ConsoleApplication
         }
         if (certType == SELF_SIGNED)
         {
-          String hostName = promptForHostNameIfRequired();
-          uData.setHostName(hostName);
           securityOptions = SecurityOptions.createSelfSignedCertificateOptions(
                 enableSSL, enableStartTLS, ldapsPort);
         }
@@ -2761,7 +2761,7 @@ public class InstallDS extends ConsoleApplication
     }
   }
 
-  private String promptForHostNameIfRequired() throws UserDataException
+  private String promptForHostNameIfRequired()
   {
     String hostName = null;
     if (argParser.hostNameArg.isPresent())
@@ -2770,15 +2770,9 @@ public class InstallDS extends ConsoleApplication
     }
     else
     {
-      int nTries = 0;
+      println();
       while (hostName == null)
       {
-        if (nTries >= CONFIRMATION_MAX_TRIES)
-        {
-          throw new UserDataException(null,
-              ERR_TRIES_LIMIT_REACHED.get(CONFIRMATION_MAX_TRIES));
-        }
-
         try
         {
           hostName = readInput(INFO_INSTALLDS_PROMPT_HOST_NAME.get(),
