@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -360,8 +361,7 @@ public class InstallDSArgumentParser extends ArgumentParser
         OPTION_SHORT_HOST,
         OPTION_LONG_HOST, false, false, true, INFO_HOST_PLACEHOLDER.get(),
         UserData.getDefaultHostName(),
-        null, INFO_INSTALLDS_DESCRIPTION_HOST_NAME.get(
-            generateSelfSignedCertificateArg.getLongIdentifier()));
+        null, INFO_INSTALLDS_DESCRIPTION_HOST_NAME.get());
     hostNameArg.setPropertyName(OPTION_LONG_HOST);
     addDefaultArgument(hostNameArg);
 
