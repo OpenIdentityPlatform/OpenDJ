@@ -39,7 +39,7 @@
  <section xml:id="supported-languages">
   <title>OpenDJ Languages</title>
   <indexterm><primary>Languages</primary></indexterm>
-  <para>OpenDJ <?eval ${product.version}?> software has been localized
+  <para>OpenDJ <?eval ${docTargetVersion}?> software has been localized
   in the following languages.</para>
   
   <itemizedlist>
