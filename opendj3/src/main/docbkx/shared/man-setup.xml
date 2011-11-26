@@ -100,10 +100,9 @@
    <varlistentry>
     <term><option>-h, --hostname {host}</option></term>
     <listitem>
-     <para>Directory server host name or IP address that will be used to
-     generate the self-signed certificate.  This argument will be taken into
-     account only if the self-signed certificate argument
-     generateSelfSignedCertificate is specified</para>
+     <para>The fully-qualified directory server host name that will be used
+     when generating self-signed certificates for LDAP SSL/StartTLS, the
+     administration connector, and replication</para>
      <para>Default value: localhost.localdomain</para>
     </listitem>
    </varlistentry>
