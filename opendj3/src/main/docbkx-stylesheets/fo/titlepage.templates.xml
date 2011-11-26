@@ -166,7 +166,7 @@
   <t:titlepage-content t:side="verso">
       <copyright/>
       <abstract/>
-      <legalnotice space-before="1in" font-size="8pt"/>
+      <legalnotice space-before="1in" font-size="6pt"/>
   </t:titlepage-content>
 
   <t:titlepage-separator>
