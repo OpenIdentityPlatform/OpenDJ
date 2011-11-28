@@ -207,7 +207,7 @@ $ mvn install
   described, if you have a directory server running import sample data,
   and test your configuration with a sample client application.</para>
 
-  <programlisting>// Test.java:
+  <programlisting language="java">// Test.java:
 //  Kick the SDK tires, reading Babs Jensen's entry and displaying LDIF.
 //  If your LDAP server is not listening on localhost:1389, or if your
 //  data are different change the appropriate lines below.

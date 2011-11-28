@@ -316,7 +316,7 @@
   <para>You can use <filename>~/.opendj/tools.properties</filename> to set
   the defaults for bind DN, host name, and port number as in the following
   example.</para>
-  <programlisting language="java">hostname=directory.example.com
+  <programlisting language="ini">hostname=directory.example.com
 port=1389
 bindDN=uid=kvaughan,ou=People,dc=example,dc=com
 
