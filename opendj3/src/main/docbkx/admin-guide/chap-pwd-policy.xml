@@ -72,7 +72,7 @@
    <screen>$ dsconfig
  get-password-policy-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --policy-name "Default Password Policy"
@@ -295,7 +295,7 @@ pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config</sc
     <screen>$ dsconfig
  set-password-validator-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --validator-name Dictionary
@@ -310,7 +310,7 @@ pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config</sc
     <screen>$ dsconfig
  set-password-policy-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --policy-name "Default Password Policy"
@@ -326,7 +326,7 @@ pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config</sc
     <screen>$ dsconfig
  get-password-policy-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --policy-name "Default Password Policy"
@@ -374,7 +374,7 @@ require-secure-password-changes           : false</screen>
     <screen>$ dsconfig
  create-password-policy
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --policy-name "New Account Password Policy"
@@ -389,7 +389,7 @@ require-secure-password-changes           : false</screen>
     <screen>$ dsconfig
  get-password-policy-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --policy-name "New Account Password Policy"

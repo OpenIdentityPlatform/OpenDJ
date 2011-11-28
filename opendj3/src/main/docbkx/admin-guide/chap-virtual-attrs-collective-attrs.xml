@@ -128,7 +128,7 @@ numSubordinates: 4
   
   <screen>$ dsconfig
  create-virtual-attribute
- --hostname `hostname`
+ --hostname opendj.example.com
  --port 4444
  --bindDN "cn=Directory Manager"
  --bindPassword password

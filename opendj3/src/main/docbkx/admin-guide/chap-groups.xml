@@ -223,7 +223,7 @@ mail: rjensen@example.com</screen>
   <screen>$ dsconfig
  set-virtual-attribute-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --name "Virtual Static member"
@@ -331,7 +331,7 @@ isMemberOf: cn=My Dynamic Group,ou=Groups,dc=example,dc=com</screen>
   <screen>$ dsconfig
  set-plugin-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --plugin-name "Referential Integrity"

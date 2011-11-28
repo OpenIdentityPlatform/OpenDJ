@@ -631,7 +631,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
     <para>Start <command>dsconfig</command> in interactive mode.</para>
     <screen>$ dsconfig
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password</screen>
    </step>

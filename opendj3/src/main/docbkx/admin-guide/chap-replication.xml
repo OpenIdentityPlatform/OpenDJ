@@ -178,12 +178,12 @@
  --adminUID admin
  --adminPassword password
  --baseDN dc=example,dc=com
- --host1 `hostname`
+ --host1 opendj.example.com
  --port1 4444
  --bindDN1 "cn=Directory Manager"
  --bindPassword1 password
  --replicationPort1 8989
- --host2 `hostname`
+ --host2 opendj.example.com
  --port2 5444
  --bindDN2 "cn=Directory Manager"
  --bindPassword2 password
@@ -193,22 +193,24 @@
 
 Establishing connections ..... Done.
 Checking registration information ..... Done.
-Updating remote references on server localhost:4444 ..... Done.
-Configuring Replication port on server localhost:5444 ..... Done.
+Updating remote references on server opendj.example.com:4444 ..... Done.
+Configuring Replication port on server opendj.example.com:5444 ..... Done.
 Updating replication configuration for baseDN dc=example,dc=com on server
- localhost:4444 ..... Done.
+ opendj.example.com:4444 ..... Done.
 Updating replication configuration for baseDN dc=example,dc=com on server
- localhost:5444 ..... Done.
-Updating registration configuration on server localhost:4444 ..... Done.
-Updating registration configuration on server localhost:5444 ..... Done.
+ opendj.example.com:5444 ..... Done.
+Updating registration configuration on server
+ opendj.example.com:4444 ..... Done.
+Updating registration configuration on server
+ opendj.example.com:5444 ..... Done.
 Updating replication configuration for baseDN cn=schema on server
- localhost:4444 ..... Done.
+ opendj.example.com:4444 ..... Done.
 Updating replication configuration for baseDN cn=schema on server
- localhost:5444 ..... Done.
-Initializing registration information on server localhost:5444 with the
- contents of server localhost:4444 ..... Done.
-Initializing schema on server localhost:5444 with the contents of server
- localhost:4444 ..... Done.
+ opendj.example.com:5444 ..... Done.
+Initializing registration information on server opendj.example.com:5444 with
+ the contents of server opendj.example.com:4444 ..... Done.
+Initializing schema on server opendj.example.com:5444 with the contents of
+ server opendj.example.com:4444 ..... Done.
 
 Replication has been successfully enabled.  Note that for replication to
  work you must initialize the contents of the base DN's that are being
@@ -275,13 +277,13 @@ for a detailed log of this operation.</screen>
  --adminUID admin
  --adminPassword password
  --baseDN dc=example,dc=com
- --hostname `hostname`
+ --hostname opendj.example.com
  --port 4444
  --trustAll
  --no-prompt
 
-Initializing base DN dc=example,dc=com with the contents from localhost:4444:
-160 entries processed (100 % complete).
+Initializing base DN dc=example,dc=com with the contents from
+ opendj.example.com:4444: 160 entries processed (100 % complete).
 Base DN initialized successfully.
 
 See
@@ -317,12 +319,12 @@ for a detailed log of this operation.</screen>
  --adminUID admin
  --adminPassword password
  --baseDN dc=example,dc=com
- --hostname `hostname`
+ --hostname opendj.example.com
  --port 4444
  --trustAll
  --no-prompt
-Initializing base DN dc=example,dc=com with the contents from localhost:4444:
-161 entries processed (100 % complete).
+Initializing base DN dc=example,dc=com with the contents from
+ opendj.example.com:4444: 161 entries processed (100 % complete).
 Base DN initialized successfully.
 
 See
@@ -353,12 +355,12 @@ for a detailed log of this operation.</screen>
  --adminUID admin
  --adminPassword password
  --baseDN dc=example,dc=com
- --host1 `hostname`
+ --host1 opendj.example.com
  --port1 4444
  --bindDN1 "cn=Directory Manager"
  --bindPassword1 password
  --replicationPort1 8989
- --host2 `hostname`
+ --host2 opendj.example.com
  --port2 6444
  --bindDN2 "cn=Directory Manager"
  --bindPassword2 password
@@ -368,26 +370,29 @@ for a detailed log of this operation.</screen>
 
 Establishing connections ..... Done.
 Checking registration information ..... Done.
-Updating remote references on server localhost:4444 ..... Done.
-Configuring Replication port on server localhost:6444 ..... Done.
+Updating remote references on server opendj.example.com:4444 ..... Done.
+Configuring Replication port on server opendj.example.com:6444 ..... Done.
 Updating replication configuration for baseDN dc=example,dc=com on server
- localhost:4444 ..... Done.
+ opendj.example.com:4444 ..... Done.
 Updating replication configuration for baseDN dc=example,dc=com on server
- localhost:6444 ..... Done.
+ opendj.example.com:6444 ..... Done.
 Updating replication configuration for baseDN dc=example,dc=com on server
- localhost:5444 ..... Done.
-Updating remote references on server localhost:5444 ..... Done.
-Updating registration configuration on server localhost:4444 ..... Done.
-Updating registration configuration on server localhost:6444 ..... Done.
-Updating registration configuration on server localhost:5444 ..... Done.
+ opendj.example.com:5444 ..... Done.
+Updating remote references on server opendj.example.com:5444 ..... Done.
+Updating registration configuration on server
+ opendj.example.com:4444 ..... Done.
+Updating registration configuration on server
+ opendj.example.com:6444 ..... Done.
+Updating registration configuration on server
+ opendj.example.com:5444 ..... Done.
 Updating replication configuration for baseDN cn=schema on server
- localhost:4444 ..... Done.
+ opendj.example.com:4444 ..... Done.
 Updating replication configuration for baseDN cn=schema on server
- localhost:6444 ..... Done.
+ opendj.example.com:6444 ..... Done.
 Updating replication configuration for baseDN cn=schema on server
- localhost:5444 ..... Done.
-Initializing registration information on server localhost:6444 with the
- contents of server localhost:4444 ..... Done.
+ opendj.example.com:5444 ..... Done.
+Initializing registration information on server opendj.example.com:6444 with
+ the contents of server opendj.example.com:4444 ..... Done.
 
 Replication has been successfully enabled.  Note that for replication to
  work you must initialize the contents of the base DN's that are being
@@ -468,7 +473,7 @@ Post initialization procedure completed successfully.</screen>
      <screen>$ dsconfig
  set-synchronization-provider-prop
  --port 5444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --provider-name "Multimaster Synchronization"
@@ -482,7 +487,7 @@ Post initialization procedure completed successfully.</screen>
      <screen>$ dsconfig
  set-synchronization-provider-prop
  --port 5444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --provider-name "Multimaster Synchronization"
@@ -506,18 +511,20 @@ Post initialization procedure completed successfully.</screen>
  disable
  --disableAll
  --port 5444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --adminPassword password
  --trustAll
  --no-prompt
 Establishing connections ..... Done.
-Disabling replication on base DN cn=admin data of server localhost:5444
- ..... Done.
-Disabling replication on base DN dc=example,dc=com of server localhost:5444
- ..... Done.
-Disabling replication on base DN cn=schema of server localhost:5444 ..... Done.
-Disabling replication port 9989 of server localhost:5444 ..... Done.
+Disabling replication on base DN cn=admin data of server
+ opendj.example.com:5444 ..... Done.
+Disabling replication on base DN dc=example,dc=com of server
+ opendj.example.com:5444 ..... Done.
+Disabling replication on base DN cn=schema of server
+ opendj.example.com:5444 ..... Done.
+Disabling replication port 9989 of server
+ opendj.example.com:5444 ..... Done.
 Removing registration information ..... Done.
 Removing truststore information ..... Done.
 
@@ -632,12 +639,12 @@ for a detailed log of this operation.</screen>
  --adminUID admin
  --adminPassword password
  --baseDN dc=example,dc=com
- --host1 `hostname`
+ --host1 opendj.example.com
  --port1 4444
  --bindDN1 "cn=Directory Manager"
  --bindPassword1 password
  --noReplicationServer1
- --host2 `hostname`
+ --host2 opendj.example.com
  --port2 6444
  --bindDN2 "cn=Directory Manager"
  --bindPassword2 password
@@ -652,15 +659,17 @@ It is recommended to have at least two replication servers (two changelogs) to
 avoid a single point of failure in the replication topology.
 
 Checking registration information ..... Done.
-Configuring Replication port on server localhost:6444 ..... Done.
+Configuring Replication port on server opendj.example.com:6444 ..... Done.
 Updating replication configuration for baseDN dc=example,dc=com on server
- localhost:4444 ..... Done.
-Updating registration configuration on server localhost:4444 ..... Done.
-Updating registration configuration on server localhost:6444 ..... Done.
+ opendj.example.com:4444 ..... Done.
+Updating registration configuration on server
+ opendj.example.com:4444 ..... Done.
+Updating registration configuration on server
+ opendj.example.com:6444 ..... Done.
 Updating replication configuration for baseDN cn=schema on server
- localhost:4444 ..... Done.
-Initializing registration information on server localhost:6444 with the
- contents of server localhost:4444 ..... Done.
+ opendj.example.com:4444 ..... Done.
+Initializing registration information on server opendj.example.com:6444 with
+ the contents of server opendj.example.com:4444 ..... Done.
 
 Replication has been successfully enabled.  Note that for replication to work
  you must initialize the contents of the base DN's that are being
@@ -675,12 +684,12 @@ $ dsreplication
  --adminUID admin
  --adminPassword password
  --baseDN dc=example,dc=com
- --host1 `hostname`
+ --host1 opendj.example.com
  --port1 5444
  --bindDN1 "cn=Directory Manager"
  --bindPassword1 password
  --noReplicationServer1
- --host2 `hostname`
+ --host2 opendj.example.com
  --port2 6444
  --bindDN2 "cn=Directory Manager"
  --bindPassword2 password
@@ -696,20 +705,23 @@ It is recommended to have at least two replication servers (two changelogs) to
 avoid a single point of failure in the replication topology.
 
 Checking registration information ..... Done.
-Updating remote references on server localhost:6444 ..... Done.
+Updating remote references on server opendj.example.com:6444 ..... Done.
 Updating replication configuration for baseDN dc=example,dc=com on server
- localhost:5444 ..... Done.
+ opendj.example.com:5444 ..... Done.
 Updating replication configuration for baseDN dc=example,dc=com on server
- localhost:4444 ..... Done.
-Updating registration configuration on server localhost:5444 ..... Done.
-Updating registration configuration on server localhost:6444 ..... Done.
-Updating registration configuration on server localhost:4444 ..... Done.
+ opendj.example.com:4444 ..... Done.
+Updating registration configuration on server
+ opendj.example.com:5444 ..... Done.
+Updating registration configuration on server
+ opendj.example.com:6444 ..... Done.
+Updating registration configuration on server
+ opendj.example.com:4444 ..... Done.
 Updating replication configuration for baseDN cn=schema on server
- localhost:5444 ..... Done.
+ opendj.example.com:5444 ..... Done.
 Updating replication configuration for baseDN cn=schema on server
- localhost:4444 ..... Done.
-Initializing registration information on server localhost:5444 with the
- contents of server localhost:6444 ..... Done.
+ opendj.example.com:4444 ..... Done.
+Initializing registration information on server opendj.example.com:5444 with
+ the contents of server opendj.example.com:6444 ..... Done.
 
 Replication has been successfully enabled.  Note that for replication to work
  you must initialize the contents of the base DN's that are being
@@ -726,13 +738,13 @@ for a detailed log of this operation.</screen>
  --adminUID admin
  --adminPassword password
  --baseDN dc=example,dc=com
- --hostname `hostname`
+ --hostname opendj.example.com
  --port 4444
  --trustAll
  --no-prompt
 
-Initializing base DN dc=example,dc=com with the contents from localhost:4444:
-160 entries processed (100 % complete).
+Initializing base DN dc=example,dc=com with the contents from
+ opendj.example.com:4444: 160 entries processed (100 % complete).
 Base DN initialized successfully.
 
 See
@@ -782,7 +794,7 @@ for a detailed log of this operation.</screen>
      <screen>$ dsconfig
  set-replication-domain-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --provider-name "MultimasterSynchronization"
@@ -794,7 +806,7 @@ for a detailed log of this operation.</screen>
 $ dsconfig
  set-replication-domain-prop
  --port 5444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --provider-name "Multimaster Synchronization"
@@ -808,7 +820,7 @@ $ dsconfig
      <screen>$ dsconfig
  set-replication-server-prop
  --port 6444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --provider-name "Multimaster Synchronization"
@@ -818,7 +830,7 @@ $ dsconfig
 $ dsconfig
  set-replication-server-prop
  --port 7444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --provider-name "Multimaster Synchronization"
@@ -844,7 +856,7 @@ $ dsconfig
    <screen>$ dsconfig
  set-global-configuration-prop
  --port 5444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --set writability-mode:internal-only
@@ -891,7 +903,7 @@ $ dsconfig
      <screen>$ dsconfig
  set-replication-domain-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --provider-name "Multimaster Synchronization"
@@ -904,7 +916,7 @@ $ dsconfig
 $ dsconfig
  set-replication-domain-prop
  --port 5444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --provider-name "Multimaster Synchronization"
@@ -929,7 +941,7 @@ $ dsconfig
      <screen>$ dsconfig
  set-replication-domain-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --provider-name "Multimaster Synchronization"
@@ -941,7 +953,7 @@ $ dsconfig
 $ dsconfig
  set-replication-domain-prop
  --port 5444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --provider-name "Multimaster Synchronization"
@@ -1014,7 +1026,7 @@ $ dsconfig
    <screen>$ dsconfig
  set-replication-domain-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --provider-name "Multimaster Synchronization"
@@ -1030,7 +1042,7 @@ $ dsconfig
    <screen>dsconfig
  set-replication-domain-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --provider-name "Multimaster Synchronization"
@@ -1289,7 +1301,7 @@ modifyTimestamp: 20110613071210Z
     <screen>$ dsconfig
  set-external-changelog-domain-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --provider-name "Multimaster Synchronization"
@@ -1304,7 +1316,7 @@ modifyTimestamp: 20110613071210Z
     <screen>$ dsconfig
  set-external-changelog-domain-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --provider-name "Multimaster Synchronization"
@@ -1328,7 +1340,7 @@ modifyTimestamp: 20110613071210Z
     <screen>$ dsconfig
  set-external-changelog-domain-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --provider-name "Multimaster Synchronization"

@@ -401,7 +401,7 @@ MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com</scre
     <screen>$ dsconfig
  create-plugin
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --type attribute-cleanup
@@ -451,7 +451,7 @@ mail: newuser@example.com</screen>
     <screen>$ dsconfig
  create-plugin
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --type attribute-cleanup

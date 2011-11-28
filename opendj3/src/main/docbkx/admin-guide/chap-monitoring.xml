@@ -97,7 +97,7 @@ ds-backend-base-dn: dc=example,dc=com
   <screen>$ dsconfig
  set-connection-handler-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --handler-name "SNMP Connection Handler"
@@ -114,7 +114,7 @@ ds-backend-base-dn: dc=example,dc=com
   <screen>$ dsconfig
  set-connection-handler-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --handler-name "SNMP Connection Handler"
@@ -140,7 +140,7 @@ SNMPv2-SMI::mib-2.66.1.1.2.1 = STRING: "/path/to/OpenDJ"</screen>
   <screen>$ dsconfig
  set-connection-handler-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --handler-name "JMX Connection Handler"
@@ -154,7 +154,7 @@ SNMPv2-SMI::mib-2.66.1.1.2.1 = STRING: "/path/to/OpenDJ"</screen>
   <screen>$ dsconfig
  set-root-dn-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --add default-root-privilege-name:jmx-notify
@@ -290,10 +290,10 @@ example-20110623030000000  Backup  Waiting on start time</screen>
  msg=Finished total update: exported domain "dc=example,dc=com" from this
  directory server DS(24065) to all remote directory servers. 
 [22/Jun/2011:14:37:35 +0200] category=SYNC severity=MILD_WARNING msgID=14745663
- msg=Replication server RS(23947) at localhost/10.10.0.168:8989 has closed the
- connection to this directory server DS(24065). This directory server will now
- try to connect to another replication server in order to receive changes for
- the domain "dc=example,dc=com"
+ msg=Replication server RS(23947) at opendj.example.com/10.10.0.168:8989 has
+ closed the connection to this directory server DS(24065). This directory
+ server will now try to connect to another replication server in order to
+ receive changes for the domain "dc=example,dc=com"
 [22/Jun/2011:14:37:35 +0200] category=SYNC severity=NOTICE msgID=15138894
  msg=The generation ID for domain "dc=example,dc=com" has been reset to 3679640</screen>
     <para>Notice that the replication log does not trace replication operations.
@@ -400,7 +400,7 @@ example-20110623030000000  Backup  Waiting on start time</screen>
     <screen>$ dsconfig
  create-access-log-filtering-criteria
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --publisher-name "File-Based Access Logger"
@@ -416,7 +416,7 @@ example-20110623030000000  Backup  Waiting on start time</screen>
     <screen>$ dsconfig
  set-log-publisher-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --publisher-name "File-Based Access Logger"
@@ -463,7 +463,7 @@ example-20110623030000000  Backup  Waiting on start time</screen>
   <screen>$ dsconfig
  set-alert-handler-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --handler-name "JMX Alert Handler"
@@ -478,7 +478,7 @@ example-20110623030000000  Backup  Waiting on start time</screen>
   <screen>$ dsconfig
  set-global-configuration-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --set smtp-server:smtp.example.com
@@ -487,7 +487,7 @@ example-20110623030000000  Backup  Waiting on start time</screen>
 $ dsconfig
  create-alert-handler
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --handler-name "SMTP Alert Handler"
