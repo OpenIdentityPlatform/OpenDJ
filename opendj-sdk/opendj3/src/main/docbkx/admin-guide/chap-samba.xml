@@ -131,7 +131,7 @@ MODIFY operation successful for DN dc=example,dc=com</screen>
    <screen>$ dsconfig
  create-plugin
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --plugin-name "Samba Password Synchronisation"
@@ -150,7 +150,7 @@ MODIFY operation successful for DN dc=example,dc=com</screen>
    <screen>$ dsconfig
  create-debug-target
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --publisher-name "File-Based Debug Logger"
@@ -161,7 +161,7 @@ MODIFY operation successful for DN dc=example,dc=com</screen>
 $ dsconfig
  set-log-publisher-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --publisher-name "File-Based Debug Logger"

@@ -240,7 +240,7 @@ myCustomAttribute: Testing 1, 2, 3...
   
   <screen>$ dsconfig
  set-global-configuration-prop
- --hostname `hostname`
+ --hostname opendj.example.com
  --port 4444
  --bindDN "cn=Directory Manager"
  --bindPassword password
@@ -253,7 +253,7 @@ myCustomAttribute: Testing 1, 2, 3...
   
   <screen>$ dsconfig
  set-global-configuration-prop
- --hostname `hostname`
+ --hostname opendj.example.com
  --port 4444
  --bindDN "cn=Directory Manager"
  --bindPassword password
@@ -269,7 +269,7 @@ myCustomAttribute: Testing 1, 2, 3...
   
   <screen>$ dsconfig
  set-global-configuration-prop
- --hostname `hostname`
+ --hostname opendj.example.com
  --port 4444
  --bindDN "cn=Directory Manager"
  --bindPassword password

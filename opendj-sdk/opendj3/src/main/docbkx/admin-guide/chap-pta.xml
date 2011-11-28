@@ -172,7 +172,7 @@ Certificate was added to keystore</screen>
     <screen>$ dsconfig
  create-password-policy
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --type ldap-pass-through
@@ -195,7 +195,7 @@ Certificate was added to keystore</screen>
     <screen>$ dsconfig
  list-password-policies
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --property use-ssl
@@ -344,7 +344,7 @@ Certificate was added to keystore</screen>
     <screen>$ dsconfig
  create-password-policy
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --type ldap-pass-through

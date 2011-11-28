@@ -230,7 +230,7 @@ cn: Barbara Maddox</screen>
     <screen>$ dsconfig
  create-local-db-index
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --backend-name userRoot
@@ -253,7 +253,7 @@ cn: Barbara Maddox</screen>
     <screen>$ dsconfig
  set-local-db-index-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --backend-name userRoot
@@ -291,7 +291,7 @@ cn: Barbara Maddox</screen>
    <screen>$ dsconfig
  create-local-db-vlv-index
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDn "cn=Directory Manager"
  --bindPassword password
  --backend-name userRoot
@@ -336,7 +336,7 @@ cn: Barbara Maddox</screen>
     
     <screen>$ rebuild-index
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --baseDN dc=example,dc=com
@@ -392,7 +392,7 @@ Rebuild Index task 20110607171639867 scheduled to start Jun 7, 2011 5:16:39 PM</
     <screen>$ dsconfig
  set-local-db-index-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --backend-name userRoot
@@ -402,7 +402,7 @@ Rebuild Index task 20110607171639867 scheduled to start Jun 7, 2011 5:16:39 PM</
  --no-prompt
 $ rebuild-index
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --baseDN dc=example,dc=com

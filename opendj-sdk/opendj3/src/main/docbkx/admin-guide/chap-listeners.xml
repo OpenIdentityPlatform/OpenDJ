@@ -57,7 +57,7 @@
     command.</para>
     <screen>$ dsconfig
  set-connection-handler-prop
- --hostname `hostname`
+ --hostname opendj.example.com
  --port 4444
  --bindDN "cn=Directory Manager"
  --bindPassword password
@@ -106,14 +106,14 @@
  -genkey
  -alias server-cert
  -keyalg rsa
- -dname "CN=mark-laptop,O=Example Corp,C=FR"
+ -dname "CN=opendj.example.com,O=Example Corp,C=FR"
  -keystore OpenDJ/config/keystore
  -storepass changeit
  -keypass changeit</screen>
-    <para>In this example, OpenDJ is running on a system with hostname
-    <literal>mark-laptop</literal>. The Java Key Store (JKS) is created in
-    the <filename>config</filename> directory where OpenDJ is installed, which
-    is the default value for JKS.</para>
+    <para>In this example, OpenDJ is running on a system with fully qualified
+    host name <literal>opendj.example.com</literal>. The Java Key Store (JKS)
+    is created in the <filename>config</filename> directory where OpenDJ is
+    installed, which is the default value for JKS.</para>
    </step>
    <step>
     <para>Self-sign the server certificate.</para>
@@ -129,7 +129,7 @@
     <command>keytool</command> command.</para>
     <screen>$ dsconfig
  set-key-manager-provider-prop
- --hostname `hostname`
+ --hostname opendj.example.com
  --port 4444
  --bindDN "cn=Directory Manager"
  --bindPassword password
@@ -145,7 +145,7 @@
     key store and PIN as well.</para>
     <screen>$ dsconfig
  set-trust-manager-provider-prop
- --hostname `hostname`
+ --hostname opendj.example.com
  --port 4444
  --bindDN "cn=Directory Manager"
  --bindPassword password
@@ -179,7 +179,7 @@
     <para>Activate StartTLS on the current LDAP port.</para>
     <screen>$ dsconfig
  set-connection-handler-prop
- --hostname `hostname`
+ --hostname opendj.example.com
  --port 4444
  --bindDN "cn=Directory Manager"
  --bindPassword password
@@ -217,7 +217,7 @@
     <para>Configure the server to activate LDAPS access.</para>
     <screen>$ dsconfig
  set-connection-handler-prop
- --hostname `hostname`
+ --hostname opendj.example.com
  --port 4444
  --bindDN "cn=Directory Manager"
  --bindPassword password
@@ -239,7 +239,7 @@
     command.</para>
     <screen>$ dsconfig
  set-connection-handler-prop
- --hostname `hostname`
+ --hostname opendj.example.com
  --port 4444
  --bindDN "cn=Directory Manager"
  --bindPassword password
@@ -396,7 +396,7 @@
     <para>Configure the server to activate JMX access.</para>
     <screen>$ dsconfig
  set-connection-handler-prop
- --hostname `hostname`
+ --hostname opendj.example.com
  --port 4444
  --bindDN "cn=Directory Manager"
  --bindPassword password
@@ -434,7 +434,7 @@
     <para>Activate LDIF file access.</para>
     <screen>$ dsconfig
  set-connection-handler-prop
- --hostname `hostname`
+ --hostname opendj.example.com
  --port 4444
  --bindDN "cn=Directory Manager"
  --bindPassword password

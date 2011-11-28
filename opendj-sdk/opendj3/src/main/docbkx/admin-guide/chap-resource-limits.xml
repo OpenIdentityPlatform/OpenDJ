@@ -158,7 +158,7 @@ ds-rlim-size-limit: 0</screen>
   <screen>$ dsconfig
  set-global-configuration-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --set idle-time-limit:24h
@@ -181,7 +181,7 @@ ds-rlim-size-limit: 0</screen>
   <screen>$ dsconfig
  set-connection-handler-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --handler-name "LDAP Connection Handler"

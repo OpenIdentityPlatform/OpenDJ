@@ -103,7 +103,7 @@
     <screen>$ dsconfig
  set-global-configuration-prop
  --port 5444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --set writability-mode:internal-only
@@ -116,18 +116,19 @@
  disable
  --disableAll
  --port 5444
- --hostname `hostname`
+ --hostname opendj.example.com
  --adminUID admin
  --adminPassword password
  --trustAll
  --no-prompt
 Establishing connections ..... Done.
-Disabling replication on base DN dc=example,dc=com of server localhost:5444
- ..... Done.
-Disabling replication on base DN cn=admin data of server localhost:5444
- ..... Done.
-Disabling replication on base DN cn=schema of server localhost:5444 ..... Done.
-Disabling replication port 9989 of server localhost:5444 ..... Done.
+Disabling replication on base DN dc=example,dc=com of server
+ opendj.example.com:5444 ..... Done.
+Disabling replication on base DN cn=admin data of server
+ opendj.example.com:5444 ..... Done.
+Disabling replication on base DN cn=schema of server
+ opendj.example.com:5444 ..... Done.
+Disabling replication port 9989 of server opendj.example.com:5444 ..... Done.
 Removing registration information ..... Done.
 Removing truststore information ..... Done.
 
@@ -186,12 +187,12 @@ Stopping Server...
  --adminUID admin
  --bindPassword password
  --baseDN dc=example,dc=com
- --host1 localhost
+ --host1 opendj.example.com
  --port1 4444
  --bindDN1 "cn=Directory Manager"
  --bindPassword1 password
  --replicationPort1 8989
- --host2 remotehost
+ --host2 opendj2.example.com
  --port2 4444
  --bindDN2 "cn=Directory Manager"
  --bindPassword2 password
@@ -201,22 +202,24 @@ Stopping Server...
 
 Establishing connections ..... Done.
 Checking registration information ..... Done.
-Configuring Replication port on server localhost:4444 ..... Done.
-Updating remote references on server remotehost:4444 ..... Done.
+Configuring Replication port on server opendj.example.com:4444 ..... Done.
+Updating remote references on server opendj2.example.com:4444 ..... Done.
 Updating replication configuration for baseDN dc=example,dc=com on server
- localhost:4444 ..... Done.
+ opendj.example.com:4444 ..... Done.
 Updating replication configuration for baseDN dc=example,dc=com on server
- remotehost:4444 ..... Done.
-Updating registration configuration on server localhost:4444 ..... Done.
-Updating registration configuration on server remotehost:4444 ..... Done.
+ opendj2.example.com:4444 ..... Done.
+Updating registration configuration on server
+ opendj.example.com:4444 ..... Done.
+Updating registration configuration on server
+ opendj2.example.com:4444 ..... Done.
 Updating replication configuration for baseDN cn=schema on server
- localhost:4444 ..... Done.
+ opendj.example.com:4444 ..... Done.
 Updating replication configuration for baseDN cn=schema on server
- remotehost:4444 ..... Done.
-Initializing registration information on server localhost:4444 with the
- contents of server remotehost:4444 ..... Done.
-Initializing schema on server remotehost:4444 with the contents of server
- localhost:4444 ..... Done.
+ opendj2.example.com:4444 ..... Done.
+Initializing registration information on server opendj.example.com:4444 with
+ the contents of server opendj2.example.com:4444 ..... Done.
+Initializing schema on server opendj2.example.com:4444 with the contents of
+ server opendj.example.com:4444 ..... Done.
 
 Replication has been successfully enabled.  Note that for replication to work
  you must initialize the contents of the base DN's that are being replicated
@@ -261,7 +264,7 @@ Post initialization procedure completed successfully.</screen>
     <screen>$ dsconfig
  set-global-configuration-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --set writability-mode:enabled
@@ -364,7 +367,8 @@ $ keytool
  -genkey
  -alias admin-cert
  -keyalg RSA
- -dname "CN=<replaceable>hostname</replaceable>, O=Administration Connector Self-Signed Certificate"
+ -dname
+ "CN=opendj.example.com, O=Administration Connector Self-Signed Certificate"
  -keystore admin-keystore
  -storepass `cat admin-keystore.pin`
  -keypass `cat admin-keystore.pin`</screen>
@@ -397,8 +401,10 @@ Certificate stored in file &lt;admin-cert.crt&gt;</screen>
  -keystore admin-truststore
  -storepass `cat admin-keystore.pin`
  -file admin-cert.crt
-Owner: CN=<replaceable>hostname</replaceable>, O=Administration Connector Self-Signed Certificate
-Issuer: CN=<replaceable>hostname</replaceable>, O=Administration Connector Self-Signed Certificate
+Owner: CN=opendj.example.com,
+ O=Administration Connector Self-Signed Certificate
+Issuer: CN=opendj.example.com,
+ O=Administration Connector Self-Signed Certificate
 Serial number: 4e0321c6
 Valid from: Thu Jun 23 13:21:42 CEST 2011 until: Wed Sep 21 13:21:42 CEST 2011
 Certificate fingerprints:

@@ -324,7 +324,7 @@
    <screen>$ dsconfig
  set-backend-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --backend-name userRoot
@@ -333,7 +333,7 @@
  --no-prompt
 $ import-ldif
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --ldifFile /path/to/Example.ldif
@@ -397,7 +397,7 @@ Import task 20110627101758486 scheduled to start Jun 27, 2011 10:17:58 AM CEST</
    <screen>$ dsconfig
  set-backend-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --backend-name userRoot
@@ -427,7 +427,7 @@ Import task 20110627101758486 scheduled to start Jun 27, 2011 10:17:58 AM CEST</
    <screen>$ dsconfig
  create-entry-cache
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --cache-name "Large Group Entry Cache"
@@ -458,7 +458,7 @@ Import task 20110627101758486 scheduled to start Jun 27, 2011 10:17:58 AM CEST</
    <screen>$ dsconfig
  set-log-publisher-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --publisher-name "File-Based Access Logger"
