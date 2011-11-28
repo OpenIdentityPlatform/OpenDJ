@@ -10,7 +10,7 @@
   ! Suite 900, Mountain View, California, 94041, USA.
   !
   ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! src/main/resources/legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -24,22 +24,22 @@
   !    
 -->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
-
  <xsl:import href="urn:docbkx:stylesheet"/>
  <xsl:import href="titlepages.xsl"/>
- 
+ <xsl:import href="urn:docbkx:stylesheet/highlight.xsl" />
+
  <xsl:param name="page.height.portrait">9in</xsl:param>
  <xsl:param name="page.width.portrait">7.5in</xsl:param>
  <xsl:param name="double.sided" select="1"></xsl:param>
  <xsl:param name="fop1.extensions" select="1" />
-
+ 
  <xsl:param name="body.font.master">9</xsl:param>
  <xsl:param name="body.font.family">DejaVuSerif</xsl:param>
  <xsl:param name="dingbat.font.family">DejaVuSerif</xsl:param>
  <xsl:param name="monospace.font.family">DejaVuSansMono</xsl:param>
  <xsl:param name="sans.font.family">DejaVuSans</xsl:param>
  <xsl:param name="title.font.family">DejaVuSans</xsl:param>
-
+ 
  <xsl:attribute-set name="section.title.level1.properties">
   <xsl:attribute name="font-size">14pt</xsl:attribute>
  </xsl:attribute-set>
@@ -57,7 +57,6 @@
   <xsl:attribute name="font-weight">normal</xsl:attribute>
   <xsl:attribute name="font-style">italic</xsl:attribute>
  </xsl:attribute-set>
- 
  
  <xsl:param name="generate.toc">
   appendix  nop
@@ -99,7 +98,6 @@
   <xsl:attribute name="wrap-option">no-wrap</xsl:attribute>
   <xsl:attribute name="font-size">0.75em</xsl:attribute>
  </xsl:attribute-set>
-
- <xsl:param name="ulink.footnotes" select="1" />
  
+ <xsl:param name="ulink.footnotes" select="1" />
 </xsl:stylesheet>
