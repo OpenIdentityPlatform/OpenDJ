@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.tools.dsconfig;
 
@@ -823,11 +824,6 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
       }
 
       // Apply the modification.
-      if (lastModTypes.containsKey(propertyName) &&
-        (lastModTypes.get(propertyName) == ModificationType.SET)) {
-        throw ArgumentExceptionFactory.incompatiblePropertyModification(m);
-      }
-
       if (lastModTypes.containsKey(propertyName)) {
         modifyPropertyValues(child, pd, changes, ModificationType.ADD, value);
       } else {
