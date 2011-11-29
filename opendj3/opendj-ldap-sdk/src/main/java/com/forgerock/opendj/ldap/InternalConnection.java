@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 
 package com.forgerock.opendj.ldap;
@@ -60,7 +61,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
         final BindRequest bindRequest,
         final ResultHandler<? super BindResult> resultHandler,
         final IntermediateResponseHandler intermediateResponseHandler,
-        final AsynchronousConnection connection)
+        final Connection connection)
     {
       super(messageID, resultHandler, intermediateResponseHandler, connection);
       this.bindRequest = bindRequest;
@@ -120,7 +121,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection
    * {@inheritDoc}
    */
   @Override
-  public FutureResult<Void> abandon(final AbandonRequest request)
+  public FutureResult<Void> abandonAsync(final AbandonRequest request)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
@@ -135,9 +136,9 @@ public final class InternalConnection extends AbstractAsynchronousConnection
    * {@inheritDoc}
    */
   @Override
-  public FutureResult<Result> add(final AddRequest request,
-      final ResultHandler<? super Result> resultHandler,
-      final IntermediateResponseHandler intermediateResponseHandler)
+  public FutureResult<Result> addAsync(final AddRequest request,
+      final IntermediateResponseHandler intermediateResponseHandler,
+      final ResultHandler<? super Result> resultHandler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
@@ -167,9 +168,9 @@ public final class InternalConnection extends AbstractAsynchronousConnection
    * {@inheritDoc}
    */
   @Override
-  public FutureResult<BindResult> bind(final BindRequest request,
-      final ResultHandler<? super BindResult> resultHandler,
-      final IntermediateResponseHandler intermediateResponseHandler)
+  public FutureResult<BindResult> bindAsync(final BindRequest request,
+      final IntermediateResponseHandler intermediateResponseHandler,
+      final ResultHandler<? super BindResult> resultHandler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
@@ -198,9 +199,9 @@ public final class InternalConnection extends AbstractAsynchronousConnection
    * {@inheritDoc}
    */
   @Override
-  public FutureResult<CompareResult> compare(final CompareRequest request,
-      final ResultHandler<? super CompareResult> resultHandler,
-      final IntermediateResponseHandler intermediateResponseHandler)
+  public FutureResult<CompareResult> compareAsync(final CompareRequest request,
+      final IntermediateResponseHandler intermediateResponseHandler,
+      final ResultHandler<? super CompareResult> resultHandler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
@@ -217,9 +218,9 @@ public final class InternalConnection extends AbstractAsynchronousConnection
    * {@inheritDoc}
    */
   @Override
-  public FutureResult<Result> delete(final DeleteRequest request,
-      final ResultHandler<? super Result> resultHandler,
-      final IntermediateResponseHandler intermediateResponseHandler)
+  public FutureResult<Result> deleteAsync(final DeleteRequest request,
+      final IntermediateResponseHandler intermediateResponseHandler,
+      final ResultHandler<? super Result> resultHandler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
@@ -236,10 +237,10 @@ public final class InternalConnection extends AbstractAsynchronousConnection
    * {@inheritDoc}
    */
   @Override
-  public <R extends ExtendedResult> FutureResult<R> extendedRequest(
+  public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(
       final ExtendedRequest<R> request,
-      final ResultHandler<? super R> resultHandler,
-      final IntermediateResponseHandler intermediateResponseHandler)
+      final IntermediateResponseHandler intermediateResponseHandler,
+      final ResultHandler<? super R> resultHandler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
@@ -280,9 +281,9 @@ public final class InternalConnection extends AbstractAsynchronousConnection
    * {@inheritDoc}
    */
   @Override
-  public FutureResult<Result> modify(final ModifyRequest request,
-      final ResultHandler<? super Result> resultHandler,
-      final IntermediateResponseHandler intermediateResponseHandler)
+  public FutureResult<Result> modifyAsync(final ModifyRequest request,
+      final IntermediateResponseHandler intermediateResponseHandler,
+      final ResultHandler<? super Result> resultHandler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
@@ -299,9 +300,9 @@ public final class InternalConnection extends AbstractAsynchronousConnection
    * {@inheritDoc}
    */
   @Override
-  public FutureResult<Result> modifyDN(final ModifyDNRequest request,
-      final ResultHandler<? super Result> resultHandler,
-      final IntermediateResponseHandler intermediateResponseHandler)
+  public FutureResult<Result> modifyDNAsync(final ModifyDNRequest request,
+      final IntermediateResponseHandler intermediateResponseHandler,
+      final ResultHandler<? super Result> resultHandler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
@@ -331,9 +332,9 @@ public final class InternalConnection extends AbstractAsynchronousConnection
    * {@inheritDoc}
    */
   @Override
-  public FutureResult<Result> search(final SearchRequest request,
-      final SearchResultHandler resultHandler,
-      final IntermediateResponseHandler intermediateResponseHandler)
+  public FutureResult<Result> searchAsync(final SearchRequest request,
+      final IntermediateResponseHandler intermediateResponseHandler,
+      final SearchResultHandler resultHandler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {

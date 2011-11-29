@@ -44,14 +44,12 @@ import org.forgerock.opendj.ldap.requests.StartTLSExtendedRequest;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.glassfish.grizzly.CompletionHandler;
-import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.EmptyCompletionHandler;
 import org.glassfish.grizzly.filterchain.DefaultFilterChain;
 import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.filterchain.TransportFilter;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 
-import com.forgerock.opendj.util.AbstractConnectionFactory;
 import com.forgerock.opendj.util.CompletedFutureResult;
 import com.forgerock.opendj.util.FutureResultTransformer;
 import com.forgerock.opendj.util.RecursiveFutureResult;
@@ -61,25 +59,22 @@ import com.forgerock.opendj.util.RecursiveFutureResult;
 /**
  * LDAP connection factory implementation.
  */
-public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
-    implements ConnectionFactory
+public final class LDAPConnectionFactoryImpl implements ConnectionFactory
 {
 
   @SuppressWarnings("rawtypes")
-  private final class FutureResultImpl implements CompletionHandler<Connection>
+  private final class FutureResultImpl implements
+      CompletionHandler<org.glassfish.grizzly.Connection>
   {
-    private final FutureResultTransformer<Result, AsynchronousConnection> futureStartTLSResult;
-
+    private final FutureResultTransformer<Result, Connection> futureStartTLSResult;
     private final RecursiveFutureResult<LDAPConnection, ExtendedResult> futureConnectionResult;
-
     private LDAPConnection connection;
 
 
 
-    private FutureResultImpl(
-        final ResultHandler<? super AsynchronousConnection> handler)
+    private FutureResultImpl(final ResultHandler<? super Connection> handler)
     {
-      this.futureStartTLSResult = new FutureResultTransformer<Result, AsynchronousConnection>(
+      this.futureStartTLSResult = new FutureResultTransformer<Result, Connection>(
           handler)
       {
 
@@ -129,13 +124,11 @@ public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
           {
             final StartTLSExtendedRequest startTLS = Requests
                 .newStartTLSExtendedRequest(options.getSSLContext());
-            startTLS.addEnabledCipherSuite(
-                options.getEnabledCipherSuites().toArray(
-                    new String[options.getEnabledCipherSuites().size()]));
-            startTLS.addEnabledProtocol(
-                options.getEnabledProtocols().toArray(
-                    new String[options.getEnabledProtocols().size()]));
-            return connection.extendedRequest(startTLS, handler);
+            startTLS.addEnabledCipherSuite(options.getEnabledCipherSuites()
+                .toArray(new String[options.getEnabledCipherSuites().size()]));
+            startTLS.addEnabledProtocol(options.getEnabledProtocols().toArray(
+                new String[options.getEnabledProtocols().size()]));
+            return connection.extendedRequestAsync(startTLS, null, handler);
           }
 
           if (options.getSSLContext() != null)
@@ -167,8 +160,7 @@ public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
             }
             catch (final IOException ioe)
             {
-              throw newErrorResult(
-                  ResultCode.CLIENT_SIDE_CONNECT_ERROR,
+              throw newErrorResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
                   ioe.getMessage(), ioe);
             }
           }
@@ -187,6 +179,7 @@ public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
     /**
      * {@inheritDoc}
      */
+    @Override
     public void cancelled()
     {
       // Ignore this.
@@ -197,7 +190,8 @@ public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
     /**
      * {@inheritDoc}
      */
-    public void completed(final Connection connection)
+    @Override
+    public void completed(final org.glassfish.grizzly.Connection connection)
     {
       futureConnectionResult.handleResult(adaptConnection(connection));
     }
@@ -207,6 +201,7 @@ public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
     /**
      * {@inheritDoc}
      */
+    @Override
     public void failed(final Throwable throwable)
     {
       futureConnectionResult
@@ -218,7 +213,8 @@ public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
     /**
      * {@inheritDoc}
      */
-    public void updated(final Connection connection)
+    @Override
+    public void updated(final org.glassfish.grizzly.Connection connection)
     {
       // Ignore this.
     }
@@ -228,13 +224,9 @@ public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
 
 
   private final SocketAddress socketAddress;
-
   private final TCPNIOTransport transport;
-
   private final FilterChain defaultFilterChain;
-
   private final LDAPClientFilter clientFilter;
-
   private final LDAPOptions options;
 
 
@@ -275,8 +267,20 @@ public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
    * {@inheritDoc}
    */
   @Override
-  public FutureResult<AsynchronousConnection> getAsynchronousConnection(
-      final ResultHandler<? super AsynchronousConnection> handler)
+  public Connection getConnection() throws ErrorResultException,
+      InterruptedException
+  {
+    return getConnectionAsync(null).get();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public FutureResult<Connection> getConnectionAsync(
+      final ResultHandler<? super Connection> handler)
   {
     final FutureResultImpl future = new FutureResultImpl(handler);
 
@@ -289,7 +293,7 @@ public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
     catch (final IOException e)
     {
       final ErrorResultException result = adaptConnectionException(e);
-      return new CompletedFutureResult<AsynchronousConnection>(result);
+      return new CompletedFutureResult<Connection>(result);
     }
   }
 
@@ -310,6 +314,7 @@ public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
   /**
    * {@inheritDoc}
    */
+  @Override
   public String toString()
   {
     final StringBuilder builder = new StringBuilder();
@@ -321,7 +326,8 @@ public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
 
 
 
-  private LDAPConnection adaptConnection(final Connection<?> connection)
+  private LDAPConnection adaptConnection(
+      final org.glassfish.grizzly.Connection<?> connection)
   {
     // Test shows that its much faster with non block writes but risk
     // running out of memory if the server is slow.
@@ -343,7 +349,7 @@ public final class LDAPConnectionFactoryImpl extends AbstractConnectionFactory
       t = t.getCause();
     }
 
-    return newErrorResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
-        t.getMessage(), t);
+    return newErrorResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR, t.getMessage(),
+        t);
   }
 }

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -54,19 +55,19 @@ package org.forgerock.opendj.ldap;
 public interface ConnectionFactory
 {
   /**
-   * Initiates an asynchronous connection request to the Directory Server
-   * associated with this connection factory. The returned {@code FutureResult}
-   * can be used to retrieve the completed asynchronous connection.
-   * Alternatively, if a {@code ResultHandler} is provided, the handler will be
-   * notified when the connection is available and ready for use.
+   * Asynchronously obtains a connection to the Directory Server associated with
+   * this connection factory. The returned {@code FutureResult} can be used to
+   * retrieve the completed connection. Alternatively, if a
+   * {@code ResultHandler} is provided, the handler will be notified when the
+   * connection is available and ready for use.
    *
    * @param handler
    *          The completion handler, or {@code null} if no handler is to be
    *          used.
-   * @return A future which can be used to retrieve the asynchronous connection.
+   * @return A future which can be used to retrieve the connection.
    */
-  FutureResult<AsynchronousConnection> getAsynchronousConnection(
-      ResultHandler<? super AsynchronousConnection> handler);
+  FutureResult<Connection> getConnectionAsync(
+      ResultHandler<? super Connection> handler);
 
 
 

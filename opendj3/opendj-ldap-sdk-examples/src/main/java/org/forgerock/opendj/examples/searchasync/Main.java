@@ -78,7 +78,7 @@ public final class Main
       // Bind succeeded: initiate search.
       final SearchRequest request = Requests.newSearchRequest(baseDN,
           scope, filter, attributes);
-      connection.search(request, new SearchResultHandlerImpl());
+      connection.searchAsync(request, null, new SearchResultHandlerImpl());
     }
 
   }
@@ -86,7 +86,7 @@ public final class Main
 
 
   private static final class ConnectResultHandlerImpl implements
-      ResultHandler<AsynchronousConnection>
+      ResultHandler<Connection>
   {
 
     /**
@@ -106,14 +106,14 @@ public final class Main
      * {@inheritDoc}
      */
     @Override
-    public void handleResult(final AsynchronousConnection connection)
+    public void handleResult(final Connection connection)
     {
       // Connect succeeded: save connection and initiate bind.
       Main.connection = connection;
 
       final BindRequest request = Requests.newSimpleBindRequest(
           userName, password.toCharArray());
-      connection.bind(request, new BindResultHandlerImpl());
+      connection.bindAsync(request, null, new BindResultHandlerImpl());
     }
 
   }
@@ -207,15 +207,10 @@ public final class Main
   private static String userName;
   private static String password;
   private static String baseDN;
-
   private static SearchScope scope;
-
   private static String filter;
-
   private static String[] attributes;
-
-  private static AsynchronousConnection connection = null;
-
+  private static Connection connection = null;
   private static int resultCode = 0;
 
 
@@ -280,7 +275,7 @@ public final class Main
     // Initiate the asynchronous connect, bind, and search.
     final LDAPConnectionFactory factory = new LDAPConnectionFactory(
         hostName, port);
-    factory.getAsynchronousConnection(new ConnectResultHandlerImpl());
+    factory.getConnectionAsync(new ConnectResultHandlerImpl());
 
     // Await completion.
     try

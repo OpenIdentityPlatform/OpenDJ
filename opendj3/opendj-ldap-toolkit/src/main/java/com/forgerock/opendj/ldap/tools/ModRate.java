@@ -57,7 +57,7 @@ public final class ModRate extends ConsoleApplication
 
 
 
-      private ModifyWorkerThread(final AsynchronousConnection connection,
+      private ModifyWorkerThread(final Connection connection,
           final ConnectionFactory connectionFactory)
       {
         super(connection, connectionFactory);
@@ -66,8 +66,7 @@ public final class ModRate extends ConsoleApplication
 
 
       @Override
-      public FutureResult<?> performOperation(
-          final AsynchronousConnection connection,
+      public FutureResult<?> performOperation(final Connection connection,
           final DataSource[] dataSources, final long startTime)
       {
         if (dataSources != null)
@@ -75,7 +74,7 @@ public final class ModRate extends ConsoleApplication
           data = DataSource.generateData(dataSources, data);
         }
         mr = newModifyRequest(data);
-        return connection.modify(mr,
+        return connection.modifyAsync(mr, null,
             new UpdateStatsResultHandler<Result>(startTime));
       }
 
@@ -119,7 +118,6 @@ public final class ModRate extends ConsoleApplication
 
 
     private String baseDN;
-
     private String[] modStrings;
 
 
@@ -133,8 +131,7 @@ public final class ModRate extends ConsoleApplication
 
 
     @Override
-    WorkerThread newWorkerThread(
-        final AsynchronousConnection connection,
+    WorkerThread newWorkerThread(final Connection connection,
         final ConnectionFactory connectionFactory)
     {
       return new ModifyWorkerThread(connection, connectionFactory);
@@ -167,7 +164,6 @@ public final class ModRate extends ConsoleApplication
 
 
   private BooleanArgument verbose;
-
   private BooleanArgument scriptFriendly;
 
 

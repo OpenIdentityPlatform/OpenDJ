@@ -29,6 +29,7 @@
 package org.forgerock.opendj.ldap;
 
 
+
 import static org.fest.assertions.Assertions.assertThat;
 
 import static org.testng.Assert.assertNotNull;
@@ -69,7 +70,7 @@ import com.forgerock.opendj.util.StaticUtils;
 @SuppressWarnings("javadoc")
 public class ConnectionFactoryTestCase extends SdkTestCase
 {
-  class MyResultHandler implements ResultHandler<AsynchronousConnection>
+  class MyResultHandler implements ResultHandler<Connection>
   {
     // latch.
     private final CountDownLatch latch;
@@ -94,7 +95,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase
 
 
 
-    public void handleResult(final AsynchronousConnection con)
+    public void handleResult(final Connection con)
     {
       //
       latch.countDown();
@@ -166,8 +167,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase
     // AuthenticatedConnectionFactory with multi-stage SASL
     factories[3][0] = new AuthenticatedConnectionFactory(
         new LDAPConnectionFactory("localhost", TestCaseUtils.getLdapPort()),
-        Requests.newCRAMMD5SASLBindRequest("id:user",
-            "password".toCharArray()));
+        Requests.newCRAMMD5SASLBindRequest("id:user", "password".toCharArray()));
 
     // LDAPConnectionFactory with default options
     factories[4][0] = new LDAPConnectionFactory("localhost",
@@ -267,12 +267,11 @@ public class ConnectionFactoryTestCase extends SdkTestCase
   public void testBlockingFutureNoHandler(ConnectionFactory factory)
       throws Exception
   {
-    final FutureResult<AsynchronousConnection> future = factory
-        .getAsynchronousConnection(null);
-    final AsynchronousConnection con = future.get();
+    final FutureResult<Connection> future = factory.getConnectionAsync(null);
+    final Connection con = future.get();
     // quickly check if it is a valid connection.
     // Don't use a result handler.
-    assertNotNull(con.readEntry(DN.rootDN(), null, null).get());
+    assertNotNull(con.readEntryAsync(DN.rootDN(), null, null).get());
     con.close();
   }
 
@@ -290,7 +289,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase
     // Use the handler to get the result asynchronously.
     final CountDownLatch latch = new CountDownLatch(1);
     final MyResultHandler handler = new MyResultHandler(latch);
-    factory.getAsynchronousConnection(handler);
+    factory.getConnectionAsync(handler);
 
     // Since we don't have anything to do, we would rather
     // be notified by the latch when the other thread calls our handler.
@@ -336,8 +335,8 @@ public class ConnectionFactoryTestCase extends SdkTestCase
   {
     // Create a connection factory: this should always use the default schema,
     // even if it is updated.
-    final ConnectionFactory factory = new LDAPConnectionFactory(
-        "localhost", TestCaseUtils.getLdapPort());
+    final ConnectionFactory factory = new LDAPConnectionFactory("localhost",
+        TestCaseUtils.getLdapPort());
     final Schema defaultSchema = Schema.getDefaultSchema();
 
     final Connection connection = factory.getConnection();
@@ -346,14 +345,11 @@ public class ConnectionFactoryTestCase extends SdkTestCase
       // Simulate a client which reads the schema from the server and then
       // sets it as the application default. We then want subsequent
       // operations to use this schema, not the original default.
-      final SchemaBuilder builder = new SchemaBuilder(
-          Schema.getCoreSchema());
-      builder
-          .addAttributeType(
-              "( 0.9.2342.19200300.100.1.3 NAME 'mail' EQUALITY "
-                  + "caseIgnoreIA5Match SUBSTR caseIgnoreIA5SubstringsMatch "
-                  + "SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} )",
-              false);
+      final SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
+      builder.addAttributeType(
+          "( 0.9.2342.19200300.100.1.3 NAME 'mail' EQUALITY "
+              + "caseIgnoreIA5Match SUBSTR caseIgnoreIA5SubstringsMatch "
+              + "SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} )", false);
       final Schema testSchema = builder.toSchema().asNonStrictSchema();
       assertThat(testSchema.getWarnings()).isEmpty();
       Schema.setDefaultSchema(testSchema);
@@ -364,8 +360,8 @@ public class ConnectionFactoryTestCase extends SdkTestCase
 
       assertThat(e.getAttribute("mail")).isNotNull();
       assertThat(
-          e.getAttribute(AttributeDescription.valueOf("mail",
-              testSchema))).isNotNull();
+          e.getAttribute(AttributeDescription.valueOf("mail", testSchema)))
+          .isNotNull();
     }
     finally
     {
@@ -382,7 +378,8 @@ public class ConnectionFactoryTestCase extends SdkTestCase
   /**
    * Tests connection pool closure.
    *
-   * @throws Exception If an unexpected exception occurred.
+   * @throws Exception
+   *           If an unexpected exception occurred.
    */
   @SuppressWarnings("unchecked")
   @Test
@@ -398,19 +395,19 @@ public class ConnectionFactoryTestCase extends SdkTestCase
 
     // Mock underlying connection factory which always succeeds.
     final ConnectionFactory mockFactory = mock(ConnectionFactory.class);
-    when(mockFactory.getAsynchronousConnection(any(ResultHandler.class)))
-        .thenAnswer(new Answer<FutureResult<AsynchronousConnection>>()
+    when(mockFactory.getConnectionAsync(any(ResultHandler.class))).thenAnswer(
+        new Answer<FutureResult<Connection>>()
         {
 
-          public FutureResult<AsynchronousConnection> answer(
-              InvocationOnMock invocation) throws Throwable
+          public FutureResult<Connection> answer(InvocationOnMock invocation)
+              throws Throwable
           {
             // Update state.
             final int connectionID = realConnectionCount.getAndIncrement();
             realConnectionIsClosed[connectionID] = false;
 
             // Mock connection decrements counter on close.
-            AsynchronousConnection mockConnection = mock(AsynchronousConnection.class);
+            Connection mockConnection = mock(Connection.class);
             doAnswer(new Answer<Void>()
             {
               public Void answer(InvocationOnMock invocation) throws Throwable
@@ -421,17 +418,17 @@ public class ConnectionFactoryTestCase extends SdkTestCase
               }
             }).when(mockConnection).close();
             when(mockConnection.isValid()).thenReturn(true);
-            when(mockConnection.toString()).thenReturn("Mock connection " + connectionID);
+            when(mockConnection.toString()).thenReturn(
+                "Mock connection " + connectionID);
 
-            // Excecute handler and return future.
-            ResultHandler<? super AsynchronousConnection> handler =
-              (ResultHandler<? super AsynchronousConnection>) invocation.getArguments()[0];
+            // Execute handler and return future.
+            ResultHandler<? super Connection> handler = (ResultHandler<? super Connection>) invocation
+                .getArguments()[0];
             if (handler != null)
             {
               handler.handleResult(mockConnection);
             }
-            return new CompletedFutureResult<AsynchronousConnection>(
-                mockConnection);
+            return new CompletedFutureResult<Connection>(mockConnection);
           }
         });
 

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -34,7 +35,7 @@ package org.forgerock.opendj.ldap;
  * connection attempts.
  * <p>
  * A result completion handler may be specified when performing asynchronous
- * operations using an {@link AsynchronousConnection} object or when connecting
+ * operations using a {@link Connection} object or when connecting
  * asynchronously to a remote Directory Server using an
  * {@link ConnectionFactory}. The {@link #handleResult} method is invoked when
  * the operation or connection attempt completes successfully. The

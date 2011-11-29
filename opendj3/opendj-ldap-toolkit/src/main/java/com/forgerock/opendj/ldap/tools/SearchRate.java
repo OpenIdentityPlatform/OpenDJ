@@ -121,12 +121,11 @@ public final class SearchRate extends ConsoleApplication
     private final class SearchWorkerThread extends WorkerThread
     {
       private SearchRequest sr;
-
       private Object[] data;
 
 
 
-      private SearchWorkerThread(final AsynchronousConnection connection,
+      private SearchWorkerThread(final Connection connection,
           final ConnectionFactory connectionFactory)
       {
         super(connection, connectionFactory);
@@ -135,8 +134,7 @@ public final class SearchRate extends ConsoleApplication
 
 
       @Override
-      public FutureResult<?> performOperation(
-          final AsynchronousConnection connection,
+      public FutureResult<?> performOperation(final Connection connection,
           final DataSource[] dataSources, final long startTime)
       {
         if (sr == null)
@@ -159,20 +157,17 @@ public final class SearchRate extends ConsoleApplication
           sr.setFilter(String.format(filter, data));
           sr.setName(String.format(baseDN, data));
         }
-        return connection.search(sr, new SearchStatsHandler(startTime));
+        return connection.searchAsync(sr, null, new SearchStatsHandler(
+            startTime));
       }
     }
 
 
 
     private String filter;
-
     private String baseDN;
-
     private SearchScope scope;
-
     private DereferenceAliasesPolicy dereferencesAliasesPolicy;
-
     private String[] attributes;
 
 
@@ -186,8 +181,7 @@ public final class SearchRate extends ConsoleApplication
 
 
     @Override
-    WorkerThread newWorkerThread(
-        final AsynchronousConnection connection,
+    WorkerThread newWorkerThread(final Connection connection,
         final ConnectionFactory connectionFactory)
     {
       return new SearchWorkerThread(connection, connectionFactory);

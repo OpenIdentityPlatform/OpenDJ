@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -40,7 +41,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
-import com.forgerock.opendj.util.AbstractConnectionFactory;
 import com.forgerock.opendj.util.AsynchronousFutureResult;
 import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.Validator;
@@ -57,9 +57,8 @@ import com.forgerock.opendj.util.Validator;
  */
 abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm
 {
-  private final class MonitoredConnectionFactory extends
-      AbstractConnectionFactory implements
-      ResultHandler<AsynchronousConnection>
+  private final class MonitoredConnectionFactory implements ConnectionFactory,
+      ResultHandler<Connection>
   {
 
     private final ConnectionFactory factory;
@@ -84,28 +83,53 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm
     /**
      * {@inheritDoc}
      */
-    @Override
-    public FutureResult<AsynchronousConnection> getAsynchronousConnection(
-        final ResultHandler<? super AsynchronousConnection> resultHandler)
+    public Connection getConnection() throws ErrorResultException,
+        InterruptedException
     {
-      final AsynchronousFutureResult<AsynchronousConnection> future =
-        new AsynchronousFutureResult<AsynchronousConnection>(resultHandler);
+      final Connection connection;
+      try
+      {
+        connection = factory.getConnection();
+      }
+      catch (ErrorResultException e)
+      {
+        // Attempt failed - try next factory.
+        notifyOffline(e);
+        final int nextIndex = (index + 1) % monitoredFactories.size();
+        final MonitoredConnectionFactory nextFactory =
+            getMonitoredConnectionFactory(nextIndex);
+        return nextFactory.getConnection();
+      }
+      notifyOnline();
+      return connection;
+    }
 
-      final ResultHandler<AsynchronousConnection> failoverHandler =
-        new ResultHandler<AsynchronousConnection>()
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public FutureResult<Connection> getConnectionAsync(
+        final ResultHandler<? super Connection> resultHandler)
+    {
+      final AsynchronousFutureResult<Connection> future =
+        new AsynchronousFutureResult<Connection>(resultHandler);
+
+      final ResultHandler<Connection> failoverHandler =
+        new ResultHandler<Connection>()
       {
         @Override
         public void handleErrorResult(final ErrorResultException error)
         {
           // Attempt failed - try next factory.
           notifyOffline(error);
-
           final int nextIndex = (index + 1) % monitoredFactories.size();
           try
           {
             final MonitoredConnectionFactory nextFactory =
               getMonitoredConnectionFactory(nextIndex);
-            nextFactory.getAsynchronousConnection(future);
+            nextFactory.getConnectionAsync(future);
           }
           catch (final ErrorResultException e)
           {
@@ -116,14 +140,14 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm
 
 
         @Override
-        public void handleResult(final AsynchronousConnection result)
+        public void handleResult(final Connection result)
         {
           notifyOnline();
           future.handleResult(result);
         }
       };
 
-      factory.getAsynchronousConnection(failoverHandler);
+      factory.getConnectionAsync(failoverHandler);
       return future;
     }
 
@@ -144,7 +168,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm
      * Handle monitoring connection request success.
      */
     @Override
-    public void handleResult(final AsynchronousConnection connection)
+    public void handleResult(final Connection connection)
     {
       notifyOnline();
 
@@ -179,7 +203,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm
           StaticUtils.DEBUG_LOG.fine(String
               .format("Attempting reconnect to offline factory " + this));
         }
-        pendingConnectFuture = factory.getAsynchronousConnection(this);
+        pendingConnectFuture = factory.getConnectionAsync(this);
       }
     }
 

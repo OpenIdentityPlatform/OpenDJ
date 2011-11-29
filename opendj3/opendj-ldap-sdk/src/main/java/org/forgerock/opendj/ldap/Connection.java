@@ -42,17 +42,78 @@ import org.forgerock.opendj.ldif.ConnectionEntryReader;
 
 
 /**
- * A synchronous connection with a Directory Server over which read and update
- * operations may be performed. See RFC 4511 for the LDAPv3 protocol
- * specification and more information about the types of operations defined in
- * LDAP.
+ * A connection with a Directory Server over which read and update operations
+ * may be performed. See RFC 4511 for the LDAPv3 protocol specification and more
+ * information about the types of operations defined in LDAP.
  * <p>
  * <h3>Operation processing</h3>
  * <p>
- * All operations are performed synchronously and return an appropriate
- * {@link Result} representing the final status of the operation. Operation
- * failures, for whatever reason, are signalled using an
- * {@link ErrorResultException}.
+ * Operations may be performed synchronously or asynchronously depending on the
+ * method chosen. Asynchronous methods can be identified by their {@code Async}
+ * suffix.
+ * <p>
+ * <h4>Performing operations synchronously</h4>
+ * <p>
+ * Synchronous methods block until a response is received from the Directory
+ * Server, at which point an appropriate {@link Result} object is returned if
+ * the operation succeeded, or thrown as an {@link ErrorResultException} if the
+ * operation failed.
+ * <p>
+ * Since synchronous operations block the calling thread, the only way to
+ * abandon a long running operation is to interrupt the calling thread from
+ * another thread. This will cause the calling thread unblock and throw an
+ * {@link InterruptedException}.
+ * <p>
+ * <h4>Performing operations asynchronously</h4>
+ * <p>
+ * Asynchronous methods, identified by their {code Async} suffix, are
+ * non-blocking, returning a {@link FutureResult} or sub-type thereof which can
+ * be used for retrieving the result using the {@link FutureResult#get} method.
+ * Operation failures, for whatever reason, are signalled by the
+ * {@link FutureResult#get()} method throwing an {@link ErrorResultException}.
+ * <p>
+ * In addition to returning a {@code FutureResult}, all asynchronous methods
+ * accept a {@link ResultHandler} which will be notified upon completion of the
+ * operation.
+ * <p>
+ * Synchronous operations are easily simulated by immediately getting the
+ * result:
+ *
+ * <pre>
+ * Connection connection = ...;
+ * AddRequest request = ...;
+ * // Will block until operation completes, and
+ * // throws exception on failure.
+ * connection.add(request).get();
+ * </pre>
+ *
+ * Operations can be performed in parallel while taking advantage of the
+ * simplicity of a synchronous application design:
+ *
+ * <pre>
+ * Connection connection1 = ...;
+ * Connection connection2 = ...;
+ * AddRequest request = ...;
+ * // Add the entry to the first server (don't block).
+ * FutureResult future1 = connection1.add(request);
+ * // Add the entry to the second server (in parallel).
+ * FutureResult future2 = connection2.add(request);
+ * // Total time = is O(1) instead of O(n).
+ * future1.get();
+ * future2.get();
+ * </pre>
+ *
+ * More complex client applications can take advantage of a fully asynchronous
+ * event driven design using {@link ResultHandler}s:
+ *
+ * <pre>
+ * Connection connection = ...;
+ * SearchRequest request = ...;
+ * // Process results in the search result handler
+ * // in a separate thread.
+ * SearchResponseHandler handle = ...;
+ * connection.search(request, handler);
+ * </pre>
  * <p>
  * <h3>Closing connections</h3>
  * <p>
@@ -80,6 +141,37 @@ public interface Connection extends Closeable
 {
 
   /**
+   * Abandons the unfinished operation identified in the provided abandon
+   * request.
+   * <p>
+   * Abandon requests do not have a response, so invoking the method get() on
+   * the returned future will not block, nor return anything (it is Void), but
+   * may throw an exception if a problem occurred while sending the abandon
+   * request. In addition the returned future may be used in order to determine
+   * the message ID of the abandon request.
+   * <p>
+   * <b>Note:</b> a more convenient approach to abandoning unfinished
+   * asynchronous operations is provided via the
+   * {@link FutureResult#cancel(boolean)} method.
+   *
+   * @param request
+   *          The request identifying the operation to be abandoned.
+   * @return A future whose result is Void.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support abandon operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code request} was {@code null}.
+   */
+  FutureResult<Void> abandonAsync(AbandonRequest request)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
+
+
+
+  /**
    * Adds an entry to the Directory Server using the provided add request.
    *
    * @param request
@@ -93,8 +185,8 @@ public interface Connection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support add operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
@@ -125,8 +217,8 @@ public interface Connection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support add operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code entry} was {@code null} .
    */
@@ -161,14 +253,43 @@ public interface Connection extends Closeable
    *           If {@code ldifLines} was empty, or contained invalid LDIF, or
    *           could not be decoded using the default schema.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code ldifLines} was {@code null} .
    */
   Result add(String... ldifLines) throws ErrorResultException,
       InterruptedException, UnsupportedOperationException,
       LocalizedIllegalArgumentException, IllegalStateException,
+      NullPointerException;
+
+
+
+  /**
+   * Asynchronously adds an entry to the Directory Server using the provided add
+   * request.
+   *
+   * @param request
+   *          The add request.
+   * @param intermediateResponseHandler
+   *          An intermediate response handler which can be used to process any
+   *          intermediate responses as they are received, may be {@code null}.
+   * @param resultHandler
+   *          A result handler which can be used to asynchronously process the
+   *          operation result when it is received, may be {@code null}.
+   * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support add operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code request} was {@code null}.
+   */
+  FutureResult<Result> addAsync(AddRequest request,
+      IntermediateResponseHandler intermediateResponseHandler,
+      ResultHandler<? super Result> resultHandler)
+      throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
 
@@ -182,8 +303,8 @@ public interface Connection extends Closeable
    *          The listener which wants to be notified when events occur on this
    *          connection.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If the {@code listener} was {@code null}.
    */
@@ -206,8 +327,8 @@ public interface Connection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support bind operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
@@ -245,14 +366,43 @@ public interface Connection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support bind operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code name} or {@code password} was {@code null}.
    */
   BindResult bind(String name, char[] password) throws ErrorResultException,
       InterruptedException, LocalizedIllegalArgumentException,
       UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
+
+
+
+  /**
+   * Asynchronously authenticates to the Directory Server using the provided
+   * bind request.
+   *
+   * @param request
+   *          The bind request.
+   * @param intermediateResponseHandler
+   *          An intermediate response handler which can be used to process any
+   *          intermediate responses as they are received, may be {@code null}.
+   * @param resultHandler
+   *          A result handler which can be used to asynchronously process the
+   *          operation result when it is received, may be {@code null}.
+   * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support bind operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code request} was {@code null}.
+   */
+  FutureResult<BindResult> bindAsync(BindRequest request,
+      IntermediateResponseHandler intermediateResponseHandler,
+      ResultHandler<? super BindResult> resultHandler)
+      throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
 
@@ -319,8 +469,8 @@ public interface Connection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support compare operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
@@ -360,16 +510,45 @@ public interface Connection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support compare operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
-   *           If {@code name}, {@code attributeDescription}, or {@code
-   *           assertionValue} was {@code null}.
+   *           If {@code name}, {@code attributeDescription}, or
+   *           {@code assertionValue} was {@code null}.
    */
   CompareResult compare(String name, String attributeDescription,
       String assertionValue) throws ErrorResultException, InterruptedException,
       LocalizedIllegalArgumentException, UnsupportedOperationException,
       IllegalStateException, NullPointerException;
+
+
+
+  /**
+   * Asynchronously compares an entry in the Directory Server using the provided
+   * compare request.
+   *
+   * @param request
+   *          The compare request.
+   * @param intermediateResponseHandler
+   *          An intermediate response handler which can be used to process any
+   *          intermediate responses as they are received, may be {@code null}.
+   * @param resultHandler
+   *          A result handler which can be used to asynchronously process the
+   *          operation result when it is received, may be {@code null}.
+   * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support compare operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code request} was {@code null}.
+   */
+  FutureResult<CompareResult> compareAsync(CompareRequest request,
+      IntermediateResponseHandler intermediateResponseHandler,
+      ResultHandler<? super CompareResult> resultHandler)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
 
 
 
@@ -388,8 +567,8 @@ public interface Connection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support delete operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
@@ -422,14 +601,43 @@ public interface Connection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support delete operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code name} was {@code null}.
    */
   Result delete(String name) throws ErrorResultException, InterruptedException,
       LocalizedIllegalArgumentException, UnsupportedOperationException,
       IllegalStateException, NullPointerException;
+
+
+
+  /**
+   * Asynchronously deletes an entry from the Directory Server using the
+   * provided delete request.
+   *
+   * @param request
+   *          The delete request.
+   * @param intermediateResponseHandler
+   *          An intermediate response handler which can be used to process any
+   *          intermediate responses as they are received, may be {@code null}.
+   * @param resultHandler
+   *          A result handler which can be used to asynchronously process the
+   *          operation result when it is received, may be {@code null}.
+   * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support delete operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code request} was {@code null}.
+   */
+  FutureResult<Result> deleteAsync(DeleteRequest request,
+      IntermediateResponseHandler intermediateResponseHandler,
+      ResultHandler<? super Result> resultHandler)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
 
 
 
@@ -449,8 +657,8 @@ public interface Connection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support extended operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
@@ -481,8 +689,8 @@ public interface Connection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support extended operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
@@ -519,8 +727,8 @@ public interface Connection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support extended operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code requestName} was {@code null}.
    */
@@ -532,13 +740,34 @@ public interface Connection extends Closeable
 
 
   /**
-   * Returns an asynchronous connection sharing the same underlying network
-   * connection as this synchronous connection.
+   * Asynchronously performs the provided extended request in the Directory
+   * Server.
    *
-   * @return An asynchronous connection sharing the same underlying network
-   *         connection as this synchronous connection.
+   * @param <R>
+   *          The type of result returned by the extended request.
+   * @param request
+   *          The extended request.
+   * @param intermediateResponseHandler
+   *          An intermediate response handler which can be used to process any
+   *          intermediate responses as they are received, may be {@code null}.
+   * @param resultHandler
+   *          A result handler which can be used to asynchronously process the
+   *          operation result when it is received, may be {@code null}.
+   * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support extended operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code request} was {@code null}.
    */
-  AsynchronousConnection getAsynchronousConnection();
+  <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(
+      ExtendedRequest<R> request,
+      IntermediateResponseHandler intermediateResponseHandler,
+      ResultHandler<? super R> resultHandler)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
 
 
 
@@ -556,9 +785,9 @@ public interface Connection extends Closeable
 
   /**
    * Returns {@code true} if this connection has not been closed and no fatal
-   * errors have been detected. This method is guaranteed to return {@code
-   * false} only when it is called after the method {@code close} has been
-   * called.
+   * errors have been detected. This method is guaranteed to return
+   * {@code false} only when it is called after the method {@code close} has
+   * been called.
    *
    * @return {@code true} if this connection is valid, {@code false} otherwise.
    */
@@ -581,8 +810,8 @@ public interface Connection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support modify operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
@@ -616,14 +845,43 @@ public interface Connection extends Closeable
    *           If {@code ldifLines} was empty, or contained invalid LDIF, or
    *           could not be decoded using the default schema.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code ldifLines} was {@code null} .
    */
   Result modify(String... ldifLines) throws ErrorResultException,
       InterruptedException, UnsupportedOperationException,
       LocalizedIllegalArgumentException, IllegalStateException,
+      NullPointerException;
+
+
+
+  /**
+   * Asynchronously modifies an entry in the Directory Server using the provided
+   * modify request.
+   *
+   * @param request
+   *          The modify request.
+   * @param intermediateResponseHandler
+   *          An intermediate response handler which can be used to process any
+   *          intermediate responses as they are received, may be {@code null}.
+   * @param resultHandler
+   *          A result handler which can be used to asynchronously process the
+   *          operation result when it is received, may be {@code null}.
+   * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support modify operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code request} was {@code null}.
+   */
+  FutureResult<Result> modifyAsync(ModifyRequest request,
+      IntermediateResponseHandler intermediateResponseHandler,
+      ResultHandler<? super Result> resultHandler)
+      throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
 
@@ -643,8 +901,8 @@ public interface Connection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support modify DN operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
@@ -680,14 +938,43 @@ public interface Connection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support modify DN operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code name} or {@code newRDN} was {@code null}.
    */
   Result modifyDN(String name, String newRDN) throws ErrorResultException,
       LocalizedIllegalArgumentException, InterruptedException,
       UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
+
+
+
+  /**
+   * Asynchronously renames an entry in the Directory Server using the provided
+   * modify DN request.
+   *
+   * @param request
+   *          The modify DN request.
+   * @param intermediateResponseHandler
+   *          An intermediate response handler which can be used to process any
+   *          intermediate responses as they are received, may be {@code null}.
+   * @param resultHandler
+   *          A result handler which can be used to asynchronously process the
+   *          operation result when it is received, may be {@code null}.
+   * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support modify DN operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code request} was {@code null}.
+   */
+  FutureResult<Result> modifyDNAsync(ModifyDNRequest request,
+      IntermediateResponseHandler intermediateResponseHandler,
+      ResultHandler<? super Result> resultHandler)
+      throws UnsupportedOperationException, IllegalStateException,
       NullPointerException;
 
 
@@ -722,8 +1009,8 @@ public interface Connection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If the {@code name} was {@code null}.
    */
@@ -765,8 +1052,8 @@ public interface Connection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If the {@code name} was {@code null}.
    */
@@ -774,6 +1061,47 @@ public interface Connection extends Closeable
       throws ErrorResultException, InterruptedException,
       LocalizedIllegalArgumentException, UnsupportedOperationException,
       IllegalStateException, NullPointerException;
+
+
+
+  /**
+   * Asynchronously reads the named entry from the Directory Server.
+   * <p>
+   * If the requested entry is not returned by the Directory Server then the
+   * request will fail with an {@link EntryNotFoundException}. More
+   * specifically, the returned future will never return {@code null}.
+   * <p>
+   * This method is equivalent to the following code:
+   *
+   * <pre>
+   * SearchRequest request = new SearchRequest(name, SearchScope.BASE_OBJECT,
+   *     &quot;(objectClass=*)&quot;, attributeDescriptions);
+   * connection.searchSingleEntryAsync(request, resultHandler, p);
+   * </pre>
+   *
+   * @param name
+   *          The distinguished name of the entry to be read.
+   * @param attributeDescriptions
+   *          The names of the attributes to be included with the entry, which
+   *          may be {@code null} or empty indicating that all user attributes
+   *          should be returned.
+   * @param handler
+   *          A result handler which can be used to asynchronously process the
+   *          operation result when it is received, may be {@code null}.
+   * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support search operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If the {@code name} was {@code null}.
+   */
+  FutureResult<SearchResultEntry> readEntryAsync(DN name,
+      Collection<String> attributeDescriptions,
+      ResultHandler<? super SearchResultEntry> handler)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
 
 
 
@@ -795,6 +1123,34 @@ public interface Connection extends Closeable
 
 
   /**
+   * Searches the Directory Server using the provided search parameters. Any
+   * matching entries returned by the search will be exposed through the
+   * {@code EntryReader} interface.
+   * <p>
+   * <b>Warning:</b> When using a queue with an optional capacity bound, the
+   * connection will stop reading responses and wait if necessary for space to
+   * become available.
+   *
+   * @param request
+   *          The search request.
+   * @param entries
+   *          The queue to which matching entries should be added.
+   * @return The result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support search operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If {@code request} or {@code entries} was {@code null}.
+   */
+  ConnectionEntryReader search(SearchRequest request,
+      BlockingQueue<Response> entries) throws UnsupportedOperationException,
+      IllegalStateException, NullPointerException;
+
+
+
+  /**
    * Searches the Directory Server using the provided search request. Any
    * matching entries returned by the search will be added to {@code entries},
    * even if the final search result indicates that the search failed. Search
@@ -802,8 +1158,8 @@ public interface Connection extends Closeable
    * <p>
    * <b>Warning:</b> Usage of this method is discouraged if the search request
    * is expected to yield a large number of search results since the entire set
-   * of results will be stored in memory, potentially causing an {@code
-   * OutOfMemoryError}.
+   * of results will be stored in memory, potentially causing an
+   * {@code OutOfMemoryError}.
    * <p>
    * This method is equivalent to the following code:
    *
@@ -824,8 +1180,8 @@ public interface Connection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} or {@code entries} was {@code null}.
    */
@@ -846,8 +1202,8 @@ public interface Connection extends Closeable
    * <p>
    * <b>Warning:</b> Usage of this method is discouraged if the search request
    * is expected to yield a large number of search results since the entire set
-   * of results will be stored in memory, potentially causing an {@code
-   * OutOfMemoryError}.
+   * of results will be stored in memory, potentially causing an
+   * {@code OutOfMemoryError}.
    *
    * @param request
    *          The search request.
@@ -865,8 +1221,8 @@ public interface Connection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} or {@code entries} was {@code null}.
    */
@@ -888,8 +1244,8 @@ public interface Connection extends Closeable
    *          The search request.
    * @param handler
    *          A search result handler which can be used to process the search
-   *          result entries and references as they are received, may be {@code
-   *          null}.
+   *          result entries and references as they are received, may be
+   *          {@code null}.
    * @return The result of the operation.
    * @throws ErrorResultException
    *           If the result code indicates that the request failed for some
@@ -899,8 +1255,8 @@ public interface Connection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
@@ -916,9 +1272,9 @@ public interface Connection extends Closeable
    * matching entries returned by the search will be exposed through the
    * {@code EntryReader} interface.
    * <p>
-   * <b>Warning:</b> When using a queue with an optional capacity bound,
-   * the connection will stop reading responses and wait if necessary for
-   * space to become available.
+   * <b>Warning:</b> When using a queue with an optional capacity bound, the
+   * connection will stop reading responses and wait if necessary for space to
+   * become available.
    * <p>
    * This method is equivalent to the following code:
    *
@@ -942,44 +1298,46 @@ public interface Connection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If the {@code baseObject}, {@code scope}, or {@code filter} were
    *           {@code null}.
    */
   ConnectionEntryReader search(String baseObject, SearchScope scope,
       String filter, String... attributeDescriptions)
-      throws UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
+
 
 
   /**
-   * Searches the Directory Server using the provided search parameters. Any
-   * matching entries returned by the search will be exposed through the
-   * {@code EntryReader} interface.
-   * <p>
-   * <b>Warning:</b> When using a queue with an optional capacity bound,
-   * the connection will stop reading responses and wait if necessary for
-   * space to become available.
+   * Asynchronously searches the Directory Server using the provided search
+   * request.
    *
    * @param request
    *          The search request.
-   * @param entries
-   *          The queue to which matching entries should be added.
-   * @return The result of the operation.
+   * @param intermediateResponseHandler
+   *          An intermediate response handler which can be used to process any
+   *          intermediate responses as they are received, may be {@code null}.
+   * @param resultHandler
+   *          A search result handler which can be used to asynchronously
+   *          process the search result entries and references as they are
+   *          received, may be {@code null}.
+   * @return A future representing the result of the operation.
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
-   *           If {@code request} or {@code entries} was {@code null}.
+   *           If {@code request} was {@code null}.
    */
-  ConnectionEntryReader search(SearchRequest request,
-                               BlockingQueue<Response> entries)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+  FutureResult<Result> searchAsync(SearchRequest request,
+      IntermediateResponseHandler intermediateResponseHandler,
+      SearchResultHandler resultHandler) throws UnsupportedOperationException,
+      IllegalStateException, NullPointerException;
+
 
 
   /**
@@ -1003,8 +1361,8 @@ public interface Connection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If the {@code request} was {@code null}.
    */
@@ -1056,8 +1414,8 @@ public interface Connection extends Closeable
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
    * @throws IllegalStateException
-   *           If this connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If the {@code baseObject}, {@code scope}, or {@code filter} were
    *           {@code null}.
@@ -1067,4 +1425,35 @@ public interface Connection extends Closeable
       throws ErrorResultException, InterruptedException,
       LocalizedIllegalArgumentException, UnsupportedOperationException,
       IllegalStateException, NullPointerException;
+
+
+
+  /**
+   * Asynchronously searches the Directory Server for a single entry using the
+   * provided search request.
+   * <p>
+   * If the requested entry is not returned by the Directory Server then the
+   * request will fail with an {@link EntryNotFoundException}. More
+   * specifically, the returned future will never return {@code null}. If
+   * multiple matching entries are returned by the Directory Server then the
+   * request will fail with an {@link MultipleEntriesFoundException}.
+   *
+   * @param request
+   *          The search request.
+   * @param handler
+   *          A result handler which can be used to asynchronously process the
+   *          operation result when it is received, may be {@code null}.
+   * @return A future representing the result of the operation.
+   * @throws UnsupportedOperationException
+   *           If this connection does not support search operations.
+   * @throws IllegalStateException
+   *           If this connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
+   * @throws NullPointerException
+   *           If the {@code request} was {@code null}.
+   */
+  FutureResult<SearchResultEntry> searchSingleEntryAsync(SearchRequest request,
+      ResultHandler<? super SearchResultEntry> handler)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
 }

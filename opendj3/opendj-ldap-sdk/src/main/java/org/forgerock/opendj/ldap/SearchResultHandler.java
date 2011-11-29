@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -38,7 +39,7 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
 /**
  * A completion handler for consuming the results of a Search operation.
  * <p>
- * {@link Connection} and {@link AsynchronousConnection} objects allow a search
+ * {@link Connection} and {@link Connection} objects allow a search
  * result completion handler to be specified when sending Search operation
  * requests to a Directory Server. The {@link #handleEntry} method is invoked
  * each time a Search Result Entry is returned from the Directory Server. The

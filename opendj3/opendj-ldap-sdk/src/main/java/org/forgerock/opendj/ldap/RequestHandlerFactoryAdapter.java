@@ -72,8 +72,7 @@ final class RequestHandlerFactoryAdapter<C> implements
 
 
 
-      private ExtendedResultHandlerHolder(
-          final ExtendedRequest<R> request,
+      private ExtendedResultHandlerHolder(final ExtendedRequest<R> request,
           final ResultHandler<? super R> resultHandler)
       {
         this.request = request;
@@ -148,9 +147,8 @@ final class RequestHandlerFactoryAdapter<C> implements
 
 
     protected RequestContextImpl(
-        final ServerConnectionImpl<?> clientConnection,
-        final H resultHandler, final int messageID,
-        final boolean isCancelSupported)
+        final ServerConnectionImpl<?> clientConnection, final H resultHandler,
+        final int messageID, final boolean isCancelSupported)
     {
       this.clientConnection = clientConnection;
       this.resultHandler = resultHandler;
@@ -164,8 +162,7 @@ final class RequestHandlerFactoryAdapter<C> implements
      * {@inheritDoc}
      */
     @Override
-    public void addCancelRequestListener(
-        final CancelRequestListener listener)
+    public void addCancelRequestListener(final CancelRequestListener listener)
         throws NullPointerException
     {
       Validator.ensureNotNull(listener);
@@ -224,8 +221,8 @@ final class RequestHandlerFactoryAdapter<C> implements
           break;
         case CANCEL_REQUESTED:
           // Don't change state: let the handler ack the cancellation request.
-          throw (CancelledResultException) newErrorResult(
-              ResultCode.CANCELLED, cancelRequestReason.toString());
+          throw (CancelledResultException) newErrorResult(ResultCode.CANCELLED,
+              cancelRequestReason.toString());
         case TOO_LATE:
           // Already too late. Nothing to do.
           break;
@@ -294,8 +291,7 @@ final class RequestHandlerFactoryAdapter<C> implements
      * {@inheritDoc}
      */
     @Override
-    public void removeCancelRequestListener(
-        final CancelRequestListener listener)
+    public void removeCancelRequestListener(final CancelRequestListener listener)
         throws NullPointerException
     {
       Validator.ensureNotNull(listener);
@@ -325,8 +321,7 @@ final class RequestHandlerFactoryAdapter<C> implements
         {
           final Result result = Responses
               .newGenericExtendedResult(ResultCode.CANNOT_CANCEL);
-          cancelResultHandler
-              .handleErrorResult(newErrorResult(result));
+          cancelResultHandler.handleErrorResult(newErrorResult(result));
         }
         return;
       }
@@ -345,9 +340,8 @@ final class RequestHandlerFactoryAdapter<C> implements
           if (cancelResultHandler != null)
           {
             cancelResultHandlers = new LinkedList<ExtendedResultHandlerHolder<?>>();
-            cancelResultHandlers
-                .add(new ExtendedResultHandlerHolder<R>(
-                    cancelRequest, cancelResultHandler));
+            cancelResultHandlers.add(new ExtendedResultHandlerHolder<R>(
+                cancelRequest, cancelResultHandler));
           }
           tmpListeners = cancelRequestListeners;
           cancelRequestListeners = null;
@@ -362,9 +356,8 @@ final class RequestHandlerFactoryAdapter<C> implements
             {
               cancelResultHandlers = new LinkedList<ExtendedResultHandlerHolder<?>>();
             }
-            cancelResultHandlers
-                .add(new ExtendedResultHandlerHolder<R>(
-                    cancelRequest, cancelResultHandler));
+            cancelResultHandlers.add(new ExtendedResultHandlerHolder<R>(
+                cancelRequest, cancelResultHandler));
           }
           break;
         case TOO_LATE:
@@ -509,8 +502,7 @@ final class RequestHandlerFactoryAdapter<C> implements
         final SearchResultHandler resultHandler, final int messageID,
         final boolean isCancelSupported)
     {
-      super(clientConnection, resultHandler, messageID,
-          isCancelSupported);
+      super(clientConnection, resultHandler, messageID, isCancelSupported);
     }
 
 
@@ -530,8 +522,7 @@ final class RequestHandlerFactoryAdapter<C> implements
      * {@inheritDoc}
      */
     @Override
-    public boolean handleReference(
-        final SearchResultReference reference)
+    public boolean handleReference(final SearchResultReference reference)
     {
       return resultHandler.handleReference(reference);
     }
@@ -543,11 +534,9 @@ final class RequestHandlerFactoryAdapter<C> implements
       ServerConnection<Integer>
   {
     private final RequestHandler<RequestContext> requestHandler;
-
     private final AtomicBoolean isClosed = new AtomicBoolean();
-
     private final ConcurrentHashMap<Integer, RequestContextImpl<?, ?>> pendingRequests =
-      new ConcurrentHashMap<Integer, RequestContextImpl<?, ?>>();
+        new ConcurrentHashMap<Integer, RequestContextImpl<?, ?>>();
 
 
 
@@ -564,8 +553,7 @@ final class RequestHandlerFactoryAdapter<C> implements
      */
     @Override
     public void handleAbandon(final Integer messageID,
-        final AbandonRequest request)
-        throws UnsupportedOperationException
+        final AbandonRequest request) throws UnsupportedOperationException
     {
       final RequestContextImpl<?, ?> abandonedRequest = getPendingRequest(request
           .getRequestID());
@@ -583,19 +571,18 @@ final class RequestHandlerFactoryAdapter<C> implements
      * {@inheritDoc}
      */
     @Override
-    public void handleAdd(final Integer messageID,
-        final AddRequest request,
-        final ResultHandler<? super Result> resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
+    public void handleAdd(final Integer messageID, final AddRequest request,
+        final IntermediateResponseHandler intermediateResponseHandler,
+        final ResultHandler<? super Result> resultHandler)
         throws UnsupportedOperationException
     {
       final RequestContextImpl<Result, ResultHandler<? super Result>> requestContext =
-        new RequestContextImpl<Result, ResultHandler<? super Result>>(
+          new RequestContextImpl<Result, ResultHandler<? super Result>>(
           this, resultHandler, messageID, true);
       if (addPendingRequest(requestContext))
       {
         requestHandler.handleAdd(requestContext, request,
-            requestContext, intermediateResponseHandler);
+            intermediateResponseHandler, requestContext);
       }
     }
 
@@ -605,19 +592,19 @@ final class RequestHandlerFactoryAdapter<C> implements
      * {@inheritDoc}
      */
     @Override
-    public void handleBind(final Integer messageID,
-        final int version, final BindRequest request,
-        final ResultHandler<? super BindResult> resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
+    public void handleBind(final Integer messageID, final int version,
+        final BindRequest request,
+        final IntermediateResponseHandler intermediateResponseHandler,
+        final ResultHandler<? super BindResult> resultHandler)
         throws UnsupportedOperationException
     {
       final RequestContextImpl<BindResult, ResultHandler<? super BindResult>> requestContext =
-        new RequestContextImpl<BindResult, ResultHandler<? super BindResult>>(
+          new RequestContextImpl<BindResult, ResultHandler<? super BindResult>>(
           this, resultHandler, messageID, false);
       if (addPendingRequest(requestContext))
       {
         requestHandler.handleBind(requestContext, version, request,
-            requestContext, intermediateResponseHandler);
+            intermediateResponseHandler, requestContext);
       }
     }
 
@@ -629,17 +616,17 @@ final class RequestHandlerFactoryAdapter<C> implements
     @Override
     public void handleCompare(final Integer messageID,
         final CompareRequest request,
-        final ResultHandler<? super CompareResult> resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
+        final IntermediateResponseHandler intermediateResponseHandler,
+        final ResultHandler<? super CompareResult> resultHandler)
         throws UnsupportedOperationException
     {
       final RequestContextImpl<CompareResult, ResultHandler<? super CompareResult>> requestContext =
-        new RequestContextImpl<CompareResult, ResultHandler<? super CompareResult>>(
+          new RequestContextImpl<CompareResult, ResultHandler<? super CompareResult>>(
           this, resultHandler, messageID, true);
       if (addPendingRequest(requestContext))
       {
         requestHandler.handleCompare(requestContext, request,
-            requestContext, intermediateResponseHandler);
+            intermediateResponseHandler, requestContext);
       }
     }
 
@@ -663,8 +650,8 @@ final class RequestHandlerFactoryAdapter<C> implements
      * {@inheritDoc}
      */
     @Override
-    public void handleConnectionDisconnected(
-        final ResultCode resultCode, final String message)
+    public void handleConnectionDisconnected(final ResultCode resultCode,
+        final String message)
     {
       final LocalizableMessage cancelReason = INFO_CANCELED_BY_SERVER_DISCONNECT
           .get();
@@ -692,17 +679,17 @@ final class RequestHandlerFactoryAdapter<C> implements
     @Override
     public void handleDelete(final Integer messageID,
         final DeleteRequest request,
-        final ResultHandler<? super Result> resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
+        final IntermediateResponseHandler intermediateResponseHandler,
+        final ResultHandler<? super Result> resultHandler)
         throws UnsupportedOperationException
     {
       final RequestContextImpl<Result, ResultHandler<? super Result>> requestContext =
-        new RequestContextImpl<Result, ResultHandler<? super Result>>(
+          new RequestContextImpl<Result, ResultHandler<? super Result>>(
           this, resultHandler, messageID, true);
       if (addPendingRequest(requestContext))
       {
         requestHandler.handleDelete(requestContext, request,
-            requestContext, intermediateResponseHandler);
+            intermediateResponseHandler, requestContext);
       }
     }
 
@@ -714,8 +701,8 @@ final class RequestHandlerFactoryAdapter<C> implements
     @Override
     public <R extends ExtendedResult> void handleExtendedRequest(
         final Integer messageID, final ExtendedRequest<R> request,
-        final ResultHandler<? super R> resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
+        final IntermediateResponseHandler intermediateResponseHandler,
+        final ResultHandler<? super R> resultHandler)
         throws UnsupportedOperationException
     {
       if (request.getOID().equals(CancelExtendedRequest.OID))
@@ -724,8 +711,8 @@ final class RequestHandlerFactoryAdapter<C> implements
         CancelExtendedRequest cancelRequest;
         try
         {
-          cancelRequest = CancelExtendedRequest.DECODER
-              .decodeExtendedRequest(request, new DecodeOptions());
+          cancelRequest = CancelExtendedRequest.DECODER.decodeExtendedRequest(
+              request, new DecodeOptions());
         }
         catch (final DecodeException e)
         {
@@ -739,7 +726,7 @@ final class RequestHandlerFactoryAdapter<C> implements
         // this request cannot be cancelled, it is important to do this in
         // order to monitor the number of pending operations.
         final RequestContextImpl<R, ResultHandler<? super R>> requestContext =
-          new RequestContextImpl<R, ResultHandler<? super R>>(
+            new RequestContextImpl<R, ResultHandler<? super R>>(
             this, resultHandler, messageID, false);
         if (addPendingRequest(requestContext))
         {
@@ -750,8 +737,8 @@ final class RequestHandlerFactoryAdapter<C> implements
           {
             final LocalizableMessage cancelReason = INFO_CANCELED_BY_CANCEL_REQUEST
                 .get(messageID);
-            cancelledRequest.cancel(cancelReason, request,
-                requestContext, true);
+            cancelledRequest
+                .cancel(cancelReason, request, requestContext, true);
           }
           else
           {
@@ -779,8 +766,8 @@ final class RequestHandlerFactoryAdapter<C> implements
 
         if (addPendingRequest(requestContext))
         {
-          requestHandler.handleExtendedRequest(requestContext,
-              request, requestContext, intermediateResponseHandler);
+          requestHandler.handleExtendedRequest(requestContext, request,
+              intermediateResponseHandler, requestContext);
         }
       }
     }
@@ -793,17 +780,17 @@ final class RequestHandlerFactoryAdapter<C> implements
     @Override
     public void handleModify(final Integer messageID,
         final ModifyRequest request,
-        final ResultHandler<? super Result> resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
+        final IntermediateResponseHandler intermediateResponseHandler,
+        final ResultHandler<? super Result> resultHandler)
         throws UnsupportedOperationException
     {
       final RequestContextImpl<Result, ResultHandler<? super Result>> requestContext =
-        new RequestContextImpl<Result, ResultHandler<? super Result>>(
+          new RequestContextImpl<Result, ResultHandler<? super Result>>(
           this, resultHandler, messageID, true);
       if (addPendingRequest(requestContext))
       {
         requestHandler.handleModify(requestContext, request,
-            requestContext, intermediateResponseHandler);
+            intermediateResponseHandler, requestContext);
       }
     }
 
@@ -815,17 +802,17 @@ final class RequestHandlerFactoryAdapter<C> implements
     @Override
     public void handleModifyDN(final Integer messageID,
         final ModifyDNRequest request,
-        final ResultHandler<? super Result> resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
+        final IntermediateResponseHandler intermediateResponseHandler,
+        final ResultHandler<? super Result> resultHandler)
         throws UnsupportedOperationException
     {
       final RequestContextImpl<Result, ResultHandler<? super Result>> requestContext =
-        new RequestContextImpl<Result, ResultHandler<? super Result>>(
+          new RequestContextImpl<Result, ResultHandler<? super Result>>(
           this, resultHandler, messageID, true);
       if (addPendingRequest(requestContext))
       {
         requestHandler.handleModifyDN(requestContext, request,
-            requestContext, intermediateResponseHandler);
+            intermediateResponseHandler, requestContext);
       }
     }
 
@@ -837,8 +824,8 @@ final class RequestHandlerFactoryAdapter<C> implements
     @Override
     public void handleSearch(final Integer messageID,
         final SearchRequest request,
-        final SearchResultHandler resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
+        final IntermediateResponseHandler intermediateResponseHandler,
+        final SearchResultHandler resultHandler)
         throws UnsupportedOperationException
     {
       final SearchRequestContextImpl requestContext = new SearchRequestContextImpl(
@@ -846,7 +833,7 @@ final class RequestHandlerFactoryAdapter<C> implements
       if (addPendingRequest(requestContext))
       {
         requestHandler.handleSearch(requestContext, request,
-            requestContext, intermediateResponseHandler);
+            intermediateResponseHandler, requestContext);
       }
     }
 
@@ -859,8 +846,7 @@ final class RequestHandlerFactoryAdapter<C> implements
 
       if (isClosed.get())
       {
-        final LocalizableMessage message = INFO_CLIENT_CONNECTION_CLOSING
-            .get();
+        final LocalizableMessage message = INFO_CLIENT_CONNECTION_CLOSING.get();
         requestContext.handleErrorResult(newErrorResult(
             ResultCode.UNWILLING_TO_PERFORM, message.toString()));
         return false;
@@ -879,8 +865,7 @@ final class RequestHandlerFactoryAdapter<C> implements
         // it will have only been notified for cancellation.
         pendingRequests.remove(messageID);
 
-        final LocalizableMessage message = INFO_CLIENT_CONNECTION_CLOSING
-            .get();
+        final LocalizableMessage message = INFO_CLIENT_CONNECTION_CLOSING.get();
         requestContext.handleErrorResult(newErrorResult(
             ResultCode.UNWILLING_TO_PERFORM, message.toString()));
         return false;
@@ -906,8 +891,7 @@ final class RequestHandlerFactoryAdapter<C> implements
             .values().iterator();
         while (iterator.hasNext())
         {
-          final RequestContextImpl<?, ?> pendingRequest = iterator
-              .next();
+          final RequestContextImpl<?, ?> pendingRequest = iterator.next();
           pendingRequest.cancel(cancelReason, null, null, false);
           iterator.remove();
         }
@@ -923,8 +907,7 @@ final class RequestHandlerFactoryAdapter<C> implements
      *          The message ID associated with the request context.
      * @return The pending request context.
      */
-    private RequestContextImpl<?, ?> getPendingRequest(
-        final Integer messageID)
+    private RequestContextImpl<?, ?> getPendingRequest(final Integer messageID)
     {
       return pendingRequests.get(messageID);
     }

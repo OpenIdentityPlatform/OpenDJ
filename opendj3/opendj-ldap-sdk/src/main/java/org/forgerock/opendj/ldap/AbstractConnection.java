@@ -38,10 +38,11 @@ import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
-import org.forgerock.opendj.ldap.requests.Requests;
-import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.requests.*;
 import org.forgerock.opendj.ldap.responses.*;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 
@@ -56,16 +57,66 @@ import com.forgerock.opendj.util.Validator;
 public abstract class AbstractConnection implements Connection
 {
 
-  private static final class SingleEntryHandler implements SearchResultHandler
+  private static final class SingleEntryFuture implements
+      FutureResult<SearchResultEntry>, SearchResultHandler
   {
+    private final ResultHandler<? super SearchResultEntry> handler;
+
     private volatile SearchResultEntry firstEntry = null;
 
     private volatile SearchResultReference firstReference = null;
 
     private volatile int entryCount = 0;
 
+    private volatile FutureResult<Result> future = null;
 
 
+
+    private SingleEntryFuture(
+        final ResultHandler<? super SearchResultEntry> handler)
+    {
+      this.handler = handler;
+    }
+
+
+
+    @Override
+    public boolean cancel(final boolean mayInterruptIfRunning)
+    {
+      return future.cancel(mayInterruptIfRunning);
+    }
+
+
+
+    @Override
+    public SearchResultEntry get() throws ErrorResultException,
+        InterruptedException
+    {
+      future.get();
+      return get0();
+    }
+
+
+
+    @Override
+    public SearchResultEntry get(final long timeout, final TimeUnit unit)
+        throws ErrorResultException, TimeoutException, InterruptedException
+    {
+      future.get(timeout, unit);
+      return get0();
+    }
+
+
+
+    @Override
+    public int getRequestID()
+    {
+      return future.getRequestID();
+    }
+
+
+
+    @Override
     public boolean handleEntry(final SearchResultEntry entry)
     {
       if (firstEntry == null)
@@ -78,6 +129,137 @@ public abstract class AbstractConnection implements Connection
 
 
 
+    @Override
+    public void handleErrorResult(final ErrorResultException error)
+    {
+      if (handler != null)
+      {
+        handler.handleErrorResult(error);
+      }
+    }
+
+
+
+    @Override
+    public boolean handleReference(final SearchResultReference reference)
+    {
+      if (firstReference == null)
+      {
+        firstReference = reference;
+      }
+      return true;
+    }
+
+
+
+    @Override
+    public void handleResult(final Result result)
+    {
+      if (handler != null)
+      {
+        try
+        {
+          handler.handleResult(get0());
+        }
+        catch (final ErrorResultException e)
+        {
+          handler.handleErrorResult(e);
+        }
+      }
+    }
+
+
+
+    @Override
+    public boolean isCancelled()
+    {
+      return future.isCancelled();
+    }
+
+
+
+    @Override
+    public boolean isDone()
+    {
+      return future.isDone();
+    }
+
+
+
+    private SearchResultEntry get0() throws ErrorResultException
+    {
+      if (entryCount == 0)
+      {
+        // Did not find any entries.
+        throw newErrorResult(ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED,
+            ERR_NO_SEARCH_RESULT_ENTRIES.get().toString());
+      }
+      else if (entryCount > 1)
+      {
+        // Got more entries than expected.
+        throw newErrorResult(
+            ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED,
+            ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES.get(entryCount).toString());
+      }
+      else if (firstReference != null)
+      {
+        // Got an unexpected search result reference.
+        throw newErrorResult(
+            ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED,
+            ERR_UNEXPECTED_SEARCH_RESULT_REFERENCES.get(
+                firstReference.getURIs().iterator().next()).toString());
+      }
+      else
+      {
+        return firstEntry;
+      }
+    }
+
+
+
+    private void setResultFuture(final FutureResult<Result> future)
+    {
+      this.future = future;
+    }
+  }
+
+
+
+  private static final class SingleEntryHandler implements SearchResultHandler
+  {
+    private volatile SearchResultEntry firstEntry = null;
+
+    private volatile SearchResultReference firstReference = null;
+
+    private volatile int entryCount = 0;
+
+
+
+    @Override
+    public boolean handleEntry(final SearchResultEntry entry)
+    {
+      if (firstEntry == null)
+      {
+        firstEntry = entry;
+      }
+      entryCount++;
+      return true;
+    }
+
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void handleErrorResult(final ErrorResultException error)
+    {
+      // Ignore.
+    }
+
+
+
+    @Override
     public boolean handleReference(final SearchResultReference reference)
     {
       if (firstReference == null)
@@ -92,17 +274,8 @@ public abstract class AbstractConnection implements Connection
     /**
      * {@inheritDoc}
      */
-    public void handleErrorResult(ErrorResultException error)
-    {
-      // Ignore.
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public void handleResult(Result result)
+    @Override
+    public void handleResult(final Result result)
     {
       // Ignore.
     }
@@ -124,6 +297,7 @@ public abstract class AbstractConnection implements Connection
   /**
    * {@inheritDoc}
    */
+  @Override
   public Result add(final Entry entry) throws ErrorResultException,
       InterruptedException, UnsupportedOperationException,
       IllegalStateException, NullPointerException
@@ -136,6 +310,7 @@ public abstract class AbstractConnection implements Connection
   /**
    * {@inheritDoc}
    */
+  @Override
   public Result add(final String... ldifLines) throws ErrorResultException,
       InterruptedException, UnsupportedOperationException,
       LocalizedIllegalArgumentException, IllegalStateException,
@@ -149,6 +324,7 @@ public abstract class AbstractConnection implements Connection
   /**
    * {@inheritDoc}
    */
+  @Override
   public BindResult bind(final String name, final char[] password)
       throws ErrorResultException, InterruptedException,
       LocalizedIllegalArgumentException, UnsupportedOperationException,
@@ -162,6 +338,18 @@ public abstract class AbstractConnection implements Connection
   /**
    * {@inheritDoc}
    */
+  @Override
+  public void close()
+  {
+    close(Requests.newUnbindRequest(), null);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public CompareResult compare(final String name,
       final String attributeDescription, final String assertionValue)
       throws ErrorResultException, InterruptedException,
@@ -177,6 +365,7 @@ public abstract class AbstractConnection implements Connection
   /**
    * {@inheritDoc}
    */
+  @Override
   public Result delete(final String name) throws ErrorResultException,
       InterruptedException, LocalizedIllegalArgumentException,
       UnsupportedOperationException, IllegalStateException,
@@ -190,6 +379,21 @@ public abstract class AbstractConnection implements Connection
   /**
    * {@inheritDoc}
    */
+  @Override
+  public <R extends ExtendedResult> R extendedRequest(
+      final ExtendedRequest<R> request) throws ErrorResultException,
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException, NullPointerException
+  {
+    return extendedRequest(request, null);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public GenericExtendedResult extendedRequest(final String requestName,
       final ByteString requestValue) throws ErrorResultException,
       InterruptedException, UnsupportedOperationException,
@@ -204,6 +408,7 @@ public abstract class AbstractConnection implements Connection
   /**
    * {@inheritDoc}
    */
+  @Override
   public Result modify(final String... ldifLines) throws ErrorResultException,
       InterruptedException, UnsupportedOperationException,
       LocalizedIllegalArgumentException, IllegalStateException,
@@ -217,6 +422,7 @@ public abstract class AbstractConnection implements Connection
   /**
    * {@inheritDoc}
    */
+  @Override
   public Result modifyDN(final String name, final String newRDN)
       throws ErrorResultException, InterruptedException,
       LocalizedIllegalArgumentException, UnsupportedOperationException,
@@ -230,6 +436,7 @@ public abstract class AbstractConnection implements Connection
   /**
    * {@inheritDoc}
    */
+  @Override
   public SearchResultEntry readEntry(final DN baseObject,
       final String... attributeDescriptions) throws ErrorResultException,
       InterruptedException, UnsupportedOperationException,
@@ -246,6 +453,7 @@ public abstract class AbstractConnection implements Connection
   /**
    * {@inheritDoc}
    */
+  @Override
   public SearchResultEntry readEntry(final String baseObject,
       final String... attributeDescriptions) throws ErrorResultException,
       InterruptedException, LocalizedIllegalArgumentException,
@@ -260,6 +468,42 @@ public abstract class AbstractConnection implements Connection
   /**
    * {@inheritDoc}
    */
+  @Override
+  public FutureResult<SearchResultEntry> readEntryAsync(final DN name,
+      final Collection<String> attributeDescriptions,
+      final ResultHandler<? super SearchResultEntry> handler)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException
+  {
+    final SearchRequest request = Requests.newSearchRequest(name,
+        SearchScope.BASE_OBJECT, Filter.getObjectClassPresentFilter());
+    if (attributeDescriptions != null)
+    {
+      request.getAttributes().addAll(attributeDescriptions);
+    }
+    return searchSingleEntryAsync(request, handler);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConnectionEntryReader search(final SearchRequest request,
+      final BlockingQueue<Response> entries)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException
+  {
+    return new ConnectionEntryReader(this, request, entries);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public Result search(final SearchRequest request,
       final Collection<? super SearchResultEntry> entries)
       throws ErrorResultException, InterruptedException,
@@ -274,6 +518,7 @@ public abstract class AbstractConnection implements Connection
   /**
    * {@inheritDoc}
    */
+  @Override
   public Result search(final SearchRequest request,
       final Collection<? super SearchResultEntry> entries,
       final Collection<? super SearchResultReference> references)
@@ -287,6 +532,7 @@ public abstract class AbstractConnection implements Connection
     final SearchResultHandler handler = new SearchResultHandler()
     {
 
+      @Override
       public boolean handleEntry(final SearchResultEntry entry)
       {
         entries.add(entry);
@@ -295,6 +541,18 @@ public abstract class AbstractConnection implements Connection
 
 
 
+      /**
+       * {@inheritDoc}
+       */
+      @Override
+      public void handleErrorResult(final ErrorResultException error)
+      {
+        // Ignore.
+      }
+
+
+
+      @Override
       public boolean handleReference(final SearchResultReference reference)
       {
         if (references != null)
@@ -309,17 +567,8 @@ public abstract class AbstractConnection implements Connection
       /**
        * {@inheritDoc}
        */
-      public void handleErrorResult(ErrorResultException error)
-      {
-        // Ignore.
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      public void handleResult(Result result)
+      @Override
+      public void handleResult(final Result result)
       {
         // Ignore.
       }
@@ -333,6 +582,7 @@ public abstract class AbstractConnection implements Connection
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConnectionEntryReader search(final String baseObject,
       final SearchScope scope, final String filter,
       final String... attributeDescriptions)
@@ -350,6 +600,7 @@ public abstract class AbstractConnection implements Connection
   /**
    * {@inheritDoc}
    */
+  @Override
   public SearchResultEntry searchSingleEntry(final SearchRequest request)
       throws ErrorResultException, InterruptedException,
       UnsupportedOperationException, IllegalStateException,
@@ -361,17 +612,15 @@ public abstract class AbstractConnection implements Connection
     if (handler.entryCount == 0)
     {
       // Did not find any entries.
-      throw newErrorResult(
-          ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED,
+      throw newErrorResult(ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED,
           ERR_NO_SEARCH_RESULT_ENTRIES.get().toString());
     }
     else if (handler.entryCount > 1)
     {
       // Got more entries than expected.
-      throw newErrorResult(
-          ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED,
-          ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES
-              .get(handler.entryCount).toString());
+      throw newErrorResult(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED,
+          ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES.get(handler.entryCount)
+              .toString());
     }
     else if (handler.firstReference != null)
     {
@@ -379,8 +628,7 @@ public abstract class AbstractConnection implements Connection
       throw newErrorResult(
           ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED,
           ERR_UNEXPECTED_SEARCH_RESULT_REFERENCES.get(
-              handler.firstReference.getURIs().iterator().next())
-              .toString());
+              handler.firstReference.getURIs().iterator().next()).toString());
     }
     else
     {
@@ -393,6 +641,7 @@ public abstract class AbstractConnection implements Connection
   /**
    * {@inheritDoc}
    */
+  @Override
   public SearchResultEntry searchSingleEntry(final String baseObject,
       final SearchScope scope, final String filter,
       final String... attributeDescriptions) throws ErrorResultException,
@@ -409,10 +658,29 @@ public abstract class AbstractConnection implements Connection
 
   /**
    * {@inheritDoc}
+   */
+  @Override
+  public FutureResult<SearchResultEntry> searchSingleEntryAsync(
+      final SearchRequest request,
+      final ResultHandler<? super SearchResultEntry> handler)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException
+  {
+    final SingleEntryFuture innerFuture = new SingleEntryFuture(handler);
+    final FutureResult<Result> future = searchAsync(request, null, innerFuture);
+    innerFuture.setResultFuture(future);
+    return innerFuture;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
    * <p>
    * Sub-classes should provide an implementation which returns an appropriate
    * description of the connection which may be used for debugging purposes.
    */
+  @Override
   public abstract String toString();
 
 }

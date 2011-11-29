@@ -64,11 +64,11 @@ public interface ConnectionPool extends ConnectionFactory, Closeable
 
 
   /**
-   * Obtains an asynchronous connection from this connection pool, potentially
+   * Asynchronously obtains a connection from this connection pool, potentially
    * opening a new connection if needed.
    * <p>
    * The returned {@code FutureResult} can be used to retrieve the pooled
-   * asynchronous connection. Alternatively, if a {@code ResultHandler} is
+   * connection. Alternatively, if a {@code ResultHandler} is
    * provided, the handler will be notified when the pooled connection is
    * available and ready for use.
    * <p>
@@ -78,13 +78,12 @@ public interface ConnectionPool extends ConnectionFactory, Closeable
    * @param handler
    *          The completion handler, or {@code null} if no handler is to be
    *          used.
-   * @return A future which can be used to retrieve the pooled asynchronous
-   *         connection.
+   * @return A future which can be used to retrieve the pooled connection.
    * @throws IllegalStateException
    *           If this connection pool has already been closed.
    */
-  FutureResult<AsynchronousConnection> getAsynchronousConnection(
-      ResultHandler<? super AsynchronousConnection> handler);
+  FutureResult<Connection> getConnectionAsync(
+      ResultHandler<? super Connection> handler);
 
 
 

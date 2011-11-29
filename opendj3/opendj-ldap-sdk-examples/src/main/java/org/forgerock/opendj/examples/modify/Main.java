@@ -109,8 +109,8 @@ public final class Main
       connection.bind(userName, password.toCharArray());
 
       // Write the changes.
-      final ConnectionChangeRecordWriter writer = new ConnectionChangeRecordWriter(
-          connection);
+      final ConnectionChangeRecordWriter writer =
+          new ConnectionChangeRecordWriter(connection);
       while (reader.hasNext())
       {
         ChangeRecord changeRecord = reader.readChangeRecord();
