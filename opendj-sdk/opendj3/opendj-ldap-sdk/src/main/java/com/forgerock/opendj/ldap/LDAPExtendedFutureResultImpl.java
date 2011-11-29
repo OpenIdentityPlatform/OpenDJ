@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 
 package com.forgerock.opendj.ldap;
@@ -53,7 +54,7 @@ final class LDAPExtendedFutureResultImpl<R extends ExtendedResult> extends
       final ExtendedRequest<R> request,
       final ResultHandler<? super R> resultHandler,
       final IntermediateResponseHandler intermediateResponseHandler,
-      final AsynchronousConnection connection)
+      final Connection connection)
   {
     super(requestID, resultHandler, intermediateResponseHandler, connection);
     this.request = request;

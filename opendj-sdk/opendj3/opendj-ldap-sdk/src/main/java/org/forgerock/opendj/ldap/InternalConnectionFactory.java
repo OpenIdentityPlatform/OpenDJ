@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -30,7 +31,6 @@ package org.forgerock.opendj.ldap;
 
 
 import com.forgerock.opendj.ldap.InternalConnection;
-import com.forgerock.opendj.util.AbstractConnectionFactory;
 import com.forgerock.opendj.util.CompletedFutureResult;
 
 
@@ -54,7 +54,7 @@ import com.forgerock.opendj.util.CompletedFutureResult;
  * @param <C>
  *          The type of client context.
  */
-final class InternalConnectionFactory<C> extends AbstractConnectionFactory
+final class InternalConnectionFactory<C> implements ConnectionFactory
 {
 
   private final ServerConnectionFactory<C, Integer> factory;
@@ -72,9 +72,24 @@ final class InternalConnectionFactory<C> extends AbstractConnectionFactory
 
 
 
-  @Override
-  public FutureResult<AsynchronousConnection> getAsynchronousConnection(
-      final ResultHandler<? super AsynchronousConnection> handler)
+  /**
+   * {@inheritDoc}
+   */
+  public Connection getConnection() throws ErrorResultException,
+      InterruptedException
+  {
+    final ServerConnection<Integer> serverConnection = factory
+        .handleAccept(clientContext);
+    return new InternalConnection(serverConnection);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public FutureResult<Connection> getConnectionAsync(
+      final ResultHandler<? super Connection> handler)
   {
     final ServerConnection<Integer> serverConnection;
     try
@@ -87,7 +102,7 @@ final class InternalConnectionFactory<C> extends AbstractConnectionFactory
       {
         handler.handleErrorResult(e);
       }
-      return new CompletedFutureResult<AsynchronousConnection>(e);
+      return new CompletedFutureResult<Connection>(e);
     }
 
     final InternalConnection connection = new InternalConnection(
@@ -96,7 +111,7 @@ final class InternalConnectionFactory<C> extends AbstractConnectionFactory
     {
       handler.handleResult(connection);
     }
-    return new CompletedFutureResult<AsynchronousConnection>(connection);
+    return new CompletedFutureResult<Connection>(connection);
   }
 
 

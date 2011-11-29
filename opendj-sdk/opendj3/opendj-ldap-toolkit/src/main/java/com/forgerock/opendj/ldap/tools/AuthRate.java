@@ -134,7 +134,7 @@ public final class AuthRate extends ConsoleApplication
 
 
 
-      private BindWorkerThread(final AsynchronousConnection connection,
+      private BindWorkerThread(final Connection connection,
           final ConnectionFactory connectionFactory)
       {
         super(connection, connectionFactory);
@@ -143,8 +143,7 @@ public final class AuthRate extends ConsoleApplication
 
 
       @Override
-      public FutureResult<?> performOperation(
-          final AsynchronousConnection connection,
+      public FutureResult<?> performOperation(final Connection connection,
           final DataSource[] dataSources, final long startTime)
       {
         if (dataSources != null)
@@ -179,7 +178,7 @@ public final class AuthRate extends ConsoleApplication
           }
 
           final RecursiveFutureResult<SearchResultEntry, BindResult> future =
-            new RecursiveFutureResult<SearchResultEntry, BindResult>(
+              new RecursiveFutureResult<SearchResultEntry, BindResult>(
               new BindUpdateStatsResultHandler(startTime))
           {
             @Override
@@ -197,7 +196,7 @@ public final class AuthRate extends ConsoleApplication
               return performBind(connection, data, resultHandler);
             }
           };
-          connection.searchSingleEntry(sr, future);
+          connection.searchSingleEntryAsync(sr, future);
           return future;
         }
         else
@@ -209,9 +208,8 @@ public final class AuthRate extends ConsoleApplication
 
 
 
-      private FutureResult<BindResult> performBind(
-          final AsynchronousConnection connection, final Object[] data,
-          final ResultHandler<? super BindResult> handler)
+      private FutureResult<BindResult> performBind(final Connection connection,
+          final Object[] data, final ResultHandler<? super BindResult> handler)
       {
         final boolean useInvalidPassword;
 
@@ -380,28 +378,20 @@ public final class AuthRate extends ConsoleApplication
           }
         }
 
-        return connection.bind(br, handler);
+        return connection.bindAsync(br, null, handler);
       }
     }
 
 
 
     private final AtomicLong searchWaitRecentTime = new AtomicLong();
-
     private final AtomicInteger invalidCredRecentCount = new AtomicInteger();
-
     private String filter;
-
     private String baseDN;
-
     private SearchScope scope;
-
     private DereferenceAliasesPolicy dereferencesAliasesPolicy;
-
     private String[] attributes;
-
     private BindRequest bindRequest;
-
     private int invalidCredPercent;
 
 
@@ -415,8 +405,7 @@ public final class AuthRate extends ConsoleApplication
 
 
     @Override
-    WorkerThread newWorkerThread(
-        final AsynchronousConnection connection,
+    WorkerThread newWorkerThread(final Connection connection,
         final ConnectionFactory connectionFactory)
     {
       return new BindWorkerThread(connection, connectionFactory);
@@ -449,7 +438,6 @@ public final class AuthRate extends ConsoleApplication
 
 
   private BooleanArgument verbose;
-
   private BooleanArgument scriptFriendly;
 
 

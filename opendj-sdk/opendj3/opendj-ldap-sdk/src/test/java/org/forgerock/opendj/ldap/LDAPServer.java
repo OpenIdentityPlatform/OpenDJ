@@ -137,8 +137,7 @@ public class LDAPServer implements
 
 
 
-  private class LDAPServerConnection implements
-      ServerConnection<Integer>
+  private class LDAPServerConnection implements ServerConnection<Integer>
   {
 
     private final LDAPClientContext clientContext;
@@ -187,9 +186,9 @@ public class LDAPServer implements
      * @param intermediateResponseHandler
      * @throws UnsupportedOperationException
      */
-    public void handleAdd(final Integer context,
-        final AddRequest request, final ResultHandler<? super Result> handler,
-        final IntermediateResponseHandler intermediateResponseHandler)
+    public void handleAdd(final Integer context, final AddRequest request,
+        final IntermediateResponseHandler intermediateResponseHandler,
+        final ResultHandler<? super Result> handler)
         throws UnsupportedOperationException
     {
       Result result = null;
@@ -201,7 +200,8 @@ public class LDAPServer implements
       {
         // duplicate entry.
         result = Responses.newResult(ResultCode.ENTRY_ALREADY_EXISTS);
-        final ErrorResultException ere = ErrorResultException.newErrorResult(result);
+        final ErrorResultException ere = ErrorResultException
+            .newErrorResult(result);
         handler.handleErrorResult(ere);
         // doesn't matter if it was canceled.
         requestsInProgress.remove(context);
@@ -223,7 +223,8 @@ public class LDAPServer implements
       if (abReq.isCanceled())
       {
         result = Responses.newResult(ResultCode.CANCELLED);
-        final ErrorResultException ere = ErrorResultException.newErrorResult(result);
+        final ErrorResultException ere = ErrorResultException
+            .newErrorResult(result);
         handler.handleErrorResult(ere);
         requestsInProgress.remove(context);
         return;
@@ -247,8 +248,8 @@ public class LDAPServer implements
      */
     public void handleBind(final Integer context, final int version,
         final BindRequest request,
-        final ResultHandler<? super BindResult> resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
+        final IntermediateResponseHandler intermediateResponseHandler,
+        final ResultHandler<? super BindResult> resultHandler)
         throws UnsupportedOperationException
     {
       // TODO: all bind types.
@@ -350,8 +351,8 @@ public class LDAPServer implements
                   }
                   catch (SaslException e)
                   {
-                    throw ErrorResultException.newErrorResult(Responses.newResult(
-                        ResultCode.OPERATIONS_ERROR).setCause(e));
+                    throw ErrorResultException.newErrorResult(Responses
+                        .newResult(ResultCode.OPERATIONS_ERROR).setCause(e));
                   }
                 }
 
@@ -366,8 +367,8 @@ public class LDAPServer implements
                   }
                   catch (SaslException e)
                   {
-                    throw ErrorResultException.newErrorResult(Responses.newResult(
-                        ResultCode.OPERATIONS_ERROR).setCause(e));
+                    throw ErrorResultException.newErrorResult(Responses
+                        .newResult(ResultCode.OPERATIONS_ERROR).setCause(e));
                   }
                 }
               };
@@ -385,9 +386,10 @@ public class LDAPServer implements
         }
         catch (Exception e)
         {
-          resultHandler.handleErrorResult(ErrorResultException.newErrorResult(Responses
-              .newBindResult(ResultCode.OPERATIONS_ERROR).setCause(e)
-              .setDiagnosticMessage(e.toString())));
+          resultHandler.handleErrorResult(ErrorResultException
+              .newErrorResult(Responses
+                  .newBindResult(ResultCode.OPERATIONS_ERROR).setCause(e)
+                  .setDiagnosticMessage(e.toString())));
         }
       }
       else
@@ -457,8 +459,8 @@ public class LDAPServer implements
      */
     public void handleCompare(final Integer context,
         final CompareRequest request,
-        final ResultHandler<? super CompareResult> resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
+        final IntermediateResponseHandler intermediateResponseHandler,
+        final ResultHandler<? super CompareResult> resultHandler)
         throws UnsupportedOperationException
     {
       CompareResult result = null;
@@ -470,7 +472,8 @@ public class LDAPServer implements
       {
         // entry not found.
         result = Responses.newCompareResult(ResultCode.NO_SUCH_ATTRIBUTE);
-        final ErrorResultException ere = ErrorResultException.newErrorResult(result);
+        final ErrorResultException ere = ErrorResultException
+            .newErrorResult(result);
         resultHandler.handleErrorResult(ere);
         // doesn't matter if it was canceled.
         requestsInProgress.remove(context);
@@ -489,7 +492,8 @@ public class LDAPServer implements
           if (abReq.isCanceled())
           {
             final Result r = Responses.newResult(ResultCode.CANCELLED);
-            final ErrorResultException ere = ErrorResultException.newErrorResult(r);
+            final ErrorResultException ere = ErrorResultException
+                .newErrorResult(r);
             resultHandler.handleErrorResult(ere);
             requestsInProgress.remove(context);
             return;
@@ -519,8 +523,8 @@ public class LDAPServer implements
      */
     public void handleDelete(final Integer context,
         final DeleteRequest request,
-        final ResultHandler<? super Result> handler,
-        final IntermediateResponseHandler intermediateResponseHandler)
+        final IntermediateResponseHandler intermediateResponseHandler,
+        final ResultHandler<? super Result> handler)
         throws UnsupportedOperationException
     {
       Result result = null;
@@ -532,7 +536,8 @@ public class LDAPServer implements
       {
         // entry is not found.
         result = Responses.newResult(ResultCode.NO_SUCH_OBJECT);
-        final ErrorResultException ere = ErrorResultException.newErrorResult(result);
+        final ErrorResultException ere = ErrorResultException
+            .newErrorResult(result);
         handler.handleErrorResult(ere);
         // doesn't matter if it was canceled.
         requestsInProgress.remove(context);
@@ -542,7 +547,8 @@ public class LDAPServer implements
       if (abReq.isCanceled())
       {
         result = Responses.newResult(ResultCode.CANCELLED);
-        final ErrorResultException ere = ErrorResultException.newErrorResult(result);
+        final ErrorResultException ere = ErrorResultException
+            .newErrorResult(result);
         handler.handleErrorResult(ere);
         requestsInProgress.remove(context);
         return;
@@ -563,8 +569,8 @@ public class LDAPServer implements
      */
     public <R extends ExtendedResult> void handleExtendedRequest(
         final Integer context, final ExtendedRequest<R> request,
-        final ResultHandler<? super R> resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
+        final IntermediateResponseHandler intermediateResponseHandler,
+        final ResultHandler<? super R> resultHandler)
         throws UnsupportedOperationException
     {
       if (request.getOID().equals(StartTLSExtendedRequest.OID))
@@ -588,8 +594,8 @@ public class LDAPServer implements
      */
     public void handleModify(final Integer context,
         final ModifyRequest request,
-        final ResultHandler<? super Result> resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
+        final IntermediateResponseHandler intermediateResponseHandler,
+        final ResultHandler<? super Result> resultHandler)
         throws UnsupportedOperationException
     {
       // TODO:
@@ -606,8 +612,8 @@ public class LDAPServer implements
      */
     public void handleModifyDN(final Integer context,
         final ModifyDNRequest request,
-        final ResultHandler<? super Result> resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
+        final IntermediateResponseHandler intermediateResponseHandler,
+        final ResultHandler<? super Result> resultHandler)
         throws UnsupportedOperationException
     {
       // TODO
@@ -616,15 +622,16 @@ public class LDAPServer implements
 
 
     /**
-     * @param context
      * @param request
-     * @param resultHandler
      * @param intermediateResponseHandler
+     * @param resultHandler
+     * @param context
      * @throws UnsupportedOperationException
      */
     public void handleSearch(final Integer context,
-        final SearchRequest request, final SearchResultHandler resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
+        final SearchRequest request,
+        final IntermediateResponseHandler intermediateResponseHandler,
+        final SearchResultHandler resultHandler)
         throws UnsupportedOperationException
     {
       Result result = null;
@@ -636,7 +643,8 @@ public class LDAPServer implements
       {
         // Entry not found.
         result = Responses.newResult(ResultCode.NO_SUCH_OBJECT);
-        final ErrorResultException ere = ErrorResultException.newErrorResult(result);
+        final ErrorResultException ere = ErrorResultException
+            .newErrorResult(result);
         resultHandler.handleErrorResult(ere);
         // Should searchResultHandler handle anything?
 
@@ -648,7 +656,8 @@ public class LDAPServer implements
       if (abReq.isCanceled())
       {
         result = Responses.newResult(ResultCode.CANCELLED);
-        final ErrorResultException ere = ErrorResultException.newErrorResult(result);
+        final ErrorResultException ere = ErrorResultException
+            .newErrorResult(result);
         resultHandler.handleErrorResult(ere);
         requestsInProgress.remove(context);
         return;
@@ -685,8 +694,7 @@ public class LDAPServer implements
 
   // The mapping between the message id and the requests the server is currently
   // handling.
-  private final ConcurrentHashMap<Integer, AbandonableRequest> requestsInProgress =
-    new ConcurrentHashMap<Integer, AbandonableRequest>();
+  private final ConcurrentHashMap<Integer, AbandonableRequest> requestsInProgress = new ConcurrentHashMap<Integer, AbandonableRequest>();
 
   private SSLContext sslContext;
 
@@ -704,7 +712,8 @@ public class LDAPServer implements
       final String sn = String.format("sn: %d", i);
       final String uid = String.format("uid: user.%d", i);
 
-      // See org.forgerock.opendj.ldap.ConnectionFactoryTestCase.testSchemaUsage().
+      // See
+      // org.forgerock.opendj.ldap.ConnectionFactoryTestCase.testSchemaUsage().
       final String mail = String.format("mail: user.%d@example.com", i);
 
       final DN d = DN.valueOf(dn);

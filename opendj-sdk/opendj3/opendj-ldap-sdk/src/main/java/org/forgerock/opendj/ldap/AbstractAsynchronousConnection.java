@@ -30,192 +30,23 @@ package org.forgerock.opendj.ldap;
 
 
 
-import static org.forgerock.opendj.ldap.CoreMessages.*;
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
-
-import java.util.Collection;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 import org.forgerock.opendj.ldap.requests.*;
-import org.forgerock.opendj.ldap.responses.*;
-
-import com.forgerock.opendj.util.SynchronousConnection;
+import org.forgerock.opendj.ldap.responses.BindResult;
+import org.forgerock.opendj.ldap.responses.CompareResult;
+import org.forgerock.opendj.ldap.responses.ExtendedResult;
+import org.forgerock.opendj.ldap.responses.Result;
 
 
 
 /**
- * This class provides a skeletal implementation of the
- * {@code AsynchronousConnection} interface, to minimize the effort required to
- * implement this interface.
+ * An abstract connection whose synchronous methods are implemented in terms of
+ * asynchronous methods.
  */
-public abstract class AbstractAsynchronousConnection implements
-    AsynchronousConnection
+public abstract class AbstractAsynchronousConnection extends AbstractConnection
 {
 
-  private static final class SingleEntryFuture implements
-      FutureResult<SearchResultEntry>, SearchResultHandler
-  {
-    private final ResultHandler<? super SearchResultEntry> handler;
-
-    private volatile SearchResultEntry firstEntry = null;
-
-    private volatile SearchResultReference firstReference = null;
-
-    private volatile int entryCount = 0;
-
-    private volatile FutureResult<Result> future = null;
-
-
-
-    private SingleEntryFuture(
-        final ResultHandler<? super SearchResultEntry> handler)
-    {
-      this.handler = handler;
-    }
-
-
-
-    public boolean cancel(final boolean mayInterruptIfRunning)
-    {
-      return future.cancel(mayInterruptIfRunning);
-    }
-
-
-
-    public SearchResultEntry get() throws ErrorResultException,
-        InterruptedException
-    {
-      future.get();
-      return get0();
-    }
-
-
-
-    public SearchResultEntry get(final long timeout, final TimeUnit unit)
-        throws ErrorResultException, TimeoutException, InterruptedException
-    {
-      future.get(timeout, unit);
-      return get0();
-    }
-
-
-
-    public int getRequestID()
-    {
-      return future.getRequestID();
-    }
-
-
-
-    public boolean handleEntry(final SearchResultEntry entry)
-    {
-      if (firstEntry == null)
-      {
-        firstEntry = entry;
-      }
-      entryCount++;
-      return true;
-    }
-
-
-
-    public void handleErrorResult(final ErrorResultException error)
-    {
-      if (handler != null)
-      {
-        handler.handleErrorResult(error);
-      }
-    }
-
-
-
-    public boolean handleReference(final SearchResultReference reference)
-    {
-      if (firstReference == null)
-      {
-        firstReference = reference;
-      }
-      return true;
-    }
-
-
-
-    public void handleResult(final Result result)
-    {
-      if (handler != null)
-      {
-        try
-        {
-          handler.handleResult(get0());
-        }
-        catch (final ErrorResultException e)
-        {
-          handler.handleErrorResult(e);
-        }
-      }
-    }
-
-
-
-    public boolean isCancelled()
-    {
-      return future.isCancelled();
-    }
-
-
-
-    public boolean isDone()
-    {
-      return future.isDone();
-    }
-
-
-
-    private SearchResultEntry get0() throws ErrorResultException
-    {
-      if (entryCount == 0)
-      {
-        // Did not find any entries.
-        throw newErrorResult(
-            ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED,
-            ERR_NO_SEARCH_RESULT_ENTRIES.get().toString());
-      }
-      else if (entryCount > 1)
-      {
-        // Got more entries than expected.
-        throw newErrorResult(
-            ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED,
-            ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES.get(entryCount)
-                .toString());
-      }
-      else if (firstReference != null)
-      {
-        // Got an unexpected search result reference.
-        throw newErrorResult(
-            ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED,
-            ERR_UNEXPECTED_SEARCH_RESULT_REFERENCES.get(
-                firstReference.getURIs().iterator().next())
-                .toString());
-      }
-      else
-      {
-        return firstEntry;
-      }
-    }
-
-
-
-    private void setResultFuture(final FutureResult<Result> future)
-    {
-      this.future = future;
-    }
-  }
-
-
-
   /**
-   * Creates a new abstract connection.
+   * Creates a new abstract asynchronous connection.
    */
   protected AbstractAsynchronousConnection()
   {
@@ -227,142 +58,21 @@ public abstract class AbstractAsynchronousConnection implements
   /**
    * {@inheritDoc}
    */
-  public FutureResult<Result> add(final AddRequest request,
-      final ResultHandler<? super Result> handler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
-  {
-    return add(request, handler, null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public FutureResult<BindResult> bind(final BindRequest request,
-      final ResultHandler<? super BindResult> handler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
-  {
-    return bind(request, handler, null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void close()
-  {
-    close(Requests.newUnbindRequest(), null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public FutureResult<CompareResult> compare(final CompareRequest request,
-      final ResultHandler<? super CompareResult> handler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
-  {
-    return compare(request, handler, null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public FutureResult<Result> delete(final DeleteRequest request,
-      final ResultHandler<? super Result> handler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
-  {
-    return delete(request, handler, null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public <R extends ExtendedResult> FutureResult<R> extendedRequest(
-      final ExtendedRequest<R> request, final ResultHandler<? super R> handler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
-  {
-    return extendedRequest(request, handler, null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public Connection getSynchronousConnection()
-  {
-    return new SynchronousConnection(this);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public FutureResult<Result> modify(final ModifyRequest request,
-      final ResultHandler<? super Result> handler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
-  {
-    return modify(request, handler, null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public FutureResult<Result> modifyDN(final ModifyDNRequest request,
-      final ResultHandler<? super Result> handler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
-  {
-    return modifyDN(request, handler, null);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public FutureResult<SearchResultEntry> readEntry(final DN name,
-      final Collection<String> attributeDescriptions,
-      final ResultHandler<? super SearchResultEntry> handler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
-  {
-    final SearchRequest request = Requests.newSearchRequest(name,
-        SearchScope.BASE_OBJECT, Filter.getObjectClassPresentFilter());
-    if (attributeDescriptions != null)
-    {
-      request.getAttributes().addAll(attributeDescriptions);
-    }
-    return searchSingleEntry(request, handler);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public FutureResult<Result> search(final SearchRequest request,
-      final SearchResultHandler handler) throws UnsupportedOperationException,
+  @Override
+  public Result add(final AddRequest request) throws ErrorResultException,
+      InterruptedException, UnsupportedOperationException,
       IllegalStateException, NullPointerException
   {
-    return search(request, handler, null);
+    final FutureResult<Result> future = addAsync(request, null, null);
+    try
+    {
+      return future.get();
+    }
+    finally
+    {
+      // Cancel the request if it hasn't completed.
+      future.cancel(false);
+    }
   }
 
 
@@ -370,26 +80,161 @@ public abstract class AbstractAsynchronousConnection implements
   /**
    * {@inheritDoc}
    */
-  public FutureResult<SearchResultEntry> searchSingleEntry(
-      final SearchRequest request,
-      final ResultHandler<? super SearchResultEntry> handler)
-      throws UnsupportedOperationException, IllegalStateException,
+  @Override
+  public BindResult bind(final BindRequest request)
+      throws ErrorResultException, InterruptedException,
+      UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
-    final SingleEntryFuture innerFuture = new SingleEntryFuture(handler);
-    final FutureResult<Result> future = search(request, innerFuture);
-    innerFuture.setResultFuture(future);
-    return innerFuture;
+    final FutureResult<BindResult> future = bindAsync(request, null, null);
+    try
+    {
+      return future.get();
+    }
+    finally
+    {
+      // Cancel the request if it hasn't completed.
+      future.cancel(false);
+    }
   }
 
 
 
   /**
    * {@inheritDoc}
-   * <p>
-   * Sub-classes should provide an implementation which returns an appropriate
-   * description of the connection which may be used for debugging purposes.
    */
-  public abstract String toString();
+  @Override
+  public CompareResult compare(final CompareRequest request)
+      throws ErrorResultException, InterruptedException,
+      UnsupportedOperationException, IllegalStateException,
+      NullPointerException
+  {
+    final FutureResult<CompareResult> future = compareAsync(request, null, null);
+    try
+    {
+      return future.get();
+    }
+    finally
+    {
+      // Cancel the request if it hasn't completed.
+      future.cancel(false);
+    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Result delete(final DeleteRequest request)
+      throws ErrorResultException, InterruptedException,
+      UnsupportedOperationException, IllegalStateException,
+      NullPointerException
+  {
+    final FutureResult<Result> future = deleteAsync(request, null, null);
+    try
+    {
+      return future.get();
+    }
+    finally
+    {
+      // Cancel the request if it hasn't completed.
+      future.cancel(false);
+    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public <R extends ExtendedResult> R extendedRequest(
+      final ExtendedRequest<R> request,
+      final IntermediateResponseHandler handler) throws ErrorResultException,
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException, NullPointerException
+  {
+    final FutureResult<R> future = extendedRequestAsync(request, handler, null);
+    try
+    {
+      return future.get();
+    }
+    finally
+    {
+      // Cancel the request if it hasn't completed.
+      future.cancel(false);
+    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Result modify(final ModifyRequest request)
+      throws ErrorResultException, InterruptedException,
+      UnsupportedOperationException, IllegalStateException,
+      NullPointerException
+  {
+    final FutureResult<Result> future = modifyAsync(request, null, null);
+    try
+    {
+      return future.get();
+    }
+    finally
+    {
+      // Cancel the request if it hasn't completed.
+      future.cancel(false);
+    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Result modifyDN(final ModifyDNRequest request)
+      throws ErrorResultException, InterruptedException,
+      UnsupportedOperationException, IllegalStateException,
+      NullPointerException
+  {
+    final FutureResult<Result> future = modifyDNAsync(request, null, null);
+    try
+    {
+      return future.get();
+    }
+    finally
+    {
+      // Cancel the request if it hasn't completed.
+      future.cancel(false);
+    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Result search(final SearchRequest request,
+      final SearchResultHandler handler) throws ErrorResultException,
+      InterruptedException, UnsupportedOperationException,
+      IllegalStateException, NullPointerException
+  {
+    final FutureResult<Result> future = searchAsync(request, null, handler);
+    try
+    {
+      return future.get();
+    }
+    finally
+    {
+      // Cancel the request if it hasn't completed.
+      future.cancel(false);
+    }
+  }
 
 }

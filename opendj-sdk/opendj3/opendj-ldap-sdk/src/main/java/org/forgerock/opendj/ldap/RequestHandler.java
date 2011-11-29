@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -64,18 +65,18 @@ public interface RequestHandler<C>
    *          The request context.
    * @param request
    *          The add request.
-   * @param resultHandler
-   *          The handler which should be used to send back the result to the
-   *          client.
    * @param intermediateResponseHandler
    *          The handler which should be used to send back any intermediate
    *          responses to the client.
+   * @param resultHandler
+   *          The handler which should be used to send back the result to the
+   *          client.
    * @throws UnsupportedOperationException
    *           If this request handler does not handle add requests.
    */
   void handleAdd(C requestContext, AddRequest request,
-      ResultHandler<? super Result> resultHandler,
-      IntermediateResponseHandler intermediateResponseHandler)
+      IntermediateResponseHandler intermediateResponseHandler,
+      ResultHandler<? super Result> resultHandler)
       throws UnsupportedOperationException;
 
 
@@ -89,18 +90,18 @@ public interface RequestHandler<C>
    *          The protocol version included with the bind request.
    * @param request
    *          The bind request.
-   * @param resultHandler
-   *          The handler which should be used to send back the result to the
-   *          client.
    * @param intermediateResponseHandler
    *          The handler which should be used to send back any intermediate
    *          responses to the client.
+   * @param resultHandler
+   *          The handler which should be used to send back the result to the
+   *          client.
    * @throws UnsupportedOperationException
    *           If this request handler does not handle bind requests.
    */
   void handleBind(C requestContext, int version, BindRequest request,
-      ResultHandler<? super BindResult> resultHandler,
-      IntermediateResponseHandler intermediateResponseHandler)
+      IntermediateResponseHandler intermediateResponseHandler,
+      ResultHandler<? super BindResult> resultHandler)
       throws UnsupportedOperationException;
 
 
@@ -112,18 +113,18 @@ public interface RequestHandler<C>
    *          The request context.
    * @param request
    *          The compare request.
-   * @param resultHandler
-   *          The handler which should be used to send back the result to the
-   *          client.
    * @param intermediateResponseHandler
    *          The handler which should be used to send back any intermediate
    *          responses to the client.
+   * @param resultHandler
+   *          The handler which should be used to send back the result to the
+   *          client.
    * @throws UnsupportedOperationException
    *           If this request handler does not handle compare requests.
    */
   void handleCompare(C requestContext, CompareRequest request,
-      ResultHandler<? super CompareResult> resultHandler,
-      IntermediateResponseHandler intermediateResponseHandler)
+      IntermediateResponseHandler intermediateResponseHandler,
+      ResultHandler<? super CompareResult> resultHandler)
       throws UnsupportedOperationException;
 
 
@@ -135,18 +136,18 @@ public interface RequestHandler<C>
    *          The request context.
    * @param request
    *          The delete request.
-   * @param resultHandler
-   *          The handler which should be used to send back the result to the
-   *          client.
    * @param intermediateResponseHandler
    *          The handler which should be used to send back any intermediate
    *          responses to the client.
+   * @param resultHandler
+   *          The handler which should be used to send back the result to the
+   *          client.
    * @throws UnsupportedOperationException
    *           If this request handler does not handle delete requests.
    */
   void handleDelete(C requestContext, DeleteRequest request,
-      ResultHandler<? super Result> resultHandler,
-      IntermediateResponseHandler intermediateResponseHandler)
+      IntermediateResponseHandler intermediateResponseHandler,
+      ResultHandler<? super Result> resultHandler)
       throws UnsupportedOperationException;
 
 
@@ -160,18 +161,19 @@ public interface RequestHandler<C>
    *          The request context.
    * @param request
    *          The extended request.
-   * @param resultHandler
-   *          The handler which should be used to send back the result to the
-   *          client.
    * @param intermediateResponseHandler
    *          The handler which should be used to send back any intermediate
    *          responses to the client.
+   * @param resultHandler
+   *          The handler which should be used to send back the result to the
+   *          client.
    * @throws UnsupportedOperationException
    *           If this request handler does not handle extended requests.
    */
   <R extends ExtendedResult> void handleExtendedRequest(C requestContext,
-      ExtendedRequest<R> request, ResultHandler<? super R> resultHandler,
-      IntermediateResponseHandler intermediateResponseHandler)
+      ExtendedRequest<R> request,
+      IntermediateResponseHandler intermediateResponseHandler,
+      ResultHandler<? super R> resultHandler)
       throws UnsupportedOperationException;
 
 
@@ -183,18 +185,18 @@ public interface RequestHandler<C>
    *          The request context.
    * @param request
    *          The modify request.
-   * @param resultHandler
-   *          The handler which should be used to send back the result to the
-   *          client.
    * @param intermediateResponseHandler
    *          The handler which should be used to send back any intermediate
    *          responses to the client.
+   * @param resultHandler
+   *          The handler which should be used to send back the result to the
+   *          client.
    * @throws UnsupportedOperationException
    *           If this request handler does not handle modify requests.
    */
   void handleModify(C requestContext, ModifyRequest request,
-      ResultHandler<? super Result> resultHandler,
-      IntermediateResponseHandler intermediateResponseHandler)
+      IntermediateResponseHandler intermediateResponseHandler,
+      ResultHandler<? super Result> resultHandler)
       throws UnsupportedOperationException;
 
 
@@ -206,18 +208,18 @@ public interface RequestHandler<C>
    *          The request context.
    * @param request
    *          The modify DN request.
-   * @param resultHandler
-   *          The handler which should be used to send back the result to the
-   *          client.
    * @param intermediateResponseHandler
    *          The handler which should be used to send back any intermediate
    *          responses to the client.
+   * @param resultHandler
+   *          The handler which should be used to send back the result to the
+   *          client.
    * @throws UnsupportedOperationException
    *           If this request handler does not handle modify DN requests.
    */
   void handleModifyDN(C requestContext, ModifyDNRequest request,
-      ResultHandler<? super Result> resultHandler,
-      IntermediateResponseHandler intermediateResponseHandler)
+      IntermediateResponseHandler intermediateResponseHandler,
+      ResultHandler<? super Result> resultHandler)
       throws UnsupportedOperationException;
 
 
@@ -229,17 +231,16 @@ public interface RequestHandler<C>
    *          The request context.
    * @param request
    *          The search request.
-   * @param resultHandler
-   *          The handler which should be used to send back the search results
-   *          to the client.
    * @param intermediateResponseHandler
    *          The handler which should be used to send back any intermediate
    *          responses to the client.
+   * @param resultHandler
+   *          The handler which should be used to send back the search results
+   *          to the client.
    * @throws UnsupportedOperationException
    *           If this request handler does not handle search requests.
    */
   void handleSearch(C requestContext, SearchRequest request,
-      SearchResultHandler resultHandler,
-      IntermediateResponseHandler intermediateResponseHandler)
-      throws UnsupportedOperationException;
+      IntermediateResponseHandler intermediateResponseHandler,
+      SearchResultHandler resultHandler) throws UnsupportedOperationException;
 }

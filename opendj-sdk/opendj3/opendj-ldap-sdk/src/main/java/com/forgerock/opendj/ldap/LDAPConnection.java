@@ -66,31 +66,21 @@ import com.forgerock.opendj.util.Validator;
  * TODO: handle illegal state exceptions.
  */
 final class LDAPConnection extends AbstractAsynchronousConnection implements
-    AsynchronousConnection
+    Connection
 {
   private final org.glassfish.grizzly.Connection<?> connection;
-
   private Result connectionInvalidReason;
-
   private FilterChain customFilterChain;
-
   private boolean isClosed = false;
-
   private final List<ConnectionEventListener> listeners =
-    new CopyOnWriteArrayList<ConnectionEventListener>();
-
+      new CopyOnWriteArrayList<ConnectionEventListener>();
   private final AtomicInteger nextMsgID = new AtomicInteger(1);
-
-  private final AtomicBoolean bindOrStartTLSInProgress =
-      new AtomicBoolean(false);
-
+  private final AtomicBoolean bindOrStartTLSInProgress = new AtomicBoolean(
+      false);
   private final ConcurrentHashMap<Integer, AbstractLDAPFutureResultImpl<?>> pendingRequests =
-    new ConcurrentHashMap<Integer, AbstractLDAPFutureResultImpl<?>>();
-
+      new ConcurrentHashMap<Integer, AbstractLDAPFutureResultImpl<?>>();
   private final Object stateLock = new Object();
-
   private final LDAPWriter ldapWriter = new LDAPWriter();
-
   private final LDAPOptions options;
 
 
@@ -115,7 +105,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
   /**
    * {@inheritDoc}
    */
-  public FutureResult<Void> abandon(final AbandonRequest request)
+  public FutureResult<Void> abandonAsync(final AbandonRequest request)
   {
     final AbstractLDAPFutureResultImpl<?> pendingRequest;
     final int messageID = nextMsgID.getAndIncrement();
@@ -132,8 +122,8 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
         final Result errorResult = Responses.newResult(
             ResultCode.OPERATIONS_ERROR).setDiagnosticMessage(
             "Bind or Start TLS operation in progress");
-        return new CompletedFutureResult<Void>(
-            newErrorResult(errorResult), messageID);
+        return new CompletedFutureResult<Void>(newErrorResult(errorResult),
+            messageID);
       }
 
       // First remove the future associated with the request to be abandoned.
@@ -173,8 +163,8 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
       final Result errorResult = Responses.newResult(
           ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
       connectionErrorOccurred(errorResult);
-      return new CompletedFutureResult<Void>(
-          newErrorResult(errorResult), messageID);
+      return new CompletedFutureResult<Void>(newErrorResult(errorResult),
+          messageID);
     }
   }
 
@@ -183,9 +173,9 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
   /**
    * {@inheritDoc}
    */
-  public FutureResult<Result> add(final AddRequest request,
-      final ResultHandler<? super Result> resultHandler,
-      final IntermediateResponseHandler intermediateResponseHandler)
+  public FutureResult<Result> addAsync(final AddRequest request,
+      final IntermediateResponseHandler intermediateResponseHandler,
+      final ResultHandler<? super Result> resultHandler)
   {
     final int messageID = nextMsgID.getAndIncrement();
     final LDAPFutureResultImpl future = new LDAPFutureResultImpl(messageID,
@@ -253,9 +243,9 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
   /**
    * {@inheritDoc}
    */
-  public FutureResult<BindResult> bind(final BindRequest request,
-      final ResultHandler<? super BindResult> resultHandler,
-      final IntermediateResponseHandler intermediateResponseHandler)
+  public FutureResult<BindResult> bindAsync(final BindRequest request,
+      final IntermediateResponseHandler intermediateResponseHandler,
+      final ResultHandler<? super BindResult> resultHandler)
   {
     final int messageID = nextMsgID.getAndIncrement();
 
@@ -276,7 +266,8 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
           .newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR)
           .setDiagnosticMessage(
               "An error occurred while creating a bind context").setCause(e);
-      final ErrorResultException error = ErrorResultException.newErrorResult(errorResult);
+      final ErrorResultException error = ErrorResultException
+          .newErrorResult(errorResult);
       if (resultHandler != null)
       {
         resultHandler.handleErrorResult(error);
@@ -371,9 +362,9 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
   /**
    * {@inheritDoc}
    */
-  public FutureResult<CompareResult> compare(final CompareRequest request,
-      final ResultHandler<? super CompareResult> resultHandler,
-      final IntermediateResponseHandler intermediateResponseHandler)
+  public FutureResult<CompareResult> compareAsync(final CompareRequest request,
+      final IntermediateResponseHandler intermediateResponseHandler,
+      final ResultHandler<? super CompareResult> resultHandler)
   {
     final int messageID = nextMsgID.getAndIncrement();
     final LDAPCompareFutureResultImpl future = new LDAPCompareFutureResultImpl(
@@ -429,9 +420,9 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
   /**
    * {@inheritDoc}
    */
-  public FutureResult<Result> delete(final DeleteRequest request,
-      final ResultHandler<? super Result> resultHandler,
-      final IntermediateResponseHandler intermediateResponseHandler)
+  public FutureResult<Result> deleteAsync(final DeleteRequest request,
+      final IntermediateResponseHandler intermediateResponseHandler,
+      final ResultHandler<? super Result> resultHandler)
   {
     final int messageID = nextMsgID.getAndIncrement();
     final LDAPFutureResultImpl future = new LDAPFutureResultImpl(messageID,
@@ -487,10 +478,10 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
   /**
    * {@inheritDoc}
    */
-  public <R extends ExtendedResult> FutureResult<R> extendedRequest(
+  public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(
       final ExtendedRequest<R> request,
-      final ResultHandler<? super R> resultHandler,
-      final IntermediateResponseHandler intermediateResponseHandler)
+      final IntermediateResponseHandler intermediateResponseHandler,
+      final ResultHandler<? super R> resultHandler)
   {
     final int messageID = nextMsgID.getAndIncrement();
     final LDAPExtendedFutureResultImpl<R> future = new LDAPExtendedFutureResultImpl<R>(
@@ -522,8 +513,8 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
         if (!bindOrStartTLSInProgress.compareAndSet(false, true))
         {
           future.setResultOrError(request.getResultDecoder()
-                .newExtendedErrorResult(ResultCode.OPERATIONS_ERROR, "",
-                    "Bind or Start TLS operation in progress"));
+              .newExtendedErrorResult(ResultCode.OPERATIONS_ERROR, "",
+                  "Bind or Start TLS operation in progress"));
           return future;
         }
       }
@@ -532,8 +523,8 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
         if (bindOrStartTLSInProgress.get())
         {
           future.setResultOrError(request.getResultDecoder()
-                .newExtendedErrorResult(ResultCode.OPERATIONS_ERROR, "",
-                    "Bind or Start TLS operation in progress"));
+              .newExtendedErrorResult(ResultCode.OPERATIONS_ERROR, "",
+                  "Bind or Start TLS operation in progress"));
           return future;
         }
       }
@@ -594,9 +585,9 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
   /**
    * {@inheritDoc}
    */
-  public FutureResult<Result> modify(final ModifyRequest request,
-      final ResultHandler<? super Result> resultHandler,
-      final IntermediateResponseHandler intermediateResponseHandler)
+  public FutureResult<Result> modifyAsync(final ModifyRequest request,
+      final IntermediateResponseHandler intermediateResponseHandler,
+      final ResultHandler<? super Result> resultHandler)
   {
     final int messageID = nextMsgID.getAndIncrement();
     final LDAPFutureResultImpl future = new LDAPFutureResultImpl(messageID,
@@ -652,9 +643,9 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
   /**
    * {@inheritDoc}
    */
-  public FutureResult<Result> modifyDN(final ModifyDNRequest request,
-      final ResultHandler<? super Result> resultHandler,
-      final IntermediateResponseHandler intermediateResponseHandler)
+  public FutureResult<Result> modifyDNAsync(final ModifyDNRequest request,
+      final IntermediateResponseHandler intermediateResponseHandler,
+      final ResultHandler<? super Result> resultHandler)
   {
     final int messageID = nextMsgID.getAndIncrement();
     final LDAPFutureResultImpl future = new LDAPFutureResultImpl(messageID,
@@ -722,9 +713,9 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
   /**
    * {@inheritDoc}
    */
-  public FutureResult<Result> search(final SearchRequest request,
-      final SearchResultHandler resultHandler,
-      final IntermediateResponseHandler intermediateResponseHandler)
+  public FutureResult<Result> searchAsync(final SearchRequest request,
+      final IntermediateResponseHandler intermediateResponseHandler,
+      final SearchResultHandler resultHandler)
   {
     final int messageID = nextMsgID.getAndIncrement();
     final LDAPSearchFutureResultImpl future = new LDAPSearchFutureResultImpl(
@@ -831,7 +822,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
                 .newResult(ResultCode.CLIENT_SIDE_TIMEOUT);
             future.adaptErrorResult(result);
 
-            abandon(Requests.newAbandonRequest(future.getRequestID()));
+            abandonAsync(Requests.newAbandonRequest(future.getRequestID()));
           }
           else
           {
@@ -853,7 +844,8 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
 
     synchronized (stateLock)
     {
-      if (isClosed) {
+      if (isClosed)
+      {
         // Already closed.
         return;
       }
@@ -1051,10 +1043,10 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
 
     sslEngineConfigurator = new SSLEngineConfigurator(sslContext, true, false,
         false);
-    sslEngineConfigurator.setEnabledProtocols(protocols.isEmpty() ?
-        null : protocols.toArray(new String[protocols.size()]));
-    sslEngineConfigurator.setEnabledCipherSuites(cipherSuites.isEmpty() ?
-        null : cipherSuites.toArray(new String[cipherSuites.size()]));
+    sslEngineConfigurator.setEnabledProtocols(protocols.isEmpty() ? null
+        : protocols.toArray(new String[protocols.size()]));
+    sslEngineConfigurator.setEnabledCipherSuites(cipherSuites.isEmpty() ? null
+        : cipherSuites.toArray(new String[cipherSuites.size()]));
     sslFilter = new SSLFilter(null, sslEngineConfigurator);
     installFilter(sslFilter);
     sslFilter.handshake(connection, completionHandler);

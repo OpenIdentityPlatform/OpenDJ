@@ -1718,7 +1718,7 @@ public final class Schema
 
 
   /**
-   * Reads the schema contained in the named subschema sub-entry.
+   * Asynchronously reads the schema contained in the named subschema sub-entry.
    * <p>
    * If the requested schema is not returned by the Directory Server then the
    * request will fail with an {@link EntryNotFoundException}. More
@@ -1740,8 +1740,8 @@ public final class Schema
    * @throws NullPointerException
    *           If the {@code connection} or {@code name} was {@code null}.
    */
-  public static FutureResult<Schema> readSchema(
-      final AsynchronousConnection connection, final DN name,
+  public static FutureResult<Schema> readSchemaAsync(
+      final Connection connection, final DN name,
       final ResultHandler<? super Schema> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
@@ -1760,7 +1760,7 @@ public final class Schema
     };
 
     final SchemaBuilder builder = new SchemaBuilder();
-    final FutureResult<SchemaBuilder> innerFuture = builder.addSchema(
+    final FutureResult<SchemaBuilder> innerFuture = builder.addSchemaAsync(
         connection, name, future, true);
     future.setFutureResult(innerFuture);
     return future;
@@ -1804,8 +1804,8 @@ public final class Schema
 
 
   /**
-   * Reads the schema contained in the subschema sub-entry which applies to the
-   * named entry.
+   * Asynchronously reads the schema contained in the subschema sub-entry which
+   * applies to the named entry.
    * <p>
    * If the requested entry or its associated schema are not returned by the
    * Directory Server then the request will fail with an
@@ -1814,7 +1814,7 @@ public final class Schema
    * <p>
    * This implementation first reads the {@code subschemaSubentry} attribute of
    * the entry in order to identify the schema and then invokes
-   * {@link #readSchema(AsynchronousConnection, DN, ResultHandler)} to read the
+   * {@link #readSchemaAsync(Connection, DN, ResultHandler)} to read the
    * schema.
    *
    * @param connection
@@ -1833,8 +1833,8 @@ public final class Schema
    * @throws NullPointerException
    *           If the {@code connection} or {@code name} was {@code null}.
    */
-  public static FutureResult<Schema> readSchemaForEntry(
-      final AsynchronousConnection connection, final DN name,
+  public static FutureResult<Schema> readSchemaForEntryAsync(
+      final Connection connection, final DN name,
       final ResultHandler<? super Schema> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
@@ -1853,8 +1853,8 @@ public final class Schema
     };
 
     final SchemaBuilder builder = new SchemaBuilder();
-    final FutureResult<SchemaBuilder> innerFuture = builder.addSchemaForEntry(
-        connection, name, future, true);
+    final FutureResult<SchemaBuilder> innerFuture = builder
+        .addSchemaForEntryAsync(connection, name, future, true);
     future.setFutureResult(innerFuture);
     return future;
 

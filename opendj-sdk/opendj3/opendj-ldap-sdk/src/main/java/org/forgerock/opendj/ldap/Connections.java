@@ -151,9 +151,6 @@ public final class Connections
 
 
 
-
-
-
   /**
    * Creates a new heart-beat connection factory which will create connections
    * using the provided connection factory and periodically ping any created
@@ -181,9 +178,6 @@ public final class Connections
   {
     return new HeartBeatConnectionFactory(factory, interval, unit, heartBeat);
   }
-
-
-
 
 
 
@@ -304,10 +298,10 @@ public final class Connections
     {
 
       @Override
-      public FutureResult<AsynchronousConnection> getAsynchronousConnection(
-          final ResultHandler<? super AsynchronousConnection> handler)
+      public FutureResult<Connection> getConnectionAsync(
+          final ResultHandler<? super Connection> handler)
       {
-        return factory.getAsynchronousConnection(handler);
+        return factory.getConnectionAsync(handler);
       }
 
 

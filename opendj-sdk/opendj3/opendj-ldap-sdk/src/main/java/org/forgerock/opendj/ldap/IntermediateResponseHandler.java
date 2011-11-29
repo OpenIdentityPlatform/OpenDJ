@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -38,12 +39,16 @@ import org.forgerock.opendj.ldap.responses.IntermediateResponse;
  * extended operations, or other operations for which an appropriate control was
  * sent.
  * <p>
- * {@link Connection} objects support intermediate responses for extended
- * operations only via the {@link Connection#extendedRequest}
- * method. {@link AsynchronousConnection} objects support intermediate responses
- * for extended operations, and all other operation types for which appropriate
- * controls were used. When no handler is provided any intermediate responses
- * will be discarded.
+ * Intermediate responses are rarely used in practice and are therefore only
+ * supported in a few specialized cases where they are most likely to be
+ * encountered:
+ * <ul>
+ * <li>when performing extended requests using the
+ * {@link Connection#extendedRequest} methods
+ * <li>when using the asynchronous operation methods, such as
+ * {@link Connection#addAsync}
+ * </ul>
+ * When no handler is provided any intermediate responses will be discarded.
  * <p>
  * The {@link #handleIntermediateResponse} method is invoked each time a
  * Intermediate Response is returned from the Directory Server.

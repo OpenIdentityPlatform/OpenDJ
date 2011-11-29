@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
@@ -46,10 +47,10 @@ import com.forgerock.opendj.util.Validator;
 
 
 /**
- * A {@code ConnectionEntryReader} is a bridge from
- * {@code AsynchronousConnection}s to {@code EntryReader}s. A connection entry
- * reader allows applications to iterate over search results as they are
- * returned from the server during a search operation.
+ * A {@code ConnectionEntryReader} is a bridge from {@code Connection}s to
+ * {@code EntryReader}s. A connection entry reader allows applications to
+ * iterate over search results as they are returned from the server during a
+ * search operation.
  * <p>
  * The Search operation is performed synchronously, blocking until a search
  * result entry is received. If a search result indicates that the search
@@ -207,7 +208,7 @@ public final class ConnectionEntryReader implements EntryReader
    * @throws NullPointerException
    *           If {@code connection} was {@code null}.
    */
-  public ConnectionEntryReader(final AsynchronousConnection connection,
+  public ConnectionEntryReader(final Connection connection,
       final SearchRequest searchRequest) throws NullPointerException
   {
     this(connection, searchRequest, new LinkedBlockingQueue<Response>());
@@ -229,13 +230,13 @@ public final class ConnectionEntryReader implements EntryReader
    * @throws NullPointerException
    *           If {@code connection} was {@code null}.
    */
-  public ConnectionEntryReader(final AsynchronousConnection connection,
+  public ConnectionEntryReader(final Connection connection,
       final SearchRequest searchRequest, final BlockingQueue<Response> entries)
       throws NullPointerException
   {
     Validator.ensureNotNull(connection);
     buffer = new BufferHandler(entries);
-    future = connection.search(searchRequest, buffer);
+    future = connection.searchAsync(searchRequest, null, buffer);
   }
 
 

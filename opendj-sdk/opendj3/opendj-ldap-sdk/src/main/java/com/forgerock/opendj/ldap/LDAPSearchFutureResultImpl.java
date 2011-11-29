@@ -23,13 +23,14 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 
 package com.forgerock.opendj.ldap;
 
 
 
-import org.forgerock.opendj.ldap.AsynchronousConnection;
+import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultHandler;
@@ -57,7 +58,7 @@ final class LDAPSearchFutureResultImpl extends
   LDAPSearchFutureResultImpl(final int requestID, final SearchRequest request,
       final SearchResultHandler resultHandler,
       final IntermediateResponseHandler intermediateResponseHandler,
-      final AsynchronousConnection connection)
+      final Connection connection)
   {
     super(requestID, resultHandler, intermediateResponseHandler, connection);
     this.request = request;

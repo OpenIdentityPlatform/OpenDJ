@@ -68,8 +68,8 @@ public final class Main
       RequestHandler<RequestContext>
   {
     private final ConcurrentSkipListMap<DN, Entry> entries;
-
-    private final ReentrantReadWriteLock entryLock = new ReentrantReadWriteLock();
+    private final ReentrantReadWriteLock entryLock =
+        new ReentrantReadWriteLock();
 
 
 
@@ -87,8 +87,8 @@ public final class Main
     @Override
     public void handleAdd(final RequestContext requestContext,
         final AddRequest request,
-        final ResultHandler<? super Result> resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
+        final IntermediateResponseHandler intermediateResponseHandler,
+        final ResultHandler<? super Result> resultHandler)
         throws UnsupportedOperationException
     {
       // TODO: controls.
@@ -132,8 +132,8 @@ public final class Main
     @Override
     public void handleBind(final RequestContext requestContext,
         final int version, final BindRequest request,
-        final ResultHandler<? super BindResult> resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
+        final IntermediateResponseHandler intermediateResponseHandler,
+        final ResultHandler<? super BindResult> resultHandler)
         throws UnsupportedOperationException
     {
       if (request.getAuthenticationType() != ((byte) 0x80))
@@ -160,8 +160,8 @@ public final class Main
     @Override
     public void handleCompare(final RequestContext requestContext,
         final CompareRequest request,
-        final ResultHandler<? super CompareResult> resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
+        final IntermediateResponseHandler intermediateResponseHandler,
+        final ResultHandler<? super CompareResult> resultHandler)
         throws UnsupportedOperationException
     {
       // TODO:
@@ -175,8 +175,8 @@ public final class Main
     @Override
     public void handleDelete(final RequestContext requestContext,
         final DeleteRequest request,
-        final ResultHandler<? super Result> resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
+        final IntermediateResponseHandler intermediateResponseHandler,
+        final ResultHandler<? super Result> resultHandler)
         throws UnsupportedOperationException
     {
       // TODO: controls.
@@ -213,8 +213,8 @@ public final class Main
     public <R extends ExtendedResult> void handleExtendedRequest(
         final RequestContext requestContext,
         final ExtendedRequest<R> request,
-        final ResultHandler<? super R> resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
+        final IntermediateResponseHandler intermediateResponseHandler,
+        final ResultHandler<? super R> resultHandler)
         throws UnsupportedOperationException
     {
       // TODO: not implemented.
@@ -231,8 +231,8 @@ public final class Main
     @Override
     public void handleModify(final RequestContext requestContext,
         final ModifyRequest request,
-        final ResultHandler<? super Result> resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
+        final IntermediateResponseHandler intermediateResponseHandler,
+        final ResultHandler<? super Result> resultHandler)
         throws UnsupportedOperationException
     {
       // TODO: controls.
@@ -272,8 +272,8 @@ public final class Main
           {
             resultHandler
                 .handleErrorResult(newErrorResult(
-                    ResultCode.PROTOCOL_ERROR,
-                    "Modify request contains an unsupported modification type"));
+                  ResultCode.PROTOCOL_ERROR,
+                  "Modify request contains an unsupported modification type"));
             return;
           }
         }
@@ -296,8 +296,8 @@ public final class Main
     @Override
     public void handleModifyDN(final RequestContext requestContext,
         final ModifyDNRequest request,
-        final ResultHandler<? super Result> resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
+        final IntermediateResponseHandler intermediateResponseHandler,
+        final ResultHandler<? super Result> resultHandler)
         throws UnsupportedOperationException
     {
       // TODO: not implemented.
@@ -314,8 +314,8 @@ public final class Main
     @Override
     public void handleSearch(final RequestContext requestContext,
         final SearchRequest request,
-        final SearchResultHandler resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler)
+        final IntermediateResponseHandler intermediateResponseHandler,
+        final SearchResultHandler resultHandler)
         throws UnsupportedOperationException
     {
       // TODO: controls, limits, etc.
@@ -458,12 +458,13 @@ public final class Main
     final String ldifFileName = args[2];
 
     // Create the memory backend.
-    final ConcurrentSkipListMap<DN, Entry> entries = readEntriesFromLDIF(ldifFileName);
+    final ConcurrentSkipListMap<DN, Entry> entries =
+        readEntriesFromLDIF(ldifFileName);
     final MemoryBackend backend = new MemoryBackend(entries);
 
     // Create a server connection adapter.
-    final ServerConnectionFactory<LDAPClientContext, Integer> connectionHandler =
-      Connections.newServerConnectionFactory(backend);
+    final ServerConnectionFactory<LDAPClientContext, Integer> connectionHandler
+      = Connections.newServerConnectionFactory(backend);
 
     // Create listener.
     final LDAPListenerOptions options = new LDAPListenerOptions()

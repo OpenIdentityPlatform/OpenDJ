@@ -23,13 +23,13 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
 
 
 
-import com.forgerock.opendj.util.AbstractConnectionFactory;
 import com.forgerock.opendj.util.CompletedFutureResult;
 import com.forgerock.opendj.util.Validator;
 
@@ -39,7 +39,7 @@ import com.forgerock.opendj.util.Validator;
  * A load balancing connection factory allocates connections using the provided
  * algorithm.
  */
-final class LoadBalancer extends AbstractConnectionFactory
+final class LoadBalancer implements ConnectionFactory
 {
   private final LoadBalancingAlgorithm algorithm;
 
@@ -63,9 +63,20 @@ final class LoadBalancer extends AbstractConnectionFactory
   /**
    * {@inheritDoc}
    */
+  public Connection getConnection() throws ErrorResultException,
+      InterruptedException
+  {
+    return algorithm.getConnectionFactory().getConnection();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public FutureResult<AsynchronousConnection> getAsynchronousConnection(
-      final ResultHandler<? super AsynchronousConnection> resultHandler)
+  public FutureResult<Connection> getConnectionAsync(
+      final ResultHandler<? super Connection> resultHandler)
   {
     final ConnectionFactory factory;
 
@@ -79,10 +90,10 @@ final class LoadBalancer extends AbstractConnectionFactory
       {
         resultHandler.handleErrorResult(e);
       }
-      return new CompletedFutureResult<AsynchronousConnection>(e);
+      return new CompletedFutureResult<Connection>(e);
     }
 
-    return factory.getAsynchronousConnection(resultHandler);
+    return factory.getConnectionAsync(resultHandler);
   }
 
 

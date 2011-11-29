@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 
 package com.forgerock.opendj.ldap;
@@ -47,7 +48,7 @@ import com.forgerock.opendj.util.AsynchronousFutureResult;
 abstract class AbstractLDAPFutureResultImpl<S extends Result> extends
     AsynchronousFutureResult<S> implements IntermediateResponseHandler
 {
-  private final AsynchronousConnection connection;
+  private final Connection connection;
 
   private final int requestID;
 
@@ -60,7 +61,7 @@ abstract class AbstractLDAPFutureResultImpl<S extends Result> extends
   AbstractLDAPFutureResultImpl(final int requestID,
       final ResultHandler<? super S> resultHandler,
       final IntermediateResponseHandler intermediateResponseHandler,
-      final AsynchronousConnection connection)
+      final Connection connection)
   {
     super(resultHandler);
     this.requestID = requestID;
@@ -113,7 +114,7 @@ abstract class AbstractLDAPFutureResultImpl<S extends Result> extends
   protected final ErrorResultException handleCancelRequest(
       final boolean mayInterruptIfRunning)
   {
-    connection.abandon(Requests.newAbandonRequest(requestID));
+    connection.abandonAsync(Requests.newAbandonRequest(requestID));
     return null;
   }
 

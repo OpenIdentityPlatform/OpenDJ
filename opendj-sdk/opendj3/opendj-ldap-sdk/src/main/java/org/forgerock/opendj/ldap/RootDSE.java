@@ -135,7 +135,8 @@ public final class RootDSE
 
 
   /**
-   * Reads the Root DSE from the Directory Server using the provided connection.
+   * Asynchronously reads the Root DSE from the Directory Server using the
+   * provided connection.
    * <p>
    * If the Root DSE is not returned by the Directory Server then the request
    * will fail with an {@link EntryNotFoundException}. More specifically, the
@@ -150,14 +151,13 @@ public final class RootDSE
    * @throws UnsupportedOperationException
    *           If the connection does not support search operations.
    * @throws IllegalStateException
-   *           If the connection has already been closed, i.e. if {@code
-   *           isClosed() == true}.
+   *           If the connection has already been closed, i.e. if
+   *           {@code isClosed() == true}.
    * @throws NullPointerException
    *           If the {@code connection} was {@code null}.
    */
-  public static FutureResult<RootDSE> readRootDSE(
-      final AsynchronousConnection connection,
-      final ResultHandler<? super RootDSE> handler)
+  public static FutureResult<RootDSE> readRootDSEAsync(
+      final Connection connection, final ResultHandler<? super RootDSE> handler)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
@@ -175,7 +175,7 @@ public final class RootDSE
     };
 
     final FutureResult<SearchResultEntry> innerFuture = connection
-        .searchSingleEntry(SEARCH_REQUEST, future);
+        .searchSingleEntryAsync(SEARCH_REQUEST, future);
     future.setFutureResult(innerFuture);
     return future;
   }

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 
 package com.forgerock.opendj.ldap.tools;
@@ -458,14 +459,12 @@ abstract class PerformanceRunner implements ConnectionEventListener
   abstract class WorkerThread extends Thread
   {
     private int count;
-
-    private final AsynchronousConnection connection;
-
+    private final Connection connection;
     private final ConnectionFactory connectionFactory;
 
 
 
-    WorkerThread(final AsynchronousConnection connection,
+    WorkerThread(final Connection connection,
         final ConnectionFactory connectionFactory)
     {
       super("Worker Thread");
@@ -475,9 +474,8 @@ abstract class PerformanceRunner implements ConnectionEventListener
 
 
 
-    public abstract FutureResult<?> performOperation(
-        AsynchronousConnection connection, DataSource[] dataSources,
-        long startTime);
+    public abstract FutureResult<?> performOperation(Connection connection,
+        DataSource[] dataSources, long startTime);
 
 
 
@@ -485,10 +483,10 @@ abstract class PerformanceRunner implements ConnectionEventListener
     public void run()
     {
       FutureResult<?> future;
-      AsynchronousConnection connection;
+      Connection connection;
 
-      final double targetTimeInMS =
-        (1000.0 / (targetThroughput / (double) (numThreads * numConnections)));
+      final double targetTimeInMS = (1000.0 / (targetThroughput /
+          (double) (numThreads * numConnections)));
       double sleepTimeInMS = 0;
       long start;
       while (!stopRequested && !(maxIterations > 0 && count >= maxIterations))
@@ -497,8 +495,7 @@ abstract class PerformanceRunner implements ConnectionEventListener
         {
           try
           {
-            connection = connectionFactory.getAsynchronousConnection(null)
-                .get();
+            connection = connectionFactory.getConnectionAsync(null).get();
           }
           catch (final InterruptedException e)
           {
@@ -520,14 +517,12 @@ abstract class PerformanceRunner implements ConnectionEventListener
         else
         {
           connection = this.connection;
-          if (!noRebind
-              && connection instanceof AuthenticatedAsynchronousConnection)
+          if (!noRebind && connection instanceof AuthenticatedConnection)
           {
-            final AuthenticatedAsynchronousConnection ac =
-              (AuthenticatedAsynchronousConnection) connection;
+            final AuthenticatedConnection ac = (AuthenticatedConnection) connection;
             try
             {
-              ac.rebind(null).get();
+              ac.rebindAsync(null).get();
             }
             catch (final InterruptedException e)
             {
@@ -869,10 +864,9 @@ abstract class PerformanceRunner implements ConnectionEventListener
       throws ArgumentException
   {
     this.app = app;
-    numThreadsArgument = new IntegerArgument("numThreads", 't',
-        "numThreads", false, false, true,
-        LocalizableMessage.raw("{numThreads}"), 1, null, true, 1,
-        false, 0,
+    numThreadsArgument = new IntegerArgument("numThreads", 't', "numThreads",
+        false, false, true, LocalizableMessage.raw("{numThreads}"), 1, null,
+        true, 1, false, 0,
         LocalizableMessage.raw("Number of worker threads per connection"));
     numThreadsArgument.setPropertyName("numThreads");
     if (!alwaysSingleThreaded)
@@ -1003,8 +997,8 @@ abstract class PerformanceRunner implements ConnectionEventListener
   {
     numConnections = numConnectionsArgument.getIntValue();
     numThreads = numThreadsArgument.getIntValue();
-    maxIterations = maxIterationsArgument.getIntValue()
-        / numConnections / numThreads;
+    maxIterations = maxIterationsArgument.getIntValue() / numConnections
+        / numThreads;
     statsInterval = statsIntervalArgument.getIntValue() * 1000;
     targetThroughput = targetThroughputArgument.getIntValue();
 
@@ -1042,8 +1036,7 @@ abstract class PerformanceRunner implements ConnectionEventListener
 
 
 
-  abstract WorkerThread newWorkerThread(
-      final AsynchronousConnection connection,
+  abstract WorkerThread newWorkerThread(final Connection connection,
       final ConnectionFactory connectionFactory);
 
 
@@ -1055,17 +1048,16 @@ abstract class PerformanceRunner implements ConnectionEventListener
   final int run(final ConnectionFactory connectionFactory)
   {
     final List<Thread> threads = new ArrayList<Thread>();
-    final List<AsynchronousConnection> connections =
-      new ArrayList<AsynchronousConnection>();
+    final List<Connection> connections = new ArrayList<Connection>();
 
-    AsynchronousConnection connection = null;
+    Connection connection = null;
     try
     {
       for (int i = 0; i < numConnections; i++)
       {
         if (keepConnectionsOpen.isPresent() || noRebindArgument.isPresent())
         {
-          connection = connectionFactory.getAsynchronousConnection(null).get();
+          connection = connectionFactory.getConnectionAsync(null).get();
           connection.addConnectionEventListener(this);
           connections.add(connection);
         }
@@ -1098,7 +1090,7 @@ abstract class PerformanceRunner implements ConnectionEventListener
     }
     finally
     {
-      for (final AsynchronousConnection c : connections)
+      for (final Connection c : connections)
       {
         c.close();
       }
