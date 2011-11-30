@@ -64,7 +64,21 @@
   the software and a small set of sample data. For installation in production,
   read the rest of this section. You need at least 2 GB memory for OpenDJ and
   4 times the disk space needed to house initial production data in LDIF
-  format.</para>
+  format.<footnote>
+   <para>OpenDJ stores data in Berkeley DB Java Edition, which is implemented
+   as a rolling log. Berkeley DB appends updates to the end of the last log
+   file, and marks old pages as deleted. Berkeley DB cleaner threads monitor
+   the log file occupancy ratio, moving the data to get rid of old log files.
+   Yet, with the default occupancy ratio of 50%, log files are cleaned only
+   when they have less than 50% valid pages. As a result, the database can
+   reach twice its initial size in the worst case.</para>
+   <para>Furthermore, when you import data from LDIF, OpenDJ stores not only
+   the data, but also builds indexes for many of the attributes, resulting in
+   some growth. Replication historical data and other operational attributes
+   can also take up space.</para>
+   <para>Finally, it makes sense to leave space for growth in the database size
+   as you modify and add entries over time.</para></footnote>
+  </para>
    
   <para>OpenDJ directory servers almost always benefit from having enough
   system memory to cache all directory database files used. The reason
