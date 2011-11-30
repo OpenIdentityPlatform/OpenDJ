@@ -31,8 +31,8 @@
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Before You Run OpenDJ in Production</title>
 
- <para>This chapter covers covers what you need to consider before you run
- OpenDJ in your production environment.</para>
+ <para>This chapter covers what you need to consider before you run OpenDJ in
+ your production environment.</para>
  
  <section xml:id="prerequisites-java">
   <title>Java Environment</title>
@@ -63,7 +63,8 @@
   or 1 GB memory (64-bit) available to OpenDJ, with 100 MB free disk space for
   the software and a small set of sample data. For installation in production,
   read the rest of this section. You need at least 2 GB memory for OpenDJ and
-  4 times the disk space needed to house your initial production data.</para>
+  4 times the disk space needed to house initial production data in LDIF
+  format.</para>
    
   <para>OpenDJ directory servers almost always benefit from having enough
   system memory to cache all directory database files used. The reason
