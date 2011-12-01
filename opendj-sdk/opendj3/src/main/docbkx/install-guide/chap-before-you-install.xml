@@ -78,7 +78,11 @@
    can also take up space.</para>
    <para>Finally, it makes sense to leave space for growth in the database size
    as you modify and add entries over time.</para></footnote>
-  </para>
+  To get a more accurate estimate of the disk space needed, import a known
+  fraction of the initial LDIF with OpenDJ configured as for production, run
+  tests based on the estimated rates of change and growth in directory data,
+  and then use the actual space used in the test environment to estimate how
+  much disk space you need in production.</para>
    
   <para>OpenDJ directory servers almost always benefit from having enough
   system memory to cache all directory database files used. The reason
