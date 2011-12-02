@@ -32,7 +32,6 @@ package org.forgerock.opendj.ldap;
 
 import java.io.Closeable;
 import java.util.Collection;
-import java.util.concurrent.BlockingQueue;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.requests.*;
@@ -1125,16 +1124,15 @@ public interface Connection extends Closeable
   /**
    * Searches the Directory Server using the provided search parameters. Any
    * matching entries returned by the search will be exposed through the
-   * {@code EntryReader} interface.
+   * returned {@code ConnectionEntryReader}.
    * <p>
-   * <b>Warning:</b> When using a queue with an optional capacity bound, the
-   * connection will stop reading responses and wait if necessary for space to
-   * become available.
+   * Unless otherwise specified, calling this method is equivalent to:
+   * <pre>
+   * ConnectionEntryReader reader = new ConnectionEntryReader(this, request);
+   * </pre>
    *
    * @param request
    *          The search request.
-   * @param entries
-   *          The queue to which matching entries should be added.
    * @return The result of the operation.
    * @throws UnsupportedOperationException
    *           If this connection does not support search operations.
@@ -1144,9 +1142,9 @@ public interface Connection extends Closeable
    * @throws NullPointerException
    *           If {@code request} or {@code entries} was {@code null}.
    */
-  ConnectionEntryReader search(SearchRequest request,
-      BlockingQueue<Response> entries) throws UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+  ConnectionEntryReader search(SearchRequest request)
+      throws UnsupportedOperationException, IllegalStateException,
+      NullPointerException;
 
 
 

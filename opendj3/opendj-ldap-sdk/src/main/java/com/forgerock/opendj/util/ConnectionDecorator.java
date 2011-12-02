@@ -31,7 +31,6 @@ package com.forgerock.opendj.util;
 
 
 import java.util.Collection;
-import java.util.concurrent.BlockingQueue;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.*;
@@ -604,12 +603,11 @@ public abstract class ConnectionDecorator implements Connection
    * The default implementation is to delegate.
    */
   @Override
-  public ConnectionEntryReader search(final SearchRequest request,
-      final BlockingQueue<Response> entries)
+  public ConnectionEntryReader search(final SearchRequest request)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
-    return connection.search(request, entries);
+    return connection.search(request);
   }
 
 
