@@ -36,8 +36,6 @@ import static org.forgerock.opendj.ldap.CoreMessages.ERR_UNEXPECTED_SEARCH_RESUL
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.util.Collection;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -490,12 +488,11 @@ public abstract class AbstractConnection implements Connection
    * {@inheritDoc}
    */
   @Override
-  public ConnectionEntryReader search(final SearchRequest request,
-      final BlockingQueue<Response> entries)
+  public ConnectionEntryReader search(final SearchRequest request)
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
-    return new ConnectionEntryReader(this, request, entries);
+    return new ConnectionEntryReader(this, request);
   }
 
 
@@ -589,10 +586,9 @@ public abstract class AbstractConnection implements Connection
       throws UnsupportedOperationException, IllegalStateException,
       NullPointerException
   {
-    final BlockingQueue<Response> entries = new LinkedBlockingQueue<Response>();
     final SearchRequest request = Requests.newSearchRequest(baseObject, scope,
         filter, attributeDescriptions);
-    return search(request, entries);
+    return search(request);
   }
 
 

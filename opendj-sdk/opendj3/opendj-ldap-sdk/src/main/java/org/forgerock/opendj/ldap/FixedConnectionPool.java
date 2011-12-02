@@ -35,7 +35,6 @@ import static org.forgerock.opendj.ldap.CoreMessages.ERR_CONNECTION_POOL_CLOSING
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -568,12 +567,11 @@ final class FixedConnectionPool implements ConnectionPool
 
 
     @Override
-    public ConnectionEntryReader search(final SearchRequest request,
-        final BlockingQueue<Response> entries)
+    public ConnectionEntryReader search(final SearchRequest request)
         throws UnsupportedOperationException, IllegalStateException,
         NullPointerException
     {
-      return checkState().search(request, entries);
+      return checkState().search(request);
     }
 
 
