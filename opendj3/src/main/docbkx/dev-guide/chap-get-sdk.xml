@@ -244,7 +244,7 @@ class Test
         "dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(uid=bjensen)", "*");
       while (reader.hasNext())
       {
-        if (!reader.isReference())
+        if (reader.isEntry())
         {
           // Got an entry.
           final SearchResultEntry entry = reader.readEntry();

@@ -147,7 +147,7 @@ try
   final ConnectionEntryReader reader = connection.search(baseDN, scope, filter, attributes);
   while (reader.hasNext())
   {
-    if (!reader.isReference())
+    if (reader.isEntry())
     {
       // Got an entry.
       final SearchResultEntry entry = reader.readEntry();

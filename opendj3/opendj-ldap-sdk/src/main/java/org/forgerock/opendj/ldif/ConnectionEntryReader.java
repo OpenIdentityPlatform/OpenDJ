@@ -70,7 +70,7 @@ import com.forgerock.opendj.util.Validator;
  * {
  *   while (reader.hasNext())
  *   {
- *     if (!reader.isReference())
+ *     if (reader.isEntry())
  *     {
  *       SearchResultEntry entry = reader.readEntry();
  *
@@ -283,6 +283,52 @@ public final class ConnectionEntryReader implements EntryReader
 
   /**
    * Waits for the next search result entry or reference to become available and
+   * returns {@code true} if it is an entry, or {@code false} if it is a
+   * reference.
+   *
+   * @return {@code true} if the next search result is an entry, or
+   *         {@code false} if it is a reference.
+   * @throws ErrorResultIOException
+   *           If there are no more search result entries or references and the
+   *           search result code indicates that the search operation failed for
+   *           some reason.
+   * @throws InterruptedIOException
+   *           If the current thread was interrupted while waiting.
+   * @throws NoSuchElementException
+   *           If there are no more search result entries or references and the
+   *           search result code indicates that the search operation succeeded.
+   */
+  public boolean isEntry() throws ErrorResultIOException,
+      InterruptedIOException, NoSuchElementException
+  {
+    // Throws ErrorResultIOException if search returned error.
+    if (!hasNext())
+    {
+      // Search has completed successfully.
+      throw new NoSuchElementException();
+    }
+
+    // Entry or reference?
+    final Response r = nextResponse;
+    if (r instanceof SearchResultEntry)
+    {
+      return true;
+    }
+    else if (r instanceof SearchResultReference)
+    {
+      return false;
+    }
+    else
+    {
+      throw new RuntimeException("Unexpected response type: "
+          + r.getClass().toString());
+    }
+  }
+
+
+
+  /**
+   * Waits for the next search result entry or reference to become available and
    * returns {@code true} if it is a reference, or {@code false} if it is an
    * entry.
    *
@@ -301,28 +347,7 @@ public final class ConnectionEntryReader implements EntryReader
   public boolean isReference() throws ErrorResultIOException,
       InterruptedIOException, NoSuchElementException
   {
-    // Throws ErrorResultIOException if search returned error.
-    if (!hasNext())
-    {
-      // Search has completed successfully.
-      throw new NoSuchElementException();
-    }
-
-    // Entry or reference.
-    final Response r = nextResponse;
-    if (r instanceof SearchResultEntry)
-    {
-      return false;
-    }
-    else if (r instanceof SearchResultReference)
-    {
-      return true;
-    }
-    else
-    {
-      throw new RuntimeException("Unexpected response type: "
-          + r.getClass().toString());
-    }
+    return !isEntry();
   }
 
 
@@ -353,7 +378,7 @@ public final class ConnectionEntryReader implements EntryReader
   public SearchResultEntry readEntry() throws SearchResultReferenceIOException,
       ErrorResultIOException, InterruptedIOException, NoSuchElementException
   {
-    if (!isReference())
+    if (isEntry())
     {
       final SearchResultEntry entry = (SearchResultEntry) nextResponse;
       nextResponse = null;
