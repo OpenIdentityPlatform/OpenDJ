@@ -190,6 +190,11 @@ img
     max-height: 480px;
 }
 
+ol
+{
+    font-size: 12px;
+}
+
 /*
  * Man pages
  */
