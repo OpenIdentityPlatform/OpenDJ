@@ -981,4 +981,186 @@ public class DNTestCase extends SdkTestCase
     final DN string = DN.valueOf(stringDN);
     assertEquals(raw, string);
   }
+
+
+
+  /**
+   * Test data for testInScopeOf tests.
+   *
+   * @return Test data.
+   */
+  @DataProvider
+  public Object[][] createIsInScopeOfTestData()
+  {
+    // @formatter:off
+    return new Object[][]
+    {
+      { "dc=x,dc=y", "dc=x,dc=y", SearchScope.BASE_OBJECT, true  },
+      { "dc=x,dc=y", "dc=z,dc=y", SearchScope.BASE_OBJECT, false },
+      { "dc=x,dc=z", "dc=x,dc=y", SearchScope.BASE_OBJECT, false },
+      { "dc=x,dc=y", "dc=y",      SearchScope.BASE_OBJECT, false },
+      { "dc=y",      "dc=x,dc=y", SearchScope.BASE_OBJECT, false },
+
+      { "dc=x,dc=y",      "dc=x,dc=y", SearchScope.SINGLE_LEVEL, false },
+      { "dc=x,dc=y",      "dc=y",      SearchScope.SINGLE_LEVEL, true  },
+      { "dc=z,dc=x,dc=y", "dc=y",      SearchScope.SINGLE_LEVEL, false },
+      { "dc=y",           "dc=x,dc=y", SearchScope.SINGLE_LEVEL, false },
+      { "dc=x,dc=z",      "dc=y",      SearchScope.SINGLE_LEVEL, false },
+
+      { "dc=x,dc=y",      "dc=x,dc=y", SearchScope.SUBORDINATES, false },
+      { "dc=x,dc=y",      "dc=y",      SearchScope.SUBORDINATES, true  },
+      { "dc=z,dc=x,dc=y", "dc=y",      SearchScope.SUBORDINATES, true  },
+      { "dc=y",           "dc=x,dc=y", SearchScope.SUBORDINATES, false },
+      { "dc=x,dc=z",      "dc=y",      SearchScope.SUBORDINATES, false },
+
+      { "dc=x,dc=y",      "dc=x,dc=y", SearchScope.WHOLE_SUBTREE, true },
+      { "dc=x,dc=y",      "dc=y",      SearchScope.WHOLE_SUBTREE, true  },
+      { "dc=z,dc=x,dc=y", "dc=y",      SearchScope.WHOLE_SUBTREE, true  },
+      { "dc=y",           "dc=x,dc=y", SearchScope.WHOLE_SUBTREE, false },
+      { "dc=x,dc=z",      "dc=y",      SearchScope.WHOLE_SUBTREE, false },
+    };
+    // @formatter:on
+  }
+
+
+
+  /**
+   * Tests {@link DN#isInScopeOf(String, SearchScope)}.
+   *
+   * @param dn
+   *          The target DN.
+   * @param baseDN
+   *          The scope base DN.
+   * @param scope
+   *          The search scope.
+   * @param expectedResult
+   *          The expected result.
+   */
+  @Test(dataProvider="createIsInScopeOfTestData")
+  public void testIsInScopeOfString(final String dn, final String baseDN,
+      final SearchScope scope, final boolean expectedResult)
+  {
+    assertEquals(DN.valueOf(dn).isInScopeOf(baseDN, scope), expectedResult);
+  }
+
+
+
+  /**
+   * Tests {@link DN#isInScopeOf(DN, SearchScope)}.
+   *
+   * @param dn
+   *          The target DN.
+   * @param baseDN
+   *          The scope base DN.
+   * @param scope
+   *          The search scope.
+   * @param expectedResult
+   *          The expected result.
+   */
+  @Test(dataProvider = "createIsInScopeOfTestData")
+  public void testIsInScopeOfDN(final String dn, final String baseDN,
+      final SearchScope scope, final boolean expectedResult)
+  {
+    assertEquals(DN.valueOf(dn).isInScopeOf(DN.valueOf(baseDN), scope),
+        expectedResult);
+  }
+
+
+
+  /**
+   * Test data for testLocalName tests.
+   *
+   * @return Test data.
+   */
+  @DataProvider
+  public Object[][] createLocalNameTestData()
+  {
+    // @formatter:off
+    return new Object[][]
+    {
+      { "", 0, "" },
+      { "", 1, "" },
+
+      { "dc=x", 0, "" },
+      { "dc=x", 1, "dc=x" },
+      { "dc=x", 2, "dc=x" },
+
+      { "dc=x,dc=y", 0, "" },
+      { "dc=x,dc=y", 1, "dc=x" },
+      { "dc=x,dc=y", 2, "dc=x,dc=y" },
+      { "dc=x,dc=y", 3, "dc=x,dc=y" },
+
+      { "dc=x,dc=y,dc=z", 0, "" },
+      { "dc=x,dc=y,dc=z", 1, "dc=x" },
+      { "dc=x,dc=y,dc=z", 2, "dc=x,dc=y" },
+      { "dc=x,dc=y,dc=z", 3, "dc=x,dc=y,dc=z" },
+      { "dc=x,dc=y,dc=z", 4, "dc=x,dc=y,dc=z" },
+    };
+    // @formatter:on
+  }
+
+
+
+  /**
+   * Tests {@link DN#localName(int)}.
+   *
+   * @param dn
+   *          The DN whose local name is to be obtained.
+   * @param index
+   *          The number of RDNs in the local name.
+   * @param expectedDN
+   *          The expected local name.
+   */
+  @Test(dataProvider = "createLocalNameTestData")
+  public void testLocalName(final String dn, final int index,
+      final String expectedDN)
+  {
+    assertEquals(DN.valueOf(dn).localName(index), DN.valueOf(expectedDN));
+  }
+
+
+
+  /**
+   * Test data for testLocalName tests.
+   *
+   * @return Test data.
+   */
+  @DataProvider
+  public Object[][] createRenameTestData()
+  {
+    // @formatter:off
+    return new Object[][]
+    {
+      { "", "", "", "" },
+      { "", "", "dc=x", "dc=x" },
+      { "dc=x", "", "dc=y", "dc=x,dc=y" },
+      { "dc=x", "dc=x", "dc=y", "dc=y" },
+      { "dc=x,dc=y", "dc=y", "dc=z", "dc=x,dc=z" },
+      { "dc=x,dc=y", "dc=x,dc=y", "dc=z", "dc=z" },
+      { "dc=x,dc=y", "dc=x", "dc=z", "dc=x,dc=y" },
+    };
+    // @formatter:on
+  }
+
+
+
+  /**
+   * Tests {@link DN#rename(DN, DN)}.
+   *
+   * @param dn
+   *          The DN to be renamed.
+   * @param fromDN
+   *          The source DN.
+   * @param toDN
+   *          The destination DN.
+   * @param expectedDN
+   *          The expected result.
+   */
+  @Test(dataProvider = "createRenameTestData")
+  public void testRename(final String dn, final String fromDN,
+      final String toDN, final String expectedDN)
+  {
+    assertEquals(DN.valueOf(dn).rename(DN.valueOf(fromDN), DN.valueOf(toDN)),
+        DN.valueOf(expectedDN));
+  }
 }
