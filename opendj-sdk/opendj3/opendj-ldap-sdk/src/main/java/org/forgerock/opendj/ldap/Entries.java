@@ -753,7 +753,14 @@ public final class Entries
   public static Entry unmodifiableEntry(final Entry entry)
       throws NullPointerException
   {
-    return new UnmodifiableEntry(entry);
+    if (entry instanceof UnmodifiableEntry)
+    {
+      return entry;
+    }
+    else
+    {
+      return new UnmodifiableEntry(entry);
+    }
   }
 
 
