@@ -345,8 +345,6 @@ public final class Main
         }
         else if (scope.equals(SearchScope.SINGLE_LEVEL))
         {
-          sendEntry(request, resultHandler, baseEntry);
-
           NavigableMap<DN, Entry> subtree = entries
               .tailMap(dn, false);
           for (Entry entry : subtree.values())
