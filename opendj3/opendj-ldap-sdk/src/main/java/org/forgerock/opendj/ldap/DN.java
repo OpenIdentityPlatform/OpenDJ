@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -269,7 +270,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
       parent = ROOT_DN;
     }
 
-    return new DN(rdn, parent, dnString);
+    return new DN(parent, rdn, dnString);
   }
 
 
@@ -299,7 +300,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
 
   private final RDN rdn;
 
-  private final DN parent;
+  private DN parent;
 
   private final int size;
 
@@ -310,12 +311,21 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
 
 
   // Private constructor.
-  private DN(final RDN rdn, final DN parent, final String stringValue)
+  private DN(final DN parent, final RDN rdn, final String stringValue)
   {
-    this.rdn = rdn;
+    this(parent, rdn, stringValue, parent != null ? parent.size + 1 : 0);
+  }
+
+
+
+  // Private constructor.
+  private DN(final DN parent, final RDN rdn, final String stringValue,
+      final int size)
+  {
     this.parent = parent;
+    this.rdn = rdn;
     this.stringValue = stringValue;
-    this.size = parent != null ? parent.size + 1 : 0;
+    this.size = size;
   }
 
 
@@ -353,7 +363,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
       DN newDN = this;
       for (i = 0; i < rdns.length; i++)
       {
-        newDN = new DN(rdns[i], newDN, null);
+        newDN = new DN(newDN, rdns[i], null);
       }
       return newDN;
     }
@@ -374,7 +384,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
   public DN child(final RDN rdn) throws NullPointerException
   {
     Validator.ensureNotNull(rdn);
-    return new DN(rdn, this, null);
+    return new DN(this, rdn, null);
   }
 
 
@@ -496,6 +506,73 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
   {
     // If this is the Root DN then parent will be null but this is ok.
     return isChildOf(valueOf(dn));
+  }
+
+
+
+  /**
+   * Returns {@code true} if this DN matches the provided base DN and search
+   * scope.
+   *
+   * @param dn
+   *          The base DN.
+   * @param scope
+   *          The search scope.
+   * @return {@code true} if this DN matches the provided base DN and search
+   *         scope, otherwise {@code false}.
+   * @throws NullPointerException
+   *           If {@code dn} or {@code scope} was {@code null}.
+   */
+  public boolean isInScopeOf(DN dn, SearchScope scope)
+  {
+    if (scope == SearchScope.BASE_OBJECT)
+    {
+      // The base DN must equal this DN.
+      return equals(dn);
+    }
+    else if (scope == SearchScope.SINGLE_LEVEL)
+    {
+      // The parent DN must equal the base DN.
+      return isChildOf(dn);
+    }
+    else if (scope == SearchScope.SUBORDINATES)
+    {
+      // This DN must be a descendant of the provided base DN, but
+      // not equal to it.
+      return isSubordinateOrEqualTo(dn) && !equals(dn);
+    }
+    else if (scope == SearchScope.WHOLE_SUBTREE)
+    {
+      // This DN must be a descendant of the provided base DN.
+      return isSubordinateOrEqualTo(dn);
+    }
+    else
+    {
+      // This is a scope that we don't recognize.
+      return false;
+    }
+  }
+
+
+
+  /**
+   * Returns {@code true} if this DN matches the provided base DN and search
+   * scope.
+   *
+   * @param dn
+   *          The base DN.
+   * @param scope
+   *          The search scope.
+   * @return {@code true} if this DN matches the provided base DN and search
+   *         scope, otherwise {@code false}.
+   * @throws LocalizedIllegalArgumentException
+   *           If {@code dn} is not a valid LDAP string representation of a DN.
+   * @throws NullPointerException
+   *           If {@code dn} or {@code scope} was {@code null}.
+   */
+  public boolean isInScopeOf(String dn, SearchScope scope)
+  {
+    return isInScopeOf(valueOf(dn), scope);
   }
 
 
@@ -702,6 +779,52 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
 
 
   /**
+   * Returns the DN whose content is the specified number of RDNs from this DN.
+   * The following equivalences hold:
+   *
+   * <pre>
+   * dn.localName(0).isRootDN();
+   * dn.localName(1).equals(rootDN.child(dn.rdn()));
+   * dn.localName(dn.size()).equals(dn);
+   * </pre>
+   *
+   * @param index
+   *          The number of RDNs to be included in the local name.
+   * @return The DN whose content is the specified number of RDNs from this DN.
+   * @throws IllegalArgumentException
+   *           If {@code index} is less than zero.
+   */
+  public DN localName(final int index) throws IllegalArgumentException
+  {
+    Validator.ensureTrue(index >= 0, "index less than zero");
+
+    if (index == 0)
+    {
+      return ROOT_DN;
+    }
+    else if (index >= size)
+    {
+      return this;
+    }
+    else
+    {
+      final DN localName = new DN(null, rdn, null, index);
+      DN nextLocalName = localName;
+      DN lastDN = parent;
+      for (int i = index - 1; i > 0; i--)
+      {
+        nextLocalName.parent = new DN(null, lastDN.rdn, null, i);
+        nextLocalName = nextLocalName.parent;
+        lastDN = lastDN.parent;
+      }
+      nextLocalName.parent = ROOT_DN;
+      return localName;
+    }
+  }
+
+
+
+  /**
    * Returns the DN which is the immediate parent of this DN, or {@code null} if
    * this DN is the Root DN.
    * <p>
@@ -757,6 +880,39 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
   public RDN rdn()
   {
     return rdn;
+  }
+
+
+
+  /**
+   * Returns a copy of this DN whose parent DN, {@code fromDN}, has been renamed
+   * to the new parent DN, {@code toDN}. If this DN is not subordinate or equal
+   * to {@code fromDN} then this DN is returned (i.e. the DN is not renamed).
+   *
+   * @param fromDN
+   *          The old parent DN.
+   * @param toDN
+   *          The new parent DN.
+   * @return The renamed DN, or this DN if no renaming was performed.
+   * @throws NullPointerException
+   *           If {@code fromDN} or {@code toDN} was {@code null}.
+   */
+  public DN rename(final DN fromDN, final DN toDN) throws NullPointerException
+  {
+    Validator.ensureNotNull(fromDN, toDN);
+
+    if (!isSubordinateOrEqualTo(fromDN))
+    {
+      return this;
+    }
+    else if (equals(fromDN))
+    {
+      return toDN;
+    }
+    else
+    {
+      return toDN.child(localName(size - fromDN.size));
+    }
   }
 
 
