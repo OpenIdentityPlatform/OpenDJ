@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -614,7 +615,14 @@ public final class Attributes
   public static final Attribute unmodifiableAttribute(final Attribute attribute)
       throws NullPointerException
   {
-    return new UnmodifiableAttribute(attribute);
+    if (attribute instanceof UnmodifiableAttribute)
+    {
+      return attribute;
+    }
+    else
+    {
+      return new UnmodifiableAttribute(attribute);
+    }
   }
 
 
