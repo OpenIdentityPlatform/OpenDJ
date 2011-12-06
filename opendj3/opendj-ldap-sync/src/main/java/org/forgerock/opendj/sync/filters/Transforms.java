@@ -498,6 +498,32 @@ public final class Transforms
         final ModifyDNRequest change)
     {
       change.setName(change.getName().rename(from, to));
+
+      // Rename the new superior or the new RDN if needed.
+      final DN newSuperior = change.getNewSuperior();
+      if (newSuperior != null && newSuperior.isSubordinateOrEqualTo(from))
+      {
+        // The new superior is in scope so rename.
+        change.setNewSuperior(newSuperior.rename(from, to));
+      }
+      else
+      {
+        // The new superior is not in scope, but perhaps the new DN matches
+        // "from".
+        final DN newDN;
+        if (newSuperior != null)
+        {
+          newDN = newSuperior.child(change.getNewRDN());
+        }
+        else
+        {
+          newDN = change.getName().parent().child(change.getNewRDN());
+        }
+        if (newDN.equals(from))
+        {
+          change.setNewRDN(to.rdn());
+        }
+      }
       return FilterResult.next();
     }
 
