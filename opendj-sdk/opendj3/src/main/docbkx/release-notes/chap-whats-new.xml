@@ -31,7 +31,7 @@
   xmlns:xinclude='http://www.w3.org/2001/XInclude'>
   <title>What's New in OpenDJ <?eval ${docTargetVersion}?></title>
 
-  <para>Compared to the OpenDJ <?eval ${stableServerVersion} ?>, OpenDJ
+  <para>Compared to the OpenDJ <?eval ${stableServerVersion}?>, OpenDJ
   <?eval ${docTargetVersion}?> fixes a number of issues. OpenDJ
   <?eval ${docTargetVersion}?> provides the following new features.</para>
   
@@ -82,7 +82,7 @@
       the same way you would assign a password policy. See the
       <link xlink:href="admin-guide#chap-pta"
       xlink:role="http://docbook.org/xlink/role/olink"
-      ><citetitle>Administration Guide</citetitle> for details.</link></para>
+      ><citetitle>Administration Guide</citetitle></link> for details.</para>
     </listitem>
     <listitem>
      <para>OpenDJ now lets you configure attributes to be removed or renamed

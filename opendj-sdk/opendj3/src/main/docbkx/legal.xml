@@ -29,7 +29,7 @@
  xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'><?dbhtml
- filename='target/docbkx/html/legalnotice.html'?>
+ filename='legalnotice.html'?>
 
  <mediaobject>
   <imageobject>
