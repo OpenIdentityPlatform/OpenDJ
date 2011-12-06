@@ -240,6 +240,66 @@
         </configuration>
         <executions>
           <execution>
+           <id>olinkdb-admin-guide</id>
+           <phase>pre-site</phase>
+           <configuration>
+            <includes>*/OpenDJ-Admin-Guide.xml</includes>
+            <collectXrefTargets>only</collectXrefTargets>
+            <targetsFilename>${basedir}/target/admin-guide.target.db</targetsFilename>
+            <postProcess>
+             <delete dir="${docbkx-out}/html/admin-guide"/>
+            </postProcess>
+           </configuration>
+           <goals>
+            <goal>generate-html</goal>
+           </goals>
+          </execution>
+          <execution>
+           <id>olinkdb-dev-guide</id>
+           <phase>pre-site</phase>
+           <configuration>
+            <includes>*/OpenDJ-Dev-Guide.xml</includes>
+            <collectXrefTargets>only</collectXrefTargets>
+            <targetsFilename>${basedir}/target/dev-guide.target.db</targetsFilename>
+            <postProcess>
+             <delete dir="${docbkx-out}/html/dev-guide"/>
+            </postProcess>
+           </configuration>
+           <goals>
+            <goal>generate-html</goal>
+           </goals>
+          </execution>
+          <execution>
+           <id>olinkdb-install-guide</id>
+           <phase>pre-site</phase>
+           <configuration>
+            <includes>*/OpenDJ-Install-Guide.xml</includes>
+            <collectXrefTargets>only</collectXrefTargets>
+            <targetsFilename>${basedir}/target/install-guide.target.db</targetsFilename>
+            <postProcess>
+             <delete dir="${docbkx-out}/html/install-guide"/>
+            </postProcess>
+           </configuration>
+           <goals>
+            <goal>generate-html</goal>
+           </goals>
+          </execution>
+          <execution>
+           <id>olinkdb-release-notes</id>
+           <phase>pre-site</phase>
+           <configuration>
+            <includes>*/OpenDJ-Release-Notes.xml</includes>
+            <collectXrefTargets>only</collectXrefTargets>
+            <targetsFilename>${basedir}/target/release-notes.target.db</targetsFilename>
+            <postProcess>
+             <delete dir="${docbkx-out}/html/release-notes"/>
+            </postProcess>
+           </configuration>
+           <goals>
+            <goal>generate-html</goal>
+           </goals>
+          </execution>
+          <execution>
             <id>doc-epub</id>
             <phase>pre-site</phase>
             <goals>
@@ -303,66 +363,6 @@
             <configuration>
              <manpagesCustomization>${dbstyle-dir}/man/manpages.xsl</manpagesCustomization>
             </configuration>
-          </execution>
-          <execution>
-           <id>olinkdb-admin-guide</id>
-           <phase>process-resources</phase>
-           <configuration>
-            <includes>*/OpenDJ-Admin-Guide.xml</includes>
-            <collectXrefTargets>only</collectXrefTargets>
-            <targetsFilename>${basedir}/target/admin-guide.target.db</targetsFilename>
-            <postProcess>
-             <delete dir="${docbkx-out}/html/admin-guide"/>
-            </postProcess>
-           </configuration>
-           <goals>
-            <goal>generate-html</goal>
-           </goals>
-          </execution>
-          <execution>
-           <id>olinkdb-dev-guide</id>
-           <phase>process-resources</phase>
-           <configuration>
-            <includes>*/OpenDJ-Dev-Guide.xml</includes>
-            <collectXrefTargets>only</collectXrefTargets>
-            <targetsFilename>${basedir}/target/dev-guide.target.db</targetsFilename>
-            <postProcess>
-             <delete dir="${docbkx-out}/html/dev-guide"/>
-            </postProcess>
-           </configuration>
-           <goals>
-            <goal>generate-html</goal>
-           </goals>
-          </execution>
-          <execution>
-           <id>olinkdb-install-guide</id>
-           <phase>process-resources</phase>
-           <configuration>
-            <includes>*/OpenDJ-Install-Guide.xml</includes>
-            <collectXrefTargets>only</collectXrefTargets>
-            <targetsFilename>${basedir}/target/install-guide.target.db</targetsFilename>
-            <postProcess>
-             <delete dir="${docbkx-out}/html/install-guide"/>
-            </postProcess>
-           </configuration>
-           <goals>
-            <goal>generate-html</goal>
-           </goals>
-          </execution>
-          <execution>
-           <id>olinkdb-release-notes</id>
-           <phase>process-resources</phase>
-           <configuration>
-            <includes>*/OpenDJ-Release-Notes.xml</includes>
-            <collectXrefTargets>only</collectXrefTargets>
-            <targetsFilename>${basedir}/target/release-notes.target.db</targetsFilename>
-            <postProcess>
-             <delete dir="${docbkx-out}/html/release-notes"/>
-            </postProcess>
-           </configuration>
-           <goals>
-            <goal>generate-html</goal>
-           </goals>
           </execution>
           <execution>
             <id>doc-single-html</id>
