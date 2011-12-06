@@ -110,7 +110,6 @@
     <fonts-src>${basedir}/src/fonts</fonts-src>
     <fonts-gen>${basedir}/target/fonts</fonts-gen>
     <site-out>${basedir}/target/site</site-out>
-    <legalnotice>${basedir}/target/docbkx/html/legalnotice.html</legalnotice>
     <siteDistributionURL>scp://forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
   </properties>
   <build>
@@ -118,7 +117,7 @@
       <plugin>
         <groupId>com.agilejava.docbkx</groupId>
         <artifactId>docbkx-fop-support</artifactId>
-        <version>2.0.13</version>
+        <version>2.0.14-SNAPSHOT</version>
         <inherited>false</inherited>
         <executions>
           <execution>
@@ -135,7 +134,7 @@
       <plugin>
         <groupId>com.agilejava.docbkx</groupId>
         <artifactId>docbkx-maven-plugin</artifactId>
-        <version>2.0.13</version>
+        <version>2.0.14-SNAPSHOT</version>
         <inherited>false</inherited>
         <configuration>
           <sourceDirectory>${basedir}/src/main/docbkx</sourceDirectory>
@@ -404,16 +403,6 @@
               </preProcess>
               
               <postProcess>
-                <copy file='${legalnotice}' todir='${docbkx-out}/html/admin-guide' />
-                <copy file='${legalnotice}' todir='${docbkx-out}/html/dev-guide' />
-                <copy file='${legalnotice}' todir='${docbkx-out}/html/install-guide' />
-                <copy file='${legalnotice}' todir='${docbkx-out}/html/release-notes' />
-                <replace
-                  dir="${basedir}/target/docbkx/html/"
-                  token="target/docbkx/html/legalnotice.html"
-                  value="legalnotice.html">
-                  <include name="**/**/*.html" />
-                </replace>
                 <replace
                   dir="${basedir}/target/docbkx/html/"
                   token="&lt;/head&gt;">
@@ -483,20 +472,6 @@ $(".flat").live("dblclick", function() {
               </preProcess>
 
               <postProcess>
-                <copy file='${legalnotice}'
-                  todir='${docbkx-out}/html/admin-guide/OpenDJ-Admin-Guide' />
-                <copy file='${legalnotice}'
-                  todir='${docbkx-out}/html/dev-guide/OpenDJ-Dev-Guide' />
-                <copy file='${legalnotice}'
-                  todir='${docbkx-out}/html/install-guide/OpenDJ-Install-Guide' />
-                <copy file='${legalnotice}'
-                  todir='${docbkx-out}/html/release-notes/OpenDJ-Release-Notes' />
-                <replace
-                  dir="${basedir}/target/docbkx/html/"
-                  token="target/docbkx/html/legalnotice.html"
-                  value="legalnotice.html">
-                  <include name="**/**/**/*.html" />
-                </replace>
                 <replace
                   dir="${basedir}/target/docbkx/html/"
                   token="&lt;/head&gt;">
