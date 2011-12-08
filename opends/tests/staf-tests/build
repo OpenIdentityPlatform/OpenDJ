@@ -45,7 +45,7 @@ then
 fi
 
 OPENDS_LIB=`cd ../../lib;pwd`
-ANT_LIB=$OPENDS_LIB/mail.jar:$OPENDS_LIB/activation.jar
+ANT_LIB=$OPENDS_LIB/mail.jar
 ANT_HOME=`cd ../..;pwd`/ext/ant
 export ANT_HOME
 ANT_OPTS="-Xmx1g"

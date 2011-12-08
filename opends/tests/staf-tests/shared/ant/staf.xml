@@ -165,7 +165,7 @@
         <socket port="${staf.port}" server="${host.name}"/>
       </not>
       <then>
-        <var name="cp" value="${project.home}/resource/dsml/lib/activation.jar:${project.home}/resource/dsml/lib/j2ee.jar:${project.home}/resource/dsml/lib/jaxb-api.jar:${project.home}/resource/dsml/lib/jaxb-impl.jar:${project.home}/resource/dsml/lib/jaxb-xjc.jar:${project.home}/resource/dsml/lib/jaxb1-impl.jar:${project.home}/resource/dsml/lib/jsr173_1.0_api.jar:${project.home}/resource/dsml/lib/saaj-1.3.jar:${project.home}/resource/dsml/lib/saaj-impl-1.3.jar"/>
+        <var name="cp" value="${project.home}/resource/dsml/lib/j2ee.jar:${project.home}/resource/dsml/lib/jaxb-api.jar:${project.home}/resource/dsml/lib/jaxb-impl.jar:${project.home}/resource/dsml/lib/jaxb-xjc.jar:${project.home}/resource/dsml/lib/jaxb1-impl.jar:${project.home}/resource/dsml/lib/jsr173_1.0_api.jar:${project.home}/resource/dsml/lib/saaj-1.3.jar:${project.home}/resource/dsml/lib/saaj-impl-1.3.jar"/>
 
         <echo>Starting staf, please wait...</echo>
         <exec dir="${staf.bin.dir}"
