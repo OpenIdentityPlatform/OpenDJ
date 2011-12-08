@@ -345,7 +345,7 @@ public class GSSAPISASLMechanismHandler extends
     w.write(principal.toString());
     Message msg = INFO_GSSAPI_PRINCIPAL_NAME.get(principal.toString());
     logError(msg);
-    w.write("\";");
+    w.write("\" isInitiator=false;");
     w.newLine();
     w.write("};");
     w.newLine();
