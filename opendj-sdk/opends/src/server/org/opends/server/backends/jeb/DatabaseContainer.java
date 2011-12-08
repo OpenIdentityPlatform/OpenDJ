@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -250,7 +251,8 @@ public abstract class DatabaseContainer
   }
 
   /**
-   * Open a JE cursor on the DN database.
+   * Open a JE cursor on the JE database.  This is a simple wrapper around
+   * the JE Database.openCursor method.
    * @param txn A JE database transaction to be used by the cursor,
    * or null if none.
    * @param cursorConfig The JE cursor configuration.
@@ -262,6 +264,21 @@ public abstract class DatabaseContainer
        throws DatabaseException
   {
     return database.openCursor(txn, cursorConfig);
+  }
+
+  /**
+   * Open a JE disk ordered cursor on the JE database.  This is a
+   * simple wrapper around the JE Database.openCursor method.
+   * @param cursorConfig The JE disk ordered cursor configuration.
+   * @return A JE disk ordered cursor.
+   * @throws DatabaseException If an error occurs while attempting to open
+   * the cursor.
+   */
+  public DiskOrderedCursor openCursor(DiskOrderedCursorConfig cursorConfig)
+      throws DatabaseException
+  {
+    return database.openCursor(cursorConfig);
+
   }
 
   /**

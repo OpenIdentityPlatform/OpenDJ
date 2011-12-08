@@ -26,21 +26,13 @@
  *      Portions copyright 2011 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
+import com.sleepycat.je.*;
 import org.opends.messages.Message;
 
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 
-import com.sleepycat.je.Cursor;
-import com.sleepycat.je.CursorConfig;
-import com.sleepycat.je.DatabaseEntry;
-import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.EnvironmentStats;
-import com.sleepycat.je.LockMode;
-import com.sleepycat.je.OperationStatus;
-import com.sleepycat.je.StatsConfig;
-import com.sleepycat.je.Transaction;
 
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.ApproximateMatchingRule;
@@ -326,6 +318,11 @@ public class VerifyJob
       // Start a timer for the progress report.
       Timer timer = new Timer();
       TimerTask progressTask = new ProgressTask();
+      if (cleanMode)
+      {
+        // Create a new progressTask based on the index count.
+        progressTask = new ProgressTask(true);
+      }
       timer.scheduleAtFixedRate(progressTask, progressInterval,
                                 progressInterval);
 
@@ -458,7 +455,8 @@ public class VerifyJob
    */
   private void iterateID2Entry() throws DatabaseException
   {
-    Cursor cursor = id2entry.openCursor(null, new CursorConfig());
+    DiskOrderedCursor cursor =
+        id2entry.openCursor(new DiskOrderedCursorConfig());
     try
     {
       DatabaseEntry key = new DatabaseEntry();
@@ -466,10 +464,8 @@ public class VerifyJob
 
       Long storedEntryCount = id2entry.getRecordCount();
 
-      OperationStatus status;
-      for (status = cursor.getFirst(key, data, LockMode.DEFAULT);
-           status == OperationStatus.SUCCESS;
-           status = cursor.getNext(key, data, LockMode.DEFAULT))
+      while (cursor.getNext(key, data, null) ==
+                OperationStatus.SUCCESS)
       {
         EntryID entryID;
         try
@@ -561,15 +557,17 @@ public class VerifyJob
       {
         AttributeIndex attrIndex = attrIndexList.get(0);
         iterateAttrIndex(attrIndex.getAttributeType(),
-                         attrIndex.equalityIndex, IndexType.EQ );
+                         attrIndex.getEqualityIndex(), IndexType.EQ );
         iterateAttrIndex(attrIndex.getAttributeType(),
-                         attrIndex.presenceIndex, IndexType.PRES);
+                         attrIndex.getPresenceIndex(), IndexType.PRES);
         iterateAttrIndex(attrIndex.getAttributeType(),
-                         attrIndex.substringIndex, IndexType.SUBSTRING);
+                         attrIndex.getSubstringIndex(), IndexType.SUBSTRING);
         iterateAttrIndex(attrIndex.getAttributeType(),
-                         attrIndex.orderingIndex, IndexType.ORDERING);
+                         attrIndex.getOrderingIndex(), IndexType.ORDERING);
         iterateAttrIndex(attrIndex.getAttributeType(),
-                         attrIndex.approximateIndex, IndexType.APPROXIMATE);
+                         attrIndex.getApproximateIndex(),
+                         IndexType.APPROXIMATE);
+       // TODO: Need to iterate through ExtendedMatchingRules indexes.
       } else if(vlvIndexList.size() > 0)
       {
         iterateVLVIndex(vlvIndexList.get(0), true);
@@ -585,16 +583,14 @@ public class VerifyJob
    */
   private void iterateDN2ID() throws DatabaseException
   {
-    Cursor cursor = dn2id.openCursor(null, new CursorConfig());
+    DiskOrderedCursor cursor = dn2id.openCursor(new DiskOrderedCursorConfig());
     try
     {
       DatabaseEntry key = new DatabaseEntry();
       DatabaseEntry data = new DatabaseEntry();
 
-      OperationStatus status;
-      for (status = cursor.getFirst(key, data, LockMode.DEFAULT);
-           status == OperationStatus.SUCCESS;
-           status = cursor.getNext(key, data, LockMode.DEFAULT))
+      while (cursor.getNext(key, data, null) ==
+                OperationStatus.SUCCESS)
       {
         keyCount++;
 
@@ -673,16 +669,14 @@ public class VerifyJob
    */
   private void iterateID2Children() throws JebException, DatabaseException
   {
-    Cursor cursor = id2c.openCursor(null, new CursorConfig());
+    DiskOrderedCursor cursor = id2c.openCursor(new DiskOrderedCursorConfig());
     try
     {
       DatabaseEntry key = new DatabaseEntry();
       DatabaseEntry data = new DatabaseEntry();
 
-      OperationStatus status;
-      for (status = cursor.getFirst(key, data, LockMode.DEFAULT);
-           status == OperationStatus.SUCCESS;
-           status = cursor.getNext(key, data, LockMode.DEFAULT))
+      while (cursor.getNext(key, data, null) ==
+                OperationStatus.SUCCESS)
       {
         keyCount++;
 
@@ -815,16 +809,14 @@ public class VerifyJob
    */
   private void iterateID2Subtree() throws JebException, DatabaseException
   {
-    Cursor cursor = id2s.openCursor(null, new CursorConfig());
+    DiskOrderedCursor cursor = id2s.openCursor(new DiskOrderedCursorConfig());
     try
     {
       DatabaseEntry key = new DatabaseEntry();
       DatabaseEntry data = new DatabaseEntry();
 
-      OperationStatus status;
-      for (status = cursor.getFirst(key, data, LockMode.DEFAULT);
-           status == OperationStatus.SUCCESS;
-           status = cursor.getNext(key, data, LockMode.DEFAULT))
+      while (cursor.getNext(key, data, null) ==
+                OperationStatus.SUCCESS)
       {
         keyCount++;
 
@@ -1016,17 +1008,16 @@ public class VerifyJob
       return;
     }
 
-    Cursor cursor = vlvIndex.openCursor(null, new CursorConfig());
+    DiskOrderedCursor cursor =
+        vlvIndex.openCursor(new DiskOrderedCursorConfig());
     try
     {
       DatabaseEntry key = new DatabaseEntry();
       OperationStatus status;
-      LockMode lockMode = LockMode.DEFAULT;
       DatabaseEntry data = new DatabaseEntry();
 
-      status = cursor.getFirst(key, data, lockMode);
       SortValues lastValues = null;
-      while(status == OperationStatus.SUCCESS)
+      while(cursor.getNext(key, data, null) == OperationStatus.SUCCESS)
       {
         SortValuesSet sortValuesSet =
             new SortValuesSet(key.getData(), data.getData(), vlvIndex);
@@ -1112,7 +1103,6 @@ public class VerifyJob
             }
           }
         }
-        status = cursor.getNext(key, data, lockMode);
       }
     }
     finally
@@ -1139,7 +1129,7 @@ public class VerifyJob
       return;
     }
 
-    Cursor cursor = index.openCursor(null, new CursorConfig());
+    DiskOrderedCursor cursor = index.openCursor(new DiskOrderedCursorConfig());
     try
     {
       DatabaseEntry key = new DatabaseEntry();
@@ -1151,10 +1141,8 @@ public class VerifyJob
           attrType.getApproximateMatchingRule();
       ByteString previousValue = null;
 
-      OperationStatus status;
-      for (status = cursor.getFirst(key, data, LockMode.DEFAULT);
-           status == OperationStatus.SUCCESS;
-           status = cursor.getNext(key, data, LockMode.DEFAULT))
+      while (cursor.getNext(key, data, null) ==
+                OperationStatus.SUCCESS)
       {
         keyCount++;
 
@@ -1800,11 +1788,12 @@ public class VerifyJob
        throws DirectoryException
   {
     Transaction txn = null;
-    Index equalityIndex = attrIndex.equalityIndex;
-    Index presenceIndex = attrIndex.presenceIndex;
-    Index substringIndex = attrIndex.substringIndex;
-    Index orderingIndex = attrIndex.orderingIndex;
-    Index approximateIndex = attrIndex.approximateIndex;
+    Index equalityIndex = attrIndex.getEqualityIndex();
+    Index presenceIndex = attrIndex.getPresenceIndex();
+    Index substringIndex = attrIndex.getSubstringIndex();
+    Index orderingIndex = attrIndex.getOrderingIndex();
+    Index approximateIndex = attrIndex.getApproximateIndex();
+    // TODO: Add support for Extended Matching Rules indexes.
     DatabaseEntry presenceKey = AttributeIndex.presenceKey;
 
     // Presence index.
@@ -2081,6 +2070,73 @@ public class VerifyJob
           rootContainer.getEnvironmentStats(new StatsConfig());
       totalCount = rootContainer.getEntryContainer(
         verifyConfig.getBaseDN()).getEntryCount();
+    }
+
+    /**
+     * Create a new verify progress task.
+     * @param indexIterator boolean, indicates if the task is iterating
+     * through indexes or the entries.
+     * @throws DatabaseException An error occurred while accessing the JE
+     * database.
+     */
+    public ProgressTask(boolean indexIterator) throws DatabaseException
+    {
+      previousTime = System.currentTimeMillis();
+      prevEnvStats =
+          rootContainer.getEnvironmentStats(new StatsConfig());
+
+      if (indexIterator)
+      {
+        if (verifyDN2ID)
+        {
+          totalCount = dn2id.getRecordCount();
+        }
+        else if (verifyID2Children)
+        {
+          totalCount = id2c.getRecordCount();
+        }
+        else if (verifyID2Subtree)
+        {
+          totalCount = id2s.getRecordCount();
+        }
+        else
+        {
+          if(attrIndexList.size() > 0)
+          {
+            AttributeIndex attrIndex = attrIndexList.get(0);
+            totalCount = 0;
+            if (attrIndex.getEqualityIndex() != null)
+            {
+              totalCount += attrIndex.getEqualityIndex().getRecordCount();
+            }
+            if (attrIndex.getPresenceIndex() != null)
+            {
+              totalCount += attrIndex.getPresenceIndex().getRecordCount();
+            }
+            if (attrIndex.getSubstringIndex() != null)
+            {
+              totalCount += attrIndex.getSubstringIndex().getRecordCount();
+            }
+            if (attrIndex.getOrderingIndex() != null)
+            {
+              totalCount += attrIndex.getOrderingIndex().getRecordCount();
+            }
+            if (attrIndex.getApproximateIndex() != null)
+            {
+              totalCount += attrIndex.getApproximateIndex().getRecordCount();
+            }
+            // TODO: Add support for Extended Matching Rules indexes.
+          } else if(vlvIndexList.size() > 0)
+          {
+            totalCount = vlvIndexList.get(0).getRecordCount();
+          }
+        }
+      }
+      else
+      {
+        totalCount = rootContainer.getEntryContainer(
+          verifyConfig.getBaseDN()).getEntryCount();
+      }
     }
 
     /**

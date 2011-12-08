@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.server.backends.jeb.importLDIF;
@@ -422,7 +423,8 @@ public final class Importer implements DiskSpaceMonitorHandler
     final long usableMemory = availableMemory
         - (indexCount * READER_WRITER_BUFFER_SIZE);
 
-    if (!skipDNValidation)
+    // We need caching when doing DN validation or rebuilding indexes.
+    if (!skipDNValidation || (rebuildManager != null))
     {
       // No DN validation: calculate memory for DB cache, DN2ID temporary cache,
       // and buffers.
@@ -3306,15 +3308,12 @@ public final class Importer implements DiskSpaceMonitorHandler
     public Void call() throws Exception
     {
       ID2Entry id2entry = entryContainer.getID2Entry();
-      Cursor cursor = id2entry.openCursor(null, CursorConfig.READ_COMMITTED);
+      DiskOrderedCursor cursor =
+          id2entry.openCursor(DiskOrderedCursorConfig.DEFAULT);
       DatabaseEntry key = new DatabaseEntry();
       DatabaseEntry data = new DatabaseEntry();
-      LockMode lockMode = LockMode.DEFAULT;
-      OperationStatus status;
       try {
-        for (status = cursor.getFirst(key, data, lockMode);
-             status == OperationStatus.SUCCESS;
-             status = cursor.getNext(key, data, lockMode))
+        while (cursor.getNext(key, data, null) == OperationStatus.SUCCESS)
         {
           if(isCanceled)
           {
