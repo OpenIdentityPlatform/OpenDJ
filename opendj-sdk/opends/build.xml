@@ -1301,7 +1301,6 @@
       <classes dir="${dsml.classes.dir}" />
 
       <lib dir="${dsml.lib.dir}">
-        <include name="activation.jar" />
         <include name="jaxb-api.jar" />
         <include name="jaxb-impl.jar" />
         <include name="jsr173_1.0_api.jar" />
