@@ -537,13 +537,17 @@
       restarted. It is recommended that you also change this property
       when you set db-evictor-lru-only to false. This setting controls
       the number of Btree nodes that are considered, or sampled, each
-      time a node is evicted. A setting of 100 often produces good
+      time a node is evicted. A setting of 10 often produces good
       results, but this may vary from application to application. The
       larger the nodes per scan, the more accurate the algorithm.
-      However, setting it too high is detrimental; the need to consider
-      larger numbers of nodes for each eviction may delay the completion
-      of a given database operation, which will impact the response time
-      of the application thread.
+      However, don't set it too high. When considering larger numbers of
+      nodes for each eviction, the evictor may delay the completion of a
+      given database operation, which impacts the response time of the
+      application thread. In JE 4.1 and later, setting this value too high
+      in an application that is largely CPU bound can reduce the
+      effectiveness of cache eviction. It's best to start with the default
+      value, and increase it gradually to see if it is beneficial for your
+      application.
     </adm:description>
     <adm:requires-admin-action>
       <adm:component-restart />
