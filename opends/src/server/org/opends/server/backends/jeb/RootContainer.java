@@ -633,7 +633,7 @@ public class RootContainer
    * Get the total number of entries in this root container.
    *
    * @return The number of entries in this root container
-   * @throws DatabaseException If an error occurs while retriving the entry
+   * @throws DatabaseException If an error occurs while retrieving the entry
    *                           count.
    */
   public long getEntryCount() throws DatabaseException
