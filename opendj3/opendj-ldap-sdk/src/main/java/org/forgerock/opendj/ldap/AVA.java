@@ -825,6 +825,21 @@ public final class AVA implements Comparable<AVA>
 
 
   /**
+   * Returns a single valued attribute having the same attribute type and value
+   * as this AVA.
+   *
+   * @return A single valued attribute having the same attribute type and value
+   *         as this AVA.
+   */
+  public Attribute toAttribute()
+  {
+    AttributeDescription ad = AttributeDescription.create(attributeType);
+    return new LinkedAttribute(ad, attributeValue);
+  }
+
+
+
+  /**
    * {@inheritDoc}
    */
   @Override

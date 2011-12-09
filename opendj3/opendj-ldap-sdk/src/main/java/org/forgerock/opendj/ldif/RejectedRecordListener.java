@@ -38,6 +38,8 @@ import org.forgerock.opendj.ldap.DecodeException;
 /**
  * A listener interface which is notified whenever records are skipped,
  * malformed, or fail schema validation.
+ * <p>
+ * By default the {@link #FAIL_FAST} listener is used.
  */
 public interface RejectedRecordListener
 {
@@ -72,20 +74,66 @@ public interface RejectedRecordListener
 
 
     @Override
+    public void handleSchemaValidationWarning(final long lineNumber,
+        final List<String> ldifRecord, final List<LocalizableMessage> reasons)
+        throws DecodeException
+    {
+      // Ignore schema validation warnings.
+    }
+
+
+
+    @Override
     public void handleSkippedRecord(final long lineNumber,
         final List<String> ldifRecord, final LocalizableMessage reason)
         throws DecodeException
     {
       // Ignore skipped records.
     }
+  };
+
+  /**
+   * A handler which ignores all rejected record notifications.
+   */
+  public static final RejectedRecordListener IGNORE_ALL = new RejectedRecordListener()
+  {
+
+    @Override
+    public void handleMalformedRecord(final long lineNumber,
+        final List<String> ldifRecord, final LocalizableMessage reason)
+        throws DecodeException
+    {
+      // Ignore malformed records.
+    }
 
 
 
-    public void handleSchemaValidationWarning(long lineNumber,
-        List<String> ldifRecord, List<LocalizableMessage> reasons)
+    @Override
+    public void handleSchemaValidationFailure(final long lineNumber,
+        final List<String> ldifRecord, final List<LocalizableMessage> reasons)
+        throws DecodeException
+    {
+      // Ignore schema validation failures.
+    }
+
+
+
+    @Override
+    public void handleSchemaValidationWarning(final long lineNumber,
+        final List<String> ldifRecord, final List<LocalizableMessage> reasons)
         throws DecodeException
     {
       // Ignore schema validation warnings.
+    }
+
+
+
+    @Override
+    public void handleSkippedRecord(final long lineNumber,
+        final List<String> ldifRecord, final LocalizableMessage reason)
+        throws DecodeException
+    {
+      // Ignore skipped records.
     }
   };
 
@@ -131,11 +179,12 @@ public interface RejectedRecordListener
 
 
   /**
-   * Invoked when a record was not rejected but contained one or more schema validation warnings.
+   * Invoked when a record was not rejected but contained one or more schema
+   * validation warnings.
    *
    * @param lineNumber
-   *          The line number within the source location in which the
-   *          record is located, if known, otherwise {@code -1}.
+   *          The line number within the source location in which the record is
+   *          located, if known, otherwise {@code -1}.
    * @param ldifRecord
    *          An LDIF representation of the record which contained schema
    *          validation warnings.
