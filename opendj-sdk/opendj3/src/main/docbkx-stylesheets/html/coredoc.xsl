@@ -56,6 +56,10 @@ version="1.0">
  <xsl:param name="toc.max.depth" select="1" />
  <xsl:param name="generate.meta.abstract" select="1" />
  
+ <xsl:param name="default.table.frame">none</xsl:param>
+ <xsl:param name="default.table.rules">none</xsl:param>
+ <xsl:param name="table.cell.border.thickness">0pt</xsl:param>
+
  <xsl:template match="xslthl:keyword" mode="xslthl">
    <strong class="hl-keyword">
      <xsl:apply-templates mode="xslthl"/>

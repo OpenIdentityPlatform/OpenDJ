@@ -517,7 +517,7 @@ debugsearchindex: filter=(uid=*)[NOT-INDEXED] scope=wholeSubtree[COUNT:160]
   <para>When you first install OpenDJ directory server and import your
   data from LDIF, the following indexes are configured.</para>
   
-  <table rowheader="firstcol">
+  <table pgwide="1" rules="none">
    <title>Default Indexes</title>
    <tgroup cols="7">
    <colspec colnum="2" colname="c2" />
