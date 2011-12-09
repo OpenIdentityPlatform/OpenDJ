@@ -29,10 +29,7 @@ package org.forgerock.opendj.ldif;
 
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 
 import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.requests.*;
@@ -45,10 +42,70 @@ import org.forgerock.opendj.ldap.requests.*;
  */
 public final class LDIF
 {
+  // @formatter:off
+  private static final class EntryIteratorReader implements EntryReader
+  {
+    private final Iterator<Entry> iterator;
+    private EntryIteratorReader(final Iterator<Entry> iterator)
+                             { this.iterator = iterator; }
+    public void close()      { }
+    public boolean hasNext() { return iterator.hasNext(); }
+    public Entry readEntry() { return iterator.next(); }
+  }
+  // @formatter:on
+
+  /**
+   * Copies the content of {@code input} to {@code output}. This method does not
+   * close {@code input} or {@code output}.
+   *
+   * @param input
+   *          The input change record reader.
+   * @param output
+   *          The output change record reader.
+   * @return The output change record reader.
+   * @throws IOException
+   *           If an unexpected IO error occurred.
+   */
+  public static final ChangeRecordWriter copyTo(final ChangeRecordReader input,
+      final ChangeRecordWriter output) throws IOException
+  {
+    while (input.hasNext())
+    {
+      output.writeChangeRecord(input.readChangeRecord());
+    }
+    return output;
+  }
+
+
+
+  /**
+   * Copies the content of {@code input} to {@code output}. This method does not
+   * close {@code input} or {@code output}.
+   *
+   * @param input
+   *          The input entry reader.
+   * @param output
+   *          The output entry reader.
+   * @return The output entry reader.
+   * @throws IOException
+   *           If an unexpected IO error occurred.
+   */
+  public static final EntryWriter copyTo(final EntryReader input,
+      final EntryWriter output) throws IOException
+  {
+    while (input.hasNext())
+    {
+      output.writeEntry(input.readEntry());
+    }
+    return output;
+  }
+
+
+
   /**
    * Compares the content of {@code source} to the content of {@code target} and
-   * writes the differences to {@code output}. This method does not close the
-   * provided readers and writer.
+   * returns the differences in a change record reader. Closing the returned
+   * reader will cause {@code source} and {@code target} to be closed as well.
    * <p>
    * <b>NOTE:</b> this method reads the content of {@code source} and
    * {@code target} into memory before calculating the differences, and is
@@ -59,75 +116,151 @@ public final class LDIF
    *          The entry reader containing the source entries to be compared.
    * @param target
    *          The entry reader containing the target entries to be compared.
-   * @param output
-   *          The change record writer to which the differences are to be
-   *          written.
+   * @return A change record reader containing the differences.
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  public static void diff(final EntryReader source, final EntryReader target,
-      final ChangeRecordWriter output) throws IOException
+  public static ChangeRecordReader diff(final EntryReader source,
+      final EntryReader target) throws IOException
   {
     final SortedMap<DN, Entry> sourceEntries = readEntries(source);
     final SortedMap<DN, Entry> targetEntries = readEntries(target);
     final Iterator<Entry> sourceIterator = sourceEntries.values().iterator();
     final Iterator<Entry> targetIterator = targetEntries.values().iterator();
 
-    Entry sourceEntry = nextEntry(sourceIterator);
-    Entry targetEntry = nextEntry(targetIterator);
-
-    while (sourceEntry != null && targetEntry != null)
+    return new ChangeRecordReader()
     {
-      final DN sourceDN = sourceEntry.getName();
-      final DN targetDN = targetEntry.getName();
-      final int cmp = sourceDN.compareTo(targetDN);
+      private Entry sourceEntry = nextEntry(sourceIterator);
+      private Entry targetEntry = nextEntry(targetIterator);
 
-      if (cmp == 0)
-      {
-        // Modify record: entry in both source and target.
-        output.writeChangeRecord(Requests.newModifyRequest(sourceEntry,
-            targetEntry));
-        sourceEntry = nextEntry(sourceIterator);
-        targetEntry = nextEntry(targetIterator);
-      }
-      else if (cmp < 0)
-      {
-        // Delete record: entry in source but not in target.
-        output.writeChangeRecord(Requests.newDeleteRequest(sourceEntry
-            .getName()));
-        sourceEntry = nextEntry(sourceIterator);
-      }
-      else
-      {
-        // Add record: entry in target but not in source.
-        output.writeChangeRecord(Requests.newAddRequest(targetEntry));
-        targetEntry = nextEntry(targetIterator);
-      }
-    }
 
-    // Delete remaining source records.
-    while (sourceEntry != null)
-    {
-      output
-          .writeChangeRecord(Requests.newDeleteRequest(sourceEntry.getName()));
-      sourceEntry = nextEntry(sourceIterator);
-    }
 
-    // Add remaining target records.
-    while (targetEntry != null)
-    {
-      output.writeChangeRecord(Requests.newAddRequest(targetEntry));
-      targetEntry = nextEntry(targetIterator);
-    }
+      @Override
+      public void close() throws IOException
+      {
+        try
+        {
+          source.close();
+        }
+        finally
+        {
+          target.close();
+        }
+      }
+
+
+
+      @Override
+      public boolean hasNext()
+      {
+        return (sourceEntry != null || targetEntry != null);
+      }
+
+
+
+      @Override
+      public ChangeRecord readChangeRecord() throws IOException,
+          NoSuchElementException
+      {
+        if (sourceEntry != null && targetEntry != null)
+        {
+          final DN sourceDN = sourceEntry.getName();
+          final DN targetDN = targetEntry.getName();
+          final int cmp = sourceDN.compareTo(targetDN);
+
+          if (cmp == 0)
+          {
+            // Modify record: entry in both source and target.
+            final ModifyRequest request = Requests.newModifyRequest(
+                sourceEntry, targetEntry);
+            sourceEntry = nextEntry(sourceIterator);
+            targetEntry = nextEntry(targetIterator);
+            return request;
+          }
+          else if (cmp < 0)
+          {
+            // Delete record: entry in source but not in target.
+            final DeleteRequest request = Requests.newDeleteRequest(sourceEntry
+                .getName());
+            sourceEntry = nextEntry(sourceIterator);
+            return request;
+          }
+          else
+          {
+            // Add record: entry in target but not in source.
+            final AddRequest request = Requests.newAddRequest(targetEntry);
+            targetEntry = nextEntry(targetIterator);
+            return request;
+          }
+        }
+        else if (sourceEntry != null)
+        {
+          // Delete remaining source records.
+          final DeleteRequest request = Requests.newDeleteRequest(sourceEntry
+              .getName());
+          sourceEntry = nextEntry(sourceIterator);
+          return request;
+        }
+        else if (targetEntry != null)
+        {
+          // Add remaining target records.
+          final AddRequest request = Requests.newAddRequest(targetEntry);
+          targetEntry = nextEntry(targetIterator);
+          return request;
+        }
+        else
+        {
+          throw new NoSuchElementException();
+        }
+      }
+
+
+
+      private Entry nextEntry(final Iterator<Entry> i)
+      {
+        return i.hasNext() ? i.next() : null;
+      }
+    };
+
+  }
+
+
+
+  /**
+   * Returns an entry reader over the provided entry collection.
+   *
+   * @param entries
+   *          The entry collection.
+   * @return An entry reader over the provided entry collection.
+   */
+  public static EntryReader newEntryCollectionReader(
+      final Collection<Entry> entries)
+  {
+    return new EntryIteratorReader(entries.iterator());
+  }
+
+
+
+  /**
+   * Returns an entry reader over the provided entry iterator.
+   *
+   * @param entries
+   *          The entry iterator.
+   * @return An entry reader over the provided entry iterator.
+   */
+  public static EntryReader newEntryIteratorReader(final Iterator<Entry> entries)
+  {
+    return new EntryIteratorReader(entries);
   }
 
 
 
   /**
    * Applies the set of changes contained in {@code patch} to the content of
-   * {@code input} and writes the result to {@code output}, while ignoring
-   * missing entries, and overwriting existing entries. This method does not
-   * close the provided readers and writer.
+   * {@code input} and returns the result in an entry reader. This method
+   * ignores missing entries, and overwrites existing entries. Closing the
+   * returned reader will cause {@code input} and {@code patch} to be closed as
+   * well.
    * <p>
    * <b>NOTE:</b> this method reads the content of {@code input} into memory
    * before applying the changes, and is therefore not suited for use in cases
@@ -138,24 +271,23 @@ public final class LDIF
    * @param patch
    *          The change record reader containing the set of changes to be
    *          applied.
-   * @param output
-   *          The entry writer to which the updated entries are to be written.
+   * @return An entry reader containing the patched entries.
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  public static void patch(final EntryReader input,
-      final ChangeRecordReader patch, final EntryWriter output)
-      throws IOException
+  public static EntryReader patch(final EntryReader input,
+      final ChangeRecordReader patch) throws IOException
   {
-    patch(input, patch, output, RejectedChangeListener.OVERWRITE);
+    return patch(input, patch, RejectedChangeListener.OVERWRITE);
   }
 
 
 
   /**
    * Applies the set of changes contained in {@code patch} to the content of
-   * {@code input} and writes the result to {@code output}. This method does not
-   * close the provided readers and writer.
+   * {@code input} and returns the result in an entry reader. Closing the
+   * returned reader will cause {@code input} and {@code patch} to be closed as
+   * well.
    * <p>
    * <b>NOTE:</b> this method reads the content of {@code input} into memory
    * before applying the changes, and is therefore not suited for use in cases
@@ -166,16 +298,15 @@ public final class LDIF
    * @param patch
    *          The change record reader containing the set of changes to be
    *          applied.
-   * @param output
-   *          The entry writer to which the updated entries are to be written.
    * @param listener
    *          The rejected change listener.
+   * @return An entry reader containing the patched entries.
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  public static void patch(final EntryReader input,
-      final ChangeRecordReader patch, final EntryWriter output,
-      final RejectedChangeListener listener) throws IOException
+  public static EntryReader patch(final EntryReader input,
+      final ChangeRecordReader patch, final RejectedChangeListener listener)
+      throws IOException
   {
     final SortedMap<DN, Entry> entries = readEntries(input);
 
@@ -381,17 +512,41 @@ public final class LDIF
       }
     }
 
-    for (final Entry entry : entries.values())
+    return new EntryReader()
     {
-      output.writeEntry(entry);
-    }
-  }
+      private final Iterator<Entry> iterator = entries.values().iterator();
 
 
 
-  private static Entry nextEntry(final Iterator<Entry> i)
-  {
-    return i.hasNext() ? i.next() : null;
+      @Override
+      public void close() throws IOException
+      {
+        try
+        {
+          input.close();
+        }
+        finally
+        {
+          patch.close();
+        }
+      }
+
+
+
+      @Override
+      public boolean hasNext() throws IOException
+      {
+        return iterator.hasNext();
+      }
+
+
+
+      @Override
+      public Entry readEntry() throws IOException, NoSuchElementException
+      {
+        return iterator.next();
+      }
+    };
   }
 
 
