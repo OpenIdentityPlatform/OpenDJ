@@ -374,12 +374,18 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
   /**
    * Returns a DN which is an immediate child of this DN and having the
    * specified RDN.
+   * <p>
+   * <b>Note:</b> the child DN whose RDN is {@link RDN#maxValue()} compares
+   * greater than all other possible child DNs, and may be used to construct
+   * range queries against DN keyed sorted collections such as {@code SortedSet}
+   * and {@code SortedMap}.
    *
    * @param rdn
    *          The RDN for the child DN.
    * @return The child DN.
    * @throws NullPointerException
    *           If {@code rdn} was {@code null}.
+   * @see RDN#maxValue()
    */
   public DN child(final RDN rdn) throws NullPointerException
   {

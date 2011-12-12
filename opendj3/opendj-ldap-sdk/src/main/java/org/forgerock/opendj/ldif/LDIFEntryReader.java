@@ -364,17 +364,17 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
 
 
   /**
-   * Sets the rejected record listener which should be notified whenever a
+   * Sets the rejected record listener which should be notified whenever an LDIF
    * record is skipped, malformed, or fails schema validation.
    * <p>
-   * By default the {@link RejectedRecordListener#FAIL_FAST} listener is used.
+   * By default the {@link RejectedLDIFListener#FAIL_FAST} listener is used.
    *
    * @param listener
    *          The rejected record listener.
    * @return A reference to this {@code LDIFEntryReader}.
    */
-  public LDIFEntryReader setRejectedRecordListener(
-      final RejectedRecordListener listener)
+  public LDIFEntryReader setRejectedLDIFListener(
+      final RejectedLDIFListener listener)
   {
     this.rejectedRecordListener = listener;
     return this;

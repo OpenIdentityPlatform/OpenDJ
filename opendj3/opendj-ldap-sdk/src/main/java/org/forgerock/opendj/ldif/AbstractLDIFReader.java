@@ -230,7 +230,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream
 
 
 
-  RejectedRecordListener rejectedRecordListener = RejectedRecordListener.FAIL_FAST;
+  RejectedLDIFListener rejectedRecordListener = RejectedLDIFListener.FAIL_FAST;
 
   Schema schema = Schema.getDefaultSchema().asNonStrictSchema();
 

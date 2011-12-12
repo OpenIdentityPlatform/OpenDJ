@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -75,6 +76,38 @@ import com.forgerock.opendj.util.SubstringReader;
  */
 public final class RDN implements Iterable<AVA>, Comparable<RDN>
 {
+
+  // A constant holding a special RDN having zero AVAs and which always compares
+  // greater than any other RDN other than itself.
+  private static final RDN MAX_VALUE = new RDN(new AVA[0], "");
+
+
+
+  /**
+   * Returns a constant containing a special RDN which is greater than any other
+   * RDN other than itself. This RDN may be used in order to perform range
+   * queries on DN keyed collections such as {@code SortedSet}s and
+   * {@code SortedMap}s. For example, the following code can be used to
+   * construct a range whose contents is a sub-tree of entries:
+   *
+   * <pre>
+   * SortedMap<DN, Entry> entries = ...;
+   * DN baseDN = ...;
+   *
+   * // Returns a map containing the baseDN and all of its subordinates.
+   * SortedMap<DN,Entry> subtree = entries.subMap(baseDN, baseDN.child(RDN.maxValue));
+   * </pre>
+   *
+   * @return A constant containing a special RDN which is greater than any other
+   *         RDN other than itself.
+   */
+  public static RDN maxValue()
+  {
+    return MAX_VALUE;
+  }
+
+
+
   /**
    * Parses the provided LDAP string representation of an RDN using the default
    * schema.
@@ -235,14 +268,32 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN>
    */
   public int compareTo(final RDN rdn)
   {
+    // Identity.
+    if (this == rdn)
+    {
+      return 0;
+    }
+
+    // MAX_VALUE is always greater than any other RDN other than itself.
+    if (this == MAX_VALUE)
+    {
+      return 1;
+    }
+
+    if (rdn == MAX_VALUE)
+    {
+      return -1;
+    }
+
+    // Compare number of AVAs first as this is quick and easy.
     final int sz1 = avas.length;
     final int sz2 = rdn.avas.length;
-
     if (sz1 != sz2)
     {
       return sz1 - sz2 > 0 ? 1 : -1;
     }
 
+    // Fast path for common case.
     if (sz1 == 1)
     {
       return avas[0].compareTo(rdn.avas[0]);

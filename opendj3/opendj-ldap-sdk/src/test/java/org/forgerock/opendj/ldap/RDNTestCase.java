@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -149,6 +150,7 @@ public final class RDNTestCase extends TypesTestCase
   @DataProvider(name = "createRDNEqualityData")
   public Object[][] createRDNEqualityData()
   {
+    // @formatter:off
     return new Object[][] {
         { "cn=hello world", "cn=hello world", 0 },
         { "cn=hello world", "CN=hello world", 0 },
@@ -168,10 +170,19 @@ public final class RDNTestCase extends TypesTestCase
         // { "x-test-integer-type=999", "x-test-integer-type=1000", -1 },
         // { "x-test-integer-type=-1", "x-test-integer-type=0", -1 },
         // { "x-test-integer-type=0", "x-test-integer-type=-1", 1 },
-        { "cn=aaa", "cn=aaaa", -1 }, { "cn=AAA", "cn=aaaa", -1 },
-        { "cn=aaa", "cn=AAAA", -1 }, { "cn=aaaa", "cn=aaa", 1 },
-        { "cn=AAAA", "cn=aaa", 1 }, { "cn=aaaa", "cn=AAA", 1 },
-        { "cn=aaab", "cn=aaaa", 1 }, { "cn=aaaa", "cn=aaab", -1 } };
+        { "cn=aaa", "cn=aaaa", -1 },
+        { "cn=AAA", "cn=aaaa", -1 },
+        { "cn=aaa", "cn=AAAA", -1 },
+        { "cn=aaaa", "cn=aaa", 1 },
+        { "cn=AAAA", "cn=aaa", 1 },
+        { "cn=aaaa", "cn=AAA", 1 },
+        { "cn=aaab", "cn=aaaa", 1 },
+        { "cn=aaaa", "cn=aaab", -1 },
+        { RDN.maxValue(), RDN.maxValue(), 0 },
+        { RDN.maxValue(), "cn=aaa", 1 },
+        { "cn=aaa", RDN.maxValue(), -1 },
+    };
+    // @formatter:on
   }
 
 
@@ -206,11 +217,11 @@ public final class RDNTestCase extends TypesTestCase
    *           If the test failed unexpectedly.
    */
   @Test(dataProvider = "createRDNEqualityData")
-  public void testCompareTo(final String first, final String second,
+  public void testCompareTo(final Object first, final Object second,
       final int result) throws Exception
   {
-    final RDN rdn1 = RDN.valueOf(first);
-    final RDN rdn2 = RDN.valueOf(second);
+    final RDN rdn1 = parseRDN(first);
+    final RDN rdn2 = parseRDN(second);
 
     int rc = rdn1.compareTo(rdn2);
 
@@ -226,6 +237,13 @@ public final class RDNTestCase extends TypesTestCase
 
     assertEquals(rc, result, "Comparison for <" + first + "> and <" + second
         + ">.");
+  }
+
+
+
+  private RDN parseRDN(final Object value)
+  {
+    return (value instanceof RDN) ? ((RDN) value) : RDN.valueOf(value.toString());
   }
 
 
@@ -362,11 +380,11 @@ public final class RDNTestCase extends TypesTestCase
    *           If the test failed unexpectedly.
    */
   @Test(dataProvider = "createRDNEqualityData")
-  public void testEquality(final String first, final String second,
+  public void testEquality(final Object first, final Object second,
       final int result) throws Exception
   {
-    final RDN rdn1 = RDN.valueOf(first);
-    final RDN rdn2 = RDN.valueOf(second);
+    final RDN rdn1 = parseRDN(first);
+    final RDN rdn2 = parseRDN(second);
 
     if (result == 0)
     {
@@ -448,11 +466,11 @@ public final class RDNTestCase extends TypesTestCase
    *           If the test failed unexpectedly.
    */
   @Test(dataProvider = "createRDNEqualityData")
-  public void testHashCode(final String first, final String second,
+  public void testHashCode(final Object first, final Object second,
       final int result) throws Exception
   {
-    final RDN rdn1 = RDN.valueOf(first);
-    final RDN rdn2 = RDN.valueOf(second);
+    final RDN rdn1 = parseRDN(first);
+    final RDN rdn2 = parseRDN(second);
 
     final int h1 = rdn1.hashCode();
     final int h2 = rdn2.hashCode();
