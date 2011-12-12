@@ -199,6 +199,7 @@ ds-cfg-db-evictor-core-threads: 1
 ds-cfg-db-evictor-max-threads: 10
 ds-cfg-db-evictor-keep-alive: 600 seconds
 ds-cfg-db-log-file-max: 10 megabytes
+ds-cfg-db-log-filecache-size: 100
 ds-cfg-db-logging-file-handler-on: true
 ds-cfg-db-logging-level: CONFIG
 ds-cfg-db-checkpointer-bytes-interval: 20 megabytes

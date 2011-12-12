@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010 ForgeRock AS.
+ *      Portions Copyright 2010-2011 ForgeRock AS.
  */
 package org.opends.server.backends.jeb;
 
@@ -201,6 +201,13 @@ public class ConfigurableEnvironment
    */
   public static final String ATTR_NUM_CLEANER_THREADS =
        ConfigConstants.NAME_PREFIX_CFG + "db-num-cleaner-threads";
+
+  /**
+   * The name of the attribute which configures the size of the file
+   * handle cache.
+   */
+  public static final String ATTR_LOG_FILECACHE_SIZE =
+       ConfigConstants.NAME_PREFIX_CFG + "db-log-filecache-size";
 
 
   /**
@@ -405,6 +412,7 @@ public class ConfigurableEnvironment
                    ATTR_CHECKPOINTER_WAKEUP_INTERVAL);
       registerProp("je.lock.nLockTables", ATTR_NUM_LOCK_TABLES);
       registerProp("je.cleaner.threads", ATTR_NUM_CLEANER_THREADS);
+      registerProp("je.log.fileCacheSize", ATTR_LOG_FILECACHE_SIZE);
     }
     catch (Exception e)
     {
