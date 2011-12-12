@@ -1289,7 +1289,7 @@ public class AttributeIndex
       if (filter.getSubInitialElement() != null)
       {
         // Use the equality index for initial substrings if possible.
-        if (equalityIndex != null)
+        if ((equalityIndex != null) && (matchRule != null))
         {
           ByteString normValue =
                matchRule.normalizeSubstring(filter.getSubInitialElement());
