@@ -663,6 +663,36 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
+  <adm:property name="db-log-filecache-size" advanced="true">
+    <adm:synopsis>
+      Specifies the size of the file handle cache.
+    </adm:synopsis>
+    <adm:description>
+      The file handle cache is used to keep as much opened log files
+      as possible. When the cache is smaller than the number of logs,
+      the database needs to close some handles and open log files it needs,
+      resulting in less optimal performances. Ideally, the size of the cache
+      should be higher than the number of files contained in the database.
+      Make sure the OS number of open files per process is also tuned
+      appropriately.
+    </adm:description>
+    <adm:requires-admin-action>
+      <adm:component-restart />
+    </adm:requires-admin-action>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>100</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:integer lower-limit="3" upper-limit="2147483647" />
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-db-log-filecache-size</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
   <adm:property name="db-logging-file-handler-on" advanced="true">
     <adm:synopsis>
       Indicates whether the database should maintain a je.info file in
