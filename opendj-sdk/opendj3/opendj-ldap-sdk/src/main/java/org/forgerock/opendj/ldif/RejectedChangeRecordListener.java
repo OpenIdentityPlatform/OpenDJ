@@ -30,6 +30,7 @@ package org.forgerock.opendj.ldif;
 
 import static org.forgerock.opendj.ldap.CoreMessages.*;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.requests.AddRequest;
@@ -46,16 +47,15 @@ import org.forgerock.opendj.ldap.requests.ModifyRequest;
  * <p>
  * By default the {@link #FAIL_FAST} listener is used.
  */
-public interface RejectedChangeListener
+public interface RejectedChangeRecordListener
 {
   /**
    * A handler which terminates processing by throwing a {@code DecodeException}
    * as soon as a change is rejected.
    */
-  public final static RejectedChangeListener FAIL_FAST = new RejectedChangeListener()
+  public final static RejectedChangeRecordListener FAIL_FAST = new RejectedChangeRecordListener()
   {
 
-    @Override
     public Entry handleDuplicateEntry(final AddRequest change,
         final Entry existingEntry) throws DecodeException
     {
@@ -65,7 +65,6 @@ public interface RejectedChangeListener
 
 
 
-    @Override
     public Entry handleDuplicateEntry(final ModifyDNRequest change,
         final Entry existingEntry, final Entry renamedEntry)
         throws DecodeException
@@ -76,33 +75,36 @@ public interface RejectedChangeListener
 
 
 
-    @Override
-    public void handleMissingEntry(final DeleteRequest change)
-        throws DecodeException
+    public void handleRejectedChangeRecord(final AddRequest change,
+        final LocalizableMessage reason) throws DecodeException
     {
-      throw DecodeException.error(REJECTED_CHANGE_FAIL_DELETE.get(change
-          .getName().toString()));
+      throw DecodeException.error(reason);
     }
 
 
 
-    @Override
-    public void handleMissingEntry(final ModifyDNRequest change)
-        throws DecodeException
+    public void handleRejectedChangeRecord(final DeleteRequest change,
+        final LocalizableMessage reason) throws DecodeException
     {
-      throw DecodeException.error(REJECTED_CHANGE_FAIL_MODIFYDN.get(change
-          .getName().toString()));
+      throw DecodeException.error(reason);
     }
 
 
 
-    @Override
-    public void handleMissingEntry(final ModifyRequest change)
-        throws DecodeException
+    public void handleRejectedChangeRecord(final ModifyRequest change,
+        final LocalizableMessage reason) throws DecodeException
     {
-      throw DecodeException.error(REJECTED_CHANGE_FAIL_MODIFY.get(change
-          .getName().toString()));
+      throw DecodeException.error(reason);
     }
+
+
+
+    public void handleRejectedChangeRecord(final ModifyDNRequest change,
+        final LocalizableMessage reason) throws DecodeException
+    {
+      throw DecodeException.error(reason);
+    }
+
   };
 
   /**
@@ -110,10 +112,9 @@ public interface RejectedChangeListener
    * tolerates duplicate entries by overwriting the existing entry with the new
    * entry.
    */
-  public final static RejectedChangeListener OVERWRITE = new RejectedChangeListener()
+  public final static RejectedChangeRecordListener OVERWRITE = new RejectedChangeRecordListener()
   {
 
-    @Override
     public Entry handleDuplicateEntry(final AddRequest change,
         final Entry existingEntry) throws DecodeException
     {
@@ -123,7 +124,6 @@ public interface RejectedChangeListener
 
 
 
-    @Override
     public Entry handleDuplicateEntry(final ModifyDNRequest change,
         final Entry existingEntry, final Entry renamedEntry)
         throws DecodeException
@@ -134,30 +134,36 @@ public interface RejectedChangeListener
 
 
 
-    @Override
-    public void handleMissingEntry(final DeleteRequest change)
-        throws DecodeException
+    public void handleRejectedChangeRecord(AddRequest change,
+        LocalizableMessage reason) throws DecodeException
     {
-      // Ignore changes applied to missing entries.
+      // Ignore.
     }
 
 
 
-    @Override
-    public void handleMissingEntry(final ModifyDNRequest change)
-        throws DecodeException
+    public void handleRejectedChangeRecord(DeleteRequest change,
+        LocalizableMessage reason) throws DecodeException
     {
-      // Ignore changes applied to missing entries.
+      // Ignore.
     }
 
 
 
-    @Override
-    public void handleMissingEntry(final ModifyRequest change)
-        throws DecodeException
+    public void handleRejectedChangeRecord(ModifyRequest change,
+        LocalizableMessage reason) throws DecodeException
     {
-      // Ignore changes applied to missing entries.
+      // Ignore.
     }
+
+
+
+    public void handleRejectedChangeRecord(ModifyDNRequest change,
+        LocalizableMessage reason) throws DecodeException
+    {
+      // Ignore.
+    }
+
   };
 
 
@@ -197,37 +203,73 @@ public interface RejectedChangeListener
 
 
   /**
-   * Invoked when an attempt was made to delete an entry which does not exist.
+   * Invoked when an attempt to add an entry was rejected. This may be because
+   * the target parent entry was not found, or controls provided with the
+   * request are not supported. This method will not be called when the entry to
+   * be added already exists, since this is handled by
+   * {@link #handleDuplicateEntry(AddRequest, Entry)}.
    *
    * @param change
-   *          The conflicting delete request.
+   *          The rejected add request.
+   * @param reason
+   *          The reason why the record was rejected.
    * @throws DecodeException
    *           If processing should terminate.
    */
-  void handleMissingEntry(DeleteRequest change) throws DecodeException;
+  void handleRejectedChangeRecord(AddRequest change, LocalizableMessage reason)
+      throws DecodeException;
 
 
 
   /**
-   * Invoked when an attempt was made to rename an entry which does not exist.
+   * Invoked when an attempt to delete an entry was rejected. This may be
+   * because the target entry was not found, or controls provided with the
+   * request are not supported.
    *
    * @param change
-   *          The conflicting rename request.
+   *          The rejected delete request.
+   * @param reason
+   *          The reason why the record was rejected.
    * @throws DecodeException
    *           If processing should terminate.
    */
-  void handleMissingEntry(ModifyDNRequest change) throws DecodeException;
+  void handleRejectedChangeRecord(DeleteRequest change,
+      LocalizableMessage reason) throws DecodeException;
 
 
 
   /**
-   * Invoked when an attempt was made to modify an entry which does not exist.
+   * Invoked when an attempt to modify an entry was rejected. This may be
+   * because the target entry was not found, or controls provided with the
+   * request are not supported.
    *
    * @param change
-   *          The conflicting modify request.
+   *          The rejected modify request.
+   * @param reason
+   *          The reason why the record was rejected.
    * @throws DecodeException
    *           If processing should terminate.
    */
-  void handleMissingEntry(ModifyRequest change) throws DecodeException;
+  void handleRejectedChangeRecord(ModifyRequest change,
+      LocalizableMessage reason) throws DecodeException;
+
+
+
+  /**
+   * Invoked when an attempt to rename an entry was rejected. This may be
+   * because the target entry was not found, or controls provided with the
+   * request are not supported. This method will not be called when a renamed
+   * entry already exists, since this is handled by
+   * {@link #handleDuplicateEntry(ModifyDNRequest, Entry, Entry)}.
+   *
+   * @param change
+   *          The rejected modify DN request.
+   * @param reason
+   *          The reason why the record was rejected.
+   * @throws DecodeException
+   *           If processing should terminate.
+   */
+  void handleRejectedChangeRecord(ModifyDNRequest change,
+      LocalizableMessage reason) throws DecodeException;
 
 }

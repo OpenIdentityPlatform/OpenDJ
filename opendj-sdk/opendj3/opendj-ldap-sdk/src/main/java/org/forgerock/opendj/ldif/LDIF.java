@@ -28,11 +28,18 @@ package org.forgerock.opendj.ldif;
 
 
 
+import static org.forgerock.opendj.ldap.CoreMessages.REJECTED_CHANGE_FAIL_DELETE;
+import static org.forgerock.opendj.ldap.CoreMessages.REJECTED_CHANGE_FAIL_MODIFY;
+import static org.forgerock.opendj.ldap.CoreMessages.REJECTED_CHANGE_FAIL_MODIFYDN;
+
 import java.io.IOException;
 import java.util.*;
 
 import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.controls.SubtreeDeleteRequestControl;
 import org.forgerock.opendj.ldap.requests.*;
+import org.forgerock.opendj.ldap.schema.AttributeUsage;
+import org.forgerock.opendj.ldap.schema.Schema;
 
 
 
@@ -66,7 +73,7 @@ public final class LDIF
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  public static final ChangeRecordWriter copyTo(final ChangeRecordReader input,
+  public static ChangeRecordWriter copyTo(final ChangeRecordReader input,
       final ChangeRecordWriter output) throws IOException
   {
     while (input.hasNext())
@@ -90,7 +97,7 @@ public final class LDIF
    * @throws IOException
    *           If an unexpected IO error occurred.
    */
-  public static final EntryWriter copyTo(final EntryReader input,
+  public static EntryWriter copyTo(final EntryReader input,
       final EntryWriter output) throws IOException
   {
     while (input.hasNext())
@@ -278,7 +285,7 @@ public final class LDIF
   public static EntryReader patch(final EntryReader input,
       final ChangeRecordReader patch) throws IOException
   {
-    return patch(input, patch, RejectedChangeListener.OVERWRITE);
+    return patch(input, patch, RejectedChangeRecordListener.OVERWRITE);
   }
 
 
@@ -305,8 +312,8 @@ public final class LDIF
    *           If an unexpected IO error occurred.
    */
   public static EntryReader patch(final EntryReader input,
-      final ChangeRecordReader patch, final RejectedChangeListener listener)
-      throws IOException
+      final ChangeRecordReader patch,
+      final RejectedChangeRecordListener listener) throws IOException
   {
     final SortedMap<DN, Entry> entries = readEntries(input);
 
@@ -353,7 +360,9 @@ public final class LDIF
               {
                 try
                 {
-                  listener.handleMissingEntry(change);
+                  listener.handleRejectedChangeRecord(change,
+                      REJECTED_CHANGE_FAIL_DELETE.get(change.getName()
+                          .toString()));
                 }
                 catch (final DecodeException e)
                 {
@@ -362,7 +371,24 @@ public final class LDIF
               }
               else
               {
-                entries.remove(change.getName());
+                try
+                {
+                  if (change.getControl(SubtreeDeleteRequestControl.DECODER,
+                      new DecodeOptions()) != null)
+                  {
+                    entries.subMap(change.getName(),
+                        change.getName().child(RDN.maxValue())).clear();
+                  }
+                  else
+                  {
+                    entries.remove(change.getName());
+                  }
+                }
+                catch (final DecodeException e)
+                {
+                  return e;
+                }
+
               }
               return null;
             }
@@ -377,7 +403,9 @@ public final class LDIF
               {
                 try
                 {
-                  listener.handleMissingEntry(change);
+                  listener.handleRejectedChangeRecord(change,
+                      REJECTED_CHANGE_FAIL_MODIFYDN.get(change.getName()
+                          .toString()));
                 }
                 catch (final DecodeException e)
                 {
@@ -404,7 +432,9 @@ public final class LDIF
                 // avoid cases where the renamed subtree overlaps.
                 final SortedMap<DN, Entry> renamedEntries = new TreeMap<DN, Entry>();
                 final Iterator<Map.Entry<DN, Entry>> i = entries
-                    .tailMap(change.getName()).entrySet().iterator();
+                    .subMap(change.getName(),
+                        change.getName().child(RDN.maxValue())).entrySet()
+                    .iterator();
                 while (i.hasNext())
                 {
                   final Map.Entry<DN, Entry> e = i.next();
@@ -466,7 +496,9 @@ public final class LDIF
               {
                 try
                 {
-                  listener.handleMissingEntry(change);
+                  listener.handleRejectedChangeRecord(change,
+                      REJECTED_CHANGE_FAIL_MODIFY.get(change.getName()
+                          .toString()));
                 }
                 catch (final DecodeException e)
                 {
@@ -546,6 +578,201 @@ public final class LDIF
       {
         return iterator.next();
       }
+    };
+  }
+
+
+
+  /**
+   * Returns a filtered view of {@code input} containing only those entries
+   * which match the search base DN, scope, and filtered defined in
+   * {@code search}. In addition, returned entries will be filtered according to
+   * any attribute filtering criteria defined in the search request.
+   * <p>
+   * The filter and attribute descriptions will be decoded using the default
+   * schema.
+   *
+   * @param input
+   *          The entry reader containing the set of entries to be filtered.
+   * @param search
+   *          The search request defining the filtering criteria.
+   * @return A filtered view of {@code input} containing only those entries
+   *         which match the provided search request.
+   */
+  public static EntryReader search(final EntryReader input,
+      final SearchRequest search)
+  {
+    return search(input, search, Schema.getDefaultSchema());
+  }
+
+
+
+  /**
+   * Returns a filtered view of {@code input} containing only those entries
+   * which match the search base DN, scope, and filtered defined in
+   * {@code search}. In addition, returned entries will be filtered according to
+   * any attribute filtering criteria defined in the search request.
+   * <p>
+   * The filter and attribute descriptions will be decoded using the provided
+   * schema.
+   *
+   * @param input
+   *          The entry reader containing the set of entries to be filtered.
+   * @param search
+   *          The search request defining the filtering criteria.
+   * @param schema
+   *          The schema which should be used to decode the search filter and
+   *          attribute descriptions.
+   * @return A filtered view of {@code input} containing only those entries
+   *         which match the provided search request.
+   */
+  public static EntryReader search(final EntryReader input,
+      final SearchRequest search, final Schema schema)
+  {
+    final Matcher matcher = search.getFilter().matcher(schema);
+
+    return new EntryReader()
+    {
+      private Entry nextEntry = null;
+      private int entryCount = 0;
+
+
+
+      public void close() throws IOException
+      {
+        input.close();
+      }
+
+
+
+      public boolean hasNext() throws IOException
+      {
+        if (nextEntry == null)
+        {
+          final int sizeLimit = search.getSizeLimit();
+          if (sizeLimit == 0 || entryCount < sizeLimit)
+          {
+            final DN baseDN = search.getName();
+            final SearchScope scope = search.getScope();
+            while (input.hasNext())
+            {
+              final Entry entry = input.readEntry();
+              if (entry.getName().isInScopeOf(baseDN, scope)
+                  && matcher.matches(entry).toBoolean())
+              {
+                nextEntry = filterEntry(entry);
+                break;
+              }
+            }
+          }
+        }
+        return nextEntry != null;
+      }
+
+
+
+      public Entry readEntry() throws IOException, NoSuchElementException
+      {
+        if (hasNext())
+        {
+          final Entry entry = nextEntry;
+          nextEntry = null;
+          entryCount++;
+          return entry;
+        }
+        else
+        {
+          throw new NoSuchElementException();
+        }
+      }
+
+
+
+      private Entry filterEntry(final Entry entry)
+      {
+        // TODO: rename attributes; move functionality to Entries.
+        if (search.getAttributes().isEmpty())
+        {
+          if (search.isTypesOnly())
+          {
+            final Entry filteredEntry = new LinkedHashMapEntry(entry.getName());
+            for (final Attribute attribute : entry.getAllAttributes())
+            {
+              filteredEntry.addAttribute(Attributes.emptyAttribute(attribute
+                  .getAttributeDescription()));
+            }
+            return filteredEntry;
+          }
+          else
+          {
+            return entry;
+          }
+        }
+        else
+        {
+          final Entry filteredEntry = new LinkedHashMapEntry(entry.getName());
+          for (final String atd : search.getAttributes())
+          {
+            if (atd.equals("*"))
+            {
+              for (final Attribute attribute : entry.getAllAttributes())
+              {
+                if (attribute.getAttributeDescription().getAttributeType()
+                    .getUsage() == AttributeUsage.USER_APPLICATIONS)
+                {
+                  if (search.isTypesOnly())
+                  {
+                    filteredEntry.addAttribute(Attributes
+                        .emptyAttribute(attribute.getAttributeDescription()));
+                  }
+                  else
+                  {
+                    filteredEntry.addAttribute(attribute);
+                  }
+                }
+              }
+            }
+            else if (atd.equals("+"))
+            {
+              for (final Attribute attribute : entry.getAllAttributes())
+              {
+                if (attribute.getAttributeDescription().getAttributeType()
+                    .getUsage() != AttributeUsage.USER_APPLICATIONS)
+                {
+                  if (search.isTypesOnly())
+                  {
+                    filteredEntry.addAttribute(Attributes
+                        .emptyAttribute(attribute.getAttributeDescription()));
+                  }
+                  else
+                  {
+                    filteredEntry.addAttribute(attribute);
+                  }
+                }
+              }
+            }
+            else
+            {
+              final AttributeDescription ad = AttributeDescription.valueOf(atd,
+                  schema);
+              for (final Attribute attribute : entry.getAllAttributes(ad))
+              {
+                if (search.isTypesOnly())
+                {
+                  filteredEntry.addAttribute(Attributes
+                      .emptyAttribute(attribute.getAttributeDescription()));
+                }
+                else
+                {
+                  filteredEntry.addAttribute(attribute);
+                }
+              }
+            }
+          }
+          return filteredEntry;
+        }
+      }
+
     };
   }
 

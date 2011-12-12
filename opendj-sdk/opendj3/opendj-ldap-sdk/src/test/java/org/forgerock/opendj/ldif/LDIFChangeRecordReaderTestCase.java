@@ -342,7 +342,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase
   @Test
   public void testRejectedRecordListenerMalformedFirstRecord() throws Exception
   {
-    RejectedRecordListener listener = mock(RejectedRecordListener.class);
+    RejectedLDIFListener listener = mock(RejectedLDIFListener.class);
 
     // @formatter:off
     LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
@@ -351,7 +351,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase
         "objectClass: top",
         "objectClass: domainComponent",
         "dc: example"
-        ).setRejectedRecordListener(listener);
+        ).setRejectedLDIFListener(listener);
     // @formatter:on
 
     assertThat(reader.hasNext()).isFalse();
@@ -375,7 +375,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase
   public void testRejectedRecordListenerMalformedSecondRecord()
       throws Exception
   {
-    RejectedRecordListener listener = mock(RejectedRecordListener.class);
+    RejectedLDIFListener listener = mock(RejectedLDIFListener.class);
 
     // @formatter:off
     LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
@@ -390,7 +390,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase
         "objectClass: top",
         "objectClass: domainComponent",
         "dc: example"
-        ).setRejectedRecordListener(listener);
+        ).setRejectedLDIFListener(listener);
     // @formatter:on
 
     reader.readChangeRecord(); // Skip good record.
@@ -414,7 +414,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase
   @Test
   public void testRejectedRecordListenerSkipsRecord() throws Exception
   {
-    RejectedRecordListener listener = mock(RejectedRecordListener.class);
+    RejectedLDIFListener listener = mock(RejectedLDIFListener.class);
 
     // @formatter:off
     LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
@@ -423,7 +423,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase
         "objectClass: top",
         "objectClass: domainComponent",
         "dc: example"
-        ).setRejectedRecordListener(listener).setExcludeBranch(DN.valueOf("dc=com"));
+        ).setRejectedLDIFListener(listener).setExcludeBranch(DN.valueOf("dc=com"));
     // @formatter:on
 
     assertThat(reader.hasNext()).isFalse();
@@ -449,7 +449,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase
   public void testRejectedRecordListenerRejectsBadSchemaRecord()
       throws Exception
   {
-    RejectedRecordListener listener = mock(RejectedRecordListener.class);
+    RejectedLDIFListener listener = mock(RejectedLDIFListener.class);
 
     // @formatter:off
     LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
@@ -459,7 +459,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase
         "objectClass: domainComponent",
         "dc: example",
         "xxx: unknown attribute"
-        ).setRejectedRecordListener(listener)
+        ).setRejectedLDIFListener(listener)
          .setSchemaValidationPolicy(
              SchemaValidationPolicy.ignoreAll()
              .checkAttributesAndObjectClasses(Policy.REJECT));
@@ -487,7 +487,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase
   public void testRejectedRecordListenerWarnsBadSchemaRecord()
       throws Exception
   {
-    RejectedRecordListener listener = mock(RejectedRecordListener.class);
+    RejectedLDIFListener listener = mock(RejectedLDIFListener.class);
 
     // @formatter:off
     LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
@@ -497,7 +497,7 @@ public final class LDIFChangeRecordReaderTestCase extends LDIFTestCase
         "objectClass: domainComponent",
         "dc: example",
         "xxx: unknown attribute"
-        ).setRejectedRecordListener(listener)
+        ).setRejectedLDIFListener(listener)
          .setSchemaValidationPolicy(
              SchemaValidationPolicy.ignoreAll()
              .checkAttributesAndObjectClasses(Policy.WARN));

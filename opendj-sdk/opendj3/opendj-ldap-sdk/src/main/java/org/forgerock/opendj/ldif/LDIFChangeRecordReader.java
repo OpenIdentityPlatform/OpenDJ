@@ -336,17 +336,17 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements
 
 
   /**
-   * Sets the rejected record listener which should be notified whenever a
+   * Sets the rejected record listener which should be notified whenever an LDIF
    * record is skipped, malformed, or fails schema validation.
    * <p>
-   * By default the {@link RejectedRecordListener#FAIL_FAST} listener is used.
+   * By default the {@link RejectedLDIFListener#FAIL_FAST} listener is used.
    *
    * @param listener
    *          The rejected record listener.
    * @return A reference to this {@code LDIFChangeRecordReader}.
    */
-  public LDIFChangeRecordReader setRejectedRecordListener(
-      final RejectedRecordListener listener)
+  public LDIFChangeRecordReader setRejectedLDIFListener(
+      final RejectedLDIFListener listener)
   {
     this.rejectedRecordListener = listener;
     return this;
@@ -623,7 +623,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements
         case WARN:
           schemaErrors.add(message);
           continue;
-        default: //Ignore
+        default: // Ignore
           // This should not happen: we should be using a non-strict schema for
           // this policy.
           throw new IllegalStateException(

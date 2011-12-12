@@ -36,24 +36,24 @@ import org.forgerock.opendj.ldap.DecodeException;
 
 
 /**
- * A listener interface which is notified whenever records are skipped,
+ * A listener interface which is notified whenever LDIF records are skipped,
  * malformed, or fail schema validation.
  * <p>
  * By default the {@link #FAIL_FAST} listener is used.
  */
-public interface RejectedRecordListener
+public interface RejectedLDIFListener
 {
   /**
    * The default handler which ignores skipped records but which terminates
    * processing by throwing a {@code DecodeException} as soon as a record is
    * found to be malformed or rejected due to a schema validation failure.
    */
-  public static final RejectedRecordListener FAIL_FAST = new RejectedRecordListener()
+  public static final RejectedLDIFListener FAIL_FAST = new RejectedLDIFListener()
   {
 
     @Override
     public void handleMalformedRecord(final long lineNumber,
-        final List<String> ldifRecord, final LocalizableMessage reason)
+        final List<String> lines, final LocalizableMessage reason)
         throws DecodeException
     {
       // Fail fast.
@@ -64,7 +64,7 @@ public interface RejectedRecordListener
 
     @Override
     public void handleSchemaValidationFailure(final long lineNumber,
-        final List<String> ldifRecord, final List<LocalizableMessage> reasons)
+        final List<String> lines, final List<LocalizableMessage> reasons)
         throws DecodeException
     {
       // Fail fast - just use first message.
@@ -75,7 +75,7 @@ public interface RejectedRecordListener
 
     @Override
     public void handleSchemaValidationWarning(final long lineNumber,
-        final List<String> ldifRecord, final List<LocalizableMessage> reasons)
+        final List<String> lines, final List<LocalizableMessage> reasons)
         throws DecodeException
     {
       // Ignore schema validation warnings.
@@ -85,7 +85,7 @@ public interface RejectedRecordListener
 
     @Override
     public void handleSkippedRecord(final long lineNumber,
-        final List<String> ldifRecord, final LocalizableMessage reason)
+        final List<String> lines, final LocalizableMessage reason)
         throws DecodeException
     {
       // Ignore skipped records.
@@ -95,12 +95,12 @@ public interface RejectedRecordListener
   /**
    * A handler which ignores all rejected record notifications.
    */
-  public static final RejectedRecordListener IGNORE_ALL = new RejectedRecordListener()
+  public static final RejectedLDIFListener IGNORE_ALL = new RejectedLDIFListener()
   {
 
     @Override
     public void handleMalformedRecord(final long lineNumber,
-        final List<String> ldifRecord, final LocalizableMessage reason)
+        final List<String> lines, final LocalizableMessage reason)
         throws DecodeException
     {
       // Ignore malformed records.
@@ -110,7 +110,7 @@ public interface RejectedRecordListener
 
     @Override
     public void handleSchemaValidationFailure(final long lineNumber,
-        final List<String> ldifRecord, final List<LocalizableMessage> reasons)
+        final List<String> lines, final List<LocalizableMessage> reasons)
         throws DecodeException
     {
       // Ignore schema validation failures.
@@ -120,7 +120,7 @@ public interface RejectedRecordListener
 
     @Override
     public void handleSchemaValidationWarning(final long lineNumber,
-        final List<String> ldifRecord, final List<LocalizableMessage> reasons)
+        final List<String> lines, final List<LocalizableMessage> reasons)
         throws DecodeException
     {
       // Ignore schema validation warnings.
@@ -130,7 +130,7 @@ public interface RejectedRecordListener
 
     @Override
     public void handleSkippedRecord(final long lineNumber,
-        final List<String> ldifRecord, final LocalizableMessage reason)
+        final List<String> lines, final LocalizableMessage reason)
         throws DecodeException
     {
       // Ignore skipped records.
@@ -146,14 +146,14 @@ public interface RejectedRecordListener
    * @param lineNumber
    *          The line number within the source location in which the malformed
    *          record is located, if known, otherwise {@code -1}.
-   * @param ldifRecord
-   *          An LDIF representation of the malformed record.
+   * @param lines
+   *          The content of the malformed record.
    * @param reason
    *          The reason why the record is malformed.
    * @throws DecodeException
    *           If processing should terminate.
    */
-  void handleMalformedRecord(long lineNumber, List<String> ldifRecord,
+  void handleMalformedRecord(long lineNumber, List<String> lines,
       LocalizableMessage reason) throws DecodeException;
 
 
@@ -165,15 +165,14 @@ public interface RejectedRecordListener
    * @param lineNumber
    *          The line number within the source location in which the rejected
    *          record is located, if known, otherwise {@code -1}.
-   * @param ldifRecord
-   *          An LDIF representation of the record which failed schema
-   *          validation.
+   * @param lines
+   *          The content of the record which failed schema validation.
    * @param reasons
    *          The reasons why the record failed schema validation.
    * @throws DecodeException
    *           If processing should terminate.
    */
-  void handleSchemaValidationFailure(long lineNumber, List<String> ldifRecord,
+  void handleSchemaValidationFailure(long lineNumber, List<String> lines,
       List<LocalizableMessage> reasons) throws DecodeException;
 
 
@@ -185,15 +184,15 @@ public interface RejectedRecordListener
    * @param lineNumber
    *          The line number within the source location in which the record is
    *          located, if known, otherwise {@code -1}.
-   * @param ldifRecord
-   *          An LDIF representation of the record which contained schema
-   *          validation warnings.
+   * @param lines
+   *          The content of the record which contained schema validation
+   *          warnings.
    * @param reasons
    *          The schema validation warnings.
    * @throws DecodeException
    *           If processing should terminate.
    */
-  void handleSchemaValidationWarning(long lineNumber, List<String> ldifRecord,
+  void handleSchemaValidationWarning(long lineNumber, List<String> lines,
       List<LocalizableMessage> reasons) throws DecodeException;
 
 
@@ -205,14 +204,14 @@ public interface RejectedRecordListener
    * @param lineNumber
    *          The line number within the source location in which the skipped
    *          record is located, if known, otherwise {@code -1}.
-   * @param ldifRecord
-   *          An LDIF representation of the skipped record.
+   * @param lines
+   *          The content of the record which was skipped.
    * @param reason
    *          The reason why the record was skipped.
    * @throws DecodeException
    *           If processing should terminate.
    */
-  void handleSkippedRecord(long lineNumber, List<String> ldifRecord,
+  void handleSkippedRecord(long lineNumber, List<String> lines,
       LocalizableMessage reason) throws DecodeException;
 
 }
