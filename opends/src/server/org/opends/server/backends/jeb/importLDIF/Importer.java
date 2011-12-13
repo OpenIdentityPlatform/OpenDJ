@@ -3059,7 +3059,14 @@ public final class Importer implements DiskSpaceMonitorHandler
       this.bufferIndexFile = new File(tempDir, bufferIndexFileName);
 
       this.isDN = isDN;
-      this.limit = limit;
+      if (limit > 0)
+      {
+        this.limit = limit;
+      }
+      else
+      {
+        this.limit = Integer.MAX_VALUE;
+      }
     }
 
 
