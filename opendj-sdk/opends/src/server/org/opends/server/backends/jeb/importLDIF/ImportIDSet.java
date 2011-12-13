@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.backends.jeb.importLDIF;
 
@@ -79,7 +80,15 @@ public class ImportIDSet {
   public ImportIDSet(int size, int limit, boolean doCount)
   {
     this.array = new long[size + 128];
-    this.limit = limit;
+    // A limit of 0 means unlimited.
+    if (limit == 0)
+    {
+      this.limit = Integer.MAX_VALUE;
+    }
+    else
+    {
+      this.limit = limit;
+    }
     this.doCount = doCount;
   }
 
