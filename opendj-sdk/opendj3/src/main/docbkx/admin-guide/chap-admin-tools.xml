@@ -222,19 +222,28 @@
     <term><link xlink:href="admin-guide#dsconfig-1"
     xlink:role="http://docbook.org/xlink/role/olink">dsconfig</link></term>
     <listitem>
-     <para>The dsconfig command is the primary command-line tool for viewing
-     and editing OpenDJ configuration. When started without arguments, dsconfig
-     prompts you for administration connection information. Once connected it
-     presents you with a menu-driven interface to the server
-     configuration.</para>
+     <para>The <command>dsconfig</command> command is the primary command-line
+     tool for viewing and editing OpenDJ configuration. When started without
+     arguments, <command>dsconfig</command> prompts you for administration
+     connection information. Once connected it presents you with a menu-driven
+     interface to the server configuration.</para>
      <para>When you pass connection information, subcommands, and additional
-     options to dsconfig, the command runs in script mode and so is not
-     interactive.</para>
-     <para>You can prepare dsconfig batch scripts by running the tool with the
-     --commandFilePath option in interactive mode, then reading from the batch
-     file with the --batchFile option in script mode. Batch files can be useful
-     when you have many dsconfig commands to run and want to avoid starting
-     the JVM and setting up a new connection for each command.</para>
+     options to <command>dsconfig</command>, the command runs in script mode
+     and so is not interactive.</para>
+     <para>You can prepare <command>dsconfig</command> batch scripts by running
+     the tool with the <option>--commandFilePath</option> option in interactive
+     mode, then reading from the batch file with the
+     <option>--batchFile</option> option in script mode. Batch files can be
+     useful when you have many <command>dsconfig</command> commands to run
+     and want to avoid starting the JVM and setting up a new connection for
+     each command.</para>
+     <para>In addition to the <link xlink:href="admin-guide#dsconfig-1"
+     xlink:role="http://docbook.org/xlink/role/olink">dsconfig</link> reference
+     that covers subcommands, the <link xlink:show="new"
+     xlink:href="http://opendj.forgerock.org/opendj-server/configref/index.html"
+     ><citetitle>Configuration Reference</citetitle></link> covers the
+     properties you can set using the <command>dsconfig</command>
+     command.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
