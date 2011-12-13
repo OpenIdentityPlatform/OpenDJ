@@ -28,18 +28,6 @@
 
 package org.opends.server.tools.dsreplication;
 
-import static org.opends.admin.ads.ServerDescriptor.getReplicationServer;
-import static org.opends.admin.ads.ServerDescriptor.getServerRepresentation;
-import static org.opends.admin.ads.ServerDescriptor.getSuffixDisplay;
-import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.messages.QuickSetupMessages.*;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.messages.UtilityMessages.
- ERR_CONFIRMATION_TRIES_LIMIT_REACHED;
-import static org.opends.quicksetup.util.Utils.getFirstValue;
-import static org.opends.quicksetup.util.Utils.getThrowableMsg;
-import static org.opends.server.tools.ToolConstants.*;
-import static org.opends.server.tools.dsreplication.ReplicationCliReturnCode.*;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -65,6 +53,19 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static org.opends.admin.ads.ServerDescriptor.getReplicationServer;
+import static org.opends.admin.ads.ServerDescriptor.getServerRepresentation;
+import static org.opends.admin.ads.ServerDescriptor.getSuffixDisplay;
+import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.messages.UtilityMessages.
+ ERR_CONFIRMATION_TRIES_LIMIT_REACHED;
+import static org.opends.quicksetup.util.Utils.getFirstValue;
+import static org.opends.quicksetup.util.Utils.getThrowableMsg;
+import static org.opends.server.tools.ToolConstants.*;
+import static org.opends.server.tools.dsreplication.ReplicationCliReturnCode.*;
 
 import javax.naming.NameAlreadyBoundException;
 import javax.naming.NameNotFoundException;
@@ -580,10 +581,7 @@ public class ReplicationCliMain extends ConsoleApplication
             {
               String[] newArgs = new String[args.length + 1];
               newArgs[0] = subCommand;
-              for (int i=0; i<args.length ; i++)
-              {
-                newArgs[i+1] = args[i];
-              }
+              System.arraycopy(args, 0, newArgs, 1, args.length);
               // The server (if requested) has already been initialized.
               return execute(newArgs, false);
             }
@@ -878,7 +876,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private ReplicationCliReturnCode purgeHistorical(
       PurgeHistoricalUserData uData)
   {
-      ReplicationCliReturnCode returnValue = null;
+      ReplicationCliReturnCode returnValue;
       if (uData.isOnline())
       {
         returnValue = purgeHistoricalRemotely(uData);
@@ -901,7 +899,6 @@ public class ReplicationCliMain extends ConsoleApplication
       uData.setBaseDNs(baseDNs);
       printPurgeHistoricalEquivalentIfRequired(uData);
 
-      returnValue = SUCCESSFUL;
       try
       {
         returnValue = purgeHistoricalLocallyTask(uData);
@@ -961,11 +958,11 @@ public class ReplicationCliMain extends ConsoleApplication
       env.put("RECURSIVE_LOCAL_CALL", "true");
       try
       {
-        ProcessReader outReader = null;
-        ProcessReader errReader = null;
         Process process = pb.start();
-        outReader = new ProcessReader(process, getOutputStream(), false);
-        errReader = new ProcessReader(process, getErrorStream(), true);
+        ProcessReader outReader =
+            new ProcessReader(process, getOutputStream(), false);
+        ProcessReader errReader =
+            new ProcessReader(process, getErrorStream(), true);
 
         outReader.startReading();
         errReader.startReading();
@@ -1028,7 +1025,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private ReplicationCliReturnCode purgeHistoricalRemotely(
       PurgeHistoricalUserData uData)
   {
-    ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
+    ReplicationCliReturnCode returnValue;
     InitialLdapContext ctx = null;
 
     // Connect to the provided server
@@ -1057,7 +1054,6 @@ public class ReplicationCliMain extends ConsoleApplication
         uData.setBaseDNs(baseDNs);
         printPurgeHistoricalEquivalentIfRequired(uData);
 
-        returnValue = SUCCESSFUL;
         try
         {
           returnValue = purgeHistoricalRemoteTask(ctx, uData);
@@ -1375,7 +1371,7 @@ public class ReplicationCliMain extends ConsoleApplication
       Collection<String> notReplicatedSuffixes,
       boolean interactive)
   {
-    if (availableSuffixes.size() == 0)
+    if (availableSuffixes.isEmpty())
     {
       println();
       println(ERR_NO_SUFFIXES_AVAILABLE_TO_PURGE_HISTORICAL.get());
@@ -3671,9 +3667,9 @@ public class ReplicationCliMain extends ConsoleApplication
           JNDIDirContextAdaptor.adapt(ctx));
       RootCfgClient root = mCtx.getRootConfiguration();
 
-      ReplicationSynchronizationProviderCfgClient sync = null;
-      sync = (ReplicationSynchronizationProviderCfgClient)
-      root.getSynchronizationProvider("Multimaster Synchronization");
+      ReplicationSynchronizationProviderCfgClient sync =
+          (ReplicationSynchronizationProviderCfgClient)
+          root.getSynchronizationProvider("Multimaster Synchronization");
       if (sync.hasReplicationServer())
       {
         ReplicationServerCfgClient replicationServer =
@@ -4423,7 +4419,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private ReplicationCliReturnCode disableReplication(
       DisableReplicationUserData uData)
   {
-    ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
+    ReplicationCliReturnCode returnValue;
     InitialLdapContext ctx = null;
     printProgress(
         formatter.getFormattedWithPoints(INFO_REPLICATION_CONNECTING.get()));
@@ -4550,7 +4546,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private ReplicationCliReturnCode statusReplication(
       StatusReplicationUserData uData)
   {
-    ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
+    ReplicationCliReturnCode returnValue;
     InitialLdapContext ctx = null;
     try
     {
@@ -4839,7 +4835,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private ReplicationCliReturnCode preExternalInitialization(
       PreExternalInitializationUserData uData)
   {
-    ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
+    ReplicationCliReturnCode returnValue;
     InitialLdapContext ctx = null;
     try
     {
@@ -4943,7 +4939,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private ReplicationCliReturnCode postExternalInitialization(
       PostExternalInitializationUserData uData)
   {
-    ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
+    ReplicationCliReturnCode returnValue;
     InitialLdapContext ctx = null;
     try
     {
@@ -5089,7 +5085,7 @@ public class ReplicationCliMain extends ConsoleApplication
           availableSuffixes, alreadyReplicatedSuffixes);
     }
 
-    if (availableSuffixes.size() == 0)
+    if (availableSuffixes.isEmpty())
     {
       println();
       if (!uData.configureReplicationDomain1() &&
@@ -5278,7 +5274,7 @@ public class ReplicationCliMain extends ConsoleApplication
         notReplicatedSuffixes.add(dn);
       }
     }
-    if (availableSuffixes.size() == 0)
+    if (availableSuffixes.isEmpty())
     {
       if (displayErrors)
       {
@@ -5462,7 +5458,7 @@ public class ReplicationCliMain extends ConsoleApplication
         notReplicatedSuffixes.add(dn);
       }
     }
-    if (availableSuffixes.size() == 0)
+    if (availableSuffixes.isEmpty())
     {
       println();
       if (argParser.isInitializeAllReplicationSubcommand())
@@ -5669,7 +5665,7 @@ public class ReplicationCliMain extends ConsoleApplication
     TreeSet<String> availableSuffixes = new TreeSet<String>(
         getCommonSuffixes(ctxSource, ctxDestination,
             SuffixRelationType.REPLICATED));
-    if (availableSuffixes.size() == 0)
+    if (availableSuffixes.isEmpty())
     {
       println();
       println(ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_REPLICATION.get());
@@ -7625,7 +7621,7 @@ public class ReplicationCliMain extends ConsoleApplication
       printProgressMessageNoWrap(msg);
       printlnProgress();
       int length = msg.length();
-      StringBuffer buf = new StringBuffer();
+      StringBuilder buf = new StringBuilder();
       for (i=0; i<length; i++)
       {
         buf.append("=");
@@ -7750,7 +7746,7 @@ public class ReplicationCliMain extends ConsoleApplication
       printProgressMessageNoWrap(msg);
       printlnProgress();
       int length = msg.length();
-      StringBuffer buf = new StringBuffer();
+      StringBuilder buf = new StringBuilder();
       for (i=0; i<length; i++)
       {
         buf.append("=");
@@ -8180,13 +8176,12 @@ public class ReplicationCliMain extends ConsoleApplication
       domains[i] = sync.getReplicationDomain(domainNames[i]);
     }
     ReplicationDomainCfgClient domain = null;
-    String domainName = null;
     for (int i=0; i<domains.length && (domain == null); i++)
     {
       if (Utils.areDnsEqual(baseDN, domains[i].getBaseDN().toString()))
       {
         domain = domains[i];
-        domainName = domainNames[i];
+        break;
       }
     }
     boolean mustCommit = false;
@@ -8194,7 +8189,8 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       int domainId = InstallerHelper.getReplicationId(usedReplicationDomainIds);
       usedReplicationDomainIds.add(domainId);
-      domainName = InstallerHelper.getDomainName(domainNames, domainId, baseDN);
+      String domainName =
+          InstallerHelper.getDomainName(domainNames, domainId, baseDN);
       domain = sync.createReplicationDomain(
           ReplicationDomainCfgDefn.getInstance(), domainName,
           new ArrayList<DefaultBehaviorException>());
@@ -8408,6 +8404,7 @@ public class ReplicationCliMain extends ConsoleApplication
     installer.setProgressMessageFormatter(formatter);
     installer.addProgressUpdateListener(new ProgressUpdateListener()
     {
+      @Override
       public void progressUpdate(ProgressUpdateEvent ev)
       {
         Message newLogDetails = ev.getNewLogs();
@@ -8780,7 +8777,7 @@ public class ReplicationCliMain extends ConsoleApplication
     String lastLogMsg = null;
     long lastTimeMsgDisplayed = -1;
     long lastTimeMsgLogged = -1;
-    int totalEntries = 0;
+    long totalEntries = 0;
     while (!isOver)
     {
       try
@@ -8814,8 +8811,8 @@ public class ReplicationCliMain extends ConsoleApplication
         "ds-task-processed-entry-count");
         String sUnprocessed = getFirstValue(sr,
         "ds-task-unprocessed-entry-count");
-        int processed = -1;
-        int unprocessed = -1;
+        long processed = -1;
+        long unprocessed = -1;
         if (sProcessed != null)
         {
           processed = Integer.parseInt(sProcessed);
@@ -8830,7 +8827,7 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           if (processed + unprocessed > 0)
           {
-            int perc = (100 * processed) / (processed + unprocessed);
+            long perc = (100 * processed) / (processed + unprocessed);
             msg = INFO_INITIALIZE_PROGRESS_WITH_PERCENTAGE.get(sProcessed,
                 String.valueOf(perc));
           }
@@ -11386,7 +11383,7 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     boolean isReplicatedInBoth = false;
     ReplicaDescriptor replica1 = null;
-    ReplicaDescriptor replica2 = null;
+    ReplicaDescriptor replica2;
     for (ReplicaDescriptor replica : server1.getReplicas())
     {
       if (Utils.areDnsEqual(replica.getSuffix().getDN(), baseDN))
@@ -11518,6 +11515,7 @@ class ReplicationServerComparator implements Comparator<ServerDescriptor>
   /**
    * {@inheritDoc}
    */
+  @Override
   public int compare(ServerDescriptor s1, ServerDescriptor s2)
   {
     int compare = s1.getHostName().compareTo(s2.getHostName());
@@ -11545,6 +11543,7 @@ class SuffixComparator implements Comparator<SuffixDescriptor>
   /**
    * {@inheritDoc}
    */
+  @Override
   public int compare(SuffixDescriptor s1, SuffixDescriptor s2)
   {
     return s1.getId().compareTo(s2.getId());
@@ -11560,6 +11559,7 @@ class ServerComparator implements Comparator<ServerDescriptor>
   /**
    * {@inheritDoc}
    */
+  @Override
   public int compare(ServerDescriptor s1, ServerDescriptor s2)
   {
     return s1.getId().compareTo(s2.getId());
