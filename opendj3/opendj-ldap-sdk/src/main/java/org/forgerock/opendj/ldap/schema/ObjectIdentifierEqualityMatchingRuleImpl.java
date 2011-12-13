@@ -45,40 +45,6 @@ import com.forgerock.opendj.util.SubstringReader;
 final class ObjectIdentifierEqualityMatchingRuleImpl extends
     AbstractMatchingRuleImpl
 {
-  static class OIDAssertion implements Assertion
-  {
-    private final String oid;
-
-
-
-    OIDAssertion(final String oid)
-    {
-      this.oid = oid;
-    }
-
-
-
-    public ConditionResult matches(final ByteSequence attributeValue)
-    {
-      final String attrStr = attributeValue.toString();
-
-      // We should have normalized all values to OIDs. If not, we know
-      // the descriptor form is not valid in the schema.
-      if (attrStr.length() == 0 || !StaticUtils.isDigit(attrStr.charAt(0)))
-      {
-        return ConditionResult.UNDEFINED;
-      }
-      if (oid.length() == 0 || !StaticUtils.isDigit(oid.charAt(0)))
-      {
-        return ConditionResult.UNDEFINED;
-      }
-
-      return attrStr.equals(oid) ? ConditionResult.TRUE : ConditionResult.FALSE;
-    }
-  }
-
-
-
   static String resolveNames(final Schema schema, final String oid)
   {
     if (!StaticUtils.isDigit(oid.charAt(0)))
@@ -164,8 +130,7 @@ final class ObjectIdentifierEqualityMatchingRuleImpl extends
     final SubstringReader reader = new SubstringReader(definition);
     final String normalized = resolveNames(schema, SchemaUtils.readOID(reader,
         schema.allowMalformedNamesAndOptions()));
-
-    return new OIDAssertion(normalized);
+    return new DefaultEqualityAssertion(ByteString.valueOf(normalized));
   }
 
 

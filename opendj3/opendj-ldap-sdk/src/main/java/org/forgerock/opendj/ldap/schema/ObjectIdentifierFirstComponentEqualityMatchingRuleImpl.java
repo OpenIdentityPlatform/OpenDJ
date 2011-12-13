@@ -62,8 +62,7 @@ final class ObjectIdentifierFirstComponentEqualityMatchingRuleImpl extends
     final String normalized = ObjectIdentifierEqualityMatchingRuleImpl
         .resolveNames(schema, SchemaUtils.readOID(reader,
             schema.allowMalformedNamesAndOptions()));
-
-    return new ObjectIdentifierEqualityMatchingRuleImpl.OIDAssertion(normalized);
+    return new DefaultEqualityAssertion(ByteString.valueOf(normalized));
   }
 
 
