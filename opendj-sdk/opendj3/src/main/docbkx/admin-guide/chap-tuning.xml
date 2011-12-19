@@ -305,6 +305,15 @@
       off when everything is running smoothly.</para>
      </listitem>
     </varlistentry>
+    <varlistentry>
+     <term><option>-XX:+UseCompressedOops</option></term>
+     <listitem>
+      <para>Java object pointers normally have the same size as native machine
+      pointers. If you run a small, but 64-bit JVM, then compressed object
+      pointers can save space. Set this option when you have a 64-bit JVM,
+      <option>-Xmx</option> less than 32 GB, and Java SE 6u23 or later.</para>
+     </listitem>
+    </varlistentry>
    </variablelist>
   </section>
   
