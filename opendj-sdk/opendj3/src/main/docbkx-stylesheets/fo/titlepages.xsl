@@ -559,7 +559,7 @@
 </xsl:template>
 
 <xsl:template match="d:legalnotice" mode="book.titlepage.verso.auto.mode">
-<fo:block xmlns:fo="http://www.w3.org/1999/XSL/Format" xsl:use-attribute-sets="book.titlepage.verso.style" space-before="1in" font-size="6pt">
+<fo:block xmlns:fo="http://www.w3.org/1999/XSL/Format" xsl:use-attribute-sets="book.titlepage.verso.style" space-before="0.5in" font-size="4pt">
 <xsl:apply-templates select="." mode="book.titlepage.verso.mode"/>
 </fo:block>
 </xsl:template>
