@@ -169,6 +169,14 @@ pre.programlisting,pre.screen,pre.flat
     background-color: #fafafa;
     border: thin dashed #ccc;
     padding: 6px;
+    text-indent: -18px;
+}
+
+.toggle
+{
+ position: relative;
+ left: -40px;
+ float:left;
 }
 
 div.abstract,div.important,div.caution,div.note,div.tip,div.warning,div.example,div.toc
