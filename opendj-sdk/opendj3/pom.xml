@@ -419,22 +419,23 @@
                   token="&lt;/head&gt;">
                   <include name="**/**/*.html" />
                   <replacevalue>
-&lt;script  src="http://code.jquery.com/jquery-1.6.4.min.js"&gt;&lt;/script&gt;
-&lt;script type="text/javascript"&gt;
+&lt;script src="http://code.jquery.com/jquery-latest.min.js"&gt;&lt;/script&gt;
+&lt;script&gt;
 // On double-click, reformat &lt;pre class="screen"&gt; for easy copying.
 $(document).ready(function() {
-  $(".screen").attr("title", "Double-click to unwrap lines.");
+  $(".screen").attr("title", "Double-click [-] to flatten lines.");
+  $(".screen").prepend('&lt;img src="../images/minus.png" class="toggle"&gt;');
 });
 $(".screen").live("dblclick", function() {
   $(this).replaceWith(
-    "&lt;pre class=\"flat\" title=\"Double-click to wrap long lines.\"&gt;" +
-    $(this).text().replace(/\n /g," ") + "\n&lt;!--" + $(this).text() + "--&gt;" +
+    "&lt;pre class=\"flat\" title=\"Double-click [+] to wrap long lines.\"&gt;" +
+    $(this).html().replace(/minus\.png/,"plus.png").replace(/\n /g," ") + "\n&lt;!--" + $(this).html() + "--&gt;" +
     "&lt;/pre&gt;");
 });
 $(".flat").live("dblclick", function() {
   $(this).replaceWith(
-    "&lt;pre class=\"screen\" title=\"Double-click to unwrap lines.\"&gt;" +
-    $(this).html().replace(/(.|\n)+&lt;!\-\-/m,"").replace(/\-\-\&gt;/,"") +
+    "&lt;pre class=\"screen\" title=\"Double-click [-] to flatten lines.\"&gt;" +
+    $(this).html().replace(/(.|\n)+&lt;!\-\-/m,"").replace(/\-\-\&gt;/,"").replace(/plus\.png/,"minus.png") +
     "&lt;/pre&gt;");
 });
 &lt;/script&gt;
@@ -502,22 +503,23 @@ $(".flat").live("dblclick", function() {
                   token="&lt;/head&gt;">
                   <include name="**/**/**/*.html" />
                   <replacevalue>
-&lt;script  src="http://code.jquery.com/jquery-1.6.4.min.js"&gt;&lt;/script&gt;
-&lt;script type="text/javascript"&gt;
+&lt;script src="http://code.jquery.com/jquery-latest.min.js"&gt;&lt;/script&gt;
+&lt;script&gt;
 // On double-click, reformat &lt;pre class="screen"&gt; for easy copying.
 $(document).ready(function() {
-  $(".screen").attr("title", "Double-click to unwrap lines.");
+  $(".screen").attr("title", "Double-click [-] to flatten lines.");
+  $(".screen").prepend('&lt;img src="../images/minus.png" class="toggle"&gt;');
 });
 $(".screen").live("dblclick", function() {
   $(this).replaceWith(
-    "&lt;pre class=\"flat\" title=\"Double-click to wrap long lines.\"&gt;" +
-    $(this).text().replace(/\n /g," ") + "\n&lt;!--" + $(this).text() + "--&gt;" +
+    "&lt;pre class=\"flat\" title=\"Double-click [+] to wrap long lines.\"&gt;" +
+    $(this).html().replace(/minus\.png/,"plus.png").replace(/\n /g," ") + "\n&lt;!--" + $(this).html() + "--&gt;" +
     "&lt;/pre&gt;");
 });
 $(".flat").live("dblclick", function() {
   $(this).replaceWith(
-    "&lt;pre class=\"screen\" title=\"Double-click to unwrap lines.\"&gt;" +
-    $(this).html().replace(/(.|\n)+&lt;!\-\-/m,"").replace(/\-\-\&gt;/,"") +
+    "&lt;pre class=\"screen\" title=\"Double-click [-] to flatten lines.\"&gt;" +
+    $(this).html().replace(/(.|\n)+&lt;!\-\-/m,"").replace(/\-\-\&gt;/,"").replace(/plus\.png/,"minus.png") +
     "&lt;/pre&gt;");
 });
 &lt;/script&gt;
