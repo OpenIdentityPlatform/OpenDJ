@@ -365,6 +365,105 @@
             </configuration>
           </execution>
           <execution>
+            <id>chunked-html</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>generate-html</goal>
+            </goals>
+            <configuration>
+              <!-- <targetDatabaseDocument>${basedir}/src/main/docbkx/olinkdb.xml</targetDatabaseDocument> -->
+              <chunkedOutput>true</chunkedOutput>
+              <htmlCustomization>${dbstyle-dir}/html/chunked.xsl</htmlCustomization>
+              
+              <preProcess>
+                <copy todir='${docbkx-out}/html/admin-guide/OpenDJ-Admin-Guide/images'>
+                  <fileset dir='${docbkx-src}/admin-guide/images' />
+                </copy>
+                <copy todir='${docbkx-out}/html/admin-guide/OpenDJ-Admin-Guide'>
+                  <fileset dir='${basedir}/src/main/resources' />
+                </copy>
+                <copy todir='${docbkx-out}/html/dev-guide/OpenDJ-Dev-Guide/images'>
+                  <fileset dir='${docbkx-src}/dev-guide/images' />
+                </copy>
+                <copy todir='${docbkx-out}/html/dev-guide/OpenDJ-Dev-Guide'>
+                  <fileset dir='${basedir}/src/main/resources' />
+                </copy>
+                <copy todir='${docbkx-out}/html/install-guide/OpenDJ-Install-Guide/images'>
+                  <fileset dir='${docbkx-src}/install-guide/images' />
+                </copy>
+                <copy todir='${docbkx-out}/html/install-guide/OpenDJ-Install-Guide'>
+                  <fileset dir='${basedir}/src/main/resources' />
+                </copy>
+                <copy todir='${docbkx-out}/html/release-notes/OpenDJ-Release-Notes/images'>
+                  <fileset dir='${docbkx-src}/release-notes/images' />
+                </copy>
+                <copy todir='${docbkx-out}/html/release-notes/OpenDJ-Release-Notes'>
+                  <fileset dir='${basedir}/src/main/resources' />
+                </copy>
+              </preProcess>
+
+              <postProcess>
+                <copy file='${docbkx-out}/html/admin-guide/OpenDJ-Admin-Guide/target/docbkx/html/legalnotice.html'
+                  todir='${docbkx-out}/html/admin-guide/OpenDJ-Admin-Guide' />
+                <copy file='${docbkx-out}/html/dev-guide/OpenDJ-Dev-Guide/target/docbkx/html/legalnotice.html'
+                  todir='${docbkx-out}/html/dev-guide/OpenDJ-Dev-Guide' />
+                <copy file='${docbkx-out}/html/install-guide/OpenDJ-Install-Guide/target/docbkx/html/legalnotice.html'
+                  todir='${docbkx-out}/html/install-guide/OpenDJ-Install-Guide' />
+                <copy file='${docbkx-out}/html/release-notes/OpenDJ-Release-Notes/target/docbkx/html/legalnotice.html'
+                  todir='${docbkx-out}/html/release-notes/OpenDJ-Release-Notes' />
+                <replace
+                  dir="${basedir}/target/docbkx/html/"
+                  token="target/docbkx/html/legalnotice.html"
+                  value="legalnotice.html">
+                  <include name="**/**/**/*.html" />
+                </replace>
+                <replace
+                  dir="${basedir}/target/docbkx/html/"
+                  token="&lt;/head&gt;">
+                  <include name="**/**/**/*.html" />
+                  <replacevalue>
+&lt;script src="http://code.jquery.com/jquery-latest.min.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+// On double-click, reformat &lt;pre class="screen"&gt; for easy copying.
+$(document).ready(function() {
+  $(".screen").attr("title", "Double-click [-] to flatten lines.");
+  $(".screen").prepend('&lt;img src="../images/minus.png" class="toggle"&gt;');
+});
+$(".screen").live("dblclick", function() {
+  $(this).replaceWith(
+    "&lt;pre class=\"flat\" title=\"Double-click [+] to wrap long lines.\"&gt;" +
+    $(this).html().replace(/minus\.png/,"plus.png").replace(/\n /g," ") + "\n&lt;!--" + $(this).html() + "--&gt;" +
+    "&lt;/pre&gt;");
+});
+$(".flat").live("dblclick", function() {
+  $(this).replaceWith(
+    "&lt;pre class=\"screen\" title=\"Double-click [-] to flatten lines.\"&gt;" +
+    $(this).html().replace(/(.|\n)+&lt;!\-\-/m,"").replace(/\-\-\&gt;/,"").replace(/plus\.png/,"minus.png") +
+    "&lt;/pre&gt;");
+});
+&lt;/script&gt;
+&lt;link rel="shortcut icon" href="http://forgerock.org/favicon.ico"&gt;
+&lt;/head &gt;</replacevalue>
+                </replace>
+                <replace
+                  dir="${basedir}/target/docbkx/html/"
+                  token="&lt;/body&gt;">
+                  <include name="**/**/**/*.html" />
+                  <replacevalue>&lt;script type="text/javascript"&gt;
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-23412190-2']);
+  _gaq.push(['_trackPageview']);
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+&lt;/script&gt;&lt;/body &gt;</replacevalue>
+                </replace>
+              </postProcess>
+            </configuration>
+          </execution>
+          <execution>
             <id>doc-single-html</id>
             <phase>pre-site</phase>
             <goals>
@@ -424,7 +523,7 @@
 // On double-click, reformat &lt;pre class="screen"&gt; for easy copying.
 $(document).ready(function() {
   $(".screen").attr("title", "Double-click [-] to flatten lines.");
-  $(".screen").prepend('&lt;img src="../images/minus.png" class="toggle"&gt;');
+  $(".screen").prepend('&lt;img src="./images/minus.png" class="toggle"&gt;');
 });
 $(".screen").live("dblclick", function() {
   $(this).replaceWith(
@@ -441,105 +540,6 @@ $(".flat").live("dblclick", function() {
 &lt;/script&gt;
 &lt;link rel="shortcut icon" href="http://forgerock.org/favicon.ico"&gt;
 &lt;/head&gt;</replacevalue>
-                </replace>
-              </postProcess>
-            </configuration>
-          </execution>
-          <execution>
-            <id>chunked-html</id>
-            <phase>pre-site</phase>
-            <goals>
-              <goal>generate-html</goal>
-            </goals>
-            <configuration>
-              <!-- <targetDatabaseDocument>${basedir}/src/main/docbkx/olinkdb.xml</targetDatabaseDocument> -->
-              <chunkedOutput>true</chunkedOutput>
-              <htmlCustomization>${dbstyle-dir}/html/chunked.xsl</htmlCustomization>
-              
-              <preProcess>
-                <copy todir='${docbkx-out}/html/admin-guide/OpenDJ-Admin-Guide/images'>
-                  <fileset dir='${docbkx-src}/admin-guide/images' />
-                </copy>
-                <copy todir='${docbkx-out}/html/admin-guide/OpenDJ-Admin-Guide'>
-                  <fileset dir='${basedir}/src/main/resources' />
-                </copy>
-                <copy todir='${docbkx-out}/html/dev-guide/OpenDJ-Dev-Guide/images'>
-                  <fileset dir='${docbkx-src}/dev-guide/images' />
-                </copy>
-                <copy todir='${docbkx-out}/html/dev-guide/OpenDJ-Dev-Guide'>
-                  <fileset dir='${basedir}/src/main/resources' />
-                </copy>
-                <copy todir='${docbkx-out}/html/install-guide/OpenDJ-Install-Guide/images'>
-                  <fileset dir='${docbkx-src}/install-guide/images' />
-                </copy>
-                <copy todir='${docbkx-out}/html/install-guide/OpenDJ-Install-Guide'>
-                  <fileset dir='${basedir}/src/main/resources' />
-                </copy>
-                <copy todir='${docbkx-out}/html/release-notes/OpenDJ-Release-Notes/images'>
-                  <fileset dir='${docbkx-src}/release-notes/images' />
-                </copy>
-                <copy todir='${docbkx-out}/html/release-notes/OpenDJ-Release-Notes'>
-                  <fileset dir='${basedir}/src/main/resources' />
-                </copy>
-              </preProcess>
-
-              <postProcess>
-                <copy file='${legalnotice}'
-                  todir='${docbkx-out}/html/admin-guide/OpenDJ-Admin-Guide' />
-                <copy file='${legalnotice}'
-                  todir='${docbkx-out}/html/dev-guide/OpenDJ-Dev-Guide' />
-                <copy file='${legalnotice}'
-                  todir='${docbkx-out}/html/install-guide/OpenDJ-Install-Guide' />
-                <copy file='${legalnotice}'
-                  todir='${docbkx-out}/html/release-notes/OpenDJ-Release-Notes' />
-                <replace
-                  dir="${basedir}/target/docbkx/html/"
-                  token="target/docbkx/html/legalnotice.html"
-                  value="legalnotice.html">
-                  <include name="**/**/**/*.html" />
-                </replace>
-                <replace
-                  dir="${basedir}/target/docbkx/html/"
-                  token="&lt;/head&gt;">
-                  <include name="**/**/**/*.html" />
-                  <replacevalue>
-&lt;script src="http://code.jquery.com/jquery-latest.min.js"&gt;&lt;/script&gt;
-&lt;script&gt;
-// On double-click, reformat &lt;pre class="screen"&gt; for easy copying.
-$(document).ready(function() {
-  $(".screen").attr("title", "Double-click [-] to flatten lines.");
-  $(".screen").prepend('&lt;img src="../images/minus.png" class="toggle"&gt;');
-});
-$(".screen").live("dblclick", function() {
-  $(this).replaceWith(
-    "&lt;pre class=\"flat\" title=\"Double-click [+] to wrap long lines.\"&gt;" +
-    $(this).html().replace(/minus\.png/,"plus.png").replace(/\n /g," ") + "\n&lt;!--" + $(this).html() + "--&gt;" +
-    "&lt;/pre&gt;");
-});
-$(".flat").live("dblclick", function() {
-  $(this).replaceWith(
-    "&lt;pre class=\"screen\" title=\"Double-click [-] to flatten lines.\"&gt;" +
-    $(this).html().replace(/(.|\n)+&lt;!\-\-/m,"").replace(/\-\-\&gt;/,"").replace(/plus\.png/,"minus.png") +
-    "&lt;/pre&gt;");
-});
-&lt;/script&gt;
-&lt;link rel="shortcut icon" href="http://forgerock.org/favicon.ico"&gt;
-&lt;/head&gt;</replacevalue>
-                </replace>
-                <replace
-                  dir="${basedir}/target/docbkx/html/"
-                  token="&lt;/body&gt;">
-                  <include name="**/**/**/*.html" />
-                  <replacevalue>&lt;script type="text/javascript"&gt;
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-23412190-2']);
-  _gaq.push(['_trackPageview']);
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-&lt;/script&gt;&lt;/body&gt;</replacevalue>
                 </replace>
               </postProcess>
             </configuration>
