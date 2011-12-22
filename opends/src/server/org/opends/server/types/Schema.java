@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -2948,12 +2949,12 @@ public final class Schema
       if(mappedForms != null)
       {
         mappedForms.remove(nameForm);
-        if(mappedForms.size() == 0)
+        if(mappedForms.isEmpty())
         {
           nameFormsByOC.remove(nameForm.getStructuralClass());
         }
       }
-      nameFormsByOC.remove(nameForm.getStructuralClass(), nameForm);
+      nameFormsByOC.remove(nameForm.getStructuralClass());
       nameFormsByName.remove(toLowerCase(nameForm.getOID()),
                              nameForm);
 
