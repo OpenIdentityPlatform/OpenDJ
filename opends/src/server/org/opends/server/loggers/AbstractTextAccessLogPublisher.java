@@ -659,7 +659,7 @@ public abstract class AbstractTextAccessLogPublisher
       }
 
       // Check group membership.
-      if (userIsNotMemberOf.length > 0 || userIsNotMemberOf.length > 0)
+      if (userIsNotMemberOf.length > 0 || userIsMemberOf.length > 0)
       {
         if (!filterUserIsMemberOf(connection))
         {
