@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.extensions;
 import java.lang.reflect.Method;
@@ -95,6 +96,7 @@ public class DefaultEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeEntryCache(EntryCacheCfg configEntry)
          throws ConfigException, InitializationException
   {
@@ -105,6 +107,7 @@ public class DefaultEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public void finalizeEntryCache()
   {
     for (EntryCache entryCache : cacheOrder) {
@@ -118,6 +121,7 @@ public class DefaultEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean containsEntry(DN entryDN)
   {
     if (entryDN == null) {
@@ -190,6 +194,7 @@ public class DefaultEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public Entry getEntry(DN entryDN)
   {
     Entry entry = null;
@@ -214,6 +219,7 @@ public class DefaultEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public long getEntryID(DN entryDN)
   {
     long entryID = -1;
@@ -233,6 +239,7 @@ public class DefaultEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getEntryDN(Backend backend, long entryID)
   {
     DN entryDN = null;
@@ -252,6 +259,7 @@ public class DefaultEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public void putEntry(Entry entry, Backend backend, long entryID)
   {
     for (EntryCache entryCache : cacheOrder) {
@@ -270,6 +278,7 @@ public class DefaultEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean putEntryIfAbsent(Entry entry, Backend backend, long entryID)
   {
     for (EntryCache entryCache : cacheOrder) {
@@ -289,6 +298,7 @@ public class DefaultEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public void removeEntry(DN entryDN)
   {
     for (EntryCache entryCache : cacheOrder) {
@@ -304,6 +314,7 @@ public class DefaultEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public void clear()
   {
     for (EntryCache entryCache : cacheOrder) {
@@ -316,6 +327,7 @@ public class DefaultEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public void clearBackend(Backend backend)
   {
     for (EntryCache entryCache : cacheOrder) {
@@ -328,6 +340,7 @@ public class DefaultEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public void clearSubtree(DN baseDN)
   {
     for (EntryCache entryCache : cacheOrder) {
@@ -340,6 +353,7 @@ public class DefaultEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public void handleLowMemory()
   {
     for (EntryCache entryCache : cacheOrder) {
@@ -352,6 +366,7 @@ public class DefaultEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       EntryCacheCfg configuration,
       List<Message> unacceptableReasons
@@ -366,6 +381,7 @@ public class DefaultEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       EntryCacheCfg configuration
       )
@@ -383,6 +399,7 @@ public class DefaultEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public ArrayList<Attribute> getMonitorData()
   {
     ArrayList<Attribute> attrs = new ArrayList<Attribute>();
@@ -425,6 +442,7 @@ public class DefaultEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public Long getCacheCount()
   {
     Long cacheCount = new Long(0);
@@ -449,7 +467,6 @@ public class DefaultEntryCache
    */
   private String toVerboseString()
   {
-    String verboseString = new String();
     StringBuilder sb = new StringBuilder();
 
     for (EntryCache entryCache : cacheOrder) {
@@ -473,7 +490,7 @@ public class DefaultEntryCache
       }
     }
 
-    verboseString = sb.toString();
+    String verboseString = sb.toString();
 
     return (verboseString.length() > 0 ? verboseString : null);
   }
@@ -487,7 +504,7 @@ public class DefaultEntryCache
    */
   public final EntryCache<? extends EntryCacheCfg>[] getCacheOrder()
   {
-    return this.cacheOrder;
+    return DefaultEntryCache.cacheOrder;
   }
 
 
@@ -501,7 +518,7 @@ public class DefaultEntryCache
     SortedMap<Integer,
     EntryCache<? extends EntryCacheCfg>> cacheOrderMap)
   {
-    this.cacheOrder =
+    DefaultEntryCache.cacheOrder =
       cacheOrderMap.values().toArray(new EntryCache<?>[0]);
   }
 
@@ -516,6 +533,7 @@ public class DefaultEntryCache
    * @param  backend  The backend that has been initialized and is
    *                  about to be put into service.
    */
+  @Override
   public void performBackendInitializationProcessing(Backend backend)
   {
     // Do nothing.
@@ -531,6 +549,7 @@ public class DefaultEntryCache
    * @param  backend  The backend that has been taken out of service
    *                  and is about to be finalized.
    */
+  @Override
   public void performBackendFinalizationProcessing(Backend backend)
   {
     // Do not clear any backends if the server is shutting down.
