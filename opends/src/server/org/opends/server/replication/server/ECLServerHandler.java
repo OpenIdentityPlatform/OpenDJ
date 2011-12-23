@@ -61,7 +61,7 @@ import org.opends.server.util.ServerConstants;
  * This class defines a server handler, which handles all interaction with a
  * peer replication server.
  */
-public class ECLServerHandler extends ServerHandler
+public final class ECLServerHandler extends ServerHandler
 {
 
   // This is a string identifying the operation, provided by the client part
@@ -121,17 +121,16 @@ public class ECLServerHandler extends ServerHandler
    */
   public String dumpState()
   {
-    return new String(
-        this.getClass().getCanonicalName() +
-        "[" +
-        "[draftCompat=" + draftCompat +
-        "] [persistent=" + isPersistent +
-        "] [lastDraftCN=" + lastDraftCN +
-        "] [isEndOfDraftCNReached=" + isEndOfDraftCNReached +
-        "] [searchPhase=" + searchPhase +
-        "] [startCookie=" + startCookie +
-        "] [previousCookie=" + previousCookie +
-    "]]");
+    return this.getClass().getCanonicalName() +
+           "[" +
+           "[draftCompat=" + draftCompat +
+           "] [persistent=" + isPersistent +
+           "] [lastDraftCN=" + lastDraftCN +
+           "] [isEndOfDraftCNReached=" + isEndOfDraftCNReached +
+           "] [searchPhase=" + searchPhase +
+           "] [startCookie=" + startCookie +
+           "] [previousCookie=" + previousCookie +
+       "]]";
   }
 
   /**
@@ -174,22 +173,19 @@ public class ECLServerHandler extends ServerHandler
      */
     public void toString(StringBuilder buffer)
     {
-      buffer.append(
-          "[ [active=" + active +
-          "] [rsd=" + rsd +
-          "] [nextMsg=" + nextMsg + "(" +
-          (nextMsg != null?
-              new Date(nextMsg.getChangeNumber().getTime()).toString():"")
-              + ")" +
-              "] [nextNonEligibleMsg="      + nextNonEligibleMsg +
-              "] [startState=" + startState +
-              "] [stopState=" + stopState +
-              "] [currentState=" + currentState + "]]");
+      buffer.append("[ [active=").append(active).append("] [rsd=")
+          .append(rsd).append("] [nextMsg=").append(nextMsg).append("(")
+          .append(nextMsg != null ?
+          new Date(nextMsg.getChangeNumber().getTime()).toString():"")
+          .append(")" + "] [nextNonEligibleMsg=").append(nextNonEligibleMsg)
+          .append("] [startState=").append(startState).append("] [stopState=")
+          .append(stopState).append("] [currentState=").append(currentState)
+          .append("]]");
     }
 
     /**
-     * Get the next message elligible regarding
-     * the crossDomain elligible CN. Put it in the context table.
+     * Get the next message eligible regarding
+     * the crossDomain eligible CN. Put it in the context table.
      * @param opid The operation id.
      */
     private void getNextEligibleMessageForDomain(String opid)
@@ -533,8 +529,7 @@ public class ECLServerHandler extends ServerHandler
   DataFormatException,
   NotSupportedOldVersionPDUException
   {
-    ReplicationMsg msg = null;
-    msg = session.receive();
+    ReplicationMsg msg = session.receive();
 
     if (msg instanceof StopMsg)
     {
@@ -1040,6 +1035,7 @@ public class ECLServerHandler extends ServerHandler
    * Gets the status of the connected DS.
    * @return The status of the connected DS.
    */
+  @Override
   public ServerStatus getStatus()
   {
     // There is no other status possible for the ECL Server Handler to
@@ -1288,7 +1284,7 @@ public class ECLServerHandler extends ServerHandler
       //    take the oldest
       //    if one domain has no msg, still is candidate
 
-      int iDom = 0;
+      int iDom;
       boolean continueLooping = true;
       while ((continueLooping) && (searchPhase == INIT_PHASE))
       {
