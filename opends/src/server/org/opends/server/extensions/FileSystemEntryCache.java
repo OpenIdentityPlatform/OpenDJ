@@ -23,9 +23,9 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -57,6 +57,7 @@ import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.StatsConfig;
 import com.sleepycat.je.config.ConfigParam;
 import com.sleepycat.je.config.EnvironmentParams;
+import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.api.Backend;
 import org.opends.server.api.EntryCache;
@@ -951,6 +952,7 @@ public class FileSystemEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       FileSystemEntryCacheCfg configuration,
       List<Message> unacceptableReasons
@@ -971,6 +973,7 @@ public class FileSystemEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       FileSystemEntryCacheCfg configuration
       )
@@ -1372,12 +1375,10 @@ public class FileSystemEntryCache
       // so, then add the entry to the cache (or replace it if it is already
       // present).  If not, then remove an existing entry and don't add the new
       // entry.
-      long usedMemory = 0;
-
       // Zero means unlimited here.
       if (maxAllowedMemory != 0) {
         // Get approximate current total log size of JE environment in bytes.
-        usedMemory =
+        long usedMemory =
             entryCacheEnv.getStats(entryCacheEnvStatsConfig).getTotalLogSize();
 
         // TODO: Check and log a warning if usedMemory hits default or
@@ -1453,7 +1454,7 @@ public class FileSystemEntryCache
    */
   private void checkAndSetupCacheHome(String cacheHome) throws Exception {
 
-    boolean cacheHasHome = false;
+    boolean cacheHasHome;
     File cacheHomeDir = new File(cacheHome);
     if (cacheHomeDir.exists() &&
         cacheHomeDir.canRead() &&
@@ -1497,7 +1498,6 @@ public class FileSystemEntryCache
    */
   private String toVerboseString()
   {
-    String verboseString = new String();
     StringBuilder sb = new StringBuilder();
 
     Map<String,Long> dnMapCopy;
@@ -1542,10 +1542,9 @@ public class FileSystemEntryCache
 
     // See if there is anything on backendMap that isnt reflected on dnMap
     // in case maps went out of sync.
-    String backendID = null;
     Iterator<String> backendIterator = backendMapCopy.keySet().iterator();
     while (backendIterator.hasNext()) {
-      backendID = backendIterator.next();
+      String backendID = backendIterator.next();
       Map<Long, String> map = backendMapCopy.get(backendID);
       for (Long id : map.keySet()) {
         if (!dnMapCopy.containsKey(map.get(id)) || map.get(id) == null) {
@@ -1559,7 +1558,7 @@ public class FileSystemEntryCache
       }
     }
 
-    verboseString = sb.toString();
+    String verboseString = sb.toString();
 
     return (verboseString.length() > 0 ? verboseString : null);
   }
