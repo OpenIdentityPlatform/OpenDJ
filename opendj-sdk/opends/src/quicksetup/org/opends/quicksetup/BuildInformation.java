@@ -94,6 +94,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
         // return to continue.
         Thread t = new Thread(new Runnable()
         {
+          @Override
           public void run()
           {
             while (!done[0])
@@ -352,7 +353,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
    * @return String representing the SVN URL repository
    */
   public String getURLRepository() {
-    return new String(values.get(URL_REPOSITORY));
+    return values.get(URL_REPOSITORY);
   }
 
   /**
@@ -401,6 +402,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
   /**
    * {@inheritDoc}
    */
+  @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append(getName());
@@ -418,6 +420,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
   /**
    * {@inheritDoc}
    */
+  @Override
   public int compareTo(BuildInformation bi) {
     if (getMajorVersion().equals(bi.getMajorVersion())) {
       if (getMinorVersion().equals(bi.getMinorVersion())) {
@@ -442,6 +445,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean equals(Object o) {
     return this == o ||
             !(o == null || getClass() != o.getClass()) &&
@@ -451,6 +455,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
   /**
    * {@inheritDoc}
    */
+  @Override
   public int hashCode() {
     int hc = 11;
     hc = 31 * hc + getMajorVersion().hashCode();
