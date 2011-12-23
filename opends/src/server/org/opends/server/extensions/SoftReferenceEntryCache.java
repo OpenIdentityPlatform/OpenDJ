@@ -23,9 +23,9 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
 
 
 
@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -124,6 +125,7 @@ public class SoftReferenceEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeEntryCache(
       SoftReferenceEntryCacheCfg configuration
       )
@@ -168,6 +170,7 @@ public class SoftReferenceEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public synchronized void finalizeEntryCache()
   {
     registeredConfiguration.removeSoftReferenceChangeListener (this);
@@ -194,6 +197,7 @@ public class SoftReferenceEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean containsEntry(DN entryDN)
   {
     if (entryDN == null) {
@@ -209,6 +213,7 @@ public class SoftReferenceEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public Entry getEntry(DN entryDN)
   {
     SoftReference<CacheEntry> ref = dnMap.get(entryDN);
@@ -241,6 +246,7 @@ public class SoftReferenceEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public long getEntryID(DN entryDN)
   {
     SoftReference<CacheEntry> ref = dnMap.get(entryDN);
@@ -267,6 +273,7 @@ public class SoftReferenceEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getEntryDN(Backend backend, long entryID)
   {
     // Locate specific backend map and return the entry DN by ID.
@@ -289,6 +296,7 @@ public class SoftReferenceEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public void putEntry(Entry entry, Backend backend, long entryID)
   {
     // Create the cache entry based on the provided information.
@@ -324,6 +332,7 @@ public class SoftReferenceEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean putEntryIfAbsent(Entry entry, Backend backend,
                                   long entryID)
   {
@@ -361,6 +370,7 @@ public class SoftReferenceEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public void removeEntry(DN entryDN)
   {
     SoftReference<CacheEntry> ref = dnMap.remove(entryDN);
@@ -398,6 +408,7 @@ public class SoftReferenceEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public void clear()
   {
     dnMap.clear();
@@ -409,6 +420,7 @@ public class SoftReferenceEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public void clearBackend(Backend backend)
   {
     // FIXME -- Would it be better just to dump everything?
@@ -436,6 +448,7 @@ public class SoftReferenceEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public void clearSubtree(DN baseDN)
   {
     // Determine the backend used to hold the specified base DN and clear it.
@@ -443,7 +456,6 @@ public class SoftReferenceEntryCache
     if (backend == null)
     {
       // FIXME -- Should we clear everything just to be safe?
-      return;
     }
     else
     {
@@ -456,6 +468,7 @@ public class SoftReferenceEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public void handleLowMemory()
   {
     // This function should automatically be taken care of by the nature of the
@@ -482,6 +495,7 @@ public class SoftReferenceEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       SoftReferenceEntryCacheCfg configuration,
       List<Message> unacceptableReasons)
@@ -503,6 +517,7 @@ public class SoftReferenceEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       SoftReferenceEntryCacheCfg configuration
       )
@@ -595,6 +610,7 @@ public class SoftReferenceEntryCache
    * Operate in a loop, receiving notification of soft references that have been
    * freed and removing the corresponding entries from the cache.
    */
+  @Override
   public void run()
   {
     while (!shutdown)
@@ -655,6 +671,7 @@ public class SoftReferenceEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public ArrayList<Attribute> getMonitorData()
   {
     ArrayList<Attribute> attrs = new ArrayList<Attribute>();
@@ -684,6 +701,7 @@ public class SoftReferenceEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public Long getCacheCount()
   {
     return new Long(dnMap.size());
@@ -702,7 +720,6 @@ public class SoftReferenceEntryCache
    */
   private String toVerboseString()
   {
-    String verboseString = new String();
     StringBuilder sb = new StringBuilder();
 
     // There're no locks in this cache to keep dnMap and idMap in
@@ -718,7 +735,7 @@ public class SoftReferenceEntryCache
       sb.append(ServerConstants.EOL);
     }
 
-    verboseString = sb.toString();
+    String verboseString = sb.toString();
 
     return (verboseString.length() > 0 ? verboseString : null);
   }
