@@ -23,10 +23,9 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
-
 
 
 import java.util.ArrayList;
@@ -57,6 +56,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.Attribute;
 import org.opends.server.util.ServerConstants;
+import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -144,6 +144,7 @@ public class FIFOEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeEntryCache(
       FIFOEntryCacheCfg configuration
       )
@@ -188,6 +189,7 @@ public class FIFOEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public void finalizeEntryCache()
   {
     cacheWriteLock.lock();
@@ -215,6 +217,7 @@ public class FIFOEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean containsEntry(DN entryDN)
   {
     if (entryDN == null) {
@@ -235,6 +238,7 @@ public class FIFOEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public Entry getEntry(DN entryDN)
   {
     // Simply return the entry from the DN map.
@@ -260,6 +264,7 @@ public class FIFOEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public long getEntryID(DN entryDN)
   {
     // Simply return the ID from the DN map.
@@ -281,6 +286,7 @@ public class FIFOEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getEntryDN(Backend backend, long entryID)
   {
     // Locate specific backend map and return the entry DN by ID.
@@ -304,6 +310,7 @@ public class FIFOEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public void putEntry(Entry entry, Backend backend, long entryID)
   {
     // Create the cache entry based on the provided information.
@@ -401,8 +408,6 @@ public class FIFOEntryCache
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-
-      return;
     }
     finally
     {
@@ -415,6 +420,7 @@ public class FIFOEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean putEntryIfAbsent(Entry entry, Backend backend, long entryID)
   {
     // Create the cache entry based on the provided information.
@@ -541,6 +547,7 @@ public class FIFOEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public void removeEntry(DN entryDN)
   {
     // Acquire the lock on the cache.  We should not return until the entry is
@@ -602,6 +609,7 @@ public class FIFOEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public void clear()
   {
     // Acquire a lock on the cache.  We should not return until the cache has
@@ -639,6 +647,7 @@ public class FIFOEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public void clearBackend(Backend backend)
   {
     // Acquire a lock on the cache.  We should not return until the cache has
@@ -700,6 +709,7 @@ public class FIFOEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public void clearSubtree(DN baseDN)
   {
     // Determine which backend should be used for the provided base DN.  If
@@ -813,6 +823,7 @@ public class FIFOEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public void handleLowMemory()
   {
     // Grab the lock on the cache and wait until we have it.
@@ -883,6 +894,7 @@ public class FIFOEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       FIFOEntryCacheCfg configuration,
       List<Message> unacceptableReasons
@@ -905,6 +917,7 @@ public class FIFOEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       FIFOEntryCacheCfg configuration
       )
@@ -1009,6 +1022,7 @@ public class FIFOEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public ArrayList<Attribute> getMonitorData()
   {
     ArrayList<Attribute> attrs = new ArrayList<Attribute>();
@@ -1040,6 +1054,7 @@ public class FIFOEntryCache
   /**
    * {@inheritDoc}
    */
+  @Override
   public Long getCacheCount()
   {
     return new Long(dnMap.size());
@@ -1058,7 +1073,6 @@ public class FIFOEntryCache
    */
   private String toVerboseString()
   {
-    String verboseString = new String();
     StringBuilder sb = new StringBuilder();
 
     Map<DN,CacheEntry> dnMapCopy;
@@ -1107,7 +1121,7 @@ public class FIFOEntryCache
       }
     }
 
-    verboseString = sb.toString();
+    String verboseString = sb.toString();
 
     return (verboseString.length() > 0 ? verboseString : null);
   }
