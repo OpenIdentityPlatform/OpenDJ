@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 
 package org.opends.guitools.uninstaller.ui;
@@ -83,9 +84,10 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public Object getFieldValue(FieldName fieldName)
   {
-    Object value = null;
+    Object value;
     switch (fieldName)
     {
     case EXTERNAL_DB_DIRECTORIES:
@@ -113,8 +115,8 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
       break;
     default:
       JCheckBox cb = getCheckBox(fieldName);
-    value = new Boolean(cb.isSelected());
-    break;
+      value = cb.isSelected();
+      break;
     }
     return value;
   }
@@ -122,6 +124,7 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   protected Message getTitle()
   {
     return INFO_CONFIRM_UNINSTALL_PANEL_TITLE.get();
@@ -130,6 +133,7 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   protected Component createInputPanel()
   {
     FieldName[] fieldNames = {
@@ -254,6 +258,7 @@ public class ConfirmUninstallPanel extends QuickSetupStepPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   protected Message getInstructions()
   {
     return INFO_CONFIRM_UNINSTALL_PANEL_INSTRUCTIONS.get();
