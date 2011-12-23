@@ -2718,7 +2718,8 @@ public class ConfigFileHandler
       }
       else
       {
-        String digestAlgorithm = cryptoManager.getPreferredMessageDigestAlgorithm();
+        String digestAlgorithm =
+            cryptoManager.getPreferredMessageDigestAlgorithm();
         backupProperties.put(BACKUP_PROPERTY_DIGEST_ALGORITHM, digestAlgorithm);
 
         try
