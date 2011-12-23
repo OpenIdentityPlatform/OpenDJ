@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2010 ForgeRock AS.
+ *      Portions Copyright 2010-2011 ForgeRock AS.
  */
 package org.opends.server.replication.server;
 
@@ -49,7 +49,7 @@ public class ReplicationDraftCNKey extends DatabaseEntry
     {
       String s = String.valueOf(draftCN);
       int a = 16-s.length();
-      String sscn = new String("0000000000000000").substring(0, a) + s;
+      String sscn = "0000000000000000".substring(0, a) + s;
       this.setData(sscn.getBytes("UTF-8"));
     } catch (UnsupportedEncodingException e)
     {
