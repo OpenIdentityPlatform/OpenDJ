@@ -41,16 +41,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.Configuration;
@@ -224,9 +215,9 @@ public class ReplicationBackend
     {
       Validator.ensureTrue(config instanceof BackendCfg);
       cfg = (BackendCfg)config;
-      DN[] baseDNs = new DN[cfg.getBaseDN().size()];
-      cfg.getBaseDN().toArray(baseDNs);
-      setBaseDNs(baseDNs);
+      DN[] newBaseDNs = new DN[cfg.getBaseDN().size()];
+      cfg.getBaseDN().toArray(newBaseDNs);
+      setBaseDNs(newBaseDNs);
     }
   }
 
@@ -246,10 +237,7 @@ public class ReplicationBackend
     }
 
     baseDNSet = new HashSet<DN>();
-    for (DN dn : baseDNs)
-    {
-      baseDNSet.add(dn);
-    }
+    baseDNSet.addAll(Arrays.asList(baseDNs));
 
     supportedControls = new HashSet<String>();
     supportedFeatures = new HashSet<String>();
@@ -648,7 +636,7 @@ public class ReplicationBackend
   private void exportRootChanges(List<ReplicationServerDomain> exportContainers,
       LDIFExportConfig exportConfig, LDIFWriter ldifWriter)
   {
-    Map<AttributeType,List<Attribute>> attributes =
+    Map<AttributeType,List<Attribute>> attrs =
       new HashMap<AttributeType,List<Attribute>>();
     ArrayList<Attribute> ldapAttrList = new ArrayList<Attribute>();
 
@@ -658,13 +646,13 @@ public class ReplicationBackend
     builder.add("domain");
     Attribute ocAttr = builder.toAttribute();
     ldapAttrList.add(ocAttr);
-    attributes.put(ocType, ldapAttrList);
+    attrs.put(ocType, ldapAttrList);
 
     try
     {
       AddChangeRecordEntry changeRecord =
         new AddChangeRecordEntry(DN.decode(BASE_DN),
-                               attributes);
+                               attrs);
       ldifWriter.writeChangeRecord(changeRecord);
     }
     catch (Exception e) {}
@@ -676,11 +664,11 @@ public class ReplicationBackend
         break;
       }
 
-      attributes.clear();
+      attrs.clear();
 
       ldapAttrList.clear();
       ldapAttrList.add(ocAttr);
-      attributes.put(ocType, ldapAttrList);
+      attrs.put(ocType, ldapAttrList);
 
       TRACER.debugInfo("State=" +
           exportContainer.getDbServerState().toString());
@@ -688,21 +676,21 @@ public class ReplicationBackend
           .getDbServerState().toString());
       ldapAttrList.clear();
       ldapAttrList.add(stateAttr);
-      attributes.put(stateAttr.getAttributeType(), ldapAttrList);
+      attrs.put(stateAttr.getAttributeType(), ldapAttrList);
 
       Attribute genidAttr = Attributes.create("generation-id", String
           .valueOf(exportContainer.getGenerationId())
           + exportContainer.getBaseDn());
       ldapAttrList.clear();
       ldapAttrList.add(genidAttr);
-      attributes.put(genidAttr.getAttributeType(), ldapAttrList);
+      attrs.put(genidAttr.getAttributeType(), ldapAttrList);
 
       try
       {
         AddChangeRecordEntry changeRecord =
           new AddChangeRecordEntry(DN.decode(
               exportContainer.getBaseDn() + "," + BASE_DN),
-              attributes);
+              attrs);
         ldifWriter.writeChangeRecord(changeRecord);
       }
       catch (Exception e)
@@ -887,7 +875,7 @@ public class ReplicationBackend
               CHANGE_NUMBER + "=" + msg.getChangeNumber().toString() + "+" +
               msg.getDn() + "," + BASE_DN);
 
-          Map<AttributeType,List<Attribute>> attributes =
+          Map<AttributeType,List<Attribute>> attrs =
             new HashMap<AttributeType,List<Attribute>>();
           Map<ObjectClass, String> objectclasses =
             new HashMap<ObjectClass, String>();
@@ -912,22 +900,22 @@ public class ReplicationBackend
             }
             else
             {
-              addAttribute(attributes, attr);
+              addAttribute(attrs, attr);
             }
           }
 
           Attribute changetype = Attributes.create("changetype", "add");
-          addAttribute(attributes, changetype);
+          addAttribute(attrs, changetype);
 
           if (exportConfig != null)
           {
             AddChangeRecordEntry changeRecord =
-              new AddChangeRecordEntry(dn, attributes);
+              new AddChangeRecordEntry(dn, attrs);
             ldifWriter.writeChangeRecord(changeRecord);
           }
           else
           {
-            entry = new Entry(dn, objectclasses, attributes, null);
+            entry = new Entry(dn, objectclasses, attrs, null);
           }
         }
         else if (msg instanceof DeleteMsg)
@@ -1043,16 +1031,25 @@ public class ReplicationBackend
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      Message message = null;
+      Message message;
+      String dnStr;
+      if (dn == null)
+      {
+        dnStr = "Unkown";
+      }
+      else
+      {
+        dnStr = dn.toNormalizedString();
+      }
       if (exportConfig != null)
       {
         message = ERR_BACKEND_EXPORT_ENTRY.get(
-          dn.toNormalizedString(), String.valueOf(e));
+          dnStr, String.valueOf(e));
       }
       else
       {
         message = ERR_BACKEND_SEARCH_ENTRY.get(
-            dn.toNormalizedString(), e.getLocalizedMessage());
+            dnStr, e.getLocalizedMessage());
       }
       logError(message);
     }
@@ -1246,6 +1243,7 @@ public class ReplicationBackend
     /**
      * The action to be performed by this timer task.
      */
+    @Override
     public void run()
     {
       long latestCount = exportedCount;
@@ -1417,16 +1415,16 @@ public class ReplicationBackend
     RootCfg root = ServerManagementContext.getInstance().getRootConfiguration();
 
     for (String name : root.listSynchronizationProviders()) {
-      SynchronizationProviderCfg cfg;
+      SynchronizationProviderCfg syncCfg;
       try {
-        cfg = root.getSynchronizationProvider(name);
+        syncCfg = root.getSynchronizationProvider(name);
       } catch (ConfigException e) {
         throw new DirectoryException(ResultCode.OPERATIONS_ERROR,
             ERR_REPLICATION_SERVER_CONFIG_NOT_FOUND.get(), e);
       }
-      if (cfg instanceof ReplicationSynchronizationProviderCfg) {
+      if (syncCfg instanceof ReplicationSynchronizationProviderCfg) {
         ReplicationSynchronizationProviderCfg scfg =
-          (ReplicationSynchronizationProviderCfg) cfg;
+          (ReplicationSynchronizationProviderCfg) syncCfg;
         try {
           return scfg.getReplicationServer();
         } catch (ConfigException e) {
@@ -1489,13 +1487,11 @@ public class ReplicationBackend
      */
     public LDIFReader getLDIFReader() throws Exception {
       writer.close();
-      ByteArrayInputStream istream = new
-      ByteArrayInputStream(stream.toByteArray());
       String ldif = stream.toString("UTF-8");
       ldif = ldif.replace("\n-\n", "\n");
-      istream = new ByteArrayInputStream(ldif.getBytes());
-      LDIFImportConfig config = new LDIFImportConfig(istream);
-      return new LDIFReader(config);
+      ByteArrayInputStream istream = new ByteArrayInputStream(ldif.getBytes());
+      LDIFImportConfig newConfig = new LDIFImportConfig(istream);
+      return new LDIFReader(newConfig);
     }
   }
 
@@ -1504,6 +1500,7 @@ public class ReplicationBackend
   /**
    * {@inheritDoc}
    */
+  @Override
   public void preloadEntryCache() throws UnsupportedOperationException {
     throw new UnsupportedOperationException("Operation not supported.");
   }
