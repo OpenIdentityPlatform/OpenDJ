@@ -1264,8 +1264,8 @@ public abstract class ReplicationDomain
     @Override
     public String toString()
     {
-      return new String("[ Entry count=" + this.entryCount +
-                        ", Entry left count=" + this.entryLeftCount + "]");
+      return "[ Entry count=" + this.entryCount +
+             ", Entry left count=" + this.entryLeftCount + "]";
     }
 
     /**
@@ -1422,11 +1422,9 @@ public abstract class ReplicationDomain
   throws DirectoryException
   {
     DirectoryException exportRootException = null;
-    boolean contextAcquired = false;
 
     // Acquire and initialize the export context
     acquireIEContext(false);
-    contextAcquired = true;
 
     // We manage the list of servers to initialize in order :
     // - to test at the end that all expected servers have reconnected
@@ -1598,8 +1596,8 @@ public abstract class ReplicationDomain
               ieContext.failureList.toString()));
     }
 
-    if (contextAcquired)
-      releaseIEContext();
+    // Don't forget to release IEcontext acquired at beginning.
+    releaseIEContext();
 
     String cause = exportRootException != null ? exportRootException
         .getLocalizedMessage() : "";
@@ -1641,7 +1639,7 @@ public abstract class ReplicationDomain
       TRACER.debugInfo(
       "[IE] wait for start replicasWeAreWaitingFor=" + replicasWeAreWaitingFor);
 
-    boolean done = true;
+    boolean done;
     do
     {
       done = true;
@@ -1675,10 +1673,8 @@ public abstract class ReplicationDomain
     while ((!done) && (waitResultAttempt<1200) // 2mn
         && (!broker.shuttingDown()));
 
-    // Add to the failure list the servers that were here at start time but
-    // that never ended with the right generationId.
-    for (Integer sid : replicasWeAreWaitingFor.toArray(new Integer[0]))
-      ieContext.failureList.add(sid);
+    ieContext.failureList.addAll(
+        Arrays.asList(replicasWeAreWaitingFor.toArray(new Integer[0])));
 
     if (debugEnabled())
       TRACER.debugInfo(
@@ -1707,7 +1703,7 @@ public abstract class ReplicationDomain
     for (DSInfo dsi : getReplicasList())
       replicasWeAreWaitingFor.add(dsi.getDsId());
 
-    boolean done = true;
+    boolean done;
     do
     {
       done = true;
@@ -1723,8 +1719,7 @@ public abstract class ReplicationDomain
           continue;
         }
 
-        DSInfo dsInfo = null;
-        dsInfo = isRemoteDSConnected(serverId);
+        DSInfo dsInfo = isRemoteDSConnected(serverId);
         if (dsInfo == null)
         {
           // this server is disconnected
@@ -1769,10 +1764,8 @@ public abstract class ReplicationDomain
     }
     while ((!done) && (!broker.shuttingDown())); // infinite wait
 
-    // Add to the failure list the servers that were here at start time but
-    // that never ended with the right generationId.
-    for (Integer sid : replicasWeAreWaitingFor.toArray(new Integer[0]))
-      ieContext.failureList.add(sid);
+    ieContext.failureList.addAll(
+        Arrays.asList(replicasWeAreWaitingFor.toArray(new Integer[0])));
 
     if (debugEnabled())
       TRACER.debugInfo(
@@ -2058,11 +2051,9 @@ public abstract class ReplicationDomain
         ieContext.setException(new DirectoryException(ResultCode.OTHER,
             ERR_INIT_HEARTBEAT_LOST_DURING_EXPORT.get(
                 Integer.toString(ieContext.getSlowestServer()))));
-        // .. and abandon the export by throwing an exception.
-        IOException ioe =
-          new IOException("IOException with nested DirectoryException");
-        ioe.initCause(ieContext.getException());
-        throw ioe;
+
+        throw new IOException("IOException with nested DirectoryException",
+            ieContext.getException());
       }
 
       int ourLastExportedCnt = ieContext.msgCnt;
@@ -2616,7 +2607,7 @@ public abstract class ReplicationDomain
           "Server id " + serverID + " and domain " + serviceID
           + " resetGenerationId " + generationIdNewValue);
 
-    ResetGenerationIdMsg genIdMessage = null;
+    ResetGenerationIdMsg genIdMessage;
 
     if (generationIdNewValue == null)
     {
