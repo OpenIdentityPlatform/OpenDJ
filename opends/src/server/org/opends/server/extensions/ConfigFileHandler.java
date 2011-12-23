@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -168,7 +169,7 @@ public class ConfigFileHandler
 
   // The write lock used to ensure that only one thread can apply a
   // configuration update at any given time.
-  private Object configLock;
+  private final Object configLock = new Object();
 
   // The path to the configuration file.
   private String configFile;
@@ -200,10 +201,6 @@ public class ConfigFileHandler
   public void initializeConfigHandler(String configFile, boolean checkSchema)
          throws InitializationException
   {
-    // Initialize the config lock.
-    configLock = new Object();
-
-
     // Determine whether we should try to start using the last known good
     // configuration.  If so, then only do so if such a file exists.  If it
     // doesn't exist, then fall back on the active configuration file.
@@ -211,7 +208,7 @@ public class ConfigFileHandler
     DirectoryEnvironmentConfig envConfig =
          DirectoryServer.getEnvironmentConfig();
     useLastKnownGoodConfig = envConfig.useLastKnownGoodConfiguration();
-    File f = null;
+    File f;
     if (useLastKnownGoodConfig)
     {
       f = new File(configFile + ".startok");
@@ -753,8 +750,9 @@ public class ConfigFileHandler
     // Determine the appropriate server root.  If it's not defined in the
     // environment config, then try to figure it out from the location of the
     // configuration file.
-    File instanceFile = envConfig.getInstanceRootFromServerRoot(new File(
-        serverRoot));
+    File instanceFile =
+        DirectoryEnvironmentConfig.getInstanceRootFromServerRoot(new File(
+          serverRoot));
     if (instanceFile == null)
     {
       Message message =
@@ -2691,7 +2689,6 @@ public class ConfigFileHandler
     CryptoManager cryptoManager   = DirectoryServer.getCryptoManager();
     Mac           mac             = null;
     MessageDigest digest          = null;
-    String        digestAlgorithm = null;
     String        macKeyID    = null;
 
     if (hash)
@@ -2721,7 +2718,7 @@ public class ConfigFileHandler
       }
       else
       {
-        digestAlgorithm = cryptoManager.getPreferredMessageDigestAlgorithm();
+        String digestAlgorithm = cryptoManager.getPreferredMessageDigestAlgorithm();
         backupProperties.put(BACKUP_PROPERTY_DIGEST_ALGORITHM, digestAlgorithm);
 
         try
@@ -3540,8 +3537,8 @@ public class ConfigFileHandler
           logError(message);
         }
 
-        Message message = ERR_CONFIG_RESTORE_SIGNED_HASH_INVALID.get(
-                configBackupDir.getPath());
+        Message message =
+            ERR_CONFIG_RESTORE_SIGNED_HASH_INVALID.get(backupID);
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message);
       }
@@ -3575,6 +3572,7 @@ public class ConfigFileHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getComponentEntryDN()
   {
     return configRootEntry.getDN();
@@ -3585,6 +3583,7 @@ public class ConfigFileHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getClassName()
   {
     return CLASS_NAME;
@@ -3595,6 +3594,7 @@ public class ConfigFileHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public LinkedHashMap<String,String> getAlerts()
   {
     LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
@@ -3685,6 +3685,7 @@ public class ConfigFileHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public void preloadEntryCache() throws UnsupportedOperationException {
     throw new UnsupportedOperationException("Operation not supported.");
   }
