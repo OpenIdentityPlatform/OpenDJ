@@ -23,11 +23,9 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.protocols.jmx;
-import org.opends.messages.Message;
-
-
 
 import java.net.*;
 import java.util.*;
@@ -40,7 +38,7 @@ import org.opends.server.core.*;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.protocols.internal.InternalSearchOperation ;
 import org.opends.server.protocols.internal.InternalSearchListener;
-
+import org.opends.messages.Message;
 import org.opends.server.types.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -89,7 +87,7 @@ public class JmxClientConnection
   /**
    * Indicate that the disconnect process is started.
    */
-  private Boolean disconnectStarted = new Boolean(false);
+  private Boolean disconnectStarted = false;
 
 
   /**
@@ -138,6 +136,7 @@ public class JmxClientConnection
   /**
    * {@inheritDoc}
    */
+  @Override
   public void handleNotification(Notification notif, Object handback)
   {
     JMXConnectionNotification jcn ;
