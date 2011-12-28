@@ -169,6 +169,10 @@ pre.programlisting,pre.screen,pre.flat
     background-color: #fafafa;
     border: thin dashed #ccc;
     padding: 6px;
+}
+
+pre.screen,pre.flat
+{
     text-indent: -18px;
 }
 
