@@ -50,6 +50,21 @@
   major security fix for TLS as well.</para>
  </section>
 
+ <section xml:id="prerequisites-fqdn">
+  <title>FQDNs For Replication</title>
+
+  <indexterm><primary>Fully qualified domain name requirements</primary></indexterm>
+  <para>OpenDJ replication requires that you use fully qualified domain names,
+  such as <literal>opendj.example.com</literal>.</para>
+
+  <para>Although you can use host names like <literal>my-laptop.local</literal>
+  for evaluation, in production and even in your lab, you must either ensure
+  DNS is set up correctly to provide fully qualified domain names, or set up
+  <filename>/etc/hosts</filename> (or
+  <filename>C:\Windows\System32\drivers\etc\hosts</filename>) to provide
+  fully qualified domain names.</para>
+ </section>
+
  <section xml:id="prerequisites-hardware">
   <title>Hardware</title>
   
