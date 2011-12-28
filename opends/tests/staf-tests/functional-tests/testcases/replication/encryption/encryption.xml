@@ -208,13 +208,8 @@
                 
               <!-- Verify the synchronization of the trees among the servers in 
                 the topology -->
-              <!-- If tree verification fails, we may have come across known
-               !   issue #4534: Replication using security does not work after
-               !   server restart
-              -->
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, master, consumerList, synchroSuffix,
-                  '4534' ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>
 
               <call function="'testCase_Postamble'"/>
@@ -278,13 +273,8 @@
                           
               <!-- Verify the synchronization of the trees among the servers in 
                 the topology -->          
-              <!-- If tree verification fails, we may have come across known
-               !   issue #4534: Replication using security does not work after
-               !   server restart
-              -->
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, master, consumerList, synchroSuffix,
-                  '4534' ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix, ]
               </call>
 
               <call function="'testCase_Postamble'"/>
@@ -345,13 +335,8 @@
                 
               <!-- Verify the synchronization of the trees among the servers in 
                 the topology -->          
-              <!-- If tree verification fails, we may have come across known
-               !   issue #4534: Replication using security does not work after
-               !   server restart
-              -->
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, master, consumerList, synchroSuffix,
-                  '4534' ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>
 
          
@@ -448,13 +433,8 @@
 
               <!-- Verify the synchronization of the trees among the servers in
                 the topology -->          
-              <!-- If tree verification fails, we may have come across known
-               !   issue #4534: Replication using security does not work after
-               !   server restart
-              -->
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, master, consumerList, synchroSuffix,
-                  '4534' ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>
                                                                            
               <call function="'testCase_Postamble'"/>
@@ -553,13 +533,8 @@
 
               <!-- Verify the synchronization of the trees among the servers in
                 the topology -->          
-              <!-- If tree verification fails, we may have come across known
-               !   issue #4534: Replication using security does not work after
-               !   server restart
-              -->
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, master, consumerList, synchroSuffix,
-                  '4534' ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>
                                                                            
               <call function="'testCase_Postamble'"/>
@@ -656,13 +631,8 @@
 
               <!-- Verify the synchronization of the trees among the servers in
                 the topology -->          
-              <!-- If tree verification fails, we may have come across known
-               !   issue #4534: Replication using security does not work after
-               !   server restart
-              -->
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, master, consumerList, synchroSuffix,
-                  '4534' ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix, ]
               </call>
                                                                            
               <call function="'testCase_Postamble'"/>
@@ -762,13 +732,8 @@
 
               <!-- Verify the synchronization of the trees among the servers in
                 the topology -->          
-              <!-- If tree verification fails, we may have come across known
-               !   issue #4534: Replication using security does not work after
-               !   server restart
-              -->
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, master, consumerList, synchroSuffix,
-                  '4534' ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>
                                                                            
               <call function="'testCase_Postamble'"/>
@@ -882,13 +847,8 @@
 
               <!-- Verify the synchronization of the trees among the servers in
                 the topology -->          
-              <!-- If tree verification fails, we may have come across known
-               !   issue #4534: Replication using security does not work after
-               !   server restart
-              -->
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, master, consumerList, synchroSuffix,
-                  '4534' ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>
                                                                            
               <call function="'testCase_Postamble'"/>
@@ -989,13 +949,8 @@
 
               <!-- Verify the synchronization of the trees among the servers in
                 the topology -->          
-              <!-- If tree verification fails, we may have come across known
-               !   issue #4534: Replication using security does not work after
-               !   server restart
-              -->
               <call function="'verifyTrees'">
-                [ clientHost, clientPath, master, consumerList, synchroSuffix,
-                  '4534' ]
+                [ clientHost, clientPath, master, consumerList, synchroSuffix ]
               </call>
 
                                                                              
