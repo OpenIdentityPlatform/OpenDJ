@@ -169,4 +169,398 @@
       </return>
     </sequence>
   </function>
+  
+  <function name="authRate">
+    <function-prolog>
+      This function runs ldap authrate tool from OpenDJ SDK
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="sdkBinPath" type="optional" default="'%s' % SDK_BIN">
+        <function-arg-description>
+          Pathname to installation of sdk binaries
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>      
+      <function-arg-def name="dsInstancePort" type="optional">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceDn" type="optional">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+      <function-arg-def name="dsInstancePswd" type="optional">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>          
+      <function-arg-def name="extraParams" type="optional">
+        <function-arg-description>
+          Optional extra parameters for specific test cases
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+        </function-arg-def>
+      <function-arg-def name="verbose" type="optional" default="True">
+        <function-arg-description>
+          Display (or not) output.
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+        </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!-- Local variables -->
+      <script>
+        mylocation=location
+      </script>
+
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder)
+
+        STAFCmd='%s/authrate%s' % (sdkBinPath,fileExt)
+      </script>
+
+      <!-- Set common ldap arguments -->      
+      <call function="'_ldapCommonArgs'" />
+      
+      <script>          
+        if extraParams:
+          STAFCmdParamsList.append('%s' % extraParams)
+ 
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      <call function="'runCommand'">
+        { 'command'     : STAFCmd,
+          'arguments'   : STAFCmdParams,
+          'location'    : mylocation,
+          'name'        : 'authrate',
+          'expectedRC'  : expectedRC,
+          'knownIssue'  : knownIssue
+        }
+      </call>
+      
+      <script>
+        for line in STAXResult[0][1].split('\n'):
+          print line
+      </script>
+
+      <return>
+        STAXResult
+      </return>
+    </sequence>
+  </function>
+
+  <function name="searchRate">
+    <function-prolog>
+      This function runs ldap searchrate tool from OpenDJ SDK
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="sdkBinPath" type="optional" default="'%s' % SDK_BIN">
+        <function-arg-description>
+          Pathname to installation of sdk binaries
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>      
+      <function-arg-def name="dsInstancePort" type="optional">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceDn" type="optional">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+      <function-arg-def name="dsInstancePswd" type="optional">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>          
+      <function-arg-def name="extraParams" type="optional">
+        <function-arg-description>
+          Optional extra parameters for specific test cases
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+        </function-arg-def>
+      <function-arg-def name="verbose" type="optional" default="True">
+        <function-arg-description>
+          Display (or not) output.
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+        </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="dsBaseDN" type="optional">
+        <function-arg-description>
+          The baseDN for the search operation
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!-- Local variables -->
+      <script>
+        mylocation=location
+      </script>
+
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder)
+
+        STAFCmd='%s/searchrate%s' % (sdkBinPath,fileExt)
+      </script>
+
+      <!-- Set common ldap arguments -->      
+      <call function="'_ldapCommonArgs'" />
+      
+      <script>
+        if dsBaseDN:
+          STAFCmdParamsList.append('-b %s' % dsBaseDN)
+
+        if extraParams:
+          STAFCmdParamsList.append('%s' % extraParams)
+ 
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      <call function="'runCommand'">
+        { 'command'     : STAFCmd,
+          'arguments'   : STAFCmdParams,
+          'location'    : mylocation,
+          'name'        : 'searchrate',
+          'expectedRC'  : expectedRC,
+          'knownIssue'  : knownIssue
+        }
+      </call>
+      
+      <script>
+        for line in STAXResult[0][1].split('\n'):
+          print line
+      </script>
+
+      <return>
+        STAXResult
+      </return>
+    </sequence>
+  </function>
+
+  <function name="modRate">
+    <function-prolog>
+      This function runs ldap modrate tool from OpenDJ SDK
+    </function-prolog>
+    <function-map-args>
+      <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
+        <function-arg-description>
+          Location of target host
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>
+      <function-arg-def name="sdkBinPath" type="optional" default="'%s' % SDK_BIN">
+        <function-arg-description>
+          Pathname to installation of sdk binaries
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="dsPath" type="optional" default="'%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)">
+        <function-arg-description>
+          Pathname to installation root
+        </function-arg-description>
+        <function-arg-property name="type" value="filepath"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceHost" type="optional">
+        <function-arg-description>
+          Directory server hostname or IP address
+        </function-arg-description>
+        <function-arg-property name="type" value="hostname"/>
+      </function-arg-def>      
+      <function-arg-def name="dsInstancePort" type="optional">
+        <function-arg-description>
+          Directory server port number
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
+      <function-arg-def name="dsInstanceDn" type="optional">
+        <function-arg-description>
+          Bind DN
+        </function-arg-description>
+        <function-arg-property name="type" value="DN"/>
+      </function-arg-def> 
+      <function-arg-def name="dsInstancePswd" type="optional">
+        <function-arg-description>
+          Bind password
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>          
+      <function-arg-def name="extraParams" type="optional">
+        <function-arg-description>
+          Optional extra parameters for specific test cases
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="expectedRC" type="optional" default="0">
+        <function-arg-description>
+          Expected return code value. Default value is 0
+          Wildcard 'noCheck' to not check the RC
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+        </function-arg-def>
+      <function-arg-def name="verbose" type="optional" default="True">
+        <function-arg-description>
+          Display (or not) output.
+        </function-arg-description>
+        <function-arg-property name="type" value="integer"/>
+        </function-arg-def>
+      <function-arg-def name="knownIssue" type="optional" default="None">
+        <function-arg-description>
+          Known issue. Corresponds to an issue number.
+        </function-arg-description>
+      </function-arg-def>
+      <function-arg-def name="dsBaseDN" type="optional">
+        <function-arg-description>
+          The baseDN for the operation
+        </function-arg-description>
+        <function-arg-property name="type" value="dn"/>
+      </function-arg-def>
+      <function-arg-def name="attribute" type="optional">
+        <function-arg-description>
+          The attribute to be modified
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+      <function-arg-def name="formatString" type="optional">
+        <function-arg-description>
+          The attribute value to be modified
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
+    </function-map-args>
+    <sequence>
+      <!-- Local variables -->
+      <script>
+        mylocation=location
+      </script>
+
+      <!-- Build the Command -->
+      <script>
+        STAFCmdParamsList=[]
+        STAFCmdParams=''
+
+        if dsPath:
+          dsBinPath='%s/%s' % (dsPath,fileFolder)
+
+        STAFCmd='%s/modrate%s' % (sdkBinPath,fileExt)
+      </script>
+
+      <!-- Set common ldap arguments -->      
+      <call function="'_ldapCommonArgs'" />
+      
+      <script>
+        if dsBaseDN:
+          STAFCmdParamsList.append('-b %s' % dsBaseDN)
+          
+        if extraParams:
+          STAFCmdParamsList.append('%s' % extraParams)
+          
+        if attribute:
+          STAFCmdParamsList.append('%s' % attribute)
+          
+        if formatString:
+          STAFCmdParamsList.append(':%s' % formatString)
+ 
+        STAFCmdParams=' '.join(STAFCmdParamsList)
+      </script>
+      <call function="'runCommand'">
+        { 'command'     : STAFCmd,
+          'arguments'   : STAFCmdParams,
+          'location'    : mylocation,
+          'name'        : 'modrate',
+          'expectedRC'  : expectedRC,
+          'knownIssue'  : knownIssue
+        }
+      </call>
+      
+      <script>
+        for line in STAXResult[0][1].split('\n'):
+          print line
+      </script>
+
+      <return>
+        STAXResult
+      </return>
+    </sequence>
+  </function>
+
 </stax>

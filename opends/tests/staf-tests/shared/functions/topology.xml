@@ -2097,7 +2097,20 @@
         </function-arg-description>
         <function-arg-property name="boolean" value="True|False"/>
       </function-arg-def>
+     <function-arg-def name="generateLDIF" type="optional" default="False">
+        <function-arg-description>
+          Generate with makeldif the ldif file to be imported
+        </function-arg-description>
+        <function-arg-property name="boolean" value="True|False"/>
+      </function-arg-def>
+     <function-arg-def name="ldifTemplate" type="optional" default="''">
+        <function-arg-description>
+          Path and name of the ldif template to be used to generate entries
+        </function-arg-description>
+        <function-arg-property name="type" value="structure"/>
+      </function-arg-def>
     </function-map-args>
+
     <sequence>
 
       <block name="'common-setup'">
@@ -2142,9 +2155,22 @@
                 </sequence>  
               </if>
 
-              <if expr="loadData == True and ldifFile">
+              <!-- TODO: generate ldif file -->
+              <if expr="generateLDIF == True and ldifTemplate and ldifFile">
+                <sequence>
+                  <message>
+                    'Generating ldif file (%s) from template (%s)' % (ldifFile,ldifTemplate)
+                  </message>
+                </sequence>
+              </if>
+
+              <if expr="loadData == True and ldifFile and startServer == True">
                 <sequence>                                                      
 
+                  <message>
+                    'On-line import.'
+                  </message>
+                 
                   <if expr="allowPreEncodePassword == True">
                     <call function="'dsconfigSet'">
                       { 
@@ -2177,12 +2203,49 @@
                 </sequence>
               </if>                 
 
+              <if expr="loadData == True and ldifFile and startServer == False">
+                <sequence>
+                  <message>
+                    'Off-line import.'
+                  </message>
+
+                  <call function="'runFunction'">
+                    { 'functionName'      : 'ImportLdifWithScript'                   ,
+                      'functionMessage'   : 'Off-line Import LDIF.'         ,
+                      'functionException' : 'Server.ImportException'               ,
+                      'functionArguments' : { 'location' : directoryServer.location ,
+                                              'ldifFile' : ldifFile ,
+                                              'backEnd'  : directoryServer.backend }
+                    }
+                  </call>
+                  
+                  <call function="'runFunction'">
+                    { 'functionName'      : 'StartDsWithScript'                   ,
+                      'functionMessage'   : 'Start the Directory Server.'         ,
+                      'functionException' : 'Server.ImportException'               ,
+                      'functionArguments' : { 'location' : directoryServer.location }
+                    }
+                  </call>
+
+                 <call function="'runFunction'">
+                    { 'functionName'      : 'isAlive'                   ,
+                      'functionMessage'   : 'Check the Directory Server has started.' ,
+                      'functionException' : 'Server.ImportException'               ,
+                      'functionArguments' : { 'location' : directoryServer.location ,
+                                               'noOfLoops'        : 10 ,
+                                               'noOfMilliSeconds' : 2000 }
+                    }
+                  </call>
+  
+                </sequence>
+              </if>
+
               <if expr="stopServer == True">
                 <sequence>
                   <!-- Stop the OpenDS Server -->                  
                   <call function="'runFunction'">
-                    { 'functionName'      : 'StopDsWithScript'                   ,
-                      'functionMessage'   : 'Start the Directory Server.'         ,
+                    { 'functionName'      : 'StartDsWithScript'                   ,
+                      'functionMessage'   : 'Stop the Directory Server.'         ,
                       'functionException' : 'Server.StopException'               ,
                       'functionArguments' : { 'location' : directoryServer.location }
                     }
@@ -2205,6 +2268,15 @@
               <sequence>
               <message log="1" level="'fatal'">
                 '%s: Failed to start Directory Server. eInfo(%s)' % (eType,eInfo)
+              </message>
+              <throw exception="'STAFException.TestSuite.SetupException'" />
+              </sequence>
+            </catch>
+
+            <catch exception="'STAXException.Server.ImportException'" typevar="eType" var="eInfo">
+              <sequence>
+              <message log="1" level="'fatal'">
+                '%s: Failed to import ldif file. eInfo(%s)' % (eType,eInfo)
               </message>
               <throw exception="'STAFException.TestSuite.SetupException'" />
               </sequence>
