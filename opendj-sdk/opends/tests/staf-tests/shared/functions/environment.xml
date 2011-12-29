@@ -52,6 +52,7 @@
         sharedLibs.append('tools.xml')
         sharedLibs.append('webcontainer.xml')
         sharedLibs.append('snmp.xml')
+        sharedLibs.append('sdk.xml')
       </script>
       
       <iterate var="sharedLib" in="sharedLibs">
