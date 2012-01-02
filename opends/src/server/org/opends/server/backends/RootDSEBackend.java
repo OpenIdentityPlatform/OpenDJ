@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2011 ForgeRock AS
  */
 package org.opends.server.backends;
 
@@ -438,9 +439,10 @@ public class RootDSEBackend
       baseMap = subordinateBaseDNs;
     }
 
-    for (DN subBase : baseMap.keySet())
+    for (Map.Entry entry : baseMap.entrySet())
     {
-      Backend b = baseMap.get(subBase);
+      DN subBase = (DN)entry.getKey();
+      Backend b = (Backend)entry.getValue();
       Entry subBaseEntry = b.getEntry(subBase);
       if (subBaseEntry != null)
       {
@@ -944,11 +946,12 @@ public class RootDSEBackend
       baseMap = subordinateBaseDNs;
     }
 
-    for (DN baseDN : baseMap.keySet())
+    for (Map.Entry entry : baseMap.entrySet())
     {
+      DN baseDN = (DN)entry.getKey();
       if (entryDN.isDescendantOf(baseDN))
       {
-        Backend b = baseMap.get(baseDN);
+        Backend b = (Backend)entry.getValue();
         if (b.entryExists(entryDN))
         {
           return true;
@@ -1058,11 +1061,12 @@ public class RootDSEBackend
           baseMap = subordinateBaseDNs;
         }
 
-        for (DN subBase : baseMap.keySet())
+        for (Map.Entry entry : baseMap.entrySet())
         {
+          DN subBase = (DN)entry.getKey();
           searchOperation.checkIfCanceled(false);
 
-          Backend b = baseMap.get(subBase);
+          Backend b = (Backend)entry.getValue();
           Entry subBaseEntry = b.getEntry(subBase);
           if ((subBaseEntry != null) && filter.matchesEntry(subBaseEntry))
           {
@@ -1085,13 +1089,14 @@ public class RootDSEBackend
 
         try
         {
-          for (DN subBase : baseMap.keySet())
+          for (Map.Entry entry : baseMap.entrySet())
           {
             searchOperation.checkIfCanceled(false);
 
-            Backend b = baseMap.get(subBase);
+            DN subBase = (DN)entry.getKey();
             searchOperation.setBaseDN(subBase);
 
+            Backend b = (Backend)entry.getValue();
             try
             {
               b.search(searchOperation);
@@ -1368,6 +1373,7 @@ public class RootDSEBackend
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
        RootDSEBackendCfg cfg,
        List<Message> unacceptableReasons)
@@ -1419,6 +1425,7 @@ public class RootDSEBackend
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(RootDSEBackendCfg cfg)
   {
     ResultCode         resultCode          = ResultCode.SUCCESS;
@@ -1585,6 +1592,7 @@ public class RootDSEBackend
   /**
    * {@inheritDoc}
    */
+  @Override
   public void preloadEntryCache() throws UnsupportedOperationException {
     throw new UnsupportedOperationException("Operation not supported.");
   }
