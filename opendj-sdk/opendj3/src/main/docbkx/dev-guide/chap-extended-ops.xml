@@ -41,7 +41,53 @@
  
  <section xml:id="get-supported-extended-operations">
   <title>Determining Supported Extended Operations</title>
-  <para>TODO</para>
+
+  <para>For OpenDJ, the extended operations supported are listed in the
+  <citetitle>Administration Guide</citetitle> appendix, <link
+  xlink:href="admin-guide#appendix-extended-ops"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>LDAP Extended
+  Operations</citetitle></link>. You can access the list of OIDs for
+  supported LDAP controls by reading the <literal>supportedExtension</literal>
+  attribute of the root DSE.</para>
+
+  <screen>$ ldapsearch
+ --baseDN ""
+ --searchScope base
+ --port 1389
+ "(objectclass=*)" supportedExtension
+dn: 
+supportedExtension: 1.3.6.1.1.8
+supportedExtension: 1.3.6.1.4.1.26027.1.6.1
+supportedExtension: 1.3.6.1.4.1.26027.1.6.2
+supportedExtension: 1.3.6.1.4.1.26027.1.6.3
+supportedExtension: 1.3.6.1.4.1.4203.1.11.1
+supportedExtension: 1.3.6.1.4.1.4203.1.11.3
+supportedExtension: 1.3.6.1.4.1.1466.20037</screen>
+
+  <para>The following excerpt shows the Java equivalent of the preceding
+  command.</para>
+
+  <programlisting language="java">
+final LDAPConnectionFactory factory = new LDAPConnectionFactory(
+  host, port);
+Connection connection = null;
+
+try
+{
+  connection = factory.getConnection();
+  connection.bind("", "".toCharArray());
+  
+  final SearchResultEntry entry = connection.searchSingleEntry(
+      "",                         // DN is "" for root DSE.
+      SearchScope.BASE_OBJECT,    // Read only the root DSE.
+      "objectclass=*",            // Every object matches this filter.
+      "supportedExtension");      // Check supported extended operations.
+
+  final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+  writer.writeComment("Supported extended ops for server " + host + ":" + port);
+  if (entry != null) writer.writeEntry(entry);
+  writer.flush();
+}</programlisting>
  </section>
  
  <section xml:id="use-cancel-extended-operation">
