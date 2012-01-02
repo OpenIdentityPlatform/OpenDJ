@@ -28,7 +28,6 @@ package org.forgerock.opendj.examples.getinfo;
 
 import java.io.IOException;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
@@ -109,24 +108,6 @@ public final class Main
     {
       System.err.println(e.getMessage());
       System.exit(ResultCode.CLIENT_SIDE_USER_CANCELLED.intValue());
-      return;
-    }
-    catch (LocalizedIllegalArgumentException e)
-    {
-      System.err.println(e.getMessageObject().toString());
-      System.exit(ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue());
-      return;
-    }
-    catch (UnsupportedOperationException e)
-    {
-      System.err.println(e.getMessage());
-      System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
-      return;
-    }
-    catch (IllegalStateException e)
-    {
-      System.err.println(e.getMessage());
-      System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
       return;
     }
     catch (IOException e)
