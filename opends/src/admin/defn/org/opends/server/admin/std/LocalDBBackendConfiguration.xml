@@ -24,7 +24,7 @@
   !
   !
   !      Copyright 2007-2010 Sun Microsystems, Inc.
-  !      Portions Copyright 2010-2011 ForgeRock AS.
+  !      Portions Copyright 2010-2012 ForgeRock AS.
   ! -->
 <adm:managed-object name="local-db-backend"
   plural-name="local-db-backends" package="org.opends.server.admin.std"
@@ -100,6 +100,8 @@
     <adm:profile name="cli">
       <cli:relation>
         <cli:default-property name="index-type" />
+        <cli:default-property name="index-entry-limit" />
+        <cli:default-property name="index-extensible-matching-rule" />
       </cli:relation>
     </adm:profile>
   </adm:relation>
