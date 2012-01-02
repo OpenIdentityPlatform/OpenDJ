@@ -22,6 +22,7 @@
  * CDDL HEADER END
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.tools.dsconfig;
 
@@ -418,11 +419,18 @@ final class ListSubCommandHandler extends SubCommandHandler {
         app.println(Message.raw(name));
       }
     } else {
-      // Create a table of their properties.
+      // Create a table of their properties containing the name, type (if
+      // appropriate), and requested properties.
+      SortedMap<String, ?> subTypes =
+          getSubTypes(relation.getChildDefinition());
+      boolean includeTypesColumn = (subTypes.size() != 1
+          || !subTypes.containsKey(DSConfig.GENERIC_TYPE));
+
       TableBuilder builder = new TableBuilder();
       builder.appendHeading(relation.getUserFriendlyName());
-      builder
-          .appendHeading(INFO_DSCFG_HEADING_COMPONENT_TYPE.get());
+      if (includeTypesColumn) {
+        builder.appendHeading(INFO_DSCFG_HEADING_COMPONENT_TYPE.get());
+      }
       for (String propertyName : propertyNames) {
         builder.appendHeading(Message.raw(propertyName));
       }
@@ -453,25 +461,27 @@ final class ListSubCommandHandler extends SubCommandHandler {
           builder.appendCell(name);
         }
 
-        // Output the managed object type in the form used in
-        // create-xxx commands.
-        String childType = d.getName();
-        boolean isCustom = CLIProfile.getInstance().isForCustomization(d);
-        if (baseType.equals(childType)) {
-          if (isCustom) {
-            builder.appendCell(DSConfig.CUSTOM_TYPE);
+        if (includeTypesColumn) {
+          // Output the managed object type in the form used in
+          // create-xxx commands.
+          String childType = d.getName();
+          boolean isCustom = CLIProfile.getInstance().isForCustomization(d);
+          if (baseType.equals(childType)) {
+            if (isCustom) {
+              builder.appendCell(DSConfig.CUSTOM_TYPE);
+            } else {
+              builder.appendCell(DSConfig.GENERIC_TYPE);
+            }
+          } else if (childType.endsWith(typeSuffix)) {
+            String ctname = childType.substring(0, childType.length()
+                - typeSuffix.length());
+            if (isCustom) {
+              ctname = String.format("%s-%s", DSConfig.CUSTOM_TYPE, ctname);
+            }
+            builder.appendCell(ctname);
           } else {
-            builder.appendCell(DSConfig.GENERIC_TYPE);
+            builder.appendCell(childType);
           }
-        } else if (childType.endsWith(typeSuffix)) {
-          String ctname = childType.substring(0, childType.length()
-              - typeSuffix.length());
-          if (isCustom) {
-            ctname = String.format("%s-%s", DSConfig.CUSTOM_TYPE, ctname);
-          }
-          builder.appendCell(ctname);
-        } else {
-          builder.appendCell(childType);
         }
 
         // Now any requested properties.
