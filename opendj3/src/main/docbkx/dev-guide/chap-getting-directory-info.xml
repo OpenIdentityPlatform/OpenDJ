@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-getting-directory-info'
@@ -38,16 +38,149 @@
 
  <section xml:id="read-root-dse">
   <title>Reading Root DSEs</title>
-  <para>TODO</para>
+  
+  <para>The directory with distinguished name <literal>""</literal> (empty
+  string) is called the <firstterm>root DSE</firstterm>. DSE stands for
+  DSA-Specific Entry. DSA stands for Directory Server Agent, a single
+  directory server.</para>
+
+  <para>The root DSE serves to expose information over LDAP about what the
+  directory server supports in terms of LDAP controls, auth password schemes,
+  SASL mechanisms, LDAP protocol versions, naming contexts, features, LDAP
+  extended operations, and so forth. The root DSE holds all the information
+  as values of LDAP attributes. OpenDJ defines these attributes as operational.
+  In other words, OpenDJ only returns the attributes if you either request
+  them specifically, or request all operational attributes.</para>
+
+  <para>To access the list of what an OpenDJ server supports, for example,
+  get all operational attributes from the root DSE entry as in the following
+  excerpt.</para>
+
+  <programlisting language="java">
+final LDAPConnectionFactory factory = new LDAPConnectionFactory(
+  host, port);
+Connection connection = null;
+
+try
+{
+  connection = factory.getConnection();
+  connection.bind("", "".toCharArray());
+  
+  final SearchResultEntry entry = connection.searchSingleEntry(
+      "",                         // DN is "" for root DSE.
+      SearchScope.BASE_OBJECT,    // Read only the root DSE.
+      "objectclass=*",            // Every object matches this filter.
+      "+");                       // Return all operational attributes.
+
+  final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+  writer.writeComment("Root DSE for LDAP server at " + host + ":" + port);
+  if (entry != null) writer.writeEntry(entry);
+  writer.flush();
+}</programlisting>
+
+  <para>Notice that by default you can access the root DSE after authenticating
+  anonymously. When you look at the entry in LDIF, you see that supported
+  capabilities are generally identified by object identifier (OID).</para>
+
+  <screen># Root DSE for LDAP server at localhost:1389
+dn: 
+supportedControl: 1.2.826.0.1.3344810.2.3
+supportedControl: 1.2.840.113556.1.4.1413
+supportedControl: 1.2.840.113556.1.4.319
+supportedControl: 1.2.840.113556.1.4.473
+supportedControl: 1.2.840.113556.1.4.805
+supportedControl: 1.3.6.1.1.12
+supportedControl: 1.3.6.1.1.13.1
+supportedControl: 1.3.6.1.1.13.2
+supportedControl: 1.3.6.1.4.1.26027.1.5.2
+supportedControl: 1.3.6.1.4.1.42.2.27.8.5.1
+supportedControl: 1.3.6.1.4.1.42.2.27.9.5.2
+supportedControl: 1.3.6.1.4.1.42.2.27.9.5.8
+supportedControl: 1.3.6.1.4.1.4203.1.10.1
+supportedControl: 1.3.6.1.4.1.4203.1.10.2
+supportedControl: 1.3.6.1.4.1.7628.5.101.1
+supportedControl: 2.16.840.1.113730.3.4.12
+supportedControl: 2.16.840.1.113730.3.4.16
+supportedControl: 2.16.840.1.113730.3.4.17
+supportedControl: 2.16.840.1.113730.3.4.18
+supportedControl: 2.16.840.1.113730.3.4.19
+supportedControl: 2.16.840.1.113730.3.4.2
+supportedControl: 2.16.840.1.113730.3.4.3
+supportedControl: 2.16.840.1.113730.3.4.4
+supportedControl: 2.16.840.1.113730.3.4.5
+supportedControl: 2.16.840.1.113730.3.4.9
+supportedAuthPasswordSchemes: MD5
+supportedAuthPasswordSchemes: SHA1
+supportedAuthPasswordSchemes: SHA256
+supportedAuthPasswordSchemes: SHA512
+supportedAuthPasswordSchemes: SHA384
+supportedSASLMechanisms: PLAIN
+supportedSASLMechanisms: EXTERNAL
+supportedSASLMechanisms: DIGEST-MD5
+supportedSASLMechanisms: CRAM-MD5
+supportedLDAPVersion: 2
+supportedLDAPVersion: 3
+pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config
+supportedFeatures: 1.3.6.1.1.14
+supportedFeatures: 1.3.6.1.4.1.4203.1.5.1
+supportedFeatures: 1.3.6.1.4.1.4203.1.5.2
+supportedFeatures: 1.3.6.1.4.1.4203.1.5.3
+subschemaSubentry: cn=schema
+ds-private-naming-contexts: cn=admin data
+ds-private-naming-contexts: cn=ads-truststore
+ds-private-naming-contexts: cn=backups
+ds-private-naming-contexts: cn=config
+ds-private-naming-contexts: cn=monitor
+ds-private-naming-contexts: cn=schema
+ds-private-naming-contexts: cn=tasks
+numSubordinates: 1
+structuralObjectClass: ds-root-dse
+namingContexts: dc=example,dc=com
+supportedExtension: 1.3.6.1.1.8
+supportedExtension: 1.3.6.1.4.1.26027.1.6.1
+supportedExtension: 1.3.6.1.4.1.26027.1.6.2
+supportedExtension: 1.3.6.1.4.1.26027.1.6.3
+supportedExtension: 1.3.6.1.4.1.4203.1.11.1
+supportedExtension: 1.3.6.1.4.1.4203.1.11.3
+supportedExtension: 1.3.6.1.4.1.1466.20037
+vendorName: ForgeRock AS.
+vendorVersion: OpenDJ 2.5.0
+hasSubordinates: true
+entryUUID: d41d8cd9-8f00-3204-a980-0998ecf8427e
+entryDN: </screen>
+
+  <para>Three key pieces of information in the entry shown above are attribute
+  values for <literal>namingContexts</literal> (showing the base DNs under
+  which your application can look for user data),
+  <literal>subschemaSubentry</literal> (indicating where the LDAP schema are
+  stored), and <literal>supportedLDAPVersion</literal> (with OpenDJ seen to
+  support both LDAPv2 and LDAPv3).</para>
  </section>
  
  <section xml:id="check-ldapv3-support">
   <title>Checking For LDAPv3 Support</title>
-  <para>TODO</para>
+
+  <para>As shown in the previous section, you can check that the root DSE
+  attribute <literal>supportedLDAPVersion</literal> has a value of 3.</para>
+
+  <para>LDAPv3 has been available since 1997. Client applications built with
+  OpenDJ SDK use LDAPv3.</para>
  </section>
  
  <section xml:id="get-schema-information">
   <title>Getting Schema Information</title>
-  <para>TODO</para>
+
+  <para>The root DSE attribute <literal>subschemaSubentry</literal> shows
+  the DN of the entry holding LDAP schema definitions. LDAP schema defines the
+  object classes, attributes types, attribute value syntaxes, matching rules
+  and so on that constrain entries held by the LDAP server.</para>
+
+  <para>The <literal>org.forgerock.opendj.ldap.schema</literal> package
+  is devoted to constructing and querying LDAP schemas. The
+  <literal>Schema</literal> class for example lets you
+  <literal>readSchemaForEntry()</literal> to get the relevant schema from the
+  subschema subentry, and then <literal>validateEntry()</literal> to check
+  an entry your application has constructed before sending the entry to the
+  server.</para>
  </section>
 </chapter>
