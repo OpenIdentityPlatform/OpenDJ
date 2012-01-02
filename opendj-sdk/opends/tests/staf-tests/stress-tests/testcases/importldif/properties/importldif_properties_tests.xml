@@ -1,0 +1,534 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ ! 
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/CDDLv1_0.txt
+ ! or http://forgerock.org/license/CDDLv1.0.html.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ ! 
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/CDDLv1_0.txt.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2012 ForgeRock AS.
+ ! -->
+<stax>
+
+  <!-- Definition of Test Cases -->             
+
+  <!--- Test Cases : ImportLDIF: Binary Attributes -->
+ 
+  <!--- Test Case information
+  #@TestMarker          ImportLDIF: Large Import Buffer
+  #@TestName            ImportLDIF: Large Import Buffer 
+  #@TestID              importldif_properties_001
+  #@TestPurpose         Verify import LDIF with Large Import Buffer
+  #@TestPreamble        Common Setup
+  #@TestStep            Make template for makeldif.
+  #@TestStep            Create ldif file for import using makeldif.
+  #@TestStep            Import the LDIF file.
+  #@TestStep            Start the Directory Server.
+  #@TestStep            Verify import LDIF operations.
+  #@TestPostamble       Common Cleanup
+  #@TestResult          Test is successful if the result code is 0
+  -->   
+  <function name="importldif_properties_001" scope="local">
+    <testcase name="getTestCaseName('Large Import Buffer')">                     
+      <sequence> 
+        <try>
+          <sequence>
+
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <message>
+             'Import Ldif: Large Import Buffer: Preamble - Change import buffer size'
+            </message>
+
+            <call function="'dsconfig'">
+              { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+                'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+                'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+                'subcommand'           : 'set-backend-prop' ,    
+                'objectType'           : 'backend-name' ,
+                'objectName'           : 'userRoot',
+                'optionsString'        : '--set import-queue-size:1000' ,
+                'expectedRC'           : 0 } 
+              </call>
+              
+            <message>
+             'Import Ldif: Large Import Buffer: Preamble - Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
+            </message>
+
+            <!-- StopDS -->
+            <call function="'StopDsWithScript'">
+              { 'location' : STAF_REMOTE_HOSTNAME }
+            </call>
+
+            <script>
+                numberOfEntries = 100000
+                totalEntries    = numberOfEntries + 2
+                bin_attr_filename = '%s_entries.ldif' % numberOfEntries
+                import os.path
+                curr_filename=remote.temp + "/" + bin_attr_filename
+                curr_file_exists='0'
+                if os.path.exists(curr_filename):
+                  curr_file_exists='1'                
+            </script>
+
+            <message>
+                  'Import Ldif: Large Import Buffer: Looking for file, %s. File exists? (0=false, 1=true) %s' % (curr_filename, curr_file_exists)
+            </message>
+
+            <if expr="curr_file_exists=='0'">
+              <sequence>
+                <message>
+                'Import Ldif: Large Import Buffer: Preamble - Make an make-ldif template file'
+                </message>
+                <call function="'MakeAMakeLdifTemplate'">
+                { 'numEntries'         : numberOfEntries ,
+                  'templateFile'       : '%s/import_Entries_100k.template' % (remote.temp) ,
+                  'extraLine'          : 'jpegPhoto:: &lt;random:base64:38000&gt;'}
+                </call>
+
+                <message>
+                  'Import Ldif: Large Import Buffer: Preamble - Make the ldif file'
+                </message>
+
+                <call function="'MakeLdifWithScript'">
+                { 'templateFile'   : '%s/import_Entries_100k.template' % (remote.temp)  ,
+                  'ldifFile'       : curr_filename  }
+                </call>
+              </sequence>
+            </if>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Import the LDIF file.' }
+            </call>
+
+            <call function="'ImportLdifWithScript'">
+            {
+              'location'   : STAF_REMOTE_HOSTNAME ,
+              'ldifFile'   : ldifFile ,
+              'backEnd'    : 'userRoot'
+            }
+            </call>
+
+            <script>
+              returnString = STAXResult[0][1]
+              msg = 'Processed %s entries, imported %s, skipped 0, rejected 0' \
+                    % (totalEntries,totalEntries)
+            </script>
+
+            <call function="'checktestString'">
+              {
+              'returnString'   : returnString ,
+              'expectedString' : msg
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Start the Directory Server.' }
+            </call>
+
+            <call function="'StartDsWithScript'">
+              { 'location' : STAF_REMOTE_HOSTNAME }
+            </call>
+
+            <script>
+              returnString = STAXResult[0][1]
+              msg = 'The database backend userRoot containing %s entries has started' \
+                    % totalEntries
+            </script>
+
+            <call function="'checktestString'">
+              {
+              'returnString'   : returnString ,
+              'expectedString' : msg
+              }
+            </call>
+
+            <!--- Check that DS started -->
+            <call function="'isAlive'">
+              {
+              'noOfLoops'        : 10 ,
+              'noOfMilliSeconds' : 5000
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Verify import LDIF operations.' }
+            </call>
+
+            <call function="'checkImport'">
+              { 
+                'expectedEntries' : ['uid=user.0,ou=People,dc=com' ,
+                                     'uid=user.10000,ou=People,dc=com' ,
+                                     'uid=user.20000,ou=People,dc=com' ,
+                                     'uid=user.30000,ou=People,dc=com' ,
+                                     'uid=user.40000,ou=People,dc=com' ,
+                                     'uid=user.50000,ou=People,dc=com' ,
+                                     'uid=user.60000,ou=People,dc=com' ,
+                                     'uid=user.70000,ou=People,dc=com' ,
+                                     'uid=user.80000,ou=People,dc=com' ,
+                                     'uid=user.90000,ou=People,dc=com' ,
+                                     'uid=user.99999,ou=People,dc=com'] ,
+                'startDS'         : 'no'
+              }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+  #@TestMarker          ImportLDIF: Many Threads
+  #@TestName            ImportLDIF: Many Threads 
+  #@TestID              importldif_properties_002
+  #@TestPurpose         Verify import LDIF with Many Threads
+  #@TestPreamble        Common Setup
+  #@TestStep            Make template for makeldif.
+  #@TestStep            Create ldif file for import using makeldif.
+  #@TestStep            Import the LDIF file.
+  #@TestStep            Start the Directory Server.
+  #@TestStep            Verify import LDIF operations.
+  #@TestPostamble       Common Cleanup
+  #@TestResult          Test is successful if the result code is 0
+  -->   
+  <function name="importldif_properties_002" scope="local">
+    <testcase name="getTestCaseName('Many Threads')">                     
+      <sequence> 
+        <try>
+          <sequence>
+
+                <call function="'testCase_Preamble'"/>
+
+                <message>'Update java.properties file %s/%s/config/java.properties' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)</message>
+                <script>
+                  rc = java_properties('%s/%s/config/java.properties' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME),
+                                       'import-ldif.offline',
+                                       [ "-server", "-Xms2048m" ])
+                </script>
+                <message>'RC %s' % rc</message>
+
+                <call function="'dsJavaPropertiesWithScript'">
+                { 'location'    : STAF_REMOTE_HOSTNAME }
+                </call>
+
+                <message>
+                 'Import Ldif: Many Threads: Preamble - Change import thread count'
+                </message>
+
+                <call function="'dsconfig'">
+                  { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+                    'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+                    'subcommand'           : 'set-backend-prop' ,    
+                    'objectType'           : 'backend-name' ,
+                    'objectName'           : 'userRoot',
+                    'optionsString'        : '--set import-thread-count:2048' ,
+                    'expectedRC'           : 0 } 
+                  </call>
+                  
+                <message>
+                 'Import Ldif: Many Threads: Preamble - Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
+                </message>
+
+                <call function="'StopDsWithScript'">
+                { 'location'    : STAF_REMOTE_HOSTNAME,
+                  'dsHost'      : DIRECTORY_INSTANCE_HOST,
+                  'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                  'dsBindDN'    : DIRECTORY_INSTANCE_DN,
+                  'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD }
+                </call>
+
+                <script>
+                    numberOfEntries = 100000
+                    totalEntries    = numberOfEntries + 2
+                    bin_attr_filename = '%s_entries.ldif' % numberOfEntries
+                    import os.path
+                    curr_filename=remote.temp + "/" + bin_attr_filename
+                    curr_file_exists='0'
+                    if os.path.exists(curr_filename):
+                      curr_file_exists='1'                
+                </script>
+                
+                <message>
+                      'Import Ldif: Many Threads: Looking for file, %s. File exists? (0=false, 1=true) %s' % (curr_filename, curr_file_exists)
+                </message>
+                
+                <if expr="curr_file_exists=='0'">
+                  <sequence>
+                    <message>
+                    'Import Ldif: Many Threads: Preamble - Make an make-ldif template file'
+                    </message>
+                    <call function="'MakeAMakeLdifTemplate'">
+                    { 'numEntries'         : numberOfEntries ,
+                      'templateFile'       : '%s/import_Entries_100k.template' % (remote.temp) ,
+                      'extraLine'          : 'jpegPhoto:: &lt;random:base64:38000&gt;'}
+                    </call>
+                
+                    <message>
+                      'Import Ldif: Many Threads: Preamble - Make the ldif file'
+                    </message>
+                
+                    <call function="'MakeLdifWithScript'">
+                    { 'templateFile'   : '%s/import_Entries_100k.template' % (remote.temp)  ,
+                      'ldifFile'       : curr_filename  }
+                    </call>
+                  </sequence>
+                </if>
+
+                <message>
+                   'Import Ldif: Many Threads: Import large ldif file'
+                </message>
+                
+                <call function="'ImportLdifWithScript'">
+                { 'location'    : STAF_REMOTE_HOSTNAME ,
+                  'difFile'     : curr_filename ,
+                  'backEnd'     : 'userRoot'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'Processed 100002 entries' }
+                </call>
+
+                <message>
+                 'Import Ldif: Many Threads: Start DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
+                </message>
+
+                <call function="'StartDsWithScript'">
+                { 'location'  : STAF_REMOTE_HOSTNAME }
+                </call>
+  
+                <!--- Check that DS started -->
+                <call function="'isAlive'">
+                  { 'noOfLoops'        : 10 ,
+                    'noOfMilliSeconds' : 5000 }
+                </call>
+                <message>
+                 'Import Ldif: Many Threads: Search for certain entries that were imported'
+                </message>
+
+                <call function="'checkImport'">
+                { 'expectedEntries' : ['uid=user.1,ou=People,dc=com' ,
+                                       'uid=user.10000,ou=People,dc=com' ,
+                                       'uid=user.20000,ou=People,dc=com' ,
+                                       'uid=user.30000,ou=People,dc=com' ,
+                                       'uid=user.40000,ou=People,dc=com' ,
+                                       'uid=user.50000,ou=People,dc=com' ,
+                                       'uid=user.60000,ou=People,dc=com' ,
+                                       'uid=user.70000,ou=People,dc=com' ,
+                                       'uid=user.80000,ou=People,dc=com' ,
+                                       'uid=user.90000,ou=People,dc=com' ,
+                                       'uid=user.99999,ou=People,dc=com'] ,
+                  'startDS'         : 'no'
+                }
+                </call>
+              
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+  #@TestMarker          ImportLDIF: Low Index Entry Limit
+  #@TestName            ImportLDIF: Low Index Entry Limit 
+  #@TestID              importldif_properties_003
+  #@TestPurpose         Verify import LDIF with Low Index Entry Limit
+  #@TestPreamble        Common Setup
+  #@TestStep            Make template for makeldif.
+  #@TestStep            Create ldif file for import using makeldif.
+  #@TestStep            Import the LDIF file.
+  #@TestStep            Start the Directory Server.
+  #@TestStep            Verify import LDIF operations.
+  #@TestPostamble       Common Cleanup
+  #@TestResult          Test is successful if the result code is 0
+  -->   
+  <function name="importldif_properties_003" scope="local">
+    <testcase name="getTestCaseName('Low Index Entry Limit')">                     
+      <sequence> 
+        <try>
+          <sequence>
+
+                <call function="'testCase_Preamble'"/>
+
+                <message>
+                 'Import Ldif: Low Index Entry Limit: Preamble - Change import thread count'
+                </message>
+
+                <call function="'dsconfig'">
+                  { 'dsInstanceHost'       : DIRECTORY_INSTANCE_HOST,
+                    'dsInstanceDn'         : DIRECTORY_INSTANCE_DN ,
+                    'dsInstancePswd'       : DIRECTORY_INSTANCE_PSWD ,
+                    'subcommand'           : 'set-backend-prop' ,    
+                    'objectType'           : 'backend-name' ,
+                    'objectName'           : 'userRoot',
+                    'optionsString'        : '--set index-entry-limit:4' ,
+                    'expectedRC'           : 0 } 
+                  </call>
+                  
+                <message>
+                 'Import Ldif: Low Index Entry Limit: Preamble - Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
+                </message>
+
+                <call function="'StopDsWithScript'">
+                { 'location'    : STAF_REMOTE_HOSTNAME,
+                  'dsHost'      : DIRECTORY_INSTANCE_HOST,
+                  'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+                  'dsBindDN'    : DIRECTORY_INSTANCE_DN,
+                  'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD }
+                </call>
+
+                <script>
+                    numberOfEntries = 100000
+                    totalEntries    = numberOfEntries + 2
+                    bin_attr_filename = '%s_entries.ldif' % numberOfEntries
+                    import os.path
+                    curr_filename=remote.temp + "/" + bin_attr_filename
+                    curr_file_exists='0'
+                    if os.path.exists(curr_filename):
+                      curr_file_exists='1'                
+                </script>
+                
+                <message>
+                      'Import Ldif: Low Index Entry Limit: Looking for file, %s. File exists? (0=false, 1=true) %s' % (curr_filename, curr_file_exists)
+                </message>
+                
+                <if expr="curr_file_exists=='0'">
+                  <sequence>
+                    <message>
+                    'Import Ldif: Low Index Entry Limit: Preamble - Make an make-ldif template file'
+                    </message>
+                    <call function="'MakeAMakeLdifTemplate'">
+                    { 'numEntries'         : numberOfEntries ,
+                      'templateFile'       : '%s/import_Entries_100k.template' % (remote.temp) ,
+                      'extraLine'          : 'jpegPhoto:: &lt;random:base64:38000&gt;'}
+                    </call>
+                
+                    <message>
+                      'Import Ldif: Low Index Entry Limit: Preamble - Make the ldif file'
+                    </message>
+                
+                    <call function="'MakeLdifWithScript'">
+                    { 'templateFile'   : '%s/import_Entries_100k.template' % (remote.temp)  ,
+                      'ldifFile'       : curr_filename  }
+                    </call>
+                  </sequence>
+                </if>
+
+                <message>
+                   'Import Ldif: Low Index Entry Limit: Import large ldif file'
+                </message>
+                
+                <call function="'ImportLdifWithScript'">
+                { 'location'    : STAF_REMOTE_HOSTNAME ,
+                  'ldifFile'    : curr_filename ,
+                  'backEnd'     : 'userRoot'}
+                </call>
+    
+                <script> 
+                 returnString = STAXResult[0][1]
+                </script> 
+    
+                <call function="'checktestString'">
+                    { 'returnString'       : returnString ,
+                      'expectedString'     : 'Processed 100002 entries' }
+                </call>
+
+                <message>
+                 'Import Ldif: Low Index Entry Limit: Start DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
+                </message>
+
+                <call function="'StartDsWithScript'">
+                { 'location'  : STAF_REMOTE_HOSTNAME }
+                </call>
+  
+                <!--- Check that DS started -->
+                <call function="'isAlive'">
+                  { 'noOfLoops'        : 10 ,
+                    'noOfMilliSeconds' : 5000 }
+                </call>
+
+                <message>
+                 'Import Ldif: Low Index Entry Limit: Search for certain entries that were imported'
+                </message>
+
+                <call function="'checkImport'">
+                { 'expectedEntries' : ['uid=user.1,ou=People,dc=com' ,
+                                       'uid=user.10000,ou=People,dc=com' ,
+                                       'uid=user.20000,ou=People,dc=com' ,
+                                       'uid=user.30000,ou=People,dc=com' ,
+                                       'uid=user.40000,ou=People,dc=com' ,
+                                       'uid=user.50000,ou=People,dc=com' ,
+                                       'uid=user.60000,ou=People,dc=com' ,
+                                       'uid=user.70000,ou=People,dc=com' ,
+                                       'uid=user.80000,ou=People,dc=com' ,
+                                       'uid=user.90000,ou=People,dc=com' ,
+                                       'uid=user.99999,ou=People,dc=com'] ,
+                  'startDS'         : 'no'
+                }
+                </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>               
+</stax>

@@ -1,0 +1,720 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ ! 
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/CDDLv1_0.txt
+ ! or http://forgerock.org/license/CDDLv1.0.html.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ ! 
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/CDDLv1_0.txt.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2012 ForgeRock AS.
+ ! -->
+<stax>
+
+  <!-- Definition of Test Cases -->             
+
+  <!--- Test Cases : ImportLDIF: Binary Attributes -->
+ 
+  <!--- Test Case information
+  #@TestMarker          ImportLDIF: Binary Attributes
+  #@TestName            ImportLDIF: Binary Attributes 
+  #@TestID              importldif_binary_attributes_001
+  #@TestPurpose         Verify basic 100k import LDIF operations
+  #@TestPreamble        Common Setup
+  #@TestStep            Make template for makeldif.
+  #@TestStep            Create ldif file for import using makeldif.
+  #@TestStep            Import the LDIF file.
+  #@TestStep            Start the Directory Server.
+  #@TestStep            Verify import LDIF operations.
+  #@TestStep            Delete the ldif file.
+  #@TestStep            Delete the template file.
+  #@TestPostamble       Common Cleanup
+  #@TestResult          Test is successful if the result code is 0
+  -->   
+  <function name="importldif_binary_attributes_001" scope="local">
+    <testcase name="getTestCaseName('Binary Attributes 100k')">                     
+      <sequence> 
+        <try>
+          <sequence>
+
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+              timerDuration   = '620m'  
+              numberOfEntries = 100000
+              totalEntries    = numberOfEntries + 2
+     
+              ldifTemplate    = '%s/%s_entries.template' % (remote.temp, numberOfEntries)
+              ldifFile        = '%s/%s_entries.ldif' % (remote.temp, numberOfEntries)
+            </script>
+
+            <!-- StopDS -->
+            <call function="'StopDsWithScript'">
+              { 'location' : STAF_REMOTE_HOSTNAME }
+            </call>
+
+            <!-- Check if 'ldifFile' exists -->
+            <call function="'GetEntry'">
+              {
+              'location'  : STAF_REMOTE_HOSTNAME ,
+              'entry'     : ldifFile ,
+              'attribute' : 'TYPE'
+              }
+            </call>
+            <if expr="RC == 48">
+              <sequence>
+  
+                <call function="'testStep'">
+                  { 'stepMessage' : 'Make template for makeldif.' }
+                </call>
+  
+                <call function="'MakeAMakeLdifTemplate'">
+                  {
+                  'numEntries'           : numberOfEntries ,
+                  'additionalAttributes' : True ,
+                  'templateFile'         : ldifTemplate ,
+                  'templateLocation'     : STAF_REMOTE_HOSTNAME
+                  }
+                </call>
+      
+                <call function="'testStep'">
+                  { 'stepMessage' : 'Create ldif file for import using makeldif.' }
+                </call>
+  
+                <call function="'MakeLdifWithScript'">
+                  {
+                  'location'     : STAF_REMOTE_HOSTNAME ,
+                  'templateFile' : ldifTemplate ,
+                  'ldifFile'     : ldifFile
+                  }
+                </call>
+              </sequence>
+              <else>
+                <call function="'testStep'">
+                  { 'stepMessage' : 'Template and ldif file already created.' }
+                </call>
+              </else>
+            </if>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Import the LDIF file.' }
+            </call>
+
+            <call function="'ImportLdifWithScript'">
+            {
+              'location'   : STAF_REMOTE_HOSTNAME ,
+              'ldifFile'   : ldifFile ,
+              'backEnd'    : 'userRoot'
+            }
+            </call>
+
+            <script>
+              returnString = STAXResult[0][1]
+              msg = 'Processed %s entries, imported %s, skipped 0, rejected 0' \
+                    % (totalEntries,totalEntries)
+            </script>
+
+            <call function="'checktestString'">
+              {
+              'returnString'   : returnString ,
+              'expectedString' : msg
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Start the Directory Server.' }
+            </call>
+
+            <call function="'StartDsWithScript'">
+              { 'location' : STAF_REMOTE_HOSTNAME }
+            </call>
+
+            <script>
+              returnString = STAXResult[0][1]
+              msg = 'The database backend userRoot containing %s entries has started' \
+                    % totalEntries
+            </script>
+
+            <call function="'checktestString'">
+              {
+              'returnString'   : returnString ,
+              'expectedString' : msg
+              }
+            </call>
+
+            <!--- Check that DS started -->
+            <call function="'isAlive'">
+              {
+              'noOfLoops'        : 10 ,
+              'noOfMilliSeconds' : 5000
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Verify import LDIF operations.' }
+            </call>
+
+            <call function="'checkImport'">
+              { 
+                'expectedEntries' : ['uid=user.0,ou=People,dc=com' ,
+                                     'uid=user.10000,ou=People,dc=com' ,
+                                     'uid=user.20000,ou=People,dc=com' ,
+                                     'uid=user.30000,ou=People,dc=com' ,
+                                     'uid=user.40000,ou=People,dc=com' ,
+                                     'uid=user.50000,ou=People,dc=com' ,
+                                     'uid=user.60000,ou=People,dc=com' ,
+                                     'uid=user.70000,ou=People,dc=com' ,
+                                     'uid=user.80000,ou=People,dc=com' ,
+                                     'uid=user.90000,ou=People,dc=com' ,
+                                     'uid=user.99999,ou=People,dc=com'] ,
+                'startDS'         : 'no'
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Delete the ldif file.' }
+            </call>
+
+            <call function="'deleteFile'">
+              {
+              'location' : STAF_REMOTE_HOSTNAME,
+              'filename' : ldifFile
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Delete the template file.' }
+            </call>
+
+            <call function="'deleteFile'">
+              {
+              'location' : STAF_REMOTE_HOSTNAME,
+              'filename' : ldifTemplate
+              }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+  #@TestMarker          ImportLDIF: Binary Attributes
+  #@TestName            ImportLDIF: Binary Attributes 
+  #@TestID              importldif_binary_attributes_002
+  #@TestPurpose         Verify basic 6m import LDIF operations
+  #@TestPreamble        Common Setup
+  #@TestStep            Make template for makeldif.
+  #@TestStep            Create ldif file for import using makeldif.
+  #@TestStep            Import the LDIF file.
+  #@TestStep            Start the Directory Server.
+  #@TestStep            Verify import LDIF operations.
+  #@TestStep            Delete the ldif file.
+  #@TestStep            Delete the template file.
+  #@TestPostamble       Common Cleanup
+  #@TestResult          Test is successful if the result code is 0
+  -->   
+  <function name="importldif_binary_attributes_002" scope="local">
+    <testcase name="getTestCaseName('Binary Attributes 6m')">                     
+      <sequence> 
+        <try>
+          <sequence>
+
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+              timerDuration   = '620m'  
+              numberOfEntries = 6000000
+              totalEntries    = numberOfEntries + 2
+              
+              ldifTemplate    = '%s/%s_entries.template' % (remote.temp, numberOfEntries)
+              ldifFile        = '%s/%s_entries.ldif' % (remote.temp, numberOfEntries)
+            </script>
+
+            <!-- StopDS -->
+            <call function="'StopDsWithScript'">
+              { 'location' : STAF_REMOTE_HOSTNAME }
+            </call>
+
+            <message>
+              'Update java.properties file %s/%s/config/java.properties' \
+              % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
+            </message>
+
+            <call function="'copyFile'">
+              {
+              'location'   : STAF_REMOTE_HOSTNAME ,
+              'srcfile'    : '%s/%s/config/java.properties' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME) ,
+              'destfile'   : '%s/java.properties' % local.temp ,
+              'remotehost' : STAXServiceMachine
+              }
+            </call>
+            <script>
+              rc = java_properties('%s/java.properties' % local.temp,
+                                   'import-ldif.offline',
+                                   [ "-server", "-Xms2048m", "-Xmx3072m" ])
+            </script>
+            <message>'RC %s' % rc</message>
+            <call function="'copyFile'">
+              {
+              'location'   : STAXServiceMachine ,
+              'srcfile'    : '%s/java.properties' % local.temp ,
+              'destfile'   : '%s/%s/config/java.properties' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME) ,
+              'remotehost' : STAF_REMOTE_HOSTNAME
+              }
+            </call>
+
+            <call function="'dsJavaPropertiesWithScript'">
+            { 'location'    : STAF_REMOTE_HOSTNAME }
+            </call>
+
+            <!-- Check if 'ldifFile' exists -->
+            <call function="'GetEntry'">
+              {
+              'location'  : STAF_REMOTE_HOSTNAME ,
+              'entry'     : ldifFile ,
+              'attribute' : 'TYPE'
+              }
+            </call>
+            <if expr="RC == 48">
+              <sequence>
+  
+                <call function="'testStep'">
+                  { 'stepMessage' : 'Make template for makeldif.' }
+                </call>
+  
+                <call function="'MakeAMakeLdifTemplate'">
+                  {
+                  'numEntries'           : numberOfEntries ,
+                  'additionalAttributes' : True ,
+                  'templateFile'         : ldifTemplate ,
+                  'templateLocation'     : STAF_REMOTE_HOSTNAME
+                  }
+                </call>
+      
+                <call function="'testStep'">
+                  { 'stepMessage' : 'Create ldif file for import using makeldif.' }
+                </call>
+  
+                <call function="'MakeLdifWithScript'">
+                  {
+                  'location'     : STAF_REMOTE_HOSTNAME ,
+                  'templateFile' : ldifTemplate ,
+                  'ldifFile'     : ldifFile
+                  }
+                </call>
+              </sequence>
+              <else>
+                <call function="'testStep'">
+                  { 'stepMessage' : 'Template and ldif file already created.' }
+                </call>
+              </else>
+            </if>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Import the LDIF file.' }
+            </call>
+
+            <call function="'ImportLdifWithScript'">
+            {
+              'location'   : STAF_REMOTE_HOSTNAME ,
+              'ldifFile'   : ldifFile ,
+              'backEnd'    : 'userRoot'
+            }
+            </call>
+
+            <script>
+              returnString = STAXResult[0][1]
+              msg = 'Processed %s entries, imported %s, skipped 0, rejected 0' \
+                    % (totalEntries,totalEntries)
+            </script>
+
+            <call function="'checktestString'">
+              {
+              'returnString'   : returnString ,
+              'expectedString' : msg
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Start the Directory Server.' }
+            </call>
+
+            <call function="'StartDsWithScript'">
+              { 'location' : STAF_REMOTE_HOSTNAME }
+            </call>
+
+            <script>
+              returnString = STAXResult[0][1]
+              msg = 'The database backend userRoot containing %s entries has started' \
+                    % totalEntries
+            </script>
+
+            <call function="'checktestString'">
+              {
+              'returnString'   : returnString ,
+              'expectedString' : msg
+              }
+            </call>
+
+            <!--- Check that DS started -->
+            <call function="'isAlive'">
+              {
+              'noOfLoops'        : 10 ,
+              'noOfMilliSeconds' : 5000
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Verify import LDIF operations.' }
+            </call>
+
+              <call function="'checkImport'">
+                {
+                'expectedEntries' : ['uid=user.0,ou=People,dc=com' ,
+                                     'uid=user.1000000,ou=People,dc=com' ,
+                                     'uid=user.1500000,ou=People,dc=com' ,
+                                     'uid=user.2000000,ou=People,dc=com' ,
+                                     'uid=user.2500000,ou=People,dc=com' ,
+                                     'uid=user.3000000,ou=People,dc=com' ,
+                                     'uid=user.3500000,ou=People,dc=com' ,
+                                     'uid=user.4000000,ou=People,dc=com' ,
+                                     'uid=user.4500000,ou=People,dc=com' ,
+                                     'uid=user.5000000,ou=People,dc=com' ,
+                                     'uid=user.5999999,ou=People,dc=com'] ,
+                'startDS'         : 'no'
+                }
+              </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Delete the ldif file.' }
+            </call>
+
+            <call function="'deleteFile'">
+              {
+              'location' : STAF_REMOTE_HOSTNAME,
+              'filename' : ldifFile
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Delete the template file.' }
+            </call>
+
+            <call function="'deleteFile'">
+              {
+              'location' : STAF_REMOTE_HOSTNAME,
+              'filename' : ldifTemplate
+              }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+  #@TestMarker          ImportLDIF: Binary Attributes
+  #@TestName            ImportLDIF: Binary Attributes 
+  #@TestID              importldif_binary_attributes_003
+  #@TestPurpose         Verify basic 10m import LDIF operations
+  #@TestPreamble        Common Setup
+  #@TestStep            Make template for makeldif.
+  #@TestStep            Create ldif file for import using makeldif.
+  #@TestStep            Import the LDIF file.
+  #@TestStep            Start the Directory Server.
+  #@TestStep            Verify import LDIF operations.
+  #@TestStep            Delete the ldif file.
+  #@TestStep            Delete the template file.
+  #@TestPostamble       Common Cleanup
+  #@TestResult          Test is successful if the result code is 0
+  -->   
+  <function name="importldif_binary_attributes_003" scope="local">
+    <testcase name="getTestCaseName('Binary Attributes 10m')">                     
+      <sequence> 
+        <try>
+          <sequence>
+
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+              timerDuration   = '620m'  
+              numberOfEntries = 10000000
+              totalEntries    = numberOfEntries + 2
+
+              ldifTemplate    = '%s/%s_entries.template' % (remote.temp, numberOfEntries)
+              ldifFile        = '%s/%s_entries.ldif' % (remote.temp, numberOfEntries)
+            </script>
+
+                <message>
+                  'Import Ldif: Binary Attribute: Create custom indexes'
+                </message>
+                
+                <call function="'dsconfig'">
+                  {
+                  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'subcommand'       : 'create-local-db-index' ,
+                  'objectType'       : 'backend-name' ,
+                  'objectName'       : DIRECTORY_INSTANCE_BE ,
+                  'optionsString'    : '--index-name st --set index-type:equality --set index-type:substring'
+                  }
+                </call>
+
+                <call function="'dsconfig'">
+                  {
+                  'dsInstanceHost'   : DIRECTORY_INSTANCE_HOST ,
+                  'dsInstanceDn'     : DIRECTORY_INSTANCE_DN ,
+                  'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
+                  'subcommand'       : 'create-local-db-index' ,
+                  'objectType'       : 'backend-name' ,
+                  'objectName'       : DIRECTORY_INSTANCE_BE ,
+                  'optionsString'    : '--index-name l --set index-type:presence --set index-type:substring'
+                  }
+                </call>
+
+            <!-- StopDS -->
+            <call function="'StopDsWithScript'">
+              { 'location' : STAF_REMOTE_HOSTNAME }
+            </call>
+
+            <message>
+              'Update java.properties file %s/%s/config/java.properties' \
+              % (DIRECTORY_INSTANCE_DIR,OPENDSNAME)
+            </message>
+
+            <call function="'copyFile'">
+              {
+              'location'   : STAF_REMOTE_HOSTNAME ,
+              'srcfile'    : '%s/%s/config/java.properties' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME) ,
+              'destfile'   : '%s/java.properties' % local.temp ,
+              'remotehost' : STAXServiceMachine
+              }
+            </call>
+            <script>
+              rc = java_properties('%s/java.properties' % local.temp,
+                                   'import-ldif.offline',
+                                   [ "-server", "-Xms2048m", "-Xmx3072m" ])
+            </script>
+            <message>'RC %s' % rc</message>
+            <call function="'copyFile'">
+              { 
+              'location'   : STAXServiceMachine ,
+              'srcfile'    : '%s/java.properties' % local.temp ,
+              'destfile'   : '%s/%s/config/java.properties' % (DIRECTORY_INSTANCE_DIR,OPENDSNAME) ,
+              'remotehost' : STAF_REMOTE_HOSTNAME
+              }
+            </call>
+
+            <call function="'dsJavaPropertiesWithScript'">
+              { 'location'    : STAF_REMOTE_HOSTNAME }
+            </call>
+
+            <!-- Check if 'ldifFile' exists -->
+            <call function="'GetEntry'">
+              {
+              'location'  : STAF_REMOTE_HOSTNAME ,
+              'entry'     : ldifFile ,
+              'attribute' : 'TYPE'
+              }
+            </call>
+            <if expr="RC == 48">
+              <sequence>
+  
+                <call function="'testStep'">
+                  { 'stepMessage' : 'Make template for makeldif.' }
+                </call>
+  
+                <call function="'MakeAMakeLdifTemplate'">
+                  {
+                  'numEntries'           : numberOfEntries ,
+                  'additionalAttributes' : True ,
+                  'templateFile'         : ldifTemplate ,
+                  'templateLocation'     : STAF_REMOTE_HOSTNAME
+                  }
+                </call>
+      
+                <call function="'testStep'">
+                  { 'stepMessage' : 'Create ldif file for import using makeldif.' }
+                </call>
+  
+                <call function="'MakeLdifWithScript'">
+                  {
+                  'location'     : STAF_REMOTE_HOSTNAME ,
+                  'templateFile' : ldifTemplate ,
+                  'ldifFile'     : ldifFile
+                  }
+                </call>
+              </sequence>
+              <else>
+                <call function="'testStep'">
+                  { 'stepMessage' : 'Template and ldif file already created.' }
+                </call>
+              </else>
+            </if>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Import the LDIF file.' }
+            </call>
+
+            <call function="'ImportLdifWithScript'">
+            {
+              'location'   : STAF_REMOTE_HOSTNAME ,
+              'ldifFile'   : ldifFile ,
+              'backEnd'    : 'userRoot'
+            }
+            </call>
+
+            <script>
+              returnString = STAXResult[0][1]
+              msg = 'Processed %s entries, imported %s, skipped 0, rejected 0' \
+                    % (totalEntries,totalEntries)
+            </script>
+
+            <call function="'checktestString'">
+              {
+              'returnString'   : returnString ,
+              'expectedString' : msg
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Start the Directory Server.' }
+            </call>
+
+            <call function="'StartDsWithScript'">
+              { 'location' : STAF_REMOTE_HOSTNAME }
+            </call>
+
+            <script>
+              returnString = STAXResult[0][1]
+              msg = 'The database backend userRoot containing %s entries has started' \
+                    % totalEntries
+            </script>
+
+            <call function="'checktestString'">
+              {
+              'returnString'   : returnString ,
+              'expectedString' : msg
+              }
+            </call>
+
+            <!--- Check that DS started -->
+            <call function="'isAlive'">
+              {
+              'noOfLoops'        : 10 ,
+              'noOfMilliSeconds' : 5000
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Verify import LDIF operations.' }
+            </call>
+
+              <call function="'checkImport'">
+                {
+                'expectedEntries' : ['uid=user.0,ou=People,dc=com' ,
+                                     'uid=user.1000000,ou=People,dc=com' ,
+                                     'uid=user.1500000,ou=People,dc=com' ,
+                                     'uid=user.2000000,ou=People,dc=com' ,
+                                     'uid=user.2500000,ou=People,dc=com' ,
+                                     'uid=user.3000000,ou=People,dc=com' ,
+                                     'uid=user.3500000,ou=People,dc=com' ,
+                                     'uid=user.4000000,ou=People,dc=com' ,
+                                     'uid=user.4500000,ou=People,dc=com' ,
+                                     'uid=user.5000000,ou=People,dc=com' ,
+                                     'uid=user.5999999,ou=People,dc=com'] ,
+                'startDS'         : 'no'
+                }
+              </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Delete the ldif file.' }
+            </call>
+
+            <call function="'deleteFile'">
+              {
+              'location' : STAF_REMOTE_HOSTNAME,
+              'filename' : ldifFile
+              }
+            </call>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Delete the template file.' }
+            </call>
+
+            <call function="'deleteFile'">
+              {
+              'location' : STAF_REMOTE_HOSTNAME,
+              'filename' : ldifTemplate
+              }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+</stax>

@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ ! 
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/CDDLv1_0.txt
+ ! or http://forgerock.org/license/CDDLv1.0.html.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ ! 
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/CDDLv1_0.txt.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2011 ForgeRock AS
+ ! -->
+<stax>
+
+  <!-- Definition of Test Cases -->             
+
+  <!--- Test Cases : Basic : Operations -->
+ 
+  <!--- Test Case information
+  #@TestMarker          Basic: operations
+  #@TestName            Basic: operations 
+  #@TestID              basic_operations_001
+  #@TestPurpose         Verify basic LDAP authentication operations
+  #@TestPreamble        Common Setup
+  #@TestStep            Run LDAP authentication operations
+  #@TestPostamble       Common Cleanup
+  #@TestResult          Test is successful if the result code is 0
+  -->   
+  <function name="basic_operations_001" scope="local">
+    <testcase name="getTestCaseName('authrate')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+              BINDUSERS='%s/operations/binduser.ref' % remote.data
+            </script>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'Authrate.' }
+            </call>
+         
+            <call function="'authRate'">
+              { 'dsInstanceHost' : server.host,
+                'dsInstancePort' : server.port,
+                'dsInstanceDn'   : '"%s"',
+                'dsInstancePswd' : server.password,
+                'extraParams'    : '-g "rand(%s)" -c 10 -m 2000 -M 100' % BINDUSERS
+              }
+            </call>
+                   
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+  #@TestMarker          Basic: operations
+  #@TestName            Basic: operations 
+  #@TestID              basic_operations_002
+  #@TestPurpose         Verify basic LDAP search operations
+  #@TestPreamble        Common Setup
+  #@TestStep            Run LDAP search operations
+  #@TestPostamble       Common Cleanup
+  #@TestResult          Test is successful if the result code is 0
+  -->   
+  <function name="basic_operations_002" scope="local">
+    <testcase name="getTestCaseName('search')">                     
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+              SEARCHUSERS='%s/operations/binduser.ref' % remote.data
+            </script>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'SearchRate.' }
+            </call>
+            
+            <call function="'searchRate'">
+              { 'dsInstanceHost' : server.host,
+                'dsInstancePort' : server.port,
+                'dsInstanceDn'   : server.dn,
+                'dsInstancePswd' : server.password,
+                'dsBaseDN'       : '"%s"',
+                'extraParams'    : '-g "rand(%s)" -m 2000 -M 100 "objectclass=*"' % SEARCHUSERS
+              }
+            </call>
+                   
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+  #@TestMarker          Basic: operations
+  #@TestName            Basic: operations 
+  #@TestID              basic_operations_003
+  #@TestPurpose         Verify basic LDAP modify operations
+  #@TestPreamble        Common Setup
+  #@TestStep            Run LDAP modify operations
+  #@TestPostamble       Common Cleanup
+  #@TestResult          Test is successful if the result code is 0
+  -->   
+  <function name="basic_operations_003" scope="local">
+    <testcase name="getTestCaseName('modrate')">                  
+      <sequence> 
+        <try>
+          <sequence>                
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <script>
+              MODUSERS='%s/operations/binduser.ref' % remote.data
+            </script>
+
+            <call function="'testStep'">
+              { 'stepMessage' : 'ModRate.' }
+            </call>
+            
+            <call function="'modRate'">
+              { 'dsInstanceHost' : server.host,
+                'dsInstancePort' : server.port,
+                'dsInstanceDn'   : server.dn,
+                'dsInstancePswd' : server.password,
+                'dsBaseDN'       : '"%s"',
+                'extraParams'    : '-g "rand(%s)" -g "rand(10,20)" -m 2000 -M 100' % MODUSERS,
+                'attribute'      : 'description' ,
+                'formatString'   : '"%s"'
+              }
+            </call>
+                   
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+    
+</stax>
