@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "../../../../shared/stax.dtd">
+<!--
+ ! CDDL HEADER START
+ !
+ ! The contents of this file are subject to the terms of the
+ ! Common Development and Distribution License, Version 1.0 only
+ ! (the "License").  You may not use this file except in compliance
+ ! with the License.
+ ! 
+ ! You can obtain a copy of the license at
+ ! trunk/opends/resource/legal-notices/CDDLv1_0.txt
+ ! or http://forgerock.org/license/CDDLv1.0.html.
+ ! See the License for the specific language governing permissions
+ ! and limitations under the License.
+ ! 
+ ! When distributing Covered Code, include this CDDL HEADER in each
+ ! file and include the License file at
+ ! trunk/opends/resource/legal-notices/CDDLv1_0.txt.  If applicable,
+ ! add the following below this CDDL HEADER, with the fields enclosed
+ ! by brackets "[]" replaced with your own identifying information:
+ !      Portions Copyright [yyyy] [name of copyright owner]
+ !
+ ! CDDL HEADER END
+ !
+ !      Copyright 2012 ForgeRock AS.
+ ! -->
+<stax>
+
+  <!-- Definition of Test Cases -->             
+
+  <!--- Test Cases : ImportLDIF: Binary Attributes -->
+ 
+  <!--- Test Case information
+  #@TestMarker          ImportLDIF: Out of Box
+  #@TestName            ImportLDIF: Out of Box 
+  #@TestID              importldif_basic_001
+  #@TestPurpose         Verify import LDIF with out of box settings
+  #@TestPreamble        Common Setup
+  #@TestStep            Make template for makeldif.
+  #@TestStep            Create ldif file for import using makeldif.
+  #@TestStep            Import the LDIF file.
+  #@TestStep            Start the Directory Server.
+  #@TestStep            Verify import LDIF operations.
+  #@TestPostamble       Common Cleanup
+  #@TestResult          Test is successful if the result code is 0
+  -->   
+  <function name="importldif_basic_001" scope="local">
+    <testcase name="getTestCaseName('Out of Box')">                     
+      <sequence> 
+        <try>
+          <sequence>
+
+            <call function="'testCase_Preamble'"/>
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <call function="'testCase_Preamble'"/>
+            <message>
+             'Import Ldif: Out-Of-Box: Preamble - Stop DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
+            </message>
+
+            <call function="'StopDsWithScript'">
+            { 'location'    : STAF_REMOTE_HOSTNAME,
+              'dsHost'      : DIRECTORY_INSTANCE_HOST,
+              'dsAdminPort' : DIRECTORY_INSTANCE_ADMIN_PORT,
+              'dsBindDN'    : DIRECTORY_INSTANCE_DN,
+              'dsBindPwd'   : DIRECTORY_INSTANCE_PSWD }
+            </call>
+
+            <message>
+               'Import Ldif: Out-Of-Box: Preamble - Make an make-ldif template file'
+            </message>
+            
+            <script>
+                numberOfEntries=15000000
+            </script>
+            
+            <call function="'MakeAMakeLdifTemplate'">
+              { 'numEntries'         : numberOfEntries ,
+                'templateFile'       : '%s/import_Entries_150k.template' % (remote.temp) }
+            </call>
+            
+            <message>
+               'Import Ldif: Out-Of-Box: Preamble - Make the ldif file'
+            </message>
+            
+            <call function="'MakeLdifWithScript'">
+              { 'templateFile'   : '%s/import_Entries_150k.template' % (remote.temp)  ,
+                'ldifFile'       : '%s/import_Entries_150k.ldif' % (remote.temp)  }
+            </call>
+
+            <message>
+               'Import Ldif: Out-Of-Box: Import large ldif file'
+            </message>
+            
+            <call function="'ImportLdifWithScript'">
+            { 'location'    : STAF_REMOTE_HOSTNAME ,
+              'ldifFile'    : '%s/import_Entries_150k.ldif' % remote.temp,
+              'backEnd'     : 'userRoot'}
+            </call>
+
+            <script> 
+             returnString = STAXResult[0][1]
+            </script> 
+
+            <call function="'checktestString'">
+                { 'returnString'       : returnString ,
+                  'expectedString'     : 'skipped 0, rejected 0' }
+            </call>
+
+            <message>
+             'Import Ldif: Out-Of-Box: Start DS running on port %s' % (DIRECTORY_INSTANCE_PORT)
+            </message>
+
+            <call function="'StartDsWithScript'">
+            { 'location'  : STAF_REMOTE_HOSTNAME }
+            </call>
+
+            <!--- Check that DS started -->
+            <call function="'isAlive'">
+              { 'noOfLoops'        : 10 ,
+                'noOfMilliSeconds' : 5000 }
+            </call>
+
+            <message>
+             'Import Ldif: Out-Of-Box: Search for certain entries that were imported'
+            </message>
+
+            <call function="'checkImport'">
+            { 'expectedEntries' : ['uid=user.1,ou=People,dc=com' ,
+                                   'uid=user.10000,ou=People,dc=com' ,
+                                   'uid=user.100000,ou=People,dc=com' ,
+                                   'uid=user.1000000,ou=People,dc=com' ,
+                                   'uid=user.14000000,ou=People,dc=com' ,
+                                   'uid=user.14999999,ou=People,dc=com'] ,
+              'startDS'         : 'no'
+            }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+</stax>
