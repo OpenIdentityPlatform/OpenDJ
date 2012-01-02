@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<xsl:stylesheet version="1.0" 
+<xsl:stylesheet version="1.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 <!--
  ! CDDL HEADER START
@@ -25,7 +25,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
  ! CDDL HEADER END
  !
  !      Copyright 2008-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS
+ !      Portions Copyright 2011-2012 ForgeRock AS
  ! -->
 
 <xsl:output method="html" version="4.0" encoding="iso-8859-1" indent="yes"/>
@@ -53,7 +53,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
 <xsl:template name="main">
   <xsl:param name="tests-type"/>
-  
+
   <!-- Test Report Header Variables -->
   <xsl:variable name="id"             select="identification"/>
   <xsl:variable name="sut"            select="$id/sut"/>
@@ -64,9 +64,9 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:variable name="coverage-url"   select="normalize-space($id/coverage-url)"/>
   <xsl:variable name="productname"    select="normalize-space($sut[@product='opends']/name)"/>
   <xsl:variable name="version"        select="normalize-space($sut[@product='opends']/version)"/>
- 
+
   <xsl:element name="html">
-  
+
   <xsl:element name="head">
 
   <style type="text/css">
@@ -81,7 +81,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     <xsl:element name="title">
       <xsl:value-of select="concat('Identification for ',$version)"/>
     </xsl:element>
-  
+
   </xsl:element>
 
   <table class="tertmasttable" width="100%" cellspacing="0">
@@ -100,7 +100,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </tr>
     </tbody>
   </table>
-  
+
   <!-- Shaded Line -->
   <xsl:element name="hr">
     <xsl:attribute name="noshade">
@@ -120,10 +120,10 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
   <!-- OpenDS -->
   <xsl:element name="h3">
-    <xsl:value-of select="'OpenDS'"/>
+    <xsl:value-of select="'OpenDJ'"/>
   </xsl:element>
 
-  <!-- OpenDS Table -->  
+  <!-- OpenDS Table -->
   <xsl:element name="table">
     <xsl:attribute name="border">
       <xsl:value-of select="'1'"/>
@@ -145,7 +145,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($sut[@product='opends']/name)"/>
-      </xsl:element>          
+      </xsl:element>
     </xsl:element>
     <xsl:element name="tr">
       <xsl:element name="td">
@@ -158,7 +158,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($sut[@product='opends']/version)"/>
-      </xsl:element>          
+      </xsl:element>
     </xsl:element>
     <xsl:element name="tr">
       <xsl:element name="td">
@@ -171,7 +171,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($sut[@product='opends']/buildid)"/>
-      </xsl:element>          
+      </xsl:element>
     </xsl:element>
     <xsl:element name="tr">
       <xsl:element name="td">
@@ -184,7 +184,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($sut[@product='opends']/revision)"/>
-      </xsl:element>          
+      </xsl:element>
     </xsl:element>
     <xsl:element name="tr">
       <xsl:element name="td">
@@ -197,7 +197,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($sut[@product='opends']/md5-sum)"/>
-      </xsl:element>          
+      </xsl:element>
     </xsl:element>
     <xsl:element name="tr">
       <xsl:element name="td">
@@ -210,7 +210,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($sut[@product='opends']/hostname)"/>
-      </xsl:element>          
+      </xsl:element>
     </xsl:element>
     <xsl:element name="tr">
       <xsl:element name="td">
@@ -223,7 +223,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($sut[@product='opends']/jvm-version)"/>
-      </xsl:element>          
+      </xsl:element>
     </xsl:element>
    <xsl:element name="tr">
       <xsl:element name="td">
@@ -236,7 +236,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($sut[@product='opends']/jvm-vendor)"/>
-      </xsl:element>          
+      </xsl:element>
     </xsl:element>
    <xsl:element name="tr">
       <xsl:element name="td">
@@ -249,7 +249,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($sut[@product='opends']/jvm-arch)"/>
-      </xsl:element>          
+      </xsl:element>
     </xsl:element>
    <xsl:element name="tr">
       <xsl:element name="td">
@@ -262,7 +262,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($sut[@product='opends']/jvm-home)"/>
-      </xsl:element>          
+      </xsl:element>
     </xsl:element>
    <xsl:element name="tr">
       <xsl:element name="td">
@@ -275,7 +275,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($sut[@product='opends']/jvm-bin)"/>
-      </xsl:element>          
+      </xsl:element>
     </xsl:element>
    <xsl:element name="tr">
       <xsl:element name="td">
@@ -288,7 +288,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($sut[@product='opends']/jvm-args)"/>
-      </xsl:element>          
+      </xsl:element>
     </xsl:element>
   </xsl:element>
 
@@ -297,7 +297,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     <xsl:value-of select="'DSML Gateway'"/>
   </xsl:element>
 
-  <!-- DSML Gateway Table -->  
+  <!-- DSML Gateway Table -->
   <xsl:element name="table">
     <xsl:attribute name="border">
       <xsl:value-of select="'1'"/>
@@ -319,7 +319,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($sut[@product='dsml']/name)"/>
-      </xsl:element>          
+      </xsl:element>
     </xsl:element>
     <xsl:element name="tr">
       <xsl:element name="td">
@@ -332,7 +332,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($sut[@product='opends']/version)"/>
-      </xsl:element>          
+      </xsl:element>
     </xsl:element>
     <xsl:element name="tr">
       <xsl:element name="td">
@@ -345,7 +345,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($sut[@product='opends']/buildid)"/>
-      </xsl:element>          
+      </xsl:element>
     </xsl:element>
     <xsl:element name="tr">
       <xsl:element name="td">
@@ -358,7 +358,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($sut[@product='opends']/revision)"/>
-      </xsl:element>          
+      </xsl:element>
     </xsl:element>
     <xsl:element name="tr">
       <xsl:element name="td">
@@ -371,7 +371,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($sut[@product='dsml']/md5-sum)"/>
-      </xsl:element>          
+      </xsl:element>
     </xsl:element>
     <xsl:element name="tr">
       <xsl:element name="td">
@@ -384,7 +384,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($sut[@product='opends']/hostname)"/>
-      </xsl:element>          
+      </xsl:element>
     </xsl:element>
     <xsl:element name="tr">
       <xsl:element name="td">
@@ -397,7 +397,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($sut[@product='opends']/jvm-version)"/>
-      </xsl:element>          
+      </xsl:element>
     </xsl:element>
    <xsl:element name="tr">
       <xsl:element name="td">
@@ -410,7 +410,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($sut[@product='opends']/jvm-vendor)"/>
-      </xsl:element>          
+      </xsl:element>
     </xsl:element>
    <xsl:element name="tr">
       <xsl:element name="td">
@@ -423,7 +423,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($sut[@product='opends']/jvm-arch)"/>
-      </xsl:element>          
+      </xsl:element>
     </xsl:element>
    <xsl:element name="tr">
       <xsl:element name="td">
@@ -436,7 +436,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($sut[@product='opends']/jvm-home)"/>
-      </xsl:element>          
+      </xsl:element>
     </xsl:element>
    <xsl:element name="tr">
       <xsl:element name="td">
@@ -449,7 +449,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($sut[@product='dsml']/dsml-container)"/>
-      </xsl:element>          
+      </xsl:element>
     </xsl:element>
   </xsl:element>
 
@@ -494,7 +494,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
   <xsl:element name="br"/>
 
-  <!-- Package Table -->  
+  <!-- Package Table -->
   <xsl:element name="table">
     <xsl:element name="tr">
       <xsl:element name="td">
@@ -502,9 +502,9 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           <xsl:value-of select="'25%'"/>
         </xsl:attribute>
         <xsl:element name="b">
-          <xsl:value-of select="'OpenDS Package: '"/>
+          <xsl:value-of select="'OpenDJ Package: '"/>
         </xsl:element>
-      </xsl:element>        
+      </xsl:element>
       <xsl:element name="td">
         <xsl:element name="a">
           <xsl:attribute name="href">
@@ -512,7 +512,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           </xsl:attribute>
             <xsl:value-of select="normalize-space($sut[@product='opends']/server-package)"/>
           </xsl:element>
-      </xsl:element>          
+      </xsl:element>
     </xsl:element>
     <xsl:element name="tr">
       <xsl:element name="td">
@@ -530,7 +530,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           </xsl:attribute>
           <xsl:value-of select="normalize-space($sut[@product='dsml']/dsml-package)"/>
         </xsl:element>
-      </xsl:element>          
+      </xsl:element>
     </xsl:element>
     <xsl:element name="tr">
       <xsl:element name="td">
@@ -548,12 +548,12 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           </xsl:attribute>
           <xsl:value-of select="normalize-space($sut[@product='opends']/snmp-jarfile)"/>
         </xsl:element>
-      </xsl:element>          
-    </xsl:element>    
+      </xsl:element>
+    </xsl:element>
   </xsl:element>
 
   <xsl:element name="br"/>
-  
+
   <!-- Shaded Line -->
   <xsl:element name="hr">
     <xsl:attribute name="noshade">
@@ -574,7 +574,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     <xsl:value-of select="'STAF'"/>
   </xsl:element>
 
-  <!-- STAF Table-->  
+  <!-- STAF Table-->
   <xsl:element name="table">
     <xsl:attribute name="border">
       <xsl:value-of select="'1'"/>
@@ -594,7 +594,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>
       <xsl:element name="th">
         <xsl:value-of select="'Controller'"/>
-      </xsl:element>          
+      </xsl:element>
       <xsl:element name="th">
         <xsl:value-of select="'Slave'"/>
       </xsl:element>
@@ -610,7 +610,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($testware/staf/local/hostname)"/>
-      </xsl:element>          
+      </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($testware/staf/remote/hostname)"/>
       </xsl:element>
@@ -626,10 +626,10 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($testware/staf/local/version)"/>
-      </xsl:element>          
+      </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($testware/staf/remote/version)"/>
-      </xsl:element>          
+      </xsl:element>
     </xsl:element>
     <xsl:element name="tr">
       <xsl:element name="td">
@@ -642,7 +642,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($testware/staf/local/rootdir)"/>
-      </xsl:element>          
+      </xsl:element>
       <xsl:element name="td">
         <xsl:value-of select="normalize-space($testware/staf/remote/rootdir)"/>
       </xsl:element>
@@ -654,7 +654,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     <xsl:value-of select="concat('STAF Services on ',normalize-space($testware/staf/local/hostname))"/>
   </xsl:element>
 
-  <!-- STAF Services Table-->  
+  <!-- STAF Services Table-->
   <xsl:element name="table">
     <xsl:attribute name="border">
       <xsl:value-of select="'1'"/>
@@ -671,7 +671,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       </xsl:element>
       <xsl:element name="th">
         <xsl:value-of select="'Version'"/>
-      </xsl:element>          
+      </xsl:element>
       <xsl:element name="th">
         <xsl:value-of select="'Library'"/>
       </xsl:element>
@@ -696,7 +696,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
         </xsl:element>
         <xsl:element name="td">
           <xsl:value-of select="version"/>
-        </xsl:element>          
+        </xsl:element>
         <xsl:element name="td">
           <xsl:value-of select="library"/>
         </xsl:element>
@@ -746,7 +746,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           </xsl:attribute>
           <xsl:value-of select="normalize-space($tests-dir)"/>
         </xsl:element>
-      </xsl:element>          
+      </xsl:element>
     </xsl:element>
     <xsl:element name="tr">
       <xsl:element name="td">
@@ -776,7 +776,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           </xsl:attribute>
           <xsl:value-of select="normalize-space($mailto)"/>
         </xsl:element>
-      </xsl:element>          
+      </xsl:element>
     </xsl:element>
   </xsl:element>
 
