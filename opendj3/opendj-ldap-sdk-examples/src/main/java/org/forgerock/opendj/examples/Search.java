@@ -26,7 +26,7 @@
  *      Portions copyright 2011 ForgeRock AS
  */
 
-package org.forgerock.opendj.examples.search;
+package org.forgerock.opendj.examples;
 
 
 
@@ -48,7 +48,7 @@ import org.forgerock.opendj.ldif.*;
  *      &lt;baseDN> &lt;scope> &lt;filter> [&lt;attibute> &lt;attribute> ...]
  * </pre>
  */
-public final class Main
+public final class Search
 {
   /**
    * Main method.
@@ -181,7 +181,7 @@ public final class Main
 
 
 
-  private Main()
+  private Search()
   {
     // Not used.
   }

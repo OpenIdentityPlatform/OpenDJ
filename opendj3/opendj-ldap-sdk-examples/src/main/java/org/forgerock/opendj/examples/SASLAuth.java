@@ -31,7 +31,7 @@
  *
  * Set up StartTLS before using this example.
  */
-package org.forgerock.opendj.examples.saslauth;
+package org.forgerock.opendj.examples;
 
 import java.security.GeneralSecurityException;
 
@@ -77,7 +77,7 @@ import org.forgerock.opendj.ldap.requests.Requests;
  * u:bjensen
  * </pre>
  */
-public final class Main
+public final class SASLAuth
 {
   /**
    * Authenticate to the directory using SASL PLAIN.
@@ -203,7 +203,7 @@ public final class Main
 
 
 
-  private Main()
+  private SASLAuth()
   {
     // Not used.
   }

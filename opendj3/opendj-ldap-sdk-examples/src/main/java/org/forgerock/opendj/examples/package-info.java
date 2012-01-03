@@ -22,15 +22,11 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Copyright 2012 ForgeRock AS
  */
 
 /**
- * An example client application which performs simple authentication to a
- * Directory Server, displays a result, and closes the connection.
+ * This package includes examples illustrating various use cases of the
+ * OpenDJ LDAP SDK.
  */
-package org.forgerock.opendj.examples.simpleauth;
-
-
-
+package org.forgerock.opendj.examples;

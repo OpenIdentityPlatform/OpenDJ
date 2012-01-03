@@ -25,7 +25,7 @@
  *      Copyright 2011 ForgeRock AS
  */
 
-package org.forgerock.opendj.examples.simpleauth;
+package org.forgerock.opendj.examples;
 
 
 
@@ -57,7 +57,7 @@ import org.forgerock.opendj.ldap.TrustManagers;
  * The host, port, bind-dn, and bind-password are required. The use-starttls
  * and use-ssl parameters are optional and mutually exclusive.
  */
-public final class Main
+public final class SimpleAuth
 {
 
   /**
@@ -257,7 +257,7 @@ public final class Main
 
 
 
-  private Main()
+  private SimpleAuth()
   {
     // Not used.
   }

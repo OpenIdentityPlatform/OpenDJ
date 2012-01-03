@@ -35,35 +35,43 @@
         OpenDJ LDAP SDK:</p>
       <ul>
         <li>
-          <a href="xref/org/forgerock/opendj/examples/search/Main.html">LDAP search</a>
+          <a href="xref/org/forgerock/opendj/examples/Search.html">LDAP search</a>
           - illustrates how to perform an LDAP search operation using the
           synchronous APIs
         </li>
         <li>
-          <a href="xref/org/forgerock/opendj/examples/searchasync/Main.html">LDAP asynchronous search</a>
+          <a href="xref/org/forgerock/opendj/examples/SearchAsync.html">LDAP asynchronous search</a>
           - illustrates how to perform an LDAP search operation using the
           asynchronous APIs
         </li>
         <li>
-          <a href="xref/org/forgerock/opendj/examples/modify/Main.html">LDAP modify</a>
+          <a href="xref/org/forgerock/opendj/examples/Modify.html">LDAP modify</a>
           - illustrates how to perform an LDAP modify operation using the
           synchronous APIs
         </li>
         <li>
-          <a href="xref/org/forgerock/opendj/examples/server/Main.html">LDAP server</a>
+          <a href="xref/org/forgerock/opendj/examples/Server.html">LDAP server</a>
           - illustrates how to implement a very simple LDAP server
         </li>
         <li>
-          <a href="xref/org/forgerock/opendj/examples/proxy/Main.html">LDAP proxy</a>
+          <a href="xref/org/forgerock/opendj/examples/Proxy.html">LDAP proxy</a>
           - illustrates how to implement a very simple LDAP proxy
         </li>
         <li>
-          <a href="xref/org/forgerock/opendj/examples/simpleauth/Main.html">LDAP bind</a>
+          <a href="xref/org/forgerock/opendj/examples/SimpleAuth.html">LDAP bind</a>
           - illustrates how to bind to an LDAP server
         </li>
         <li>
-          <a href="xref/org/forgerock/opendj/examples/saslauth/Main.html">LDAP SASL bind</a>
+          <a href="xref/org/forgerock/opendj/examples/SASLAuth.html">LDAP SASL bind</a>
           - illustrates how to implement a SASL PLAIN bind to an LDAP server
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/ReadSchema.html">Read LDAP schema</a>
+          - illustrates how to read and verify an LDAP server's schema
+        </li>
+        <li>
+          <a href="xref/org/forgerock/opendj/examples/GetInfo.html">Read Root DSE</a>
+          - illustrates how to read an LDAP server's capabilities and schema
         </li>
       </ul>
     </section>

@@ -26,7 +26,7 @@
  *      Portions copyright 2011 ForgeRock AS
  */
 
-package org.forgerock.opendj.examples.searchasync;
+package org.forgerock.opendj.examples;
 
 
 
@@ -50,7 +50,7 @@ import org.forgerock.opendj.ldif.*;
  *      &lt;baseDN> &lt;scope> &lt;filter> [&lt;attibute> &lt;attribute> ...]
  * </pre>
  */
-public final class Main
+public final class SearchAsync
 {
   private static final class BindResultHandlerImpl implements
       ResultHandler<BindResult>
@@ -109,7 +109,7 @@ public final class Main
     public void handleResult(final Connection connection)
     {
       // Connect succeeded: save connection and initiate bind.
-      Main.connection = connection;
+      SearchAsync.connection = connection;
 
       final BindRequest request = Requests.newSimpleBindRequest(
           userName, password.toCharArray());
@@ -310,7 +310,7 @@ public final class Main
 
 
 
-  private Main()
+  private SearchAsync()
   {
     // Not used.
   }

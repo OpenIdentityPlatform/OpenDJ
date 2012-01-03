@@ -26,7 +26,7 @@
  *      Portions copyright 2011 ForgeRock AS
  */
 
-package org.forgerock.opendj.examples.modify;
+package org.forgerock.opendj.examples;
 
 
 
@@ -50,7 +50,7 @@ import org.forgerock.opendj.ldif.*;
  *  &lt;host> &lt;port> &lt;username> &lt;password> [&lt;ldifFile>]
  * </pre>
  */
-public final class Main
+public final class Modify
 {
   /**
    * Main method.
@@ -157,7 +157,7 @@ public final class Main
 
 
 
-  private Main()
+  private Modify()
   {
     // Not used.
   }
