@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.core;
 import org.opends.messages.Message;
@@ -191,11 +191,12 @@ public class SchemaConfigManager
   /**
    * Filter implementation that accepts only ldif files.
    */
-  private class SchemaFileFilter implements FilenameFilter
+  private static class SchemaFileFilter implements FilenameFilter
   {
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean accept(File directory, String filename)
     {
       if (filename.endsWith(".ldif"))
