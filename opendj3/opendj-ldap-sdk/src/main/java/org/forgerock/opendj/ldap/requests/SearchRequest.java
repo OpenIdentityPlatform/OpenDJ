@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -31,7 +32,7 @@ package org.forgerock.opendj.ldap.requests;
 
 import java.util.List;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.i18n.*;
 import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.ControlDecoder;
@@ -61,16 +62,14 @@ public interface SearchRequest extends Request
    * @throws NullPointerException
    *           If {@code attributeDescriptions} was {@code null}.
    */
-  SearchRequest addAttribute(String... attributeDescriptions)
-      throws UnsupportedOperationException, NullPointerException;
+  SearchRequest addAttribute(String... attributeDescriptions);
 
 
 
   /**
    * {@inheritDoc}
    */
-  SearchRequest addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  SearchRequest addControl(Control control);
 
 
 
@@ -90,7 +89,7 @@ public interface SearchRequest extends Request
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 
@@ -194,8 +193,7 @@ public interface SearchRequest extends Request
    * @throws NullPointerException
    *           If {@code policy} was {@code null}.
    */
-  SearchRequest setDereferenceAliasesPolicy(DereferenceAliasesPolicy policy)
-      throws UnsupportedOperationException, NullPointerException;
+  SearchRequest setDereferenceAliasesPolicy(DereferenceAliasesPolicy policy);
 
 
 
@@ -212,8 +210,7 @@ public interface SearchRequest extends Request
    * @throws NullPointerException
    *           If {@code filter} was {@code null}.
    */
-  SearchRequest setFilter(Filter filter) throws UnsupportedOperationException,
-      NullPointerException;
+  SearchRequest setFilter(Filter filter);
 
 
 
@@ -233,8 +230,7 @@ public interface SearchRequest extends Request
    * @throws NullPointerException
    *           If {@code filter} was {@code null}.
    */
-  SearchRequest setFilter(String filter) throws UnsupportedOperationException,
-      LocalizedIllegalArgumentException, NullPointerException;
+  SearchRequest setFilter(String filter);
 
 
 
@@ -252,8 +248,7 @@ public interface SearchRequest extends Request
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  SearchRequest setName(DN dn) throws UnsupportedOperationException,
-      NullPointerException;
+  SearchRequest setName(DN dn);
 
 
 
@@ -273,8 +268,7 @@ public interface SearchRequest extends Request
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  SearchRequest setName(String dn) throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException;
+  SearchRequest setName(String dn);
 
 
 
@@ -289,8 +283,7 @@ public interface SearchRequest extends Request
    * @throws NullPointerException
    *           If {@code scope} was {@code null}.
    */
-  SearchRequest setScope(SearchScope scope)
-      throws UnsupportedOperationException, NullPointerException;
+  SearchRequest setScope(SearchScope scope);
 
 
 
@@ -311,8 +304,7 @@ public interface SearchRequest extends Request
    * @throws LocalizedIllegalArgumentException
    *           If {@code limit} was negative.
    */
-  SearchRequest setSizeLimit(int limit) throws UnsupportedOperationException,
-      LocalizedIllegalArgumentException;
+  SearchRequest setSizeLimit(int limit);
 
 
 
@@ -333,8 +325,7 @@ public interface SearchRequest extends Request
    * @throws LocalizedIllegalArgumentException
    *           If {@code limit} was negative.
    */
-  SearchRequest setTimeLimit(int limit) throws UnsupportedOperationException,
-      LocalizedIllegalArgumentException;
+  SearchRequest setTimeLimit(int limit);
 
 
 
@@ -351,7 +342,6 @@ public interface SearchRequest extends Request
    *           If this search request does not permit the types-only parameter
    *           to be set.
    */
-  SearchRequest setTypesOnly(boolean typesOnly)
-      throws UnsupportedOperationException;
+  SearchRequest setTypesOnly(boolean typesOnly);
 
 }

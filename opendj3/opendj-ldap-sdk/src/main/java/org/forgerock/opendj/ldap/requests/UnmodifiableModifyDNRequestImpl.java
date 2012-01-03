@@ -23,81 +23,111 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
+
+
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldif.ChangeRecordVisitor;
 
+
+
 /**
  * Unmodifiable modify DN request implementation.
  */
-final class UnmodifiableModifyDNRequestImpl
-    extends AbstractUnmodifiableRequest<ModifyDNRequest>
-    implements ModifyDNRequest
+final class UnmodifiableModifyDNRequestImpl extends
+    AbstractUnmodifiableRequest<ModifyDNRequest> implements ModifyDNRequest
 {
-  UnmodifiableModifyDNRequestImpl(ModifyDNRequest impl) {
+  UnmodifiableModifyDNRequestImpl(ModifyDNRequest impl)
+  {
     super(impl);
   }
 
-  public <R, P> R accept(ChangeRecordVisitor<R, P> v, P p) {
+
+
+  public <R, P> R accept(ChangeRecordVisitor<R, P> v, P p)
+  {
     return v.visitChangeRecord(p, this);
   }
 
-  public DN getName() {
+
+
+  public DN getName()
+  {
     return impl.getName();
   }
 
-  public RDN getNewRDN() {
+
+
+  public RDN getNewRDN()
+  {
     return impl.getNewRDN();
   }
 
-  public DN getNewSuperior() {
+
+
+  public DN getNewSuperior()
+  {
     return impl.getNewSuperior();
   }
 
-  public boolean isDeleteOldRDN() {
+
+
+  public boolean isDeleteOldRDN()
+  {
     return impl.isDeleteOldRDN();
   }
 
+
+
   public ModifyDNRequest setDeleteOldRDN(boolean deleteOldRDN)
-      throws UnsupportedOperationException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   public ModifyDNRequest setName(DN dn)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   public ModifyDNRequest setName(String dn)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   public ModifyDNRequest setNewRDN(RDN rdn)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   public ModifyDNRequest setNewRDN(String rdn)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   public ModifyDNRequest setNewSuperior(DN dn)
-      throws UnsupportedOperationException {
+  {
     throw new UnsupportedOperationException();
   }
 
+
+
   public ModifyDNRequest setNewSuperior(String dn)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException {
+  {
     throw new UnsupportedOperationException();
   }
 }

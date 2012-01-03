@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package com.forgerock.opendj.util;
@@ -65,7 +66,6 @@ public final class CompletedFutureResult<S> implements FutureResult<S>
    *           If {@code errorResult} was {@code null}.
    */
   public CompletedFutureResult(final ErrorResultException errorResult)
-      throws NullPointerException
   {
     this(errorResult, -1);
   }
@@ -84,7 +84,7 @@ public final class CompletedFutureResult<S> implements FutureResult<S>
    *           If {@code errorResult} was {@code null}.
    */
   public CompletedFutureResult(final ErrorResultException errorResult,
-      final int requestID) throws NullPointerException
+      final int requestID)
   {
     Validator.ensureNotNull(errorResult);
     this.result = null;

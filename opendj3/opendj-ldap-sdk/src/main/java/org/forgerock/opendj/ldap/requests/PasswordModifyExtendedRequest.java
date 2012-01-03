@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -75,8 +76,7 @@ public interface PasswordModifyExtendedRequest extends
   /**
    * {@inheritDoc}
    */
-  PasswordModifyExtendedRequest addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  PasswordModifyExtendedRequest addControl(Control control);
 
 
 
@@ -84,7 +84,7 @@ public interface PasswordModifyExtendedRequest extends
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 
@@ -183,8 +183,7 @@ public interface PasswordModifyExtendedRequest extends
    *           If this password modify extended request does not permit the new
    *           password to be set.
    */
-  PasswordModifyExtendedRequest setNewPassword(ByteString newPassword)
-      throws UnsupportedOperationException;
+  PasswordModifyExtendedRequest setNewPassword(ByteString newPassword);
 
 
 
@@ -200,8 +199,7 @@ public interface PasswordModifyExtendedRequest extends
    *           If this password modify extended request does not permit the new
    *           password to be set.
    */
-  PasswordModifyExtendedRequest setNewPassword(char[] newPassword)
-      throws UnsupportedOperationException;
+  PasswordModifyExtendedRequest setNewPassword(char[] newPassword);
 
 
 
@@ -216,8 +214,7 @@ public interface PasswordModifyExtendedRequest extends
    *           If this password modify extended request does not permit the old
    *           password to be set.
    */
-  PasswordModifyExtendedRequest setOldPassword(ByteString oldPassword)
-      throws UnsupportedOperationException;
+  PasswordModifyExtendedRequest setOldPassword(ByteString oldPassword);
 
 
 
@@ -233,8 +230,7 @@ public interface PasswordModifyExtendedRequest extends
    *           If this password modify extended request does not permit the old
    *           password to be set.
    */
-  PasswordModifyExtendedRequest setOldPassword(char[] oldPassword)
-      throws UnsupportedOperationException;
+  PasswordModifyExtendedRequest setOldPassword(char[] oldPassword);
 
 
 
@@ -251,8 +247,7 @@ public interface PasswordModifyExtendedRequest extends
    *           If this password modify extended request does not permit the user
    *           identity to be set.
    */
-  PasswordModifyExtendedRequest setUserIdentity(ByteString userIdentity)
-      throws UnsupportedOperationException;
+  PasswordModifyExtendedRequest setUserIdentity(ByteString userIdentity);
 
 
 
@@ -270,7 +265,6 @@ public interface PasswordModifyExtendedRequest extends
    *           If this password modify extended request does not permit the user
    *           identity to be set.
    */
-  PasswordModifyExtendedRequest setUserIdentity(String userIdentity)
-      throws UnsupportedOperationException;
+  PasswordModifyExtendedRequest setUserIdentity(String userIdentity);
 
 }

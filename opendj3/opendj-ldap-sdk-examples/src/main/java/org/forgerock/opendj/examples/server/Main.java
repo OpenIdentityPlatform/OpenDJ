@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.examples.server;
@@ -89,7 +89,6 @@ public final class Main
         final AddRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super Result> resultHandler)
-        throws UnsupportedOperationException
     {
       // TODO: controls.
       entryLock.writeLock().lock();
@@ -134,7 +133,6 @@ public final class Main
         final int version, final BindRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super BindResult> resultHandler)
-        throws UnsupportedOperationException
     {
       if (request.getAuthenticationType() != ((byte) 0x80))
       {
@@ -162,7 +160,6 @@ public final class Main
         final CompareRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super CompareResult> resultHandler)
-        throws UnsupportedOperationException
     {
       // TODO:
     }
@@ -177,7 +174,6 @@ public final class Main
         final DeleteRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super Result> resultHandler)
-        throws UnsupportedOperationException
     {
       // TODO: controls.
       entryLock.writeLock().lock();
@@ -215,7 +211,6 @@ public final class Main
         final ExtendedRequest<R> request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super R> resultHandler)
-        throws UnsupportedOperationException
     {
       // TODO: not implemented.
       resultHandler.handleErrorResult(newErrorResult(
@@ -233,7 +228,6 @@ public final class Main
         final ModifyRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super Result> resultHandler)
-        throws UnsupportedOperationException
     {
       // TODO: controls.
       // TODO: read lock is not really enough since concurrent updates may
@@ -298,7 +292,6 @@ public final class Main
         final ModifyDNRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super Result> resultHandler)
-        throws UnsupportedOperationException
     {
       // TODO: not implemented.
       resultHandler.handleErrorResult(newErrorResult(
@@ -316,7 +309,6 @@ public final class Main
         final SearchRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final SearchResultHandler resultHandler)
-        throws UnsupportedOperationException
     {
       // TODO: controls, limits, etc.
       entryLock.readLock().lock();

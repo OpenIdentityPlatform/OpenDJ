@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -31,7 +32,7 @@ package org.forgerock.opendj.ldap;
 
 import java.util.*;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.i18n.*;
 
 import com.forgerock.opendj.util.Validator;
 
@@ -84,8 +85,7 @@ public final class LinkedAttribute extends AbstractAttribute
 
 
 
-    abstract ByteString firstValue(LinkedAttribute attribute)
-        throws NoSuchElementException;
+    abstract ByteString firstValue(LinkedAttribute attribute);
 
 
 
@@ -146,7 +146,6 @@ public final class LinkedAttribute extends AbstractAttribute
 
     @Override
     ByteString firstValue(final LinkedAttribute attribute)
-        throws NoSuchElementException
     {
       return attribute.multipleValues.values().iterator().next();
     }
@@ -361,7 +360,6 @@ public final class LinkedAttribute extends AbstractAttribute
 
     @Override
     ByteString firstValue(final LinkedAttribute attribute)
-        throws NoSuchElementException
     {
       if (attribute.singleValue != null)
       {
@@ -549,7 +547,6 @@ public final class LinkedAttribute extends AbstractAttribute
 
     @Override
     ByteString firstValue(final LinkedAttribute attribute)
-        throws NoSuchElementException
     {
       throw new NoSuchElementException();
     }
@@ -641,7 +638,6 @@ public final class LinkedAttribute extends AbstractAttribute
     @Override
     public Attribute newAttribute(
         final AttributeDescription attributeDescription)
-        throws NullPointerException
     {
       return new LinkedAttribute(attributeDescription);
     }
@@ -674,7 +670,7 @@ public final class LinkedAttribute extends AbstractAttribute
    * @throws NullPointerException
    *           If {@code attribute} was {@code null}.
    */
-  public LinkedAttribute(final Attribute attribute) throws NullPointerException
+  public LinkedAttribute(final Attribute attribute)
   {
     this.attributeDescription = attribute.getAttributeDescription();
 
@@ -708,7 +704,6 @@ public final class LinkedAttribute extends AbstractAttribute
    *           If {@code attributeDescription} was {@code null}.
    */
   public LinkedAttribute(final AttributeDescription attributeDescription)
-      throws NullPointerException
   {
     Validator.ensureNotNull(attributeDescription);
     this.attributeDescription = attributeDescription;
@@ -729,7 +724,7 @@ public final class LinkedAttribute extends AbstractAttribute
    *           .
    */
   public LinkedAttribute(final AttributeDescription attributeDescription,
-      final ByteString value) throws NullPointerException
+      final ByteString value)
   {
     this(attributeDescription);
     add(value);
@@ -750,7 +745,7 @@ public final class LinkedAttribute extends AbstractAttribute
    *           {@code null}.
    */
   public LinkedAttribute(final AttributeDescription attributeDescription,
-      final ByteString... values) throws NullPointerException
+      final ByteString... values)
   {
     this(attributeDescription);
     addAll(Arrays.asList(values));
@@ -771,7 +766,7 @@ public final class LinkedAttribute extends AbstractAttribute
    *           {@code null}.
    */
   public LinkedAttribute(final AttributeDescription attributeDescription,
-      final Collection<ByteString> values) throws NullPointerException
+      final Collection<ByteString> values)
   {
     this(attributeDescription);
     addAll(values);
@@ -793,7 +788,6 @@ public final class LinkedAttribute extends AbstractAttribute
    *           If {@code attributeDescription} was {@code null}.
    */
   public LinkedAttribute(final String attributeDescription)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     this(AttributeDescription.valueOf(attributeDescription));
   }
@@ -820,7 +814,6 @@ public final class LinkedAttribute extends AbstractAttribute
    *           .
    */
   public LinkedAttribute(final String attributeDescription, final Object value)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     this(attributeDescription);
     add(ByteString.valueOf(value));
@@ -848,8 +841,7 @@ public final class LinkedAttribute extends AbstractAttribute
    *           {@code null}.
    */
   public LinkedAttribute(final String attributeDescription,
-      final Object... values) throws LocalizedIllegalArgumentException,
-      NullPointerException
+      final Object... values)
   {
     this(attributeDescription);
     for (final Object value : values)
@@ -864,7 +856,7 @@ public final class LinkedAttribute extends AbstractAttribute
    * {@inheritDoc}
    */
   @Override
-  public boolean add(final ByteString value) throws NullPointerException
+  public boolean add(final ByteString value)
   {
     Validator.ensureNotNull(value);
     return pimpl.add(this, value);
@@ -878,7 +870,6 @@ public final class LinkedAttribute extends AbstractAttribute
   @Override
   public boolean addAll(final Collection<? extends ByteString> values,
       final Collection<? super ByteString> duplicateValues)
-      throws NullPointerException
   {
     Validator.ensureNotNull(values);
 
@@ -916,7 +907,7 @@ public final class LinkedAttribute extends AbstractAttribute
    * {@inheritDoc}
    */
   @Override
-  public boolean contains(final Object value) throws NullPointerException
+  public boolean contains(final Object value)
   {
     Validator.ensureNotNull(value);
     return pimpl.contains(this, ByteString.valueOf(value));
@@ -929,7 +920,6 @@ public final class LinkedAttribute extends AbstractAttribute
    */
   @Override
   public boolean containsAll(final Collection<?> values)
-      throws NullPointerException
   {
     Validator.ensureNotNull(values);
     return pimpl.containsAll(this, values);
@@ -941,7 +931,7 @@ public final class LinkedAttribute extends AbstractAttribute
    * {@inheritDoc}
    */
   @Override
-  public ByteString firstValue() throws NoSuchElementException
+  public ByteString firstValue()
   {
     return pimpl.firstValue(this);
   }
@@ -974,7 +964,7 @@ public final class LinkedAttribute extends AbstractAttribute
    * {@inheritDoc}
    */
   @Override
-  public boolean remove(final Object value) throws NullPointerException
+  public boolean remove(final Object value)
   {
     Validator.ensureNotNull(value);
     return pimpl.remove(this, ByteString.valueOf(value));
@@ -987,7 +977,7 @@ public final class LinkedAttribute extends AbstractAttribute
    */
   @Override
   public <T> boolean removeAll(final Collection<T> values,
-      final Collection<? super T> missingValues) throws NullPointerException
+      final Collection<? super T> missingValues)
   {
     Validator.ensureNotNull(values);
 
@@ -1015,7 +1005,7 @@ public final class LinkedAttribute extends AbstractAttribute
    */
   @Override
   public <T> boolean retainAll(final Collection<T> values,
-      final Collection<? super T> missingValues) throws NullPointerException
+      final Collection<? super T> missingValues)
   {
     Validator.ensureNotNull(values);
     return pimpl.retainAll(this, values, missingValues);

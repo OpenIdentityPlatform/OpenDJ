@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -145,7 +146,6 @@ final class WhoAmIExtendedRequestImpl extends
    */
   WhoAmIExtendedRequestImpl(
       final WhoAmIExtendedRequest whoAmIExtendedRequest)
-      throws NullPointerException
   {
     super(whoAmIExtendedRequest);
   }

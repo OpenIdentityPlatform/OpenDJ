@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -80,7 +81,7 @@ public final class AuthorizationIdentityResponseControl implements Control
    *           If {@code authorizationID} was {@code null}.
    */
   public static AuthorizationIdentityResponseControl newControl(
-      final String authorizationID) throws NullPointerException
+      final String authorizationID)
   {
     return new AuthorizationIdentityResponseControl(false, authorizationID);
   }

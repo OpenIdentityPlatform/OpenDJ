@@ -82,7 +82,6 @@ public class LDAPServer implements
 
 
     public Request addControl(final Control cntrl)
-        throws UnsupportedOperationException, NullPointerException
     {
       return request.addControl(cntrl);
     }
@@ -90,8 +89,7 @@ public class LDAPServer implements
 
 
     public <C extends Control> C getControl(final ControlDecoder<C> decoder,
-        final DecodeOptions options) throws DecodeException,
-        NullPointerException
+        final DecodeOptions options) throws DecodeException
     {
       return request.getControl(decoder, options);
     }

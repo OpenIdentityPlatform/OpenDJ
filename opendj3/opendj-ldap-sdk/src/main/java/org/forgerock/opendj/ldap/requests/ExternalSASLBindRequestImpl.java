@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -152,7 +152,6 @@ final class ExternalSASLBindRequestImpl extends
    */
   ExternalSASLBindRequestImpl(
       final ExternalSASLBindRequest externalSASLBindRequest)
-      throws NullPointerException
   {
     super(externalSASLBindRequest);
     this.authorizationID = externalSASLBindRequest.getAuthorizationID();

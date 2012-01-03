@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -41,8 +42,6 @@ import org.forgerock.opendj.ldap.controls.ControlDecoder;
 /**
  * The base class of all Responses provides methods for querying and
  * manipulating the set of Controls included with a Response.
- * <p>
- * TODO: added complete description including sub-types.
  */
 public interface Response
 {
@@ -58,8 +57,7 @@ public interface Response
    * @throws NullPointerException
    *           If {@code control} was {@code null}.
    */
-  Response addControl(Control control) throws UnsupportedOperationException,
-      NullPointerException;
+  Response addControl(Control control);
 
 
 
@@ -84,7 +82,7 @@ public interface Response
    *           If {@code decoder} or {@code options} was {@code null}.
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 

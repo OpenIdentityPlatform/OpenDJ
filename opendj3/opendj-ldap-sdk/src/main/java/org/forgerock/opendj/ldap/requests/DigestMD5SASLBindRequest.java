@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -33,7 +33,7 @@ package org.forgerock.opendj.ldap.requests;
 import java.util.List;
 import java.util.Map;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.i18n.*;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.ErrorResultException;
@@ -160,8 +160,7 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest
    * @throws NullPointerException
    *           If {@code name} or {@code value} was {@code null}.
    */
-  DigestMD5SASLBindRequest addAdditionalAuthParam(String name, String value)
-      throws UnsupportedOperationException, NullPointerException;
+  DigestMD5SASLBindRequest addAdditionalAuthParam(String name, String value);
 
 
 
@@ -169,8 +168,7 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest
    * {@inheritDoc}
    */
   @Override
-  DigestMD5SASLBindRequest addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  DigestMD5SASLBindRequest addControl(Control control);
 
 
 
@@ -194,8 +192,7 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest
    * @see #QOP_AUTH_INT
    * @see #QOP_AUTH_CONF
    */
-  DigestMD5SASLBindRequest addQOP(String... qopValues)
-      throws UnsupportedOperationException, NullPointerException;
+  DigestMD5SASLBindRequest addQOP(String... qopValues);
 
 
 
@@ -276,7 +273,7 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest
    */
   @Override
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 
@@ -395,9 +392,7 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest
    * @throws NullPointerException
    *           If {@code authenticationID} was {@code null}.
    */
-  DigestMD5SASLBindRequest setAuthenticationID(String authenticationID)
-      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
-      NullPointerException;
+  DigestMD5SASLBindRequest setAuthenticationID(String authenticationID);
 
 
 
@@ -418,8 +413,7 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest
    *           If this bind request does not permit the authorization ID to be
    *           set.
    */
-  DigestMD5SASLBindRequest setAuthorizationID(String authorizationID)
-      throws LocalizedIllegalArgumentException, UnsupportedOperationException;
+  DigestMD5SASLBindRequest setAuthorizationID(String authorizationID);
 
 
 
@@ -450,8 +444,7 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest
    * @see #CIPHER_MEDIUM
    * @see #CIPHER_LOW
    */
-  DigestMD5SASLBindRequest setCipher(String cipher)
-      throws UnsupportedOperationException;
+  DigestMD5SASLBindRequest setCipher(String cipher);
 
 
 
@@ -466,8 +459,7 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest
    * @throws UnsupportedOperationException
    *           If this bind request does not permit the buffer size to be set.
    */
-  DigestMD5SASLBindRequest setMaxReceiveBufferSize(int size)
-      throws UnsupportedOperationException;
+  DigestMD5SASLBindRequest setMaxReceiveBufferSize(int size);
 
 
 
@@ -482,8 +474,7 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest
    * @throws UnsupportedOperationException
    *           If this bind request does not permit the buffer size to be set.
    */
-  DigestMD5SASLBindRequest setMaxSendBufferSize(int size)
-      throws UnsupportedOperationException;
+  DigestMD5SASLBindRequest setMaxSendBufferSize(int size);
 
 
 
@@ -503,8 +494,7 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest
    * @throws NullPointerException
    *           If {@code password} was {@code null}.
    */
-  DigestMD5SASLBindRequest setPassword(byte[] password)
-      throws UnsupportedOperationException, NullPointerException;
+  DigestMD5SASLBindRequest setPassword(byte[] password);
 
 
 
@@ -520,8 +510,7 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest
    * @throws NullPointerException
    *           If {@code password} was {@code null}.
    */
-  DigestMD5SASLBindRequest setPassword(char[] password)
-      throws UnsupportedOperationException, NullPointerException;
+  DigestMD5SASLBindRequest setPassword(char[] password);
 
 
 
@@ -537,8 +526,7 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest
    * @throws NullPointerException
    *           If {@code realm} was {@code null}.
    */
-  DigestMD5SASLBindRequest setRealm(String realm)
-      throws UnsupportedOperationException, NullPointerException;
+  DigestMD5SASLBindRequest setRealm(String realm);
 
 
 
@@ -553,6 +541,5 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest
    * @throws UnsupportedOperationException
    *           If this bind request does not permit server auth to be set.
    */
-  DigestMD5SASLBindRequest setServerAuth(boolean serverAuth)
-      throws UnsupportedOperationException;
+  DigestMD5SASLBindRequest setServerAuth(boolean serverAuth);
 }

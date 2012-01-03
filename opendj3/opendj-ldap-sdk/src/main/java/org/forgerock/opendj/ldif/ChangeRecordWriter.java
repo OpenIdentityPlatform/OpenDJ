@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
@@ -88,8 +89,7 @@ public interface ChangeRecordWriter extends Closeable, Flushable
    * @throws NullPointerException
    *           If {@code change} was {@code null}.
    */
-  ChangeRecordWriter writeChangeRecord(AddRequest change) throws IOException,
-      NullPointerException;
+  ChangeRecordWriter writeChangeRecord(AddRequest change) throws IOException;
 
 
 
@@ -105,8 +105,7 @@ public interface ChangeRecordWriter extends Closeable, Flushable
    * @throws NullPointerException
    *           If {@code change} was {@code null}.
    */
-  ChangeRecordWriter writeChangeRecord(ChangeRecord change) throws IOException,
-      NullPointerException;
+  ChangeRecordWriter writeChangeRecord(ChangeRecord change) throws IOException;
 
 
 
@@ -124,7 +123,7 @@ public interface ChangeRecordWriter extends Closeable, Flushable
    *           If {@code change} was {@code null}.
    */
   ChangeRecordWriter writeChangeRecord(DeleteRequest change)
-      throws IOException, NullPointerException;
+      throws IOException;
 
 
 
@@ -142,7 +141,7 @@ public interface ChangeRecordWriter extends Closeable, Flushable
    *           If {@code change} was {@code null}.
    */
   ChangeRecordWriter writeChangeRecord(ModifyDNRequest change)
-      throws IOException, NullPointerException;
+      throws IOException;
 
 
 
@@ -160,7 +159,7 @@ public interface ChangeRecordWriter extends Closeable, Flushable
    *           If {@code change} was {@code null}.
    */
   ChangeRecordWriter writeChangeRecord(ModifyRequest change)
-      throws IOException, NullPointerException;
+      throws IOException;
 
 
 
@@ -175,7 +174,6 @@ public interface ChangeRecordWriter extends Closeable, Flushable
    * @throws NullPointerException
    *           If {@code comment} was {@code null}.
    */
-  ChangeRecordWriter writeComment(CharSequence comment) throws IOException,
-      NullPointerException;
+  ChangeRecordWriter writeComment(CharSequence comment) throws IOException;
 
 }

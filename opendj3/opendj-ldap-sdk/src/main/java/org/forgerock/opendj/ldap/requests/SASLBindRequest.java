@@ -51,8 +51,7 @@ public interface SASLBindRequest extends BindRequest
   /**
    * {@inheritDoc}
    */
-  SASLBindRequest addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  SASLBindRequest addControl(Control control);
 
 
 
@@ -77,7 +76,7 @@ public interface SASLBindRequest extends BindRequest
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 

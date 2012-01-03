@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -69,7 +70,6 @@ final class WhoAmIExtendedResultImpl extends
    *           If {@code whoAmIExtendedResult} was {@code null} .
    */
   WhoAmIExtendedResultImpl(final WhoAmIExtendedResult whoAmIExtendedResult)
-      throws NullPointerException
   {
     super(whoAmIExtendedResult);
     this.authorizationID = whoAmIExtendedResult.getAuthorizationID();
@@ -126,7 +126,6 @@ final class WhoAmIExtendedResultImpl extends
    * {@inheritDoc}
    */
   public WhoAmIExtendedResult setAuthorizationID(final String authorizationID)
-      throws LocalizedIllegalArgumentException
   {
     if (authorizationID != null && authorizationID.length() != 0)
     {

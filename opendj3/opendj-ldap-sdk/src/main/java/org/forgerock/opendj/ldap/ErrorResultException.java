@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -59,8 +59,7 @@ public class ErrorResultException extends ExecutionException
    *           If {@code resultCode} was {@code null}.
    */
   public static ErrorResultException newErrorResult(
-      ResultCode resultCode) throws IllegalArgumentException,
-      NullPointerException
+      ResultCode resultCode)
   {
     return newErrorResult(resultCode, null, null);
   }
@@ -84,7 +83,6 @@ public class ErrorResultException extends ExecutionException
    */
   public static ErrorResultException newErrorResult(
       ResultCode resultCode, String diagnosticMessage)
-      throws IllegalArgumentException, NullPointerException
   {
     return newErrorResult(resultCode, diagnosticMessage, null);
   }
@@ -108,7 +106,6 @@ public class ErrorResultException extends ExecutionException
    */
   public static ErrorResultException newErrorResult(
       ResultCode resultCode, Throwable cause)
-      throws IllegalArgumentException, NullPointerException
   {
     return newErrorResult(resultCode, null, cause);
   }
@@ -135,7 +132,6 @@ public class ErrorResultException extends ExecutionException
    */
   public static ErrorResultException newErrorResult(
       ResultCode resultCode, String diagnosticMessage, Throwable cause)
-      throws IllegalArgumentException, NullPointerException
   {
     final Result result = Responses.newResult(resultCode);
     if (diagnosticMessage != null)
@@ -164,8 +160,7 @@ public class ErrorResultException extends ExecutionException
    *           If {@code result} was {@code null}.
    */
   public static ErrorResultException newErrorResult(
-      final Result result) throws IllegalArgumentException,
-      NullPointerException
+      final Result result)
   {
     if (!result.getResultCode().isExceptional())
     {

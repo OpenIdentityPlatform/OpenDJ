@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.asn1;
@@ -159,8 +160,7 @@ public interface ASN1Reader extends Closeable
    * @throws IllegalStateException
    *           If there is no sequence being read.
    */
-  void readEndSequence() throws DecodeException, IOException,
-      IllegalStateException;
+  void readEndSequence() throws DecodeException, IOException;
 
 
 
@@ -174,7 +174,7 @@ public interface ASN1Reader extends Closeable
    * @throws IllegalStateException
    *           If there is no set being read.
    */
-  void readEndSet() throws DecodeException, IOException, IllegalStateException;
+  void readEndSet() throws DecodeException, IOException;
 
 
 

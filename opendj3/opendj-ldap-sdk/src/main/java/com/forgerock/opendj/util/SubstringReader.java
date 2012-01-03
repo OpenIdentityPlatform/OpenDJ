@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package com.forgerock.opendj.util;
@@ -106,7 +107,7 @@ public class SubstringReader
    * @throws StringIndexOutOfBoundsException If there is no more data
    *            available to read.
    */
-  public char read() throws StringIndexOutOfBoundsException
+  public char read()
   {
     if (pos >= length)
     {
@@ -129,7 +130,7 @@ public class SubstringReader
    * @throws StringIndexOutOfBoundsException If the length exceeds the
    *            allowed length.
    */
-  public String read(final int length) throws StringIndexOutOfBoundsException
+  public String read(final int length)
   {
     if (length > this.length || pos + length > this.length)
     {

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -40,7 +40,6 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.requests.*;
 import org.forgerock.opendj.ldap.responses.*;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
@@ -150,8 +149,6 @@ final class FixedConnectionPool implements ConnectionPool
 
     @Override
     public FutureResult<Void> abandonAsync(final AbandonRequest request)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
     {
       return checkState().abandonAsync(request);
     }
@@ -160,8 +157,7 @@ final class FixedConnectionPool implements ConnectionPool
 
     @Override
     public Result add(final AddRequest request) throws ErrorResultException,
-        InterruptedException, UnsupportedOperationException,
-        IllegalStateException, NullPointerException
+        InterruptedException
     {
       return checkState().add(request);
     }
@@ -170,8 +166,7 @@ final class FixedConnectionPool implements ConnectionPool
 
     @Override
     public Result add(final Entry entry) throws ErrorResultException,
-        InterruptedException, UnsupportedOperationException,
-        IllegalStateException, NullPointerException
+        InterruptedException
     {
       return checkState().add(entry);
     }
@@ -180,9 +175,7 @@ final class FixedConnectionPool implements ConnectionPool
 
     @Override
     public Result add(final String... ldifLines) throws ErrorResultException,
-        InterruptedException, UnsupportedOperationException,
-        LocalizedIllegalArgumentException, IllegalStateException,
-        NullPointerException
+        InterruptedException
     {
       return checkState().add(ldifLines);
     }
@@ -193,8 +186,6 @@ final class FixedConnectionPool implements ConnectionPool
     public FutureResult<Result> addAsync(final AddRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super Result> resultHandler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
     {
       return checkState().addAsync(request, intermediateResponseHandler,
           resultHandler);
@@ -207,8 +198,7 @@ final class FixedConnectionPool implements ConnectionPool
      */
     @Override
     public void addConnectionEventListener(
-        final ConnectionEventListener listener) throws IllegalStateException,
-        NullPointerException
+        final ConnectionEventListener listener)
     {
       Validator.ensureNotNull(listener);
       checkState();
@@ -219,9 +209,7 @@ final class FixedConnectionPool implements ConnectionPool
 
     @Override
     public BindResult bind(final BindRequest request)
-        throws ErrorResultException, InterruptedException,
-        UnsupportedOperationException, IllegalStateException,
-        NullPointerException
+        throws ErrorResultException, InterruptedException
     {
       return checkState().bind(request);
     }
@@ -230,9 +218,7 @@ final class FixedConnectionPool implements ConnectionPool
 
     @Override
     public BindResult bind(final String name, final char[] password)
-        throws ErrorResultException, InterruptedException,
-        LocalizedIllegalArgumentException, UnsupportedOperationException,
-        IllegalStateException, NullPointerException
+        throws ErrorResultException, InterruptedException
     {
       return checkState().bind(name, password);
     }
@@ -243,8 +229,6 @@ final class FixedConnectionPool implements ConnectionPool
     public FutureResult<BindResult> bindAsync(final BindRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super BindResult> resultHandler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
     {
       return checkState().bindAsync(request, intermediateResponseHandler,
           resultHandler);
@@ -298,7 +282,6 @@ final class FixedConnectionPool implements ConnectionPool
      */
     @Override
     public void close(final UnbindRequest request, final String reason)
-        throws NullPointerException
     {
       close();
     }
@@ -307,9 +290,7 @@ final class FixedConnectionPool implements ConnectionPool
 
     @Override
     public CompareResult compare(final CompareRequest request)
-        throws ErrorResultException, InterruptedException,
-        UnsupportedOperationException, IllegalStateException,
-        NullPointerException
+        throws ErrorResultException, InterruptedException
     {
       return checkState().compare(request);
     }
@@ -319,9 +300,7 @@ final class FixedConnectionPool implements ConnectionPool
     @Override
     public CompareResult compare(final String name,
         final String attributeDescription, final String assertionValue)
-        throws ErrorResultException, InterruptedException,
-        LocalizedIllegalArgumentException, UnsupportedOperationException,
-        IllegalStateException, NullPointerException
+        throws ErrorResultException, InterruptedException
     {
       return checkState().compare(name, attributeDescription, assertionValue);
     }
@@ -333,8 +312,6 @@ final class FixedConnectionPool implements ConnectionPool
         final CompareRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super CompareResult> resultHandler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
     {
       return checkState().compareAsync(request, intermediateResponseHandler,
           resultHandler);
@@ -344,9 +321,7 @@ final class FixedConnectionPool implements ConnectionPool
 
     @Override
     public Result delete(final DeleteRequest request)
-        throws ErrorResultException, InterruptedException,
-        UnsupportedOperationException, IllegalStateException,
-        NullPointerException
+        throws ErrorResultException, InterruptedException
     {
       return checkState().delete(request);
     }
@@ -355,9 +330,7 @@ final class FixedConnectionPool implements ConnectionPool
 
     @Override
     public Result delete(final String name) throws ErrorResultException,
-        InterruptedException, LocalizedIllegalArgumentException,
-        UnsupportedOperationException, IllegalStateException,
-        NullPointerException
+        InterruptedException
     {
       return checkState().delete(name);
     }
@@ -368,8 +341,6 @@ final class FixedConnectionPool implements ConnectionPool
     public FutureResult<Result> deleteAsync(final DeleteRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super Result> resultHandler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
     {
       return checkState().deleteAsync(request, intermediateResponseHandler,
           resultHandler);
@@ -380,8 +351,7 @@ final class FixedConnectionPool implements ConnectionPool
     @Override
     public <R extends ExtendedResult> R extendedRequest(
         final ExtendedRequest<R> request) throws ErrorResultException,
-        InterruptedException, UnsupportedOperationException,
-        IllegalStateException, NullPointerException
+        InterruptedException
     {
       return checkState().extendedRequest(request);
     }
@@ -392,8 +362,7 @@ final class FixedConnectionPool implements ConnectionPool
     public <R extends ExtendedResult> R extendedRequest(
         final ExtendedRequest<R> request,
         final IntermediateResponseHandler handler) throws ErrorResultException,
-        InterruptedException, UnsupportedOperationException,
-        IllegalStateException, NullPointerException
+        InterruptedException
     {
       return checkState().extendedRequest(request, handler);
     }
@@ -403,8 +372,7 @@ final class FixedConnectionPool implements ConnectionPool
     @Override
     public GenericExtendedResult extendedRequest(final String requestName,
         final ByteString requestValue) throws ErrorResultException,
-        InterruptedException, UnsupportedOperationException,
-        IllegalStateException, NullPointerException
+        InterruptedException
     {
       return checkState().extendedRequest(requestName, requestValue);
     }
@@ -416,8 +384,6 @@ final class FixedConnectionPool implements ConnectionPool
         final ExtendedRequest<R> request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super R> resultHandler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
     {
       return checkState().extendedRequestAsync(request,
           intermediateResponseHandler, resultHandler);
@@ -449,9 +415,7 @@ final class FixedConnectionPool implements ConnectionPool
 
     @Override
     public Result modify(final ModifyRequest request)
-        throws ErrorResultException, InterruptedException,
-        UnsupportedOperationException, IllegalStateException,
-        NullPointerException
+        throws ErrorResultException, InterruptedException
     {
       return checkState().modify(request);
     }
@@ -460,9 +424,7 @@ final class FixedConnectionPool implements ConnectionPool
 
     @Override
     public Result modify(final String... ldifLines)
-        throws ErrorResultException, InterruptedException,
-        UnsupportedOperationException, LocalizedIllegalArgumentException,
-        IllegalStateException, NullPointerException
+        throws ErrorResultException, InterruptedException
     {
       return checkState().modify(ldifLines);
     }
@@ -473,8 +435,6 @@ final class FixedConnectionPool implements ConnectionPool
     public FutureResult<Result> modifyAsync(final ModifyRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super Result> resultHandler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
     {
       return checkState().modifyAsync(request, intermediateResponseHandler,
           resultHandler);
@@ -484,9 +444,7 @@ final class FixedConnectionPool implements ConnectionPool
 
     @Override
     public Result modifyDN(final ModifyDNRequest request)
-        throws ErrorResultException, InterruptedException,
-        UnsupportedOperationException, IllegalStateException,
-        NullPointerException
+        throws ErrorResultException, InterruptedException
     {
       return checkState().modifyDN(request);
     }
@@ -495,9 +453,7 @@ final class FixedConnectionPool implements ConnectionPool
 
     @Override
     public Result modifyDN(final String name, final String newRDN)
-        throws ErrorResultException, LocalizedIllegalArgumentException,
-        InterruptedException, UnsupportedOperationException,
-        IllegalStateException, NullPointerException
+        throws ErrorResultException, InterruptedException
     {
       return checkState().modifyDN(name, newRDN);
     }
@@ -508,8 +464,6 @@ final class FixedConnectionPool implements ConnectionPool
     public FutureResult<Result> modifyDNAsync(final ModifyDNRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super Result> resultHandler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
     {
       return checkState().modifyDNAsync(request, intermediateResponseHandler,
           resultHandler);
@@ -520,8 +474,7 @@ final class FixedConnectionPool implements ConnectionPool
     @Override
     public SearchResultEntry readEntry(final DN name,
         final String... attributeDescriptions) throws ErrorResultException,
-        InterruptedException, UnsupportedOperationException,
-        IllegalStateException, NullPointerException
+        InterruptedException
     {
       return checkState().readEntry(name, attributeDescriptions);
     }
@@ -531,9 +484,7 @@ final class FixedConnectionPool implements ConnectionPool
     @Override
     public SearchResultEntry readEntry(final String name,
         final String... attributeDescriptions) throws ErrorResultException,
-        InterruptedException, LocalizedIllegalArgumentException,
-        UnsupportedOperationException, IllegalStateException,
-        NullPointerException
+        InterruptedException
     {
       return checkState().readEntry(name, attributeDescriptions);
     }
@@ -544,8 +495,6 @@ final class FixedConnectionPool implements ConnectionPool
     public FutureResult<SearchResultEntry> readEntryAsync(final DN name,
         final Collection<String> attributeDescriptions,
         final ResultHandler<? super SearchResultEntry> handler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
     {
       return checkState().readEntryAsync(name, attributeDescriptions, handler);
     }
@@ -557,7 +506,7 @@ final class FixedConnectionPool implements ConnectionPool
      */
     @Override
     public void removeConnectionEventListener(
-        final ConnectionEventListener listener) throws NullPointerException
+        final ConnectionEventListener listener)
     {
       Validator.ensureNotNull(listener);
       checkState();
@@ -568,8 +517,6 @@ final class FixedConnectionPool implements ConnectionPool
 
     @Override
     public ConnectionEntryReader search(final SearchRequest request)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
     {
       return checkState().search(request);
     }
@@ -579,9 +526,7 @@ final class FixedConnectionPool implements ConnectionPool
     @Override
     public Result search(final SearchRequest request,
         final Collection<? super SearchResultEntry> entries)
-        throws ErrorResultException, InterruptedException,
-        UnsupportedOperationException, IllegalStateException,
-        NullPointerException
+        throws ErrorResultException, InterruptedException
     {
       return checkState().search(request, entries);
     }
@@ -592,9 +537,7 @@ final class FixedConnectionPool implements ConnectionPool
     public Result search(final SearchRequest request,
         final Collection<? super SearchResultEntry> entries,
         final Collection<? super SearchResultReference> references)
-        throws ErrorResultException, InterruptedException,
-        UnsupportedOperationException, IllegalStateException,
-        NullPointerException
+        throws ErrorResultException, InterruptedException
     {
       return checkState().search(request, entries, references);
     }
@@ -604,8 +547,7 @@ final class FixedConnectionPool implements ConnectionPool
     @Override
     public Result search(final SearchRequest request,
         final SearchResultHandler handler) throws ErrorResultException,
-        InterruptedException, UnsupportedOperationException,
-        IllegalStateException, NullPointerException
+        InterruptedException
     {
       return checkState().search(request, handler);
     }
@@ -616,8 +558,6 @@ final class FixedConnectionPool implements ConnectionPool
     public ConnectionEntryReader search(final String baseObject,
         final SearchScope scope, final String filter,
         final String... attributeDescriptions)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
     {
       return checkState().search(baseObject, scope, filter,
           attributeDescriptions);
@@ -629,8 +569,6 @@ final class FixedConnectionPool implements ConnectionPool
     public FutureResult<Result> searchAsync(final SearchRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final SearchResultHandler resultHandler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
     {
       return checkState().searchAsync(request, intermediateResponseHandler,
           resultHandler);
@@ -640,9 +578,7 @@ final class FixedConnectionPool implements ConnectionPool
 
     @Override
     public SearchResultEntry searchSingleEntry(final SearchRequest request)
-        throws ErrorResultException, InterruptedException,
-        UnsupportedOperationException, IllegalStateException,
-        NullPointerException
+        throws ErrorResultException, InterruptedException
     {
       return checkState().searchSingleEntry(request);
     }
@@ -653,9 +589,7 @@ final class FixedConnectionPool implements ConnectionPool
     public SearchResultEntry searchSingleEntry(final String baseObject,
         final SearchScope scope, final String filter,
         final String... attributeDescriptions) throws ErrorResultException,
-        InterruptedException, LocalizedIllegalArgumentException,
-        UnsupportedOperationException, IllegalStateException,
-        NullPointerException
+        InterruptedException
     {
       return checkState().searchSingleEntry(baseObject, scope, filter,
           attributeDescriptions);
@@ -667,8 +601,6 @@ final class FixedConnectionPool implements ConnectionPool
     public FutureResult<SearchResultEntry> searchSingleEntryAsync(
         final SearchRequest request,
         final ResultHandler<? super SearchResultEntry> handler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
     {
       return checkState().searchSingleEntryAsync(request, handler);
     }

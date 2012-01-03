@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -31,7 +32,7 @@ package org.forgerock.opendj.ldap;
 
 import java.util.TreeMap;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.i18n.*;
 import org.forgerock.opendj.ldap.requests.Requests;
 
 import com.forgerock.opendj.util.Validator;
@@ -62,7 +63,7 @@ public final class TreeMapEntry extends AbstractMapEntry
    */
   public static final EntryFactory FACTORY = new EntryFactory()
   {
-    public Entry newEntry(final DN name) throws NullPointerException
+    public Entry newEntry(final DN name)
     {
       return new TreeMapEntry(name);
     }
@@ -85,7 +86,6 @@ public final class TreeMapEntry extends AbstractMapEntry
    * @see #TreeMapEntry(Entry)
    */
   public static TreeMapEntry deepCopyOfEntry(final Entry entry)
-      throws NullPointerException
   {
     TreeMapEntry copy = new TreeMapEntry(entry.getName());
     for (final Attribute attribute : entry.getAllAttributes())
@@ -116,7 +116,7 @@ public final class TreeMapEntry extends AbstractMapEntry
    * @throws NullPointerException
    *           If {@code name} was {@code null}.
    */
-  public TreeMapEntry(final DN name) throws NullPointerException
+  public TreeMapEntry(final DN name)
   {
     super(Validator.ensureNotNull(name),
         new TreeMap<AttributeDescription, Attribute>());
@@ -137,7 +137,7 @@ public final class TreeMapEntry extends AbstractMapEntry
    *           If {@code entry} was {@code null}.
    * @see #deepCopyOfEntry(Entry)
    */
-  public TreeMapEntry(final Entry entry) throws NullPointerException
+  public TreeMapEntry(final Entry entry)
   {
     this(entry.getName());
     for (final Attribute attribute : entry.getAllAttributes())
@@ -160,7 +160,6 @@ public final class TreeMapEntry extends AbstractMapEntry
    *           If {@code name} was {@code null}.
    */
   public TreeMapEntry(final String name)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     this(DN.valueOf(name));
   }
@@ -181,7 +180,6 @@ public final class TreeMapEntry extends AbstractMapEntry
    *           If {@code ldifLines} was {@code null} .
    */
   public TreeMapEntry(final String... ldifLines)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     this(Requests.newAddRequest(ldifLines));
   }

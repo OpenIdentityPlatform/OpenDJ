@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap;
 
@@ -333,8 +334,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements ASN1Writer,
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeEndSequence() throws IOException,
-      IllegalStateException
+  public ASN1Writer writeEndSequence() throws IOException
   {
     sequenceBuffer = sequenceBuffer.endSequence();
 

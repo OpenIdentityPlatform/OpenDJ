@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap;
@@ -232,7 +232,6 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
    * {@inheritDoc}
    */
   public void addConnectionEventListener(final ConnectionEventListener listener)
-      throws IllegalStateException, NullPointerException
   {
     Validator.ensureNotNull(listener);
     listeners.add(listener);
@@ -343,7 +342,6 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
    * {@inheritDoc}
    */
   public void close(final UnbindRequest request, final String reason)
-      throws NullPointerException
   {
     // FIXME: I18N need to internationalize this message.
     Validator.ensureNotNull(request);
@@ -702,7 +700,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
    * {@inheritDoc}
    */
   public void removeConnectionEventListener(
-      final ConnectionEventListener listener) throws NullPointerException
+      final ConnectionEventListener listener)
   {
     Validator.ensureNotNull(listener);
     listeners.remove(listener);

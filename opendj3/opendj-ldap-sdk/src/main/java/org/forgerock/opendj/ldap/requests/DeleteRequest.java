@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -31,7 +32,7 @@ package org.forgerock.opendj.ldap.requests;
 
 import java.util.List;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.i18n.*;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
@@ -62,8 +63,7 @@ public interface DeleteRequest extends Request, ChangeRecord
   /**
    * {@inheritDoc}
    */
-  DeleteRequest addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  DeleteRequest addControl(Control control);
 
 
 
@@ -71,7 +71,7 @@ public interface DeleteRequest extends Request, ChangeRecord
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 
@@ -105,8 +105,7 @@ public interface DeleteRequest extends Request, ChangeRecord
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  DeleteRequest setName(DN dn) throws UnsupportedOperationException,
-      NullPointerException;
+  DeleteRequest setName(DN dn);
 
 
 
@@ -125,7 +124,6 @@ public interface DeleteRequest extends Request, ChangeRecord
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  DeleteRequest setName(String dn) throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException;
+  DeleteRequest setName(String dn);
 
 }

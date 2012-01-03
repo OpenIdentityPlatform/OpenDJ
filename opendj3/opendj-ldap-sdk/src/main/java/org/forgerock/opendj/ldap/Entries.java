@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -35,7 +35,6 @@ import static org.forgerock.opendj.ldap.AttributeDescription.objectClass;
 import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.schema.*;
@@ -72,7 +71,6 @@ public final class Entries
      */
     @Override
     public boolean addAttribute(final Attribute attribute)
-        throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
     }
@@ -85,7 +83,6 @@ public final class Entries
     @Override
     public boolean addAttribute(final Attribute attribute,
         final Collection<ByteString> duplicateValues)
-        throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
     }
@@ -97,8 +94,7 @@ public final class Entries
      */
     @Override
     public Entry addAttribute(final String attributeDescription,
-        final Object... values) throws LocalizedIllegalArgumentException,
-        UnsupportedOperationException, NullPointerException
+        final Object... values)
     {
       throw new UnsupportedOperationException();
     }
@@ -106,7 +102,7 @@ public final class Entries
 
 
     @Override
-    public Entry clearAttributes() throws UnsupportedOperationException
+    public Entry clearAttributes()
     {
       throw new UnsupportedOperationException();
     }
@@ -115,7 +111,7 @@ public final class Entries
 
     @Override
     public boolean containsAttribute(final Attribute attribute,
-        final Collection<ByteString> missingValues) throws NullPointerException
+        final Collection<ByteString> missingValues)
     {
       return entry.containsAttribute(attribute, missingValues);
     }
@@ -124,8 +120,7 @@ public final class Entries
 
     @Override
     public boolean containsAttribute(final String attributeDescription,
-        final Object... values) throws LocalizedIllegalArgumentException,
-        NullPointerException
+        final Object... values)
     {
       return entry.containsAttribute(attributeDescription, values);
     }
@@ -169,7 +164,6 @@ public final class Entries
     @Override
     public Iterable<Attribute> getAllAttributes(
         final String attributeDescription)
-        throws LocalizedIllegalArgumentException, NullPointerException
     {
       return Iterables.unmodifiableIterable(Iterables.transformedIterable(
           entry.getAllAttributes(attributeDescription),
@@ -200,7 +194,6 @@ public final class Entries
      */
     @Override
     public Attribute getAttribute(final String attributeDescription)
-        throws LocalizedIllegalArgumentException, NullPointerException
     {
       final Attribute attribute = entry.getAttribute(attributeDescription);
       if (attribute != null)
@@ -251,7 +244,6 @@ public final class Entries
     @Override
     public boolean removeAttribute(final Attribute attribute,
         final Collection<ByteString> missingValues)
-        throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
     }
@@ -261,7 +253,6 @@ public final class Entries
     @Override
     public boolean removeAttribute(
         final AttributeDescription attributeDescription)
-        throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
     }
@@ -273,8 +264,7 @@ public final class Entries
      */
     @Override
     public Entry removeAttribute(final String attributeDescription,
-        final Object... values) throws LocalizedIllegalArgumentException,
-        UnsupportedOperationException, NullPointerException
+        final Object... values)
     {
       throw new UnsupportedOperationException();
     }
@@ -286,7 +276,6 @@ public final class Entries
      */
     @Override
     public boolean replaceAttribute(final Attribute attribute)
-        throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
     }
@@ -298,8 +287,7 @@ public final class Entries
      */
     @Override
     public Entry replaceAttribute(final String attributeDescription,
-        final Object... values) throws LocalizedIllegalArgumentException,
-        UnsupportedOperationException, NullPointerException
+        final Object... values)
     {
       throw new UnsupportedOperationException();
     }
@@ -307,8 +295,7 @@ public final class Entries
 
 
     @Override
-    public Entry setName(final DN dn) throws UnsupportedOperationException,
-        NullPointerException
+    public Entry setName(final DN dn)
     {
       throw new UnsupportedOperationException();
     }
@@ -320,8 +307,6 @@ public final class Entries
      */
     @Override
     public Entry setName(final String dn)
-        throws LocalizedIllegalArgumentException,
-        UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
     }
@@ -490,7 +475,7 @@ public final class Entries
    * @see Requests#newModifyRequest(Entry, Entry)
    */
   public static ModifyRequest diffEntries(final Entry fromEntry,
-      final Entry toEntry) throws NullPointerException
+      final Entry toEntry)
   {
     Validator.ensureNotNull(fromEntry, toEntry);
 
@@ -751,7 +736,6 @@ public final class Entries
    *           If {@code entry} was {@code null}.
    */
   public static Entry unmodifiableEntry(final Entry entry)
-      throws NullPointerException
   {
     if (entry instanceof UnmodifiableEntry)
     {

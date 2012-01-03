@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011 ForgeRock AS
+ *      Copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -385,7 +385,7 @@ public final class SchemaValidationPolicy
    *           {@code REJECT}.
    */
   public SchemaValidationPolicy checkDITStructureRules(final Policy policy,
-      final EntryResolver resolver) throws IllegalArgumentException
+      final EntryResolver resolver)
   {
     if (checkDITStructureRules.needsChecking() && resolver == null)
     {

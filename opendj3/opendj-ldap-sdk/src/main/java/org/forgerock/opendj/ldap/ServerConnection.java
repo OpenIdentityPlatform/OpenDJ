@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -62,8 +63,7 @@ public interface ServerConnection<C> extends RequestHandler<C>
    * @throws UnsupportedOperationException
    *           If this server connection does not handle abandon requests.
    */
-  void handleAbandon(C requestContext, AbandonRequest request)
-      throws UnsupportedOperationException;
+  void handleAbandon(C requestContext, AbandonRequest request);
 
 
 

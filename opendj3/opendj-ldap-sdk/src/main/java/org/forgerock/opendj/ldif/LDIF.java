@@ -21,7 +21,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2011 ForgeRock AS
+ *      Copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldif;
@@ -166,8 +166,7 @@ public final class LDIF
 
 
       @Override
-      public ChangeRecord readChangeRecord() throws IOException,
-          NoSuchElementException
+      public ChangeRecord readChangeRecord() throws IOException
       {
         if (sourceEntry != null && targetEntry != null)
         {
@@ -574,7 +573,7 @@ public final class LDIF
 
 
       @Override
-      public Entry readEntry() throws IOException, NoSuchElementException
+      public Entry readEntry() throws IOException
       {
         return iterator.next();
       }
@@ -671,7 +670,7 @@ public final class LDIF
 
 
 
-      public Entry readEntry() throws IOException, NoSuchElementException
+      public Entry readEntry() throws IOException
       {
         if (hasNext())
         {

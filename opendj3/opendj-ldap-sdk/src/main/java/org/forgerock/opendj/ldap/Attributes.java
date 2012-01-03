@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -32,7 +32,6 @@ package org.forgerock.opendj.ldap;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 import org.forgerock.opendj.ldap.schema.AttributeType;
 
@@ -66,7 +65,6 @@ public final class Attributes
 
     @Override
     public boolean add(final ByteString value)
-        throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
     }
@@ -74,7 +72,7 @@ public final class Attributes
 
 
     @Override
-    public void clear() throws UnsupportedOperationException
+    public void clear()
     {
       throw new UnsupportedOperationException();
     }
@@ -82,7 +80,7 @@ public final class Attributes
 
 
     @Override
-    public boolean contains(final Object value) throws NullPointerException
+    public boolean contains(final Object value)
     {
       return false;
     }
@@ -115,7 +113,6 @@ public final class Attributes
 
     @Override
     public boolean remove(final Object value)
-        throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
     }
@@ -154,7 +151,6 @@ public final class Attributes
 
 
     public boolean add(final ByteString value)
-        throws UnsupportedOperationException, NullPointerException
     {
       return attribute.add(value);
     }
@@ -162,7 +158,6 @@ public final class Attributes
 
 
     public boolean add(final Object firstValue, final Object... remainingValues)
-        throws UnsupportedOperationException, NullPointerException
     {
       return attribute.add(firstValue, remainingValues);
     }
@@ -170,7 +165,6 @@ public final class Attributes
 
 
     public boolean addAll(final Collection<? extends ByteString> values)
-        throws UnsupportedOperationException, NullPointerException
     {
       return attribute.addAll(values);
     }
@@ -179,21 +173,20 @@ public final class Attributes
 
     public boolean addAll(final Collection<? extends ByteString> values,
         final Collection<? super ByteString> duplicateValues)
-        throws UnsupportedOperationException, NullPointerException
     {
       return attribute.addAll(values, duplicateValues);
     }
 
 
 
-    public void clear() throws UnsupportedOperationException
+    public void clear()
     {
       attribute.clear();
     }
 
 
 
-    public boolean contains(final Object value) throws NullPointerException
+    public boolean contains(final Object value)
     {
       return attribute.contains(value);
     }
@@ -201,7 +194,6 @@ public final class Attributes
 
 
     public boolean containsAll(final Collection<?> values)
-        throws NullPointerException
     {
       return attribute.containsAll(values);
     }
@@ -216,14 +208,14 @@ public final class Attributes
 
 
 
-    public ByteString firstValue() throws NoSuchElementException
+    public ByteString firstValue()
     {
       return attribute.firstValue();
     }
 
 
 
-    public String firstValueAsString() throws NoSuchElementException
+    public String firstValueAsString()
     {
       return attribute.firstValueAsString();
     }
@@ -267,7 +259,6 @@ public final class Attributes
 
 
     public boolean remove(final Object value)
-        throws UnsupportedOperationException, NullPointerException
     {
       return attribute.remove(value);
     }
@@ -275,7 +266,6 @@ public final class Attributes
 
 
     public boolean removeAll(final Collection<?> values)
-        throws UnsupportedOperationException, NullPointerException
     {
       return attribute.removeAll(values);
     }
@@ -284,7 +274,6 @@ public final class Attributes
 
     public <T> boolean removeAll(final Collection<T> values,
         final Collection<? super T> missingValues)
-        throws UnsupportedOperationException, NullPointerException
     {
       return attribute.removeAll(values, missingValues);
     }
@@ -292,7 +281,6 @@ public final class Attributes
 
 
     public boolean retainAll(final Collection<?> values)
-        throws UnsupportedOperationException, NullPointerException
     {
       return attribute.retainAll(values);
     }
@@ -301,7 +289,6 @@ public final class Attributes
 
     public <T> boolean retainAll(final Collection<T> values,
         final Collection<? super T> missingValues)
-        throws UnsupportedOperationException, NullPointerException
     {
       return attribute.retainAll(values, missingValues);
     }
@@ -322,8 +309,7 @@ public final class Attributes
 
 
 
-    public <T> T[] toArray(final T[] array) throws ArrayStoreException,
-        NullPointerException
+    public <T> T[] toArray(final T[] array)
     {
       return attribute.toArray(array);
     }
@@ -358,7 +344,6 @@ public final class Attributes
 
 
     public boolean add(final ByteString value)
-        throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
     }
@@ -366,7 +351,6 @@ public final class Attributes
 
 
     public boolean add(final Object firstValue, final Object... remainingValues)
-        throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
     }
@@ -374,7 +358,6 @@ public final class Attributes
 
 
     public boolean addAll(final Collection<? extends ByteString> values)
-        throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
     }
@@ -383,21 +366,20 @@ public final class Attributes
 
     public boolean addAll(final Collection<? extends ByteString> values,
         final Collection<? super ByteString> duplicateValues)
-        throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
     }
 
 
 
-    public void clear() throws UnsupportedOperationException
+    public void clear()
     {
       throw new UnsupportedOperationException();
     }
 
 
 
-    public boolean contains(final Object value) throws NullPointerException
+    public boolean contains(final Object value)
     {
       return attribute.contains(value);
     }
@@ -405,7 +387,6 @@ public final class Attributes
 
 
     public boolean containsAll(final Collection<?> values)
-        throws NullPointerException
     {
       return attribute.containsAll(values);
     }
@@ -420,14 +401,14 @@ public final class Attributes
 
 
 
-    public ByteString firstValue() throws NoSuchElementException
+    public ByteString firstValue()
     {
       return attribute.firstValue();
     }
 
 
 
-    public String firstValueAsString() throws NoSuchElementException
+    public String firstValueAsString()
     {
       return attribute.firstValueAsString();
     }
@@ -471,7 +452,6 @@ public final class Attributes
 
 
     public boolean remove(final Object value)
-        throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
     }
@@ -479,7 +459,6 @@ public final class Attributes
 
 
     public boolean removeAll(final Collection<?> values)
-        throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
     }
@@ -488,7 +467,6 @@ public final class Attributes
 
     public <T> boolean removeAll(final Collection<T> values,
         final Collection<? super T> missingValues)
-        throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
     }
@@ -496,7 +474,6 @@ public final class Attributes
 
 
     public boolean retainAll(final Collection<?> values)
-        throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
     }
@@ -505,7 +482,6 @@ public final class Attributes
 
     public <T> boolean retainAll(final Collection<T> values,
         final Collection<? super T> missingValues)
-        throws UnsupportedOperationException, NullPointerException
     {
       throw new UnsupportedOperationException();
     }
@@ -526,8 +502,7 @@ public final class Attributes
 
 
 
-    public <T> T[] toArray(final T[] array) throws ArrayStoreException,
-        NullPointerException
+    public <T> T[] toArray(final T[] array)
     {
       return attribute.toArray(array);
     }
@@ -556,7 +531,6 @@ public final class Attributes
    */
   public static final Attribute emptyAttribute(
       final AttributeDescription attributeDescription)
-      throws NullPointerException
   {
     return new EmptyAttribute(attributeDescription);
   }
@@ -583,7 +557,6 @@ public final class Attributes
    */
   public static final Attribute renameAttribute(final Attribute attribute,
       final AttributeDescription attributeDescription)
-      throws IllegalArgumentException, NullPointerException
   {
     final AttributeType oldType = attribute.getAttributeDescription()
         .getAttributeType();
@@ -613,7 +586,6 @@ public final class Attributes
    *           If {@code attribute} was {@code null}.
    */
   public static final Attribute unmodifiableAttribute(final Attribute attribute)
-      throws NullPointerException
   {
     if (attribute instanceof UnmodifiableAttribute)
     {

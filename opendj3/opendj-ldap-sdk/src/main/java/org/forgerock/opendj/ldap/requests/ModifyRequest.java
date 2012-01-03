@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -31,7 +32,7 @@ package org.forgerock.opendj.ldap.requests;
 
 import java.util.List;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.i18n.*;
 import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.ControlDecoder;
@@ -56,8 +57,7 @@ public interface ModifyRequest extends Request, ChangeRecord
   /**
    * {@inheritDoc}
    */
-  ModifyRequest addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  ModifyRequest addControl(Control control);
 
 
 
@@ -73,8 +73,7 @@ public interface ModifyRequest extends Request, ChangeRecord
    * @throws NullPointerException
    *           If {@code modification} was {@code null}.
    */
-  ModifyRequest addModification(Modification modification)
-      throws UnsupportedOperationException, NullPointerException;
+  ModifyRequest addModification(Modification modification);
 
 
 
@@ -102,9 +101,7 @@ public interface ModifyRequest extends Request, ChangeRecord
    *           was {@code null}.
    */
   ModifyRequest addModification(ModificationType type,
-      String attributeDescription, Object... values)
-      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
-      NullPointerException;
+      String attributeDescription, Object... values);
 
 
 
@@ -112,7 +109,7 @@ public interface ModifyRequest extends Request, ChangeRecord
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 
@@ -159,8 +156,7 @@ public interface ModifyRequest extends Request, ChangeRecord
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  ModifyRequest setName(DN dn) throws UnsupportedOperationException,
-      NullPointerException;
+  ModifyRequest setName(DN dn);
 
 
 
@@ -180,7 +176,6 @@ public interface ModifyRequest extends Request, ChangeRecord
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  ModifyRequest setName(String dn) throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException;
+  ModifyRequest setName(String dn);
 
 }

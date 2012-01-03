@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -202,7 +202,7 @@ public final class SchemaBuilder
    * @throws NullPointerException
    *           If {@code entry} was {@code null}.
    */
-  public SchemaBuilder(final Entry entry) throws NullPointerException
+  public SchemaBuilder(final Entry entry)
   {
     preLazyInitBuilder(entry.getName().toString(), null);
     addSchema(entry, true);
@@ -219,7 +219,7 @@ public final class SchemaBuilder
    * @throws NullPointerException
    *           If {@code schema} was {@code null}.
    */
-  public SchemaBuilder(final Schema schema) throws NullPointerException
+  public SchemaBuilder(final Schema schema)
   {
     preLazyInitBuilder(schema.getSchemaName(), schema);
   }
@@ -259,8 +259,7 @@ public final class SchemaBuilder
    *           If {@code definition} was {@code null}.
    */
   public SchemaBuilder addAttributeType(final String definition,
-      final boolean overwrite) throws ConflictingSchemaElementException,
-      LocalizedIllegalArgumentException, NullPointerException
+      final boolean overwrite)
   {
     Validator.ensureNotNull(definition);
 
@@ -588,7 +587,6 @@ public final class SchemaBuilder
       final String syntax, final boolean singleValue, final boolean collective,
       final boolean noUserModification, final AttributeUsage attributeUsage,
       final Map<String, List<String>> extraProperties, final boolean overwrite)
-      throws ConflictingSchemaElementException
   {
     lazyInitBuilder();
 
@@ -622,8 +620,7 @@ public final class SchemaBuilder
    *           If {@code definition} was {@code null}.
    */
   public SchemaBuilder addDITContentRule(final String definition,
-      final boolean overwrite) throws ConflictingSchemaElementException,
-      LocalizedIllegalArgumentException, NullPointerException
+      final boolean overwrite)
   {
     Validator.ensureNotNull(definition);
 
@@ -814,7 +811,6 @@ public final class SchemaBuilder
       final Set<String> prohibitedAttributes,
       final Set<String> requiredAttributes,
       final Map<String, List<String>> extraProperties, final boolean overwrite)
-      throws ConflictingSchemaElementException
   {
     lazyInitBuilder();
 
@@ -863,7 +859,6 @@ public final class SchemaBuilder
       final boolean obsolete, final String nameForm,
       final Set<Integer> superiorRules,
       final Map<String, List<String>> extraProperties, final boolean overwrite)
-      throws ConflictingSchemaElementException
   {
     lazyInitBuilder();
 
@@ -896,8 +891,7 @@ public final class SchemaBuilder
    *           If {@code definition} was {@code null}.
    */
   public SchemaBuilder addDITStructureRule(final String definition,
-      final boolean overwrite) throws ConflictingSchemaElementException,
-      LocalizedIllegalArgumentException, NullPointerException
+      final boolean overwrite)
   {
     Validator.ensureNotNull(definition);
 
@@ -1057,7 +1051,7 @@ public final class SchemaBuilder
    */
   public SchemaBuilder addEnumerationSyntax(final String oid,
       final String description, final boolean overwrite,
-      final String... enumerations) throws ConflictingSchemaElementException
+      final String... enumerations)
   {
     Validator.ensureNotNull((Object) enumerations);
 
@@ -1106,8 +1100,7 @@ public final class SchemaBuilder
    *           If {@code definition} was {@code null}.
    */
   public SchemaBuilder addMatchingRule(final String definition,
-      final boolean overwrite) throws ConflictingSchemaElementException,
-      LocalizedIllegalArgumentException, NullPointerException
+      final boolean overwrite)
   {
     Validator.ensureNotNull(definition);
 
@@ -1274,7 +1267,6 @@ public final class SchemaBuilder
       final boolean obsolete, final String assertionSyntax,
       final Map<String, List<String>> extraProperties,
       final MatchingRuleImpl implementation, final boolean overwrite)
-      throws ConflictingSchemaElementException
   {
     Validator.ensureNotNull(implementation);
 
@@ -1308,8 +1300,7 @@ public final class SchemaBuilder
    *           If {@code definition} was {@code null}.
    */
   public SchemaBuilder addMatchingRuleUse(final String definition,
-      final boolean overwrite) throws ConflictingSchemaElementException,
-      LocalizedIllegalArgumentException, NullPointerException
+      final boolean overwrite)
   {
     Validator.ensureNotNull(definition);
 
@@ -1475,7 +1466,6 @@ public final class SchemaBuilder
       final List<String> names, final String description,
       final boolean obsolete, final Set<String> attributeOIDs,
       final Map<String, List<String>> extraProperties, final boolean overwrite)
-      throws ConflictingSchemaElementException
   {
     lazyInitBuilder();
 
@@ -1507,8 +1497,7 @@ public final class SchemaBuilder
    *           If {@code definition} was {@code null}.
    */
   public SchemaBuilder addNameForm(final String definition,
-      final boolean overwrite) throws ConflictingSchemaElementException,
-      LocalizedIllegalArgumentException, NullPointerException
+      final boolean overwrite)
   {
     Validator.ensureNotNull(definition);
 
@@ -1702,7 +1691,6 @@ public final class SchemaBuilder
       final String structuralClass, final Set<String> requiredAttributes,
       final Set<String> optionalAttributes,
       final Map<String, List<String>> extraProperties, final boolean overwrite)
-      throws ConflictingSchemaElementException
   {
     lazyInitBuilder();
 
@@ -1735,8 +1723,7 @@ public final class SchemaBuilder
    *           If {@code definition} was {@code null}.
    */
   public SchemaBuilder addObjectClass(final String definition,
-      final boolean overwrite) throws ConflictingSchemaElementException,
-      LocalizedIllegalArgumentException, NullPointerException
+      final boolean overwrite)
   {
     Validator.ensureNotNull(definition);
 
@@ -1949,7 +1936,6 @@ public final class SchemaBuilder
       final Set<String> optionalAttributeOIDs,
       final ObjectClassType objectClassType,
       final Map<String, List<String>> extraProperties, final boolean overwrite)
-      throws ConflictingSchemaElementException
   {
     lazyInitBuilder();
 
@@ -1997,7 +1983,6 @@ public final class SchemaBuilder
    */
   public SchemaBuilder addPatternSyntax(final String oid,
       final String description, final Pattern pattern, final boolean overwrite)
-      throws ConflictingSchemaElementException
   {
     Validator.ensureNotNull(pattern);
 
@@ -2041,8 +2026,7 @@ public final class SchemaBuilder
   public FutureResult<SchemaBuilder> addSchemaAsync(
       final Connection connection, final DN name,
       final ResultHandler<? super SchemaBuilder> handler,
-      final boolean overwrite) throws UnsupportedOperationException,
-      IllegalStateException, NullPointerException
+      final boolean overwrite)
   {
     // The call to addSchema will perform copyOnWrite.
     final SearchRequest request = getReadSchemaSearchRequest(name);
@@ -2099,8 +2083,7 @@ public final class SchemaBuilder
    */
   public SchemaBuilder addSchema(final Connection connection, final DN name,
       final boolean overwrite) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException
+      InterruptedException
   {
     // The call to addSchema will perform copyOnWrite.
     final SearchRequest request = getReadSchemaSearchRequest(name);
@@ -2126,7 +2109,6 @@ public final class SchemaBuilder
    *           If {@code entry} was {@code null}.
    */
   public SchemaBuilder addSchema(final Entry entry, final boolean overwrite)
-      throws NullPointerException
   {
     Validator.ensureNotNull(entry);
 
@@ -2282,7 +2264,6 @@ public final class SchemaBuilder
    *           If {@code schema} was {@code null}.
    */
   public SchemaBuilder addSchema(final Schema schema, final boolean overwrite)
-      throws ConflictingSchemaElementException, NullPointerException
   {
     Validator.ensureNotNull(schema);
 
@@ -2330,8 +2311,7 @@ public final class SchemaBuilder
   public FutureResult<SchemaBuilder> addSchemaForEntryAsync(
       final Connection connection, final DN name,
       final ResultHandler<? super SchemaBuilder> handler,
-      final boolean overwrite) throws UnsupportedOperationException,
-      IllegalStateException, NullPointerException
+      final boolean overwrite)
   {
     // The call to addSchema will perform copyOnWrite.
     final RecursiveFutureResult<SearchResultEntry, SchemaBuilder> future =
@@ -2394,8 +2374,7 @@ public final class SchemaBuilder
    */
   public SchemaBuilder addSchemaForEntry(final Connection connection,
       final DN name, final boolean overwrite) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException
+      InterruptedException
   {
     // The call to addSchema will perform copyOnWrite.
     final SearchRequest request = getReadSchemaForEntrySearchRequest(name);
@@ -2425,7 +2404,7 @@ public final class SchemaBuilder
    */
   public SchemaBuilder addSubstitutionSyntax(final String oid,
       final String description, final String substituteSyntax,
-      final boolean overwrite) throws ConflictingSchemaElementException
+      final boolean overwrite)
   {
     Validator.ensureNotNull(substituteSyntax);
 
@@ -2458,8 +2437,7 @@ public final class SchemaBuilder
    *           If {@code definition} was {@code null}.
    */
   public SchemaBuilder addSyntax(final String definition,
-      final boolean overwrite) throws ConflictingSchemaElementException,
-      LocalizedIllegalArgumentException, NullPointerException
+      final boolean overwrite)
   {
     Validator.ensureNotNull(definition);
 
@@ -2614,7 +2592,6 @@ public final class SchemaBuilder
   public SchemaBuilder addSyntax(final String oid, final String description,
       final Map<String, List<String>> extraProperties,
       final SyntaxImpl implementation, final boolean overwrite)
-      throws ConflictingSchemaElementException, NullPointerException
   {
     lazyInitBuilder();
 
@@ -2999,7 +2976,7 @@ public final class SchemaBuilder
 
 
   private void addAttributeType(final AttributeType attribute,
-      final boolean overwrite) throws ConflictingSchemaElementException
+      final boolean overwrite)
   {
     AttributeType conflictingAttribute;
     if (numericOID2AttributeTypes.containsKey(attribute.getOID()))
@@ -3041,7 +3018,7 @@ public final class SchemaBuilder
 
 
   private void addDITContentRule(final DITContentRule rule,
-      final boolean overwrite) throws ConflictingSchemaElementException
+      final boolean overwrite)
   {
     DITContentRule conflictingRule;
     if (numericOID2ContentRules.containsKey(rule.getStructuralClassOID()))
@@ -3083,7 +3060,7 @@ public final class SchemaBuilder
 
 
   private void addDITStructureRule(final DITStructureRule rule,
-      final boolean overwrite) throws ConflictingSchemaElementException
+      final boolean overwrite)
   {
     DITStructureRule conflictingRule;
     if (id2StructureRules.containsKey(rule.getRuleID()))
@@ -3124,7 +3101,6 @@ public final class SchemaBuilder
 
 
   private void addMatchingRule(final MatchingRule rule, final boolean overwrite)
-      throws ConflictingSchemaElementException
   {
     MatchingRule conflictingRule;
     if (numericOID2MatchingRules.containsKey(rule.getOID()))
@@ -3164,7 +3140,7 @@ public final class SchemaBuilder
 
 
   private void addMatchingRuleUse(final MatchingRuleUse use,
-      final boolean overwrite) throws ConflictingSchemaElementException
+      final boolean overwrite)
   {
     MatchingRuleUse conflictingUse;
     if (numericOID2MatchingRuleUses.containsKey(use.getMatchingRuleOID()))
@@ -3206,7 +3182,6 @@ public final class SchemaBuilder
 
 
   private void addNameForm(final NameForm form, final boolean overwrite)
-      throws ConflictingSchemaElementException
   {
     NameForm conflictingForm;
     if (numericOID2NameForms.containsKey(form.getOID()))
@@ -3247,7 +3222,6 @@ public final class SchemaBuilder
 
 
   private void addObjectClass(final ObjectClass oc, final boolean overwrite)
-      throws ConflictingSchemaElementException
   {
     ObjectClass conflictingOC;
     if (numericOID2ObjectClasses.containsKey(oc.getOID()))
@@ -3336,7 +3310,6 @@ public final class SchemaBuilder
 
 
   private void addSyntax(final Syntax syntax, final boolean overwrite)
-      throws ConflictingSchemaElementException
   {
     Syntax conflictingSyntax;
     if (numericOID2Syntaxes.containsKey(syntax.getOID()))

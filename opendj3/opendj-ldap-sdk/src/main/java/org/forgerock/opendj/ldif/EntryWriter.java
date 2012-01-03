@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
@@ -81,8 +82,7 @@ public interface EntryWriter extends Closeable, Flushable
    * @throws NullPointerException
    *           If {@code comment} was {@code null}.
    */
-  EntryWriter writeComment(CharSequence comment) throws IOException,
-      NullPointerException;
+  EntryWriter writeComment(CharSequence comment) throws IOException;
 
 
 
@@ -97,6 +97,6 @@ public interface EntryWriter extends Closeable, Flushable
    * @throws NullPointerException
    *           If {@code entry} was {@code null}.
    */
-  EntryWriter writeEntry(Entry entry) throws IOException, NullPointerException;
+  EntryWriter writeEntry(Entry entry) throws IOException;
 
 }

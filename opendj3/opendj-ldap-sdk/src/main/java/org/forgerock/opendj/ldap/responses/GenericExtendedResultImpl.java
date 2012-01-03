@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -59,7 +60,6 @@ final class GenericExtendedResultImpl extends
    *           If {@code resultCode} was {@code null}.
    */
   GenericExtendedResultImpl(final ResultCode resultCode)
-      throws NullPointerException
   {
     super(resultCode);
   }
@@ -76,7 +76,6 @@ final class GenericExtendedResultImpl extends
    *           If {@code genericExtendedResult} was {@code null} .
    */
   GenericExtendedResultImpl(final GenericExtendedResult genericExtendedResult)
-      throws NullPointerException
   {
     super(genericExtendedResult);
     this.responseName = genericExtendedResult.getOID();
@@ -119,7 +118,6 @@ final class GenericExtendedResultImpl extends
    * {@inheritDoc}
    */
   public GenericExtendedResult setOID(final String oid)
-      throws UnsupportedOperationException
   {
     this.responseName = oid;
     return this;
@@ -131,7 +129,6 @@ final class GenericExtendedResultImpl extends
    * {@inheritDoc}
    */
   public GenericExtendedResult setValue(final ByteString bytes)
-      throws UnsupportedOperationException
   {
     this.responseValue = bytes;
     return this;

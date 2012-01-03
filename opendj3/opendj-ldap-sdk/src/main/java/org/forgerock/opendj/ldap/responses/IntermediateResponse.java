@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -56,8 +57,7 @@ public interface IntermediateResponse extends Response
   /**
    * {@inheritDoc}
    */
-  IntermediateResponse addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  IntermediateResponse addControl(Control control);
 
 
 
@@ -65,7 +65,7 @@ public interface IntermediateResponse extends Response
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 

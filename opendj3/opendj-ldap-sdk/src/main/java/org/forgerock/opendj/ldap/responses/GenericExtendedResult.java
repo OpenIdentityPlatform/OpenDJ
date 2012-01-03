@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -49,16 +50,14 @@ public interface GenericExtendedResult extends ExtendedResult
   /**
    * {@inheritDoc}
    */
-  GenericExtendedResult addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  GenericExtendedResult addControl(Control control);
 
 
 
   /**
    * {@inheritDoc}
    */
-  GenericExtendedResult addReferralURI(String uri)
-      throws UnsupportedOperationException, NullPointerException;
+  GenericExtendedResult addReferralURI(String uri);
 
 
 
@@ -73,7 +72,7 @@ public interface GenericExtendedResult extends ExtendedResult
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 
@@ -150,24 +149,21 @@ public interface GenericExtendedResult extends ExtendedResult
   /**
    * {@inheritDoc}
    */
-  GenericExtendedResult setCause(Throwable cause)
-      throws UnsupportedOperationException;
+  GenericExtendedResult setCause(Throwable cause);
 
 
 
   /**
    * {@inheritDoc}
    */
-  GenericExtendedResult setDiagnosticMessage(String message)
-      throws UnsupportedOperationException;
+  GenericExtendedResult setDiagnosticMessage(String message);
 
 
 
   /**
    * {@inheritDoc}
    */
-  GenericExtendedResult setMatchedDN(String dn)
-      throws UnsupportedOperationException;
+  GenericExtendedResult setMatchedDN(String dn);
 
 
 
@@ -182,15 +178,14 @@ public interface GenericExtendedResult extends ExtendedResult
    *           If this generic extended result does not permit the result name
    *           to be set.
    */
-  GenericExtendedResult setOID(String oid) throws UnsupportedOperationException;
+  GenericExtendedResult setOID(String oid);
 
 
 
   /**
    * {@inheritDoc}
    */
-  GenericExtendedResult setResultCode(ResultCode resultCode)
-      throws UnsupportedOperationException, NullPointerException;
+  GenericExtendedResult setResultCode(ResultCode resultCode);
 
 
 
@@ -206,7 +201,6 @@ public interface GenericExtendedResult extends ExtendedResult
    *           If this generic extended result does not permit the result value
    *           to be set.
    */
-  GenericExtendedResult setValue(ByteString bytes)
-      throws UnsupportedOperationException;
+  GenericExtendedResult setValue(ByteString bytes);
 
 }

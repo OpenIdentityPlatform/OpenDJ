@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
@@ -31,7 +32,7 @@ package org.forgerock.opendj.ldif;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 import org.forgerock.opendj.ldap.Entry;
 
@@ -85,5 +86,5 @@ public interface EntryReader extends Closeable
    * @throws NoSuchElementException
    *           If this reader does not contain any more entries.
    */
-  Entry readEntry() throws IOException, NoSuchElementException;
+  Entry readEntry() throws IOException;
 }

@@ -23,13 +23,13 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
 
 
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
@@ -69,7 +69,7 @@ final class CompareRequestImpl extends AbstractRequestImpl<CompareRequest>
    */
   CompareRequestImpl(final DN name,
       final AttributeDescription attributeDescription,
-      final ByteString assertionValue) throws NullPointerException
+      final ByteString assertionValue)
   {
     this.name = name;
     this.attributeDescription = attributeDescription;
@@ -88,7 +88,6 @@ final class CompareRequestImpl extends AbstractRequestImpl<CompareRequest>
    *           If {@code compareRequest} was {@code null} .
    */
   CompareRequestImpl(final CompareRequest compareRequest)
-      throws NullPointerException
   {
     super(compareRequest);
     this.name = compareRequest.getName();
@@ -142,7 +141,6 @@ final class CompareRequestImpl extends AbstractRequestImpl<CompareRequest>
    * {@inheritDoc}
    */
   public CompareRequest setAssertionValue(final ByteString value)
-      throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(value);
     this.assertionValue = value;
@@ -155,7 +153,6 @@ final class CompareRequestImpl extends AbstractRequestImpl<CompareRequest>
    * {@inheritDoc}
    */
   public CompareRequest setAssertionValue(final Object value)
-      throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(value);
     this.assertionValue = ByteString.valueOf(value);
@@ -169,7 +166,6 @@ final class CompareRequestImpl extends AbstractRequestImpl<CompareRequest>
    */
   public CompareRequest setAttributeDescription(
       final AttributeDescription attributeDescription)
-      throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(attributeDescription);
     this.attributeDescription = attributeDescription;
@@ -183,8 +179,6 @@ final class CompareRequestImpl extends AbstractRequestImpl<CompareRequest>
    */
   public CompareRequest setAttributeDescription(
       final String attributeDescription)
-      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
-      NullPointerException
   {
     Validator.ensureNotNull(attributeDescription);
     this.attributeDescription = AttributeDescription
@@ -198,7 +192,6 @@ final class CompareRequestImpl extends AbstractRequestImpl<CompareRequest>
    * {@inheritDoc}
    */
   public CompareRequest setName(final DN dn)
-      throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(dn);
     this.name = dn;
@@ -211,8 +204,6 @@ final class CompareRequestImpl extends AbstractRequestImpl<CompareRequest>
    * {@inheritDoc}
    */
   public CompareRequest setName(final String dn)
-      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
-      NullPointerException
   {
     Validator.ensureNotNull(dn);
     this.name = DN.valueOf(dn);

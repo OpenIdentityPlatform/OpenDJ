@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -97,7 +97,6 @@ final class GenericBindRequestImpl extends
    */
   GenericBindRequestImpl(
       final GenericBindRequest genericBindRequest)
-      throws NullPointerException
   {
     super(genericBindRequest);
     this.name = genericBindRequest.getName();
@@ -161,7 +160,6 @@ final class GenericBindRequestImpl extends
    * {@inheritDoc}
    */
   public GenericBindRequest setAuthenticationType(final byte type)
-      throws UnsupportedOperationException
   {
     this.authenticationType = type;
     return this;
@@ -173,7 +171,6 @@ final class GenericBindRequestImpl extends
    * {@inheritDoc}
    */
   public GenericBindRequest setAuthenticationValue(final byte[] bytes)
-      throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(bytes);
     this.authenticationValue = bytes;
@@ -186,7 +183,6 @@ final class GenericBindRequestImpl extends
    * {@inheritDoc}
    */
   public GenericBindRequest setName(final String name)
-      throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(name);
     this.name = name;

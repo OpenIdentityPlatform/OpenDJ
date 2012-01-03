@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
@@ -302,7 +303,7 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements
    * {@inheritDoc}
    */
   public LDIFEntryWriter writeComment(final CharSequence comment)
-      throws IOException, NullPointerException
+      throws IOException
   {
     writeComment0(comment);
     return this;
@@ -313,8 +314,7 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements
   /**
    * {@inheritDoc}
    */
-  public LDIFEntryWriter writeEntry(final Entry entry) throws IOException,
-      NullPointerException
+  public LDIFEntryWriter writeEntry(final Entry entry) throws IOException
   {
     Validator.ensureNotNull(entry);
 

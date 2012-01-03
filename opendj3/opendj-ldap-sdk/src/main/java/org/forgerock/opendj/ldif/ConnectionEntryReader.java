@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
@@ -209,7 +209,7 @@ public final class ConnectionEntryReader implements EntryReader
    *           If {@code connection} was {@code null}.
    */
   public ConnectionEntryReader(final Connection connection,
-      final SearchRequest searchRequest) throws NullPointerException
+      final SearchRequest searchRequest)
   {
     this(connection, searchRequest, new LinkedBlockingQueue<Response>());
   }
@@ -232,7 +232,6 @@ public final class ConnectionEntryReader implements EntryReader
    */
   public ConnectionEntryReader(final Connection connection,
       final SearchRequest searchRequest, final BlockingQueue<Response> entries)
-      throws NullPointerException
   {
     Validator.ensureNotNull(connection);
     buffer = new BufferHandler(entries);
@@ -299,7 +298,7 @@ public final class ConnectionEntryReader implements EntryReader
    *           search result code indicates that the search operation succeeded.
    */
   public boolean isEntry() throws ErrorResultIOException,
-      InterruptedIOException, NoSuchElementException
+      InterruptedIOException
   {
     // Throws ErrorResultIOException if search returned error.
     if (!hasNext())
@@ -345,7 +344,7 @@ public final class ConnectionEntryReader implements EntryReader
    *           search result code indicates that the search operation succeeded.
    */
   public boolean isReference() throws ErrorResultIOException,
-      InterruptedIOException, NoSuchElementException
+      InterruptedIOException
   {
     return !isEntry();
   }
@@ -376,7 +375,7 @@ public final class ConnectionEntryReader implements EntryReader
    */
   @Override
   public SearchResultEntry readEntry() throws SearchResultReferenceIOException,
-      ErrorResultIOException, InterruptedIOException, NoSuchElementException
+      ErrorResultIOException, InterruptedIOException
   {
     if (isEntry())
     {
@@ -413,7 +412,7 @@ public final class ConnectionEntryReader implements EntryReader
    *           search result code indicates that the search operation succeeded.
    */
   public SearchResultReference readReference() throws ErrorResultIOException,
-      InterruptedIOException, NoSuchElementException
+      InterruptedIOException
   {
     if (isReference())
     {

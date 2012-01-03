@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -62,7 +63,6 @@ public abstract class AbstractExtendedResultDecoder<S extends ExtendedResult>
    */
   @Override
   public S adaptDecodeException(final DecodeException exception)
-      throws NullPointerException
   {
     final S adaptedResult = newExtendedErrorResult(ResultCode.PROTOCOL_ERROR,
         "", exception.getMessage());
@@ -132,6 +132,6 @@ public abstract class AbstractExtendedResultDecoder<S extends ExtendedResult>
    */
   @Override
   public abstract S newExtendedErrorResult(ResultCode resultCode,
-      String matchedDN, String diagnosticMessage) throws NullPointerException;
+      String matchedDN, String diagnosticMessage);
 
 }

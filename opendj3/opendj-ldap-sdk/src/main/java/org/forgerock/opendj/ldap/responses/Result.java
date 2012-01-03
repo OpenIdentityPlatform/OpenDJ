@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -66,8 +67,7 @@ public interface Result extends Response
   /**
    * {@inheritDoc}
    */
-  Result addControl(Control control) throws UnsupportedOperationException,
-      NullPointerException;
+  Result addControl(Control control);
 
 
 
@@ -82,8 +82,7 @@ public interface Result extends Response
    * @throws NullPointerException
    *           If {@code uri} was {@code null}.
    */
-  Result addReferralURI(String uri) throws UnsupportedOperationException,
-      NullPointerException;
+  Result addReferralURI(String uri);
 
 
 
@@ -102,7 +101,7 @@ public interface Result extends Response
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 
@@ -189,7 +188,7 @@ public interface Result extends Response
    * @throws UnsupportedOperationException
    *           If this result does not permit the cause to be set.
    */
-  Result setCause(Throwable cause) throws UnsupportedOperationException;
+  Result setCause(Throwable cause);
 
 
 
@@ -203,8 +202,7 @@ public interface Result extends Response
    * @throws UnsupportedOperationException
    *           If this result does not permit the diagnostic message to be set.
    */
-  Result setDiagnosticMessage(String message)
-      throws UnsupportedOperationException;
+  Result setDiagnosticMessage(String message);
 
 
 
@@ -218,7 +216,7 @@ public interface Result extends Response
    * @throws UnsupportedOperationException
    *           If this result does not permit the matched DN to be set.
    */
-  Result setMatchedDN(String dn) throws UnsupportedOperationException;
+  Result setMatchedDN(String dn);
 
 
 
@@ -233,7 +231,6 @@ public interface Result extends Response
    * @throws NullPointerException
    *           If {@code resultCode} was {@code null}.
    */
-  Result setResultCode(ResultCode resultCode)
-      throws UnsupportedOperationException, NullPointerException;
+  Result setResultCode(ResultCode resultCode);
 
 }

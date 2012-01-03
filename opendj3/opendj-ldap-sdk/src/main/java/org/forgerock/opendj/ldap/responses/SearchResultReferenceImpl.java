@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -58,7 +59,7 @@ final class SearchResultReferenceImpl extends
    * @throws NullPointerException
    *           If {@code uri} was {@code null}.
    */
-  SearchResultReferenceImpl(final String uri) throws NullPointerException
+  SearchResultReferenceImpl(final String uri)
   {
     addURI(uri);
   }
@@ -75,7 +76,6 @@ final class SearchResultReferenceImpl extends
    *           If {@code searchResultReference} was {@code null} .
    */
   SearchResultReferenceImpl(final SearchResultReference searchResultReference)
-      throws NullPointerException
   {
     super(searchResultReference);
     this.uris.addAll(searchResultReference.getURIs());
@@ -87,7 +87,6 @@ final class SearchResultReferenceImpl extends
    * {@inheritDoc}
    */
   public SearchResultReference addURI(final String uri)
-      throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(uri);
     uris.add(uri);

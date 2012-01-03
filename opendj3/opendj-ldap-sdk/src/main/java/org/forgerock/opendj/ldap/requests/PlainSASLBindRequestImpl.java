@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -166,7 +166,6 @@ final class PlainSASLBindRequestImpl extends
    */
   PlainSASLBindRequestImpl(
       final PlainSASLBindRequest plainSASLBindRequest)
-      throws NullPointerException
   {
     super(plainSASLBindRequest);
     this.authenticationID = plainSASLBindRequest.getAuthenticationID();
@@ -245,7 +244,6 @@ final class PlainSASLBindRequestImpl extends
    * {@inheritDoc}
    */
   public PlainSASLBindRequest setPassword(final char[] password)
-      throws NullPointerException
   {
     Validator.ensureNotNull(password);
     this.password = StaticUtils.getBytes(password);

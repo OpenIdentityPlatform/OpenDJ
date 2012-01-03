@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -230,8 +231,6 @@ public final class SortKey
    *           If {@code keys} was {@code null}.
    */
   public static Comparator<Entry> comparator(final Collection<SortKey> keys)
-      throws LocalizedIllegalArgumentException, IllegalArgumentException,
-      NullPointerException
   {
     return comparator(Schema.getDefaultSchema(), keys);
   }
@@ -256,8 +255,7 @@ public final class SortKey
    *           If {@code schema} or {@code keys} was {@code null}.
    */
   public static Comparator<Entry> comparator(final Schema schema,
-      final Collection<SortKey> keys) throws LocalizedIllegalArgumentException,
-      IllegalArgumentException, NullPointerException
+      final Collection<SortKey> keys)
   {
     Validator.ensureNotNull(schema, keys);
     Validator.ensureTrue(!keys.isEmpty(), "keys must not be empty");
@@ -292,7 +290,6 @@ public final class SortKey
    */
   public static Comparator<Entry> comparator(final Schema schema,
       final SortKey firstKey, final SortKey... remainingKeys)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(schema, firstKey, remainingKeys);
 
@@ -324,8 +321,7 @@ public final class SortKey
    *           If {@code firstKey} was {@code null}.
    */
   public static Comparator<Entry> comparator(final SortKey firstKey,
-      final SortKey... remainingKeys) throws LocalizedIllegalArgumentException,
-      NullPointerException
+      final SortKey... remainingKeys)
   {
     return comparator(Schema.getDefaultSchema(), firstKey, remainingKeys);
   }
@@ -351,7 +347,6 @@ public final class SortKey
    *           If {@code sortKeys} was {@code null}.
    */
   public static Comparator<Entry> comparator(final String sortKeys)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(sortKeys);
 
@@ -403,7 +398,6 @@ public final class SortKey
    *           If {@code sortKey} was {@code null}.
    */
   public static final SortKey valueOf(String sortKey)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(sortKey);
 
@@ -480,7 +474,6 @@ public final class SortKey
    */
   public SortKey(final AttributeDescription attributeDescription,
       final boolean isReverseOrder, final MatchingRule orderingMatchingRule)
-      throws NullPointerException
   {
     Validator.ensureNotNull(attributeDescription);
     this.attributeDescription = attributeDescription.toString();
@@ -502,7 +495,7 @@ public final class SortKey
    * @throws NullPointerException
    *           If {@code AttributeDescription} was {@code null}.
    */
-  public SortKey(final String attributeDescription) throws NullPointerException
+  public SortKey(final String attributeDescription)
   {
     this(attributeDescription, false, null);
   }
@@ -523,7 +516,6 @@ public final class SortKey
    *           If {@code AttributeDescription} was {@code null}.
    */
   public SortKey(final String attributeDescription, final boolean isReverseOrder)
-      throws NullPointerException
   {
     this(attributeDescription, isReverseOrder, null);
   }
@@ -550,7 +542,6 @@ public final class SortKey
    */
   public SortKey(final String attributeDescription,
       final boolean isReverseOrder, final String orderingMatchingRule)
-      throws NullPointerException
   {
     Validator.ensureNotNull(attributeDescription);
     this.attributeDescription = attributeDescription;
@@ -572,7 +563,6 @@ public final class SortKey
    *           found.
    */
   public Comparator<Entry> comparator()
-      throws LocalizedIllegalArgumentException
   {
     return comparator(Schema.getDefaultSchema());
   }
@@ -596,7 +586,6 @@ public final class SortKey
    *           If {@code schema} was {@code null}.
    */
   public Comparator<Entry> comparator(final Schema schema)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(schema);
 

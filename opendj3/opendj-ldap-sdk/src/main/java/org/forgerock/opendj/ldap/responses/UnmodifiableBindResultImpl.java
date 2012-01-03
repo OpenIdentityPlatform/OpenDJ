@@ -23,35 +23,49 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
 
+
+
 import org.forgerock.opendj.ldap.ByteString;
+
+
 
 /**
  * Unmodifiable Bind result implementation.
  */
-class UnmodifiableBindResultImpl
-    extends AbstractUnmodifiableResultImpl<BindResult> implements BindResult
+class UnmodifiableBindResultImpl extends
+    AbstractUnmodifiableResultImpl<BindResult> implements BindResult
 {
-  public UnmodifiableBindResultImpl(BindResult impl) {
+  public UnmodifiableBindResultImpl(BindResult impl)
+  {
     super(impl);
   }
 
+
+
   @Override
-  public ByteString getServerSASLCredentials() {
+  public ByteString getServerSASLCredentials()
+  {
     return impl.getServerSASLCredentials();
   }
 
+
+
   @Override
-  public boolean isSASLBindInProgress() {
+  public boolean isSASLBindInProgress()
+  {
     return impl.isSASLBindInProgress();
   }
 
+
+
   @Override
   public BindResult setServerSASLCredentials(ByteString credentials)
-      throws UnsupportedOperationException {
+  {
     throw new UnsupportedOperationException();
   }
 }

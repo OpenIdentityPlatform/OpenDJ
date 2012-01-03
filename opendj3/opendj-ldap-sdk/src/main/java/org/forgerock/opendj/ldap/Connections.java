@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -70,7 +70,6 @@ public final class Connections
    */
   public static ConnectionFactory newAuthenticatedConnectionFactory(
       final ConnectionFactory factory, final BindRequest request)
-      throws NullPointerException
   {
     Validator.ensureNotNull(factory, request);
 
@@ -95,7 +94,6 @@ public final class Connections
    */
   public static ConnectionPool newFixedConnectionPool(
       final ConnectionFactory factory, final int poolSize)
-      throws IllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(factory);
     Validator.ensureTrue(poolSize >= 0, "negative pool size");
@@ -117,7 +115,7 @@ public final class Connections
    *           If {@code factory} was {@code null}.
    */
   public static ConnectionFactory newHeartBeatConnectionFactory(
-      final ConnectionFactory factory) throws NullPointerException
+      final ConnectionFactory factory)
   {
     return new HeartBeatConnectionFactory(factory);
   }
@@ -144,7 +142,6 @@ public final class Connections
    */
   public static ConnectionFactory newHeartBeatConnectionFactory(
       final ConnectionFactory factory, final long interval, final TimeUnit unit)
-      throws IllegalArgumentException, NullPointerException
   {
     return new HeartBeatConnectionFactory(factory, interval, unit);
   }
@@ -173,8 +170,7 @@ public final class Connections
    */
   public static ConnectionFactory newHeartBeatConnectionFactory(
       final ConnectionFactory factory, final long interval, final TimeUnit unit,
-      final SearchRequest heartBeat) throws IllegalArgumentException,
-      NullPointerException
+      final SearchRequest heartBeat)
   {
     return new HeartBeatConnectionFactory(factory, interval, unit, heartBeat);
   }
@@ -209,7 +205,6 @@ public final class Connections
       final ConnectionFactory factory, final long interval,
       final TimeUnit unit, final SearchRequest heartBeat,
       final ScheduledExecutorService scheduler)
-      throws IllegalArgumentException, NullPointerException
   {
     return new HeartBeatConnectionFactory(factory, interval, unit, heartBeat,
         scheduler);
@@ -246,7 +241,6 @@ public final class Connections
    */
   public static <C> ConnectionFactory newInternalConnectionFactory(
       final ServerConnectionFactory<C, Integer> factory, final C clientContext)
-      throws NullPointerException
   {
     Validator.ensureNotNull(factory);
     return new InternalConnectionFactory<C>(factory, clientContext);
@@ -265,7 +259,7 @@ public final class Connections
    *           If {@code algorithm} was {@code null}.
    */
   public static ConnectionFactory newLoadBalancer(
-      final LoadBalancingAlgorithm algorithm) throws NullPointerException
+      final LoadBalancingAlgorithm algorithm)
   {
     return new LoadBalancer(algorithm);
   }
@@ -290,7 +284,6 @@ public final class Connections
    */
   public static ConnectionFactory newNamedConnectionFactory(
       final ConnectionFactory factory, final String name)
-      throws NullPointerException
   {
     Validator.ensureNotNull(factory, name);
 
@@ -353,7 +346,6 @@ public final class Connections
    */
   public static <C> ServerConnectionFactory<C, Integer> newServerConnectionFactory(
       final RequestHandler<RequestContext> requestHandler)
-      throws NullPointerException
   {
     Validator.ensureNotNull(requestHandler);
 
@@ -398,7 +390,6 @@ public final class Connections
    */
   public static <C> ServerConnectionFactory<C, Integer> newServerConnectionFactory(
       final RequestHandlerFactory<C, RequestContext> factory)
-      throws NullPointerException
   {
     Validator.ensureNotNull(factory);
     return new RequestHandlerFactoryAdapter<C>(factory);

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
@@ -68,7 +68,7 @@ public interface ByteSequence extends Comparable<ByteSequence>
    * @throws IndexOutOfBoundsException
    *           If the index argument is negative or not less than length().
    */
-  byte byteAt(int index) throws IndexOutOfBoundsException;
+  byte byteAt(int index);
 
 
 
@@ -94,8 +94,7 @@ public interface ByteSequence extends Comparable<ByteSequence>
    *           If {@code offset} is negative or if {@code length} is negative or
    *           if {@code offset + length} is greater than {@code bytes.length}.
    */
-  int compareTo(byte[] bytes, int offset, int length)
-      throws IndexOutOfBoundsException;
+  int compareTo(byte[] bytes, int offset, int length);
 
 
 
@@ -173,7 +172,7 @@ public interface ByteSequence extends Comparable<ByteSequence>
    * @throws IndexOutOfBoundsException
    *           If {@code offset} is negative.
    */
-  byte[] copyTo(byte[] bytes, int offset) throws IndexOutOfBoundsException;
+  byte[] copyTo(byte[] bytes, int offset);
 
 
 
@@ -223,8 +222,7 @@ public interface ByteSequence extends Comparable<ByteSequence>
    *           If {@code offset} is negative or if {@code length} is negative or
    *           if {@code offset + length} is greater than {@code bytes.length}.
    */
-  boolean equals(byte[] bytes, int offset, int length)
-      throws IndexOutOfBoundsException;
+  boolean equals(byte[] bytes, int offset, int length);
 
 
 
@@ -283,7 +281,7 @@ public interface ByteSequence extends Comparable<ByteSequence>
    *           greater than {@code length()}, or if {@code start} is greater
    *           than {@code end}.
    */
-  ByteSequence subSequence(int start, int end) throws IndexOutOfBoundsException;
+  ByteSequence subSequence(int start, int end);
 
 
 

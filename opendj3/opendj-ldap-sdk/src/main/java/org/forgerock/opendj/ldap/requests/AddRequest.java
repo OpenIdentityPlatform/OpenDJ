@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -32,7 +33,6 @@ package org.forgerock.opendj.ldap.requests;
 import java.util.Collection;
 import java.util.List;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.ControlDecoder;
@@ -62,8 +62,7 @@ public interface AddRequest extends Request, ChangeRecord, Entry
   /**
    * {@inheritDoc}
    */
-  boolean addAttribute(Attribute attribute)
-      throws UnsupportedOperationException, NullPointerException;
+  boolean addAttribute(Attribute attribute);
 
 
 
@@ -71,32 +70,28 @@ public interface AddRequest extends Request, ChangeRecord, Entry
    * {@inheritDoc}
    */
   boolean addAttribute(Attribute attribute,
-      Collection<ByteString> duplicateValues)
-      throws UnsupportedOperationException, NullPointerException;
+      Collection<ByteString> duplicateValues);
 
 
 
   /**
    * {@inheritDoc}
    */
-  AddRequest addAttribute(String attributeDescription, Object... values)
-      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
-      NullPointerException;
+  AddRequest addAttribute(String attributeDescription, Object... values);
 
 
 
   /**
    * {@inheritDoc}
    */
-  AddRequest addControl(Control control) throws UnsupportedOperationException,
-      NullPointerException;
+  AddRequest addControl(Control control);
 
 
 
   /**
    * {@inheritDoc}
    */
-  AddRequest clearAttributes() throws UnsupportedOperationException;
+  AddRequest clearAttributes();
 
 
 
@@ -104,15 +99,14 @@ public interface AddRequest extends Request, ChangeRecord, Entry
    * {@inheritDoc}
    */
   boolean containsAttribute(Attribute attribute,
-      Collection<ByteString> missingValues) throws NullPointerException;
+      Collection<ByteString> missingValues);
 
 
 
   /**
    * {@inheritDoc}
    */
-  boolean containsAttribute(String attributeDescription, Object... values)
-      throws LocalizedIllegalArgumentException, NullPointerException;
+  boolean containsAttribute(String attributeDescription, Object... values);
 
 
 
@@ -126,32 +120,28 @@ public interface AddRequest extends Request, ChangeRecord, Entry
   /**
    * {@inheritDoc}
    */
-  Iterable<Attribute> getAllAttributes(AttributeDescription attributeDescription)
-      throws NullPointerException;
+  Iterable<Attribute> getAllAttributes(AttributeDescription attributeDescription);
 
 
 
   /**
    * {@inheritDoc}
    */
-  Iterable<Attribute> getAllAttributes(String attributeDescription)
-      throws LocalizedIllegalArgumentException, NullPointerException;
+  Iterable<Attribute> getAllAttributes(String attributeDescription);
 
 
 
   /**
    * {@inheritDoc}
    */
-  Attribute getAttribute(AttributeDescription attributeDescription)
-      throws NullPointerException;
+  Attribute getAttribute(AttributeDescription attributeDescription);
 
 
 
   /**
    * {@inheritDoc}
    */
-  Attribute getAttribute(String attributeDescription)
-      throws LocalizedIllegalArgumentException, NullPointerException;
+  Attribute getAttribute(String attributeDescription);
 
 
 
@@ -166,7 +156,7 @@ public interface AddRequest extends Request, ChangeRecord, Entry
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 
@@ -188,57 +178,48 @@ public interface AddRequest extends Request, ChangeRecord, Entry
    * {@inheritDoc}
    */
   boolean removeAttribute(Attribute attribute,
-      Collection<ByteString> missingValues)
-      throws UnsupportedOperationException, NullPointerException;
+      Collection<ByteString> missingValues);
 
 
 
   /**
    * {@inheritDoc}
    */
-  boolean removeAttribute(AttributeDescription attributeDescription)
-      throws UnsupportedOperationException, NullPointerException;
+  boolean removeAttribute(AttributeDescription attributeDescription);
 
 
 
   /**
    * {@inheritDoc}
    */
-  AddRequest removeAttribute(String attributeDescription, Object... values)
-      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
-      NullPointerException;
+  AddRequest removeAttribute(String attributeDescription, Object... values);
 
 
 
   /**
    * {@inheritDoc}
    */
-  boolean replaceAttribute(Attribute attribute)
-      throws UnsupportedOperationException, NullPointerException;
+  boolean replaceAttribute(Attribute attribute);
 
 
 
   /**
    * {@inheritDoc}
    */
-  AddRequest replaceAttribute(String attributeDescription, Object... values)
-      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
-      NullPointerException;
+  AddRequest replaceAttribute(String attributeDescription, Object... values);
 
 
 
   /**
    * {@inheritDoc}
    */
-  AddRequest setName(DN dn) throws UnsupportedOperationException,
-      NullPointerException;
+  AddRequest setName(DN dn);
 
 
 
   /**
    * {@inheritDoc}
    */
-  AddRequest setName(String dn) throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException;
+  AddRequest setName(String dn);
 
 }

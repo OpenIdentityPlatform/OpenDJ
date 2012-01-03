@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.controls;
@@ -147,7 +148,6 @@ public final class PostReadResponseControl implements Control
    *           If {@code entry} was {@code null}.
    */
   public static PostReadResponseControl newControl(final Entry entry)
-      throws NullPointerException
   {
     /**
      * FIXME: all other control implementations are fully immutable. We should

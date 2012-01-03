@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package com.forgerock.opendj.ldap;
@@ -33,7 +34,6 @@ import org.forgerock.opendj.ldap.ConnectionSecurityLayer;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.glassfish.grizzly.AbstractTransformer;
 import org.glassfish.grizzly.Buffer;
-import org.glassfish.grizzly.TransformationException;
 import org.glassfish.grizzly.TransformationResult;
 import org.glassfish.grizzly.attributes.AttributeStorage;
 import org.glassfish.grizzly.memory.Buffers;
@@ -82,7 +82,6 @@ final class SASLDecoderTransformer extends AbstractTransformer<Buffer, Buffer>
   @Override
   public TransformationResult<Buffer, Buffer> transformImpl(
       final AttributeStorage storage, final Buffer input)
-      throws TransformationException
   {
 
     final int len = Math.min(buffer.length, input.remaining());

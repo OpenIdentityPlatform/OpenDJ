@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -186,7 +186,6 @@ final class CRAMMD5SASLBindRequestImpl extends
    */
   CRAMMD5SASLBindRequestImpl(
       final CRAMMD5SASLBindRequest cramMD5SASLBindRequest)
-      throws NullPointerException
   {
     super(cramMD5SASLBindRequest);
     this.authenticationID = cramMD5SASLBindRequest.getAuthenticationID();
@@ -240,7 +239,7 @@ final class CRAMMD5SASLBindRequestImpl extends
    * {@inheritDoc}
    */
   public CRAMMD5SASLBindRequest setAuthenticationID(
-      final String authenticationID) throws NullPointerException
+      final String authenticationID)
   {
     Validator.ensureNotNull(authenticationID);
     this.authenticationID = authenticationID;
@@ -253,7 +252,6 @@ final class CRAMMD5SASLBindRequestImpl extends
    * {@inheritDoc}
    */
   public CRAMMD5SASLBindRequest setPassword(final byte[] password)
-      throws NullPointerException
   {
     Validator.ensureNotNull(password);
     this.password = password;
@@ -266,7 +264,6 @@ final class CRAMMD5SASLBindRequestImpl extends
    * {@inheritDoc}
    */
   public CRAMMD5SASLBindRequest setPassword(final char[] password)
-      throws NullPointerException
   {
     Validator.ensureNotNull(password);
     this.password = StaticUtils.getBytes(password);

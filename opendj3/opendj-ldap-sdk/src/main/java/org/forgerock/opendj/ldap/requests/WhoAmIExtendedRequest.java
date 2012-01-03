@@ -85,8 +85,7 @@ public interface WhoAmIExtendedRequest extends
   /**
    * {@inheritDoc}
    */
-  WhoAmIExtendedRequest addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  WhoAmIExtendedRequest addControl(Control control);
 
 
 
@@ -94,7 +93,7 @@ public interface WhoAmIExtendedRequest extends
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 

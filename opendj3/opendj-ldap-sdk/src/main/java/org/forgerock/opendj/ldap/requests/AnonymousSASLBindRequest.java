@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -71,8 +72,7 @@ public interface AnonymousSASLBindRequest extends SASLBindRequest
   /**
    * {@inheritDoc}
    */
-  AnonymousSASLBindRequest addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  AnonymousSASLBindRequest addControl(Control control);
 
 
 
@@ -97,7 +97,7 @@ public interface AnonymousSASLBindRequest extends SASLBindRequest
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 
@@ -150,6 +150,5 @@ public interface AnonymousSASLBindRequest extends SASLBindRequest
    * @throws NullPointerException
    *           If {@code traceString} was {@code null}.
    */
-  AnonymousSASLBindRequest setTraceString(String traceString)
-      throws UnsupportedOperationException, NullPointerException;
+  AnonymousSASLBindRequest setTraceString(String traceString);
 }

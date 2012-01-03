@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -49,8 +49,7 @@ public interface GenericBindRequest extends BindRequest
   /**
    * {@inheritDoc}
    */
-  GenericBindRequest addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  GenericBindRequest addControl(Control control);
 
 
 
@@ -86,7 +85,7 @@ public interface GenericBindRequest extends BindRequest
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 
@@ -118,8 +117,7 @@ public interface GenericBindRequest extends BindRequest
    *           If this generic bind request does not permit the authentication
    *           type to be set.
    */
-  GenericBindRequest setAuthenticationType(byte type)
-      throws UnsupportedOperationException;
+  GenericBindRequest setAuthenticationType(byte type);
 
 
 
@@ -141,9 +139,7 @@ public interface GenericBindRequest extends BindRequest
    * @throws NullPointerException
    *           If {@code bytes} was {@code null}.
    */
-  GenericBindRequest setAuthenticationValue(byte[] bytes)
-      throws UnsupportedOperationException, NullPointerException;
-
+  GenericBindRequest setAuthenticationValue(byte[] bytes);
 
 
   /**
@@ -166,7 +162,6 @@ public interface GenericBindRequest extends BindRequest
    * @throws NullPointerException
    *           If {@code name} was {@code null}.
    */
-  GenericBindRequest setName(String name) throws UnsupportedOperationException,
-      NullPointerException;
+  GenericBindRequest setName(String name);
 
 }

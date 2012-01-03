@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -58,7 +59,6 @@ abstract class AbstractMapEntry extends AbstractEntry
    */
   AbstractMapEntry(final DN name,
       final Map<AttributeDescription, Attribute> attributes)
-      throws NullPointerException
   {
     this.name = name;
     this.attributes = attributes;
@@ -70,7 +70,7 @@ abstract class AbstractMapEntry extends AbstractEntry
    * {@inheritDoc}
    */
   public final boolean addAttribute(final Attribute attribute,
-      final Collection<ByteString> duplicateValues) throws NullPointerException
+      final Collection<ByteString> duplicateValues)
   {
     Validator.ensureNotNull(attribute);
 
@@ -116,7 +116,6 @@ abstract class AbstractMapEntry extends AbstractEntry
    */
   public final Attribute getAttribute(
       final AttributeDescription attributeDescription)
-      throws NullPointerException
   {
     Validator.ensureNotNull(attributeDescription);
 
@@ -149,7 +148,7 @@ abstract class AbstractMapEntry extends AbstractEntry
    * {@inheritDoc}
    */
   public final boolean removeAttribute(final Attribute attribute,
-      final Collection<ByteString> missingValues) throws NullPointerException
+      final Collection<ByteString> missingValues)
   {
     Validator.ensureNotNull(attribute);
 
@@ -190,7 +189,7 @@ abstract class AbstractMapEntry extends AbstractEntry
   /**
    * {@inheritDoc}
    */
-  public final Entry setName(final DN dn) throws NullPointerException
+  public final Entry setName(final DN dn)
   {
     Validator.ensureNotNull(dn);
     this.name = dn;

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -31,7 +32,7 @@ package org.forgerock.opendj.ldap.responses;
 
 import java.util.List;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.i18n.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
@@ -63,16 +64,14 @@ public interface WhoAmIExtendedResult extends ExtendedResult
   /**
    * {@inheritDoc}
    */
-  WhoAmIExtendedResult addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  WhoAmIExtendedResult addControl(Control control);
 
 
 
   /**
    * {@inheritDoc}
    */
-  WhoAmIExtendedResult addReferralURI(String uri)
-      throws UnsupportedOperationException, NullPointerException;
+  WhoAmIExtendedResult addReferralURI(String uri);
 
 
 
@@ -99,7 +98,7 @@ public interface WhoAmIExtendedResult extends ExtendedResult
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 
@@ -189,39 +188,34 @@ public interface WhoAmIExtendedResult extends ExtendedResult
    *           If this who am I extended result does not permit the
    *           authorization ID to be set.
    */
-  WhoAmIExtendedResult setAuthorizationID(String authorizationID)
-      throws LocalizedIllegalArgumentException, UnsupportedOperationException;
+  WhoAmIExtendedResult setAuthorizationID(String authorizationID);
 
 
 
   /**
    * {@inheritDoc}
    */
-  WhoAmIExtendedResult setCause(Throwable cause)
-      throws UnsupportedOperationException;
+  WhoAmIExtendedResult setCause(Throwable cause);
 
 
 
   /**
    * {@inheritDoc}
    */
-  WhoAmIExtendedResult setDiagnosticMessage(String message)
-      throws UnsupportedOperationException;
+  WhoAmIExtendedResult setDiagnosticMessage(String message);
 
 
 
   /**
    * {@inheritDoc}
    */
-  WhoAmIExtendedResult setMatchedDN(String dn)
-      throws UnsupportedOperationException;
+  WhoAmIExtendedResult setMatchedDN(String dn);
 
 
 
   /**
    * {@inheritDoc}
    */
-  WhoAmIExtendedResult setResultCode(ResultCode resultCode)
-      throws UnsupportedOperationException, NullPointerException;
+  WhoAmIExtendedResult setResultCode(ResultCode resultCode);
 
 }

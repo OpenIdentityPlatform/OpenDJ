@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -185,7 +186,6 @@ public final class ServerSideSortRequestControl implements Control
    */
   public static ServerSideSortRequestControl newControl(
       final boolean isCritical, final Collection<SortKey> keys)
-      throws IllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(keys);
     Validator.ensureTrue(!keys.isEmpty(), "keys must not be empty");
@@ -214,7 +214,7 @@ public final class ServerSideSortRequestControl implements Control
    */
   public static ServerSideSortRequestControl newControl(
       final boolean isCritical, final SortKey firstKey,
-      final SortKey... remainingKeys) throws NullPointerException
+      final SortKey... remainingKeys)
   {
     Validator.ensureNotNull(firstKey, remainingKeys);
 
@@ -252,7 +252,6 @@ public final class ServerSideSortRequestControl implements Control
    */
   public static ServerSideSortRequestControl newControl(
       final boolean isCritical, final String sortKeys)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(sortKeys);
 

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.controls;
@@ -272,8 +273,6 @@ public final class MatchedValuesRequestControl implements Control
    */
   public static MatchedValuesRequestControl newControl(
       final boolean isCritical, final Collection<Filter> filters)
-      throws LocalizedIllegalArgumentException, IllegalArgumentException,
-      NullPointerException
   {
     Validator.ensureNotNull(filters);
     Validator.ensureTrue(filters.size() > 0, "filters is empty");
@@ -322,7 +321,6 @@ public final class MatchedValuesRequestControl implements Control
   public static MatchedValuesRequestControl newControl(
       final boolean isCritical, final String firstFilter,
       final String... remainingFilters)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(firstFilter);
 
@@ -349,7 +347,6 @@ public final class MatchedValuesRequestControl implements Control
 
 
   private static Filter validateFilter(final Filter filter)
-      throws LocalizedIllegalArgumentException
   {
     final LocalizedIllegalArgumentException e = filter.accept(FILTER_VALIDATOR,
         filter);

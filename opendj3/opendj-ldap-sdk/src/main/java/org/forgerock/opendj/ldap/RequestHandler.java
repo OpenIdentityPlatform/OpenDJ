@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -76,8 +76,7 @@ public interface RequestHandler<C>
    */
   void handleAdd(C requestContext, AddRequest request,
       IntermediateResponseHandler intermediateResponseHandler,
-      ResultHandler<? super Result> resultHandler)
-      throws UnsupportedOperationException;
+      ResultHandler<? super Result> resultHandler);
 
 
 
@@ -101,8 +100,7 @@ public interface RequestHandler<C>
    */
   void handleBind(C requestContext, int version, BindRequest request,
       IntermediateResponseHandler intermediateResponseHandler,
-      ResultHandler<? super BindResult> resultHandler)
-      throws UnsupportedOperationException;
+      ResultHandler<? super BindResult> resultHandler);
 
 
 
@@ -124,8 +122,7 @@ public interface RequestHandler<C>
    */
   void handleCompare(C requestContext, CompareRequest request,
       IntermediateResponseHandler intermediateResponseHandler,
-      ResultHandler<? super CompareResult> resultHandler)
-      throws UnsupportedOperationException;
+      ResultHandler<? super CompareResult> resultHandler);
 
 
 
@@ -147,8 +144,7 @@ public interface RequestHandler<C>
    */
   void handleDelete(C requestContext, DeleteRequest request,
       IntermediateResponseHandler intermediateResponseHandler,
-      ResultHandler<? super Result> resultHandler)
-      throws UnsupportedOperationException;
+      ResultHandler<? super Result> resultHandler);
 
 
 
@@ -173,8 +169,7 @@ public interface RequestHandler<C>
   <R extends ExtendedResult> void handleExtendedRequest(C requestContext,
       ExtendedRequest<R> request,
       IntermediateResponseHandler intermediateResponseHandler,
-      ResultHandler<? super R> resultHandler)
-      throws UnsupportedOperationException;
+      ResultHandler<? super R> resultHandler);
 
 
 
@@ -196,8 +191,7 @@ public interface RequestHandler<C>
    */
   void handleModify(C requestContext, ModifyRequest request,
       IntermediateResponseHandler intermediateResponseHandler,
-      ResultHandler<? super Result> resultHandler)
-      throws UnsupportedOperationException;
+      ResultHandler<? super Result> resultHandler);
 
 
 
@@ -219,8 +213,7 @@ public interface RequestHandler<C>
    */
   void handleModifyDN(C requestContext, ModifyDNRequest request,
       IntermediateResponseHandler intermediateResponseHandler,
-      ResultHandler<? super Result> resultHandler)
-      throws UnsupportedOperationException;
+      ResultHandler<? super Result> resultHandler);
 
 
 
@@ -242,5 +235,5 @@ public interface RequestHandler<C>
    */
   void handleSearch(C requestContext, SearchRequest request,
       IntermediateResponseHandler intermediateResponseHandler,
-      SearchResultHandler resultHandler) throws UnsupportedOperationException;
+      SearchResultHandler resultHandler);
 }

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -71,7 +72,6 @@ public abstract class AbstractExtendedRequest<R extends ExtendedRequest<S>,
    *           If {@code extendedRequest} was {@code null} .
    */
   protected AbstractExtendedRequest(ExtendedRequest<S> extendedRequest)
-      throws NullPointerException
   {
     super(extendedRequest);
   }

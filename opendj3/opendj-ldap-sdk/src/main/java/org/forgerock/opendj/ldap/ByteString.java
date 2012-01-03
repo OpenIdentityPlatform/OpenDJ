@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
@@ -243,7 +243,7 @@ public final class ByteString implements ByteSequence
    *           if {@code offset + length} is greater than {@code bytes.length}.
    */
   public static ByteString wrap(final byte[] bytes, final int offset,
-      final int length) throws IndexOutOfBoundsException
+      final int length)
   {
     checkArrayBounds(bytes, offset, length);
     return new ByteString(bytes, offset, length);
@@ -268,7 +268,7 @@ public final class ByteString implements ByteSequence
    *           if {@code offset + length} is greater than {@code b.length}.
    */
   static void checkArrayBounds(final byte[] b, final int offset,
-      final int length) throws IndexOutOfBoundsException
+      final int length)
   {
     if (offset < 0 || offset > b.length || length < 0
         || offset + length > b.length || offset + length < 0)
@@ -484,7 +484,7 @@ public final class ByteString implements ByteSequence
   /**
    * {@inheritDoc}
    */
-  public byte byteAt(final int index) throws IndexOutOfBoundsException
+  public byte byteAt(final int index)
   {
     if (index >= length || index < 0)
     {
@@ -499,7 +499,6 @@ public final class ByteString implements ByteSequence
    * {@inheritDoc}
    */
   public int compareTo(final byte[] bytes, final int offset, final int length)
-      throws IndexOutOfBoundsException
   {
     checkArrayBounds(bytes, offset, length);
     return compareTo(this.buffer, this.offset, this.length, bytes, offset,
@@ -537,7 +536,6 @@ public final class ByteString implements ByteSequence
    * {@inheritDoc}
    */
   public byte[] copyTo(final byte[] bytes, final int offset)
-      throws IndexOutOfBoundsException
   {
     if (offset < 0)
     {
@@ -576,7 +574,6 @@ public final class ByteString implements ByteSequence
    * {@inheritDoc}
    */
   public boolean equals(final byte[] bytes, final int offset, final int length)
-      throws IndexOutOfBoundsException
   {
     checkArrayBounds(bytes, offset, length);
     return equals(this.buffer, this.offset, this.length, bytes, offset, length);
@@ -643,7 +640,6 @@ public final class ByteString implements ByteSequence
    * {@inheritDoc}
    */
   public ByteString subSequence(final int start, final int end)
-      throws IndexOutOfBoundsException
   {
     if (start < 0 || start > end || end > length)
     {
@@ -700,7 +696,7 @@ public final class ByteString implements ByteSequence
    * @throws IndexOutOfBoundsException
    *           If this byte string has less than four bytes.
    */
-  public int toInt() throws IndexOutOfBoundsException
+  public int toInt()
   {
     if (length < 4)
     {
@@ -727,7 +723,7 @@ public final class ByteString implements ByteSequence
    * @throws IndexOutOfBoundsException
    *           If this byte string has less than eight bytes.
    */
-  public long toLong() throws IndexOutOfBoundsException
+  public long toLong()
   {
     if (length < 8)
     {

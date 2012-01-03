@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -333,7 +333,6 @@ final class DigestMD5SASLBindRequestImpl extends
    */
   DigestMD5SASLBindRequestImpl(
       final DigestMD5SASLBindRequest digestMD5SASLBindRequest)
-      throws NullPointerException
   {
     super(digestMD5SASLBindRequest);
     this.additionalAuthParams.putAll(
@@ -359,8 +358,7 @@ final class DigestMD5SASLBindRequestImpl extends
    */
   @Override
   public DigestMD5SASLBindRequest addAdditionalAuthParam(final String name,
-      final String value) throws UnsupportedOperationException,
-      NullPointerException
+      final String value)
   {
     Validator.ensureNotNull(name, value);
     additionalAuthParams.put(name, value);
@@ -374,7 +372,6 @@ final class DigestMD5SASLBindRequestImpl extends
    */
   @Override
   public DigestMD5SASLBindRequest addQOP(final String... qopValues)
-      throws UnsupportedOperationException, NullPointerException
   {
     for (final String qopValue : qopValues)
     {
@@ -523,7 +520,7 @@ final class DigestMD5SASLBindRequestImpl extends
    */
   @Override
   public DigestMD5SASLBindRequest setAuthenticationID(
-      final String authenticationID) throws NullPointerException
+      final String authenticationID)
   {
     Validator.ensureNotNull(authenticationID);
     this.authenticationID = authenticationID;
@@ -550,7 +547,6 @@ final class DigestMD5SASLBindRequestImpl extends
    */
   @Override
   public DigestMD5SASLBindRequest setCipher(final String cipher)
-      throws UnsupportedOperationException
   {
     this.cipher = cipher;
     return this;
@@ -563,7 +559,6 @@ final class DigestMD5SASLBindRequestImpl extends
    */
   @Override
   public DigestMD5SASLBindRequest setMaxReceiveBufferSize(final int size)
-      throws UnsupportedOperationException
   {
     maxReceiveBufferSize = size;
     return this;
@@ -576,7 +571,6 @@ final class DigestMD5SASLBindRequestImpl extends
    */
   @Override
   public DigestMD5SASLBindRequest setMaxSendBufferSize(final int size)
-      throws UnsupportedOperationException
   {
     maxSendBufferSize = size;
     return this;
@@ -589,7 +583,6 @@ final class DigestMD5SASLBindRequestImpl extends
    */
   @Override
   public DigestMD5SASLBindRequest setPassword(final byte[] password)
-      throws NullPointerException
   {
     Validator.ensureNotNull(password);
     this.password = password;
@@ -603,7 +596,6 @@ final class DigestMD5SASLBindRequestImpl extends
    */
   @Override
   public DigestMD5SASLBindRequest setPassword(final char[] password)
-      throws NullPointerException
   {
     Validator.ensureNotNull(password);
     this.password = StaticUtils.getBytes(password);
@@ -629,7 +621,6 @@ final class DigestMD5SASLBindRequestImpl extends
    */
   @Override
   public DigestMD5SASLBindRequest setServerAuth(final boolean serverAuth)
-      throws UnsupportedOperationException
   {
     this.serverAuth = serverAuth;
     return this;

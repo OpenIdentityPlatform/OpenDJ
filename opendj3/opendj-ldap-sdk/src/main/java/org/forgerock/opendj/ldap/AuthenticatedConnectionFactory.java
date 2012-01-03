@@ -23,14 +23,13 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
 
 
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
 
@@ -79,8 +78,6 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory
     public FutureResult<BindResult> bindAsync(final BindRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super BindResult> resultHandler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
     {
       throw new UnsupportedOperationException();
     }
@@ -91,8 +88,7 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory
      * {@inheritDoc}
      */
     public BindResult bind(BindRequest request) throws ErrorResultException,
-        InterruptedException, UnsupportedOperationException,
-        IllegalStateException, NullPointerException
+        InterruptedException
     {
       throw new UnsupportedOperationException();
     }
@@ -103,9 +99,7 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory
      * {@inheritDoc}
      */
     public BindResult bind(String name, char[] password)
-        throws ErrorResultException, InterruptedException,
-        LocalizedIllegalArgumentException, UnsupportedOperationException,
-        IllegalStateException, NullPointerException
+        throws ErrorResultException, InterruptedException
     {
       throw new UnsupportedOperationException();
     }

@@ -26,13 +26,11 @@
  */
 package org.forgerock.opendj.examples.getinfo;
 
+
+
 import java.io.IOException;
 
-import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.ErrorResultException;
-import org.forgerock.opendj.ldap.LDAPConnectionFactory;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
 
@@ -55,7 +53,8 @@ public final class Main
    * Access the directory over LDAP to request information about capabilities
    * and schema.
    *
-   * @param args The command line arguments
+   * @param args
+   *          The command line arguments
    */
   public static void main(final String[] args)
   {
@@ -70,8 +69,7 @@ public final class Main
    */
   private static void connect()
   {
-    final LDAPConnectionFactory factory = new LDAPConnectionFactory(
-      host, port);
+    final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
     Connection connection = null;
 
     try
@@ -81,21 +79,30 @@ public final class Main
 
       final String attributeList;
       if (infoType.toLowerCase().equals("controls"))
+      {
         attributeList = "supportedControl";
+      }
       else if (infoType.toLowerCase().equals("extops"))
+      {
         attributeList = "supportedExtension";
+      }
       else
-        attributeList = "+";          // All operational attributes
+      {
+        attributeList = "+"; // All operational attributes
+      }
 
       final SearchResultEntry entry = connection.searchSingleEntry(
-          "",                         // DN is "" for root DSE.
-          SearchScope.BASE_OBJECT,    // Read only the root DSE.
-          "objectclass=*",            // Every object matches this filter.
-          attributeList);             // Return these requested attributes.
+          "",                      // DN is "" for root DSE.
+          SearchScope.BASE_OBJECT, // Read only the root DSE.
+          "objectclass=*",         // Every object matches this filter.
+          attributeList);          // Return these requested attributes.
 
       final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
       writer.writeComment("Root DSE for LDAP server at " + host + ":" + port);
-      if (entry != null) writer.writeEntry(entry);
+      if (entry != null)
+      {
+        writer.writeEntry(entry);
+      }
       writer.flush();
     }
     catch (final ErrorResultException e)
@@ -110,7 +117,7 @@ public final class Main
       System.exit(ResultCode.CLIENT_SIDE_USER_CANCELLED.intValue());
       return;
     }
-    catch (IOException e)
+    catch (final IOException e)
     {
       System.err.println(e.getMessage());
       System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
@@ -118,31 +125,11 @@ public final class Main
     }
     finally
     {
-      if (connection != null) connection.close();
+      if (connection != null)
+      {
+        connection.close();
+      }
     }
-  }
-
-
-
-  /**
-   * Parse command line arguments.
-   * @param args host port bind-dn bind-password info-type
-   */
-  private static void parseArgs(String[] args)
-  {
-    if (args.length != 3) giveUp();
-
-    host = args[0];
-    port = Integer.parseInt(args[1]);
-    infoType = args[2]; // all, controls, or extops
-    if (!
-         (
-           infoType.toLowerCase().equals("all") ||
-           infoType.toLowerCase().equals("controls") ||
-           infoType.toLowerCase().equals("extops")
-         )
-       )
-           giveUp();
   }
 
 
@@ -155,14 +142,38 @@ public final class Main
 
 
 
+  /**
+   * Parse command line arguments.
+   *
+   * @param args
+   *          host port bind-dn bind-password info-type
+   */
+  private static void parseArgs(final String[] args)
+  {
+    if (args.length != 3)
+    {
+      giveUp();
+    }
+
+    host = args[0];
+    port = Integer.parseInt(args[1]);
+    infoType = args[2]; // all, controls, or extops
+    if (!(infoType.toLowerCase().equals("all")
+        || infoType.toLowerCase().equals("controls")
+        || infoType.toLowerCase().equals("extops")))
+    {
+      giveUp();
+    }
+  }
+
+
+
   private static void printUsage()
   {
-    System.err.println(
-      "Usage: host port info-type");
-    System.err.println(
-      "\tAll arguments are required.");
-    System.err.println(
-      "\tinfo-type to get can be either all, controls, or extops.");
+    System.err.println("Usage: host port info-type");
+    System.err.println("\tAll arguments are required.");
+    System.err
+        .println("\tinfo-type to get can be either all, controls, or extops.");
   }
 
 

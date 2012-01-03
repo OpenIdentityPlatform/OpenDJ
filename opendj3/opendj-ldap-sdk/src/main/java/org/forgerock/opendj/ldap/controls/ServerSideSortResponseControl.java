@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -165,7 +166,6 @@ public final class ServerSideSortResponseControl implements Control
    *           If {@code result} was {@code null}.
    */
   public static ServerSideSortResponseControl newControl(final ResultCode result)
-      throws NullPointerException
   {
     Validator.ensureNotNull(result);
 
@@ -194,7 +194,6 @@ public final class ServerSideSortResponseControl implements Control
    */
   public static ServerSideSortResponseControl newControl(
       final ResultCode result, final AttributeDescription attributeDescription)
-      throws NullPointerException
   {
     Validator.ensureNotNull(result);
 
@@ -228,7 +227,6 @@ public final class ServerSideSortResponseControl implements Control
    */
   public static ServerSideSortResponseControl newControl(
       final ResultCode result, final String attributeDescription)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(result);
 

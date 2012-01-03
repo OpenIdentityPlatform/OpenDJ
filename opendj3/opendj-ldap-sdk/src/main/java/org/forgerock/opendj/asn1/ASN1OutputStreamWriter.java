@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.forgerock.opendj.asn1;
 
@@ -126,8 +127,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer implements
   /**
    * {@inheritDoc}
    */
-  public ASN1Writer writeEndSequence() throws IOException,
-      IllegalStateException
+  public ASN1Writer writeEndSequence() throws IOException
   {
     if (stackDepth < 0)
     {

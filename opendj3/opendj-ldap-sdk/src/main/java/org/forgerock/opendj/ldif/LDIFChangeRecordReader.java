@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldif;
@@ -78,7 +78,6 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements
    *           If {@code ldifLines} was {@code null}.
    */
   public static ChangeRecord valueOfLDIFChangeRecord(final String... ldifLines)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     // LDIF change record reader is tolerant to missing change types.
     final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(ldifLines);
@@ -137,7 +136,6 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements
    *           If {@code in} was {@code null}.
    */
   public LDIFChangeRecordReader(final InputStream in)
-      throws NullPointerException
   {
     super(in);
   }
@@ -154,7 +152,6 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements
    *           If {@code ldifLines} was {@code null}.
    */
   public LDIFChangeRecordReader(final List<String> ldifLines)
-      throws NullPointerException
   {
     super(ldifLines);
   }
@@ -171,7 +168,6 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements
    *           If {@code ldifLines} was {@code null}.
    */
   public LDIFChangeRecordReader(final String... ldifLines)
-      throws NullPointerException
   {
     super(Arrays.asList(ldifLines));
   }

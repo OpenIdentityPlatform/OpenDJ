@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -190,8 +191,7 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
    * {@inheritDoc}
    */
   @Override
-  public abstract boolean add(ByteString value)
-      throws UnsupportedOperationException, NullPointerException;
+  public abstract boolean add(ByteString value);
 
 
 
@@ -199,7 +199,6 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
    * {@inheritDoc}
    */
   public boolean add(final Object firstValue, final Object... remainingValues)
-      throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(firstValue);
 
@@ -221,7 +220,6 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
    */
   @Override
   public boolean addAll(final Collection<? extends ByteString> values)
-      throws UnsupportedOperationException, NullPointerException
   {
     return addAll(values, null);
   }
@@ -233,7 +231,6 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
    */
   public boolean addAll(final Collection<? extends ByteString> values,
       final Collection<? super ByteString> duplicateValues)
-      throws UnsupportedOperationException, NullPointerException
   {
     boolean modified = false;
     for (final ByteString value : values)
@@ -256,7 +253,7 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
    * {@inheritDoc}
    */
   @Override
-  public abstract boolean contains(Object value) throws NullPointerException;
+  public abstract boolean contains(Object value);
 
 
 
@@ -265,7 +262,6 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
    */
   @Override
   public boolean containsAll(final Collection<?> values)
-      throws NullPointerException
   {
     for (final Object value : values)
     {
@@ -293,7 +289,7 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
   /**
    * {@inheritDoc}
    */
-  public ByteString firstValue() throws NoSuchElementException
+  public ByteString firstValue()
   {
     return iterator().next();
   }
@@ -303,7 +299,7 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
   /**
    * {@inheritDoc}
    */
-  public String firstValueAsString() throws NoSuchElementException
+  public String firstValueAsString()
   {
     return firstValue().toString();
   }
@@ -350,8 +346,7 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
    * {@inheritDoc}
    */
   @Override
-  public abstract boolean remove(Object value)
-      throws UnsupportedOperationException, NullPointerException;
+  public abstract boolean remove(Object value);
 
 
 
@@ -360,7 +355,6 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
    */
   @Override
   public boolean removeAll(final Collection<?> values)
-      throws UnsupportedOperationException, NullPointerException
   {
     return removeAll(values, null);
   }
@@ -372,7 +366,6 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
    */
   public <T> boolean removeAll(final Collection<T> values,
       final Collection<? super T> missingValues)
-      throws UnsupportedOperationException, NullPointerException
   {
     boolean modified = false;
     for (final T value : values)
@@ -396,7 +389,6 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
    */
   @Override
   public boolean retainAll(final Collection<?> values)
-      throws UnsupportedOperationException, NullPointerException
   {
     return retainAll(values, null);
   }
@@ -408,7 +400,6 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString>
    */
   public <T> boolean retainAll(final Collection<T> values,
       final Collection<? super T> missingValues)
-      throws UnsupportedOperationException, NullPointerException
   {
     if (values.isEmpty())
     {

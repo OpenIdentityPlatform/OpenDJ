@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package com.forgerock.opendj.util;
 
@@ -68,7 +69,6 @@ public final class Base64
    *           If {@code base64} was {@code null}.
    */
   public static ByteString decode(final String base64)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     ensureNotNull(base64);
 
@@ -336,7 +336,6 @@ public final class Base64
    *           If {@code bytes} was {@code null}.
    */
   public static String encode(final ByteSequence bytes)
-      throws NullPointerException
   {
     ensureNotNull(bytes);
 

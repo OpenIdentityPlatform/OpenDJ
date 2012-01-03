@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -236,7 +237,7 @@ public final class KeyManagers
    *           If {@code file} was {@code null}.
    */
   public static X509KeyManager useKeyStoreFile(final String file)
-      throws GeneralSecurityException, IOException, NullPointerException
+      throws GeneralSecurityException, IOException
   {
     return useKeyStoreFile(file, null, null);
   }
@@ -268,7 +269,7 @@ public final class KeyManagers
    */
   public static X509KeyManager useKeyStoreFile(final String file,
       final char[] password, final String format)
-      throws GeneralSecurityException, IOException, NullPointerException
+      throws GeneralSecurityException, IOException
   {
     Validator.ensureNotNull(file);
 
@@ -381,7 +382,7 @@ public final class KeyManagers
    *           If {@code keyManager} or {@code alias} was {@code null}.
    */
   public static X509KeyManager useSingleCertificate(final String alias,
-      final X509KeyManager keyManager) throws NullPointerException
+      final X509KeyManager keyManager)
   {
     Validator.ensureNotNull(alias, keyManager);
     return new SelectCertificate(keyManager, alias);

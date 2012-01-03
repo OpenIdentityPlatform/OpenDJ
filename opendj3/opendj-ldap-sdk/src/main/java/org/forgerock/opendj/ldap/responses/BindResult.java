@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -65,16 +66,14 @@ public interface BindResult extends Result
   /**
    * {@inheritDoc}
    */
-  BindResult addControl(Control control) throws UnsupportedOperationException,
-      NullPointerException;
+  BindResult addControl(Control control);
 
 
 
   /**
    * {@inheritDoc}
    */
-  BindResult addReferralURI(String uri) throws UnsupportedOperationException,
-      NullPointerException;
+  BindResult addReferralURI(String uri);
 
 
 
@@ -89,7 +88,7 @@ public interface BindResult extends Result
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 
@@ -171,30 +170,28 @@ public interface BindResult extends Result
   /**
    * {@inheritDoc}
    */
-  BindResult setCause(Throwable cause) throws UnsupportedOperationException;
+  BindResult setCause(Throwable cause);
 
 
 
   /**
    * {@inheritDoc}
    */
-  BindResult setDiagnosticMessage(String message)
-      throws UnsupportedOperationException;
+  BindResult setDiagnosticMessage(String message);
 
 
 
   /**
    * {@inheritDoc}
    */
-  BindResult setMatchedDN(String dn) throws UnsupportedOperationException;
+  BindResult setMatchedDN(String dn);
 
 
 
   /**
    * {@inheritDoc}
    */
-  BindResult setResultCode(ResultCode resultCode)
-      throws UnsupportedOperationException, NullPointerException;
+  BindResult setResultCode(ResultCode resultCode);
 
 
 
@@ -209,7 +206,6 @@ public interface BindResult extends Result
    *           If this bind result does not permit the server SASL credentials
    *           to be set.
    */
-  BindResult setServerSASLCredentials(ByteString credentials)
-      throws UnsupportedOperationException;
+  BindResult setServerSASLCredentials(ByteString credentials);
 
 }

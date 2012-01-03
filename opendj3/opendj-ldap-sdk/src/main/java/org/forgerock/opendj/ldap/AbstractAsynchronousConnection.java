@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -60,8 +60,7 @@ public abstract class AbstractAsynchronousConnection extends AbstractConnection
    */
   @Override
   public Result add(final AddRequest request) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException
+      InterruptedException
   {
     final FutureResult<Result> future = addAsync(request, null, null);
     try
@@ -82,9 +81,7 @@ public abstract class AbstractAsynchronousConnection extends AbstractConnection
    */
   @Override
   public BindResult bind(final BindRequest request)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
+      throws ErrorResultException, InterruptedException
   {
     final FutureResult<BindResult> future = bindAsync(request, null, null);
     try
@@ -105,9 +102,7 @@ public abstract class AbstractAsynchronousConnection extends AbstractConnection
    */
   @Override
   public CompareResult compare(final CompareRequest request)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
+      throws ErrorResultException, InterruptedException
   {
     final FutureResult<CompareResult> future = compareAsync(request, null, null);
     try
@@ -128,9 +123,7 @@ public abstract class AbstractAsynchronousConnection extends AbstractConnection
    */
   @Override
   public Result delete(final DeleteRequest request)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
+      throws ErrorResultException, InterruptedException
   {
     final FutureResult<Result> future = deleteAsync(request, null, null);
     try
@@ -153,8 +146,7 @@ public abstract class AbstractAsynchronousConnection extends AbstractConnection
   public <R extends ExtendedResult> R extendedRequest(
       final ExtendedRequest<R> request,
       final IntermediateResponseHandler handler) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException
+      InterruptedException
   {
     final FutureResult<R> future = extendedRequestAsync(request, handler, null);
     try
@@ -175,9 +167,7 @@ public abstract class AbstractAsynchronousConnection extends AbstractConnection
    */
   @Override
   public Result modify(final ModifyRequest request)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
+      throws ErrorResultException, InterruptedException
   {
     final FutureResult<Result> future = modifyAsync(request, null, null);
     try
@@ -198,9 +188,7 @@ public abstract class AbstractAsynchronousConnection extends AbstractConnection
    */
   @Override
   public Result modifyDN(final ModifyDNRequest request)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
+      throws ErrorResultException, InterruptedException
   {
     final FutureResult<Result> future = modifyDNAsync(request, null, null);
     try
@@ -222,8 +210,7 @@ public abstract class AbstractAsynchronousConnection extends AbstractConnection
   @Override
   public Result search(final SearchRequest request,
       final SearchResultHandler handler) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException
+      InterruptedException
   {
     final FutureResult<Result> future = searchAsync(request, null, handler);
     try

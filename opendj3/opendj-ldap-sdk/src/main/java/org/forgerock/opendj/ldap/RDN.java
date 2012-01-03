@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -122,7 +122,6 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN>
    *           If {@code rdn} was {@code null}.
    */
   public static RDN valueOf(final String rdn)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     return valueOf(rdn, Schema.getDefaultSchema());
   }
@@ -145,7 +144,6 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN>
    *           If {@code rdn} or {@code schema} was {@code null}.
    */
   public static RDN valueOf(final String rdn, final Schema schema)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     final SubstringReader reader = new SubstringReader(rdn);
     try
@@ -165,8 +163,7 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN>
   // FIXME: ensure that the decoded RDN does not contain multiple AVAs
   // with the same type.
   static RDN decode(final String rdnString, final SubstringReader reader,
-      final Schema schema) throws LocalizedIllegalArgumentException,
-      UnknownSchemaElementException
+      final Schema schema)
   {
     final AVA firstAVA = AVA.decode(reader, schema);
 
@@ -223,7 +220,6 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN>
    *           null}.
    */
   public RDN(final AttributeType attributeType, final ByteString attributeValue)
-      throws NullPointerException
   {
     this.avas = new AVA[] { new AVA(attributeType, attributeValue) };
   }
@@ -248,7 +244,6 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN>
    *           null}.
    */
   public RDN(final String attributeType, final Object attributeValue)
-      throws UnknownSchemaElementException, NullPointerException
   {
     this.avas = new AVA[] { new AVA(attributeType, attributeValue) };
   }

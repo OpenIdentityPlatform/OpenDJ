@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -418,7 +418,6 @@ final class GSSAPISASLBindRequestImpl extends
    */
   GSSAPISASLBindRequestImpl(
       final GSSAPISASLBindRequest gssapiSASLBindRequest)
-      throws NullPointerException
   {
     super(gssapiSASLBindRequest);
     this.subject = gssapiSASLBindRequest.getSubject();
@@ -455,8 +454,7 @@ final class GSSAPISASLBindRequestImpl extends
    */
   @Override
   public GSSAPISASLBindRequest addAdditionalAuthParam(final String name,
-      final String value) throws UnsupportedOperationException,
-      NullPointerException
+      final String value)
   {
     Validator.ensureNotNull(name, value);
     additionalAuthParams.put(name, value);
@@ -470,7 +468,6 @@ final class GSSAPISASLBindRequestImpl extends
    */
   @Override
   public GSSAPISASLBindRequest addQOP(final String... qopValues)
-      throws UnsupportedOperationException, NullPointerException
   {
     for (final String qopValue : qopValues)
     {
@@ -630,7 +627,6 @@ final class GSSAPISASLBindRequestImpl extends
    */
   @Override
   public GSSAPISASLBindRequest setAuthenticationID(final String authenticationID)
-      throws NullPointerException
   {
     Validator.ensureNotNull(authenticationID);
     this.authenticationID = authenticationID;
@@ -668,7 +664,6 @@ final class GSSAPISASLBindRequestImpl extends
    */
   @Override
   public GSSAPISASLBindRequest setMaxReceiveBufferSize(final int size)
-      throws UnsupportedOperationException
   {
     maxReceiveBufferSize = size;
     return this;
@@ -681,7 +676,6 @@ final class GSSAPISASLBindRequestImpl extends
    */
   @Override
   public GSSAPISASLBindRequest setMaxSendBufferSize(final int size)
-      throws UnsupportedOperationException
   {
     maxSendBufferSize = size;
     return this;
@@ -694,7 +688,6 @@ final class GSSAPISASLBindRequestImpl extends
    */
   @Override
   public GSSAPISASLBindRequest setPassword(final byte[] password)
-      throws NullPointerException
   {
     Validator.ensureNotNull(password);
     this.password = password;
@@ -708,7 +701,6 @@ final class GSSAPISASLBindRequestImpl extends
    */
   @Override
   public GSSAPISASLBindRequest setPassword(final char[] password)
-      throws NullPointerException
   {
     Validator.ensureNotNull(password);
     this.password = StaticUtils.getBytes(password);
@@ -734,7 +726,6 @@ final class GSSAPISASLBindRequestImpl extends
    */
   @Override
   public GSSAPISASLBindRequest setServerAuth(final boolean serverAuth)
-      throws UnsupportedOperationException
   {
     this.serverAuth = serverAuth;
     return this;
@@ -747,7 +738,6 @@ final class GSSAPISASLBindRequestImpl extends
    */
   @Override
   public GSSAPISASLBindRequest setSubject(final Subject subject)
-      throws NullPointerException
   {
     this.subject = subject;
     return this;

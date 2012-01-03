@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -78,7 +79,6 @@ abstract class AbstractUnmodifiableResponseImpl<S extends Response> implements
    */
   @Override
   public final S addControl(final Control control)
-      throws UnsupportedOperationException, NullPointerException
   {
     throw new UnsupportedOperationException();
   }
@@ -91,7 +91,7 @@ abstract class AbstractUnmodifiableResponseImpl<S extends Response> implements
   @Override
   public final <C extends Control> C getControl(
       final ControlDecoder<C> decoder, final DecodeOptions options)
-      throws NullPointerException, DecodeException
+      throws DecodeException
   {
     Validator.ensureNotNull(decoder, options);
 

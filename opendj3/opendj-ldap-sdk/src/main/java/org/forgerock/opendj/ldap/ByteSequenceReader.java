@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -73,7 +74,7 @@ public final class ByteSequenceReader
    *           required to satisfy the request, that is, if {@code remaining()
    *           &lt; 1}.
    */
-  public byte get() throws IndexOutOfBoundsException
+  public byte get()
   {
     final byte b = sequence.byteAt(pos);
     pos++;
@@ -103,7 +104,7 @@ public final class ByteSequenceReader
    *           required to satisfy the request, that is, if {@code remaining()
    *           &lt; b.length}.
    */
-  public void get(final byte[] b) throws IndexOutOfBoundsException
+  public void get(final byte[] b)
   {
     get(b, 0, b.length);
   }
@@ -145,7 +146,6 @@ public final class ByteSequenceReader
    *           &lt; length}.
    */
   public void get(final byte[] b, final int offset, final int length)
-      throws IndexOutOfBoundsException
   {
     if (offset < 0 || length < 0 || offset + length > b.length
         || length > remaining())
@@ -170,7 +170,7 @@ public final class ByteSequenceReader
    *           If there are fewer bytes remaining in this reader than are
    *           required to satisfy the request.
    */
-  public int getBERLength() throws IndexOutOfBoundsException
+  public int getBERLength()
   {
     // Make sure we have at least one byte to read.
     int newPos = pos + 1;
@@ -225,7 +225,6 @@ public final class ByteSequenceReader
    *           &lt; length}.
    */
   public ByteSequence getByteSequence(final int length)
-      throws IndexOutOfBoundsException
   {
     final int newPos = pos + length;
     final ByteSequence subSequence = sequence.subSequence(pos, newPos);
@@ -267,7 +266,6 @@ public final class ByteSequenceReader
    *           &lt; length}.
    */
   public ByteString getByteString(final int length)
-      throws IndexOutOfBoundsException
   {
     return getByteSequence(length).toByteString();
   }
@@ -286,7 +284,7 @@ public final class ByteSequenceReader
    *           required to satisfy the request, that is, if {@code remaining()
    *           &lt; 4}.
    */
-  public int getInt() throws IndexOutOfBoundsException
+  public int getInt()
   {
     if (remaining() < 4)
     {
@@ -316,7 +314,7 @@ public final class ByteSequenceReader
    *           required to satisfy the request, that is, if {@code remaining()
    *           &lt; 8}.
    */
-  public long getLong() throws IndexOutOfBoundsException
+  public long getLong()
   {
     if (remaining() < 8)
     {
@@ -347,7 +345,7 @@ public final class ByteSequenceReader
    *           required to satisfy the request, that is, if {@code remaining()
    *           &lt; 2}.
    */
-  public short getShort() throws IndexOutOfBoundsException
+  public short getShort()
   {
     if (remaining() < 2)
     {
@@ -381,7 +379,7 @@ public final class ByteSequenceReader
    *           required to satisfy the request, that is, if {@code remaining()
    *           &lt; length}.
    */
-  public String getString(final int length) throws IndexOutOfBoundsException
+  public String getString(final int length)
   {
     if (remaining() < length)
     {
@@ -418,7 +416,7 @@ public final class ByteSequenceReader
    *           If the position is negative or larger than the length of the
    *           underlying byte sequence.
    */
-  public void position(final int pos) throws IndexOutOfBoundsException
+  public void position(final int pos)
   {
     if (pos > sequence.length() || pos < 0)
     {
@@ -487,7 +485,7 @@ public final class ByteSequenceReader
    *           If the new position is less than 0 or greater than the length of
    *           the underlying byte sequence.
    */
-  public void skip(final int length) throws IndexOutOfBoundsException
+  public void skip(final int length)
   {
     position(pos + length);
   }

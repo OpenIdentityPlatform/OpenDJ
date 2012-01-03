@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -37,9 +37,7 @@ import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
-import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.schema.Schema;
-import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
+import org.forgerock.opendj.ldap.schema.*;
 
 import com.forgerock.opendj.util.ASCIICharProp;
 import com.forgerock.opendj.util.Iterators;
@@ -554,7 +552,6 @@ public final class AttributeDescription implements
    *           {@code null}.
    */
   public AttributeDescription withOption(final String option)
-      throws NullPointerException
   {
     Validator.ensureNotNull(option);
 
@@ -661,7 +658,6 @@ public final class AttributeDescription implements
    *           If {@code attributeType} was {@code null}.
    */
   public static AttributeDescription create(final AttributeType attributeType)
-      throws NullPointerException
   {
     Validator.ensureNotNull(attributeType);
 
@@ -693,7 +689,7 @@ public final class AttributeDescription implements
    *           If {@code attributeType} or {@code option} was {@code null}.
    */
   public static AttributeDescription create(final AttributeType attributeType,
-      final String option) throws NullPointerException
+      final String option)
   {
     Validator.ensureNotNull(attributeType, option);
 
@@ -725,7 +721,7 @@ public final class AttributeDescription implements
    *           If {@code attributeType} or {@code options} was {@code null}.
    */
   public static AttributeDescription create(final AttributeType attributeType,
-      final String... options) throws NullPointerException
+      final String... options)
   {
     Validator.ensureNotNull(attributeType, options);
 
@@ -794,8 +790,6 @@ public final class AttributeDescription implements
    *           If {@code attributeDescription} was {@code null}.
    */
   public static AttributeDescription valueOf(final String attributeDescription)
-      throws UnknownSchemaElementException, LocalizedIllegalArgumentException,
-      NullPointerException
   {
     return valueOf(attributeDescription, Schema.getDefaultSchema());
   }
@@ -823,8 +817,7 @@ public final class AttributeDescription implements
    */
   @SuppressWarnings("serial")
   public static AttributeDescription valueOf(final String attributeDescription,
-      final Schema schema) throws UnknownSchemaElementException,
-      LocalizedIllegalArgumentException, NullPointerException
+      final Schema schema)
   {
     Validator.ensureNotNull(attributeDescription, schema);
 
@@ -867,7 +860,7 @@ public final class AttributeDescription implements
 
 
   private static int skipTrailingWhiteSpace(final String attributeDescription,
-      int i, final int length) throws LocalizedIllegalArgumentException
+      int i, final int length)
   {
     char c;
     while (i < length)
@@ -889,7 +882,6 @@ public final class AttributeDescription implements
   // Uncached valueOf implementation.
   private static AttributeDescription valueOf0(
       final String attributeDescription, final Schema schema)
-      throws LocalizedIllegalArgumentException
   {
     final boolean allowMalformedNamesAndOptions = schema
         .allowMalformedNamesAndOptions();
@@ -1215,7 +1207,6 @@ public final class AttributeDescription implements
    *           If {@code name} was {@code null}.
    */
   public int compareTo(final AttributeDescription other)
-      throws NullPointerException
   {
     final int result = attributeType.compareTo(other.attributeType);
     if (result != 0)
@@ -1243,7 +1234,6 @@ public final class AttributeDescription implements
    *           If {@code option} was {@code null}.
    */
   public boolean containsOption(final String option)
-      throws NullPointerException
   {
     final String normalizedOption = toLowerCase(option);
     return pimpl.containsOption(normalizedOption);
@@ -1380,7 +1370,6 @@ public final class AttributeDescription implements
    *           If {@code name} was {@code null}.
    */
   public boolean isSubTypeOf(final AttributeDescription other)
-      throws NullPointerException
   {
     if (!attributeType.isSubTypeOf(other.attributeType))
     {
@@ -1417,7 +1406,6 @@ public final class AttributeDescription implements
    *           If {@code name} was {@code null}.
    */
   public boolean isSuperTypeOf(final AttributeDescription other)
-      throws NullPointerException
   {
     if (!other.attributeType.isSubTypeOf(attributeType))
     {

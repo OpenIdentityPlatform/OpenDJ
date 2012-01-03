@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -56,7 +57,6 @@ public final class ErrorResultIOException extends IOException
    *           If {@code cause} was {@code null}.
    */
   public ErrorResultIOException(final ErrorResultException cause)
-      throws NullPointerException
   {
     super(Validator.ensureNotNull(cause));
 

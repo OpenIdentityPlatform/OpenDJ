@@ -23,11 +23,16 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
 
+
+
 import org.forgerock.opendj.ldap.ByteString;
+
+
 
 /**
  * Unmodifiable Password modify extended result implementation.
@@ -36,26 +41,32 @@ class UnmodifiablePasswordModifyExtendedResultImpl extends
     AbstractUnmodifiableExtendedResultImpl<PasswordModifyExtendedResult>
     implements PasswordModifyExtendedResult
 {
-  UnmodifiablePasswordModifyExtendedResultImpl(
-      PasswordModifyExtendedResult impl) {
+  UnmodifiablePasswordModifyExtendedResultImpl(PasswordModifyExtendedResult impl)
+  {
     super(impl);
   }
 
+
+
   @Override
-  public ByteString getGeneratedPassword() {
+  public ByteString getGeneratedPassword()
+  {
     return impl.getGeneratedPassword();
   }
 
+
+
   @Override
   public PasswordModifyExtendedResult setGeneratedPassword(ByteString password)
-      throws UnsupportedOperationException
   {
     throw new UnsupportedOperationException();
   }
 
+
+
   @Override
   public PasswordModifyExtendedResult setGeneratedPassword(char[] password)
-      throws UnsupportedOperationException {
+  {
     throw new UnsupportedOperationException();
   }
 }

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -31,7 +32,7 @@ package org.forgerock.opendj.ldap.requests;
 
 import java.util.List;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.i18n.*;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
@@ -60,8 +61,7 @@ public interface ModifyDNRequest extends Request, ChangeRecord
   /**
    * {@inheritDoc}
    */
-  ModifyDNRequest addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  ModifyDNRequest addControl(Control control);
 
 
 
@@ -69,7 +69,7 @@ public interface ModifyDNRequest extends Request, ChangeRecord
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 
@@ -139,8 +139,7 @@ public interface ModifyDNRequest extends Request, ChangeRecord
    *           If this modify DN request does not permit the delete old RDN
    *           parameter to be set.
    */
-  ModifyDNRequest setDeleteOldRDN(boolean deleteOldRDN)
-      throws UnsupportedOperationException;
+  ModifyDNRequest setDeleteOldRDN(boolean deleteOldRDN);
 
 
 
@@ -158,8 +157,7 @@ public interface ModifyDNRequest extends Request, ChangeRecord
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  ModifyDNRequest setName(DN dn) throws UnsupportedOperationException,
-      NullPointerException;
+  ModifyDNRequest setName(DN dn);
 
 
 
@@ -179,8 +177,7 @@ public interface ModifyDNRequest extends Request, ChangeRecord
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  ModifyDNRequest setName(String dn) throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException;
+  ModifyDNRequest setName(String dn);
 
 
 
@@ -199,8 +196,7 @@ public interface ModifyDNRequest extends Request, ChangeRecord
    * @throws NullPointerException
    *           If {@code rdn} was {@code null}.
    */
-  ModifyDNRequest setNewRDN(RDN rdn) throws UnsupportedOperationException,
-      NullPointerException;
+  ModifyDNRequest setNewRDN(RDN rdn);
 
 
 
@@ -221,9 +217,7 @@ public interface ModifyDNRequest extends Request, ChangeRecord
    * @throws NullPointerException
    *           If {@code rdn} was {@code null}.
    */
-  ModifyDNRequest setNewRDN(String rdn)
-      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
-      NullPointerException;
+  ModifyDNRequest setNewRDN(String rdn);
 
 
 
@@ -241,7 +235,7 @@ public interface ModifyDNRequest extends Request, ChangeRecord
    *           If this modify DN request does not permit the new superior to be
    *           set.
    */
-  ModifyDNRequest setNewSuperior(DN dn) throws UnsupportedOperationException;
+  ModifyDNRequest setNewSuperior(DN dn);
 
 
 
@@ -261,7 +255,6 @@ public interface ModifyDNRequest extends Request, ChangeRecord
    *           If this modify DN request does not permit the new superior to be
    *           set.
    */
-  ModifyDNRequest setNewSuperior(String dn)
-      throws LocalizedIllegalArgumentException, UnsupportedOperationException;
+  ModifyDNRequest setNewSuperior(String dn);
 
 }

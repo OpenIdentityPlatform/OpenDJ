@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.examples.proxy;
@@ -208,7 +208,6 @@ public final class Main
         final AddRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super Result> resultHandler)
-        throws UnsupportedOperationException
     {
       addProxiedAuthControl(request);
       final ConnectionCompletionHandler<Result> outerHandler =
@@ -239,7 +238,6 @@ public final class Main
         final int version, final BindRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super BindResult> resultHandler)
-        throws UnsupportedOperationException
     {
 
       if (request.getAuthenticationType() != ((byte) 0x80))
@@ -305,7 +303,6 @@ public final class Main
         final CompareRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super CompareResult> resultHandler)
-        throws UnsupportedOperationException
     {
       addProxiedAuthControl(request);
       final ConnectionCompletionHandler<CompareResult> outerHandler =
@@ -337,7 +334,6 @@ public final class Main
         final DeleteRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super Result> resultHandler)
-        throws UnsupportedOperationException
     {
       addProxiedAuthControl(request);
       final ConnectionCompletionHandler<Result> outerHandler =
@@ -368,7 +364,6 @@ public final class Main
         final RequestContext requestContext, final ExtendedRequest<R> request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super R> resultHandler)
-        throws UnsupportedOperationException
     {
       if (request.getOID().equals(CancelExtendedRequest.OID))
       {
@@ -418,7 +413,6 @@ public final class Main
         final ModifyRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super Result> resultHandler)
-        throws UnsupportedOperationException
     {
       addProxiedAuthControl(request);
       final ConnectionCompletionHandler<Result> outerHandler =
@@ -449,7 +443,6 @@ public final class Main
         final ModifyDNRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super Result> resultHandler)
-        throws UnsupportedOperationException
     {
       addProxiedAuthControl(request);
       final ConnectionCompletionHandler<Result> outerHandler =
@@ -480,7 +473,6 @@ public final class Main
         final SearchRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final SearchResultHandler resultHandler)
-        throws UnsupportedOperationException
     {
       addProxiedAuthControl(request);
       final ConnectionCompletionHandler<Result> outerHandler =

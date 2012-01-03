@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2011 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -1200,7 +1201,6 @@ public final class Filter
    *           filter.
    */
   public static Filter valueOf(final String string)
-      throws LocalizedIllegalArgumentException
   {
     Validator.ensureNotNull(string);
 
@@ -1252,7 +1252,7 @@ public final class Filter
   // Converts an assertion value to a substring filter.
   private static Filter assertionValue2SubstringFilter(
       final String filterString, final String attrType, final int equalPos,
-      final int endPos) throws LocalizedIllegalArgumentException
+      final int endPos)
   {
     // Get a binary representation of the value.
     final byte[] valueBytes = getBytes(filterString.substring(equalPos, endPos));
@@ -1357,7 +1357,6 @@ public final class Filter
   private static void escapeHexChars(final ByteStringBuilder valueBuffer,
       final String string, final byte[] valueBytes, final int fromIndex,
       final int len, final int errorIndex)
-      throws LocalizedIllegalArgumentException
   {
     for (int i = fromIndex; i < len; i++)
     {
@@ -1508,7 +1507,6 @@ public final class Filter
 
   private static Filter valueOf0(final String string,
       final int beginIndex /* inclusive */, final int endIndex /* exclusive */)
-      throws LocalizedIllegalArgumentException
   {
     if (beginIndex >= endIndex)
     {
@@ -1625,7 +1623,6 @@ public final class Filter
 
   private static ByteString valueOfAssertionValue(final String string,
       final int startIndex, final int endIndex)
-      throws LocalizedIllegalArgumentException
   {
     boolean hasEscape = false;
     final byte[] valueBytes = getBytes(string.substring(startIndex, endIndex));
@@ -1656,7 +1653,6 @@ public final class Filter
 
   private static String valueOfAttributeDescription(final String string,
       final int startIndex, final int endIndex)
-      throws LocalizedIllegalArgumentException
   {
     // The part of the filter string before the equal sign should be the
     // attribute type. Make sure that the characters it contains are
@@ -1769,7 +1765,6 @@ public final class Filter
 
   private static Filter valueOfExtensibleFilter(final String string,
       final int startIndex, final int equalIndex, final int endIndex)
-      throws LocalizedIllegalArgumentException
   {
     String attributeDescription = null;
     boolean dnAttributes = false;
@@ -1851,7 +1846,6 @@ public final class Filter
 
   private static List<Filter> valueOfFilterList(final String string,
       final int startIndex, final int endIndex)
-      throws LocalizedIllegalArgumentException
   {
     // If the end index is equal to the start index, then there are no
     // components.
@@ -1951,7 +1945,7 @@ public final class Filter
 
   private static Filter valueOfGenericFilter(final String string,
       final String attributeDescription, final int startIndex,
-      final int endIndex) throws LocalizedIllegalArgumentException
+      final int endIndex)
   {
     final int asteriskIdx = string.indexOf('*', startIndex);
     if (startIndex >= endIndex)

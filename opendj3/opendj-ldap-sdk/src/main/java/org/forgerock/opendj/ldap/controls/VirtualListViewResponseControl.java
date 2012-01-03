@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -161,7 +162,6 @@ public final class VirtualListViewResponseControl implements Control
   public static VirtualListViewResponseControl newControl(
       final int targetPosition, final int contentCount,
       final ResultCode result, final ByteString contextID)
-      throws IllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(result);
     Validator.ensureTrue(targetPosition >= 0, "targetPosition is less than 0");

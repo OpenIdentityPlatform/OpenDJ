@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -57,8 +57,7 @@ public interface SimpleBindRequest extends BindRequest
   /**
    * {@inheritDoc}
    */
-  SimpleBindRequest addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  SimpleBindRequest addControl(Control control);
 
 
 
@@ -83,7 +82,7 @@ public interface SimpleBindRequest extends BindRequest
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 
@@ -137,8 +136,7 @@ public interface SimpleBindRequest extends BindRequest
    * @throws NullPointerException
    *           If {@code name} was {@code null}.
    */
-  SimpleBindRequest setName(String name) throws UnsupportedOperationException,
-      NullPointerException;
+  SimpleBindRequest setName(String name);
 
 
 
@@ -161,8 +159,7 @@ public interface SimpleBindRequest extends BindRequest
    * @throws NullPointerException
    *           If {@code password} was {@code null}.
    */
-  SimpleBindRequest setPassword(byte[] password)
-      throws UnsupportedOperationException, NullPointerException;
+  SimpleBindRequest setPassword(byte[] password);
 
 
 
@@ -183,7 +180,6 @@ public interface SimpleBindRequest extends BindRequest
    * @throws NullPointerException
    *           If {@code password} was {@code null}.
    */
-  SimpleBindRequest setPassword(char[] password)
-      throws UnsupportedOperationException, NullPointerException;
+  SimpleBindRequest setPassword(char[] password);
 
 }

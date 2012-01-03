@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -197,7 +198,7 @@ public final class PasswordPolicyResponseControl implements Control
    *           If {@code errorType} was {@code null}.
    */
   public static PasswordPolicyResponseControl newControl(
-      final PasswordPolicyErrorType errorType) throws NullPointerException
+      final PasswordPolicyErrorType errorType)
   {
     Validator.ensureNotNull(errorType);
 
@@ -221,7 +222,6 @@ public final class PasswordPolicyResponseControl implements Control
    */
   public static PasswordPolicyResponseControl newControl(
       final PasswordPolicyWarningType warningType, final int warningValue)
-      throws IllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(warningType);
     Validator.ensureTrue(warningValue >= 0, "warningValue is negative");
@@ -250,8 +250,7 @@ public final class PasswordPolicyResponseControl implements Control
    */
   public static PasswordPolicyResponseControl newControl(
       final PasswordPolicyWarningType warningType, final int warningValue,
-      final PasswordPolicyErrorType errorType) throws IllegalArgumentException,
-      NullPointerException
+      final PasswordPolicyErrorType errorType)
   {
     Validator.ensureNotNull(warningType, errorType);
     Validator.ensureTrue(warningValue >= 0, "warningValue is negative");

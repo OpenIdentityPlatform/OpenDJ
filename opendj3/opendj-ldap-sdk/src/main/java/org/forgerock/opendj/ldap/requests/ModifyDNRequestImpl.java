@@ -23,13 +23,13 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
 
 
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldif.ChangeRecordVisitor;
@@ -66,7 +66,6 @@ final class ModifyDNRequestImpl extends AbstractRequestImpl<ModifyDNRequest>
    *           If {@code name} or {@code newRDN} was {@code null}.
    */
   ModifyDNRequestImpl(final DN name, final RDN newRDN)
-      throws NullPointerException
   {
     this.name = name;
     this.newRDN = newRDN;
@@ -84,7 +83,6 @@ final class ModifyDNRequestImpl extends AbstractRequestImpl<ModifyDNRequest>
    *           If {@code modifyDNRequest} was {@code null} .
    */
   ModifyDNRequestImpl(final ModifyDNRequest modifyDNRequest)
-      throws NullPointerException
   {
     super(modifyDNRequest);
     this.name = modifyDNRequest.getName();
@@ -149,7 +147,6 @@ final class ModifyDNRequestImpl extends AbstractRequestImpl<ModifyDNRequest>
    * {@inheritDoc}
    */
   public ModifyDNRequestImpl setDeleteOldRDN(final boolean deleteOldRDN)
-      throws UnsupportedOperationException
   {
     this.deleteOldRDN = deleteOldRDN;
     return this;
@@ -161,7 +158,6 @@ final class ModifyDNRequestImpl extends AbstractRequestImpl<ModifyDNRequest>
    * {@inheritDoc}
    */
   public ModifyDNRequest setName(final DN dn)
-      throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(dn);
     this.name = dn;
@@ -174,8 +170,6 @@ final class ModifyDNRequestImpl extends AbstractRequestImpl<ModifyDNRequest>
    * {@inheritDoc}
    */
   public ModifyDNRequest setName(final String dn)
-      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
-      NullPointerException
   {
     Validator.ensureNotNull(dn);
     this.name = DN.valueOf(dn);
@@ -188,7 +182,6 @@ final class ModifyDNRequestImpl extends AbstractRequestImpl<ModifyDNRequest>
    * {@inheritDoc}
    */
   public ModifyDNRequest setNewRDN(final RDN rdn)
-      throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(rdn);
     this.newRDN = rdn;
@@ -201,8 +194,6 @@ final class ModifyDNRequestImpl extends AbstractRequestImpl<ModifyDNRequest>
    * {@inheritDoc}
    */
   public ModifyDNRequest setNewRDN(final String rdn)
-      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
-      NullPointerException
   {
     Validator.ensureNotNull(rdn);
     this.newRDN = RDN.valueOf(rdn);
@@ -215,7 +206,6 @@ final class ModifyDNRequestImpl extends AbstractRequestImpl<ModifyDNRequest>
    * {@inheritDoc}
    */
   public ModifyDNRequest setNewSuperior(final DN dn)
-      throws UnsupportedOperationException
   {
     this.newSuperior = dn;
     return this;
@@ -227,7 +217,6 @@ final class ModifyDNRequestImpl extends AbstractRequestImpl<ModifyDNRequest>
    * {@inheritDoc}
    */
   public ModifyDNRequest setNewSuperior(final String dn)
-      throws LocalizedIllegalArgumentException, UnsupportedOperationException
   {
     this.newSuperior = (dn != null) ? DN.valueOf(dn) : null;
     return this;

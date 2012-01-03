@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -62,7 +62,6 @@ public final class LDAPConnectionFactory implements ConnectionFactory
    *           If {@code address} was {@code null}.
    */
   public LDAPConnectionFactory(final SocketAddress address)
-      throws NullPointerException
   {
     this(address, new LDAPOptions());
   }
@@ -81,7 +80,7 @@ public final class LDAPConnectionFactory implements ConnectionFactory
    *           If {@code address} or {@code options} was {@code null}.
    */
   public LDAPConnectionFactory(final SocketAddress address,
-      final LDAPOptions options) throws NullPointerException
+      final LDAPOptions options)
   {
     Validator.ensureNotNull(address, options);
     this.impl = new LDAPConnectionFactoryImpl(address, options);
@@ -101,7 +100,6 @@ public final class LDAPConnectionFactory implements ConnectionFactory
    *           If {@code host} was {@code null}.
    */
   public LDAPConnectionFactory(final String host, final int port)
-      throws NullPointerException
   {
     this(host, port, new LDAPOptions());
   }
@@ -122,7 +120,7 @@ public final class LDAPConnectionFactory implements ConnectionFactory
    *           If {@code host} or {@code options} was {@code null}.
    */
   public LDAPConnectionFactory(final String host, final int port,
-      final LDAPOptions options) throws NullPointerException
+      final LDAPOptions options)
   {
     Validator.ensureNotNull(host, options);
     final SocketAddress address = new InetSocketAddress(host, port);

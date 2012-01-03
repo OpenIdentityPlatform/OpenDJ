@@ -27,19 +27,24 @@
 
 package org.forgerock.opendj.ldap.responses;
 
+
+
 /**
  * Unmodifiable Compare result implementation.
  */
-class UnmodifiableCompareResultImpl
-    extends AbstractUnmodifiableResultImpl<CompareResult>
-    implements CompareResult
+class UnmodifiableCompareResultImpl extends
+    AbstractUnmodifiableResultImpl<CompareResult> implements CompareResult
 {
-  UnmodifiableCompareResultImpl(CompareResult impl) {
+  UnmodifiableCompareResultImpl(CompareResult impl)
+  {
     super(impl);
   }
 
+
+
   @Override
-  public boolean matched() {
+  public boolean matched()
+  {
     return impl.matched();
   }
 }

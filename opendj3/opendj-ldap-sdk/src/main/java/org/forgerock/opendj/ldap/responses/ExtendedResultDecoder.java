@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -60,7 +61,7 @@ public interface ExtendedResultDecoder<S extends ExtendedResult>
    * @throws NullPointerException
    *           If {@code exception} was {@code null}.
    */
-  S adaptDecodeException(DecodeException exception) throws NullPointerException;
+  S adaptDecodeException(DecodeException exception);
 
 
 
@@ -129,6 +130,6 @@ public interface ExtendedResultDecoder<S extends ExtendedResult>
    *           {@code diagnosticMessage} were {@code null}.
    */
   S newExtendedErrorResult(ResultCode resultCode, String matchedDN,
-      String diagnosticMessage) throws NullPointerException;
+      String diagnosticMessage);
 
 }

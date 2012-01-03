@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -55,16 +56,14 @@ public interface PasswordModifyExtendedResult extends ExtendedResult
   /**
    * {@inheritDoc}
    */
-  PasswordModifyExtendedResult addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  PasswordModifyExtendedResult addControl(Control control);
 
 
 
   /**
    * {@inheritDoc}
    */
-  PasswordModifyExtendedResult addReferralURI(String uri)
-      throws UnsupportedOperationException, NullPointerException;
+  PasswordModifyExtendedResult addReferralURI(String uri);
 
 
 
@@ -79,7 +78,7 @@ public interface PasswordModifyExtendedResult extends ExtendedResult
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 
@@ -167,16 +166,14 @@ public interface PasswordModifyExtendedResult extends ExtendedResult
   /**
    * {@inheritDoc}
    */
-  PasswordModifyExtendedResult setCause(Throwable cause)
-      throws UnsupportedOperationException;
+  PasswordModifyExtendedResult setCause(Throwable cause);
 
 
 
   /**
    * {@inheritDoc}
    */
-  PasswordModifyExtendedResult setDiagnosticMessage(String message)
-      throws UnsupportedOperationException;
+  PasswordModifyExtendedResult setDiagnosticMessage(String message);
 
 
 
@@ -191,8 +188,7 @@ public interface PasswordModifyExtendedResult extends ExtendedResult
    *           If this password modify extended result does not permit the
    *           generated password to be set.
    */
-  PasswordModifyExtendedResult setGeneratedPassword(ByteString password)
-      throws UnsupportedOperationException;
+  PasswordModifyExtendedResult setGeneratedPassword(ByteString password);
 
 
 
@@ -208,23 +204,20 @@ public interface PasswordModifyExtendedResult extends ExtendedResult
    *           If this password modify extended result does not permit the
    *           generated password to be set.
    */
-  PasswordModifyExtendedResult setGeneratedPassword(char[] password)
-      throws UnsupportedOperationException;
+  PasswordModifyExtendedResult setGeneratedPassword(char[] password);
 
 
 
   /**
    * {@inheritDoc}
    */
-  PasswordModifyExtendedResult setMatchedDN(String dn)
-      throws UnsupportedOperationException;
+  PasswordModifyExtendedResult setMatchedDN(String dn);
 
 
 
   /**
    * {@inheritDoc}
    */
-  PasswordModifyExtendedResult setResultCode(ResultCode resultCode)
-      throws UnsupportedOperationException, NullPointerException;
+  PasswordModifyExtendedResult setResultCode(ResultCode resultCode);
 
 }

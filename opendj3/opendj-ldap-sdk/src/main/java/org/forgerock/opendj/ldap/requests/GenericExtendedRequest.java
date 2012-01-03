@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -64,8 +65,7 @@ public interface GenericExtendedRequest extends
   /**
    * {@inheritDoc}
    */
-  GenericExtendedRequest addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  GenericExtendedRequest addControl(Control control);
 
 
 
@@ -73,7 +73,7 @@ public interface GenericExtendedRequest extends
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 
@@ -124,9 +124,7 @@ public interface GenericExtendedRequest extends
    * @throws NullPointerException
    *           If {@code oid} was {@code null}.
    */
-  GenericExtendedRequest setOID(String oid)
-      throws UnsupportedOperationException, NullPointerException;
-
+  GenericExtendedRequest setOID(String oid);
 
 
   /**
@@ -141,7 +139,5 @@ public interface GenericExtendedRequest extends
    *           If this generic extended request does not permit the request
    *           value to be set.
    */
-  GenericExtendedRequest setValue(ByteString bytes)
-      throws UnsupportedOperationException;
-
+  GenericExtendedRequest setValue(ByteString bytes);
 }
