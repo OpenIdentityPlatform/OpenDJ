@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.protocols.internal;
 
@@ -880,14 +880,10 @@ public final class InternalClientConnection
    */
   public AddOperation processAdd(Entry entry, List<Control> controls)
   {
-    if (controls == null)
-    {
-      controls = new ArrayList<Control>(0);
-    }
-
     return processAdd(entry.getDN(), entry.getObjectClasses(),
                       entry.getUserAttributes(),
-                      entry.getOperationalAttributes());
+                      entry.getOperationalAttributes(),
+                      controls);
   }
 
 
