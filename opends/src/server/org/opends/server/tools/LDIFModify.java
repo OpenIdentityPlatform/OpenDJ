@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -429,16 +430,6 @@ public class LDIFModify
                                    OutputStream outStream,
                                    OutputStream errStream)
   {
-    PrintStream out;
-    if (outStream == null)
-    {
-      out = NullOutputStream.printStream();
-    }
-    else
-    {
-      out = new PrintStream(outStream);
-    }
-
     PrintStream err;
     if (errStream == null)
     {
