@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.backends;
 
@@ -299,23 +299,23 @@ public class SchemaBackend
 
     configEntryDN = configEntry.getDN();
 
-    DN[] baseDNs = new DN[cfg.getBaseDN().size()];
-    cfg.getBaseDN().toArray(baseDNs);
-    this.baseDNs = baseDNs;
+    DN[] newBaseDNs = new DN[cfg.getBaseDN().size()];
+    cfg.getBaseDN().toArray(newBaseDNs);
+    this.baseDNs = newBaseDNs;
 
     creatorsName  = AttributeValues.create(
-        creatorsNameType, baseDNs[0].toString());
-    modifiersName =
-        AttributeValues.create(
-            modifiersNameType, baseDNs[0].toString());
+        creatorsNameType, newBaseDNs[0].toString());
+    modifiersName = AttributeValues.create(
+        modifiersNameType, newBaseDNs[0].toString());
 
     long createTime = DirectoryServer.getSchema().getOldestModificationTime();
     createTimestamp =
          GeneralizedTimeSyntax.createGeneralizedTimeValue(createTime);
 
-    long modifyTime = DirectoryServer.getSchema().getYoungestModificationTime();
+    long newModifyTime =
+        DirectoryServer.getSchema().getYoungestModificationTime();
     modifyTimestamp =
-         GeneralizedTimeSyntax.createGeneralizedTimeValue(modifyTime);
+         GeneralizedTimeSyntax.createGeneralizedTimeValue(newModifyTime);
 
 
     // Get the set of user-defined attributes for the configuration entry.  Any
@@ -4780,7 +4780,6 @@ public class SchemaBackend
     CryptoManager cryptoManager   = DirectoryServer.getCryptoManager();
     Mac           mac             = null;
     MessageDigest digest          = null;
-    String        digestAlgorithm = null;
     String        macKeyID    = null;
 
     if (hash)
@@ -4810,7 +4809,8 @@ public class SchemaBackend
       }
       else
       {
-        digestAlgorithm = cryptoManager.getPreferredMessageDigestAlgorithm();
+        String digestAlgorithm =
+            cryptoManager.getPreferredMessageDigestAlgorithm();
         backupProperties.put(BACKUP_PROPERTY_DIGEST_ALGORITHM, digestAlgorithm);
 
         try
@@ -4972,7 +4972,7 @@ public class SchemaBackend
     // then get a list of all the files in that directory.
     String schemaInstanceDirPath =
       SchemaConfigManager.getSchemaDirectoryPath(true);
-    File schemaDir = null;
+    File schemaDir;
     File[] schemaFiles = null;
 
     try
@@ -5064,14 +5064,17 @@ public class SchemaBackend
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-          try
+           try
           {
-            inputStream.close();
+            if (inputStream != null)
+            {
+              inputStream.close();
+            }
           } catch (Exception e2)
           {
           }
 
-          try
+           try
           {
             zipStream.close();
           } catch (Exception e2)
@@ -5707,6 +5710,7 @@ public class SchemaBackend
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
        SchemaBackendCfg configEntry,
        List<Message> unacceptableReasons)
@@ -5719,6 +5723,7 @@ public class SchemaBackend
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
        SchemaBackendCfg backendCfg)
   {
@@ -5912,6 +5917,7 @@ public class SchemaBackend
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getComponentEntryDN()
   {
     return configEntryDN;
@@ -5922,6 +5928,7 @@ public class SchemaBackend
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getClassName()
   {
     return CLASS_NAME;
@@ -5932,6 +5939,7 @@ public class SchemaBackend
   /**
    * {@inheritDoc}
    */
+  @Override
   public LinkedHashMap<String,String> getAlerts()
   {
     LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
@@ -5949,6 +5957,7 @@ public class SchemaBackend
   /**
    * {@inheritDoc}
    */
+  @Override
   public void preloadEntryCache() throws UnsupportedOperationException {
     throw new UnsupportedOperationException("Operation not supported.");
   }
