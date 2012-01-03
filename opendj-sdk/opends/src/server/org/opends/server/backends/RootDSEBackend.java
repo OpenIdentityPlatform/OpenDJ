@@ -439,10 +439,10 @@ public class RootDSEBackend
       baseMap = subordinateBaseDNs;
     }
 
-    for (Map.Entry entry : baseMap.entrySet())
+    for (Map.Entry<DN,Backend> entry : baseMap.entrySet())
     {
-      DN subBase = (DN)entry.getKey();
-      Backend b = (Backend)entry.getValue();
+      DN subBase = entry.getKey();
+      Backend b = entry.getValue();
       Entry subBaseEntry = b.getEntry(subBase);
       if (subBaseEntry != null)
       {
@@ -946,12 +946,12 @@ public class RootDSEBackend
       baseMap = subordinateBaseDNs;
     }
 
-    for (Map.Entry entry : baseMap.entrySet())
+    for (Map.Entry<DN,Backend> entry : baseMap.entrySet())
     {
-      DN baseDN = (DN)entry.getKey();
+      DN baseDN = entry.getKey();
       if (entryDN.isDescendantOf(baseDN))
       {
-        Backend b = (Backend)entry.getValue();
+        Backend b = entry.getValue();
         if (b.entryExists(entryDN))
         {
           return true;
@@ -1061,12 +1061,12 @@ public class RootDSEBackend
           baseMap = subordinateBaseDNs;
         }
 
-        for (Map.Entry entry : baseMap.entrySet())
+        for (Map.Entry<DN,Backend> entry : baseMap.entrySet())
         {
-          DN subBase = (DN)entry.getKey();
+          DN subBase = entry.getKey();
           searchOperation.checkIfCanceled(false);
 
-          Backend b = (Backend)entry.getValue();
+          Backend b = entry.getValue();
           Entry subBaseEntry = b.getEntry(subBase);
           if ((subBaseEntry != null) && filter.matchesEntry(subBaseEntry))
           {
@@ -1089,14 +1089,14 @@ public class RootDSEBackend
 
         try
         {
-          for (Map.Entry entry : baseMap.entrySet())
+          for (Map.Entry<DN,Backend> entry : baseMap.entrySet())
           {
             searchOperation.checkIfCanceled(false);
 
-            DN subBase = (DN)entry.getKey();
+            DN subBase = entry.getKey();
             searchOperation.setBaseDN(subBase);
 
-            Backend b = (Backend)entry.getValue();
+            Backend b = entry.getValue();
             try
             {
               b.search(searchOperation);
