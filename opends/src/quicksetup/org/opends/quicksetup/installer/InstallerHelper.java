@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 
 package org.opends.quicksetup.installer;
@@ -36,15 +36,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Random;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -151,10 +143,8 @@ public class InstallerHelper {
       importPath = new File(binPath, Installation.UNIX_IMPORT_LDIF);
     }
     argList.add(Utils.getScriptPath(importPath.getAbsolutePath()));
-    for (String arg : args)
-    {
-      argList.add(arg);
-    }
+    argList.addAll(Arrays.asList(args));
+
     String[] allArgs = new String[argList.size()];
     argList.toArray(allArgs);
     LOG.log(Level.INFO, "import-ldif arg list: "+argList);
@@ -172,6 +162,7 @@ public class InstallerHelper {
         new BufferedReader(new InputStreamReader(process.getErrorStream()));
       new OutputReader(err)
       {
+        @Override
         public void processLine(String line)
         {
           LOG.log(Level.WARNING, "import-ldif error log: "+line);
@@ -183,6 +174,7 @@ public class InstallerHelper {
         new BufferedReader(new InputStreamReader(process.getInputStream()));
       new OutputReader(out)
       {
+        @Override
         public void processLine(String line)
         {
           LOG.log(Level.INFO, "import-ldif out log: "+line);
@@ -531,7 +523,7 @@ public class InstallerHelper {
       /*
        * Configure the replication server.
        */
-      ReplicationServerCfgClient replicationServer = null;
+      ReplicationServerCfgClient replicationServer;
 
       if (!sync.hasReplicationServer())
       {
@@ -1046,13 +1038,13 @@ public class InstallerHelper {
       if (maxMemory != -1)
       {
         maxMemory = maxMemory / 2;
-        while ((1024 * 1024 * maxMemory) < currentMaxMemory &&
+        while ((1024L * 1024 * maxMemory) < currentMaxMemory &&
             !Utils.supportsOption(JavaArguments.getMaxMemoryArgument(maxMemory),
                 javaHome, installPath))
         {
           maxMemory = maxMemory / 2;
         }
-        if ((1024 * 1024 * maxMemory) > currentMaxMemory)
+        if ((1024L * 1024 * maxMemory) > currentMaxMemory)
         {
           // Supports this option.
           javaArgs.setMaxMemory(maxMemory);
