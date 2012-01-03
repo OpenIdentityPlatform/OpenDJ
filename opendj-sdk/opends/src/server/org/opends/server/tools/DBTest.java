@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -1050,7 +1051,7 @@ public class DBTest
                 // Seems like entry limit has not been exceeded and the bytes
                 // is a list of entry IDs.
                 double percentFull =
-                    (bytes.length / 8) / index.getIndexEntryLimit();
+                    (bytes.length / (double)8) / index.getIndexEntryLimit();
                 if(percentFull >= .8)
                 {
                   if(percentFull < .9)
