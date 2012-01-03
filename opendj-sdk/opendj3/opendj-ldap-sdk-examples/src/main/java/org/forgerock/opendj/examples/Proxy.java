@@ -26,7 +26,7 @@
  *      Portions copyright 2011-2012 ForgeRock AS
  */
 
-package org.forgerock.opendj.examples.proxy;
+package org.forgerock.opendj.examples;
 
 
 
@@ -60,7 +60,7 @@ import org.forgerock.opendj.ldap.responses.*;
  *      [&lt;remoteAddress2> &lt;remotePort2> ...]
  * </pre>
  */
-public final class Main
+public final class Proxy
 {
   private static final class ProxyBackend implements
       RequestHandler<RequestContext>
@@ -586,7 +586,7 @@ public final class Main
 
 
 
-  private Main()
+  private Proxy()
   {
     // Not used.
   }

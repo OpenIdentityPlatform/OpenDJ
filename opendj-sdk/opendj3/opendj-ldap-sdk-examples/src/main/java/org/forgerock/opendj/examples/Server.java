@@ -26,7 +26,7 @@
  *      Portions copyright 2011-2012 ForgeRock AS
  */
 
-package org.forgerock.opendj.examples.server;
+package org.forgerock.opendj.examples;
 
 
 
@@ -62,7 +62,7 @@ import org.forgerock.opendj.ldif.*;
  *  &lt;listenAddress> &lt;listenPort> [&lt;ldifFile>]
  * </pre>
  */
-public final class Main
+public final class Server
 {
   private static final class MemoryBackend implements
       RequestHandler<RequestContext>
@@ -561,7 +561,7 @@ public final class Main
 
 
 
-  private Main()
+  private Server()
   {
     // Not used.
   }

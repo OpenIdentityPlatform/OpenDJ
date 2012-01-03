@@ -24,7 +24,7 @@
  *
  *      Copyright 2012 ForgeRock AS
  */
-package org.forgerock.opendj.examples.getinfo;
+package org.forgerock.opendj.examples;
 
 
 
@@ -39,7 +39,7 @@ import org.forgerock.opendj.ldif.LDIFEntryWriter;
 /**
  * Demonstrates accessing server information about capabilities and schema.
  */
-public final class Main
+public final class GetInfo
 {
   // Connection information
   private static String host;
@@ -178,7 +178,7 @@ public final class Main
 
 
 
-  private Main()
+  private GetInfo()
   {
     // Not used.
   }

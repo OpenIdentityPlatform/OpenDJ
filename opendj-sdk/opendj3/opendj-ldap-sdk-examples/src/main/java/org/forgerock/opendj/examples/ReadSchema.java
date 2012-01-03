@@ -26,7 +26,7 @@
  *      Portions copyright 2011 ForgeRock AS
  */
 
-package org.forgerock.opendj.examples.schema;
+package org.forgerock.opendj.examples;
 
 
 
@@ -45,7 +45,7 @@ import org.forgerock.opendj.ldap.schema.*;
  *  &lt;host> &lt;port> &lt;username> &lt;password>
  * </pre>
  */
-public final class Main
+public final class ReadSchema
 {
   /**
    * Main method.
@@ -140,7 +140,7 @@ public final class Main
 
 
 
-  private Main()
+  private ReadSchema()
   {
     // Not used.
   }
