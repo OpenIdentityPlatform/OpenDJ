@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2011 ForgeRock AS.
+ *      Portions Copyright 2010-2012 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -646,7 +646,7 @@ public class DirectoryServer
   /**
    * The default timeout used to start the server in detach mode.
    */
-  public static int DEFAULT_TIMEOUT = 200;
+  public static final int DEFAULT_TIMEOUT = 200;
 
   /**
    * Creates a new instance of the Directory Server.  This will allow only a
@@ -9025,6 +9025,7 @@ public class DirectoryServer
    * @return  The DN of the configuration entry with which this alert generator
    *          is associated.
    */
+  @Override
   public DN getComponentEntryDN()
   {
     try
@@ -9060,6 +9061,7 @@ public class DirectoryServer
    * @return  The fully-qualified name of the Java class for this alert
    *          generator implementation.
    */
+  @Override
   public String getClassName()
   {
     return CLASS_NAME;
@@ -9077,6 +9079,7 @@ public class DirectoryServer
    * @return  Information about the set of alerts that this generator may
    *          produce.
    */
+  @Override
   public LinkedHashMap<String,String> getAlerts()
   {
     LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
@@ -9128,10 +9131,10 @@ public class DirectoryServer
 
 
     // Create the command-line argument parser for use with this program.
-    Message toolDescription = DirectoryServer.toolDescription;
+    Message theToolDescription = DirectoryServer.toolDescription;
     ArgumentParser argParser =
          new ArgumentParser("org.opends.server.core.DirectoryServer",
-                            toolDescription, false);
+                            theToolDescription, false);
 
 
     // Initialize all the command-line argument types and register them with the
@@ -9461,15 +9464,12 @@ public class DirectoryServer
 
     // Install the default loggers so the startup messages
     // will be printed.
-    TextErrorLogPublisher startupErrorLogPublisher = null;
-    TextDebugLogPublisher startupDebugLogPublisher = null;
-
-    startupErrorLogPublisher =
+    TextErrorLogPublisher startupErrorLogPublisher =
         TextErrorLogPublisher.getStartupTextErrorPublisher(
             new TextWriter.STDOUT());
     ErrorLogger.addErrorLogPublisher(startupErrorLogPublisher);
 
-    startupDebugLogPublisher =
+    TextDebugLogPublisher startupDebugLogPublisher =
         TextDebugLogPublisher.getStartupTextDebugPublisher(
             new TextWriter.STDOUT());
     DebugLogger.addDebugLogPublisher(startupDebugLogPublisher);
@@ -9496,12 +9496,12 @@ public class DirectoryServer
 
 
     // Bootstrap and start the Directory Server.
-    DirectoryServer directoryServer = DirectoryServer.getInstance();
+    DirectoryServer theDirectoryServer = DirectoryServer.getInstance();
     try
     {
-      directoryServer.setEnvironmentConfig(environmentConfig);
-      directoryServer.bootstrapServer();
-      directoryServer.initializeConfiguration(configClass.getValue(),
+      theDirectoryServer.setEnvironmentConfig(environmentConfig);
+      theDirectoryServer.bootstrapServer();
+      theDirectoryServer.initializeConfiguration(configClass.getValue(),
                                               configFile.getValue());
     }
     catch (InitializationException ie)
@@ -9524,9 +9524,9 @@ public class DirectoryServer
     }
 
     try {
-        directoryServer.serviceTagRegistry =
+        theDirectoryServer.serviceTagRegistry =
                 ServiceTagRegistration.getRegistrationService();
-        directoryServer.serviceTagRegistry.registerServiceTags("Server");
+        theDirectoryServer.serviceTagRegistry.registerServiceTags("Server");
     }
     catch(Exception ex) {
         // ServiceTags Registration errors do not prevent the server to
@@ -9538,7 +9538,7 @@ public class DirectoryServer
 
     try
     {
-      directoryServer.startServer();
+      theDirectoryServer.startServer();
     }
     catch (InitializationException ie)
     {
@@ -9548,7 +9548,7 @@ public class DirectoryServer
       }
 
       Message message = ERR_DSCORE_CANNOT_START.get(ie.getMessage());
-      shutDown(directoryServer.getClass().getName(), message);
+      shutDown(theDirectoryServer.getClass().getName(), message);
     }
     catch (ConfigException ce)
     {
@@ -9559,13 +9559,13 @@ public class DirectoryServer
 
       Message message = ERR_DSCORE_CANNOT_START.get(ce.getMessage() +
       (ce.getCause() != null ? " " + ce.getCause().getLocalizedMessage() : ""));
-      shutDown(directoryServer.getClass().getName(), message);
+      shutDown(theDirectoryServer.getClass().getName(), message);
     }
     catch (Exception e)
     {
       Message message = ERR_DSCORE_CANNOT_START.get(
               stackTraceToSingleLineString(e));
-      shutDown(directoryServer.getClass().getName(), message);
+      shutDown(theDirectoryServer.getClass().getName(), message);
     }
 
     ErrorLogger.removeErrorLogPublisher(startupErrorLogPublisher);
