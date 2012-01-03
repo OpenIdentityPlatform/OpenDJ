@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 
 package org.opends.server.tools;
@@ -48,19 +49,19 @@ public class StopWindowsService
   /**
     * The service was successfully stopped.
     */
-  public static int SERVICE_STOP_SUCCESSFUL = 0;
+  public static final int SERVICE_STOP_SUCCESSFUL = 0;
   /**
     * The service could not be found.
     */
-  public static int SERVICE_NOT_FOUND = 1;
+  public static final int SERVICE_NOT_FOUND = 1;
   /**
     * The service was already stopped.
     */
-  public static int SERVICE_ALREADY_STOPPED = 2;
+  public static final int SERVICE_ALREADY_STOPPED = 2;
   /**
     * The service could not be stopped.
     */
-  public static int SERVICE_STOP_ERROR = 3;
+  public static final int SERVICE_STOP_ERROR = 3;
 
   /**
    * Invokes the net stop on the service corresponding to this server.
