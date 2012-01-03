@@ -23,32 +23,42 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
 
+
+
 import org.forgerock.opendj.ldap.ByteString;
+
+
 
 /**
  * Unmodifiable Generic extended result implementation.
  */
 class UnmodifiableGenericExtendedResultImpl extends
-    AbstractUnmodifiableExtendedResultImpl<GenericExtendedResult>
-    implements ExtendedResult, GenericExtendedResult
+    AbstractUnmodifiableExtendedResultImpl<GenericExtendedResult> implements
+    ExtendedResult, GenericExtendedResult
 {
-  UnmodifiableGenericExtendedResultImpl(GenericExtendedResult impl) {
+  UnmodifiableGenericExtendedResultImpl(GenericExtendedResult impl)
+  {
     super(impl);
   }
 
+
+
   @Override
   public GenericExtendedResult setOID(String oid)
-      throws UnsupportedOperationException {
+  {
     throw new UnsupportedOperationException();
   }
 
+
+
   @Override
   public GenericExtendedResult setValue(ByteString bytes)
-      throws UnsupportedOperationException {
+  {
     throw new UnsupportedOperationException();
   }
 }

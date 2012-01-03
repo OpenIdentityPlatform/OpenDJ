@@ -23,14 +23,16 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
+
 
 import com.forgerock.opendj.util.StaticUtils;
+
+
 
 /**
  * Unmodifiable plain SASL bind request implementation.
@@ -39,48 +41,65 @@ final class UnmodifiablePlainSASLBindRequestImpl extends
     AbstractUnmodifiableSASLBindRequest<PlainSASLBindRequest> implements
     PlainSASLBindRequest
 {
-  UnmodifiablePlainSASLBindRequestImpl(PlainSASLBindRequest impl) {
+  UnmodifiablePlainSASLBindRequestImpl(PlainSASLBindRequest impl)
+  {
     super(impl);
   }
 
+
+
   @Override
-  public String getAuthenticationID() {
+  public String getAuthenticationID()
+  {
     return impl.getAuthenticationID();
   }
 
+
+
   @Override
-  public String getAuthorizationID() {
+  public String getAuthorizationID()
+  {
     return impl.getAuthorizationID();
   }
 
+
+
   @Override
-  public byte[] getPassword() {
+  public byte[] getPassword()
+  {
     // Defensive copy.
     return StaticUtils.copyOfBytes(impl.getPassword());
   }
 
+
+
   @Override
   public PlainSASLBindRequest setAuthenticationID(String authenticationID)
-      throws UnsupportedOperationException, LocalizedIllegalArgumentException,
-      NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   @Override
   public PlainSASLBindRequest setAuthorizationID(String authorizationID)
-      throws UnsupportedOperationException, LocalizedIllegalArgumentException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   @Override
   public PlainSASLBindRequest setPassword(byte[] password)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
 
+
+
   @Override
   public PlainSASLBindRequest setPassword(char[] password)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
 }

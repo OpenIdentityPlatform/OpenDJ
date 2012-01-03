@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -134,7 +134,6 @@ public final class Schema
 
     @Override
     public DITContentRule getDITContentRule(final String name)
-        throws UnknownSchemaElementException
     {
       throw new UnknownSchemaElementException(WARN_DCR_UNKNOWN.get(name));
     }
@@ -160,7 +159,6 @@ public final class Schema
 
     @Override
     public DITStructureRule getDITStructureRule(final int ruleID)
-        throws UnknownSchemaElementException
     {
       throw new UnknownSchemaElementException(WARN_DSR_UNKNOWN.get(String
           .valueOf(ruleID)));
@@ -196,7 +194,6 @@ public final class Schema
 
     @Override
     public MatchingRule getMatchingRule(final String name)
-        throws UnknownSchemaElementException
     {
       throw new UnknownSchemaElementException(WARN_MR_UNKNOWN.get(name));
     }
@@ -229,7 +226,6 @@ public final class Schema
 
     @Override
     public MatchingRuleUse getMatchingRuleUse(final String name)
-        throws UnknownSchemaElementException
     {
       throw new UnknownSchemaElementException(WARN_MRU_UNKNOWN.get(name));
     }
@@ -255,7 +251,6 @@ public final class Schema
 
     @Override
     public NameForm getNameForm(final String name)
-        throws UnknownSchemaElementException
     {
       throw new UnknownSchemaElementException(WARN_NAMEFORM_UNKNOWN.get(name));
     }
@@ -288,7 +283,6 @@ public final class Schema
 
     @Override
     public ObjectClass getObjectClass(final String name)
-        throws UnknownSchemaElementException
     {
       throw new UnknownSchemaElementException(
           WARN_OBJECTCLASS_UNKNOWN.get(name));
@@ -427,8 +421,7 @@ public final class Schema
 
   private static interface Impl
   {
-    AttributeType getAttributeType(String name)
-        throws UnknownSchemaElementException;
+    AttributeType getAttributeType(String name);
 
 
 
@@ -444,8 +437,7 @@ public final class Schema
 
 
 
-    DITContentRule getDITContentRule(String name)
-        throws UnknownSchemaElementException;
+    DITContentRule getDITContentRule(String name);
 
 
 
@@ -457,8 +449,7 @@ public final class Schema
 
 
 
-    DITStructureRule getDITStructureRule(int ruleID)
-        throws UnknownSchemaElementException;
+    DITStructureRule getDITStructureRule(int ruleID);
 
 
 
@@ -474,8 +465,7 @@ public final class Schema
 
 
 
-    MatchingRule getMatchingRule(String name)
-        throws UnknownSchemaElementException;
+    MatchingRule getMatchingRule(String name);
 
 
 
@@ -491,8 +481,7 @@ public final class Schema
 
 
 
-    MatchingRuleUse getMatchingRuleUse(String name)
-        throws UnknownSchemaElementException;
+    MatchingRuleUse getMatchingRuleUse(String name);
 
 
 
@@ -504,7 +493,7 @@ public final class Schema
 
 
 
-    NameForm getNameForm(String name) throws UnknownSchemaElementException;
+    NameForm getNameForm(String name);
 
 
 
@@ -520,8 +509,7 @@ public final class Schema
 
 
 
-    ObjectClass getObjectClass(String name)
-        throws UnknownSchemaElementException;
+    ObjectClass getObjectClass(String name);
 
 
 
@@ -537,7 +525,7 @@ public final class Schema
 
 
 
-    Syntax getSyntax(String numericOID) throws UnknownSchemaElementException;
+    Syntax getSyntax(String numericOID);
 
 
 
@@ -634,7 +622,6 @@ public final class Schema
 
     @Override
     public AttributeType getAttributeType(final String name)
-        throws UnknownSchemaElementException
     {
       if (!strictImpl.hasAttributeType(name))
       {
@@ -681,7 +668,6 @@ public final class Schema
 
     @Override
     public DITContentRule getDITContentRule(final String name)
-        throws UnknownSchemaElementException
     {
       return strictImpl.getDITContentRule(name);
     }
@@ -707,7 +693,6 @@ public final class Schema
 
     @Override
     public DITStructureRule getDITStructureRule(final int ruleID)
-        throws UnknownSchemaElementException
     {
       return strictImpl.getDITStructureRule(ruleID);
     }
@@ -742,7 +727,6 @@ public final class Schema
 
     @Override
     public MatchingRule getMatchingRule(final String name)
-        throws UnknownSchemaElementException
     {
       return strictImpl.getMatchingRule(name);
     }
@@ -775,7 +759,6 @@ public final class Schema
 
     @Override
     public MatchingRuleUse getMatchingRuleUse(final String name)
-        throws UnknownSchemaElementException
     {
       return strictImpl.getMatchingRuleUse(name);
     }
@@ -801,7 +784,6 @@ public final class Schema
 
     @Override
     public NameForm getNameForm(final String name)
-        throws UnknownSchemaElementException
     {
       return strictImpl.getNameForm(name);
     }
@@ -834,7 +816,6 @@ public final class Schema
 
     @Override
     public ObjectClass getObjectClass(final String name)
-        throws UnknownSchemaElementException
     {
       return strictImpl.getObjectClass(name);
     }
@@ -1102,7 +1083,6 @@ public final class Schema
 
     @Override
     public AttributeType getAttributeType(final String name)
-        throws UnknownSchemaElementException
     {
       final AttributeType type = numericOID2AttributeTypes.get(name);
       if (type != null)
@@ -1160,7 +1140,6 @@ public final class Schema
 
     @Override
     public DITContentRule getDITContentRule(final String name)
-        throws UnknownSchemaElementException
     {
       final DITContentRule rule = numericOID2ContentRules.get(name);
       if (rule != null)
@@ -1210,7 +1189,6 @@ public final class Schema
 
     @Override
     public DITStructureRule getDITStructureRule(final int ruleID)
-        throws UnknownSchemaElementException
     {
       final DITStructureRule rule = id2StructureRules.get(ruleID);
       if (rule == null)
@@ -1269,7 +1247,6 @@ public final class Schema
 
     @Override
     public MatchingRule getMatchingRule(final String name)
-        throws UnknownSchemaElementException
     {
       final MatchingRule rule = numericOID2MatchingRules.get(name);
       if (rule != null)
@@ -1326,7 +1303,6 @@ public final class Schema
 
     @Override
     public MatchingRuleUse getMatchingRuleUse(final String name)
-        throws UnknownSchemaElementException
     {
       final MatchingRuleUse rule = numericOID2MatchingRuleUses.get(name);
       if (rule != null)
@@ -1376,7 +1352,6 @@ public final class Schema
 
     @Override
     public NameForm getNameForm(final String name)
-        throws UnknownSchemaElementException
     {
       final NameForm form = numericOID2NameForms.get(name);
       if (form != null)
@@ -1443,7 +1418,6 @@ public final class Schema
 
     @Override
     public ObjectClass getObjectClass(final String name)
-        throws UnknownSchemaElementException
     {
       final ObjectClass oc = numericOID2ObjectClasses.get(name);
       if (oc != null)
@@ -1502,7 +1476,6 @@ public final class Schema
 
     @Override
     public Syntax getSyntax(final String numericOID)
-        throws UnknownSchemaElementException
     {
       final Syntax syntax = numericOID2Syntaxes.get(numericOID);
       if (syntax == null)
@@ -1743,8 +1716,6 @@ public final class Schema
   public static FutureResult<Schema> readSchemaAsync(
       final Connection connection, final DN name,
       final ResultHandler<? super Schema> handler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
   {
     final FutureResultTransformer<SchemaBuilder, Schema> future =
       new FutureResultTransformer<SchemaBuilder, Schema>(handler)
@@ -1794,9 +1765,7 @@ public final class Schema
    *           If the {@code connection} or {@code name} was {@code null}.
    */
   public static Schema readSchema(final Connection connection, final DN name)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
+      throws ErrorResultException, InterruptedException
   {
     return new SchemaBuilder().addSchema(connection, name, true).toSchema();
   }
@@ -1836,8 +1805,6 @@ public final class Schema
   public static FutureResult<Schema> readSchemaForEntryAsync(
       final Connection connection, final DN name,
       final ResultHandler<? super Schema> handler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
   {
     final FutureResultTransformer<SchemaBuilder, Schema> future =
       new FutureResultTransformer<SchemaBuilder, Schema>(handler)
@@ -1895,9 +1862,7 @@ public final class Schema
    *           If the {@code connection} or {@code name} was {@code null}.
    */
   public static Schema readSchemaForEntry(final Connection connection,
-      final DN name) throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
+      final DN name) throws ErrorResultException, InterruptedException
   {
     return new SchemaBuilder().addSchemaForEntry(connection, name, true)
         .toSchema();
@@ -2115,7 +2080,6 @@ public final class Schema
    *           not found or if the provided name is ambiguous.
    */
   public AttributeType getAttributeType(final String name)
-      throws UnknownSchemaElementException
   {
     return impl.getAttributeType(name);
   }
@@ -2179,7 +2143,6 @@ public final class Schema
    *           not found or if the provided name is ambiguous.
    */
   public DITContentRule getDITContentRule(final String name)
-      throws UnknownSchemaElementException
   {
     return impl.getDITContentRule(name);
   }
@@ -2227,7 +2190,6 @@ public final class Schema
    *           was not found.
    */
   public DITStructureRule getDITStructureRule(final int ruleID)
-      throws UnknownSchemaElementException
   {
     return impl.getDITStructureRule(ruleID);
   }
@@ -2293,7 +2255,6 @@ public final class Schema
    *           not found or if the provided name is ambiguous.
    */
   public MatchingRule getMatchingRule(final String name)
-      throws UnknownSchemaElementException
   {
     return impl.getMatchingRule(name);
   }
@@ -2357,7 +2318,6 @@ public final class Schema
    *           was not found or if the provided name is ambiguous.
    */
   public MatchingRuleUse getMatchingRuleUse(final String name)
-      throws UnknownSchemaElementException
   {
     return impl.getMatchingRuleUse(name);
   }
@@ -2406,7 +2366,6 @@ public final class Schema
    *           found or if the provided name is ambiguous.
    */
   public NameForm getNameForm(final String name)
-      throws UnknownSchemaElementException
   {
     return impl.getNameForm(name);
   }
@@ -2470,7 +2429,6 @@ public final class Schema
    *           found or if the provided name is ambiguous.
    */
   public ObjectClass getObjectClass(final String name)
-      throws UnknownSchemaElementException
   {
     return impl.getObjectClass(name);
   }
@@ -2534,7 +2492,6 @@ public final class Schema
    *           or if the provided name is ambiguous.
    */
   public Syntax getSyntax(final String numericOID)
-      throws UnknownSchemaElementException
   {
     return impl.getSyntax(numericOID);
   }
@@ -2730,7 +2687,7 @@ public final class Schema
    * @throws NullPointerException
    *           If {@code entry} was {@code null}.
    */
-  public Entry toEntry(final Entry entry) throws NullPointerException
+  public Entry toEntry(final Entry entry)
   {
     Attribute attr = new LinkedAttribute(Schema.ATTR_LDAP_SYNTAXES);
     for (final Syntax syntax : getSyntaxes())

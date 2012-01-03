@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -72,7 +73,7 @@ abstract class AbstractResponseImpl<S extends Response> implements Response
    * @throws NullPointerException
    *           If {@code response} was {@code null} .
    */
-  AbstractResponseImpl(Response response) throws NullPointerException
+  AbstractResponseImpl(Response response)
   {
     Validator.ensureNotNull(response);
     for (Control control : response.getControls())
@@ -87,7 +88,7 @@ abstract class AbstractResponseImpl<S extends Response> implements Response
   /**
    * {@inheritDoc}
    */
-  public final S addControl(final Control control) throws NullPointerException
+  public final S addControl(final Control control)
   {
     Validator.ensureNotNull(control);
     controls.add(control);
@@ -101,7 +102,7 @@ abstract class AbstractResponseImpl<S extends Response> implements Response
    */
   public final <C extends Control> C getControl(
       final ControlDecoder<C> decoder, final DecodeOptions options)
-      throws NullPointerException, DecodeException
+      throws DecodeException
   {
     Validator.ensureNotNull(decoder, options);
 

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package com.forgerock.opendj.ldap;
@@ -360,7 +361,7 @@ final class ASN1BufferReader extends AbstractASN1Reader implements ASN1Reader
   /**
    * {@inheritDoc}
    */
-  public void readEndSequence() throws IOException, IllegalStateException
+  public void readEndSequence() throws IOException
   {
     readLimiter = readLimiter.endSequence();
 

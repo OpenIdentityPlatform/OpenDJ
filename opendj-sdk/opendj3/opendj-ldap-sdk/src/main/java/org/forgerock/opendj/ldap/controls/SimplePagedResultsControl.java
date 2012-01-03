@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -205,7 +206,7 @@ public final class SimplePagedResultsControl implements Control
    *           If {@code cookie} was {@code null}.
    */
   public static SimplePagedResultsControl newControl(final boolean isCritical,
-      final int size, final ByteString cookie) throws NullPointerException
+      final int size, final ByteString cookie)
   {
     Validator.ensureNotNull(cookie);
     return new SimplePagedResultsControl(isCritical, size, cookie);

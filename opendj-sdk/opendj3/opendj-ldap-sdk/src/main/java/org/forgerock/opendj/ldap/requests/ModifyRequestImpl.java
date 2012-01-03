@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -32,7 +33,6 @@ package org.forgerock.opendj.ldap.requests;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldif.ChangeRecordVisitor;
 
@@ -60,7 +60,7 @@ final class ModifyRequestImpl extends AbstractRequestImpl<ModifyRequest>
    * @throws NullPointerException
    *           If {@code name} was {@code null}.
    */
-  ModifyRequestImpl(final DN name) throws NullPointerException
+  ModifyRequestImpl(final DN name)
   {
     this.name = name;
   }
@@ -77,7 +77,6 @@ final class ModifyRequestImpl extends AbstractRequestImpl<ModifyRequest>
    *           If {@code modifyRequest} was {@code null} .
    */
   ModifyRequestImpl(final ModifyRequest modifyRequest)
-      throws NullPointerException
   {
     super(modifyRequest);
     this.name = modifyRequest.getName();
@@ -107,8 +106,6 @@ final class ModifyRequestImpl extends AbstractRequestImpl<ModifyRequest>
   public ModifyRequest addChange(final ModificationType type,
       final String attributeDescription, final Object firstValue,
       final Object... remainingValues)
-      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
-      NullPointerException
   {
     // TODO Auto-generated method stub
     return null;
@@ -120,7 +117,6 @@ final class ModifyRequestImpl extends AbstractRequestImpl<ModifyRequest>
    * {@inheritDoc}
    */
   public ModifyRequest addModification(final Modification change)
-      throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(change);
     changes.add(change);
@@ -134,8 +130,6 @@ final class ModifyRequestImpl extends AbstractRequestImpl<ModifyRequest>
    */
   public ModifyRequest addModification(final ModificationType type,
       final String attributeDescription, final Object... values)
-      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
-      NullPointerException
   {
     Validator.ensureNotNull(type, attributeDescription, values);
     changes.add(new Modification(type, new LinkedAttribute(
@@ -169,7 +163,6 @@ final class ModifyRequestImpl extends AbstractRequestImpl<ModifyRequest>
    * {@inheritDoc}
    */
   public ModifyRequest setName(final DN dn)
-      throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(dn);
     this.name = dn;
@@ -182,8 +175,6 @@ final class ModifyRequestImpl extends AbstractRequestImpl<ModifyRequest>
    * {@inheritDoc}
    */
   public ModifyRequest setName(final String dn)
-      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
-      NullPointerException
   {
     Validator.ensureNotNull(dn);
     this.name = DN.valueOf(dn);

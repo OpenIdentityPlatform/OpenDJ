@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
@@ -92,7 +92,7 @@ public final class ByteStringBuilder implements ByteSequence
     /**
      * {@inheritDoc}
      */
-    public byte byteAt(final int index) throws IndexOutOfBoundsException
+    public byte byteAt(final int index)
     {
       if (index >= subLength || index < 0)
       {
@@ -109,7 +109,6 @@ public final class ByteStringBuilder implements ByteSequence
      * {@inheritDoc}
      */
     public int compareTo(final byte[] b, final int offset, final int length)
-        throws IndexOutOfBoundsException
     {
       ByteString.checkArrayBounds(b, offset, length);
 
@@ -151,7 +150,6 @@ public final class ByteStringBuilder implements ByteSequence
      * {@inheritDoc}
      */
     public byte[] copyTo(final byte[] b, final int offset)
-        throws IndexOutOfBoundsException
     {
       if (offset < 0)
       {
@@ -193,7 +191,6 @@ public final class ByteStringBuilder implements ByteSequence
      * {@inheritDoc}
      */
     public boolean equals(final byte[] b, final int offset, final int length)
-        throws IndexOutOfBoundsException
     {
       ByteString.checkArrayBounds(b, offset, length);
 
@@ -254,7 +251,6 @@ public final class ByteStringBuilder implements ByteSequence
      * {@inheritDoc}
      */
     public ByteSequence subSequence(final int start, final int end)
-        throws IndexOutOfBoundsException
     {
       if (start < 0 || start > end || end > subLength)
       {
@@ -332,7 +328,7 @@ public final class ByteStringBuilder implements ByteSequence
    * @throws IllegalArgumentException
    *           If the {@code capacity} is negative.
    */
-  public ByteStringBuilder(final int capacity) throws IllegalArgumentException
+  public ByteStringBuilder(final int capacity)
   {
     if (capacity < 0)
     {
@@ -404,7 +400,7 @@ public final class ByteStringBuilder implements ByteSequence
    *           if {@code offset + length} is greater than {@code bytes.length}.
    */
   public ByteStringBuilder append(final byte[] bytes, final int offset,
-      final int length) throws IndexOutOfBoundsException
+      final int length)
   {
     ByteString.checkArrayBounds(bytes, offset, length);
 
@@ -433,7 +429,6 @@ public final class ByteStringBuilder implements ByteSequence
    *           buffer.remaining()}.
    */
   public ByteStringBuilder append(final ByteBuffer buffer, final int length)
-      throws IndexOutOfBoundsException
   {
     if (length < 0 || length > buffer.remaining())
     {
@@ -481,7 +476,7 @@ public final class ByteStringBuilder implements ByteSequence
    *           reader.remaining()}.
    */
   public ByteStringBuilder append(final ByteSequenceReader reader,
-      final int length) throws IndexOutOfBoundsException
+      final int length)
   {
     if (length < 0 || length > reader.remaining())
     {
@@ -566,7 +561,7 @@ public final class ByteStringBuilder implements ByteSequence
    *           If an I/O error occurs.
    */
   public int append(final InputStream stream, final int length)
-      throws IndexOutOfBoundsException, IOException
+      throws IOException
   {
     if (length < 0)
     {
@@ -840,7 +835,7 @@ public final class ByteStringBuilder implements ByteSequence
   /**
    * {@inheritDoc}
    */
-  public byte byteAt(final int index) throws IndexOutOfBoundsException
+  public byte byteAt(final int index)
   {
     if (index >= length || index < 0)
     {
@@ -873,7 +868,6 @@ public final class ByteStringBuilder implements ByteSequence
    * {@inheritDoc}
    */
   public int compareTo(final byte[] bytes, final int offset, final int length)
-      throws IndexOutOfBoundsException
   {
     ByteString.checkArrayBounds(bytes, offset, length);
     return ByteString.compareTo(this.buffer, 0, this.length, bytes, offset,
@@ -911,7 +905,6 @@ public final class ByteStringBuilder implements ByteSequence
    * {@inheritDoc}
    */
   public byte[] copyTo(final byte[] bytes, final int offset)
-      throws IndexOutOfBoundsException
   {
     if (offset < 0)
     {
@@ -972,7 +965,6 @@ public final class ByteStringBuilder implements ByteSequence
    * {@inheritDoc}
    */
   public boolean equals(final byte[] bytes, final int offset, final int length)
-      throws IndexOutOfBoundsException
   {
     ByteString.checkArrayBounds(bytes, offset, length);
     return ByteString
@@ -1081,7 +1073,6 @@ public final class ByteStringBuilder implements ByteSequence
    *           If the <code>newLength</code> argument is negative.
    */
   public ByteStringBuilder setLength(final int newLength)
-      throws IndexOutOfBoundsException
   {
     if (newLength < 0)
     {
@@ -1123,13 +1114,8 @@ public final class ByteStringBuilder implements ByteSequence
    * @param end
    *          The end index, exclusive.
    * @return The newly created byte subsequence.
-   * @throws IndexOutOfBoundsException
-   *           If {@code start} or {@code end} are negative, if {@code end} is
-   *           greater than {@code length()}, or if {@code start} is greater
-   *           than {@code end}.
    */
   public ByteSequence subSequence(final int start, final int end)
-      throws IndexOutOfBoundsException
   {
     if (start < 0 || start > end || end > length)
     {

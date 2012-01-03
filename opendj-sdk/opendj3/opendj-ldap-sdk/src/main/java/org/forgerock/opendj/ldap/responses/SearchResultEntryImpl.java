@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -31,7 +32,6 @@ package org.forgerock.opendj.ldap.responses;
 
 import java.util.Collection;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.*;
 
 
@@ -59,7 +59,7 @@ final class SearchResultEntryImpl extends
    * @throws NullPointerException
    *           If {@code entry} was {@code null} .
    */
-  SearchResultEntryImpl(final Entry entry) throws NullPointerException
+  SearchResultEntryImpl(final Entry entry)
   {
     this.entry = entry;
   }
@@ -76,7 +76,6 @@ final class SearchResultEntryImpl extends
    *           If {@code searchResultEntry} was {@code null} .
    */
   SearchResultEntryImpl(final SearchResultEntry searchResultEntry)
-      throws NullPointerException
   {
     super(searchResultEntry);
     this.entry = LinkedHashMapEntry.deepCopyOfEntry(searchResultEntry);
@@ -88,7 +87,6 @@ final class SearchResultEntryImpl extends
    * {@inheritDoc}
    */
   public boolean addAttribute(final Attribute attribute)
-      throws UnsupportedOperationException, NullPointerException
   {
     return entry.addAttribute(attribute);
   }
@@ -100,7 +98,6 @@ final class SearchResultEntryImpl extends
    */
   public boolean addAttribute(final Attribute attribute,
       final Collection<ByteString> duplicateValues)
-      throws UnsupportedOperationException, NullPointerException
   {
     return entry.addAttribute(attribute, duplicateValues);
   }
@@ -111,8 +108,7 @@ final class SearchResultEntryImpl extends
    * {@inheritDoc}
    */
   public SearchResultEntry addAttribute(final String attributeDescription,
-      final Object... values) throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException
+      final Object... values)
   {
     entry.addAttribute(attributeDescription, values);
     return this;
@@ -124,7 +120,6 @@ final class SearchResultEntryImpl extends
    * {@inheritDoc}
    */
   public SearchResultEntry clearAttributes()
-      throws UnsupportedOperationException
   {
     entry.clearAttributes();
     return this;
@@ -136,7 +131,7 @@ final class SearchResultEntryImpl extends
    * {@inheritDoc}
    */
   public boolean containsAttribute(final Attribute attribute,
-      final Collection<ByteString> missingValues) throws NullPointerException
+      final Collection<ByteString> missingValues)
   {
     return entry.containsAttribute(attribute, missingValues);
   }
@@ -147,8 +142,7 @@ final class SearchResultEntryImpl extends
    * {@inheritDoc}
    */
   public boolean containsAttribute(final String attributeDescription,
-      final Object... values) throws LocalizedIllegalArgumentException,
-      NullPointerException
+      final Object... values)
   {
     return entry.containsAttribute(attributeDescription, values);
   }
@@ -170,7 +164,6 @@ final class SearchResultEntryImpl extends
    */
   public Iterable<Attribute> getAllAttributes(
       final AttributeDescription attributeDescription)
-      throws NullPointerException
   {
     return entry.getAllAttributes(attributeDescription);
   }
@@ -181,7 +174,6 @@ final class SearchResultEntryImpl extends
    * {@inheritDoc}
    */
   public Iterable<Attribute> getAllAttributes(final String attributeDescription)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     return entry.getAllAttributes(attributeDescription);
   }
@@ -192,7 +184,6 @@ final class SearchResultEntryImpl extends
    * {@inheritDoc}
    */
   public Attribute getAttribute(final AttributeDescription attributeDescription)
-      throws NullPointerException
   {
     return entry.getAttribute(attributeDescription);
   }
@@ -203,7 +194,6 @@ final class SearchResultEntryImpl extends
    * {@inheritDoc}
    */
   public Attribute getAttribute(final String attributeDescription)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     return entry.getAttribute(attributeDescription);
   }
@@ -235,7 +225,6 @@ final class SearchResultEntryImpl extends
    */
   public boolean removeAttribute(final Attribute attribute,
       final Collection<ByteString> missingValues)
-      throws UnsupportedOperationException, NullPointerException
   {
     return entry.removeAttribute(attribute, missingValues);
   }
@@ -246,7 +235,6 @@ final class SearchResultEntryImpl extends
    * {@inheritDoc}
    */
   public boolean removeAttribute(final AttributeDescription attributeDescription)
-      throws UnsupportedOperationException, NullPointerException
   {
     return entry.removeAttribute(attributeDescription);
   }
@@ -257,8 +245,7 @@ final class SearchResultEntryImpl extends
    * {@inheritDoc}
    */
   public SearchResultEntry removeAttribute(final String attributeDescription,
-      final Object... values) throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException
+      final Object... values)
   {
     entry.removeAttribute(attributeDescription, values);
     return this;
@@ -270,7 +257,6 @@ final class SearchResultEntryImpl extends
    * {@inheritDoc}
    */
   public boolean replaceAttribute(final Attribute attribute)
-      throws UnsupportedOperationException, NullPointerException
   {
     return entry.replaceAttribute(attribute);
   }
@@ -281,8 +267,7 @@ final class SearchResultEntryImpl extends
    * {@inheritDoc}
    */
   public SearchResultEntry replaceAttribute(final String attributeDescription,
-      final Object... values) throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException
+      final Object... values)
   {
     entry.replaceAttribute(attributeDescription, values);
     return this;
@@ -294,7 +279,6 @@ final class SearchResultEntryImpl extends
    * {@inheritDoc}
    */
   public SearchResultEntry setName(final DN dn)
-      throws UnsupportedOperationException, NullPointerException
   {
     entry.setName(dn);
     return this;
@@ -306,8 +290,6 @@ final class SearchResultEntryImpl extends
    * {@inheritDoc}
    */
   public SearchResultEntry setName(final String dn)
-      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
-      NullPointerException
   {
     entry.setName(dn);
     return this;

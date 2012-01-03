@@ -27,17 +27,22 @@
 
 package org.forgerock.opendj.ldap.requests;
 
+
+
 import org.forgerock.opendj.ldap.responses.WhoAmIExtendedResult;
+
+
 
 /**
  * Unmodifiable Who Am I extended request implementation.
  */
 final class UnmodifiableWhoAmIExtendedRequestImpl
-    extends AbstractUnmodifiableExtendedRequest
-    <WhoAmIExtendedRequest, WhoAmIExtendedResult>
+    extends
+    AbstractUnmodifiableExtendedRequest<WhoAmIExtendedRequest, WhoAmIExtendedResult>
     implements WhoAmIExtendedRequest
 {
-  UnmodifiableWhoAmIExtendedRequestImpl(WhoAmIExtendedRequest impl) {
+  UnmodifiableWhoAmIExtendedRequestImpl(WhoAmIExtendedRequest impl)
+  {
     super(impl);
   }
 }

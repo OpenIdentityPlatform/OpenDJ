@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package com.forgerock.opendj.util;
@@ -45,7 +46,6 @@ public final class Validator
    *           If any of the provided arguments are {@code null}.
    */
   public static void ensureNotNull(final Object... objects)
-      throws NullPointerException
   {
     for (final Object o : objects)
     {
@@ -70,7 +70,6 @@ public final class Validator
    *           If any of the provided arguments are {@code null}.
    */
   public static void ensureNotNull(final Object o1, final Object o2)
-      throws NullPointerException
   {
     if (o1 == null || o2 == null)
     {
@@ -94,7 +93,7 @@ public final class Validator
    *           If any of the provided arguments are {@code null}.
    */
   public static void ensureNotNull(final Object o1, final Object o2,
-      final Object o3) throws NullPointerException
+      final Object o3)
   {
     if (o1 == null || o2 == null || o3 == null)
     {
@@ -120,7 +119,7 @@ public final class Validator
    *           If any of the provided arguments are {@code null}.
    */
   public static void ensureNotNull(final Object o1, final Object o2,
-      final Object o3, final Object o4) throws NullPointerException
+      final Object o3, final Object o4)
   {
     if (o1 == null || o2 == null || o3 == null || o4 == null)
     {
@@ -149,7 +148,6 @@ public final class Validator
    */
   public static void ensureNotNull(final Object o1, final Object o2,
       final Object o3, final Object o4, final Object o5)
-      throws NullPointerException
   {
     if (o1 == null || o2 == null || o3 == null || o4 == null || o5 == null)
     {
@@ -172,7 +170,7 @@ public final class Validator
    * @throws NullPointerException
    *           If the provided argument is {@code null}.
    */
-  public static <T> T ensureNotNull(final T o1) throws NullPointerException
+  public static <T> T ensureNotNull(final T o1)
   {
     if (o1 == null)
     {
@@ -195,7 +193,6 @@ public final class Validator
    *           If {@code condition} was {@code false}.
    */
   public static void ensureTrue(final boolean condition, final String message)
-      throws IllegalArgumentException
   {
     if (!condition)
     {

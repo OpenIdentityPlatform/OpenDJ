@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -51,16 +52,14 @@ public interface ExtendedResult extends Result
   /**
    * {@inheritDoc}
    */
-  ExtendedResult addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  ExtendedResult addControl(Control control);
 
 
 
   /**
    * {@inheritDoc}
    */
-  ExtendedResult addReferralURI(String uri)
-      throws UnsupportedOperationException, NullPointerException;
+  ExtendedResult addReferralURI(String uri);
 
 
 
@@ -75,7 +74,7 @@ public interface ExtendedResult extends Result
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 
@@ -165,28 +164,26 @@ public interface ExtendedResult extends Result
   /**
    * {@inheritDoc}
    */
-  ExtendedResult setCause(Throwable cause) throws UnsupportedOperationException;
+  ExtendedResult setCause(Throwable cause);
 
 
 
   /**
    * {@inheritDoc}
    */
-  ExtendedResult setDiagnosticMessage(String message)
-      throws UnsupportedOperationException;
+  ExtendedResult setDiagnosticMessage(String message);
 
 
 
   /**
    * {@inheritDoc}
    */
-  ExtendedResult setMatchedDN(String dn) throws UnsupportedOperationException;
+  ExtendedResult setMatchedDN(String dn);
 
 
 
   /**
    * {@inheritDoc}
    */
-  ExtendedResult setResultCode(ResultCode resultCode)
-      throws UnsupportedOperationException, NullPointerException;
+  ExtendedResult setResultCode(ResultCode resultCode);
 }

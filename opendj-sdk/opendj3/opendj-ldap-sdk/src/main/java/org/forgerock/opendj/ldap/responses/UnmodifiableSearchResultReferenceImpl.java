@@ -23,11 +23,16 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
 
+
+
 import java.util.List;
+
+
 
 /**
  * Unmodifiable Search result reference implementation.
@@ -36,18 +41,24 @@ class UnmodifiableSearchResultReferenceImpl extends
     AbstractUnmodifiableResponseImpl<SearchResultReference> implements
     SearchResultReference
 {
-  UnmodifiableSearchResultReferenceImpl(SearchResultReference impl) {
+  UnmodifiableSearchResultReferenceImpl(SearchResultReference impl)
+  {
     super(impl);
   }
 
+
+
   @Override
   public SearchResultReference addURI(String uri)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
 
+
+
   @Override
-  public List<String> getURIs() {
+  public List<String> getURIs()
+  {
     return impl.getURIs();
   }
 }

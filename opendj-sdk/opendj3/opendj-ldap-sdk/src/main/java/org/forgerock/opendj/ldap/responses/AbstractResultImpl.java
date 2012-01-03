@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -69,7 +70,7 @@ abstract class AbstractResultImpl<S extends Result> extends
    * @throws NullPointerException
    *           If {@code resultCode} was {@code null}.
    */
-  AbstractResultImpl(final ResultCode resultCode) throws NullPointerException
+  AbstractResultImpl(final ResultCode resultCode)
   {
     this.resultCode = resultCode;
   }
@@ -85,7 +86,7 @@ abstract class AbstractResultImpl<S extends Result> extends
    * @throws NullPointerException
    *           If {@code result} was {@code null}.
    */
-  AbstractResultImpl(Result result) throws NullPointerException
+  AbstractResultImpl(Result result)
   {
     super(result);
     this.cause = result.getCause();
@@ -100,7 +101,7 @@ abstract class AbstractResultImpl<S extends Result> extends
   /**
    * {@inheritDoc}
    */
-  public final S addReferralURI(final String uri) throws NullPointerException
+  public final S addReferralURI(final String uri)
   {
     Validator.ensureNotNull(uri);
 
@@ -235,7 +236,6 @@ abstract class AbstractResultImpl<S extends Result> extends
    * {@inheritDoc}
    */
   public final S setResultCode(final ResultCode resultCode)
-      throws NullPointerException
   {
     Validator.ensureNotNull(resultCode);
 

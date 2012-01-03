@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -221,7 +222,6 @@ final class PasswordModifyExtendedRequestImpl
    */
   PasswordModifyExtendedRequestImpl(
       final PasswordModifyExtendedRequest passwordModifyExtendedRequest)
-      throws NullPointerException
   {
     super(passwordModifyExtendedRequest);
     this.userIdentity = passwordModifyExtendedRequest.getUserIdentity();

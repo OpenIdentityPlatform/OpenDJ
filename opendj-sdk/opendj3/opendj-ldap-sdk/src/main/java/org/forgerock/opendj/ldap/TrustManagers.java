@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -384,7 +385,7 @@ public final class TrustManagers
    *           null}.
    */
   public static X509TrustManager checkHostName(final String hostNamePattern,
-      final X509TrustManager trustManager) throws NullPointerException
+      final X509TrustManager trustManager)
   {
     Validator.ensureNotNull(trustManager, hostNamePattern);
     return new CheckHostName(trustManager, hostNamePattern);
@@ -411,7 +412,7 @@ public final class TrustManagers
    *           If {@code file} was {@code null}.
    */
   public static X509TrustManager checkUsingTrustStore(final String file)
-      throws GeneralSecurityException, IOException, NullPointerException
+      throws GeneralSecurityException, IOException
   {
     return checkUsingTrustStore(file, null, null);
   }
@@ -443,7 +444,7 @@ public final class TrustManagers
    */
   public static X509TrustManager checkUsingTrustStore(final String file,
       final char[] password, final String format)
-      throws GeneralSecurityException, IOException, NullPointerException
+      throws GeneralSecurityException, IOException
   {
     Validator.ensureNotNull(file);
 
@@ -510,7 +511,7 @@ public final class TrustManagers
    *           If {@code trustManager} was {@code null}.
    */
   public static X509TrustManager checkValidityDates(
-      final X509TrustManager trustManager) throws NullPointerException
+      final X509TrustManager trustManager)
   {
     Validator.ensureNotNull(trustManager);
     return new CheckValidatyDates(trustManager);

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -31,7 +32,7 @@ package org.forgerock.opendj.ldap;
 
 import java.util.Collection;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.i18n.*;
 
 
 
@@ -90,8 +91,7 @@ public interface Entry
    * @throws NullPointerException
    *           If {@code attribute} was {@code null}.
    */
-  boolean addAttribute(Attribute attribute)
-      throws UnsupportedOperationException, NullPointerException;
+  boolean addAttribute(Attribute attribute);
 
 
 
@@ -124,8 +124,7 @@ public interface Entry
    *           If {@code attribute} was {@code null}.
    */
   boolean addAttribute(Attribute attribute,
-      Collection<ByteString> duplicateValues)
-      throws UnsupportedOperationException, NullPointerException;
+      Collection<ByteString> duplicateValues);
 
 
 
@@ -165,9 +164,7 @@ public interface Entry
    * @throws NullPointerException
    *           If {@code attributeDescription} was {@code null}.
    */
-  Entry addAttribute(String attributeDescription, Object... values)
-      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
-      NullPointerException;
+  Entry addAttribute(String attributeDescription, Object... values);
 
 
 
@@ -178,7 +175,7 @@ public interface Entry
    * @throws UnsupportedOperationException
    *           If this entry does not permit attributes to be removed.
    */
-  Entry clearAttributes() throws UnsupportedOperationException;
+  Entry clearAttributes();
 
 
 
@@ -199,7 +196,7 @@ public interface Entry
    *           If {@code attribute} was {@code null}.
    */
   boolean containsAttribute(Attribute attribute,
-      Collection<ByteString> missingValues) throws NullPointerException;
+      Collection<ByteString> missingValues);
 
 
 
@@ -229,8 +226,7 @@ public interface Entry
    * @throws NullPointerException
    *           If {@code attributeDescription} was {@code null}.
    */
-  boolean containsAttribute(String attributeDescription, Object... values)
-      throws LocalizedIllegalArgumentException, NullPointerException;
+  boolean containsAttribute(String attributeDescription, Object... values);
 
 
 
@@ -272,8 +268,7 @@ public interface Entry
    * @throws NullPointerException
    *           If {@code attributeDescription} was {@code null}.
    */
-  Iterable<Attribute> getAllAttributes(AttributeDescription attributeDescription)
-      throws NullPointerException;
+  Iterable<Attribute> getAllAttributes(AttributeDescription attributeDescription);
 
 
 
@@ -295,8 +290,7 @@ public interface Entry
    * @throws NullPointerException
    *           If {@code attributeDescription} was {@code null}.
    */
-  Iterable<Attribute> getAllAttributes(String attributeDescription)
-      throws LocalizedIllegalArgumentException, NullPointerException;
+  Iterable<Attribute> getAllAttributes(String attributeDescription);
 
 
 
@@ -311,8 +305,7 @@ public interface Entry
    * @throws NullPointerException
    *           If {@code attributeDescription} was {@code null}.
    */
-  Attribute getAttribute(AttributeDescription attributeDescription)
-      throws NullPointerException;
+  Attribute getAttribute(AttributeDescription attributeDescription);
 
 
 
@@ -333,8 +326,7 @@ public interface Entry
    * @throws NullPointerException
    *           If {@code attributeDescription} was {@code null}.
    */
-  Attribute getAttribute(String attributeDescription)
-      throws LocalizedIllegalArgumentException, NullPointerException;
+  Attribute getAttribute(String attributeDescription);
 
 
 
@@ -387,8 +379,7 @@ public interface Entry
    *           If {@code attribute} was {@code null}.
    */
   boolean removeAttribute(Attribute attribute,
-      Collection<ByteString> missingValues)
-      throws UnsupportedOperationException, NullPointerException;
+      Collection<ByteString> missingValues);
 
 
 
@@ -405,8 +396,7 @@ public interface Entry
    * @throws NullPointerException
    *           If {@code attributeDescription} was {@code null}.
    */
-  boolean removeAttribute(AttributeDescription attributeDescription)
-      throws UnsupportedOperationException, NullPointerException;
+  boolean removeAttribute(AttributeDescription attributeDescription);
 
 
 
@@ -439,9 +429,7 @@ public interface Entry
    * @throws NullPointerException
    *           If {@code attributeDescription} was {@code null}.
    */
-  Entry removeAttribute(String attributeDescription, Object... values)
-      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
-      NullPointerException;
+  Entry removeAttribute(String attributeDescription, Object... values);
 
 
 
@@ -464,8 +452,7 @@ public interface Entry
    * @throws NullPointerException
    *           If {@code attribute} was {@code null}.
    */
-  boolean replaceAttribute(Attribute attribute)
-      throws UnsupportedOperationException, NullPointerException;
+  boolean replaceAttribute(Attribute attribute);
 
 
 
@@ -499,9 +486,7 @@ public interface Entry
    * @throws NullPointerException
    *           If {@code attribute} was {@code null}.
    */
-  Entry replaceAttribute(String attributeDescription, Object... values)
-      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
-      NullPointerException;
+  Entry replaceAttribute(String attributeDescription, Object... values);
 
 
 
@@ -516,8 +501,7 @@ public interface Entry
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  Entry setName(DN dn) throws UnsupportedOperationException,
-      NullPointerException;
+  Entry setName(DN dn);
 
 
 
@@ -538,8 +522,7 @@ public interface Entry
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  Entry setName(String dn) throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException;
+  Entry setName(String dn);
 
 
 

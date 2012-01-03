@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -31,7 +32,7 @@ package org.forgerock.opendj.ldap.requests;
 
 import java.util.List;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.i18n.*;
 import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.ControlDecoder;
@@ -51,8 +52,7 @@ public interface CompareRequest extends Request
   /**
    * {@inheritDoc}
    */
-  CompareRequest addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  CompareRequest addControl(Control control);
 
 
 
@@ -87,7 +87,7 @@ public interface CompareRequest extends Request
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 
@@ -120,8 +120,7 @@ public interface CompareRequest extends Request
    * @throws NullPointerException
    *           If {@code value} was {@code null}.
    */
-  CompareRequest setAssertionValue(ByteString value)
-      throws UnsupportedOperationException, NullPointerException;
+  CompareRequest setAssertionValue(ByteString value);
 
 
 
@@ -140,8 +139,7 @@ public interface CompareRequest extends Request
    * @throws NullPointerException
    *           If {@code value} was {@code null}.
    */
-  CompareRequest setAssertionValue(Object value)
-      throws UnsupportedOperationException, NullPointerException;
+  CompareRequest setAssertionValue(Object value);
 
 
 
@@ -158,8 +156,7 @@ public interface CompareRequest extends Request
    *           If {@code attributeDescription} was {@code null}.
    */
   CompareRequest setAttributeDescription(
-      AttributeDescription attributeDescription)
-      throws UnsupportedOperationException, NullPointerException;
+      AttributeDescription attributeDescription);
 
 
 
@@ -178,9 +175,7 @@ public interface CompareRequest extends Request
    * @throws NullPointerException
    *           If {@code attributeDescription} was {@code null}.
    */
-  CompareRequest setAttributeDescription(String attributeDescription)
-      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
-      NullPointerException;
+  CompareRequest setAttributeDescription(String attributeDescription);
 
 
 
@@ -197,8 +192,7 @@ public interface CompareRequest extends Request
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  CompareRequest setName(DN dn) throws UnsupportedOperationException,
-      NullPointerException;
+  CompareRequest setName(DN dn);
 
 
 
@@ -217,7 +211,6 @@ public interface CompareRequest extends Request
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  CompareRequest setName(String dn) throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException;
+  CompareRequest setName(String dn);
 
 }

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -78,7 +78,6 @@ public final class AVA implements Comparable<AVA>
    *           If {@code ava} was {@code null}.
    */
   public static AVA valueOf(final String ava)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     return valueOf(ava, Schema.getDefaultSchema());
   }
@@ -101,7 +100,6 @@ public final class AVA implements Comparable<AVA>
    *           If {@code ava} or {@code schema} was {@code null}.
    */
   public static AVA valueOf(final String ava, final Schema schema)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     final SubstringReader reader = new SubstringReader(ava);
     try
@@ -119,7 +117,6 @@ public final class AVA implements Comparable<AVA>
 
 
   static AVA decode(final SubstringReader reader, final Schema schema)
-      throws LocalizedIllegalArgumentException, UnknownSchemaElementException
   {
     // Skip over any spaces at the beginning.
     reader.skipWhitespaces();
@@ -409,8 +406,7 @@ public final class AVA implements Comparable<AVA>
 
 
   private static AttributeType readAttributeName(final SubstringReader reader,
-      final Schema schema) throws LocalizedIllegalArgumentException,
-      UnknownSchemaElementException
+      final Schema schema)
   {
     int length = 1;
     reader.mark();
@@ -499,7 +495,6 @@ public final class AVA implements Comparable<AVA>
 
 
   private static ByteString readAttributeValue(final SubstringReader reader)
-      throws LocalizedIllegalArgumentException
   {
     // All leading spaces have already been stripped so we can start
     // reading the value. However, it may be empty so check for that.
@@ -680,7 +675,6 @@ public final class AVA implements Comparable<AVA>
    *           {@code null}.
    */
   public AVA(final AttributeType attributeType, final ByteString attributeValue)
-      throws NullPointerException
   {
     Validator.ensureNotNull(attributeType, attributeValue);
 
@@ -708,7 +702,6 @@ public final class AVA implements Comparable<AVA>
    *           {@code null}.
    */
   public AVA(final String attributeType, final Object attributeValue)
-      throws UnknownSchemaElementException, NullPointerException
   {
     Validator.ensureNotNull(attributeType, attributeValue);
 

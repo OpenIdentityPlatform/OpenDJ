@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.controls;
@@ -190,7 +191,7 @@ public final class PostReadRequestControl implements Control
    *           If {@code attributes} was {@code null}.
    */
   public static PostReadRequestControl newControl(final boolean isCritical,
-      final Collection<String> attributes) throws NullPointerException
+      final Collection<String> attributes)
   {
     Validator.ensureNotNull(attributes);
 
@@ -230,7 +231,7 @@ public final class PostReadRequestControl implements Control
    *           If {@code attributes} was {@code null}.
    */
   public static PostReadRequestControl newControl(final boolean isCritical,
-      final String... attributes) throws NullPointerException
+      final String... attributes)
   {
     Validator.ensureNotNull((Object) attributes);
 

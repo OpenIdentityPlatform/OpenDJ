@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -82,7 +83,6 @@ final class GenericIntermediateResponseImpl extends
    */
   GenericIntermediateResponseImpl(
       final GenericIntermediateResponse genericIntermediateResponse)
-      throws NullPointerException
   {
     super(genericIntermediateResponse);
     this.responseName = genericIntermediateResponse.getOID();
@@ -128,7 +128,6 @@ final class GenericIntermediateResponseImpl extends
    * {@inheritDoc}
    */
   public GenericIntermediateResponse setOID(final String oid)
-      throws UnsupportedOperationException
   {
     this.responseName = oid;
     return this;
@@ -140,7 +139,6 @@ final class GenericIntermediateResponseImpl extends
    * {@inheritDoc}
    */
   public GenericIntermediateResponse setValue(final ByteString bytes)
-      throws UnsupportedOperationException
   {
     this.responseValue = bytes;
     return this;

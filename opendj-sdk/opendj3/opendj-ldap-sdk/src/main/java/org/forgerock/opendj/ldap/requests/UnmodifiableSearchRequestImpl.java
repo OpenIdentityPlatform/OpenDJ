@@ -23,114 +23,158 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
 
+
+
 import java.util.Collections;
 import java.util.List;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.SearchScope;
 
+
+
 /**
  * Unmodifiable search request implementation.
  */
-final class UnmodifiableSearchRequestImpl
-    extends AbstractUnmodifiableRequest<SearchRequest>
-    implements SearchRequest
+final class UnmodifiableSearchRequestImpl extends
+    AbstractUnmodifiableRequest<SearchRequest> implements SearchRequest
 {
-  UnmodifiableSearchRequestImpl(SearchRequest impl) {
+  UnmodifiableSearchRequestImpl(SearchRequest impl)
+  {
     super(impl);
   }
 
+
+
   public SearchRequest addAttribute(String... attributeDescriptions)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
 
-  public List<String> getAttributes() {
+
+
+  public List<String> getAttributes()
+  {
     return Collections.unmodifiableList(impl.getAttributes());
   }
 
-  public DereferenceAliasesPolicy getDereferenceAliasesPolicy() {
+
+
+  public DereferenceAliasesPolicy getDereferenceAliasesPolicy()
+  {
     return impl.getDereferenceAliasesPolicy();
   }
 
-  public Filter getFilter() {
+
+
+  public Filter getFilter()
+  {
     return impl.getFilter();
   }
 
-  public DN getName() {
+
+
+  public DN getName()
+  {
     return impl.getName();
   }
 
-  public SearchScope getScope() {
+
+
+  public SearchScope getScope()
+  {
     return impl.getScope();
   }
 
-  public int getSizeLimit() {
+
+
+  public int getSizeLimit()
+  {
     return impl.getSizeLimit();
   }
 
-  public int getTimeLimit() {
+
+
+  public int getTimeLimit()
+  {
     return impl.getTimeLimit();
   }
 
-  public boolean isTypesOnly() {
+
+
+  public boolean isTypesOnly()
+  {
     return impl.isTypesOnly();
   }
 
+
+
   public SearchRequest setDereferenceAliasesPolicy(
       DereferenceAliasesPolicy policy)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   public SearchRequest setFilter(Filter filter)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   public SearchRequest setFilter(String filter)
-      throws UnsupportedOperationException,
-      LocalizedIllegalArgumentException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   public SearchRequest setName(DN dn)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   public SearchRequest setName(String dn)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   public SearchRequest setScope(SearchScope scope)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   public SearchRequest setSizeLimit(int limit)
-      throws UnsupportedOperationException,
-      LocalizedIllegalArgumentException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   public SearchRequest setTimeLimit(int limit)
-      throws UnsupportedOperationException,
-      LocalizedIllegalArgumentException {
+  {
     throw new UnsupportedOperationException();
   }
 
+
+
   public SearchRequest setTypesOnly(boolean typesOnly)
-      throws UnsupportedOperationException {
+  {
     throw new UnsupportedOperationException();
   }
 }

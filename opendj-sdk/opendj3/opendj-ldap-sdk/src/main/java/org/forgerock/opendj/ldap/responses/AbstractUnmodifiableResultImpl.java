@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -60,7 +61,6 @@ abstract class AbstractUnmodifiableResultImpl<S extends Result> extends
 
 
   public final S addReferralURI(final String uri)
-      throws UnsupportedOperationException, NullPointerException
   {
     throw new UnsupportedOperationException();
   }
@@ -117,7 +117,6 @@ abstract class AbstractUnmodifiableResultImpl<S extends Result> extends
 
 
   public final S setCause(final Throwable cause)
-      throws UnsupportedOperationException
   {
     throw new UnsupportedOperationException();
   }
@@ -125,7 +124,6 @@ abstract class AbstractUnmodifiableResultImpl<S extends Result> extends
 
 
   public final S setDiagnosticMessage(final String message)
-      throws UnsupportedOperationException
   {
     throw new UnsupportedOperationException();
   }
@@ -133,7 +131,6 @@ abstract class AbstractUnmodifiableResultImpl<S extends Result> extends
 
 
   public final S setMatchedDN(final String dn)
-      throws UnsupportedOperationException
   {
     throw new UnsupportedOperationException();
   }
@@ -141,7 +138,6 @@ abstract class AbstractUnmodifiableResultImpl<S extends Result> extends
 
 
   public final S setResultCode(final ResultCode resultCode)
-      throws UnsupportedOperationException, NullPointerException
   {
     throw new UnsupportedOperationException();
   }

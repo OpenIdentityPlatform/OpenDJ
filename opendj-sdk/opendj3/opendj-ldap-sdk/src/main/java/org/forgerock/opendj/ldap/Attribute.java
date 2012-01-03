@@ -23,16 +23,14 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
 
 
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-import java.util.Set;
+import java.util.*;
 
 
 
@@ -59,10 +57,13 @@ import java.util.Set;
  * }
  * </pre>
  * <p>
- * TODO: matching against attribute value assertions.
  */
 public interface Attribute extends Set<ByteString>
 {
+  // TODO: matching against attribute value assertions.
+
+
+
   /**
    * Adds {@code value} to this attribute if it is not already present (optional
    * operation). If this attribute already contains {@code value}, the call
@@ -76,8 +77,7 @@ public interface Attribute extends Set<ByteString>
    * @throws NullPointerException
    *           If {@code value} was {@code null}.
    */
-  boolean add(ByteString value) throws UnsupportedOperationException,
-      NullPointerException;
+  boolean add(ByteString value);
 
 
 
@@ -98,8 +98,7 @@ public interface Attribute extends Set<ByteString>
    * @throws NullPointerException
    *           If {@code firstValue} was {@code null}.
    */
-  boolean add(Object firstValue, Object... remainingValues)
-      throws UnsupportedOperationException, NullPointerException;
+  boolean add(Object firstValue, Object... remainingValues);
 
 
 
@@ -121,8 +120,7 @@ public interface Attribute extends Set<ByteString>
    * @throws NullPointerException
    *           If {@code values} was {@code null}.
    */
-  boolean addAll(Collection<? extends ByteString> values)
-      throws UnsupportedOperationException, NullPointerException;
+  boolean addAll(Collection<? extends ByteString> values);
 
 
 
@@ -144,8 +142,7 @@ public interface Attribute extends Set<ByteString>
    *           If {@code values} was {@code null}.
    */
   boolean addAll(Collection<? extends ByteString> values,
-      Collection<? super ByteString> duplicateValues)
-      throws UnsupportedOperationException, NullPointerException;
+      Collection<? super ByteString> duplicateValues);
 
 
 
@@ -156,7 +153,7 @@ public interface Attribute extends Set<ByteString>
    * @throws UnsupportedOperationException
    *           If this attribute does not support removal of attribute values.
    */
-  void clear() throws UnsupportedOperationException;
+  void clear();
 
 
 
@@ -174,7 +171,7 @@ public interface Attribute extends Set<ByteString>
    * @throws NullPointerException
    *           If {@code value} was {@code null}.
    */
-  boolean contains(Object value) throws NullPointerException;
+  boolean contains(Object value);
 
 
 
@@ -193,7 +190,7 @@ public interface Attribute extends Set<ByteString>
    * @throws NullPointerException
    *           If {@code values} was {@code null}.
    */
-  boolean containsAll(Collection<?> values) throws NullPointerException;
+  boolean containsAll(Collection<?> values);
 
 
 
@@ -220,7 +217,7 @@ public interface Attribute extends Set<ByteString>
    * @throws NoSuchElementException
    *           If this attribute is empty.
    */
-  ByteString firstValue() throws NoSuchElementException;
+  ByteString firstValue();
 
 
 
@@ -233,7 +230,7 @@ public interface Attribute extends Set<ByteString>
    * @throws NoSuchElementException
    *           If this attribute is empty.
    */
-  String firstValueAsString() throws NoSuchElementException;
+  String firstValueAsString();
 
 
 
@@ -304,8 +301,7 @@ public interface Attribute extends Set<ByteString>
    * @throws NullPointerException
    *           If {@code value} was {@code null}.
    */
-  boolean remove(Object value) throws UnsupportedOperationException,
-      NullPointerException;
+  boolean remove(Object value);
 
 
 
@@ -330,8 +326,7 @@ public interface Attribute extends Set<ByteString>
    * @throws NullPointerException
    *           If {@code values} was {@code null}.
    */
-  boolean removeAll(Collection<?> values) throws UnsupportedOperationException,
-      NullPointerException;
+  boolean removeAll(Collection<?> values);
 
 
 
@@ -358,8 +353,7 @@ public interface Attribute extends Set<ByteString>
    *           If {@code values} was {@code null}.
    */
   <T> boolean removeAll(Collection<T> values,
-      Collection<? super T> missingValues)
-      throws UnsupportedOperationException, NullPointerException;
+      Collection<? super T> missingValues);
 
 
 
@@ -384,8 +378,7 @@ public interface Attribute extends Set<ByteString>
    * @throws NullPointerException
    *           If {@code values} was {@code null}.
    */
-  boolean retainAll(Collection<?> values) throws UnsupportedOperationException,
-      NullPointerException;
+  boolean retainAll(Collection<?> values);
 
 
 
@@ -411,8 +404,7 @@ public interface Attribute extends Set<ByteString>
    *           If {@code values} was {@code null}.
    */
   <T> boolean retainAll(Collection<T> values,
-      Collection<? super T> missingValues)
-      throws UnsupportedOperationException, NullPointerException;
+      Collection<? super T> missingValues);
 
 
 
@@ -471,7 +463,7 @@ public interface Attribute extends Set<ByteString>
    * @throws NullPointerException
    *           If {@code array} was {@code null}.
    */
-  <T> T[] toArray(T[] array) throws ArrayStoreException, NullPointerException;
+  <T> T[] toArray(T[] array);
 
 
 

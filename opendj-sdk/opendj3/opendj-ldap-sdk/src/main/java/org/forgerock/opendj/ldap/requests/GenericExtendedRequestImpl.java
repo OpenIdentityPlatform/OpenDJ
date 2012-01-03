@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -140,7 +141,7 @@ final class GenericExtendedRequestImpl extends
    *           If {@code requestName} was {@code null}.
    */
   GenericExtendedRequestImpl(final String requestName,
-      final ByteString requestValue) throws NullPointerException
+      final ByteString requestValue)
   {
     this.requestName = requestName;
     this.requestValue = requestValue;
@@ -159,7 +160,6 @@ final class GenericExtendedRequestImpl extends
    */
   protected GenericExtendedRequestImpl(
       GenericExtendedRequest genericExtendedRequest)
-      throws NullPointerException
   {
     super(genericExtendedRequest);
     this.requestName = genericExtendedRequest.getOID();
@@ -216,7 +216,6 @@ final class GenericExtendedRequestImpl extends
    * {@inheritDoc}
    */
   public GenericExtendedRequest setOID(final String oid)
-      throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(oid);
     this.requestName = oid;
@@ -229,7 +228,6 @@ final class GenericExtendedRequestImpl extends
    * {@inheritDoc}
    */
   public GenericExtendedRequest setValue(final ByteString bytes)
-      throws UnsupportedOperationException
   {
     this.requestValue = bytes;
     return this;

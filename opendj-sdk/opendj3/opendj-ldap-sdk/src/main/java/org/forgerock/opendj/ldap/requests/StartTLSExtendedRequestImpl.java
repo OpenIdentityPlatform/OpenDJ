@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -133,7 +134,6 @@ final class StartTLSExtendedRequestImpl extends
    */
   StartTLSExtendedRequestImpl(
       final StartTLSExtendedRequest startTLSExtendedRequest)
-      throws NullPointerException
   {
     super(startTLSExtendedRequest);
     this.sslContext = startTLSExtendedRequest.getSSLContext();

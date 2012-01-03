@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -178,7 +179,6 @@ public final class LDAPOptions
    *           If {@code decodeOptions} was {@code null}.
    */
   public final LDAPOptions setDecodeOptions(final DecodeOptions decodeOptions)
-      throws NullPointerException
   {
     Validator.ensureNotNull(decodeOptions);
     this.decodeOptions = decodeOptions;

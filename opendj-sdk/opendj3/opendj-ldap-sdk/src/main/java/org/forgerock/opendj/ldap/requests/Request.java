@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -56,8 +57,7 @@ public interface Request
    * @throws NullPointerException
    *           If {@code control} was {@code null}.
    */
-  Request addControl(Control control) throws UnsupportedOperationException,
-      NullPointerException;
+  Request addControl(Control control);
 
 
 
@@ -82,7 +82,7 @@ public interface Request
    *           If {@code decoder} or {@code options} was {@code null}.
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws DecodeException, NullPointerException;
+      DecodeOptions options) throws DecodeException;
 
 
 

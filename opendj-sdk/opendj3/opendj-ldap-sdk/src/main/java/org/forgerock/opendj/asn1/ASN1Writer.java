@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 package org.forgerock.opendj.asn1;
 
@@ -114,7 +114,7 @@ public interface ASN1Writer extends Closeable, Flushable
    * @throws IllegalStateException
    *           If there is no sequence being written.
    */
-  ASN1Writer writeEndSequence() throws IOException, IllegalStateException;
+  ASN1Writer writeEndSequence() throws IOException;
 
 
 
@@ -125,9 +125,9 @@ public interface ASN1Writer extends Closeable, Flushable
    * @throws IOException
    *           If an error occurs while writing the element.
    * @throws IllegalStateException
-   *           If there is no set being written, IllegalStateException.
+   *           If there is no set being written.
    */
-  ASN1Writer writeEndSet() throws IOException, IllegalStateException;
+  ASN1Writer writeEndSet() throws IOException;
 
 
 

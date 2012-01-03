@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldif;
@@ -304,8 +304,7 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream
 
 
 
-  final void writeComment0(final CharSequence comment) throws IOException,
-      NullPointerException
+  final void writeComment0(final CharSequence comment) throws IOException
   {
     Validator.ensureNotNull(comment);
 

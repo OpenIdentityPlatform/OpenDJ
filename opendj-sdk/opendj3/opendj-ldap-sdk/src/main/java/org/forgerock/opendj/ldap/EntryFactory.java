@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -49,5 +50,5 @@ public interface EntryFactory
    * @throws NullPointerException
    *           If {@code name} was {@code null}.
    */
-  Entry newEntry(DN name) throws NullPointerException;
+  Entry newEntry(DN name);
 }

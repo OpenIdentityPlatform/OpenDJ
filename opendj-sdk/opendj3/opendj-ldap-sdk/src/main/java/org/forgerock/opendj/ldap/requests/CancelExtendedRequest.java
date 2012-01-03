@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -72,8 +73,7 @@ public interface CancelExtendedRequest extends ExtendedRequest<ExtendedResult>
   /**
    * {@inheritDoc}
    */
-  CancelExtendedRequest addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  CancelExtendedRequest addControl(Control control);
 
 
 
@@ -81,7 +81,7 @@ public interface CancelExtendedRequest extends ExtendedRequest<ExtendedResult>
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 
@@ -138,6 +138,5 @@ public interface CancelExtendedRequest extends ExtendedRequest<ExtendedResult>
    * @throws UnsupportedOperationException
    *           If this abandon request does not permit the request ID to be set.
    */
-  CancelExtendedRequest setRequestID(int id)
-      throws UnsupportedOperationException;
+  CancelExtendedRequest setRequestID(int id);
 }

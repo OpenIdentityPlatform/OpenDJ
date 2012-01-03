@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -136,7 +137,7 @@ public final class LDAPListener implements Closeable
    */
   public LDAPListener(final int port,
       final ServerConnectionFactory<LDAPClientContext, Integer> factory)
-      throws IOException, NullPointerException
+      throws IOException
   {
     this(port, factory, new LDAPListenerOptions());
   }
@@ -162,8 +163,7 @@ public final class LDAPListener implements Closeable
    */
   public LDAPListener(final int port,
       final ServerConnectionFactory<LDAPClientContext, Integer> factory,
-      final LDAPListenerOptions options) throws IOException,
-      NullPointerException
+      final LDAPListenerOptions options) throws IOException
   {
     Validator.ensureNotNull(factory, options);
     final SocketAddress address = new InetSocketAddress(port);
@@ -189,7 +189,7 @@ public final class LDAPListener implements Closeable
    */
   public LDAPListener(final SocketAddress address,
       final ServerConnectionFactory<LDAPClientContext, Integer> factory)
-      throws IOException, NullPointerException
+      throws IOException
   {
     this(address, factory, new LDAPListenerOptions());
   }
@@ -216,8 +216,7 @@ public final class LDAPListener implements Closeable
    */
   public LDAPListener(final SocketAddress address,
       final ServerConnectionFactory<LDAPClientContext, Integer> factory,
-      final LDAPListenerOptions options) throws IOException,
-      NullPointerException
+      final LDAPListenerOptions options) throws IOException
   {
     Validator.ensureNotNull(address, factory, options);
     this.impl = new LDAPListenerImpl(address, factory, options);
@@ -244,7 +243,7 @@ public final class LDAPListener implements Closeable
    */
   public LDAPListener(final String host, final int port,
       final ServerConnectionFactory<LDAPClientContext, Integer> factory)
-      throws IOException, NullPointerException
+      throws IOException
   {
     this(host, port, factory, new LDAPListenerOptions());
   }
@@ -273,8 +272,7 @@ public final class LDAPListener implements Closeable
    */
   public LDAPListener(final String host, final int port,
       final ServerConnectionFactory<LDAPClientContext, Integer> factory,
-      final LDAPListenerOptions options) throws IOException,
-      NullPointerException
+      final LDAPListenerOptions options) throws IOException
   {
     Validator.ensureNotNull(host, factory, options);
     final SocketAddress address = new InetSocketAddress(host, port);

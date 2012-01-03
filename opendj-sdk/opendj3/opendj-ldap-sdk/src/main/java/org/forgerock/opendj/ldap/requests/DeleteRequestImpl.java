@@ -23,13 +23,13 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
 
 
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldif.ChangeRecordVisitor;
 
@@ -55,7 +55,7 @@ final class DeleteRequestImpl extends AbstractRequestImpl<DeleteRequest>
    * @throws NullPointerException
    *           If {@code name} was {@code null}.
    */
-  DeleteRequestImpl(final DN name) throws NullPointerException
+  DeleteRequestImpl(final DN name)
   {
     this.name = name;
   }
@@ -72,7 +72,6 @@ final class DeleteRequestImpl extends AbstractRequestImpl<DeleteRequest>
    *           If {@code addRequest} was {@code null} .
    */
   DeleteRequestImpl(final DeleteRequest deleteRequest)
-      throws NullPointerException
   {
     super(deleteRequest);
     this.name = deleteRequest.getName();
@@ -104,7 +103,6 @@ final class DeleteRequestImpl extends AbstractRequestImpl<DeleteRequest>
    * {@inheritDoc}
    */
   public DeleteRequest setName(final DN dn)
-      throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(dn);
     this.name = dn;
@@ -117,8 +115,6 @@ final class DeleteRequestImpl extends AbstractRequestImpl<DeleteRequest>
    * {@inheritDoc}
    */
   public DeleteRequest setName(final String dn)
-      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
-      NullPointerException
   {
     Validator.ensureNotNull(dn);
     this.name = DN.valueOf(dn);

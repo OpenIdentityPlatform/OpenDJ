@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -76,7 +77,6 @@ final class PasswordModifyExtendedResultImpl extends
    */
   PasswordModifyExtendedResultImpl(
       final PasswordModifyExtendedResult passwordModifyExtendedResult)
-      throws NullPointerException
   {
     super(passwordModifyExtendedResult);
     this.password = passwordModifyExtendedResult.getGeneratedPassword();
@@ -152,7 +152,7 @@ final class PasswordModifyExtendedResultImpl extends
    * {@inheritDoc}
    */
   public PasswordModifyExtendedResult setGeneratedPassword(
-      final ByteString password) throws UnsupportedOperationException
+      final ByteString password)
   {
     this.password = password;
     return this;
@@ -164,7 +164,7 @@ final class PasswordModifyExtendedResultImpl extends
    * {@inheritDoc}
    */
   public PasswordModifyExtendedResult setGeneratedPassword(
-      final char[] password) throws UnsupportedOperationException
+      final char[] password)
   {
     this.password = (password != null) ? ByteString.valueOf(password) : null;
     return this;

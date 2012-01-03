@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -73,7 +74,7 @@ abstract class AbstractRequestImpl<R extends Request> implements Request
    * @throws NullPointerException
    *           If {@code request} was {@code null} .
    */
-  AbstractRequestImpl(Request request) throws NullPointerException
+  AbstractRequestImpl(Request request)
   {
     Validator.ensureNotNull(request);
     for (Control control : request.getControls())
@@ -88,7 +89,7 @@ abstract class AbstractRequestImpl<R extends Request> implements Request
   /**
    * {@inheritDoc}
    */
-  public final R addControl(final Control control) throws NullPointerException
+  public final R addControl(final Control control)
   {
     Validator.ensureNotNull(control);
     controls.add(control);

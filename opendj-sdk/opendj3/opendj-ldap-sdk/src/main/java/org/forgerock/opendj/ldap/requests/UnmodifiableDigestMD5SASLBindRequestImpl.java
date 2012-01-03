@@ -23,18 +23,20 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
+
+
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
-
 import com.forgerock.opendj.util.StaticUtils;
+
+
 
 /**
  * Unmodifiable digest-MD5 SASL bind request implementation.
@@ -43,126 +45,178 @@ final class UnmodifiableDigestMD5SASLBindRequestImpl extends
     AbstractUnmodifiableSASLBindRequest<DigestMD5SASLBindRequest> implements
     DigestMD5SASLBindRequest
 {
-  UnmodifiableDigestMD5SASLBindRequestImpl(DigestMD5SASLBindRequest impl) {
+  UnmodifiableDigestMD5SASLBindRequestImpl(DigestMD5SASLBindRequest impl)
+  {
     super(impl);
   }
 
+
+
   @Override
   public DigestMD5SASLBindRequest addAdditionalAuthParam(String name,
-                                                         String value)
-      throws UnsupportedOperationException, NullPointerException {
+      String value)
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   @Override
   public DigestMD5SASLBindRequest addQOP(String... qopValues)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
 
+
+
   @Override
-  public Map<String, String> getAdditionalAuthParams() {
+  public Map<String, String> getAdditionalAuthParams()
+  {
     return Collections.unmodifiableMap(impl.getAdditionalAuthParams());
   }
 
+
+
   @Override
-  public String getAuthenticationID() {
+  public String getAuthenticationID()
+  {
     return impl.getAuthenticationID();
   }
 
+
+
   @Override
-  public String getAuthorizationID() {
+  public String getAuthorizationID()
+  {
     return impl.getAuthorizationID();
   }
 
+
+
   @Override
-  public String getCipher() {
+  public String getCipher()
+  {
     return impl.getCipher();
   }
 
+
+
   @Override
-  public int getMaxReceiveBufferSize() {
+  public int getMaxReceiveBufferSize()
+  {
     return impl.getMaxReceiveBufferSize();
   }
 
+
+
   @Override
-  public int getMaxSendBufferSize() {
+  public int getMaxSendBufferSize()
+  {
     return impl.getMaxSendBufferSize();
   }
 
+
+
   @Override
-  public byte[] getPassword() {
+  public byte[] getPassword()
+  {
     // Defensive copy.
     return StaticUtils.copyOfBytes(impl.getPassword());
   }
 
+
+
   @Override
-  public List<String> getQOPs() {
+  public List<String> getQOPs()
+  {
     return Collections.unmodifiableList(impl.getQOPs());
   }
 
+
+
   @Override
-  public String getRealm() {
+  public String getRealm()
+  {
     return impl.getRealm();
   }
 
+
+
   @Override
-  public boolean isServerAuth() {
+  public boolean isServerAuth()
+  {
     return impl.isServerAuth();
   }
 
+
+
   @Override
   public DigestMD5SASLBindRequest setAuthenticationID(String authenticationID)
-      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
-      NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   @Override
   public DigestMD5SASLBindRequest setAuthorizationID(String authorizationID)
-      throws LocalizedIllegalArgumentException, UnsupportedOperationException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   @Override
   public DigestMD5SASLBindRequest setCipher(String cipher)
-      throws UnsupportedOperationException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   @Override
   public DigestMD5SASLBindRequest setMaxReceiveBufferSize(int size)
-      throws UnsupportedOperationException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   @Override
   public DigestMD5SASLBindRequest setMaxSendBufferSize(int size)
-      throws UnsupportedOperationException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   @Override
   public DigestMD5SASLBindRequest setPassword(byte[] password)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   @Override
   public DigestMD5SASLBindRequest setPassword(char[] password)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   @Override
   public DigestMD5SASLBindRequest setRealm(String realm)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
 
+
+
   @Override
   public DigestMD5SASLBindRequest setServerAuth(boolean serverAuth)
-      throws UnsupportedOperationException {
+  {
     throw new UnsupportedOperationException();
   }
 }

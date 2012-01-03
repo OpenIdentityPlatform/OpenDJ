@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -48,8 +49,7 @@ public interface GenericIntermediateResponse extends IntermediateResponse
   /**
    * {@inheritDoc}
    */
-  GenericIntermediateResponse addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  GenericIntermediateResponse addControl(Control control);
 
 
 
@@ -57,7 +57,7 @@ public interface GenericIntermediateResponse extends IntermediateResponse
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 
@@ -100,8 +100,7 @@ public interface GenericIntermediateResponse extends IntermediateResponse
    *           If this intermediate response does not permit the response name
    *           to be set.
    */
-  GenericIntermediateResponse setOID(String oid)
-      throws UnsupportedOperationException;
+  GenericIntermediateResponse setOID(String oid);
 
 
 
@@ -117,7 +116,6 @@ public interface GenericIntermediateResponse extends IntermediateResponse
    *           If this intermediate response does not permit the response value
    *           to be set.
    */
-  GenericIntermediateResponse setValue(ByteString bytes)
-      throws UnsupportedOperationException;
+  GenericIntermediateResponse setValue(ByteString bytes);
 
 }

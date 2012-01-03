@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -48,7 +49,7 @@ final class CompareResultImpl extends AbstractResultImpl<CompareResult>
    * @throws NullPointerException
    *           If {@code resultCode} was {@code null}.
    */
-  CompareResultImpl(final ResultCode resultCode) throws NullPointerException
+  CompareResultImpl(final ResultCode resultCode)
   {
     super(resultCode);
   }
@@ -65,7 +66,6 @@ final class CompareResultImpl extends AbstractResultImpl<CompareResult>
    *           If {@code compareResult} was {@code null} .
    */
   CompareResultImpl(final CompareResult compareResult)
-      throws NullPointerException
   {
     super(compareResult);
   }

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -56,7 +57,6 @@ final class UnbindRequestImpl extends AbstractRequestImpl<UnbindRequest>
    *           If {@code unbindRequest} was {@code null} .
    */
   UnbindRequestImpl(final UnbindRequest unbindRequest)
-      throws NullPointerException
   {
     super(unbindRequest);
   }

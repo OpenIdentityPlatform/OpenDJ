@@ -23,11 +23,16 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
 
+
+
 import org.forgerock.opendj.ldap.ByteString;
+
+
 
 /**
  * Unmodifiable Generic extended result implementation.
@@ -36,20 +41,24 @@ class UnmodifiableGenericIntermediateResponseImpl extends
     AbstractUnmodifiableIntermediateResponseImpl<GenericIntermediateResponse>
     implements GenericIntermediateResponse
 {
-  UnmodifiableGenericIntermediateResponseImpl(
-      GenericIntermediateResponse impl) {
+  UnmodifiableGenericIntermediateResponseImpl(GenericIntermediateResponse impl)
+  {
     super(impl);
   }
 
+
+
   @Override
   public GenericIntermediateResponse setOID(String oid)
-      throws UnsupportedOperationException {
+  {
     throw new UnsupportedOperationException();
   }
 
+
+
   @Override
   public GenericIntermediateResponse setValue(ByteString bytes)
-      throws UnsupportedOperationException {
+  {
     throw new UnsupportedOperationException();
   }
 }

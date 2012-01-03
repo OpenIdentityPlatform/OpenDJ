@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package com.forgerock.opendj.ldap.extensions;
@@ -62,7 +63,6 @@ public final class GetConnectionIDExtendedResult extends
    */
   public static GetConnectionIDExtendedResult newResult(
       final ResultCode resultCode, final int connectionID)
-      throws NullPointerException
   {
     Validator.ensureNotNull(resultCode);
     return new GetConnectionIDExtendedResult(resultCode, connectionID);

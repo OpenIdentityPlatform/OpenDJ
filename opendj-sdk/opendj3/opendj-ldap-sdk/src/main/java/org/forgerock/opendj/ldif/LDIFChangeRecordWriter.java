@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
@@ -270,7 +271,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements
    * {@inheritDoc}
    */
   public LDIFChangeRecordWriter writeChangeRecord(final AddRequest change)
-      throws IOException, NullPointerException
+      throws IOException
   {
     Validator.ensureNotNull(change);
 
@@ -311,7 +312,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements
    * {@inheritDoc}
    */
   public LDIFChangeRecordWriter writeChangeRecord(final ChangeRecord change)
-      throws IOException, NullPointerException
+      throws IOException
   {
     Validator.ensureNotNull(change);
 
@@ -339,7 +340,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements
    * {@inheritDoc}
    */
   public LDIFChangeRecordWriter writeChangeRecord(final DeleteRequest change)
-      throws IOException, NullPointerException
+      throws IOException
   {
     Validator.ensureNotNull(change);
 
@@ -365,7 +366,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements
    * {@inheritDoc}
    */
   public LDIFChangeRecordWriter writeChangeRecord(final ModifyDNRequest change)
-      throws IOException, NullPointerException
+      throws IOException
   {
     Validator.ensureNotNull(change);
 
@@ -409,7 +410,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements
    * {@inheritDoc}
    */
   public LDIFChangeRecordWriter writeChangeRecord(final ModifyRequest change)
-      throws IOException, NullPointerException
+      throws IOException
   {
     Validator.ensureNotNull(change);
 
@@ -462,7 +463,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements
    * {@inheritDoc}
    */
   public LDIFChangeRecordWriter writeComment(final CharSequence comment)
-      throws IOException, NullPointerException
+      throws IOException
   {
     writeComment0(comment);
     return this;

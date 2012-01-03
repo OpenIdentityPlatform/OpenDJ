@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -31,7 +32,7 @@ package org.forgerock.opendj.ldap.requests;
 
 import java.util.List;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.i18n.*;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.ErrorResultException;
@@ -71,8 +72,7 @@ public interface ExternalSASLBindRequest extends SASLBindRequest
   /**
    * {@inheritDoc}
    */
-  ExternalSASLBindRequest addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  ExternalSASLBindRequest addControl(Control control);
 
 
 
@@ -111,7 +111,7 @@ public interface ExternalSASLBindRequest extends SASLBindRequest
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 
@@ -157,7 +157,5 @@ public interface ExternalSASLBindRequest extends SASLBindRequest
    *           If {@code authorizationID} was non-empty and did not contain a
    *           valid authorization ID type.
    */
-  ExternalSASLBindRequest setAuthorizationID(String authorizationID)
-      throws UnsupportedOperationException, LocalizedIllegalArgumentException;
-
+  ExternalSASLBindRequest setAuthorizationID(String authorizationID);
 }

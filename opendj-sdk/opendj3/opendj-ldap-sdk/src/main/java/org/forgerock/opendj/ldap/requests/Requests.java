@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -93,7 +93,6 @@ public final class Requests
    *           If {@code name} was {@code null}.
    */
   public static AddRequest newAddRequest(final DN name)
-      throws NullPointerException
   {
     final Entry entry = new LinkedHashMapEntry().setName(name);
     return new AddRequestImpl(entry);
@@ -114,7 +113,6 @@ public final class Requests
    *           If {@code entry} was {@code null} .
    */
   public static AddRequest newAddRequest(final Entry entry)
-      throws NullPointerException
   {
     Validator.ensureNotNull(entry);
     return new AddRequestImpl(entry);
@@ -135,7 +133,6 @@ public final class Requests
    *           If {@code name} was {@code null}.
    */
   public static AddRequest newAddRequest(final String name)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     final Entry entry = new LinkedHashMapEntry().setName(name);
     return new AddRequestImpl(entry);
@@ -158,7 +155,6 @@ public final class Requests
    *           If {@code ldifLines} was {@code null} .
    */
   public static AddRequest newAddRequest(final String... ldifLines)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     // LDIF change record reader is tolerant to missing change types.
     final ChangeRecord record = LDIFChangeRecordReader
@@ -190,7 +186,7 @@ public final class Requests
    *           If {@code traceString} was {@code null}.
    */
   public static AnonymousSASLBindRequest newAnonymousSASLBindRequest(
-      final String traceString) throws NullPointerException
+      final String traceString)
   {
     return new AnonymousSASLBindRequestImpl(traceString);
   }
@@ -227,7 +223,6 @@ public final class Requests
    *           If {@code ldifLines} was {@code null} .
    */
   public static ChangeRecord newChangeRecord(final String... ldifLines)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     // LDIF change record reader is tolerant to missing change types.
     return LDIFChangeRecordReader.valueOfLDIFChangeRecord(ldifLines);
@@ -252,7 +247,7 @@ public final class Requests
    */
   public static CompareRequest newCompareRequest(final DN name,
       final AttributeDescription attributeDescription,
-      final ByteString assertionValue) throws NullPointerException
+      final ByteString assertionValue)
   {
     Validator.ensureNotNull(name, attributeDescription, assertionValue);
     return new CompareRequestImpl(name, attributeDescription, assertionValue);
@@ -283,7 +278,6 @@ public final class Requests
    */
   public static CompareRequest newCompareRequest(final String name,
       final String attributeDescription, final Object assertionValue)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(name, attributeDescription, assertionValue);
     return new CompareRequestImpl(DN.valueOf(name),
@@ -310,7 +304,6 @@ public final class Requests
    */
   public static CRAMMD5SASLBindRequest newCRAMMD5SASLBindRequest(
       final String authenticationID, final byte[] password)
-      throws NullPointerException
   {
     return new CRAMMD5SASLBindRequestImpl(authenticationID, password);
   }
@@ -335,7 +328,6 @@ public final class Requests
    */
   public static CRAMMD5SASLBindRequest newCRAMMD5SASLBindRequest(
       final String authenticationID, final char[] password)
-      throws NullPointerException
   {
     return new CRAMMD5SASLBindRequestImpl(authenticationID, getBytes(password));
   }
@@ -352,7 +344,6 @@ public final class Requests
    *           If {@code name} was {@code null}.
    */
   public static DeleteRequest newDeleteRequest(final DN name)
-      throws NullPointerException
   {
     Validator.ensureNotNull(name);
     return new DeleteRequestImpl(name);
@@ -373,7 +364,6 @@ public final class Requests
    *           If {@code name} was {@code null}.
    */
   public static DeleteRequest newDeleteRequest(final String name)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(name);
     return new DeleteRequestImpl(DN.valueOf(name));
@@ -398,7 +388,6 @@ public final class Requests
    */
   public static DigestMD5SASLBindRequest newDigestMD5SASLBindRequest(
       final String authenticationID, final byte[] password)
-      throws NullPointerException
   {
     return new DigestMD5SASLBindRequestImpl(authenticationID, password);
   }
@@ -423,7 +412,6 @@ public final class Requests
    */
   public static DigestMD5SASLBindRequest newDigestMD5SASLBindRequest(
       final String authenticationID, final char[] password)
-      throws NullPointerException
   {
     return new DigestMD5SASLBindRequestImpl(authenticationID,
         getBytes(password));
@@ -459,7 +447,6 @@ public final class Requests
    */
   public static GenericBindRequest newGenericBindRequest(
       final byte authenticationType, final byte[] authenticationValue)
-      throws NullPointerException
   {
     Validator.ensureNotNull(authenticationValue);
     return new GenericBindRequestImpl("", authenticationType,
@@ -491,7 +478,6 @@ public final class Requests
    */
   public static GenericBindRequest newGenericBindRequest(final String name,
       final byte authenticationType, final byte[] authenticationValue)
-      throws NullPointerException
   {
     Validator.ensureNotNull(name, authenticationValue);
     return new GenericBindRequestImpl(name, authenticationType,
@@ -512,7 +498,7 @@ public final class Requests
    *           If {@code requestName} was {@code null}.
    */
   public static GenericExtendedRequest newGenericExtendedRequest(
-      final String requestName) throws NullPointerException
+      final String requestName)
   {
     Validator.ensureNotNull(requestName);
     return new GenericExtendedRequestImpl(requestName, null);
@@ -536,7 +522,6 @@ public final class Requests
    */
   public static GenericExtendedRequest newGenericExtendedRequest(
       final String requestName, final ByteString requestValue)
-      throws NullPointerException
   {
     Validator.ensureNotNull(requestName);
     return new GenericExtendedRequestImpl(requestName, requestValue);
@@ -561,7 +546,6 @@ public final class Requests
    */
   public static GSSAPISASLBindRequest newGSSAPISASLBindRequest(
       final String authenticationID, final byte[] password)
-      throws NullPointerException
   {
     return new GSSAPISASLBindRequestImpl(authenticationID, password);
   }
@@ -586,7 +570,6 @@ public final class Requests
    */
   public static GSSAPISASLBindRequest newGSSAPISASLBindRequest(
       final String authenticationID, final char[] password)
-      throws NullPointerException
   {
     return new GSSAPISASLBindRequestImpl(authenticationID, getBytes(password));
   }
@@ -604,7 +587,7 @@ public final class Requests
    *           If {@code subject} was {@code null}.
    */
   public static GSSAPISASLBindRequest newGSSAPISASLBindRequest(
-      final Subject subject) throws NullPointerException
+      final Subject subject)
   {
     return new GSSAPISASLBindRequestImpl(subject);
   }
@@ -624,7 +607,7 @@ public final class Requests
    *           If {@code name} or {@code newRDN} was {@code null}.
    */
   public static ModifyDNRequest newModifyDNRequest(final DN name,
-      final RDN newRDN) throws NullPointerException
+      final RDN newRDN)
   {
     Validator.ensureNotNull(name, newRDN);
     return new ModifyDNRequestImpl(name, newRDN);
@@ -648,8 +631,7 @@ public final class Requests
    *           If {@code name} or {@code newRDN} was {@code null}.
    */
   public static ModifyDNRequest newModifyDNRequest(final String name,
-      final String newRDN) throws LocalizedIllegalArgumentException,
-      NullPointerException
+      final String newRDN)
   {
     Validator.ensureNotNull(name, newRDN);
     return new ModifyDNRequestImpl(DN.valueOf(name), RDN.valueOf(newRDN));
@@ -667,7 +649,6 @@ public final class Requests
    *           If {@code name} was {@code null}.
    */
   public static ModifyRequest newModifyRequest(final DN name)
-      throws NullPointerException
   {
     Validator.ensureNotNull(name);
     return new ModifyRequestImpl(name);
@@ -704,7 +685,7 @@ public final class Requests
    * @see Entries#diffEntries(Entry, Entry)
    */
   public static final ModifyRequest newModifyRequest(Entry fromEntry,
-      Entry toEntry) throws NullPointerException
+      Entry toEntry)
   {
     return Entries.diffEntries(fromEntry, toEntry);
   }
@@ -724,7 +705,6 @@ public final class Requests
    *           If {@code name} was {@code null}.
    */
   public static ModifyRequest newModifyRequest(final String name)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(name);
     return new ModifyRequestImpl(DN.valueOf(name));
@@ -746,7 +726,6 @@ public final class Requests
    *           If {@code ldifLines} was {@code null} .
    */
   public static ModifyRequest newModifyRequest(final String... ldifLines)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     // LDIF change record reader is tolerant to missing change types.
     final ChangeRecord record = LDIFChangeRecordReader
@@ -797,7 +776,6 @@ public final class Requests
    */
   public static PlainSASLBindRequest newPlainSASLBindRequest(
       final String authenticationID, final byte[] password)
-      throws NullPointerException
   {
     return new PlainSASLBindRequestImpl(authenticationID, password);
   }
@@ -822,7 +800,6 @@ public final class Requests
    */
   public static PlainSASLBindRequest newPlainSASLBindRequest(
       final String authenticationID, final char[] password)
-      throws NullPointerException
   {
     return new PlainSASLBindRequestImpl(authenticationID, getBytes(password));
   }
@@ -850,7 +827,7 @@ public final class Requests
    */
   public static SearchRequest newSearchRequest(final DN name,
       final SearchScope scope, final Filter filter,
-      final String... attributeDescriptions) throws NullPointerException
+      final String... attributeDescriptions)
   {
     Validator.ensureNotNull(name, scope, filter);
     final SearchRequest request = new SearchRequestImpl(name, scope, filter);
@@ -889,7 +866,6 @@ public final class Requests
   public static SearchRequest newSearchRequest(final String name,
       final SearchScope scope, final String filter,
       final String... attributeDescriptions)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(name, scope, filter);
     final SearchRequest request = new SearchRequestImpl(DN.valueOf(name),
@@ -937,7 +913,7 @@ public final class Requests
    *           If {@code name} or {@code password} was {@code null}.
    */
   public static SimpleBindRequest newSimpleBindRequest(final String name,
-      final byte[] password) throws NullPointerException
+      final byte[] password)
   {
     Validator.ensureNotNull(name, password);
     return new SimpleBindRequestImpl(name, password);
@@ -967,7 +943,7 @@ public final class Requests
    *           If {@code name} or {@code password} was {@code null}.
    */
   public static SimpleBindRequest newSimpleBindRequest(final String name,
-      final char[] password) throws NullPointerException
+      final char[] password)
   {
     Validator.ensureNotNull(name, password);
     return new SimpleBindRequestImpl(name, getBytes(password));
@@ -986,7 +962,7 @@ public final class Requests
    *           If {@code sslContext} was {@code null}.
    */
   public static StartTLSExtendedRequest newStartTLSExtendedRequest(
-      final SSLContext sslContext) throws NullPointerException
+      final SSLContext sslContext)
   {
     return new StartTLSExtendedRequestImpl(sslContext);
   }
@@ -1027,7 +1003,7 @@ public final class Requests
    *           If {@code request} was {@code null}
    */
   public static AbandonRequest unmodifiableAbandonRequest(
-      final AbandonRequest request) throws NullPointerException
+      final AbandonRequest request)
   {
     if (request instanceof UnmodifiableAbandonRequestImpl)
     {
@@ -1048,7 +1024,6 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static AddRequest unmodifiableAddRequest(final AddRequest request)
-      throws NullPointerException
   {
     if (request instanceof UnmodifiableAddRequestImpl)
     {
@@ -1070,7 +1045,7 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static AnonymousSASLBindRequest unmodifiableAnonymousSASLBindRequest(
-      final AnonymousSASLBindRequest request) throws NullPointerException
+      final AnonymousSASLBindRequest request)
   {
     if (request instanceof UnmodifiableAnonymousSASLBindRequestImpl)
     {
@@ -1091,7 +1066,7 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static CancelExtendedRequest unmodifiableCancelExtendedRequest(
-      final CancelExtendedRequest request) throws NullPointerException
+      final CancelExtendedRequest request)
   {
     if (request instanceof UnmodifiableCancelExtendedRequestImpl)
     {
@@ -1112,7 +1087,7 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static CompareRequest unmodifiableCompareRequest(
-      final CompareRequest request) throws NullPointerException
+      final CompareRequest request)
   {
     if (request instanceof UnmodifiableCompareRequestImpl)
     {
@@ -1136,7 +1111,7 @@ public final class Requests
    *           If {@code request} was {@code null}.
    */
   public static CRAMMD5SASLBindRequest unmodifiableCRAMMD5SASLBindRequest(
-      final CRAMMD5SASLBindRequest request) throws NullPointerException
+      final CRAMMD5SASLBindRequest request)
   {
     if (request instanceof UnmodifiableCRAMMD5SASLBindRequestImpl)
     {
@@ -1157,7 +1132,7 @@ public final class Requests
    *           If {@code request} was {@code null}.
    */
   public static DeleteRequest unmodifiableDeleteRequest(
-      final DeleteRequest request) throws NullPointerException
+      final DeleteRequest request)
   {
     if (request instanceof UnmodifiableDeleteRequestImpl)
     {
@@ -1182,7 +1157,7 @@ public final class Requests
    *           If {@code request} was {@code null}.
    */
   public static DigestMD5SASLBindRequest unmodifiableDigestMD5SASLBindRequest(
-      final DigestMD5SASLBindRequest request) throws NullPointerException
+      final DigestMD5SASLBindRequest request)
   {
     if (request instanceof UnmodifiableDigestMD5SASLBindRequestImpl)
     {
@@ -1203,7 +1178,7 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static ExternalSASLBindRequest unmodifiableExternalSASLBindRequest(
-      final ExternalSASLBindRequest request) throws NullPointerException
+      final ExternalSASLBindRequest request)
   {
     if (request instanceof UnmodifiableExternalSASLBindRequestImpl)
     {
@@ -1227,7 +1202,7 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static GenericBindRequest unmodifiableGenericBindRequest(
-      final GenericBindRequest request) throws NullPointerException
+      final GenericBindRequest request)
   {
     if (request instanceof UnmodifiableGenericBindRequestImpl)
     {
@@ -1248,7 +1223,7 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static GenericExtendedRequest unmodifiableGenericExtendedRequest(
-      GenericExtendedRequest request) throws NullPointerException
+      GenericExtendedRequest request)
   {
     if (request instanceof UnmodifiableGenericExtendedRequestImpl)
     {
@@ -1272,7 +1247,7 @@ public final class Requests
    *           If {@code request} was {@code null}.
    */
   public static GSSAPISASLBindRequest unmodifiableGSSAPISASLBindRequest(
-      final GSSAPISASLBindRequest request) throws NullPointerException
+      final GSSAPISASLBindRequest request)
   {
     if (request instanceof UnmodifiableGSSAPISASLBindRequestImpl)
     {
@@ -1293,7 +1268,7 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static ModifyDNRequest unmodifiableModifyDNRequest(
-      final ModifyDNRequest request) throws NullPointerException
+      final ModifyDNRequest request)
   {
     if (request instanceof UnmodifiableModifyDNRequestImpl)
     {
@@ -1314,7 +1289,7 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static ModifyRequest unmodifiableModifyRequest(
-      final ModifyRequest request) throws NullPointerException
+      final ModifyRequest request)
   {
     if (request instanceof UnmodifiableModifyRequestImpl)
     {
@@ -1336,7 +1311,7 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static PasswordModifyExtendedRequest unmodifiablePasswordModifyExtendedRequest(
-      final PasswordModifyExtendedRequest request) throws NullPointerException
+      final PasswordModifyExtendedRequest request)
   {
     if (request instanceof UnmodifiablePasswordModifyExtendedRequestImpl)
     {
@@ -1360,7 +1335,7 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static PlainSASLBindRequest unmodifiablePlainSASLBindRequest(
-      final PlainSASLBindRequest request) throws NullPointerException
+      final PlainSASLBindRequest request)
   {
     if (request instanceof UnmodifiablePlainSASLBindRequestImpl)
     {
@@ -1381,7 +1356,7 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static SearchRequest unmodifiableSearchRequest(
-      final SearchRequest request) throws NullPointerException
+      final SearchRequest request)
   {
     if (request instanceof UnmodifiableSearchRequestImpl)
     {
@@ -1405,7 +1380,7 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static SimpleBindRequest unmodifiableSimpleBindRequest(
-      final SimpleBindRequest request) throws NullPointerException
+      final SimpleBindRequest request)
   {
     if (request instanceof UnmodifiableSimpleBindRequestImpl)
     {
@@ -1426,7 +1401,7 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static StartTLSExtendedRequest unmodifiableStartTLSExtendedRequest(
-      final StartTLSExtendedRequest request) throws NullPointerException
+      final StartTLSExtendedRequest request)
   {
     if (request instanceof UnmodifiableStartTLSExtendedRequestImpl)
     {
@@ -1447,7 +1422,7 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static UnbindRequest unmodifiableUnbindRequest(
-      final UnbindRequest request) throws NullPointerException
+      final UnbindRequest request)
   {
     if (request instanceof UnmodifiableUnbindRequestImpl)
     {
@@ -1469,7 +1444,7 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static WhoAmIExtendedRequest unmodifiableWhoAmIExtendedRequest(
-      final WhoAmIExtendedRequest request) throws NullPointerException
+      final WhoAmIExtendedRequest request)
   {
     if (request instanceof UnmodifiableWhoAmIExtendedRequestImpl)
     {
@@ -1491,7 +1466,6 @@ public final class Requests
    *           If {@code request} was {@code null}
    */
   public static AbandonRequest copyOfAbandonRequest(final AbandonRequest request)
-      throws NullPointerException
   {
     return new AbandonRequestImpl(request);
   }
@@ -1508,7 +1482,6 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static AddRequest copyOfAddRequest(final AddRequest request)
-      throws NullPointerException
   {
     return new AddRequestImpl(request);
   }
@@ -1526,7 +1499,7 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static AnonymousSASLBindRequest copyOfAnonymousSASLBindRequest(
-      final AnonymousSASLBindRequest request) throws NullPointerException
+      final AnonymousSASLBindRequest request)
   {
     return new AnonymousSASLBindRequestImpl(request);
   }
@@ -1544,7 +1517,7 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static CancelExtendedRequest copyOfCancelExtendedRequest(
-      final CancelExtendedRequest request) throws NullPointerException
+      final CancelExtendedRequest request)
   {
     return new CancelExtendedRequestImpl(request);
   }
@@ -1562,7 +1535,6 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static CompareRequest copyOfCompareRequest(final CompareRequest request)
-      throws NullPointerException
   {
     return new CompareRequestImpl(request);
   }
@@ -1580,7 +1552,7 @@ public final class Requests
    *           If {@code request} was {@code null}.
    */
   public static CRAMMD5SASLBindRequest copyOfCRAMMD5SASLBindRequest(
-      final CRAMMD5SASLBindRequest request) throws NullPointerException
+      final CRAMMD5SASLBindRequest request)
   {
     return new CRAMMD5SASLBindRequestImpl(request);
   }
@@ -1597,7 +1569,6 @@ public final class Requests
    *           If {@code request} was {@code null}.
    */
   public static DeleteRequest copyOfDeleteRequest(final DeleteRequest request)
-      throws NullPointerException
   {
     return new DeleteRequestImpl(request);
   }
@@ -1615,7 +1586,7 @@ public final class Requests
    *           If {@code request} was {@code null}.
    */
   public static DigestMD5SASLBindRequest copyOfDigestMD5SASLBindRequest(
-      final DigestMD5SASLBindRequest request) throws NullPointerException
+      final DigestMD5SASLBindRequest request)
   {
     return new DigestMD5SASLBindRequestImpl(request);
   }
@@ -1633,7 +1604,7 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static ExternalSASLBindRequest copyOfExternalSASLBindRequest(
-      final ExternalSASLBindRequest request) throws NullPointerException
+      final ExternalSASLBindRequest request)
   {
     return new ExternalSASLBindRequestImpl(request);
   }
@@ -1651,7 +1622,7 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static GenericBindRequest copyOfGenericBindRequest(
-      final GenericBindRequest request) throws NullPointerException
+      final GenericBindRequest request)
   {
     return new GenericBindRequestImpl(request);
   }
@@ -1669,7 +1640,7 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static GenericExtendedRequest copyOfGenericExtendedRequest(
-      GenericExtendedRequest request) throws NullPointerException
+      GenericExtendedRequest request)
   {
     return new GenericExtendedRequestImpl(request);
   }
@@ -1687,7 +1658,7 @@ public final class Requests
    *           If {@code request} was {@code null}.
    */
   public static GSSAPISASLBindRequest copyOfGSSAPISASLBindRequest(
-      final GSSAPISASLBindRequest request) throws NullPointerException
+      final GSSAPISASLBindRequest request)
   {
     return new GSSAPISASLBindRequestImpl(request);
   }
@@ -1705,7 +1676,7 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static ModifyDNRequest copyOfModifyDNRequest(
-      final ModifyDNRequest request) throws NullPointerException
+      final ModifyDNRequest request)
   {
     return new ModifyDNRequestImpl(request);
   }
@@ -1722,7 +1693,6 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static ModifyRequest copyOfModifyRequest(final ModifyRequest request)
-      throws NullPointerException
   {
     return new ModifyRequestImpl(request);
   }
@@ -1740,7 +1710,7 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static PasswordModifyExtendedRequest copyOfPasswordModifyExtendedRequest(
-      final PasswordModifyExtendedRequest request) throws NullPointerException
+      final PasswordModifyExtendedRequest request)
   {
     return new PasswordModifyExtendedRequestImpl(request);
   }
@@ -1758,7 +1728,7 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static PlainSASLBindRequest copyOfPlainSASLBindRequest(
-      final PlainSASLBindRequest request) throws NullPointerException
+      final PlainSASLBindRequest request)
   {
     return new PlainSASLBindRequestImpl(request);
   }
@@ -1775,7 +1745,6 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static SearchRequest copyOfSearchRequest(final SearchRequest request)
-      throws NullPointerException
   {
     return new SearchRequestImpl(request);
   }
@@ -1793,7 +1762,7 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static SimpleBindRequest copyOfSimpleBindRequest(
-      final SimpleBindRequest request) throws NullPointerException
+      final SimpleBindRequest request)
   {
     return new SimpleBindRequestImpl(request);
   }
@@ -1811,7 +1780,7 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static StartTLSExtendedRequest copyOfStartTLSExtendedRequest(
-      final StartTLSExtendedRequest request) throws NullPointerException
+      final StartTLSExtendedRequest request)
   {
     return new StartTLSExtendedRequestImpl(request);
   }
@@ -1828,7 +1797,6 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static UnbindRequest copyOfUnbindRequest(final UnbindRequest request)
-      throws NullPointerException
   {
     return new UnbindRequestImpl(request);
   }
@@ -1846,7 +1814,7 @@ public final class Requests
    *           If {@code request} was {@code null} .
    */
   public static WhoAmIExtendedRequest copyOfWhoAmIExtendedRequest(
-      final WhoAmIExtendedRequest request) throws NullPointerException
+      final WhoAmIExtendedRequest request)
   {
     return new WhoAmIExtendedRequestImpl(request);
   }

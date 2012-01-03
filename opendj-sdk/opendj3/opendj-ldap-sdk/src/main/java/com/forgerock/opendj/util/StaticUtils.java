@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package com.forgerock.opendj.util;
@@ -1254,7 +1254,6 @@ public final class StaticUtils
    *           If {@code date} was {@code null}.
    */
   public static String formatAsGeneralizedTime(final Date date)
-      throws NullPointerException
   {
     return formatAsGeneralizedTime(date.getTime());
   }
@@ -1273,7 +1272,6 @@ public final class StaticUtils
    *           If {@code date} was invalid.
    */
   public static String formatAsGeneralizedTime(final long date)
-      throws IllegalArgumentException
   {
     // Generalized time has the format yyyyMMddHHmmss.SSS'Z'
 
@@ -1807,7 +1805,6 @@ public final class StaticUtils
    *           If {@code c} or {@code separator} were {@code null}.
    */
   public static String joinCollection(Collection<?> c, String separator)
-      throws NullPointerException
   {
     Validator.ensureNotNull(c, separator);
 

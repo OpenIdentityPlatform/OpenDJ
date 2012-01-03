@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -39,7 +39,6 @@ import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.requests.*;
 import org.forgerock.opendj.ldap.responses.*;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
@@ -297,8 +296,7 @@ public abstract class AbstractConnection implements Connection
    */
   @Override
   public Result add(final Entry entry) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException
+      InterruptedException
   {
     return add(Requests.newAddRequest(entry));
   }
@@ -310,9 +308,7 @@ public abstract class AbstractConnection implements Connection
    */
   @Override
   public Result add(final String... ldifLines) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      LocalizedIllegalArgumentException, IllegalStateException,
-      NullPointerException
+      InterruptedException
   {
     return add(Requests.newAddRequest(ldifLines));
   }
@@ -324,9 +320,7 @@ public abstract class AbstractConnection implements Connection
    */
   @Override
   public BindResult bind(final String name, final char[] password)
-      throws ErrorResultException, InterruptedException,
-      LocalizedIllegalArgumentException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException
+      throws ErrorResultException, InterruptedException
   {
     return bind(Requests.newSimpleBindRequest(name, password));
   }
@@ -350,9 +344,7 @@ public abstract class AbstractConnection implements Connection
   @Override
   public CompareResult compare(final String name,
       final String attributeDescription, final String assertionValue)
-      throws ErrorResultException, InterruptedException,
-      LocalizedIllegalArgumentException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException
+      throws ErrorResultException, InterruptedException
   {
     return compare(Requests.newCompareRequest(name, attributeDescription,
         assertionValue));
@@ -365,9 +357,7 @@ public abstract class AbstractConnection implements Connection
    */
   @Override
   public Result delete(final String name) throws ErrorResultException,
-      InterruptedException, LocalizedIllegalArgumentException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
+      InterruptedException
   {
     return delete(Requests.newDeleteRequest(name));
   }
@@ -380,8 +370,7 @@ public abstract class AbstractConnection implements Connection
   @Override
   public <R extends ExtendedResult> R extendedRequest(
       final ExtendedRequest<R> request) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException
+      InterruptedException
   {
     return extendedRequest(request, null);
   }
@@ -394,8 +383,7 @@ public abstract class AbstractConnection implements Connection
   @Override
   public GenericExtendedResult extendedRequest(final String requestName,
       final ByteString requestValue) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException
+      InterruptedException
   {
     return extendedRequest(Requests.newGenericExtendedRequest(requestName,
         requestValue));
@@ -408,9 +396,7 @@ public abstract class AbstractConnection implements Connection
    */
   @Override
   public Result modify(final String... ldifLines) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      LocalizedIllegalArgumentException, IllegalStateException,
-      NullPointerException
+      InterruptedException
   {
     return modify(Requests.newModifyRequest(ldifLines));
   }
@@ -422,9 +408,7 @@ public abstract class AbstractConnection implements Connection
    */
   @Override
   public Result modifyDN(final String name, final String newRDN)
-      throws ErrorResultException, InterruptedException,
-      LocalizedIllegalArgumentException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException
+      throws ErrorResultException, InterruptedException
   {
     return modifyDN(Requests.newModifyDNRequest(name, newRDN));
   }
@@ -437,8 +421,7 @@ public abstract class AbstractConnection implements Connection
   @Override
   public SearchResultEntry readEntry(final DN baseObject,
       final String... attributeDescriptions) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException
+      InterruptedException
   {
     final SearchRequest request = Requests.newSearchRequest(baseObject,
         SearchScope.BASE_OBJECT, Filter.getObjectClassPresentFilter(),
@@ -454,9 +437,7 @@ public abstract class AbstractConnection implements Connection
   @Override
   public SearchResultEntry readEntry(final String baseObject,
       final String... attributeDescriptions) throws ErrorResultException,
-      InterruptedException, LocalizedIllegalArgumentException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
+      InterruptedException
   {
     return readEntry(DN.valueOf(baseObject));
   }
@@ -470,8 +451,6 @@ public abstract class AbstractConnection implements Connection
   public FutureResult<SearchResultEntry> readEntryAsync(final DN name,
       final Collection<String> attributeDescriptions,
       final ResultHandler<? super SearchResultEntry> handler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
   {
     final SearchRequest request = Requests.newSearchRequest(name,
         SearchScope.BASE_OBJECT, Filter.getObjectClassPresentFilter());
@@ -489,8 +468,6 @@ public abstract class AbstractConnection implements Connection
    */
   @Override
   public ConnectionEntryReader search(final SearchRequest request)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
   {
     return new ConnectionEntryReader(this, request);
   }
@@ -503,9 +480,7 @@ public abstract class AbstractConnection implements Connection
   @Override
   public Result search(final SearchRequest request,
       final Collection<? super SearchResultEntry> entries)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
+      throws ErrorResultException, InterruptedException
   {
     return search(request, entries, null);
   }
@@ -519,9 +494,7 @@ public abstract class AbstractConnection implements Connection
   public Result search(final SearchRequest request,
       final Collection<? super SearchResultEntry> entries,
       final Collection<? super SearchResultReference> references)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
+      throws ErrorResultException, InterruptedException
   {
     Validator.ensureNotNull(request, entries);
 
@@ -583,8 +556,6 @@ public abstract class AbstractConnection implements Connection
   public ConnectionEntryReader search(final String baseObject,
       final SearchScope scope, final String filter,
       final String... attributeDescriptions)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
   {
     final SearchRequest request = Requests.newSearchRequest(baseObject, scope,
         filter, attributeDescriptions);
@@ -598,9 +569,7 @@ public abstract class AbstractConnection implements Connection
    */
   @Override
   public SearchResultEntry searchSingleEntry(final SearchRequest request)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
+      throws ErrorResultException, InterruptedException
   {
     final SingleEntryHandler handler = new SingleEntryHandler();
     search(request, handler);
@@ -641,9 +610,7 @@ public abstract class AbstractConnection implements Connection
   public SearchResultEntry searchSingleEntry(final String baseObject,
       final SearchScope scope, final String filter,
       final String... attributeDescriptions) throws ErrorResultException,
-      InterruptedException, LocalizedIllegalArgumentException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
+      InterruptedException
   {
     final SearchRequest request = Requests.newSearchRequest(baseObject, scope,
         filter, attributeDescriptions);
@@ -659,8 +626,6 @@ public abstract class AbstractConnection implements Connection
   public FutureResult<SearchResultEntry> searchSingleEntryAsync(
       final SearchRequest request,
       final ResultHandler<? super SearchResultEntry> handler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
   {
     final SingleEntryFuture innerFuture = new SingleEntryFuture(handler);
     final FutureResult<Result> future = searchAsync(request, null, innerFuture);

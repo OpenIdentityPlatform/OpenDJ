@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -35,7 +35,7 @@ import java.util.Map;
 
 import javax.security.auth.Subject;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.i18n.*;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.ErrorResultException;
@@ -108,8 +108,7 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
    * @throws NullPointerException
    *           If {@code name} or {@code value} was {@code null}.
    */
-  GSSAPISASLBindRequest addAdditionalAuthParam(String name, String value)
-      throws UnsupportedOperationException, NullPointerException;
+  GSSAPISASLBindRequest addAdditionalAuthParam(String name, String value);
 
 
 
@@ -129,8 +128,7 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
    * {@inheritDoc}
    */
   @Override
-  GSSAPISASLBindRequest addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  GSSAPISASLBindRequest addControl(Control control);
 
 
 
@@ -154,8 +152,7 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
    * @see #QOP_AUTH_INT
    * @see #QOP_AUTH_CONF
    */
-  GSSAPISASLBindRequest addQOP(String... qopValues)
-      throws UnsupportedOperationException, NullPointerException;
+  GSSAPISASLBindRequest addQOP(String... qopValues);
 
 
 
@@ -210,7 +207,7 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
    */
   @Override
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 
@@ -357,8 +354,7 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
    * @throws NullPointerException
    *           If {@code authenticationID} was {@code null}.
    */
-  GSSAPISASLBindRequest setAuthenticationID(String authenticationID)
-      throws LocalizedIllegalArgumentException, NullPointerException;
+  GSSAPISASLBindRequest setAuthenticationID(String authenticationID);
 
 
 
@@ -376,8 +372,7 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
    *           If {@code authorizationID} was non-empty and did not contain a
    *           valid authorization ID type.
    */
-  GSSAPISASLBindRequest setAuthorizationID(String authorizationID)
-      throws LocalizedIllegalArgumentException;
+  GSSAPISASLBindRequest setAuthorizationID(String authorizationID);
 
 
 
@@ -395,8 +390,7 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
    * @throws NullPointerException
    *           If {@code address} was {@code null}.
    */
-  GSSAPISASLBindRequest setKDCAddress(String address)
-      throws UnsupportedOperationException, NullPointerException;
+  GSSAPISASLBindRequest setKDCAddress(String address);
 
 
 
@@ -411,8 +405,7 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
    * @throws UnsupportedOperationException
    *           If this bind request does not permit the buffer size to be set.
    */
-  GSSAPISASLBindRequest setMaxReceiveBufferSize(int size)
-      throws UnsupportedOperationException;
+  GSSAPISASLBindRequest setMaxReceiveBufferSize(int size);
 
 
 
@@ -427,8 +420,7 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
    * @throws UnsupportedOperationException
    *           If this bind request does not permit the buffer size to be set.
    */
-  GSSAPISASLBindRequest setMaxSendBufferSize(int size)
-      throws UnsupportedOperationException;
+  GSSAPISASLBindRequest setMaxSendBufferSize(int size);
 
 
 
@@ -450,8 +442,7 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
    * @throws NullPointerException
    *           If {@code password} was {@code null}.
    */
-  GSSAPISASLBindRequest setPassword(byte[] password)
-      throws UnsupportedOperationException, NullPointerException;
+  GSSAPISASLBindRequest setPassword(byte[] password);
 
 
 
@@ -469,8 +460,7 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
    * @throws NullPointerException
    *           If {@code password} was {@code null}.
    */
-  GSSAPISASLBindRequest setPassword(char[] password)
-      throws UnsupportedOperationException, NullPointerException;
+  GSSAPISASLBindRequest setPassword(char[] password);
 
 
 
@@ -488,8 +478,7 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
    * @throws NullPointerException
    *           If {@code realm} was {@code null}.
    */
-  GSSAPISASLBindRequest setRealm(String realm)
-      throws UnsupportedOperationException, NullPointerException;
+  GSSAPISASLBindRequest setRealm(String realm);
 
 
 
@@ -504,8 +493,7 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
    * @throws UnsupportedOperationException
    *           If this bind request does not permit server auth to be set.
    */
-  GSSAPISASLBindRequest setServerAuth(boolean serverAuth)
-      throws UnsupportedOperationException;
+  GSSAPISASLBindRequest setServerAuth(boolean serverAuth);
 
 
 
@@ -524,6 +512,5 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest
    * @throws NullPointerException
    *           If {@code subject} was {@code null}.
    */
-  GSSAPISASLBindRequest setSubject(Subject subject)
-      throws UnsupportedOperationException, NullPointerException;
+  GSSAPISASLBindRequest setSubject(Subject subject);
 }

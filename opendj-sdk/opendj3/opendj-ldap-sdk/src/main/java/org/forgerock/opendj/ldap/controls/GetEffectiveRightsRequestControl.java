@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -219,7 +220,7 @@ public final class GetEffectiveRightsRequestControl implements Control
    */
   public static GetEffectiveRightsRequestControl newControl(
       final boolean isCritical, final DN authorizationName,
-      final Collection<AttributeType> attributes) throws NullPointerException
+      final Collection<AttributeType> attributes)
   {
     Validator.ensureNotNull(attributes);
 
@@ -261,8 +262,7 @@ public final class GetEffectiveRightsRequestControl implements Control
    */
   public static GetEffectiveRightsRequestControl newControl(
       final boolean isCritical, final String authorizationName,
-      final String... attributes) throws UnknownSchemaElementException,
-      LocalizedIllegalArgumentException, NullPointerException
+      final String... attributes)
   {
     Validator.ensureNotNull((Object) attributes);
 

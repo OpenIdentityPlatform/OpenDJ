@@ -23,41 +23,54 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
+
+
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldif.ChangeRecordVisitor;
+
+
 
 /**
  * Unmodifiable delete request implementation.
  */
-final class UnmodifiableDeleteRequestImpl
-    extends AbstractUnmodifiableRequest<DeleteRequest>
-    implements DeleteRequest
+final class UnmodifiableDeleteRequestImpl extends
+    AbstractUnmodifiableRequest<DeleteRequest> implements DeleteRequest
 {
-  UnmodifiableDeleteRequestImpl(DeleteRequest impl) {
+  UnmodifiableDeleteRequestImpl(DeleteRequest impl)
+  {
     super(impl);
   }
 
-  public <R, P> R accept(ChangeRecordVisitor<R, P> v, P p) {
+
+
+  public <R, P> R accept(ChangeRecordVisitor<R, P> v, P p)
+  {
     return v.visitChangeRecord(p, this);
   }
 
-  public DN getName() {
+
+
+  public DN getName()
+  {
     return impl.getName();
   }
 
+
+
   public DeleteRequest setName(DN dn)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
 
+
+
   public DeleteRequest setName(String dn)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
 }

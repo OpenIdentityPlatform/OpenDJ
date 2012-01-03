@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -49,8 +50,7 @@ public interface BindRequest extends Request
   /**
    * {@inheritDoc}
    */
-  BindRequest addControl(Control control) throws UnsupportedOperationException,
-      NullPointerException;
+  BindRequest addControl(Control control);
 
 
 
@@ -86,7 +86,7 @@ public interface BindRequest extends Request
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 

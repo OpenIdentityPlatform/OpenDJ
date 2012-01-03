@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
@@ -31,7 +32,7 @@ package org.forgerock.opendj.ldif;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 
 
@@ -87,5 +88,5 @@ public interface ChangeRecordReader extends Closeable
    * @throws NoSuchElementException
    *           If this reader does not contain any more change records.
    */
-  ChangeRecord readChangeRecord() throws IOException, NoSuchElementException;
+  ChangeRecord readChangeRecord() throws IOException;
 }

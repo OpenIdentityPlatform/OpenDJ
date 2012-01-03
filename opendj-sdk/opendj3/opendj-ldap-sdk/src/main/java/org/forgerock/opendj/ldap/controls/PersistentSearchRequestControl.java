@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -197,7 +198,6 @@ public final class PersistentSearchRequestControl implements Control
       final boolean isCritical, final boolean changesOnly,
       final boolean returnECs,
       final Collection<PersistentSearchChangeType> changeTypes)
-      throws NullPointerException
   {
     Validator.ensureNotNull(changeTypes);
 
@@ -236,7 +236,6 @@ public final class PersistentSearchRequestControl implements Control
   public static PersistentSearchRequestControl newControl(
       final boolean isCritical, final boolean changesOnly,
       final boolean returnECs, final PersistentSearchChangeType... changeTypes)
-      throws NullPointerException
   {
     Validator.ensureNotNull((Object) changeTypes);
 

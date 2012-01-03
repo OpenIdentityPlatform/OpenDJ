@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -56,7 +57,6 @@ public abstract class AbstractExtendedResult<S extends ExtendedResult>
    *           If {@code resultCode} was {@code null}.
    */
   protected AbstractExtendedResult(final ResultCode resultCode)
-      throws NullPointerException
   {
     super(resultCode);
   }
@@ -73,7 +73,6 @@ public abstract class AbstractExtendedResult<S extends ExtendedResult>
    *           If {@code extendedResult} was {@code null} .
    */
   protected AbstractExtendedResult(ExtendedResult extendedResult)
-      throws NullPointerException
   {
     super(extendedResult);
   }

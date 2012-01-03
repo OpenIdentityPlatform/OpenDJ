@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
@@ -74,7 +75,6 @@ public final class ConnectionChangeRecordWriter implements ChangeRecordWriter
    *           If {@code connection} was {@code null}.
    */
   public ConnectionChangeRecordWriter(final Connection connection)
-      throws NullPointerException
   {
     Validator.ensureNotNull(connection);
     this.connection = connection;
@@ -120,8 +120,7 @@ public final class ConnectionChangeRecordWriter implements ChangeRecordWriter
    *           If {@code change} was {@code null}.
    */
   public ConnectionChangeRecordWriter writeChangeRecord(final AddRequest change)
-      throws ErrorResultIOException, InterruptedIOException,
-      NullPointerException
+      throws ErrorResultIOException, InterruptedIOException
   {
     Validator.ensureNotNull(change);
     try
@@ -158,7 +157,7 @@ public final class ConnectionChangeRecordWriter implements ChangeRecordWriter
    */
   public ConnectionChangeRecordWriter writeChangeRecord(
       final ChangeRecord change) throws ErrorResultIOException,
-      InterruptedIOException, NullPointerException
+      InterruptedIOException
   {
     Validator.ensureNotNull(change);
 
@@ -206,7 +205,7 @@ public final class ConnectionChangeRecordWriter implements ChangeRecordWriter
    */
   public ConnectionChangeRecordWriter writeChangeRecord(
       final DeleteRequest change) throws ErrorResultIOException,
-      InterruptedIOException, NullPointerException
+      InterruptedIOException
   {
     Validator.ensureNotNull(change);
     try
@@ -243,7 +242,7 @@ public final class ConnectionChangeRecordWriter implements ChangeRecordWriter
    */
   public ConnectionChangeRecordWriter writeChangeRecord(
       final ModifyDNRequest change) throws ErrorResultIOException,
-      InterruptedIOException, NullPointerException
+      InterruptedIOException
   {
     Validator.ensureNotNull(change);
     try
@@ -280,7 +279,7 @@ public final class ConnectionChangeRecordWriter implements ChangeRecordWriter
    */
   public ConnectionChangeRecordWriter writeChangeRecord(
       final ModifyRequest change) throws ErrorResultIOException,
-      InterruptedIOException, NullPointerException
+      InterruptedIOException
   {
     Validator.ensureNotNull(change);
     try
@@ -311,7 +310,6 @@ public final class ConnectionChangeRecordWriter implements ChangeRecordWriter
    *           If {@code comment} was {@code null}.
    */
   public ConnectionChangeRecordWriter writeComment(final CharSequence comment)
-      throws NullPointerException
   {
     Validator.ensureNotNull(comment);
 

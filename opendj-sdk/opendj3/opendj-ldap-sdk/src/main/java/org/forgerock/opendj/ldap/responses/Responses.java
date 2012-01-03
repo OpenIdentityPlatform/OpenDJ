@@ -23,13 +23,14 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
 
 
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.i18n.*;
 import org.forgerock.opendj.ldap.*;
 
 import com.forgerock.opendj.util.Validator;
@@ -67,7 +68,6 @@ public final class Responses
    *           If {@code resultCode} was {@code null}.
    */
   public static BindResult newBindResult(final ResultCode resultCode)
-      throws NullPointerException
   {
     Validator.ensureNotNull(resultCode);
     return new BindResultImpl(resultCode);
@@ -85,7 +85,6 @@ public final class Responses
    *           If {@code resultCode} was {@code null}.
    */
   public static CompareResult newCompareResult(final ResultCode resultCode)
-      throws NullPointerException
   {
     Validator.ensureNotNull(resultCode);
     return new CompareResultImpl(resultCode);
@@ -103,7 +102,7 @@ public final class Responses
    *           If {@code resultCode} was {@code null}.
    */
   public static GenericExtendedResult newGenericExtendedResult(
-      final ResultCode resultCode) throws NullPointerException
+      final ResultCode resultCode)
   {
     Validator.ensureNotNull(resultCode);
     return new GenericExtendedResultImpl(resultCode);
@@ -156,7 +155,7 @@ public final class Responses
    *           If {@code resultCode} was {@code null}.
    */
   public static PasswordModifyExtendedResult newPasswordModifyExtendedResult(
-      final ResultCode resultCode) throws NullPointerException
+      final ResultCode resultCode)
   {
     Validator.ensureNotNull(resultCode);
     return new PasswordModifyExtendedResultImpl(resultCode);
@@ -174,7 +173,6 @@ public final class Responses
    *           If {@code resultCode} was {@code null}.
    */
   public static Result newResult(final ResultCode resultCode)
-      throws NullPointerException
   {
     Validator.ensureNotNull(resultCode);
     return new ResultImpl(resultCode);
@@ -192,7 +190,6 @@ public final class Responses
    *           If {@code name} was {@code null}.
    */
   public static SearchResultEntry newSearchResultEntry(final DN name)
-      throws NullPointerException
   {
     final Entry entry = new LinkedHashMapEntry().setName(name);
     return new SearchResultEntryImpl(entry);
@@ -214,7 +211,6 @@ public final class Responses
    *           If {@code entry} was {@code null} .
    */
   public static SearchResultEntry newSearchResultEntry(final Entry entry)
-      throws NullPointerException
   {
     Validator.ensureNotNull(entry);
     return new SearchResultEntryImpl(entry);
@@ -235,7 +231,6 @@ public final class Responses
    *           If {@code name} was {@code null}.
    */
   public static SearchResultEntry newSearchResultEntry(final String name)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     final Entry entry = new LinkedHashMapEntry().setName(name);
     return new SearchResultEntryImpl(entry);
@@ -258,8 +253,7 @@ public final class Responses
    *           If {@code ldifLines} was {@code null} .
    */
   public static SearchResultEntry newSearchResultEntry(
-      final String... ldifLines) throws LocalizedIllegalArgumentException,
-      NullPointerException
+      final String... ldifLines)
   {
     return newSearchResultEntry(new LinkedHashMapEntry(ldifLines));
   }
@@ -278,7 +272,6 @@ public final class Responses
    *           If {@code uri} was {@code null}.
    */
   public static SearchResultReference newSearchResultReference(final String uri)
-      throws NullPointerException
   {
     Validator.ensureNotNull(uri);
     return new SearchResultReferenceImpl(uri);
@@ -297,7 +290,7 @@ public final class Responses
    *           If {@code resultCode} was {@code null} .
    */
   public static WhoAmIExtendedResult newWhoAmIExtendedResult(
-      final ResultCode resultCode) throws NullPointerException
+      final ResultCode resultCode)
   {
     Validator.ensureNotNull(resultCode);
     return new WhoAmIExtendedResultImpl(ResultCode.SUCCESS);
@@ -315,7 +308,6 @@ public final class Responses
    *           If {@code result} was {@code null}.
    */
   public static BindResult unmodifiableBindResult(final BindResult result)
-      throws NullPointerException
   {
     if (result instanceof UnmodifiableBindResultImpl)
     {
@@ -336,7 +328,7 @@ public final class Responses
    *           If {@code result} was {@code null}.
    */
   public static CompareResult unmodifiableCompareResult(
-      final CompareResult result) throws NullPointerException
+      final CompareResult result)
   {
     if (result instanceof UnmodifiableCompareResultImpl)
     {
@@ -358,7 +350,7 @@ public final class Responses
    *           If {@code result} was {@code null}.
    */
   public static GenericExtendedResult unmodifiableGenericExtendedResult(
-      final GenericExtendedResult result) throws NullPointerException
+      final GenericExtendedResult result)
   {
     if (result instanceof UnmodifiableGenericExtendedResultImpl)
     {
@@ -380,7 +372,7 @@ public final class Responses
    *           If {@code response} was {@code null}.
    */
   public static GenericIntermediateResponse unmodifiableGenericIntermediateResponse(
-      final GenericIntermediateResponse response) throws NullPointerException
+      final GenericIntermediateResponse response)
   {
     if (response instanceof UnmodifiableGenericIntermediateResponseImpl)
     {
@@ -402,7 +394,7 @@ public final class Responses
    *           If {@code result} was {@code null}.
    */
   public static PasswordModifyExtendedResult unmodifiablePasswordModifyExtendedResult(
-      final PasswordModifyExtendedResult result) throws NullPointerException
+      final PasswordModifyExtendedResult result)
   {
     if (result instanceof UnmodifiablePasswordModifyExtendedResultImpl)
     {
@@ -423,7 +415,6 @@ public final class Responses
    *           If {@code result} was {@code null}.
    */
   public static Result unmodifiableResult(final Result result)
-      throws NullPointerException
   {
     if (result instanceof UnmodifiableResultImpl)
     {
@@ -444,7 +435,7 @@ public final class Responses
    *           If {@code entry} was {@code null}.
    */
   public static SearchResultEntry unmodifiableSearchResultEntry(
-      final SearchResultEntry entry) throws NullPointerException
+      final SearchResultEntry entry)
   {
     if (entry instanceof UnmodifiableSearchResultEntryImpl)
     {
@@ -466,7 +457,7 @@ public final class Responses
    *           If {@code searchResultReference} was {@code null}.
    */
   public static SearchResultReference unmodifiableSearchResultReference(
-      final SearchResultReference reference) throws NullPointerException
+      final SearchResultReference reference)
   {
     if (reference instanceof UnmodifiableSearchResultReferenceImpl)
     {
@@ -488,7 +479,7 @@ public final class Responses
    *           If {@code result} was {@code null} .
    */
   public static WhoAmIExtendedResult unmodifiableWhoAmIExtendedResult(
-      final WhoAmIExtendedResult result) throws NullPointerException
+      final WhoAmIExtendedResult result)
   {
     if (result instanceof UnmodifiableSearchResultReferenceImpl)
     {
@@ -509,7 +500,6 @@ public final class Responses
    *           If {@code result} was {@code null}.
    */
   public static BindResult copyOfBindResult(final BindResult result)
-      throws NullPointerException
   {
     return new BindResultImpl(result);
   }
@@ -526,7 +516,6 @@ public final class Responses
    *           If {@code result} was {@code null}.
    */
   public static CompareResult copyOfCompareResult(final CompareResult result)
-      throws NullPointerException
   {
     return new CompareResultImpl(result);
   }
@@ -544,7 +533,7 @@ public final class Responses
    *           If {@code result} was {@code null}.
    */
   public static GenericExtendedResult copyOfGenericExtendedResult(
-      final GenericExtendedResult result) throws NullPointerException
+      final GenericExtendedResult result)
   {
     return new GenericExtendedResultImpl(result);
   }
@@ -562,7 +551,7 @@ public final class Responses
    *           If {@code result} was {@code null}.
    */
   public static GenericIntermediateResponse copyOfGenericIntermediateResponse(
-      final GenericIntermediateResponse result) throws NullPointerException
+      final GenericIntermediateResponse result)
   {
     return new GenericIntermediateResponseImpl(result);
   }
@@ -580,7 +569,7 @@ public final class Responses
    *           If {@code result} was {@code null}.
    */
   public static PasswordModifyExtendedResult copyOfPasswordModifyExtendedResult(
-      final PasswordModifyExtendedResult result) throws NullPointerException
+      final PasswordModifyExtendedResult result)
   {
     return new PasswordModifyExtendedResultImpl(result);
   }
@@ -597,7 +586,6 @@ public final class Responses
    *           If {@code result} was {@code null}.
    */
   public static Result copyOfResult(final Result result)
-      throws NullPointerException
   {
     return new ResultImpl(result);
   }
@@ -615,7 +603,7 @@ public final class Responses
    *           If {@code entry} was {@code null}.
    */
   public static SearchResultEntry copyOfSearchResultEntry(
-      final SearchResultEntry entry) throws NullPointerException
+      final SearchResultEntry entry)
   {
     return new SearchResultEntryImpl(entry);
   }
@@ -633,7 +621,7 @@ public final class Responses
    *           If {@code reference} was {@code null}.
    */
   public static SearchResultReference copyOfSearchResultReference(
-      final SearchResultReference reference) throws NullPointerException
+      final SearchResultReference reference)
   {
     return new SearchResultReferenceImpl(reference);
   }
@@ -651,7 +639,7 @@ public final class Responses
    *           If {@code result} was {@code null} .
    */
   public static WhoAmIExtendedResult copyOfWhoAmIExtendedResult(
-      final WhoAmIExtendedResult result) throws NullPointerException
+      final WhoAmIExtendedResult result)
   {
     return new WhoAmIExtendedResultImpl(result);
   }

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -32,7 +33,6 @@ package org.forgerock.opendj.ldap.requests;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.Filter;
@@ -85,7 +85,6 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest>
    *           {@code null}.
    */
   SearchRequestImpl(final DN name, final SearchScope scope, final Filter filter)
-      throws NullPointerException
   {
     this.name = name;
     this.scope = scope;
@@ -104,7 +103,6 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest>
    *           If {@code searchRequest} was {@code null} .
    */
   SearchRequestImpl(final SearchRequest searchRequest)
-      throws NullPointerException
   {
     super(searchRequest);
     this.attributes.addAll(searchRequest.getAttributes());
@@ -123,7 +121,6 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest>
    * {@inheritDoc}
    */
   public SearchRequest addAttribute(final String... attributeDescriptions)
-      throws NullPointerException
   {
     for (String attributeDescription : attributeDescriptions)
     {
@@ -218,7 +215,7 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest>
    * {@inheritDoc}
    */
   public SearchRequest setDereferenceAliasesPolicy(
-      final DereferenceAliasesPolicy policy) throws NullPointerException
+      final DereferenceAliasesPolicy policy)
   {
     Validator.ensureNotNull(policy);
 
@@ -232,7 +229,6 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest>
    * {@inheritDoc}
    */
   public SearchRequest setFilter(final Filter filter)
-      throws NullPointerException
   {
     Validator.ensureNotNull(filter);
 
@@ -246,7 +242,6 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest>
    * {@inheritDoc}
    */
   public SearchRequest setFilter(final String filter)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     this.filter = Filter.valueOf(filter);
     return this;
@@ -257,7 +252,7 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest>
   /**
    * {@inheritDoc}
    */
-  public SearchRequest setName(final DN dn) throws NullPointerException
+  public SearchRequest setName(final DN dn)
   {
     Validator.ensureNotNull(dn);
 
@@ -271,7 +266,6 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest>
    * {@inheritDoc}
    */
   public SearchRequest setName(final String dn)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(dn);
 
@@ -285,7 +279,6 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest>
    * {@inheritDoc}
    */
   public SearchRequest setScope(final SearchScope scope)
-      throws NullPointerException
   {
     Validator.ensureNotNull(scope);
 
@@ -299,9 +292,7 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest>
    * {@inheritDoc}
    */
   public SearchRequest setSizeLimit(final int limit)
-      throws LocalizedIllegalArgumentException
   {
-    // FIXME: I18N error message.
     Validator.ensureTrue(limit >= 0, "negative size limit");
 
     this.sizeLimit = limit;
@@ -314,9 +305,7 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest>
    * {@inheritDoc}
    */
   public SearchRequest setTimeLimit(final int limit)
-      throws LocalizedIllegalArgumentException
   {
-    // FIXME: I18N error message.
     Validator.ensureTrue(limit >= 0, "negative time limit");
 
     this.timeLimit = limit;

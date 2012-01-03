@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011 ForgeRock AS
+ *      Copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -163,7 +163,6 @@ final class RequestHandlerFactoryAdapter<C> implements
      */
     @Override
     public void addCancelRequestListener(final CancelRequestListener listener)
-        throws NullPointerException
     {
       Validator.ensureNotNull(listener);
 
@@ -292,7 +291,6 @@ final class RequestHandlerFactoryAdapter<C> implements
      */
     @Override
     public void removeCancelRequestListener(final CancelRequestListener listener)
-        throws NullPointerException
     {
       Validator.ensureNotNull(listener);
 
@@ -553,7 +551,7 @@ final class RequestHandlerFactoryAdapter<C> implements
      */
     @Override
     public void handleAbandon(final Integer messageID,
-        final AbandonRequest request) throws UnsupportedOperationException
+        final AbandonRequest request)
     {
       final RequestContextImpl<?, ?> abandonedRequest = getPendingRequest(request
           .getRequestID());
@@ -574,7 +572,6 @@ final class RequestHandlerFactoryAdapter<C> implements
     public void handleAdd(final Integer messageID, final AddRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super Result> resultHandler)
-        throws UnsupportedOperationException
     {
       final RequestContextImpl<Result, ResultHandler<? super Result>> requestContext =
           new RequestContextImpl<Result, ResultHandler<? super Result>>(
@@ -596,7 +593,6 @@ final class RequestHandlerFactoryAdapter<C> implements
         final BindRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super BindResult> resultHandler)
-        throws UnsupportedOperationException
     {
       final RequestContextImpl<BindResult, ResultHandler<? super BindResult>> requestContext =
           new RequestContextImpl<BindResult, ResultHandler<? super BindResult>>(
@@ -618,7 +614,6 @@ final class RequestHandlerFactoryAdapter<C> implements
         final CompareRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super CompareResult> resultHandler)
-        throws UnsupportedOperationException
     {
       final RequestContextImpl<CompareResult, ResultHandler<? super CompareResult>> requestContext =
           new RequestContextImpl<CompareResult, ResultHandler<? super CompareResult>>(
@@ -681,7 +676,6 @@ final class RequestHandlerFactoryAdapter<C> implements
         final DeleteRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super Result> resultHandler)
-        throws UnsupportedOperationException
     {
       final RequestContextImpl<Result, ResultHandler<? super Result>> requestContext =
           new RequestContextImpl<Result, ResultHandler<? super Result>>(
@@ -703,7 +697,6 @@ final class RequestHandlerFactoryAdapter<C> implements
         final Integer messageID, final ExtendedRequest<R> request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super R> resultHandler)
-        throws UnsupportedOperationException
     {
       if (request.getOID().equals(CancelExtendedRequest.OID))
       {
@@ -782,7 +775,6 @@ final class RequestHandlerFactoryAdapter<C> implements
         final ModifyRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super Result> resultHandler)
-        throws UnsupportedOperationException
     {
       final RequestContextImpl<Result, ResultHandler<? super Result>> requestContext =
           new RequestContextImpl<Result, ResultHandler<? super Result>>(
@@ -804,7 +796,6 @@ final class RequestHandlerFactoryAdapter<C> implements
         final ModifyDNRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super Result> resultHandler)
-        throws UnsupportedOperationException
     {
       final RequestContextImpl<Result, ResultHandler<? super Result>> requestContext =
           new RequestContextImpl<Result, ResultHandler<? super Result>>(
@@ -826,7 +817,6 @@ final class RequestHandlerFactoryAdapter<C> implements
         final SearchRequest request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final SearchResultHandler resultHandler)
-        throws UnsupportedOperationException
     {
       final SearchRequestContextImpl requestContext = new SearchRequestContextImpl(
           this, resultHandler, messageID, true);

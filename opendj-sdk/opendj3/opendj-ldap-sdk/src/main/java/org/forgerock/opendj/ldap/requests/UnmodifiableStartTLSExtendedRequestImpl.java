@@ -27,6 +27,8 @@
 
 package org.forgerock.opendj.ldap.requests;
 
+
+
 import java.util.Collections;
 import java.util.List;
 
@@ -34,39 +36,60 @@ import javax.net.ssl.SSLContext;
 
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 
+
+
 /**
  * Unmodifiable start TLS extended request implementation.
  */
 final class UnmodifiableStartTLSExtendedRequestImpl
-    extends AbstractUnmodifiableExtendedRequest
-    <StartTLSExtendedRequest, ExtendedResult>
+    extends
+    AbstractUnmodifiableExtendedRequest<StartTLSExtendedRequest, ExtendedResult>
     implements StartTLSExtendedRequest
 {
-  UnmodifiableStartTLSExtendedRequestImpl(StartTLSExtendedRequest impl) {
+  UnmodifiableStartTLSExtendedRequestImpl(StartTLSExtendedRequest impl)
+  {
     super(impl);
   }
 
-  public SSLContext getSSLContext() {
+
+
+  public SSLContext getSSLContext()
+  {
     return impl.getSSLContext();
   }
 
-  public StartTLSExtendedRequest addEnabledProtocol(String... protocols) {
+
+
+  public StartTLSExtendedRequest addEnabledProtocol(String... protocols)
+  {
     throw new UnsupportedOperationException();
   }
 
-  public StartTLSExtendedRequest addEnabledCipherSuite(String... suites) {
+
+
+  public StartTLSExtendedRequest addEnabledCipherSuite(String... suites)
+  {
     throw new UnsupportedOperationException();
   }
 
-  public List<String> getEnabledProtocols() {
+
+
+  public List<String> getEnabledProtocols()
+  {
     return Collections.unmodifiableList(impl.getEnabledProtocols());
   }
 
-  public List<String> getEnabledCipherSuites() {
+
+
+  public List<String> getEnabledCipherSuites()
+  {
     return Collections.unmodifiableList(impl.getEnabledCipherSuites());
   }
 
-  public StartTLSExtendedRequest setSSLContext(SSLContext sslContext) {
+
+
+  public StartTLSExtendedRequest setSSLContext(SSLContext sslContext)
+  {
     throw new UnsupportedOperationException();
   }
 }

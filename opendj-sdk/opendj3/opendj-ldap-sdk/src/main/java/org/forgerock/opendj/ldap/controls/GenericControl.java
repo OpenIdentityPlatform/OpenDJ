@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -53,7 +54,6 @@ public final class GenericControl implements Control
    *           If {@code control} was {@code null}.
    */
   public static GenericControl newControl(final Control control)
-      throws NullPointerException
   {
     Validator.ensureNotNull(control);
 
@@ -78,7 +78,6 @@ public final class GenericControl implements Control
    *           If {@code oid} was {@code null}.
    */
   public static GenericControl newControl(final String oid)
-      throws NullPointerException
   {
     return new GenericControl(oid, false, null);
   }
@@ -100,7 +99,7 @@ public final class GenericControl implements Control
    *           If {@code oid} was {@code null}.
    */
   public static GenericControl newControl(final String oid,
-      final boolean isCritical) throws NullPointerException
+      final boolean isCritical)
   {
     return new GenericControl(oid, isCritical, null);
   }
@@ -128,7 +127,7 @@ public final class GenericControl implements Control
    *           If {@code oid} was {@code null}.
    */
   public static GenericControl newControl(final String oid,
-      final boolean isCritical, final Object value) throws NullPointerException
+      final boolean isCritical, final Object value)
   {
     return new GenericControl(oid, isCritical, (value == null) ? null
         : ByteString.valueOf(value));

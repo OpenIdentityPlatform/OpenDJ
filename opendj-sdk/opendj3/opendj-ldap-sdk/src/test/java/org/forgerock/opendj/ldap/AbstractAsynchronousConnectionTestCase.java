@@ -79,8 +79,6 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase
      * {@inheritDoc}
      */
     public FutureResult<Void> abandonAsync(AbandonRequest request)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
     {
       if (!resultCode.isExceptional())
       {
@@ -100,8 +98,6 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase
     public FutureResult<Result> addAsync(AddRequest request,
         IntermediateResponseHandler intermediateResponseHandler,
         ResultHandler<? super Result> resultHandler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
     {
       if (!resultCode.isExceptional())
       {
@@ -120,7 +116,6 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase
      * {@inheritDoc}
      */
     public void addConnectionEventListener(ConnectionEventListener listener)
-        throws IllegalStateException, NullPointerException
     {
       // Do nothing.
     }
@@ -133,8 +128,6 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase
     public FutureResult<BindResult> bindAsync(BindRequest request,
         IntermediateResponseHandler intermediateResponseHandler,
         ResultHandler<? super BindResult> resultHandler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
     {
       if (!resultCode.isExceptional())
       {
@@ -153,7 +146,6 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase
      * {@inheritDoc}
      */
     public void close(UnbindRequest request, String reason)
-        throws NullPointerException
     {
       // Do nothing.
     }
@@ -166,8 +158,6 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase
     public FutureResult<CompareResult> compareAsync(CompareRequest request,
         IntermediateResponseHandler intermediateResponseHandler,
         ResultHandler<? super CompareResult> resultHandler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
     {
       if (!resultCode.isExceptional())
       {
@@ -189,8 +179,6 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase
     public FutureResult<Result> deleteAsync(DeleteRequest request,
         IntermediateResponseHandler intermediateResponseHandler,
         ResultHandler<? super Result> resultHandler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
     {
       if (!resultCode.isExceptional())
       {
@@ -212,8 +200,6 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase
         ExtendedRequest<R> request,
         IntermediateResponseHandler intermediateResponseHandler,
         ResultHandler<? super R> resultHandler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
     {
       if (!resultCode.isExceptional())
       {
@@ -254,8 +240,6 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase
     public FutureResult<Result> modifyAsync(ModifyRequest request,
         IntermediateResponseHandler intermediateResponseHandler,
         ResultHandler<? super Result> resultHandler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
     {
       if (!resultCode.isExceptional())
       {
@@ -276,8 +260,6 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase
     public FutureResult<Result> modifyDNAsync(ModifyDNRequest request,
         IntermediateResponseHandler intermediateResponseHandler,
         ResultHandler<? super Result> resultHandler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
     {
       if (!resultCode.isExceptional())
       {
@@ -296,7 +278,6 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase
      * {@inheritDoc}
      */
     public void removeConnectionEventListener(ConnectionEventListener listener)
-        throws NullPointerException
     {
       // Do nothing.
     }
@@ -309,8 +290,6 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase
     public FutureResult<Result> searchAsync(SearchRequest request,
         IntermediateResponseHandler intermediateResponseHandler,
         SearchResultHandler resultHandler)
-        throws UnsupportedOperationException, IllegalStateException,
-        NullPointerException
     {
       if (entry != null)
       {

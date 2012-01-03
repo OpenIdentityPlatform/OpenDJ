@@ -23,11 +23,12 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
+
 
 /**
  * Unmodifiable Who Am I extended result implementation.
@@ -36,18 +37,24 @@ class UnmodifiableWhoAmIExtendedResultImpl extends
     AbstractUnmodifiableExtendedResultImpl<WhoAmIExtendedResult> implements
     WhoAmIExtendedResult
 {
-  UnmodifiableWhoAmIExtendedResultImpl(WhoAmIExtendedResult impl) {
+  UnmodifiableWhoAmIExtendedResultImpl(WhoAmIExtendedResult impl)
+  {
     super(impl);
   }
 
+
+
   @Override
-  public String getAuthorizationID() {
+  public String getAuthorizationID()
+  {
     return impl.getAuthorizationID();
   }
 
+
+
   @Override
   public WhoAmIExtendedResult setAuthorizationID(String authorizationID)
-      throws LocalizedIllegalArgumentException, UnsupportedOperationException {
+  {
     throw new UnsupportedOperationException();
   }
 }

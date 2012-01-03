@@ -23,9 +23,12 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
+
+
 
 /**
  * Unmodifiable anonymous SASL bind request implementation.
@@ -34,18 +37,24 @@ final class UnmodifiableAnonymousSASLBindRequestImpl extends
     AbstractUnmodifiableSASLBindRequest<AnonymousSASLBindRequest> implements
     AnonymousSASLBindRequest
 {
-  UnmodifiableAnonymousSASLBindRequestImpl(AnonymousSASLBindRequest impl) {
+  UnmodifiableAnonymousSASLBindRequestImpl(AnonymousSASLBindRequest impl)
+  {
     super(impl);
   }
 
+
+
   @Override
-  public String getTraceString() {
+  public String getTraceString()
+  {
     return impl.getTraceString();
   }
 
+
+
   @Override
   public AnonymousSASLBindRequest setTraceString(String traceString)
-      throws NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
 }

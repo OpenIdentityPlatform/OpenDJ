@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011 ForgeRock AS
+ *      Copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -61,8 +61,7 @@ public interface RequestContext
    *           If the {@code listener} was {@code null}.
    * @see #checkIfCancelled
    */
-  void addCancelRequestListener(CancelRequestListener listener)
-      throws NullPointerException;
+  void addCancelRequestListener(CancelRequestListener listener);
 
 
 
@@ -113,6 +112,5 @@ public interface RequestContext
    * @throws NullPointerException
    *           If the {@code listener} was {@code null}.
    */
-  void removeCancelRequestListener(CancelRequestListener listener)
-      throws NullPointerException;
+  void removeCancelRequestListener(CancelRequestListener listener);
 }

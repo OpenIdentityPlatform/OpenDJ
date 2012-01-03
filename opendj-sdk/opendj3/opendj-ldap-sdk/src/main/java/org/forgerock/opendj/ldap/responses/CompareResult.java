@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.responses;
 
@@ -51,16 +52,14 @@ public interface CompareResult extends Result
   /**
    * {@inheritDoc}
    */
-  CompareResult addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  CompareResult addControl(Control control);
 
 
 
   /**
    * {@inheritDoc}
    */
-  CompareResult addReferralURI(String uri)
-      throws UnsupportedOperationException, NullPointerException;
+  CompareResult addReferralURI(String uri);
 
 
 
@@ -75,7 +74,7 @@ public interface CompareResult extends Result
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 
@@ -146,29 +145,27 @@ public interface CompareResult extends Result
   /**
    * {@inheritDoc}
    */
-  CompareResult setCause(Throwable cause) throws UnsupportedOperationException;
+  CompareResult setCause(Throwable cause);
 
 
 
   /**
    * {@inheritDoc}
    */
-  CompareResult setDiagnosticMessage(String message)
-      throws UnsupportedOperationException;
+  CompareResult setDiagnosticMessage(String message);
 
 
 
   /**
    * {@inheritDoc}
    */
-  CompareResult setMatchedDN(String dn) throws UnsupportedOperationException;
+  CompareResult setMatchedDN(String dn);
 
 
 
   /**
    * {@inheritDoc}
    */
-  CompareResult setResultCode(ResultCode resultCode)
-      throws UnsupportedOperationException, NullPointerException;
+  CompareResult setResultCode(ResultCode resultCode);
 
 }

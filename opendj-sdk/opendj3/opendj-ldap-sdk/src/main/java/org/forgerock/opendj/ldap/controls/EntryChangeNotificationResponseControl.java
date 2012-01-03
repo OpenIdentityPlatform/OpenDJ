@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -207,7 +208,7 @@ public final class EntryChangeNotificationResponseControl implements Control
    */
   public static EntryChangeNotificationResponseControl newControl(
       final PersistentSearchChangeType type, final DN previousName,
-      final long changeNumber) throws NullPointerException
+      final long changeNumber)
   {
     return new EntryChangeNotificationResponseControl(false, type,
         previousName, changeNumber);
@@ -239,8 +240,7 @@ public final class EntryChangeNotificationResponseControl implements Control
    */
   public static EntryChangeNotificationResponseControl newControl(
       final PersistentSearchChangeType type, final String previousName,
-      final long changeNumber) throws LocalizedIllegalArgumentException,
-      NullPointerException
+      final long changeNumber)
   {
     return new EntryChangeNotificationResponseControl(false, type, DN
         .valueOf(previousName), changeNumber);

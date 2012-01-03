@@ -23,73 +23,98 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
+
+
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 
+
+
 /**
  * Unmodifiable compare request implementation.
  */
-final class UnmodifiableCompareRequestImpl
-    extends AbstractUnmodifiableRequest<CompareRequest>
-    implements CompareRequest
+final class UnmodifiableCompareRequestImpl extends
+    AbstractUnmodifiableRequest<CompareRequest> implements CompareRequest
 {
-  UnmodifiableCompareRequestImpl(CompareRequest impl) {
+  UnmodifiableCompareRequestImpl(CompareRequest impl)
+  {
     super(impl);
   }
 
-  public ByteString getAssertionValue() {
+
+
+  public ByteString getAssertionValue()
+  {
     return impl.getAssertionValue();
   }
 
-  public String getAssertionValueAsString() {
+
+
+  public String getAssertionValueAsString()
+  {
     return impl.getAssertionValueAsString();
   }
 
-  public AttributeDescription getAttributeDescription() {
+
+
+  public AttributeDescription getAttributeDescription()
+  {
     return impl.getAttributeDescription();
   }
 
-  public DN getName() {
+
+
+  public DN getName()
+  {
     return impl.getName();
   }
 
+
+
   public CompareRequest setAssertionValue(ByteString value)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
 
+
+
   public CompareRequest setAssertionValue(Object value)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   public CompareRequest setAttributeDescription(
       AttributeDescription attributeDescription)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
 
-  public CompareRequest setAttributeDescription(
-      String attributeDescription)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException {
+
+
+  public CompareRequest setAttributeDescription(String attributeDescription)
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   public CompareRequest setName(DN dn)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
 
+
+
   public CompareRequest setName(String dn)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
 }

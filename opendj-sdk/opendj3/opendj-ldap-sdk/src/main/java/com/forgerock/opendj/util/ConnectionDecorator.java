@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package com.forgerock.opendj.util;
@@ -32,7 +32,6 @@ package com.forgerock.opendj.util;
 
 import java.util.Collection;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.requests.*;
 import org.forgerock.opendj.ldap.responses.*;
@@ -75,8 +74,6 @@ public abstract class ConnectionDecorator implements Connection
    */
   @Override
   public FutureResult<Void> abandonAsync(final AbandonRequest request)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
   {
     return connection.abandonAsync(request);
   }
@@ -90,8 +87,7 @@ public abstract class ConnectionDecorator implements Connection
    */
   @Override
   public Result add(final AddRequest request) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException
+      InterruptedException
   {
     return connection.add(request);
   }
@@ -105,8 +101,7 @@ public abstract class ConnectionDecorator implements Connection
    */
   @Override
   public Result add(final Entry entry) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException
+      InterruptedException
   {
     return connection.add(entry);
   }
@@ -120,9 +115,7 @@ public abstract class ConnectionDecorator implements Connection
    */
   @Override
   public Result add(final String... ldifLines) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      LocalizedIllegalArgumentException, IllegalStateException,
-      NullPointerException
+      InterruptedException
   {
     return connection.add(ldifLines);
   }
@@ -138,8 +131,6 @@ public abstract class ConnectionDecorator implements Connection
   public FutureResult<Result> addAsync(final AddRequest request,
       final IntermediateResponseHandler intermediateResponseHandler,
       final ResultHandler<? super Result> resultHandler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
   {
     return connection.addAsync(request, intermediateResponseHandler,
         resultHandler);
@@ -154,7 +145,6 @@ public abstract class ConnectionDecorator implements Connection
    */
   @Override
   public void addConnectionEventListener(final ConnectionEventListener listener)
-      throws IllegalStateException, NullPointerException
   {
     connection.addConnectionEventListener(listener);
   }
@@ -168,9 +158,7 @@ public abstract class ConnectionDecorator implements Connection
    */
   @Override
   public BindResult bind(final BindRequest request)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
+      throws ErrorResultException, InterruptedException
   {
     return connection.bind(request);
   }
@@ -184,9 +172,7 @@ public abstract class ConnectionDecorator implements Connection
    */
   @Override
   public BindResult bind(final String name, final char[] password)
-      throws ErrorResultException, InterruptedException,
-      LocalizedIllegalArgumentException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException
+      throws ErrorResultException, InterruptedException
   {
     return connection.bind(name, password);
   }
@@ -202,8 +188,6 @@ public abstract class ConnectionDecorator implements Connection
   public FutureResult<BindResult> bindAsync(final BindRequest request,
       final IntermediateResponseHandler intermediateResponseHandler,
       final ResultHandler<? super BindResult> resultHandler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
   {
     return connection.bindAsync(request, intermediateResponseHandler,
         resultHandler);
@@ -231,7 +215,6 @@ public abstract class ConnectionDecorator implements Connection
    */
   @Override
   public void close(final UnbindRequest request, final String reason)
-      throws NullPointerException
   {
     connection.close(request, reason);
   }
@@ -245,9 +228,7 @@ public abstract class ConnectionDecorator implements Connection
    */
   @Override
   public CompareResult compare(final CompareRequest request)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
+      throws ErrorResultException, InterruptedException
   {
     return connection.compare(request);
   }
@@ -262,9 +243,7 @@ public abstract class ConnectionDecorator implements Connection
   @Override
   public CompareResult compare(final String name,
       final String attributeDescription, final String assertionValue)
-      throws ErrorResultException, InterruptedException,
-      LocalizedIllegalArgumentException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException
+      throws ErrorResultException, InterruptedException
   {
     return connection.compare(name, attributeDescription, assertionValue);
   }
@@ -280,8 +259,6 @@ public abstract class ConnectionDecorator implements Connection
   public FutureResult<CompareResult> compareAsync(final CompareRequest request,
       final IntermediateResponseHandler intermediateResponseHandler,
       final ResultHandler<? super CompareResult> resultHandler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
   {
     return connection.compareAsync(request, intermediateResponseHandler,
         resultHandler);
@@ -296,9 +273,7 @@ public abstract class ConnectionDecorator implements Connection
    */
   @Override
   public Result delete(final DeleteRequest request)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
+      throws ErrorResultException, InterruptedException
   {
     return connection.delete(request);
   }
@@ -312,9 +287,7 @@ public abstract class ConnectionDecorator implements Connection
    */
   @Override
   public Result delete(final String name) throws ErrorResultException,
-      InterruptedException, LocalizedIllegalArgumentException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
+      InterruptedException
   {
     return connection.delete(name);
   }
@@ -330,8 +303,6 @@ public abstract class ConnectionDecorator implements Connection
   public FutureResult<Result> deleteAsync(final DeleteRequest request,
       final IntermediateResponseHandler intermediateResponseHandler,
       final ResultHandler<? super Result> resultHandler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
   {
     return connection.deleteAsync(request, intermediateResponseHandler,
         resultHandler);
@@ -347,8 +318,7 @@ public abstract class ConnectionDecorator implements Connection
   @Override
   public <R extends ExtendedResult> R extendedRequest(
       final ExtendedRequest<R> request) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException
+      InterruptedException
   {
     return connection.extendedRequest(request);
   }
@@ -364,8 +334,7 @@ public abstract class ConnectionDecorator implements Connection
   public <R extends ExtendedResult> R extendedRequest(
       final ExtendedRequest<R> request,
       final IntermediateResponseHandler handler) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException
+      InterruptedException
   {
     return connection.extendedRequest(request, handler);
   }
@@ -380,8 +349,7 @@ public abstract class ConnectionDecorator implements Connection
   @Override
   public GenericExtendedResult extendedRequest(final String requestName,
       final ByteString requestValue) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException
+      InterruptedException
   {
     return connection.extendedRequest(requestName, requestValue);
   }
@@ -398,8 +366,6 @@ public abstract class ConnectionDecorator implements Connection
       final ExtendedRequest<R> request,
       final IntermediateResponseHandler intermediateResponseHandler,
       final ResultHandler<? super R> resultHandler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
   {
     return connection.extendedRequestAsync(request, intermediateResponseHandler,
         resultHandler);
@@ -440,9 +406,7 @@ public abstract class ConnectionDecorator implements Connection
    */
   @Override
   public Result modify(final ModifyRequest request)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
+      throws ErrorResultException, InterruptedException
   {
     return connection.modify(request);
   }
@@ -456,9 +420,7 @@ public abstract class ConnectionDecorator implements Connection
    */
   @Override
   public Result modify(final String... ldifLines) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      LocalizedIllegalArgumentException, IllegalStateException,
-      NullPointerException
+      InterruptedException
   {
     return connection.modify(ldifLines);
   }
@@ -474,8 +436,6 @@ public abstract class ConnectionDecorator implements Connection
   public FutureResult<Result> modifyAsync(final ModifyRequest request,
       final IntermediateResponseHandler intermediateResponseHandler,
       final ResultHandler<? super Result> resultHandler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
   {
     return connection.modifyAsync(request, intermediateResponseHandler,
         resultHandler);
@@ -490,9 +450,7 @@ public abstract class ConnectionDecorator implements Connection
    */
   @Override
   public Result modifyDN(final ModifyDNRequest request)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
+      throws ErrorResultException, InterruptedException
   {
     return connection.modifyDN(request);
   }
@@ -506,9 +464,7 @@ public abstract class ConnectionDecorator implements Connection
    */
   @Override
   public Result modifyDN(final String name, final String newRDN)
-      throws ErrorResultException, LocalizedIllegalArgumentException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException
+      throws ErrorResultException, InterruptedException
   {
     return connection.modifyDN(name, newRDN);
   }
@@ -524,8 +480,6 @@ public abstract class ConnectionDecorator implements Connection
   public FutureResult<Result> modifyDNAsync(final ModifyDNRequest request,
       final IntermediateResponseHandler intermediateResponseHandler,
       final ResultHandler<? super Result> resultHandler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
   {
     return connection.modifyDNAsync(request, intermediateResponseHandler,
         resultHandler);
@@ -541,8 +495,7 @@ public abstract class ConnectionDecorator implements Connection
   @Override
   public SearchResultEntry readEntry(final DN name,
       final String... attributeDescriptions) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException
+      InterruptedException
   {
     return connection.readEntry(name, attributeDescriptions);
   }
@@ -557,9 +510,7 @@ public abstract class ConnectionDecorator implements Connection
   @Override
   public SearchResultEntry readEntry(final String name,
       final String... attributeDescriptions) throws ErrorResultException,
-      InterruptedException, LocalizedIllegalArgumentException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
+      InterruptedException
   {
     return connection.readEntry(name, attributeDescriptions);
   }
@@ -575,8 +526,6 @@ public abstract class ConnectionDecorator implements Connection
   public FutureResult<SearchResultEntry> readEntryAsync(final DN name,
       final Collection<String> attributeDescriptions,
       final ResultHandler<? super SearchResultEntry> handler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
   {
     return connection.readEntryAsync(name, attributeDescriptions, handler);
   }
@@ -590,7 +539,7 @@ public abstract class ConnectionDecorator implements Connection
    */
   @Override
   public void removeConnectionEventListener(
-      final ConnectionEventListener listener) throws NullPointerException
+      final ConnectionEventListener listener)
   {
     connection.removeConnectionEventListener(listener);
   }
@@ -604,8 +553,6 @@ public abstract class ConnectionDecorator implements Connection
    */
   @Override
   public ConnectionEntryReader search(final SearchRequest request)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
   {
     return connection.search(request);
   }
@@ -620,9 +567,7 @@ public abstract class ConnectionDecorator implements Connection
   @Override
   public Result search(final SearchRequest request,
       final Collection<? super SearchResultEntry> entries)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
+      throws ErrorResultException, InterruptedException
   {
     return connection.search(request, entries);
   }
@@ -638,9 +583,7 @@ public abstract class ConnectionDecorator implements Connection
   public Result search(final SearchRequest request,
       final Collection<? super SearchResultEntry> entries,
       final Collection<? super SearchResultReference> references)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
+      throws ErrorResultException, InterruptedException
   {
     return connection.search(request, entries, references);
   }
@@ -655,8 +598,7 @@ public abstract class ConnectionDecorator implements Connection
   @Override
   public Result search(final SearchRequest request,
       final SearchResultHandler handler) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException
+      InterruptedException
   {
     return connection.search(request, handler);
   }
@@ -672,8 +614,6 @@ public abstract class ConnectionDecorator implements Connection
   public ConnectionEntryReader search(final String baseObject,
       final SearchScope scope, final String filter,
       final String... attributeDescriptions)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
   {
     return connection.search(baseObject, scope, filter, attributeDescriptions);
   }
@@ -689,8 +629,6 @@ public abstract class ConnectionDecorator implements Connection
   public FutureResult<Result> searchAsync(final SearchRequest request,
       final IntermediateResponseHandler intermediateResponseHandler,
       final SearchResultHandler resultHandler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
   {
     return connection.searchAsync(request, intermediateResponseHandler,
         resultHandler);
@@ -705,9 +643,7 @@ public abstract class ConnectionDecorator implements Connection
    */
   @Override
   public SearchResultEntry searchSingleEntry(final SearchRequest request)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
+      throws ErrorResultException, InterruptedException
   {
     return connection.searchSingleEntry(request);
   }
@@ -723,9 +659,7 @@ public abstract class ConnectionDecorator implements Connection
   public SearchResultEntry searchSingleEntry(final String baseObject,
       final SearchScope scope, final String filter,
       final String... attributeDescriptions) throws ErrorResultException,
-      InterruptedException, LocalizedIllegalArgumentException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
+      InterruptedException
   {
     return connection.searchSingleEntry(baseObject, scope, filter,
         attributeDescriptions);
@@ -742,8 +676,6 @@ public abstract class ConnectionDecorator implements Connection
   public FutureResult<SearchResultEntry> searchSingleEntryAsync(
       final SearchRequest request,
       final ResultHandler<? super SearchResultEntry> handler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
   {
     return connection.searchSingleEntryAsync(request, handler);
   }

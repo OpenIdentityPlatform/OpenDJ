@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -143,7 +144,6 @@ final class CancelExtendedRequestImpl extends
    *           If {@code cancelExtendedRequest} was {@code null} .
    */
   CancelExtendedRequestImpl(final CancelExtendedRequest cancelExtendedRequest)
-      throws NullPointerException
   {
     super(cancelExtendedRequest);
     this.requestID = cancelExtendedRequest.getRequestID();

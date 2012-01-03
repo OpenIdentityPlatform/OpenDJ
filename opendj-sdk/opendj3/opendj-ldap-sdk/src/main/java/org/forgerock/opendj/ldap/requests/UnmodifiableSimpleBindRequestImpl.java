@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -37,31 +37,41 @@ import com.forgerock.opendj.util.StaticUtils;
 /**
  * Unmodifiable simple bind request implementation.
  */
-final class UnmodifiableSimpleBindRequestImpl
-    extends AbstractUnmodifiableBindRequest<SimpleBindRequest>
-    implements SimpleBindRequest
+final class UnmodifiableSimpleBindRequestImpl extends
+    AbstractUnmodifiableBindRequest<SimpleBindRequest> implements
+    SimpleBindRequest
 {
-  UnmodifiableSimpleBindRequestImpl(SimpleBindRequest impl) {
+  UnmodifiableSimpleBindRequestImpl(SimpleBindRequest impl)
+  {
     super(impl);
   }
 
-  public byte[] getPassword() {
+
+
+  public byte[] getPassword()
+  {
     // Defensive copy.
     return StaticUtils.copyOfBytes(impl.getPassword());
   }
 
+
+
   public SimpleBindRequest setName(String name)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   public SimpleBindRequest setPassword(byte[] password)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
 
+
+
   public SimpleBindRequest setPassword(char[] password)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
 }

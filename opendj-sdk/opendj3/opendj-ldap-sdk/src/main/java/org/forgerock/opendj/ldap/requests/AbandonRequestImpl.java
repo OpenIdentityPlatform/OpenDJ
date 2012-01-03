@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -81,7 +82,6 @@ final class AbandonRequestImpl extends AbstractRequestImpl<AbandonRequest>
    * {@inheritDoc}
    */
   public AbandonRequest setRequestID(final int id)
-      throws UnsupportedOperationException
   {
     this.requestID = id;
     return this;

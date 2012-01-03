@@ -23,14 +23,16 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
 
+
+
 import java.util.Collections;
 import java.util.List;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldif.ChangeRecordVisitor;
 
@@ -38,39 +40,48 @@ import com.forgerock.opendj.util.Collections2;
 import com.forgerock.opendj.util.Function;
 import com.forgerock.opendj.util.Functions;
 
+
+
 /**
  * Unmodifiable modify request implementation.
  */
-final class UnmodifiableModifyRequestImpl
-    extends AbstractUnmodifiableRequest<ModifyRequest>
-    implements ModifyRequest
+final class UnmodifiableModifyRequestImpl extends
+    AbstractUnmodifiableRequest<ModifyRequest> implements ModifyRequest
 {
-  UnmodifiableModifyRequestImpl(ModifyRequest impl) {
+  UnmodifiableModifyRequestImpl(ModifyRequest impl)
+  {
     super(impl);
   }
 
-  public <R, P> R accept(ChangeRecordVisitor<R, P> v, P p) {
+
+
+  public <R, P> R accept(ChangeRecordVisitor<R, P> v, P p)
+  {
     return v.visitChangeRecord(p, this);
   }
 
+
+
   public ModifyRequest addModification(Modification modification)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
 
+
+
   public ModifyRequest addModification(ModificationType type,
-                                       String attributeDescription,
-                                       Object... values)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException {
+      String attributeDescription, Object... values)
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   public List<Modification> getModifications()
   {
     // We need to make all attributes unmodifiable as well.
     Function<Modification, Modification, Void> function =
-      new Function<Modification, Modification, Void>()
+        new Function<Modification, Modification, Void>()
     {
 
       public Modification apply(Modification value, Void p)
@@ -83,24 +94,30 @@ final class UnmodifiableModifyRequestImpl
 
     };
 
-    List<Modification> unmodifiableModifications = Collections2.transformedList(
-        impl.getModifications(), function,
-        Functions.<Modification> identityFunction());
+    List<Modification> unmodifiableModifications = Collections2
+        .transformedList(impl.getModifications(), function,
+            Functions.<Modification> identityFunction());
     return Collections.unmodifiableList(unmodifiableModifications);
   }
 
-  public DN getName() {
+
+
+  public DN getName()
+  {
     return impl.getName();
   }
 
+
+
   public ModifyRequest setName(DN dn)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
 
+
+
   public ModifyRequest setName(String dn)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
 }

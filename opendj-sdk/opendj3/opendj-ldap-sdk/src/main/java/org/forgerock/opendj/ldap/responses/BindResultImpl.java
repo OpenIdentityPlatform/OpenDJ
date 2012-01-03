@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -52,7 +53,7 @@ final class BindResultImpl extends AbstractResultImpl<BindResult> implements
    * @throws NullPointerException
    *           If {@code resultCode} was {@code null}.
    */
-  BindResultImpl(final ResultCode resultCode) throws NullPointerException
+  BindResultImpl(final ResultCode resultCode)
   {
     super(resultCode);
   }
@@ -69,7 +70,6 @@ final class BindResultImpl extends AbstractResultImpl<BindResult> implements
    *           If {@code bindResult} was {@code null} .
    */
   BindResultImpl(final BindResult bindResult)
-      throws NullPointerException
   {
     super(bindResult);
     this.credentials = bindResult.getServerSASLCredentials();
@@ -102,7 +102,6 @@ final class BindResultImpl extends AbstractResultImpl<BindResult> implements
    * {@inheritDoc}
    */
   public BindResult setServerSASLCredentials(final ByteString credentials)
-      throws UnsupportedOperationException
   {
     this.credentials = credentials;
     return this;

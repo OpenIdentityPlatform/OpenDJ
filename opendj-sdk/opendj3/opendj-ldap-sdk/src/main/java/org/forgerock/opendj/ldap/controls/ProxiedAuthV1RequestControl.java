@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -167,7 +168,7 @@ public final class ProxiedAuthV1RequestControl implements Control
    *           If {@code authorizationName} was {@code null}.
    */
   public static ProxiedAuthV1RequestControl newControl(
-      final DN authorizationName) throws NullPointerException
+      final DN authorizationName)
   {
     Validator.ensureNotNull(authorizationName);
     return new ProxiedAuthV1RequestControl(authorizationName);
@@ -190,8 +191,7 @@ public final class ProxiedAuthV1RequestControl implements Control
    *           If {@code authorizationName} was {@code null}.
    */
   public static ProxiedAuthV1RequestControl newControl(
-      final String authorizationName) throws LocalizedIllegalArgumentException,
-      NullPointerException
+      final String authorizationName)
   {
     Validator.ensureNotNull(authorizationName);
     return new ProxiedAuthV1RequestControl(DN.valueOf(authorizationName));

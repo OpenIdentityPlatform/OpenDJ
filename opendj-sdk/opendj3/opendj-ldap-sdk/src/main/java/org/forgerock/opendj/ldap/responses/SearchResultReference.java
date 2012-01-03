@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -47,8 +48,7 @@ public interface SearchResultReference extends Response
   /**
    * {@inheritDoc}
    */
-  SearchResultReference addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  SearchResultReference addControl(Control control);
 
 
 
@@ -65,8 +65,7 @@ public interface SearchResultReference extends Response
    * @throws NullPointerException
    *           If {@code uri} was {@code null}.
    */
-  SearchResultReference addURI(String uri)
-      throws UnsupportedOperationException, NullPointerException;
+  SearchResultReference addURI(String uri);
 
 
 
@@ -74,7 +73,7 @@ public interface SearchResultReference extends Response
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 

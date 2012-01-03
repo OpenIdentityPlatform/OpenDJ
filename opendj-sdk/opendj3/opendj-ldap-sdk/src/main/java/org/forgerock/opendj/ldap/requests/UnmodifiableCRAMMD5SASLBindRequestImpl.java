@@ -23,14 +23,16 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
+
 
 import com.forgerock.opendj.util.StaticUtils;
+
+
 
 /**
  * Unmodifiable CRAM-MD5 SASL bind request implementation.
@@ -39,36 +41,49 @@ final class UnmodifiableCRAMMD5SASLBindRequestImpl extends
     AbstractUnmodifiableSASLBindRequest<CRAMMD5SASLBindRequest> implements
     CRAMMD5SASLBindRequest
 {
-  UnmodifiableCRAMMD5SASLBindRequestImpl(CRAMMD5SASLBindRequest impl) {
+  UnmodifiableCRAMMD5SASLBindRequestImpl(CRAMMD5SASLBindRequest impl)
+  {
     super(impl);
   }
 
+
+
   @Override
-  public String getAuthenticationID() {
+  public String getAuthenticationID()
+  {
     return impl.getAuthenticationID();
   }
 
+
+
   @Override
-  public byte[] getPassword() {
+  public byte[] getPassword()
+  {
     // Defensive copy.
     return StaticUtils.copyOfBytes(impl.getPassword());
   }
 
+
+
   @Override
   public CRAMMD5SASLBindRequest setAuthenticationID(String authenticationID)
-      throws LocalizedIllegalArgumentException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   @Override
   public CRAMMD5SASLBindRequest setPassword(byte[] password)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
 
+
+
   @Override
   public CRAMMD5SASLBindRequest setPassword(char[] password)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
 }

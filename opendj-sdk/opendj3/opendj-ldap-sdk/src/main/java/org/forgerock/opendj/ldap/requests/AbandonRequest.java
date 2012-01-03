@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -49,8 +50,7 @@ public interface AbandonRequest extends Request
   /**
    * {@inheritDoc}
    */
-  AbandonRequest addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  AbandonRequest addControl(Control control);
 
 
 
@@ -58,7 +58,7 @@ public interface AbandonRequest extends Request
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 
@@ -87,6 +87,6 @@ public interface AbandonRequest extends Request
    * @throws UnsupportedOperationException
    *           If this abandon request does not permit the request ID to be set.
    */
-  AbandonRequest setRequestID(int id) throws UnsupportedOperationException;
+  AbandonRequest setRequestID(int id);
 
 }

@@ -23,104 +23,125 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
 
+
+
 import java.util.Collection;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.*;
 
 import com.forgerock.opendj.util.Function;
 import com.forgerock.opendj.util.Iterables;
 
+
+
 /**
  * Unmodifiable Search result entry implementation.
  */
-class UnmodifiableSearchResultEntryImpl  extends
-    AbstractUnmodifiableResponseImpl<SearchResultEntry>
-    implements SearchResultEntry
+class UnmodifiableSearchResultEntryImpl extends
+    AbstractUnmodifiableResponseImpl<SearchResultEntry> implements
+    SearchResultEntry
 {
   private static final Function<Attribute, Attribute, Void>
-      UNMODIFIABLE_ATTRIBUTE_FUNCTION =
-      new Function<Attribute, Attribute, Void>()
-      {
+    UNMODIFIABLE_ATTRIBUTE_FUNCTION = new Function<Attribute, Attribute, Void>()
+  {
 
-        public Attribute apply(final Attribute value, final Void p)
-        {
-          return Attributes.unmodifiableAttribute(value);
-        }
+    public Attribute apply(final Attribute value, final Void p)
+    {
+      return Attributes.unmodifiableAttribute(value);
+    }
 
-      };
+  };
 
-  UnmodifiableSearchResultEntryImpl(SearchResultEntry impl) {
+
+
+  UnmodifiableSearchResultEntryImpl(SearchResultEntry impl)
+  {
     super(impl);
   }
 
+
+
   public boolean addAttribute(Attribute attribute)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   public boolean addAttribute(Attribute attribute,
-                              Collection<ByteString> duplicateValues)
-      throws UnsupportedOperationException, NullPointerException {
+      Collection<ByteString> duplicateValues)
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   public SearchResultEntry addAttribute(String attributeDescription,
-                                        Object... values)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException {
+      Object... values)
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   public SearchResultEntry clearAttributes()
-      throws UnsupportedOperationException {
+  {
     throw new UnsupportedOperationException();
   }
 
+
+
   public boolean containsAttribute(Attribute attribute,
-                                   Collection<ByteString> missingValues)
-      throws NullPointerException {
+      Collection<ByteString> missingValues)
+  {
     return impl.containsAttribute(attribute, missingValues);
   }
 
+
+
   public boolean containsAttribute(String attributeDescription,
-                                   Object... values)
-      throws LocalizedIllegalArgumentException,
-      NullPointerException {
+      Object... values)
+  {
     return impl.containsAttribute(attributeDescription, values);
   }
 
-  public Iterable<Attribute> getAllAttributes() {
-    return Iterables.unmodifiableIterable(Iterables.transformedIterable(impl
-        .getAllAttributes(), UNMODIFIABLE_ATTRIBUTE_FUNCTION));
+
+
+  public Iterable<Attribute> getAllAttributes()
+  {
+    return Iterables.unmodifiableIterable(Iterables.transformedIterable(
+        impl.getAllAttributes(), UNMODIFIABLE_ATTRIBUTE_FUNCTION));
   }
+
+
 
   public Iterable<Attribute> getAllAttributes(
       AttributeDescription attributeDescription)
-      throws NullPointerException {
-    return Iterables.unmodifiableIterable(Iterables.transformedIterable(impl
-        .getAllAttributes(attributeDescription),
+  {
+    return Iterables.unmodifiableIterable(Iterables.transformedIterable(
+        impl.getAllAttributes(attributeDescription),
         UNMODIFIABLE_ATTRIBUTE_FUNCTION));
   }
 
-  public Iterable<Attribute> getAllAttributes(
-      String attributeDescription)
-      throws LocalizedIllegalArgumentException,
-      NullPointerException {
-    return Iterables.unmodifiableIterable(Iterables.transformedIterable(impl
-        .getAllAttributes(attributeDescription),
+
+
+  public Iterable<Attribute> getAllAttributes(String attributeDescription)
+  {
+    return Iterables.unmodifiableIterable(Iterables.transformedIterable(
+        impl.getAllAttributes(attributeDescription),
         UNMODIFIABLE_ATTRIBUTE_FUNCTION));
   }
 
-  public Attribute getAttribute(
-      AttributeDescription attributeDescription)
-      throws NullPointerException {
-    final Attribute attribute =
-        impl.getAttribute(attributeDescription);
+
+
+  public Attribute getAttribute(AttributeDescription attributeDescription)
+  {
+    final Attribute attribute = impl.getAttribute(attributeDescription);
     if (attribute != null)
     {
       return Attributes.unmodifiableAttribute(attribute);
@@ -130,12 +151,12 @@ class UnmodifiableSearchResultEntryImpl  extends
       return null;
     }
   }
+
+
 
   public Attribute getAttribute(String attributeDescription)
-      throws LocalizedIllegalArgumentException,
-      NullPointerException {
-    final Attribute attribute =
-        impl.getAttribute(attributeDescription);
+  {
+    final Attribute attribute = impl.getAttribute(attributeDescription);
     if (attribute != null)
     {
       return Attributes.unmodifiableAttribute(attribute);
@@ -146,53 +167,69 @@ class UnmodifiableSearchResultEntryImpl  extends
     }
   }
 
-  public int getAttributeCount() {
+
+
+  public int getAttributeCount()
+  {
     return impl.getAttributeCount();
   }
 
-  public DN getName() {
+
+
+  public DN getName()
+  {
     return impl.getName();
   }
 
+
+
   public boolean removeAttribute(Attribute attribute,
-                                 Collection<ByteString> missingValues)
-      throws UnsupportedOperationException, NullPointerException {
+      Collection<ByteString> missingValues)
+  {
     throw new UnsupportedOperationException();
   }
 
-  public boolean removeAttribute(
-      AttributeDescription attributeDescription)
-      throws UnsupportedOperationException, NullPointerException {
+
+
+  public boolean removeAttribute(AttributeDescription attributeDescription)
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   public SearchResultEntry removeAttribute(String attributeDescription,
-                                           Object... values)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException {
+      Object... values)
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   public boolean replaceAttribute(Attribute attribute)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   public SearchResultEntry replaceAttribute(String attributeDescription,
-                                            Object... values)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException {
+      Object... values)
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   public SearchResultEntry setName(DN dn)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
 
+
+
   public SearchResultEntry setName(String dn)
-      throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
 }

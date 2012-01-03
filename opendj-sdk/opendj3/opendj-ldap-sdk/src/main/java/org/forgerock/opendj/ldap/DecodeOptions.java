@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -168,7 +168,6 @@ public final class DecodeOptions
    *           If {@code factory} was {@code null}.
    */
   public final DecodeOptions setAttributeFactory(final AttributeFactory factory)
-      throws NullPointerException
   {
     Validator.ensureNotNull(factory);
     this.attributeFactory = factory;
@@ -189,7 +188,6 @@ public final class DecodeOptions
    *           If {@code factory} was {@code null}.
    */
   public final DecodeOptions setEntryFactory(final EntryFactory factory)
-      throws NullPointerException
   {
     Validator.ensureNotNull(factory);
     this.entryFactory = factory;
@@ -211,7 +209,6 @@ public final class DecodeOptions
    *           If {@code schema} was {@code null}.
    */
   public final DecodeOptions setSchema(final Schema schema)
-      throws NullPointerException
   {
     Validator.ensureNotNull(schema);
     this.schemaResolver = new FixedSchemaResolver(schema);
@@ -233,7 +230,6 @@ public final class DecodeOptions
    *           If {@code resolver} was {@code null}.
    */
   public final DecodeOptions setSchemaResolver(final SchemaResolver resolver)
-      throws NullPointerException
   {
     Validator.ensureNotNull(resolver);
     this.schemaResolver = resolver;

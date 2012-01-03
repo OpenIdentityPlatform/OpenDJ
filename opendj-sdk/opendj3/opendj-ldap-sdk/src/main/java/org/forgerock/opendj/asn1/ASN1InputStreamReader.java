@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.asn1;
@@ -225,7 +226,7 @@ final class ASN1InputStreamReader extends AbstractASN1Reader implements
   /**
    * {@inheritDoc}
    */
-  public void readEndSequence() throws IOException, IllegalStateException
+  public void readEndSequence() throws IOException
   {
     if (streamStack.isEmpty())
     {

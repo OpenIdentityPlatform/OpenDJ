@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -67,7 +67,6 @@ final class SimpleBindRequestImpl extends
    *           If {@code name} or {@code password} was {@code null}.
    */
   SimpleBindRequestImpl(final String name, final byte[] password)
-      throws NullPointerException
   {
     this.name = name;
     this.password = password;
@@ -85,7 +84,6 @@ final class SimpleBindRequestImpl extends
    *           If {@code simpleBindRequest} was {@code null} .
    */
   SimpleBindRequestImpl(final SimpleBindRequest simpleBindRequest)
-      throws NullPointerException
   {
     super(simpleBindRequest);
     this.name = simpleBindRequest.getName();
@@ -134,7 +132,6 @@ final class SimpleBindRequestImpl extends
    * {@inheritDoc}
    */
   public SimpleBindRequest setName(final String name)
-      throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(name);
     this.name = name;
@@ -147,7 +144,6 @@ final class SimpleBindRequestImpl extends
    * {@inheritDoc}
    */
   public SimpleBindRequest setPassword(final byte[] password)
-      throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(password);
     this.password = password;
@@ -160,7 +156,6 @@ final class SimpleBindRequestImpl extends
    * {@inheritDoc}
    */
   public SimpleBindRequest setPassword(final char[] password)
-      throws UnsupportedOperationException, NullPointerException
   {
     Validator.ensureNotNull(password);
     this.password = StaticUtils.getBytes(password);

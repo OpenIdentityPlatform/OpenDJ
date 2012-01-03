@@ -23,11 +23,12 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
+
 
 /**
  * Unmodifiable external SASL bind request implementation.
@@ -36,18 +37,24 @@ final class UnmodifiableExternalSASLBindRequestImpl extends
     AbstractUnmodifiableSASLBindRequest<ExternalSASLBindRequest> implements
     ExternalSASLBindRequest
 {
-  UnmodifiableExternalSASLBindRequestImpl(ExternalSASLBindRequest impl) {
+  UnmodifiableExternalSASLBindRequestImpl(ExternalSASLBindRequest impl)
+  {
     super(impl);
   }
 
+
+
   @Override
-  public String getAuthorizationID() {
-    return  impl.getAuthorizationID();
+  public String getAuthorizationID()
+  {
+    return impl.getAuthorizationID();
   }
+
+
 
   @Override
   public ExternalSASLBindRequest setAuthorizationID(String authorizationID)
-      throws UnsupportedOperationException, LocalizedIllegalArgumentException {
+  {
     throw new UnsupportedOperationException();
   }
 }

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -31,7 +32,6 @@ package org.forgerock.opendj.ldap;
 
 import java.util.Collection;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
 
 import com.forgerock.opendj.util.Iterables;
 import com.forgerock.opendj.util.Predicate;
@@ -180,7 +180,6 @@ public abstract class AbstractEntry implements Entry
    * {@inheritDoc}
    */
   public boolean addAttribute(final Attribute attribute)
-      throws UnsupportedOperationException, NullPointerException
   {
     return addAttribute(attribute, null);
   }
@@ -191,8 +190,7 @@ public abstract class AbstractEntry implements Entry
    * {@inheritDoc}
    */
   public Entry addAttribute(final String attributeDescription,
-      final Object... values) throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException
+      final Object... values)
   {
     addAttribute(new LinkedAttribute(attributeDescription, values), null);
     return this;
@@ -204,7 +202,7 @@ public abstract class AbstractEntry implements Entry
    * {@inheritDoc}
    */
   public boolean containsAttribute(final Attribute attribute,
-      final Collection<ByteString> missingValues) throws NullPointerException
+      final Collection<ByteString> missingValues)
   {
     final Attribute a = getAttribute(attribute.getAttributeDescription());
     if (a == null)
@@ -239,8 +237,7 @@ public abstract class AbstractEntry implements Entry
    * {@inheritDoc}
    */
   public boolean containsAttribute(final String attributeDescription,
-      final Object... values) throws LocalizedIllegalArgumentException,
-      NullPointerException
+      final Object... values)
   {
     return containsAttribute(new LinkedAttribute(attributeDescription, values),
         null);
@@ -264,7 +261,6 @@ public abstract class AbstractEntry implements Entry
    */
   public Iterable<Attribute> getAllAttributes(
       final AttributeDescription attributeDescription)
-      throws NullPointerException
   {
     Validator.ensureNotNull(attributeDescription);
 
@@ -278,7 +274,6 @@ public abstract class AbstractEntry implements Entry
    * {@inheritDoc}
    */
   public Iterable<Attribute> getAllAttributes(final String attributeDescription)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     return getAllAttributes(AttributeDescription.valueOf(attributeDescription));
   }
@@ -289,7 +284,6 @@ public abstract class AbstractEntry implements Entry
    * {@inheritDoc}
    */
   public Attribute getAttribute(final String attributeDescription)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     return getAttribute(AttributeDescription.valueOf(attributeDescription));
   }
@@ -311,7 +305,6 @@ public abstract class AbstractEntry implements Entry
    * {@inheritDoc}
    */
   public boolean removeAttribute(final AttributeDescription attributeDescription)
-      throws UnsupportedOperationException, NullPointerException
   {
     return removeAttribute(
         Attributes.emptyAttribute(attributeDescription), null);
@@ -323,8 +316,7 @@ public abstract class AbstractEntry implements Entry
    * {@inheritDoc}
    */
   public Entry removeAttribute(final String attributeDescription,
-      final Object... values) throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException
+      final Object... values)
   {
     removeAttribute(new LinkedAttribute(attributeDescription, values), null);
     return this;
@@ -336,7 +328,6 @@ public abstract class AbstractEntry implements Entry
    * {@inheritDoc}
    */
   public boolean replaceAttribute(final Attribute attribute)
-      throws UnsupportedOperationException, NullPointerException
   {
     if (attribute.isEmpty())
     {
@@ -356,8 +347,7 @@ public abstract class AbstractEntry implements Entry
    * {@inheritDoc}
    */
   public Entry replaceAttribute(final String attributeDescription,
-      final Object... values) throws LocalizedIllegalArgumentException,
-      UnsupportedOperationException, NullPointerException
+      final Object... values)
   {
     replaceAttribute(new LinkedAttribute(attributeDescription, values));
     return this;
@@ -369,8 +359,6 @@ public abstract class AbstractEntry implements Entry
    * {@inheritDoc}
    */
   public Entry setName(final String dn)
-      throws LocalizedIllegalArgumentException, UnsupportedOperationException,
-      NullPointerException
   {
     return setName(DN.valueOf(dn));
   }

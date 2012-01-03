@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -119,7 +120,6 @@ final class AnonymousSASLBindRequestImpl extends
    * {@inheritDoc}
    */
   public AnonymousSASLBindRequest setTraceString(final String traceString)
-      throws NullPointerException
   {
     Validator.ensureNotNull(traceString);
     this.traceString = traceString;

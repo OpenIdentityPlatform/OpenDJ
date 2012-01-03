@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -253,7 +254,6 @@ public final class LDAPUrl
    *           If {@code url} was {@code null}.
    */
   public static LDAPUrl valueOf(final String url)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     return valueOf(url, Schema.getDefaultSchema());
   }
@@ -276,7 +276,6 @@ public final class LDAPUrl
    *           If {@code url} or {@code schema} was {@code null}.
    */
   public static LDAPUrl valueOf(final String url, final Schema schema)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(url, schema);
     return new LDAPUrl(url, schema);
@@ -285,7 +284,7 @@ public final class LDAPUrl
 
 
   private static int decodeHex(final String url, final int index,
-      final char hexChar) throws LocalizedIllegalArgumentException
+      final char hexChar)
   {
     if (hexChar >= '0' && hexChar <= '9')
     {
@@ -308,7 +307,6 @@ public final class LDAPUrl
 
   private static void percentDecoder(final String urlString, final int index,
       final String s, final StringBuilder decoded)
-      throws LocalizedIllegalArgumentException
   {
     Validator.ensureNotNull(s, decoded);
     decoded.append(s);
@@ -392,7 +390,6 @@ public final class LDAPUrl
    */
   public LDAPUrl(final boolean isSecured, final String host,
       final Integer port, final DN name)
-      throws LocalizedIllegalArgumentException
   {
     this(isSecured, host, port, name, DEFAULT_SCOPE, DEFAULT_FILTER);
   }
@@ -430,7 +427,6 @@ public final class LDAPUrl
   public LDAPUrl(final boolean isSecured, final String host,
       final Integer port, final DN name, final SearchScope scope,
       final Filter filter, final String... attributes)
-      throws LocalizedIllegalArgumentException
   {
     // The buffer storing the encoded url.
     final StringBuilder urlBuffer = new StringBuilder();
@@ -540,7 +536,6 @@ public final class LDAPUrl
 
 
   private LDAPUrl(final String urlString, final Schema schema)
-      throws LocalizedIllegalArgumentException
   {
     this.urlString = urlString;
 
@@ -887,7 +882,7 @@ public final class LDAPUrl
 
 
   private int parseHostPort(final String urlString, final String hostAndPort,
-      final StringBuilder host) throws LocalizedIllegalArgumentException
+      final StringBuilder host)
   {
     Validator.ensureNotNull(hostAndPort, port, host);
     int urlPort = isSecured ? DEFAULT_SSL_PORT : DEFAULT_PORT;

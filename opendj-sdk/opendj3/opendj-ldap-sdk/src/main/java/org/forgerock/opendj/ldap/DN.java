@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -112,7 +112,6 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
    *           If {@code dn} was {@code null}.
    */
   public static DN valueOf(final String dn)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     return valueOf(dn, Schema.getDefaultSchema());
   }
@@ -134,7 +133,6 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
    *           If {@code dn} or {@code schema} was {@code null}.
    */
   public static DN valueOf(final String dn, final Schema schema)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     Validator.ensureNotNull(dn, schema);
     if (dn.length() == 0)
@@ -228,7 +226,6 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
   // Decodes a DN using the provided reader and schema.
   private static DN decode(final String dnString, final SubstringReader reader,
       final Schema schema, final Map<String, DN> cache)
-      throws LocalizedIllegalArgumentException
   {
     reader.skipWhitespaces();
     if (reader.remaining() == 0)
@@ -340,7 +337,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  public DN child(final DN dn) throws NullPointerException
+  public DN child(final DN dn)
   {
     Validator.ensureNotNull(dn);
 
@@ -387,7 +384,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
    *           If {@code rdn} was {@code null}.
    * @see RDN#maxValue()
    */
-  public DN child(final RDN rdn) throws NullPointerException
+  public DN child(final RDN rdn)
   {
     Validator.ensureNotNull(rdn);
     return new DN(this, rdn, null);
@@ -407,8 +404,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  public DN child(final String dn) throws LocalizedIllegalArgumentException,
-      NullPointerException
+  public DN child(final String dn)
   {
     Validator.ensureNotNull(dn);
     return child(valueOf(dn));
@@ -486,7 +482,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  public boolean isChildOf(final DN dn) throws NullPointerException
+  public boolean isChildOf(final DN dn)
   {
     // If this is the Root DN then parent will be null but this is ok.
     return dn.equals(parent);
@@ -508,7 +504,6 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
    *           If {@code dn} was {@code null}.
    */
   public boolean isChildOf(final String dn)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     // If this is the Root DN then parent will be null but this is ok.
     return isChildOf(valueOf(dn));
@@ -593,7 +588,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  public boolean isParentOf(final DN dn) throws NullPointerException
+  public boolean isParentOf(final DN dn)
   {
     // If dn is the Root DN then parent will be null but this is ok.
     return equals(dn.parent);
@@ -614,7 +609,6 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
    *           If {@code dn} was {@code null}.
    */
   public boolean isParentOf(final String dn)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     // If dn is the Root DN then parent will be null but this is ok.
     return isParentOf(valueOf(dn));
@@ -646,7 +640,6 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
    *           If {@code dn} was {@code null}.
    */
   public boolean isSubordinateOrEqualTo(final DN dn)
-      throws NullPointerException
   {
     if (size < dn.size)
     {
@@ -679,7 +672,6 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
    *           If {@code dn} was {@code null}.
    */
   public boolean isSubordinateOrEqualTo(final String dn)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     return isSubordinateOrEqualTo(valueOf(dn));
   }
@@ -696,7 +688,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
    * @throws NullPointerException
    *           If {@code dn} was {@code null}.
    */
-  public boolean isSuperiorOrEqualTo(final DN dn) throws NullPointerException
+  public boolean isSuperiorOrEqualTo(final DN dn)
   {
     if (size > dn.size)
     {
@@ -728,7 +720,6 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
    *           If {@code dn} was {@code null}.
    */
   public boolean isSuperiorOrEqualTo(final String dn)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     return isSuperiorOrEqualTo(valueOf(dn));
   }
@@ -800,7 +791,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
    * @throws IllegalArgumentException
    *           If {@code index} is less than zero.
    */
-  public DN localName(final int index) throws IllegalArgumentException
+  public DN localName(final int index)
   {
     Validator.ensureTrue(index >= 0, "index less than zero");
 
@@ -862,7 +853,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
    * @throws IllegalArgumentException
    *           If {@code index} is less than zero.
    */
-  public DN parent(final int index) throws IllegalArgumentException
+  public DN parent(final int index)
   {
     // We allow size + 1 so that we can return null as the parent of the
     // Root DN.
@@ -903,7 +894,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN>
    * @throws NullPointerException
    *           If {@code fromDN} or {@code toDN} was {@code null}.
    */
-  public DN rename(final DN fromDN, final DN toDN) throws NullPointerException
+  public DN rename(final DN fromDN, final DN toDN)
   {
     Validator.ensureNotNull(fromDN, toDN);
 

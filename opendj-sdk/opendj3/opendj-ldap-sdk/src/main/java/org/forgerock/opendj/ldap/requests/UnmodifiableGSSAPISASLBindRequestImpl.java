@@ -23,10 +23,12 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
+
+
 
 import java.util.Collections;
 import java.util.List;
@@ -34,9 +36,9 @@ import java.util.Map;
 
 import javax.security.auth.Subject;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
-
 import com.forgerock.opendj.util.StaticUtils;
+
+
 
 /**
  * Unmodifiable GSSAPI SASL bind request implementation.
@@ -45,135 +47,193 @@ final class UnmodifiableGSSAPISASLBindRequestImpl extends
     AbstractUnmodifiableSASLBindRequest<GSSAPISASLBindRequest> implements
     GSSAPISASLBindRequest
 {
-  UnmodifiableGSSAPISASLBindRequestImpl(GSSAPISASLBindRequest impl) {
+  UnmodifiableGSSAPISASLBindRequestImpl(GSSAPISASLBindRequest impl)
+  {
     super(impl);
   }
 
+
+
   @Override
   public GSSAPISASLBindRequest addAdditionalAuthParam(String name, String value)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
 
+
+
   @Override
-  public Map<String, String> getAdditionalAuthParams() {
+  public Map<String, String> getAdditionalAuthParams()
+  {
     return Collections.unmodifiableMap(impl.getAdditionalAuthParams());
   }
 
+
+
   @Override
   public GSSAPISASLBindRequest addQOP(String... qopValues)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
 
+
+
   @Override
-  public String getAuthenticationID() {
+  public String getAuthenticationID()
+  {
     return impl.getAuthenticationID();
   }
 
+
+
   @Override
-  public String getAuthorizationID() {
+  public String getAuthorizationID()
+  {
     return impl.getAuthorizationID();
   }
 
+
+
   @Override
-  public String getKDCAddress() {
+  public String getKDCAddress()
+  {
     return impl.getKDCAddress();
   }
 
+
+
   @Override
-  public int getMaxReceiveBufferSize() {
+  public int getMaxReceiveBufferSize()
+  {
     return impl.getMaxReceiveBufferSize();
   }
 
+
+
   @Override
-  public int getMaxSendBufferSize() {
+  public int getMaxSendBufferSize()
+  {
     return impl.getMaxSendBufferSize();
   }
 
+
+
   @Override
-  public byte[] getPassword() {
+  public byte[] getPassword()
+  {
     // Defensive copy.
     return StaticUtils.copyOfBytes(impl.getPassword());
   }
 
+
+
   @Override
-  public List<String> getQOPs() {
+  public List<String> getQOPs()
+  {
     return Collections.unmodifiableList(impl.getQOPs());
   }
 
+
+
   @Override
-  public String getRealm() {
+  public String getRealm()
+  {
     return impl.getRealm();
   }
 
+
+
   @Override
-  public Subject getSubject() {
+  public Subject getSubject()
+  {
     return impl.getSubject();
   }
 
+
+
   @Override
-  public boolean isServerAuth() {
+  public boolean isServerAuth()
+  {
     return impl.isServerAuth();
   }
 
+
+
   @Override
   public GSSAPISASLBindRequest setAuthenticationID(String authenticationID)
-      throws LocalizedIllegalArgumentException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   @Override
   public GSSAPISASLBindRequest setAuthorizationID(String authorizationID)
-      throws LocalizedIllegalArgumentException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   @Override
   public GSSAPISASLBindRequest setKDCAddress(String address)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   @Override
   public GSSAPISASLBindRequest setMaxReceiveBufferSize(int size)
-      throws UnsupportedOperationException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   @Override
   public GSSAPISASLBindRequest setMaxSendBufferSize(int size)
-      throws UnsupportedOperationException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   @Override
   public GSSAPISASLBindRequest setPassword(byte[] password)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   @Override
   public GSSAPISASLBindRequest setPassword(char[] password)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   @Override
   public GSSAPISASLBindRequest setRealm(String realm)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   @Override
   public GSSAPISASLBindRequest setServerAuth(boolean serverAuth)
-      throws UnsupportedOperationException {
+  {
     throw new UnsupportedOperationException();
   }
 
+
+
   @Override
   public GSSAPISASLBindRequest setSubject(Subject subject)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
 }

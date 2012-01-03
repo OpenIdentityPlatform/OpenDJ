@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
@@ -69,7 +70,6 @@ public final class ConnectionEntryWriter implements EntryWriter
    *           If {@code connection} was {@code null}.
    */
   public ConnectionEntryWriter(final Connection connection)
-      throws NullPointerException
   {
     Validator.ensureNotNull(connection);
     this.connection = connection;
@@ -110,7 +110,6 @@ public final class ConnectionEntryWriter implements EntryWriter
    *           If {@code comment} was {@code null}.
    */
   public ConnectionEntryWriter writeComment(final CharSequence comment)
-      throws NullPointerException
   {
     Validator.ensureNotNull(comment);
 
@@ -136,8 +135,7 @@ public final class ConnectionEntryWriter implements EntryWriter
    *           If {@code entry} was {@code null}.
    */
   public ConnectionEntryWriter writeEntry(final Entry entry)
-      throws ErrorResultIOException, InterruptedIOException,
-      NullPointerException
+      throws ErrorResultIOException, InterruptedIOException
   {
     Validator.ensureNotNull(entry);
     try

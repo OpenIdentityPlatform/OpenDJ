@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.controls;
@@ -137,7 +138,7 @@ public final class AssertionRequestControl implements Control
    *           If {@code filter} was {@code null}.
    */
   public static AssertionRequestControl newControl(final boolean isCritical,
-      final Filter filter) throws NullPointerException
+      final Filter filter)
   {
     return new AssertionRequestControl(isCritical, filter);
   }

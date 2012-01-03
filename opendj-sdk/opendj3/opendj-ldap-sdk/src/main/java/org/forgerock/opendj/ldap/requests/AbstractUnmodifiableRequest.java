@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -77,7 +78,6 @@ abstract class AbstractUnmodifiableRequest<R extends Request> implements
    */
   @Override
   public final R addControl(final Control control)
-      throws UnsupportedOperationException, NullPointerException
   {
     throw new UnsupportedOperationException();
   }
@@ -90,7 +90,7 @@ abstract class AbstractUnmodifiableRequest<R extends Request> implements
   @Override
   public final <C extends Control> C getControl(
       final ControlDecoder<C> decoder, final DecodeOptions options)
-      throws NullPointerException, DecodeException
+      throws DecodeException
   {
     Validator.ensureNotNull(decoder, options);
 

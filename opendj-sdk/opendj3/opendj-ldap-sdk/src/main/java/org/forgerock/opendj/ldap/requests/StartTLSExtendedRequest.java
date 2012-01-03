@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -73,8 +74,7 @@ public interface StartTLSExtendedRequest extends
   /**
    * {@inheritDoc}
    */
-  StartTLSExtendedRequest addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  StartTLSExtendedRequest addControl(Control control);
 
 
 
@@ -82,7 +82,7 @@ public interface StartTLSExtendedRequest extends
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 
@@ -131,8 +131,7 @@ public interface StartTLSExtendedRequest extends
    *           If this start TLS extended request does not permit the enabled
    *           protocols to be set.
    */
-  StartTLSExtendedRequest addEnabledProtocol(String... protocols)
-      throws UnsupportedOperationException;
+  StartTLSExtendedRequest addEnabledProtocol(String... protocols);
 
 
   /**
@@ -150,8 +149,7 @@ public interface StartTLSExtendedRequest extends
    *           If this start TLS extended request does not permit the enabled
    *           cipher suites to be set.
    */
-  StartTLSExtendedRequest addEnabledCipherSuite(String... suites)
-      throws UnsupportedOperationException;
+  StartTLSExtendedRequest addEnabledCipherSuite(String... suites);
 
 
 

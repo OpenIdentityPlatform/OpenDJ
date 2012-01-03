@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -158,8 +158,6 @@ public final class RootDSE
    */
   public static FutureResult<RootDSE> readRootDSEAsync(
       final Connection connection, final ResultHandler<? super RootDSE> handler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException
   {
     final FutureResultTransformer<SearchResultEntry, RootDSE> future =
       new FutureResultTransformer<SearchResultEntry, RootDSE>(handler)
@@ -206,9 +204,7 @@ public final class RootDSE
    *           If the {@code connection} was {@code null}.
    */
   public static RootDSE readRootDSE(final Connection connection)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException
+      throws ErrorResultException, InterruptedException
   {
     final Entry entry = connection.searchSingleEntry(SEARCH_REQUEST);
     return valueOf(entry);
@@ -229,7 +225,7 @@ public final class RootDSE
    * @throws NullPointerException
    *           If {@code entry} was {@code null} .
    */
-  public static RootDSE valueOf(Entry entry) throws NullPointerException
+  public static RootDSE valueOf(Entry entry)
   {
     Validator.ensureNotNull(entry);
     return new RootDSE(entry);
@@ -242,7 +238,7 @@ public final class RootDSE
 
 
   // Prevent direct instantiation.
-  private RootDSE(final Entry entry) throws NullPointerException
+  private RootDSE(final Entry entry)
   {
     this.entry = entry;
   }

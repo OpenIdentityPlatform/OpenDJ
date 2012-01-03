@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -32,7 +32,7 @@ package org.forgerock.opendj.ldap.requests;
 
 import java.util.List;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.i18n.*;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.ErrorResultException;
@@ -67,8 +67,7 @@ public interface PlainSASLBindRequest extends SASLBindRequest
   /**
    * {@inheritDoc}
    */
-  PlainSASLBindRequest addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  PlainSASLBindRequest addControl(Control control);
 
 
 
@@ -117,7 +116,7 @@ public interface PlainSASLBindRequest extends SASLBindRequest
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 
@@ -175,9 +174,7 @@ public interface PlainSASLBindRequest extends SASLBindRequest
    * @throws NullPointerException
    *           If {@code authenticationID} was {@code null}.
    */
-  PlainSASLBindRequest setAuthenticationID(String authenticationID)
-      throws UnsupportedOperationException, LocalizedIllegalArgumentException,
-      NullPointerException;
+  PlainSASLBindRequest setAuthenticationID(String authenticationID);
 
 
 
@@ -198,8 +195,7 @@ public interface PlainSASLBindRequest extends SASLBindRequest
    *           If {@code authorizationID} was non-empty and did not contain a
    *           valid authorization ID type.
    */
-  PlainSASLBindRequest setAuthorizationID(String authorizationID)
-      throws UnsupportedOperationException, LocalizedIllegalArgumentException;
+  PlainSASLBindRequest setAuthorizationID(String authorizationID);
 
 
 
@@ -219,8 +215,7 @@ public interface PlainSASLBindRequest extends SASLBindRequest
    * @throws NullPointerException
    *           If {@code password} was {@code null}.
    */
-  PlainSASLBindRequest setPassword(byte[] password)
-      throws UnsupportedOperationException, NullPointerException;
+  PlainSASLBindRequest setPassword(byte[] password);
 
 
 
@@ -236,6 +231,5 @@ public interface PlainSASLBindRequest extends SASLBindRequest
    * @throws NullPointerException
    *           If {@code password} was {@code null}.
    */
-  PlainSASLBindRequest setPassword(char[] password)
-      throws UnsupportedOperationException, NullPointerException;
+  PlainSASLBindRequest setPassword(char[] password);
 }

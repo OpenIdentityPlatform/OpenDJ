@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -59,7 +60,6 @@ public final class SearchResultReferenceIOException extends IOException
    *           If {@code reference} was {@code null}.
    */
   public SearchResultReferenceIOException(final SearchResultReference reference)
-      throws NullPointerException
   {
     super(Validator.ensureNotNull(reference).toString());
     this.reference = reference;

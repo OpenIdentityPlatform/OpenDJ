@@ -23,31 +23,40 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
 
+
+
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
+
+
 
 /**
  * Unmodifiable cancel extended request implementation.
  */
-final class UnmodifiableCancelExtendedRequestImpl
-    extends AbstractUnmodifiableExtendedRequest
-    <CancelExtendedRequest, ExtendedResult>
+final class UnmodifiableCancelExtendedRequestImpl extends
+    AbstractUnmodifiableExtendedRequest<CancelExtendedRequest, ExtendedResult>
     implements CancelExtendedRequest
 {
-  UnmodifiableCancelExtendedRequestImpl(
-      CancelExtendedRequest impl) {
+  UnmodifiableCancelExtendedRequestImpl(CancelExtendedRequest impl)
+  {
     super(impl);
   }
 
-  public int getRequestID() {
+
+
+  public int getRequestID()
+  {
     return impl.getRequestID();
   }
 
+
+
   public CancelExtendedRequest setRequestID(int id)
-      throws UnsupportedOperationException {
+  {
     throw new UnsupportedOperationException();
   }
 }

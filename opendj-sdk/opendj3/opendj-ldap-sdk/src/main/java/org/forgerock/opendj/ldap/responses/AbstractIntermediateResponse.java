@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
@@ -67,7 +68,6 @@ public abstract class AbstractIntermediateResponse<S extends IntermediateRespons
    */
   protected AbstractIntermediateResponse(
       IntermediateResponse intermediateResponse)
-      throws NullPointerException
   {
     super(intermediateResponse);
   }

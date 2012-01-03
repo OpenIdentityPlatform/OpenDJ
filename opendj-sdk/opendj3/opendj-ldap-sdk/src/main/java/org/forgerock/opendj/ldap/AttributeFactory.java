@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -49,6 +50,5 @@ public interface AttributeFactory
    * @throws NullPointerException
    *           If {@code attributeDescription} was {@code null}.
    */
-  Attribute newAttribute(AttributeDescription attributeDescription)
-      throws NullPointerException;
+  Attribute newAttribute(AttributeDescription attributeDescription);
 }

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -37,31 +37,41 @@ import com.forgerock.opendj.util.StaticUtils;
 /**
  * Unmodifiable generic bind request implementation.
  */
-final class UnmodifiableGenericBindRequestImpl
-    extends AbstractUnmodifiableBindRequest<GenericBindRequest>
-    implements GenericBindRequest
+final class UnmodifiableGenericBindRequestImpl extends
+    AbstractUnmodifiableBindRequest<GenericBindRequest> implements
+    GenericBindRequest
 {
-  UnmodifiableGenericBindRequestImpl(GenericBindRequest impl) {
+  UnmodifiableGenericBindRequestImpl(GenericBindRequest impl)
+  {
     super(impl);
   }
 
-  public byte[] getAuthenticationValue() {
+
+
+  public byte[] getAuthenticationValue()
+  {
     // Defensive copy.
     return StaticUtils.copyOfBytes(impl.getAuthenticationValue());
   }
 
+
+
   public GenericBindRequest setAuthenticationType(byte type)
-      throws UnsupportedOperationException {
+  {
     throw new UnsupportedOperationException();
   }
+
+
 
   public GenericBindRequest setAuthenticationValue(byte[] bytes)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
 
+
+
   public GenericBindRequest setName(String name)
-      throws UnsupportedOperationException, NullPointerException {
+  {
     throw new UnsupportedOperationException();
   }
 }

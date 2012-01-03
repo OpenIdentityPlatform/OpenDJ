@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldif;
@@ -78,7 +78,6 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
    *           If {@code ldifLines} was {@code null}.
    */
   public static Entry valueOfLDIFEntry(final String... ldifLines)
-      throws LocalizedIllegalArgumentException, NullPointerException
   {
     final LDIFEntryReader reader = new LDIFEntryReader(ldifLines);
     try
@@ -131,7 +130,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
    * @throws NullPointerException
    *           If {@code in} was {@code null}.
    */
-  public LDIFEntryReader(final InputStream in) throws NullPointerException
+  public LDIFEntryReader(final InputStream in)
   {
     super(in);
   }
@@ -148,7 +147,6 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
    *           If {@code ldifLines} was {@code null}.
    */
   public LDIFEntryReader(final List<String> ldifLines)
-      throws NullPointerException
   {
     super(ldifLines);
   }
@@ -164,7 +162,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements
    * @throws NullPointerException
    *           If {@code ldifLines} was {@code null}.
    */
-  public LDIFEntryReader(final String... ldifLines) throws NullPointerException
+  public LDIFEntryReader(final String... ldifLines)
   {
     super(Arrays.asList(ldifLines));
   }

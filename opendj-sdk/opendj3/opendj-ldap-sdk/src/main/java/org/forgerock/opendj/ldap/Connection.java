@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -33,7 +33,7 @@ package org.forgerock.opendj.ldap;
 import java.io.Closeable;
 import java.util.Collection;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.i18n.*;
 import org.forgerock.opendj.ldap.requests.*;
 import org.forgerock.opendj.ldap.responses.*;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
@@ -164,9 +164,7 @@ public interface Connection extends Closeable
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
-  FutureResult<Void> abandonAsync(AbandonRequest request)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+  FutureResult<Void> abandonAsync(AbandonRequest request);
 
 
 
@@ -190,8 +188,7 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   Result add(AddRequest request) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+      InterruptedException;
 
 
 
@@ -221,9 +218,7 @@ public interface Connection extends Closeable
    * @throws NullPointerException
    *           If {@code entry} was {@code null} .
    */
-  Result add(Entry entry) throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+  Result add(Entry entry) throws ErrorResultException, InterruptedException;
 
 
 
@@ -258,9 +253,7 @@ public interface Connection extends Closeable
    *           If {@code ldifLines} was {@code null} .
    */
   Result add(String... ldifLines) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      LocalizedIllegalArgumentException, IllegalStateException,
-      NullPointerException;
+      InterruptedException;
 
 
 
@@ -287,9 +280,7 @@ public interface Connection extends Closeable
    */
   FutureResult<Result> addAsync(AddRequest request,
       IntermediateResponseHandler intermediateResponseHandler,
-      ResultHandler<? super Result> resultHandler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      ResultHandler<? super Result> resultHandler);
 
 
 
@@ -307,8 +298,7 @@ public interface Connection extends Closeable
    * @throws NullPointerException
    *           If the {@code listener} was {@code null}.
    */
-  void addConnectionEventListener(ConnectionEventListener listener)
-      throws IllegalStateException, NullPointerException;
+  void addConnectionEventListener(ConnectionEventListener listener);
 
 
 
@@ -332,8 +322,7 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   BindResult bind(BindRequest request) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+      InterruptedException;
 
 
 
@@ -371,9 +360,7 @@ public interface Connection extends Closeable
    *           If {@code name} or {@code password} was {@code null}.
    */
   BindResult bind(String name, char[] password) throws ErrorResultException,
-      InterruptedException, LocalizedIllegalArgumentException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      InterruptedException;
 
 
 
@@ -400,9 +387,7 @@ public interface Connection extends Closeable
    */
   FutureResult<BindResult> bindAsync(BindRequest request,
       IntermediateResponseHandler intermediateResponseHandler,
-      ResultHandler<? super BindResult> resultHandler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      ResultHandler<? super BindResult> resultHandler);
 
 
 
@@ -449,7 +434,7 @@ public interface Connection extends Closeable
    * @throws NullPointerException
    *           If {@code request} was {@code null}.
    */
-  void close(UnbindRequest request, String reason) throws NullPointerException;
+  void close(UnbindRequest request, String reason);
 
 
 
@@ -474,8 +459,7 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   CompareResult compare(CompareRequest request) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+      InterruptedException;
 
 
 
@@ -516,9 +500,7 @@ public interface Connection extends Closeable
    *           {@code assertionValue} was {@code null}.
    */
   CompareResult compare(String name, String attributeDescription,
-      String assertionValue) throws ErrorResultException, InterruptedException,
-      LocalizedIllegalArgumentException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+      String assertionValue) throws ErrorResultException, InterruptedException;
 
 
 
@@ -545,9 +527,7 @@ public interface Connection extends Closeable
    */
   FutureResult<CompareResult> compareAsync(CompareRequest request,
       IntermediateResponseHandler intermediateResponseHandler,
-      ResultHandler<? super CompareResult> resultHandler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      ResultHandler<? super CompareResult> resultHandler);
 
 
 
@@ -572,8 +552,7 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   Result delete(DeleteRequest request) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+      InterruptedException;
 
 
 
@@ -605,9 +584,7 @@ public interface Connection extends Closeable
    * @throws NullPointerException
    *           If {@code name} was {@code null}.
    */
-  Result delete(String name) throws ErrorResultException, InterruptedException,
-      LocalizedIllegalArgumentException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+  Result delete(String name) throws ErrorResultException, InterruptedException;
 
 
 
@@ -634,9 +611,7 @@ public interface Connection extends Closeable
    */
   FutureResult<Result> deleteAsync(DeleteRequest request,
       IntermediateResponseHandler intermediateResponseHandler,
-      ResultHandler<? super Result> resultHandler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      ResultHandler<? super Result> resultHandler);
 
 
 
@@ -662,9 +637,7 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   <R extends ExtendedResult> R extendedRequest(ExtendedRequest<R> request)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      throws ErrorResultException, InterruptedException;
 
 
 
@@ -695,8 +668,7 @@ public interface Connection extends Closeable
    */
   <R extends ExtendedResult> R extendedRequest(ExtendedRequest<R> request,
       IntermediateResponseHandler handler) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+      InterruptedException;
 
 
 
@@ -733,8 +705,7 @@ public interface Connection extends Closeable
    */
   GenericExtendedResult extendedRequest(String requestName,
       ByteString requestValue) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+      InterruptedException;
 
 
 
@@ -764,9 +735,7 @@ public interface Connection extends Closeable
   <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(
       ExtendedRequest<R> request,
       IntermediateResponseHandler intermediateResponseHandler,
-      ResultHandler<? super R> resultHandler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      ResultHandler<? super R> resultHandler);
 
 
 
@@ -815,8 +784,7 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   Result modify(ModifyRequest request) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+      InterruptedException;
 
 
 
@@ -850,9 +818,7 @@ public interface Connection extends Closeable
    *           If {@code ldifLines} was {@code null} .
    */
   Result modify(String... ldifLines) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      LocalizedIllegalArgumentException, IllegalStateException,
-      NullPointerException;
+      InterruptedException;
 
 
 
@@ -879,9 +845,7 @@ public interface Connection extends Closeable
    */
   FutureResult<Result> modifyAsync(ModifyRequest request,
       IntermediateResponseHandler intermediateResponseHandler,
-      ResultHandler<? super Result> resultHandler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      ResultHandler<? super Result> resultHandler);
 
 
 
@@ -906,8 +870,7 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   Result modifyDN(ModifyDNRequest request) throws ErrorResultException,
-      InterruptedException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+      InterruptedException;
 
 
 
@@ -943,9 +906,7 @@ public interface Connection extends Closeable
    *           If {@code name} or {@code newRDN} was {@code null}.
    */
   Result modifyDN(String name, String newRDN) throws ErrorResultException,
-      LocalizedIllegalArgumentException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      InterruptedException;
 
 
 
@@ -972,9 +933,7 @@ public interface Connection extends Closeable
    */
   FutureResult<Result> modifyDNAsync(ModifyDNRequest request,
       IntermediateResponseHandler intermediateResponseHandler,
-      ResultHandler<? super Result> resultHandler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      ResultHandler<? super Result> resultHandler);
 
 
 
@@ -1014,9 +973,7 @@ public interface Connection extends Closeable
    *           If the {@code name} was {@code null}.
    */
   SearchResultEntry readEntry(DN name, String... attributeDescriptions)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      throws ErrorResultException, InterruptedException;
 
 
 
@@ -1057,9 +1014,7 @@ public interface Connection extends Closeable
    *           If the {@code name} was {@code null}.
    */
   SearchResultEntry readEntry(String name, String... attributeDescriptions)
-      throws ErrorResultException, InterruptedException,
-      LocalizedIllegalArgumentException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+      throws ErrorResultException, InterruptedException;
 
 
 
@@ -1098,9 +1053,7 @@ public interface Connection extends Closeable
    */
   FutureResult<SearchResultEntry> readEntryAsync(DN name,
       Collection<String> attributeDescriptions,
-      ResultHandler<? super SearchResultEntry> handler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      ResultHandler<? super SearchResultEntry> handler);
 
 
 
@@ -1116,8 +1069,7 @@ public interface Connection extends Closeable
    * @throws NullPointerException
    *           If the {@code listener} was {@code null}.
    */
-  void removeConnectionEventListener(ConnectionEventListener listener)
-      throws NullPointerException;
+  void removeConnectionEventListener(ConnectionEventListener listener);
 
 
 
@@ -1142,9 +1094,7 @@ public interface Connection extends Closeable
    * @throws NullPointerException
    *           If {@code request} or {@code entries} was {@code null}.
    */
-  ConnectionEntryReader search(SearchRequest request)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+  ConnectionEntryReader search(SearchRequest request);
 
 
 
@@ -1185,9 +1135,7 @@ public interface Connection extends Closeable
    */
   Result search(SearchRequest request,
       Collection<? super SearchResultEntry> entries)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      throws ErrorResultException, InterruptedException;
 
 
 
@@ -1227,9 +1175,7 @@ public interface Connection extends Closeable
   Result search(SearchRequest request,
       Collection<? super SearchResultEntry> entries,
       Collection<? super SearchResultReference> references)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      throws ErrorResultException, InterruptedException;
 
 
 
@@ -1259,9 +1205,7 @@ public interface Connection extends Closeable
    *           If {@code request} was {@code null}.
    */
   Result search(SearchRequest request, SearchResultHandler handler)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      throws ErrorResultException, InterruptedException;
 
 
 
@@ -1303,9 +1247,7 @@ public interface Connection extends Closeable
    *           {@code null}.
    */
   ConnectionEntryReader search(String baseObject, SearchScope scope,
-      String filter, String... attributeDescriptions)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      String filter, String... attributeDescriptions);
 
 
 
@@ -1333,8 +1275,7 @@ public interface Connection extends Closeable
    */
   FutureResult<Result> searchAsync(SearchRequest request,
       IntermediateResponseHandler intermediateResponseHandler,
-      SearchResultHandler resultHandler) throws UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+      SearchResultHandler resultHandler);
 
 
 
@@ -1365,9 +1306,7 @@ public interface Connection extends Closeable
    *           If the {@code request} was {@code null}.
    */
   SearchResultEntry searchSingleEntry(SearchRequest request)
-      throws ErrorResultException, InterruptedException,
-      UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      throws ErrorResultException, InterruptedException;
 
 
 
@@ -1420,9 +1359,7 @@ public interface Connection extends Closeable
    */
   SearchResultEntry searchSingleEntry(String baseObject, SearchScope scope,
       String filter, String... attributeDescriptions)
-      throws ErrorResultException, InterruptedException,
-      LocalizedIllegalArgumentException, UnsupportedOperationException,
-      IllegalStateException, NullPointerException;
+      throws ErrorResultException, InterruptedException;
 
 
 
@@ -1451,7 +1388,5 @@ public interface Connection extends Closeable
    *           If the {@code request} was {@code null}.
    */
   FutureResult<SearchResultEntry> searchSingleEntryAsync(SearchRequest request,
-      ResultHandler<? super SearchResultEntry> handler)
-      throws UnsupportedOperationException, IllegalStateException,
-      NullPointerException;
+      ResultHandler<? super SearchResultEntry> handler);
 }

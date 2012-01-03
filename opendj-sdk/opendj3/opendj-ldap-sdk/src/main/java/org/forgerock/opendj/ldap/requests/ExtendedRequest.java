@@ -55,8 +55,7 @@ public interface ExtendedRequest<S extends ExtendedResult> extends Request
   /**
    * {@inheritDoc}
    */
-  ExtendedRequest<S> addControl(Control control)
-      throws UnsupportedOperationException, NullPointerException;
+  ExtendedRequest<S> addControl(Control control);
 
 
 
@@ -64,7 +63,7 @@ public interface ExtendedRequest<S extends ExtendedResult> extends Request
    * {@inheritDoc}
    */
   <C extends Control> C getControl(ControlDecoder<C> decoder,
-      DecodeOptions options) throws NullPointerException, DecodeException;
+      DecodeOptions options) throws DecodeException;
 
 
 

@@ -27,13 +27,16 @@
 
 package org.forgerock.opendj.ldap.responses;
 
+
+
 /**
  * A unmodifiable generic result indicates the final status of an operation.
  */
-class UnmodifiableResultImpl
-    extends AbstractUnmodifiableResultImpl<Result> implements Result
+class UnmodifiableResultImpl extends AbstractUnmodifiableResultImpl<Result>
+    implements Result
 {
-  UnmodifiableResultImpl(Result impl) {
+  UnmodifiableResultImpl(Result impl)
+  {
     super(impl);
   }
 }

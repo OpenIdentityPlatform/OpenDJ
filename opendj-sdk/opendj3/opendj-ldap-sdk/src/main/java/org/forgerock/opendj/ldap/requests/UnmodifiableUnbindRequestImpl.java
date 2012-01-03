@@ -27,14 +27,16 @@
 
 package org.forgerock.opendj.ldap.requests;
 
+
+
 /**
  * Unmodifiable unbind request implementation.
  */
-final class UnmodifiableUnbindRequestImpl
-    extends AbstractUnmodifiableRequest<UnbindRequest>
-    implements UnbindRequest
+final class UnmodifiableUnbindRequestImpl extends
+    AbstractUnmodifiableRequest<UnbindRequest> implements UnbindRequest
 {
-  UnmodifiableUnbindRequestImpl(UnbindRequest impl) {
+  UnmodifiableUnbindRequestImpl(UnbindRequest impl)
+  {
     super(impl);
   }
 }
