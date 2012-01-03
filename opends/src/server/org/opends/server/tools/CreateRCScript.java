@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2011 ForgeRock AS
+ *      Portions Copyright 2010-2012 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -97,16 +97,6 @@ public class CreateRCScript
   public static int main(String[] args, OutputStream outStream,
                          OutputStream errStream)
   {
-    PrintStream out;
-    if (outStream == null)
-    {
-      out = NullOutputStream.printStream();
-    }
-    else
-    {
-      out = new PrintStream(outStream);
-    }
-
     PrintStream err;
     if (errStream == null)
     {
@@ -140,11 +130,11 @@ public class CreateRCScript
     ArgumentParser argParser =
          new ArgumentParser(CreateRCScript.class.getName(), description, false);
 
-    BooleanArgument showUsage  = null;
-    StringArgument  javaArgs   = null;
-    StringArgument  javaHome   = null;
-    StringArgument  outputFile = null;
-    StringArgument  userName   = null;
+    BooleanArgument showUsage;
+    StringArgument  javaArgs;
+    StringArgument  javaHome;
+    StringArgument  outputFile;
+    StringArgument  userName;
 
     try
     {
