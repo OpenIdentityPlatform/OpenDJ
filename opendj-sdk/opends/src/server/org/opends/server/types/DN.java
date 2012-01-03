@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -53,7 +54,7 @@ import static org.opends.server.util.Validator.*;
      mayInstantiate=true,
      mayExtend=false,
      mayInvoke=true)
-public class DN
+public final class DN
        implements Comparable<DN>, Serializable
 {
 /*
@@ -74,7 +75,7 @@ public class DN
   /**
    * A singleton instance of the null DN (a DN with no components).
    */
-  public static DN NULL_DN = new DN();
+  public static final DN NULL_DN = new DN();
 
 
 
@@ -537,7 +538,7 @@ public class DN
     // escaped characters.  If so, then the easiest and safest
     // approach is to convert the DN to a string and decode it that
     // way.
-    byte b = 0;
+    byte b;
     for (int i = 0; i < length; i++)
     {
       b = dnString.byteAt(i);
@@ -2674,7 +2675,7 @@ public class DN
       return true;
     }
 
-    if (o == null)
+    if (!(o instanceof DN))
     {
       return false;
     }
@@ -2774,7 +2775,7 @@ public class DN
    * @return  The normalized string representation of the provided RDN
    *          components.
    */
-  private static final String normalize(RDN[] rdnComponents)
+  private static String normalize(RDN[] rdnComponents)
   {
     if (rdnComponents.length == 0)
     {
@@ -2838,6 +2839,7 @@ public class DN
    *          after the provided DN, or zero if there is no difference
    *          with regard to ordering.
    */
+  @Override
   public int compareTo(DN dn)
   {
     if (equals(dn))
