@@ -92,7 +92,7 @@
   &lt;dependency>
     &lt;groupId>org.forgerock.opendj&lt;/groupId>
     &lt;artifactId>opendj-ldap-sdk&lt;/artifactId>
-    &lt;version>3.0.0-SNAPSHOT&lt;/version>
+    &lt;version>${currentSDKversion}&lt;/version>
   &lt;/dependency>
 &lt;/dependencies></source>
       </subsection>
@@ -100,14 +100,14 @@
         <p>
           The easiest way to download the OpenDJ LDAP SDK and all of its
           dependencies is to get either the
-          <a href="http://builds.forgerock.org/view/OpenDJ/job/OpenDJ3/lastStableBuild/org.forgerock.opendj$opendj-ldap-toolkit/artifact/org.forgerock.opendj/opendj-ldap-toolkit/3.0.0-SNAPSHOT/opendj-ldap-toolkit-3.0.0-SNAPSHOT.zip">OpenDJ LDAP SDK Toolkit ZIP file</a>
+          <a href="http://builds.forgerock.org/view/OpenDJ/job/OpenDJ3/lastStableBuild/org.forgerock.opendj$opendj-ldap-toolkit/artifact/org.forgerock.opendj/opendj-ldap-toolkit/${currentSDKversion}/opendj-ldap-toolkit-${currentSDKversion}.zip">OpenDJ LDAP SDK Toolkit ZIP file</a>
           or the
-          <a href="http://builds.forgerock.org/view/OpenDJ/job/OpenDJ3/lastStableBuild/org.forgerock.opendj$opendj-ldap-sdk-examples/artifact/org.forgerock.opendj/opendj-ldap-sdk-examples/3.0.0-SNAPSHOT/opendj-ldap-sdk-examples-3.0.0-SNAPSHOT.jar">OpenDJ LDAP SDK Examples JAR file</a>
+          <a href="http://builds.forgerock.org/view/OpenDJ/job/OpenDJ3/lastStableBuild/org.forgerock.opendj$opendj-ldap-sdk-examples/artifact/org.forgerock.opendj/opendj-ldap-sdk-examples/${currentSDKversion}/opendj-ldap-sdk-examples-${currentSDKversion}.jar">OpenDJ LDAP SDK Examples JAR file</a>
           . Alternatively, if you can download the individual JARs from the
           following locations:
         </p>
         <ul>
-          <li><a href="http://builds.forgerock.org/view/OpenDJ/job/OpenDJ3/lastStableBuild/org.forgerock.opendj$opendj-ldap-sdk/artifact/org.forgerock.opendj/opendj-ldap-sdk/3.0.0-SNAPSHOT/opendj-ldap-sdk-3.0.0-SNAPSHOT.jar">opendj-ldap-sdk-3.0.0-SNAPSHOT.jar</a> - OpenDJ LDAP SDK</li>
+          <li><a href="http://builds.forgerock.org/view/OpenDJ/job/OpenDJ3/lastStableBuild/org.forgerock.opendj$opendj-ldap-sdk/artifact/org.forgerock.opendj/opendj-ldap-sdk/${currentSDKversion}/opendj-ldap-sdk-${currentSDKversion}.jar">opendj-ldap-sdk-${currentSDKversion}.jar</a> - OpenDJ LDAP SDK</li>
           <li><a href="http://maven.forgerock.org/repo/releases/org/forgerock/commons/i18n-core/1.2.0/i18n-core-1.2.0.jar">i18n-core-1.2.0.jar</a> - ForgeRock Commons I18N Framework</li>
           <li><a href="http://search.maven.org/remotecontent?filepath=org/glassfish/grizzly/grizzly-framework/2.1.2/grizzly-framework-2.1.2.jar">grizzly-framework-2.1.2.jar</a> - Grizzly IO Framework</li>
           <li><a href="http://search.maven.org/remotecontent?filepath=org/glassfish/gmbal/gmbal-api-only/3.0.0-b023/gmbal-api-only-3.0.0-b023.jar">gmbal-api-only-3.0.0-b023.jar</a> - Glassfish Management API</li>
