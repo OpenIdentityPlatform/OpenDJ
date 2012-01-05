@@ -78,6 +78,8 @@ java version "1.6.0_24"</screen>
   <procedure xml:id="install-stable-sdk">
    <title>To Install the Latest Stable SDK</title>
    <step>
+    <!-- Versions in links shouldn't be hard coded. Waiting for an enhancement
+         http://code.google.com/p/docbkx-tools/issues/detail?id=49 -->
     <para>Download the <link
     xlink:href='http://builds.forgerock.org/job/OpenDJ3/lastStableBuild/org.forgerock.opendj$opendj-ldap-toolkit/artifact/org.forgerock.opendj/opendj-ldap-toolkit/3.0.0-SNAPSHOT/opendj-ldap-toolkit-3.0.0-SNAPSHOT.zip'
     >latest stable OpenDJ LDAP SDK and tools bundle</link>.</para>
