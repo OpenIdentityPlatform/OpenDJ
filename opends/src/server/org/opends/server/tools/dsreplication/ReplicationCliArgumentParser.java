@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 
 package org.opends.server.tools.dsreplication;
@@ -324,7 +325,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   public static final String PURGE_HISTORICAL_SUBCMD_NAME = "purge-historical";
 
   // This CLI is always using the administration connector with SSL
-  private final boolean alwaysSSL = true;
+  private static final boolean alwaysSSL = true;
 
   /**
    * Creates a new instance of this argument parser with no arguments.

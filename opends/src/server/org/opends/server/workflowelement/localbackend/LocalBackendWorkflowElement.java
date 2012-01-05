@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -84,7 +84,7 @@ public class LocalBackendWorkflowElement extends
 
 
   // A string indicating the type of the workflow element.
-  private final String BACKEND_WORKFLOW_ELEMENT = "Backend";
+  private static final String BACKEND_WORKFLOW_ELEMENT = "Backend";
 
 
   /**
@@ -171,6 +171,7 @@ public class LocalBackendWorkflowElement extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       LocalBackendWorkflowElementCfg configuration,
       List<Message>                  unacceptableReasons
@@ -186,6 +187,7 @@ public class LocalBackendWorkflowElement extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       LocalBackendWorkflowElementCfg configuration
       )
@@ -275,10 +277,9 @@ public class LocalBackendWorkflowElement extends
       String workflowElementID,
       Backend backend)
   {
-    LocalBackendWorkflowElement localBackend = null;
-
     // If the requested workflow element does not exist then create one.
-    localBackend = registeredLocalBackends.get(workflowElementID);
+    LocalBackendWorkflowElement localBackend =
+        registeredLocalBackends.get(workflowElementID);
     if (localBackend == null)
     {
       localBackend = new LocalBackendWorkflowElement();
@@ -532,6 +533,7 @@ public class LocalBackendWorkflowElement extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public void execute(Operation operation) throws CanceledOperationException {
     switch (operation.getOperationType())
     {
@@ -602,7 +604,7 @@ public class LocalBackendWorkflowElement extends
    *                               operation
    */
   @SuppressWarnings("unchecked")
-  public static final <O extends Operation,L> void
+  public static <O extends Operation,L> void
               attachLocalOperation (O globalOperation, L currentLocalOperation)
   {
     List<?> existingAttachment =
@@ -652,6 +654,7 @@ public class LocalBackendWorkflowElement extends
     PersistentSearch.CancellationCallback callback =
       new PersistentSearch.CancellationCallback()
     {
+      @Override
       public void persistentSearchCancelled(PersistentSearch psearch)
       {
         persistentSearches.remove(psearch);

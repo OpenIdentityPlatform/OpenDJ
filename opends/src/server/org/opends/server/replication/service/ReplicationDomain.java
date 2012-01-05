@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication.service;
 
@@ -1559,8 +1559,8 @@ public abstract class ReplicationDomain
             // - sleep to let time to the other peer to reconnect if needed
             // - and launch another attempt
             try { Thread.sleep(1000); } catch(Exception e){}
-            logError(NOTE_RESENDING_INIT_TARGET.get((exportRootException!=null?
-                exportRootException.getLocalizedMessage():"")));
+            logError(NOTE_RESENDING_INIT_TARGET.get(
+                exportRootException.getLocalizedMessage()));
 
             continue;
           }

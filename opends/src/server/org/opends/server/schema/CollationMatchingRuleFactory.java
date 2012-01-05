@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 
 package org.opends.server.schema;
@@ -40,18 +41,7 @@ import static org.opends.server.util.StaticUtils.*;
 import java.nio.CharBuffer;
 import java.text.CollationKey;
 import java.text.Collator;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -120,10 +110,7 @@ public final class CollationMatchingRuleFactory extends
   static
   {
     supportedLocales = new HashSet<Locale>();
-    for (Locale l : Locale.getAvailableLocales())
-    {
-      supportedLocales.add(l);
-    }
+    supportedLocales.addAll(Arrays.asList(Locale.getAvailableLocales()));
   }
 
 
@@ -158,7 +145,7 @@ public final class CollationMatchingRuleFactory extends
    * @param matchingRule
    *          instance of a MatchingRule.
    */
-  private final void addMatchingRule(String oid,
+  private void addMatchingRule(String oid,
       MatchingRule matchingRule)
   {
     matchingRules.put(oid, matchingRule);
@@ -173,7 +160,7 @@ public final class CollationMatchingRuleFactory extends
    *          OID of the matching rule to be searched.
    * @return MatchingRule corresponding to an OID.
    */
-  private final MatchingRule getMatchingRule(String oid)
+  private MatchingRule getMatchingRule(String oid)
   {
     return matchingRules.get(oid);
   }
@@ -316,6 +303,7 @@ public final class CollationMatchingRuleFactory extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       CollationMatchingRuleCfg configuration)
   {
@@ -386,6 +374,7 @@ public final class CollationMatchingRuleFactory extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       CollationMatchingRuleCfg configuration,
       List<Message> unacceptableReasons)
@@ -677,27 +666,25 @@ public final class CollationMatchingRuleFactory extends
    *
    * @param lTag
    *          The language tag specified in the configuration.
-   * @return Locale The locale correspoding to the languageTag.
+   * @return Locale The locale corresponding to the languageTag.
    */
   private Locale getLocale(String lTag)
   {
     // Separates the language and the country from the locale.
     Locale locale;
-    String lang = null;
-    String country = null;
-    String variant = null;
 
     int countryIndex = lTag.indexOf("-");
     int variantIndex = lTag.lastIndexOf("-");
 
     if (countryIndex > 0)
     {
-      lang = lTag.substring(0, countryIndex);
+      String lang = lTag.substring(0, countryIndex);
+      String country;
 
       if (variantIndex > countryIndex)
       {
         country = lTag.substring(countryIndex + 1, variantIndex);
-        variant = lTag.substring(variantIndex + 1, lTag.length());
+        String variant = lTag.substring(variantIndex + 1, lTag.length());
         locale = new Locale(lang, country, variant);
       }
       else
@@ -708,7 +695,6 @@ public final class CollationMatchingRuleFactory extends
     }
     else
     {
-      lang = lTag;
       locale = new Locale(lTag);
     }
 
@@ -856,6 +842,7 @@ public final class CollationMatchingRuleFactory extends
     /**
      * {@inheritDoc}
      */
+    @Override
     public Collection<ExtensibleIndexer> getIndexers(IndexConfig config)
     {
       if (indexer == null)
@@ -939,6 +926,7 @@ public final class CollationMatchingRuleFactory extends
     /**
      * {@inheritDoc}
      */
+    @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
         IndexQueryFactory<T> factory) throws DirectoryException
     {
@@ -952,6 +940,7 @@ public final class CollationMatchingRuleFactory extends
     /**
      * {@inheritDoc}
      */
+    @Override
     public int compare(byte[] arg0, byte[] arg1)
     {
       return StaticUtils.compare(arg0, arg1);
@@ -1260,7 +1249,7 @@ public final class CollationMatchingRuleFactory extends
       // initialLength, initial, numberofany, anyLength1, any1,
       // anyLength2, any2, ..., anyLengthn, anyn, finalLength,
       // final
-      CollationKey key = null;
+      CollationKey key;
       List<Integer> normalizedList = new ArrayList<Integer>();
 
       if (subInitial == null)
@@ -1282,7 +1271,7 @@ public final class CollationMatchingRuleFactory extends
       }
 
       List<String> subAny = assertion.getAny();
-      if (subAny.size() == 0)
+      if (subAny.isEmpty())
       {
         normalizedList.add(0);
       }
@@ -1339,7 +1328,6 @@ public final class CollationMatchingRuleFactory extends
     {
       int valueLength = attributeValue.length() - 4;
       int valuePos = 0; // position in the value bytes array.
-      int assertPos = 0; // position in the assertion bytes array.
 
       // First byte is the length of subInitial.
       int subInitialLength = 0xFF & assertionValue.byteAt(0);
@@ -1361,7 +1349,7 @@ public final class CollationMatchingRuleFactory extends
         }
       }
 
-      assertPos = subInitialLength + 1;
+      int assertPos = subInitialLength + 1;
       int anySize = 0xFF & assertionValue.byteAt(assertPos++);
       if (anySize != 0)
       {
@@ -1415,8 +1403,6 @@ public final class CollationMatchingRuleFactory extends
         {
           return ConditionResult.FALSE;
         }
-
-        valuePos = valueLength - finalLength;
 
         if (finalLength != assertionValue.length() - assertPos)
         {
@@ -1615,7 +1601,7 @@ public final class CollationMatchingRuleFactory extends
     private <T> T matchSubstring(String value,
         IndexQueryFactory<T> factory)
     {
-      T intersectionQuery = null;
+      T intersectionQuery;
       int substrLength = subIndexer.gerSubstringLength();
 
       if (value.length() < substrLength)
@@ -1674,6 +1660,7 @@ public final class CollationMatchingRuleFactory extends
     /**
      * {@inheritDoc}
      */
+    @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
         IndexQueryFactory<T> factory) throws DirectoryException
     {
@@ -1683,7 +1670,7 @@ public final class CollationMatchingRuleFactory extends
       String subFinal = assertion.getFinal();
       List<T> queries = new ArrayList<T>();
 
-      if (subInitial == null && subAny.size() == 0 && subFinal == null)
+      if (subInitial == null && subAny.isEmpty() && subFinal == null)
       {
         // Can happen with a filter like "cn:en.6:=*".
         // Just return an empty record.
@@ -1767,6 +1754,7 @@ public final class CollationMatchingRuleFactory extends
     /**
      * {@inheritDoc}
      */
+    @Override
     public int compare(byte[] arg0, byte[] arg1)
     {
       return StaticUtils.compare(arg0, arg1);
@@ -1777,6 +1765,7 @@ public final class CollationMatchingRuleFactory extends
     /**
      * {@inheritDoc}
      */
+    @Override
     public int compareValues(ByteSequence value1, ByteSequence value2)
     {
       return value1.compareTo(value2);
@@ -1841,6 +1830,7 @@ public final class CollationMatchingRuleFactory extends
     /**
      * {@inheritDoc}
      */
+    @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
         IndexQueryFactory<T> factory) throws DirectoryException
     {
@@ -1908,6 +1898,7 @@ public final class CollationMatchingRuleFactory extends
     /**
      * {@inheritDoc}
      */
+    @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
         IndexQueryFactory<T> factory) throws DirectoryException
     {
@@ -1976,6 +1967,7 @@ public final class CollationMatchingRuleFactory extends
     /**
      * {@inheritDoc}
      */
+    @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
         IndexQueryFactory<T> factory) throws DirectoryException
     {
@@ -2043,6 +2035,7 @@ public final class CollationMatchingRuleFactory extends
     /**
      * {@inheritDoc}
      */
+    @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
         IndexQueryFactory<T> factory) throws DirectoryException
     {

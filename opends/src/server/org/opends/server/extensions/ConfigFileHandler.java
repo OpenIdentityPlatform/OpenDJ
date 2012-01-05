@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -266,7 +266,7 @@ public class ConfigFileHandler
     // configuration in the archive.  If it doesn't, then archive it.
     maintainConfigArchive = envConfig.maintainConfigArchive();
     maxConfigArchiveSize  = envConfig.getMaxConfigArchiveSize();
-    if (maintainConfigArchive & (! useLastKnownGoodConfig))
+    if (maintainConfigArchive && (! useLastKnownGoodConfig))
     {
       try
       {

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 
 package org.opends.server.tools.status;
@@ -54,7 +55,7 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
   private BooleanArgument noPromptArg;
 
   // This CLI is always using the administration connector with SSL
-  private final boolean alwaysSSL = true;
+  private static final boolean alwaysSSL = true;
 
 
   /**

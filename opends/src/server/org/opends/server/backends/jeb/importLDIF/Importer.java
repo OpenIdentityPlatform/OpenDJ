@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 
 package org.opends.server.backends.jeb.importLDIF;
@@ -773,7 +773,8 @@ public final class Importer implements DiskSpaceMonitorHandler
          }
        }
 
-       if(includeBranches.size() == 1 && excludeBranches.size() == 0 &&
+       if((includeBranches.size() == 1) &&
+           excludeBranches.isEmpty() &&
            includeBranches.get(0).equals(baseDN))
        {
          // This entire base DN is explicitly included in the import with
@@ -1253,6 +1254,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     /**
      * {@inheritDoc}
      */
+    @Override
     public Void call() throws Exception
     {
       for(Suffix suffix : dnSuffixMap.values()) {
@@ -1329,6 +1331,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     /**
      * {@inheritDoc}
      */
+    @Override
     public Void call() throws Exception
     {
       for(Suffix suffix : dnSuffixMap.values()) {
@@ -1434,6 +1437,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     /**
      * {@inheritDoc}
      */
+    @Override
     public Void call() throws Exception
     {
       try
@@ -1582,6 +1586,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     }
 
 
+    @Override
     void processAttribute(Index index, Entry entry, EntryID entryID,
                    IndexKey indexKey) throws DatabaseException,
             InterruptedException
@@ -1622,6 +1627,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     /**
      * {@inheritDoc}
      */
+    @Override
     public Void call() throws Exception
     {
       try
@@ -2141,6 +2147,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     /**
      * {@inheritDoc}
      */
+    @Override
     public Void call() throws Exception
     {
       Thread.setDefaultUncaughtExceptionHandler(new DefaultExceptionHandler());
@@ -2339,7 +2346,7 @@ public final class Importer implements DiskSpaceMonitorHandler
      */
     class DNState
     {
-      private final int DN_STATE_CACHE_SIZE = 64 * KB;
+      private static final int DN_STATE_CACHE_SIZE = 64 * KB;
 
       private ByteBuffer parentDN, lastDN;
       private EntryID parentID, lastID, entryID;
@@ -2667,6 +2674,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     /**
      * {@inheritDoc}
      */
+    @Override
     public Void call() throws IOException
     {
       long offset = 0;
@@ -2966,6 +2974,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     /**
      * {@inheritDoc}
      */
+    @Override
     public Void call() throws Exception
     {
       if (importConfiguration != null && importConfiguration.isCancelled()
@@ -3166,6 +3175,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     /**
      * {@inheritDoc}
      */
+    @Override
     public int compareTo(IndexManager mgr)
     {
       return numberOfBuffers - mgr.numberOfBuffers;
@@ -3312,6 +3322,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     /**
      * {@inheritDoc}
      */
+    @Override
     public Void call() throws Exception
     {
       ID2Entry id2entry = entryContainer.getID2Entry();
@@ -4109,10 +4120,12 @@ public final class Importer implements DiskSpaceMonitorHandler
       return this.totalEntries;
     }
 
+    @Override
     public void diskLowThresholdReached(DiskSpaceMonitor monitor) {
       diskFullThresholdReached(monitor);
     }
 
+    @Override
     public void diskFullThresholdReached(DiskSpaceMonitor monitor) {
       isCanceled = true;
       Message msg = ERR_REBUILD_INDEX_LACK_DISK.get(
@@ -4121,6 +4134,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       logError(msg);
     }
 
+    @Override
     public void diskSpaceRestored(DiskSpaceMonitor monitor) {
       // Do nothing
     }
@@ -4163,6 +4177,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     /**
      * The action to be performed by this timer task.
      */
+    @Override
     public void run()
     {
       long latestTime = System.currentTimeMillis();
@@ -4644,6 +4659,7 @@ public final class Importer implements DiskSpaceMonitorHandler
      * @return {@code true} if the objects are equal, or {@code false} if they
      *         are not.
      */
+    @Override
     public boolean equals(Object obj)
     {
       if (obj instanceof IndexKey) {
@@ -4664,6 +4680,7 @@ public final class Importer implements DiskSpaceMonitorHandler
      * @return The combined hash values of attribute type hash code and the
      *         index type hash code.
      */
+    @Override
     public int hashCode()
     {
       return attributeType.hashCode() + indexType.hashCode();
@@ -4867,13 +4884,12 @@ public final class Importer implements DiskSpaceMonitorHandler
     private void addDN(DatabaseEntry val, Cursor cursor,
                        byte[] dnBytes) throws JebException
     {
-      int pos = 0;
       byte[] bytes = val.getData();
       int pLen = PackedInteger.getWriteIntLength(dnBytes.length);
       int totLen = bytes.length + (pLen + dnBytes.length);
       byte[] newRec = new byte[totLen];
       System.arraycopy(bytes, 0, newRec, 0, bytes.length);
-      pos = bytes.length;
+      int pos = bytes.length;
       pos = PackedInteger.writeInt(newRec, pos, dnBytes.length);
       System.arraycopy(dnBytes, 0, newRec, pos, dnBytes.length);
       DatabaseEntry newVal = new DatabaseEntry(newRec);
@@ -4890,12 +4906,12 @@ public final class Importer implements DiskSpaceMonitorHandler
     //collisions.
     private boolean isDNMatched(DatabaseEntry dns, byte[] dnBytes)
     {
-      int pos = 0, len = 0;
+      int pos = 0;
       byte[] bytes = dns.getData();
       while(pos < dns.getData().length)
       {
         int pLen = PackedInteger.getReadIntLength(bytes, pos);
-        len =  PackedInteger.readInt(bytes, pos);
+        int len =  PackedInteger.readInt(bytes, pos);
         if(indexComparator.compare(bytes, pos + pLen, len, dnBytes,
                 dnBytes.length) == 0)
         {
@@ -4913,6 +4929,7 @@ public final class Importer implements DiskSpaceMonitorHandler
      * @return  {@code true} if the specified DN is in the temporary DN cache,
      *          or {@code false} if it is not.
      */
+    @Override
     public boolean contains(DN dn)
     {
       boolean dnExists = false;
@@ -4966,6 +4983,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     /**
      * {@inheritDoc}
      */
+    @Override
     public void uncaughtException(Thread t, Throwable e) {
       if (debugEnabled())
       {
@@ -4982,6 +5000,7 @@ public final class Importer implements DiskSpaceMonitorHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public void diskLowThresholdReached(DiskSpaceMonitor monitor) {
     diskFullThresholdReached(monitor);
   }
@@ -4989,6 +5008,7 @@ public final class Importer implements DiskSpaceMonitorHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public void diskFullThresholdReached(DiskSpaceMonitor monitor) {
     isCanceled = true;
     Message msg;
@@ -5010,6 +5030,7 @@ public final class Importer implements DiskSpaceMonitorHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public void diskSpaceRestored(DiskSpaceMonitor monitor) {
     // Do nothing.
   }

@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 
 package org.opends.server.tools.tasks;
@@ -98,7 +99,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
   private BooleanArgument testIfOfflineArg;
 
   // This CLI is always using the administration connector with SSL
-  private final boolean alwaysSSL = true;
+  private static final boolean alwaysSSL = true;
 
   /**
    * Called when this utility should perform its actions locally in this
@@ -191,6 +192,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
   /**
    * {@inheritDoc}
    */
+  @Override
   public Date getStartDateTime() {
     return taskScheduleArgs.getStartDateTime();
   }
@@ -198,6 +200,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getRecurringDateTime() {
     return taskScheduleArgs.getRecurringDateTime();
   }
@@ -205,6 +208,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
   /**
    * {@inheritDoc}
    */
+  @Override
   public List<String> getDependencyIds() {
     return taskScheduleArgs.getDependencyIds();
   }
@@ -212,6 +216,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
   /**
    * {@inheritDoc}
    */
+  @Override
   public FailedDependencyAction getFailedDependencyAction() {
     return taskScheduleArgs.getFailedDependencyAction();
   }
@@ -219,6 +224,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
   /**
    * {@inheritDoc}
    */
+  @Override
   public List<String> getNotifyUponCompletionEmailAddresses() {
     return taskScheduleArgs.getNotifyUponCompletionEmailAddresses();
   }
@@ -226,6 +232,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
   /**
    * {@inheritDoc}
    */
+  @Override
   public List<String> getNotifyUponErrorEmailAddresses() {
     return taskScheduleArgs.getNotifyUponErrorEmailAddresses();
   }
@@ -344,7 +351,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
         }
         ret = 0;
       } catch (LDAPConnectionException e) {
-        Message message = null;
+        Message message;
         if (isWrongPortException(e,
             new Integer(argParser.getArguments().getPort())))
         {

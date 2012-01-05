@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 
 package org.opends.server.tools.dsreplication;
@@ -8204,7 +8204,7 @@ public class ReplicationCliMain extends ConsoleApplication
       Set<String> servers = domain.getReplicationServer();
       if (servers == null)
       {
-        domain.setReplicationServer(servers);
+        domain.setReplicationServer(null);
         mustCommit = true;
       }
       else if (!areReplicationServersEqual(servers, replicationServers))

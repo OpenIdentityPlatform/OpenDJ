@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -203,7 +204,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
     name = Utilities.createTextField("", 30);
     gbc.weightx = 1.0;
     gbc.gridwidth = 2;
-    gbc.weightx = 1.0;
+    gbc.weighty = 0.0;
     gbc.insets.left = 10;
     gbc.gridx = 1;
     add(name, gbc);
@@ -222,7 +223,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
 
     parentDN = Utilities.createTextField("", 30);
     gbc.weightx = 1.0;
-    gbc.weightx = 1.0;
+    gbc.weighty = 0.0;
     gbc.insets.left = 10;
     gbc.gridx = 1;
     add(parentDN, gbc);

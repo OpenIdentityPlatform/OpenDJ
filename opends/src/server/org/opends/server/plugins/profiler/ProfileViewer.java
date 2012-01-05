@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.plugins.profiler;
 import org.opends.messages.Message;
@@ -100,7 +101,7 @@ public class ProfileViewer
   public static void main(String[] args)
   {
     // Define the command-line arguments that may be used with this program.
-    BooleanArgument displayUsage = null;
+    BooleanArgument displayUsage;
     BooleanArgument useGUI       = null;
     StringArgument  fileNames    = null;
 
@@ -418,8 +419,8 @@ public class ProfileViewer
                    "captured over " + totalDuration + " milliseconds";
     DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(label, true);
 
-    ProfileStackFrame[] rootFrames = getRootFrames();
-    if (rootFrames.length == 0)
+    ProfileStackFrame[] theRootFrames = getRootFrames();
+    if (theRootFrames.length == 0)
     {
       System.err.println("ERROR:  No data available for viewing.");
       return;
@@ -475,7 +476,6 @@ public class ProfileViewer
       return;
     }
 
-    String largestCountString = String.valueOf(subFrames[0].getTotalCount());
 
     for (ProfileStackFrame subFrame : subFrames)
     {
@@ -524,6 +524,7 @@ public class ProfileViewer
    * @param  tse  The tree selection event with information about the selection
    *              or deselection that occurred.
    */
+  @Override
   public void valueChanged(TreeSelectionEvent tse)
   {
     try

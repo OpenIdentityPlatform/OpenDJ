@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2012 ForgeRock AS.
  *      Portions copyright 2011 profiq s.r.o.
  */
 package org.opends.server.plugins;
@@ -125,7 +125,8 @@ public class ReferentialIntegrityPlugin
   private boolean stopRequested=false;
 
   //The thread name.
-  private final String name="Referential Integrity Background Update Thread";
+  private static final String name =
+      "Referential Integrity Background Update Thread";
 
   //The name of the logfile that the update thread uses to process change
   //records. Defaults to "logs/referint", but can be changed in the
@@ -170,6 +171,7 @@ public class ReferentialIntegrityPlugin
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void initializePlugin(Set<PluginType> pluginTypes,
                                      ReferentialIntegrityPluginCfg pluginCfg)
          throws ConfigException
@@ -201,6 +203,7 @@ public class ReferentialIntegrityPlugin
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
           ReferentialIntegrityPluginCfg newConfiguration)
   {
@@ -322,8 +325,8 @@ public class ReferentialIntegrityPlugin
     // Iterate through all of the defined attribute types and ensure that they
     // have acceptable syntaxes and that they are indexed for equality below all
     // base DNs.
-    Set<AttributeType> attributeTypes = pluginCfg.getAttributeType();
-    for (AttributeType type : attributeTypes)
+    Set<AttributeType> theAttributeTypes = pluginCfg.getAttributeType();
+    for (AttributeType type : theAttributeTypes)
     {
       if (! isAttributeSyntaxValid(type))
       {
@@ -368,7 +371,7 @@ public class ReferentialIntegrityPlugin
       AttributeType attrType =
         DirectoryServer.getAttributeType(attr.toLowerCase());
 
-      if (attrType == null || !attributeTypes.contains(attrType))
+      if (attrType == null || !theAttributeTypes.contains(attrType))
       {
         isAcceptable = false;
         unacceptableReasons.add(
@@ -398,6 +401,7 @@ public class ReferentialIntegrityPlugin
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
           ReferentialIntegrityPluginCfg configuration,
           List<Message> unacceptableReasons)
@@ -410,6 +414,7 @@ public class ReferentialIntegrityPlugin
    * {@inheritDoc}
    */
   @SuppressWarnings("unchecked")
+  @Override
   public PluginResult.PostOperation
          doPostOperation(PostOperationModifyDNOperation
           modifyDNOperation)
@@ -443,6 +448,7 @@ public class ReferentialIntegrityPlugin
    * {@inheritDoc}
    */
   @SuppressWarnings("unchecked")
+  @Override
   public PluginResult.PostOperation doPostOperation(
               PostOperationDeleteOperation deleteOperation)
   {
@@ -470,6 +476,7 @@ public class ReferentialIntegrityPlugin
    * {@inheritDoc}
    */
   @SuppressWarnings("unchecked")
+  @Override
   public PluginResult.SubordinateModifyDN processSubordinateModifyDN(
           SubordinateModifyDNOperation modifyDNOperation, Entry oldEntry,
           Entry newEntry, List<Modification> modifications)
@@ -493,6 +500,7 @@ public class ReferentialIntegrityPlugin
    * {@inheritDoc}
    */
   @SuppressWarnings("unchecked")
+  @Override
   public PluginResult.SubordinateDelete processSubordinateDelete(
           DeleteOperation deleteOperation, Entry entry)
   {
@@ -989,6 +997,7 @@ public class ReferentialIntegrityPlugin
    * @return The name of the listener.
    *
    */
+  @Override
   public String getShutdownListenerName() {
     return name;
   }
@@ -1013,6 +1022,7 @@ public class ReferentialIntegrityPlugin
    * @param reason The reason message for the shutdown.
    *
    */
+  @Override
   public void processServerShutdown(Message reason)
   {
     stopRequested = true;
@@ -1086,6 +1096,7 @@ public class ReferentialIntegrityPlugin
     /**
      * Run method for the background thread.
      */
+    @Override
     public void run() {
       while(!isShuttingDown())  {
         try {
@@ -1221,10 +1232,10 @@ public class ReferentialIntegrityPlugin
   private PluginResult.PreOperation
     isIntegrityMaintained(List<Attribute> attrs, DN entryDN, DN entryBaseDN)
   {
-    PluginResult.PreOperation result = null;
     for(Attribute attr : attrs)
     {
-      result = isIntegrityMaintained(attr, entryDN, entryBaseDN);
+      PluginResult.PreOperation result =
+          isIntegrityMaintained(attr, entryDN, entryBaseDN);
       if (result != PluginResult.PreOperation.continueOperationProcessing())
       {
         return result;
@@ -1256,10 +1267,9 @@ public class ReferentialIntegrityPlugin
       while (attrValIt.hasNext())
       {
         AttributeValue attrVal = attrValIt.next();
-        DN valueEntryDN = null;
         Entry valueEntry = null;
 
-        valueEntryDN = DN.decode(attrVal.getNormalizedValue());
+        DN valueEntryDN = DN.decode(attrVal.getNormalizedValue());
 
         if (currentConfiguration.getCheckReferencesScopeCriteria()
           == CheckReferencesScopeCriteria.NAMING_CONTEXT)

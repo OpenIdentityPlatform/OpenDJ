@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2012 ForgeRock AS.
  */
 
 package org.opends.server.extensions;
@@ -111,8 +111,8 @@ SASLContext implements CallbackHandler, PrivilegedExceptionAction<Boolean> {
     private BindOperation bindOp;
 
     //Used to check if negotiated QOP is confidentiality or integrity.
-    private final String confidentiality = "auth-conf";
-    private final String integrity = "auth-int";
+    private static final String confidentiality = "auth-conf";
+    private static final String integrity = "auth-int";
 
 
     /**

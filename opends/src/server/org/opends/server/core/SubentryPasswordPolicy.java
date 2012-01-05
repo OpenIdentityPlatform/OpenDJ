@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2012 ForgeRock AS.
  */
 
 package org.opends.server.core;
@@ -65,22 +65,23 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   private static final DebugTracer TRACER = getTracer();
 
   // Password Policy Subentry draft attributes.
-  private final String PWD_OC_POLICY = "pwdpolicy";
-  private final String PWD_ATTR_ATTRIBUTE = "pwdattribute";
-  private final String PWD_ATTR_MINAGE = "pwdminage";
-  private final String PWD_ATTR_MAXAGE = "pwdmaxage";
-  private final String PWD_ATTR_INHISTORY = "pwdinhistory";
-  private final String PWD_ATTR_CHECKQUALITY = "pwdcheckquality";
-  private final String PWD_ATTR_MINLENGTH = "pwdminlength";
-  private final String PWD_ATTR_EXPIREWARNING = "pwdexpirewarning";
-  private final String PWD_ATTR_GRACEAUTHNLIMIT = "pwdgraceauthnlimit";
-  private final String PWD_ATTR_LOCKOUT = "pwdlockout";
-  private final String PWD_ATTR_LOCKOUTDURATION = "pwdlockoutduration";
-  private final String PWD_ATTR_MAXFAILURE = "pwdmaxfailure";
-  private final String PWD_ATTR_MUSTCHANGE = "pwdmustchange";
-  private final String PWD_ATTR_ALLOWUSERCHANGE = "pwdallowuserchange";
-  private final String PWD_ATTR_SAFEMODIFY = "pwdsafemodify";
-  private final String PWD_ATTR_FAILURECOUNTINTERVAL ="pwdfailurecountinterval";
+  private static final String PWD_OC_POLICY = "pwdpolicy";
+  private static final String PWD_ATTR_ATTRIBUTE = "pwdattribute";
+  private static final String PWD_ATTR_MINAGE = "pwdminage";
+  private static final String PWD_ATTR_MAXAGE = "pwdmaxage";
+  private static final String PWD_ATTR_INHISTORY = "pwdinhistory";
+  private static final String PWD_ATTR_CHECKQUALITY = "pwdcheckquality";
+  private static final String PWD_ATTR_MINLENGTH = "pwdminlength";
+  private static final String PWD_ATTR_EXPIREWARNING = "pwdexpirewarning";
+  private static final String PWD_ATTR_GRACEAUTHNLIMIT = "pwdgraceauthnlimit";
+  private static final String PWD_ATTR_LOCKOUT = "pwdlockout";
+  private static final String PWD_ATTR_LOCKOUTDURATION = "pwdlockoutduration";
+  private static final String PWD_ATTR_MAXFAILURE = "pwdmaxfailure";
+  private static final String PWD_ATTR_MUSTCHANGE = "pwdmustchange";
+  private static final String PWD_ATTR_ALLOWUSERCHANGE = "pwdallowuserchange";
+  private static final String PWD_ATTR_SAFEMODIFY = "pwdsafemodify";
+  private static final String PWD_ATTR_FAILURECOUNTINTERVAL =
+      "pwdfailurecountinterval";
 
   // Password Policy Subentry DN.
   private final DN passwordPolicySubentryDN;
@@ -569,6 +570,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isAllowExpiredPasswordChanges()
   {
     return getDefaultPasswordPolicy().isAllowExpiredPasswordChanges();
@@ -579,6 +581,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isAllowMultiplePasswordValues()
   {
     return getDefaultPasswordPolicy().isAllowMultiplePasswordValues();
@@ -589,6 +592,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isAllowPreEncodedPasswords()
   {
     return getDefaultPasswordPolicy().isAllowPreEncodedPasswords();
@@ -599,6 +603,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isAllowUserPasswordChanges()
   {
     return pAllowUserPasswordChanges != null ? pAllowUserPasswordChanges
@@ -610,6 +615,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isExpirePasswordsWithoutWarning()
   {
     return getDefaultPasswordPolicy().isExpirePasswordsWithoutWarning();
@@ -620,6 +626,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isForceChangeOnAdd()
   {
     // Don't use pwdMustChange since the password provided when the entry was
@@ -632,6 +639,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isForceChangeOnReset()
   {
     return pForceChangeOnReset != null ? pForceChangeOnReset
@@ -643,6 +651,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public int getGraceLoginCount()
   {
     return pGraceLoginCount != null ? pGraceLoginCount
@@ -654,6 +663,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public long getIdleLockoutInterval()
   {
     return getDefaultPasswordPolicy().getIdleLockoutInterval();
@@ -664,6 +674,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public AttributeType getLastLoginTimeAttribute()
   {
     return getDefaultPasswordPolicy().getLastLoginTimeAttribute();
@@ -674,6 +685,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getLastLoginTimeFormat()
   {
     return getDefaultPasswordPolicy().getLastLoginTimeFormat();
@@ -684,6 +696,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public long getLockoutDuration()
   {
     return pLockoutDuration != null ? pLockoutDuration
@@ -695,6 +708,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public int getLockoutFailureCount()
   {
     return pLockoutFailureCount != null ? pLockoutFailureCount
@@ -706,6 +720,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public long getLockoutFailureExpirationInterval()
   {
     return pLockoutFailureExpirationInterval != null ?
@@ -718,6 +733,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public long getMaxPasswordAge()
   {
     return pMaxPasswordAge != null ? pMaxPasswordAge
@@ -729,6 +745,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public long getMaxPasswordResetAge()
   {
     return getDefaultPasswordPolicy().getMaxPasswordResetAge();
@@ -739,6 +756,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public long getMinPasswordAge()
   {
     return pMinPasswordAge != null ? pMinPasswordAge
@@ -750,6 +768,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public AttributeType getPasswordAttribute()
   {
     return pPasswordAttribute != null ? pPasswordAttribute
@@ -761,6 +780,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isPasswordChangeRequiresCurrentPassword()
   {
     return pPasswordChangeRequiresCurrentPassword != null ?
@@ -773,6 +793,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public long getPasswordExpirationWarningInterval()
   {
     return pPasswordExpirationWarningInterval != null ?
@@ -785,6 +806,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public int getPasswordHistoryCount()
   {
     return pPasswordHistoryCount != null ? pPasswordHistoryCount
@@ -796,6 +818,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public long getPasswordHistoryDuration()
   {
     return getDefaultPasswordPolicy().getPasswordHistoryDuration();
@@ -806,6 +829,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public SortedSet<String> getPreviousLastLoginTimeFormats()
   {
     return getDefaultPasswordPolicy().getPreviousLastLoginTimeFormats();
@@ -816,6 +840,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public long getRequireChangeByTime()
   {
     return getDefaultPasswordPolicy().getRequireChangeByTime();
@@ -826,6 +851,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isRequireSecureAuthentication()
   {
     return getDefaultPasswordPolicy().isRequireSecureAuthentication();
@@ -836,6 +862,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isRequireSecurePasswordChanges()
   {
     return getDefaultPasswordPolicy().isRequireSecurePasswordChanges();
@@ -846,6 +873,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isSkipValidationForAdministrators()
   {
     return getDefaultPasswordPolicy().isSkipValidationForAdministrators();
@@ -856,6 +884,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public StateUpdateFailurePolicy getStateUpdateFailurePolicy()
   {
     return getDefaultPasswordPolicy().getStateUpdateFailurePolicy();
@@ -866,6 +895,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isAuthPasswordSyntax()
   {
     return pAuthPasswordSyntax != null ? pAuthPasswordSyntax
@@ -877,6 +907,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public List<PasswordStorageScheme<?>> getDefaultPasswordStorageSchemes()
   {
     return getDefaultPasswordPolicy().getDefaultPasswordStorageSchemes();
@@ -887,6 +918,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public Set<String> getDeprecatedPasswordStorageSchemes()
   {
     return getDefaultPasswordPolicy().getDeprecatedPasswordStorageSchemes();
@@ -897,6 +929,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getDN()
   {
     return passwordPolicySubentryDN;
@@ -907,6 +940,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isDefaultPasswordStorageScheme(String name)
   {
     return getDefaultPasswordPolicy().isDefaultPasswordStorageScheme(name);
@@ -917,6 +951,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isDeprecatedPasswordStorageScheme(String name)
   {
     return getDefaultPasswordPolicy().isDeprecatedPasswordStorageScheme(name);
@@ -927,6 +962,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public Collection<PasswordValidator<?>> getPasswordValidators()
   {
     return getDefaultPasswordPolicy().getPasswordValidators();
@@ -937,6 +973,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public Collection<AccountStatusNotificationHandler<?>>
     getAccountStatusNotificationHandlers()
   {
@@ -948,6 +985,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /**
    * {@inheritDoc}
    */
+  @Override
   public PasswordGenerator<?> getPasswordGenerator()
   {
     return getDefaultPasswordPolicy().getPasswordGenerator();
