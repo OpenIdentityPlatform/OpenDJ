@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 
 package org.opends.server.tools;
@@ -73,7 +74,7 @@ public class ManageTasks extends ConsoleApplication {
   private static ErrorLogPublisher errorLogPublisher = null;
 
   // This CLI is always using the administration connector with SSL
-  private final boolean alwaysSSL = true;
+  private static final boolean alwaysSSL = true;
 
   /**
    * The main method for TaskInfo tool.
@@ -346,6 +347,7 @@ public class ManageTasks extends ConsoleApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isAdvancedMode() {
     return false;
   }
@@ -353,6 +355,7 @@ public class ManageTasks extends ConsoleApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isInteractive() {
     return !noPrompt.isPresent();
   }
@@ -360,6 +363,7 @@ public class ManageTasks extends ConsoleApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isMenuDrivenMode() {
     return !task.isPresent() && !cancel.isPresent() && !summary.isPresent() &&
            !noPrompt.isPresent();
@@ -368,6 +372,7 @@ public class ManageTasks extends ConsoleApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isQuiet() {
     return false;
   }
@@ -375,6 +380,7 @@ public class ManageTasks extends ConsoleApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isScriptFriendly() {
     return false;
   }
@@ -382,6 +388,7 @@ public class ManageTasks extends ConsoleApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isVerbose() {
     return false;
   }
@@ -513,6 +520,7 @@ public class ManageTasks extends ConsoleApplication {
     /**
      * {@inheritDoc}
      */
+    @Override
     public MenuResult<Void> invoke(ConsoleApplication app) throws CLIException {
       return invoke((ManageTasks)app);
     }
@@ -550,6 +558,7 @@ public class ManageTasks extends ConsoleApplication {
     /**
      * {@inheritDoc}
      */
+    @Override
     public MenuResult<TaskEntry> invoke(ConsoleApplication app)
             throws CLIException
     {
@@ -569,6 +578,7 @@ public class ManageTasks extends ConsoleApplication {
    */
   static private class PrintSummaryTop extends TopMenuCallback {
 
+    @Override
     public MenuResult<Void> invoke(ManageTasks app)
             throws CLIException
     {
@@ -598,6 +608,7 @@ public class ManageTasks extends ConsoleApplication {
     /**
      * {@inheritDoc}
      */
+    @Override
     public MenuResult<Void> invoke(ManageTasks app) throws CLIException {
       MenuResult<TaskEntry> res = new PrintTaskInfo(taskId).invoke(app);
       TaskEntry taskEntry = res.getValue();
@@ -664,11 +675,12 @@ public class ManageTasks extends ConsoleApplication {
     /**
      * {@inheritDoc}
      */
+    @Override
     public MenuResult<TaskEntry> invoke(ManageTasks app)
             throws CLIException
     {
-      Message m = null;
-      TaskEntry taskEntry = null;
+      Message m;
+      TaskEntry taskEntry;
       try {
         taskEntry = app.getTaskClient().getTaskEntry(taskId);
 
@@ -824,9 +836,9 @@ public class ManageTasks extends ConsoleApplication {
                                       Message noneLabel) {
       table.startRow();
       table.appendCell(fieldLabel);
-      if (values.size() == 0) {
+      if (values.isEmpty()) {
         table.appendCell(noneLabel);
-      } else if (values.size() > 0) {
+      } else {
         table.appendCell(values.get(0));
       }
       if (values.size() > 1) {
@@ -856,6 +868,7 @@ public class ManageTasks extends ConsoleApplication {
     /**
      * {@inheritDoc}
      */
+    @Override
     protected MenuResult<TaskEntry> invoke(ManageTasks app)
             throws CLIException
     {
@@ -916,6 +929,7 @@ public class ManageTasks extends ConsoleApplication {
     /**
      * {@inheritDoc}
      */
+    @Override
     public MenuResult<Void> invoke(ManageTasks app)
             throws CLIException
     {
@@ -988,6 +1002,7 @@ public class ManageTasks extends ConsoleApplication {
     /**
      * {@inheritDoc}
      */
+    @Override
     public MenuResult<TaskEntry> invoke(ManageTasks app)
             throws CLIException
     {

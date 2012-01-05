@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 
 package org.opends.server.extensions;
@@ -52,7 +53,7 @@ SASLByteChannel implements ByteChannel, ConnectionSecurityProvider {
     private RedirectingByteChannel channel;
 
     // The number of bytes in the length buffer.
-    private final int lengthSize = 4;
+    private static final int lengthSize = 4;
 
     //Length of the buffer.
     private int bufLength;
@@ -160,9 +161,8 @@ SASLByteChannel implements ByteChannel, ConnectionSecurityProvider {
      */
     private int readAll(ByteBuffer byteBuf, int total) throws IOException
     {
-      int count = 0;
       while (channel.isOpen() && total > 0) {
-        count = channel.read(byteBuf);
+        int count = channel.read(byteBuf);
         if (count == -1) return -1;
         if (count == 0) return 0;
         total -= count;
@@ -197,6 +197,7 @@ SASLByteChannel implements ByteChannel, ConnectionSecurityProvider {
     /**
      * {@inheritDoc}
      */
+  @Override
     public synchronized int read(ByteBuffer clearDst) throws IOException {
       int bytesToRead = lengthSize;
       if(reading)
@@ -275,6 +276,7 @@ SASLByteChannel implements ByteChannel, ConnectionSecurityProvider {
     /**
      * {@inheritDoc}
      */
+  @Override
     public synchronized int write(ByteBuffer clearSrc) throws IOException {
         int sendBufSize = getAppBufSize();
         int srcLen = clearSrc.remaining();
@@ -314,6 +316,7 @@ SASLByteChannel implements ByteChannel, ConnectionSecurityProvider {
     /**
      * {@inheritDoc}
      */
+  @Override
     public synchronized void close() throws IOException {
         saslContext.dispose();
         saslContext=null;
@@ -322,6 +325,7 @@ SASLByteChannel implements ByteChannel, ConnectionSecurityProvider {
     /**
      * {@inheritDoc}
      */
+  @Override
     public boolean isOpen() {
         return saslContext != null;
     }
@@ -329,6 +333,7 @@ SASLByteChannel implements ByteChannel, ConnectionSecurityProvider {
     /**
      * {@inheritDoc}
      */
+  @Override
     public int getAppBufSize() {
         return saslContext.getBufSize(Sasl.MAX_BUFFER);
     }
@@ -336,6 +341,7 @@ SASLByteChannel implements ByteChannel, ConnectionSecurityProvider {
     /**
      * {@inheritDoc}
      */
+  @Override
     public Certificate[] getClientCertificateChain() {
         return new Certificate[0];
     }
@@ -343,6 +349,7 @@ SASLByteChannel implements ByteChannel, ConnectionSecurityProvider {
     /**
      * {@inheritDoc}
      */
+  @Override
     public int getSSF() {
         return saslContext.getSSF();
     }
@@ -350,6 +357,7 @@ SASLByteChannel implements ByteChannel, ConnectionSecurityProvider {
     /**
      * {@inheritDoc}
      */
+  @Override
     public ByteChannel wrapChannel(ByteChannel channel) {
         return this;
     }
@@ -357,6 +365,7 @@ SASLByteChannel implements ByteChannel, ConnectionSecurityProvider {
     /**
      * {@inheritDoc}
      */
+  @Override
     public String getName() {
         return name;
     }
@@ -364,6 +373,7 @@ SASLByteChannel implements ByteChannel, ConnectionSecurityProvider {
     /**
      * {@inheritDoc}
      */
+  @Override
     public boolean isSecure() {
         return true;
     }
