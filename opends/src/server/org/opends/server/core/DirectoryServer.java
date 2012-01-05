@@ -87,7 +87,6 @@ import org.opends.server.monitors.ConnectionHandlerMonitor;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalConnectionHandler;
 import org.opends.server.schema.*;
-import org.opends.server.servicetag.ServiceTagRegistration;
 import org.opends.server.tools.ConfigureWindowsService;
 import org.opends.server.types.*;
 import org.opends.server.util.*;
@@ -102,7 +101,7 @@ import org.opends.server.workflowelement.localbackend.*;
  * and shutdown processes and coordinates activities between all other
  * components.
  */
-public class DirectoryServer
+public final class DirectoryServer
        implements AlertGenerator
 {
   /**
@@ -637,11 +636,6 @@ public class DirectoryServer
   // This config manager is used when the workflow configuration
   // mode is 'manual'.
   private WorkflowElementConfigManager workflowElementConfigManager;
-
-  // The ServiceTag Registration service for the Directory Server.
-  // The Registration is used to create and register a ServiceTag
-  // if it does not exist in the common servicetag registry.
-  private ServiceTagRegistration serviceTagRegistry;
 
   /**
    * The default timeout used to start the server in detach mode.
@@ -9521,19 +9515,6 @@ public class DirectoryServer
               stackTraceToSingleLineString(e));
       System.err.println(message);
       System.exit(1);
-    }
-
-    try {
-        theDirectoryServer.serviceTagRegistry =
-                ServiceTagRegistration.getRegistrationService();
-        theDirectoryServer.serviceTagRegistry.registerServiceTags("Server");
-    }
-    catch(Exception ex) {
-        // ServiceTags Registration errors do not prevent the server to
-        // start. WARNING logged in debug mode
-        if (debugEnabled()) {
-           TRACER.debugCaught(DebugLogLevel.WARNING, ex);
-      }
     }
 
     try

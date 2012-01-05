@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2012 ForgeRock AS.
  */
 
 package org.opends.messages;
@@ -159,8 +159,9 @@ public enum Category {
 
   /**
    * The category used for messages associated with the Servicetag registration.
+   * No longer used.
+   * SERVICETAG(0x01400000),
    */
-  SERVICETAG(0x01400000),
 
   /**
    * The category that will be used for messages associated with

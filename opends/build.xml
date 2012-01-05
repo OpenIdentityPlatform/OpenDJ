@@ -23,7 +23,7 @@
  !
  !
  !      Copyright 2006-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS
+ !      Portions Copyright 2011-2012 ForgeRock AS
  ! -->
 
 <project name="Directory Server" basedir="." default="package">
@@ -287,9 +287,6 @@
     </genmsg>
     <genmsg sourceProps="${msg.prop.dir}/runtime_information.properties"
             destJava="${msg.javagen.dir}/org/opends/messages/RuntimeMessages.java">
-    </genmsg>
-    <genmsg sourceProps="${msg.prop.dir}/servicetag.properties"
-            destJava="${msg.javagen.dir}/org/opends/messages/ServiceTagMessages.java">
     </genmsg>
 
   </target>
@@ -925,7 +922,6 @@
     <mkdir dir="${pdir}/config/messages"                             />
     <mkdir dir="${pdir}/config/MakeLDIF"                             />
     <mkdir dir="${pdir}/config/snmp/security"                        />
-    <mkdir dir="${pdir}/config/servicetag"                           />
     <mkdir dir="${pdir}/db"                                          />
     <mkdir dir="${pdir}/import-tmp"                                  />
     <mkdir dir="${pdir}/changelogDb"                                 />
@@ -1063,10 +1059,6 @@
 
     <copy todir="${pdir}/config/schema">
       <fileset dir="${resource.dir}/schema" />
-    </copy>
-
-    <copy todir="${pdir}/config/servicetag">
-      <fileset dir="${resource.dir}/servicetag" />
     </copy>
 
     <copy todir="${pdir}/config/messages">
