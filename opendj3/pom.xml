@@ -25,8 +25,7 @@
   !      Copyright 2011 ForgeRock AS
   !    
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.forgerock</groupId>
@@ -35,7 +34,7 @@
   </parent>
   <groupId>org.forgerock.opendj</groupId>
   <artifactId>opendj-project</artifactId>
-  <version>3.0.0-SNAPSHOT</version>
+  <version>3.0.0-M1</version>
   <packaging>pom</packaging>
   <name>OpenDJ Directory Services Project</name>
   <description>
@@ -65,9 +64,9 @@
     </mailingList>
   </mailingLists>
   <scm>
-    <url>https://svn.forgerock.org/opendj/trunk/opendj3/</url>
-    <connection>scm:svn:https://svn.forgerock.org/opendj/trunk/opendj3/</connection>
-    <developerConnection>scm:svn:https://svn.forgerock.org/opendj/trunk/opendj3/</developerConnection>
+    <url>https://svn.forgerock.org/opendj/tags/3.0.0-M1</url>
+    <connection>scm:svn:https://svn.forgerock.org/opendj/tags/3.0.0-M1</connection>
+    <developerConnection>scm:svn:https://svn.forgerock.org/opendj/tags/3.0.0-M1</developerConnection>
     <tag>HEAD</tag>
   </scm>
   <ciManagement>
@@ -247,7 +246,7 @@
             <collectXrefTargets>only</collectXrefTargets>
             <targetsFilename>${basedir}/target/admin-guide.target.db</targetsFilename>
             <postProcess>
-             <delete dir="${docbkx-out}/html/admin-guide"/>
+             <delete dir="${docbkx-out}/html/admin-guide" />
             </postProcess>
            </configuration>
            <goals>
@@ -262,7 +261,7 @@
             <collectXrefTargets>only</collectXrefTargets>
             <targetsFilename>${basedir}/target/dev-guide.target.db</targetsFilename>
             <postProcess>
-             <delete dir="${docbkx-out}/html/dev-guide"/>
+             <delete dir="${docbkx-out}/html/dev-guide" />
             </postProcess>
            </configuration>
            <goals>
@@ -277,7 +276,7 @@
             <collectXrefTargets>only</collectXrefTargets>
             <targetsFilename>${basedir}/target/install-guide.target.db</targetsFilename>
             <postProcess>
-             <delete dir="${docbkx-out}/html/install-guide"/>
+             <delete dir="${docbkx-out}/html/install-guide" />
             </postProcess>
            </configuration>
            <goals>
@@ -292,7 +291,7 @@
             <collectXrefTargets>only</collectXrefTargets>
             <targetsFilename>${basedir}/target/release-notes.target.db</targetsFilename>
             <postProcess>
-             <delete dir="${docbkx-out}/html/release-notes"/>
+             <delete dir="${docbkx-out}/html/release-notes" />
             </postProcess>
            </configuration>
            <goals>
@@ -312,33 +311,29 @@
               <epubEmbeddedFonts>DejaVuSans</epubEmbeddedFonts>
               <!-- Resources required but not copied by DocBook.xsl. -->
               <preProcess>
-                <copy todir='${docbkx-out}/epub/admin-guide/OpenDJ-Admin-Guide/images'>
-                  <fileset dir='${docbkx-src}/admin-guide/images' />
+                <copy todir="${docbkx-out}/epub/admin-guide/OpenDJ-Admin-Guide/images">
+                  <fileset dir="${docbkx-src}/admin-guide/images" />
                 </copy>
-                <copy todir='${docbkx-out}/epub/admin-guide/OpenDJ-Admin-Guide'>
-                  <fileset dir='${basedir}/src/main/resources' />
+                <copy todir="${docbkx-out}/epub/admin-guide/OpenDJ-Admin-Guide">
+                  <fileset dir="${basedir}/src/main/resources" />
                 </copy>
-                <copy todir='${docbkx-out}/epub/dev-guide/OpenDJ-Dev-Guide/images'>
-                  <fileset dir='${docbkx-src}/dev-guide/images' />
+                <copy todir="${docbkx-out}/epub/dev-guide/OpenDJ-Dev-Guide/images">
+                  <fileset dir="${docbkx-src}/dev-guide/images" />
                 </copy>
-                <copy todir='${docbkx-out}/epub/dev-guide/OpenDJ-Dev-Guide'>
-                  <fileset dir='${basedir}/src/main/resources' />
+                <copy todir="${docbkx-out}/epub/dev-guide/OpenDJ-Dev-Guide">
+                  <fileset dir="${basedir}/src/main/resources" />
                 </copy>
-                <copy
-                  todir='${docbkx-out}/epub/install-guide/OpenDJ-Install-Guide/images'>
-                  <fileset dir='${docbkx-src}/install-guide/images' />
+                <copy todir="${docbkx-out}/epub/install-guide/OpenDJ-Install-Guide/images">
+                  <fileset dir="${docbkx-src}/install-guide/images" />
                 </copy>
-                <copy
-                  todir='${docbkx-out}/epub/install-guide/OpenDJ-Install-Guide'>
-                  <fileset dir='${basedir}/src/main/resources' />
+                <copy todir="${docbkx-out}/epub/install-guide/OpenDJ-Install-Guide">
+                  <fileset dir="${basedir}/src/main/resources" />
                 </copy>
-                <copy
-                  todir='${docbkx-out}/epub/release-notes/OpenDJ-Release-Notes/images'>
-                  <fileset dir='${docbkx-src}/release-notes/images' />
+                <copy todir="${docbkx-out}/epub/release-notes/OpenDJ-Release-Notes/images">
+                  <fileset dir="${docbkx-src}/release-notes/images" />
                 </copy>
-                <copy
-                  todir='${docbkx-out}/epub/release-notes/OpenDJ-Release-Notes'>
-                  <fileset dir='${basedir}/src/main/resources' />
+                <copy todir="${docbkx-out}/epub/release-notes/OpenDJ-Release-Notes">
+                  <fileset dir="${basedir}/src/main/resources" />
                 </copy>
               </preProcess>
             </configuration>
@@ -376,50 +371,41 @@
               <htmlCustomization>${dbstyle-dir}/html/chunked.xsl</htmlCustomization>
               
               <preProcess>
-                <copy todir='${docbkx-out}/html/admin-guide/OpenDJ-Admin-Guide/images'>
-                  <fileset dir='${docbkx-src}/admin-guide/images' />
+                <copy todir="${docbkx-out}/html/admin-guide/OpenDJ-Admin-Guide/images">
+                  <fileset dir="${docbkx-src}/admin-guide/images" />
                 </copy>
-                <copy todir='${docbkx-out}/html/admin-guide/OpenDJ-Admin-Guide'>
-                  <fileset dir='${basedir}/src/main/resources' />
+                <copy todir="${docbkx-out}/html/admin-guide/OpenDJ-Admin-Guide">
+                  <fileset dir="${basedir}/src/main/resources" />
                 </copy>
-                <copy todir='${docbkx-out}/html/dev-guide/OpenDJ-Dev-Guide/images'>
-                  <fileset dir='${docbkx-src}/dev-guide/images' />
+                <copy todir="${docbkx-out}/html/dev-guide/OpenDJ-Dev-Guide/images">
+                  <fileset dir="${docbkx-src}/dev-guide/images" />
                 </copy>
-                <copy todir='${docbkx-out}/html/dev-guide/OpenDJ-Dev-Guide'>
-                  <fileset dir='${basedir}/src/main/resources' />
+                <copy todir="${docbkx-out}/html/dev-guide/OpenDJ-Dev-Guide">
+                  <fileset dir="${basedir}/src/main/resources" />
                 </copy>
-                <copy todir='${docbkx-out}/html/install-guide/OpenDJ-Install-Guide/images'>
-                  <fileset dir='${docbkx-src}/install-guide/images' />
+                <copy todir="${docbkx-out}/html/install-guide/OpenDJ-Install-Guide/images">
+                  <fileset dir="${docbkx-src}/install-guide/images" />
                 </copy>
-                <copy todir='${docbkx-out}/html/install-guide/OpenDJ-Install-Guide'>
-                  <fileset dir='${basedir}/src/main/resources' />
+                <copy todir="${docbkx-out}/html/install-guide/OpenDJ-Install-Guide">
+                  <fileset dir="${basedir}/src/main/resources" />
                 </copy>
-                <copy todir='${docbkx-out}/html/release-notes/OpenDJ-Release-Notes/images'>
-                  <fileset dir='${docbkx-src}/release-notes/images' />
+                <copy todir="${docbkx-out}/html/release-notes/OpenDJ-Release-Notes/images">
+                  <fileset dir="${docbkx-src}/release-notes/images" />
                 </copy>
-                <copy todir='${docbkx-out}/html/release-notes/OpenDJ-Release-Notes'>
-                  <fileset dir='${basedir}/src/main/resources' />
+                <copy todir="${docbkx-out}/html/release-notes/OpenDJ-Release-Notes">
+                  <fileset dir="${basedir}/src/main/resources" />
                 </copy>
               </preProcess>
 
               <postProcess>
-                <copy file='${docbkx-out}/html/admin-guide/OpenDJ-Admin-Guide/target/docbkx/html/legalnotice.html'
-                  todir='${docbkx-out}/html/admin-guide/OpenDJ-Admin-Guide' />
-                <copy file='${docbkx-out}/html/dev-guide/OpenDJ-Dev-Guide/target/docbkx/html/legalnotice.html'
-                  todir='${docbkx-out}/html/dev-guide/OpenDJ-Dev-Guide' />
-                <copy file='${docbkx-out}/html/install-guide/OpenDJ-Install-Guide/target/docbkx/html/legalnotice.html'
-                  todir='${docbkx-out}/html/install-guide/OpenDJ-Install-Guide' />
-                <copy file='${docbkx-out}/html/release-notes/OpenDJ-Release-Notes/target/docbkx/html/legalnotice.html'
-                  todir='${docbkx-out}/html/release-notes/OpenDJ-Release-Notes' />
-                <replace
-                  dir="${basedir}/target/docbkx/html/"
-                  token="target/docbkx/html/legalnotice.html"
-                  value="legalnotice.html">
+                <copy file="${docbkx-out}/html/admin-guide/OpenDJ-Admin-Guide/target/docbkx/html/legalnotice.html" todir="${docbkx-out}/html/admin-guide/OpenDJ-Admin-Guide" />
+                <copy file="${docbkx-out}/html/dev-guide/OpenDJ-Dev-Guide/target/docbkx/html/legalnotice.html" todir="${docbkx-out}/html/dev-guide/OpenDJ-Dev-Guide" />
+                <copy file="${docbkx-out}/html/install-guide/OpenDJ-Install-Guide/target/docbkx/html/legalnotice.html" todir="${docbkx-out}/html/install-guide/OpenDJ-Install-Guide" />
+                <copy file="${docbkx-out}/html/release-notes/OpenDJ-Release-Notes/target/docbkx/html/legalnotice.html" todir="${docbkx-out}/html/release-notes/OpenDJ-Release-Notes" />
+                <replace dir="${basedir}/target/docbkx/html/" token="target/docbkx/html/legalnotice.html" value="legalnotice.html">
                   <include name="**/**/**/*.html" />
                 </replace>
-                <replace
-                  dir="${basedir}/target/docbkx/html/"
-                  token="&lt;/head&gt;">
+                <replace dir="${basedir}/target/docbkx/html/" token="&lt;/head&gt;">
                   <include name="**/**/**/*.html" />
                   <replacevalue>
 &lt;script src="http://code.jquery.com/jquery-latest.min.js"&gt;&lt;/script&gt;
@@ -445,9 +431,7 @@ $(".flat").live("dblclick", function() {
 &lt;link rel="shortcut icon" href="http://forgerock.org/favicon.ico"&gt;
 &lt;/head &gt;</replacevalue>
                 </replace>
-                <replace
-                  dir="${basedir}/target/docbkx/html/"
-                  token="&lt;/body&gt;">
+                <replace dir="${basedir}/target/docbkx/html/" token="&lt;/body&gt;">
                   <include name="**/**/**/*.html" />
                   <replacevalue>&lt;script type="text/javascript"&gt;
   var _gaq = _gaq || [];
@@ -476,46 +460,41 @@ $(".flat").live("dblclick", function() {
               <targetDatabaseDocument>${docbkx-src}/olinkdb-single-html-pages.xml</targetDatabaseDocument>
               <!-- Resources required but not copied by DocBook.xsl. -->
               <preProcess>
-                <copy todir='${docbkx-out}/html/admin-guide/images'>
-                  <fileset dir='${docbkx-src}/admin-guide/images' />
+                <copy todir="${docbkx-out}/html/admin-guide/images">
+                  <fileset dir="${docbkx-src}/admin-guide/images" />
                 </copy>
-                <copy todir='${docbkx-out}/html/admin-guide'>
-                  <fileset dir='${basedir}/src/main/resources' />
+                <copy todir="${docbkx-out}/html/admin-guide">
+                  <fileset dir="${basedir}/src/main/resources" />
                 </copy>
-                <copy todir='${docbkx-out}/html/dev-guide/images'>
-                  <fileset dir='${docbkx-src}/dev-guide/images' />
+                <copy todir="${docbkx-out}/html/dev-guide/images">
+                  <fileset dir="${docbkx-src}/dev-guide/images" />
                 </copy>
-                <copy todir='${docbkx-out}/html/dev-guide'>
-                  <fileset dir='${basedir}/src/main/resources' />
+                <copy todir="${docbkx-out}/html/dev-guide">
+                  <fileset dir="${basedir}/src/main/resources" />
                 </copy>
-                <copy todir='${docbkx-out}/html/install-guide/images'>
-                  <fileset dir='${docbkx-src}/install-guide/images' />
+                <copy todir="${docbkx-out}/html/install-guide/images">
+                  <fileset dir="${docbkx-src}/install-guide/images" />
                 </copy>
-                <copy todir='${docbkx-out}/html/install-guide'>
-                  <fileset dir='${basedir}/src/main/resources' />
+                <copy todir="${docbkx-out}/html/install-guide">
+                  <fileset dir="${basedir}/src/main/resources" />
                 </copy>
-                <copy todir='${docbkx-out}/html/release-notes/images'>
-                  <fileset dir='${docbkx-src}/release-notes/images' />
+                <copy todir="${docbkx-out}/html/release-notes/images">
+                  <fileset dir="${docbkx-src}/release-notes/images" />
                 </copy>
-                <copy todir='${docbkx-out}/html/release-notes'>
-                  <fileset dir='${basedir}/src/main/resources' />
+                <copy todir="${docbkx-out}/html/release-notes">
+                  <fileset dir="${basedir}/src/main/resources" />
                 </copy>
               </preProcess>
               
               <postProcess>
-                <copy file='${legalnotice}' todir='${docbkx-out}/html/admin-guide' />
-                <copy file='${legalnotice}' todir='${docbkx-out}/html/dev-guide' />
-                <copy file='${legalnotice}' todir='${docbkx-out}/html/install-guide' />
-                <copy file='${legalnotice}' todir='${docbkx-out}/html/release-notes' />
-                <replace
-                  dir="${basedir}/target/docbkx/html/"
-                  token="target/docbkx/html/legalnotice.html"
-                  value="legalnotice.html">
+                <copy file="${legalnotice}" todir="${docbkx-out}/html/admin-guide" />
+                <copy file="${legalnotice}" todir="${docbkx-out}/html/dev-guide" />
+                <copy file="${legalnotice}" todir="${docbkx-out}/html/install-guide" />
+                <copy file="${legalnotice}" todir="${docbkx-out}/html/release-notes" />
+                <replace dir="${basedir}/target/docbkx/html/" token="target/docbkx/html/legalnotice.html" value="legalnotice.html">
                   <include name="**/**/*.html" />
                 </replace>
-                <replace
-                  dir="${basedir}/target/docbkx/html/"
-                  token="&lt;/head&gt;">
+                <replace dir="${basedir}/target/docbkx/html/" token="&lt;/head&gt;">
                   <include name="**/**/*.html" />
                   <replacevalue>
 &lt;script src="http://code.jquery.com/jquery-latest.min.js"&gt;&lt;/script&gt;
@@ -794,7 +773,7 @@ $(".flat").live("dblclick", function() {
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore></ignore>
+                    <ignore />
                   </action>
                 </pluginExecution>
               </pluginExecutions>
