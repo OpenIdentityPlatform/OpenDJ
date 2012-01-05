@@ -806,6 +806,21 @@ $(".flat").live("dblclick", function() {
           <artifactId>i18n-maven-plugin</artifactId>
           <version>1.2.0</version>
         </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.2.2</version>
+          <inherited>true</inherited>
+          <configuration>
+            <!-- Disable inherited configuration -->
+            <autoVersionSubmodules>true</autoVersionSubmodules>
+            <mavenExecutorId>forked-path</mavenExecutorId>
+            <useReleaseProfile>true</useReleaseProfile>
+            <suppressCommitBeforeTag>false</suppressCommitBeforeTag>
+            <goals>deploy</goals>
+            <arguments>-Penforce</arguments>
+          </configuration>
+        </plugin>
       </plugins>
     </pluginManagement>
   </build>
