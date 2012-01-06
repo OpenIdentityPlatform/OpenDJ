@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -607,6 +608,17 @@ final class ToolConstants
    * The default separator to be used in tables.
    */
   static final String LIST_TABLE_SEPARATOR = ":";
+
+  /**
+   *
+   * The value for the short option output LDIF filename.
+   */
+  static final char OPTION_SHORT_OUTPUT_LDIF_FILENAME= 'o';
+
+  /**
+   * The value for the long option output LDIF filename.
+   */
+  static final String OPTION_LONG_OUTPUT_LDIF_FILENAME = "outputLDIF";
 
 
 

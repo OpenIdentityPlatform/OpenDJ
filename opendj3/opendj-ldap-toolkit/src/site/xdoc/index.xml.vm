@@ -38,6 +38,9 @@
        <dt>ldapmodify</dt><dd>perform LDAP modify, add, delete, mod DN operations</dd>
        <dt>ldappasswordmodify</dt><dd>perform LDAP password modifications</dd>
        <dt>ldapsearch</dt><dd>perform LDAP search operations</dd>
+       <dt>ldifmodify</dt><dd>perform LDAP modify, add, delete, mod DN operations against entries contained in an LDIF file</dd>
+       <dt>ldifsearch</dt><dd>perform search operations against entries contained in an LDIF file</dd>
+       <dt>ldifdiff</dt><dd>compare two LDIF files and report the differences in LDIF format</dd>
        <dt>modrate</dt><dd>measure modification throughput and response time</dd>
        <dt>searchrate</dt><dd>measure search throughput and response time</dd>
       </dl>

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  *      Portions copyright 2011 Nemanja Lukić
  */
 package com.forgerock.opendj.ldap.tools;
@@ -46,7 +46,7 @@ import org.forgerock.i18n.LocalizableMessage;
  */
 abstract class ConsoleApplication
 {
-  private final PrintStream err = new PrintStream(System.out);
+  private final PrintStream err = new PrintStream(System.err);
 
   private final BufferedReader reader = new BufferedReader(
       new InputStreamReader(System.in));
@@ -65,6 +65,29 @@ abstract class ConsoleApplication
   ConsoleApplication()
   {
     // Nothing to do.
+  }
+
+
+
+  /**
+   * Closes the provided {@code Closeable} if it is not {@code null}.
+   *
+   * @param closeable
+   *          The closeable to be closed.
+   */
+  final void closeIfNotNull(Closeable closeable)
+  {
+    if (closeable != null)
+    {
+      try
+      {
+        closeable.close();
+      }
+      catch (Exception ignored)
+      {
+        // Do nothing.
+      }
+    }
   }
 
 
