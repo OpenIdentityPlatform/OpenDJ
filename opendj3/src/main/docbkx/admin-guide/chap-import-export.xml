@@ -222,7 +222,7 @@ $ export-ldif
   </indexterm>
   
   <para>This section demonstrates the <command>ldifsearch</command>,
-  <command>ldifmodify</command>, and <command>ldif-diff</command> tools.</para>
+  <command>ldifmodify</command>, and <command>ldifdiff</command> tools.</para>
   
   <section xml:id="ldifsearch-example">
    <title>Searching in LDIF With <command>ldifsearch</command></title>
@@ -269,13 +269,13 @@ $ ldifmodify
    same size as the source LDIF file.</para>
   </section>
   
-  <section xml:id="ldif-diff-example">
-   <title>Comparing LDIF With <command>ldif-diff</command></title>
+  <section xml:id="ldifdiff-example">
+   <title>Comparing LDIF With <command>ldifdiff</command></title>
 
-   <para>The <command>ldif-diff</command> command reports differences between
+   <para>The <command>ldifdiff</command> command reports differences between
    two LDIF files in LDIF format.</para>
    
-   <screen>$ ldif-diff --sourceLDIF old.ldif --targetLDIF new.ldif
+   <screen>$ ldifdiff old.ldif new.ldif
 dn: uid=user.0,ou=People,dc=example,dc=org
 changetype: modify
 add: initials
@@ -292,10 +292,7 @@ description: This is the description for Aaccf Amar.
 
 </screen>
 
-   <para>The <option>--outputLDIF <replaceable>ldif-file</replaceable></option>
-   option can be used to save the output to a file.</para>
-   
-   <para>As the <command>ldif-diff</command> command reads both files into
+   <para>As the <command>ldifdiff</command> command reads both files into
    memory, constructing tree maps to perform the comparison, the command
    is designed to work with small files and fragments. The command can quickly
    run out of memory when calculating differences between large files.</para>

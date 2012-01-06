@@ -37,7 +37,11 @@
  <section xml:id="changed-functionality">
   <title>Major Changes to Existing Functionality</title>
   
-  <para>None.</para>
+  <para>The <command>ldif-diff</command> command has been renamed
+  <command>ldifdiff</command>, and the <option>--outputLDIF</option>,
+  <option>--overwriteExisting</option>, <option>--sourceLDIF</option>,
+  <option>--targetLDIF</option> options have been dropped in favor of a
+  format closer to that of the <command>diff</command> command.</para>
  </section>
 
  <section xml:id="deprecated-functionality">
