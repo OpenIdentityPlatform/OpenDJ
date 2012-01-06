@@ -104,7 +104,7 @@
    <xinclude:include href='../shared/man-ldapmodify.xml' />
    <xinclude:include href='../shared/man-ldappasswordmodify.xml' />
    <xinclude:include href='../shared/man-ldapsearch.xml' />
-   <xinclude:include href='../shared/man-ldif-diff.xml' />
+   <xinclude:include href='../shared/man-ldifdiff.xml' />
    <xinclude:include href='../shared/man-ldifmodify.xml' />
    <xinclude:include href='../shared/man-ldifsearch.xml' />
    <xinclude:include href='../shared/man-list-backends.xml' />

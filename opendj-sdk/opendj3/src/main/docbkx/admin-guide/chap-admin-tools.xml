@@ -336,8 +336,8 @@
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#ldif-diff-1"
-    xlink:role="http://docbook.org/xlink/role/olink">ldif-diff</link></term>
+    <term><link xlink:href="admin-guide#ldifdiff-1"
+    xlink:role="http://docbook.org/xlink/role/olink">ldifdiff</link></term>
     <listitem>
      <para>Display differences between two LDIF files, with the resulting output
      having LDIF format.</para>
