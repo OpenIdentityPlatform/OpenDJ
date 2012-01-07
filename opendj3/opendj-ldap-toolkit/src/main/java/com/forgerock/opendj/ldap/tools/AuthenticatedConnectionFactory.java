@@ -64,7 +64,7 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory
   /**
    * An authenticated connection supports all operations except Bind operations.
    */
-  public static final class AuthenticatedConnection extends ConnectionDecorator
+  static final class AuthenticatedConnection extends ConnectionDecorator
   {
 
     private final BindRequest request;
@@ -129,7 +129,7 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory
      * @return The Bind result which was returned from the server after
      *         authentication.
      */
-    public BindResult getAuthenticatedBindResult()
+    BindResult getAuthenticatedBindResult()
     {
       return result;
     }
@@ -151,7 +151,7 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory
      *           If this connection has already been closed, i.e. if
      *           {@code isClosed() == true}.
      */
-    public FutureResult<BindResult> rebindAsync(
+    FutureResult<BindResult> rebindAsync(
         final ResultHandler<? super BindResult> handler)
     {
       if (request == null)
@@ -299,7 +299,7 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory
    * @throws NullPointerException
    *           If {@code factory} or {@code request} was {@code null}.
    */
-  public AuthenticatedConnectionFactory(final ConnectionFactory factory,
+  AuthenticatedConnectionFactory(final ConnectionFactory factory,
       final BindRequest request)
   {
     Validator.ensureNotNull(factory, request);
@@ -362,7 +362,7 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory
    * @return allowRebinds {@code true} if the {@code rebind} operation is to be
    *         supported, otherwise {@code false}.
    */
-  public boolean isRebindAllowed()
+  boolean isRebindAllowed()
   {
     return allowRebinds;
   }
@@ -382,7 +382,7 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory
    *          otherwise {@code false}.
    * @return A reference to this connection factory.
    */
-  public AuthenticatedConnectionFactory setRebindAllowed(
+  AuthenticatedConnectionFactory setRebindAllowed(
       final boolean allowRebinds)
   {
     this.allowRebinds = allowRebinds;
