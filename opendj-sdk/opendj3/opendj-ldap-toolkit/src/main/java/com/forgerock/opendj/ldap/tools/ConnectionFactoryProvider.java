@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap.tools;
@@ -51,6 +51,8 @@ import javax.net.ssl.X509TrustManager;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.controls.AuthorizationIdentityRequestControl;
+import org.forgerock.opendj.ldap.controls.PasswordPolicyRequestControl;
 import org.forgerock.opendj.ldap.requests.*;
 
 
@@ -155,12 +157,12 @@ final class ConnectionFactoryProvider
    * Whether to request that the server return the authorization ID in the bind
    * response.
    */
-  private final BooleanArgument reportAuthzID;
+  private final BooleanArgument reportAuthzIDArg;
 
   /**
    * Whether to use the password policy control in the bind request.
    */
-  private final BooleanArgument usePasswordPolicyControl;
+  private final BooleanArgument usePasswordPolicyControlArg;
 
   private int port = 389;
 
@@ -317,15 +319,15 @@ final class ConnectionFactoryProvider
     certNicknameArg.setPropertyName(OPTION_LONG_CERT_NICKNAME);
     argumentParser.addLdapConnectionArgument(certNicknameArg);
 
-    reportAuthzID = new BooleanArgument("reportauthzid", 'E',
+    reportAuthzIDArg = new BooleanArgument("reportauthzid", 'E',
         OPTION_LONG_REPORT_AUTHZ_ID, INFO_DESCRIPTION_REPORT_AUTHZID.get());
-    reportAuthzID.setPropertyName(OPTION_LONG_REPORT_AUTHZ_ID);
-    argumentParser.addArgument(reportAuthzID);
+    reportAuthzIDArg.setPropertyName(OPTION_LONG_REPORT_AUTHZ_ID);
+    argumentParser.addArgument(reportAuthzIDArg);
 
-    usePasswordPolicyControl = new BooleanArgument("usepwpolicycontrol", null,
+    usePasswordPolicyControlArg = new BooleanArgument("usepwpolicycontrol", null,
         OPTION_LONG_USE_PW_POLICY_CTL, INFO_DESCRIPTION_USE_PWP_CONTROL.get());
-    usePasswordPolicyControl.setPropertyName(OPTION_LONG_USE_PW_POLICY_CTL);
-    argumentParser.addArgument(usePasswordPolicyControl);
+    usePasswordPolicyControlArg.setPropertyName(OPTION_LONG_USE_PW_POLICY_CTL);
+    argumentParser.addArgument(usePasswordPolicyControlArg);
   }
 
 
@@ -474,9 +476,8 @@ final class ConnectionFactoryProvider
       BindRequest bindRequest = getBindRequest();
       if(bindRequest != null)
       {
-        authenticatedConnFactory =
-            Connections.newAuthenticatedConnectionFactory(
-                authenticatedConnFactory, bindRequest);
+        authenticatedConnFactory = new AuthenticatedConnectionFactory(
+            authenticatedConnFactory, bindRequest);
       }
     }
     return authenticatedConnFactory;
@@ -647,6 +648,18 @@ final class ConnectionFactoryProvider
       {
         throw new ArgumentException(ERR_LDAPAUTH_UNSUPPORTED_SASL_MECHANISM
             .get(mech));
+      }
+
+      if (reportAuthzIDArg.isPresent())
+      {
+        bindRequest.addControl(AuthorizationIdentityRequestControl
+            .newControl(false));
+      }
+
+      if (usePasswordPolicyControlArg.isPresent())
+      {
+        bindRequest.addControl(PasswordPolicyRequestControl
+            .newControl(false));
       }
     }
     return bindRequest;
