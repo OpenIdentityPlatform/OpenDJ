@@ -22,7 +22,7 @@
   !
   ! CDDL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -110,6 +110,7 @@
     <site-out>${basedir}/target/site</site-out>
     <legalnotice>${basedir}/target/docbkx/html/legalnotice.html</legalnotice>
     <siteDistributionURL>scp://forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
+    <i18nFrameworkVersion>1.4.0</i18nFrameworkVersion>
   </properties>
   <build>
     <plugins>
@@ -782,7 +783,7 @@ $(".flat").live("dblclick", function() {
         <plugin>
           <groupId>org.forgerock.commons</groupId>
           <artifactId>i18n-maven-plugin</artifactId>
-          <version>1.2.0</version>
+          <version>${i18nFrameworkVersion}</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -852,6 +853,16 @@ $(".flat").live("dblclick", function() {
     </repository>
     -->
   </repositories>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.forgerock.commons</groupId>
+        <artifactId>i18n-core</artifactId>
+        <version>${i18nFrameworkVersion}</version>
+        <scope>compile</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
   <dependencies>
     <dependency>
       <groupId>org.easytesting</groupId>

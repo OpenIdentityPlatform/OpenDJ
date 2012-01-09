@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -812,13 +813,6 @@ final class ArgumentParser
   void getUsage(final StringBuilder buffer)
   {
     usageOrVersionDisplayed = true;
-    if ((toolDescription != null) && (toolDescription.length() > 0))
-    {
-      buffer.append(wrapText(toolDescription.toString(), MAX_LENGTH - 1));
-      buffer.append(EOL);
-      buffer.append(EOL);
-    }
-
     final String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
     if ((scriptName == null) || (scriptName.length() == 0))
     {
@@ -843,6 +837,12 @@ final class ArgumentParser
     }
     buffer.append(EOL);
     buffer.append(EOL);
+    if ((toolDescription != null) && (toolDescription.length() > 0))
+    {
+      buffer.append(wrapText(toolDescription.toString(), MAX_LENGTH - 1));
+      buffer.append(EOL);
+      buffer.append(EOL);
+    }
     buffer.append(INFO_SUBCMDPARSER_WHERE_OPTIONS_INCLUDE.get());
     buffer.append(EOL);
     buffer.append(EOL);

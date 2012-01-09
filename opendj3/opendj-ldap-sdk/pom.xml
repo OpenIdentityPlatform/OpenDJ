@@ -22,7 +22,7 @@
   !
   ! CDDL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -43,8 +43,6 @@
     <dependency>
       <groupId>org.forgerock.commons</groupId>
       <artifactId>i18n-core</artifactId>
-      <version>1.2.0</version>
-      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.glassfish.grizzly</groupId>
