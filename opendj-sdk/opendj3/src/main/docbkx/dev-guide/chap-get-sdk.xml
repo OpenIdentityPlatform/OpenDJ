@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-get-sdk'
@@ -118,15 +118,15 @@ C:\>set PATH=\\path\to\opendj-ldap-toolkit-<?eval ${currentSDKversion}?>\bat:%PA
      <filename>opendj-ldap-toolkit-<?eval ${currentSDKversion}?>/lib/</filename>.</para>
      <screen>(UNIX)
 $ export CLASSPATH=/path/to/lib/gmbal-api-only-3.0.0-b023.jar:$CLASSPATH
-$ export CLASSPATH=/path/to/lib/grizzly-framework-2.1.2.jar:$CLASSPATH
-$ export CLASSPATH=/path/to/lib/i18n-core-1.2.0.jar:$CLASSPATH
+$ export CLASSPATH=/path/to/lib/grizzly-framework-2.1.7.jar:$CLASSPATH
+$ export CLASSPATH=/path/to/lib/i18n-core-1.4.0.jar:$CLASSPATH
 $ export CLASSPATH=/path/to/lib/management-api-3.0.0-b012.jar:$CLASSPATH
 $ export CLASSPATH=/path/to/lib/opendj-ldap-sdk-<?eval ${currentSDKversion}?>.jar:$CLASSPATH
      </screen>
      <screen>(Windows)
 C:\>set CLASSPATH=\\path\to\lib\gmbal-api-only-3.0.0-b023.jar:%CLASSPATH%
-C:\>set CLASSPATH=\\path\to\lib\grizzly-framework-2.1.2.jar:%CLASSPATH%
-C:\>set CLASSPATH=\\path\to\lib\i18n-core-1.2.0.jar:%CLASSPATH%
+C:\>set CLASSPATH=\\path\to\lib\grizzly-framework-2.1.7.jar:%CLASSPATH%
+C:\>set CLASSPATH=\\path\to\lib\i18n-core-1.4.0.jar:%CLASSPATH%
 C:\>set CLASSPATH=\\path\to\lib\management-api-3.0.0-b012.jar:%CLASSPATH%
 C:\>set CLASSPATH=\\path\to\lib\opendj-ldap-sdk-<?eval ${currentSDKversion}?>.jar:%CLASSPATH%</screen>
     </step>
@@ -191,9 +191,9 @@ $ mvn install
    </step>
    <step>
     <para>Set your CLASSPATH to include the OpenDJ LDAP SDK library,
-    <filename>opendj-ldap-sdk-<?eval ${currentSDKversion}?>.jar</filename>, 
+    <filename>opendj-ldap-sdk-<?eval ${currentSDK4ersion}?>.jar</filename>, 
     the I18N core library, <filename>i18n-core-1.2.0.jar</filename>, the Grizzly
-    framework, <filename>grizzly-framework-2.1.2.jar</filename>, and the
+    framework, <filename>grizzly-framework-2.1.7.jar</filename>, and the
     GlassFish management APIs, <filename>gmbal-api-only-3.0.0-b023.jar</filename>
     &amp; <filename>management-api-3.0.0-b012.jar</filename>
     under <filename>opendj-ldap-toolkit-<?eval ${currentSDKversion}?>/lib/</filename>.</para>
