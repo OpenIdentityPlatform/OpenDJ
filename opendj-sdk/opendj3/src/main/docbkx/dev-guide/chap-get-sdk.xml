@@ -191,8 +191,8 @@ $ mvn install
    </step>
    <step>
     <para>Set your CLASSPATH to include the OpenDJ LDAP SDK library,
-    <filename>opendj-ldap-sdk-<?eval ${currentSDK4ersion}?>.jar</filename>, 
-    the I18N core library, <filename>i18n-core-1.2.0.jar</filename>, the Grizzly
+    <filename>opendj-ldap-sdk-<?eval ${currentSDKVersion}?>.jar</filename>, 
+    the I18N core library, <filename>i18n-core-1.4.0.jar</filename>, the Grizzly
     framework, <filename>grizzly-framework-2.1.7.jar</filename>, and the
     GlassFish management APIs, <filename>gmbal-api-only-3.0.0-b023.jar</filename>
     &amp; <filename>management-api-3.0.0-b012.jar</filename>
