@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication.service;
 
@@ -953,7 +953,23 @@ public class ReplicationBroker
                 connectionError = false;
                 if (sendWindow != null)
                 {
-                  sendWindow.release(Integer.MAX_VALUE);
+                  /*
+                   * Fix (hack) for OPENDJ-401: we want to ensure that no
+                   * threads holding this semaphore will get blocked when they
+                   * acquire it. However, we also need to make sure that we
+                   * don't overflow the semaphore by releasing too many permits.
+                   */
+                  final int MAX_PERMITS = (Integer.MAX_VALUE >>> 2);
+                  if (sendWindow.availablePermits() < MAX_PERMITS)
+                  {
+                    /*
+                     * At least 2^29 acquisitions would need to occur for this
+                     * to be insufficient. In addition, at least 2^30 releases
+                     * would need to occur for this to potentially overflow.
+                     * Hopefully this is unlikely to happen.
+                     */
+                    sendWindow.release(MAX_PERMITS);
+                  }
                 }
                 sendWindow = new Semaphore(maxSendWindow);
                 rcvWindow = maxRcvWindow;
