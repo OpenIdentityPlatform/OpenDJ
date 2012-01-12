@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -52,6 +52,8 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.naming.CompositeName;
 import javax.naming.InvalidNameException;
@@ -391,8 +393,8 @@ public class Utilities
   {
     StringBuilder buf = new StringBuilder();
 
-    buf.append("font-family:" + font.getName()).append(
-        ";font-size:" + font.getSize() + "pt");
+    buf.append("font-family:").append(font.getName())
+        .append(";font-size:").append(font.getSize()).append("pt");
 
     if (font.isItalic())
     {
@@ -1562,6 +1564,37 @@ public class Utilities
   }
 
   /**
+   * Strings any potential "separator" from a given string.
+   * @param s string to strip
+   * @param separator  the separator string to remove
+   * @return resulting string
+   */
+  public static String stripStringToSingleLine(String s, String separator)
+  {
+    String o = null;
+    if (s != null)
+    {
+      o = s.replaceAll(separator, "");
+    }
+    return o;
+  }
+
+  /* The pattern for control characters */
+  private static Pattern cntrl_pattern =
+      Pattern.compile("\\p{Cntrl}", Pattern.MULTILINE);
+
+  /**
+   * Checks if a string contains control characters.
+   * @param s : the string to check
+   * @return true if s contains control characters, false otherwise
+   */
+  public static Boolean hasControlCharaters(String s)
+  {
+    Matcher m = cntrl_pattern.matcher(s);
+    return m.find();
+  }
+
+  /**
    * This is a helper method that gets a String representation of the elements
    * in the Collection. The String will display the different elements separated
    * by the separator String.
@@ -1583,7 +1616,7 @@ public class Utilities
       {
         msg.append(separator);
       }
-      msg.append(m);
+      msg.append(stripStringToSingleLine(m, separator));
     }
     return msg.toString();
   }
@@ -1663,9 +1696,9 @@ public class Utilities
       Message details, Font detailsFont)
   {
     StringBuilder buf = new StringBuilder();
-    String space = "&nbsp;";
-    buf.append(UIFactory.getIconHtml(UIFactory.IconType.ERROR_LARGE) + space
-          + space + applyFont(title.toString(), titleFont));
+    buf.append(UIFactory.getIconHtml(UIFactory.IconType.ERROR_LARGE))
+        .append(HTML_SPACE).append(HTML_SPACE)
+        .append(applyFont(title.toString(), titleFont));
     if (details != null)
     {
       buf.append("<br><br>")
@@ -1687,9 +1720,9 @@ public class Utilities
       Message details, Font detailsFont)
   {
     StringBuilder buf = new StringBuilder();
-    String space = "&nbsp;";
-    buf.append(UIFactory.getIconHtml(UIFactory.IconType.INFORMATION_LARGE) +
-        space + space + applyFont(title.toString(), titleFont));
+    buf.append(UIFactory.getIconHtml(UIFactory.IconType.INFORMATION_LARGE))
+        .append(HTML_SPACE).append(HTML_SPACE)
+        .append(applyFont(title.toString(), titleFont));
     if (details != null)
     {
       buf.append("<br><br>")
@@ -1711,9 +1744,9 @@ public class Utilities
       Message details, Font detailsFont)
   {
     StringBuilder buf = new StringBuilder();
-    String space = "&nbsp;";
-    buf.append(UIFactory.getIconHtml(UIFactory.IconType.WARNING_LARGE) + space
-          + space + applyFont(title.toString(), titleFont));
+    buf.append(UIFactory.getIconHtml(UIFactory.IconType.WARNING_LARGE))
+        .append(HTML_SPACE).append(HTML_SPACE)
+        .append(applyFont(title.toString(), titleFont));
     if (details != null)
     {
       buf.append("<br><br>")
@@ -1735,9 +1768,9 @@ public class Utilities
       Message details, Font detailsFont)
   {
     StringBuilder buf = new StringBuilder();
-    String space = "&nbsp;";
-    buf.append(UIFactory.getIconHtml(UIFactory.IconType.WARNING_LARGE) +
-        space + space + applyFont(title.toString(), titleFont));
+    buf.append(UIFactory.getIconHtml(UIFactory.IconType.WARNING_LARGE))
+        .append(HTML_SPACE).append(HTML_SPACE)
+        .append(applyFont(title.toString(), titleFont));
     if (details != null)
     {
       buf.append("<br><br>")
@@ -2547,6 +2580,7 @@ public class Utilities
   {
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         for (int i=0; i<pos.size(); i++)
