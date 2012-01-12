@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -52,6 +53,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.Base64;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.util.LDIFReader;
 
 /**
@@ -80,6 +82,7 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return editableAttributes;
@@ -107,16 +110,19 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
     editableAttributes = Utilities.createTextArea(Message.EMPTY, 20, 30);
     editableAttributes.getDocument().addDocumentListener(new DocumentListener()
     {
+      @Override
       public void insertUpdate(DocumentEvent ev)
       {
         notifyListeners();
       }
 
+      @Override
       public void changedUpdate(DocumentEvent ev)
       {
         notifyListeners();
       }
 
+      @Override
       public void removeUpdate(DocumentEvent ev)
       {
         notifyListeners();
@@ -149,6 +155,7 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public void update(CustomSearchResult sr, boolean isReadOnly, TreePath path)
   {
     boolean sameEntry = false;
@@ -167,7 +174,7 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
 
     StringBuilder sb = new StringBuilder();
 
-    sb.append("dn: "+sr.getDN());
+    sb.append("dn: ").append(sr.getDN());
 
     if (isReadOnly)
     {
@@ -177,7 +184,7 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
         List<Object> values = sr.getAttributeValues(attrName);
         for (Object o : values)
         {
-          sb.append("\n"+ getLDIFLine(attrName, o));
+          sb.append("\n").append(getLDIFLine(attrName, o));
         }
       }
       final Point p1 = sameEntry ?
@@ -188,6 +195,7 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
         /**
          * {@inheritDoc}
          */
+        @Override
         public void run()
         {
           if ((p1 != null) && (readOnlyScroll.getViewport().contains(p1)))
@@ -208,7 +216,7 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
           List<Object> values = sr.getAttributeValues(attrName);
           for (Object o : values)
           {
-            sb.append("\n"+ getLDIFLine(attrName, o));
+            sb.append("\n").append(getLDIFLine(attrName, o));
           }
         }
       }
@@ -223,6 +231,7 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
         /**
          * {@inheritDoc}
          */
+        @Override
         public void run()
         {
           if ((p1 != null) && (editableScroll.getViewport().contains(p1)))
@@ -255,6 +264,7 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
         /**
          * {@inheritDoc}
          */
+        @Override
         public void run()
         {
           if ((p2 != null) && (readOnlyScroll.getViewport().contains(p2)))
@@ -269,6 +279,7 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public GenericDialog.ButtonType getButtonType()
   {
     return GenericDialog.ButtonType.NO_BUTTON;
@@ -278,6 +289,7 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   protected String getDisplayedDN()
   {
     String dn = null;
@@ -298,6 +310,7 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   protected List<Object> getValues(String attrName)
   {
     throw new IllegalStateException("This method should not be called.");
@@ -306,6 +319,7 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public Entry getEntry() throws OpenDsException
   {
     Entry entry = null;
@@ -358,7 +372,16 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
     String attrValue;
     if (o instanceof String)
     {
-      attrValue = (String)o;
+      //
+      if (Utilities.hasControlCharaters((String)o))
+      {
+        attrValue = Base64.encode(StaticUtils.getBytes((String)o));
+        attrName = attrName+":";
+      }
+      else
+      {
+        attrValue = (String)o;
+      }
     }
     else if (o instanceof byte[])
     {
