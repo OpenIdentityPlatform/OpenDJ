@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !
 -->
 <project name="${project.name}"
@@ -85,7 +85,7 @@
  </body>
 
  <custom>
-  <googleAnalytics>UA-23412190-2</googleAnalytics>
+  <googleAnalytics>UA-23412190-8</googleAnalytics>
   <openproject>
    <href>http://opendj.org/</href>
    <src>./images/opendj-tagline-179x65.png</src>
