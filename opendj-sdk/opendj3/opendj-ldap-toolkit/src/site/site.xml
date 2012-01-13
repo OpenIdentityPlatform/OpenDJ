@@ -20,8 +20,8 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
-  !    
+  !      Copyright 2011-2012 ForgeRock AS
+  !
 -->
 <project name="${project.name}" xmlns="http://maven.apache.org/DECORATION/1.0.1"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -30,7 +30,7 @@
     <menu name="OpenDJ">
       <item name="Welcome" href="../index.html" />
       <item name="News" href="../news.html" />
-      <item name="Downloads" href="http://forgerock.org/opendj.html" />
+      <item name="Downloads" href="http://www.forgerock.org/opendj.html" />
       <item name="FAQ" href="../faq.html" />
       <item name="Wiki" href="http://wikis.forgerock.org/opendj/" />
       <item name="Mailing Lists" href="../mail-lists.html" />
@@ -65,7 +65,7 @@
   </body>
 
   <custom>
-    <googleAnalytics>UA-23412190-2</googleAnalytics>
+    <googleAnalytics>UA-23412190-8</googleAnalytics>
     <openproject>
       <href>http://opendj.org/</href>
       <src>./images/opendj-tagline-179x65.png</src>
