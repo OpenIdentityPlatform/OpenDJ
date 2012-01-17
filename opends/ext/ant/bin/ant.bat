@@ -59,9 +59,7 @@ if "%CLASSPATH%"=="" set _USE_CLASSPATH=no
 
 rem Slurp the command line arguments. This loop allows for an unlimited number
 rem of arguments (up to the command line limit, anyway).
-set ANT_CMD_LINE_ARGS=%1
-if ""%1""=="""" goto doneStart
-shift
+set ANT_CMD_LINE_ARGS=
 :setupArgs
 if ""%1""=="""" goto doneStart
 if ""%1""==""-noclasspath"" goto clearclasspath
@@ -80,7 +78,7 @@ rem and for NT handling to skip to.
 
 :doneStart
 
-if _USE_CLASSPATH==no goto findAntHome
+if "%_USE_CLASSPATH%"=="no" goto findAntHome
 
 :stripClasspath
 if not _%CLASSPATH:~-1%==_\ goto findAntHome
@@ -193,13 +191,6 @@ if not "%_ANT_CMD_LINE_ARGS%"=="" set ANT_CMD_LINE_ARGS=
 
 if "%ANT_ERROR%"=="0" goto mainEnd
 
-rem Set the return code if we are not in NT.  We can only set
-rem a value of 1, but it's better than nothing.
-if not "%OS%"=="Windows_NT" echo 1 > nul | choice /n /c:1
-
-rem Set the ERRORLEVEL if we are running NT.
-if "%OS%"=="Windows_NT" color 00
-
 goto omega
 
 :mainEnd
@@ -224,3 +215,4 @@ if exist "%USERPROFILE%\antrc_post.bat" call "%USERPROFILE%\antrc_post.bat"
 
 :omega
 
+exit /b %ANT_ERROR%
