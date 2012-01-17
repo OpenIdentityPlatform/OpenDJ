@@ -1,9 +1,10 @@
+<?xml version="1.0"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0"
     xmlns:lxslt="http://xml.apache.org/xslt"
     xmlns:redirect="http://xml.apache.org/xalan/redirect"
     xmlns:stringutils="xalan://org.apache.tools.ant.util.StringUtils"
     extension-element-prefixes="redirect">
-<xsl:output method="html" indent="yes" encoding="US-ASCII"/>
+<xsl:output method="html" indent="yes" encoding="UTF-8"/>
 <xsl:decimal-format decimal-separator="." grouping-separator=","/>
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
@@ -31,6 +32,7 @@
 
 -->
 <xsl:param name="output.dir" select="'.'"/>
+<xsl:param name="TITLE">Unit Test Results.</xsl:param>
 
 
 <xsl:template match="testsuites">
@@ -115,13 +117,27 @@
       <xsl:apply-templates select="." mode="class.details"/>
     </redirect:write>
     <xsl:if test="string-length(./system-out)!=0">
-      <redirect:write file="{$output.dir}/{$package.dir}/{@id}_{@name}-out.txt">
-        <xsl:value-of disable-output-escaping="yes" select="./system-out"/>
+      <redirect:write file="{$output.dir}/{$package.dir}/{@id}_{@name}-out.html">
+        <html>
+          <head>
+            <title>Standard Output from <xsl:value-of select="@name"/></title>
+          </head>
+          <body>
+            <pre><xsl:value-of select="./system-out"/></pre>
+          </body>
+        </html>
       </redirect:write>
     </xsl:if>
     <xsl:if test="string-length(./system-err)!=0">
-      <redirect:write file="{$output.dir}/{$package.dir}/{@id}_{@name}-err.txt">
-        <xsl:value-of disable-output-escaping="yes" select="./system-err"/>
+      <redirect:write file="{$output.dir}/{$package.dir}/{@id}_{@name}-err.html">
+        <html>
+          <head>
+            <title>Standard Error from <xsl:value-of select="@name"/></title>
+          </head>
+          <body>
+            <pre><xsl:value-of select="./system-err"/></pre>
+          </body>
+        </html>
       </redirect:write>
     </xsl:if>
     <xsl:if test="@failures != 0">
@@ -144,7 +160,7 @@
 <xsl:template name="index.html">
 <html>
     <head>
-        <title>Unit Test Results.</title>
+        <title><xsl:value-of select="$TITLE"/></title>
     </head>
     <frameset cols="20%,80%">
         <frameset rows="30%,70%">
@@ -382,7 +398,7 @@ h6 {
             <xsl:if test="string-length(./system-out)!=0">
                 <div class="Properties">
                     <a>
-                        <xsl:attribute name="href">./<xsl:value-of select="@id"/>_<xsl:value-of select="@name"/>-out.txt</xsl:attribute>
+                        <xsl:attribute name="href">./<xsl:value-of select="@id"/>_<xsl:value-of select="@name"/>-out.html</xsl:attribute>
                         System.out &#187;
                     </a>
                 </div>
@@ -390,7 +406,7 @@ h6 {
             <xsl:if test="string-length(./system-err)!=0">
                 <div class="Properties">
                     <a>
-                        <xsl:attribute name="href">./<xsl:value-of select="@id"/>_<xsl:value-of select="@name"/>-err.txt</xsl:attribute>
+                        <xsl:attribute name="href">./<xsl:value-of select="@id"/>_<xsl:value-of select="@name"/>-err.html</xsl:attribute>
                         System.err &#187;
                     </a>
                 </div>
@@ -688,7 +704,7 @@ h6 {
 
 <!-- Page HEADER -->
 <xsl:template name="pageHeader">
-    <h1>Unit Test Results</h1>
+    <h1><xsl:value-of select="$TITLE"/></h1>
     <table width="100%">
     <tr>
         <td align="left"></td>
@@ -860,7 +876,18 @@ h6 {
 -->
 <xsl:template name="br-replace">
     <xsl:param name="word"/>
-    <xsl:value-of disable-output-escaping="yes" select='stringutils:replace(string($word),"&#xA;","&lt;br/>")'/>
+    <xsl:choose>
+      <xsl:when test="contains($word, '&#xa;')">
+        <xsl:value-of select="substring-before($word, '&#xa;')"/>
+        <br/>
+        <xsl:call-template name="br-replace">
+          <xsl:with-param name="word" select="substring-after($word, '&#xa;')"/>
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+	<xsl:value-of select="$word"/>
+      </xsl:otherwise>
+    </xsl:choose>
 </xsl:template>
 
 <xsl:template name="display-time">

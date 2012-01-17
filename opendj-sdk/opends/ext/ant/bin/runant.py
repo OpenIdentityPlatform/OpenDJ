@@ -64,7 +64,7 @@ if not JAVACMD:
 
 launcher_jar = os.path.join(ANT_LIB, 'ant-launcher.jar')
 if not os.path.exists(launcher_jar):
-    print 'Unable to locate ant-launcher.jar. Expected to find it in %s' % \
+    print 'Warning: Unable to locate ant-launcher.jar. Expected to find it in %s' % \
         ANT_LIB
 
 # Build up standard classpath (LOCALCLASSPATH)
@@ -86,11 +86,11 @@ if os.environ.has_key('ANT_ARGS'):
 
 CLASSPATH = ""
 if os.environ.has_key('CLASSPATH'):
-    CLASSPATH = os.environ['CLASSPATH']
+    CLASSPATH = "-lib " + os.environ['CLASSPATH']
 
 # Builds the commandline
 cmdline = ('%s %s -classpath %s -Dant.home=%s %s ' + \
-    'org.apache.tools.ant.launch.Launcher %s -lib %s %s') \
+    'org.apache.tools.ant.launch.Launcher %s %s %s') \
      % (JAVACMD, ANT_OPTS, LOCALCLASSPATH, ANT_HOME, OPTS, ANT_ARGS, \
         CLASSPATH, string.join(sys.argv[1:], ' '))
 

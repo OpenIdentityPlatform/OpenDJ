@@ -164,6 +164,12 @@
 
   <property name="snmp.classes.dir"
             location="${classes.dir}/org/opends/server/snmp" />
+    
+  <!-- Prevent ant runtime from being included on classpath during
+       compilation. -->  
+  <presetdef name="javac">
+    <javac includeantruntime="false" />
+  </presetdef>
 
   <!-- Create a package bundle containing the DSML library. -->
   <target name="dsml" depends="predsml,package"

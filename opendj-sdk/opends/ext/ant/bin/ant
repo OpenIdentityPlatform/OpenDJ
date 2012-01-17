@@ -80,6 +80,7 @@ fi
 # OS specific support.  $var _must_ be set to either true or false.
 cygwin=false;
 darwin=false;
+mingw=false;
 case "`uname`" in
   CYGWIN*) cygwin=true ;;
   Darwin*) darwin=true
@@ -87,6 +88,7 @@ case "`uname`" in
              JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/Home
            fi
            ;;
+  MINGW*) mingw=true ;;
 esac
 
 if [ -z "$ANT_HOME" -o ! -d "$ANT_HOME" ] ; then
@@ -108,15 +110,22 @@ if [ -z "$ANT_HOME" -o ! -d "$ANT_HOME" ] ; then
   ANT_HOME=`dirname "$PRG"`/..
 
   # make it fully qualified
-  ANT_HOME=`cd "$ANT_HOME" && pwd`
+  ANT_HOME=`cd "$ANT_HOME" > /dev/null && pwd`
 fi
 
-# For Cygwin, ensure paths are in UNIX format before anything is touched
+# For Cygwin and Mingw, ensure paths are in UNIX format before
+# anything is touched
 if $cygwin ; then
   [ -n "$ANT_HOME" ] &&
     ANT_HOME=`cygpath --unix "$ANT_HOME"`
   [ -n "$JAVA_HOME" ] &&
     JAVA_HOME=`cygpath --unix "$JAVA_HOME"`
+fi
+if $mingw ; then
+  [ -n "$ANT_HOME" ] &&
+    ANT_HOME="`(cd "$ANT_HOME"; pwd)`"
+  [ -n "$JAVA_HOME" ] &&
+    JAVA_HOME="`(cd "$JAVA_HOME"; pwd)`"
 fi
 
 # set ANT_LIB location
@@ -251,9 +260,9 @@ if $cygwin; then
   else
     format=windows
   fi
-  ANT_HOME=`cygpath --$format "$ANT_HOME"`
+  [ -n "$ANT_HOME" ] && ANT_HOME=`cygpath --$format "$ANT_HOME"`
   ANT_LIB=`cygpath --$format "$ANT_LIB"`
-  JAVA_HOME=`cygpath --$format "$JAVA_HOME"`
+  [ -n "$JAVA_HOME" ] && JAVA_HOME=`cygpath --$format "$JAVA_HOME"`
   LCP_TEMP=`cygpath --path --unix "$LOCALCLASSPATH"`
   LOCALCLASSPATH=`cygpath --path --$format "$LCP_TEMP"`
   if [ -n "$CLASSPATH" ] ; then
@@ -319,8 +328,8 @@ else
     ant_sys_opts="-Djikes.class.path=\"$JIKESPATH\""
   fi
 fi
-ant_exec_command="exec \"$JAVACMD\" $ANT_OPTS -classpath \"$LOCALCLASSPATH\" -Dant.home=\"$ANT_HOME\" -Dant.library.dir=\"$ANT_LIB\" $ant_sys_opts org.apache.tools.ant.launch.Launcher $ANT_ARGS -cp \"$CLASSPATH\" $ant_exec_args"
+ant_exec_command="exec \"$JAVACMD\" $ANT_OPTS -classpath \"$LOCALCLASSPATH\" -Dant.home=\"$ANT_HOME\" -Dant.library.dir=\"$ANT_LIB\" $ant_sys_opts org.apache.tools.ant.launch.Launcher $ANT_ARGS -cp \"$CLASSPATH\""
 if $ant_exec_debug ; then
-    echo $ant_exec_command
+    echo $ant_exec_command $ant_exec_args
 fi
-eval $ant_exec_command
+eval $ant_exec_command "$ant_exec_args"

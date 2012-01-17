@@ -1,6 +1,7 @@
+<?xml version="1.0"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0"
     xmlns:lxslt="http://xml.apache.org/xslt"
-    xmlns:redirect="org.apache.xalan.lib.Redirect"
+    xmlns:redirect="http://xml.apache.org/xalan/redirect"
     extension-element-prefixes="redirect">
 
 <!--
@@ -224,13 +225,18 @@
     -->
     <xsl:template name="path">
         <xsl:param name="path"/>
-        <xsl:if test="contains($path,'/')">
+
+        <!-- Convert a windows path '\' to a unix path '/' for further processing. -->
+        <xsl:variable name="path2" select="translate($path,'\','/')"/>
+
+        
+        <xsl:if test="contains($path2,'/')">
             <xsl:text>../</xsl:text>
             <xsl:call-template name="path">
-                <xsl:with-param name="path"><xsl:value-of select="substring-after($path,'/')"/></xsl:with-param>
+                <xsl:with-param name="path"><xsl:value-of select="substring-after($path2,'/')"/></xsl:with-param>
             </xsl:call-template>
         </xsl:if>
-        <xsl:if test="not(contains($path,'/')) and not($path = '')">
+        <xsl:if test="not(contains($path2,'/')) and not($path2 = '')">
             <xsl:text>../</xsl:text>
         </xsl:if>
     </xsl:template>
