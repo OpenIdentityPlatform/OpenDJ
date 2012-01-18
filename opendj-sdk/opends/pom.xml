@@ -22,7 +22,7 @@
   !
   ! CDDL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -48,6 +48,7 @@
     platform, providing a high performance, highly available and secure store
     for the identities managed by enterprises.
   </description>
+  <inceptionYear>2006</inceptionYear>
   <scm>
     <url>https://svn.forgerock.org/opendj/trunk/opends/</url>
     <connection>scm:svn:https://svn.forgerock.org/opendj/trunk/opends/</connection>

@@ -42,6 +42,7 @@
     platform, providing a high performance, highly available and secure store
     for the identities managed by enterprises.
   </description>
+  <inceptionYear>2011</inceptionYear>
   <url>http://opendj.forgerock.org</url>
   <issueManagement>
     <system>Jira</system>
