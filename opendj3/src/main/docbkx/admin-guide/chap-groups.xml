@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-groups'
@@ -242,7 +242,12 @@ objectclass: groupOfNames
 objectclass: ds-virtual-static-group
 ds-target-group-dn: cn=My Dynamic Group,ou=Groups,dc=example,dc=com
 
-$ ldapmodify --port 1389 --bindDN "cn=Directory Manager" --bindPassword password -a -f virtual.ldif
+$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --defaultAdd
+ --filename virtual.ldif
 Processing ADD request for cn=Virtual Static,ou=Groups,dc=example,dc=com
 ADD operation successful for DN cn=Virtual Static,ou=Groups,dc=example,dc=com
 $ ldapsearch --port 1389 --baseDN dc=example,dc=com "(cn=Virtual Static)"

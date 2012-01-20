@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-samba'
@@ -111,7 +111,8 @@ $ ldapmodify
  --bindPassword password
  --filename samba-rights.ldif
 Processing MODIFY request for uid=samba-admin,ou=Special Users,dc=example,dc=com
-MODIFY operation successful for DN uid=samba-admin,ou=Special Users,dc=example,dc=com
+MODIFY operation successful for DN
+ uid=samba-admin,ou=Special Users,dc=example,dc=com
 Processing MODIFY request for dc=example,dc=com
 MODIFY operation successful for DN dc=example,dc=com</screen>
   </step>
