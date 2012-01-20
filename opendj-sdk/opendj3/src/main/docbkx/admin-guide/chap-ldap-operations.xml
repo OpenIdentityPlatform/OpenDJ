@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-ldap-operations'
@@ -580,7 +580,7 @@ MODIFY operation successful for DN uid=sjensen,ou=people,dc=example,dc=com</scre
    <para>With the <command>ldapmodify</command> command, authorized users
    can move entries in the directory.</para>
 
-   <example xml:id="move-entry-example">
+   <example xml:id="move-entry-example"><?dbfo keep-together="auto"?>
     <title>Move: Merging Customer and Employees Under
     <literal>ou=People</literal></title>
     
@@ -776,8 +776,9 @@ cn: Babs Jensen
       <screen>$ encode-password --storageScheme SSHA512 --interactivePassword
 Please enter the password :
 Please renter the password:
-Encoded Password:  "{SSHA512}U7Kx5oYcLxdsqSrpSkBk425LwL0Z61loNfS0dBVCcEKVhMyTT
-oe3oWikDJ/AJjKEkYBg+q3VUQ5hWgrGVf7MjfDrm5mum6yI"</screen>
+Encoded Password:
+ "{SSHA512}U7Kx5oYcLxdsqSrpSkBk425LwL0Z61loNfS0dBVCcEKVhMyTT
+ oe3oWikDJ/AJjKEkYBg+q3VUQ5hWgrGVf7MjfDrm5mum6yI"</screen>
      </listitem>
      <listitem>
       <para>Stop OpenDJ.</para>

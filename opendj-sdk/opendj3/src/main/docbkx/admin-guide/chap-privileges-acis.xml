@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-privileges-acis'
@@ -696,7 +696,11 @@ reset operations</screen>
    <step>
     <para>Apply the change as a user with the
     <literal>privilege-change</literal> privilege.</para>
-    <screen>$ ldapmodify --port 1389 --bindDN "cn=Directory Manager" --bindPassword password -f privilege.ldif
+    <screen>$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --filename privilege.ldif
 Processing MODIFY request for uid=kvaughan,ou=People,dc=example,dc=com
 MODIFY operation successful for DN uid=kvaughan,ou=People,dc=example,dc=com</screen>
     <para>At this point, Kirsten can perform the operations requiring
