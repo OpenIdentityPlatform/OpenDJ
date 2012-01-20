@@ -734,7 +734,35 @@ The LDAP password modify operation was successful</screen>
  --newPassword secret12
 The LDAP password modify operation was successful</screen>
   </example>
-  
+
+  <example xml:id="non-ascii-password">
+   <title>Passwords With Special Characters</title>
+
+   <para>OpenDJ expects passwords to be UTF-8 encoded (base64 encoded when
+   included in LDIF).</para>
+
+   <screen>$ echo $LANG
+en_US.utf8
+$ ldappasswordmodify
+ --port 1389
+ --bindDN uid=bjensen,ou=People,dc=example,dc=com
+ --bindPassword hifalutin
+ --currentPassword hifalutin
+ --newPassword pàsswȏrd
+The LDAP password modify operation was successful
+$ ldapsearch
+ --port 1389
+ --bindDN uid=bjensen,ou=People,dc=example,dc=com
+ --bindPassword pàsswȏrd
+ --baseDN dc=example,dc=com
+ "(uid=bjensen)" cn
+dn: uid=bjensen,ou=People,dc=example,dc=com
+userPassword: {SSHA}k0eEeCxj9YRXUp8yJn0Z/mwqe+wrcFb1N1gg2g==
+cn: Barbara Jensen
+cn: Babs Jensen
+</screen>
+  </example>
+
   <tip xml:id="fix-forgotten-directory-manager-pwd">
    <para>If you forget the password for <literal>cn=Directory Manager</literal>,
    then one remedy uses the following steps.</para>
