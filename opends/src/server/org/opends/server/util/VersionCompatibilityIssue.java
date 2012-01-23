@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 
 package org.opends.server.util;
@@ -218,6 +218,19 @@ public final class VersionCompatibilityIssue {
    * or more versions of the OpenDJ codebase.
    */
   public enum Cause {
+
+    /**
+     * Incompatible changes in ds-sync-hist normalization. This causes
+     * ds-sync-hist attribute indexes to be invalidated.
+     */
+    DS_SYNC_HIST_NORMALIZATION_CHANGE_1(
+        10, // Unique ID.  See javadoc for more information.
+        INFO_7635_UPGRADE.get(),
+        INFO_7635_REVERSION.get(),
+        Effect.REVERSION_MANUAL_ACTION_REQUIRED,
+        Effect.UPGRADE_MANUAL_ACTION_REQUIRED),
+
+
     /**
      * We not support the revert to the previous version.
      */
@@ -481,7 +494,10 @@ public final class VersionCompatibilityIssue {
   //
   //***************************************************
 
-  static {
+  static
+  {
+    register(Cause.DS_SYNC_HIST_NORMALIZATION_CHANGE_1, new BuildVersion(2, 4,
+        5, 7635));
     register (Cause.REVERT_NOT_SUPPORTED_1, new BuildVersion(2,0,0,5278));
     register(Cause.STRINGPREP_NORMALIZATION_CHANGE_1,
             new BuildVersion(1,2,0,5134));
