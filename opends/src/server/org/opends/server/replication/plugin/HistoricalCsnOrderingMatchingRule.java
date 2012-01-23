@@ -23,15 +23,19 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.util.StaticUtils.hexStringToByteArray;
+
 import java.util.Collection;
 import java.util.Collections;
+
 import org.opends.server.api.AbstractMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteSequence;
+import org.opends.server.types.*;
 
 /**
  * Used to establish an order between historical information and index them.
@@ -122,30 +126,34 @@ public class HistoricalCsnOrderingMatchingRule
   }
 
   /**
-   * Normalize historical information representation.
-   * @param value the value that must be normalized
-   * @return The String form that must be used for historical information
-   * comparison
+   * {@inheritDoc}
    */
   @Override
   public ByteString normalizeValue(ByteSequence value)
+      throws DirectoryException
   {
-    String[] token = value.toString().split(":", 3);
-
-    /* Change the format of the value to index and start
-     * with the serverId. In that manner, the search response
-     * time is optimised for a particulare serverId.
-     * The format of the key is now :
-     * serverId + timestamp + seqNum
+    /*
+     * Change the format of the value to index and start with the serverId. In
+     * that manner, the search response time is optimised for a particular
+     * serverId. The format of the key is now : serverId + timestamp + seqNum
      */
-    String timestamp = token[1].substring(0,16);
-    String serverId = token[1].substring(16,20);
-    String seqNumber = token[1].substring(20, 28);
-
-    if (MultimasterReplication.isLocalServerId(Integer.parseInt(serverId, 16)))
-      return ByteString.valueOf(serverId + timestamp + seqNumber);
-    else
-      return (ByteString.valueOf("0"));
+    try
+    {
+      int csnIndex = value.toString().indexOf(':') + 1;
+      String csn = value.subSequence(csnIndex, csnIndex + 28).toString();
+      ByteStringBuilder builder = new ByteStringBuilder(14);
+      builder.append(hexStringToByteArray(csn.substring(16, 20)));
+      builder.append(hexStringToByteArray(csn.substring(00, 16)));
+      builder.append(hexStringToByteArray(csn.substring(20, 28)));
+      return builder.toByteString();
+    }
+    catch (Exception e)
+    {
+      // This should never occur in practice since these attributes are managed
+      // internally.
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+          WARN_INVALID_SYNC_HIST_VALUE.get(String.valueOf(value)), e);
+    }
   }
 
   /**
