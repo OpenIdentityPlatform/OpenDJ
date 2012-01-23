@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -119,8 +119,6 @@ public class MultimasterReplication
   private static int replayThreadNumber = 10;
 
   private boolean isRegistered = false;
-
-  private static boolean initializationCompleted = true;
 
   /**
    * The configurable connection/handshake timeout.
@@ -276,7 +274,6 @@ public class MultimasterReplication
       ReplicationSynchronizationProviderCfg configuration)
   throws ConfigException
   {
-    initializationCompleted = false;
     domains.clear();
     replicationServerListener = new ReplicationServerListener(configuration);
 
@@ -318,8 +315,6 @@ public class MultimasterReplication
 
     DirectoryServer.registerSupportedControl(
         ReplicationRepairRequestControl.OID_REPLICATION_REPAIR_CONTROL);
-
-    initializationCompleted = true;
   }
 
   /**
@@ -871,25 +866,6 @@ public class MultimasterReplication
         disabledServiceIDs.add(domain.getBaseDN().toNormalizedString());
     }
     return disabledServiceIDs;
-  }
-
-  /**
-   * Checks if a given serverID is used by a local Replication Domain.
-   *
-   * @param serverId   The serverID that should be checked.
-   * @return           true if the serverID is local, false otherwise.
-   */
-  public static boolean isLocalServerId(Integer serverId)
-  {
-    if (!initializationCompleted)
-      return true;
-
-    for (LDAPReplicationDomain domain : domains.values())
-    {
-      if (domain.getServerId() == serverId)
-        return true;
-    }
-    return false;
   }
 
   /**
