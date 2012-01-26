@@ -23,12 +23,12 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.backends.jeb;
 
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
-import com.sleepycat.je.DatabaseException;
 
 import java.util.Comparator;
 import java.util.Set;
@@ -54,10 +54,8 @@ public abstract class Indexer
    *
    * @param entry The entry.
    * @param keys The set into which the generated keys will be inserted.
-   * @throws DatabaseException If an error occurs in the JE database.
    */
-  public abstract void indexEntry(Entry entry, Set<byte[]> keys)
-       throws DatabaseException;
+  public abstract void indexEntry(Entry entry, Set<byte[]> keys);
 
   /**
    * Generate the set of index keys to be added and the set of index keys
@@ -66,11 +64,9 @@ public abstract class Indexer
    * @param oldEntry The original entry contents.
    * @param newEntry The new entry contents.
    * @param modifiedKeys The map into which the modified keys will be inserted.
-   * @throws DatabaseException If an error occurs in the JE database.
    */
   public abstract void replaceEntry(Entry oldEntry, Entry newEntry,
-                                    Map<byte[], Boolean> modifiedKeys)
-       throws DatabaseException;
+                                    Map<byte[], Boolean> modifiedKeys);
 
   /**
    * Generate the set of index keys to be added and the set of index keys
@@ -80,10 +76,8 @@ public abstract class Indexer
    * @param newEntry The new entry contents.
    * @param mods The set of modifications that were applied to the entry.
    * @param modifiedKeys The map into which the modified keys will be inserted.
-   * @throws DatabaseException If an error occurs in the JE database.
    */
   public abstract void modifyEntry(Entry oldEntry, Entry newEntry,
                                    List<Modification> mods,
-                                   Map<byte[], Boolean> modifiedKeys)
-       throws DatabaseException;
+                                   Map<byte[], Boolean> modifiedKeys);
 }
