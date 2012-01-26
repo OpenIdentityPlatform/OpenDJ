@@ -36,6 +36,7 @@ import java.util.Collections;
 import org.opends.server.api.AbstractMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.types.*;
+import org.opends.server.util.StaticUtils;
 
 /**
  * Used to establish an order between historical information and index them.
@@ -157,43 +158,11 @@ public class HistoricalCsnOrderingMatchingRule
   }
 
   /**
-   * Compares two normalized representation of historical information.
-   * @param b1 first value to compare
-   * @param b2 second value to compare
-   * @return 0, -1 or 1 depending on relative positions
+   * {@inheritDoc}
    */
   public int compare(byte[] b1, byte[] b2)
   {
-    int minLength = Math.min(b1.length, b2.length);
-
-    for (int i=0; i < minLength; i++)
-    {
-      if (b1[i] == b2[i])
-      {
-        continue;
-      }
-      else if (b1[i] < b2[i])
-      {
-        return -1;
-      }
-      else if (b1[i] > b2[i])
-      {
-        return 1;
-      }
-    }
-
-    if (b1.length == b2.length)
-    {
-      return 0;
-    }
-    else if (b1.length < b2.length)
-    {
-      return -1;
-    }
-    else
-    {
-      return 1;
-    }
+    return StaticUtils.compare(b1, b2);
   }
 
 }

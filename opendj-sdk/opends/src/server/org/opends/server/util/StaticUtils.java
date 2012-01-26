@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -1438,49 +1438,6 @@ public final class StaticUtils
     }
 
     return (a.length - a2.length);
-  }
-
-
-
-  /**
-   * Compare two byte arrays for order. Returns a negative integer,
-   * zero, or a positive integer as the first argument is less than,
-   * equal to, or greater than the second.
-   *
-   * @param a
-   *          The first byte array to be compared.
-   * @param a2
-   *          The second byte array to be compared.
-   * @return Returns a negative integer, zero, or a positive integer
-   *         if the first byte array is less than, equal to, or greater
-   *         than the second.
-   */
-  @Deprecated
-  public static int compare(ByteSequence a, ByteSequence a2) {
-    if (a == a2) {
-      return 0;
-    }
-
-    if (a == null) {
-      return -1;
-    }
-
-    if (a2 == null) {
-      return 1;
-    }
-
-    int minLength = Math.min(a.length(), a2.length());
-    for (int i = 0; i < minLength; i++) {
-      if (a.byteAt(i) != a2.byteAt(i)) {
-        if (a.byteAt(i) < a2.byteAt(i)) {
-          return -1;
-        } else if (a.byteAt(i) > a2.byteAt(i)) {
-          return 1;
-        }
-      }
-    }
-
-    return (a.length() - a2.length());
   }
 
 
