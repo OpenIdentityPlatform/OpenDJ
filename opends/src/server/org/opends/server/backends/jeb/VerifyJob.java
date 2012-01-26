@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 import com.sleepycat.je.*;
@@ -44,15 +44,8 @@ import org.opends.server.types.*;
 
 import static org.opends.messages.JebMessages.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * This class is used to run an index verification process on the backend.
@@ -1013,7 +1006,6 @@ public class VerifyJob
     try
     {
       DatabaseEntry key = new DatabaseEntry();
-      OperationStatus status;
       DatabaseEntry data = new DatabaseEntry();
 
       SortValues lastValues = null;
@@ -1135,12 +1127,6 @@ public class VerifyJob
       DatabaseEntry key = new DatabaseEntry();
       DatabaseEntry data = new DatabaseEntry();
 
-      OrderingMatchingRule orderingMatchingRule =
-          attrType.getOrderingMatchingRule();
-      ApproximateMatchingRule approximateMatchingRule =
-          attrType.getApproximateMatchingRule();
-      ByteString previousValue = null;
-
       while (cursor.getNext(key, data, null) ==
                 OperationStatus.SUCCESS)
       {
@@ -1170,97 +1156,9 @@ public class VerifyJob
 
         if (entryIDList.isDefined())
         {
-          byte[] value = key.getData();
-          SearchFilter sf;
-          AttributeValue assertionValue;
-
-          switch (indexType)
-          {
-            case SUBSTRING:
-              ArrayList<ByteString> subAnyElements =
-                   new ArrayList<ByteString>(1);
-              subAnyElements.add(ByteString.wrap(value));
-
-              sf = SearchFilter.createSubstringFilter(attrType,null,
-                                                      subAnyElements,null);
-              break;
-            case ORDERING:
-              // Ordering index checking is two fold:
-              // 1. Make sure the entry has an attribute value that is the same
-              //    as the key. This is done by falling through to the next
-              //    case and create an equality filter.
-              // 2. Make sure the key value is greater then the previous key
-              //    value.
-              assertionValue =
-                  AttributeValues.create(attrType,
-                      ByteString.wrap(value));
-
-              sf = SearchFilter.createEqualityFilter(attrType,assertionValue);
-
-              if(orderingMatchingRule != null && previousValue != null)
-              {
-                ByteString thisValue = ByteString.wrap(value);
-                int order = orderingMatchingRule.compareValues(thisValue,
-                                                               previousValue);
-                if(order > 0)
-                {
-                  errorCount++;
-                  if(debugEnabled())
-                  {
-                    TRACER.debugError("Reversed ordering of index keys " +
-                        "(keys dumped in the order found in database)%n" +
-                        "Key 1:%n%s%nKey 2:%n%s",
-                               keyDump(index, thisValue.toByteArray()),
-                               keyDump(index,previousValue.toByteArray()));
-                  }
-                  continue;
-                }
-                else if(order == 0)
-                {
-                  errorCount++;
-                  if(debugEnabled())
-                  {
-                    TRACER.debugError("Duplicate index keys%nKey 1:%n%s%n" +
-                        "Key2:%n%s", keyDump(index, thisValue.toByteArray()),
-                                     keyDump(index,
-                                         previousValue.toByteArray()));
-                  }
-                  continue;
-                }
-                else
-                {
-                  previousValue = thisValue;
-                }
-              }
-              break;
-            case EQ:
-              assertionValue =
-                  AttributeValues.create(attrType,
-                      ByteString.wrap(value));
-
-              sf = SearchFilter.createEqualityFilter(attrType,assertionValue);
-              break;
-
-            case PRES:
-              sf = SearchFilter.createPresenceFilter(attrType);
-              break;
-
-            case APPROXIMATE:
-              // This must be handled differently since we can't use a search
-              // filter to see if the key matches.
-              sf = null;
-              break;
-
-            default:
-              errorCount++;
-              if (debugEnabled())
-              {
-                TRACER.debugError("Malformed value%n%s", keyDump(index, value));
-              }
-              continue;
-          }
-
+          final byte[] value = key.getData();
           EntryID prevID = null;
+
           for (EntryID id : entryIDList)
           {
             if (prevID != null && id.equals(prevID))
@@ -1299,56 +1197,53 @@ public class VerifyJob
               continue;
             }
 
-            try
+            // As an optimization avoid passing in a real set and wasting time
+            // hashing and comparing a potentially large set of values, as well
+            // as using up memory. Instead just intercept the add() method and
+            // detect when an equivalent value has been added.
+
+            // We need to use an AtomicBoolean here since anonymous classes
+            // require referenced external variables to be final.
+            final AtomicBoolean foundMatchingKey = new AtomicBoolean(false);
+
+            Set<byte[]> dummySet = new AbstractSet<byte[]>()
             {
-              boolean match = false;
-              if(indexType != IndexType.APPROXIMATE)
+
+              public Iterator<byte[]> iterator()
               {
-                match = sf.matchesEntry(entry);
-              }
-              else
-              {
-                ByteString normalizedValue = ByteString.wrap(value);
-                List<Attribute> attrs = entry.getAttribute(attrType);
-                if ((attrs != null) && (!attrs.isEmpty()))
-                {
-                  for (Attribute a : attrs)
-                  {
-                    for (AttributeValue v : a)
-                    {
-                      ByteString nv =
-                          approximateMatchingRule.normalizeValue(v.getValue());
-                      match = approximateMatchingRule.
-                          approximatelyMatch(nv, normalizedValue);
-                      if(match)
-                      {
-                        break;
-                      }
-                    }
-                    if(match)
-                    {
-                      break;
-                    }
-                  }
-                }
+                // The set is always empty.
+                return Collections.<byte[]>emptySet().iterator();
               }
 
-              if (!match)
+              public int size()
               {
-                errorCount++;
-                if (debugEnabled())
-                {
-                  TRACER.debugError("Reference to entry " +
-                      "<%s> which does not match the value%n%s",
-                             entry.getDN(), keyDump(index, value));
-                }
+                // The set is always empty.
+                return 0;
               }
-            }
-            catch (DirectoryException e)
+
+              public boolean add(byte[] e)
+              {
+                if (Arrays.equals(e, value)) {
+                  // We could terminate processing at this point by throwing an
+                  // UnsupportedOperationException, but this optimization is
+                  // already ugly enough.
+                  foundMatchingKey.set(true);
+                }
+                return true;
+              }
+
+            };
+
+            index.indexer.indexEntry(entry, dummySet);
+
+            if (!foundMatchingKey.get())
             {
+              errorCount++;
               if (debugEnabled())
               {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
+                TRACER.debugError("Reference to entry "
+                    + "<%s> which does not match the value%n%s", entry.getDN(),
+                    keyDump(index, value));
               }
             }
           }
