@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.tasks;
 import org.opends.messages.Message;
@@ -32,6 +33,7 @@ import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.backends.jeb.RebuildConfig;
 import org.opends.server.backends.jeb.BackendImpl;
+import org.opends.server.backends.jeb.RebuildConfig.RebuildMode;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
@@ -74,7 +76,7 @@ public class RebuildTask extends Task
   String baseDN = null;
   ArrayList<String> indexes = null;
   private String tmpDirectory = null;
-  private boolean rebuildAll = false;
+  private RebuildMode rebuildMode = RebuildMode.USER_DEFINED;
 
   /**
    * {@inheritDoc}
@@ -125,14 +127,14 @@ public class RebuildTask extends Task
     attrList = taskEntry.getAttribute(typeIndex);
     indexes = TaskUtils.getMultiValueString(attrList);
 
-    if(isRebuildAll(indexes))
+    rebuildMode = getRebuildMode(indexes);
+    if(rebuildMode != RebuildMode.USER_DEFINED)
     {
       if(indexes.size() != 1)
       {
         Message msg = ERR_TASK_INDEXREBUILD_ALL_ERROR.get();
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg);
       }
-      rebuildAll = true;
       indexes.clear();
     }
 
@@ -141,16 +143,21 @@ public class RebuildTask extends Task
 
   }
 
-  private boolean isRebuildAll(List<String> indexList)
+  private RebuildMode getRebuildMode(List<String> indexList)
   {
-    for(String s : indexList)
+    for (String s : indexList)
     {
-      if(s.equalsIgnoreCase(REBUILD_ALL))
+      if (s.equalsIgnoreCase(REBUILD_ALL))
       {
-        return true;
+        return RebuildMode.ALL;
+      }
+
+      if (s.equalsIgnoreCase(REBUILD_DEGRADED))
+      {
+        return RebuildMode.DEGRADED;
       }
     }
-    return false;
+    return RebuildMode.USER_DEFINED;
   }
 
   /**
@@ -240,7 +247,7 @@ public class RebuildTask extends Task
       tmpDirectory = "import-tmp";
     }
     rebuildConfig.setTmpDirectory(tmpDirectory);
-    rebuildConfig.setRebuildAll(rebuildAll);
+    rebuildConfig.setRebuildMode(rebuildMode);
     TaskState returnCode = TaskState.COMPLETED_SUCCESSFULLY;
     // Launch the rebuild process.
     try

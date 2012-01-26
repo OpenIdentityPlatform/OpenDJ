@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -60,6 +61,7 @@ import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.api.DebugLogPublisher;
 import org.opends.server.backends.jeb.BackendImpl;
 import org.opends.server.backends.jeb.RebuildConfig;
+import org.opends.server.backends.jeb.RebuildConfig.RebuildMode;
 import org.opends.server.admin.std.server.BackendCfg;
 
 import java.io.OutputStream;
@@ -81,7 +83,8 @@ public class RebuildIndex extends TaskTool
   private StringArgument  baseDNString            = null;
   private StringArgument  indexList               = null;
   private StringArgument  tmpDirectory            = null;
-  private BooleanArgument rebuildAll               = null;
+  private BooleanArgument rebuildAll              = null;
+  private BooleanArgument rebuildDegraded         = null;
 
   /**
    * Processes the command-line arguments and invokes the rebuild process.
@@ -195,6 +198,12 @@ public class RebuildIndex extends TaskTool
       argParser.addArgument(rebuildAll);
 
 
+      rebuildDegraded =
+           new BooleanArgument("rebuildDegraded", null, "rebuildDegraded",
+                    INFO_REBUILDINDEX_DESCRIPTION_REBUILD_DEGRADED.get());
+      argParser.addArgument(rebuildDegraded);
+
+
       tmpDirectory =
            new StringArgument("tmpdirectory", null, "tmpdirectory", false,
                    false, true, INFO_REBUILDINDEX_TEMP_DIR_PLACEHOLDER.get(),
@@ -251,7 +260,8 @@ public class RebuildIndex extends TaskTool
     }
 
 
-    if (indexList.getValues().size() <= 0 && !rebuildAll.isPresent())
+    if (indexList.getValues().size() <= 0 && !rebuildAll.isPresent()
+        && !rebuildDegraded.isPresent())
     {
       Message message = ERR_REBUILDINDEX_REQUIRES_AT_LEAST_ONE_INDEX.get();
 
@@ -267,6 +277,23 @@ public class RebuildIndex extends TaskTool
       out.println(argParser.getUsage());
       return 1;
     }
+
+    if(rebuildDegraded.isPresent() && indexList.isPresent())
+    {
+      Message msg = ERR_REBUILDINDEX_REBUILD_DEGRADED_ERROR.get();
+      err.println(wrapText(msg, MAX_LINE_WIDTH));
+      out.println(argParser.getUsage());
+      return 1;
+    }
+
+    if(rebuildAll.isPresent() && rebuildDegraded.isPresent())
+    {
+      Message msg = ERR_REBUILDINDEX_REBUILD_ALL_DEGRADED_ERROR.get();
+      err.println(wrapText(msg, MAX_LINE_WIDTH));
+      out.println(argParser.getUsage());
+      return 1;
+    }
+
     return process(argParser, initializeServer, out, err);
   }
 
@@ -402,10 +429,10 @@ public class RebuildIndex extends TaskTool
 
       try
       {
-        ErrorLogPublisher errorLogPublisher =
+        ErrorLogPublisher<?> errorLogPublisher =
             TextErrorLogPublisher.getStartupTextErrorPublisher(
             new TextWriter.STREAM(out));
-        DebugLogPublisher debugLogPublisher =
+        DebugLogPublisher<?> debugLogPublisher =
             TextDebugLogPublisher.getStartupTextDebugPublisher(
             new TextWriter.STREAM(out));
         ErrorLogger.addErrorLogPublisher(errorLogPublisher);
@@ -520,8 +547,20 @@ public class RebuildIndex extends TaskTool
       return 1;
     }
 
-   rebuildConfig.setRebuildAll(rebuildAll.isPresent());
-   rebuildConfig.setTmpDirectory(tmpDirectory.getValue());
+    if (rebuildAll.isPresent())
+    {
+      rebuildConfig.setRebuildMode(RebuildMode.ALL);
+    }
+    else if (rebuildDegraded.isPresent())
+    {
+      rebuildConfig.setRebuildMode(RebuildMode.DEGRADED);
+    }
+    else
+    {
+      rebuildConfig.setRebuildMode(RebuildMode.USER_DEFINED);
+    }
+
+    rebuildConfig.setTmpDirectory(tmpDirectory.getValue());
 
     // Launch the rebuild process.
     int returnCode = 0;
@@ -611,6 +650,16 @@ public class RebuildIndex extends TaskTool
       attributes.add(
               new LDAPAttribute(ATTR_REBUILD_INDEX, values));
     }
+
+
+    if (rebuildDegraded.getValue() != null &&
+            !rebuildDegraded.getValue().equals(
+                rebuildDegraded.getDefaultValue())) {
+      values = new ArrayList<ByteString>(1);
+      values.add(ByteString.valueOf(REBUILD_DEGRADED));
+      attributes.add(
+              new LDAPAttribute(ATTR_REBUILD_INDEX, values));
+    }
   }
 
   /**
@@ -623,7 +672,7 @@ public class RebuildIndex extends TaskTool
   /**
    * {@inheritDoc}
    */
-  public Class getTaskClass() {
+  public Class<?> getTaskClass() {
     return RebuildTask.class;
   }
 }
