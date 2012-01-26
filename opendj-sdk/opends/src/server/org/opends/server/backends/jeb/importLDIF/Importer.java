@@ -315,22 +315,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     }
 
     // Determine the number of indexes.
-    int indexes = 2; // dn2id + dn2uri
-    for (String indexName : localDBBackendCfg.listLocalDBIndexes())
-    {
-      LocalDBIndexCfg index = localDBBackendCfg.getLocalDBIndex(indexName);
-      SortedSet<IndexType> types = index.getIndexType();
-      if (types.contains(IndexType.EXTENSIBLE))
-      {
-        indexes += types.size() - 1
-            + index.getIndexExtensibleMatchingRule().size();
-      }
-      else
-      {
-        indexes += types.size();
-      }
-    }
-    this.indexCount = indexes;
+    this.indexCount = getTotalIndexCount(localDBBackendCfg);
 
     if (!importConfiguration.appendToExistingData())
     {
@@ -374,6 +359,29 @@ public final class Importer implements DiskSpaceMonitorHandler
     {
       this.tmpEnv = null;
     }
+  }
+
+
+
+  private int getTotalIndexCount(LocalDBBackendCfg localDBBackendCfg)
+      throws ConfigException
+  {
+    int indexes = 2; // dn2id, dn2uri
+    for (String indexName : localDBBackendCfg.listLocalDBIndexes())
+    {
+      LocalDBIndexCfg index = localDBBackendCfg.getLocalDBIndex(indexName);
+      SortedSet<IndexType> types = index.getIndexType();
+      if (types.contains(IndexType.EXTENSIBLE))
+      {
+        indexes += types.size() - 1
+            + index.getIndexExtensibleMatchingRule().size();
+      }
+      else
+      {
+        indexes += types.size();
+      }
+    }
+    return indexes;
   }
 
 
@@ -3229,9 +3237,6 @@ public final class Importer implements DiskSpaceMonitorHandler
    //The suffix instance.
    private Suffix suffix = null;
 
-   //Set to true if the rebuild all flag was specified.
-   private final boolean rebuildAll;
-
    //The entry container.
    private EntryContainer entryContainer;
 
@@ -3248,7 +3253,6 @@ public final class Importer implements DiskSpaceMonitorHandler
     {
       this.rebuildConfig = rebuildConfig;
       this.cfg = cfg;
-      rebuildAll = rebuildConfig.isRebuildAll();
     }
 
 
@@ -3290,9 +3294,18 @@ public final class Importer implements DiskSpaceMonitorHandler
         sb.append(index);
       }
       totalEntries = suffix.getID2Entry().getRecordCount();
-      Message message = NOTE_JEB_REBUILD_START.get(sb.toString(), totalEntries);
-      if(rebuildAll) {
+
+      Message message;
+      switch (rebuildConfig.getRebuildMode()) {
+      case ALL:
         message = NOTE_JEB_REBUILD_ALL_START.get(totalEntries);
+        break;
+      case DEGRADED:
+        message = NOTE_JEB_REBUILD_DEGRADED_START.get(totalEntries);
+        break;
+      default:
+        message = NOTE_JEB_REBUILD_START.get(sb.toString(), totalEntries);
+        break;
       }
       logError(message);
     }
@@ -3380,27 +3393,35 @@ public final class Importer implements DiskSpaceMonitorHandler
         DatabaseException, InterruptedException, ExecutionException,
         JebException
     {
-      if (rebuildAll)
+      switch (rebuildConfig.getRebuildMode())
       {
+      case ALL:
         setAllIndexesTrusted(false);
-      }
-      else
-      {
+        break;
+      case DEGRADED:
+        // Nothing to do: degraded indexes are already untrusted.
+        break;
+      default:
         setRebuildListIndexesTrusted(false);
+        break;
       }
+
       phaseOne();
       if (isCanceled)
       {
         throw new InterruptedException("Rebuild Index canceled.");
       }
       phaseTwo();
-      if (rebuildAll)
+
+      switch (rebuildConfig.getRebuildMode())
       {
+      case ALL:
+      case DEGRADED:
         setAllIndexesTrusted(true);
-      }
-      else
-      {
+        break;
+      default:
         setRebuildListIndexesTrusted(true);
+        break;
       }
     }
 
@@ -3467,14 +3488,19 @@ public final class Importer implements DiskSpaceMonitorHandler
 
     private void phaseOne() throws DatabaseException,
             InterruptedException, ExecutionException {
-      if(rebuildAll)
+      switch (rebuildConfig.getRebuildMode())
       {
-        clearAllIndexes();
-      }
-      else
-      {
+      case ALL:
+        clearAllIndexes(false);
+        break;
+      case DEGRADED:
+        clearAllIndexes(true);
+        break;
+      default:
         clearRebuildListIndexes();
+        break;
       }
+
       initializeIndexBuffers();
       RebuildFirstPhaseProgressTask progressTask =
               new RebuildFirstPhaseProgressTask();
@@ -3536,26 +3562,18 @@ public final class Importer implements DiskSpaceMonitorHandler
 
     private int getIndexCount() throws ConfigException, JebException
     {
-      int indexCount;
-      if(!rebuildAll)
+      switch (rebuildConfig.getRebuildMode())
       {
-        indexCount = getRebuildListIndexCount(cfg);
+      case ALL:
+        return getTotalIndexCount(cfg);
+      case DEGRADED:
+        // FIXME: since the environment is not started we cannot determine which
+        // indexes are degraded. As a workaround, be conservative and assume all
+        // indexes need rebuilding.
+        return getTotalIndexCount(cfg);
+      default:
+        return getRebuildListIndexCount(cfg);
       }
-      else
-      {
-        indexCount = getAllIndexesCount(cfg);
-      }
-      return indexCount;
-    }
-
-
-    private int getAllIndexesCount(LocalDBBackendCfg cfg)
-    {
-      int indexCount = cfg.listLocalDBIndexes().length;
-      indexCount += cfg.listLocalDBVLVIndexes().length;
-      //Add four for: DN, id2subtree, id2children and dn2uri.
-      indexCount += 4;
-      return indexCount;
     }
 
 
@@ -3744,15 +3762,17 @@ public final class Importer implements DiskSpaceMonitorHandler
           String lowerName = index.toLowerCase();
           if (lowerName.equals("dn2id"))
           {
-            clearDN2IDIndexes();
+            clearDN2IDIndexes(false);
           }
           else if (lowerName.equals("dn2uri"))
           {
-            clearDN2URI();
+            clearDN2URI(false);
           }
           else if (lowerName.startsWith("vlv."))
           {
-            clearVLVIndex(lowerName.substring(4));
+            VLVIndex vlvIndex = entryContainer.getVLVIndex(lowerName
+                .substring(4));
+            clearVLVIndex(vlvIndex, false);
           }
           else
           {
@@ -3881,7 +3901,7 @@ public final class Importer implements DiskSpaceMonitorHandler
             }
             else
             {
-              clearAttributeIndexes(attrIndex, attrType);
+              clearAttributeIndexes(attrIndex, attrType, false);
             }
           }
         }
@@ -3889,137 +3909,192 @@ public final class Importer implements DiskSpaceMonitorHandler
     }
 
 
-    private void clearAllIndexes() throws DatabaseException
+    private void clearAllIndexes(boolean onlyDegraded) throws DatabaseException
     {
       for(Map.Entry<AttributeType, AttributeIndex> mapEntry :
               suffix.getAttrIndexMap().entrySet()) {
         AttributeType attributeType = mapEntry.getKey();
         AttributeIndex attributeIndex = mapEntry.getValue();
-        clearAttributeIndexes(attributeIndex, attributeType);
+        clearAttributeIndexes(attributeIndex, attributeType, onlyDegraded);
       }
       for(VLVIndex vlvIndex : suffix.getEntryContainer().getVLVIndexes()) {
-        entryContainer.clearDatabase(vlvIndex);
+        clearVLVIndex(vlvIndex, onlyDegraded);
       }
-      clearDN2IDIndexes();
+      clearDN2IDIndexes(onlyDegraded);
       if(entryContainer.getDN2URI() != null)
       {
-        clearDN2URI();
+        clearDN2URI(onlyDegraded);
       }
     }
 
 
-    private void clearVLVIndex(String name)
-            throws DatabaseException
+
+    private void clearVLVIndex(VLVIndex vlvIndex, boolean onlyDegraded)
+        throws DatabaseException
     {
-      VLVIndex vlvIndex = entryContainer.getVLVIndex(name);
-      entryContainer.clearDatabase(vlvIndex);
-      vlvIndexes.add(vlvIndex);
+      if (!onlyDegraded || !vlvIndex.isTrusted())
+      {
+        entryContainer.clearDatabase(vlvIndex);
+        vlvIndexes.add(vlvIndex);
+      }
     }
 
 
-    private void clearDN2URI() throws DatabaseException
+
+    private void clearDN2URI(boolean onlyDegraded) throws DatabaseException
     {
-      entryContainer.clearDatabase(entryContainer.getDN2URI());
-      dn2uri = entryContainer.getDN2URI();
+      if (!onlyDegraded)
+      {
+        // dn2uri does not have a trusted status.
+        entryContainer.clearDatabase(entryContainer.getDN2URI());
+        dn2uri = entryContainer.getDN2URI();
+      }
     }
 
 
-    private void clearDN2IDIndexes() throws DatabaseException
+
+    private void clearDN2IDIndexes(boolean onlyDegraded)
+        throws DatabaseException
     {
-      entryContainer.clearDatabase(entryContainer.getDN2ID());
-      entryContainer.clearDatabase(entryContainer.getID2Children());
-      entryContainer.clearDatabase(entryContainer.getID2Subtree());
-      dn2id = entryContainer.getDN2ID();
+      if (!onlyDegraded || !entryContainer.getID2Children().isTrusted()
+          || !entryContainer.getID2Subtree().isTrusted())
+      {
+        entryContainer.clearDatabase(entryContainer.getDN2ID());
+        entryContainer.clearDatabase(entryContainer.getID2Children());
+        entryContainer.clearDatabase(entryContainer.getID2Subtree());
+        dn2id = entryContainer.getDN2ID();
+      }
     }
 
 
     private void clearAttributeIndexes(AttributeIndex attrIndex,
-                                      AttributeType attrType)
+                                      AttributeType attrType,
+                                      boolean onlyDegraded)
             throws DatabaseException
     {
-      Index partialAttrIndex;
-      if(attrIndex.getSubstringIndex() != null)
+      if (attrIndex.getSubstringIndex() != null)
       {
-        partialAttrIndex = attrIndex.getSubstringIndex();
-        int id = System.identityHashCode(partialAttrIndex);
-        idContainerMap.putIfAbsent(id, partialAttrIndex);
-        entryContainer.clearDatabase(partialAttrIndex);
-        IndexKey indexKey =
-                new IndexKey(attrType, ImportIndexType.SUBSTRING,
-                        partialAttrIndex.getIndexEntryLimit());
-        indexMap.put(indexKey, partialAttrIndex);
+        Index partialAttrIndex = attrIndex.getSubstringIndex();
+        if (!onlyDegraded || !partialAttrIndex.isTrusted())
+        {
+          int id = System.identityHashCode(partialAttrIndex);
+          idContainerMap.putIfAbsent(id, partialAttrIndex);
+          entryContainer.clearDatabase(partialAttrIndex);
+          IndexKey indexKey = new IndexKey(attrType, ImportIndexType.SUBSTRING,
+              partialAttrIndex.getIndexEntryLimit());
+          indexMap.put(indexKey, partialAttrIndex);
+        }
       }
-      if(attrIndex.getOrderingIndex() != null)
+      if (attrIndex.getOrderingIndex() != null)
       {
-        partialAttrIndex = attrIndex.getOrderingIndex();
-        int id = System.identityHashCode(partialAttrIndex);
-        idContainerMap.putIfAbsent(id, partialAttrIndex);
-        entryContainer.clearDatabase(partialAttrIndex);
-        IndexKey indexKey =
-                new IndexKey(attrType, ImportIndexType.ORDERING,
-                        partialAttrIndex.getIndexEntryLimit());
-        indexMap.put(indexKey, partialAttrIndex);
+        Index partialAttrIndex = attrIndex.getOrderingIndex();
+        if (!onlyDegraded || !partialAttrIndex.isTrusted())
+        {
+          int id = System.identityHashCode(partialAttrIndex);
+          idContainerMap.putIfAbsent(id, partialAttrIndex);
+          entryContainer.clearDatabase(partialAttrIndex);
+          IndexKey indexKey = new IndexKey(attrType, ImportIndexType.ORDERING,
+              partialAttrIndex.getIndexEntryLimit());
+          indexMap.put(indexKey, partialAttrIndex);
+        }
       }
       if(attrIndex.getEqualityIndex() != null)
       {
-        partialAttrIndex = attrIndex.getEqualityIndex();
-        int id = System.identityHashCode(partialAttrIndex);
-        idContainerMap.putIfAbsent(id, partialAttrIndex);
-        entryContainer.clearDatabase(partialAttrIndex);
-        IndexKey indexKey =
-                new IndexKey(attrType, ImportIndexType.EQUALITY,
-                        partialAttrIndex.getIndexEntryLimit());
-        indexMap.put(indexKey, partialAttrIndex);
-      }
-      if(attrIndex.getPresenceIndex() != null)
-      {
-        partialAttrIndex = attrIndex.getPresenceIndex();
-        int id = System.identityHashCode(partialAttrIndex);
-        idContainerMap.putIfAbsent(id, partialAttrIndex);
-        entryContainer.clearDatabase(partialAttrIndex);
-        IndexKey indexKey =
-                new IndexKey(attrType, ImportIndexType.PRESENCE,
-                        partialAttrIndex.getIndexEntryLimit());
-        indexMap.put(indexKey, partialAttrIndex);
-
-      }
-      if(attrIndex.getApproximateIndex() != null)
-      {
-        partialAttrIndex = attrIndex.getApproximateIndex();
-        int id = System.identityHashCode(partialAttrIndex);
-        idContainerMap.putIfAbsent(id, partialAttrIndex);
-        entryContainer.clearDatabase(partialAttrIndex);
-        IndexKey indexKey =
-                new IndexKey(attrType, ImportIndexType.APPROXIMATE,
-                        partialAttrIndex.getIndexEntryLimit());
-        indexMap.put(indexKey, partialAttrIndex);
-      }
-      Map<String,Collection<Index>> extensibleMap =
-              attrIndex.getExtensibleIndexes();
-      if(!extensibleMap.isEmpty()) {
-        Collection<Index> subIndexes =
-                attrIndex.getExtensibleIndexes().get(
-                        EXTENSIBLE_INDEXER_ID_SUBSTRING);
-        if(subIndexes != null) {
-          for(Index subIndex : subIndexes) {
-            entryContainer.clearDatabase(subIndex);
-            int id = System.identityHashCode(subIndex);
-            idContainerMap.putIfAbsent(id, subIndex);
-          }
-          extensibleIndexMap.put(new IndexKey(attrType,
-                  ImportIndexType.EX_SUBSTRING, 0), subIndexes);
+        Index partialAttrIndex = attrIndex.getEqualityIndex();
+        if (!onlyDegraded || !partialAttrIndex.isTrusted())
+        {
+          int id = System.identityHashCode(partialAttrIndex);
+          idContainerMap.putIfAbsent(id, partialAttrIndex);
+          entryContainer.clearDatabase(partialAttrIndex);
+          IndexKey indexKey = new IndexKey(attrType, ImportIndexType.EQUALITY,
+              partialAttrIndex.getIndexEntryLimit());
+          indexMap.put(indexKey, partialAttrIndex);
         }
-        Collection<Index> sharedIndexes =
-                attrIndex.getExtensibleIndexes().
-                                             get(EXTENSIBLE_INDEXER_ID_SHARED);
-        if(sharedIndexes !=null) {
-          for(Index sharedIndex : sharedIndexes) {
-            entryContainer.clearDatabase(sharedIndex);
-            int id = System.identityHashCode(sharedIndex);
-            idContainerMap.putIfAbsent(id, sharedIndex);
+      }
+      if (attrIndex.getPresenceIndex() != null)
+      {
+        Index partialAttrIndex = attrIndex.getPresenceIndex();
+        if (!onlyDegraded || !partialAttrIndex.isTrusted())
+        {
+          int id = System.identityHashCode(partialAttrIndex);
+          idContainerMap.putIfAbsent(id, partialAttrIndex);
+          entryContainer.clearDatabase(partialAttrIndex);
+          IndexKey indexKey = new IndexKey(attrType, ImportIndexType.PRESENCE,
+              partialAttrIndex.getIndexEntryLimit());
+          indexMap.put(indexKey, partialAttrIndex);
+        }
+      }
+      if (attrIndex.getApproximateIndex() != null)
+      {
+        Index partialAttrIndex = attrIndex.getApproximateIndex();
+        if (!onlyDegraded || !partialAttrIndex.isTrusted())
+        {
+          int id = System.identityHashCode(partialAttrIndex);
+          idContainerMap.putIfAbsent(id, partialAttrIndex);
+          entryContainer.clearDatabase(partialAttrIndex);
+          IndexKey indexKey = new IndexKey(attrType,
+              ImportIndexType.APPROXIMATE,
+              partialAttrIndex.getIndexEntryLimit());
+          indexMap.put(indexKey, partialAttrIndex);
+        }
+      }
+      Map<String, Collection<Index>> extensibleMap = attrIndex
+          .getExtensibleIndexes();
+      if (!extensibleMap.isEmpty())
+      {
+        Collection<Index> subIndexes = attrIndex.getExtensibleIndexes().get(
+            EXTENSIBLE_INDEXER_ID_SUBSTRING);
+        if (subIndexes != null && !subIndexes.isEmpty())
+        {
+          List<Index> mutableCopy = new LinkedList<Index>(subIndexes);
+          Iterator<Index> i = mutableCopy.iterator();
+          while (i.hasNext())
+          {
+            Index subIndex = i.next();
+            if (!onlyDegraded || !subIndex.isTrusted())
+            {
+              entryContainer.clearDatabase(subIndex);
+              int id = System.identityHashCode(subIndex);
+              idContainerMap.putIfAbsent(id, subIndex);
+            }
+            else
+            {
+              // This index is not a candidate for rebuilding.
+              i.remove();
+            }
           }
-          extensibleIndexMap.put(new IndexKey(attrType,
-                  ImportIndexType.EX_SHARED, 0), sharedIndexes);
+          if (!mutableCopy.isEmpty())
+          {
+            extensibleIndexMap.put(new IndexKey(attrType,
+                ImportIndexType.EX_SUBSTRING, 0), mutableCopy);
+          }
+        }
+        Collection<Index> sharedIndexes = attrIndex.getExtensibleIndexes().get(
+            EXTENSIBLE_INDEXER_ID_SHARED);
+        if (sharedIndexes != null && !sharedIndexes.isEmpty())
+        {
+          List<Index> mutableCopy = new LinkedList<Index>(sharedIndexes);
+          Iterator<Index> i = mutableCopy.iterator();
+          while (i.hasNext())
+          {
+            Index sharedIndex = i.next();
+            if (!onlyDegraded || !sharedIndex.isTrusted())
+            {
+              entryContainer.clearDatabase(sharedIndex);
+              int id = System.identityHashCode(sharedIndex);
+              idContainerMap.putIfAbsent(id, sharedIndex);
+            }
+            else
+            {
+              // This index is not a candidate for rebuilding.
+              i.remove();
+            }
+          }
+          if (!mutableCopy.isEmpty())
+          {
+            extensibleIndexMap.put(new IndexKey(attrType,
+                ImportIndexType.EX_SHARED, 0), mutableCopy);
+          }
         }
       }
     }

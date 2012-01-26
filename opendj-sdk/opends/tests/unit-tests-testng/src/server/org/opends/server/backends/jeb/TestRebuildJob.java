@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -33,6 +33,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.backends.jeb.RebuildConfig.RebuildMode;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.tasks.TaskUtils;
 import static org.opends.server.util.ServerConstants.OC_TOP;
@@ -230,7 +231,26 @@ public class TestRebuildJob extends JebTestCase
     cleanAndLoad(10);
     RebuildConfig rebuildConfig = new RebuildConfig();
     rebuildConfig.setBaseDN(baseDNs[0]);
-    rebuildConfig.setRebuildAll(true);
+    rebuildConfig.setRebuildMode(RebuildMode.ALL);
+
+    be=(BackendImpl) DirectoryServer.getBackend(beID);
+
+    TaskUtils.disableBackend(beID);
+
+    be.rebuildBackend(rebuildConfig);
+
+    assertEquals(verifyBackend(null), 0);
+
+    TaskUtils.enableBackend(beID);
+  }
+
+  @Test
+  public void testRebuildDegraded() throws Exception
+  {
+    cleanAndLoad(10);
+    RebuildConfig rebuildConfig = new RebuildConfig();
+    rebuildConfig.setBaseDN(baseDNs[0]);
+    rebuildConfig.setRebuildMode(RebuildMode.DEGRADED);
 
     be=(BackendImpl) DirectoryServer.getBackend(beID);
 

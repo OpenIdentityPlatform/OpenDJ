@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.backends.jeb;
 
@@ -36,6 +37,26 @@ import java.util.ArrayList;
 public class RebuildConfig
 {
   /**
+   * Identifies how indexes will be selected for rebuild.
+   */
+  public static enum RebuildMode {
+    /**
+     * Rebuild all indexes, including system indexes.
+     */
+    ALL,
+
+    /**
+     * Rebuild all degraded indexes, including system indexes.
+     */
+    DEGRADED,
+
+    /**
+     * Rebuild used defined list of indexes.
+     */
+    USER_DEFINED;
+  }
+
+  /**
    * The base DN to rebuild.
    */
   private DN baseDN;
@@ -45,7 +66,7 @@ public class RebuildConfig
    */
   private ArrayList<String> rebuildList;
 
-  private boolean rebuildAll = false;
+  private RebuildMode rebuildMode = RebuildMode.USER_DEFINED;
 
   private String tmpDirectory;
 
@@ -219,23 +240,23 @@ public class RebuildConfig
 
 
   /**
-   * Set the rebuild all boolean to the specified value.
+   * Sets the rebuild mode.
    *
-   * @param v The value to set the rebuild all boolean to.
+   * @param mode The new rebuild mode.
    */
-  public void setRebuildAll(boolean v)
+  public void setRebuildMode(RebuildMode mode)
   {
-    rebuildAll = v;
+    rebuildMode = mode;
   }
 
   /**
-   * Return the rebuild all boolean value.
+   * Returns the rebuild mode.
    *
-   * @return Return the rebuild all boolean value.
+   * @return The rebuild mode.
    */
-  public boolean isRebuildAll()
+  public RebuildMode getRebuildMode()
   {
-    return rebuildAll;
+    return rebuildMode;
   }
 
 

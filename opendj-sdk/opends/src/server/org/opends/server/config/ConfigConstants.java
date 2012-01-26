@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.config;
 
@@ -4344,6 +4344,11 @@ public final class ConfigConstants
    * Used to specify that the rebuild all boolean should be set.
    */
   public static final String REBUILD_ALL = "rebuildall";
+
+  /**
+   * Used to specify that the rebuild degraded boolean should be set.
+   */
+  public static final String REBUILD_DEGRADED = "rebuilddegraded";
 
   /**
    * The name of the objectclass that will be used for a Directory Server
