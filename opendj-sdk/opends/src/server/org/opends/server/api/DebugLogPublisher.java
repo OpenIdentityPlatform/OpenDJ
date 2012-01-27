@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.api;
 import org.opends.messages.Message;
@@ -84,8 +85,8 @@ public abstract class DebugLogPublisher
     classTraceSettings = null;
     methodTraceSettings = null;
 
-    //Set the global settings so that only errors are logged.
-    addTraceSettings(null, new TraceSettings(DebugLogLevel.ERROR));
+    //Set the global settings so that nothing is logged.
+    addTraceSettings(null, new TraceSettings(DebugLogLevel.DISABLED));
   }
 
 
