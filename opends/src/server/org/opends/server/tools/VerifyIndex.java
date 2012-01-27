@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -43,10 +44,8 @@ import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.TextErrorLogPublisher;
 import org.opends.server.loggers.debug.TextDebugLogPublisher;
 import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.NullOutputStream;
+import org.opends.server.loggers.debug.TraceSettings;
+import org.opends.server.types.*;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.ArgumentParser;
 import org.opends.server.util.args.BooleanArgument;
@@ -378,12 +377,14 @@ public class VerifyIndex
 
       try
       {
-        ErrorLogPublisher errorLogPublisher =
+        ErrorLogPublisher<?> errorLogPublisher =
             TextErrorLogPublisher.getStartupTextErrorPublisher(
             new TextWriter.STREAM(out));
-        DebugLogPublisher debugLogPublisher =
+        DebugLogPublisher<?> debugLogPublisher =
             TextDebugLogPublisher.getStartupTextDebugPublisher(
             new TextWriter.STREAM(out));
+        debugLogPublisher.addTraceSettings(null,
+            new TraceSettings(DebugLogLevel.ERROR));
         ErrorLogger.addErrorLogPublisher(errorLogPublisher);
         DebugLogger.addDebugLogPublisher(debugLogPublisher);
       }
