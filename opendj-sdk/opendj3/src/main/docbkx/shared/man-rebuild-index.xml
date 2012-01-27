@@ -68,7 +68,7 @@
      <para>Names of index(es) to rebuild. For an attribute index this is
      simply an attribute name. At least one index must be specified for
      rebuild. Cannot be used with the <option>--rebuildAll</option>
-     option.</para>
+     or <option>--rebuildDegraded</option> options.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
@@ -76,7 +76,15 @@
     <listitem>
      <para>Rebuild all indexes, including any DN2ID, DN2URI, VLV and
      extensible indexes. Cannot be used with the <option>--index</option>
-     option.</para>
+     or <option>--rebuildDegraded</option> options.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><option>--rebuildDegraded</option></term>
+    <listitem>
+     <para>Rebuild all degraded indexes, including any DN2ID, DN2URI, VLV and
+     extensible indexes. Cannot be used with the <option>--index</option>
+     or <option>--rebuildAll</option> options.</para>
     </listitem>
    </varlistentry>
    <varlistentry>

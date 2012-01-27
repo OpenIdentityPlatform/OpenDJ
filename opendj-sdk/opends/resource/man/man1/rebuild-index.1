@@ -2,12 +2,12 @@
 .\"     Title: rebuild-index
 .\"    Author: 
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: January\ \&03,\ \&2012
+.\"      Date: January\ \&27,\ \&2012
 .\"    Manual: Tools Reference
 .\"    Source: OpenDJ 2.5.0
 .\"  Language: English
 .\"
-.TH "REBUILD\-INDEX" "1" "January\ \&03,\ \&2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.TH "REBUILD\-INDEX" "1" "January\ \&27,\ \&2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -48,14 +48,27 @@ Base DN of a backend supporting indexing\&. Rebuild is performed on indexes with
 .RS 4
 Names of index(es) to rebuild\&. For an attribute index this is simply an attribute name\&. At least one index must be specified for rebuild\&. Cannot be used with the
 \fB\-\-rebuildAll\fR
-option\&.
+or
+\fB\-\-rebuildDegraded\fR
+options\&.
 .RE
 .PP
 \fB\-\-rebuildAll\fR
 .RS 4
 Rebuild all indexes, including any DN2ID, DN2URI, VLV and extensible indexes\&. Cannot be used with the
 \fB\-\-index\fR
-option\&.
+or
+\fB\-\-rebuildDegraded\fR
+options\&.
+.RE
+.PP
+\fB\-\-rebuildDegraded\fR
+.RS 4
+Rebuild all degraded indexes, including any DN2ID, DN2URI, VLV and extensible indexes\&. Cannot be used with the
+\fB\-\-index\fR
+or
+\fB\-\-rebuildAll\fR
+options\&.
 .RE
 .PP
 \fB\-\-tmpdirectory {directory}\fR
