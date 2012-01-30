@@ -82,7 +82,84 @@
   
   <literallayout class="monospaced">See /var/....log for a detailed log of this operation.</literallayout>
  </section>
- 
+
+ <section xml:id="troubleshoot-use-lockdown-mode">
+  <title>Preventing Access While You Fix Issues</title>
+  <indexterm><primary>Lockdown mode</primary></indexterm>
+
+  <para>Misconfiguration can potentially put OpenDJ in a state where you must
+  intervene, and where you need to prevent users and applications
+  from accessing the directory until you are done fixing the problem.</para>
+
+  <para>OpenDJ provides a <firstterm>lockdown mode</firstterm> that allows
+  connections only on the loopback address, and allows only operations
+  requested by root users, such as <literal>cn=Directory
+  Manager</literal>. You can use lockdown mode to prevent all but
+  administrative access to OpenDJ in order to repair the server.</para>
+
+  <para>To put OpenDJ into lockdown mode, the server must be running. You
+  cause the server to enter lockdown mode by using a task. Notice that
+  the modify operation is performed over the loopback address (accessing
+  OpenDJ on the local host).</para>
+
+  <screen>$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --defaultAdd
+dn: ds-task-id=Enter Lockdown Mode,cn=Scheduled Tasks,cn=tasks
+objectClass: top
+objectClass: ds-task
+ds-task-id: Enter Lockdown Mode
+ds-task-class-name: org.opends.server.tasks.EnterLockdownModeTask
+
+Processing ADD request for
+ ds-task-id=Enter Lockdown Mode,cn=Scheduled Tasks,cn=tasks
+ADD operation successful for DN
+ ds-task-id=Enter Lockdown Mode,cn=Scheduled Tasks,cn=tasks</screen>
+
+  <para>OpenDJ logs a notice message in <filename>logs/errors</filename>
+  when lockdown mode takes effect.</para>
+
+  <literallayout class="monospaced">
+[30/Jan/2012:17:04:32 +0100] category=BACKEND severity=NOTICE msgID=9896350
+ msg=Lockdown task Enter Lockdown Mode finished execution</literallayout>
+
+  <para>Client applications that request operations get a message concerning
+  lockdown mode.</para>
+
+  <screen>$ ldapsearch --port 1389 --baseDN "" --searchScope base "(objectclass=*)" +
+SEARCH operation failed
+Result Code:  53 (Unwilling to Perform)
+Additional Information:  Rejecting the requested operation because the server
+ is in lockdown mode and will only accept requests from root users over
+ loopback connections</screen>
+
+  <para>You also leave lockdown mode by using a task.</para>
+
+  <screen>$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --defaultAdd
+dn: ds-task-id=Leave Lockdown Mode,cn=Scheduled Tasks,cn=tasks
+objectClass: top
+objectClass: ds-task
+ds-task-id: Leave Lockdown Mode
+ds-task-class-name: org.opends.server.tasks.LeaveLockdownModeTask
+
+Processing ADD request for
+ ds-task-id=Leave Lockdown Mode,cn=Scheduled Tasks,cn=tasks
+ADD operation successful for DN
+ ds-task-id=Leave Lockdown Mode,cn=Scheduled Tasks,cn=tasks</screen>
+
+  <para>OpenDJ also logs a notice message when leaving lockdown.</para>
+
+  <literallayout class="monospaced">
+[30/Jan/2012:17:13:05 +0100] category=BACKEND severity=NOTICE msgID=9896350
+ msg=Leave Lockdown task Leave Lockdown Mode finished execution</literallayout>
+ </section>
+
  <section xml:id="troubleshoot-import">
   <title>Troubleshooting LDIF Import</title>
  
@@ -359,7 +436,7 @@ Owner: CN=opendj.example.com, O=OpenDJ Certificate</screen>
   global ACIs. You must therefore add access to use the get effective rights
   control when not using it as Directory Manager.</para>
 
-  <section xml:id="troubleshooting-simple-paged-results">
+  <section xml:id="troubleshoot-simple-paged-results">
    <title>Clients Need Simple Paged Results Control</title>
 
    <para>For Solaris and some versions of Linux you might see a message in
@@ -429,7 +506,7 @@ global-aci : (extop="1.3.6.1.4.1.26027.1.6.1 || 1.3.6.1.4.1.26027.1.6.3 ||
    (unless you are doing this in production).</para></footnote></para>
   </section>
  </section>
- 
+
  <section xml:id="troubleshoot-repl">
   <title>Troubleshooting Replication</title>
   <indexterm>
