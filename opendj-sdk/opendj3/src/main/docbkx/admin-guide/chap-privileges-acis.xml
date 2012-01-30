@@ -269,13 +269,17 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
     <varlistentry>
      <term><literal>export</literal></term>
      <listitem>
-      <para>Entry export during a modify DN operation</para>
+      <para>Entry export during a modify DN operation.</para>
+      <para>Despite the name, this action is unrelated to LDIF export
+      operations.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
      <term><literal>import</literal></term>
      <listitem>
-      <para>Entry import during a modify DN operation</para>
+      <para>Entry import during a modify DN operation.</para>
+      <para>Despite the name, this action is unrelated to LDIF import
+      operations.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
