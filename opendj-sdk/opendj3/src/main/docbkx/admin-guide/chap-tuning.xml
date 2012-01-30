@@ -286,8 +286,8 @@
     <varlistentry>
      <term><option>-XX:MaxTenuringThreshold=1</option></term>
      <listitem>
-      <para>OpenDJ does not create medium lifetime objects, only transient
-      objects, and long lived objects.</para>
+      <para>Force OpenDJ to create only objects that have either a short
+      lifetime, or a long lifetime.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
