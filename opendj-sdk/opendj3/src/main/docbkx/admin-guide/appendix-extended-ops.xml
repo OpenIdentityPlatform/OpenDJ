@@ -51,6 +51,20 @@
    </listitem>
   </varlistentry>
 
+  <varlistentry xml:id="get-connection-id-extended-request">
+   <term>Get Connection ID Extended Request</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP extended operations</primary>
+     <secondary>Get Connection ID</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.3.6.1.4.1.26027.1.6.2</para>
+    <para>OpenDJ extended operation to return the connection ID of the
+    associated client connection. This extended operation is intended for OpenDJ
+    internal use.</para>
+   </listitem>
+  </varlistentry>
+
   <varlistentry xml:id="password-modify-extended-request">
    <term>Password Modify Extended Request</term>
    <listitem>
@@ -61,6 +75,20 @@
     <para>Object Identifier: 1.3.6.1.4.1.4203.1.11.1</para>
     <para>RFC: <link xlink:href='http://tools.ietf.org/html/rfc3909'>RFC 3062
     - LDAP Password Modify Extended Operation</link></para>
+   </listitem>
+  </varlistentry>
+
+  <varlistentry xml:id="password-policy-state-extended-operation">
+   <term>Password Policy State Extended Operation</term>
+   <listitem>
+    <indexterm>
+     <primary>LDAP extended operations</primary>
+     <secondary>Password policy state</secondary>
+    </indexterm>
+    <para>Object Identifier: 1.3.6.1.4.1.26027.1.6.1</para>
+    <para>OpenDJ extended operation to query and update password policy state
+    for a given user entry. This extended operation is intended for OpenDJ
+    internal use.</para>
    </listitem>
   </varlistentry>
 
