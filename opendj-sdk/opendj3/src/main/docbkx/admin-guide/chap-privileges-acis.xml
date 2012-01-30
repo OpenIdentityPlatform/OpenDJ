@@ -506,6 +506,12 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
     </listitem>
    </varlistentry>
    <varlistentry>
+    <term><literal>bypass-lockdown</literal>*</term>
+    <listitem>
+     <para>Perform operations without regard to lockdown mode</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
     <term><literal>cancel-request</literal>*</term>
     <listitem>
      <para>Cancel any client request</para>
@@ -590,6 +596,12 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
     </listitem>
    </varlistentry>
    <varlistentry>
+    <term><literal>server-lockdown</literal>*</term>
+    <listitem>
+     <para>Put OpenDJ into, and take OpenDJ out of, lockdown mode</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
     <term><literal>server-restart</literal>*</term>
     <listitem>
      <para>Request a task to restart the server</para>
@@ -599,6 +611,12 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
     <term><literal>server-shutdown</literal>*</term>
     <listitem>
      <para>Request a task to stop the server</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>subentry-write</literal>*</term>
+    <listitem>
+     <para>Perform LDAP subentry write operations</para>
     </listitem>
    </varlistentry>
    <varlistentry>
