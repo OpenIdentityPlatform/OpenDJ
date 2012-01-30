@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-replication'
@@ -155,6 +155,11 @@
   <literal>dc=example,dc=org</literal>. Directory servers are capable of
   serving more than one suffix. They are also capable of participating in
   more than one replication topology.</para>
+
+  <para>Keep server clocks synchronized for your topology. You can use NTP for
+  example. Keeping server clocks synchronized helps prevent issues with SSL
+  connections and with replication itself. Keeping server clocks synchronized
+  also makes it easier to compare timestamps from multiple servers.</para>
  </section>
  
  <section xml:id="configure-repl">
