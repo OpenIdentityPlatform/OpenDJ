@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2012 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-indexing'
@@ -343,6 +343,35 @@ cn: Barbara Maddox</screen>
  --index cn
  --start 0
 Rebuild Index task 20110607171639867 scheduled to start Jun 7, 2011 5:16:39 PM</screen>
+   </example>
+
+   <example xml:id="rebuild-degraded-indexes-example">
+    <title>Rebuild Degraded Indexes</title>
+
+    <para>The following example rebuilds degraded indexes immediately with
+    the server online.</para>
+
+    <screen>$ rebuild-index
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --baseDN dc=example,dc=com
+ --rebuildDegraded
+...
+[31/Jan/2012:16:43:25 +0100] severity="NOTICE" msgCount=7 msgID=8847510
+ message="Due to changes in the configuration, index
+ dc_example_dc_com_description is currently operating in a degraded state
+ and must be rebuilt before it can be used"
+[31/Jan/2012:16:43:25 +0100] severity="NOTICE" msgCount=8 msgID=8847591
+ message="Rebuild of all degraded indexes started with 160 total entries
+ to process"
+...
+[31/Jan/2012:16:43:25 +0100] severity="NOTICE" msgCount=10 msgID=8847493
+ message="Rebuild complete. Processed 160 entries in 0 seconds (average
+ rate 1860.5/sec)"
+...
+Rebuild Index task 20120131164324838 has been successfully completed</screen>
    </example>
   </section>
 
