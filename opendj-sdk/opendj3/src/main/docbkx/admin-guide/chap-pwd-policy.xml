@@ -112,7 +112,13 @@ require-secure-authentication             : false
 require-secure-password-changes           : false
 skip-validation-for-administrators        : false
 state-update-failure-policy               : reactive</screen>
-  
+
+   <para>See the <citetitle>OpenDJ Configuration Reference</citetitle> page
+   on <link xlink:show="new"
+   xlink:href="http://opendj.forgerock.org/opendj-server/configref/password-policy.html"
+   ><citetitle>Password Policy</citetitle></link> for detailed descriptions of
+   each property.</para>
+
    <para>Here you notice that many capabilities are not set by default: no
    lockout, no password expiration, no multiple passwords, no password validator
    to check that passwords contain the appropriate mix of characters. This means
