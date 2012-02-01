@@ -243,14 +243,14 @@ sn: Jensen</screen>
    <para>First set up an attribute to store a last login timestamp.
    You can do this by adding a schema file for the attribute.</para>
 
-   <screen>$ cat /path/to/OpenDJ/config/schema/98-lastLogin.ldif
-#
-# Schema definition for a generalizedTimeMatch lastLoginTime attribute
-#
+   <screen>$ ldapmodify
+ --port 1389
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
 dn: cn=schema
-objectClass: top
-objectClass: ldapSubentry
-objectClass: subschema
+changetype: modify
+add: attributeTypes
 attributeTypes: ( lastLoginTime-oid
   NAME 'lastLoginTime'
   DESC 'Last time the user logged in'
@@ -260,13 +260,12 @@ attributeTypes: ( lastLoginTime-oid
   SINGLE-VALUE
   NO-USER-MODIFICATION
   USAGE directoryOperation
-  X-ORIGIN 'OpenDJ examples' )
+  X-ORIGIN 'OpenDJ example documentation' )
+
+Processing MODIFY request for cn=schema
+MODIFY operation successful for DN cn=schema
 
 </screen>
-
-   <para>Restart OpenDJ after you add the schema file.</para>
-
-   <screen>$ stop-ds --restart</screen>
 
    <para>Configure the applicable password policy to write the last login
    timestamp when a user authenticates. The following command configures the
@@ -282,7 +281,7 @@ attributeTypes: ( lastLoginTime-oid
  --bindPassword password
  --policy-name "Default Password Policy"
  --set last-login-time-attribute:lastLoginTime
- --set last-login-time-format:"yyyyMMddHHmmss'Z'"
+ --set last-login-time-format:"yyyyMMddHH'Z'"
  --trustAll
  --no-prompt</screen>
 
