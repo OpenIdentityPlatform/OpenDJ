@@ -223,8 +223,87 @@ cn: Babs Jensen
 telephoneNumber: +1 408 555 1862
 sn: Jensen</screen>
   </example>
+
+  <example xml:id="extensible-match-search">
+   <title>Search: List Active Accounts</title>
+
+   <para>OpenDJ supports extensible matching rules, meaning you can pass in
+   filters specifying a matching rule OID that extends your search beyond what
+   you can do with standard LDAP. One specific matching rule of this type that
+   OpenDJ supports is the generalized time based "later than" and "earlier
+   than" matching rules. See the example, <link
+   xlink:role="http://docbook.org/xlink/role/olink"
+   xlink:href="admin-guide#extensible-match-index-example"><citetitle>Configure
+   an Extensible Match Index</citetitle></link>, showing how to build an index
+   for these matching rules.</para>
+
+   <para>You can use these matching rules to list, for example, all users who
+   have authenticated recently.</para>
+
+   <para>First set up an attribute to store a last login timestamp.
+   You can do this by adding a schema file for the attribute.</para>
+
+   <screen>$ cat /path/to/OpenDJ/config/schema/98-lastLogin.ldif
+#
+# Schema definition for a generalizedTimeMatch lastLoginTime attribute
+#
+dn: cn=schema
+objectClass: top
+objectClass: ldapSubentry
+objectClass: subschema
+attributeTypes: ( lastLoginTime-oid
+  NAME 'lastLoginTime'
+  DESC 'Last time the user logged in'
+  EQUALITY generalizedTimeMatch
+  ORDERING generalizedTimeOrderingMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.24
+  SINGLE-VALUE
+  NO-USER-MODIFICATION
+  USAGE directoryOperation
+  X-ORIGIN 'OpenDJ examples' )
+
+</screen>
+
+   <para>Restart OpenDJ after you add the schema file.</para>
+
+   <screen>$ stop-ds --restart</screen>
+
+   <para>Configure the applicable password policy to write the last login
+   timestamp when a user authenticates. The following command configures the
+   default password policy to write the timestamp in generalized time format
+   to the <literal>lastLoginTime</literal> operational attribute on the user's
+   entry.</para>
+
+   <screen>$ dsconfig
+ set-password-policy-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --policy-name "Default Password Policy"
+ --set last-login-time-attribute:lastLoginTime
+ --set last-login-time-format:"yyyyMMddHHmmss'Z'"
+ --trustAll
+ --no-prompt</screen>
+
+   <para>Wait a while for users to authenticate again (or test it yourself) so
+   that OpenDJ writes the timestamps. The following search then returns users
+   who have authenticated in the last three months (13 weeks) after you
+   configured OpenDJ to keep the last login timestamps.</para>
+
+   <screen>$ ldapsearch
+ --port 1389
+ --baseDN dc=example,dc=com
+ "(lastLoginTime:1.3.6.1.4.1.26027.1.4.6:=13w)" mail
+dn: uid=bjensen,ou=People,dc=example,dc=com
+mail: bjensen@example.com
+
+dn: uid=kvaughan,ou=People,dc=example,dc=com
+mail: kvaughan@example.com</screen>
+  </example>
  </section>
- 
+
+
  <section xml:id="compare-ldap">
   <title>Comparing Attribute Values</title>
   <indexterm><primary>Comparing attribute values</primary></indexterm>
