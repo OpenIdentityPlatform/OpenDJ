@@ -191,6 +191,19 @@ cn: Barbara Maddox</screen>
    VLV indexes using the Control Panel, and copy the command-line
    equivalent from the Details pane for the operation, if necessary.</para>
   </section>
+
+  <section xml:id="indexes-extensible">
+   <title>Extensible Matching Rule Index</title>
+   <indexterm>
+    <primary>Indexes</primary>
+    <secondary>Extensible matching rule</secondary>
+   </indexterm>
+
+   <para>In some cases you need an index for a matching rule other than those
+   described above. For example, OpenDJ supports generalized time based
+   matching so applications can search for all times later than, or earlier
+   than a specified time.</para>
+  </section>
  </section>
  
  <section xml:id="configure-indexes">
@@ -247,7 +260,7 @@ cn: Barbara Maddox</screen>
      <secondary>Approximate</secondary>
     </indexterm>
     
-    <para>The following example configures and approximate index for
+    <para>The following example configures an approximate index for
     <literal>cn</literal> (common name).</para>
     
     <screen>$ dsconfig
@@ -259,6 +272,36 @@ cn: Barbara Maddox</screen>
  --backend-name userRoot
  --index-name cn
  --set index-type:approximate
+ --trustAll
+ --no-prompt</screen>
+   </example>
+
+   <example xml:id="extensible-match-index-example">
+    <title>Configure an Extensible Match Index</title>
+    <indexterm>
+     <primary>Indexes</primary>
+     <secondary>Extensible matching rule</secondary>
+    </indexterm>
+
+    <para>The OpenDJ Control Panel New Index window does not help you set up
+    extensible matching rule indexes. Use the <command>dsconfig</command>
+    command instead.</para>
+
+    <para>The following example configures an extensible matching rule
+    index for "later than" and "earlier than" generalized time matching on
+    a <literal>lastLoginTime</literal> attribute.</para>
+
+    <screen>$ dsconfig
+ create-local-db-index
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --backend-name userRoot
+ --set index-type:extensible
+ --set index-extensible-matching-rule:1.3.6.1.4.1.26027.1.4.5
+ --set index-extensible-matching-rule:1.3.6.1.4.1.26027.1.4.6
+ --index-name lastLoginTime
  --trustAll
  --no-prompt</screen>
    </example>
