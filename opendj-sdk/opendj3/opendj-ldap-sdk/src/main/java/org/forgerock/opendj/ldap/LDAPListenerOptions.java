@@ -30,8 +30,6 @@ package org.forgerock.opendj.ldap;
 
 
 
-import javax.net.ssl.SSLContext;
-
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 
 import com.forgerock.opendj.util.Validator;
@@ -44,12 +42,8 @@ import com.forgerock.opendj.util.Validator;
 public final class LDAPListenerOptions
 {
 
-  private SSLContext sslContext;
-
   private DecodeOptions decodeOptions;
-
   private int backlog;
-
   private TCPNIOTransport transport;
 
 
@@ -60,7 +54,6 @@ public final class LDAPListenerOptions
    */
   public LDAPListenerOptions()
   {
-    this.sslContext = null;
     this.backlog = 0;
     this.decodeOptions = new DecodeOptions();
     this.transport = null;
@@ -77,7 +70,6 @@ public final class LDAPListenerOptions
    */
   public LDAPListenerOptions(final LDAPListenerOptions options)
   {
-    this.sslContext = options.sslContext;
     this.backlog = options.backlog;
     this.decodeOptions = new DecodeOptions(options.decodeOptions);
     this.transport = options.transport;
@@ -115,32 +107,15 @@ public final class LDAPListenerOptions
 
 
   /**
-   * Returns the SSL context which will be used when initiating connections with
-   * the Directory Server. By default no SSL context will be used, indicating
-   * that connections will not be secured. If a non-{@code null} SSL context is
-   * returned then connections will be secured using either SSL or StartTLS.
-   *
-   * @return The SSL context which will be used when initiating secure
-   *         connections with the Directory Server, which may be {@code null}
-   *         indicating that connections will not be secured.
-   */
-  public final SSLContext getSSLContext()
-  {
-    return sslContext;
-  }
-
-
-
-  /**
    * Returns the Grizzly TCP transport which will be used when initiating
-   * connections with the Directory Server. By default this method will return
-   * {@code null} indicating that the default transport factory should be
-   * used to obtain a TCP transport.
+   * connections with the Directory Server.
+   * <p>
+   * By default this method will return {@code null} indicating that the default
+   * transport factory should be used to obtain a TCP transport.
    *
    * @return The Grizzly TCP transport which will be used when initiating
    *         connections with the Directory Server, or {@code null} if the
-   *         default transport factory should be used to obtain a TCP
-   *         transport.
+   *         default transport factory should be used to obtain a TCP transport.
    */
   public final TCPNIOTransport getTCPNIOTransport()
   {
@@ -189,30 +164,11 @@ public final class LDAPListenerOptions
 
 
   /**
-   * Sets the SSL context which will be used when initiating connections with
-   * the Directory Server. By default no SSL context will be used, indicating
-   * that connections will not be secured. If a non-{@code null} SSL context is
-   * returned then connections will be secured using either SSL or StartTLS.
-   *
-   * @param sslContext
-   *          The SSL context which will be used when initiating secure
-   *          connections with the Directory Server, which may be {@code null}
-   *          indicating that connections will not be secured.
-   * @return A reference to this LDAP listener options.
-   */
-  public final LDAPListenerOptions setSSLContext(final SSLContext sslContext)
-  {
-    this.sslContext = sslContext;
-    return this;
-  }
-
-
-
-  /**
    * Sets the Grizzly TCP transport which will be used when initiating
-   * connections with the Directory Server. By default this method will return
-   * {@code null} indicating that the default transport factory should be
-   * used to obtain a TCP transport.
+   * connections with the Directory Server.
+   * <p>
+   * By default this method will return {@code null} indicating that the default
+   * transport factory should be used to obtain a TCP transport.
    *
    * @param transport
    *          The Grizzly TCP transport which will be used when initiating
@@ -227,4 +183,5 @@ public final class LDAPListenerOptions
     this.transport = transport;
     return this;
   }
+
 }

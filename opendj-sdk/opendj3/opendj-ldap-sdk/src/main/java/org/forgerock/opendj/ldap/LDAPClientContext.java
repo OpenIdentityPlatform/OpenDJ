@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -137,19 +138,24 @@ public interface LDAPClientContext
 
 
   /**
-   * Starts the SASL integrity and/or confidentiality protection layer on the
-   * underlying connection if possible.
+   * Installs the provided connection security layer to the underlying
+   * connection. This may be used to add a SASL integrity and/or confidentiality
+   * protection layer after SASL authentication has completed, but could also be
+   * used to add other layers such as compression. Multiple layers may be
+   * installed.
    *
-   * @param bindContext
+   * @param layer
    *          The negotiated bind context that can be used to encode and decode
    *          data on the connection.
    */
-  void startSASL(ConnectionSecurityLayer bindContext);
+  void enableConnectionSecurityLayer(ConnectionSecurityLayer layer);
 
 
 
   /**
-   * Starts the TLS/SSL security layer on the underlying connection if possible.
+   * Installs the TLS/SSL security layer on the underlying connection. The
+   * TLS/SSL security layer will be installed beneath any existing connection
+   * security layers and can only be installed at most once.
    *
    * @param sslContext
    *          The {@code SSLContext} which should be used to secure the
@@ -165,7 +171,9 @@ public interface LDAPClientContext
    * @param needClientAuth
    *          Set to {@code true} if client authentication is required, or
    *          {@code false} if no client authentication is desired.
+   * @throws IllegalStateException
+   *           If the TLS/SSL security layer has already been installed.
    */
-  void startTLS(SSLContext sslContext, String[] protocols, String[] suites,
+  void enableTLS(SSLContext sslContext, String[] protocols, String[] suites,
       boolean wantClientAuth, boolean needClientAuth);
 }

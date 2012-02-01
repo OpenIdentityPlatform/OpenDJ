@@ -48,23 +48,11 @@ import com.forgerock.opendj.util.Validator;
 public final class LDAPOptions
 {
   private SSLContext sslContext;
-
   private boolean useStartTLS;
-
   private long timeoutInMillis;
-
   private DecodeOptions decodeOptions;
-
-  /**
-   * The list of cipher suite
-   */
   private List<String> enabledCipherSuites = new LinkedList<String>();
-
-  /**
-   * the list of protocols
-   */
   private List<String> enabledProtocols = new LinkedList<String>();
-
   private TCPNIOTransport transport;
 
 
@@ -120,10 +108,12 @@ public final class LDAPOptions
 
   /**
    * Returns the SSL context which will be used when initiating connections with
-   * the Directory Server. By default no SSL context will be used, indicating
-   * that connections will not be secured. If a non-{@code null} SSL context is
-   * returned then connections will be secured using either SSL or StartTLS
-   * depending on {@link #useStartTLS()}.
+   * the Directory Server.
+   * <p>
+   * By default no SSL context will be used, indicating that connections will
+   * not be secured. If a non-{@code null} SSL context is returned then
+   * connections will be secured using either SSL or StartTLS depending on
+   * {@link #useStartTLS()}.
    *
    * @return The SSL context which will be used when initiating secure
    *         connections with the Directory Server, which may be {@code null}
@@ -138,9 +128,10 @@ public final class LDAPOptions
 
   /**
    * Returns the Grizzly TCP transport which will be used when initiating
-   * connections with the Directory Server. By default this method will return
-   * {@code null} indicating that the default transport factory should be used
-   * to obtain a TCP transport.
+   * connections with the Directory Server.
+   * <p>
+   * By default this method will return {@code null} indicating that the default
+   * transport factory should be used to obtain a TCP transport.
    *
    * @return The Grizzly TCP transport which will be used when initiating
    *         connections with the Directory Server, or {@code null} if the
@@ -189,10 +180,12 @@ public final class LDAPOptions
 
   /**
    * Sets the SSL context which will be used when initiating connections with
-   * the Directory Server. By default no SSL context will be used, indicating
-   * that connections will not be secured. If a non-{@code null} SSL context is
-   * returned then connections will be secured using either SSL or StartTLS
-   * depending on {@link #useStartTLS()}.
+   * the Directory Server.
+   * <p>
+   * By default no SSL context will be used, indicating that connections will
+   * not be secured. If a non-{@code null} SSL context is returned then
+   * connections will be secured using either SSL or StartTLS depending on
+   * {@link #useStartTLS()}.
    *
    * @param sslContext
    *          The SSL context which will be used when initiating secure
@@ -210,9 +203,10 @@ public final class LDAPOptions
 
   /**
    * Sets the Grizzly TCP transport which will be used when initiating
-   * connections with the Directory Server. By default this method will return
-   * {@code null} indicating that the default transport factory will be used to
-   * obtain a TCP transport.
+   * connections with the Directory Server.
+   * <p>
+   * By default this method will return {@code null} indicating that the default
+   * transport factory will be used to obtain a TCP transport.
    *
    * @param transport
    *          The Grizzly TCP transport which will be used when initiating
@@ -250,8 +244,9 @@ public final class LDAPOptions
 
   /**
    * Specifies whether or not SSL or StartTLS should be used for securing
-   * connections when an SSL context is specified. By default SSL will be used
-   * in preference to StartTLS.
+   * connections when an SSL context is specified.
+   * <p>
+   * By default SSL will be used in preference to StartTLS.
    *
    * @param useStartTLS
    *          {@code true} if StartTLS should be used for securing connections
@@ -269,8 +264,9 @@ public final class LDAPOptions
 
   /**
    * Indicates whether or not SSL or StartTLS should be used for securing
-   * connections when an SSL context is specified. By default SSL will be used
-   * in preference to StartTLS.
+   * connections when an SSL context is specified.
+   * <p>
+   * By default SSL will be used in preference to StartTLS.
    *
    * @return {@code true} if StartTLS should be used for securing connections
    *         when an SSL context is specified, otherwise {@code false}
@@ -281,70 +277,80 @@ public final class LDAPOptions
     return useStartTLS;
   }
 
+
+
   /**
    * Adds the protocol versions enabled for secure connections with the
    * Directory Server.
-   *
+   * <p>
    * The protocols must be supported by the SSLContext specified in
-   * {@link #setSSLContext(SSLContext)}. Following a successful call to
-   * this method, only the protocols listed in the protocols parameter are
-   * enabled for use.
+   * {@link #setSSLContext(SSLContext)}. Following a successful call to this
+   * method, only the protocols listed in the protocols parameter are enabled
+   * for use.
    *
-   * @param protocols Names of all the protocols to enable.
+   * @param protocols
+   *          Names of all the protocols to enable.
    * @return A reference to this LDAP connection options.
    */
   public final LDAPOptions addEnabledProtocol(String... protocols)
   {
     for (final String protocol : protocols)
     {
-      this.enabledProtocols.add(Validator.ensureNotNull(protocol));
+      enabledProtocols.add(Validator.ensureNotNull(protocol));
     }
     return this;
   }
 
+
+
   /**
-   * Adds the cipher suites enabled for secure connections with the
-   * Directory Server.
-   *
+   * Adds the cipher suites enabled for secure connections with the Directory
+   * Server.
+   * <p>
    * The suites must be supported by the SSLContext specified in
-   * {@link #setSSLContext(SSLContext)}. Following a successful call to
-   * this method, only the suites listed in the protocols parameter are
-   * enabled for use.
+   * {@link #setSSLContext(SSLContext)}. Following a successful call to this
+   * method, only the suites listed in the protocols parameter are enabled for
+   * use.
    *
-   * @param suites Names of all the suites to enable.
+   * @param suites
+   *          Names of all the suites to enable.
    * @return A reference to this LDAP connection options.
    */
   public final LDAPOptions addEnabledCipherSuite(String... suites)
   {
     for (final String suite : suites)
     {
-      this.enabledCipherSuites.add(Validator.ensureNotNull(suite));
+      enabledCipherSuites.add(Validator.ensureNotNull(suite));
     }
     return this;
   }
 
+
+
   /**
-   * Returns the names of the protocol versions which are currently enabled
-   * for secure connections with the Directory Server.
+   * Returns the names of the protocol versions which are currently enabled for
+   * secure connections with the Directory Server.
    *
-   * @return an array of protocols or empty set if the default protocols
-   * are to be used.
+   * @return An array of protocols or empty set if the default protocols are to
+   *         be used.
    */
   public final List<String> getEnabledProtocols()
   {
-    return this.enabledProtocols;
+    return enabledProtocols;
   }
 
+
+
   /**
-   * Returns the names of the protocol versions which are currently enabled
-   * for secure connections with the Directory Server.
+   * Returns the names of the protocol versions which are currently enabled for
+   * secure connections with the Directory Server.
    *
-   * @return an array of protocols or empty set if the default protocols
-   * are to be used.
+   * @return An array of protocols or empty set if the default protocols are to
+   *         be used.
    */
   public final List<String> getEnabledCipherSuites()
   {
-    return this.enabledCipherSuites;
+    return enabledCipherSuites;
   }
 
 }

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -371,7 +371,7 @@ public class LDAPServer implements
                 }
               };
 
-              clientContext.startSASL(csl);
+              clientContext.enableConnectionSecurityLayer(csl);
             }
 
           }
@@ -576,7 +576,7 @@ public class LDAPServer implements
         final R result = request.getResultDecoder().newExtendedErrorResult(
             ResultCode.SUCCESS, "", "");
         resultHandler.handleResult(result);
-        clientContext.startTLS(sslContext, null, sslContext.getSocketFactory()
+        clientContext.enableTLS(sslContext, null, sslContext.getSocketFactory()
             .getSupportedCipherSuites(), false, false);
       }
     }

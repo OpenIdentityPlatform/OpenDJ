@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package com.forgerock.opendj.ldap;
@@ -48,6 +49,7 @@ import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.Grizzly;
 import org.glassfish.grizzly.attributes.Attribute;
 import org.glassfish.grizzly.filterchain.*;
+import org.glassfish.grizzly.filterchain.Filter;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.ssl.SSLFilter;
 import org.glassfish.grizzly.ssl.SSLUtils;
@@ -313,16 +315,17 @@ final class LDAPServerFilter extends BaseFilter
 
 
     @Override
-    public void startSASL(final ConnectionSecurityLayer bindContext)
+    public void enableConnectionSecurityLayer(
+        final ConnectionSecurityLayer layer)
     {
-      installFilter(connection, new SASLFilter(bindContext, connection
-          .getTransport().getMemoryManager()));
+      installFilter(connection, new ConnectionSecurityLayerFilter(layer,
+          connection.getTransport().getMemoryManager()));
     }
 
 
 
     @Override
-    public void startTLS(final SSLContext sslContext, final String[] protocols,
+    public void enableTLS(final SSLContext sslContext, final String[] protocols,
         final String[] suites, final boolean wantClientAuth,
         final boolean needClientAuth)
     {
@@ -1123,39 +1126,43 @@ final class LDAPServerFilter extends BaseFilter
       final org.glassfish.grizzly.filterchain.Filter filter)
   {
     FilterChain filterChain = (FilterChain) connection.getProcessor();
+
+    // Ensure that the SSL filter is not installed twice.
     if (filter instanceof SSLFilter)
     {
-      if (filterChain.get(filterChain.size() - 1) instanceof SSLFilter
-          || filterChain.get(filterChain.size() - 2) instanceof SSLFilter)
+      for (Filter f : filterChain)
       {
-        // SSLFilter already installed.
-        throw new IllegalStateException(
-            "SSLFilter already installed on connection");
-      }
-    }
-    if (filter instanceof SASLFilter)
-    {
-      if (filterChain.get(filterChain.size() - 1) instanceof SASLFilter)
-      {
-        // SASLFilter already installed.
-        throw new IllegalStateException(
-            "SASLFilter already installed on connection");
+        if (f instanceof SSLFilter)
+        {
+          // SSLFilter already installed.
+          throw new IllegalStateException("SSL already installed on connection");
+        }
       }
     }
 
+    // Copy on update the default filter chain.
     if (listener.getDefaultFilterChain() == filterChain)
     {
       filterChain = new DefaultFilterChain(filterChain);
       connection.setProcessor(filterChain);
     }
 
-    if (filter instanceof SSLFilter
-        && filterChain.get(filterChain.size() - 1) instanceof SASLFilter)
+    // Ensure that the SSL filter is beneath any connection security layer
+    // filters.
+    if (filter instanceof SSLFilter)
     {
-      filterChain.add(filterChain.size() - 2, filter);
+      for (int i = filterChain.size() - 1; i >= 0; i--)
+      {
+        if (!(filterChain.get(i) instanceof ConnectionSecurityLayerFilter))
+        {
+          filterChain.add(i, filter);
+          break;
+        }
+      }
     }
     else
     {
+      // Add connection security layers to the end of the chain.
       filterChain.add(filterChain.size() - 1, filter);
     }
 
