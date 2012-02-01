@@ -40,6 +40,8 @@ import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.net.ssl.SSLContext;
+
 import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.requests.*;
 import org.forgerock.opendj.ldap.responses.*;
@@ -68,13 +70,11 @@ public final class Server
       RequestHandler<RequestContext>
   {
     private final ConcurrentSkipListMap<DN, Entry> entries;
-    private final ReentrantReadWriteLock entryLock =
-        new ReentrantReadWriteLock();
+    private final ReentrantReadWriteLock entryLock = new ReentrantReadWriteLock();
 
 
 
-    private MemoryBackend(
-        final ConcurrentSkipListMap<DN, Entry> entries)
+    private MemoryBackend(final ConcurrentSkipListMap<DN, Entry> entries)
     {
       this.entries = entries;
     }
@@ -97,24 +97,22 @@ public final class Server
         DN dn = request.getName();
         if (entries.containsKey(dn))
         {
-          resultHandler.handleErrorResult(ErrorResultException
-              .newErrorResult(ResultCode.ENTRY_ALREADY_EXISTS,
-                  "The entry " + dn.toString() + " already exists"));
+          resultHandler.handleErrorResult(ErrorResultException.newErrorResult(
+              ResultCode.ENTRY_ALREADY_EXISTS, "The entry " + dn.toString()
+                  + " already exists"));
         }
 
         DN parent = dn.parent();
         if (!entries.containsKey(parent))
         {
-          resultHandler.handleErrorResult(ErrorResultException
-              .newErrorResult(ResultCode.NO_SUCH_OBJECT,
-                  "The parent entry " + parent.toString()
-                      + " does not exist"));
+          resultHandler.handleErrorResult(ErrorResultException.newErrorResult(
+              ResultCode.NO_SUCH_OBJECT,
+              "The parent entry " + parent.toString() + " does not exist"));
         }
         else
         {
           entries.put(dn, request);
-          resultHandler.handleResult(Responses
-              .newResult(ResultCode.SUCCESS));
+          resultHandler.handleResult(Responses.newResult(ResultCode.SUCCESS));
         }
       }
       finally
@@ -145,8 +143,7 @@ public final class Server
       else
       {
         // TODO: always succeed.
-        resultHandler.handleResult(Responses
-            .newBindResult(ResultCode.SUCCESS));
+        resultHandler.handleResult(Responses.newBindResult(ResultCode.SUCCESS));
       }
     }
 
@@ -183,15 +180,14 @@ public final class Server
         DN dn = request.getName();
         if (!entries.containsKey(dn))
         {
-          resultHandler.handleErrorResult(ErrorResultException
-              .newErrorResult(ResultCode.NO_SUCH_OBJECT, "The entry "
-                  + dn.toString() + " does not exist"));
+          resultHandler.handleErrorResult(ErrorResultException.newErrorResult(
+              ResultCode.NO_SUCH_OBJECT, "The entry " + dn.toString()
+                  + " does not exist"));
         }
         else
         {
           entries.remove(dn);
-          resultHandler.handleResult(Responses
-              .newResult(ResultCode.SUCCESS));
+          resultHandler.handleResult(Responses.newResult(ResultCode.SUCCESS));
         }
       }
       finally
@@ -207,14 +203,12 @@ public final class Server
      */
     @Override
     public <R extends ExtendedResult> void handleExtendedRequest(
-        final RequestContext requestContext,
-        final ExtendedRequest<R> request,
+        final RequestContext requestContext, final ExtendedRequest<R> request,
         final IntermediateResponseHandler intermediateResponseHandler,
         final ResultHandler<? super R> resultHandler)
     {
       // TODO: not implemented.
-      resultHandler.handleErrorResult(newErrorResult(
-          ResultCode.PROTOCOL_ERROR,
+      resultHandler.handleErrorResult(newErrorResult(ResultCode.PROTOCOL_ERROR,
           "Extended request operation not supported"));
     }
 
@@ -239,9 +233,9 @@ public final class Server
         Entry entry = entries.get(dn);
         if (entry == null)
         {
-          resultHandler.handleErrorResult(ErrorResultException
-              .newErrorResult(ResultCode.NO_SUCH_OBJECT, "The entry "
-                  + dn.toString() + " does not exist"));
+          resultHandler.handleErrorResult(ErrorResultException.newErrorResult(
+              ResultCode.NO_SUCH_OBJECT, "The entry " + dn.toString()
+                  + " does not exist"));
         }
 
         Entry newEntry = new LinkedHashMapEntry(entry);
@@ -264,17 +258,15 @@ public final class Server
           }
           else
           {
-            resultHandler
-                .handleErrorResult(newErrorResult(
-                  ResultCode.PROTOCOL_ERROR,
-                  "Modify request contains an unsupported modification type"));
+            resultHandler.handleErrorResult(newErrorResult(
+                ResultCode.PROTOCOL_ERROR,
+                "Modify request contains an unsupported modification type"));
             return;
           }
         }
 
         entries.put(dn, newEntry);
-        resultHandler.handleResult(Responses
-            .newResult(ResultCode.SUCCESS));
+        resultHandler.handleResult(Responses.newResult(ResultCode.SUCCESS));
       }
       finally
       {
@@ -294,8 +286,7 @@ public final class Server
         final ResultHandler<? super Result> resultHandler)
     {
       // TODO: not implemented.
-      resultHandler.handleErrorResult(newErrorResult(
-          ResultCode.PROTOCOL_ERROR,
+      resultHandler.handleErrorResult(newErrorResult(ResultCode.PROTOCOL_ERROR,
           "ModifyDN request operation not supported"));
     }
 
@@ -318,9 +309,9 @@ public final class Server
         Entry baseEntry = entries.get(dn);
         if (baseEntry == null)
         {
-          resultHandler.handleErrorResult(ErrorResultException
-              .newErrorResult(ResultCode.NO_SUCH_OBJECT, "The entry "
-                  + dn.toString() + " does not exist"));
+          resultHandler.handleErrorResult(ErrorResultException.newErrorResult(
+              ResultCode.NO_SUCH_OBJECT, "The entry " + dn.toString()
+                  + " does not exist"));
           return;
         }
 
@@ -337,8 +328,7 @@ public final class Server
         }
         else if (scope.equals(SearchScope.SINGLE_LEVEL))
         {
-          NavigableMap<DN, Entry> subtree = entries
-              .tailMap(dn, false);
+          NavigableMap<DN, Entry> subtree = entries.tailMap(dn, false);
           for (Entry entry : subtree.values())
           {
             // Check for cancellation.
@@ -402,8 +392,7 @@ public final class Server
           return;
         }
 
-        resultHandler.handleResult(Responses
-            .newResult(ResultCode.SUCCESS));
+        resultHandler.handleResult(Responses.newResult(ResultCode.SUCCESS));
       }
       catch (CancelledResultException e)
       {
@@ -421,8 +410,7 @@ public final class Server
         SearchResultHandler resultHandler, Entry entry)
     {
       // TODO: check filter, strip attributes.
-      return resultHandler.handleEntry(Responses
-          .newSearchResultEntry(entry));
+      return resultHandler.handleEntry(Responses.newSearchResultEntry(entry));
     }
   }
 
@@ -436,9 +424,10 @@ public final class Server
    */
   public static void main(final String[] args)
   {
-    if (args.length != 3)
+    if (args.length != 3 && args.length != 6)
     {
-      System.err.println("Usage: listenAddress listenPort ldifFile");
+      System.err.println("Usage: listenAddress listenPort ldifFile "
+          + "[keyStoreFile keyStorePassword certNickname]");
       System.exit(1);
     }
 
@@ -446,6 +435,9 @@ public final class Server
     final String localAddress = args[0];
     final int localPort = Integer.parseInt(args[1]);
     final String ldifFileName = args[2];
+    final String keyStoreFileName = (args.length == 6) ? args[3] : null;
+    final String keyStorePassword = (args.length == 6) ? args[4] : null;
+    final String certNickname = (args.length == 6) ? args[5] : null;
 
     // Create the memory backend.
     final ConcurrentSkipListMap<DN, Entry> entries =
@@ -453,24 +445,54 @@ public final class Server
     final MemoryBackend backend = new MemoryBackend(entries);
 
     // Create a server connection adapter.
-    final ServerConnectionFactory<LDAPClientContext, Integer> connectionHandler
-      = Connections.newServerConnectionFactory(backend);
+    final ServerConnectionFactory<LDAPClientContext, Integer> connectionHandler =
+        Connections.newServerConnectionFactory(backend);
 
     // Create listener.
-    final LDAPListenerOptions options = new LDAPListenerOptions()
-        .setBacklog(4096);
     LDAPListener listener = null;
     try
     {
-      listener = new LDAPListener(localAddress, localPort,
-          connectionHandler, options);
+      final LDAPListenerOptions options = new LDAPListenerOptions()
+          .setBacklog(4096);
+
+      if (keyStoreFileName != null)
+      {
+        // Configure SSL/TLS and enable it when connections are accepted.
+        final SSLContext sslContext = new SSLContextBuilder()
+            .setKeyManager(
+                KeyManagers.useSingleCertificate(certNickname, KeyManagers
+                    .useKeyStoreFile(keyStoreFileName,
+                        keyStorePassword.toCharArray(), null)))
+            .setTrustManager(TrustManagers.trustAll()).getSSLContext();
+
+        ServerConnectionFactory<LDAPClientContext, Integer> sslWrapper =
+            new ServerConnectionFactory<LDAPClientContext, Integer>()
+        {
+
+          public ServerConnection<Integer> handleAccept(
+              LDAPClientContext clientContext) throws ErrorResultException
+          {
+            clientContext.enableTLS(sslContext, null, null, false, false);
+            return connectionHandler.handleAccept(clientContext);
+          }
+        };
+
+        listener = new LDAPListener(localAddress, localPort, sslWrapper,
+            options);
+      }
+      else
+      {
+        // No SSL.
+        listener = new LDAPListener(localAddress, localPort, connectionHandler,
+            options);
+      }
       System.out.println("Press any key to stop the server...");
       System.in.read();
     }
-    catch (final IOException e)
+    catch (final Exception e)
     {
-      System.out.println("Error listening on " + localAddress + ":"
-          + localPort);
+      System.out
+          .println("Error listening on " + localAddress + ":" + localPort);
       e.printStackTrace();
     }
     finally

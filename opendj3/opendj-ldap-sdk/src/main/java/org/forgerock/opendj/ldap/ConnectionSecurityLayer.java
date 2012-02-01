@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -56,7 +57,7 @@ public interface ConnectionSecurityLayer
    * @param len
    *          The number of bytes from {@code incoming} to be unwrapped.
    * @return A non-{@code null} byte array containing the unwrapped bytes.
-   * @throws org.forgerock.opendj.ldap.ErrorResultException
+   * @throws ErrorResultException
    *           If {@code incoming} cannot be successfully unwrapped.
    */
   byte[] unwrap(byte[] incoming, int offset, int len)

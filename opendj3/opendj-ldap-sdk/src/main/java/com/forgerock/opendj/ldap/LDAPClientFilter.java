@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package com.forgerock.opendj.ldap;
@@ -170,7 +171,7 @@ final class LDAPClientFilter extends BaseFilter
               {
                 // The connection needs to be secured by the SASL
                 // mechanism.
-                ldapConnection.installFilter(new SASLFilter(l, ctx
+                ldapConnection.installFilter(new ConnectionSecurityLayerFilter(l, ctx
                     .getConnection().getTransport().getMemoryManager()));
               }
             }

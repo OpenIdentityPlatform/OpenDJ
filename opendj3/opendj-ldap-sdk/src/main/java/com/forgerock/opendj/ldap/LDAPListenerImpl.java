@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap;
@@ -35,8 +35,6 @@ import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.logging.Level;
 
-import javax.net.ssl.SSLContext;
-
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPListenerOptions;
@@ -46,8 +44,6 @@ import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.filterchain.TransportFilter;
 import org.glassfish.grizzly.nio.transport.TCPNIOServerConnection;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
-import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
-import org.glassfish.grizzly.ssl.SSLFilter;
 
 import com.forgerock.opendj.util.StaticUtils;
 
@@ -95,17 +91,6 @@ public final class LDAPListenerImpl implements Closeable
     this.connectionFactory = factory;
     this.defaultFilterChain = new DefaultFilterChain();
     this.defaultFilterChain.add(new TransportFilter());
-
-    if (options.getSSLContext() != null)
-    {
-      final SSLContext sslContext = options.getSSLContext();
-      SSLEngineConfigurator sslEngineConfigurator;
-
-      sslEngineConfigurator = new SSLEngineConfigurator(sslContext, false,
-          false, false);
-      this.defaultFilterChain.add(new SSLFilter(sslEngineConfigurator, null));
-    }
-
     this.defaultFilterChain.add(new LDAPServerFilter(this, new LDAPReader(
         new DecodeOptions(options.getDecodeOptions())), 0));
 
