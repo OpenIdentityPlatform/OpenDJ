@@ -23,25 +23,14 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.core;
 
 
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -56,9 +45,9 @@ import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.*;
 
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -91,9 +80,6 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
   // Indicates whether the user's account is expired.
   private ConditionResult isAccountExpired = ConditionResult.UNDEFINED;
-
-  // Indicates whether the user's account is disabled.
-  private ConditionResult isDisabled = ConditionResult.UNDEFINED;
 
   // Indicates whether the user's password is expired.
   private ConditionResult isPasswordExpired = ConditionResult.UNDEFINED;
@@ -290,6 +276,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   /**
    * {@inheritDoc}
    */
+  @Override
   public PasswordPolicy getAuthenticationPolicy()
   {
     return passwordPolicy;
@@ -1275,6 +1262,8 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       return lastLoginTime;
     }
 
+    boolean isGeneralizedTime =
+        type.getSyntax().getSyntaxName().equals(SYNTAX_GENERALIZED_TIME_NAME);
     lastLoginTime = -1;
     List<Attribute> attrList = userEntry.getAttribute(type);
 
@@ -1289,6 +1278,10 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
         try
         {
           SimpleDateFormat dateFormat = new SimpleDateFormat(format);
+          if (isGeneralizedTime)
+          {
+            dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+          }
           lastLoginTime = dateFormat.parse(valueString).getTime();
 
           if (debugEnabled())
@@ -1314,6 +1307,10 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
             try
             {
               SimpleDateFormat dateFormat = new SimpleDateFormat(f);
+              if (isGeneralizedTime)
+              {
+                dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+              }
               lastLoginTime = dateFormat.parse(valueString).getTime();
 
               if (debugEnabled())
@@ -1390,6 +1387,12 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     try
     {
       SimpleDateFormat dateFormat = new SimpleDateFormat(format);
+      // If the attribute has a Generalized Time syntax, make it UTC time.
+      if (type.getSyntax().getSyntaxName()
+          .equals(SYNTAX_GENERALIZED_TIME_NAME))
+      {
+        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+      }
       timestamp = dateFormat.format(new Date(lastLoginTime));
       this.lastLoginTime = dateFormat.parse(timestamp).getTime();
     }
@@ -1497,20 +1500,20 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
                          (1000L * passwordPolicy.getIdleLockoutInterval());
     if(lockTime < 0) lockTime = 0;
 
-    long lastLoginTime = getLastLoginTime();
-    if (lastLoginTime > lockTime || getPasswordChangedTime() > lockTime)
+    long theLastLoginTime = getLastLoginTime();
+    if (theLastLoginTime > lockTime || getPasswordChangedTime() > lockTime)
     {
       isIdleLocked = ConditionResult.FALSE;
       if (debugEnabled())
       {
         StringBuilder reason = new StringBuilder();
-        if(lastLoginTime > lockTime)
+        if(theLastLoginTime > lockTime)
         {
           reason.append("the last login time is in an acceptable window");
         }
         else
         {
-          if(lastLoginTime < 0)
+          if(theLastLoginTime < 0)
           {
             reason.append("there is no last login time, but ");
           }
@@ -1526,7 +1529,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       isIdleLocked = ConditionResult.TRUE;
       if (debugEnabled())
       {
-        String reason = (lastLoginTime < 0)
+        String reason = (theLastLoginTime < 0)
             ? "there is no last login time and the password " +
             "changed time is not in an acceptable window"
             : "neither last login time nor password " +
@@ -1813,7 +1816,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
           {
             // We're at least in the warning period, but the password may be
             // expired.
-            long warnedTime = getWarnedTime();
+            long theWarnedTime = getWarnedTime();
 
             if (passwordExpirationTime > currentTime)
             {
@@ -1821,7 +1824,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
               shouldWarn        = ConditionResult.TRUE;
               isPasswordExpired = ConditionResult.FALSE;
 
-              if (warnedTime < 0)
+              if (theWarnedTime < 0)
               {
                 isFirstWarning = ConditionResult.TRUE;
                 setWarnedTime();
@@ -1838,7 +1841,8 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
                 if (! passwordPolicy.isExpirePasswordsWithoutWarning())
                 {
-                  passwordExpirationTime = warnedTime + (warningInterval*1000L);
+                  passwordExpirationTime =
+                      theWarnedTime + (warningInterval*1000L);
                 }
               }
             }
@@ -1852,9 +1856,10 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
                 isFirstWarning    = ConditionResult.FALSE;
                 isPasswordExpired = ConditionResult.TRUE;
               }
-              else if (warnedTime > 0)
+              else if (theWarnedTime > 0)
               {
-                passwordExpirationTime = warnedTime + (warningInterval*1000L);
+                passwordExpirationTime =
+                    theWarnedTime + (warningInterval*1000L);
                 if (passwordExpirationTime > currentTime)
                 {
                   shouldWarn        = ConditionResult.TRUE;
@@ -2411,8 +2416,8 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       return -1;
     }
 
-    List<Long> graceLoginTimes = getGraceLoginTimes();
-    return maxGraceLogins - graceLoginTimes.size();
+    List<Long> theGraceLoginTimes = getGraceLoginTimes();
+    return maxGraceLogins - theGraceLoginTimes.size();
   }
 
 
@@ -2626,6 +2631,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean passwordMatches(ByteString password)
   {
     List<Attribute> attrList =
@@ -3671,6 +3677,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   /**
    * {@inheritDoc}
    */
+  @Override
   public void finalizeStateAfterBind()
          throws DirectoryException
   {
