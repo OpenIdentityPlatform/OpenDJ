@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.api;
 import org.opends.messages.Message;
@@ -312,7 +312,7 @@ public abstract class Group<T extends GroupImplementationCfg>
    * this group.  Note that this is a point-in-time determination and
    * the caller must not cache the result.  Also note that group
    * implementations that support nesting should use this version of
-   * the method ratehr than the version that does not take a set of
+   * the method rather than the version that does not take a set of
    * DNs when attempting to determine whether a nested group includes
    * the target member.
    *
@@ -367,7 +367,7 @@ public abstract class Group<T extends GroupImplementationCfg>
    * is a member of this group.  Note that this is a point-in-time
    * determination and the caller must not cache the result.  Also
    * note that group implementations that support nesting should use
-   * this version of the method ratehr than the version that does not
+   * this version of the method rather than the version that does not
    * take a set of DNs when attempting to determine whether a nested
    * group includes the target member.
    *
