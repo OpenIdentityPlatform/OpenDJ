@@ -334,8 +334,9 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
      <term><literal>authmethod != "none|simple|ssl|sasl <replaceable>mech</replaceable>"</literal></term>
      <listitem>
       <para>Here you use <literal>none</literal> to mean do not check,
-      <literal>simple</literal> for simple authentication, <literal>ssl</literal>
-      for LDAPS, <literal>sasl <replaceable>mech</replaceable></literal> for
+      <literal>simple</literal> for simple authentication,
+      <literal>ssl</literal> for certificate-based authentication over LDAPS,
+      <literal>sasl <replaceable>mech</replaceable></literal> for
       SASL where <replaceable>mech</replaceable> is DIGEST-MD5, EXTERNAL, or
       GSSAPI.</para>
      </listitem>
@@ -388,7 +389,9 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
      <term><literal>ssf &lt;= "<replaceable>strength</replaceable>"</literal></term>
      <listitem>
       <para>Here the security strength factor pertains to the cipher key
-      strength for connections using DIGEST-MD5, GSSAPI, SSL, or TLS.</para>
+      strength for connections using DIGEST-MD5, GSSAPI, SSL, or TLS. For
+      example, to require that the connection must have at least 128 bits
+      of encryption, specify <literal>ssf &gt;= 128</literal>.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
