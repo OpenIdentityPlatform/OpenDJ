@@ -31,7 +31,7 @@
  xmlns:xinclude='http://www.w3.org/2001/XInclude'><?dbhtml
  filename='target/docbkx/html/legalnotice.html'?>
 
- <mediaobject>
+ <mediaobject xml:id="figure-cc-logo">
   <imageobject>
    <imagedata fileref="http://i.creativecommons.org/l/by-nc-nd/3.0/88x31.png"
    format="PNG" align="center" />

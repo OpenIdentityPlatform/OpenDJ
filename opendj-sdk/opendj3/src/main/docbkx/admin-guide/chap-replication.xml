@@ -56,7 +56,7 @@
   This server will be part of a replication topology. If you also choose
   Configure as Secure, then replication traffic is protected by SSL.</para>
   
-  <mediaobject>
+  <mediaobject xml:id="figure-repla-setup">
    <imageobject>
     <imagedata fileref="images/replA-setup.png" format="PNG" />
    </imageobject>
@@ -67,7 +67,7 @@
   Administration Connector Port number, Admin User, and Admin Password for
   the first replica you set up.</para>
   
-  <mediaobject>
+  <mediaobject xml:id="figure-replb-setup">
    <imageobject>
     <imagedata fileref="images/replB-setup.png" format="PNG" />
    </imageobject>
@@ -77,7 +77,7 @@
   <literal>cn=admin data</literal> across replicas, used to manage replication
   in the topology.</para>
   
-  <mediaobject>
+  <mediaobject xml:id="figure-replb-global-admin">
    <imageobject>
     <imagedata fileref="images/replB-global-admin.png" format="PNG" />
    </imageobject>
@@ -85,7 +85,7 @@
   
   <para>You further set up what to replicate.</para>
   
-  <mediaobject>
+  <mediaobject xml:id="figure-replb-data-repl">
    <imageobject>
     <imagedata fileref="images/replB-data-repl.png" format="PNG" />
    </imageobject>
@@ -95,7 +95,7 @@
   monitor the replication connection and status through the OpenDJ Control
   Panel.</para>
   
-  <mediaobject>
+  <mediaobject xml:id="figure-repla-monitor-repl">
    <imageobject>
     <imagedata fileref="images/replA-monitor-repl.png" format="PNG" />
    </imageobject>
@@ -594,7 +594,7 @@ for a detailed log of this operation.</screen>
    servers and eight stand-alone directory servers, you reduce the number of
    replication connections to 14 for 12 replicas.)</para>
    
-   <mediaobject>
+   <mediaobject xml:id="figure-standalone-repl">
     <alt>Dedicated servers versus consolidated instances</alt>
     <imageobject>
      <imagedata fileref="images/standalone-repl.png" format="PNG"/>

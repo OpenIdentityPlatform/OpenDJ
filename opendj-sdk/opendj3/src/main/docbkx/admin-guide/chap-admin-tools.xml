@@ -77,7 +77,7 @@
   installed OpenDJ). In other words, the OpenDJ Control Panel does not do
   remote process management.</para>
   
-  <mediaobject>
+  <mediaobject xml:id="figure-opendj-control-panel">
    <imageobject>
     <imagedata fileref="images/OpenDJ-Control-Panel.png" format="PNG" />
    </imageobject>
@@ -97,7 +97,7 @@
      Entries window can be useful, however, both in the lab as you design
      and test directory data, and also if you modify individual ACIs or
      debug issues with particular entries.</para>
-     <mediaobject>
+     <mediaobject xml:id="figure-manage-entries">
       <imageobject>
        <imagedata fileref="images/Manage-Entries.png" format="PNG" />
       </imageobject>

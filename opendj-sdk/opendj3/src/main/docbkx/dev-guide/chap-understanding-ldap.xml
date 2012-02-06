@@ -164,7 +164,7 @@ mail: escape@example.com</screen></footnote></para>
   <literal>uid=bjensen,ou=People,dc=example,dc=com</literal>. Those components
   reflect the hierarchy of directory entries.</para>
   
-  <mediaobject>
+  <mediaobject xml:id="figure-data-organization">
    <alt>Directory data hierarchy as seen in OpenDJ Control Panel.</alt>
    <imageobject>
     <imagedata fileref="images/data-organization.png" format="PNG" />
@@ -202,7 +202,7 @@ mail: escape@example.com</screen></footnote></para>
   requests any number of operations perhaps processing results in between
   requests, and finally disconnects when done.</para>
 
-  <mediaobject>
+  <mediaobject xml:id="figure-ldap-lifecycle">
    <alt>Schematic of LDAP client-server session</alt>
    <imageobject>
     <imagedata fileref="images/ldap-lifecycle.png" format="PNG" />
