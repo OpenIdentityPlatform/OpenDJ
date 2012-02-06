@@ -45,7 +45,7 @@
    <para>(Mac OS X) Double-click
    <filename>OpenDJ-<?eval ${docTargetVersion}?>\Uninstall.app</filename>.</para>
 
-   <mediaobject>
+   <mediaobject xml:id="figure-uninstall-start">
     <imageobject>
      <imagedata fileref="images/uninstall-start.png" format="PNG" />
     </imageobject>
@@ -59,7 +59,7 @@
    <para>When the process is finished, you might still have some files
    to remove manually.</para>
    
-   <mediaobject>
+   <mediaobject xml:id="figure-uninstall-finished">
     <imageobject>
      <imagedata fileref="images/uninstall-finished.png" format="PNG" />
     </imageobject>

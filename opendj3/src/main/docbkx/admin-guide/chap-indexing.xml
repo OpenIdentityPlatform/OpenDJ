@@ -318,7 +318,7 @@ cn: Barbara Maddox</screen>
    New VLV Index..., and then set up your VLV index using the New VLV
    Index window.</para>
   
-   <mediaobject>
+   <mediaobject xml:id="figure-create-vlv-index">
     <imageobject>
      <imagedata fileref="images/create-vlv-index.png" format="PNG" />
     </imageobject>

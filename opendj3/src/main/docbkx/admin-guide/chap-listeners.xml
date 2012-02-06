@@ -374,7 +374,7 @@
   <replaceable>webapp-dir</replaceable> refers to the name of the directory
   in which you unpacked the DSML .war file.</para>
   
-  <mediaobject>
+  <mediaobject xml:id="figure-jxplorer-dsml">
    <imageobject>
     <imagedata fileref="images/JXplorer-dsml.png" format="PNG" />
    </imageobject>
