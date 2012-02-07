@@ -31,6 +31,7 @@ package com.forgerock.opendj.ldap;
 
 
 import static com.forgerock.opendj.ldap.LDAPConstants.OID_NOTICE_OF_DISCONNECTION;
+import static com.forgerock.opendj.ldap.SynchronizedConnection.synchronizeConnection;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -214,7 +215,8 @@ final class LDAPServerFilter extends BaseFilter
 
     private ClientContextImpl(final Connection<?> connection)
     {
-      this.connection = connection;
+      // FIXME: remove synchronization when OPENDJ-422 is resolved.
+      this.connection = synchronizeConnection(connection);
     }
 
 
@@ -377,6 +379,13 @@ final class LDAPServerFilter extends BaseFilter
         final ServerConnection<Integer> serverConnection)
     {
       this.serverConnection = serverConnection;
+    }
+
+
+
+    private Connection<?> getConnection()
+    {
+      return connection;
     }
 
   }
@@ -871,7 +880,7 @@ final class LDAPServerFilter extends BaseFilter
         final ServerConnection<Integer> conn = clientContext
             .getServerConnection();
         final AddHandler handler = new AddHandler(messageID,
-            ctx.getConnection());
+            clientContext.getConnection());
         conn.handleAdd(messageID, request, handler, handler);
       }
     }
@@ -890,7 +899,7 @@ final class LDAPServerFilter extends BaseFilter
         final ServerConnection<Integer> conn = clientContext
             .getServerConnection();
         final BindHandler handler = new BindHandler(messageID,
-            ctx.getConnection());
+            clientContext.getConnection());
         conn.handleBind(messageID, version, bindContext, handler, handler);
       }
     }
@@ -909,7 +918,7 @@ final class LDAPServerFilter extends BaseFilter
         final ServerConnection<Integer> conn = clientContext
             .getServerConnection();
         final CompareHandler handler = new CompareHandler(messageID,
-            ctx.getConnection());
+            clientContext.getConnection());
         conn.handleCompare(messageID, request, handler, handler);
       }
     }
@@ -928,7 +937,7 @@ final class LDAPServerFilter extends BaseFilter
         final ServerConnection<Integer> conn = clientContext
             .getServerConnection();
         final DeleteHandler handler = new DeleteHandler(messageID,
-            ctx.getConnection());
+            clientContext.getConnection());
         conn.handleDelete(messageID, request, handler, handler);
       }
     }
@@ -947,7 +956,7 @@ final class LDAPServerFilter extends BaseFilter
         final ServerConnection<Integer> conn = clientContext
             .getServerConnection();
         final ExtendedHandler<R> handler = new ExtendedHandler<R>(messageID,
-            ctx.getConnection());
+            clientContext.getConnection());
         conn.handleExtendedRequest(messageID, request, handler, handler);
       }
     }
@@ -966,7 +975,7 @@ final class LDAPServerFilter extends BaseFilter
         final ServerConnection<Integer> conn = clientContext
             .getServerConnection();
         final ModifyDNHandler handler = new ModifyDNHandler(messageID,
-            ctx.getConnection());
+            clientContext.getConnection());
         conn.handleModifyDN(messageID, request, handler, handler);
       }
     }
@@ -985,7 +994,7 @@ final class LDAPServerFilter extends BaseFilter
         final ServerConnection<Integer> conn = clientContext
             .getServerConnection();
         final ModifyHandler handler = new ModifyHandler(messageID,
-            ctx.getConnection());
+            clientContext.getConnection());
         conn.handleModify(messageID, request, handler, handler);
       }
     }
@@ -1004,7 +1013,7 @@ final class LDAPServerFilter extends BaseFilter
         final ServerConnection<Integer> conn = clientContext
             .getServerConnection();
         final SearchHandler handler = new SearchHandler(messageID,
-            ctx.getConnection());
+            clientContext.getConnection());
         conn.handleSearch(messageID, request, handler, handler);
       }
     }
