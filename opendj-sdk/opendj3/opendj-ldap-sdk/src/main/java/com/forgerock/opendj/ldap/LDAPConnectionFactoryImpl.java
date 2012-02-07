@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap;
@@ -63,18 +63,18 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory
 {
 
   @SuppressWarnings("rawtypes")
-  private final class FutureResultImpl implements
+  private final class ConnectionCompletionHandler implements
       CompletionHandler<org.glassfish.grizzly.Connection>
   {
-    private final FutureResultTransformer<Result, Connection> futureStartTLSResult;
-    private final RecursiveFutureResult<LDAPConnection, ExtendedResult> futureConnectionResult;
+    private final FutureResultTransformer<Result, Connection> startTLSFutureResult;
+    private final RecursiveFutureResult<LDAPConnection, ExtendedResult> connectionFutureResult;
     private LDAPConnection connection;
 
 
 
-    private FutureResultImpl(final ResultHandler<? super Connection> handler)
+    private ConnectionCompletionHandler(final ResultHandler<? super Connection> handler)
     {
-      this.futureStartTLSResult = new FutureResultTransformer<Result, Connection>(
+      this.startTLSFutureResult = new FutureResultTransformer<Result, Connection>(
           handler)
       {
 
@@ -108,8 +108,8 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory
 
       };
 
-      this.futureConnectionResult = new RecursiveFutureResult<LDAPConnection, ExtendedResult>(
-          futureStartTLSResult)
+      this.connectionFutureResult = new RecursiveFutureResult<LDAPConnection, ExtendedResult>(
+          startTLSFutureResult)
       {
 
         @Override
@@ -122,6 +122,7 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory
 
           if (options.getSSLContext() != null && options.useStartTLS())
           {
+            // Chain StartTLS extended request.
             final StartTLSExtendedRequest startTLS = Requests
                 .newStartTLSExtendedRequest(options.getSSLContext());
             startTLS.addEnabledCipherSuite(options.getEnabledCipherSuites()
@@ -130,9 +131,9 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory
                 new String[options.getEnabledProtocols().size()]));
             return connection.extendedRequestAsync(startTLS, null, handler);
           }
-
-          if (options.getSSLContext() != null)
+          else if (options.getSSLContext() != null)
           {
+            // Install SSL/TLS layer.
             try
             {
               connection.startTLS(options.getSSLContext(),
@@ -164,14 +165,18 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory
                   ioe.getMessage(), ioe);
             }
           }
-          handler.handleResult(null);
-          return new CompletedFutureResult<ExtendedResult>(
-              (ExtendedResult) null);
+          else
+          {
+            // Plain connection.
+            handler.handleResult(null);
+            return new CompletedFutureResult<ExtendedResult>(
+                (ExtendedResult) null);
+          }
         }
 
       };
 
-      futureStartTLSResult.setFutureResult(futureConnectionResult);
+      startTLSFutureResult.setFutureResult(connectionFutureResult);
     }
 
 
@@ -193,7 +198,7 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory
     @Override
     public void completed(final org.glassfish.grizzly.Connection connection)
     {
-      futureConnectionResult.handleResult(adaptConnection(connection));
+      connectionFutureResult.handleResult(adaptConnection(connection));
     }
 
 
@@ -204,7 +209,7 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory
     @Override
     public void failed(final Throwable throwable)
     {
-      futureConnectionResult
+      connectionFutureResult
           .handleErrorResult(adaptConnectionException(throwable));
     }
 
@@ -282,13 +287,11 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory
   public FutureResult<Connection> getConnectionAsync(
       final ResultHandler<? super Connection> handler)
   {
-    final FutureResultImpl future = new FutureResultImpl(handler);
-
+    final ConnectionCompletionHandler ch = new ConnectionCompletionHandler(handler);
     try
     {
-      future.futureConnectionResult.setFutureResult(transport.connect(
-          socketAddress, future));
-      return future.futureStartTLSResult;
+      ch.connectionFutureResult.setFutureResult(transport.connect(socketAddress, ch));
+      return ch.startTLSFutureResult;
     }
     catch (final IOException e)
     {
