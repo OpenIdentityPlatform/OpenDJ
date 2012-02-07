@@ -35,17 +35,9 @@
  <filename>filenames</filename>, <command>commands</command>, and
  <literal>literal values</literal>.</para>
 
- <screen>
-$ echo Terminal sessions with very long lines are formatted with lines folded
- by default to make them easier to read on the screen and to make them fit
- on the printed page. In the HTML version, you can double-click the text to
- toggle between the folded version for easy reading and the flat, syntactically
- correct version for easy copy/pasting.
-Terminal sessions with very long lines are formatted with lines folded
- by default to make them easier to read on the screen and to make them fit
- on the printed page. In the HTML version, you can double-click the text to
- toggle between the folded version for easy reading and the flat, syntactically
- correct version for easy copy/pasting.</screen>
+ <screen>$ echo Terminal sessions are formatted with line folding for easier reading.
+ In the HTML version, double-click to toggle between the folded version and
+ the flat, copy-paste version. &gt; /dev/null</screen>
 
  <para>In many cases, sections pertaining to UNIX, GNU/Linux, Mac OS X, BSD,
  and so forth are marked (UNIX). Sections pertaining to Microsoft Windows
