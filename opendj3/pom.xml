@@ -411,22 +411,22 @@
                   <replacevalue>
 &lt;script src="http://code.jquery.com/jquery-latest.min.js"&gt;&lt;/script&gt;
 &lt;script&gt;
-// On double-click, reformat &lt;pre class="screen"&gt; for easy copying.
+// On double-click, reformat &lt;div class="screen"&gt; for easy copying.
 $(document).ready(function() {
   $(".screen").attr("title", "Double-click [-] to flatten lines.");
   $(".screen").prepend('&lt;img src="../images/minus.png" class="toggle"&gt;');
 });
 $(".screen").live("dblclick", function() {
   $(this).replaceWith(
-    "&lt;pre class=\"flat\" title=\"Double-click [+] to wrap long lines.\"&gt;" +
+    "&lt;div class=\"flat\" title=\"Double-click [+] to wrap long lines.\"&gt;" +
     $(this).html().replace(/minus\.png/,"plus.png").replace(/\n /g," ") + "\n&lt;!--" + $(this).html() + "--&gt;" +
-    "&lt;/pre&gt;");
+    "&lt;/div&gt;");
 });
 $(".flat").live("dblclick", function() {
   $(this).replaceWith(
-    "&lt;pre class=\"screen\" title=\"Double-click [-] to flatten lines.\"&gt;" +
+    "&lt;div class=\"screen\" title=\"Double-click [-] to flatten lines.\"&gt;" +
     $(this).html().replace(/(.|\n)+&lt;!\-\-/m,"").replace(/\-\-\&gt;/,"").replace(/plus\.png/,"minus.png") +
-    "&lt;/pre&gt;");
+    "&lt;/div&gt;");
 });
 &lt;/script&gt;
 &lt;link rel="shortcut icon" href="http://forgerock.org/favicon.ico"&gt;
@@ -500,22 +500,22 @@ $(".flat").live("dblclick", function() {
                   <replacevalue>
 &lt;script src="http://code.jquery.com/jquery-latest.min.js"&gt;&lt;/script&gt;
 &lt;script&gt;
-// On double-click, reformat &lt;pre class="screen"&gt; for easy copying.
+// On double-click, reformat &lt;div class="screen"&gt; for easy copying.
 $(document).ready(function() {
   $(".screen").attr("title", "Double-click [-] to flatten lines.");
   $(".screen").prepend('&lt;img src="./images/minus.png" class="toggle"&gt;');
 });
 $(".screen").live("dblclick", function() {
   $(this).replaceWith(
-    "&lt;pre class=\"flat\" title=\"Double-click [+] to wrap long lines.\"&gt;" +
+    "&lt;div class=\"flat\" title=\"Double-click [+] to wrap long lines.\"&gt;" +
     $(this).html().replace(/minus\.png/,"plus.png").replace(/\n /g," ") + "\n&lt;!--" + $(this).html() + "--&gt;" +
-    "&lt;/pre&gt;");
+    "&lt;/div&gt;");
 });
 $(".flat").live("dblclick", function() {
   $(this).replaceWith(
-    "&lt;pre class=\"screen\" title=\"Double-click [-] to flatten lines.\"&gt;" +
+    "&lt;div class=\"screen\" title=\"Double-click [-] to flatten lines.\"&gt;" +
     $(this).html().replace(/(.|\n)+&lt;!\-\-/m,"").replace(/\-\-\&gt;/,"").replace(/plus\.png/,"minus.png") +
-    "&lt;/pre&gt;");
+    "&lt;/div&gt;");
 });
 &lt;/script&gt;
 &lt;link rel="shortcut icon" href="http://forgerock.org/favicon.ico"&gt;
