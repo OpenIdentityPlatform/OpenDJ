@@ -616,7 +616,7 @@ $(".flat").live("dblclick", function() {
           <validating>true</validating>
           <xIncludeAware>true</xIncludeAware>
           <failOnError>false</failOnError>
-          <outputFile>linktester.err</outputFile>
+          <outputFile>${basedir}/target/linktester.err</outputFile>
         </configuration>
       </plugin>
     </plugins>
