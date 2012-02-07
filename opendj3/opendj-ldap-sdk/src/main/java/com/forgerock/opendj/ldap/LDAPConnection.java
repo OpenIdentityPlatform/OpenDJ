@@ -30,6 +30,7 @@ package com.forgerock.opendj.ldap;
 
 
 
+import static com.forgerock.opendj.ldap.SynchronizedConnection.synchronizeConnection;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.io.IOException;
@@ -68,7 +69,7 @@ import com.forgerock.opendj.util.Validator;
 final class LDAPConnection extends AbstractAsynchronousConnection implements
     Connection
 {
-  private final org.glassfish.grizzly.Connection<?> connection;
+  private final SynchronizedConnection<?> connection;
   private Result connectionInvalidReason;
   private FilterChain customFilterChain;
   private boolean isClosed = false;
@@ -96,7 +97,8 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
   LDAPConnection(final org.glassfish.grizzly.Connection<?> connection,
       final LDAPOptions options)
   {
-    this.connection = connection;
+    // FIXME: remove synchronization when OPENDJ-422 is resolved.
+    this.connection = synchronizeConnection(connection);
     this.options = options;
   }
 
@@ -1047,7 +1049,8 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
         : cipherSuites.toArray(new String[cipherSuites.size()]));
     sslFilter = new SSLFilter(null, sslEngineConfigurator);
     installFilter(sslFilter);
-    sslFilter.handshake(connection, completionHandler);
+    sslFilter.handshake(connection.getUnsynchronizedConnection(),
+        completionHandler);
   }
 
 
