@@ -31,7 +31,7 @@
 
  <xsl:param name="make.clean.html" select="1" />
  <xsl:param name="docbook.css.link" select="0" />
- <xsl:param name="html.stylesheet">css/docbook.css</xsl:param>
+ <xsl:param name="html.stylesheet">css/coredoc.css</xsl:param>
  <xsl:param name="admon.style">
   <xsl:value-of select="string('font-style: italic;')"></xsl:value-of>
  </xsl:param>
