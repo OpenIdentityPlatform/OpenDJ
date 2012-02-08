@@ -23,8 +23,11 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.extensions;
+
+
 
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
@@ -45,359 +48,506 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 
+
+
 /**
  * A class that provides a TLS byte channel implementation.
- *
  */
-public class TLSByteChannel implements
-                                ByteChannel, ConnectionSecurityProvider {
+public class TLSByteChannel implements ByteChannel, ConnectionSecurityProvider
+{
+  private static final DebugTracer TRACER = getTracer();
 
-    private static final DebugTracer TRACER = getTracer();
+  private final ByteChannel socketChannel;
 
-    private final ClientConnection connection;
-    private final ByteChannel socketChannel;
+  private final SSLEngine sslEngine;
 
-    private final SSLEngine sslEngine;
+  // read copy to buffer
+  private final ByteBuffer appData;
 
-    //read copy to buffer
-    private final ByteBuffer appData;
-    //read encrypted
-    private final ByteBuffer appNetData;
+  // read encrypted
+  private final ByteBuffer appNetData;
 
-    //Write encrypted
-    private final ByteBuffer netData, tempData;
-    private final int sslBufferSize, appBufSize;
-    private boolean reading = false;
+  // Write encrypted
+  private final ByteBuffer netData;
+  private final ByteBuffer tempData;
 
-    //Map of cipher phrases to effective key size (bits). Taken from the
-    //following RFCs: 5289, 4346, 3268,4132 and 4162.
-    private static final Map<String, Integer> cipherMap;
+  private final int sslBufferSize;
+  private final int appBufSize;
 
-    static {
-        cipherMap = new LinkedHashMap<String, Integer>();
-        cipherMap.put("_WITH_AES_256_CBC_", new Integer(256));
-        cipherMap.put("_WITH_CAMELLIA_256_CBC_", new Integer(256));
-        cipherMap.put("_WITH_AES_256_GCM_", new Integer(256));
-        cipherMap.put("_WITH_3DES_EDE_CBC_", new Integer(112));
-        cipherMap.put("_WITH_AES_128_GCM_", new Integer(128));
-        cipherMap.put("_WITH_SEED_CBC_", new Integer(128));
-        cipherMap.put("_WITH_CAMELLIA_128_CBC_", new Integer(128));
-        cipherMap.put("_WITH_AES_128_CBC_", new Integer(128));
-        cipherMap.put("_WITH_IDEA_CBC_", new Integer(128));
-        cipherMap.put("_WITH_DES_CBC_", new Integer(56));
-        cipherMap.put("_WITH_RC2_CBC_40_", new Integer(40));
-        cipherMap.put("_WITH_RC4_40_", new Integer(40));
-        cipherMap.put("_WITH_DES40_CBC_", new Integer(40));
-        cipherMap.put("_WITH_NULL_", new Integer(0));
-    };
+  private boolean reading = false;
 
-    private TLSByteChannel(LDAPConnectionHandlerCfg config, ClientConnection c,
-        ByteChannel socketChannel, SSLContext sslContext)  {
+  // Map of cipher phrases to effective key size (bits). Taken from the
+  // following RFCs: 5289, 4346, 3268,4132 and 4162.
+  private static final Map<String, Integer> cipherMap;
+  static
+  {
+    cipherMap = new LinkedHashMap<String, Integer>();
+    cipherMap.put("_WITH_AES_256_CBC_", new Integer(256));
+    cipherMap.put("_WITH_CAMELLIA_256_CBC_", new Integer(256));
+    cipherMap.put("_WITH_AES_256_GCM_", new Integer(256));
+    cipherMap.put("_WITH_3DES_EDE_CBC_", new Integer(112));
+    cipherMap.put("_WITH_AES_128_GCM_", new Integer(128));
+    cipherMap.put("_WITH_SEED_CBC_", new Integer(128));
+    cipherMap.put("_WITH_CAMELLIA_128_CBC_", new Integer(128));
+    cipherMap.put("_WITH_AES_128_CBC_", new Integer(128));
+    cipherMap.put("_WITH_IDEA_CBC_", new Integer(128));
+    cipherMap.put("_WITH_DES_CBC_", new Integer(56));
+    cipherMap.put("_WITH_RC2_CBC_40_", new Integer(40));
+    cipherMap.put("_WITH_RC4_40_", new Integer(40));
+    cipherMap.put("_WITH_DES40_CBC_", new Integer(40));
+    cipherMap.put("_WITH_NULL_", new Integer(0));
+  };
 
-        this.socketChannel = socketChannel;
-        this.connection = c;
-      // getHostName could potentially be very expensive and could block
-      // the connection handler for several minutes. (See issue 4229)
-      // Accepting new connections should be done in a seperate thread to
-      // avoid blocking new connections. Just remove for now to prevent
-      // potential DoS attacks. SSL sessions will not be reused and some
-      // cipher suites (such as Kerberos) will not work.
-      //String hostName = socketChannel.socket().getInetAddress().getHostName();
-      //int port = socketChannel.socket().getPort();
-      //sslEngine = sslContext.createSSLEngine(hostName, port);
-        sslEngine = sslContext.createSSLEngine();
-        sslEngine.setUseClientMode(false);
-        Set<String> protocols = config.getSSLProtocol();
-        if (!protocols.isEmpty())
-            sslEngine.setEnabledProtocols(protocols.toArray(new String[0]));
-        Set<String> ciphers = config.getSSLCipherSuite();
-        if (!ciphers.isEmpty())
-            sslEngine.setEnabledCipherSuites(ciphers.toArray(new String[0]));
-        switch (config.getSSLClientAuthPolicy()) {
-        case DISABLED:
-            sslEngine.setNeedClientAuth(false);
-            sslEngine.setWantClientAuth(false);
-            break;
-        case REQUIRED:
-            sslEngine.setWantClientAuth(true);
-            sslEngine.setNeedClientAuth(true);
-            break;
-        case OPTIONAL:
-        default:
-            sslEngine.setNeedClientAuth(false);
-            sslEngine.setWantClientAuth(true);
-            break;
+
+
+  /**
+   * Create an TLS byte channel instance using the specified LDAP connection
+   * configuration, client connection, SSL context and socket channel
+   * parameters.
+   *
+   * @param config
+   *          The LDAP connection configuration.
+   * @param c
+   *          The client connection.
+   * @param sslContext
+   *          The SSL context.
+   * @param socketChannel
+   *          The socket channel.
+   * @return A TLS capable byte channel.
+   */
+  public static TLSByteChannel getTLSByteChannel(
+      final LDAPConnectionHandlerCfg config, final ClientConnection c,
+      final SSLContext sslContext, final ByteChannel socketChannel)
+  {
+    return new TLSByteChannel(config, c, socketChannel, sslContext);
+  }
+
+
+
+  private TLSByteChannel(final LDAPConnectionHandlerCfg config,
+      final ClientConnection c, final ByteChannel socketChannel,
+      final SSLContext sslContext)
+  {
+
+    this.socketChannel = socketChannel;
+
+    // getHostName could potentially be very expensive and could block
+    // the connection handler for several minutes. (See issue 4229)
+    // Accepting new connections should be done in a seperate thread to
+    // avoid blocking new connections. Just remove for now to prevent
+    // potential DoS attacks. SSL sessions will not be reused and some
+    // cipher suites (such as Kerberos) will not work.
+    // String hostName = socketChannel.socket().getInetAddress().getHostName();
+    // int port = socketChannel.socket().getPort();
+    // sslEngine = sslContext.createSSLEngine(hostName, port);
+    sslEngine = sslContext.createSSLEngine();
+    sslEngine.setUseClientMode(false);
+    final Set<String> protocols = config.getSSLProtocol();
+    if (!protocols.isEmpty())
+    {
+      sslEngine.setEnabledProtocols(protocols.toArray(new String[0]));
+    }
+
+    final Set<String> ciphers = config.getSSLCipherSuite();
+    if (!ciphers.isEmpty())
+    {
+      sslEngine.setEnabledCipherSuites(ciphers.toArray(new String[0]));
+    }
+
+    switch (config.getSSLClientAuthPolicy())
+    {
+    case DISABLED:
+      sslEngine.setNeedClientAuth(false);
+      sslEngine.setWantClientAuth(false);
+      break;
+    case REQUIRED:
+      sslEngine.setWantClientAuth(true);
+      sslEngine.setNeedClientAuth(true);
+      break;
+    case OPTIONAL:
+    default:
+      sslEngine.setNeedClientAuth(false);
+      sslEngine.setWantClientAuth(true);
+      break;
+    }
+
+    final SSLSession sslSession = sslEngine.getSession();
+    sslBufferSize = sslSession.getPacketBufferSize();
+    appBufSize = sslSession.getApplicationBufferSize();
+
+    appNetData = ByteBuffer.allocate(sslBufferSize);
+    netData = ByteBuffer.allocate(sslBufferSize);
+
+    appData = ByteBuffer.allocate(sslSession.getApplicationBufferSize());
+    tempData = ByteBuffer.allocate(sslSession.getApplicationBufferSize());
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public synchronized void close() throws IOException
+  {
+    sslEngine.closeInbound();
+    sslEngine.closeOutbound();
+    final SSLEngineResult.HandshakeStatus hsStatus = sslEngine
+        .getHandshakeStatus();
+    if (hsStatus != SSLEngineResult.HandshakeStatus.FINISHED
+        && hsStatus != SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING)
+    {
+      doHandshakeWrite(hsStatus);
+    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public int getAppBufSize()
+  {
+    return appBufSize;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public Certificate[] getClientCertificateChain()
+  {
+    try
+    {
+      return sslEngine.getSession().getPeerCertificates();
+    }
+    catch (final SSLPeerUnverifiedException e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+      return new Certificate[0];
+    }
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public String getName()
+  {
+    return "TLS";
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public int getSSF()
+  {
+    int cipherKeySSF = 0;
+    final String cipherString = sslEngine.getSession().getCipherSuite();
+    for (final Map.Entry<String, Integer> mapEntry : cipherMap.entrySet())
+    {
+      if (cipherString.indexOf(mapEntry.getKey()) >= 0)
+      {
+        cipherKeySSF = mapEntry.getValue().intValue();
+        break;
+      }
+    }
+    return cipherKeySSF;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isOpen()
+  {
+    if (sslEngine.isInboundDone() || sslEngine.isOutboundDone())
+    {
+      return false;
+    }
+    return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isSecure()
+  {
+    return true;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public synchronized int read(final ByteBuffer clearBuffer) throws IOException
+  {
+    SSLEngineResult.HandshakeStatus hsStatus;
+    if (!reading)
+    {
+      appNetData.clear();
+    }
+    else
+    {
+      reading = false;
+    }
+
+    if (!socketChannel.isOpen())
+    {
+      return -1;
+    }
+
+    if (sslEngine.isInboundDone())
+    {
+      return -1;
+    }
+
+    do
+    {
+      final int wrappedBytes = socketChannel.read(appNetData);
+      appNetData.flip();
+
+      if (wrappedBytes == -1)
+      {
+        return -1;
+      }
+
+      hsStatus = sslEngine.getHandshakeStatus();
+
+      if (hsStatus == SSLEngineResult.HandshakeStatus.NEED_TASK
+          || hsStatus == SSLEngineResult.HandshakeStatus.NEED_WRAP)
+      {
+        doHandshakeRead(hsStatus);
+      }
+
+      if (wrappedBytes == 0)
+      {
+        return 0;
+      }
+
+      while (appNetData.hasRemaining())
+      {
+        appData.clear();
+        final SSLEngineResult res = sslEngine.unwrap(appNetData, appData);
+        appData.flip();
+
+        if (res.getStatus() == SSLEngineResult.Status.BUFFER_UNDERFLOW)
+        {
+          appNetData.compact();
+          reading = true;
+          break;
         }
-        SSLSession sslSession = sslEngine.getSession();
-        sslBufferSize = sslSession.getPacketBufferSize();
-        appBufSize = sslSession.getApplicationBufferSize();
-
-        appNetData = ByteBuffer.allocate(sslBufferSize);
-        netData = ByteBuffer.allocate(sslBufferSize);
-
-        appData = ByteBuffer.allocate(sslSession.getApplicationBufferSize());
-        tempData = ByteBuffer.allocate(sslSession.getApplicationBufferSize());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public int getAppBufSize() {
-        return appBufSize;
-    }
-
-    /**
-     * Create an TLS byte channel instance using the specified LDAP connection
-     * configuration, client connection, SSL context and socket channel
-     * parameters.
-     *
-     * @param config The LDAP connection configuration.
-     * @param c The client connection.
-     * @param sslContext The SSL context.
-     * @param socketChannel The socket channel.
-     * @return A TLS capable byte channel.
-     */
-    public static TLSByteChannel
-    getTLSByteChannel(LDAPConnectionHandlerCfg config, ClientConnection c,
-                        SSLContext sslContext, ByteChannel socketChannel) {
-        return new TLSByteChannel(config, c, socketChannel, sslContext);
-    }
-
-    private SSLEngineResult.HandshakeStatus doTasks() {
-        Runnable task;
-        while ((task = sslEngine.getDelegatedTask()) != null)
-            task.run();
-        return sslEngine.getHandshakeStatus();
-    }
-
-    private void doHandshakeRead(SSLEngineResult.HandshakeStatus hsStatus)
-    throws IOException {
-        do {
-            doHandshakeOp(hsStatus);
-            hsStatus = sslEngine.getHandshakeStatus();
-        } while (hsStatus == SSLEngineResult.HandshakeStatus.NEED_WRAP ||
-                hsStatus == SSLEngineResult.HandshakeStatus.NEED_TASK);
-    }
-
-    private void  doHandshakeOp(SSLEngineResult.HandshakeStatus hsStatus)
-    throws IOException {
-        SSLEngineResult res;
-        switch (hsStatus) {
-        case NEED_TASK:
-            hsStatus = doTasks();
-            break;
-        case NEED_WRAP:
-            tempData.clear();
-            netData.clear();
-            res = sslEngine.wrap(tempData, netData);
-            hsStatus = res.getHandshakeStatus();
-            netData.flip();
-            while(netData.hasRemaining()) {
-                socketChannel.write(netData);
-            }
-            hsStatus = sslEngine.getHandshakeStatus();
-            return;
-        default:
-            return;
+        else if (res.getStatus() != SSLEngineResult.Status.OK)
+        {
+          return -1;
         }
-    }
 
-    /**
-     * {@inheritDoc}
-     */
-    public synchronized int read(ByteBuffer clearBuffer) throws IOException {
-        SSLEngineResult.HandshakeStatus hsStatus;
-        if(!reading)
-          appNetData.clear();
-        else
-          reading = false;
-        if(!socketChannel.isOpen())
-            return -1;
-        if(sslEngine.isInboundDone())
-            return -1;
-        do {
-            int wrappedBytes = socketChannel.read(appNetData);
-            appNetData.flip();
-            if(wrappedBytes == -1) {
-                return -1;
-            }
-            hsStatus = sslEngine.getHandshakeStatus();
-            if (hsStatus == SSLEngineResult.HandshakeStatus.NEED_TASK ||
-                    hsStatus == SSLEngineResult.HandshakeStatus.NEED_WRAP)
-                doHandshakeRead(hsStatus);
-            if(wrappedBytes == 0)
-              return 0;
-            while (appNetData.hasRemaining()) {
-                appData.clear();
-                SSLEngineResult res = sslEngine.unwrap(appNetData, appData);
-                appData.flip();
-                if(res.getStatus() == SSLEngineResult.Status.BUFFER_UNDERFLOW) {
-                  appNetData.compact();
-                  reading = true;
-                  break;
-                } else  if(res.getStatus() != SSLEngineResult.Status.OK)
-                    return -1;
-                hsStatus = sslEngine.getHandshakeStatus();
-                if (hsStatus == SSLEngineResult.HandshakeStatus.NEED_TASK ||
-                        hsStatus == SSLEngineResult.HandshakeStatus.NEED_WRAP)
-                    doHandshakeOp(hsStatus);
-                clearBuffer.put(appData);
-            }
-            hsStatus = sslEngine.getHandshakeStatus();
-        } while (hsStatus == SSLEngineResult.HandshakeStatus.NEED_TASK ||
-                 hsStatus == SSLEngineResult.HandshakeStatus.NEED_WRAP );
-        return clearBuffer.position();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public synchronized void close() throws IOException {
-        sslEngine.closeInbound();
-        sslEngine.closeOutbound();
-        SSLEngineResult.HandshakeStatus hsStatus =
-                                      sslEngine.getHandshakeStatus();
-        if(hsStatus != SSLEngineResult.HandshakeStatus.FINISHED &&
-           hsStatus !=  SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING)
-            doHandshakeWrite(hsStatus);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isOpen() {
-        if(sslEngine.isInboundDone() || sslEngine.isOutboundDone())
-          return false;
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public int getSSF() {
-        int cipherKeySSF = 0;
-        String cipherString = sslEngine.getSession().getCipherSuite();
-        for(Map.Entry<String, Integer> mapEntry : cipherMap.entrySet()) {
-            if(cipherString.indexOf(mapEntry.getKey()) >= 0) {
-                cipherKeySSF = mapEntry.getValue().intValue();
-                break;
-            }
-        }
-        return cipherKeySSF;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public  Certificate[] getClientCertificateChain() {
-        try {
-          return sslEngine.getSession().getPeerCertificates();
-        }
-        catch (SSLPeerUnverifiedException e) {
-          if (debugEnabled()) {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-          return new Certificate[0];
-        }
-    }
-
-    private void doHandshakeUnwrap() throws IOException {
-        netData.clear();
-        tempData.clear();
-        int bytesRead = socketChannel.read(netData);
-        if (bytesRead <= 0)
-            throw new ClosedChannelException();
-         else
-          sslEngine.unwrap(netData, tempData);
-    }
-
-    private void
-    doHandshakeWrite(SSLEngineResult.HandshakeStatus hsStatus)
-    throws IOException {
-        do {
-            if(hsStatus == SSLEngineResult.HandshakeStatus.NEED_UNWRAP) {
-                doHandshakeUnwrap();
-            } else
-               doHandshakeOp(hsStatus);
-            hsStatus = sslEngine.getHandshakeStatus();
-        } while (hsStatus == SSLEngineResult.HandshakeStatus.NEED_WRAP ||
-                hsStatus == SSLEngineResult.HandshakeStatus.NEED_TASK ||
-                hsStatus == SSLEngineResult.HandshakeStatus.NEED_UNWRAP);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public synchronized int write(ByteBuffer clearData) throws IOException {
-        if(!socketChannel.isOpen() || sslEngine.isOutboundDone()) {
-            throw new ClosedChannelException();
-        }
-        int originalPosition = clearData.position();
-        int originalLimit = clearData.limit();
-        int length = originalLimit - originalPosition;
-        if (length > sslBufferSize) {
-            int pos = originalPosition;
-            int lim = originalPosition + sslBufferSize;
-            while (pos < originalLimit) {
-                clearData.position(pos);
-                clearData.limit(lim);
-                writeInternal(clearData);
-                pos = lim;
-                lim = Math.min(originalLimit, pos + sslBufferSize);
-            }
-            return length;
-        }  else {
-            return writeInternal(clearData);
-        }
-    }
-
-    private int writeInternal(ByteBuffer clearData) throws IOException {
-        int totBytesSent = 0;
-        SSLEngineResult.HandshakeStatus hsStatus;
         hsStatus = sslEngine.getHandshakeStatus();
-        if (hsStatus == SSLEngineResult.HandshakeStatus.NEED_TASK ||
-                hsStatus == SSLEngineResult.HandshakeStatus.NEED_WRAP ||
-                hsStatus == SSLEngineResult.HandshakeStatus.NEED_UNWRAP)
-            doHandshakeWrite(hsStatus);
-        while(clearData.hasRemaining()) {
-            netData.clear();
-            SSLEngineResult res = sslEngine.wrap(clearData, netData);
-            netData.flip();
-            if(netData.remaining() == 0)
-            {
-              // wrap didn't produce any data from our clear buffer.
-              // Throw exception to prevent looping.
-              throw new SSLException("SSLEngine.wrap produced 0 bytes");
-            }
-            if(res.getStatus() != SSLEngineResult.Status.OK)
-                throw new ClosedChannelException();
-            if (hsStatus == SSLEngineResult.HandshakeStatus.NEED_TASK ||
-                    hsStatus == SSLEngineResult.HandshakeStatus.NEED_WRAP ||
-                    hsStatus == SSLEngineResult.HandshakeStatus.NEED_UNWRAP)
-                doHandshakeWrite(hsStatus);
-            totBytesSent += socketChannel.write(netData);
+        if (hsStatus == SSLEngineResult.HandshakeStatus.NEED_TASK
+            || hsStatus == SSLEngineResult.HandshakeStatus.NEED_WRAP)
+        {
+          doHandshakeOp(hsStatus);
         }
-        return totBytesSent;
+        clearBuffer.put(appData);
+      }
+      hsStatus = sslEngine.getHandshakeStatus();
+    }
+    while (hsStatus == SSLEngineResult.HandshakeStatus.NEED_TASK
+        || hsStatus == SSLEngineResult.HandshakeStatus.NEED_WRAP);
+
+    return clearBuffer.position();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public ByteChannel wrapChannel(final ByteChannel channel)
+  {
+    return this;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public synchronized int write(final ByteBuffer clearData) throws IOException
+  {
+    if (!socketChannel.isOpen() || sslEngine.isOutboundDone())
+    {
+      throw new ClosedChannelException();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public ByteChannel wrapChannel(ByteChannel channel) {
-        return this;
+    final int originalPosition = clearData.position();
+    final int originalLimit = clearData.limit();
+    final int length = originalLimit - originalPosition;
+
+    if (length > sslBufferSize)
+    {
+      int pos = originalPosition;
+      int lim = originalPosition + sslBufferSize;
+      while (pos < originalLimit)
+      {
+        clearData.position(pos);
+        clearData.limit(lim);
+        writeInternal(clearData);
+        pos = lim;
+        lim = Math.min(originalLimit, pos + sslBufferSize);
+      }
+      return length;
+    }
+    else
+    {
+      return writeInternal(clearData);
+    }
+  }
+
+
+
+  private void doHandshakeOp(SSLEngineResult.HandshakeStatus hsStatus)
+      throws IOException
+  {
+    SSLEngineResult res;
+    switch (hsStatus)
+    {
+    case NEED_TASK:
+      hsStatus = doTasks();
+      break;
+    case NEED_WRAP:
+      tempData.clear();
+      netData.clear();
+      res = sslEngine.wrap(tempData, netData);
+      hsStatus = res.getHandshakeStatus();
+      netData.flip();
+      while (netData.hasRemaining())
+      {
+        socketChannel.write(netData);
+      }
+      hsStatus = sslEngine.getHandshakeStatus();
+      return;
+    default:
+      return;
+    }
+  }
+
+
+
+  private void doHandshakeRead(SSLEngineResult.HandshakeStatus hsStatus)
+      throws IOException
+  {
+    do
+    {
+      doHandshakeOp(hsStatus);
+      hsStatus = sslEngine.getHandshakeStatus();
+    }
+    while (hsStatus == SSLEngineResult.HandshakeStatus.NEED_WRAP
+        || hsStatus == SSLEngineResult.HandshakeStatus.NEED_TASK);
+  }
+
+
+
+  private void doHandshakeUnwrap() throws IOException
+  {
+    netData.clear();
+    tempData.clear();
+    final int bytesRead = socketChannel.read(netData);
+
+    if (bytesRead <= 0)
+    {
+      throw new ClosedChannelException();
+    }
+    else
+    {
+      sslEngine.unwrap(netData, tempData);
+    }
+  }
+
+
+
+  private void doHandshakeWrite(SSLEngineResult.HandshakeStatus hsStatus)
+      throws IOException
+  {
+    do
+    {
+      if (hsStatus == SSLEngineResult.HandshakeStatus.NEED_UNWRAP)
+      {
+        doHandshakeUnwrap();
+      }
+      else
+      {
+        doHandshakeOp(hsStatus);
+      }
+      hsStatus = sslEngine.getHandshakeStatus();
+    }
+    while (hsStatus == SSLEngineResult.HandshakeStatus.NEED_WRAP
+        || hsStatus == SSLEngineResult.HandshakeStatus.NEED_TASK
+        || hsStatus == SSLEngineResult.HandshakeStatus.NEED_UNWRAP);
+  }
+
+
+
+  private SSLEngineResult.HandshakeStatus doTasks()
+  {
+    Runnable task;
+    while ((task = sslEngine.getDelegatedTask()) != null)
+    {
+      task.run();
+    }
+    return sslEngine.getHandshakeStatus();
+  }
+
+
+
+  private int writeInternal(final ByteBuffer clearData) throws IOException
+  {
+    int totBytesSent = 0;
+    SSLEngineResult.HandshakeStatus hsStatus;
+    hsStatus = sslEngine.getHandshakeStatus();
+
+    if (hsStatus == SSLEngineResult.HandshakeStatus.NEED_TASK
+        || hsStatus == SSLEngineResult.HandshakeStatus.NEED_WRAP
+        || hsStatus == SSLEngineResult.HandshakeStatus.NEED_UNWRAP)
+    {
+      doHandshakeWrite(hsStatus);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public String getName() {
-        return "TLS";
-    }
+    while (clearData.hasRemaining())
+    {
+      netData.clear();
+      final SSLEngineResult res = sslEngine.wrap(clearData, netData);
+      netData.flip();
+      if (netData.remaining() == 0)
+      {
+        // wrap didn't produce any data from our clear buffer.
+        // Throw exception to prevent looping.
+        throw new SSLException("SSLEngine.wrap produced 0 bytes");
+      }
 
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isSecure() {
-        return true;
+      if (res.getStatus() != SSLEngineResult.Status.OK)
+      {
+        throw new ClosedChannelException();
+      }
+
+      if (hsStatus == SSLEngineResult.HandshakeStatus.NEED_TASK
+          || hsStatus == SSLEngineResult.HandshakeStatus.NEED_WRAP
+          || hsStatus == SSLEngineResult.HandshakeStatus.NEED_UNWRAP)
+      {
+        doHandshakeWrite(hsStatus);
+      }
+      totBytesSent += socketChannel.write(netData);
     }
+    return totBytesSent;
+  }
 }
