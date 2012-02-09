@@ -39,11 +39,11 @@
   <title>To Uninstall OpenDJ From the Graphical Uninstaller</title>
   <step>
    <para>(UNIX) Run
-   <command>OpenDJ-<?eval ${docTargetVersion}?>\uninstall</command>.</para>
+   <command>OpenDJ-<?eval ${docTargetVersion}?>/uninstall</command>.</para>
    <para>(Windows) Double-click
    <filename>OpenDJ-<?eval ${docTargetVersion}?>\uninstall.bat</filename>.</para>
    <para>(Mac OS X) Double-click
-   <filename>OpenDJ-<?eval ${docTargetVersion}?>\Uninstall.app</filename>.</para>
+   <filename>OpenDJ-<?eval ${docTargetVersion}?>/Uninstall.app</filename>.</para>
 
    <mediaobject xml:id="figure-uninstall-start">
     <imageobject>
