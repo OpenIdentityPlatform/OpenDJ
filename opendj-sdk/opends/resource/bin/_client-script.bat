@@ -24,7 +24,7 @@ rem CDDL HEADER END
 rem
 rem
 rem      Copyright 2006-2010 Sun Microsystems, Inc.
-rem      Portions Copyright 2011 ForgeRock AS
+rem      Portions Copyright 2011-2012 ForgeRock AS
 
 rem This script is used to invoke various client-side processes.  It should not
 rem be invoked directly by end users.
@@ -37,7 +37,7 @@ set INSTANCE_DIR=
 for /f "delims=" %%a in (%INSTALL_ROOT%\instance.loc) do (
   set INSTANCE_DIR=%%a
 )
-set CUR_DIR=%~dp0
+set CUR_DIR=%CD%
 cd /d %INSTALL_ROOT%
 cd /d %INSTANCE_DIR%
 set INSTANCE_ROOT=%CD%

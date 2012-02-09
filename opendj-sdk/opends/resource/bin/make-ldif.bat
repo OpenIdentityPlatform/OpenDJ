@@ -24,28 +24,24 @@ rem CDDL HEADER END
 rem
 rem
 rem      Copyright 2006-2009 Sun Microsystems, Inc.
-rem      Portions Copyright 2011 ForgeRock AS
+rem      Portions Copyright 2011-2012 ForgeRock AS
 
 setlocal
 
 for %%i in (%~sf0) do set NON_ESCAPED=%%~dPsi..
 
-
 FOR /F "tokens=1-2* delims=%%" %%1 IN ("%NON_ESCAPED%") DO (
 if NOT "%%2" == "" goto invalidPath)
 
-for %%i in (%~sf0) do set DIR_HOME=%%~dPsi.
-
-set CUR_DIR=%~dp0
-cd /d %DIR_HOME%\..
-set INSTALL_ROOT=%CD%
-cd /d %CUR_DIR%
+for %%i in (%~sf0) do set DIR_HOME=%%~dPsi..
+set INSTALL_ROOT=%DIR_HOME%
 
 set INSTANCE_DIR=
 for /f "delims=" %%a in (%INSTALL_ROOT%\instance.loc) do (
   set INSTANCE_DIR=%%a
 )
-set CUR_DIR=%~dp0
+
+set CUR_DIR=%CD%
 cd /d %INSTALL_ROOT%
 cd /d %INSTANCE_DIR%
 set INSTANCE_ROOT=%CD%
