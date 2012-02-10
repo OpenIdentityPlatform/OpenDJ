@@ -59,7 +59,6 @@ public class RedirectingByteChannel implements ByteChannel
 
 
   private final ByteChannel child;
-
   private volatile ByteChannel redirect = null;
 
 
@@ -76,9 +75,10 @@ public class RedirectingByteChannel implements ByteChannel
    */
   public void close() throws IOException
   {
-    if (redirect != null)
+    final ByteChannel tmp = redirect;
+    if (tmp != null)
     {
-      redirect.close();
+      tmp.close();
     }
     else
     {
@@ -103,11 +103,15 @@ public class RedirectingByteChannel implements ByteChannel
    */
   public boolean isOpen()
   {
-    if (redirect != null)
+    final ByteChannel tmp = redirect;
+    if (tmp != null)
     {
-      return redirect.isOpen();
+      return tmp.isOpen();
     }
-    return child.isOpen();
+    else
+    {
+      return child.isOpen();
+    }
   }
 
 
@@ -117,9 +121,10 @@ public class RedirectingByteChannel implements ByteChannel
    */
   public int read(final ByteBuffer buffer) throws IOException
   {
-    if (redirect != null)
+    final ByteChannel tmp = redirect;
+    if (tmp != null)
     {
-      return redirect.read(buffer);
+      return tmp.read(buffer);
     }
     else
     {
@@ -148,9 +153,10 @@ public class RedirectingByteChannel implements ByteChannel
    */
   public int write(final ByteBuffer buffer) throws IOException
   {
-    if (redirect != null)
+    final ByteChannel tmp = redirect;
+    if (tmp != null)
     {
-      return redirect.write(buffer);
+      return tmp.write(buffer);
     }
     else
     {
