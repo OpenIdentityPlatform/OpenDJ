@@ -39,9 +39,8 @@
  review process should slow authors down enough that documentation you get
  with a stable release has had time to bake fully.</para>
 
- <!-- TODO: online location of core documentation, perhaps docs.forgerock.org? -->
  <para>Fully baked core documentation is available at <link
- xlink:href='http://...'>...</link>.</para>
+ xlink:href='http://docs.forgerock.org/'>docs.forgerock.org</link>.</para>
 
  <para>The <link xlink:show="new"
  xlink:href="https://wikis.forgerock.org/confluence/display/OPENDJ">OpenDJ
