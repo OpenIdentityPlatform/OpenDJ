@@ -52,6 +52,7 @@
   </authorgroup>
   <xinclude:include href='../legal.xml' />
   <date><?dbtimestamp format="B d, Y"?></date>
+  <pubdate>Last updated: <?dbtimestamp format="B d, Y"?></pubdate>
  </info>
 
  <toc />
