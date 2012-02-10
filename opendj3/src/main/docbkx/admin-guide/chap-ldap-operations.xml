@@ -224,6 +224,45 @@ telephoneNumber: +1 408 555 1862
 sn: Jensen</screen>
   </example>
 
+  <example xml:id="escape-characters-in-filter">
+   <title>Search: Escaping Search Filter Characters</title>
+
+   <para><link xlink:href='http://tools.ietf.org/html/rfc4515'>RFC 4515:
+   Lightweight Directory Access Protocol (LDAP): String Representation
+   of Search Filters</link> mentions a number of characters that you must
+   handle with care when using them in search filters.</para>
+
+   <itemizedlist>
+    <para>For a filter like <literal>(attr=<replaceable
+    >value</replaceable>)</literal>, the following list indicates characters
+    that you must replace with a backslash ( <literal>\</literal> ) followed
+    by two hexadecimal digits when using them as part of the
+    <replaceable>value</replaceable> string.</para>
+    <listitem>
+     <para>Replace <literal>*</literal> with <literal>\2a</literal>.</para>
+    </listitem>
+    <listitem>
+     <para>Replace <literal>(</literal> with <literal>\28</literal>.</para>
+    </listitem>
+    <listitem>
+     <para>Replace <literal>)</literal> with <literal>\29</literal>.</para>
+    </listitem>
+    <listitem>
+     <para>Replace <literal>\</literal> with <literal>\5c</literal>.</para>
+    </listitem>
+    <listitem>
+     <para>Replace NUL (0x00) with <literal>\2a</literal>.</para>
+    </listitem>
+   </itemizedlist>
+
+   <para>The following example shows a filter with escaped characters matching
+   an actual value.</para>
+   <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com
+ "(description=\28*\5c*\2a\29)" description
+dn: uid=bjensen,ou=People,dc=example,dc=com
+description: (A \great\ description*)</screen>
+  </example>
+
   <example xml:id="extensible-match-search">
    <title>Search: List Active Accounts</title>
 
