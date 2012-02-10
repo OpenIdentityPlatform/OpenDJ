@@ -23,59 +23,76 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.opends.server.extensions;
 
+
+
 import java.nio.channels.ByteChannel;
 import java.security.cert.Certificate;
 
+
+
 /**
  * This interface can be used to define connection security providers.
- *
  */
-public interface ConnectionSecurityProvider {
+public interface ConnectionSecurityProvider
+{
 
-    /**
-     * Factory method: creates a new security ByteChannel
-     * layer wrapping the provided ByteChannel.
-     *
-     * @param channel The byte channel to be wrapped.
-     * @return A byte channel wrapping the specified byte channel.
-     */
-    ByteChannel wrapChannel(ByteChannel channel);
+  /**
+   * Return a buffer size of the byte channel.
+   *
+   * @return Integer representing the byte channel application buffer size.
+   */
+  int getAppBufSize();
 
-    /**
-     * Return a buffer size of the byte channel.
-     * @return Integer representing the byte channel application buffer size.
-     */
-    int getAppBufSize();
 
-    /**
-     * Return a certificate chain array.
-     *
-     * @return A certificate chain array.
-     */
-    Certificate[] getClientCertificateChain();
 
-    /**
-     * Return a Security Strength Factor.
-     *
-     * @return Integer representing the current SSF of a provider.
-     */
-    int getSSF();
+  /**
+   * Return a certificate chain array.
+   *
+   * @return A certificate chain array.
+   */
+  Certificate[] getClientCertificateChain();
 
-    /**
-     * Return <CODE>true</CODE> if a provider is secure.
-     *
-     * @return <CODE>true</CODE> if a provider is secure.
-     */
-    boolean isSecure();
 
-    /**
-     * Return the name of a provider.
-     *
-     * @return String representing the name of a provider.
-     */
-    String getName();
+
+  /**
+   * Return the name of a provider.
+   *
+   * @return String representing the name of a provider.
+   */
+  String getName();
+
+
+
+  /**
+   * Return a Security Strength Factor.
+   *
+   * @return Integer representing the current SSF of a provider.
+   */
+  int getSSF();
+
+
+
+  /**
+   * Return <CODE>true</CODE> if a provider is secure.
+   *
+   * @return <CODE>true</CODE> if a provider is secure.
+   */
+  boolean isSecure();
+
+
+
+  /**
+   * Factory method: creates a new security ByteChannel layer wrapping the
+   * provided ByteChannel.
+   *
+   * @param channel
+   *          The byte channel to be wrapped.
+   * @return A byte channel wrapping the specified byte channel.
+   */
+  ByteChannel wrapChannel(ByteChannel channel);
 }

@@ -23,92 +23,138 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 
 package org.opends.server.extensions;
+
+
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
 
+
+
 /**
  * This class redirects read and write requests either to a child byte channel,
  * or a byte channel to be redirected to.
- *
  */
-public class RedirectingByteChannel implements ByteChannel {
-    private final ByteChannel child;
-    private volatile ByteChannel redirect = null;
+public class RedirectingByteChannel implements ByteChannel
+{
+  /**
+   * Create an instance of a redirecting byte channel using the specified byte
+   * channel as the child.
+   *
+   * @param bc
+   *          A byte channel to use as the child.
+   * @return A redirecting byte channel.
+   */
+  public static RedirectingByteChannel getRedirectingByteChannel(
+      final ByteChannel bc)
+  {
+    return new RedirectingByteChannel(bc);
+  }
 
-    private RedirectingByteChannel(ByteChannel child) {
-        this.child = child;
-    }
 
-    /**
-     * Create an instance of a redirecting byte channel using the specified
-     * byte channel as the child.
-     *
-     * @param bc A byte channel to use as the child.
-     * @return A redirecting byte channel.
-     */
-    public static
-    RedirectingByteChannel getRedirectingByteChannel(ByteChannel bc) {
-        return new RedirectingByteChannel(bc);
-    }
 
-    /**
-     * {@inheritDoc}
-     */
-    public int read(ByteBuffer buffer) throws IOException {
-        if (redirect != null)
-            return redirect.read(buffer);
-        else
-            return child.read(buffer);
-    }
+  private final ByteChannel child;
 
-    /**
-     * {@inheritDoc}
-     */
-    public void close() throws IOException {
-        if(redirect != null)
-            redirect.close();
-        else
-            child.close();
-    }
+  private volatile ByteChannel redirect = null;
 
-    /**
-     * {@inheritDoc}
-     */
-    public boolean isOpen() {
-        if(redirect != null)
-            return redirect.isOpen();
-        return child.isOpen();
-    }
 
-    /**
-     * {@inheritDoc}
-     */
-    public int write(ByteBuffer buffer) throws IOException {
-        if (redirect != null)
-            return redirect.write(buffer);
-        else
-            return child.write(buffer);
-    }
 
-    /**
-     * Redirects a byte channel to a byte channel associated with the specified
-     * provider.
-     *
-     * @param provider The provider to redirect to.
-     */
-    public final void redirect(ConnectionSecurityProvider provider) {
-      redirect = provider.wrapChannel(child);
-    }
+  private RedirectingByteChannel(final ByteChannel child)
+  {
+    this.child = child;
+  }
 
-    /**
-     * Disable redirection.
-     */
-    public final void disable() {
-        redirect = null;
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public void close() throws IOException
+  {
+    if (redirect != null)
+    {
+      redirect.close();
     }
+    else
+    {
+      child.close();
+    }
+  }
+
+
+
+  /**
+   * Disable redirection.
+   */
+  public final void disable()
+  {
+    redirect = null;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public boolean isOpen()
+  {
+    if (redirect != null)
+    {
+      return redirect.isOpen();
+    }
+    return child.isOpen();
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public int read(final ByteBuffer buffer) throws IOException
+  {
+    if (redirect != null)
+    {
+      return redirect.read(buffer);
+    }
+    else
+    {
+      return child.read(buffer);
+    }
+  }
+
+
+
+  /**
+   * Redirects a byte channel to a byte channel associated with the specified
+   * provider.
+   *
+   * @param provider
+   *          The provider to redirect to.
+   */
+  public final void redirect(final ConnectionSecurityProvider provider)
+  {
+    redirect = provider.wrapChannel(child);
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  public int write(final ByteBuffer buffer) throws IOException
+  {
+    if (redirect != null)
+    {
+      return redirect.write(buffer);
+    }
+    else
+    {
+      return child.write(buffer);
+    }
+  }
 }
