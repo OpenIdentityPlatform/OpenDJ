@@ -131,8 +131,7 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
     {
       synchronized (readLock)
       {
-        // Repeat until there is some unwrapped data available or all available
-        // data has been read from the underlying socket.
+        // Only read and unwrap new data if needed.
         if (!recvUnwrappedBuffer.hasRemaining())
         {
           final int read = doRecvAndUnwrap();
@@ -147,7 +146,7 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
         final int startPos = unwrappedData.position();
         if (recvUnwrappedBuffer.remaining() > unwrappedData.remaining())
         {
-          // Unwrapped data does not fit in client buffer so copy one by at a
+          // Unwrapped data does not fit in client buffer so copy one byte at a
           // time: it's annoying that there is no easy way to do this with
           // ByteBuffers.
           while (unwrappedData.hasRemaining())
