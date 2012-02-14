@@ -23,13 +23,14 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.api;
 
 
 
 import java.net.InetAddress;
+import java.nio.channels.ByteChannel;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Collection;
@@ -47,7 +48,6 @@ import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.networkgroups.NetworkGroup;
-import org.opends.server.extensions.RedirectingByteChannel;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -1327,7 +1327,7 @@ public abstract class ClientConnection
    *
    * @return The lowest level channel associated with a connection.
    */
-  public RedirectingByteChannel getChannel() {
+  public ByteChannel getChannel() {
     // By default, return null, which indicates that there should
     // be no channel.  Subclasses should override this if
     // they want to support a channel.
@@ -1346,21 +1346,6 @@ public abstract class ClientConnection
     // be no socket channel.  Subclasses should override this if
     // they want to support a socket channel.
     return null;
-  }
-
-
-
-  /**
-   * Return the largest application buffer size that should be used
-   * for a connection.
-   *
-   * @return The application buffer size.
-   */
-  public int getAppBufferSize() {
-    // By default, return 0, which indicates that there should
-    // be no application buffer size.  Subclasses should override
-    //this if they want to support a application buffer size.
-    return 0;
   }
 
 

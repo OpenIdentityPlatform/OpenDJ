@@ -447,16 +447,65 @@ public class SASLContext implements CallbackHandler,
 
 
   /**
-   * Return the negotiated buffer size.
+   * Returns the negotiated maximum size of protected data which can be received
+   * from the client.
    *
-   * @param prop
-   *          The buffer size property to return.
-   * @return The value of the negotiated buffer size.
+   * @return The negotiated maximum size of protected data which can be received
+   *         from the client.
    */
-  int getBufSize(final String prop)
+  int getMaxReceiveBufferSize()
   {
-    final String sizeStr = (String) saslServer.getNegotiatedProperty(prop);
-    return Integer.parseInt(sizeStr);
+    String str = (String) saslServer.getNegotiatedProperty(Sasl.MAX_BUFFER);
+    if (str != null)
+    {
+      try
+      {
+        return Integer.parseInt(str);
+      }
+      catch (NumberFormatException e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
+    }
+
+    // Default buffer size if not specified according to Java SASL
+    // documentation.
+    return 65536;
+  }
+
+
+
+  /**
+   * Returns the negotiated maximum size of raw data which can be sent to the
+   * client.
+   *
+   * @return The negotiated maximum size of raw data which can be sent to the
+   *         client.
+   */
+  int getMaxRawSendBufferSize()
+  {
+    String str = (String) saslServer.getNegotiatedProperty(Sasl.RAW_SEND_SIZE);
+    if (str != null)
+    {
+      try
+      {
+        return Integer.parseInt(str);
+      }
+      catch (NumberFormatException e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
+    }
+
+    // Default buffer size if not specified according to Java SASL
+    // documentation.
+    return 65536;
   }
 
 

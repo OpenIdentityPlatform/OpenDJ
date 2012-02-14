@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -163,18 +164,7 @@ public class DigestMD5SASLMechanismHandler
          (SASLContext) clientConn.getSASLAuthStateInfo();
       if(saslContext == null) {
           try {
-            //If the connection is secure already (i.e., TLS), then make the
-            //receive buffers sizes match.
-            if(clientConn.isSecure()) {
-              HashMap<String, String>secProps =
-                                      new HashMap<String,String>(saslProps);
-              int maxBuf = clientConn.getAppBufferSize();
-              secProps.put(Sasl.MAX_BUFFER, Integer.toString(maxBuf));
-              saslContext = SASLContext.createSASLContext(secProps,
-                                      serverFQDN, SASL_MECHANISM_DIGEST_MD5,
-                                      identityMapper);
-            } else
-              saslContext = SASLContext.createSASLContext(saslProps, serverFQDN,
+            saslContext = SASLContext.createSASLContext(saslProps, serverFQDN,
                             SASL_MECHANISM_DIGEST_MD5, identityMapper);
           } catch (SaslException ex) {
               if (debugEnabled()) {

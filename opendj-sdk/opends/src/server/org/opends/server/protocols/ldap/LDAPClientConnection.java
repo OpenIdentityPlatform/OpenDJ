@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2011 ForgeRock AS.
+ *      Portions Copyright 2010-2012 ForgeRock AS.
  */
 package org.opends.server.protocols.ldap;
 
@@ -360,7 +360,7 @@ public class LDAPClientConnection extends ClientConnection implements
 
   private ASN1ByteChannelReader asn1Reader;
 
-  private int APPLICATION_BUFFER_SIZE = 4096;
+  private final int bufferSize;
 
   private final RedirectingByteChannel saslChannel;
   private final RedirectingByteChannel tlsChannel;
@@ -420,7 +420,7 @@ public class LDAPClientConnection extends ClientConnection implements
       this.useNanoTime=DirectoryServer.getUseNanoTime();
     }
 
-    APPLICATION_BUFFER_SIZE = connectionHandler.getBufferSize();
+    bufferSize = connectionHandler.getBufferSize();
 
     tlsChannel =
         RedirectingByteChannel.getRedirectingByteChannel(
@@ -428,7 +428,7 @@ public class LDAPClientConnection extends ClientConnection implements
     saslChannel =
         RedirectingByteChannel.getRedirectingByteChannel(tlsChannel);
     this.asn1Reader =
-        ASN1.getReader(saslChannel, APPLICATION_BUFFER_SIZE, connectionHandler
+        ASN1.getReader(saslChannel, bufferSize, connectionHandler
             .getMaxRequestSize());
     writeLock = new ReentrantLock();
 
@@ -939,16 +939,8 @@ public class LDAPClientConnection extends ClientConnection implements
     {
       if (asn1Writer == null)
       {
-        if (isSecure())
-        {
-          int appBufSize = activeProvider.getAppBufSize();
-          asn1Writer = ASN1.getWriter(saslChannel, writeLock, appBufSize);
-        }
-        else
-        {
-          asn1Writer = ASN1.getWriter(saslChannel, writeLock,
-                  APPLICATION_BUFFER_SIZE);
-        }
+        asn1Writer = ASN1.getWriter(saslChannel, writeLock,
+                  bufferSize);
         asn1WriterMap.put(currentThread, asn1Writer);
       }
 
@@ -2590,9 +2582,6 @@ public class LDAPClientConnection extends ClientConnection implements
    */
   public void enableTLS()
   {
-    this.asn1Reader =
-        ASN1.getReader(saslChannel, tlsPendingProvider.getAppBufSize(),
-            connectionHandler.getMaxRequestSize());
     activeProvider = tlsPendingProvider;
     tlsChannel.redirect(tlsPendingProvider);
     tlsPendingProvider = null;
@@ -2608,9 +2597,6 @@ public class LDAPClientConnection extends ClientConnection implements
    */
   public void enableSSL(ConnectionSecurityProvider sslProvider)
   {
-    this.asn1Reader =
-        ASN1.getReader(saslChannel, sslProvider.getAppBufSize(),
-            connectionHandler.getMaxRequestSize());
     activeProvider = sslProvider;
     tlsChannel.redirect(sslProvider);
   }
@@ -2624,10 +2610,6 @@ public class LDAPClientConnection extends ClientConnection implements
   {
     activeProvider = saslPendingProvider;
     saslChannel.redirect(saslPendingProvider);
-    asn1Reader =
-        ASN1.getReader(saslChannel,
-            saslPendingProvider.getAppBufSize(), connectionHandler
-                .getMaxRequestSize());
     saslPendingProvider = null;
   }
 
@@ -2657,7 +2639,7 @@ public class LDAPClientConnection extends ClientConnection implements
    * @return The TLS redirecting byte channel.
    */
    @Override
-   public RedirectingByteChannel getChannel() {
+   public ByteChannel getChannel() {
      return this.tlsChannel;
    }
 
@@ -2676,21 +2658,6 @@ public class LDAPClientConnection extends ClientConnection implements
   }
 
 
-
-  /**
-   * Retrieves the application buffer size used in a LDAP client connection.
-   * If a active security provider is being used, then the application buffer
-   * size of that provider is returned.
-   *
-   * @return The application buffer size.
-   */
-  @Override
-  public int getAppBufferSize() {
-    if(activeProvider != null)
-      return activeProvider.getAppBufSize();
-    else
-      return APPLICATION_BUFFER_SIZE;
-  }
 
   /**
    * {@inheritDoc}
