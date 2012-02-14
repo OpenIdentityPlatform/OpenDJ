@@ -143,7 +143,7 @@ public class RedirectingByteChannel implements ByteChannel
    */
   public final void redirect(final ConnectionSecurityProvider provider)
   {
-    redirect = provider.wrapChannel(child);
+    redirect = provider.getChannel();
   }
 
 

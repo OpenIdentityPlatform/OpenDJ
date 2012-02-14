@@ -42,15 +42,6 @@ public interface ConnectionSecurityProvider
 {
 
   /**
-   * Return a buffer size of the byte channel.
-   *
-   * @return Integer representing the byte channel application buffer size.
-   */
-  int getAppBufSize();
-
-
-
-  /**
    * Return a certificate chain array.
    *
    * @return A certificate chain array.
@@ -87,12 +78,9 @@ public interface ConnectionSecurityProvider
 
 
   /**
-   * Factory method: creates a new security ByteChannel layer wrapping the
-   * provided ByteChannel.
+   * Returns the security provider's byte channel.
    *
-   * @param channel
-   *          The byte channel to be wrapped.
-   * @return A byte channel wrapping the specified byte channel.
+   * @return The security provider's byte channel.
    */
-  ByteChannel wrapChannel(ByteChannel channel);
+  ByteChannel getChannel();
 }
