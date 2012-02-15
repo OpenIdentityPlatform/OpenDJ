@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -111,6 +111,7 @@ public final class TextAccessLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       final FileBasedAccessLogPublisherCfg config)
   {
@@ -259,7 +260,7 @@ public final class TextAccessLogPublisher extends
       final boolean writerAutoFlush = cfg.isAutoFlush()
           && !cfg.isAsynchronous();
 
-      final MultifileTextWriter writer = new MultifileTextWriter(
+      final MultifileTextWriter theWriter = new MultifileTextWriter(
           "Multifile Text Writer for " + cfg.dn().toNormalizedString(),
           cfg.getTimeInterval(), fnPolicy, perm, errorHandler, "UTF-8",
           writerAutoFlush, cfg.isAppend(), (int) cfg.getBufferSize());
@@ -267,12 +268,12 @@ public final class TextAccessLogPublisher extends
       // Validate retention and rotation policies.
       for (final DN dn : cfg.getRotationPolicyDNs())
       {
-        writer.addRotationPolicy(DirectoryServer.getRotationPolicy(dn));
+        theWriter.addRotationPolicy(DirectoryServer.getRotationPolicy(dn));
       }
 
       for (final DN dn : cfg.getRetentionPolicyDNs())
       {
-        writer.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
+        theWriter.addRetentionPolicy(DirectoryServer.getRetentionPolicy(dn));
       }
 
       if (cfg.isAsynchronous())
@@ -281,17 +282,17 @@ public final class TextAccessLogPublisher extends
         {
           this.writer = new AsyncronousTextWriter(
               "Asyncronous Text Writer for " + cfg.dn().toNormalizedString(),
-              cfg.getQueueSize(), cfg.isAutoFlush(), writer);
+              cfg.getQueueSize(), cfg.isAutoFlush(), theWriter);
         }
         else
         {
           this.writer = new ParallelTextWriter("Parallel Text Writer for "
-              + cfg.dn().toNormalizedString(), cfg.isAutoFlush(), writer);
+              + cfg.dn().toNormalizedString(), cfg.isAutoFlush(), theWriter);
         }
       }
       else
       {
-        this.writer = writer;
+        this.writer = theWriter;
       }
     }
     catch (final DirectoryException e)
@@ -337,6 +338,7 @@ public final class TextAccessLogPublisher extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       final FileBasedAccessLogPublisherCfg config,
       final List<Message> unacceptableReasons)
@@ -345,7 +347,7 @@ public final class TextAccessLogPublisher extends
     final String formatString = config.getLogRecordTimeFormat();
     try
     {
-      new SimpleDateFormat(formatString);
+       new SimpleDateFormat(formatString);
     }
     catch (final Exception e)
     {
@@ -926,7 +928,6 @@ public final class TextAccessLogPublisher extends
       appendExtendedRequest(extendedOperation, buffer);
     }
 
-    String name = null;
     final String oid = extendedOperation.getResponseOID();
     if (oid != null)
     {
@@ -934,7 +935,7 @@ public final class TextAccessLogPublisher extends
           .getExtendedOperationHandler(oid);
       if (extOpHandler != null)
       {
-        name = extOpHandler.getExtendedOperationName();
+        String name = extOpHandler.getExtendedOperationName();
         if (name != null)
         {
           buffer.append(" name=\"");
@@ -1423,6 +1424,7 @@ public final class TextAccessLogPublisher extends
     {
       buffer.append(" newSuperior=\"");
       buffer.append(newSuperior.toString());
+      buffer.append("\"");
     }
     appendRequestControls(modifyDNOperation, buffer);
     if (modifyDNOperation.isSynchronizationOperation())
