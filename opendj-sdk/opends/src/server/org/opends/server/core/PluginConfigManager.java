@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -901,9 +901,9 @@ public class PluginConfigManager
       DN pluginEntryDN, Set<PluginType> pluginTypes)
   {
     pluginLock.lock();
-    registeredPlugins.put(pluginEntryDN, plugin);
     try
     {
+      registeredPlugins.put(pluginEntryDN, plugin);
       registerPlugin0(plugin, pluginTypes);
     }
     finally
@@ -5459,6 +5459,7 @@ public class PluginConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAddAcceptable(PluginCfg configuration,
                                               List<Message> unacceptableReasons)
   {
@@ -5495,6 +5496,7 @@ public class PluginConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(
                                  PluginCfg configuration)
   {
@@ -5548,6 +5550,7 @@ public class PluginConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationDeleteAcceptable(
                       PluginCfg configuration,
                       List<Message> unacceptableReasons)
@@ -5561,6 +5564,7 @@ public class PluginConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(
                                  PluginCfg configuration)
   {
@@ -5578,6 +5582,7 @@ public class PluginConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       PluginCfg configuration,
                       List<Message> unacceptableReasons)
@@ -5615,6 +5620,7 @@ public class PluginConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                                  PluginCfg configuration)
   {
