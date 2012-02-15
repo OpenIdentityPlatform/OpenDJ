@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 
 package org.opends.quicksetup.installer.offline;
@@ -70,17 +70,18 @@ import org.opends.server.util.CertificateManager;
 public class OfflineInstaller extends Installer
 {
   /* This map contains the ratio associated with each step */
-  private HashMap<InstallProgressStep, Integer> hmRatio =
+  private final HashMap<InstallProgressStep, Integer> hmRatio =
       new HashMap<InstallProgressStep, Integer>();
 
   /* This map contains the summary associated with each step */
-  private HashMap<InstallProgressStep, Message> hmSummary =
+  private final HashMap<InstallProgressStep, Message> hmSummary =
       new HashMap<InstallProgressStep, Message>();
 
   private ApplicationException runError;
 
   private static final Logger LOG =
     Logger.getLogger(OfflineInstaller.class.getName());
+
   /**
    * Actually performs the install in this thread.  The thread is blocked.
    *
@@ -130,13 +131,13 @@ public class OfflineInstaller extends Installer
 
       if (mustStart())
       {
-        if (isVerbose())
+        if (isStartVerbose())
         {
           notifyListeners(getTaskSeparator());
         }
         setCurrentProgressStep(InstallProgressStep.STARTING_SERVER);
         PointAdder pointAdder = new PointAdder();
-        if (!isVerbose())
+        if (!isStartVerbose())
         {
           notifyListeners(getFormattedProgress(
               INFO_PROGRESS_STARTING_NON_VERBOSE.get()));
@@ -152,12 +153,12 @@ public class OfflineInstaller extends Installer
         }
         finally
         {
-          if (!isVerbose())
+          if (!isStartVerbose())
           {
             pointAdder.stop();
           }
         }
-        if (!isVerbose())
+        if (!isStartVerbose())
         {
           notifyListeners(getFormattedDoneWithLineBreak());
         }
@@ -307,6 +308,7 @@ public class OfflineInstaller extends Installer
   /**
    * {@inheritDoc}
    */
+  @Override
   public Integer getRatio(ProgressStep status)
   {
     return hmRatio.get(status);
@@ -315,13 +317,16 @@ public class OfflineInstaller extends Installer
   /**
    * {@inheritDoc}
    */
+  @Override
   public Message getSummary(ProgressStep status)
   {
     return hmSummary.get(status);
   }
 
   /**
-   * {@inheritDoc}
+   * Returns the exception from the run() method, if any.
+   * @return the ApplicationException raised during the run() method, if any.
+   *         null otherwise.
    */
   public ApplicationException getRunError()
   {
@@ -545,6 +550,7 @@ public class OfflineInstaller extends Installer
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getInstallationPath()
   {
     return Utils.getInstallPathFromClasspath();
@@ -553,17 +559,11 @@ public class OfflineInstaller extends Installer
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getInstancePath()
   {
     String installPath =  Utils.getInstallPathFromClasspath();
     return Utils.getInstancePathFromInstallPath(installPath);
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  protected String getOpenDSClassPath()
-  {
-    return System.getProperty("java.class.path");
-  }
 }
