@@ -289,17 +289,12 @@
             
           <script>
             expirationTime = returnString.split(':')[1].strip()
-
-            if len(expirationTime) == 9 and expirationTime.startswith('8'):
-              myRC = 0
-            else:
-              myRC = 1
           </script>
 
-          <if expr="myRC== 0">
+          <if expr="len(expirationTime) > 0">
             <sequence>
               <message log="1">
-                'SUCCESS: Expiration (%s) time contains 9 digit and starts with 8' % expirationTime
+                'SUCCESS: Expiration (%s) time greater than 0' % expirationTime
               </message>
               <tcstatus result="'pass'"/>
             </sequence>
