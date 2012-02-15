@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2011 ForgeRock AS
+ *      Portions Copyright 2010-2012 ForgeRock AS
  */
 package org.opends.server.workflowelement.externalchangelog;
 
@@ -343,8 +343,15 @@ public class ECLSearchOperation
           persistentSearch.cancel();
           setSendResponse(true);
         }
-        this.abort(null);
-        throw coe;
+        if (eclSession != null)
+        {
+          try
+          {
+            eclSession.close();
+          }
+          catch(Exception ignored){}
+        }
+          throw coe;
       }
       catch (Exception e)
       {
@@ -1004,7 +1011,7 @@ public class ECLSearchOperation
   {
     AttributeType aType;
 
-    String dnString = "";
+    String dnString;
     if (draftChangenumber == 0)
     {
       // Draft uncompat mode
@@ -1420,11 +1427,24 @@ public class ECLSearchOperation
       // Here is the only binary operation we know how to optimize
       Collection<SearchFilter> comps = sf.getFilterComponents();
       SearchFilter sfs[] = comps.toArray(new SearchFilter[0]);
-      StartECLSessionMsg m1 = evaluateSearchParameters2(sfs[0]);
-      StartECLSessionMsg m2 = evaluateSearchParameters2(sfs[1]);
-
-      int l1 = m1.getLastDraftChangeNumber();
-      int l2 = m2.getLastDraftChangeNumber();
+      int l1 = -1;
+      int f1 = -1;
+      int l2 = -1;
+      int f2 = -1;
+      StartECLSessionMsg m1;
+      StartECLSessionMsg m2;
+      if (sfs.length > 0)
+      {
+        m1 = evaluateSearchParameters2(sfs[0]);
+        l1 = m1.getLastDraftChangeNumber();
+        f1 = m1.getFirstDraftChangeNumber();
+      }
+      if (sfs.length > 1)
+      {
+        m2 = evaluateSearchParameters2(sfs[1]);
+        l2 = m2.getLastDraftChangeNumber();
+        f2 = m2.getFirstDraftChangeNumber();
+      }
       if (l1 == -1)
         startCLmsg.setLastDraftChangeNumber(l2);
       else
@@ -1433,8 +1453,6 @@ public class ECLSearchOperation
         else
           startCLmsg.setLastDraftChangeNumber(Math.min(l1,l2));
 
-      int f1 = m1.getFirstDraftChangeNumber();
-      int f2 = m2.getFirstDraftChangeNumber();
       startCLmsg.setFirstDraftChangeNumber(Math.max(f1,f2));
       return startCLmsg;
     }
