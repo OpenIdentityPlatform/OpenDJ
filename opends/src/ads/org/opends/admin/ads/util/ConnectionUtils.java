@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 
 package org.opends.admin.ads.util;
@@ -132,6 +133,7 @@ public class ConnectionUtils
     final Hashtable<String, String> fEnv = env;
     Thread t = new Thread(new Runnable()
     {
+      @Override
       public void run()
       {
         try
@@ -165,9 +167,9 @@ public class ConnectionUtils
    * @param timeout       passed as com.sun.jndi.ldap.connect.timeout if > 0.
    * @param env           null or additional environment properties.
    * @param trustManager  null or the trust manager to be invoked during SSL
-   * negociation.
+   * negotiation.
    * @param keyManager    null or the key manager to be invoked during SSL
-   * negociation.
+   * negotiation.
    * @return the established connection with the given parameters.
    *
    * @throws NamingException the exception thrown when instantiating
@@ -236,7 +238,7 @@ public class ConnectionUtils
   /**
    * Clones the provided InitialLdapContext and returns a connection using
    * the same parameters.
-   * @param ctx hte connection to be cloned.
+   * @param ctx the connection to be cloned.
    * @param timeout the timeout to establish the connection in milliseconds.
    * Use {@code 0} to express no timeout.
    * @param trustManager the trust manager to be used to connect.
@@ -254,10 +256,7 @@ public class ConnectionUtils
     if (ctls != null)
     {
       newCtls = new Control[ctls.length];
-      for (int i=0; i<ctls.length; i++)
-      {
-        newCtls[i] = ctls[i];
-      }
+      System.arraycopy(ctls, 0, newCtls, 0, ctls.length);
     }
     /* Contains the DirContext and the Exception if any */
     final Object[] pair = new Object[] {null, null};
@@ -267,6 +266,7 @@ public class ConnectionUtils
     final Control[] fNewCtls = newCtls;
 
     Thread t = new Thread(new Runnable() {
+      @Override
       public void run() {
         try {
           if (isSSL(ctx) || isStartTLS(ctx))
@@ -304,9 +304,9 @@ public class ConnectionUtils
    * @param timeout       passed as com.sun.jndi.ldap.connect.timeout if > 0.
    * @param env           null or additional environment properties.
    * @param trustManager  null or the trust manager to be invoked during SSL
-   * negociation.
+   * negotiation.
    * @param keyManager    null or the key manager to be invoked during SSL
-   * negociation.
+   * negotiation.
    * @param verifier      null or the hostname verifier to be setup in the
    * StartTlsResponse.
    * @return the established connection with the given parameters.
@@ -358,6 +358,7 @@ public class ConnectionUtils
     final HostnameVerifier fVerifier = verifier;
 
     Thread t = new Thread(new Runnable() {
+      @Override
       public void run() {
         try {
           StartTlsResponse tls;
@@ -534,11 +535,9 @@ public class ConnectionUtils
   public static boolean isSSL(InitialLdapContext ctx)
   {
     boolean isSSL = false;
-    String s = null;
     try
     {
-      s = getLdapUrl(ctx);
-      isSSL = s.toLowerCase().startsWith("ldaps");
+      isSSL = getLdapUrl(ctx).toLowerCase().startsWith("ldaps");
     }
     catch (Throwable t)
     {
@@ -574,7 +573,7 @@ public class ConnectionUtils
   /**
    * Method used to know if we can connect as administrator in a server with a
    * given password and dn.
-   * @param ldapUrl the ldap URL of the server.
+   * @param ldapUrl the LDAP URL of the server.
    * @param dn the dn to be used.
    * @param pwd the password to be used.
    * @param timeout the timeout to establish the connection in milliseconds.
@@ -642,7 +641,15 @@ public class ConnectionUtils
       }
       finally
       {
-        sr.close();
+        try
+        {
+          sr.close();
+        }
+        catch(Exception ex)
+        {
+          LOG.log(Level.WARNING,
+              "Unexpected error closing enumeration on cn=Config entry", ex);
+        }
       }
       connectedAsAdministrativeUser = true;
     } catch (NamingException ne)
