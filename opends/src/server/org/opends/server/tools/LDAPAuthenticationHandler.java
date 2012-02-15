@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 package org.opends.server.tools;
 import org.opends.messages.Message;
@@ -92,7 +93,7 @@ import static org.opends.server.util.StaticUtils.*;
  *   <LI>PLAIN</LI>
  * </UL>
  * <BR><BR>
- * Note that this implementation is not threadsafe, so if the same
+ * Note that this implementation is not thread safe, so if the same
  * <CODE>AuthenticationHandler</CODE> object is to be used concurrently by
  * multiple threads, it must be externally synchronized.
  */
@@ -103,14 +104,14 @@ public class LDAPAuthenticationHandler
   private ByteSequence gssapiBindDN;
 
   // The LDAP reader that will be used to read data from the server.
-  private LDAPReader reader;
+  private final LDAPReader reader;
 
   // The LDAP writer that will be used to send data to the server.
-  private LDAPWriter writer;
+  private final LDAPWriter writer;
 
   // The atomic integer that will be used to obtain message IDs for request
   // messages.
-  private AtomicInteger nextMessageID;
+  private final AtomicInteger nextMessageID;
 
   // An array filled with the inner pad byte.
   private byte[] iPad;
@@ -137,7 +138,7 @@ public class LDAPAuthenticationHandler
   private String gssapiQoP;
 
   // The host name used to connect to the remote system.
-  private String hostName;
+  private final String hostName;
 
   // The SASL mechanism that will be used for callback authentication.
   private String saslMechanism;
@@ -3209,6 +3210,7 @@ public class LDAPAuthenticationHandler
    * @throws  LDAPException  If a server-side problem occurs during the bind
    *                         processing.
    */
+  @Override
   public Object run()
          throws ClientException, LDAPException
   {
@@ -3593,6 +3595,7 @@ public class LDAPAuthenticationHandler
    * @throws  UnsupportedCallbackException  If an unexpected callback is
    *                                        included in the provided set.
    */
+  @Override
   public void handle(Callback[] callbacks)
          throws UnsupportedCallbackException
   {
