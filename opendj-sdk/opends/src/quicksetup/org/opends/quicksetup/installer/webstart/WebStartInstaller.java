@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2012 ForgeRock AS
  */
 
 package org.opends.quicksetup.installer.webstart;
@@ -79,10 +79,10 @@ import static org.opends.messages.QuickSetupMessages.*;
  *
  */
 public class WebStartInstaller extends Installer {
-  private HashMap<InstallProgressStep, Integer> hmRatio =
+  private final HashMap<InstallProgressStep, Integer> hmRatio =
       new HashMap<InstallProgressStep, Integer>();
 
-  private HashMap<InstallProgressStep, Message> hmSummary =
+  private final HashMap<InstallProgressStep, Message> hmSummary =
       new HashMap<InstallProgressStep, Message>();
 
   private static final Logger LOG =
@@ -101,6 +101,7 @@ public class WebStartInstaller extends Installer {
    * Actually performs the install in this thread.  The thread is blocked.
    *
    */
+  @Override
   public void run()
   {
     initMaps();
@@ -335,6 +336,7 @@ public class WebStartInstaller extends Installer {
   /**
    * {@inheritDoc}
    */
+  @Override
   public Integer getRatio(ProgressStep status)
   {
     return hmRatio.get(status);
@@ -343,9 +345,10 @@ public class WebStartInstaller extends Installer {
   /**
    * {@inheritDoc}
    */
+  @Override
   public Message getSummary(ProgressStep status)
   {
-    Message summary = null;
+    Message summary;
     if (InstallProgressStep.DOWNLOADING.equals(status)) {
       summary = loader.getSummary();
     } else {
@@ -468,12 +471,11 @@ public class WebStartInstaller extends Installer {
   private InputStream getZipInputStream(Integer maxRatio)
       throws ApplicationException {
     notifyListeners(getFormattedWithPoints(INFO_PROGRESS_DOWNLOADING.get()));
-    InputStream in = null;
 
     waitForLoader(maxRatio);
 
     String zipName = getZipFileName();
-    in =
+    InputStream in =
       Installer.class.getClassLoader().getResourceAsStream(zipName);
 
     if (in == null)
@@ -655,6 +657,7 @@ public class WebStartInstaller extends Installer {
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getInstallationPath()
   {
     return getUserData().getServerLocation();
@@ -663,6 +666,7 @@ public class WebStartInstaller extends Installer {
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getInstancePath()
   {
     // TODO
