@@ -34,7 +34,7 @@
   </parent>
   <groupId>org.forgerock.opendj</groupId>
   <artifactId>opendj-project</artifactId>
-  <version>3.0.0-SNAPSHOT</version>
+  <version>3.0.0-M2</version>
   <packaging>pom</packaging>
   <name>OpenDJ Directory Services Project</name>
   <description>
@@ -65,9 +65,9 @@
     </mailingList>
   </mailingLists>
   <scm>
-    <url>https://svn.forgerock.org/opendj/trunk/opendj3/</url>
-    <connection>scm:svn:https://svn.forgerock.org/opendj/trunk/opendj3/</connection>
-    <developerConnection>scm:svn:https://svn.forgerock.org/opendj/trunk/opendj3/</developerConnection>
+    <url>https://svn.forgerock.org/opendj/tags/3.0.0-M2</url>
+    <connection>scm:svn:https://svn.forgerock.org/opendj/tags/3.0.0-M2</connection>
+    <developerConnection>scm:svn:https://svn.forgerock.org/opendj/tags/3.0.0-M2</developerConnection>
   </scm>
   <ciManagement>
     <system>jenkins</system>
