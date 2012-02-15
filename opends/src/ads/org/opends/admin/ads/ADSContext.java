@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2012 ForgeRock AS
  */
 
 package org.opends.admin.ads;
@@ -500,7 +501,7 @@ public class ADSContext
 
 
   /**
-   * Method called to udpate the properties of a server in the ADS.
+   * Method called to update the properties of a server in the ADS.
    * @param serverProperties the new properties of the server.
    * @param newServerId The new server Identifier, or null.
    * @throws ADSContextException if the server could not be registered.
@@ -725,7 +726,7 @@ public class ADSContext
    * if there is no server registered associated with those properties,
    * registers it and if it is already registered, updates it.
    * @param serverProperties the server properties.
-   * @return 0 if the server was registered; 1 if udpated (i.e., the server
+   * @return 0 if the server was registered; 1 if updated (i.e., the server
    * entry was already in ADS).
    * @throws ADSContextException if something goes wrong.
    */
@@ -925,7 +926,7 @@ public class ADSContext
    * Creates a Server Group in the ADS.
    * @param serverGroupProperties the properties of the server group to be
    * created.
-   * @throws ADSContextException if somethings goes wrong.
+   * @throws ADSContextException if something goes wrong.
    */
   public void createServerGroup(
       Map<ServerGroupProperty, Object> serverGroupProperties)
@@ -961,7 +962,7 @@ public class ADSContext
    * @param serverGroupProperties the new properties of the server group to be
    * updated.
    * @param groupID The group name.
-   * @throws ADSContextException if somethings goes wrong.
+   * @throws ADSContextException if something goes wrong.
    */
   public void updateServerGroup(String groupID,
       Map<ServerGroupProperty, Object> serverGroupProperties)
@@ -1020,7 +1021,7 @@ public class ADSContext
    * @param serverGroupProperties the new properties of the server group to be
    * updated.
    * @param groupID The group name.
-   * @throws ADSContextException if somethings goes wrong.
+   * @throws ADSContextException if something goes wrong.
    */
   public void removeServerGroupProp(String groupID,
       Set<ServerGroupProperty> serverGroupProperties)
@@ -1051,7 +1052,7 @@ public class ADSContext
    * Deletes a Server Group in the ADS.
    * @param serverGroupProperties the properties of the server group to be
    * deleted.
-   * @throws ADSContextException if somethings goes wrong.
+   * @throws ADSContextException if something goes wrong.
    */
   public void deleteServerGroup(
       Map<ServerGroupProperty, Object> serverGroupProperties)
@@ -1254,7 +1255,16 @@ public class ADSContext
       }
       finally
       {
-        tmpContext.close();
+        try
+        {
+          tmpContext.close();
+        }
+        catch (Exception ex)
+        {
+          LOG.log(Level.WARNING,
+              "Error while closing LDAP connection after removing admin data",
+              ex);
+        }
       }
       // Recreate the container entries:
       createContainerEntry(getServerContainerDN());
@@ -2551,7 +2561,15 @@ public class ADSContext
       }
       finally
       {
-        keyEntries.close();
+        try
+        {
+          keyEntries.close();
+        }
+        catch (Exception ex)
+        {
+          LOG.log(Level.WARNING,
+              "Unexpected error closing enumeration on ADS key pairs", ex);
+        }
       }
     }
     catch (NamingException x) {
