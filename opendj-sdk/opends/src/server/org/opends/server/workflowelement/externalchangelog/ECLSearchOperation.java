@@ -208,7 +208,7 @@ public class ECLSearchOperation
    * @param wfe
    *          The local backend work-flow element.
    * @throws CanceledOperationException
-   *           if this operation should be cancelled
+   *           if this operation should be canceled
    */
   void processECLSearch(ECLWorkflowElement wfe)
   throws CanceledOperationException
@@ -988,10 +988,10 @@ public class ECLSearchOperation
    * @param changeNumber    The provided replication changeNumber.
    * @param clearLDIFchanges     The provided LDIF changes for ADD and MODIFY
    * @param targetUUID      The provided targetUUID.
-   * @param includedAttributes TODO:ECL Adress hist entry attributes
+   * @param includedAttributes The provided attributes to include
    * @param draftChangenumber The provided draft change number (integer)
    * @param changetype      The provided change type (add, ...)
-   * @param changeInitiatorsName The provided initiatiors name
+   * @param changeInitiatorsName The provided initiators name
    * @return                The created ECL entry.
    * @throws DirectoryException
    *         When any error occurs.
