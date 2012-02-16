@@ -39,8 +39,8 @@ import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPListenerOptions;
 import org.forgerock.opendj.ldap.ServerConnectionFactory;
-import org.glassfish.grizzly.filterchain.DefaultFilterChain;
 import org.glassfish.grizzly.filterchain.FilterChain;
+import org.glassfish.grizzly.filterchain.FilterChainBuilder;
 import org.glassfish.grizzly.filterchain.TransportFilter;
 import org.glassfish.grizzly.nio.transport.TCPNIOServerConnection;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
@@ -89,10 +89,14 @@ public final class LDAPListenerImpl implements Closeable
       this.transport = options.getTCPNIOTransport();
     }
     this.connectionFactory = factory;
-    this.defaultFilterChain = new DefaultFilterChain();
-    this.defaultFilterChain.add(new TransportFilter());
-    this.defaultFilterChain.add(new LDAPServerFilter(this, new LDAPReader(
-        new DecodeOptions(options.getDecodeOptions())), 0));
+
+    final DecodeOptions decodeOptions = new DecodeOptions(options
+        .getDecodeOptions());
+    this.defaultFilterChain = FilterChainBuilder
+        .stateless()
+        .add(new TransportFilter())
+        .add(new LDAPServerFilter(this, new LDAPReader(decodeOptions), 0))
+        .build();
 
     this.serverConnection = transport.bind(address, options.getBacklog());
     this.serverConnection.setProcessor(defaultFilterChain);

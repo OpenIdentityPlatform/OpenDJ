@@ -126,8 +126,8 @@ final class LDAPClientFilter extends BaseFilter
               if (!bindClient.evaluateResult(result))
               {
                 // The server is expecting a multi stage bind response.
-                final int msgID = ldapConnection
-                    .addPendingRequest(pendingRequest);
+                final int msgID =
+                    ldapConnection.continuePendingBindRequest(future);
 
                 final ASN1BufferWriter asn1Writer =
                     ASN1BufferWriter.getWriter();

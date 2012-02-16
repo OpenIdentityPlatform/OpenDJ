@@ -826,7 +826,6 @@ $(".flat").live("dblclick", function() {
         <enabled>false</enabled>
       </releases>
     </repository>
-    <!--
     <repository>
       <id>jvnet-nexus-snapshots</id>
       <url>https://maven.java.net/content/repositories/snapshots</url>
@@ -837,7 +836,6 @@ $(".flat").live("dblclick", function() {
         <enabled>true</enabled>
       </snapshots>
     </repository>
-    -->
   </repositories>
   <dependencyManagement>
     <dependencies>
