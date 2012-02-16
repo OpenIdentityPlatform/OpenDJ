@@ -31,7 +31,6 @@ package com.forgerock.opendj.ldap;
 
 
 import static com.forgerock.opendj.ldap.LDAPConstants.OID_NOTICE_OF_DISCONNECTION;
-import static com.forgerock.opendj.ldap.SynchronizedConnection.synchronizeConnection;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -215,8 +214,7 @@ final class LDAPServerFilter extends BaseFilter
 
     private ClientContextImpl(final Connection<?> connection)
     {
-      // FIXME: remove synchronization when OPENDJ-422 is resolved.
-      this.connection = synchronizeConnection(connection);
+      this.connection = connection;
     }
 
 
@@ -320,27 +318,36 @@ final class LDAPServerFilter extends BaseFilter
     public void enableConnectionSecurityLayer(
         final ConnectionSecurityLayer layer)
     {
-      installFilter(connection, new ConnectionSecurityLayerFilter(layer,
-          connection.getTransport().getMemoryManager()));
+      synchronized (this)
+      {
+        installFilter(new ConnectionSecurityLayerFilter(layer, connection
+            .getTransport().getMemoryManager()));
+      }
     }
 
 
 
     @Override
-    public void enableTLS(final SSLContext sslContext, final String[] protocols,
-        final String[] suites, final boolean wantClientAuth,
-        final boolean needClientAuth)
+    public void enableTLS(final SSLContext sslContext,
+        final String[] protocols, final String[] suites,
+        final boolean wantClientAuth, final boolean needClientAuth)
     {
       Validator.ensureNotNull(sslContext);
-      SSLEngineConfigurator sslEngineConfigurator;
+      synchronized (this)
+      {
+        if (isTLSEnabled())
+        {
+          throw new IllegalStateException("TLS already enabled");
+        }
 
-      sslEngineConfigurator = new SSLEngineConfigurator(sslContext, false,
-          false, false);
-      sslEngineConfigurator.setEnabledCipherSuites(suites);
-      sslEngineConfigurator.setEnabledProtocols(protocols);
-      sslEngineConfigurator.setWantClientAuth(wantClientAuth);
-      sslEngineConfigurator.setNeedClientAuth(needClientAuth);
-      installFilter(connection, new SSLFilter(sslEngineConfigurator, null));
+        SSLEngineConfigurator sslEngineConfigurator =
+            new SSLEngineConfigurator(sslContext, false, false, false);
+        sslEngineConfigurator.setEnabledCipherSuites(suites);
+        sslEngineConfigurator.setEnabledProtocols(protocols);
+        sslEngineConfigurator.setWantClientAuth(wantClientAuth);
+        sslEngineConfigurator.setNeedClientAuth(needClientAuth);
+        installFilter(new SSLFilter(sslEngineConfigurator, null));
+      }
     }
 
 
@@ -383,9 +390,61 @@ final class LDAPServerFilter extends BaseFilter
 
 
 
-    private Connection<?> getConnection()
+    /**
+     * Installs a new Grizzly filter (e.g. SSL/SASL) beneath the top-level LDAP
+     * filter.
+     *
+     * @param filter
+     *          The filter to be installed.
+     */
+    private void installFilter(final Filter filter)
     {
-      return connection;
+      // Determine the index where the filter should be added.
+      final FilterChain oldFilterChain = (FilterChain) connection.getProcessor();
+      int filterIndex = oldFilterChain.size() - 1;
+      if (filter instanceof SSLFilter)
+      {
+        // Beneath any ConnectionSecurityLayerFilters if present, otherwise
+        // beneath the LDAP filter.
+        for (int i = oldFilterChain.size() - 2; i >= 0; i--)
+        {
+          if (!(oldFilterChain.get(i) instanceof ConnectionSecurityLayerFilter))
+          {
+            filterIndex = i + 1;
+            break;
+          }
+        }
+      }
+
+      // Create the new filter chain.
+      final FilterChain newFilterChain = FilterChainBuilder.stateless()
+          .addAll(oldFilterChain).add(filterIndex, filter).build();
+      connection.setProcessor(newFilterChain);
+    }
+
+
+
+    /**
+     * Indicates whether or not TLS is enabled this provided connection.
+     *
+     * @return {@code true} if TLS is enabled on this connection, otherwise
+     *         {@code false}.
+     */
+    private boolean isTLSEnabled()
+    {
+      synchronized (this)
+      {
+        final FilterChain currentFilterChain = (FilterChain) connection
+            .getProcessor();
+        for (Filter filter : currentFilterChain)
+        {
+          if (filter instanceof SSLFilter)
+          {
+            return true;
+          }
+        }
+        return false;
+      }
     }
 
   }
@@ -880,7 +939,7 @@ final class LDAPServerFilter extends BaseFilter
         final ServerConnection<Integer> conn = clientContext
             .getServerConnection();
         final AddHandler handler = new AddHandler(messageID,
-            clientContext.getConnection());
+            ctx.getConnection());
         conn.handleAdd(messageID, request, handler, handler);
       }
     }
@@ -899,7 +958,7 @@ final class LDAPServerFilter extends BaseFilter
         final ServerConnection<Integer> conn = clientContext
             .getServerConnection();
         final BindHandler handler = new BindHandler(messageID,
-            clientContext.getConnection());
+            ctx.getConnection());
         conn.handleBind(messageID, version, bindContext, handler, handler);
       }
     }
@@ -918,7 +977,7 @@ final class LDAPServerFilter extends BaseFilter
         final ServerConnection<Integer> conn = clientContext
             .getServerConnection();
         final CompareHandler handler = new CompareHandler(messageID,
-            clientContext.getConnection());
+            ctx.getConnection());
         conn.handleCompare(messageID, request, handler, handler);
       }
     }
@@ -937,7 +996,7 @@ final class LDAPServerFilter extends BaseFilter
         final ServerConnection<Integer> conn = clientContext
             .getServerConnection();
         final DeleteHandler handler = new DeleteHandler(messageID,
-            clientContext.getConnection());
+            ctx.getConnection());
         conn.handleDelete(messageID, request, handler, handler);
       }
     }
@@ -956,7 +1015,7 @@ final class LDAPServerFilter extends BaseFilter
         final ServerConnection<Integer> conn = clientContext
             .getServerConnection();
         final ExtendedHandler<R> handler = new ExtendedHandler<R>(messageID,
-            clientContext.getConnection());
+            ctx.getConnection());
         conn.handleExtendedRequest(messageID, request, handler, handler);
       }
     }
@@ -975,7 +1034,7 @@ final class LDAPServerFilter extends BaseFilter
         final ServerConnection<Integer> conn = clientContext
             .getServerConnection();
         final ModifyDNHandler handler = new ModifyDNHandler(messageID,
-            clientContext.getConnection());
+            ctx.getConnection());
         conn.handleModifyDN(messageID, request, handler, handler);
       }
     }
@@ -994,7 +1053,7 @@ final class LDAPServerFilter extends BaseFilter
         final ServerConnection<Integer> conn = clientContext
             .getServerConnection();
         final ModifyHandler handler = new ModifyHandler(messageID,
-            clientContext.getConnection());
+            ctx.getConnection());
         conn.handleModify(messageID, request, handler, handler);
       }
     }
@@ -1013,7 +1072,7 @@ final class LDAPServerFilter extends BaseFilter
         final ServerConnection<Integer> conn = clientContext
             .getServerConnection();
         final SearchHandler handler = new SearchHandler(messageID,
-            clientContext.getConnection());
+            ctx.getConnection());
         conn.handleSearch(messageID, request, handler, handler);
       }
     }
@@ -1127,53 +1186,5 @@ final class LDAPServerFilter extends BaseFilter
     }
 
     return ctx.getStopAction();
-  }
-
-
-
-  private synchronized void installFilter(final Connection<?> connection,
-      final org.glassfish.grizzly.filterchain.Filter filter)
-  {
-    FilterChain filterChain = (FilterChain) connection.getProcessor();
-
-    // Ensure that the SSL filter is not installed twice.
-    if (filter instanceof SSLFilter)
-    {
-      for (Filter f : filterChain)
-      {
-        if (f instanceof SSLFilter)
-        {
-          // SSLFilter already installed.
-          throw new IllegalStateException("SSL already installed on connection");
-        }
-      }
-    }
-
-    // Copy on update the default filter chain.
-    if (listener.getDefaultFilterChain() == filterChain)
-    {
-      filterChain = new DefaultFilterChain(filterChain);
-      connection.setProcessor(filterChain);
-    }
-
-    // Ensure that the SSL filter is beneath any connection security layer
-    // filters.
-    if (filter instanceof SSLFilter)
-    {
-      for (int i = filterChain.size() - 1; i >= 0; i--)
-      {
-        if (!(filterChain.get(i) instanceof ConnectionSecurityLayerFilter))
-        {
-          filterChain.add(i, filter);
-          break;
-        }
-      }
-    }
-    else
-    {
-      // Add connection security layers to the end of the chain.
-      filterChain.add(filterChain.size() - 1, filter);
-    }
-
   }
 }

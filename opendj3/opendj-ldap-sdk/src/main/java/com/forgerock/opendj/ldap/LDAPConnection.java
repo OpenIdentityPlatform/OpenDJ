@@ -30,7 +30,6 @@ package com.forgerock.opendj.ldap;
 
 
 
-import static com.forgerock.opendj.ldap.SynchronizedConnection.synchronizeConnection;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.io.IOException;
@@ -49,9 +48,9 @@ import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.requests.*;
 import org.forgerock.opendj.ldap.responses.*;
 import org.glassfish.grizzly.CompletionHandler;
-import org.glassfish.grizzly.filterchain.DefaultFilterChain;
 import org.glassfish.grizzly.filterchain.Filter;
 import org.glassfish.grizzly.filterchain.FilterChain;
+import org.glassfish.grizzly.filterchain.FilterChainBuilder;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.ssl.SSLFilter;
 
@@ -69,9 +68,8 @@ import com.forgerock.opendj.util.Validator;
 final class LDAPConnection extends AbstractAsynchronousConnection implements
     Connection
 {
-  private final SynchronizedConnection<?> connection;
+  private final org.glassfish.grizzly.Connection<?> connection;
   private Result connectionInvalidReason;
-  private FilterChain customFilterChain;
   private boolean isClosed = false;
   private final List<ConnectionEventListener> listeners =
       new CopyOnWriteArrayList<ConnectionEventListener>();
@@ -97,8 +95,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
   LDAPConnection(final org.glassfish.grizzly.Connection<?> connection,
       final LDAPOptions options)
   {
-    // FIXME: remove synchronization when OPENDJ-422 is resolved.
-    this.connection = synchronizeConnection(connection);
+    this.connection = connection;
     this.options = options;
   }
 
@@ -255,9 +252,8 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
     {
       context = request
           .createBindClient(connection.getPeerAddress() instanceof InetSocketAddress ?
-              ((InetSocketAddress) connection
-              .getPeerAddress()).getHostName() : connection.getPeerAddress()
-              .toString());
+              ((InetSocketAddress) connection.getPeerAddress()).getHostName()
+              : connection.getPeerAddress().toString());
     }
     catch (final Exception e)
     {
@@ -567,7 +563,10 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
    */
   public boolean isClosed()
   {
-    return isClosed;
+    synchronized (stateLock)
+    {
+      return isClosed;
+    }
   }
 
 
@@ -577,7 +576,10 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
    */
   public boolean isValid()
   {
-    return connectionInvalidReason == null && !isClosed;
+    synchronized (stateLock)
+    {
+      return connectionInvalidReason == null && !isClosed;
+    }
   }
 
 
@@ -784,7 +786,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
 
 
 
-  int addPendingRequest(final AbstractLDAPFutureResultImpl<?> request)
+  int continuePendingBindRequest(final LDAPBindFutureResultImpl future)
       throws ErrorResultException
   {
     final int newMsgID = nextMsgID.getAndIncrement();
@@ -794,7 +796,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
       {
         throw newErrorResult(connectionInvalidReason);
       }
-      pendingRequests.put(newMsgID, request);
+      pendingRequests.put(newMsgID, future);
     }
     return newMsgID;
   }
@@ -969,9 +971,9 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
 
 
 
-  synchronized void handleUnsolicitedNotification(final ExtendedResult result)
+  void handleUnsolicitedNotification(final ExtendedResult result)
   {
-    if (isClosed)
+    if (isClosed())
     {
       // Don't notify after connection is closed.
       return;
@@ -985,17 +987,41 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
 
 
 
+  /**
+   * Installs a new Grizzly filter (e.g. SSL/SASL) beneath the top-level LDAP
+   * filter.
+   *
+   * @param filter
+   *          The filter to be installed.
+   */
   void installFilter(final Filter filter)
   {
-    if (customFilterChain == null)
+    synchronized (stateLock)
     {
-      customFilterChain = new DefaultFilterChain(
-          (FilterChain) connection.getProcessor());
-      connection.setProcessor(customFilterChain);
-    }
+      // Determine the index where the filter should be added.
+      FilterChain oldFilterChain = (FilterChain) connection.getProcessor();
+      int filterIndex = oldFilterChain.size() - 1;
+      if (filter instanceof SSLFilter)
+      {
+        // Beneath any ConnectionSecurityLayerFilters if present, otherwise
+        // beneath the LDAP filter.
+        for (int i = oldFilterChain.size() - 2; i >= 0; i--)
+        {
+          if (!(oldFilterChain.get(i) instanceof ConnectionSecurityLayerFilter))
+          {
+            filterIndex = i + 1;
+            break;
+          }
+        }
+      }
 
-    // Install the SSLFilter in the custom filter chain
-    customFilterChain.add(customFilterChain.size() - 1, filter);
+      // Create the new filter chain.
+      FilterChain newFilterChain = FilterChainBuilder.stateless()
+          .addAll(oldFilterChain)
+          .add(filterIndex, filter)
+          .build();
+      connection.setProcessor(newFilterChain);
+    }
   }
 
 
@@ -1008,9 +1034,19 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
    */
   boolean isTLSEnabled()
   {
-    final FilterChain currentFilterChain = (FilterChain) connection
-        .getProcessor();
-    return currentFilterChain.get(currentFilterChain.size() - 2) instanceof SSLFilter;
+    synchronized (stateLock)
+    {
+      final FilterChain currentFilterChain = (FilterChain) connection
+          .getProcessor();
+      for (Filter filter : currentFilterChain)
+      {
+        if (filter instanceof SSLFilter)
+        {
+          return true;
+        }
+      }
+      return false;
+    }
   }
 
 
@@ -1029,28 +1065,28 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements
 
 
 
-  synchronized void startTLS(final SSLContext sslContext,
+  void startTLS(final SSLContext sslContext,
       final List<String> protocols, final List<String> cipherSuites,
       final CompletionHandler<SSLEngine> completionHandler) throws IOException
   {
-    if (isTLSEnabled())
+    synchronized (stateLock)
     {
-      return;
+      if (isTLSEnabled())
+      {
+        throw new IllegalStateException("TLS already enabled");
+      }
+
+      SSLEngineConfigurator sslEngineConfigurator = new SSLEngineConfigurator(
+          sslContext, true, false, false);
+      sslEngineConfigurator.setEnabledProtocols(protocols.isEmpty() ? null
+          : protocols.toArray(new String[protocols.size()]));
+      sslEngineConfigurator
+          .setEnabledCipherSuites(cipherSuites.isEmpty() ? null : cipherSuites
+              .toArray(new String[cipherSuites.size()]));
+      SSLFilter sslFilter = new SSLFilter(null, sslEngineConfigurator);
+      installFilter(sslFilter);
+      sslFilter.handshake(connection, completionHandler);
     }
-
-    SSLFilter sslFilter;
-    SSLEngineConfigurator sslEngineConfigurator;
-
-    sslEngineConfigurator = new SSLEngineConfigurator(sslContext, true, false,
-        false);
-    sslEngineConfigurator.setEnabledProtocols(protocols.isEmpty() ? null
-        : protocols.toArray(new String[protocols.size()]));
-    sslEngineConfigurator.setEnabledCipherSuites(cipherSuites.isEmpty() ? null
-        : cipherSuites.toArray(new String[cipherSuites.size()]));
-    sslFilter = new SSLFilter(null, sslEngineConfigurator);
-    installFilter(sslFilter);
-    sslFilter.handshake(connection.getUnsynchronizedConnection(),
-        completionHandler);
   }
 
 

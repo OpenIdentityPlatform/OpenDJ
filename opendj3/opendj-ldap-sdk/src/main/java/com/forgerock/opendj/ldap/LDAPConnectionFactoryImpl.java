@@ -45,8 +45,8 @@ import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.glassfish.grizzly.CompletionHandler;
 import org.glassfish.grizzly.EmptyCompletionHandler;
-import org.glassfish.grizzly.filterchain.DefaultFilterChain;
 import org.glassfish.grizzly.filterchain.FilterChain;
+import org.glassfish.grizzly.filterchain.FilterChainBuilder;
 import org.glassfish.grizzly.filterchain.TransportFilter;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 
@@ -261,9 +261,10 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory
     this.options = new LDAPOptions(options);
     this.clientFilter = new LDAPClientFilter(new LDAPReader(
         this.options.getDecodeOptions()), 0);
-    this.defaultFilterChain = new DefaultFilterChain();
-    this.defaultFilterChain.add(new TransportFilter());
-    this.defaultFilterChain.add(clientFilter);
+    this.defaultFilterChain = FilterChainBuilder.stateless()
+        .add(new TransportFilter())
+        .add(clientFilter)
+        .build();
   }
 
 
